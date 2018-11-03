@@ -309,14 +309,14 @@ void TPZVecL2::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatri
     //values[1] : flux error using L2 norm
     for(int id=0; id<fDim; id++) {
         REAL diffFlux = fabs(dsol[id] - du_exact(id,0));
-        values[1]  += diffFlux*diffFlux;
+        values[0]  += diffFlux*diffFlux;
     }
     if(du_exact.Rows()>fDim){
         //values[2] : divergence using L2 norm
         REAL diffDiv = fabs(div[0] - du_exact(fDim,0));
-        values[2]=diffDiv*diffDiv;
+        values[1]=diffDiv*diffDiv;
         //values[3] : Hdiv norm => values[1]+values[2];
-        values[3]= values[1]+values[2];
+        values[2]= values[0]+values[1];
     }
 }
 

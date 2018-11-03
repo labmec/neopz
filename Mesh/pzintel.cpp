@@ -983,7 +983,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
             blocknorm(in, jn) = sqrt(blocknorm(in, jn));
         }
     }
-#ifdef PZDEBUG_HUGE
+#ifdef PZDEBUG
     CheckConstraintConsistency(side);
 #endif
     TPZConnect &inod = Connect(MidSideConnectLocId(side));
@@ -1219,7 +1219,8 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
         int largeside = large.Side();
         TPZInterpolatedElement *largel = dynamic_cast<TPZInterpolatedElement *> (large.Element());
         int nlargesideconnects = largel->NSideConnects(largeside);
-        TPZConnect &thiscon = Connect(side);
+        int n_small_side_connect = NSideConnects(side)-1;
+        TPZConnect &thiscon = SideConnect(n_small_side_connect, side);
         int jn;
         TPZConnect::TPZDepend *dep = thiscon.FirstDepend();
         while (dep) {
@@ -1237,7 +1238,8 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
             dep = dep->fNext;
         }
     } else {
-        TPZConnect &thiscon = Connect(side);
+        int n_small_side_connect = NSideConnects(side)-1;
+        TPZConnect &thiscon = SideConnect(n_small_side_connect, side);
         if (thiscon.HasDependency()) {
             stringstream sout;
             large = thisside.LowerLevelElementList(1);

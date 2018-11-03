@@ -340,6 +340,15 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     rightel->AffineTransform(rightcomptr);
        
     InitMaterialData(data);
+    if(data.fNeedsNeighborSol)
+    {
+        for (int i=0; i<datavecleft.size(); i++) {
+            datavecleft[i].fNeedsSol = true;
+        }
+        for (int i=0; i<datavecright.size(); i++) {
+            datavecright[i].fNeedsSol = true;
+        }
+    }
     int nmesh =datavecleft.size();
     for(int id = 0; id<nmesh; id++){
         datavecleft[id].fNeedsNormal=data.fNeedsNormal;

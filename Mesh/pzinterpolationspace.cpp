@@ -322,9 +322,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     
     if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     
-    
     TPZMaterialData data;
-    //data.p = this->MaxOrder();
     this->InitMaterialData(data);
     data.p = this->MaxOrder();
     
@@ -337,14 +335,14 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 //#ifdef PZDEBUG
 //    {
 
-        TPZManVector<int,3> intorder(dim,this->MaxOrder()*2);
-        TPZAutoPointer<TPZIntPoints> intrule_clone = intrule->Clone();
-        intrule_clone->SetOrder(intorder);
-    
-        if(intrule_clone->NPoints() > intrule->NPoints()){
-            std::cout << "Element " << fIndex << " Bad integration rule points needed = " << intrule_clone->NPoints() << "; points obtained  = " <<  intrule->NPoints() << std::endl;
-            intrule = intrule_clone;
-        }
+//        TPZManVector<int,3> intorder(dim,this->MaxOrder()*2);
+//        TPZAutoPointer<TPZIntPoints> intrule_clone = intrule->Clone();
+//        intrule_clone->SetOrder(intorder);
+//
+//        if(intrule_clone->NPoints() > intrule->NPoints()){
+//            std::cout << "Element " << fIndex << " Bad integration rule points needed = " << intrule_clone->NPoints() << "; points obtained  = " <<  intrule->NPoints() << std::endl;
+//            intrule = intrule_clone;
+//        }
     
 //    }
 //#endif
@@ -530,9 +528,6 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 	this->ComputeSolution(qsi,data);
     
 	data.x.Resize(3);
-    for (int i=0; i<qsi.size(); i++) {
-        qsi[i] *= 0.999;
-    }
 	this->Reference()->X(qsi, data.x);
 	
 	int solSize = material->NSolutionVariables(var);
@@ -1125,7 +1120,7 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
         
         //in the case of the hdiv functions
         TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
-        if(shapetype==data.EVecShape){
+        if(shapetype==data.EVecandShape){
             this->ComputeRequiredData(data, intpoint);
         }
         else

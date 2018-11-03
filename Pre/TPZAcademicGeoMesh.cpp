@@ -194,8 +194,8 @@ TPZGeoMesh *TPZAcademicGeoMesh::RedBlackPyramidalAndHexagonalMesh(){
     gmesh->SetDimension(3);
     
     int64_t s = n + 1;
-    REAL dir = 1.0/sqrt(3.0);
-    REAL dx = 1.0/n;
+    REAL dir = 1.0;
+    REAL dx = 0.5/n;
     int64_t n_nodes = gmesh->NNodes();
     TPZStack<int> perm;
     perm.push_back(0);
@@ -235,7 +235,6 @@ TPZGeoMesh *TPZAcademicGeoMesh::RedBlackPyramidalAndHexagonalMesh(){
                     for (int i = 0; i < 3; i++) {
                         x[i]+=dx*dir;
                     }
-
                     
                     gmesh->NodeVec().Resize(n_nodes+1);
                     gmesh->NodeVec()[n_nodes].Initialize(x, *gmesh);
@@ -301,7 +300,7 @@ TPZGeoMesh *TPZAcademicGeoMesh::RedBlackPyramidalAndHexagonalMesh(){
             }
         }
     }
-
+    
     gmesh->BuildConnectivity();
     AddBoundaryElements(gmesh);
     if (fShouldDeform) {

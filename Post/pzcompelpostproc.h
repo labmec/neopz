@@ -290,8 +290,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
     TPZManVector<REAL,3> intpointRef(dim,0);
     REAL weight = 0.;
     REAL weightRef = 0;
-    
-    if (!&this->GetIntegrationRule()) {
+  
+    TPZIntPoints* pFIntegrationRule = &this->GetIntegrationRule();
+    if (!pFIntegrationRule) {
         PZError << "Error at " << __PRETTY_FUNCTION__ << " Integration rule must be used from TPZCompEl. \n";
         DebugStop();
     }

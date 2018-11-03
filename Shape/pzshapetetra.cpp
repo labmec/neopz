@@ -189,7 +189,7 @@ namespace pzshape {
 		//face shapes
 		for (int face = 0; face < 4; face++) {
 			if (order[6+face] < 3) continue;
-			TPZVec<REAL> outval(2);
+			TPZManVector<REAL,2> outval(2);
 			ProjectPoint3dTetraToFace(face,pt,outval);
 			REAL store1[20],store2[60];
 			int ord1;//,ord2;

@@ -21,7 +21,7 @@ TPZDualPoisson::TPZDualPoisson(int mat_id): TPZMaterial(mat_id){
     
 }
 
-TPZDualPoisson::TPZDualPoisson(const TPZDualPoisson &copy){
+TPZDualPoisson::TPZDualPoisson(const TPZDualPoisson &copy) : TPZMaterial(copy){
     
 }
 
@@ -30,8 +30,10 @@ TPZMaterial * TPZDualPoisson::NewMaterial(){
 }
 
 TPZDualPoisson & TPZDualPoisson::operator=(const TPZDualPoisson &other){
+    
     if (this != & other) // prevent self-assignment
     {
+        TPZMaterial::operator=(other);
     }
     return *this;
 }
@@ -253,12 +255,11 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
     
-    STATE divu = 0.0;
+    STATE divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
     TPZFNMatrix<3,STATE> phi_u_i(3,1), phi_u_j(3,1);
     
     int s_i, s_j;
     int v_i, v_j;
-    
     
     for (int iu = 0; iu < nphiu; iu++)
     {
@@ -297,13 +298,9 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     }
     
     TPZManVector<STATE,1> f(1,0.0);
-    TPZFMatrix<STATE> df;
     if (this->HasForcingFunction()) {
-        this->fForcingFunction->Execute(datavec[ub].x, f, df);
+        this->fForcingFunction->Execute(datavec[ub].x, f);
     }
-    
-    
-    divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
     
     for (int ip = 0; ip < nphip; ip++)
     {

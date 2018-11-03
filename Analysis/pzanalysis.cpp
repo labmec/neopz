@@ -122,7 +122,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         if(fSolver) fSolver->ResetMatrix();
 //        fCompMesh->InitializeBlock();
         int64_t neq = fCompMesh->NEquations();
-        if(neq > 20000)
+        if(neq > 20000 and mustOptimizeBandwidth)
         {
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth\n";
             std::cout.flush();
@@ -131,7 +131,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
         {
             OptimizeBandwidth();
         }
-        if(neq > 20000)
+        if(neq > 20000 and mustOptimizeBandwidth)
         {
             std::cout << __PRETTY_FUNCTION__ << " optimizing bandwidth finished\n";
             std::cout.flush();
@@ -215,6 +215,10 @@ void TPZAnalysis::OptimizeBandwidth() {
 	
 	TPZStack<int64_t> elgraph,elgraphindex;
 	int64_t nindep = fCompMesh->NIndependentConnects();
+    
+    /// if there are no connects, there is no bandwidth to be optimized
+    if(nindep == 0) return;
+    
 	fCompMesh->ComputeElGraph(elgraph,elgraphindex);
 	int64_t nel = elgraphindex.NElements()-1;
 	int64_t el,ncel = fCompMesh->NElements();

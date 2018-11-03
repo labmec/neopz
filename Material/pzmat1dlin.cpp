@@ -32,6 +32,7 @@ void TPZMat1dLin::Contribute(TPZMaterialData &data,
         << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
         " phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
         dphi.Rows() << "\n";
+		StopError();
     }
 
     if(fForcingFunction)

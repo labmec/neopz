@@ -76,7 +76,7 @@ public:
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh);
         
-        int ClassId() const;
+    int ClassId() const;
 	
 	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid) const;

@@ -449,7 +449,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
         datavec[iref].p = msp->MaxOrder();
         
         TPZMaterialData::MShapeFunctionType shapetype = datavec[iref].fShapeType;
-        if(shapetype==datavec[iref].EVecShape){
+        if(shapetype==datavec[iref].EVecandShape){
             msp->ComputeRequiredData(datavec[iref], myqsi);
         
         }

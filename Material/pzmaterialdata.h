@@ -140,6 +140,9 @@ public:
      */
     virtual bool Compare(TPZSavable *copy, bool override = false) const;
     
+    /** @brief Computes the flux values based on a Material of Hdiv approx space */
+    void ComputeFluxValues(TPZFMatrix<REAL> & fluxes);
+    
     public:
 virtual int ClassId() const;
 

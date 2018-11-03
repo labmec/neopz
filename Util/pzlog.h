@@ -10,8 +10,16 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>           
+
 
 #include <pz_config.h>
+
+inline void StopError()
+{
+	std::cout << "Ponto de parada\n";
+}
+
 
 #ifdef LOG4CXX
 
@@ -24,10 +32,6 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
-inline void StopError()
-{
-    std::cout << "Ponto de parada\n";
-}
 
 /**
  * \addtogroup util
