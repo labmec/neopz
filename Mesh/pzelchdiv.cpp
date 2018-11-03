@@ -1509,7 +1509,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         data.fNormalVec.Resize(3, numvec);
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
     }
-    data.fShapeType = TPZMaterialData::EVecShape;
+    data.fShapeType = TPZMaterialData::EVecandShape;
     
 //    cout << "vecShape " << endl;
 //    cout << data.fVecShapeIndex << endl;;
