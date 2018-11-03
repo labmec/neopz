@@ -272,6 +272,27 @@ int TPZMaterialData::ClassId() const{
     return Hash("TPZMaterialData");
 }
 
-#ifndef BORLAND
+/** @brief Computes the flux values based on a Material of Hdiv approx space */
+// @TODO:: Implement a method that computes the divergence of the fluxes
+void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
+    
+    if (fShapeType not_eq EVecandShape) {
+        std::cout << __PRETTY_FUNCTION__ << "works only for Vec and Shape type." << std::endl;
+        return;
+    }
+    
+    int n_shape = fVecShapeIndex.size();
+    fluxes.Redim(3, n_shape);
+    
+    for (int i = 0; i < n_shape; i++) {
+        int i_v = fVecShapeIndex[i].first;
+        int i_s = fVecShapeIndex[i].second;
+        
+        for (int j = 0; j < 3; j++) {
+            fluxes(j,i) = phi(i_s,0) * fNormalVec(j,i_v);
+        }
+    }
+    
+}
+
 template class TPZRestoreClass<TPZMaterialData>;
-#endif
