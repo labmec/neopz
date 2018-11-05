@@ -96,10 +96,17 @@ public:
     /**
      * @brief Sets K01 as computed
      */
-    
-    void SetK01IsComputed (int n)
+    void SetK01IsComputed (bool directive)
     {
-        fK01IsComputed=n;
+        fK01IsComputed = directive;
+    }
+    
+    /**
+     * @brief Sets F0 as computed
+     */
+    void SetfF0IsComputed (bool directive)
+    {
+        fF0IsComputed = directive;
     }
 	
 	TPZAutoPointer<TPZMatrix<TVar> > K00()
@@ -120,10 +127,16 @@ public:
         return fK11;
     }
     
+    TPZFMatrix<TVar> &F1()
+    {
+        return fF1;
+    }
+    
     TPZFMatrix<TVar> &F0()
     {
         return fF0;
     }
+    
     int64_t Dim0()
     {
         return fDim0;
@@ -243,7 +256,7 @@ private:
 	bool fIsReduced;
 	
 	/** @brief Is true if \f$ [(K00)^-1][KO1] \f$ has been computed and overwritten \f$ [K01] \f$ */
-	bool fK01IsComputed;
+	bool fK01IsComputed = false;
 	
     /** @brief Is true if \f$ [(K00)^-1][F0] \f$ has been computed and overwritten \f$ [F0] \f$ */
     bool fF0IsComputed = false;

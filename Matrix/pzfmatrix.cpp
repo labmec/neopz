@@ -1705,7 +1705,7 @@ int TPZFMatrix<double>::Decompose_LDLt() {
         return ELDLt;
     }
     if ( this->Rows()!=this->Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
-    char uplo = 'U';
+    char uplo = 'L';
     int dim = Rows();
     int nrhs = 0;
     fPivot.Resize(dim,0);
@@ -1933,7 +1933,7 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
         DebugStop();
     }
     
-    char uplo = 'U';
+    char uplo = 'L';
     int dim = Rows();
     int nrhs = b->Cols();
     double B  = 0.;

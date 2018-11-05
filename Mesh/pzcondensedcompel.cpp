@@ -14,7 +14,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
 #endif
 
 #ifdef USING_LAPACK
-#define USING_DGER2
+//#define USING_DGER
 #ifdef USING_MKL
 #include <mkl.h>
 #elif MACOSX
@@ -303,19 +303,25 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 #endif
     
+    ek.fMat.Print("ek = ",std::cout,EMathematicaInput);
+    ef.fMat.Print("ef = ",std::cout,EMathematicaInput);
+    
 #ifdef USING_DGER
     
+    // Initialization TPZMatRed structure
     fCondensed.Zero();
-    
+    {
+        TPZFMatrix<STATE> * K00_temp = dynamic_cast<TPZFMatrix<STATE> * >(fCondensed.K00().operator->());
+        K00_temp->InitializePivot();
+    }
     int64_t dim0 = fCondensed.Dim0();
     int64_t dim1 = fCondensed.Dim1();
     int64_t rows = ek.fMat.Rows();
     int64_t cols = ek.fMat.Cols()+ef.fMat.Cols();
     
     
-    TPZFMatrix<STATE> KF(rows,cols);
-    
-    for(int64_t i=0; i<rows;i++) // Montando a matriz KF a partir de ek e ef
+    TPZFMatrix<STATE> KF(rows,cols); //  Local object
+    for(int64_t i=0; i<rows;i++)
         for (int64_t j=0; j<cols; j++)
         {
             if (j<rows)
@@ -324,20 +330,20 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
                 KF(i,j) = ef.fMat(i,j-rows);
         }
     
-    for (int64_t i=0; i<dim1; i++) // Aplicando os valores na matriz K10 de fCondensed
+    for (int64_t i=0; i<dim1; i++)
         for (int64_t j=0; j<dim0; j++)
             fCondensed.K10().operator()(i,j)=KF(i+dim0,j);
     
-    for (int64_t i=0; i<dim1; i++) // Aplicando os valores na matriz K11 de fCondensed
+    for (int64_t i=0; i<dim1; i++)
         for (int64_t j=0; j<dim1; j++)
             fCondensed(i+dim0,j+dim0)=KF(i+dim0,j+dim0);
     
-    fCondensed.SetF(ef.fMat); // Definindo ek.fMat como vetor de forcas de fCondensed
+    fCondensed.SetF(ef.fMat);
     
-    
-    for (int64_t i=0; i<rows-dim1; i++) // Realização da condensação estática em KF usando BLAS
+    // LDLt Decomposition
+    for (int64_t i=0; i<rows-dim1; i++)
     {
-        for(int64_t j=i+1;j<cols;j++) // DECOMPOSIÇÃO LDLt
+        for(int64_t j=i+1;j<cols;j++)
         {
             if (j<rows)
             {
@@ -358,50 +364,52 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     
     
-    for (int64_t i=dim0; i< rows; i++) // Aplicando matriz e vetor forças condensadas em ek e ef
+    for (int64_t i=dim0; i< rows; i++)
     {
-        ef.fMat(i,0) = KF.GetVal(i,ek.fMat.Rows());
-        for (int64_t j=dim0; j<ek.fMat.Rows(); j++)
+        ef.fMat(i,0) = KF.GetVal(i,fCondensed.Rows());
+        for (int64_t j=dim0; j< fCondensed.Rows(); j++)
         {
-            ek.fMat(i,j) = KF.GetVal(i,j);
+            fCondensed(i,j) = KF.GetVal(i,j);
         }
     }
     
     TPZAutoPointer<TPZMatrix<STATE> > K00 = fCondensed.K00();
-    for (int64_t i=0; i<dim0; i++) // Substituindo novos valores de K00 e definindo-o como decomposto
+    for (int64_t i=0; i<dim0; i++)
         for (int64_t j=0; j<dim0; j++)
             K00->operator()(i, j) = KF(i,j);
     
     fCondensed.K00()->SetIsDecomposed(ELDLt);
     
     
-    for (int64_t i=0; i<dim0; i++) // Substituindo valores obtidos para K01 usando o BLAS
-        for (int64_t j=0; j<dim1; j++)
-            fCondensed.K01().operator()(i,j) = KF(i,j+dim0);
-    
-    fCondensed.K00()->Subst_LBackward(&fCondensed.K01()); //Com SubstL_Back chegamos ao K01 desejado
-    
-//    void cblas_dtrsm(const enum CBLAS_ORDER __Order, const enum CBLAS_SIDE __Side,
-//                     const enum CBLAS_UPLO __Uplo, const enum CBLAS_TRANSPOSE __TransA,
-//                     const enum CBLAS_DIAG __Diag, const int __M, const int __N,
-//                     const double __alpha, const double *__A, const int __lda, double *__B,
-//                     const int __ldb) __OSX_AVAILABLE_STARTING(__MAC_10_2,__IPHONE_4_0);
-
-    cblas_dtrsm(CblasColMajor,CblasLeft,CblasUpper,CblasNoTrans,CblasUnit,)
-    fCondensed.SetK01IsComputed(1);
-    fCondensed.SetReduced();
+    //    if(0){// Implementation not complete
+    //
+    //        for (int64_t i=0; i<dim0; i++){ // Substituindo valores obtidos para K01 usando o BLAS
+    //            for (int64_t j=0; j<dim1; j++){
+    //                fCondensed.K01().operator()(i,j) = KF(i,j+dim0)/KF(i,i);
+    //            }
+    //
+    //        }
+    //
+    //        double scale = 1.0;
+    //        cblas_dtrsm(CblasColMajor,CblasLeft,CblasUpper,CblasNoTrans,CblasUnit,dim0,dim1,scale,&fCondensed.K00().operator->()->operator()(0,0),dim0,&fCondensed.K01()(0,0),dim0);
+    //    }else{
+    fCondensed.K00()->SolveDirect(fCondensed.K01(), ELDLt);
+    //    }
+    fCondensed.SetF(ef.fMat);
+    fCondensed.SetK01IsComputed(true);
+    fCondensed.SetfF0IsComputed(true);
+    fCondensed.SetReduced();// Directive that instructs the object to behave as reduced matrix.
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
+        fCondensed.Print("Condensed = ",sout);
         ek.fMat.Print("Rigidez",sout);
         ef.fMat.Print("Carga",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    
-    /*******************USING MATRED***************************/
     
 #else
     
@@ -415,7 +423,6 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     
     fCondensed.SetF(ef.fMat);
-    
     
     int64_t dim1 = fCondensed.Dim1();
     TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
@@ -480,11 +487,17 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+
+//    fCondensed.Print("Condensed = ",std::cout);
+    fCondensed.K11().Print("kbar = ",std::cout,EMathematicaInput);
+    fCondensed.F1().Print("fbar = ",std::cout,EMathematicaInput);
+    fCondensed.K01().Print("k01 = ",std::cout,EMathematicaInput);
+    fCondensed.F0().Print("f0 = ",std::cout,EMathematicaInput);
+    
     if (fKeepMatrix == false) {
         fCondensed.K00()->Redim(0, 0);
         fCondensed.K10().Redim(0,0);
         fCondensed.K11().Redim(0,0);
-
     }
 }
 

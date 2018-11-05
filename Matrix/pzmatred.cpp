@@ -230,7 +230,7 @@ void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<T
         {
             std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;
         }
-		fK01IsComputed = 1;
+		fK01IsComputed = true;
 	}
 	fK10.MultAdd(fK01,fK11,(K11),-1.,1.);
     F1Red(F1);
@@ -444,16 +444,19 @@ void TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,c
 	if(form != EInputFormat) {
 		out << "Writing matrix 'TPZMatRed<TSideMatrix>::" << name;
 		out << "' (" << this->Dim() << " x " << this->Dim() << "):\n";
-        out << "K01 overwritten " << this->fK01IsComputed << std::endl;
+        out << "fIsReduced " << this->fIsReduced << std::endl;
+        out << "fF0IsComputed " << this->fF0IsComputed << std::endl;
+        out << "fK01IsComputed " << this->fK01IsComputed << std::endl;
+        out << "fNumberRigidBodyModes " << this->fNumberRigidBodyModes << std::endl;
+		out << std::endl;
+		fK00->Print("K00 =",out,form);
+		fK01.Print("K01 = ",out,form);
+		fK10.Print("K10 = ",out,form);
+		fK11.Print("K11 = ",out,form);
 		
-		fK00->Print("K00=",out,form);
-		fK01.Print("K01",out,form);
-		fK10.Print("K10",out,form);
-		fK11.Print("K11",out,form);
 		
-		
-		fF0.Print("F(0)",out,form);
-		fF1.Print("F(1)",out,form);
+		fF0.Print("F0 = ",out,form);
+		fF1.Print("F1 = ",out,form);
 		
 		out << "\n\n";
 	} else {

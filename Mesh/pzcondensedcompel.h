@@ -19,7 +19,6 @@
 #include <Accelerate/Accelerate.h>
 #else
 #include "cblas.h"
-//#define USING_DGER
 #endif
 #endif
 
