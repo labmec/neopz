@@ -303,8 +303,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 #endif
     
-    ek.fMat.Print("ek = ",std::cout,EMathematicaInput);
-    ef.fMat.Print("ef = ",std::cout,EMathematicaInput);
+//    ek.fMat.Print("ek = ",std::cout,EMathematicaInput);
+//    ef.fMat.Print("ef = ",std::cout,EMathematicaInput);
     
 #ifdef USING_DGER
     
@@ -318,7 +318,6 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     int64_t dim1 = fCondensed.Dim1();
     int64_t rows = ek.fMat.Rows();
     int64_t cols = ek.fMat.Cols()+ef.fMat.Cols();
-    
     
     TPZFMatrix<STATE> KF(rows,cols); //  Local object
     for(int64_t i=0; i<rows;i++)
@@ -363,7 +362,6 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
     }
     
-    
     for (int64_t i=dim0; i< rows; i++)
     {
         ef.fMat(i,0) = KF.GetVal(i,fCondensed.Rows());
@@ -380,7 +378,6 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     fCondensed.K00()->SetIsDecomposed(ELDLt);
     
-    
     //    if(0){// Implementation not complete
     //
     //        for (int64_t i=0; i<dim0; i++){ // Substituindo valores obtidos para K01 usando o BLAS
@@ -394,11 +391,20 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     //        cblas_dtrsm(CblasColMajor,CblasLeft,CblasUpper,CblasNoTrans,CblasUnit,dim0,dim1,scale,&fCondensed.K00().operator->()->operator()(0,0),dim0,&fCondensed.K01()(0,0),dim0);
     //    }else{
     fCondensed.K00()->SolveDirect(fCondensed.K01(), ELDLt);
+    fCondensed.K00()->SolveDirect(fCondensed.F0(), ELDLt);
     //    }
     fCondensed.SetF(ef.fMat);
     fCondensed.SetK01IsComputed(true);
-    fCondensed.SetfF0IsComputed(true);
+    fCondensed.SetF0IsComputed(true);
     fCondensed.SetReduced();// Directive that instructs the object to behave as reduced matrix.
+
+    int64_t dim = ek.fMat.Rows();
+    for (int64_t i = dim0; i<dim; i++) {
+        ef.fMat(i,0) = fCondensed.F1()(i-dim0,0);
+        for (int64_t j = dim0; j<dim; j++) {
+            ek.fMat(i,j) = fCondensed.K11()(i-dim0,j-dim0);
+        }
+    }
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -489,10 +495,10 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
 
 //    fCondensed.Print("Condensed = ",std::cout);
-    fCondensed.K11().Print("kbar = ",std::cout,EMathematicaInput);
-    fCondensed.F1().Print("fbar = ",std::cout,EMathematicaInput);
-    fCondensed.K01().Print("k01 = ",std::cout,EMathematicaInput);
-    fCondensed.F0().Print("f0 = ",std::cout,EMathematicaInput);
+//    fCondensed.K11().Print("kbar = ",std::cout,EMathematicaInput);
+//    fCondensed.F1().Print("fbar = ",std::cout,EMathematicaInput);
+//    fCondensed.K01().Print("k01 = ",std::cout,EMathematicaInput);
+//    fCondensed.F0().Print("f0 = ",std::cout,EMathematicaInput);
     
     if (fKeepMatrix == false) {
         fCondensed.K00()->Redim(0, 0);

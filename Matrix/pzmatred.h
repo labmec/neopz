@@ -104,7 +104,7 @@ public:
     /**
      * @brief Sets F0 as computed
      */
-    void SetfF0IsComputed (bool directive)
+    void SetF0IsComputed (bool directive)
     {
         fF0IsComputed = directive;
     }
