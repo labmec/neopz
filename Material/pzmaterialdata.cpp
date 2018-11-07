@@ -276,7 +276,7 @@ int TPZMaterialData::ClassId() const{
 // @TODO:: Implement a method that computes the divergence of the fluxes
 void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
     
-    if (fShapeType not_eq EVecandShape) {
+    if (fShapeType != EVecandShape) {
         std::cout << __PRETTY_FUNCTION__ << "works only for Vec and Shape type." << std::endl;
         return;
     }
