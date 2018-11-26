@@ -164,6 +164,7 @@ namespace pzgeom {
                 
                 ///Go from NSides-1 to side is
                 TPZTransform<> T1 = Topology::SideToSideTransform(nsides-1, is);
+                pt1.Resize(Topology::SideDimension(is));
                 T1.Apply(qsi,pt1);
                 
                 ///Check if the point is within side boundaries
