@@ -75,11 +75,11 @@ public:
 	
 	static void Print(std::ostream &file, const std::set<int64_t> &nodeset, const char *text);
 	
-	TPZVec<int64_t> &Nodegraph() {
+	TPZManVector<int64_t> &Nodegraph() {
 		return fNodegraph;
 	}
 	
-	TPZVec<int64_t> &Nodegraphindex() {
+	TPZManVector<int64_t> &Nodegraphindex() {
 		return fNodegraphindex;
 	}
 	
@@ -94,7 +94,7 @@ private:
 	 * His node graph is organized by sequence numbers
 	 */
 	TPZManVector<int64_t> fNodegraph;
-	TPZVec<int64_t> fNodegraphindex;
+	TPZManVector<int64_t> fNodegraphindex;
 	/** @brief Counter for the condensed node graph */
 	int64_t fMaxSeqNum;
 	int fMaxLevel;

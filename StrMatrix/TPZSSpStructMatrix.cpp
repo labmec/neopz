@@ -94,8 +94,8 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
     
-    TPZVec<int64_t> nodegraph;
-    TPZVec<int64_t> nodegraphindex;
+    TPZManVector<int64_t> nodegraph;
+    TPZManVector<int64_t> nodegraphindex;
     /**
      *converts an element graph structure into a node graph structure
      *those vectors have size ZERO !!!

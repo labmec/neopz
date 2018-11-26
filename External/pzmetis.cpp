@@ -40,7 +40,7 @@ void TPZMetis::Print(std::ostream &out,char * title) {
 		}
 		out << endl;
 	}
-	TPZVec<int64_t> nodegraph(0),nodegraphindex(0);
+	TPZManVector<int64_t> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
 	int numelnodegraph = nodegraphindex[fNNodes];
 	if (numelnodegraph == nodegraph.NElements() ) {
@@ -75,7 +75,7 @@ void TPZMetis::Print(std::ostream &out) {
 	 }
 	 out << endl;
 	 } */
-	TPZVec<int64_t> nodegraph(0),nodegraphindex(0);
+	TPZManVector<int64_t> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
 	int numelnodegraph = nodegraphindex[fNNodes];
 	if (numelnodegraph == nodegraph.NElements() ) {
@@ -95,7 +95,7 @@ void TPZMetis::Print(std::ostream &out) {
 }
 
 void TPZMetis::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm) {
-	TPZVec<int64_t> nodegraph(0),nodegraphindex(0);
+	TPZManVector<int64_t> nodegraph(0),nodegraphindex(0);
 	ConvertGraph(fElementGraph,fElementGraphIndex,nodegraph,nodegraphindex);
 	int64_t numelnodegraph = nodegraphindex[fNNodes];
 	if (numelnodegraph == nodegraph.NElements() )

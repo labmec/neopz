@@ -7,6 +7,7 @@
 #define TPZRENUMBERING_H
 
 #include "pzvec.h"
+#include "pzmanvector.h"
 #include <set>
 #include "TPZSavable.h"
 
@@ -78,7 +79,7 @@ public:
 	 * @brief Will convert an element graph defined by elgraph and elgraphindex
 	 * into a node graph defined by nodegraph and nodegraphindex
 	 */
-	void ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex);
+	void ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZManVector<int64_t> &nodegraph, TPZManVector<int64_t> &nodegraphindex);
 	
 	/** @brief Convert a traditional elgraph to an element to element graph */
 	void ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &eltotelgraph, TPZVec<int> &eltoelweight, TPZVec<int64_t> &eltoelgraphindex);

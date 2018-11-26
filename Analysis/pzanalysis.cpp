@@ -54,6 +54,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+static LoggerPtr loggerError(Logger::getLogger("pz.analysis.error"));
 #endif
 
 #ifdef USING_BOOST
@@ -739,12 +740,15 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
     TPZVec<REAL> ux(neq);
     TPZVec<REAL> sigx(neq);
     TPZManVector<REAL,10> values(10,0.);
+    TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
+    TPZGeoMesh *gmesh = fCompMesh->Reference();
+    int64_t i, nel = elvec.NElements();
+    int64_t nelgeom = gmesh->NElements();
+    TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
     fCompMesh->LoadSolution(fSolution);
     //	SetExact(&Exact);
-    TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
     TPZManVector<REAL,10> errors(10);
     errors.Fill(0.0);
-    int64_t i, nel = elvec.NElements();
     for(i=0;i<nel;i++) {
         TPZCompEl *el = (TPZCompEl *) elvec[i];
         if(el) {
@@ -756,8 +760,10 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
                 el->EvaluateError(fExact, errors, store_error);
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
+                elvalues.Resize(nelgeom,nerrors);
                 for(int ier = 0; ier < nerrors; ier++)
                 {
+                    elvalues(el->Reference()->Index(),ier) = errors[ier];
                     values[ier] += errors[ier] * errors[ier];
                 }
             }
@@ -784,6 +790,14 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             out << "other norms = " << sqrt(values[ier]) << endl;
 #endif
     }
+#ifdef LOG4CXX
+    if(loggerError->isDebugEnabled())
+    {
+        std::stringstream sout;
+        elvalues.Print("Errors = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(loggerError,sout.str())
+    }
+#endif
 	// Returns the calculated errors.
 	for(i=0;i<nerrors;i++)
 		ervec[i] = sqrt(values[i]);

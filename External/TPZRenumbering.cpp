@@ -72,7 +72,7 @@ void TPZRenumbering::NodeToElGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &el
   	}
 }
 
-void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZVec<int64_t> &nodegraph, TPZVec<int64_t> &nodegraphindex) {
+void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, TPZManVector<int64_t> &nodegraph, TPZManVector<int64_t> &nodegraphindex) {
     TPZTimer convert("Converting graph ");
     convert.start();
     int64_t nod, el;
@@ -84,7 +84,7 @@ void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elg
     nodegraphindex.Resize(fNNodes + 1);
     nodegraphindex.Fill(0);
 
-    int64_t nodegraphincrement = 10000;
+    int64_t nodegraphincrement = 100000;
     nodegraph.Resize(nodegraphincrement);
     int64_t nextfreeindex = 0;
     for (nod = 0; nod < fNNodes; nod++) {
@@ -98,9 +98,10 @@ void TPZRenumbering::ConvertGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elg
             nodecon.insert(&elgraph[firstelnode], &elgraph[(lastelnode - 1)] + 1);
         }
         nodecon.erase(nod);
-        while (nextfreeindex + nodecon.size() >= nodegraph.NElements()) nodegraph.Resize(nodegraph.NElements() + nodegraphincrement);
+        while (nextfreeindex + nodecon.size() >= nodegraph.size()) nodegraph.Resize(nodegraph.NElements() + nodegraphincrement,0);
         std::set<int64_t>::iterator it;
         for (it = nodecon.begin(); it != nodecon.end(); it++) nodegraph[nextfreeindex++] = *it;
+        
         nodegraphindex[nod + 1] = nextfreeindex;
     }
     convert.stop();
