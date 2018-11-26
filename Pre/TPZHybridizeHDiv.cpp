@@ -18,6 +18,9 @@
 #include "pzgeoelbc.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzbuildmultiphysicsmesh.h"
+#include "../Mesh/pzgeoelside.h"
+#include "../Multigrid/pztrnsform.h"
+#include <../../neopz-install/pzlib/include/Integral/tpzintpoints.h>
 #include "TPZLagrangeMultiplier.h"
 #include <algorithm>
 
@@ -63,8 +66,29 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     TPZInterpolatedElement *intelright = dynamic_cast<TPZInterpolatedElement *> (right.Element());
     intelleft->SetSideOrient(left.Side(), 1);
     intelright->SetSideOrient(right.Side(), 1);
+    TPZStack<TPZCompElSide> equalright;
     TPZConnect &cleft = intelleft->SideConnect(0, left.Side());
+
     if (cleft.HasDependency()) {
+        // check whether the wrap of the large element was already created
+        gright.EqualLevelCompElementList(equalright,1,0);
+        // only one wrap element should exist
+#ifdef PZDEBUG
+        if(equalright.size() > 1)
+        {
+            DebugStop();
+        }
+        if(equalright.size()==1)
+        {
+            TPZGeoEl *equalgel = equalright[0].Element()->Reference();
+            if(equalgel->Dimension() != fluxmesh->Dimension()-1)
+            {
+                DebugStop();
+            }
+        }
+#endif
+        // reset the reference of the wrap element
+        if(equalright.size()) equalright[0].Element()->Reference()->ResetReference();
         cleft.RemoveDepend();
     }
     else
@@ -86,26 +110,44 @@ std::tuple<int64_t, int> TPZHybridizeHDiv::SplitConnects(const TPZCompElSide &le
     {
         intelright->Reference()->ResetReference();
         intelleft->LoadElementReference();
+        intelleft->SetPreferredOrder(sideorder);
         TPZGeoElBC gbc(gleft, HDivWrapMatid);
         int64_t index;
         wrap1 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        if(cleft.Order() != sideorder)
+        {
+            DebugStop();
+        }
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (wrap1);
         int wrapside = gbc.CreatedElement()->NSides() - 1;
-        intel->SetSideOrient(wrapside, sideorder);
+        intel->SetSideOrient(wrapside, 1);
         intelleft->Reference()->ResetReference();
         wrap1->Reference()->ResetReference();
     }
+    // if the wrap of the large element was not created...
+    if(equalright.size() == 0)
     {
         intelleft->Reference()->ResetReference();
         intelright->LoadElementReference();
+        TPZConnect &cright = intelright->SideConnect(0,right.Side());
+        int rightprevorder = cright.Order();
+        intelright->SetPreferredOrder(cright.Order());
         TPZGeoElBC gbc(gright, HDivWrapMatid);
         int64_t index;
         wrap2 = fluxmesh->ApproxSpace().CreateCompEl(gbc.CreatedElement(), *fluxmesh, index);
+        if(cright.Order() != rightprevorder)
+        {
+            DebugStop();
+        }
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (wrap2);
         int wrapside = gbc.CreatedElement()->NSides() - 1;
-        intel->SetSideOrient(wrapside, sideorder);
+        intel->SetSideOrient(wrapside, 1);
         intelright->Reference()->ResetReference();
         wrap2->Reference()->ResetReference();
+    }
+    else
+    {
+        wrap2 = equalright[0].Element();
     }
     wrap1->LoadElementReference();
     wrap2->LoadElementReference();
@@ -208,7 +250,8 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
         TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
         TPZCompElDisc *intelDisc = dynamic_cast<TPZCompElDisc *> (cel);
         if (intel){
-            intel->SetSideOrder(gel->NSides() - 1, order);
+            intel->PRefine(order);
+//            intel->SetSideOrder(gel->NSides() - 1, order);
         } else if (intelDisc) {
             intelDisc->SetDegree(order);
             intelDisc->SetTrueUseQsiEta();
@@ -485,4 +528,111 @@ std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZC
         GroupElements(cmesh_Hybrid);
     }
     return std::make_tuple(cmesh_Hybrid, meshvec_Hybrid);
+}
+
+static void CompareFluxes(TPZCompElSide &left, TPZCompElSide &right, std::ostream &out)
+{
+    TPZGeoElSide gleft = left.Reference();
+    TPZGeoElSide gright = right.Reference();
+    TPZTransform<REAL> trleft = gleft.Element()->SideToSideTransform(gleft.Side(),gleft.Element()->NSides()-1);
+    TPZTransform<REAL> trright = gright.Element()->SideToSideTransform(gright.Side(),gright.Element()->NSides()-1);
+    int sidedim = gleft.Dimension();
+    int meshdim = gleft.Element()->Mesh()->Dimension();
+    TPZTransform<REAL> tr(sidedim); 
+    gleft.SideTransform3(gright,tr);
+    TPZIntPoints *intpts = gleft.Element()->CreateSideIntegrationRule(gleft.Side(),5);
+    TPZManVector<REAL,3> ptleft(sidedim,0.),ptright(sidedim,0.),ptleftvol(meshdim,0),ptrightvol(meshdim,0);
+    REAL weight;
+    int npoints = intpts->NPoints();
+    for(int ip = 0; ip<npoints; ip++)
+    {
+        intpts->Point(ip,ptleft,weight);
+        tr.Apply(ptleft,ptright);
+        trleft.Apply(ptleft,ptleftvol);
+        trright.Apply(ptright,ptrightvol);
+        TPZManVector<STATE,3> fluxleft(3,0.),fluxright(3,0.);
+        left.Element()->Solution(ptleftvol,0,fluxleft);
+        right.Element()->Solution(ptrightvol,0,fluxright);
+        TPZManVector<REAL,3> normal(3,0.);
+        {
+            TPZFNMatrix<9,REAL> axes(sidedim,3),jacobian(sidedim,sidedim),jacinv(sidedim,sidedim);
+            REAL detjac;
+            gleft.Jacobian(ptleft,jacobian,axes,detjac,jacinv);
+            normal[0] = axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1);
+            normal[1] = -axes(0,0)*axes(1,2)+axes(0,2)*axes(1,0);
+            normal[2] = axes(0,0)*axes(1,1)-axes(0,1)*axes(1,0);
+        }
+        STATE fluxnormalleft = 0.,fluxnormalright = 0.;
+        for(int i=0; i<3; i++)
+        {
+            fluxnormalleft += fluxleft[i]*normal[i];
+            fluxnormalright += fluxright[i]*normal[i];
+        }
+        REAL diff = fabs(fluxnormalleft-fluxnormalright);
+        if(diff > 1.e-6)
+        {
+            TPZManVector<REAL,3> leftx(3),rightx(3);
+            gleft.X(ptleft,leftx);
+            gright.X(ptright,rightx);
+            out << "Left geo element index " << gleft.Element()->Index();
+            out << " Right geo element index " << gright.Element()->Index();
+            out << " xleft " << leftx << " xright " << rightx << std::endl;
+            out << " fluxleft " << fluxleft << std::endl;
+            out << " fluxright" << fluxright << std::endl;
+            out << "normal " << normal << std::endl;
+            out << "fluxnormalleft " << fluxnormalleft << std::endl;
+            out << "fluxnormalright " << fluxnormalright << std::endl;
+        }
+    }
+    delete intpts;
+}
+
+/// verify the consistency of the solution of the flux mesh
+void TPZHybridizeHDiv::VerifySolutionConsistency(TPZCompMesh *fluxmesh, std::ostream &out)
+{
+    int64_t nel = fluxmesh->NElements();
+    fluxmesh->Reference()->ResetReference();
+    fluxmesh->LoadReferences();
+    int meshdim = fluxmesh->Dimension();
+    for(int64_t el = 0; el<nel; el++)
+    {
+        TPZCompEl *cel = fluxmesh->Element(el);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if(!intel) continue;
+        TPZGeoEl *gel = cel->Reference();
+        if(gel->Dimension() != meshdim) continue;
+        int nsides = gel->NSides();
+        for(int side=0; side<nsides; side++)
+        {
+            if(gel->SideDimension(side) != meshdim-1) continue;
+            TPZStack<TPZCompElSide> celsides;
+            TPZGeoElSide gelside(gel,side);
+            gelside.EqualLevelCompElementList(celsides,1,0);
+
+            {
+                TPZCompElSide celneigh = gelside.LowerLevelCompElementList2(1);
+                if(celneigh) 
+                {
+                    celsides.push_back(celneigh);
+                    celneigh.Reference().EqualLevelCompElementList(celsides,1,0);
+                }
+            }
+            TPZCompElSide celneighselect;
+            int nummatch = 0;
+            for(int i=0; i<celsides.size(); i++)
+            {
+                if(celsides[i].Reference().Element()->Dimension() == meshdim) 
+                {
+                    celneighselect = celsides[i];
+                    nummatch++;
+                }
+            }
+            if(nummatch > 1) DebugStop();
+            TPZCompElSide celside(gelside.Reference());
+            if(celneighselect)
+            {
+                CompareFluxes(celside,celneighselect,out);
+            }
+        }
+    }
 }

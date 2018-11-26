@@ -60,6 +60,8 @@ struct TPZHybridizeHDiv {
     /// clones the atomic meshes in meshvec_HDiv and creates a multiphysics hybrid mesh
     std::tuple<TPZCompMesh *, TPZVec<TPZCompMesh *> > Hybridize(TPZCompMesh *cmesh_Multiphysics, TPZVec<TPZCompMesh *> &meshvec_HDiv, bool group_elements=true, double Lagrange_term_multiplier = 1.);
     
+    /// verify the consistency of the solution of the flux mesh
+    static void VerifySolutionConsistency(TPZCompMesh *fluxmesh, std::ostream &out);
 private:
     
     std::tuple<int64_t,int> SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
