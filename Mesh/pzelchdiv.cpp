@@ -22,6 +22,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDiv"));
+static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
 #endif
 
 using namespace std;
@@ -1627,6 +1628,17 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
         
         this->IdentifySideOrder(side);
     }
+    #ifdef LOG4CXX
+    if (loggerdiv->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << (void*) this->Mesh() << "PRefine elindex " << this->Index() << " gel index " << this->Reference()->Index() << " " << order;
+        sout << "\nPRefine connect orders ";
+        int nc = this->NConnects();
+        for(int ic=0; ic<nc; ic++) sout << (int)this->Connect(ic).Order() << " ";
+        LOGPZ_DEBUG(loggerdiv, sout.str())
+    }
+#endif
+
 		// conect da pressao
     
     if(ncon>nnodes+1)

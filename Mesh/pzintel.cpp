@@ -1607,7 +1607,7 @@ void TPZInterpolatedElement::PRefine(int order) {
 #ifdef LOG4CXX
     if (loggerdiv->isDebugEnabled()) {
         std::stringstream sout;
-        sout << (void*) Mesh() << " PRefine " << Index() << " " << Reference()->Index() << " " << order;
+        sout << (void*) Mesh() << " PRefine elindex " << Index() << " gel index " << Reference()->Index() << " " << order;
         LOGPZ_DEBUG(loggerdiv, sout.str())
     }
 #endif
@@ -1616,6 +1616,15 @@ void TPZInterpolatedElement::PRefine(int order) {
     for (int is = 0; is < ns; is++) {
         IdentifySideOrder(is);
     }
+#ifdef LOG4CXX
+    if (loggerdiv->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << " PRefine connect orders ";
+        int nc = NConnects();
+        for(int ic=0; ic<nc; ic++) sout << (int)Connect(ic).Order() << " ";
+        LOGPZ_DEBUG(loggerdiv, sout.str())
+    }
+#endif
 }
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {
