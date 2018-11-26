@@ -333,7 +333,13 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER) {
 #ifdef PZDEBUG
-		LOGPZ_WARN(logger,"Integration rule for tetrahedra - Order is bigger than NRULESTETRAHEDRA_ORDER (Max)");
+            if(logger->isWarnEnabled())
+            {
+                std::stringstream sout;
+                sout << "Integration rule for tetrahedra - Order is bigger than NRULESTETRAHEDRA_ORDER (Max)";
+                sout << " fOrdKsi " << fOrdKsi << " TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER " << TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
+		LOGPZ_WARN(logger,sout.str())
+            }
 #endif
 		fOrdKsi = TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
 	}

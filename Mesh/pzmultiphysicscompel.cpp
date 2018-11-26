@@ -1040,8 +1040,6 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
 	int maxIntOrder = intrule->GetMaxOrder();
-    // tototototo
-    maxIntOrder = 15;
 	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
 	//end
 	intrule->GetOrder(prevorder);
