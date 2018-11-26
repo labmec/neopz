@@ -18,9 +18,9 @@
 #include "pzgeoelbc.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzbuildmultiphysicsmesh.h"
-#include "../Mesh/pzgeoelside.h"
-#include "../Multigrid/pztrnsform.h"
-#include <../../neopz-install/pzlib/include/Integral/tpzintpoints.h>
+#include "pzgeoelside.h"
+#include "pztrnsform.h"
+#include "tpzintpoints.h"
 #include "TPZLagrangeMultiplier.h"
 #include <algorithm>
 
