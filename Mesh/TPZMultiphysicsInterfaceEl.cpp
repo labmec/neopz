@@ -360,7 +360,6 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         }
     }
 //    data.fNeedsHSize=true;
-    
     int intleftorder = leftel->IntegrationOrder();
     int intrightorder = rightel->IntegrationOrder();
     int integrationorder = MAX(intleftorder, intrightorder);
@@ -674,6 +673,7 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 	out << "\nInterface element : \n";
 	if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent\n";
 	else{
+                out << "\tLeft Computational Index: " << LeftElement()->Index() << std::endl;
 		out << "\tLeft Geometric Index: " << LeftElement()->Reference()->Index() << std::endl;
 		out << "\tLeft Geometric Id: " << LeftElement()->Reference()->Id() << std::endl;
 		out << "\tElement Dimension " << LeftElement()->Reference()->Dimension() << std::endl;
@@ -681,6 +681,7 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 	
 	if(!RightElement() || !RightElement()->Reference()) out << "\tNULL RightElement - this is inconsistent";
 	else{
+                out << "\tRight Computational Index: " << RightElement()->Index() << std::endl;
 		out << "\tRight Geometric Index: " << RightElement()->Reference()->Index() << std::endl;
 		out << "\tRight Geometric Id: " << RightElement()->Reference()->Id() << std::endl;
 		out << "\tElement Dimension " << RightElement()->Reference()->Dimension() << std::endl;
