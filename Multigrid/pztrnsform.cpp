@@ -112,8 +112,9 @@ TPZTransform<T> TPZTransform<T>::Multiply(TPZTransform<T> &right) {
 template<class T>
 void TPZTransform<T>::Apply(TPZVec<T> &in, TPZVec<T> &out){
 #ifdef PZDEBUG
-    if(fCol != in.size() || fRow != out.size())
+    if(fCol > in.size() || fRow > out.size())
     {
+		std::cout << "fCol = " << fCol << "   in.size()= " << in.size() << "      fRow = " << fRow << "   out.size()=" << out.size() << std::endl;
         DebugStop();
     }
 #endif
