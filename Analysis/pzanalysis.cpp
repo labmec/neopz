@@ -623,7 +623,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     
     TPZCompEl *cel = data->fElvec[iel];
     
-    cel->EvaluateError(data->fExact, errors, 0);
+    cel->EvaluateError(data->fExact, errors, data->fStoreError);
     
     const int nerrors = errors.NElements();
     data->fvalues[myid].Resize(nerrors, 0.);
