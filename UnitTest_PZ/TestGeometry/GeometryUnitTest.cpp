@@ -170,8 +170,6 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     REAL tol;
     ZeroTolerance(tol);
     tol *= 20.;
-    TPZManVector< REAL, 3 > qsi_r(3);
-    TPZManVector<Fad<REAL>, 3 > qsi(3);
     
 //    std::ofstream file("gmesh.txt");
 //    gmesh.Print(file);
@@ -180,6 +178,8 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     for(int iel = 0; iel < nel; iel++){
         TPZGeoEl *gel = gmesh.Element(iel);
         int iel_dim = gel->Dimension();
+		TPZManVector< REAL, 3 > qsi_r(iel_dim);
+		TPZManVector<Fad<REAL>, 3 > qsi(iel_dim);
 
         for(int ip = 0; ip < npoints; ip++){
             TPZManVector<REAL,3> pt(iel_dim);
