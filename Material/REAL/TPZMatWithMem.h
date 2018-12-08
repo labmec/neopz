@@ -91,6 +91,12 @@ public:
     /** @brief Sets the default memory settings for initialization */
     virtual void SetDefaultMem(TMEM & defaultMem);
 
+    /// Access the default memory settings for initislization
+    virtual TMEM &GetDefaultMemory()
+    {
+        return fDefaultMem;
+    }
+
     /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
     virtual void SetUpdateMem(bool update = 1);
 
