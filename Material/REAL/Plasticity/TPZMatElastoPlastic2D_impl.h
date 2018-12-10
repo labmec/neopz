@@ -279,12 +279,12 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         sout << Stress(_XX_, 0) << "\t" << Stress(_YY_, 0) << "\t" << Stress(_XY_, 0) << "\n";
         sout << "\nDELTA STRAIN " << endl;
         sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
-        sout << "data.phi" << data.phi;
+        sout << "data.phi" << data.phi<< std::endl;
+        TPZMatWithMem<TMEM>::MemItem(ptindex).Print(sout);
         
         LOGPZ_DEBUG(elastoplastic2dLogger, sout.str().c_str());
     }
 #endif
-    ptindex = 0;
     int nstate = NStateVariables();
     REAL val;
     
