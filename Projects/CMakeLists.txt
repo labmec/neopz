@@ -20,7 +20,7 @@ ENABLE_TESTING()
 			#add_subdirectory(2017Arequipa)
 
 			#Jorge 2017 - Implementing error analysis to MHM Method
-			add_subdirectory(2017LabJucaCosta)			
+			#add_subdirectory(2017LabJucaCosta)			
 
 
 			#Curso PZ:
