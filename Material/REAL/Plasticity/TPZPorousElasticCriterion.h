@@ -70,12 +70,12 @@ public:
 
     virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override;
     
-    virtual void SetElasticResponse(TPZPorousElasticResponse &ER) override
+    virtual void SetElasticResponse(TPZPorousElasticResponse &ER)
     {
         m_ER = ER;
     }
     
-    virtual TPZPorousElasticResponse GetElasticResponse() const override
+    virtual TPZPorousElasticResponse GetElasticResponse()
     {
         return m_ER;
     }
