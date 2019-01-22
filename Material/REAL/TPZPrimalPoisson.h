@@ -1,5 +1,5 @@
 //
-//  TPZPrimalPoisson.hpp
+//  TPZPrimalPoisson.h
 //  PZ
 //
 //  Created by omar on 04/07/2016.
@@ -77,8 +77,8 @@ public:
     
     /** @brief unique class identifier */
     public:
+    
 virtual int ClassId() const;
-
 
     /** @brief write class in disk */
     virtual void Write(TPZStream &buf, int withclassid) const;
@@ -87,72 +87,47 @@ virtual int ClassId() const;
     void Read(TPZStream &buf, void *context);
 
     
-    /** @} */
-    
-    /**
-     * @name Contribute methods (weak formulation) no multiphysics mesh
-     * @{
-     */
-    
-        /** @brief Volumetric contribute with jacobian matrix */
-        void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    /** @brief Volumetric contribute with jacobian matrix */
+    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 
-        /** @brief Volumetric contribute */
-        void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef);
+    /** @brief Volumetric contribute */
+    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef);
 
-        /** @brief Boundary contribute with jacobian matrix */
-        void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    /** @brief Boundary contribute with jacobian matrix */
+    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
-        /** @brief Boundary contribute */
-        void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    /** @brief Boundary contribute */
+    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
-    /** @} */
+    /** @brief Volumetric contribute with jacobian matrix */
+    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
     
+    /** @brief Volumetric contribute */
+    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef);
     
-    /**
-     * @name Contribute methods (weak formulation) multiphysics mesh
-     * @{
-     */
+    /** @brief Boundary contribute with jacobian matrix */
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
-        /** @brief Volumetric contribute with jacobian matrix */
-        void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-        
-        /** @brief Volumetric contribute */
-        void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef);
-        
-        /** @brief Boundary contribute with jacobian matrix */
-        void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-        
-        /** @brief Boundary contribute */
-        void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    
-    /** @} */
+    /** @brief Boundary contribute */
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
-    /**
-     * @name Post-processing methods
-     * @{
-     */
+    /** @brief Number of errors being computed = { 0-> h1, 1 ->L2 primal, 2 L2 dual} */
+    int NEvalErrors();
 
-        /** @brief Number of errors being computed = { 0-> h1, 1 ->L2 primal, 2 L2 dual} */
-        int NEvalErrors();
-    
-        /** @brief Variable index based on variable naming */
-        int VariableIndex(const std::string &name);
+    /** @brief Variable index based on variable naming */
+    int VariableIndex(const std::string &name);
 
-        /** @brief size of the current variable (1 -> scalar, 3-> vector, 9 ->  Tensor ) */
-        int NSolutionVariables(int var);
+    /** @brief size of the current variable (1 -> scalar, 3-> vector, 9 ->  Tensor ) */
+    int NSolutionVariables(int var);
 
-        /** @brief Postprocess required variables */
-        void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
-    
-        /** @brief Postprocess required variables multiphysics */
-        void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    /** @brief Postprocess required variables */
+    void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
 
-        /** @brief Compute errors, no comments!!! */
-        void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error);
-    
-    /** @} */
+    /** @brief Postprocess required variables multiphysics */
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 
+    /** @brief Compute errors, no comments!!! */
+    void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error);
     
 };
 

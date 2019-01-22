@@ -90,13 +90,6 @@ void TPZPrimalPoisson::Read(TPZStream &buf, void *context){
 }
 
 
-/** @} */
-
-/**
- * @name Contribute methods (weak formulation) no multiphysics mesh
- * @{
- */
-
 /** @brief Volumetric contribute with jacobian matrix */
 void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 
@@ -256,12 +249,6 @@ void TPZPrimalPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix
 
 /** @} */
 
-
-/**
- * @name Contribute methods (weak formulation) multiphysics mesh
- * @{
- */
-
 /** @brief Volumetric contribute with jacobian matrix */
 void TPZPrimalPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
     DebugStop();
@@ -284,14 +271,6 @@ void TPZPrimalPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 void TPZPrimalPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     DebugStop();
 }
-
-
-/** @} */
-
-/**
- * @name Post-processing methods
- * @{
- */
 
 
 int TPZPrimalPoisson::NEvalErrors() {return 3;}
@@ -398,4 +377,4 @@ void TPZPrimalPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE>
     
 }
 
-/** @} */
+

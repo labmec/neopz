@@ -9,7 +9,7 @@
 #include "fstream"
 
 #include "TPZElasticResponse.h" // linear elastic (LE)
-#include "TPZPorousElasticity.h" // Porous elasticity (PE)
+#include "TPZPorousElasticResponse.h" // Porous elasticity (PE)
 #include "TPZPlasticStepPV.h" // Plastic Integrator
 #include "TPZSandlerExtended.h" // LE with DiMaggio Sandler (LEDS)
 #include "TPZYCMohrCoulombPV.h" // LE with Mohr Coulomb (LEMC)
@@ -171,22 +171,7 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name, int n_data) {
  */
 void PECompareStressStrainResponse() {
     
-    
-    // Porous Elasticity
-    TPZPorousElasticity * PE = new TPZPorousElasticity;
-    
-    
-    // Material data:
-    PE->SetParameters();
-    
-    TPZMaterialData data;
-    REAL weight = 1.0;
-    TPZFMatrix<STATE> ek,ef;
-    
-    PE->Contribute(data, weight, ek, ef);
-    
-    // Initial data
-    
+    DebugStop();
 
     return;
 }
