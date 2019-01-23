@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
-//#define ISM_new
+#define ISM_new
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -139,7 +139,7 @@ long long TPZPardisoControl<TVar>::MatrixType()
         }
         else if(fMatrixType == 2)
         {
-			return 2;
+           return 2;
         }
         fMatrixType = 2;
     }
@@ -158,14 +158,14 @@ long long TPZPardisoControl<TVar>::MatrixType()
     for (long long i=0; i<64; i++) {
         long long val = fHandle[i];
         if (val) {
-            DebugStop();     
+            DebugStop();
         }
     }
 //    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
 //                    const long long int *, const long long int *, const void *,          const long long int *,
 //                    const long long int *, long long int *, const long long int *, long long int *,
 //                    const long long int *, void *,                void *,                long long int * );
-
+    
     int param[64] = {0};
     int matrixtype = fMatrixType;
     pardisoinit(fHandle,&matrixtype,param);
@@ -179,7 +179,6 @@ long long TPZPardisoControl<TVar>::MatrixType()
     fParam[27] = ::DataType(toto);
     /// establish that the datastructures are zero based
     fParam[34] = 1;
-
     return fMatrixType;
 }
 
@@ -205,7 +204,7 @@ void TPZPardisoControl<TVar>::Decompose()
         ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
         ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
         n = fNonSymmetricSystem->Rows();
-
+        
     }
 //    for (int i=0; i<n+1; i++) {
 //        std::cout << ia[i] << ' ';
@@ -230,7 +229,7 @@ void TPZPardisoControl<TVar>::Decompose()
         fPermutation[i] = i;
     }
     perm = &fPermutation[0];
-    
+
 #ifndef ISM_new
     fParam[4 ] = 1; // user permutation PERM
 #else
@@ -248,7 +247,7 @@ void TPZPardisoControl<TVar>::Decompose()
             fParam[12] = 1;
         }
     }else{
-
+        
         if(fSystemType == ESymmetric){ // CGS iteration for symmetric positive definite matrices replaces the computation of LLT. The preconditioner is LLT that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
             fParam[3 ] = 10*6+2;
             fParam[10] = 0;
@@ -260,7 +259,7 @@ void TPZPardisoControl<TVar>::Decompose()
         }
     }
 #endif
-
+    
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     if (Error) {
@@ -292,25 +291,66 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
         
     }
-
+    
     long long *perm,nrhs;
     long long Error = 0;
     nrhs = rhs.Cols();
     n = rhs.Rows();
     b = &rhs(0,0);
     x = &sol(0,0);
-    perm = &fPermutation[0];
     
     /// forward and backward substitution
     long long phase = 33;
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, &fPermutation[0],
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    
+    if(fParam[19]>150){
+        std::cout << "Pardiso:: Number of iterations " << fParam[19] << " > 150, calling numerical factorization... " << std::endl;
+        phase = 23;
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    }
+    
+    int rest = fParam[19]%10; // CG/CGS error report
+    if(fParam[19] <= 0 && rest == 2){
+        switch (rest) {
+            case 1:
+                std::cout << "Pardiso:: fluctuations of the residuum are too large, calling numerical factorization... " << std::endl;
+                
+                phase = 23;
+                pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                            &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+                break;
+                
+            case 2:
+                std::cout << "Pardiso:: Slow convergence - Main matrix and matrix for preconditioner differ a lot, calling numerical factorization... " << std::endl;
+                
+                phase = 23;
+                pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                            &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+                
+            case 4:
+                std::cout << "Pardiso:: perturbed pivots caused iterative refinement, calling numerical factorization... " << std::endl;
+                
+                phase = 23;
+                pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                            &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+                
+            case 5:
+                std::cout << "Pardiso:: factorization is too fast for this matrix. It is better to use the factorization method with iparm[3] = 0 " << std::endl;
+                
+            default:
+                break;
+        }
+        
+    }
     
 //    std::cout << "Norm RHS " << Norm(rhs) << std::endl;
 //    std::cout << "Norm sol " << Norm(sol) << std::endl;
 //    rhs.Print("rhs");
 //    sol.Print("sol");
+    
     if (Error) {
         DebugStop();
     }
