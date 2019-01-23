@@ -129,10 +129,10 @@ class TPZAutoPointer {
             if(fCounter <= 0) should_delete = 1;
             
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
-            if(should_delete)
-            {
-                delete this;
-            }
+//            if(should_delete)
+//            {
+//                delete this;
+//            }
             return true;
         }
         

@@ -274,10 +274,10 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
     
-    if(this->IsDecomposed() == ELDLt) return 1;
-    if (this->IsDecomposed() != ENoDecompose) {
-        DebugStop();
-    }
+//    if(this->IsDecomposed() == ELDLt) return 1;
+//    if (this->IsDecomposed() != ENoDecompose) {
+//        DebugStop();
+//    }
     fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EIndefinite);
     fPardisoControl.Decompose();
     this->SetIsDecomposed(ELDLt);

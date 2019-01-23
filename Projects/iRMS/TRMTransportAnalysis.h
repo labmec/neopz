@@ -42,6 +42,15 @@ private:
     /** @brief Solution at past state */
     TPZFMatrix<STATE> fX;
     
+    /** @brief Solution at iteration m-2 */
+    TPZFMatrix<STATE> fX_m_m_2;
+    
+    /** @brief Solution at iteration m-1 */
+    TPZFMatrix<STATE> fX_m_m_1;
+    
+    /** @brief Solution at iteration m */
+    TPZFMatrix<STATE> fX_m;
+    
     /** @brief Residue error */
     STATE ferror;
     

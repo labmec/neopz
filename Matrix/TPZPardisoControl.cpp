@@ -7,14 +7,15 @@
 //
 
 #include "TPZPardisoControl.h"
+
 #ifdef USING_MKL
 
+#include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
+#include "pzlog.h"
 
-#ifdef USING_BOOST
-#include "boost/date_time/posix_time/posix_time.hpp"
-#endif
+//#define ISM_new
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -25,20 +26,20 @@ fNonSymmetricSystem(0), fSymmetricSystem(0)
 {
     fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
-    fMatrixType = MatrixType();
+    //    fMatrixType = MatrixType();
 }
 
 
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl(MSystemType systemtype, MProperty prop) : fSystemType(systemtype),
-        fStructure(EStructureSymmetric), fProperty(prop), fPardisoControl(), fHandle(0),
-        fParam(64,0), fMax_num_factors(1), fMatrix_num(1), fMessageLevel(0), fError(0), fPermutation(), fMatrixType(0),
-        fNonSymmetricSystem(0), fSymmetricSystem(0)
+fStructure(EStructureSymmetric), fProperty(prop), fPardisoControl(), fHandle(0),
+fParam(64,0), fMax_num_factors(1), fMatrix_num(1), fMessageLevel(0), fError(0), fPermutation(), fMatrixType(0),
+fNonSymmetricSystem(0), fSymmetricSystem(0)
 
 {
     fPardisoControl = new TPZManVector<long long,64>(64,0);
     fHandle = &fPardisoControl.operator->()->operator[](0);
-    fMatrixType = MatrixType();
+    //    fMatrixType = MatrixType();
 }
 
 /// change the matrix type
@@ -96,6 +97,7 @@ template<class TVar>
 int DataType(TVar a)
 {
     DebugStop();
+    return 0;
 }
 
 
@@ -120,58 +122,64 @@ long long TPZPardisoControl<TVar>::MatrixType()
         DebugStop();
     }
     if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+        if(fMatrixType != 0 && fMatrixType != -2)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == -2)
+        {
+            return -2;
+        }
         fMatrixType = -2;
     }
     if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
+        if(fMatrixType != 0 && fMatrixType != 2)
+        {
+            DebugStop();
+        }
+        else if(fMatrixType == 2)
+        {
+            return 2;
+        }
         fMatrixType = 2;
     }
     if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
-        fMatrixType = 1;
-    }
-    if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
         fMatrixType = 11;
     }
+    if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
+        DebugStop();
+    }
     
-//    void pardiso (_MKL_DSS_HANDLE_t pt, const MKL_INT *maxfct, const MKL_INT *mnum, const
-//                  MKL_INT *mtype, const MKL_INT *phase, const MKL_INT *n, const void *a, const MKL_INT
-//                  *ia, const MKL_INT *ja, MKL_INT *perm, const MKL_INT *nrhs, MKL_INT *iparm, const
-//                  MKL_INT *msglvl, void *b, void *x, MKL_INT *error);
+    //    void pardiso (_MKL_DSS_HANDLE_t pt, const MKL_INT *maxfct, const MKL_INT *mnum, const
+    //                  MKL_INT *mtype, const MKL_INT *phase, const MKL_INT *n, const void *a, const MKL_INT
+    //                  *ia, const MKL_INT *ja, MKL_INT *perm, const MKL_INT *nrhs, MKL_INT *iparm, const
+    //                  MKL_INT *msglvl, void *b, void *x, MKL_INT *error);
     
-    long long phase = 0;
-    long long n=1;
-    long long av,bv,xv;
-    void *a= &av,*b = &bv, *x = &xv;
-    long long ia,ja,perm,nrhs = 1;
-    long long Error = 0;
-    
-    for (long i=0; i<64; i++) {
+    for (long long i=0; i<64; i++) {
         long long val = fHandle[i];
         if (val) {
-            DebugStop();     
+            DebugStop();
         }
     }
-//    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
-//                    const long long int *, const long long int *, const void *,          const long long int *,
-//                    const long long int *, long long int *, const long long int *, long long int *,
-//                    const long long int *, void *,                void *,                long long int * );
-
+    //    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
+    //                    const long long int *, const long long int *, const void *,          const long long int *,
+    //                    const long long int *, long long int *, const long long int *, long long int *,
+    //                    const long long int *, void *,                void *,                long long int * );
+    
     int param[64] = {0};
     int matrixtype = fMatrixType;
     pardisoinit(fHandle,&matrixtype,param);
     for (int i=0; i<64; i++) {
         fParam[i] = param[i];
     }
-//    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, &a, &ia, &ja, &perm,
-//                &nrhs, &fParam[0], &fMessageLevel, &b, &x, &Error);
+    //    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, &a, &ia, &ja, &perm,
+    //                &nrhs, &fParam[0], &fMessageLevel, &b, &x, &Error);
     
-    TVar toto;
+    TVar toto = 0;
     fParam[27] = ::DataType(toto);
     /// establish that the datastructures are zero based
     fParam[34] = 1;
-
-    if (Error) {
-        DebugStop();
-    }
+    
     return fMatrixType;
 }
 
@@ -179,15 +187,14 @@ long long TPZPardisoControl<TVar>::MatrixType()
 template<class TVar>
 void TPZPardisoControl<TVar>::Decompose()
 {
-    if(sizeof(long long) != sizeof(long))
-    {
-        DebugStop();
-    }
     long long n=0;
     TVar bval = 0., xval = 0.;
     TVar *a,*b = &bval, *x = &xval;
     long long *ia,*ja;
     if (fSymmetricSystem) {
+        if (fSymmetricSystem->Rows()==0) {
+            return;
+        }
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);
@@ -198,88 +205,69 @@ void TPZPardisoControl<TVar>::Decompose()
         ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
         ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
         n = fNonSymmetricSystem->Rows();
-
+        
     }
-    for (int i=0; i<n; i++) {
-        bool hasdiag = false;
-        if (ia[i+1] == ia[i]+1 && ja[ia[i]] == i ) {
-            hasdiag = true;
-        }
-        for (int j = ia[i]; j < ia[i+1]-1; j++) {
-            if (ja[j] == i || ja[j+1] == i) {
-                hasdiag = true;
-            }
-            if (ja[j] >= ja[j+1]) {
-                DebugStop();
-            }
-        }
-        if (hasdiag == false) {
-            std::cout << "i = " << i << std::endl;
-            for (int k=ia[i]; k<ia[i+1]; k++) {
-                std::cout << ja[k] << " ";
-            }
-            std::cout << std::endl;
-            DebugStop();
-        }
-    }
-
+    //    for (int i=0; i<n+1; i++) {
+    //        std::cout << ia[i] << ' ';
+    //    }
+    //    std::cout << std::endl;
+    //    for (int i=0; i<ia[n]; i++) {
+    //        std::cout << ja[i] << ' ' << a[i] << "| ";
+    //    }
+    //    std::cout << std::endl;
     long long *perm = 0,nrhs = 0;
     long long Error = 0;
     nrhs = 0;
     fPermutation.resize(n);
-    
     perm = &fPermutation[0];
     fParam[34] = 1;
-    
-    if (fProperty == EIndefinite && fSystemType == ESymmetric) {
-        
-        for(long i = 0; i < n; i++){
-            fPermutation[i] = i;
-        }
-        
-        fParam[4 ] = 1; // user permutation PERM
-        
-//        fParam[9]  = -8; // threshold for pivot permutation
-        fParam[3 ] = 10*6+2; // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
-        fParam[10] = 1;
-        fParam[12] = 1;
-        
-    } else if (fProperty == EIndefinite && fSystemType == ENonSymmetric) {
-        
-//        for(long i = 0; i < n; i++){
-//            fPermutation[i] = i;
-//        }
-        
-//        fParam[4 ] = 1; // user permutation PERM
-        
-        //        fParam[9]  = -8; // threshold for pivot permutation
-        fParam[3 ] = 10*7+1; // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
-        fParam[10] = 1;
-        fParam[12] = 1;
-        
-    }
-    
+    // Do not use OOC
+    fParam[59] = 0;
+    /// analyse and factor the equations
     long long phase = 12;
-
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+    fPermutation.resize(n);
+    for (long long i=0; i<n; i++) {
+        fPermutation[i] = i;
+    }
+    perm = &fPermutation[0];
+    
+#ifndef ISM_new
+    fParam[4 ] = 1; // user permutation PERM
+#else
+    
+    /// analyse and factor the equations
+    // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
+    if (fProperty == EIndefinite) {
+        if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
+            fParam[3 ] = 10*6+2;
+            fParam[10] = 1;
+            fParam[12] = 1;
+        }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
+            fParam[3 ] = 10*6+1;
+            fParam[10] = 1;
+            fParam[12] = 1;
+        }
+    }else{
+        
+        if(fSystemType == ESymmetric){ // CGS iteration for symmetric positive definite matrices replaces the computation of LLT. The preconditioner is LLT that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
+            fParam[3 ] = 10*6+2;
+            fParam[10] = 0;
+            fParam[12] = 0;
+        }else{
+            fParam[3 ] = 10*6+1;
+            fParam[10] = 1;
+            fParam[12] = 1;
+        }
+    }
 #endif
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-    
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
-    
-#ifdef USING_BOOST
-    std::cout  << "Pardiso:: Overal execution time = " << (t2-t1) << std::endl;
-#endif
-
     if (Error) {
         std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
     }
+    std::cout << "Pardiso:: decomposition complete. \n";
 }
 
 /// Use the decomposed matrix to invert the system of equations
@@ -290,6 +278,10 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     TVar *a,*b, *x;
     long long *ia,*ja;
     if (fSymmetricSystem) {
+        if(fSymmetricSystem->Rows() == 0)
+        {
+            return;
+        }
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);
@@ -300,7 +292,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
         
     }
-
+    
     long long *perm,nrhs;
     long long Error = 0;
     nrhs = rhs.Cols();
@@ -315,43 +307,14 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
+    //    std::cout << "Norm RHS " << Norm(rhs) << std::endl;
+    //    std::cout << "Norm sol " << Norm(sol) << std::endl;
+    //    rhs.Print("rhs");
+    //    sol.Print("sol");
     if (Error) {
         DebugStop();
     }
-}
-
-/// Release memory
-template<class TVar>
-void TPZPardisoControl<TVar>::Zero() const
-{
-    long long n=0;
-    TVar *a,*b, *x;
-    long long *ia,*ja;
-    if (fSymmetricSystem) {
-        a = &(fSymmetricSystem->fA[0]);
-        ia = (long long *) &(fSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fSymmetricSystem->fJA[0]);
-    }
-    if (fNonSymmetricSystem) {
-        a = &(fNonSymmetricSystem->fA[0]);
-        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
-        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
-        
-    }
-    
-    long long *perm,nrhs;
-    long long Error = 0;
-    perm = &fPermutation[0];
-    
-    /// Release internal memory for L and U matrix number MNUM
-    long long phase = -1;
-    
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
-                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-    
-    if (Error) {
-        DebugStop();
-    }
+    std::cout << "Pardiso:: linear solve complete. \n";
 }
 
 template<class TVar>
@@ -364,20 +327,17 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     long long ia,ja,perm,nrhs = 1;
     long long Error = 0;
     
-    double toto;
     //    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
     //                    const long long int *, const long long int *, const void *,          const long long int *,
     //                    const long long int *, long long int *, const long long int *, long long int *,
     //                    const long long int *, void *,                void *,                long long int * );
     
-    int matrixtype = fMatrixType;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, &ia, &ja, &perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if (Error) {
         DebugStop();
     }
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     
 }
 

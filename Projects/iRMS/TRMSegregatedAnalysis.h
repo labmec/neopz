@@ -63,6 +63,15 @@ private:
     
     /** @brief number of segregated corrections */
     int fk_iterations;
+    
+    /** @brief Solution at iteration m-2 */
+    TPZFMatrix<STATE> fs_m_m_2;
+    
+    /** @brief Solution at iteration m-1 */
+    TPZFMatrix<STATE> fs_m_m_1;
+    
+    /** @brief Solution at iteration m */
+    TPZFMatrix<STATE> fs_m;
 
     
 public:

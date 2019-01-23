@@ -289,6 +289,45 @@ void TRMSegregatedAnalysis::Segregated_p_h_Iteration(){
     this->UpdateFluxes_at_n();
     this->UpdateMemory_at_n();
     fHyperbolic->ExcecuteOneStep();
+    
+//    bool Aitken_acceleration_Q = true;
+//    if (fk_iterations == 1) {
+//        fs_m_m_2 = fHyperbolic->X_n();
+//    }
+//    if (fk_iterations == 2) {
+//        fs_m_m_1 = fHyperbolic->X_n();
+//    }
+//    if (fk_iterations == 3) {
+//        fs_m = fHyperbolic->X_n();
+//    }
+//    if (Aitken_acceleration_Q && fk_iterations >= 3) {
+//
+//        if (fk_iterations > 3) {
+//            fs_m_m_2 = fs_m_m_1;
+//            fs_m_m_1 = fs_m;
+//            fs_m = fHyperbolic->X_n();
+//        }
+//
+//        // Perform Aitken correction.
+//        TPZFMatrix<STATE> dX21,dX10,f2_2x1_0;
+//
+//        dX21= fs_m_m_2 - fs_m_m_1;
+//        dX10= fs_m_m_1 - fs_m;
+//        f2_2x1_0 = fs_m_m_2 - 2.0 * fs_m_m_1 + fs_m;
+//        STATE s_denom,s_num;
+//        s_num = 0;
+//        s_denom = 0;
+//        int n = fs_m_m_2.Rows();
+//        for (int i = 0; i < n; i++) {
+//            s_num   += dX21(i,0) * dX10(i,0);
+//            s_denom += dX21(i,0) * f2_2x1_0(i,0);
+//        }
+////        fHyperbolic->X_n().Print("s = ",std::cout);
+//        STATE s = s_num/s_denom;
+//        fHyperbolic->X_n() = fs_m + fabs(s)*(fs_m-fs_m_m_1);
+////        fHyperbolic->X_n().Print("new s = ",std::cout);
+//    }
+    
     this->UpdateMemory_at_n();
     
 //    fParabolic->ExcecuteOneStep();
@@ -340,7 +379,8 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
         fdx_norm_saturation     = fHyperbolic->dx_norm();
                 
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
-        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
+//        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
+        IsConverged_dQ = (fdx_norm_saturation < epsilon_cor);
         
         if (!fSimulationData->IsOnePhaseQ()) {
             IsConverged_iQ = (fParabolic->k_ietrarions() <= 10) &&  (fHyperbolic->k_ietrarions() <= 10);

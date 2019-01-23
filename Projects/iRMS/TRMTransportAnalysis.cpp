@@ -131,6 +131,44 @@ void TRMTransportAnalysis::NewtonIteration(){
         fX_n = Solution();
     }
     
+//    bool Aitken_acceleration_Q = true;
+//    if (fk_iterations == 1) {
+//        fX_m_m_2 = fX_n;
+//    }
+//    if (fk_iterations == 2) {
+//        fX_m_m_1 = fX_n;
+//    }
+//    if (fk_iterations == 3) {
+//        fX_m = fX_n;
+//    }
+//    if (Aitken_acceleration_Q && fk_iterations >= 3) {
+//        
+//        if (fk_iterations > 3) {
+//            fX_m_m_2 = fX_m_m_1;
+//            fX_m_m_1 = fX_m;
+//            fX_m = fX_n;
+//        }
+//        
+//        // Perform Aitken correction.
+//        TPZFMatrix<STATE> dX21,dX10,f2_2x1_0;
+//        
+//        dX21= fX_m_m_2 - fX_m_m_1;
+//        dX10= fX_m_m_1 - fX_m;
+//        f2_2x1_0 = fX_m_m_2 - 2.0 * fX_m_m_1 + fX_m;
+//        STATE s_denom,s_num;
+//        s_num = 0;
+//        s_denom = 0;
+//        int n = fX_m_m_2.Rows();
+//        for (int i = 0; i < n; i++) {
+//            s_num   += dX21(i,0) * dX10(i,0);
+//            s_denom += dX21(i,0) * f2_2x1_0(i,0);
+//        }
+////        fX_n.Print("s = ",std::cout);
+//        STATE s = s_num/s_denom;
+//        fX_n = fX_m + fabs(s);
+////        fX_n.Print("new s = ",std::cout);
+//    }
+    
     this->UpdateMemory_at_n();
     
     this->Assemble();

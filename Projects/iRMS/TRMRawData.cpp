@@ -887,15 +887,15 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL day        = hour * 24.0;
     
     REAL s=1.0;
-    fReportingTimes.Push(std::make_pair(s*1000.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*900.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*800.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*700.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*600.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*500.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*200.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*150.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*1000.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*900.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*800.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*700.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*600.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*500.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*200.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*150.0*day,true));
     fReportingTimes.Push(std::make_pair(s*100.0*day,true));
     fReportingTimes.Push(std::make_pair(s*50.0*day,true));
     fReportingTimes.Push(std::make_pair(s*0.0*day,true));
@@ -909,15 +909,15 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 40;
-    fepsilon_res = 0.01;
-    fepsilon_cor = 1000.0;
+    fepsilon_res = 0.001;
+    fepsilon_cor = 1.0;
     fUsePardisoQ  = true;
-    fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
+    fIsQuasiNewtonQ = false; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
