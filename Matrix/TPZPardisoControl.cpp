@@ -312,8 +312,8 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
     
-    int rest = fParam[19]%10; // CG/CGS error report
-    if(fParam[19] <= 0 && rest == 2){
+    int rest = abs(fParam[19]%10); // CG/CGS error report
+    if(fParam[19] <= 0){
         switch (rest) {
             case 1:
                 std::cout << "Pardiso:: fluctuations of the residuum are too large, calling numerical factorization... " << std::endl;

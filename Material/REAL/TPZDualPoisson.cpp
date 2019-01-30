@@ -490,7 +490,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     }
     
     if(var == 6){
-        Solout[0] = Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+        Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
         return;
     }
     
