@@ -9,10 +9,14 @@
 #include "fstream"
 
 #include "TPZElasticResponse.h" // linear elastic (LE)
+#include "TPZElasticCriterion.h"
 #include "TPZPorousElasticResponse.h" // Porous elasticity (PE)
-#include "TPZPlasticStepPV.h" // Plastic Integrator
+#include "TPZPorousElasticCriterion.h"
 #include "TPZSandlerExtended.h" // LE with DiMaggio Sandler (LEDS)
 #include "TPZYCMohrCoulombPV.h" // LE with Mohr Coulomb (LEMC)
+
+#include "TPZMatElastoPlastic2D_impl.h"
+#include "TPZPlasticStepPV.h" // Plastic Integrator
 
 
 #ifdef USING_BOOST
@@ -167,11 +171,39 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name, int n_data) {
 //#define PlotDataQ
 
 /**
+ * @brief Compute and compare linear elastic response
+ */
+void LECompareStressStrainResponse() {
+    
+    TPZElasticResponse ER;
+    TPZElasticCriterion EC;
+    TPZMatElastoPlastic2D<TPZElasticCriterion> LE;
+    
+    REAL Eyoug = 15.0;
+    REAL nu = 0.21;
+    ER.SetUp(Eyoug, nu);
+    EC.SetElasticResponse(ER);
+    TPZTensor<REAL> eps_t,sigma;
+    eps_t.Zero();
+    eps_t.XX() = -0.0003;
+    eps_t.XY() = -0.0002;
+    eps_t.XZ() = -0.0009;
+    eps_t.YY() = -0.0007;
+    eps_t.ZZ() = -0.0005;
+    TPZFMatrix<REAL> Dep;
+    EC.ApplyStrainComputeDep(eps_t, sigma, Dep);
+    
+    sigma.Print(std::cout);
+    
+    return;
+}
+
+/**
  * @brief Compute and compare porous elastic response
  */
 void PECompareStressStrainResponse() {
     
-    DebugStop();
+    TPZPorousElasticResponse PE;
 
     return;
 }

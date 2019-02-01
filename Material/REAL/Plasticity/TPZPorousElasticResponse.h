@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "TPZTensor.h"
 #include "pzreal.h"
+#include "TPZElasticResponse.h"
 
 class TPZPorousElasticResponse : public TPZSavable {
     
@@ -79,6 +80,8 @@ public:
     void Compute(TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma);
     
     void ComputeDeformation(TPZTensor<STATE> & sigma, TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma_n, TPZTensor<STATE> & epsilon_n);
+    
+    TPZElasticResponse LinearizedElasticResponse(TPZTensor<STATE> & epsilon);
     
 };
 
