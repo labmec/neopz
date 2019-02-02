@@ -318,7 +318,7 @@ protected:
         SolveL(X, L);
         REAL F;
         ComputeF(L, F);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
+        REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
         REAL fac1 = 3. * K*delepsp;
         REAL fac2 = (sigtrialIJ[0]-(L + F * fR * cos(theta)));
 
@@ -334,7 +334,7 @@ protected:
         REAL delepsp = epsp - epspini;
         REAL F;
         ComputeF(L, F);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
+        REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
         REAL fac1 = 3. * K*delepsp;
         REAL fac2 = (sigtrialIJ[0]-(L + F * fR * cos(theta)));
 
@@ -352,7 +352,7 @@ protected:
         ComputeF(L, F);
         ComputedF(L, DF);
         Dtheta = -F * fR * sin(theta);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
         DerivL = 3. * K * DepspDL + (1. + DF * fR * cos(theta));
         result[0] = Dtheta;
         result[1] = DerivL;
@@ -372,7 +372,7 @@ protected:
         ComputedF(L, DF);
         DF *= DL;
         Dtheta = -F * fR * sin(theta);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
+        REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
         Depsp = 3. * K + (DL + DF * fR * cos(theta));
         result[0] = Dtheta;
         result[1] = Depsp;
@@ -386,7 +386,7 @@ protected:
         DEpspDL(L, DepspDL);
         REAL F;
         ComputeF(L, F);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
+        REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
         REAL fac1 = 3. * K * deltaL*DepspDL;
         REAL fac2 = (sigtrialIJ[0]-(L + F * fR * cos(theta)));
         REAL funcepsp = fac1 - fac2;
@@ -419,7 +419,7 @@ protected:
         ComputeF(L, F);
         ComputedF(L, DF);
         Dtheta = -F * fR * sin(theta);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
         DerivL = 3. * K * DepspDL + 3. * K * deltaL * D2epspDL2 + (1. + DF * fR * cos(theta));
         result[0] = Dtheta;
         result[1] = DerivL;
@@ -434,8 +434,8 @@ protected:
         REAL sqJ2 = sigtrialIJ[1];
         REAL F;
         ComputeF(L, F);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
-        const REAL G = ER.fMu;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
+        const REAL G = ER.Mu();
         REAL y = 9. * K * (sqJ2 - F * sin(theta));
         REAL x = G * fR * (I1 - (L + F * fR * cos(theta)));
         REAL res = theta - atan2(y, x);
@@ -461,8 +461,8 @@ protected:
         REAL sqJ2 = sigtrialIJ[1];
         REAL F;
         ComputeF(L, F);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
-        const REAL G = ER.fMu;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
+        const REAL G = ER.Mu();
         REAL y = (sqJ2 - F * sin(theta));
         REAL x = G * fR / (9. * K)*(I1 - (L + F * fR * cos(theta)));
         REAL res = x * sin(theta) - y * cos(theta);
@@ -494,8 +494,8 @@ protected:
         REAL sqJ2 = sigtrialIJ[1];
         REAL F;
         ComputeF(L, F);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
-        const REAL G = ER.fMu;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
+        const REAL G = ER.Mu();
         REAL y = (sqJ2 - F * sin(theta));
         REAL x = (I1 - (L + F * fR * cos(theta)));
         REAL dist = G * x * x / 2. + 9. * K * y * y / 2.;
@@ -526,8 +526,8 @@ protected:
         ComputeF(L, F);
         ComputedF(L, DF);
         DF *= DL;
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
-        const REAL G = ER.fMu;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
+        const REAL G = ER.Mu();
         REAL x = G * fR * (I1 - (L + F * fR * cos(theta)));
         REAL y = 9. * K * (sqJ2 - F * sin(theta));
         REAL dxepsp = -G * fR * (DL + DF * fR * cos(theta));
@@ -555,8 +555,8 @@ protected:
         ComputeF(L, F);
         ComputedF(L, DF);
         DF *= DL;
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
-        const REAL G = ER.fMu;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
+        const REAL G = ER.Mu();
         REAL x = G * fR / (9. * K)*(I1 - (L + F * fR * cos(theta)));
         REAL y = (sqJ2 - F * sin(theta));
         REAL dxepsp = -G * fR / (9. * K)*(DL + DF * fR * cos(theta));
@@ -579,8 +579,8 @@ protected:
         DL = 1.;
         ComputeF(L, F);
         ComputedF(L, DF);
-        const REAL K = ER.fLambda + 2. * ER.fMu / 3.;
-        const REAL G = ER.fMu;
+        const REAL K = ER.Lambda() + 2. * ER.Mu() / 3.;
+        const REAL G = ER.Mu();
         REAL x = G * fR / (9. * K)*(I1 - (L + F * fR * cos(theta)));
         REAL y = (sqJ2 - F * sin(theta));
         REAL dxepsp = -G * fR / (9. * K)*(DL + DF * fR * cos(theta));
@@ -1660,7 +1660,7 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
         this->N(sigproj, epspproj, Ndir, 1);
         TPZTensor<REAL> sigPlast(sigtrial), epsPlast;
         sigPlast.Add(sigproj, -1.);
-        ER.ComputeDeformation(sigPlast, epsPlast);
+        ER.ComputeStrain(sigPlast, epsPlast);
         REAL scale = epsPlast.Norm() / Ndir[1].Norm();
         for (int i = 0; i < 6; i++) {
             REAL diff = fabs(scale * Ndir[1][i] - epsPlast[i]);

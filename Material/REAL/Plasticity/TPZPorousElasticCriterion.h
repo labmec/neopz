@@ -8,27 +8,26 @@
 #ifndef TPZPorousElasticCriterion_h
 #define TPZPorousElasticCriterion_h
 
-#include <stdio.h>
 #include "TPZPlasticState.h"
 #include "TPZPlasticStep.h"
+#include "TPZElasticResponse.h"
 #include "TPZPorousElasticResponse.h"
 
 class TPZPorousElasticCriterion : public TPZPlasticBase, public TPZPlasticCriterion
 {
     
 public:
-    
     enum {NYield=3};
     
 public:
     
-    typedef TPZPorousElasticCriterion m_NYields;
+    typedef TPZPorousElasticCriterion fNYields;
     
-    REAL m_kappa = 0.0;
+    TPZPlasticState<STATE> fN;
     
-    TPZPlasticState<STATE> m_N;
+    TPZElasticResponse fER;
     
-    TPZPorousElasticResponse m_ER;
+    TPZPorousElasticResponse fPER;
     
 public:
     
@@ -41,7 +40,7 @@ public:
     void Read(TPZStream& buf, void* context) override;
     
     void Write(TPZStream& buf, int withclassid) const override;
-    
+
     virtual int IntegrationSteps()const override;
     
     virtual const char * Name() const override
@@ -52,11 +51,11 @@ public:
     virtual void Print(std::ostream & out) const override
     {
         out << "Classe: " << this->Name();
-        m_N.Print(out);
+        fN.Print(out);
     }
     
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;
-
+    
     virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override;
     
     virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override {
@@ -70,16 +69,26 @@ public:
 
     virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override;
     
-    virtual void SetElasticResponse(TPZPorousElasticResponse &ER)
+    virtual void SetElasticResponse(TPZElasticResponse &ER) override
     {
-        m_ER = ER;
+        fER = ER;
     }
     
-    virtual TPZPorousElasticResponse GetElasticResponse()
+    virtual TPZElasticResponse GetElasticResponse() const override
     {
-        return m_ER;
+        return fER;
     }
-
+    
+    virtual void SetPorousElasticResponse(TPZPorousElasticResponse &PER)
+    {
+        fPER = PER;
+    }
+    
+    virtual TPZPorousElasticResponse GetPorousElasticResponse() const
+    {
+        return fPER;
+    }
+    
     virtual void SetState(const TPZPlasticState<REAL> &state) override;
     
     
@@ -100,6 +109,7 @@ public:
     virtual int GetNYield() const override {
         return as_integer(NYield);
     }
+    
     
 };
 

@@ -54,7 +54,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     // Initialization and spectral decomposition for the elastic trial stress state
     TPZTensor<REAL> eps_tr = epsTotal - fN.m_eps_p;
     TPZTensor<REAL> sig_tr;
-    fER.Compute(eps_tr, sig_tr);
+    fER.ComputeStress(eps_tr, sig_tr);
     TPZTensor<REAL>::TPZDecomposed sig_eigen_system;
     sig_tr.EigenSystem(sig_eigen_system);
     
@@ -94,7 +94,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     sigma = TPZTensor<REAL>(sig_eigen_system);
     
     TPZTensor<REAL> eps_e_Np1;
-    fER.ComputeDeformation(sigma, eps_e_Np1);
+    fER.ComputeStrain(sigma, eps_e_Np1);
     fN.m_eps_t = epsTotal;
     fN.m_eps_p = epsTotal - eps_e_Np1;
 }
@@ -123,7 +123,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     eps_p_N = fN.m_eps_p;
     eps_tr = epsTotal;
     eps_tr -= eps_p_N;
-    fER.Compute(eps_tr, sig_tr);
+    fER.ComputeStress(eps_tr, sig_tr);
     sig_tr.EigenSystem(sig_eigen_system);
     
     
@@ -163,7 +163,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     sig_eigen_system.fEigenvalues = sig_projected; // Under the assumption of isotropic material eigen vectors remain unaltered
 //    sigma = TPZTensor<REAL>(sig_eigen_system);
     
-    fER.ComputeDeformation(sigma, eps_e_Np1);
+    fER.ComputeStrain(sigma, eps_e_Np1);
     fN.m_eps_t = epsTotal;
     eps_p_N = epsTotal;
     eps_p_N -= eps_e_Np1; // plastic strain update
@@ -220,7 +220,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     epsTr -= epsPN; // Porque soh tem implementado o operator -=
 
     // Compute and Decomposition of SigTrial
-    fER.Compute(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
+    fER.ComputeStress(epsTr, sigtr); // sigma = lambda Tr(E)I + 2 mu E
     epsTr.EigenSystem(eps_eigen_system);
     epsTr.ComputeEigenvectors(eps_eigen_system);
     sigtr.EigenSystem(sig_eigen_system);
@@ -257,7 +257,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     sigma = TPZTensor<REAL>(sig_eigen_system);
     TangentOperator(GradSigma, eps_eigen_system, sig_eigen_system, Dep);
 
-    fER.ComputeDeformation(sigma, epsElaNp1);
+    fER.ComputeStrain(sigma, epsElaNp1);
     fN.m_eps_t = epsTotal;
     epsPN = epsTotal;
     epsPN -= epsElaNp1; // Transforma epsPN em epsPNp1
@@ -620,7 +620,7 @@ template <class YC_t, class ER_t>
 void TPZPlasticStepPV<YC_t, ER_t>::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) const
 {
     TPZTensor<STATE> sigma;
-    fER.Compute(eps, sigma);
+    fER.ComputeStress(eps, sigma);
     TPZTensor<STATE>::TPZDecomposed DecSig;
     sigma.EigenSystem(DecSig);
     TPZVec<STATE> sigvec(3);

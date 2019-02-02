@@ -13,7 +13,7 @@
 #include "pzreal.h"
 #include "TPZElasticResponse.h"
 
-class TPZPorousElasticResponse : public TPZSavable {
+class TPZPorousElasticResponse : public TPZElasticResponse {
     
 private:
     
@@ -75,11 +75,11 @@ public:
     
     void K(TPZTensor<STATE> &epsilon, STATE & G, STATE & dGdesp_vol);
     
-    void De_porous(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
     
-    void Compute(TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma);
+    void ComputeStress(TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma);
     
-    void ComputeDeformation(TPZTensor<STATE> & sigma, TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma_n, TPZTensor<STATE> & epsilon_n);
+    void ComputeStrain(TPZTensor<STATE> & sigma, TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma_n, TPZTensor<STATE> & epsilon_n);
     
     TPZElasticResponse LinearizedElasticResponse(TPZTensor<STATE> & epsilon);
     

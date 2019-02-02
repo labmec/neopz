@@ -107,7 +107,7 @@ public:
      * @param sigma_T [in/out] stress tensor. It is used as the initial guess and also as output parameter
      */
     template <class T>
-    void Compute(const TPZTensor<T> & epsilon_T, TPZTensor<T> & sigma_T) const;
+    void ComputeStress(const TPZTensor<T> & epsilon_T, TPZTensor<T> & sigma_T) const;
 	
     /**
      * Computes the stress tensor based on the strain tensor.
@@ -115,7 +115,7 @@ public:
      * @param epsilon [in] strain tensor
      * @param sigma [in/out] stress tensor. It is used as the initial guess and also as output parameter
      */
-    void Compute(const TPZTensor<REAL> & epsilon, TPZTensor<REAL> & sigma) const;
+    void ComputeStress(const TPZTensor<REAL> & epsilon, TPZTensor<REAL> & sigma) const;
 
 protected:
 
@@ -204,7 +204,7 @@ public:
           for(i=0;i<nVars;i++) 
             epsilon_FAD[i] . diff(i,nVars);
           epsilon_FAD.Multiply(-2.,1.);// multiplying by -2 to analise the effect of previous evaluated functions
-          Compute(epsilon_FAD, sigma_FAD);
+          ComputeStress(epsilon_FAD, sigma_FAD);
           tangent.Redim(nVars,nVars);
           for(i=0; i<nVars; i++)
             for(j=0; j<nVars; j++)
@@ -241,7 +241,7 @@ public:
           //
           gRefDeform.CopyTo(epsilon);
           epsilon.Multiply(-2.,1.); // multiplying by -2 to analise the effect of previous evaluated functions
-          Compute(epsilon, sigma);
+          ComputeStress(epsilon, sigma);
           res.Redim(nVars,1);
           for(i=0; i<nVars; i++)
               res(i,0) = sigma[i];
@@ -349,7 +349,7 @@ inline void TPZLadeNelsonElasticResponse::
 }
 
 inline void TPZLadeNelsonElasticResponse::
-        Compute(const TPZTensor<REAL> & epsilon, TPZTensor<REAL> & sigma) const
+        ComputeStress(const TPZTensor<REAL> & epsilon, TPZTensor<REAL> & sigma) const
 {
 	REAL YoungGuess = 1.e10;
 	
@@ -363,13 +363,13 @@ inline void TPZLadeNelsonElasticResponse::
 
 template <class T>
 inline void TPZLadeNelsonElasticResponse::
-        Compute(const TPZTensor<T> & epsilon_T, TPZTensor<T> & sigma_T) const
+        ComputeStress(const TPZTensor<T> & epsilon_T, TPZTensor<T> & sigma_T) const
 {
 	TPZTensor<REAL> epsilon, sigma;
 	
 	epsilon_T.CopyTo(epsilon);
 	
-	Compute(epsilon, sigma); // Solving for the correct sigma
+	ComputeStress(epsilon, sigma); // Solving for the correct sigma
 	
     sigma.CopyTo(sigma_T);
 	

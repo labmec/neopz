@@ -733,7 +733,7 @@ inline void TPZYCSandlerDimaggioL::InitialGuess(const TPZElasticResponse &ER, RE
     TPZManVector<REAL,2> sigPlastIJ(2);
     sigPlastIJ[0] = sigPlast.I1();
     sigPlastIJ[1] = sqrt(sigPlast.J2());
-    ER.ComputeDeformation(sigPlast, epsPlast);
+    ER.ComputeStrain(sigPlast, epsPlast);
     TPZManVector<REAL,2> epsplastIJ(2);
     epsplastIJ[0] = epsPlast.I1();
     epsplastIJ[1] = sqrt(epsPlast.J2());

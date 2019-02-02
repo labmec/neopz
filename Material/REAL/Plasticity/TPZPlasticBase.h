@@ -20,21 +20,28 @@ public:
     virtual int ClassId() const;
 
     virtual ~TPZPlasticBase();
-    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
+    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0; //  Candidate to be deprecated.
+    // @TODO:: Rename to ComputeStress
     virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma,  TPZFMatrix<REAL> * tangent = NULL) = 0;
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0; //  Candidate to be deprecated.
+    // @TODO:: Rename to ComputeStrain
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
+    
     virtual void SetState(const TPZPlasticState<REAL> &state) = 0;
     virtual TPZPlasticState<REAL> GetState() const = 0;
+    
+    // @TODO:: Rename to GetYieldCriterion
+    virtual TPZPlasticCriterion& GetYC() = 0;
     virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const = 0;
-    virtual int IntegrationSteps()const;
+    virtual int IntegrationSteps() const;
+    
     virtual void SetElasticResponse(TPZElasticResponse &ER) = 0;
     virtual TPZElasticResponse GetElasticResponse() const = 0;
     virtual const char * Name()const = 0;
     virtual void Print(std::ostream & out)const = 0;
     virtual void Write(TPZStream& buf, int withclassid) const = 0;
     virtual void Read(TPZStream& buf, void* context) = 0;    
-    virtual TPZPlasticCriterion& GetYC() = 0;
+
     
     virtual void ResetPlasticStrain();
     

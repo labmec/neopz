@@ -5,14 +5,19 @@ TPZElasticCriterion::TPZElasticCriterion()
   
 }
 
-TPZElasticCriterion::TPZElasticCriterion(const TPZElasticCriterion &cp) : fN(cp.fN), fER(cp.fER)
+TPZElasticCriterion::TPZElasticCriterion(const TPZElasticCriterion &other) : fN(other.fN), fER(other.fER)
 {
 }
 
-TPZElasticCriterion & TPZElasticCriterion::operator=(const TPZElasticCriterion &cp)
+TPZElasticCriterion & TPZElasticCriterion::operator=(const TPZElasticCriterion &other)
 {
-    fN = cp.fN;
-    fER = cp.fER;
+    /// check for self-assignment
+    if(&other == this){
+        return *this;
+    }
+    
+    fN = other.fN;
+    fER = other.fER;
     return *this;
 }
 
@@ -41,7 +46,7 @@ void TPZElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTota
     }
 #endif
     
-    fER.Compute(epsTotal, sigma);
+    fER.ComputeStress(epsTotal, sigma);
     fN.m_eps_t = epsTotal;
     
     if (require_tangent_Q) {

@@ -67,7 +67,7 @@ public:
 	    REAL poisson = 0.2;
         material.fYC.SetUp(phi);
 		material.fTFA.SetUp(cohesion, hardening);
-		material.fER.SetUp(young, poisson);
+		material.fER.SetEngineeringData(young, poisson);
 	}
     
     static void TaludeMaterial(TPZMohrCoulomb & material)
@@ -80,14 +80,14 @@ public:
 	    REAL poisson = 0.49;
         material.fYC.SetUp(phi);
 		material.fTFA.SetUp(cohesion, hardening);
-		material.fER.SetUp(young, poisson);
+		material.fER.SetEngineeringData(young, poisson);
 	}
 	
 	void SetUp(REAL & cohesion, REAL & phi, REAL & hardening, REAL &young, REAL &poisson)
 	{
 		MOHRCOULOMBPARENT::fYC.SetUp(phi);
 		MOHRCOULOMBPARENT::fTFA.SetUp(cohesion, hardening);
-		MOHRCOULOMBPARENT::fER.SetUp(young, poisson);
+		MOHRCOULOMBPARENT::fER.SetEngineeringData(young, poisson);
 	}
 	
     virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
@@ -110,8 +110,10 @@ virtual int ClassId() const;
 
         buf.Write(&fYC.fPhi, 1);
 
-        buf.Write(&fER.fLambda, 1);
-        buf.Write(&fER.fMu, 1);
+        REAL lambda = fER.Lambda();
+        REAL mu = fER.Mu();
+        buf.Write(&lambda, 1);
+        buf.Write(&mu, 1);
 
         buf.Write(&fTFA.fSigmaYield0, 1);
         buf.Write(&fTFA.fK, 1);
@@ -133,8 +135,10 @@ virtual int ClassId() const;
 
         buf.Read(&fYC.fPhi, 1);
 
-        buf.Read(&fER.fLambda, 1);
-        buf.Read(&fER.fMu, 1);
+        REAL lambda = fER.Lambda();
+        REAL mu = fER.Mu();
+        buf.Read(&lambda, 1);
+        buf.Read(&mu, 1);
 
         buf.Read(&fTFA.fSigmaYield0, 1);
         buf.Read(&fTFA.fK, 1);

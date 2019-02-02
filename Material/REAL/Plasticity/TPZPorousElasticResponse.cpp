@@ -137,7 +137,7 @@ void TPZPorousElasticResponse::K(TPZTensor<STATE> &epsilon, STATE & G, STATE & d
     DebugStop();
 }
 
-void TPZPorousElasticResponse::De_porous(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) {
+void TPZPorousElasticResponse::De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) {
     
     STATE lambda, G, dG_desp_vol;
     this->G(epsilon, G, dG_desp_vol);
@@ -212,7 +212,7 @@ void TPZPorousElasticResponse::De_porous(TPZTensor<STATE> & epsilon, TPZFMatrix<
     return;
 }
 
-void TPZPorousElasticResponse::Compute(TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma) {
+void TPZPorousElasticResponse::ComputeStress(TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma) {
     
     STATE lambda, G, dG_desp_vol;
     this->G(epsilon, G, dG_desp_vol);
@@ -224,10 +224,10 @@ void TPZPorousElasticResponse::Compute(TPZTensor<STATE> & epsilon, TPZTensor<STA
     sigma.Add(epsilon, 2. * G);
 }
 
-void TPZPorousElasticResponse::ComputeDeformation(TPZTensor<STATE> & sigma, TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma_n, TPZTensor<STATE> & epsilon_n) {
+void TPZPorousElasticResponse::ComputeStrain(TPZTensor<STATE> & sigma, TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma_n, TPZTensor<STATE> & epsilon_n) {
     STATE det;
     TPZFMatrix<STATE> De(6,6,0.0),De_inv;
-    this->De_porous(epsilon, De);
+    this->De(epsilon, De);
     De.DeterminantInverse(det, De_inv);
     if (IsZero(det)) {
         DebugStop();

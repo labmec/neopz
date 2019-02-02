@@ -194,7 +194,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputePlasticVars(const TPZPlasticState<
     // subtract the value of the current plastic deformation
     epsE_T.Add(state_T.EpsP(), T(-1.));
     // compute the stress of the elastic response
-    fER.Compute(epsE_T, sigma_T);
+    fER.ComputeStress(epsE_T, sigma_T);
     // compute the value of the thermo dynamical force for the given damage variable
     A_T = fTFA.Compute(state_T.VolHardening());
 }
@@ -1514,7 +1514,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         EpsT.Print("Etotal = ", sout, EMathematicaInput);
         deformElast = Np1.m_eps_t;
         deformElast.Add(NN.m_eps_p, -1.);
-        fER.Compute(deformElast, sigmaT);
+        fER.ComputeStress(deformElast, sigmaT);
         TPZFNMatrix<6, REAL> sigma(sigmaT);
         sigma.Print("sigmaTrial = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(pointloadconfig, sout.str())
@@ -2887,12 +2887,12 @@ void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZEla
     TPZTensor<REAL> ETrial = ETotal;
     TPZTensor<REAL> sigmaTrial;
     ETrial.Add(EpN, -1.);
-    fER.Compute(ETrial, sigmaTrial);
+    fER.ComputeStress(ETrial, sigmaTrial);
     TPZTensor<REAL> sigproj;
     fYC.InitialGuess(fER, N.m_hardening, sigmaTrial, Np1.m_hardening, delGamma, sigproj);
     TPZTensor<REAL> sigPlast(sigmaTrial);
     sigPlast.Add(sigproj, -1.);
-    fER.ComputeDeformation(sigPlast, Np1.m_eps_p);
+    fER.ComputeStrain(sigPlast, Np1.m_eps_p);
     Np1.m_eps_p.Add(N.m_eps_p, 1.);
     validEqs.Fill(0);
     for (int i = 0; i < 2; i++) {
@@ -2928,12 +2928,12 @@ void TPZPlasticStep<TPZYCSandlerDimaggioL, TPZSandlerDimaggioThermoForceA, TPZEl
     TPZTensor<REAL> ETrial = ETotal;
     TPZTensor<REAL> sigmaTrial;
     ETrial.Add(EpN, -1.);
-    fER.Compute(ETrial, sigmaTrial);
+    fER.ComputeStress(ETrial, sigmaTrial);
     TPZTensor<REAL> sigproj;
     fYC.InitialGuess(fER, N.m_hardening, sigmaTrial, Np1.m_hardening, delGamma, sigproj);
     TPZTensor<REAL> sigPlast(sigmaTrial);
     sigPlast.Add(sigproj, -1.);
-    fER.ComputeDeformation(sigPlast, Np1.m_eps_p);
+    fER.ComputeStrain(sigPlast, Np1.m_eps_p);
     Np1.m_eps_p.Add(N.m_eps_p, 1.);
     validEqs.Fill(0);
     for (int i = 0; i < 2; i++) {
@@ -2969,12 +2969,12 @@ void TPZPlasticStep<TPZYCSandlerDimaggioL2, TPZSandlerDimaggioThermoForceA, TPZE
     TPZTensor<REAL> ETrial = ETotal;
     TPZTensor<REAL> sigmaTrial;
     ETrial.Add(EpN, -1.);
-    fER.Compute(ETrial, sigmaTrial);
+    fER.ComputeStress(ETrial, sigmaTrial);
     TPZTensor<REAL> sigproj;
     fYC.InitialGuess(fER, N.m_hardening, sigmaTrial, Np1.m_hardening, delGamma, sigproj);
     TPZTensor<REAL> sigPlast(sigmaTrial);
     sigPlast.Add(sigproj, -1.);
-    fER.ComputeDeformation(sigPlast, Np1.m_eps_p);
+    fER.ComputeStrain(sigPlast, Np1.m_eps_p);
     Np1.m_eps_p.Add(N.m_eps_p, 1.);
     validEqs.Fill(0);
     for (int i = 0; i < 2; i++) {

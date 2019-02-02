@@ -48,7 +48,7 @@ fA(A), fB(B), fC(C), fD(D), fW(W), fK(K), fR(R), fG(G), fPhi(Phi), fN(N), fPsi(P
     fE = (9. * fK * fG) / (3. * fK + fG);
     fnu = ((3. * fK)-(2. * fG)) / (2 * (3. * fK + fG));
     TPZElasticResponse ER;
-    ER.SetUp(fE, fnu);
+    ER.SetEngineeringData(fE, fnu);
     fElasticResponse = ER;
     ftol = 1.e-8;
 }
@@ -95,7 +95,7 @@ void TPZSandlerExtended::SetUp(STATE A, STATE B, STATE C, STATE D, STATE K, STAT
     fE = (9. * fK * fG) / (3. * fK + fG);
     fnu = ((3. * fK)-(2. * fG)) / (2 * (3. * fK + fG));
     TPZElasticResponse ER;
-    ER.SetUp(fE, fnu);
+    ER.SetEngineeringData(fE, fnu);
     fElasticResponse = ER;
 
 }
@@ -3090,7 +3090,7 @@ void TPZSandlerExtended::MCormicRanchSand(TPZSandlerExtended &mat)//em ksi
     mat.fE = E;
     mat.fnu = nu;
     TPZElasticResponse ER;
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     mat.fElasticResponse = ER;
 
 }
@@ -3114,7 +3114,7 @@ void TPZSandlerExtended::ReservoirSandstone(TPZSandlerExtended &mat)//em ksi
     mat.fE = E;
     mat.fnu = nu;
     TPZElasticResponse ER;
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     mat.fElasticResponse = ER;
 
 
@@ -3140,7 +3140,7 @@ void TPZSandlerExtended::SalemLimestone(TPZSandlerExtended &mat)// em MPa
     mat.fE = E;
     mat.fnu = nu;
     TPZElasticResponse ER;
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     mat.fElasticResponse = ER;
 }
 
@@ -3165,7 +3165,7 @@ void TPZSandlerExtended::PreSMat(TPZSandlerExtended &mat)// em MPa
     mat.fE = E;
     mat.fnu = nu;
     TPZElasticResponse ER;
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     mat.fElasticResponse = ER;
 }
 

@@ -65,7 +65,7 @@ public:
 
         DRUCKERPARENT::fYC.SetUp(fangle / 180. * M_PI, InnerOuter);
         DRUCKERPARENT::fTFA.SetUp(coesion, hardeningModulus);
-        DRUCKERPARENT::fER.SetUp(young, poisson);
+        DRUCKERPARENT::fER.SetEngineeringData(young, poisson);
         //		DRUCKERPARENT::fYC.SetUp(/*phi=20*/ 20./180. * M_PI ,/*innerMCFit*/0);
         //		DRUCKERPARENT::fTFA.SetUp(/*yield- coesao inicial correspondeno a fck igual 32 Mpa */ 9.2376, /*k Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao */1000.);
         //		DRUCKERPARENT::fER.SetUp(/*young*/ 20000., /*poisson*/ 0.2);
@@ -156,7 +156,7 @@ public:
         REAL poisson = 0.2;
         material.fYC.SetUp(phi, InnerOuter);
         material.fTFA.SetUp(cohesion, hardening);
-        material.fER.SetUp(young, poisson);
+        material.fER.SetEngineeringData(young, poisson);
     }
 
     static void TaludeMaterial(TPZDruckerPrager & material, int InnerOuter) {
@@ -168,7 +168,7 @@ public:
         REAL poisson = 0.49;
         material.fYC.SetUp(phi, InnerOuter);
         material.fTFA.SetUp(cohesion, hardening);
-        material.fER.SetUp(young, poisson);
+        material.fER.SetEngineeringData(young, poisson);
     }
 
 private:

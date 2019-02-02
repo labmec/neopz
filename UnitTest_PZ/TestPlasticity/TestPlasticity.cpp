@@ -175,26 +175,37 @@ TPZFMatrix<STATE> readStrainPVPath(std::string &file_name, int n_data) {
  */
 void LECompareStressStrainResponse() {
     
-    TPZElasticResponse ER;
-    TPZElasticCriterion EC;
-    TPZMatElastoPlastic2D<TPZElasticCriterion> LE;
-    
-    REAL Eyoug = 15.0;
-    REAL nu = 0.21;
-    ER.SetUp(Eyoug, nu);
-    EC.SetElasticResponse(ER);
-    TPZTensor<REAL> eps_t,sigma;
-    eps_t.Zero();
+    // The reference data
+    TPZTensor<REAL> eps_t,sigma_ref;
+    REAL Eyoug = 29269.0;
+    REAL nu = 0.203;
+    sigma_ref.Zero(); // The reference stress
+    sigma_ref.XX() = -19.771203724695;
+    sigma_ref.XY() = -4.86600166251039;
+    sigma_ref.XZ() = -21.897007481296754;
+    sigma_ref.YY() = -29.503207049715776;
+    sigma_ref.ZZ() = -24.6372053872054;
+
+    eps_t.Zero(); // The reference strain
     eps_t.XX() = -0.0003;
     eps_t.XY() = -0.0002;
     eps_t.XZ() = -0.0009;
     eps_t.YY() = -0.0007;
     eps_t.ZZ() = -0.0005;
-    TPZFMatrix<REAL> Dep;
-    EC.ApplyStrainComputeDep(eps_t, sigma, Dep);
     
-    sigma.Print(std::cout);
+    TPZElasticResponse ER;
+    TPZElasticCriterion EC;
+
+    ER.SetEngineeringData(Eyoug, nu);
+    EC.SetElasticResponse(ER);
+    TPZTensor<REAL> sigma, delta_sigma;
     
+    TPZFMatrix<REAL> Dep(6,6,0.0);
+    EC.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+    delta_sigma = sigma-sigma_ref;
+    REAL norm = delta_sigma.Norm();
+    bool check = IsZero(norm);
+    BOOST_CHECK(check);
     return;
 }
 
@@ -202,9 +213,40 @@ void LECompareStressStrainResponse() {
  * @brief Compute and compare porous elastic response
  */
 void PECompareStressStrainResponse() {
+   
+    // The reference data
+    TPZTensor<REAL> eps_t,sigma_ref;
+    REAL Eyoug = 29269.0;
+    REAL nu = 0.203;
+    sigma_ref.Zero(); // The reference stress
+    sigma_ref.XX() = -19.771203724695;
+    sigma_ref.XY() = -4.86600166251039;
+    sigma_ref.XZ() = -21.897007481296754;
+    sigma_ref.YY() = -29.503207049715776;
+    sigma_ref.ZZ() = -24.6372053872054;
     
-    TPZPorousElasticResponse PE;
-
+    eps_t.Zero(); // The reference strain
+    eps_t.XX() = -0.0003;
+    eps_t.XY() = -0.0002;
+    eps_t.XZ() = -0.0009;
+    eps_t.YY() = -0.0007;
+    eps_t.ZZ() = -0.0005;
+    
+    TPZElasticResponse ER;
+    TPZPorousElasticResponse PER;
+    TPZPorousElasticCriterion PEC;
+    
+//    PER.SetUp(Eyoug, nu);
+    PEC.SetElasticResponse(ER);
+    TPZTensor<REAL> sigma, delta_sigma;
+    
+    TPZFMatrix<REAL> Dep(6,6,0.0);
+    PEC.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+    delta_sigma = sigma-sigma_ref;
+    REAL norm = delta_sigma.Norm();
+    bool check = IsZero(norm);
+    BOOST_CHECK(check);
+    
     return;
 }
 
@@ -244,7 +286,7 @@ void LEDSCompareStressStrainAlphaMType() {
     REAL CW      = 0.066;
     REAL phi = 0, psi = 1., N = 0.;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
@@ -344,7 +386,7 @@ void LEDSCompareStressStrainErickTest() {
     REAL CW      = 0.06605;
     REAL phi = 0, psi = 1., N = 0.;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
@@ -432,7 +474,7 @@ void LEDSCompareStressStrainResponse() {
     REAL CW      = 0.066;
     REAL phi = 0, psi = 1., N = 0.;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEDS.SetElasticResponse(ER);
     LEDS.fYC.SetUp(CA, CB, CC, CD, K, G, CW, CR, phi, N, psi);
     
@@ -513,7 +555,7 @@ void LEDSCompareStressStrainTangent() {
     REAL CW      = 0.066;
     REAL phi = 0, psi = 1., N = 0.;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     
     // Testing Cap Vertex tangent and projected stress
     {
@@ -885,7 +927,7 @@ void LEMCCompareStressStrainResponseAbaqus() {
     REAL c = 23.3*3.0; // MPa
     REAL phi = 0.5364, psi = 0.5364;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEMC.SetElasticResponse(ER);
     LEMC.fYC.SetUp(phi, psi, c, ER);
     
@@ -971,7 +1013,7 @@ void LEMCCompareStressStrainResponse() {
     REAL c = 23.3; // MPa
     REAL phi = 30.733456130817356*to_Rad, psi = 30.733456130817356*to_Rad;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEMC.SetElasticResponse(ER);
     LEMC.fYC.SetUp(phi, psi, c, ER);
 
@@ -1052,7 +1094,7 @@ void LEMCCompareStressStrainResponse_PlasticLab_Test() {
     REAL c = 30.0;        // MPa
     REAL phi = 10.0*to_Rad, psi = 10.0*to_Rad;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEMC.SetElasticResponse(ER);
     LEMC.fYC.SetUp(phi, psi, c, ER);
     
@@ -1118,7 +1160,7 @@ void LEMCCompareStressStrainTangent() {
     REAL c = 23.3; // MPa
     REAL phi = 30.733456130817356*to_Rad, psi = 30.733456130817356*to_Rad;
     
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEMC.SetElasticResponse(ER);
     LEMC.fYC.SetUp(phi, psi, c, ER);
     
@@ -1203,6 +1245,10 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
+    // Elastic response
+    LECompareStressStrainResponse();
+//    PECompareStressStrainResponse();
+
     LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse();
 //    LEDSCompareStressStrainErickTest();

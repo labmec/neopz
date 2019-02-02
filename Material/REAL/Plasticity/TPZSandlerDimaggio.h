@@ -199,7 +199,7 @@ protected:
 		{
 			TPZFNMatrix<6*6> D(6,6,0.);
 			
-			SANDLERDIMAGGIOPARENT::fER.ElasticMat(D);
+			SANDLERDIMAGGIOPARENT::fER.De(D);
 			
 			Dep.ZAXPY(0.01, D);
 			
