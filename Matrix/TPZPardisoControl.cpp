@@ -317,39 +317,35 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         switch (rest) {
             case 1:
                 std::cout << "Pardiso:: fluctuations of the residuum are too large, calling numerical factorization... " << std::endl;
-                
-                phase = 23;
-                pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
-                            &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
                 break;
                 
             case 2:
                 std::cout << "Pardiso:: Slow convergence - Main matrix and matrix for preconditioner differ a lot, calling numerical factorization... " << std::endl;
-                
-                phase = 23;
-                pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
-                            &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+                break;
                 
             case 4:
                 std::cout << "Pardiso:: perturbed pivots caused iterative refinement, calling numerical factorization... " << std::endl;
-                
-                phase = 23;
-                pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
-                            &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+                break;
                 
             case 5:
                 std::cout << "Pardiso:: factorization is too fast for this matrix. It is better to use the factorization method with iparm[3] = 0 " << std::endl;
-                
+                break;
+            case 6:
+                std::cout << "Pardiso:: There is not a diagnostig. " << std::endl;
+                break;
             default:
                 break;
         }
         
     }
     
-//    std::cout << "Norm RHS " << Norm(rhs) << std::endl;
-//    std::cout << "Norm sol " << Norm(sol) << std::endl;
-//    rhs.Print("rhs");
-//    sol.Print("sol");
+    
+    if (Error<0) {
+        std::cout << "Pardiso:: Calling a numerical factorization. \n";
+        phase = 23;
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    }
     
     if (Error) {
         DebugStop();
