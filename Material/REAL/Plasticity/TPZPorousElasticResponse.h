@@ -72,20 +72,22 @@ public:
     
     void Print(std::ostream & out) const ;
     
-    void G(TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol);
+    void G(const TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol);
     
-    void Poisson(TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol);
+    void Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol);
     
-    void K(TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol);
+    void K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol);
     
-    void De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
     
-    void De_G_constant(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De_G_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
     
-    void De_Poisson_constant(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De_Poisson_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    
+    void LinearizedElasticResponse(const TPZTensor<STATE> & epsilon, STATE & Eyoung, STATE & nu);
     
     template<class T>
-    void ComputeStress(TPZTensor<T> & epsilon, TPZTensor<T> & sigma){
+    void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma){
         
         REAL eps_norm = epsilon.Norm();
         if (eps_norm > 0.05) {
@@ -113,7 +115,7 @@ public:
     }
     
     template<class T>
-    void ComputeStrain(TPZTensor<T> & sigma, TPZTensor<T> & epsilon){
+    void ComputeStrain(const TPZTensor<T> & sigma, TPZTensor<T> & epsilon){
 
         // Initial guess is for the deviatoric is obtained from the given epsilon
         // Computing the initial guess for the volumetric part

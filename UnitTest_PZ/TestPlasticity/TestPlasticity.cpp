@@ -226,7 +226,6 @@ int power(int a, int n) {
  */
 void PECompareStressStrainResponse() {
     
-    TPZElasticResponse ER;
     TPZPorousElasticResponse PER;
     
     //Testing TPZPorousElasticResponse for constan Poisson ratio
@@ -377,19 +376,6 @@ void PECompareStressStrainResponse() {
         }
 
     }
-    
-    TPZPorousElasticCriterion PEC;
-    
-////    PER.SetUp(Eyoug, nu);
-//    PEC.SetElasticResponse(ER);
-//    TPZTensor<REAL> sigma, delta_sigma;
-//
-//    TPZFMatrix<REAL> Dep(6,6,0.0);
-//    PEC.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
-//    delta_sigma = sigma-sigma_ref;
-//    REAL norm = delta_sigma.Norm();
-//    bool check = IsZero(norm);
-//    BOOST_CHECK(check);
     
     return;
 }
@@ -1394,13 +1380,13 @@ BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     PECompareStressStrainResponse();
 
     LEDSCompareStressStrainAlphaMType();
-//    LEDSCompareStressStrainResponse();
+//    LEDSCompareStressStrainResponse(); //  Improve this test with Ericks Data
 //    LEDSCompareStressStrainErickTest();
     LEDSCompareStressStrainTangent();
     
     
     // Complete
-//    LEMCCompareStressStrainResponseAbaqus(); // Test projection
+//    LEMCCompareStressStrainResponseAbaqus(); // Test projection //  Improve this test with Abaqus data
     LEMCCompareStressStrainResponse(); // Test projection
     LEMCCompareStressStrainResponse_PlasticLab_Test(); // Test projection for PlasticLab Simulated experiment
     LEMCCompareStressStrainTangent(); //  Test Tangent

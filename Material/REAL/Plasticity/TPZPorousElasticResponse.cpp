@@ -121,7 +121,7 @@ void TPZPorousElasticResponse::Print(std::ostream & out) const {
     out << "\n Plane stress state directive = " << m_plane_stress_Q;
 }
 
-void TPZPorousElasticResponse::G(TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol){
+void TPZPorousElasticResponse::G(const TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol){
 
     STATE epsv = epsilon.I1();
     G = (3*(1 + m_e_0)*(1 + epsv)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
@@ -136,7 +136,7 @@ void TPZPorousElasticResponse::G(TPZTensor<STATE> &epsilon, STATE & G, STATE & d
      m_kappa*(1 + m_nu));
 }
 
-void TPZPorousElasticResponse::Poisson(TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol){
+void TPZPorousElasticResponse::Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol){
     
     STATE epsv = epsilon.I1();
     nu = -1 + (9*(1 + epsv)*(1 + m_e_0)*(m_pt_el + m_p_0))/(6*(1 + epsv)*(1 + m_e_0)*(m_pt_el + m_p_0) +
@@ -147,7 +147,7 @@ void TPZPorousElasticResponse::Poisson(TPZTensor<STATE> &epsilon, STATE & nu, ST
     
 }
 
-void TPZPorousElasticResponse::K(TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol){
+void TPZPorousElasticResponse::K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol){
     if (m_is_G_constant_Q) {
         STATE lambda, nu, dnu_desp_vol, dK_dnu;
         this->Poisson(epsilon, nu, dnu_desp_vol);
@@ -164,7 +164,7 @@ void TPZPorousElasticResponse::K(TPZTensor<STATE> &epsilon, STATE & K, STATE & d
 }
 
 
-void TPZPorousElasticResponse::De_G_constant(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De){
+void TPZPorousElasticResponse::De_G_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De){
     
     STATE lambda, nu, dnu_desp_vol;
     this->Poisson(epsilon, nu, dnu_desp_vol);
@@ -217,7 +217,7 @@ void TPZPorousElasticResponse::De_G_constant(TPZTensor<STATE> & epsilon, TPZFMat
     De+=constant*De_nl;
 }
 
-void TPZPorousElasticResponse::De_Poisson_constant(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De){
+void TPZPorousElasticResponse::De_Poisson_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De){
     
     STATE lambda, G, dG_desp_vol;
     this->G(epsilon, G, dG_desp_vol);
@@ -291,10 +291,24 @@ void TPZPorousElasticResponse::De_Poisson_constant(TPZTensor<STATE> & epsilon, T
     return;
 }
 
-void TPZPorousElasticResponse::De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) {
+void TPZPorousElasticResponse::De(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) {
     if (m_is_G_constant_Q) {
         De_G_constant(epsilon, De);
     }else{
         De_Poisson_constant(epsilon, De);
+    }
+}
+
+void TPZPorousElasticResponse::LinearizedElasticResponse(const TPZTensor<STATE> & epsilon, STATE & Eyoung, STATE & nu){
+    /// The properties are computed as zero order approach, i.e. constant associated to epsilon
+    STATE G;
+    if (m_is_G_constant_Q) {
+        STATE dnu_desp_vol;
+        this->Poisson(epsilon, nu, dnu_desp_vol);
+        Eyoung = 2*m_mu*(1.0+nu);
+    }else{
+        STATE dG_desp_vol;
+        this->G(epsilon, G, dG_desp_vol);
+        Eyoung = 2*G*(1.0+m_nu);
     }
 }

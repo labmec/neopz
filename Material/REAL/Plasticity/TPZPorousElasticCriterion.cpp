@@ -56,12 +56,16 @@ void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &e
     }
 #endif
     
-    fER.ComputeStress(epsTotal, sigma);
+    fPER.ComputeStress(epsTotal, sigma);
     fN.m_eps_t = epsTotal;
     
     if (require_tangent_Q) {
-        DebugStop();
+        fPER.De(epsTotal, *tangent);
     }
+    /// Update the linear elastic response
+    STATE Eyoung, nu;
+    fPER.LinearizedElasticResponse(epsTotal, Eyoung, nu);
+    fER.SetEngineeringData(Eyoung, nu);
     
 }
 
@@ -73,26 +77,15 @@ void TPZPorousElasticCriterion::ApplyStrain(const TPZTensor<REAL> &epsTotal)
     
 }
 
-void TPZPorousElasticCriterion::ApplyLoad(const TPZTensor<REAL> & GivenStress, TPZTensor<REAL> &epsTotal)
+void TPZPorousElasticCriterion::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsilon)
 {
-    TPZFNMatrix<36,REAL> Dep(6,6,0.0);
-    TPZTensor<REAL> eps(0.),sigma;
-    ApplyStrainComputeSigma(eps, sigma, &Dep);
-    TPZFNMatrix<6,REAL> stressmat(6,1);
-    stressmat(_XX_) = GivenStress[_XX_];
-    stressmat(_YY_) = GivenStress[_YY_];
-    stressmat(_XY_) = GivenStress[_XY_];
-    stressmat(_ZZ_) = GivenStress[_ZZ_];
-    stressmat(_XZ_) = GivenStress[_XZ_];
-    stressmat(_YZ_) = GivenStress[_YZ_];
-    Dep.Solve_LDLt(&stressmat);
-    epsTotal[_XX_] = stressmat(_XX_);
-    epsTotal[_YY_] = stressmat(_YY_);
-    epsTotal[_XY_] = stressmat(_XY_);
-    epsTotal[_XZ_] = stressmat(_XZ_);
-    epsTotal[_YZ_] = stressmat(_YZ_);
-    epsTotal[_ZZ_] = stressmat(_ZZ_);
-    fN.m_eps_t = epsTotal;
+    fPER.ComputeStrain(sigma, epsilon);
+    fN.m_eps_t = epsilon;
+    
+    /// Update the linear elastic response
+    STATE Eyoung, nu;
+    fPER.LinearizedElasticResponse(epsilon, Eyoung, nu);
+    fER.SetEngineeringData(Eyoung, nu);
 }
 
 
@@ -104,7 +97,6 @@ TPZPlasticState<STATE>  TPZPorousElasticCriterion::GetState() const
 
 void TPZPorousElasticCriterion::Phi(const TPZTensor<STATE> &eps, TPZVec<REAL> &phi) const
 {
-    
     phi.resize(3);
     for (int i = 0; i < 3; i++) {
         phi[i] = 0.;
@@ -121,7 +113,7 @@ int TPZPorousElasticCriterion::IntegrationSteps() const
     return 1;
 }
 
-int TPZPorousElasticCriterion::ClassId() const{
+int TPZPorousElasticCriterion::ClassId() const {
     return Hash("TPZPorousElasticCriterion") ^ TPZPlasticBase::ClassId() << 1;
 }
 
