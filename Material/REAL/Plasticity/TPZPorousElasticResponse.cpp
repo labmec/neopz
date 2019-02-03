@@ -112,20 +112,23 @@ void TPZPorousElasticResponse::Print(std::ostream & out) const {
     out << "\n Elastic tensile strength = " << m_pt_el;
     out << "\n Initial void ratio = " << m_e_0;
     out << "\n Initial hydrostatic stress = " << m_p_0;
-    out << "\n Poisson ratio = " << m_nu;
-    out << "\n Second Lamé parameter = " << m_mu;
     out << "\n Constant Shear modulus directive = " << m_is_G_constant_Q;
+    if (m_is_G_constant_Q) {
+        out << "\n Second Lamé parameter (Shear modulus) = " << m_mu;
+    }else{
+        out << "\n Poisson ratio = " << m_nu;
+    }
     out << "\n Plane stress state directive = " << m_plane_stress_Q;
 }
 
-void TPZPorousElasticResponse::G(TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol){
-    
+void TPZPorousElasticResponse::G(TPZTensor<STATE> &epsilon, STATE & G, STATE dG_desp_vol){
+
     STATE epsv = epsilon.I1();
     G = (3*(1 + m_e_0)*(1 + epsv)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
     (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*m_kappa*(1 + m_nu));
     
     dG_desp_vol = (-3*pow(1 + m_e_0,2)*(1 + epsv)*
-                   (1 - 2*m_nu)*(m_p_0 + m_pt_el))/
+                  (1 - 2*m_nu)*(m_p_0 + m_pt_el))/
     (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*
      pow(m_kappa,2)*(1 + m_nu)) +
     (3*(1 + m_e_0)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
@@ -133,11 +136,88 @@ void TPZPorousElasticResponse::G(TPZTensor<STATE> &epsilon, STATE & G, STATE & d
      m_kappa*(1 + m_nu));
 }
 
-void TPZPorousElasticResponse::K(TPZTensor<STATE> &epsilon, STATE & G, STATE & dGdesp_vol){
-    DebugStop();
+void TPZPorousElasticResponse::Poisson(TPZTensor<STATE> &epsilon, STATE & nu, STATE dnu_desp_vol){
+    
+    STATE epsv = epsilon.I1();
+    nu = -1 + (9*(1 + epsv)*(1 + m_e_0)*(m_pt_el + m_p_0))/(6*(1 + epsv)*(1 + m_e_0)*(m_pt_el + m_p_0) +
+                                                            2*exp((epsv*(1 + m_e_0))/m_kappa)*m_kappa*m_mu);
+    
+    dnu_desp_vol = (-9*exp((epsv*(1 + m_e_0))/ m_kappa)*(1 + m_e_0)*(1 + epsv + m_e_0 + epsv*m_e_0 - m_kappa)*
+                    (m_pt_el + m_p_0)* m_mu)/(2.*pow(3*(1 + epsv)*(1 + m_e_0)*(m_pt_el + m_p_0) + exp((epsv*(1 + m_e_0))/                m_kappa)*m_kappa*m_mu,2));
+    
 }
 
-void TPZPorousElasticResponse::De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) {
+void TPZPorousElasticResponse::K(TPZTensor<STATE> &epsilon, STATE & K, STATE dK_desp_vol){
+    if (m_is_G_constant_Q) {
+        STATE lambda, nu, dnu_desp_vol, dK_dnu;
+        this->Poisson(epsilon, nu, dnu_desp_vol);
+        K = (2.0*m_mu*(1+nu))/(3.0*(1-2.0*nu));
+        dK_dnu = (2.0*m_mu)/((1.0-2.0*nu)*(1.0-2.0*nu));
+        dK_desp_vol = dK_dnu * dnu_desp_vol;
+    }else{
+        STATE lambda, G, dG_desp_vol, dK_dG;
+        this->G(epsilon, G, dG_desp_vol);
+        K = (2.0*G*(1+m_nu))/(3.0*(1-2.0*m_nu));
+        dK_dG = (2.0*(1.0+m_nu))/(3.0-6.0*m_nu);
+        dK_desp_vol = dK_dG * dG_desp_vol;
+    }
+}
+
+
+void TPZPorousElasticResponse::De_G_constant(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De){
+    
+    STATE lambda, nu, dnu_desp_vol;
+    this->Poisson(epsilon, nu, dnu_desp_vol);
+    lambda = (2.0*m_mu*nu)/(1.0-2.0*nu);
+    
+    // Line 0
+    De.PutVal(_XX_,_XX_, lambda + 2. * m_mu);
+    De.PutVal(_XX_,_YY_, lambda);
+    De.PutVal(_XX_,_ZZ_, lambda);
+    
+    // Line 1
+    De.PutVal(_XY_,_XY_, 2. * m_mu);
+    
+    // Line 2
+    De.PutVal(_XZ_,_XZ_, 2. * m_mu);
+    
+    // Line 3
+    De.PutVal(_YY_,_XX_, lambda);
+    De.PutVal(_YY_,_YY_, lambda + 2. * m_mu);
+    De.PutVal(_YY_,_ZZ_, lambda);
+    
+    // Line 4
+    De.PutVal(_YZ_,_YZ_, 2. * m_mu);
+    
+    // Line 5
+    De.PutVal(_ZZ_,_XX_, lambda);
+    De.PutVal(_ZZ_,_YY_, lambda);
+    De.PutVal(_ZZ_,_ZZ_, lambda + 2. * m_mu);
+    
+    /// Nonlinear correction
+    TPZFMatrix<STATE> De_nl(6,6,0.0);
+    REAL denominator = 2.0 * m_mu * ( epsilon.XX() + epsilon.YY() + epsilon.ZZ() ) * dnu_desp_vol;
+    REAL constant = ((denominator)/(1.0-2.0*nu))*(1.0/(1.0-2.0*nu));
+    
+    // Line 0
+    De_nl.PutVal(_XX_, _XX_, 1.0);
+    De_nl.PutVal(_XX_, _YY_, 1.0);
+    De_nl.PutVal(_XX_, _ZZ_, 1.0);
+    
+    // Line 3
+    De_nl.PutVal(_YY_, _XX_, 1.0);
+    De_nl.PutVal(_YY_, _YY_, 1.0);
+    De_nl.PutVal(_YY_, _ZZ_, 1.0);
+    
+    // Line 5
+    De_nl.PutVal(_ZZ_, _XX_, 1.0);
+    De_nl.PutVal(_ZZ_, _YY_, 1.0);
+    De_nl.PutVal(_ZZ_, _ZZ_, 1.0);
+    
+    De+=constant*De_nl;
+}
+
+void TPZPorousElasticResponse::De_Poisson_constant(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De){
     
     STATE lambda, G, dG_desp_vol;
     this->G(epsilon, G, dG_desp_vol);
@@ -208,36 +288,13 @@ void TPZPorousElasticResponse::De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> 
     De_nl.PutVal(_ZZ_, _ZZ_, l5_val);
     
     De+=De_nl;
-    
     return;
 }
 
-void TPZPorousElasticResponse::ComputeStress(TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma) {
-    
-    STATE lambda, G, dG_desp_vol;
-    this->G(epsilon, G, dG_desp_vol);
-    lambda = (2.0*G*m_nu)/(1.0-2.0*m_nu);
-    
-    STATE trace = epsilon.I1();
-    sigma.Identity();
-    sigma.Multiply(trace, lambda);
-    sigma.Add(epsilon, 2. * G);
-}
-
-void TPZPorousElasticResponse::ComputeStrain(TPZTensor<STATE> & sigma, TPZTensor<STATE> & epsilon, TPZTensor<STATE> & sigma_n, TPZTensor<STATE> & epsilon_n) {
-    STATE det;
-    TPZFMatrix<STATE> De(6,6,0.0),De_inv;
-    this->De(epsilon, De);
-    De.DeterminantInverse(det, De_inv);
-    if (IsZero(det)) {
-        DebugStop();
+void TPZPorousElasticResponse::De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) {
+    if (m_is_G_constant_Q) {
+        De_G_constant(epsilon, De);
+    }else{
+        De_Poisson_constant(epsilon, De);
     }
-    TPZFMatrix<STATE> delta_sigma, delta_eps;
-    sigma_n -= sigma;
-    sigma_n.CopyTo(delta_sigma);
-    // Perform a Newton process to obtain eps(sigma)
-    //        delta_sigma
-    //        De_inv.
-    
-    return;
 }

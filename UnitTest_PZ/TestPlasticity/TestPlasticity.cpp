@@ -213,39 +213,173 @@ void LECompareStressStrainResponse() {
  * @brief Compute and compare porous elastic response
  */
 void PECompareStressStrainResponse() {
-   
-    // The reference data
-    TPZTensor<REAL> eps_t,sigma_ref;
-    REAL Eyoug = 29269.0;
-    REAL nu = 0.203;
-    sigma_ref.Zero(); // The reference stress
-    sigma_ref.XX() = -19.771203724695;
-    sigma_ref.XY() = -4.86600166251039;
-    sigma_ref.XZ() = -21.897007481296754;
-    sigma_ref.YY() = -29.503207049715776;
-    sigma_ref.ZZ() = -24.6372053872054;
-    
-    eps_t.Zero(); // The reference strain
-    eps_t.XX() = -0.0003;
-    eps_t.XY() = -0.0002;
-    eps_t.XZ() = -0.0009;
-    eps_t.YY() = -0.0007;
-    eps_t.ZZ() = -0.0005;
     
     TPZElasticResponse ER;
     TPZPorousElasticResponse PER;
+    
+    //Testing TPZPorousElasticResponse for constan Poisson ratio
+    {
+        // The reference data
+        TPZTensor<REAL> eps_e,sigma_ref;
+        sigma_ref.Zero(); // The reference stress
+        sigma_ref.XX() = -0.54395711345815;
+        sigma_ref.YY() = 0.564215469327881;
+        sigma_ref.ZZ() = 0.00411244624155542;
+
+        eps_e.Zero(); // The reference strain
+        eps_e.XX() = -0.000113727;
+        eps_e.YY() = 0.000116224;
+        
+        STATE nu = 0.203;
+        STATE kappa = 0.0024;
+        STATE pt_el = 5.835;
+        STATE e_0 = 0.34;
+        STATE p_0 = 0.0;
+        PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
+        PER.SetPoissonRatioConstant(nu);
+
+        TPZTensor<STATE> sigma, epsilon_target;
+        PER.ComputeStress(eps_e, sigma);
+        REAL sigma_norm =(sigma-sigma_ref).Norm();
+        bool sigma_check = IsZero(sigma_norm);
+        BOOST_CHECK(sigma_check);
+        
+        epsilon_target.Zero();
+        PER.ComputeStrain(sigma,epsilon_target);
+        REAL esp_norm = (epsilon_target-eps_e).Norm();
+        bool esp_check = IsZero(esp_norm);
+        BOOST_CHECK(esp_check);
+        
+        // Check for convergence
+        TPZManVector<REAL,4> alpha(4), error(4);
+        alpha[0] = 1.0e-4;
+        alpha[1] = 1.0e-5;
+        alpha[2] = 1.0e-6;
+        alpha[3] = 1.0e-7;
+        
+        TPZFNMatrix<36,STATE> De(6,6);
+        TPZFNMatrix<6,STATE> epsilon_v(6,1), sigma_v(6,1), delta_sigma_v(6,1), delta_eps_v(6,1);
+        De.Zero();
+        
+        PER.De(eps_e, De);
+        for(int i = 0; i < 4; i++){
+            delta_eps_v.Zero();
+            REAL alpha_val = alpha[i];
+            delta_eps_v += alpha_val;
+            De.Multiply(delta_eps_v, delta_sigma_v);
+            
+            TPZTensor<STATE> sigma_approx, epsilon, delta_sigma, delta_eps;
+            delta_sigma.CopyFrom(delta_sigma_v);
+            sigma_approx = sigma_ref + delta_sigma;
+            
+            sigma.Zero();
+            eps_e.CopyTo(epsilon_v);
+            epsilon_v += alpha_val;
+            epsilon.CopyFrom(epsilon_v);
+            PER.ComputeStress(epsilon, sigma);
+            delta_sigma = sigma - sigma_approx;
+            error[i] = log(delta_sigma.Norm());
+            alpha[i] = log(alpha_val);
+        }
+        for(int i = 0; i < 3; i++){
+            REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
+            std::cout << "Approximation rate = " << n << std::endl;
+        }
+    }
+    
+    //Testing TPZPorousElasticResponse for constan Shear modulus
+    {
+        // The reference data
+        TPZTensor<REAL> eps_e,sigma_ref;
+        sigma_ref.Zero(); // The reference stress
+        sigma_ref.XX() = -0.544354891592515;
+        sigma_ref.YY() = 0.564579745407486;
+        sigma_ref.ZZ() = -0.00671541759251463;
+        
+        eps_e.Zero(); // The reference strain
+        eps_e.XX() = -2.20978e-5;
+        eps_e.YY() = 2.34811e-5;
+        
+        STATE mu = 12165.0;
+        STATE kappa = 0.0024;
+        STATE pt_el = 5.835;
+        STATE e_0 = 0.34;
+        STATE p_0 = 0.0;
+        PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
+        PER.SetShearModulusConstant(mu);
+        
+        TPZTensor<STATE> sigma, epsilon_target;
+        PER.ComputeStress(eps_e, sigma);
+        sigma.Print(std::cout);
+        REAL sigma_norm =(sigma-sigma_ref).Norm();
+        bool sigma_check = IsZero(sigma_norm);
+        BOOST_CHECK(sigma_check);
+        
+        epsilon_target.Zero();
+        PER.ComputeStrain(sigma,epsilon_target);
+        REAL esp_norm = (epsilon_target-eps_e).Norm();
+        bool esp_check = IsZero(esp_norm);
+        BOOST_CHECK(esp_check);
+        
+        // Check for convergence
+        TPZManVector<REAL,4> alpha(4), error(4);
+        REAL s = 0.01;
+        alpha[0] = s*1.0e-1;
+        alpha[1] = s*alpha[0]/2;
+        alpha[2] = s*alpha[1]/2;
+        alpha[3] = s*alpha[2]/2;
+        
+        TPZFNMatrix<36,STATE> De(6,6);
+        TPZFNMatrix<6,STATE> epsilon_v(6,1), sigma_v(6,1), delta_sigma_v(6,1), delta_eps_v(6,1);
+        De.Zero();
+        
+
+        
+        PER.De(eps_e, De);
+        for(int i = 0; i < 4; i++){
+            delta_eps_v.Zero();
+            delta_eps_v += -0.01;
+            
+            // alpha delta_eps
+            REAL alpha_val = alpha[i];
+            delta_eps_v *= alpha_val;
+            De.Multiply(delta_eps_v, delta_sigma_v);
+            
+            TPZTensor<STATE> sigma_approx, epsilon, delta_sigma, delta_eps;
+            delta_sigma.CopyFrom(delta_sigma_v);
+            sigma_approx = sigma_ref + delta_sigma;
+            
+            // Sigma(eps_0 + alpha delta_eps)
+            eps_e.CopyTo(epsilon_v);
+            epsilon_v += delta_eps_v;
+            epsilon.CopyFrom(epsilon_v);
+            PER.ComputeStress(epsilon, sigma);
+            
+            delta_sigma = sigma - sigma_approx;
+            REAL error_norm = delta_sigma.Norm();
+            std::cout << "Error norm = " << error_norm << std::endl;
+            error[i] = log(error_norm);
+            alpha[i] = log(alpha_val);
+        }
+        for(int i = 0; i < 3; i++){
+            REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
+            std::cout << "Approximation rate = " << n << std::endl;
+        }
+        
+    }
+    
     TPZPorousElasticCriterion PEC;
     
-//    PER.SetUp(Eyoug, nu);
-    PEC.SetElasticResponse(ER);
-    TPZTensor<REAL> sigma, delta_sigma;
-    
-    TPZFMatrix<REAL> Dep(6,6,0.0);
-    PEC.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
-    delta_sigma = sigma-sigma_ref;
-    REAL norm = delta_sigma.Norm();
-    bool check = IsZero(norm);
-    BOOST_CHECK(check);
+////    PER.SetUp(Eyoug, nu);
+//    PEC.SetElasticResponse(ER);
+//    TPZTensor<REAL> sigma, delta_sigma;
+//
+//    TPZFMatrix<REAL> Dep(6,6,0.0);
+//    PEC.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+//    delta_sigma = sigma-sigma_ref;
+//    REAL norm = delta_sigma.Norm();
+//    bool check = IsZero(norm);
+//    BOOST_CHECK(check);
     
     return;
 }
@@ -1247,7 +1381,7 @@ BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
     // Elastic response
     LECompareStressStrainResponse();
-//    PECompareStressStrainResponse();
+    PECompareStressStrainResponse();
 
     LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse();
