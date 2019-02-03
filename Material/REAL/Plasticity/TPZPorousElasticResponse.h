@@ -72,11 +72,11 @@ public:
     
     void Print(std::ostream & out) const ;
     
-    void G(TPZTensor<STATE> &epsilon, STATE & G, STATE dG_desp_vol = 0.0);
+    void G(TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol);
     
-    void Poisson(TPZTensor<STATE> &epsilon, STATE & nu, STATE dnu_desp_vol = 0.0);
+    void Poisson(TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol);
     
-    void K(TPZTensor<STATE> &epsilon, STATE & K, STATE dK_desp_vol = 0.0);
+    void K(TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol);
     
     void De(TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
     
@@ -94,16 +94,16 @@ public:
         
         if (m_is_G_constant_Q) {
             T trace = T(epsilon.I1());
-            STATE lambda, nu;
-            this->Poisson(epsilon,nu);
+            STATE lambda, nu, dnu_desp_vol;
+            this->Poisson(epsilon,nu,dnu_desp_vol);
             lambda = (2.0*m_mu*nu)/(1.0-2.0*nu);
             sigma.Identity();
             sigma.Multiply(trace, lambda);
             sigma.Add(epsilon, 2. * m_mu);
         }else{
             T trace = T(epsilon.I1());
-            REAL lambda, G;
-            this->G(epsilon,G);
+            REAL lambda, G, dG_desp_vol;
+            this->G(epsilon,G,dG_desp_vol);
             lambda = T((2.0*G*m_nu)/(1.0-2.0*m_nu));
             sigma.Identity();
             sigma.Multiply(trace, lambda);
