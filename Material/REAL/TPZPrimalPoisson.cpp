@@ -360,10 +360,10 @@ void TPZPrimalPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE>
     
     error.Fill(0.0);
     //  q = - grad (p)
-    //du *= -1.0;
+    du *= -1.0;
     
     /** @brief   error[0] : primal error using L2 norm */
-    STATE p_error = u[0] + u_exact[0];
+    STATE p_error = u[0] - u_exact[0];
     error[0]  = p_error*p_error;
 
     /** @brief   error[1] : dual error using L2 norm */
