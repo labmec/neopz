@@ -26,6 +26,7 @@
 
 // Structure matrix utilities
 #include "TPZSSpStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 #include "pzskylstrmatrix.h"
 #include "pzfstrmatrix.h"
 
@@ -132,7 +133,6 @@ int main(int argc, char *argv[]){
         REAL t = it*dt;
         LoadingRamp(t,cmesh);
         FindRoot(analysis);
-//        return 0;
         AcceptSolution(cmesh, analysis);
         
 #ifdef USING_BOOST
@@ -224,7 +224,7 @@ TPZCompMesh * CMeshFooting2D(TPZGeoMesh * gmesh, int p_order){
     
 
     TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
-    ER.SetUp(E, nu);
+    ER.SetEngineeringData(E, nu);
     LEMC.SetElasticResponse(ER);
     LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
     int PlaneStrain = 1;
@@ -282,9 +282,10 @@ TPZAnalysis * Analysis(TPZCompMesh * cmesh, int n_threads){
     
     TPZAnalysis * analysis = new TPZAnalysis(cmesh,true);
 //    TPZSkylineStructMatrix matrix(cmesh);
-    TPZSymetricSpStructMatrix matrix(cmesh);
+//    TPZSymetricSpStructMatrix matrix(cmesh);
+    TPZSpStructMatrix matrix(cmesh);
     TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
+    step.SetDirect(ELU);
     matrix.SetNumThreads(n_threads);
     analysis->SetStructuralMatrix(matrix);
     analysis->SetSolver(step);
@@ -375,7 +376,7 @@ bool FindRoot(TPZAnalysis *analysis){
 #endif
 
     for (int i = 1; i <= n_it; i++) {
-        analysis->Solver().Matrix()->SetIsDecomposed(0);
+//        analysis->Solver().Matrix()->SetIsDecomposed(0);
 //        analysis->Rhs() *= -1.0;
         
 #ifdef USING_BOOST

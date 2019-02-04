@@ -124,9 +124,9 @@ void ToolsTransient::SetMohrCoulombParameters(REAL poisson, REAL elast, REAL coh
 {
 #ifdef PlasticMC
   TPZElasticResponse ER;
-  ER.SetUp(elast,poisson);
+  ER.SetEngineeringData(elast,poisson);
   fPlasticStepPV.fYC.SetUp(Phi, Psi, cohesion, ER);
-  fPlasticStepPV.fER.SetUp(elast,poisson);
+  fPlasticStepPV.fER.SetEngineeringData(elast,poisson);
 #endif
 }
 

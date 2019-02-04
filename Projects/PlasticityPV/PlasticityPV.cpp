@@ -116,7 +116,7 @@ void DepPlasticPV()
 	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi,kappa_0);
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;
-	ER.SetUp(100., 0.25);
+	ER.SetEngineeringData(100., 0.25);
 	STATE kproj,kprev,epv=0.;
 	kproj=0.;
 	kprev=0.13;
@@ -150,7 +150,7 @@ void DepPlasticPVMC()
 
 	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
-	ER.SetUp(100., 0.25);
+	ER.SetEngineeringData(100., 0.25);
 	TPZYCMohrCoulombPV materialmodel(Phi,Psi,c,ER);
 	TPZTensor<REAL> epsT,Sigma;
 
@@ -243,7 +243,7 @@ void CurvaFig12PlasticPV()
 	TPZSandlerExtended materialmodel(A, B, C, D, K, G, W, R, Phi, N, Psi, kappa_0);
 	TPZTensor<REAL> epsT,Sigma;
 	TPZElasticResponse ER;
-	ER.SetUp(100., 0.25);
+	ER.SetEngineeringData(100., 0.25);
 	STATE kproj,kprev,epv=0.;
 	kproj=0.;
 	kprev=0.13;
@@ -368,7 +368,7 @@ void TaylorCheck3() // Tomara que o ultimo!!
 {
 	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.25);
+	ER.SetEngineeringData(1000, 0.25);
 	TPZYCMohrCoulombPV *MCPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
 	
 	TPZTensor <REAL> eps, eps1, eps2, deps, sigtrtemp;
@@ -397,7 +397,7 @@ void TaylorCheck3() // Tomara que o ultimo!!
 	TPZManVector <TFad<3,REAL>,3> sigtr(3), sigpr(3);
 	TPZManVector <REAL,3> sigtr1(3), sigtr2(3), sigpr1(3), sigpr2(3);
 	
-	ER.Compute(eps, sigtrtemp);
+	ER.ComputeStress(eps, sigtrtemp);
 	sigtrMat = sigtrtemp;
 	sigtrMat.SolveEigensystemJacobi(numiter, tol, eigenvaluestemp, EigenvectorsTrue);
 	sigtrMat.Print("sigtrmat");
@@ -566,13 +566,13 @@ void TaylorCheck3() // Tomara que o ultimo!!
 		eps2.Add(deps, alpha2);
 		
 		TPZTensor<REAL>::TPZDecomposed Decomp1, Decomp2;
-		ER.Compute(eps1, sigtrtemp);
+		ER.ComputeStress(eps1, sigtrtemp);
 		sigtrtemp.EigenSystemJacobi(Decomp1);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr1[i] = Decomp1.fEigenvalues[i];
 		}
 		
-		ER.Compute(eps2, sigtrtemp);
+		ER.ComputeStress(eps2, sigtrtemp);
 		sigtrtemp.EigenSystemJacobi(Decomp2);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr2[i] = Decomp2.fEigenvalues[i];
@@ -647,7 +647,7 @@ void TaylorCheck2()
 {
 	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.25);
+	ER.SetEngineeringData(1000, 0.25);
 	TPZYCMohrCoulombPV *MCPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
 	
 	TPZTensor <REAL> eps, eps1, eps2, deps, sigtrtemp;
@@ -661,7 +661,7 @@ void TaylorCheck2()
 	TPZManVector <TFad<3,REAL>,3> sigtr(3), sigpr(3);
 	TPZManVector <REAL,3> sigtr1(3), sigtr2(3), sigpr1(3), sigpr2(3);
 	
-	ER.Compute(eps, sigtrtemp);
+	ER.ComputeStress(eps, sigtrtemp);
 	sigtrtemp.Print(std::cout);
 	TPZTensor<REAL>::TPZDecomposed Decomp;
 	sigtrtemp.EigenSystemJacobi(Decomp);
@@ -744,13 +744,13 @@ void TaylorCheck2()
 		eps2.Add(deps, alpha2);
 
 		TPZTensor<REAL>::TPZDecomposed Decomp1, Decomp2;
-		ER.Compute(eps1, sigtrtemp);
+		ER.ComputeStress(eps1, sigtrtemp);
 		sigtrtemp.EigenSystemJacobi(Decomp1);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr1[i] = Decomp1.fEigenvalues[i];
 		}
 		
-		ER.Compute(eps2, sigtrtemp);
+		ER.ComputeStress(eps2, sigtrtemp);
 		sigtrtemp.EigenSystemJacobi(Decomp2);
 		for (int i = 0 ; i < 3; i++) {
 			sigtr2[i] = Decomp2.fEigenvalues[i];
@@ -808,7 +808,7 @@ void TaylorCheck()
 {
 	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 	TPZElasticResponse ER;
-	ER.SetUp(1000, 0.25);
+	ER.SetEngineeringData(1000, 0.25);
 	TPZYCMohrCoulombPV *MohrCoulombPV = new TPZYCMohrCoulombPV(Phi,Psi,c,ER);
 	
 	TPZManVector< TFad<3,REAL>, 3> sigtrialfad(3), sigtrialfad1(3),sigtrialfad2(3), sigprojfad(3), sigprojfad1(3), sigprojfad2(3);

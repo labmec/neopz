@@ -96,7 +96,7 @@ public:
     {
        SANDLERDIMAGGIOPARENT::fYC.SetUp(A, B, C, D, R, W);
         SANDLERDIMAGGIOPARENT::fN.m_hardening = this->fYC.InitialDamage();        
-        SANDLERDIMAGGIOPARENT::fER.SetUp(E, poisson);
+        SANDLERDIMAGGIOPARENT::fER.SetEngineeringData(E, poisson);
     }
     virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
         SANDLERDIMAGGIOPARENT::SetUp(epsTotal);
