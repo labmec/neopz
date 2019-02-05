@@ -1061,7 +1061,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
 	TPZFNMatrix<3,STATE> du_exact(dim,ndof);
-	TPZManVector<REAL,10> intpoint(3), values(NErrors);
+	TPZManVector<REAL,10> intpoint(TGeometry::Dimension), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
 	TPZManVector<STATE,9> flux_el(nflux,0.);

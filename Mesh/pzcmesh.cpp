@@ -290,7 +290,7 @@ int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
 	int matid = mat->Id();
     if (fMaterialVec.find(matid) != fMaterialVec.end()) {
-        DebugStop();
+    //    DebugStop();
     }
 	fMaterialVec[matid] = mat;
 	return fMaterialVec.size();

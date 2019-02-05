@@ -237,7 +237,7 @@ void TPZBndCond::UpdateBCValues(TPZManVector<REAL,3> & x){
         
 #ifdef PZDEBUG
         if (fBCVal2.Rows() != result.size()) {
-            DebugStop();
+       //     DebugStop();
         }
 #endif
 		int i;

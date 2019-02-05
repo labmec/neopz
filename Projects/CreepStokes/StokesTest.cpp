@@ -14,7 +14,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 
-#define TRIANGLEMESH
+//#define TRIANGLEMESH
 
 using namespace std;
 
@@ -128,11 +128,24 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
+//            TPZSpStructMatrix struct_mat(cmesh_m);
+//            struct_mat.SetNumThreads(numthreads);
+//            an.SetStructuralMatrix(struct_mat);
+    
+    
     //TPZParSkylineStructMatrix matskl(cmesh_m, numthreads);
+
     TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
-    //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico *** //OK para discont.
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
+    
+    if (Space==3) {
+        TPZFStructMatrix matsklD(cmesh_m); //caso nao simetrico *** //OK para discont.
+        matsklD.SetNumThreads(numthreads);
+        an.SetStructuralMatrix(matsklD);
+    }
+
+
     TPZStepSolver<STATE> step;
     step.SetDirect(ELU);
     an.SetSolver(step);
@@ -176,9 +189,9 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     //Calculo do erro
     std::cout << "Comuting Error " << std::endl;
     TPZManVector<REAL,6> Errors;
-    ofstream ErroOut("Error_results.txt", std::ofstream::app);
+    ofstream ErroOut("Error_Stokes.txt", std::ofstream::app);
     an.SetExact(Sol_exact);
-    an.PostProcessError(Errors);
+    an.PostProcessError(Errors,false);
     
     ErroOut <<"Sigma = "<< sigma/(pOrder*pOrder*(nx-1)) << "  //  Ordem = "<< pOrder << "  //  Tamanho da malha = "<< nx-1 <<" x "<< ny-1 << std::endl;
     ErroOut <<" " << std::endl;
@@ -718,7 +731,7 @@ void StokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
 
 TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 {
-    
+    pOrder++;
     //Criando malha computacional:
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);

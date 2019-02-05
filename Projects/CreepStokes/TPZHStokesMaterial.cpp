@@ -7,8 +7,8 @@ using namespace std;
 
 
 void TPZHStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
-    
-    
+    DebugStop();
+    return;
     // Verificar que
     // os termos mistos devem estar sem viscosidade!
     

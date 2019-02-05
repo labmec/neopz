@@ -10,6 +10,7 @@
 #include "CoupledTest.h"
 #include "pzcheckgeom.h"
 #include "pzstack.h"
+#include "TPZSpStructMatrix.h"
 
 CoupledTest::CoupledTest()
 {
@@ -76,7 +77,7 @@ CoupledTest::~CoupledTest()
     
 }
 
-void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta)
+void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE permeability, STATE theta, STATE sigma)
 {
     
     //Gerando malha geométrica:
@@ -94,7 +95,7 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     
     TPZCompMesh *cmesh_v = CMesh_v(gmesh, Space, pOrder); //Função para criar a malha computacional da velocidade
     TPZCompMesh *cmesh_p = CMesh_p(gmesh, Space, pOrder); //Função para criar a malha computacional da pressão
-    TPZCompMesh *cmesh_m = CMesh_m(gmesh, Space, pOrder, visco, permeability, theta); //Função para criar a malha computacional multifísica
+    TPZCompMesh *cmesh_m = CMesh_m(gmesh, Space, pOrder, visco, permeability, theta, sigma); //Função para criar a malha computacional multifísica
     
 #ifdef PZDEBUG
     {
@@ -142,10 +143,15 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     //Resolvendo o Sistema:
     int numthreads = 0;
     
-    bool optimizeBandwidth = false; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
+    bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
-    TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
-    //TPZSkylineNSymStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    
+//        TPZSpStructMatrix struct_mat(cmesh_m);
+//        struct_mat.SetNumThreads(numthreads);
+//        an.SetStructuralMatrix(struct_mat);
+    
+    //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    TPZSkylineNSymStructMatrix matskl(cmesh_m); //caso nao simetrico ***
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;
@@ -193,8 +199,7 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     TPZManVector<REAL,3> Errors;
     ofstream ErroOut("Erro.txt");
     an.SetExact(Sol_exact);
-    bool store_errors = false;
-    an.PostProcessError(Errors, store_errors, ErroOut);
+    an.PostProcessError(Errors,false,ErroOut);
     
     
     
@@ -215,7 +220,7 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     int dim = gmesh->Dimension();
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
     an.PostProcess(postProcessResolution,dim);
-    an.PostProcess(postProcessResolution,dim);
+
     
     std::cout << "FINISHED!" << std::endl;
     
@@ -502,12 +507,12 @@ TPZGeoMesh *CoupledTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
 }
 
-TPZCompEl *CoupledTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    if(!gel->Reference() && gel->NumInterfaces() == 0)
-        return new TPZInterfaceElement(mesh,gel,index);
-    
-    return NULL;
-}
+//TPZCompEl *CoupledTest::CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+//    if(!gel->Reference() && gel->NumInterfaces() == 0)
+//        return new TPZInterfaceElement(mesh,gel,index);
+//    
+//    return NULL;
+//}
 
 void CoupledTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
     
@@ -651,8 +656,8 @@ TPZCompMesh *CoupledTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     TPZMaterial * BCDond0 = materialDarcy->CreateBC(materialDarcy, fmatDBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
     cmesh->InsertMaterialObject(BCDond0); //Insere material na malha
     
-    // TPZMaterial * BCDond1 = materialDarcy->CreateBC(materialDarcy, fmatDBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
-    // cmesh->InsertMaterialObject(BCDond1); //Insere material na malha
+     TPZMaterial * BCDond1 = materialDarcy->CreateBC(materialDarcy, fmatDBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
+    cmesh->InsertMaterialObject(BCDond1); //Insere material na malha
     
     TPZMaterial * BCDond2 = materialDarcy->CreateBC(materialDarcy, fmatDBCleft, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno esquerda
     cmesh->InsertMaterialObject(BCDond2); //Insere material na malha
@@ -681,10 +686,10 @@ TPZCompMesh *CoupledTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     //Condições de contorno:
     
-    //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
-//    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, fmatSBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
-//    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
+    TPZMaterial * BCSond0 = materialStokes->CreateBC(materialStokes, fmatSBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+    cmesh->InsertMaterialObject(BCSond0); //Insere material na malha
     
     TPZMaterial * BCSond1 = materialStokes->CreateBC(materialStokes, fmatSBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
     cmesh->InsertMaterialObject(BCSond1); //Insere material na malha
@@ -742,6 +747,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     if (Space==2||Space==3) {
         DebugStop();
     }
+    
     
     //Criando malha computacional:
     
@@ -813,7 +819,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     //Condições de contorno:
     
     
-    //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
     //    val2(0,0) = 0.0; // px -> 0
     //    val2(1,0) = 0.0; // py -> 0
@@ -848,7 +854,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     TPZMat1dLin *materialCoupling = new TPZMat1dLin(fmatInterfaceDS); //Criando material que implementa a formulação fraca do problema modelo
     
-    //cmesh->InsertMaterialObject(materialCoupling); //Insere material na malha
+    cmesh->InsertMaterialObject(materialCoupling); //Insere material na malha
     
     //Dimensões do material (para H1 e descontinuo):
     TPZFMatrix<STATE> xkin3(1,1,0.), xcin3(1,1,0.), xbin3(1,1,0.), xfin3(1,1,0.);
@@ -869,7 +875,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     std::set<int> materialids;
     materialids.insert(fmatIdD);
     materialids.insert(fmatIdS);
-    materialids.insert(fmatInterfaceDS);
+    //materialids.insert(fmatInterfaceDS);
     //materialids.insert(matInterfaceDS);
     cmesh->AutoBuild(materialids);
     cmesh->LoadReferences();
@@ -896,7 +902,7 @@ TPZCompMesh *CoupledTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     
 }
 
-TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE permeability, STATE theta)
+TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE permeability, STATE theta, STATE sigma)
 {
 
     //Criando malha computacional:
@@ -910,8 +916,8 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     TPZDarcyPMaterial *materialDarcy = new TPZDarcyPMaterial(fmatIdD,fdim,Space,visco,permeability,theta);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
-    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source, 5);
-    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact, 5);
+    TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source,5);
+    TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact,5);
     
     materialDarcy->SetForcingFunction(fp);
     materialDarcy->SetForcingFunctionExact(solp);
@@ -957,10 +963,10 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Criando material Stokes:
     
-    TPZStokesMaterial *materialStokes = new TPZStokesMaterial(fmatIdS,fdim,Space,visco,theta,0.);//criando material que implementa a formulacao fraca do problema modelo
+    TPZStokesMaterial *materialStokes = new TPZStokesMaterial(fmatIdS,fdim,Space,visco,theta,sigma);//criando material que implementa a formulacao fraca do problema modelo
     // Inserindo material na malha
-    TPZAutoPointer<TPZFunction<STATE> > fp2 = new TPZDummyFunction<STATE> (F_source, 5);
-    TPZAutoPointer<TPZFunction<STATE> > solp2 = new TPZDummyFunction<STATE> (Sol_exact, 5);
+    TPZAutoPointer<TPZFunction<STATE> > fp2 = new TPZDummyFunction<STATE> (F_source,5);
+    TPZAutoPointer<TPZFunction<STATE> > solp2 = new TPZDummyFunction<STATE> (Sol_exact,5);
     
     materialStokes->SetForcingFunction(fp2);
     materialStokes->SetForcingFunctionExact(solp2);
@@ -969,7 +975,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     
     //Condições de contorno:
     
-    //TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+    //TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
@@ -1009,7 +1015,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     TPZCouplingDSMaterial *materialCoupling = new TPZCouplingDSMaterial(fmatInterfaceDS,fdim,visco,permeability,theta);
     cmesh->InsertMaterialObject(materialCoupling);
     
-    TPZAutoPointer<TPZFunction<STATE> > solp3 = new TPZDummyFunction<STATE> (Sol_exact, 5);
+    TPZAutoPointer<TPZFunction<STATE> > solp3 = new TPZDummyFunction<STATE> (Sol_exact,5);
     
     //materialCoupling->SetForcingFunction(fp3);
     materialCoupling->SetForcingFunctionExact(solp3);

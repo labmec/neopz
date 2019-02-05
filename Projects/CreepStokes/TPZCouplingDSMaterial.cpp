@@ -275,7 +275,7 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) const{
+void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) {
     
     TPZDiscontinuousGalerkin::Write(buf, withclassid);
  
@@ -494,6 +494,7 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
     TPZVec<double> f, v1, v2;
     TPZFMatrix<STATE> phiV1i(fDimension,1,0.0),phiV1j(fDimension,1,0.0);
     
+
     
     TPZFMatrix<STATE> phiV2i(fDimension,1,0.0),phiV2j(fDimension,1,0.0);
     
@@ -502,7 +503,7 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
         
         int iphi2 = datavecright[vindex].fVecShapeIndex[i2].second;
         int ivec2 = datavecright[vindex].fVecShapeIndex[i2].first;
-        TPZFNMatrix<4> phiV2ti(1,1,0.);
+        TPZFNMatrix<4> phiV2ti(1,1,0.),phiV2ni(1,1,0.);
         for (int e=0; e<fDimension; e++) {
             phiV2i(e,0) = phiV2(iphi2,0)*datavecright[vindex].fNormalVec(e,ivec2);
             
@@ -510,7 +511,25 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
 
         
         phiV2ti(0,0) = phiV2i(0,0)*t[0]+phiV2i(1,0)*t[1];
+        phiV2ni(0,0) = phiV2i(0,0)*n[0]+phiV2i(1,0)*n[1];
         // matrix A - velocity * test-funtion velocity
+
+        
+        for(int j1 = 0; j1 < nshapeP1; j1++){
+            
+            TPZFNMatrix<9> phiP1j(1,1,0.);
+            phiP1j(0,0)=phiP1(j1,0);
+            
+            
+            STATE fact = weight * phiP1j(0,0)* phiV2ni(0,0);
+            
+            
+            ek(nshapeV1+nshapeP1+i2,nshapeV1+j1) += weight * fact*0.;
+            
+            
+        }
+
+        
         
         for(int j2 = 0; j2 < nshapeV2; j2++){
             int jphi2 = datavecright[vindex].fVecShapeIndex[j2].second;
@@ -525,7 +544,8 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
             
             STATE val = phiV2ti(0,0) * phiV2tj(0,0) ;
             
-            ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) += weight * fViscosity * val;
+            
+            ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) += weight * fViscosity * val*0.;
 
 
         }

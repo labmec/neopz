@@ -45,16 +45,16 @@
 //#define APP_CURVE
 
 const int SpaceHDiv = 1; //Velocidade em subespaço de H(div)
-//const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
+const int SpaceContinuous = 2; //Velocidade em subespaço de [H1]ˆ2
 const int SpaceDiscontinuous = 3; //Velociadade em subespaço de H(Ph) - Ph: partição
-//const REAL Pi=M_PI;
+const REAL Pi=M_PI;
 
 //Verificação dos modelos:
 #ifdef TEST_DOMAINS
 
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 
-bool DarcyDomain = false, HStokesDomain = true , StokesDomain = false, CoupledDomain = false;
+bool DarcyDomain = false, HStokesDomain = false , StokesDomain = true, CoupledDomain = false;
 
 int main(int argc, char *argv[])
 {
@@ -97,13 +97,13 @@ int main(int argc, char *argv[])
     }
     else if (StokesDomain)
     {
-        pOrder = 1;
+        pOrder = 2;
 
         TPZVec<STATE> S0(13,0.);
         S0[0]=0.0000001,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
         HDivPiola = 0;
         for (int it=0; it<=0.; it++) {
-            h_level = 1;
+            h_level = 8;
             //Coeficiente estabilização (Stokes)
             STATE hE=hx/h_level;
             STATE s0=20.;
@@ -114,15 +114,27 @@ int main(int argc, char *argv[])
             hE=hx/h_level;
             sigma=s0*(pOrder*pOrder)/hE;
             StokesTest  * Test1 = new StokesTest();
-            Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+            Test1->Run(SpaceContinuous, pOrder, nx, ny, hx, hy,visco,theta,sigma);
             //h_level = h_level*2;
         }
         
     }
     else  if(CoupledDomain)
     {
+        int h_level = 8;
+        
+        
+        //double hx=1.,hy=1.; //Dimensões em x e y do domínio
+        double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
+        int nelx=h_level, nely=h_level; //Número de elementos em x e y
+        int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
+        int pOrder = 2; //Ordem polinomial de aproximação
+        STATE hE=hx/h_level;
+        STATE s0=12.;
+        STATE sigma=s0*(pOrder*pOrder)/hE;
+        
         CoupledTest  * Test3 = new CoupledTest();
-        Test3->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,permeability,theta);
+        Test3->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,permeability,theta,sigma);
     }
     
     return 0;

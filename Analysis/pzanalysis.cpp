@@ -717,14 +717,14 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
 #endif
   }
   else{
-#ifdef PZDEBUG
+
     out << "############" << endl;
     out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
     out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
     out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
     for(int ier = 3; ier < nerrors; ier++)
       out << "other norms = " << sqrt(values[ier]) << endl;
-#endif
+
   }
   
   // Returns the calculated errors.
@@ -781,14 +781,14 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             out << endl << "error " << ier << "  = " << sqrt(values[ier]);
     }
     else{
-#ifdef PZDEBUG
+
         out << "############" << endl;
         out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
         out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
         out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
         for(int ier = 3; ier < nerrors; ier++)
             out << "other norms = " << sqrt(values[ier]) << endl;
-#endif
+
     }
 #ifdef LOG4CXX
     if(loggerError->isDebugEnabled())

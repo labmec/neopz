@@ -231,7 +231,7 @@ public:
     /**
      * Save the element data to a stream
      */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid);
     
     /**
      * Read the element data from a stream
