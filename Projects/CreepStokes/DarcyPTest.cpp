@@ -164,11 +164,17 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     //Calculo do erro
     std::cout << "Comuting Error " << std::endl;
     TPZManVector<REAL,3> Errors;
-    ofstream ErroOut("Erro.txt");
+    ofstream ErroOut("Erro_Darcy.txt");
     an.SetExact(Sol_exact);
     an.PostProcessError(Errors,false,ErroOut);
     
-    
+    ErroOut << "  //  Ordem = "<< pOrder << "  //  Tamanho da malha = "<< nx-1 <<" x "<< ny-1 << std::endl;
+    ErroOut <<" " << std::endl;
+    ErroOut <<"Norm L2 - P - Darcy = "<< Errors[3] << std::endl;
+    ErroOut <<"Norm L2 - V - Darcy = "<< Errors[4] << std::endl;
+    ErroOut <<"Norm L2 - DIV  - Darcy = "<< Errors[5] << std::endl;
+    ErroOut <<"-------------" << std::endl;
+    ErroOut.flush();
     
     //Pós-processamento (paraview):
     std::cout << "Post Processing " << std::endl;

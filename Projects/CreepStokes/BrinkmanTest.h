@@ -1,5 +1,5 @@
 /*
- *  StokesTest.cpp
+ *  BrinkmanTest.cpp
  *  PZ
  *
  *  Created by Pablo Carvalho on 28/07/2017.
@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef __PZ__StokesTest__
-#define __PZ__StokesTest__
+#ifndef __PZ__BrinkmanTest__
+#define __PZ__BrinkmanTest__
 
 #include <cmath>
 #include <set>
@@ -21,7 +21,7 @@
 #include "TPZVTKGeoMesh.h"
 #include "pzanalysis.h"
 #include "pzbndcond.h"
-#include "TPZStokesMaterial.h"
+#include "TPZBrinkmanMaterial.h"
 
 #include <pzgeoel.h>
 #include "pzgeoelbc.h"
@@ -49,7 +49,7 @@
 using namespace std;
 using namespace pzshape;
 
-class StokesTest{
+class BrinkmanTest{
 private:
     
     int fdim; //Dimensão do problema
@@ -93,9 +93,9 @@ private:
     
 public:
 
-    StokesTest();
+    BrinkmanTest();
     
-    ~StokesTest();
+    ~BrinkmanTest();
     
     void Run(int Space, int pOrder, int nx, int ny, double hx, double hy, STATE visco, STATE theta, STATE sigma);
     

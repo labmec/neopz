@@ -194,12 +194,33 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     }
 #endif
     
+//    //Calculo do erro
+//    std::cout << "Comuting Error " << std::endl;
+//    TPZManVector<REAL,3> Errors;
+//    ofstream ErroOut("Erro.txt");
+//    an.SetExact(Sol_exact);
+//    an.PostProcessError(Errors,false,ErroOut);
+
+    
     //Calculo do erro
     std::cout << "Comuting Error " << std::endl;
-    TPZManVector<REAL,3> Errors;
-    ofstream ErroOut("Erro.txt");
+    TPZManVector<REAL,6> ErrorsC;
+    ofstream ErroOutC("Error_Coupled.txt", std::ofstream::app);
     an.SetExact(Sol_exact);
-    an.PostProcessError(Errors,false,ErroOut);
+    an.PostProcessError(ErrorsC,false);
+    
+    ErroOutC <<"Sigma = "<< sigma/(pOrder*pOrder*(nx-1)) << "  //  Ordem = "<< pOrder << "  //  Tamanho da malha = "<< nx-1 <<" x "<< ny-1 << std::endl;
+    ErroOutC <<" " << std::endl;
+    //ErroOut <<"Norma H1/HDiv - V = "<< Errors[0] << std::endl;
+    ErroOutC <<"Norm L2 - P - Stokes = "<< ErrorsC[0] << std::endl;
+    ErroOutC <<"Norm L2 - V - Stokes = "<< ErrorsC[1] << std::endl;
+    ErroOutC <<"Norm L2 - DIV  - Stokes = "<< ErrorsC[2] << std::endl;
+    ErroOutC <<"Norm L2 - P - Darcy = "<< ErrorsC[3] << std::endl;
+    ErroOutC <<"Norm L2 - V - Darcy = "<< ErrorsC[4] << std::endl;
+    ErroOutC <<"Norm L2 - DIV  - Darcy = "<< ErrorsC[5] << std::endl;
+    ErroOutC <<"-------------" << std::endl;
+    ErroOutC.flush();
+    
     
     
     

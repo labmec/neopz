@@ -1182,7 +1182,7 @@ void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
     errors[1] = 0.;
     for(int i=0; i<Dimension(); i++) {
         diff = Velocity[i] - u_exact[i];
-        errors[1]  += diff*diff;
+        errors[shift]  += diff*diff;
     }
     
     ////////////////////////////////////////////////// H1 / GD
