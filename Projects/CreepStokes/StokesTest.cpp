@@ -14,7 +14,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 
-//#define TRIANGLEMESH
+#define TRIANGLEMESH
 
 using namespace std;
 
@@ -217,7 +217,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     scalnames.Push("P_exact");
     
     
-    int postProcessResolution = 3; //  keep low as possible
+    int postProcessResolution = 0; //  keep low as possible
     
     int dim = gmesh->Dimension();
     an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
@@ -229,6 +229,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
 
 TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
 {
+
     
 #ifdef TRIANGLEMESH
     
@@ -266,7 +267,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Ponto 1
     TPZVec<int64_t> pointtopology(1);
-    pointtopology[0] = 0;
+    pointtopology[0] = nx-1;
     
     gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
@@ -284,10 +285,10 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
             index = (i)*(nx - 1)+ (j);
             connectD[0] = (i)*ny + (j);
             connectD[1] = connectD[0]+1;
-            connectD[2] = connectD[0]+nx;
+            connectD[2] = connectD[1]+nx;
             gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
             
-            connectU[0] = connectD[1];
+            connectU[0] = connectD[0];
             connectU[1] = connectD[1]+nx;
             connectU[2] = connectD[0]+nx;
             gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
@@ -408,44 +409,41 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Criando interface (Geralizado):
     
-    TPZVec<int64_t> nodint(2);
-    for(i = 0; i < (ny - 1); i++){
-        for(j = 0; j <= (nx - 1); j++){
-            if(j>0&&j<(nx-1)){
-                nodint[0]=j+nx*i;
-                nodint[1]=j+nx*(i+1);
-                if(fSpaceV!=2){
+    if(fSpaceV!=2){
+        TPZVec<int64_t> nodint(2);
+        for(i = 0; i < (ny - 1); i++){
+            for(j = 0; j <= (nx - 1); j++){
+                if(j>0&&j<(nx-1)){
+                    nodint[0]=j+nx*i;
+                    nodint[1]=j+nx*(i+1);
                     gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    
                 }
-            }
-            
-            
-            if(i>0&&j<(ny-1)){
-                nodint[0]=j+ny*i;
-                nodint[1]=j+ny*i+1;
-                if(fSpaceV!=2){
+                
+                
+                if(i>0&&j<(ny-1)){
+                    nodint[0]=j+ny*i;
+                    nodint[1]=j+ny*i+1;
                     gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    
                 }
-            }
-            
-            if(j>0&&i<=(nx-1)){
-                nodint[0]=j+nx*i;
-                nodint[1]=j+nx*i+nx-1;
-                if(fSpaceV!=2){
+                
+                if(j<(nx-1)&&i<(ny-1)){
+                    nodint[0]=j+nx*i;
+                    nodint[1]=j+nx*i+nx+1;
                     gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    
                 }
                 
             }
-            
         }
     }
-    
     
     //new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (nodind3,matInterface,*gmesh); //Criando elemento de interface (RefPattern)
     id++;
     
-  //  gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
-  //  gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
+    gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
+    gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
     
     TPZCheckGeom check(gmesh);
     check.CheckUniqueId();
@@ -481,7 +479,7 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
         for(j = 0; j < nx; j++){
             id = i*nx + j;
             coord[0] = (j)*hx/(nx - 1);
-            coord[1] = -1.+(i)*hy/(ny - 1);
+            coord[1] = -1 + (i)*hy/(ny - 1);
             //using the same coordinate x for z
             coord[2] = 0.;
             //cout << coord << endl;
@@ -494,9 +492,9 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Ponto 1
     TPZVec<int64_t> pointtopology(1);
-    pointtopology[0] = 0;
+    pointtopology[0] = nx-1;
     
-    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
+    //  gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
@@ -552,25 +550,25 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
             Nodefinder[i].GetCoordinates(nodecoord);
-            if (nodecoord[2] == 0. & nodecoord[1] == -1.)
+            if (nodecoord[1] == -1.)
             {
                 sizeOfbottVec++;
                 ncoordzbottVec.Resize(sizeOfbottVec);
                 ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[1] == -1.+hy)
+            if (nodecoord[1] == -1.+hy)
             {
                 sizeOftopVec++;
                 ncoordztopVec.Resize(sizeOftopVec);
                 ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[0] == 0.)
+            if (nodecoord[0] == 0.)
             {
                 sizeOfleftVec++;
                 ncoordzleftVec.Resize(sizeOfleftVec);
                 ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
             }
-            if (nodecoord[2] == 0. & nodecoord[0] == hx)
+            if (nodecoord[0] == hx)
             {
                 sizeOfrightVec++;
                 ncoordzrightVec.Resize(sizeOfrightVec);
@@ -636,34 +634,32 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     
     //Criando interface (Geralizado):
-    
-    TPZVec<int64_t> nodint(2);
-    for(i = 0; i < (ny - 1); i++){
-        for(j = 0; j < (nx - 1); j++){
-            if(j>0&&j<(nx-1)){
-                nodint[0]=j+nx*i;
-                nodint[1]=j+nx*(i+1);
-                if(fSpaceV!=2){
+    if(fSpaceV!=2){
+        TPZVec<int64_t> nodint(2);
+        for(i = 0; i < (ny - 1); i++){
+            for(j = 0; j < (nx - 1); j++){
+                if(j>0&&j<(nx-1)){
+                    nodint[0]=j+nx*i;
+                    nodint[1]=j+nx*(i+1);
                     gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    
                 }
-            }
-            if(i>0&&j<(ny-1)){
-                nodint[0]=j+ny*i;
-                nodint[1]=j+ny*i+1;
-                if(fSpaceV!=2){
+                if(i>0&&j<(ny-1)){
+                    nodint[0]=j+ny*i;
+                    nodint[1]=j+ny*i+1;
                     gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    
                 }
+                
             }
-            
         }
     }
-    
     
     //new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (nodind3,matInterface,*gmesh); //Criando elemento de interface (RefPattern)
     id++;
     
-    gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
-    gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
+    //   gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
+    //   gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
     
     TPZCheckGeom check(gmesh);
     check.CheckUniqueId();
@@ -675,8 +671,9 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
     ofstream bf("before.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
     return gmesh;
-
+    
 #endif
+    
 
 }
 
@@ -1033,7 +1030,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
    // val4(0,0)=-(1/Pi);
-     val4(0,0)=-sin(1.);
+     val4(0,0)=-cos(2.)*sin(1.);
     
     TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
     cmesh->InsertMaterialObject(BCPoint); //Insere material na malha

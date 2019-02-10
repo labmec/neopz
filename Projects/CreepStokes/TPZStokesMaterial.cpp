@@ -968,7 +968,7 @@ void TPZStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
 ////////////////////////////////////////////////////////////////////
 
 void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
-    
+
     // Verificar que
     // os termos mistos devem estar sem viscosidade!
     

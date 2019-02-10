@@ -749,7 +749,7 @@ TPZCompMesh *BrinkmanTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     if (Space==1) {
         cmesh->SetAllCreateFunctionsHDiv(); //Criando funções HDIV:
-        //cmesh->ApproxSpace().CreateDisconnectedElements(true); //HDIV-Full:
+   //     cmesh->ApproxSpace().CreateDisconnectedElements(true); //HDIV-Full:
         
         //Dimensões do material (para HDiv):
         TPZFMatrix<STATE> xkin(1,1,0.), xcin(1,1,0.), xfin(1,1,0.);
@@ -834,7 +834,7 @@ TPZCompMesh *BrinkmanTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
     //cmesh->SetAllCreateFunctionsDiscontinuous();
     
     cmesh->SetAllCreateFunctionsContinuous(); //Criando funções H1
-  //  cmesh->ApproxSpace().CreateDisconnectedElements(true);
+    cmesh->ApproxSpace().CreateDisconnectedElements(true);
     
     
     //Criando material:
