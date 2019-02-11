@@ -1035,6 +1035,12 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     //Detjac
     REAL Detjac=fabs(data.detjac);
     
+    //REAL sigmaConst = fSigma;
+    
+    //Triangle Verification:
+    REAL sigmaConst = fSigma/Detjac;
+
+    
     
     TPZFNMatrix<220,REAL> dphiVx1(fDimension,dphiV1.Cols());
     TPZAxesTools<REAL>::Axes2XYZ(dphiV1, dphiVx1, datavecleft[vindex].axes);
@@ -1066,7 +1072,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
     nshapeV2 = datavecright[vindex].fVecShapeIndex.NElements();
     nshapeP1 = phiP1.Rows();
     nshapeP2 = phiP2.Rows();
-    
+
     
     for(int i1 = 0; i1 < nshapeV1; i1++ )
     {
@@ -1180,7 +1186,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             //Penalidade:
             
-            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV1i, phiV1j);
+            STATE penalty = sigmaConst * weight * fViscosity * InnerVec(phiV1i, phiV1j);
             ek(i1,j1) +=penalty;
             
             
@@ -1246,7 +1252,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             //Penalidade:
             
-            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV1i, phiV2j);
+            STATE penalty = sigmaConst * weight * fViscosity * InnerVec(phiV1i, phiV2j);
             ek(i1,j2+nshapeV1+nshapeP1) += -penalty;
             
         }
@@ -1348,7 +1354,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             //Penalidade:
             
-            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV2i, phiV1j);
+            STATE penalty = sigmaConst * weight * fViscosity * InnerVec(phiV2i, phiV1j);
             ek(i2+nshapeV1+nshapeP1,j1) += -penalty;
             
             
@@ -1415,7 +1421,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             
             //Penalidade:
             
-            STATE penalty = fSigma * weight * fViscosity * InnerVec(phiV2i, phiV2j);
+            STATE penalty = sigmaConst * weight * fViscosity * InnerVec(phiV2i, phiV2j);
             ek(i2+nshapeV1+nshapeP1,j2+nshapeV1+nshapeP1) +=penalty;
             
             

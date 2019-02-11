@@ -56,7 +56,7 @@ const REAL Pi=M_PI;
 
 const REAL visco=1., permeability=1., theta=-1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 
-bool DarcyDomain = false, HStokesDomain = false , StokesDomain = false , BrinkmanDomain = false, CoupledDomain = true;
+bool DarcyDomain = false, HStokesDomain = false , StokesDomain = true , BrinkmanDomain = false, CoupledDomain = false;
 
 int main(int argc, char *argv[])
 {
