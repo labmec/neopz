@@ -88,6 +88,8 @@ private:
     STATE fpermeability;
     STATE ftheta;
     
+    int fSpaceV;
+    
     
 public:
     

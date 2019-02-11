@@ -68,13 +68,13 @@ int main(int argc, char *argv[])
 #endif
     //Dados do problema:
     
-    int h_level = 8;
+    int h_level = 1;
     
     double hx=1.,hy=1.; //Dimensões em x e y do domínio
     //double hx=Pi,hy=2.; //Dimensões em x e y do domínio (acoplamento)
     int nelx=h_level, nely=h_level; //Número de elementos em x e y
     int nx=nelx+1 ,ny=nely+1; //Número de nos em x  y
-    int pOrder = 3; //Ordem polinomial de aproximação
+    int pOrder = 1; //Ordem polinomial de aproximação
     
     if (HStokesDomain) {
 
@@ -103,12 +103,12 @@ int main(int argc, char *argv[])
 
         TPZVec<STATE> S0(13,0.);
         S0[0]=0.0000001,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
-        HDivPiola = 0;
+        HDivPiola = 1;
         
         hx=2., hy=2.;
         
         for (int it=0; it<=0.; it++) {
-            h_level = 1;
+            h_level = 2;
             //Coeficiente estabilização (Stokes)
             STATE hE=hx/h_level;
             STATE s0=3.;

@@ -100,6 +100,7 @@ int TPZStokesMaterial::VariableIndex(const std::string &name) {
     if (!strcmp("f", name.c_str()))         return 2;
     if (!strcmp("V_exact", name.c_str()))   return 3;
     if (!strcmp("P_exact", name.c_str()))   return 4;
+    if (!strcmp("Div", name.c_str()))   return 5;
     //    if (!strcmp("V_exactBC", name.c_str()))   return 5;
     
     std::cout  << " Var index not implemented " << std::endl;
@@ -123,6 +124,9 @@ int TPZStokesMaterial::NSolutionVariables(int var) {
             return this->Dimension(); // V_exact, Vector
         case 4:
             return 1; // P_exact, Scalar
+        case 5:
+            return 1; // Divergente
+            
             //        case 5:
             //            return this->Dimension(); // V_exactBC, Vector
         default:
@@ -150,6 +154,11 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     
     // TPZManVector<STATE> v_h = datavec[vindex].sol[0];
     // TPZManVector<STATE> p_h = datavec[pindex].sol[0];
+    
+    TPZFMatrix<STATE> &dsol = datavec[vindex].dsol[0];
+    dsol.Resize(Dimension(),Dimension());
+    TPZFNMatrix<2,STATE> dsolxy(2,2), dsolxyp(2,1);
+    TPZAxesTools<STATE>::Axes2XYZ(dsol, dsolxy, datavec[vindex].axes);
     
     
     Solout.Resize(this->NSolutionVariables(var));
@@ -201,6 +210,16 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         }
             break;
             
+        case 5: //div
+        {
+            STATE Div=0.;
+            for(int i=0; i<Dimension(); i++) {
+                Div+=dsolxy(i,i);
+            }
+            Solout[0] = Div;
+            
+        }
+            break;
             
         default:
         {
@@ -282,7 +301,7 @@ void TPZStokesMaterial::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
             
             /* Computing the divergence for constant jacobian elements */
             REAL dot = 0.0;
-            for (int i = 0;  i < fDimension; i++) {
+            for (int i = 0;  i < 3; i++) {
                 dot += datavec[ublock].fNormalVec(i,ivectorindex)*GradphiuH1(i,ishapeindex);
             }
             DivergenceofPhi(iq,0) = dot;
@@ -348,14 +367,14 @@ void TPZStokesMaterial::FillGradPhi(TPZMaterialData &dataV, TPZVec< TPZFMatrix<R
 void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     
-#ifdef PZDEBUG
-    //2 = 1 Vel space + 1 Press space
-    int nref =  datavec.size();
-    if (nref != 2 ) {
-        std::cout << " Erro. The size of the datavec is different from 2 \n";
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    //2 = 1 Vel space + 1 Press space
+//    int nref =  datavec.size();
+//    if (nref != 2 ) {
+//        std::cout << " Erro. The size of the datavec is different from 2 \n";
+//        DebugStop();
+//    }
+//#endif
     
     
     
@@ -383,7 +402,6 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     int nshapeV, nshapeP;
     nshapeP = phiP.Rows();
     nshapeV = datavec[vindex].fVecShapeIndex.NElements();
-    
     
     TPZVec<STATE> f(fDimension);
     for (int e=0; e<fDimension; e++) {
@@ -507,7 +525,7 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
 
 void TPZStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    return;
+    //return;
     
     STATE rhsnorm = Norm(ef);
     if(isnan(rhsnorm))
