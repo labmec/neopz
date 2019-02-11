@@ -377,6 +377,64 @@ void PECompareStressStrainResponse() {
 
     }
     
+    /// Testing linearized elastic response with constant nu
+    {
+        STATE nu = 0.203;
+        STATE kappa = 0.0024;
+        STATE pt_el = 5.835;
+        STATE e_0 = 0.34;
+        STATE p_0 = 0.0;
+        PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
+        PER.SetPoissonRatioConstant(nu);
+        
+        // The reference data
+        TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
+        sigma_ref.Zero(); // The reference stress
+        sigma_ref.XX() = -0.54395711345815;
+        sigma_ref.YY() = 0.564215469327881;
+        sigma_ref.ZZ() = 0.00411244624155542;
+        
+        eps_e.Zero(); // The reference strain
+        eps_e.XX() = -0.000113727;
+        eps_e.YY() = 0.000116224;
+        
+        TPZElasticResponse LE_equivalent = PER.LinearizedElasticResponse(eps_e);
+        LE_equivalent.ComputeStress(eps_e, sigma_linear);
+        REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
+        bool sigma_check = IsZero(sigma_norm);
+        BOOST_CHECK(sigma_check);
+        
+    }
+    
+    /// Testing linearized elastic response with constant mu (Shear G)
+    {
+        STATE mu = 12165.0;
+        STATE kappa = 0.0024;
+        STATE pt_el = 5.835;
+        STATE e_0 = 0.34;
+        STATE p_0 = 0.0;
+        PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
+        PER.SetShearModulusConstant(mu);
+        
+        // The reference data
+        TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
+        sigma_ref.Zero(); // The reference stress
+        sigma_ref.XX() = -0.544354891592515;
+        sigma_ref.YY() = 0.564579745407486;
+        sigma_ref.ZZ() = -0.00671541759251463;
+        
+        eps_e.Zero(); // The reference strain
+        eps_e.XX() = -2.20978e-5;
+        eps_e.YY() = 2.34811e-5;
+        
+        TPZElasticResponse LE_equivalent = PER.LinearizedElasticResponse(eps_e);
+        LE_equivalent.ComputeStress(eps_e, sigma_linear);
+        REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
+        bool sigma_check = IsZero(sigma_norm);
+        BOOST_CHECK(sigma_check);
+        
+    }
+    
     return;
 }
 

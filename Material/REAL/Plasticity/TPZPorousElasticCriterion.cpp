@@ -63,9 +63,7 @@ void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &e
         fPER.De(epsTotal, *tangent);
     }
     /// Update the linear elastic response
-    STATE Eyoung, nu;
-    fPER.LinearizedElasticResponse(epsTotal, Eyoung, nu);
-    fER.SetEngineeringData(Eyoung, nu);
+    fER = fPER.LinearizedElasticResponse(epsTotal);
     
 }
 
@@ -83,9 +81,7 @@ void TPZPorousElasticCriterion::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTens
     fN.m_eps_t = epsilon;
     
     /// Update the linear elastic response
-    STATE Eyoung, nu;
-    fPER.LinearizedElasticResponse(epsilon, Eyoung, nu);
-    fER.SetEngineeringData(Eyoung, nu);
+    fER = fPER.LinearizedElasticResponse(epsilon);
 }
 
 

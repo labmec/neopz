@@ -72,22 +72,23 @@ public:
     
     void Print(std::ostream & out) const ;
     
-    void G(const TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol);
+    void G(const TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol) const;
     
-    void Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol);
+    void Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol) const;
     
-    void K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol);
+    void K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol) const;
     
-    void De(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) const;
     
-    void De_G_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De_G_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) const;
     
-    void De_Poisson_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De);
+    void De_Poisson_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) const;
     
-    void LinearizedElasticResponse(const TPZTensor<STATE> & epsilon, STATE & Eyoung, STATE & nu);
+    /// Computes a linear elastic response
+    TPZElasticResponse LinearizedElasticResponse(const TPZTensor<STATE> & epsilon) const;
     
     template<class T>
-    void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma){
+    void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {
         
         REAL eps_norm = epsilon.Norm();
         if (eps_norm > 0.05) {
@@ -115,7 +116,7 @@ public:
     }
     
     template<class T>
-    void ComputeStrain(const TPZTensor<T> & sigma, TPZTensor<T> & epsilon){
+    void ComputeStrain(const TPZTensor<T> & sigma, TPZTensor<T> & epsilon) const {
 
         // Initial guess is for the deviatoric is obtained from the given epsilon
         // Computing the initial guess for the volumetric part
@@ -186,8 +187,6 @@ public:
         }
     
     }
-    
-    TPZElasticResponse LinearizedElasticResponse(TPZTensor<STATE> & epsilon);
     
 };
 
