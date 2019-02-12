@@ -132,16 +132,16 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-            TPZSpStructMatrix struct_mat(cmesh_m);
-            struct_mat.SetNumThreads(numthreads);
-            an.SetStructuralMatrix(struct_mat);
+//            TPZSpStructMatrix struct_mat(cmesh_m);
+//            struct_mat.SetNumThreads(numthreads);
+//            an.SetStructuralMatrix(struct_mat);
     
     
     //TPZParSkylineStructMatrix matskl(cmesh_m, numthreads);
 
-//    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
-//    matskl.SetNumThreads(numthreads);
-//    an.SetStructuralMatrix(matskl);
+    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
+    matskl.SetNumThreads(numthreads);
+    an.SetStructuralMatrix(matskl);
     
     if (Space==3) {
         TPZFStructMatrix matsklD(cmesh_m); //caso nao simetrico *** //OK para discont.
@@ -214,7 +214,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     vecnames.Push("V");
     vecnames.Push("f");
     vecnames.Push("V_exact");
-   // scalnames.Push("P_exact");
+    scalnames.Push("P_exact");
     scalnames.Push("Div");
     
     
@@ -286,13 +286,16 @@ TPZGeoMesh *StokesTest::CreateGMesh(int nx, int ny, double hx, double hy)
             index = (i)*(nx - 1)+ (j);
             connectD[0] = (i)*ny + (j);
             connectD[1] = connectD[0]+1;
-            connectD[2] = connectD[1]+nx;
+            connectD[2] = connectD[0]+nx+1;
             gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
             
-            connectU[0] = connectD[0];
-            connectU[1] = connectD[1]+nx;
-            connectU[2] = connectD[0]+nx;
+            connectU[0] = connectD[2];
+            connectU[1] = connectD[2]-1;
+            connectU[2] = connectD[0];
             gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
+            
+         //   std::cout<<connectD<<std::endl;
+         //   std::cout<<connectU<<std::endl;
             
             id++;
         }
@@ -769,9 +772,6 @@ void StokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
     STATE f_1 = -3.*sin(x1)*sin(x2);
     STATE f_2 = -1.*cos(x1)*cos(x2);
     
-    f_1 = 0.;
-    f_2 = 0.;
-    
     f[0] = f_1; // x direction
     f[1] = f_2; // y direction
     
@@ -1009,28 +1009,28 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     
     //Condições de contorno:
     
-    TPZFMatrix<STATE> val1(2,2,0.), val2(3,1,0.);
+    TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
     
-    TPZMaterial * BCond0 = material->CreateBC(material, fmatBCbott, fpenetration, val1, val2); //Cria material que implementa a condição de contorno inferior
-    //BCond0->SetForcingFunction(Sol_exact,bc_inte_order);
+    TPZMaterial * BCond0 = material->CreateBC(material, fmatBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+    BCond0->SetForcingFunction(Sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond0); //Insere material na malha
   
     
-    val2(0,0) = 1.0; // vx -> 0
+    //val2(0,0) = 1.0; // vx -> 0
     TPZMaterial * BCond1 = material->CreateBC(material, fmatBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
-    //BCond1->SetForcingFunction(Sol_exact,bc_inte_order);
+    BCond1->SetForcingFunction(Sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond1); //Insere material na malha
 
-    val2(0,0) = 0.0; // vx -> 0
-    TPZMaterial * BCond2 = material->CreateBC(material, fmatBCleft, fpenetration, val1, val2); //Cria material que implementa a condicao de contorno esquerda
-    //BCond2->SetForcingFunction(Sol_exact,bc_inte_order);
+    //val2(0,0) = 0.0; // vx -> 0
+    TPZMaterial * BCond2 = material->CreateBC(material, fmatBCleft, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno esquerda
+    BCond2->SetForcingFunction(Sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond2); //Insere material na malha
     
-    TPZMaterial * BCond3 = material->CreateBC(material, fmatBCright, fpenetration, val1, val2); //Cria material que implementa a condicao de contorno direita
-    //BCond3->SetForcingFunction(Sol_exact,bc_inte_order);
+    TPZMaterial * BCond3 = material->CreateBC(material, fmatBCright, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno direita
+    BCond3->SetForcingFunction(Sol_exact,bc_inte_order);
     cmesh->InsertMaterialObject(BCond3); //Insere material na malha
     
     //Ponto

@@ -283,13 +283,16 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
             index = (i)*(nx - 1)+ (j);
             connectD[0] = (i)*ny + (j);
             connectD[1] = connectD[0]+1;
-            connectD[2] = connectD[1]+nx;
+            connectD[2] = connectD[0]+nx+1;
             gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
             
-            connectU[0] = connectD[0];
-            connectU[1] = connectD[1]+nx;
-            connectU[2] = connectD[0]+nx;
+            connectU[0] = connectD[2];
+            connectU[1] = connectD[2]-1;
+            connectU[2] = connectD[0];
             gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
+            
+            //   std::cout<<connectD<<std::endl;
+            //   std::cout<<connectU<<std::endl;
             
             id++;
         }
@@ -414,7 +417,7 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
                 if(j>0&&j<(nx-1)){
                     nodint[0]=j+nx*i;
                     nodint[1]=j+nx*(i+1);
-                        gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
                     
                 }
                 
@@ -422,14 +425,14 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
                 if(i>0&&j<(ny-1)){
                     nodint[0]=j+ny*i;
                     nodint[1]=j+ny*i+1;
-                        gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
                     
                 }
                 
                 if(j<(nx-1)&&i<(ny-1)){
                     nodint[0]=j+nx*i;
                     nodint[1]=j+nx*i+nx+1;
-                        gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
                     
                 }
                 
