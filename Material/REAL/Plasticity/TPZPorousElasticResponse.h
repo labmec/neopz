@@ -76,6 +76,8 @@ public:
     
     void Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol) const;
     
+    void Poisson_linearized(const TPZTensor<STATE> &epsilon_ref,const TPZTensor<STATE> &epsilon, STATE & nu) const;
+    
     void K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol) const;
     
     void De(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) const;
@@ -84,8 +86,11 @@ public:
     
     void De_Poisson_constant(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) const;
     
-    /// Computes a linear elastic response
-    TPZElasticResponse LinearizedElasticResponse(const TPZTensor<STATE> & epsilon) const;
+    /// Computes a linear elastic response from function evaluation of non linear expressions
+    TPZElasticResponse EvaluateElasticResponse(const TPZTensor<STATE> & epsilon) const;
+    
+    /// Computes a linear elastic response from the linearization around a reference state eps_ref
+    TPZElasticResponse LinearizedElasticResponse(const TPZTensor<STATE> & epsilon_ref, const TPZTensor<STATE> & epsilon) const;
     
     template<class T>
     void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {

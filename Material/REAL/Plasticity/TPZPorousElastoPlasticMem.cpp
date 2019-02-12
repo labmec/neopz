@@ -1,24 +1,27 @@
-//$Id: pzelastoplasticmem.cpp,v 1.6 2009-06-22 00:55:14 erick Exp $
+//
+//  TPZPorousElastoPlasticMem.cpp
+//  pz
+//
+//  Created by Omar Durán on 2/11/19.
+//
 
-#include "TPZElastoPlasticMem.h"
-#include "TPZElastoPlasticMemTranslator.h"
+#include "TPZPorousElastoPlasticMem.h"
 
-
-TPZElastoPlasticMem::TPZElastoPlasticMem(): m_sigma(), m_elastoplastic_state(), m_plastic_steps(0),m_phi(0.), m_u(3,0.)
+TPZPorousElastoPlasticMem::TPZPorousElastoPlasticMem(): m_sigma(), m_elastoplastic_state(), m_plastic_steps(0),m_phi(0.), m_u(3,0.)
 {
 }
 
-TPZElastoPlasticMem::TPZElastoPlasticMem(const TPZElastoPlasticMem & other):
+TPZPorousElastoPlasticMem::TPZPorousElastoPlasticMem(const TPZPorousElastoPlasticMem & other):
 m_sigma(other.m_sigma), m_elastoplastic_state(other.m_elastoplastic_state), m_plastic_steps(other.m_plastic_steps), m_phi(other.m_phi), m_u(other.m_u),m_ER(other.m_ER) {
     
 }
 
 
-TPZElastoPlasticMem::~TPZElastoPlasticMem(){
+TPZPorousElastoPlasticMem::~TPZPorousElastoPlasticMem(){
     
 }
 
-void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
+void TPZPorousElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
 {
     m_sigma.Write(buf, withclassid);
     m_elastoplastic_state.Write(buf, withclassid);
@@ -27,7 +30,7 @@ void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid) const
     m_ER.Write(buf, withclassid);
 }
 
-void TPZElastoPlasticMem::Read(TPZStream &buf, void *context)
+void TPZPorousElastoPlasticMem::Read(TPZStream &buf, void *context)
 {
     m_sigma.Read(buf, context);
     m_elastoplastic_state.Read(buf, context);
@@ -36,7 +39,7 @@ void TPZElastoPlasticMem::Read(TPZStream &buf, void *context)
     m_ER.Read(buf, context);
 }
 
-void TPZElastoPlasticMem::Print(std::ostream &out)const
+void TPZPorousElastoPlasticMem::Print(std::ostream &out)const
 {
     out << Name();
     out << "\nm_sigma = " << m_sigma;
@@ -47,16 +50,16 @@ void TPZElastoPlasticMem::Print(std::ostream &out)const
     m_ER.Print(out);
 }
 
-const std::string TPZElastoPlasticMem::Name()const
+const std::string TPZPorousElastoPlasticMem::Name()const
 {
-    return "TPZElastoPlasticMem";
+    return "TPZPorousElastoPlasticMem";
 }
 
-int TPZElastoPlasticMem::ClassId() const{
-    return Hash("TPZElastoPlasticMem");
+int TPZPorousElastoPlasticMem::ClassId() const{
+    return Hash("TPZPorousElastoPlasticMem");
 }
 
-const TPZElastoPlasticMem & TPZElastoPlasticMem::operator=(const TPZElastoPlasticMem & other)
+const TPZPorousElastoPlasticMem & TPZPorousElastoPlasticMem::operator=(const TPZPorousElastoPlasticMem & other)
 {
     
     /// check for self-assignment
@@ -73,7 +76,3 @@ const TPZElastoPlasticMem & TPZElastoPlasticMem::operator=(const TPZElastoPlasti
     
     return *this;
 }
-
-template class TPZRestoreClassWithTranslator<TPZElastoPlasticMem, TPZElastoPlasticMemTranslator>;
-template class TPZRestoreClass<TPZAdmChunkVector<TPZElastoPlasticMem>>;
-

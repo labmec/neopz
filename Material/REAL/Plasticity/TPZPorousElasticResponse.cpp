@@ -147,6 +147,19 @@ void TPZPorousElasticResponse::Poisson(const TPZTensor<STATE> &epsilon, STATE & 
     
 }
 
+void TPZPorousElasticResponse::Poisson_linearized(const TPZTensor<STATE> &epsilon_ref,const TPZTensor<STATE> &epsilon, STATE & nu) const{
+    
+    STATE epsv = epsilon.I1();
+    STATE epsv_ref = epsilon_ref.I1();
+    nu = -1 + (9*(1 + m_e_0)*(m_p_0 + m_pt_el)*
+          (m_mu*exp((epsv_ref*(1 + m_e_0))/m_kappa)*
+           (-((epsv - epsv_ref)*(1 + epsv_ref)*
+              (1 + m_e_0)) + (1 + epsv)*m_kappa) +
+           3*pow(1 + epsv_ref,2)*(1 + m_e_0)*(m_p_0 + m_pt_el)))/
+    (2.*pow(m_mu*exp((epsv_ref*(1 + m_e_0))/m_kappa)*m_kappa +
+              3*(1 + epsv_ref)*(1 + m_e_0)*(m_p_0 + m_pt_el),2));
+}
+
 void TPZPorousElasticResponse::K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol) const{
     if (m_is_G_constant_Q) {
         STATE lambda, nu, dnu_desp_vol, dK_dnu;
@@ -299,7 +312,7 @@ void TPZPorousElasticResponse::De(const TPZTensor<STATE> & epsilon, TPZFMatrix<S
     }
 }
 
-TPZElasticResponse TPZPorousElasticResponse::LinearizedElasticResponse(const TPZTensor<STATE> & epsilon) const{
+TPZElasticResponse TPZPorousElasticResponse::EvaluateElasticResponse(const TPZTensor<STATE> & epsilon) const{
     
     TPZElasticResponse LinearER;
     REAL Eyoung;
@@ -315,6 +328,37 @@ TPZElasticResponse TPZPorousElasticResponse::LinearizedElasticResponse(const TPZ
         this->G(epsilon, G, dG_desp_vol);
         Eyoung = 2*G*(1.0+m_nu);
         LinearER.SetEngineeringData(Eyoung, m_nu);
+    }
+    
+    /// Seeking for an equivalent residual strain
+    {
+        TPZTensor<REAL> linear_epsilon,sigma, eps_res;
+        this->ComputeStress(epsilon, sigma);
+        LinearER.ComputeStrain(sigma, linear_epsilon);
+        eps_res = epsilon - linear_epsilon;
+        LinearER.SetResidualStrainData(eps_res);
+    }
+    
+    return LinearER;
+}
+
+TPZElasticResponse TPZPorousElasticResponse::LinearizedElasticResponse(const TPZTensor<STATE> & epsilon_ref, const TPZTensor<STATE> & epsilon) const{
+    
+    TPZElasticResponse LinearER;
+    REAL Eyoung;
+    /// The properties are computed as zero order approach, i.e. constant associated to epsilon
+    STATE G;
+    if (m_is_G_constant_Q) {
+        STATE nu;
+        this->Poisson_linearized(epsilon_ref,epsilon, nu);
+        Eyoung = 2*m_mu*(1.0+nu);
+        LinearER.SetEngineeringData(Eyoung, nu);
+    }else{
+        STATE dG_desp_vol;
+        this->G(epsilon, G, dG_desp_vol);
+        Eyoung = 2*G*(1.0+m_nu);
+        LinearER.SetEngineeringData(Eyoung, m_nu);
+        DebugStop(); // Implement linearization for G expression.
     }
     
     /// Seeking for an equivalent residual strain

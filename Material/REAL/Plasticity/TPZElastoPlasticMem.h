@@ -6,6 +6,7 @@
 #include "TPZMaterial.h"
 #include "TPZTensor.h"
 #include "TPZPlasticState.h"
+#include "TPZElasticResponse.h"
 
 /**
  * This class defines the material memory for a standar elastoplastic calculation.
@@ -56,35 +57,8 @@ public:
     /// Yield function value
     REAL m_phi;
     
-//    /// Set elastoplastic strain state
-//    virtual void SetElastoPlasticState(const TPZPlasticState<REAL> & elastoplastic_state);
-//    
-//    /// Set elastoplastic strain state
-//    virtual TPZPlasticState<REAL> & GetElastoPlasticState();
-//    
-//    /// Set stress state
-//    virtual void SetSigma(const TPZTensor<REAL> & sigma);
-//    
-//    /// Set stress state
-//    virtual TPZTensor<REAL> & GetSigma();
-//    
-//    /// Set displacement field
-//    virtual void SetDisplacement(const TPZManVector<REAL,3> & u);
-//    
-//    /// Set displacement field
-//    virtual TPZManVector<REAL,3> & GetDisplacement();
-//    
-//    /// Set number of plastic steps
-//    virtual void SetPlasticSteps(const int & plastic_steps);
-//    
-//    /// Set number of plastic steps
-//    virtual int & GetPlasticSteps();
-//    
-//    /// Set yield function value
-//    virtual void SetPhi(const REAL & phi);
-//    
-//    /// Set yield function value
-//    virtual REAL & GetPhi();
+    /// Elastoplastic response (It is required when elasti response depends on spatial variables)
+    TPZElasticResponse m_ER;
     
 };
 
