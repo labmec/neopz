@@ -7,7 +7,7 @@
 
 #include "TPZGeoMeshBluider.h"
 
-void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int64_t> & node_identifiers, std::vector<REAL> & coord) {
+void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int> & node_identifiers, std::vector<double> & coord) {
     
     int64_t n_nodes = node_identifiers.size();
     gmesh -> NodeVec().Resize(n_nodes);
@@ -20,7 +20,7 @@ void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int64_t> & n
     TPZGeoNode node_obj;
     for (int64_t inode = 0; inode < n_nodes; inode++) {
         node_id = node_identifiers[inode]-1; //  because pz is zero based.
-        int64_t pos = inode*3; // because the model is always 3D
+        int pos = inode*3; // because the model is always 3D
         nodecoordX = coord[pos];
         nodecoordY = coord[pos+1];
         nodecoordZ = coord[pos+2];
@@ -34,10 +34,10 @@ void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int64_t> & n
     }
 }
 
-void TPZGeoMeshBluider::InsertElement(TPZGeoMesh * gmesh, int64_t & physical_identifier, int64_t & el_type, int64_t & el_identifier, std::vector<int64_t> & node_identifiers){
+void TPZGeoMeshBluider::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers){
     
     TPZManVector <int64_t,15> Topology;
-    int64_t n_nodes = node_identifiers.size();
+    int n_nodes = node_identifiers.size();
     Topology.Resize(n_nodes, 0);
     for (int k_node = 0; k_node<n_nodes; k_node++) {
         Topology[k_node] = node_identifiers[k_node]-1;
@@ -141,7 +141,7 @@ void TPZGeoMeshBluider::InsertElement(TPZGeoMesh * gmesh, int64_t & physical_ide
     
 }
 
-int TPZGeoMeshBluider::GetNumberofNodes(int64_t & el_type){
+int TPZGeoMeshBluider::GetNumberofNodes(int & el_type){
     
     int n_nodes;
     switch (el_type) {
