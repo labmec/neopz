@@ -214,6 +214,7 @@ void BrinkmanTest::Run(int Space, int pOrder, int nx, int ny, double hx, double 
     vecnames.Push("f");
     vecnames.Push("V_exact");
     scalnames.Push("P_exact");
+    scalnames.Push("Div");
     
     
     int postProcessResolution = 0; //  keep low as possible
@@ -287,12 +288,12 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
             gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
             
             connectU[0] = connectD[2];
-            connectU[1] = connectD[2]-1;
-            connectU[2] = connectD[0];
+            connectU[1] = connectD[0];
+            connectU[2] = connectD[2]-1;
             gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
             
-            //   std::cout<<connectD<<std::endl;
-            //   std::cout<<connectU<<std::endl;
+               std::cout<<connectD<<std::endl;
+               std::cout<<connectU<<std::endl;
             
             id++;
         }
@@ -947,7 +948,7 @@ TPZCompMesh *BrinkmanTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STA
     
     //Condições de contorno:
     
-    TPZFMatrix<STATE> val1(2,2,0.), val2(3,1,0.);
+    TPZFMatrix<STATE> val1(3,3,0.), val2(3,1,0.);
     
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0

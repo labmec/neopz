@@ -129,19 +129,19 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     //Resolvendo o Sistema:
     int numthreads = 0;
     
-    bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
+    bool optimizeBandwidth = false; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-//            TPZSpStructMatrix struct_mat(cmesh_m);
-//            struct_mat.SetNumThreads(numthreads);
-//            an.SetStructuralMatrix(struct_mat);
+            TPZSpStructMatrix struct_mat(cmesh_m);
+            struct_mat.SetNumThreads(numthreads);
+            an.SetStructuralMatrix(struct_mat);
     
     
     //TPZParSkylineStructMatrix matskl(cmesh_m, numthreads);
 
-    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
-    matskl.SetNumThreads(numthreads);
-    an.SetStructuralMatrix(matskl);
+//    TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
+//    matskl.SetNumThreads(numthreads);
+//    an.SetStructuralMatrix(matskl);
     
     if (Space==3) {
         TPZFStructMatrix matsklD(cmesh_m); //caso nao simetrico *** //OK para discont.
@@ -706,7 +706,7 @@ void StokesTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix
     REAL x1 = x[0];
     REAL x2 = x[1];
     
-    REAL e = exp(1);
+    REAL e = exp(1.);
     
     STATE v_1 = -1.*sin(x1)*sin(x2);
     STATE v_2 = -1.*cos(x1)*cos(x2);
