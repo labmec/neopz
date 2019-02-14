@@ -240,12 +240,12 @@ int TPZGeoMeshBluider::GetNumberofNodes(int & el_type){
     return n_nodes;
 }
 
-void TPZGeoMeshBluider::PrintGeometry(TPZGeoMesh * gmesh){
+void TPZGeoMeshBluider::PrintGeometry(TPZGeoMesh * gmesh, std::string  & name){
     
     std::stringstream text_name;
     std::stringstream vtk_name;
-    text_name   << "geometry" << ".txt";
-    vtk_name    << "geometry" << ".vtk";
+    text_name   << name.c_str() << ".txt";
+    vtk_name    << name.c_str() << ".vtk";
     std::ofstream textfile(text_name.str().c_str());
     gmesh->Print(textfile);
     std::ofstream vtkfile(vtk_name.str().c_str());

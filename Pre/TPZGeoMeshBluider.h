@@ -49,7 +49,7 @@ public:
     
     static int GetNumberofNodes(int & el_type);
     
-    static void PrintGeometry(TPZGeoMesh * gmesh);
+    static void PrintGeometry(TPZGeoMesh * gmesh, std::string  & name);
     
 };
 
