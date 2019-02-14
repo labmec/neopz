@@ -41,6 +41,8 @@ void TPZPorousElasticCriterion::Write(TPZStream& buf, int withclassid) const {
     fPER.Write(buf, withclassid);
 }
 
+#define LE_Q
+
 void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
 {
     
@@ -56,6 +58,23 @@ void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &e
     }
 #endif
     
+#ifdef LE_Q
+    
+    /// Update the linear elastic response
+    fER = fPER.LinearizedElasticResponse(epsTotal,epsTotal);
+    
+    fER.ComputeStress(epsTotal, sigma);
+    fN.m_eps_t = epsTotal;
+    
+
+    
+    if (require_tangent_Q) {
+        fER.De(*tangent);
+    }
+
+    
+#else
+    
     fPER.ComputeStress(epsTotal, sigma);
     fN.m_eps_t = epsTotal;
     
@@ -64,6 +83,8 @@ void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &e
     }
     /// Update the linear elastic response
     fER = fPER.EvaluateElasticResponse(epsTotal);
+    
+#endif
     
 }
 
@@ -77,11 +98,24 @@ void TPZPorousElasticCriterion::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 
 void TPZPorousElasticCriterion::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsilon)
 {
+    
+#ifdef LE_Q
+    
+    fER.ComputeStrain(sigma, epsilon);
+    fN.m_eps_t = epsilon;
+    
+    /// Update the linear elastic response
+    fER = fPER.LinearizedElasticResponse(epsilon,epsilon);
+    
+#else
+    
     fPER.ComputeStrain(sigma, epsilon);
     fN.m_eps_t = epsilon;
     
     /// Update the linear elastic response
     fER = fPER.EvaluateElasticResponse(epsilon);
+    
+#endif
 }
 
 
