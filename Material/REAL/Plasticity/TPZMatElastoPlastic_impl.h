@@ -1014,7 +1014,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     eps_t.Add(plasticloc.GetState().m_eps_t, 1.);
     
     if (m_use_non_linear_elasticity_Q) {
-        TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
+        TPZTensor<REAL> last_eps_p = plasticloc.GetState().m_eps_p;
         TPZTensor<REAL> eps_e = eps_t - last_eps_p;
         this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
     }
@@ -1022,6 +1022,19 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     
     UpdateMaterialCoeficients(data.x,plasticloc);
     plasticloc.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+    
+    if (m_use_non_linear_elasticity_Q) {
+        for (int i = 0; i < 2; i++) {
+            TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
+            TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+            this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
+            plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
+            UpdateMaterialCoeficients(data.x,plasticloc);
+            plasticloc.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+        }
+    }
+    
+    
     sigma.CopyTo(Stress);
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
@@ -1069,6 +1082,17 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
     UpdateMaterialCoeficients(data.x,plasticloc);
     plasticloc.ApplyStrainComputeSigma(eps_t, sigma);
     sigma.CopyTo(Stress);
+    
+    if (m_use_non_linear_elasticity_Q) {
+        for (int i = 0; i < 2; i++) {
+            TPZTensor<REAL> last_eps_p = plasticloc.GetState().m_eps_p;
+            TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+            this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
+            plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
+            UpdateMaterialCoeficients(data.x,plasticloc);
+            plasticloc.ApplyStrainComputeSigma(eps_t, sigma);
+        }
+    }
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
