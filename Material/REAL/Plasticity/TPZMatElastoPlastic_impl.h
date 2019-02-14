@@ -1007,32 +1007,29 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     int intPt = data.intGlobPtIndex;
     T plasticloc(m_plasticity_model);
     
+    /// Access to memory data
     plasticloc.SetState(this->MemItem(intPt).m_elastoplastic_state);
+    TPZTensor<REAL> eps_t, sigma(this->MemItem(intPt).m_sigma);
+    eps_t.CopyFrom(DeltaStrain);
+    eps_t.Add(plasticloc.GetState().m_eps_t, 1.);
     
     if (m_use_non_linear_elasticity_Q) {
-        TPZTensor<REAL> eps;
-        eps.CopyFrom(DeltaStrain);
-        TPZTensor<REAL> & eps_t = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_t;
-        TPZTensor<REAL> & eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
-        TPZTensor<REAL> eps_e_ref = eps_t - eps_p;
-        TPZTensor<REAL> eps_e = eps - eps_p;
-        this->MemItem(intPt).m_ER=m_PER.LinearizedElasticResponse(eps_e_ref,eps_e);
+        
+        TPZTensor<REAL> & last_eps_t = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_t;
+        TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
+        TPZTensor<REAL> eps_e_ref = last_eps_t - last_eps_p;
+        TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+        this->MemItem(intPt).m_ER = m_PER.LinearizedElasticResponse(eps_e,eps_e);
     }
-    
     plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
     
     UpdateMaterialCoeficients(data.x,plasticloc);
-    TPZTensor<REAL> EpsT, Sigma(this->MemItem(intPt).m_sigma);
-    
-    EpsT.CopyFrom(DeltaStrain);
-    EpsT.Add(plasticloc.GetState().m_eps_t, 1.);
-    
-    plasticloc.ApplyStrainComputeSigma(EpsT, Sigma, &Dep);
-    Sigma.CopyTo(Stress);
+    plasticloc.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+    sigma.CopyTo(Stress);
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
-        this->MemItem(intPt).m_sigma        = Sigma;
+        this->MemItem(intPt).m_sigma        = sigma;
         this->MemItem(intPt).m_elastoplastic_state = plasticloc.GetState();
         this->MemItem(intPt).m_plastic_steps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
@@ -1059,31 +1056,29 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
     int intPt = data.intGlobPtIndex;
     T plasticloc(m_plasticity_model);
     
+    /// Access to memory data
     plasticloc.SetState(this->MemItem(intPt).m_elastoplastic_state);
+    TPZTensor<REAL> eps_t, sigma(this->MemItem(intPt).m_sigma);
+    eps_t.CopyFrom(Strain);
+    eps_t.Add(plasticloc.GetState().m_eps_t, 1.);
     
     if (m_use_non_linear_elasticity_Q) {
-        TPZTensor<REAL> eps;
-        eps.CopyFrom(Strain);
-        TPZTensor<REAL> & eps_t = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_t;
-        TPZTensor<REAL> & eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
-        TPZTensor<REAL> eps_e_ref = eps_t - eps_p;
-        TPZTensor<REAL> eps_e = eps - eps_p;
-        this->MemItem(intPt).m_ER=m_PER.LinearizedElasticResponse(eps_e_ref,eps_e);
+        
+        TPZTensor<REAL> & last_eps_t = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_t;
+        TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
+        TPZTensor<REAL> eps_e_ref = last_eps_t - last_eps_p;
+        TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+        this->MemItem(intPt).m_ER = m_PER.LinearizedElasticResponse(eps_e,eps_e);
     }
-    
     plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
+    
     UpdateMaterialCoeficients(data.x,plasticloc);
-    TPZTensor<REAL> EpsT, Sigma(this->MemItem(intPt).m_sigma);
-    
-    EpsT.CopyFrom(Strain);
-    EpsT.Add(plasticloc.GetState().m_eps_t, 1.);
-    
-    plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
-    Sigma.CopyTo(Stress);
+    plasticloc.ApplyStrainComputeSigma(eps_t, sigma);
+    sigma.CopyTo(Stress);
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
-        this->MemItem(intPt).m_sigma        = Sigma;
+        this->MemItem(intPt).m_sigma        = sigma;
         this->MemItem(intPt).m_elastoplastic_state = plasticloc.GetState();
         this->MemItem(intPt).m_plastic_steps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
