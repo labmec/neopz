@@ -98,7 +98,7 @@ void TPZPorousElasticCriterion::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTens
     fN.m_eps_t = epsilon;
     
     /// Update the linear elastic response
-    fER = fPER.LinearizedElasticResponse(epsilon,epsilon);
+    fER = fPER.EvaluateElasticResponse(epsilon);
     
 #else
     
