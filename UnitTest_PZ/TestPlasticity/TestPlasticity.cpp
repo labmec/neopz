@@ -427,7 +427,7 @@ void PECompareStressStrainResponse() {
         eps_e.XX() = -2.20978e-5;
         eps_e.YY() = 2.34811e-5;
         
-        TPZElasticResponse LE_equivalent = PER.LinearizedElasticResponse(eps_e,eps_e);
+        TPZElasticResponse LE_equivalent = PER.EvaluateElasticResponse(eps_e);
         LE_equivalent.ComputeStress(eps_e, sigma_linear);
         REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
         bool sigma_check = IsZero(sigma_norm);

@@ -1024,7 +1024,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     plasticloc.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
     
     if (m_use_non_linear_elasticity_Q) {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 0; i++) {
             TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
             TPZTensor<REAL> eps_e = eps_t - last_eps_p;
             this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
@@ -1084,7 +1084,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
     sigma.CopyTo(Stress);
     
     if (m_use_non_linear_elasticity_Q) {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 0; i++) {
             TPZTensor<REAL> last_eps_p = plasticloc.GetState().m_eps_p;
             TPZTensor<REAL> eps_e = eps_t - last_eps_p;
             this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);

@@ -95,16 +95,35 @@ public:
     template<class T>
     void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {
         
-        REAL eps_norm = epsilon.Norm();
-        if (eps_norm > 0.05) {
-            std::cout << "TPZPorousElasticResponse:: The corresponding strain is too large for this model more than 5%." << std::endl;
-        }
+//        REAL eps_I1 = epsilon.I1();
+//        bool strain_check_Q = fabs(eps_I1) > 0.05;
+//        if (strain_check_Q) {
+//            std::cout << "TPZPorousElasticResponse:: The corresponding volumetric strain is too large for this model more than 5%." << std::endl;
+//        }
+        
+//        if(strain_check_Q){
+//            TPZTensor<T> limit_eps = epsilon;
+//            bool limit_eps_check_Q = false;
+//            for (int i = 0; i < 7; i++) {
+//                limit_eps.XX() = 0.5*limit_eps.XX();
+//                limit_eps.YY() = 0.5*limit_eps.YY();
+//                limit_eps.ZZ() = 0.5*limit_eps.ZZ();
+//                REAL limit_eps_I1 = fabs(limit_eps.I1());
+//                limit_eps_check_Q = limit_eps_I1 < 0.05;
+//                if (limit_eps_check_Q) {
+//                    break;
+//                }
+//            }
+//            TPZElasticResponse LE = EvaluateElasticResponse(limit_eps);
+//            LE.ComputeStress(epsilon, sigma);
+//            return;
+//        }
         
         if (m_is_G_constant_Q) {
             T trace = T(epsilon.I1());
-            STATE lambda, nu, dnu_desp_vol;
-            this->Poisson(epsilon,nu,dnu_desp_vol);
-            lambda = (2.0*m_mu*nu)/(1.0-2.0*nu);
+            STATE lambda, K, dK_desp_vol;
+            this->K(epsilon, K, dK_desp_vol);
+            lambda = K - (2.0/3.0)*m_mu;
             sigma.Identity();
             sigma.Multiply(trace, lambda);
             sigma.Add(epsilon, 2. * m_mu);
