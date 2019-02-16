@@ -47,7 +47,7 @@ struct MaterialDataS {
 
 
 /**
- * @brief Implement the interface between TPZGeoMesh and the files produced by Gmsh (version 2.2 ) in msh format.
+ * @brief Implement the interface between TPZGeoMesh and the files produced by Gmsh (version 3.0 or 4.0 ) in msh format.
  * @since January 16, 2017
  */
 
@@ -57,52 +57,108 @@ struct MaterialDataS {
  * The specification of any input to these modules is done either interactively using the graphical user interface or in ASCII text files using Gmsh's own
  * scripting language.
  */
+
+/** Note about the implementation for file format 4
+ * The mandatory sections are considered MeshFormat, Entities, Nodes and Elements.
+ * The optional section PhysicalName is considered the others (PartitionedEntities,Periodic,GhostElements,NodeData,ElementData,ElementNodeData) are just ignored.
+ * To conclude a successful read of your *.msh file, you should have physical tags to be able to insert elements into a TPZGeoMesh object.
+ */
 class TPZGmshReader{
+    
+    /// gmsh file format version (supported versions = {3,4})
+    std::string m_format_version;
+    
+    /// Number of volumes
+    int m_n_volumes;
+    
+    /// Number of surfaces
+    int m_n_surfaces;
+    
+    /// Number of curves
+    int m_n_curves;
+    
+    /// Number of points
+    int m_n_points;
+    
+    /// Number of volumes with physical tag
+    int m_n_physical_volumes;
+    
+    /// Number of surfaces with physical tag
+    int m_n_physical_surfaces;
+    
+    /// Number of curves with physical tag
+    int m_n_physical_curves;
+    
+    /// Number of points with physical tag
+    int m_n_physical_points;
+    
+    /// Geometry dimension
+    int m_dimension;
+    
+    /// Characteristic length to apply a Scale affine transformation
+    REAL m_characteristic_lentgh;
+    
+    //////////// Members related to file format with version 4 ////////////
+    
+    /// Data structure of both: physical entities dimension and names
+    TPZManVector<std::map<int,std::vector<int>>> m_dim_entity_tag_and_physical_tag;
+    
+    //////////// Members related to file format with version 3 ////////////
+    
+    /// Structure of both: physical entities dimension and names
+    TPZManVector<std::map<int,std::string>,5> m_dim_physical_tag_and_name; /// -> m_dim_physical_tag_and_name
+    
+    /// Structure of both: names and physical id
+    TPZManVector<std::map<std::string,int>,5> m_dim_name_and_physical_tag; /// -> m_dim_name_and_physical_tag
+    
+    /// Structure of both: dimesion and physical id and "physical tag" @TODO:: Phil please state the need for this
+    /// from my point of view this is useless
+    TPZManVector<std::map<int,int>,5> m_dim_physical_tag_and_physical_tag; /// m_dim_physical_tag_and_physical_tag
+    
+    /// Entity index to which the element belongs
+    TPZManVector<int64_t> m_entity_index;
     
 public:
     
-    /** @brief default destructor */
+    /// Default constructor
     TPZGmshReader();
     
-    /** @brief default destructor */
+    /// Default destructor
     ~TPZGmshReader();
     
-    /** @brief Convert Gmsh msh files in a TPZGeoMesh object */
+    /// Copy constructor
+    TPZGmshReader(const TPZGmshReader & other);
+    
+    /// Assignement constructor
+    const TPZGmshReader & operator=(const TPZGmshReader & other);
+    
+    /// Convert Gmsh msh files in a TPZGeoMesh object
     TPZGeoMesh * GeometricGmshMesh(std::string file_name, TPZGeoMesh *gmesh = NULL);
-    
-    /** @brief Number of Materials */
-    /** Number of volumetric materials */
-    int fVolNumber;
-    
-    /** @brief Number of Boundary Conditions */
-    /** Number of Boundary Conditions */
-    int fBCNumber;
-    
-    /** @brief Mesh Dimension */
-    /** Mesh Dimension */
-    int fProblemDimension;
-    
-    /** @brief Mesh Dimension */
-    /** Mesh Dimension */
-    REAL fDimensionlessL;
-    
-    /** @brief MaterialVec */
-    /** Structure of both, physical entities dimension and names */
-    TPZManVector<std::map<int,std::string>,5> fMaterialDataVec;
-    
-    /** Structure of both, names and material id */
-    TPZManVector<std::map<std::string,int>,5> fPZMaterialId;
 
-    TPZManVector<std::map<int,int>,5> fMatIdTranslate;
+    /// Set the Characteristic length
+    void SetCharacteristiclength(REAL length);
     
-    /// Entity index to which the element belongs
-    TPZManVector<int64_t> fEntityIndex;
+    /// Set the format version
+    void SetFormatVersion(std::string format_version);
     
-    /** @brief Characteristic domain dimension for dimensionless geometry. */
-    /** Set Max dimension for geometric domain default = 1.0. */
-    void SetfDimensionlessL(REAL dimensionlessL);
+    /// Print the partition summary after the reading process
+    void PrintPartitionSummary(std::ostream & out);
     
-    /** @brief Insert elements following msh file format */
+    //////////// Members related to file format with version 4 ////////////
+    
+    /// Convert a Gmsh *.msh file with format 4 to a TPZGeoMesh object
+    TPZGeoMesh * GeometricGmshMesh4(std::string file_name, TPZGeoMesh *gmesh = NULL);
+    
+    void InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers);
+    
+    int GetNumberofNodes(int & el_type);
+    
+    //////////// Members related to file format with version 3 ////////////
+    
+    /// Convert a Gmsh *.msh file with format 3 to a TPZGeoMesh object
+    TPZGeoMesh * GeometricGmshMesh3(std::string file_name, TPZGeoMesh *gmesh = NULL);
+    
+    /// Insert elements following msh file format */
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
     
 private:
