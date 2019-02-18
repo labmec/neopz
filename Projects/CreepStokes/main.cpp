@@ -56,7 +56,7 @@ const REAL Pi=M_PI;
 
 const REAL visco=1., permeability=1., theta=1.; //Coeficientes: viscosidade, permeabilidade, fator simetria
 
-bool DarcyDomain = false, HStokesDomain = false , StokesDomain = false , BrinkmanDomain = true, CoupledDomain = false;
+bool DarcyDomain = false, HStokesDomain = false , StokesDomain = false , BrinkmanDomain = false, CoupledDomain = true;
 
 int main(int argc, char *argv[])
 {
@@ -107,12 +107,12 @@ int main(int argc, char *argv[])
         
         hx=2., hy=2.;
         
-        for (int it=0; it<=4; it++) {
-            h_level = pow(2., 2+it);
-      //      h_level = 4;
+        for (int it=0; it<=12; it++) {
+            //h_level = pow(2., 2+it);
+            h_level = 8;
             //Coeficiente estabilização (Stokes)
             STATE hE=hx/h_level;
-            STATE s0=30.;
+            STATE s0=S0[it];
             STATE sigma=s0*(pOrder*pOrder)/hE;
             
             
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     }
     else  if(CoupledDomain)
     {
-        int h_level = 64;
+        int h_level = 16;
         
         
         //double hx=1.,hy=1.; //Dimensões em x e y do domínio
