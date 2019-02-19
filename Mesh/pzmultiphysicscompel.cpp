@@ -32,6 +32,7 @@
 
 using namespace pzgeom;
 
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysiccompEl"));
 #endif
@@ -918,7 +919,9 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 		if (!msp) {
 			continue;
 		}
+        
         TPZManVector<REAL,3> intpoint(msp->Reference()->Dimension(),0.);
+        
 		trvec[iref].Apply(intpointtemp, intpoint);
 		
 		msp->ComputeRequiredData(datavec[iref], intpoint);
@@ -1061,7 +1064,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 	int nflux = material->NFluxes();
 	TPZManVector<STATE,10> u_exact(ndof);
 	TPZFNMatrix<3,STATE> du_exact(dim,ndof);
-	TPZManVector<REAL,10> intpoint(3), values(NErrors);
+	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
 	TPZManVector<STATE,9> flux_el(nflux,0.);
