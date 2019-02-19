@@ -15,6 +15,8 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
+#define Force_Decomposition_and_Release_Memory_Q
+
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl() : fSystemType(ENonSymmetric),
@@ -255,12 +257,13 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         a = &(fSymmetricSystem->fA[0]);
         ia = (long long *) &(fSymmetricSystem->fIA[0]);
         ja = (long long *) &(fSymmetricSystem->fJA[0]);
+        n = fSymmetricSystem->Rows();
     }
     if (fNonSymmetricSystem) {
         a = &(fNonSymmetricSystem->fA[0]);
         ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
         ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
-        
+        n = fNonSymmetricSystem->Rows();
     }
     
     long long *perm,nrhs;
@@ -269,11 +272,11 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     n = rhs.Rows();
     b = &rhs(0,0);
     x = &sol(0,0);
-    
+    perm = &fPermutation[0];
     /// forward and backward substitution
     long long phase = 33;
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, &fPermutation[0],
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     
     if(fParam[19]>150){
@@ -286,23 +289,29 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     int rest = abs(fParam[19]%10); // CG/CGS error report
     if(fParam[19] <= 0){
         switch (rest) {
-            case 1:
+            case 1:{
                 std::cout << "Pardiso:: fluctuations of the residuum are too large. " << std::endl;
+            }
                 break;
                 
-            case 2:
+            case 2:{
                 std::cout << "Pardiso:: Slow convergence - Main matrix and matrix for preconditioner differ a lot. " << std::endl;
+            }
                 break;
                 
-            case 4:
+            case 4:{
                 std::cout << "Pardiso:: perturbed pivots caused iterative refinement. " << std::endl;
+            }
                 break;
                 
-            case 5:
+            case 5:{
                 std::cout << "Pardiso:: factorization is too fast for this matrix. It is better to use the factorization method with iparm[3] = 0 " << std::endl;
+                fParam[3] = 0;
+            }
                 break;
-            case 6:
+            case 6:{
                 std::cout << "Pardiso:: There is not a diagnostig. " << std::endl;
+            }
                 break;
             default:
                 break;
@@ -314,7 +323,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     if (Error<0) {
         Error_check(int(Error));
         std::cout << "Pardiso:: Calling a numerical factorization. \n";
-        phase = 23;
+        phase = 22;
         pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
@@ -324,6 +333,18 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         DebugStop();
     }
     std::cout << "Pardiso:: linear solve complete. \n";
+
+#ifdef Force_Decomposition_and_Release_Memory_Q
+    phase = -1;
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    if (fSymmetricSystem) {
+        fSymmetricSystem->SetIsDecomposed(0);
+    }
+    if (fNonSymmetricSystem) {
+        fNonSymmetricSystem->SetIsDecomposed(0);
+    }
+    std::cout << "Pardiso:: release memory complete. \n";
+#endif
 }
 
 template<class TVar>

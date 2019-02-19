@@ -106,14 +106,14 @@ class TPZGmshReader{
     //////////// Members related to file format with version 3 ////////////
     
     /// Structure of both: physical entities dimension and names
-    TPZManVector<std::map<int,std::string>,5> m_dim_physical_tag_and_name; /// -> m_dim_physical_tag_and_name
+    TPZManVector<std::map<int,std::string>,5> m_dim_physical_tag_and_name;
     
     /// Structure of both: names and physical id
-    TPZManVector<std::map<std::string,int>,5> m_dim_name_and_physical_tag; /// -> m_dim_name_and_physical_tag
+    TPZManVector<std::map<std::string,int>,5> m_dim_name_and_physical_tag;
     
     /// Structure of both: dimesion and physical id and "physical tag" @TODO:: Phil please state the need for this
     /// from my point of view this is useless
-    TPZManVector<std::map<int,int>,5> m_dim_physical_tag_and_physical_tag; /// m_dim_physical_tag_and_physical_tag
+    TPZManVector<std::map<int,int>,5> m_dim_physical_tag_and_physical_tag;
     
     /// Entity index to which the element belongs
     TPZManVector<int64_t> m_entity_index;
@@ -161,7 +161,25 @@ public:
     /// Insert elements following msh file format */
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
     
-private:
+    /// Get the structure dim -  physical tag - name
+    TPZManVector<std::map<int,std::string>,5> & GetDimPhysicalTagName(){
+        return m_dim_physical_tag_and_name;
+    }
+    
+    /// Set the structure dim -  physical tag - name
+    void SetDimPhysicalTagName(TPZManVector<std::map<int,std::string>,5> & dim_physical_tag_and_name){
+        m_dim_physical_tag_and_name = dim_physical_tag_and_name;
+    }
+    
+    /// Get the structure dim - name - physical tag
+    TPZManVector<std::map<std::string,int>,5> & GetDimNamePhysical(){
+        return m_dim_name_and_physical_tag;
+    }
+    
+    /// Set the structure dim - name - physical tag
+    void GetDimNamePhysical(TPZManVector<std::map<std::string,int>,5> & dim_name_and_physical_tag){
+        m_dim_name_and_physical_tag = dim_name_and_physical_tag;
+    }
     
     
 };
