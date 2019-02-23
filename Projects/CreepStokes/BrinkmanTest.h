@@ -91,6 +91,10 @@ private:
     
     int fSpaceV;
     
+    REAL fphi_r;
+    
+    bool f_is_hdivFull;
+    
 public:
 
     BrinkmanTest();
@@ -114,6 +118,10 @@ public:
     TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta, STATE sigma);
     
     
+    void SetFullHdiv(){
+        f_is_hdivFull = true;
+    };
+    
     //solucao exata
     static void Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
     
@@ -123,6 +131,8 @@ public:
     // static void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
     static void AddMultiphysicsInterfaces(TPZCompMesh &cmesh, int matfrom, int mattarget);
     
+    // Rotate function
+    void Rotate(TPZVec<REAL> &co, TPZVec<REAL> &co_r, bool rotate);
     
     
     

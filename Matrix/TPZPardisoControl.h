@@ -120,6 +120,9 @@ protected:
     /// pointer to the symmetric system (where the data structures are stored
     TPZSYsmpMatrix<TVar> *fSymmetricSystem;
     
+    /// Provides a explanation for the given error
+    void Error_check(int error) const;
+    
 };
 
 #endif

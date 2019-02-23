@@ -798,7 +798,7 @@ void StokesTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<ST
 
 TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 {
-    //pOrder++;
+    
     //Criando malha computacional:
     
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
@@ -814,7 +814,7 @@ TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     if (Space==1) {
         cmesh->SetAllCreateFunctionsHDiv(); //Criando funções HDIV:
-        cmesh->ApproxSpace().CreateDisconnectedElements(true); //HDIV-Full:
+        //cmesh->ApproxSpace().CreateDisconnectedElements(true); //HDIV-Full:
         
         //Dimensões do material (para HDiv):
         TPZFMatrix<STATE> xkin(1,1,0.), xcin(1,1,0.), xfin(1,1,0.);
@@ -884,7 +884,7 @@ TPZCompMesh *StokesTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 
 TPZCompMesh *StokesTest::CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder)
 {
-    
+
     if (Space==2||Space==3) {
         pOrder--;
     }

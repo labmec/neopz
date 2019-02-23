@@ -550,7 +550,7 @@ void TPZDarcyPMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
     for (int i = 0; i < nshapeP; i++) {
         
         STATE factf= weight * phiP(i,0)*f[0];
-        ef(nshapeV+i,0) += factf;
+     //   ef(nshapeV+i,0) += factf;
         
     }
  
@@ -958,7 +958,7 @@ void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
 
 void TPZDarcyPMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
-    
+    return;
     
 #ifdef IsH1
     //Caso H1 -> return

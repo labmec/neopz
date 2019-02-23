@@ -14,11 +14,13 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 
-#define TRIANGLEMESH
+//#define TRIANGLEMESH
 
 using namespace std;
 
 const REAL Pi=M_PI;
+
+const REAL phi_r = 0.;
 
 BrinkmanTest::BrinkmanTest()
 {
@@ -61,6 +63,10 @@ BrinkmanTest::BrinkmanTest()
     ftheta=-1.;
     
     fSpaceV=0;
+    
+    fphi_r=0;
+    
+    f_is_hdivFull = false;
 }
 
 BrinkmanTest::~BrinkmanTest()
@@ -142,11 +148,11 @@ void BrinkmanTest::Run(int Space, int pOrder, int nx, int ny, double hx, double 
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     
-    if (Space==3) {
-        TPZFStructMatrix matsklD(cmesh_m); //caso nao simetrico *** //OK para discont.
-        matsklD.SetNumThreads(numthreads);
-        an.SetStructuralMatrix(matsklD);
-    }
+//    if (Space==3) {
+//        TPZFStructMatrix matsklD(cmesh_m); //caso nao simetrico *** //OK para discont.
+//        matsklD.SetNumThreads(numthreads);
+//        an.SetStructuralMatrix(matsklD);
+//    }
 
 
     TPZStepSolver<STATE> step;
@@ -206,24 +212,42 @@ void BrinkmanTest::Run(int Space, int pOrder, int nx, int ny, double hx, double 
     ErroOut.flush();
     
     //Pós-processamento (paraview):
-    std::cout << "Post Processing " << std::endl;
-    std::string plotfile("Brinkman.vtk");
-    TPZStack<std::string> scalnames, vecnames;
-    scalnames.Push("P");
-    vecnames.Push("V");
-    vecnames.Push("f");
-    vecnames.Push("V_exact");
-    scalnames.Push("P_exact");
-    scalnames.Push("Div");
-    
-    
-    int postProcessResolution = 0; //  keep low as possible
-    
-    int dim = gmesh->Dimension();
-    an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-    an.PostProcess(postProcessResolution,dim);
+//    std::cout << "Post Processing " << std::endl;
+//    std::string plotfile("Brinkman.vtk");
+//    TPZStack<std::string> scalnames, vecnames;
+//    scalnames.Push("P");
+//    vecnames.Push("V");
+//    vecnames.Push("f");
+//    vecnames.Push("V_exact");
+//    scalnames.Push("P_exact");
+//    scalnames.Push("Div");
+//
+//
+//    int postProcessResolution = 3; //  keep low as possible
+//
+//    int dim = gmesh->Dimension();
+//    an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+//    an.PostProcess(postProcessResolution,dim);
     
     std::cout << "FINISHED!" << std::endl;
+    
+}
+
+
+void BrinkmanTest::Rotate(TPZVec<REAL> &co, TPZVec<REAL> &co_r, bool rotate){
+    
+    if (rotate==true) {
+        //rotação +
+        co_r[0] = co[0]*cos(phi_r) - co[1]*sin(phi_r);
+        co_r[1] = co[0]*sin(phi_r) + co[1]*cos(phi_r);
+        
+    }else{
+        
+        co_r[0] = co[0]*cos(phi_r) + co[1]*sin(phi_r);
+        co_r[1] = - co[0]*sin(phi_r) + co[1]*cos(phi_r);
+        
+    }
+    
     
 }
 
@@ -244,8 +268,7 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
     //Vetor auxiliar para armazenar coordenadas:
     
-    TPZVec <REAL> coord (3,0.);
-    
+    TPZVec<REAL> coord (3,0.), coord_r(3,0.);
     
     //Inicialização dos nós:
     
@@ -257,12 +280,17 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
             //using the same coordinate x for z
             coord[2] = 0.;
             //cout << coord << endl;
+            
+            //rottação phi
+            Rotate(coord, coord_r, true);
+            
             //Get the index in the mesh nodes vector for the new node
             index = gmesh->NodeVec().AllocateNewElement();
             //Set the value of the node in the mesh nodes vector
-            gmesh->NodeVec()[index] = TPZGeoNode(id,coord,*gmesh);
+            gmesh->NodeVec()[index] = TPZGeoNode(id,coord_r,*gmesh);
         }
     }
+    
     
     //Ponto 1
     TPZVec<int64_t> pointtopology(1);
@@ -288,12 +316,12 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
             gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
             
             connectU[0] = connectD[2];
-            connectU[1] = connectD[0];
-            connectU[2] = connectD[2]-1;
+            connectU[1] = connectD[2]-1;
+            connectU[2] = connectD[0];
             gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
             
-               std::cout<<connectD<<std::endl;
-               std::cout<<connectU<<std::endl;
+            //   std::cout<<connectD<<std::endl;
+            //   std::cout<<connectU<<std::endl;
             
             id++;
         }
@@ -322,7 +350,7 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
         
         //Colocando as condicoes de contorno:
         TPZManVector <TPZGeoNode> Nodefinder(totalnodes);
-        TPZManVector <REAL,3> nodecoord(3);
+        TPZManVector <REAL,3> nodecoord(3,0.),nodecoord_r(3,0.);
         
         //Na face x = 1
         TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
@@ -330,35 +358,83 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
         TPZVec<int64_t> ncoordzleftVec(0); int64_t sizeOfleftVec = 0;
         TPZVec<int64_t> ncoordzrightVec(0); int64_t sizeOfrightVec = 0;
         
+        
         for (int64_t i = 0; i < totalnodes; i++)
         {
             Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
-            Nodefinder[i].GetCoordinates(nodecoord);
-            if (nodecoord[2] == 0. & nodecoord[1] == -1.+0.)
-            {
-                sizeOfbottVec++;
-                ncoordzbottVec.Resize(sizeOfbottVec);
-                ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
-            }
-            if (nodecoord[2] == 0. & nodecoord[1] == -1.+hy)
-            {
-                sizeOftopVec++;
-                ncoordztopVec.Resize(sizeOftopVec);
-                ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
-            }
-            if (nodecoord[2] == 0. & nodecoord[0] == 0.)
-            {
-                sizeOfleftVec++;
-                ncoordzleftVec.Resize(sizeOfleftVec);
-                ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
-            }
-            if (nodecoord[2] == 0. & nodecoord[0] == hx)
-            {
-                sizeOfrightVec++;
-                ncoordzrightVec.Resize(sizeOfrightVec);
-                ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
+            Nodefinder[i].GetCoordinates(nodecoord_r);
+            int id_node = Nodefinder[i].Id();
+            
+            for (int64_t j = 0; j < ny; j++){
+                
+                
+                if (id_node==j)
+                {
+                    sizeOfbottVec++;
+                    ncoordzbottVec.Resize(sizeOfbottVec);
+                    ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
+                }
+                if (id_node==j+nx*(nx-1))
+                {
+                    sizeOftopVec++;
+                    ncoordztopVec.Resize(sizeOftopVec);
+                    ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
+                }
+                
+
+                if (id_node==j*nx)
+                {
+                    sizeOfleftVec++;
+                    ncoordzleftVec.Resize(sizeOfleftVec);
+                    ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
+                }
+                if (id_node==(j+1)*nx-1)
+                {
+                    sizeOfrightVec++;
+                    ncoordzrightVec.Resize(sizeOfrightVec);
+                    ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
+                }
+            
             }
         }
+    
+    
+        
+//        for (int64_t i = 0; i < totalnodes; i++)
+//        {
+//            Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
+//            Nodefinder[i].GetCoordinates(nodecoord_r);
+//
+//            // Desrotacionar:
+//
+//            Rotate(nodecoord_r, nodecoord, false);
+//
+//
+//            if (nodecoord[2] == 0. & nodecoord[1] == -1.+0.)
+//            {
+//                sizeOfbottVec++;
+//                ncoordzbottVec.Resize(sizeOfbottVec);
+//                ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
+//            }
+//            if (nodecoord[2] == 0. & nodecoord[1] == -1.+hy)
+//            {
+//                sizeOftopVec++;
+//                ncoordztopVec.Resize(sizeOftopVec);
+//                ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
+//            }
+//            if (nodecoord[2] == 0. & nodecoord[0] == 0.)
+//            {
+//                sizeOfleftVec++;
+//                ncoordzleftVec.Resize(sizeOfleftVec);
+//                ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
+//            }
+//            if (nodecoord[2] == 0. & nodecoord[0] == hx)
+//            {
+//                sizeOfrightVec++;
+//                ncoordzrightVec.Resize(sizeOfrightVec);
+//                ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
+//            }
+//        }
         
         if (sizeOfbottVec == 2) {
             int sidesbott = plate->WhichSide(ncoordzbottVec);
@@ -496,7 +572,7 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
     TPZVec<int64_t> pointtopology(1);
     pointtopology[0] = nx-1;
     
-  //  gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
+//    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
     
     
     //Vetor auxiliar para armazenar as conecções entre elementos:
@@ -689,57 +765,169 @@ void BrinkmanTest::Sol_exact(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatr
     
     dsol.Resize(3,2);
     sol.Resize(3);
-    
+
     REAL x1 = x[0];
     REAL x2 = x[1];
-    
-    REAL e = exp(1);
-    
+
+    REAL e = exp(1.);
+
     STATE v_1 = (1.-2./e)*sin(x1)*sin(x2);
     STATE v_2 = -1.*cos(x1)*cos(x2);
     STATE pressure= cos(x1)*sin(x2);
-    
+
     sol[0]=v_1;
     sol[1]=v_2;
     sol[2]=pressure;
-    
+
     // vx direction
     dsol(0,0)= (1.-2./e)*cos(x1)*sin(x2);
     dsol(0,1)= cos(x2)*sin(x1);
-    
+
     // vy direction
     dsol(1,0)= (1.-2./e)*cos(x2)*sin(x1);
     dsol(1,1)= cos(x1)*sin(x2);
-    
+
     // Gradiente pressão
     dsol(2,0)= -sin(x1)*sin(x2);
     dsol(2,1)= cos(x1)*cos(x2);
+
+    
+    
+    //teste 2:
+    
+//    dsol.Resize(3,2);
+//    sol.Resize(3);
+//
+//    TPZVec<REAL> x_r(x.size(),0.);
+//
+//    x_r[0] = x[0]*cos(phi_r) + x[1]*sin(phi_r);
+//    x_r[1] = - x[0]*sin(phi_r) + x[1]*cos(phi_r);
+//
+//    REAL x1 = x[0];
+//    REAL x2 = x[1];
+//
+//    STATE v_1 = 1.*x1-1.*sin(x1)*sin(x2);
+//    STATE v_2 = -1.*cos(x1)*cos(x2);
+//    STATE pressure= cos(x1)*sin(x2);
+//
+//    sol[0]=v_1;
+//    sol[1]=v_2;
+//    sol[2]=pressure;
+//
+//    // vx direction
+//    dsol(0,0)= 1.-1.*cos(x1)*sin(x2);
+//    dsol(0,1)= cos(x2)*sin(x1);
+//
+//    // vy direction
+//    dsol(1,0)= -1.*cos(x2)*sin(x1);
+//    dsol(1,1)= cos(x1)*sin(x2);
+//
+//    // Gradiente pressão
+//    dsol(2,0)= -sin(x1)*sin(x2);
+//    dsol(2,1)= cos(x1)*cos(x2);
+
+        //teste 3:
+
+//        dsol.Resize(3,2);
+//        sol.Resize(3);
+//
+//        REAL x1 = x[0];
+//        REAL x2 = x[1];
+//
+//        STATE v_1 = +1.*sin(x1)*sin(x2);
+//        STATE v_2 = -1.*cos(x1)*cos(x2);
+//        STATE pressure= cos(x1)*sin(x2);
+//
+//        sol[0]=v_1;
+//        sol[1]=v_2;
+//        sol[2]=pressure;
+//
+//        // vx direction
+//        dsol(0,0)= -1.*cos(x1)*sin(x2);
+//        dsol(0,1)= -cos(x2)*sin(x1);
+//
+//        // vy direction
+//        dsol(1,0)= 1.*cos(x2)*sin(x1);
+//        dsol(1,1)= -cos(x1)*sin(x2);
+//
+//        // Gradiente pressão
+//        dsol(2,0)= -sin(x1)*sin(x2);
+//        dsol(2,1)= cos(x1)*cos(x2);
     
 }
 
 void BrinkmanTest::F_source(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE>& gradu){
     
+    // Brinkman : : Artigo Botti, Di Pietro, Droniou
+    
     f.resize(3);
-    REAL e = exp(1);
+    REAL e = exp(1.);
     REAL x1 = x[0];
     REAL x2 = x[1];
-    
+
     STATE f_1 = (-8./e+ 4.)*sin(x1)*sin(x2);
     STATE f_2 = (2./e- 4.)*cos(x1)*cos(x2);
     STATE g_1 = 2.*(1.-1./e)*cos(x1)*sin(x2);
-    
+
     f[0] = f_1; // x direction
     f[1] = f_2; // y direction
 
     f[2] = g_1; // g source
+
+    // Stokes : : Artigo Botti, Di Pietro, Droniou
     
+//    f.resize(3);
+//
+//    REAL x1 = x[0];
+//    REAL x2 = x[1];
+//
+//    STATE f_1 = -3.*sin(x1)*sin(x2);
+//    STATE f_2 = -1.*cos(x1)*cos(x2);
+//
+//    f[0] = f_1; // x direction
+//    f[1] = f_2; // y direction
+//    f[2] = 0.;
+    
+    
+    //teste 2:
+//    f.resize(3);
+//
+//    TPZVec<REAL> x_r(x.size(),0.);
+//
+//    x_r[0] = x[0]*cos(phi_r) - x[1]*sin(phi_r);
+//    x_r[1] = x[0]*sin(phi_r) + x[1]*cos(phi_r);
+//
+//    REAL x1 = x_r[0];
+//    REAL x2 = x_r[1];
+//
+//
+//    STATE f_1 = 1.*x1-4.*sin(x1)*sin(x2);
+//    STATE f_2 = -2.*cos(x1)*cos(x2);
+//
+//    f[0] = f_1; // x direction
+//    f[1] = f_2; // y direction
+//    f[2] = 1.;
+    
+    //teste3:
+//        f.resize(3);
+//
+//        REAL x1 = x[0];
+//        REAL x2 = x[1];
+//
+//        STATE f_1 = 0.;
+//        STATE f_2 = 0.;
+//
+//        f[0] = f_1; // x direction
+//        f[1] = f_2; // y direction
+//        f[2] = 1.;
+
 }
 
 TPZCompMesh *BrinkmanTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
 {
-    //pOrder++;
+ 
     //Criando malha computacional:
-    
+    //pOrder++;
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDefaultOrder(pOrder);//Insere ordem polimonial de aproximação
     cmesh->SetDimModel(fdim);//Insere dimensão do modelo
@@ -753,7 +941,11 @@ TPZCompMesh *BrinkmanTest::CMesh_v(TPZGeoMesh *gmesh, int Space, int pOrder)
     
     if (Space==1) {
         cmesh->SetAllCreateFunctionsHDiv(); //Criando funções HDIV:
-   //     cmesh->ApproxSpace().CreateDisconnectedElements(true); //HDIV-Full:
+        
+        if (f_is_hdivFull == true) {
+           cmesh->ApproxSpace().CreateDisconnectedElements(true); //HDIV-Full:
+        }
+
         
         //Dimensões do material (para HDiv):
         TPZFMatrix<STATE> xkin(1,1,0.), xcin(1,1,0.), xfin(1,1,0.);
@@ -937,8 +1129,8 @@ TPZCompMesh *BrinkmanTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STA
     // Inserindo material na malha
     TPZAutoPointer<TPZFunction<STATE> > fp = new TPZDummyFunction<STATE> (F_source, 5);
     TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact, 5);
-    ((TPZDummyFunction<STATE>*)fp.operator->())->SetPolynomialOrder(2);
-    ((TPZDummyFunction<STATE>*)solp.operator->())->SetPolynomialOrder(2);
+    ((TPZDummyFunction<STATE>*)fp.operator->())->SetPolynomialOrder(5);
+    ((TPZDummyFunction<STATE>*)solp.operator->())->SetPolynomialOrder(5);
     
     material->SetForcingFunction(fp);
     material->SetForcingFunctionExact(solp);
@@ -953,30 +1145,36 @@ TPZCompMesh *BrinkmanTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STA
     val2(0,0) = 0.0; // vx -> 0
     val2(1,0) = 0.0; // vy -> 0
     
-    TPZMaterial * BCond0 = material->CreateBC(material, fmatBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
-    BCond0->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond0); //Insere material na malha
+  
+        TPZMaterial * BCond0 = material->CreateBC(material, fmatBCbott, fdirichlet, val1, val2); //Cria material que implementa a condição de contorno inferior
+        BCond0->SetForcingFunction(Sol_exact,bc_inte_order);
+        cmesh->InsertMaterialObject(BCond0); //Insere material na malha
+        
+        TPZMaterial * BCond1 = material->CreateBC(material, fmatBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
+        BCond1->SetForcingFunction(Sol_exact,bc_inte_order);
+        cmesh->InsertMaterialObject(BCond1); //Insere material na malha
+        
+        TPZMaterial * BCond2 = material->CreateBC(material, fmatBCleft, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno esquerda
+        BCond2->SetForcingFunction(Sol_exact,bc_inte_order);
+        cmesh->InsertMaterialObject(BCond2); //Insere material na malha
+        
+        TPZMaterial * BCond3 = material->CreateBC(material, fmatBCright, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno direita
+        BCond3->SetForcingFunction(Sol_exact,bc_inte_order);
+        cmesh->InsertMaterialObject(BCond3); //Insere material na malha
+        //Ponto
+        
+        TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
     
-    TPZMaterial * BCond1 = material->CreateBC(material, fmatBCtop, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno superior
-    BCond1->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond1); //Insere material na malha
-    
-    TPZMaterial * BCond2 = material->CreateBC(material, fmatBCleft, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno esquerda
-    BCond2->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond2); //Insere material na malha
-    
-    TPZMaterial * BCond3 = material->CreateBC(material, fmatBCright, fdirichlet, val1, val2); //Cria material que implementa a condicao de contorno direita
-    BCond3->SetForcingFunction(Sol_exact,bc_inte_order);
-    cmesh->InsertMaterialObject(BCond3); //Insere material na malha
-    
-    //Ponto
-    
-    TPZFMatrix<STATE> val3(1,1,0.), val4(1,1,0.);
-    val4(0,0)=-cos(2.)*sin(1.);
-    
- 
-    TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
-    cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
+        val4(0,0)=-cos(2.)*sin(1.);
+        
+        
+        TPZMaterial * BCPoint = material->CreateBC(material, fmatPoint, fpointtype, val3, val4); //Cria material que implementa um ponto para a pressão
+        cmesh->InsertMaterialObject(BCPoint); //Insere material na malha
+   
+
+  
+
+
     
 
     int ncel = cmesh->NElements();
