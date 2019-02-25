@@ -61,7 +61,7 @@ bool DarcyDomain = false, HStokesDomain = false , StokesDomain = false , Brinkma
 int main(int argc, char *argv[])
 {
     
-    TPZMaterial::gBigNumber = 1.e9;
+    TPZMaterial::gBigNumber = 1.e12;
     
 #ifdef LOG4CXX
     InitializePZLOG();
@@ -131,33 +131,37 @@ int main(int argc, char *argv[])
         hx=2.,hy=2.;
         
         TPZVec<STATE> S0(13,0.);
-        S0[0]=0.0000001,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
+        S0[0]=0.0,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
         
         
         HDivPiola = 0;
         for (int it=0; it<=0; it++) {
             //h_level = pow(2., 2+it);
-            h_level = 64.;
+            h_level = 8.;
             
-            //h_level = ;
             //Coeficiente estabilização (Stokes)
             STATE hE=hx/h_level;
-            STATE s0=0.;
+            STATE s0=20.;
             STATE sigma=s0*(pOrder*pOrder)/hE;
-            //sigma=s0/hE;
+            
             
             nx=h_level+1 ,ny=h_level+1;
             hE=hx/h_level;
             sigma=s0*(pOrder*pOrder)/hE;
- //           BrinkmanTest  * Test1 = new BrinkmanTest();
- //           Test1->SetFullHdiv();
- //           Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+ 
+            
+            //REAL visc = 1.; //->Darcy
+            //sigma = sigma*visc;
             
             BrinkmanTest  * Test2 = new BrinkmanTest();
             Test2->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
 
-  //          BrinkmanTest  * Test3 = new BrinkmanTest();
-  //          Test3->Run(SpaceDiscontinuous, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+        //    BrinkmanTest  * Test1 = new BrinkmanTest();
+        //    Test1->SetFullHdiv();
+        //    Test1->Run(SpaceHDiv, pOrder, nx, ny, hx, hy,visco,theta,sigma);
+            
+        //    BrinkmanTest  * Test3 = new BrinkmanTest();
+        //    Test3->Run(SpaceDiscontinuous, pOrder, nx, ny, hx, hy,visco,theta,sigma);
 
             
             

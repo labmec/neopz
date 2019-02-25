@@ -217,7 +217,7 @@ void TPZPardisoControl<TVar>::Decompose()
         if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
             fParam[3 ] = 10*6+2;
         }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
-            fParam[3 ] = 10*6+1;
+            fParam[3 ] = 10*6+2;
             fParam[10] = 1;
             fParam[12] = 1;
         }

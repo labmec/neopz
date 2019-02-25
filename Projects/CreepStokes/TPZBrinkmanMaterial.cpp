@@ -429,7 +429,11 @@ void TPZBrinkmanMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
     TPZFNMatrix<10,STATE> gradV_axes = datavec[vindex].dsol[0];
         
     STATE jac_det;
-    this->ComputeDivergenceOnMaster(datavec, div_on_master);
+    if (fSpace==1) {
+        this->ComputeDivergenceOnMaster(datavec, div_on_master);
+    }
+
+    
     jac_det = datavec[vindex].detjac;
     
     
@@ -510,7 +514,7 @@ void TPZBrinkmanMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             STATE val = Inner(Dui, Duj);
             STATE val1 = InnerVec(phiVi, phiVj);
             
-            ek(i,j) += 2. * weight * fViscosity * val + weight * val1; ///Visc*(GradU+GradU^T):GradPhi
+            ek(i,j) += 2. * weight * fViscosity * val + 0.*weight * val1; ///Visc*(GradU+GradU^T):GradPhi
             
         }
         
@@ -522,8 +526,16 @@ void TPZBrinkmanMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             for (int e=0; e<fDimension; e++) {
                 GradPj[e] = dphiPx(e,j);
             }
-            
-            STATE fact = (-1.) * weight * phiP(j,0) * div_on_master(i); ///p*div(U)
+
+                ///p*div(U)
+            STATE fact = 0.;
+            if (fSpace==1) {
+                fact = (-1.) * weight * phiP(j,0) * div_on_master(i);
+            }else{
+                fact = (-1.) * weight * phiP(j,0) * divui;
+            }
+
+
             
   //          STATE fact = (-1.) * weight * phiP(j,0) * divui;
             // colocar vectoriais vezes pressao
@@ -979,7 +991,7 @@ void TPZBrinkmanMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL we
         case 5: //Ponto pressao
         {
            
-            //return;
+            
             p_D = bc.Val2()(0,0);
             
             
@@ -1137,7 +1149,6 @@ void TPZBrinkmanMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZM
     //Triangle Verification:
     if (fabs(normal[0])<1.&&fabs(normal[1])<1.) {
         sigmaConst = fSigma/(sqrt(2.));
-        
     }
     
 
@@ -1552,6 +1563,9 @@ void TPZBrinkmanMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZM
 
 void TPZBrinkmanMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
    
+    
+   
+    
     STATE rhsnorm = Norm(ef);
     if(isnan(rhsnorm))
     {
@@ -1715,7 +1729,7 @@ void TPZBrinkmanMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TP
                     diffvt(1,0)=v_tt[1];
                     
                     
-                    STATE factef = weight * fSigma * v_t * phiVti(0,0);
+                    STATE factef = weight * fSigma * v_t * phiVti(0,0) * fViscosity;
                     
                     ef(i,0) += factef;
                     
@@ -1766,7 +1780,7 @@ void TPZBrinkmanMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TP
                             }
                         }
                         
-                        STATE factek = weight * fSigma * phiVtj(0,0)* phiVti(0,0);
+                        STATE factek = weight * fSigma * phiVtj(0,0)* phiVti(0,0) * fViscosity;
                         ek(i,j) +=  factek;
                         
                         

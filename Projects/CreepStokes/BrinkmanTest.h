@@ -108,7 +108,7 @@ public:
     
     //   TPZGeoMesh *GMeshDeformed(int dim, bool ftriang, int ndiv);
     
-    
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
     /* Malhas computacionais */
     
     TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh, int64_t &index);
