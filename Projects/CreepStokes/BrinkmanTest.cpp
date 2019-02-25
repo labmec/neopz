@@ -15,7 +15,7 @@
 #include "TPZSpStructMatrix.h"
 #include "TPZGmshReader.h"
 
-#define TRIANGLEMESH
+//#define TRIANGLEMESH
 
 using namespace std;
 
@@ -260,390 +260,283 @@ TPZGeoMesh *BrinkmanTest::CreateGMesh(int nx, int ny, double hx, double hy)
     
 #ifdef TRIANGLEMESH
 
+    int i,j;
+    int64_t id, index;
+
+
     //Criando malha geométrica, nós e elementos.
+    //Inserindo nós e elementos no objeto malha:
+
     TPZGeoMesh *gmesh = new TPZGeoMesh();
-    
-    std::string dirname = PZSOURCEDIR;
-    std::string grid;
-    
-    grid = dirname + "/Projects/CreepStokes/gmsh_meshes/GeometryTri.msh";
-    
-    TPZGmshReader Geometry;
-    REAL s = 1.0;
-    Geometry.SetfDimensionlessL(s);
-    
-    Geometry.fPZMaterialId[1]["bottom"] = fmatBCbott;
-    Geometry.fPZMaterialId[1]["right"] = fmatBCright;
-    Geometry.fPZMaterialId[1]["top"] = fmatBCtop;
-    Geometry.fPZMaterialId[1]["left"] = fmatBCleft;
-    
-    gmesh = Geometry.GeometricGmshMesh(grid);
-    
-    
-    // Criando e inserindo elemento de interface:
-    
-    int64_t nel = gmesh->NElements();
-    for (int64_t el = 0; el<nel; el++) {
-        TPZGeoEl *gel = gmesh->Element(el);
-        
-        if (gel->Dimension() == 1) {
-            
-            
-            int nsides = gel->NSides();
-            
-            TPZGeoElSide gelside(gel,nsides-1);
-            TPZGeoElSide neighbour = gelside.Neighbour();
-            while (neighbour != gelside) {
-                
-                if (neighbour.Element()->Dimension() == gmesh->Dimension() - 1) {
-                    
-                    break;
-                    
-                }
-                neighbour = neighbour.Neighbour();
-                
-            }
-            
-            int mat_id = gel->MaterialId();
-            int mat_bc_inter_id = 0;
-            
-            if (mat_id==-1) mat_bc_inter_id = fmatIntBCbott;
-            if (mat_id==-2) mat_bc_inter_id = fmatIntBCtop;
-            if (mat_id==-3) mat_bc_inter_id = fmatIntBCleft;
-            if (mat_id==-4) mat_bc_inter_id = fmatIntBCright;
-            if (mat_bc_inter_id==0) DebugStop();
-            
-            // tagging interfaces materials on boundaries
-            if (neighbour == gelside) {
-                TPZGeoElBC(gelside, mat_bc_inter_id);
-            }
-            
-            
-        }
-        
-        if (gel->Dimension() != gmesh->Dimension()) {
-            
-            continue;
-            
-        }
-        
-        int nsides = gel->NSides();
-        for (int is = 0; is<nsides; is++) {
-            if (gel->SideDimension(is) != gmesh->Dimension() - 1) {
-                continue;
-            }
-            
-            TPZGeoElSide gelside(gel,is);
-            
-            TPZGeoElSide neighbour = gelside.Neighbour();
-            while (neighbour != gelside) {
-                
-                if (neighbour.Element()->Dimension() == gmesh->Dimension() - 1) {
-                    
-                    break;
-                    
-                }
-                neighbour = neighbour.Neighbour();
-                
-            }
-            
-            if (neighbour == gelside) {
-                TPZGeoElBC(gelside, fmatInterface);
-            }
+    gmesh->SetDimension(2);
+
+    //Vetor auxiliar para armazenar coordenadas:
+
+    TPZVec<REAL> coord (3,0.), coord_r(3,0.);
+
+    //Inicialização dos nós:
+
+    for(i = 0; i < ny; i++){
+        for(j = 0; j < nx; j++){
+            id = i*nx + j;
+            coord[0] = (j)*hx/(nx - 1);
+            coord[1] = -1.+(i)*hy/(ny - 1);
+            //using the same coordinate x for z
+            coord[2] = 0.;
+            //cout << coord << endl;
+
+            //rottação phi
+            Rotate(coord, coord_r, true);
+
+            //Get the index in the mesh nodes vector for the new node
+            index = gmesh->NodeVec().AllocateNewElement();
+            //Set the value of the node in the mesh nodes vector
+            gmesh->NodeVec()[index] = TPZGeoNode(id,coord_r,*gmesh);
         }
     }
-    
-    
-    TPZCheckGeom check(gmesh);
-    check.CheckUniqueId();
-    
-    
-    int n_div = 0;
-    ofstream bf("before.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
-    return gmesh;
-    
 
-    
-    
-    
-//    int i,j;
-//    int64_t id, index;
-//
-//
-//    //Criando malha geométrica, nós e elementos.
-//    //Inserindo nós e elementos no objeto malha:
-//
-//    TPZGeoMesh *gmesh = new TPZGeoMesh();
-//    gmesh->SetDimension(2);
-//
-//    //Vetor auxiliar para armazenar coordenadas:
-//
-//    TPZVec<REAL> coord (3,0.), coord_r(3,0.);
-//
-//    //Inicialização dos nós:
-//
-//    for(i = 0; i < ny; i++){
-//        for(j = 0; j < nx; j++){
-//            id = i*nx + j;
-//            coord[0] = (j)*hx/(nx - 1);
-//            coord[1] = -1.+(i)*hy/(ny - 1);
-//            //using the same coordinate x for z
-//            coord[2] = 0.;
-//            //cout << coord << endl;
-//
-//            //rottação phi
-//            Rotate(coord, coord_r, true);
-//
-//            //Get the index in the mesh nodes vector for the new node
-//            index = gmesh->NodeVec().AllocateNewElement();
-//            //Set the value of the node in the mesh nodes vector
-//            gmesh->NodeVec()[index] = TPZGeoNode(id,coord_r,*gmesh);
-//        }
-//    }
-//
-//
-//    //Ponto 1
-//    TPZVec<int64_t> pointtopology(1);
-//    pointtopology[0] = nx-1;
-//
-//    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
-//
-//
-//    //Vetor auxiliar para armazenar as conecções entre elementos:
-//
-//    TPZVec <int64_t> connectD(3,0);
-//    TPZVec <int64_t> connectU(3,0);
-//
-//
-//    //Conectividade dos elementos:
-//
-//    for(i = 0; i < (ny - 1); i++){
-//        for(j = 0; j < (nx - 1); j++){
-//            index = (i)*(nx - 1)+ (j);
-//            connectD[0] = (i)*ny + (j);
-//            connectD[1] = connectD[0]+1;
-//            connectD[2] = connectD[0]+nx+1;
-//            gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
-//
-//            connectU[0] = connectD[2];
-//            connectU[1] = connectD[2]-1;
-//            connectU[2] = connectD[0];
-//            gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
-//
-//            //   std::cout<<connectD<<std::endl;
-//            //   std::cout<<connectU<<std::endl;
-//
-//            id++;
-//        }
-//    }
-//
-//
-//    //Gerando informação da vizinhança:
-//
-//    gmesh->BuildConnectivity();
-//
-//    {
-//        TPZCheckGeom check(gmesh);
-//        check.CheckUniqueId();
-//    }
-//    int64_t el, numelements = gmesh->NElements();
-//
-//    TPZManVector <int64_t> TopolPlate(4);
-//
-//    for (el=0; el<numelements; el++)
-//    {
-//        int64_t totalnodes = gmesh->ElementVec()[el]->NNodes();
-//        TPZGeoEl *plate = gmesh->ElementVec()[el];
-//        for (int i=0; i<4; i++){
-//            TopolPlate[i] = plate->NodeIndex(i);
-//        }
-//
-//        //Colocando as condicoes de contorno:
-//        TPZManVector <TPZGeoNode> Nodefinder(totalnodes);
-//        TPZManVector <REAL,3> nodecoord(3,0.),nodecoord_r(3,0.);
-//
-//        //Na face x = 1
-//        TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
-//        TPZVec<int64_t> ncoordztopVec(0); int64_t sizeOftopVec = 0;
-//        TPZVec<int64_t> ncoordzleftVec(0); int64_t sizeOfleftVec = 0;
-//        TPZVec<int64_t> ncoordzrightVec(0); int64_t sizeOfrightVec = 0;
-//
-//
+
+    //Ponto 1
+    TPZVec<int64_t> pointtopology(1);
+    pointtopology[0] = nx-1;
+
+    gmesh->CreateGeoElement(EPoint,pointtopology,fmatPoint,id);
+
+
+    //Vetor auxiliar para armazenar as conecções entre elementos:
+
+    TPZVec <int64_t> connectD(3,0);
+    TPZVec <int64_t> connectU(3,0);
+
+
+    //Conectividade dos elementos:
+
+    for(i = 0; i < (ny - 1); i++){
+        for(j = 0; j < (nx - 1); j++){
+            index = (i)*(nx - 1)+ (j);
+            connectD[0] = (i)*ny + (j);
+            connectD[1] = connectD[0]+1;
+            connectD[2] = connectD[0]+nx+1;
+            gmesh->CreateGeoElement(ETriangle,connectD,fmatID,id);
+
+            connectU[0] = connectD[2];
+            connectU[1] = connectD[2]-1;
+            connectU[2] = connectD[0];
+            gmesh->CreateGeoElement(ETriangle,connectU,fmatID,id);
+
+            //   std::cout<<connectD<<std::endl;
+            //   std::cout<<connectU<<std::endl;
+
+            id++;
+        }
+    }
+
+
+    //Gerando informação da vizinhança:
+
+    gmesh->BuildConnectivity();
+
+    {
+        TPZCheckGeom check(gmesh);
+        check.CheckUniqueId();
+    }
+    int64_t el, numelements = gmesh->NElements();
+
+    TPZManVector <int64_t> TopolPlate(4);
+
+    for (el=0; el<numelements; el++)
+    {
+        int64_t totalnodes = gmesh->ElementVec()[el]->NNodes();
+        TPZGeoEl *plate = gmesh->ElementVec()[el];
+        for (int i=0; i<4; i++){
+            TopolPlate[i] = plate->NodeIndex(i);
+        }
+
+        //Colocando as condicoes de contorno:
+        TPZManVector <TPZGeoNode> Nodefinder(totalnodes);
+        TPZManVector <REAL,3> nodecoord(3,0.),nodecoord_r(3,0.);
+
+        //Na face x = 1
+        TPZVec<int64_t> ncoordzbottVec(0); int64_t sizeOfbottVec = 0;
+        TPZVec<int64_t> ncoordztopVec(0); int64_t sizeOftopVec = 0;
+        TPZVec<int64_t> ncoordzleftVec(0); int64_t sizeOfleftVec = 0;
+        TPZVec<int64_t> ncoordzrightVec(0); int64_t sizeOfrightVec = 0;
+
+
+        for (int64_t i = 0; i < totalnodes; i++)
+        {
+            Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
+            Nodefinder[i].GetCoordinates(nodecoord_r);
+            int id_node = Nodefinder[i].Id();
+
+            for (int64_t j = 0; j < ny; j++){
+
+
+                if (id_node==j)
+                {
+                    sizeOfbottVec++;
+                    ncoordzbottVec.Resize(sizeOfbottVec);
+                    ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
+                }
+                if (id_node==j+nx*(nx-1))
+                {
+                    sizeOftopVec++;
+                    ncoordztopVec.Resize(sizeOftopVec);
+                    ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
+                }
+
+
+                if (id_node==j*nx)
+                {
+                    sizeOfleftVec++;
+                    ncoordzleftVec.Resize(sizeOfleftVec);
+                    ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
+                }
+                if (id_node==(j+1)*nx-1)
+                {
+                    sizeOfrightVec++;
+                    ncoordzrightVec.Resize(sizeOfrightVec);
+                    ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
+                }
+
+            }
+        }
+
+
+
 //        for (int64_t i = 0; i < totalnodes; i++)
 //        {
 //            Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
 //            Nodefinder[i].GetCoordinates(nodecoord_r);
-//            int id_node = Nodefinder[i].Id();
 //
-//            for (int64_t j = 0; j < ny; j++){
+//            // Desrotacionar:
 //
-//
-//                if (id_node==j)
-//                {
-//                    sizeOfbottVec++;
-//                    ncoordzbottVec.Resize(sizeOfbottVec);
-//                    ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
-//                }
-//                if (id_node==j+nx*(nx-1))
-//                {
-//                    sizeOftopVec++;
-//                    ncoordztopVec.Resize(sizeOftopVec);
-//                    ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
-//                }
+//            Rotate(nodecoord_r, nodecoord, false);
 //
 //
-//                if (id_node==j*nx)
-//                {
-//                    sizeOfleftVec++;
-//                    ncoordzleftVec.Resize(sizeOfleftVec);
-//                    ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
-//                }
-//                if (id_node==(j+1)*nx-1)
-//                {
-//                    sizeOfrightVec++;
-//                    ncoordzrightVec.Resize(sizeOfrightVec);
-//                    ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
-//                }
-//
+//            if (nodecoord[2] == 0. & nodecoord[1] == -1.+0.)
+//            {
+//                sizeOfbottVec++;
+//                ncoordzbottVec.Resize(sizeOfbottVec);
+//                ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
+//            }
+//            if (nodecoord[2] == 0. & nodecoord[1] == -1.+hy)
+//            {
+//                sizeOftopVec++;
+//                ncoordztopVec.Resize(sizeOftopVec);
+//                ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
+//            }
+//            if (nodecoord[2] == 0. & nodecoord[0] == 0.)
+//            {
+//                sizeOfleftVec++;
+//                ncoordzleftVec.Resize(sizeOfleftVec);
+//                ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
+//            }
+//            if (nodecoord[2] == 0. & nodecoord[0] == hx)
+//            {
+//                sizeOfrightVec++;
+//                ncoordzrightVec.Resize(sizeOfrightVec);
+//                ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
 //            }
 //        }
-//
-//
-//
-////        for (int64_t i = 0; i < totalnodes; i++)
-////        {
-////            Nodefinder[i] = gmesh->NodeVec()[TopolPlate[i]];
-////            Nodefinder[i].GetCoordinates(nodecoord_r);
-////
-////            // Desrotacionar:
-////
-////            Rotate(nodecoord_r, nodecoord, false);
-////
-////
-////            if (nodecoord[2] == 0. & nodecoord[1] == -1.+0.)
-////            {
-////                sizeOfbottVec++;
-////                ncoordzbottVec.Resize(sizeOfbottVec);
-////                ncoordzbottVec[sizeOfbottVec-1] = TopolPlate[i];
-////            }
-////            if (nodecoord[2] == 0. & nodecoord[1] == -1.+hy)
-////            {
-////                sizeOftopVec++;
-////                ncoordztopVec.Resize(sizeOftopVec);
-////                ncoordztopVec[sizeOftopVec-1] = TopolPlate[i];
-////            }
-////            if (nodecoord[2] == 0. & nodecoord[0] == 0.)
-////            {
-////                sizeOfleftVec++;
-////                ncoordzleftVec.Resize(sizeOfleftVec);
-////                ncoordzleftVec[sizeOfleftVec-1] = TopolPlate[i];
-////            }
-////            if (nodecoord[2] == 0. & nodecoord[0] == hx)
-////            {
-////                sizeOfrightVec++;
-////                ncoordzrightVec.Resize(sizeOfrightVec);
-////                ncoordzrightVec[sizeOfrightVec-1] = TopolPlate[i];
-////            }
-////        }
-//
-//        if (sizeOfbottVec == 2) {
-//            int sidesbott = plate->WhichSide(ncoordzbottVec);
-//            TPZGeoElSide platesidebott(plate, sidesbott);
-//            TPZGeoElBC(platesidebott,fmatBCbott);
-//            if(fSpaceV!=2){
-//                TPZGeoElBC(platesidebott,fmatIntBCbott);
-//            }
-//        }
-//
-//        if (sizeOftopVec == 2) {
-//            int sidestop = plate->WhichSide(ncoordztopVec);
-//            TPZGeoElSide platesidetop(plate, sidestop);
-//            TPZGeoElBC(platesidetop,fmatBCtop);
-//            if(fSpaceV!=2){
-//                TPZGeoElBC(platesidetop,fmatIntBCtop);
-//            }
-//        }
-//
-//        if (sizeOfleftVec == 2) {
-//            int sidesleft = plate->WhichSide(ncoordzleftVec);
-//            TPZGeoElSide platesideleft(plate, sidesleft);
-//            TPZGeoElBC(platesideleft,fmatBCleft);
-//            if(fSpaceV!=2){
-//                TPZGeoElBC(platesideleft,fmatIntBCleft);
-//            }
-//        }
-//
-//        if (sizeOfrightVec == 2) {
-//            int sidesright = plate->WhichSide(ncoordzrightVec);
-//            TPZGeoElSide platesideright(plate, sidesright);
-//            TPZGeoElBC(platesideright,fmatBCright);
-//            if(fSpaceV!=2){
-//                TPZGeoElBC(platesideright,fmatIntBCright);
-//            }
-//        }
-//
-//
-//        ncoordzbottVec.Resize(0);
-//        sizeOfbottVec = 0;
-//        ncoordztopVec.Resize(0);
-//        sizeOftopVec = 0;
-//        ncoordzleftVec.Resize(0);
-//        sizeOfleftVec = 0;
-//        ncoordzrightVec.Resize(0);
-//        sizeOfrightVec = 0;
-//
-//    }
-//
-//
-//    //Criando interface (Geralizado):
-//
-//    if(fSpaceV!=2){
-//        TPZVec<int64_t> nodint(2);
-//        for(i = 0; i < (ny - 1); i++){
-//            for(j = 0; j <= (nx - 1); j++){
-//                if(j>0&&j<(nx-1)){
-//                    nodint[0]=j+nx*i;
-//                    nodint[1]=j+nx*(i+1);
-//                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
-//
-//                }
-//
-//
-//                if(i>0&&j<(ny-1)){
-//                    nodint[0]=j+ny*i;
-//                    nodint[1]=j+ny*i+1;
-//                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
-//
-//                }
-//
-//                if(j<(nx-1)&&i<(ny-1)){
-//                    nodint[0]=j+nx*i;
-//                    nodint[1]=j+nx*i+nx+1;
-//                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
-//
-//                }
-//
-//            }
-//        }
-//    }
-//
-//    //new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (nodind3,matInterface,*gmesh); //Criando elemento de interface (RefPattern)
-//    id++;
-//
-//    gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
-//    gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
-//
-//    TPZCheckGeom check(gmesh);
-//    check.CheckUniqueId();
-//
-//    gmesh->BuildConnectivity();
-//
-//    //Impressão da malha geométrica:
-//
-//    ofstream bf("before.vtk");
-//    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
-//    return gmesh;
+
+        if (sizeOfbottVec == 2) {
+            int sidesbott = plate->WhichSide(ncoordzbottVec);
+            TPZGeoElSide platesidebott(plate, sidesbott);
+            TPZGeoElBC(platesidebott,fmatBCbott);
+            if(fSpaceV!=2){
+                TPZGeoElBC(platesidebott,fmatIntBCbott);
+            }
+        }
+
+        if (sizeOftopVec == 2) {
+            int sidestop = plate->WhichSide(ncoordztopVec);
+            TPZGeoElSide platesidetop(plate, sidestop);
+            TPZGeoElBC(platesidetop,fmatBCtop);
+            if(fSpaceV!=2){
+                TPZGeoElBC(platesidetop,fmatIntBCtop);
+            }
+        }
+
+        if (sizeOfleftVec == 2) {
+            int sidesleft = plate->WhichSide(ncoordzleftVec);
+            TPZGeoElSide platesideleft(plate, sidesleft);
+            TPZGeoElBC(platesideleft,fmatBCleft);
+            if(fSpaceV!=2){
+                TPZGeoElBC(platesideleft,fmatIntBCleft);
+            }
+        }
+
+        if (sizeOfrightVec == 2) {
+            int sidesright = plate->WhichSide(ncoordzrightVec);
+            TPZGeoElSide platesideright(plate, sidesright);
+            TPZGeoElBC(platesideright,fmatBCright);
+            if(fSpaceV!=2){
+                TPZGeoElBC(platesideright,fmatIntBCright);
+            }
+        }
+
+
+        ncoordzbottVec.Resize(0);
+        sizeOfbottVec = 0;
+        ncoordztopVec.Resize(0);
+        sizeOftopVec = 0;
+        ncoordzleftVec.Resize(0);
+        sizeOfleftVec = 0;
+        ncoordzrightVec.Resize(0);
+        sizeOfrightVec = 0;
+
+    }
+
+
+    //Criando interface (Geralizado):
+
+    if(fSpaceV!=2){
+        TPZVec<int64_t> nodint(2);
+        for(i = 0; i < (ny - 1); i++){
+            for(j = 0; j <= (nx - 1); j++){
+                if(j>0&&j<(nx-1)){
+                    nodint[0]=j+nx*i;
+                    nodint[1]=j+nx*(i+1);
+                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+
+                }
+
+
+                if(i>0&&j<(ny-1)){
+                    nodint[0]=j+ny*i;
+                    nodint[1]=j+ny*i+1;
+                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+
+                }
+
+                if(j<(nx-1)&&i<(ny-1)){
+                    nodint[0]=j+nx*i;
+                    nodint[1]=j+nx*i+nx+1;
+                    gmesh->CreateGeoElement(EOned, nodint, fmatInterface, index); //Criando elemento de interface (GeoElement)
+
+                }
+
+            }
+        }
+    }
+
+    //new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (nodind3,matInterface,*gmesh); //Criando elemento de interface (RefPattern)
+    id++;
+
+    gmesh->AddInterfaceMaterial(fquadmat1, fquadmat2, fquadmat3);
+    gmesh->AddInterfaceMaterial(fquadmat2, fquadmat1, fquadmat3);
+
+    TPZCheckGeom check(gmesh);
+    check.CheckUniqueId();
+
+    gmesh->BuildConnectivity();
+
+    //Impressão da malha geométrica:
+
+    ofstream bf("before.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
+    return gmesh;
     
 #else
     
