@@ -1379,7 +1379,7 @@ TPZGeoMesh * GeomtricMesh(int ndiv, SimulationCase  & sim_data){
                 
                 TPZGmshReader Geometry;
                 REAL s = 1.0;
-                Geometry.SetfDimensionlessL(s);
+                //Geometry.SetfDimensionlessL(s);
                 geometry = Geometry.GeometricGmshMesh(grid);
                 const std::string name("Geometry and mesh from gmsh script");
                 geometry->SetName(name);
@@ -2041,7 +2041,7 @@ TPZGeoMesh * MakeCubeFromLinearTriangularFaces(int ndiv, SimulationCase  & sim_d
         
         TPZGmshReader Geometry;
         REAL s = 1.0;
-        Geometry.SetfDimensionlessL(s);
+        //Geometry.SetfDimensionlessL(s);
         GeoMesh_cube = Geometry.GeometricGmshMesh(grid);
         const std::string name("Geometry and mesh from gmsh script");
         GeoMesh_cube->SetName(name);
@@ -2375,7 +2375,7 @@ TPZGeoMesh * MakeSphereFromLinearQuadrilateralFaces(int ndiv, SimulationCase  & 
         
         TPZGmshReader Geometry;
         REAL s = 1.0;
-        Geometry.SetfDimensionlessL(s);
+        //Geometry.SetfDimensionlessL(s);
         geomesh = Geometry.GeometricGmshMesh(grid);
         const std::string name("Geometry and mesh from gmsh script");
         geomesh->SetName(name);
@@ -2890,7 +2890,7 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
         
         TPZGmshReader Geometry;
         REAL s = 1.0;
-        Geometry.SetfDimensionlessL(s);
+//        Geometry.SetfDimensionlessL(s);
         geomesh = Geometry.GeometricGmshMesh(grid);
         const std::string name("Sphere from gmsh script");
         geomesh->SetName(name);
