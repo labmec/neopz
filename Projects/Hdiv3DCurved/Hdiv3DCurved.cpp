@@ -2890,7 +2890,6 @@ TPZGeoMesh * MakeSphereFromQuadrilateralFacesR(int ndiv, SimulationCase  & sim_d
         
         TPZGmshReader Geometry;
         REAL s = 1.0;
-//        Geometry.SetfDimensionlessL(s);
         geomesh = Geometry.GeometricGmshMesh(grid);
         const std::string name("Sphere from gmsh script");
         geomesh->SetName(name);

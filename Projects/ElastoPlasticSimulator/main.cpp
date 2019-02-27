@@ -180,7 +180,6 @@ TPZGeoMesh * ReadGeometry(){
     
     TPZGmshReader Geometry;
     REAL s = 1.0;
-    //Geometry.SetfDimensionlessL(s);
     gmesh = Geometry.GeometricGmshMesh(grid);
     const std::string name("Footing section");
     gmesh->SetName(name);
