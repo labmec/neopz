@@ -95,6 +95,10 @@ private:
     
     bool f_is_hdivFull;
     
+    bool f_hdivPlus;
+    
+    bool fTriang;
+    
 public:
 
     BrinkmanTest();
@@ -108,7 +112,7 @@ public:
     
     //   TPZGeoMesh *GMeshDeformed(int dim, bool ftriang, int ndiv);
     
-    void ChangeExternalOrderConnects(TPZCompMesh *mesh);
+    void ChangeExternalOrderConnects(TPZCompMesh *mesh, int addToOrder);
     /* Malhas computacionais */
     
     TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh, int64_t &index);
@@ -117,9 +121,17 @@ public:
     TPZCompMesh *CMesh_p(TPZGeoMesh *gmesh, int Space, int pOrder);
     TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE visco, STATE theta, STATE sigma);
     
+    void SetHdivPlus(){
+        f_hdivPlus = true;
+    };
+    
     
     void SetFullHdiv(){
         f_is_hdivFull = true;
+    };
+
+    void SetTriangularMesh(){
+        fTriang = true;
     };
     
     //solucao exata

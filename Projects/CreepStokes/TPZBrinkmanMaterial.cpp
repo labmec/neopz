@@ -514,7 +514,7 @@ void TPZBrinkmanMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
             STATE val = Inner(Dui, Duj);
             STATE val1 = InnerVec(phiVi, phiVj);
             
-            ek(i,j) += 2. * weight * fViscosity * val + 0.*weight * val1; ///Visc*(GradU+GradU^T):GradPhi
+            ek(i,j) += 2. * weight * fViscosity * val + weight * val1; ///Visc*(GradU+GradU^T):GradPhi
             
         }
         
@@ -991,7 +991,7 @@ void TPZBrinkmanMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL we
         case 5: //Ponto pressao
         {
            
-            
+            //return;
             p_D = bc.Val2()(0,0);
             
             
@@ -1628,7 +1628,7 @@ void TPZBrinkmanMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TP
       
         case 0: //Dirichlet for continuous formulation
         {
-
+          
             if(bc.HasForcingFunction())
             {
                 TPZManVector<STATE> vbc(3);
