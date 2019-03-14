@@ -56,18 +56,18 @@ public:
     
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;
     
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override;
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &eps, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override;
     
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override {
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &eps, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override {
         std::cerr << "Deprecated gradient calculation is incorporated on ApplyStrainComputeSigma method." << std::endl;
         DebugStop();
     }
     
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) override;
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &eps) override;
     
     virtual TPZPlasticState<REAL> GetState() const override;
 
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override;
+    virtual void Phi(const TPZTensor<REAL> &eps, TPZVec<REAL> &phi) const override;
     
     virtual void SetElasticResponse(TPZElasticResponse &ER) override
     {

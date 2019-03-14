@@ -41,7 +41,9 @@ void TPZPorousElasticCriterion::Write(TPZStream& buf, int withclassid) const {
     fPER.Write(buf, withclassid);
 }
 
-void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
+#define LE_Q
+
+void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &eps, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
 {
     
     bool require_tangent_Q = (tangent != NULL);
@@ -56,20 +58,30 @@ void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &e
     }
 #endif
     
-    fPER.ComputeStress(epsTotal, sigma);
-    fN.m_eps_t = epsTotal;
+#ifdef LE_Q
+    
+    fER.ComputeStress(eps, sigma);
+    fN.m_eps_t = eps;
+
+    if (require_tangent_Q) {
+        fER.De(*tangent);
+    }
+
+    
+#else
+    
+    fPER.ComputeStress(eps, sigma);
+    fN.m_eps_t = eps;
     
     if (require_tangent_Q) {
-        fPER.De(epsTotal, *tangent);
+        fPER.De(eps, *tangent);
     }
-    /// Update the linear elastic response
-    STATE Eyoung, nu;
-    fPER.LinearizedElasticResponse(epsTotal, Eyoung, nu);
-    fER.SetEngineeringData(Eyoung, nu);
+    
+#endif
     
 }
 
-void TPZPorousElasticCriterion::ApplyStrain(const TPZTensor<REAL> &epsTotal)
+void TPZPorousElasticCriterion::ApplyStrain(const TPZTensor<REAL> &eps)
 {
     
     std::cout<< " \n this method is not implemented in TPZElasticCriteria. ";
@@ -79,13 +91,24 @@ void TPZPorousElasticCriterion::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 
 void TPZPorousElasticCriterion::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsilon)
 {
+    
+#ifdef LE_Q
+    
+    fER.ComputeStrain(sigma, epsilon);
+    fN.m_eps_t = epsilon;
+    
+    /// Update the linear elastic response
+    fER = fPER.EvaluateElasticResponse(epsilon);
+    
+#else
+    
     fPER.ComputeStrain(sigma, epsilon);
     fN.m_eps_t = epsilon;
     
     /// Update the linear elastic response
-    STATE Eyoung, nu;
-    fPER.LinearizedElasticResponse(epsilon, Eyoung, nu);
-    fER.SetEngineeringData(Eyoung, nu);
+    fER = fPER.EvaluateElasticResponse(epsilon);
+    
+#endif
 }
 
 

@@ -703,34 +703,8 @@ void TPZPlasticStepPV<YC_t, ER_t>::SetElasticResponse(TPZElasticResponse &ER)
     fYC.SetElasticResponse(ER);
 }
 
+/// Linear elastic response
 template class TPZPlasticStepPV<TPZSandlerExtended, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCCamClayPV, TPZElasticResponse>;
 template class TPZPlasticStepPV<TPZYCDruckerPragerPV, TPZElasticResponse>;
-
-/*
- // Correcao do giro rigido
- for (int i = 0; i < 2; i++) {
- for (int j = i+1; j<3 ; j++) {
- deigeneps = DecompEps.fEigenvalues[i]  - DecompEps.fEigenvalues[j];
- deigensig = sigprvec[i] - sigprvec[j];
- TPZFNMatrix<9,REAL> tempMat(3,1,0.);
- depsMat.Multiply(epsegveFromProj[i], tempMat);
- REAL deij = InnerVecOfMat(tempMat,epsegveFromProj[j]);
- REAL factor = 0.;
- if (!IsZero(deigeneps)) {
- factor = deigensig * deij / deigeneps;
- }
- else {
- factor = fER.G() * ( GradSigma(i,i) - GradSigma(i,j) - GradSigma(j,i) + GradSigma(j,j) ) * deij;
- }
- std::cout << "factor = " << factor << std::endl;
- std::cout << "G = " << fER.G() << std::endl;
- GradSigma.Print("GradSigma");
- tempMat.Redim(3, 3);
- tempMat = ProdT(epsegveFromProj[i],epsegveFromProj[j]) + ProdT(epsegveFromProj[j],epsegveFromProj[i]);
- factorMat += tempMat * factor;
- 
- }
- }
- */

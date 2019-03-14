@@ -23,6 +23,7 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic() : TPZMatWithMem<TMEM>(), m_fo
     m_force[1] = -9.8; // proper gravity acceleration in m/s^2
     m_PostProcessDirection.Resize(3,0);
     m_PostProcessDirection[0] = 1.;
+    m_use_non_linear_elasticity_Q = false;
     
 #ifdef LOG4CXX
     if(elastoplasticLogger->isDebugEnabled())
@@ -42,7 +43,7 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(i
     m_force[1] = -9.8; // proper gravity acceleration in m/s^2 -> 1=y 0=x 2=z
     m_PostProcessDirection.Resize(3,0);
     m_PostProcessDirection[0] = 1.;
-    
+    m_use_non_linear_elasticity_Q = false;
     TPZPlasticState<STATE> def;
     
     
@@ -60,7 +61,7 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(i
 template <class T, class TMEM>
 TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(const TPZMatElastoPlastic &other) : TPZMatWithMem<TMEM>(other),
 m_force(other.m_force), m_rho_bulk(other.m_rho_bulk), m_PostProcessDirection(other.m_PostProcessDirection),
-m_plasticity_model(other.m_plasticity_model), m_tol(other.m_tol)
+m_plasticity_model(other.m_plasticity_model), m_tol(other.m_tol), m_PER(other.m_PER)
 {
 #ifdef LOG4CXX
     if(elastoplasticLogger->isDebugEnabled())
@@ -70,6 +71,7 @@ m_plasticity_model(other.m_plasticity_model), m_tol(other.m_tol)
         LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
     }
 #endif
+    m_use_non_linear_elasticity_Q = other.m_use_non_linear_elasticity_Q;
 }
 
 
@@ -113,6 +115,27 @@ void TPZMatElastoPlastic<T,TMEM>::SetBulkDensity(REAL & RhoB)
 }
 
 template <class T, class TMEM>
+void TPZMatElastoPlastic<T,TMEM>::SetPorousElasticity(TPZPorousElasticResponse & PER){
+    m_PER = PER;
+    m_use_non_linear_elasticity_Q = true;
+}
+
+template <class T, class TMEM>
+TPZPorousElasticResponse & TPZMatElastoPlastic<T,TMEM>::GetPorousElasticity(TPZPorousElasticResponse & PER){
+    return PER;
+}
+
+template <class T, class TMEM>
+void TPZMatElastoPlastic<T,TMEM>::SetPlasticModel(T & plasticity_model){
+    m_plasticity_model = plasticity_model;
+}
+
+template <class T, class TMEM>
+T & TPZMatElastoPlastic<T,TMEM>::GetPlasticModel(){
+    return m_plasticity_model;
+}
+
+template <class T, class TMEM>
 TPZMatElastoPlastic<T,TMEM>::~TPZMatElastoPlastic()
 {
     
@@ -127,8 +150,10 @@ void TPZMatElastoPlastic<T,TMEM>::Print(std::ostream &out, const int memory)
     TPZMatWithMem<TMEM>::PrintMem(out, memory);
     out << "\n Localy defined members:";
     out << "\n Body Forces: " << m_force;
+    out << "\n Bulk density = " << m_rho_bulk;
     out << "\n Post process direction: " << m_PostProcessDirection;
     out << "\n Tolerance for internal post processing iterations: " << m_tol;
+    out << "\n Directive for the use of nonlinear elasticity: " << m_use_non_linear_elasticity_Q;
     out << "\n Internal plasticity <T> member:\n";
     m_plasticity_model.Print(out);
 }
@@ -139,11 +164,12 @@ void TPZMatElastoPlastic<T,TMEM>::Print(std::ostream &out)
     out << __PRETTY_FUNCTION__ << std::endl;
     out << this->Name();
     TPZMatWithMem<TMEM>::Print(out);
-    out << "\nBody Forces: " << m_force;
-    out << "\nm_rho_bulk = " << m_rho_bulk;
-    out << "\nPost process direction: " << m_PostProcessDirection;
-    out << "\nTolerance for internal post processing iterations: " << m_tol;
-    out << "\nInternal plasticity <T> member:\n";
+    out << "\n Body Forces: " << m_force;
+    out << "\n Bulk density = " << m_rho_bulk;
+    out << "\n Post process direction: " << m_PostProcessDirection;
+    out << "\n Tolerance for internal post processing iterations: " << m_tol;
+    out << "\n Directive for the use of nonlinear elasticity: " << m_use_non_linear_elasticity_Q;
+    out << "\n Internal plasticity <T> member:\n";
     m_plasticity_model.Print(out);
 }
 
@@ -981,20 +1007,39 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     int intPt = data.intGlobPtIndex;
     T plasticloc(m_plasticity_model);
     
+    /// Access to memory data
     plasticloc.SetState(this->MemItem(intPt).m_elastoplastic_state);
+    TPZTensor<REAL> eps_t, sigma(this->MemItem(intPt).m_sigma);
+    eps_t.CopyFrom(DeltaStrain);
+    eps_t.Add(plasticloc.GetState().m_eps_t, 1.);
+    
+    if (m_use_non_linear_elasticity_Q) {
+        TPZTensor<REAL> last_eps_p = plasticloc.GetState().m_eps_p;
+        TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+        this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
+    }
+    plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
     
     UpdateMaterialCoeficients(data.x,plasticloc);
-    TPZTensor<REAL> EpsT, Sigma(this->MemItem(intPt).m_sigma);
+    plasticloc.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
     
-    EpsT.CopyFrom(DeltaStrain);
-    EpsT.Add(plasticloc.GetState().m_eps_t, 1.);
+    if (m_use_non_linear_elasticity_Q) {
+        for (int i = 0; i < 0; i++) {
+            TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
+            TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+            this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
+            plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
+            UpdateMaterialCoeficients(data.x,plasticloc);
+            plasticloc.ApplyStrainComputeSigma(eps_t, sigma, &Dep);
+        }
+    }
     
-    plasticloc.ApplyStrainComputeSigma(EpsT, Sigma, &Dep);
-    Sigma.CopyTo(Stress);
+    
+    sigma.CopyTo(Stress);
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
-        this->MemItem(intPt).m_sigma        = Sigma;
+        this->MemItem(intPt).m_sigma        = sigma;
         this->MemItem(intPt).m_elastoplastic_state = plasticloc.GetState();
         this->MemItem(intPt).m_plastic_steps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();
@@ -1021,20 +1066,37 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
     int intPt = data.intGlobPtIndex;
     T plasticloc(m_plasticity_model);
     
+    /// Access to memory data
     plasticloc.SetState(this->MemItem(intPt).m_elastoplastic_state);
+    TPZTensor<REAL> eps_t, sigma(this->MemItem(intPt).m_sigma);
+    eps_t.CopyFrom(Strain);
+    eps_t.Add(plasticloc.GetState().m_eps_t, 1.);
+    
+    if (m_use_non_linear_elasticity_Q) {
+        TPZTensor<REAL> & last_eps_p = this->MemItem(data.intGlobPtIndex).m_elastoplastic_state.m_eps_p;
+        TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+        this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
+    }
+    plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
     
     UpdateMaterialCoeficients(data.x,plasticloc);
-    TPZTensor<REAL> EpsT, Sigma(this->MemItem(intPt).m_sigma);
+    plasticloc.ApplyStrainComputeSigma(eps_t, sigma);
+    sigma.CopyTo(Stress);
     
-    EpsT.CopyFrom(Strain);
-    EpsT.Add(plasticloc.GetState().m_eps_t, 1.);
-    
-    plasticloc.ApplyStrainComputeSigma(EpsT, Sigma);
-    Sigma.CopyTo(Stress);
+    if (m_use_non_linear_elasticity_Q) {
+        for (int i = 0; i < 0; i++) {
+            TPZTensor<REAL> last_eps_p = plasticloc.GetState().m_eps_p;
+            TPZTensor<REAL> eps_e = eps_t - last_eps_p;
+            this->MemItem(intPt).m_ER = m_PER.EvaluateElasticResponse(eps_e);
+            plasticloc.SetElasticResponse(this->MemItem(intPt).m_ER);
+            UpdateMaterialCoeficients(data.x,plasticloc);
+            plasticloc.ApplyStrainComputeSigma(eps_t, sigma);
+        }
+    }
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
-        this->MemItem(intPt).m_sigma        = Sigma;
+        this->MemItem(intPt).m_sigma        = sigma;
         this->MemItem(intPt).m_elastoplastic_state = plasticloc.GetState();
         this->MemItem(intPt).m_plastic_steps = plasticloc.IntegrationSteps();
         int solsize = data.sol[0].size();

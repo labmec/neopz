@@ -10,6 +10,7 @@
 #include "TPZMatWithMem.h"
 #include "TPZElastoPlasticMem.h"
 #include "pzporoelastoplasticmem.h"
+#include "TPZPorousElasticResponse.h"
 
 /**
 * Implements an elastoplastic material and uses the memory feature to store the hardening variables and strain state.
@@ -210,12 +211,32 @@ public:
     /**
     * Sets the tolerance value for post-processing purposes
     */
-    void SetTol(const REAL & tol);
+    virtual void SetTol(const REAL & tol);
 
     /**
     * Sets the SetBulkDensity of the material
     */
-    void SetBulkDensity(const REAL & bulk);
+    virtual void SetBulkDensity(const REAL & bulk);
+    
+    /**
+     * Sets the nonlinear elastic response (Porous Elastic Response PER) as predictor during elastoplastic process
+     */
+    virtual void SetPorousElasticity(TPZPorousElasticResponse & PER);
+    
+    /**
+     * Sets the plasticity model
+     */
+    void SetPlasticModel(T & plasticity_model);
+    
+    /**
+     * Gets the plasticity model
+     */
+    virtual T & GetPlasticModel();
+    
+    /**
+     * Gets the nonlinear elastic response (Porous Elastic Response PER) as predictor during elastoplastic process
+     */
+    virtual TPZPorousElasticResponse & GetPorousElasticity(TPZPorousElasticResponse & PER);
 
     /**
     * Defining what parameters the material needs. In particular this material needs the
@@ -274,13 +295,22 @@ protected:
     * this instantiation avoids several instantiations
     * for each use of this object
     */
-
     T m_plasticity_model;
 
     /**
     * Tolerance for post-processing purposes
     */
     REAL m_tol;
+
+    /**
+     * Directive that stands for the use of nonlinear elasticity
+     */
+    bool m_use_non_linear_elasticity_Q;
+    
+    /**
+     * Nonlinear elastic response (Porous Elastic Response PER)
+     */
+    TPZPorousElasticResponse m_PER;
 	
 };
 

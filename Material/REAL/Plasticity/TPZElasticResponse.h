@@ -21,8 +21,10 @@ class TPZElasticResponse : public TPZSavable {
     /// Second Lamé parameter
     REAL m_mu;
     
-public:
+    /// Residual strain at zero stress state.
+    TPZTensor<REAL> m_eps_star;
     
+public:
     
     /**
      A unique class identifier
@@ -85,10 +87,19 @@ public:
      */
     template<class T>
     void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {
-        T trace = epsilon.I1();
+
+        TPZTensor<T> delta_epsilon;
+        delta_epsilon.XX() = -m_eps_star.XX();
+        delta_epsilon.XY() = -m_eps_star.XY();
+        delta_epsilon.XZ() = -m_eps_star.XZ();
+        delta_epsilon.YY() = -m_eps_star.YY();
+        delta_epsilon.YZ() = -m_eps_star.YZ();
+        delta_epsilon.ZZ() = -m_eps_star.ZZ();
+        delta_epsilon += epsilon; // Substract residual strain
+        T trace = delta_epsilon.I1();
         sigma.Identity();
         sigma.Multiply(trace, m_lambda);
-        sigma.Add(epsilon, 2. * m_mu);
+        sigma.Add(delta_epsilon, 2. * m_mu);
     }
     
     /**
@@ -104,6 +115,7 @@ public:
         epsilon.Identity();
         epsilon.Multiply(trace, fac);
         epsilon.Add(sigma, 1. / (2. * m_mu));
+        epsilon += m_eps_star;// Adding residual strain
     }
     
     
@@ -173,6 +185,22 @@ public:
      @return The Poisson ratio
      */
     REAL Poisson() const;
+    
+    /**
+     Set the residual strain
+     
+     @param lambda First Lamé parameter
+     @param mu Second Lamé parameter (Shear modulus)
+     */
+    void SetResidualStrainData(TPZTensor<REAL> & eps_res);
+    
+    /**
+     Get the residual strain
+     
+     @param lambda First Lamé parameter
+     @param mu Second Lamé parameter (Shear modulus)
+     */
+    TPZTensor<REAL> & ResidualStrainData();
 };
 
 #endif /* TPZElasticResponse_h */

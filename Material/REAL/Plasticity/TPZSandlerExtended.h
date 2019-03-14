@@ -318,6 +318,11 @@ public:
     STATE A() {
         return fA;
     }
+    
+    void SetA(STATE A)
+    {
+        fA = A;
+    }
 
     STATE B() {
         return fB;

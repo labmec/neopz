@@ -12,16 +12,19 @@ int TPZElasticResponse::ClassId() const{
 }
 
 TPZElasticResponse::TPZElasticResponse() : m_lambda(0.), m_mu(0.) {
+    m_eps_star.Zero();
 }
 
-TPZElasticResponse::TPZElasticResponse(const TPZElasticResponse & source) {
-    m_lambda = source.m_lambda;
-    m_mu = source.m_mu;
+TPZElasticResponse::TPZElasticResponse(const TPZElasticResponse & other) {
+    m_lambda        = other.m_lambda;
+    m_mu            = other.m_mu;
+    m_eps_star      = other.m_eps_star;
 }
 
-TPZElasticResponse & TPZElasticResponse::operator=(const TPZElasticResponse & source) {
-    m_lambda = source.m_lambda;
-    m_mu = source.m_mu;
+TPZElasticResponse & TPZElasticResponse::operator=(const TPZElasticResponse & other) {
+    m_lambda        = other.m_lambda;
+    m_mu            = other.m_mu;
+    m_eps_star      = other.m_eps_star;
     return *this;
 }
 
@@ -29,11 +32,13 @@ TPZElasticResponse & TPZElasticResponse::operator=(const TPZElasticResponse & so
 void TPZElasticResponse::Write(TPZStream& buf, int withclassid) const { //ok
     buf.Write(&m_lambda);
     buf.Write(&m_mu);
+    m_eps_star.Write(buf,withclassid);
 }
 
 void TPZElasticResponse::Read(TPZStream& buf, void* context) { //ok
     buf.Read(&m_lambda);
     buf.Read(&m_mu);
+    m_eps_star.Read(buf, context);
 }
 
 
@@ -104,4 +109,12 @@ REAL TPZElasticResponse::E() const {
 REAL TPZElasticResponse::Poisson() const {
     REAL poisson = m_lambda / (2. * (m_lambda + m_mu));
     return poisson;
+}
+
+void TPZElasticResponse::SetResidualStrainData(TPZTensor<REAL> & eps_star){
+    m_eps_star = eps_star;
+}
+
+TPZTensor<REAL> & TPZElasticResponse::ResidualStrainData(){
+    return m_eps_star;
 }

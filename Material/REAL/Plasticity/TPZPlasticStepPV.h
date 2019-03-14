@@ -15,6 +15,7 @@
 #include "pzlog.h"
 #include "pzstepsolver.h"
 #include "TPZElasticResponse.h"
+#include "TPZPorousElasticResponse.h"
 
 #include <set>
 #include <ostream>
