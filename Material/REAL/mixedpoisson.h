@@ -56,6 +56,8 @@ protected:
     /** @brief Coeficient that multiplies the Stabilization term fdelta1*/
     REAL fh2;
     bool fUseHdois;
+    /** @brief post-processing procedure for error estimation as Ainsworth*/
+    
     
     /** @brief Pointer to forcing function, it is the Permeability and its inverse */
     TPZAutoPointer<TPZFunction<STATE> > fPermeabilityFunction;
@@ -189,6 +191,7 @@ public:
     
     public:
 virtual int ClassId() const;
+
 };
 
 #endif

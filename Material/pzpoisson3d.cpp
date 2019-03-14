@@ -38,6 +38,7 @@ TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
     fShapeHdiv=false;
+    fNeumann=false;
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d():TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
@@ -51,6 +52,7 @@ TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
 	this->SetNonSymmetric();
 	this->SetNoPenalty();
     fShapeHdiv=false;
+    fNeumann=false;
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
@@ -111,6 +113,13 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     if(data.numberdualfunctions)
     {
         ContributeHDiv(data , weight , ek, ef);
+        
+        return;
+    }
+    
+    if(fNeumann){
+        
+        LocalNeumanContribute(data , weight , ek, ef);
         
         return;
     }
@@ -264,6 +273,77 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	}
     
 }
+
+//
+void TPZMatPoisson3d::LocalNeumanContribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+{
+    /** monta a matriz
+     |Sk Ck^T |  = |bk|
+     |Ck  0   |    |uk|
+     
+     **/
+    int newRows=ek.Rows()+1;
+    int newCols=ek.Cols()+1;
+    ek.Resize( newRows, newCols );
+    ef.Resize(newRows,1);
+   
+    STATE fXfLoc = fXf;
+    if(fForcingFunction) {                           // phi(in, 0) = phi_in
+        TPZManVector<STATE> res(1);
+        fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+        fXfLoc = res[0];
+    }
+    
+    
+    TPZFMatrix<REAL>  &phi = data.phi;
+    TPZFMatrix<REAL> &dphi = data.dphix;
+    TPZVec<REAL>  &x = data.x;
+    TPZFMatrix<REAL> &axes = data.axes;
+    TPZFMatrix<REAL> &jacinv = data.jacinv;
+    TPZVec<STATE> &sol=data.sol[0];
+    TPZGradSolVec &dsol=data.dsol;
+
+    
+    int phr = phi.Rows();
+    int nlinhaek=ek.Rows();
+    int ncolek=ek.Cols();
+    
+    
+    int i,j;
+    REAL kreal = 0.;
+#ifdef STATE_COMPLEX
+    kreal = fK.real();
+#else
+    kreal = fK;
+#endif
+    REAL ratiok = 1./kreal;
+    //--
+    for( int in = 0; in < phr; in++ ){
+        for( int jn = 0; jn < phr; jn++ ) {
+            for(int kd=0; kd<fDim; kd++) {
+            ek(in,jn) += (STATE)weight * (fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ));//gradphi_i.gradphi_j
+        }
+           
+        }
+        ek(in,ncolek-1) += (STATE)weight * phi(in);
+        ek(nlinhaek-1,in) += (STATE)weight * phi(in);
+        
+    }
+    
+    for( int in = 0; in < phr; in++ ) {
+        for( int jn = 0; jn < phr; jn++ ) {
+        for(int kd=0; kd<fDim; kd++) {
+            ef(in,0) += (STATE)weight * ( dphi(kd,in) * dsol[0](kd,jn) );
+        }
+        
+    }
+    }
+ ef(phr,0)+=(STATE)weight * (sol[0]);
+    
+}
+
+
+///
 
 void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {

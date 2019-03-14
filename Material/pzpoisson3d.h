@@ -59,6 +59,7 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	EPenaltyType fPenaltyType;
     
     bool fShapeHdiv;
+   
 	
 public:
 	
@@ -79,6 +80,8 @@ public:
 	
 	/** @brief Using in InterfaceErrors */
 	static STATE gAlfa;
+    /** to solve neumann problem for error estimation*/
+     bool fNeumann;
 	
 	TPZMatPoisson3d(int nummat, int dim);
     
@@ -103,6 +106,10 @@ public:
 	}
     void SetTrueFShapeHdiv(){
         fShapeHdiv=true;
+    }
+    
+    void SetNeumannProblem(){
+        fNeumann=true;
     }
     
 	
@@ -201,6 +208,7 @@ public:
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+   virtual void LocalNeumanContribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
 #ifdef _AUTODIFF
 	/** @brief Computes contribution to the energy at an integration point */

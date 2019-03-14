@@ -448,7 +448,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin};
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin, ESinSinDirNonHom};
     
     int fDimension = 2;
     
@@ -467,7 +467,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     }
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
-    
+
 
     template<class TVar>
     void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;

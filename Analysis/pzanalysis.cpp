@@ -763,8 +763,12 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
                 elvalues.Resize(nelgeom,nerrors);
                 for(int ier = 0; ier < nerrors; ier++)
                 {
-                    elvalues(el->Reference()->Index(),ier) = errors[ier];
+                    if(el->Reference()){
+                       elvalues(el->Reference()->Index(),ier) = errors[ier];
+                    }
+                    
                     values[ier] += errors[ier] * errors[ier];
+                    
                 }
             }
         }

@@ -982,9 +982,6 @@ template
 void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
 
 
-
-
-
 template<class TVar>
 void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 {
@@ -1029,7 +1026,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             for(int i=0; i<fDimension; i++) disp[0] *= cos((TVar)M_PI*xloc[i]/2.);
         }
             break;
-        case EArcTan:
+        case EArcTan://(1+0.3sin(10Pi x))*(1+0.5cos(10Pi r)*arctan(100*(r-0.5))
         {
             TVar atanco = (r-(TVar)0.5)*100.;
             TVar freq = 10.;
@@ -1037,7 +1034,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             disp[0] = atan(atanco)*mult;
         }
             break;
-        case EArcTanSingular:
+        case EArcTanSingular://5*(0.5*pi + arctang(20(0.25 - r^2))))
         {
             REAL B = 5.;
             if(fDimension==1)
@@ -1055,6 +1052,15 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             TVar temp = 0.5*M_PI + atan(arc);
             disp[0] = B*temp;
         }
+            break;
+            
+        case ESinSinDirNonHom: //sin(pi x)sin(pi y)+1/(x+y+1)
+        {
+            
+            disp[0]=(sin((TVar)M_PI*xloc[0]))*sin((TVar)M_PI*xloc[1])+(TVar)(1.)/(xloc[0]+xloc[1]+(TVar)(1.));
+            
+        }
+            
             break;
             
         default:
@@ -1135,6 +1141,15 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             disp[0] = B*temp;
         }
             break;
+        case ESinSinDirNonHom: //sin(pi x)sin(pi y)+1/(x+y+1)
+        {
+            
+            disp[0]=(FADsin((TVar)M_PI*xloc[0]))*FADsin((TVar)M_PI*xloc[1])+(TVar)(1.)/(xloc[0]+xloc[1]+(TVar)(1.));
+            
+        }
+            
+            break;
+            
         default:
             disp[0] = xloc[0]*0.;
             break;

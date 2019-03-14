@@ -107,6 +107,10 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     }
 #endif
     
+    
+    
+    
+    
     STATE force = ff;
     if(fForcingFunction) {
 		TPZManVector<STATE> res(1);
