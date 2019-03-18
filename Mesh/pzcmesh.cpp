@@ -1095,6 +1095,7 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &el
 	elgraphindex[0] = 0;
 	elgraph.Resize(0);
 	int64_t curel=0;
+    int64_t nindep = this->NIndependentConnects();
 	for(i=0; i<nelem; i++) {
 		TPZCompEl *el = fElementVec[i];
 		if(!el){
@@ -1110,10 +1111,12 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &el
 			int ic = connectstack[in];
 			TPZConnect &c = fConnectVec[ic];
 			if(c.HasDependency() || c.IsCondensed()) continue;
-			//      if(fBlock.Size(c.SequenceNumber()))
-			//      {
+#ifdef  PZDEBUG
+            if (c.SequenceNumber() >= nindep) {
+                DebugStop();
+            }
+#endif
 			elgraph.Push(c.SequenceNumber());
-			//      }
 		}
 		elgraphindex[curel+1]=elgraph.NElements();
 		curel++;
