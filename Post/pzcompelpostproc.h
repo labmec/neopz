@@ -344,14 +344,14 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         dataRef.intLocPtIndex = int_ind;
         this->ComputeRequiredData(data,    intpoint);
         
-        if(pIntSpRef)
-        {
-            if(!dataequal(data,dataRef)){
-                PZError << "Error at " << __PRETTY_FUNCTION__ << " this and Referred CompEl TPZMaterialData(s) do not match\n";
-                ef.Reset();
-                return;
-            }
-        }
+//        if(pIntSpRef)
+//        {
+//            if(!dataequal(data,dataRef)){
+//                PZError << "Error at " << __PRETTY_FUNCTION__ << " this and Referred CompEl TPZMaterialData(s) do not match\n";
+//                ef.Reset();
+//                return;
+//            }
+//        }
         data.sol[0].Resize(stackedVarSize,0.);
         int64_t index = 0;
         // stacking the solutions to post process.
