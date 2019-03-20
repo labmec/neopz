@@ -51,6 +51,8 @@ public:
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
+    /// values of the divergence of the shapefunctions (only applicable to H(div) spaces
+    TPZFNMatrix<220, REAL> divphi;
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;
     /// value of the jacobian at the integration point
@@ -69,6 +71,8 @@ public:
     TPZSolVec sol;
     /// vector of the derivatives of the solution at the integration point
     TPZGradSolVec dsol;
+    /// vector of the divergence of the solution at the integration point (only of hdiv spaces)
+    TPZSolVec divsol;
     /// measure of the size of the element
     REAL HSize;
     /// determinant of the jacobian
@@ -143,9 +147,13 @@ public:
     /** @brief Computes the flux values based on a Material of Hdiv approx space */
     void ComputeFluxValues(TPZFMatrix<REAL> & fluxes);
     
-    public:
-virtual int ClassId() const;
-
+    /// Compute the divergence of the shape functions
+    void ComputeFunctionDivergence();
+    
+public:
+    virtual int ClassId() const;
+    
 };
 
 #endif
+

@@ -50,6 +50,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
+    this->divphi = cp.divphi;
     this->axes = cp.axes;
     this->jacobian = cp.jacobian;
     this->jacinv = cp.jacinv;
@@ -58,6 +59,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->p = cp.p;
     this->sol = cp.sol;
     this->dsol = cp.dsol;
+    this->divsol = cp.divsol;
     this->HSize = cp.HSize;
     this->detjac = cp.detjac;
     this->intLocPtIndex = cp.intLocPtIndex;
@@ -110,6 +112,12 @@ bool TPZMaterialData::Compare(TPZSavable *copy, bool override)
         LOGPZ_DEBUG(loggerCheck,"dphix different")
     }
     result = result && locres;
+    locres = divphi.Compare(&comp->divphi,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"dphix different")
+    }
+    result = result && locres;
     locres = axes.Compare(&comp->axes,override);
     if(!locres)
     {
@@ -148,6 +156,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     phi.Print("phi",out);
     dphi.Print("dphi",out);
     dphix.Print("dphix",out);
+    divphi.Print("div phi",out);
     axes.Print("axes",out);
     jacobian.Print("jacobian",out);
     jacinv.Print("jacinv",out);
@@ -160,7 +169,7 @@ void TPZMaterialData::Print(std::ostream &out) const
         dsol[is].Print("dsol",out);
         
     }
-    
+    out << "divsol " << divsol << std::endl;
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
@@ -189,7 +198,8 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
         sout << "dsol" << is << " = ";
         dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
     }
-    
+    out << "divsol = { " << divsol << "};" << std::endl;
+
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
@@ -207,6 +217,7 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
     phi.Write(buf,0);
     dphi.Write(buf,0);
     dphix.Write(buf,0);
+    divphi.Write(buf, 0);
     axes.Write(buf,0);
     jacobian.Write(buf,0);
     jacinv.Write(buf,0);
@@ -224,7 +235,12 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
     for (int is=0; is<nsol; is++) {
         dsol[is].Write(buf,0);
     }
-    
+    nsol = divsol.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        buf.Write(divsol[is].begin(),divsol[is].size());
+    }
+
     buf.Write(&HSize,1);
     buf.Write(&detjac,1);
     buf.Write(XCenter.begin(),XCenter.size());
@@ -243,6 +259,7 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     phi.Read(buf,0);
     dphi.Read(buf,0);
     dphix.Read(buf,0);
+    divphi.Read(buf, 0);
     axes.Read(buf,0);
     jacobian.Read(buf,0);
     jacinv.Read(buf,0);
@@ -258,7 +275,11 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     for (int is = 0; is<nsol; is++) {
         dsol[is].Read(buf,0);
     }
-    
+    buf.Read(&nsol,1);
+    for (int is=0; is<nsol; is++) {
+        buf.Read(divsol[is]);
+    }
+
     buf.Read(&HSize,1);
     buf.Read(&detjac,1);
     buf.Read(XCenter);
@@ -294,5 +315,13 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
     }
     
 }
+
+/// Compute the divergence of the shape functions
+void TPZMaterialData::ComputeFunctionDivergence()
+{
+    DebugStop();
+}
+
+
 
 template class TPZRestoreClass<TPZMaterialData>;
