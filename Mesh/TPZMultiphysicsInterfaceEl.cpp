@@ -484,7 +484,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     
 }//CalcStiff
 
-const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule()
+const TPZIntPoints & TPZMultiphysicsInterfaceElement::GetIntegrationRule() const
 {
     if (!fIntegrationRule) {
         DebugStop();

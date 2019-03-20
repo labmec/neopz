@@ -156,7 +156,7 @@ public:
     /**
      * Return max integration rule of this interface element
      */
-    const TPZIntPoints & GetIntegrationRule();
+    const TPZIntPoints & GetIntegrationRule() const override;
     
     virtual int ComputeIntegrationOrder() const override;
     
