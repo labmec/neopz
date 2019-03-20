@@ -141,96 +141,6 @@ void TPZDualPoisson::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<S
  * @{
  */
 
-// Divergence on master element
-
-void TPZDualPoisson::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
-{
-    int ub = 0;
-    int dim = this->Dimension();
-    // Getting test and basis functions
-    TPZFMatrix<REAL> phiuH1         = datavec[ub].phi;   // For H1  test functions Q
-    TPZFMatrix<REAL> dphiuH1       = datavec[ub].dphi; // Derivative For H1  test functions
-    TPZFMatrix<REAL> dphiuH1axes   = datavec[ub].dphix; // Derivative For H1  test functions
-    TPZFNMatrix<9,STATE> gradu = datavec[ub].dsol[0];
-    TPZFNMatrix<9,STATE> graduMaster;
-    gradu.Transpose();
-    
-    TPZFNMatrix<660> GradphiuH1;
-    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ub].axes);
-    
-    int nphiuHdiv = datavec[ub].fVecShapeIndex.NElements();
-    
-    DivergenceofPhi.Resize(nphiuHdiv,1);
-    
-    REAL JacobianDet = datavec[ub].detjac;
-    
-    TPZFMatrix<REAL> Qaxes = datavec[ub].axes;
-    TPZFMatrix<REAL> QaxesT;
-    TPZFMatrix<REAL> Jacobian = datavec[ub].jacobian;
-    TPZFMatrix<REAL> JacobianInverse = datavec[ub].jacinv;
-    
-    TPZFMatrix<REAL> GradOfX;
-    TPZFMatrix<REAL> GradOfXInverse;
-    TPZFMatrix<REAL> VectorOnMaster;
-    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
-    Qaxes.Transpose(&QaxesT);
-    QaxesT.Multiply(Jacobian, GradOfX);
-    JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-    TPZFMatrix<STATE> GradOfXInverseSTATE(GradOfXInverse.Rows(), GradOfXInverse.Cols());
-    for (unsigned int i = 0; i < GradOfXInverse.Rows(); ++i) {
-        for (unsigned int j = 0; j < GradOfXInverse.Cols(); ++j) {
-            GradOfXInverseSTATE(i,j) = GradOfXInverse(i,j);
-        }
-    }
-    
-    int ivectorindex = 0;
-    int ishapeindex = 0;
-    
-    if (HDivPiola == 1)
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ub].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ub].fVecShapeIndex[iq].second;
-            
-            for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = datavec[ub].fNormalVec(k,ivectorindex);
-            }
-            
-            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-            VectorOnMaster *= JacobianDet;
-            
-            /* Contravariant Piola mapping preserves the divergence */
-            for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
-            }
-        }
-        
-        GradOfXInverseSTATE.Multiply(gradu, graduMaster);
-        graduMaster *= JacobianDet;
-        for (int k = 0; k < dim; k++) {
-            DivergenceofU += graduMaster(k,k);
-        }
-        
-    }
-    else
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ub].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ub].fVecShapeIndex[iq].second;
-            
-            /* Computing the divergence for constant jacobian elements */
-            for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  datavec[ub].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
-            }
-        }
-    }
-    
-    return;
-    
-}
-
 /** @brief Volumetric contribute with jacobian matrix */
 void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
     
@@ -246,7 +156,6 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     TPZFNMatrix<40,STATE> div_on_master = datavec[ub].divphi;
     STATE divu = datavec[ub].divsol[0][0];
     STATE divflux;
-//    this->ComputeDivergenceOnMaster(datavec, div_on_master, divflux);
     REAL jac_det = datavec[ub].detjac;
     
     int nphiu       = datavec[ub].fVecShapeIndex.NElements();
@@ -259,7 +168,6 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
     
-//    STATE divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
     TPZFNMatrix<3,STATE> phi_u_i(3,1), phi_u_j(3,1);
     
     int s_i, s_j;

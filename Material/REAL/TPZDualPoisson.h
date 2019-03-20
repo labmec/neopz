@@ -118,9 +118,6 @@ public:
      * @{
      */
     
-    /** Computes the divergence over the parametric space */
-    void ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU);
-    
     /** @brief Volumetric contribute without jacobian matrix */
     void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
     
