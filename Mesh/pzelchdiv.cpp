@@ -1051,7 +1051,7 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
     const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
-    const int numdof = this->Material()->NStateVariables();
+    const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
@@ -1065,9 +1065,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     
     for (int64_t is=0; is<numbersol; is++)
     {
-        data.sol[is].Resize(dim*numdof);//2 components to the flow
+        data.sol[is].Resize(dim*nstate);//2 components to the flow
         data.sol[is].Fill(0);
-        data.dsol[is].Redim(dim*numdof, dim);
+        data.dsol[is].Redim(dim*nstate, dim);
         data.dsol[is].Zero();
     }
     
@@ -1083,7 +1083,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 		int dfvar = block.Size(dfseq);
 		int64_t pos = block.Position(dfseq);
 		
-		for(int jn=0; jn<dfvar/numdof; jn++)
+		for(int jn=0; jn<dfvar/nstate; jn++)
         {
 			ivec=data.fVecShapeIndex[jv].first;
 			ishape=data.fVecShapeIndex[jv].second;
@@ -1171,9 +1171,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             
             for (int64_t is=0; is<numbersol; is++)
             {
-                for(int idf=0; idf<numdof; idf++)
+                for(int idf=0; idf<nstate; idf++)
                 {
-                    STATE meshsol = MeshSol(pos+jn*numdof+idf,is);
+                    STATE meshsol = MeshSol(pos+jn*nstate+idf,is);
                     REAL phival = data.phi(ishape,0);
                     TPZManVector<REAL,3> normal(3);
                     TPZManVector<STATE,3> solval(3);
@@ -1193,6 +1193,22 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             jv++;
         }
     }
+    
+    data.divsol.Resize(nstate);
+    
+    for (int64_t is = 0; is < numbersol ; is++)
+    {
+        for (int64_t istate = 0; istate < nstate ; istate++)
+        {
+            TPZFNMatrix<10,STATE> Graduaxes = data.dsol[is];
+            STATE divu = 0;
+            for (int i = 0; i < dim; i++) {
+                divu += data.dsol[is](i,i);
+            }
+            data.divsol[istate] = divu;
+        }
+    }
+
 }
 
 template<class TSHAPE>
@@ -1394,47 +1410,15 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
     }
-//    cout << " Normais = " << endl;
-//    int nlin = data.fNormalVec.Rows();
-//    int ncol = data.fNormalVec.Cols();
-//    cout << "{";
-//    for (int j=0; j<ncol; j++) {
-//        cout << "{ ";
-//        for (int i=0; i<nlin; i++) {
-//            cout << data.fNormalVec(i,j);
-//            if (i<nlin-1) {
-//                cout << ",";
-//            }
-//        }
-//        cout << "} ";
-//        if (j<ncol-1) {
-//            cout << ",";
-//        }
-//    }
-//    cout << "};" << endl;
+
+    if (data.fNeedsDivPhi){
+        data.ComputeFunctionDivergence();
+    }//fNeedsDivPhi
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
-//        sout << " Normais = " << endl;
-//        int nlin = data.fNormalVec.Rows();
-//        int ncol = data.fNormalVec.Cols();
-//        sout << "{";
-//        for (int j=0; j<ncol; j++) {
-//            sout << "{ ";
-//            for (int i=0; i<nlin; i++) {
-//                sout << data.fNormalVec(i,j);
-//                if (i<nlin-1) {
-//                    sout << ",";
-//                }
-//            }
-//            sout << "} ";
-//            if (j<ncol-1) {
-//                sout << ",";
-//            }
-//        }
-//        sout << "};" << endl;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif

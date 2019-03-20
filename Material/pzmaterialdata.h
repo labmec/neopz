@@ -39,7 +39,8 @@ public:
     MShapeFunctionType fShapeType;
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
-    bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
+    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false;
+    bool fNeedsNormal = false, fNeedsDivPhi = false;
     /** @} */
     
     /** @name Attributes to be computed in CalcStiff */
@@ -147,7 +148,7 @@ public:
     /** @brief Computes the flux values based on a Material of Hdiv approx space */
     void ComputeFluxValues(TPZFMatrix<REAL> & fluxes);
     
-    /// Compute the divergence of the shape functions
+    /** @brief Computes the flux divergence values based on a Material of Hdiv approx space */
     void ComputeFunctionDivergence();
     
 public:

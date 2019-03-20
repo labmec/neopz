@@ -11,7 +11,7 @@
 #include "pzerror.h"
 #include "TPZInterfaceEl.h"
 #include "pzdiscgal.h"
-
+#include "pzaxestools.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -47,6 +47,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
+    this->fNeedsDivPhi = cp.fNeedsDivPhi;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -84,6 +85,7 @@ void TPZMaterialData::SetAllRequirements(bool set){
     this->fNeedsHSize = set;
     this->fNeedsNeighborCenter = set;
     this->fNeedsNormal = set;
+    this->fNeedsDivPhi = set;
 }
 
 /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
@@ -319,7 +321,76 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
 /// Compute the divergence of the shape functions
 void TPZMaterialData::ComputeFunctionDivergence()
 {
-    DebugStop();
+    int dim = 3;
+    // Getting test and basis functions
+    TPZFMatrix<REAL> phiuH1         = phi;   // For H1  test functions Q
+    TPZFMatrix<REAL> dphiuH1       = dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphiuH1axes   = dphix; // Derivative For H1  test functions
+
+    TPZFNMatrix<660> GradphiuH1;
+    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, axes);
+    
+    int nphiuHdiv = fVecShapeIndex.NElements();
+    divphi.Resize(nphiuHdiv,1);
+    divphi.Zero();
+    REAL JacobianDet = detjac;
+
+    TPZFMatrix<REAL> Qaxes = axes;
+    TPZFMatrix<REAL> QaxesT;
+    TPZFMatrix<REAL> Jacobian = jacobian;
+    TPZFMatrix<REAL> JacobianInverse = jacinv;
+
+    TPZFMatrix<REAL> GradOfX;
+    TPZFMatrix<REAL> GradOfXInverse;
+    TPZFMatrix<REAL> VectorOnMaster;
+    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
+    Qaxes.Transpose(&QaxesT);
+    QaxesT.Multiply(Jacobian, GradOfX);
+    JacobianInverse.Multiply(Qaxes, GradOfXInverse);
+    TPZFMatrix<STATE> GradOfXInverseSTATE(GradOfXInverse.Rows(), GradOfXInverse.Cols());
+    for (unsigned int i = 0; i < GradOfXInverse.Rows(); ++i) {
+        for (unsigned int j = 0; j < GradOfXInverse.Cols(); ++j) {
+            GradOfXInverseSTATE(i,j) = GradOfXInverse(i,j);
+        }
+    }
+
+    int ivectorindex = 0;
+    int ishapeindex = 0;
+
+    if (HDivPiola == 1)
+    {
+        for (int iq = 0; iq < nphiuHdiv; iq++)
+        {
+            ivectorindex = fVecShapeIndex[iq].first;
+            ishapeindex = fVecShapeIndex[iq].second;
+
+            for (int k = 0; k < dim; k++) {
+                VectorOnXYZ(k,0) = fNormalVec(k,ivectorindex);
+            }
+            
+            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
+            VectorOnMaster *= JacobianDet;
+            
+            /* Contravariant Piola mapping preserves the divergence */
+            for (int k = 0; k < dim; k++) {
+                divphi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
+            }
+        }
+
+    }
+    else
+    {
+        for (int iq = 0; iq < nphiuHdiv; iq++)
+        {
+            ivectorindex = fVecShapeIndex[iq].first;
+            ishapeindex = fVecShapeIndex[iq].second;
+
+            /* Computing the divergence for constant jacobian elements */
+            for (int k = 0; k < dim; k++) {
+                divphi(iq,0) +=  fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+            }
+        }
+    }
 }
 
 

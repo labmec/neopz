@@ -53,6 +53,7 @@ void TPZDualPoisson::FillDataRequirements(TPZMaterialData &data)
 {
     data.SetAllRequirements(false);
     data.fNeedsSol = true;
+    data.fNeedsDivPhi = true;
 }
 
 void TPZDualPoisson::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
@@ -68,6 +69,7 @@ void TPZDualPoisson::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
         datavec[idata].SetAllRequirements(false);
         datavec[idata].fNeedsSol = true;
     }
+    datavec[0].fNeedsDivPhi = true; /// Hdvi approximation space
 }
 
 void TPZDualPoisson::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec)
@@ -240,9 +242,11 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     TPZFNMatrix<300,REAL> dphi_us      = datavec[ub].dphix;
     TPZFNMatrix<100,REAL> dphi_ps      = datavec[pb].dphix;
     
-    TPZFNMatrix<40,STATE> div_on_master;
+    
+    TPZFNMatrix<40,STATE> div_on_master = datavec[ub].divphi;
+    STATE divu = datavec[ub].divsol[0][0];
     STATE divflux;
-    this->ComputeDivergenceOnMaster(datavec, div_on_master, divflux);
+//    this->ComputeDivergenceOnMaster(datavec, div_on_master, divflux);
     REAL jac_det = datavec[ub].detjac;
     
     int nphiu       = datavec[ub].fVecShapeIndex.NElements();
@@ -255,7 +259,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     
     TPZFNMatrix<10,STATE> Graduaxes = datavec[ub].dsol[0];
     
-    STATE divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
+//    STATE divu = (Graduaxes(0,0) + Graduaxes(1,1) + Graduaxes(2,2));
     TPZFNMatrix<3,STATE> phi_u_i(3,1), phi_u_j(3,1);
     
     int s_i, s_j;

@@ -195,6 +195,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
     if (data.fNeedsNormal){
         this->ComputeNormal(data);
     }//fNeedsNormal
+    
 }//void
 
 
