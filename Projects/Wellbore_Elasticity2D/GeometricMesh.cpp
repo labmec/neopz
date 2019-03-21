@@ -48,7 +48,7 @@ TPZGeoMesh *CircularGeoMesh (REAL rwb, REAL re, int ncirc, int nrad,
     
     
     // Geometric Progression of the elements
-    REAL q;
+    REAL q = 0.;
     if(nrad >1) {
         q = TPZGenGrid::GeometricProgression(szmin, radiallength, nrad);
     }

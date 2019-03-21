@@ -294,7 +294,7 @@ public:
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 40.0 * frw; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
+        REAL scale = 0.5; //40.0 * frw; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
         
         TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         
@@ -339,7 +339,7 @@ public:
                     
                     REAL r = CenterNorm(i,j);
                     REAL r2 = pow(r, 2);
-                    KCorr(i,j) = pow(e, (-scale * r2));
+                    KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
                 }
                 
                 else {
@@ -359,7 +359,7 @@ public:
         
         // Refinamento de elementos selecionados
         REAL e = M_E; // Numero de Euler
-        REAL scale = 40.0 * frw; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
+        REAL scale = 0.5; //40.0 * frw; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
         // scale simulado: 40* frext, errado corrigir
         
         TPZFMatrix<REAL> CenterNorm(fmatsize, fmatsize, 0.0);
@@ -468,7 +468,7 @@ public:
                 
                 REAL r = CenterNorm(i,j);
                 REAL r2 = pow(r, 2);
-                KCorr(i,j) = pow(e, (-scale * r2));
+                KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
             }
             
 //            std::cout << "Distancia entre elements centroids do elemento " << i << " calculada!"

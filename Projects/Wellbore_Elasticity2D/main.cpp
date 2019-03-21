@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 {
    
     int ncircle = 30;
-    int nradial = 25;
+    int nradial = 25; //25; //NANANAN teste malha progressao
     
     // Define se a sol. analitica sera utilizada ou nao
     // analytic=0 nao usa sol analitica como prestress e BC
@@ -94,10 +94,10 @@ int main(int argc, char *argv[])
     int inclinedwellbore = 0;
     
     // pressao da lama de perfuracao - MPa
-    REAL Pwb = -40.;//-19.5; //-10.52
+    REAL Pwb = -19.5;//-19.5; //-10.52
     
     REAL rw = 0.10795;
-    REAL rext = 3.0; //Inclinado: 2m
+    REAL rext = 2.0; //Inclinado: 2m
     REAL drdcirc = 0.5;
     
     // Define Posicao do Poco
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     bool isStochastic = true;
     REAL cv = 0.1; // variation coefficient of In-situ stresses
     
-    std::ofstream solutionfile("solution_Pw40_vertical.csv");
+    std::ofstream solutionfile("Vertical_Stoch_Pw19_5_2m.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
     int ncases = 10000;
@@ -236,6 +236,8 @@ int main(int argc, char *argv[])
     //Problem3D();
     
     //ApproximationRates();
+    
+    std::cout << "Verifique sempre: q da progressao, scale, e mais importante, se a matrix KCorr calculada se refere a decomposicao que esta sendo lida. Dica: rodar sempre uma vez, decompor no mathematica e rodar novamente" << std::endl;
     
     return 0;
 }
