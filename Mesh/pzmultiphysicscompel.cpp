@@ -376,10 +376,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & v
 	TPZVec<int> nshape(nref);
 	for (int64_t iref = 0; iref<nref; iref++)
 	{
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
+       
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
@@ -523,6 +520,10 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     int numloadcases = 1;
 	for (int64_t iref=0; iref<nref; iref++) {
 		
+        if(fActiveApproxSpace[iref] == 0){
+            continue;
+        }
+        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
             continue;
@@ -583,6 +584,10 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     //nstate=1;
     int numloadcases = 1;
     for (int64_t iref=0; iref<nref; iref++) {
+        
+        if(fActiveApproxSpace[iref] == 0){
+            continue;
+        }
         
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
@@ -933,7 +938,7 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
         if(fActiveApproxSpace[iref] == 0){
             continue;
         }
-            
+        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		if (!msp) {
 			continue;
