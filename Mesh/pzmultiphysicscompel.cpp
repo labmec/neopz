@@ -656,6 +656,11 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
         }
     }
     
+    int n_active_approx_spaces = fActiveApproxSpace.size();
+    if (n_active_approx_spaces == 0) { /// it preserves the integrity for old version of multiphycis codes.
+        fActiveApproxSpace.Resize(nref, 1);
+    }
+    
     for (int64_t iref = 0; iref < nref; iref++) {
         dataVec[iref].fActiveApproxSpace = fActiveApproxSpace[iref];
     }
