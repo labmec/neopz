@@ -376,6 +376,10 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & v
 	TPZVec<int> nshape(nref);
 	for (int64_t iref = 0; iref<nref; iref++)
 	{
+        if(fActiveApproxSpace[iref] == 0){
+            continue;
+        }
+        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
@@ -443,6 +447,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
     
 	for (int64_t iref = 0; iref<nref; iref++)
 	{
+        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
@@ -925,6 +930,10 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 	int64_t ElemVecSize = fElementVec.size();
 	for (int64_t iref = 0; iref < ElemVecSize; iref++)
 	{
+        if(fActiveApproxSpace[iref] == 0){
+            continue;
+        }
+            
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		if (!msp) {
 			continue;
@@ -981,6 +990,10 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
     //ordervec.resize(nref);
     for (int64_t iref=0;  iref<nref; iref++)
     {
+        if(fActiveApproxSpace[iref] == 0){
+            continue;
+        }
+        
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         int svec;
         if(msp)
@@ -1256,6 +1269,11 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder() {
     TPZVec<int> ordervec;
     ordervec.resize(nref);
     for (int64_t iref = 0; iref < nref; iref++) {
+        
+        if(fActiveApproxSpace[iref] == 0){
+            continue;
+        }
+        
         TPZInterpolationSpace *msp = dynamic_cast<TPZInterpolationSpace *> (fElementVec[iref].Element());
         ordervec[iref] = msp ? msp->MaxOrder() : 0;
     }
