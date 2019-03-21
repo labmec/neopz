@@ -120,6 +120,12 @@ public:
 
     virtual void TransferMultiphysicsElementSolution() override;
     
+    /**
+     * @brief Set the active approximation spaces
+     * @param indexes List of the active approximation spaces
+     */
+    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space) = 0;
+    
     virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
     
     /// Add a shape restraint (meant to fit the pyramid to restraint

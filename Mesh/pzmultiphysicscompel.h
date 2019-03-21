@@ -274,6 +274,16 @@ public:
 	{
 		fConnectIndexes = indexes;
 	}
+    
+    /**
+     * @brief Set the active approximation spaces
+     * @param indexes List of the active approximation spaces
+     */
+    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space)
+    {
+        fActiveApproxSpace = active_approx_space;
+    }
+    
 	
 	/**
 	 * @brief Prints element data

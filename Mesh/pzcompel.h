@@ -409,6 +409,11 @@ virtual int ClassId() const override;
     {
         // Nothing to be done here
     }
+    
+    virtual void SetMultiphysicsElementSolution()
+    {
+        DebugStop();
+    }
 	
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
