@@ -39,7 +39,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysiccompEl"));
 
 template <class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl() : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
-TPZMultiphysicsElement(), fElementVec(0){
+TPZMultiphysicsElement(), fElementVec(0), fActiveApproxSpace(0){
 }
 
 template <class TGeometry>
@@ -69,7 +69,7 @@ TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh,
 
 template <class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) :TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId),
-TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
+TPZMultiphysicsElement(mesh, ref, index), fElementVec(0), fActiveApproxSpace(0) {
 }
 
 template<class TGeometry>
@@ -655,6 +655,11 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
             msp->InitMaterialData(dataVec[iref]);
         }
     }
+    
+    for (int64_t iref = 0; iref < nref; iref++) {
+        dataVec[iref].fActiveApproxSpace = fActiveApproxSpace[iref];
+    }
+    
     this->Material()->FillDataRequirements(dataVec);
 	
 }

@@ -25,12 +25,17 @@ protected:
 	
 	/** @brief List of pointers to computational elements */
 	TPZManVector<TPZCompElSide ,5>		fElementVec;
+    
+    /** @brief List of active approximation spaces */
+    TPZManVector<int,5> fActiveApproxSpace;
 	
 	/** @brief Indexes of the connects of the element */
 	TPZVec<int64_t> fConnectIndexes;
     
     /// Integration rule associated with the element
     typename TGeometry::IntruleType fIntRule;
+    
+    
 	
 public:
 	/**
