@@ -16,9 +16,9 @@ class TPZMultiphysicsMesh : public TPZCompMesh {
 
 private:
     
-    TPZVector<int> m_active_meshes;
-    
-    TPZVector<int> m_inert_meshes;
+//    TPZVector<int> m_active_meshes;
+//    
+//    TPZVector<int> m_inert_meshes;
 
 public:
     

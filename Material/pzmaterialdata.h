@@ -41,6 +41,7 @@ public:
     /** @{ */
     bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false;
     bool fNeedsNormal = false, fNeedsDivPhi = false;
+    bool fActiveEquations = true;
     /** @} */
     
     /** @name Attributes to be computed in CalcStiff */
