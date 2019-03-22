@@ -578,8 +578,6 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
 	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
-	ek.fNumStateVars = nstate;
-	ef.fNumStateVars = nstate;
 	
 	int i;
 	for(i=0; i<ncon; i++)
@@ -635,7 +633,6 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     
     ef.fMat.Redim(numeq,numloadcases);
     ef.fBlock.SetNBlocks(ncon);
-    ef.fNumStateVars = nstate;
     
     int i;
     for(i=0; i<ncon; i++)

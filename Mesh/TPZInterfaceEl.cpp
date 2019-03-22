@@ -873,7 +873,6 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	
     TPZMaterial *mat = Material();
 	const int numdof = mat->NStateVariables();
-	ef.fNumStateVars = numdof;
 	
 	int nshapel = left ->NShapeF();
 	int nshaper = right->NShapeF();
@@ -957,8 +956,6 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
     ef.fMesh = ek.fMesh;
     TPZMaterial *mat = Material();
 	const int numdof = mat->NStateVariables();
-	ek.fNumStateVars = numdof;
-	ef.fNumStateVars = numdof;
 	
 	int nshapel = left ->NShapeF();
 	int nshaper = right->NShapeF();

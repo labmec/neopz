@@ -37,7 +37,7 @@ TPZElementMatrix::TPZElementMatrix(const TPZElementMatrix &cp) :
     fType(cp.fType), fMesh(cp.fMesh), fConnect(cp.fConnect), fMat(cp.fMat),
     fBlock(cp.fBlock), fConstrConnect(cp.fConstrConnect), fConstrMat(cp.fConstrMat),
     fConstrBlock(cp.fConstrBlock), fDestinationIndex(cp.fDestinationIndex),
-    fSourceIndex(cp.fSourceIndex), fNumStateVars(cp.fNumStateVars)
+    fSourceIndex(cp.fSourceIndex)
 {
     fBlock.SetMatrix(&fMat);
     fConstrBlock.SetMatrix(&fConstrMat);
@@ -185,8 +185,8 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 
 void TPZElementMatrix::ApplyConstraints(){
 	
-	if (!this->fNumStateVars && this->fMat.Rows() != 0){
-		LOGPZ_FATAL(logger, "this->fNumStateVars not initialized");
+	if (this->fMat.Rows() != 0){
+		LOGPZ_FATAL(logger, "this->fMat not initialized");
 	}
 	
 	int totalnodes= this->NConnects();
@@ -343,7 +343,7 @@ void TPZElementMatrix::ApplyConstraints(){
 				int ieq;
 				STATE coef;
 				int idf;
-				int numstate = dfn->NState();//this->fNumStateVars;
+				int numstate = dfn->NState();
 				for(send=inpos; send<inpos+insize; send += numstate) {
 					for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 						coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);

@@ -156,7 +156,6 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
 	ef.fMat.Redim(numeq,numloadcases);
-	ef.fNumStateVars = 1;
 	ef.fConnect.Resize(ncon);
 	for(int i=0; i<ncon; i++){
 		(ef.fConnect)[i] = ConnectIndex(i);

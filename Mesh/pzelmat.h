@@ -51,8 +51,6 @@ struct TPZElementMatrix {
 	TPZBlock<STATE> fConstrBlock;
 	
 	TPZManVector<int64_t> fDestinationIndex, fSourceIndex;
-	
-	int fNumStateVars;
     
     /// list of one degree of freedom restraints
     std::list<TPZOneShapeRestraint> fOneRestraints;
@@ -70,14 +68,14 @@ struct TPZElementMatrix {
       fConstrBlock.SetNBlocks(0);
 	}
 	
-	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(), fNumStateVars(0)
+	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(),  fConstrConnect(), fConstrMat(0,0), fConstrBlock()
     {
         fBlock.SetMatrix(&fMat);
         fConstrBlock.SetMatrix(&fConstrMat);
     }
 
     TPZElementMatrix() : fType(Unknown), fMesh(NULL), fConnect(), fMat(0,0), fBlock(&fMat), fConstrConnect(), 
-      fConstrMat(0,0), fConstrBlock(&fConstrMat), fNumStateVars(0)
+      fConstrMat(0,0), fConstrBlock(&fConstrMat)
     {}
 	
     TPZElementMatrix(const TPZElementMatrix &copy);

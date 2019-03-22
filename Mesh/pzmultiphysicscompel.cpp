@@ -535,8 +535,6 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
-	ek.fNumStateVars = numstate; /// @TODO fNumStateVars for deletion
-	ef.fNumStateVars = numstate; /// @TODO fNumStateVars for deletion
 	
 	int i;
 	for(i=0; i<ncon; i++){
@@ -594,7 +592,6 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     const int numstate = nstate;
     ef.fMat.Redim(numeq,numloadcases);
     ef.fBlock.SetNBlocks(ncon);
-    ef.fNumStateVars = numstate; /// @TODO fNumStateVars for deletion
     
     int i;
     for(i=0; i<ncon; i++){

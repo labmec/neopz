@@ -231,8 +231,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
-	ek.fNumStateVars = numdof;
-	ef.fNumStateVars = numdof;
+
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = Connect(i).NShape();
@@ -264,7 +263,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
     const int numloadcases = mat->NumLoadCases();
 	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
-	ef.fNumStateVars = numdof;
+
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = Connect(i).NShape();

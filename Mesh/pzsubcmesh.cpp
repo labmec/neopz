@@ -1154,8 +1154,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     int numloadcases = mat->NumLoadCases();
     ek.fMesh = Mesh();
     ef.fMesh = Mesh();
-	ek.fNumStateVars = nstate;
-	ef.fNumStateVars = nstate;
+
 	ek.fMat.Redim(numeq,numeq);
 	ef.fMat.Redim(numeq,numloadcases);
     ek.fType = TPZElementMatrix::EK;

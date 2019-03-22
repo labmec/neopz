@@ -106,8 +106,6 @@ void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElement
     
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
-	ek.fNumStateVars = numdof;
-	ef.fNumStateVars = numdof;
 	int i;
     int numeq=0;
 	for(i=0; i<ncon; i++){
