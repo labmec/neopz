@@ -84,6 +84,14 @@ void TPZPorousElasticResponse::SetPorousElasticity(STATE kappa, STATE pt_el, STA
     m_p_0 = p_0;
 }
 
+void TPZPorousElasticResponse::Setp_0(STATE p_0){
+    m_p_0 = p_0;
+}
+
+void TPZPorousElasticResponse::Sete_0(STATE e_0){
+    m_e_0 = e_0;
+}
+
 void TPZPorousElasticResponse::SetShearModulusConstant(STATE G){
     m_is_G_constant_Q = true;
     m_mu = G;

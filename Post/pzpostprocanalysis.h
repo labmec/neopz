@@ -35,7 +35,7 @@ TPZPostProcAnalysis();
 virtual ~TPZPostProcAnalysis();
 	
     /// Set the computational mesh we are going to post process
-    void SetCompMesh(TPZCompMesh *pRef);
+    void SetCompMesh(TPZCompMesh *pRef, bool mustOptimizeBandwidth = false);
     
     TPZCompMesh *ReferenceCompMesh()
     {

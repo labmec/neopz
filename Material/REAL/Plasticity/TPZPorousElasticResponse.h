@@ -60,6 +60,10 @@ public:
     
     void SetPorousElasticity(STATE kappa, STATE pt_el, STATE e_0, STATE p_0);
     
+    void Setp_0(STATE p_0);
+    
+    void Sete_0(STATE e_0);
+    
     void SetShearModulusConstant(STATE G);
     
     void SetPoissonRatioConstant(STATE nu);
@@ -94,30 +98,6 @@ public:
     
     template<class T>
     void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {
-        
-//        REAL eps_I1 = epsilon.I1();
-//        bool strain_check_Q = fabs(eps_I1) > 0.05;
-//        if (strain_check_Q) {
-//            std::cout << "TPZPorousElasticResponse:: The corresponding volumetric strain is too large for this model more than 5%." << std::endl;
-//        }
-        
-//        if(strain_check_Q){
-//            TPZTensor<T> limit_eps = epsilon;
-//            bool limit_eps_check_Q = false;
-//            for (int i = 0; i < 7; i++) {
-//                limit_eps.XX() = 0.5*limit_eps.XX();
-//                limit_eps.YY() = 0.5*limit_eps.YY();
-//                limit_eps.ZZ() = 0.5*limit_eps.ZZ();
-//                REAL limit_eps_I1 = fabs(limit_eps.I1());
-//                limit_eps_check_Q = limit_eps_I1 < 0.05;
-//                if (limit_eps_check_Q) {
-//                    break;
-//                }
-//            }
-//            TPZElasticResponse LE = EvaluateElasticResponse(limit_eps);
-//            LE.ComputeStress(epsilon, sigma);
-//            return;
-//        }
         
         if (m_is_G_constant_Q) {
             T trace = T(epsilon.I1());
