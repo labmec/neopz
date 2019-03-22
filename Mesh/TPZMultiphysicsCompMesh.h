@@ -40,7 +40,7 @@ public:
     void AutoBuild();
     
     /// Set active approximation spaces
-    void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
+    void BuildMultiphysicsSpace(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
     void LoadSolutionFromMeshes();
     

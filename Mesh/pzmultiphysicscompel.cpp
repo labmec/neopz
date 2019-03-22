@@ -519,10 +519,6 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	//nstate=1;
     int numloadcases = 1;
 	for (int64_t iref=0; iref<nref; iref++) {
-		
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
         
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
@@ -530,7 +526,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
         }
         TPZMaterial *mat = msp->Material();
 		nstate += mat->NStateVariables();
-        numloadcases = mat->NumLoadCases();
+        numloadcases = mat->NumLoadCases(); /// @TODO improve this logic by consulting the multiphysics material
         
 	}
 	
@@ -539,8 +535,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
-	ek.fNumStateVars = numstate;
-	ef.fNumStateVars = numstate;
+	ek.fNumStateVars = numstate; /// @TODO fNumStateVars for deletion
+	ef.fNumStateVars = numstate; /// @TODO fNumStateVars for deletion
 	
 	int i;
 	for(i=0; i<ncon; i++){
@@ -585,24 +581,20 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     int numloadcases = 1;
     for (int64_t iref=0; iref<nref; iref++) {
         
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
             continue;
         }
         TPZMaterial *mat = msp->Material();
         nstate += mat->NStateVariables();
-        numloadcases = mat->NumLoadCases();
+        numloadcases = mat->NumLoadCases(); /// @TODO improve this logic by consulting the multiphysics material
         
     }
     
     const int numstate = nstate;
     ef.fMat.Redim(numeq,numloadcases);
     ef.fBlock.SetNBlocks(ncon);
-    ef.fNumStateVars = numstate;
+    ef.fNumStateVars = numstate; /// @TODO fNumStateVars for deletion
     
     int i;
     for(i=0; i<ncon; i++){

@@ -223,6 +223,7 @@ public:
 		if (fElementVec.size() <= meshindex) 
 		{
 			fElementVec.resize(meshindex+1);
+            fActiveApproxSpace.Resize(meshindex+1, 1);
 		}
         if (cel)
         {
@@ -242,6 +243,7 @@ public:
         if (fElementVec.size() <= meshindex)
         {
             fElementVec.resize(meshindex+1);
+            fActiveApproxSpace.Resize(meshindex+1, 1);
         }
         fElementVec[meshindex] = celside;
     }
@@ -281,7 +283,13 @@ public:
      */
     virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space)
     {
+#ifdef PZDEBUG
+        if(fActiveApproxSpace.size()!= fElementVec.size()){
+            DebugStop();
+        }
+#endif
         fActiveApproxSpace = active_approx_space;
+        
     }
     
 	
