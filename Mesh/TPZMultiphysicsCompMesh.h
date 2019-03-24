@@ -20,7 +20,7 @@ class TPZMultiphysicsCompMesh : public TPZCompMesh {
     TPZManVector<int,5> m_active_approx_spaces;
     
     /// Vector of computational meshes
-    TPZVec<TPZCompMesh * > m_mesh_vector;
+    TPZManVector<TPZCompMesh * , 3> m_mesh_vector;
     
 public:
     
@@ -45,6 +45,12 @@ public:
     void LoadSolutionFromMeshes();
     
     void LoadSolutionFromMultiPhysics();
+    
+    /// Get the vector of computational meshes
+    TPZManVector<TPZCompMesh * , 3> & MeshVector();
+    
+    /// Get the vector of active physics
+    TPZManVector<int,5> & GetActiveApproximationSpaces();
     
 private:
     

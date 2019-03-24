@@ -40,7 +40,7 @@ public:
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
     bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false;
-    bool fNeedsNormal = false, fNeedsDivPhi = false;
+    bool fNeedsNormal = false;
     bool fActiveApproxSpace = true;
     /** @} */
     

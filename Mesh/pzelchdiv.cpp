@@ -1411,9 +1411,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         ComputeSolution(qsi, data);
     }
 
-    if (data.fNeedsDivPhi){
-        data.ComputeFunctionDivergence();
-    }//fNeedsDivPhi
+    data.ComputeFunctionDivergence();
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {

@@ -53,7 +53,6 @@ void TPZDualPoisson::FillDataRequirements(TPZMaterialData &data)
 {
     data.SetAllRequirements(false);
     data.fNeedsSol = true;
-    data.fNeedsDivPhi = true;
 }
 
 void TPZDualPoisson::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
@@ -69,7 +68,6 @@ void TPZDualPoisson::FillDataRequirements(TPZVec<TPZMaterialData> &datavec)
         datavec[idata].SetAllRequirements(false);
         datavec[idata].fNeedsSol = true;
     }
-    datavec[0].fNeedsDivPhi = true; /// Hdvi approximation space
 }
 
 void TPZDualPoisson::FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec)

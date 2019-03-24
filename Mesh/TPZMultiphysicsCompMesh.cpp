@@ -36,6 +36,14 @@ TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysi
     return *this;
 }
 
+TPZManVector<TPZCompMesh *, 3> & TPZMultiphysicsCompMesh::MeshVector() {
+    return  m_mesh_vector;
+}
+
+TPZManVector<int,5> &  TPZMultiphysicsCompMesh::GetActiveApproximationSpaces(){
+    return m_active_approx_spaces;
+}
+
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
     
     if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
@@ -324,3 +332,4 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         m_mesh_vector[i_as]->LoadSolution(m_mesh_vector[i_as]->Solution());
     }
 }
+
