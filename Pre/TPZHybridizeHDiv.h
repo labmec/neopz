@@ -66,6 +66,8 @@ private:
     
     std::tuple<int64_t,int> SplitConnects(const TPZCompElSide &left, const TPZCompElSide &right, TPZVec<TPZCompMesh *> &meshvec_Hybrid);
 
+public:
+    
     static TPZCompElSide RightElement(TPZInterpolatedElement *intel, int side);
 
 };
