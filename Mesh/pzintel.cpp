@@ -707,7 +707,7 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
     // Connect looks for a connecting element of equal or lower level
     TPZInterpolatedElement *cel = 0;
     int side_neig = 0;
-    thisside.EqualLevelElementList(elvec, 1, 0);
+    thisside.EqualLevelElementList(elvec, 1, 1);
     int64_t nelem = elvec.NElements();
     // find an element in the list which is interpolated
     if (nelem) {
@@ -715,7 +715,7 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
         side_neig = elvec[0].Side();
     }
     int64_t newnodecreated = 0;
-    if (cel && nelem != 1) {
+    if (cel) {
         newnodeindex = cel->ConnectIndex(cel->MidSideConnectLocId(side_neig));
         SetConnectIndex(nodloc, newnodeindex);
     } else {

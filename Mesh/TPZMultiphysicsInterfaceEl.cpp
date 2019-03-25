@@ -48,18 +48,10 @@ TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, re
     }
 #endif
 	ref->IncrementNumInterfaces();
-//	
-//	if (fLeftElSide.Side() == -1 || fRightElSide.Side() == -1){
-//		PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
-//		DebugStop();
-//	}
-//	
-	this->SetLeftRightElement(leftside, rightside);
-	
-	this->IncrementElConnected();
     
+	this->SetLeftRightElement(leftside, rightside);
+	this->IncrementElConnected();
     this->CreateIntegrationRule();
-	
 }
 
 void TPZMultiphysicsInterfaceElement::IncrementElConnected(){

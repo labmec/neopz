@@ -370,7 +370,8 @@ void TPZMaterialData::ComputeFunctionDivergence()
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
-            for (int k = 0; k < dim; k++) {
+            int n_dir = dphiuH1.Rows();
+            for (int k = 0; k < n_dir; k++) {
                 divphi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
             }
         }
@@ -384,7 +385,8 @@ void TPZMaterialData::ComputeFunctionDivergence()
             ishapeindex = fVecShapeIndex[iq].second;
 
             /* Computing the divergence for constant jacobian elements */
-            for (int k = 0; k < dim; k++) {
+            int n_dir = GradphiuH1.Rows();
+            for (int k = 0; k < n_dir; k++) {
                 divphi(iq,0) +=  fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
             }
         }
