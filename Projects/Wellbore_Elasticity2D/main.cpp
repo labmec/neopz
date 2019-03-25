@@ -109,13 +109,15 @@ int main(int argc, char *argv[])
     REAL Sigmah = -45.9; //-48.0107; // tensao horizontal menor
     REAL SigmaH = -62.1; //-68.3251; // tensao horizontal maior
     
-    bool isStochastic = true;
+    bool isStochastic = true; // Stochastic?
+    bool isInSituStoch = false; // In-situ stresses stochastic?
+    
     REAL cv = 0.1; // variation coefficient of In-situ stresses
     
     std::ofstream solutionfile("Vertical_Stoch_Pw19_5_2m.csv");
     solutionfile << "Case,Total plastified area" << std::endl;
     
-    int ncases = 10000;
+    int ncases = 1;
 	
     int nLayers = 8;
 	REAL fH = 2 * rext; // altura total do cilindro em metros
@@ -126,7 +128,7 @@ int main(int argc, char *argv[])
     std::cout << "Read decomposed Matrix" << std::endl;
     TPZFMatrix<STATE> M = readDecomposedMatrixFromFile<STATE>(nSquareElements, matsize, inclinedwellbore);
     
-    if (isStochastic == true) {
+    if (isStochastic == true  && isInSituStoch==true) {
         // Random In-Situ Stresses - Normal Distribution
         TPZFMatrix<REAL> Sig_V (ncases, 1, 0.);
         TPZFMatrix<REAL> Sig_h (ncases, 1, 0.);
