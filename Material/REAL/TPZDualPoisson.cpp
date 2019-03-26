@@ -150,9 +150,9 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
     TPZFNMatrix<300,REAL> dphi_us      = datavec[ub].dphix;
     TPZFNMatrix<100,REAL> dphi_ps      = datavec[pb].dphix;
     
-    
-    TPZFNMatrix<40,STATE> div_on_master = datavec[ub].divphi;
-    STATE divu = datavec[ub].divsol[0][0];
+   
+	TPZFNMatrix<40, REAL> div_on_master = datavec[ub].divphi;
+	STATE divu = datavec[ub].divsol[0][0];
     STATE divflux;
     REAL jac_det = datavec[ub].detjac;
     
