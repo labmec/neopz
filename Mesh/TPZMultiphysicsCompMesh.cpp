@@ -8,6 +8,8 @@
 #include "TPZMultiphysicsCompMesh.h"
 #include "pzmultiphysicscompel.h"
 
+static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysicscompmesh"));
+
 TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh() : TPZCompMesh(){
     
     m_active_approx_spaces.Resize(0);
@@ -57,7 +59,6 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZManVector<int,5> & activ
     
     SetAllCreateFunctionsMultiphysicElem();
     TPZCompMesh::AutoBuild();
-    AdjustBoundaryElements();
     AddElements();
     AddConnects();
     LoadSolutionFromMeshes();

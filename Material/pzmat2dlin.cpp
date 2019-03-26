@@ -34,6 +34,7 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 		PZError << "TPZMat2dLin.contr, inconsistent input data : phi.Cols() = "
 		<< phi.Cols() << " dphi.Cols + " << dphi.Cols()
 		<< " phi.Rows = " << phi.Rows() << " dphi.Rows = " << dphi.Rows() << "\n";
+        DebugStop();
 	}
 	if(fForcingFunction)
 	{
