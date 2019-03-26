@@ -8,8 +8,9 @@
 #include "TPZMultiphysicsCompMesh.h"
 #include "pzmultiphysicscompel.h"
 
+#ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysicscompmesh"));
-
+#endif
 TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh() : TPZCompMesh(){
     
     m_active_approx_spaces.Resize(0);
