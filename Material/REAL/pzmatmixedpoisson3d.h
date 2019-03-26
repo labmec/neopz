@@ -42,9 +42,6 @@ protected:
     /** Dimensao do dominio */
     int fDim;
     
-    /** Coeficiente que multiplica o gradiente */
-    REAL fK;
-    
      /** Coeficiente que multiplica a pressão: termo de reacao */
     REAL falpha;
     
@@ -96,15 +93,22 @@ public:
     virtual int NStateVariables();
     
     void SetPermeability(REAL perm) {
-        fK = perm;
+
+        fTensorK.Resize(fDim, fDim);
+        fInvK.Resize(fDim, fDim);
+        for(int i = 0; i < fDim; i++){
+            fTensorK(i,i) = perm;
+            fInvK(i,i) = 1.0/perm;
+        }
     }
     
     //Set the permeability tensor and inverser tensor
     void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
-        
-        //        if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
-        //        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-        
+
+#ifdef PDDEBUG
+        if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
+        if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
+#endif
         fTensorK = K;
         fInvK = invK;
     }
@@ -117,10 +121,6 @@ public:
     
     void SetViscosity(REAL visc) {
         fvisc = visc;
-    }
-    
-    void GetPermeability(REAL &perm) {
-        perm = fK;
     }
     
     void SetInternalFlux(REAL flux) {
@@ -281,14 +281,7 @@ public:
      * @param Solout [out] is the solution vector
      */
     //virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
-    /**
-     * @brief .
-     * @param datavec [in] Data material vector
-     * @param DivergenceofPhi Divergence of Phi over the master element
-     * @param DivergenceofU Divergence of flux over the master element
-     */
-    void ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU);
+
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     

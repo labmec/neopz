@@ -36,9 +36,6 @@ TPZMaterial(){
     /** Material id not initialized */
     fMatId = -1;
     
-    /** Coeficiente que multiplica o gradiente */
-    fK = 1.;
-    
     falpha = 0.;
     fvisc = 1.;
     fInvK.Resize(1, 1);
@@ -57,9 +54,6 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(int matid, int dim):
 TPZRegisterClassId(&TPZMatMixedPoisson3D::ClassId),
 TPZMaterial(matid){
     
-//    if(dim<0 || dim >3){
-//        DebugStop();
-//    }
     
     /** Valor da funcao de carga */
     fF = 0.; //fF
@@ -69,9 +63,6 @@ TPZMaterial(matid){
     
     /** Material id no initialized */
     fMatId = matid;
-    
-    /** Coeficiente que multiplica o gradiente */
-    fK = 1.;
     
     fvisc = 1.;
     falpha = 0.;
@@ -102,7 +93,6 @@ TPZMatMixedPoisson3D & TPZMatMixedPoisson3D::operator=(const TPZMatMixedPoisson3
     this->falpha = copy.falpha;
     this->fDim = copy.fDim;
     this->fMatId = copy.fMatId;
-    this->fK = copy.fK;
     this->fmatLagr = copy.fmatLagr;
     this->fSecondIntegration = copy.fSecondIntegration;
     this->fReactionTerm = copy.fReactionTerm;
@@ -119,7 +109,6 @@ void TPZMatMixedPoisson3D::Print(std::ostream &out) {
     out << "Dimesion of problem " << fDim << endl;
     out << "Material ID  "<< fMatId << endl;
     out << "Forcing function  "<< fF << endl;
-    out << "Grad Coeficient  "<< fK << endl;
     out << "Base Class properties :";
     TPZMaterial::Print(out);
     out << "\n";
@@ -311,86 +300,6 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
     }
 }
 
-// Divergence on master element
-void TPZMatMixedPoisson3D::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, TPZFMatrix<STATE> &DivergenceofPhi, STATE &DivergenceofU)
-{
-    int ublock = 0;
-    
-    // Getting test and basis functions
-    TPZFMatrix<REAL> phiuH1         = datavec[ublock].phi;   // For H1  test functions Q
-    TPZFMatrix<REAL> dphiuH1       = datavec[ublock].dphi; // Derivative For H1  test functions
-    TPZFMatrix<REAL> dphiuH1axes   = datavec[ublock].dphix; // Derivative For H1  test functions
-    TPZFNMatrix<9,STATE> gradu = datavec[ublock].dsol[0];
-    TPZFNMatrix<9,STATE> graduMaster;
-    gradu.Transpose();
-    
-    TPZFNMatrix<660> GradphiuH1;
-    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, datavec[ublock].axes);
-    
-    int nphiuHdiv = datavec[ublock].fVecShapeIndex.NElements();
-    
-    DivergenceofPhi.Resize(nphiuHdiv,1);
-    
-    REAL JacobianDet = datavec[ublock].detjac;
-    
-    TPZFMatrix<REAL> Qaxes = datavec[ublock].axes;
-    TPZFMatrix<REAL> QaxesT;
-    TPZFMatrix<REAL> Jacobian = datavec[ublock].jacobian;
-    TPZFMatrix<REAL> JacobianInverse = datavec[ublock].jacinv;
-    
-    TPZFMatrix<REAL> GradOfX;
-    TPZFMatrix<REAL> GradOfXInverse;
-    TPZFMatrix<REAL> VectorOnMaster;
-    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
-    Qaxes.Transpose(&QaxesT);
-    QaxesT.Multiply(Jacobian, GradOfX);
-    JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-    
-    int ivectorindex = 0;
-    int ishapeindex = 0;
-    
-    if (HDivPiola == 1)
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
-            
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
-            
-            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-            VectorOnMaster *= JacobianDet;
-            
-            /* Contravariant Piola mapping preserves the divergence */
-            REAL dot = 0.0;
-            for (int i = 0;  i < fDim; i++) {
-                dot += dphiuH1(i,ishapeindex)*VectorOnMaster(i,0);
-            }
-            DivergenceofPhi(iq,0) = dot;
-        }
-
-    }
-    else
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
-            
-            /* Computing the divergence for constant jacobian elements */
-            REAL dot = 0.0;
-            for (int i = 0;  i < fDim; i++) {
-                dot += datavec[ublock].fNormalVec(i,ivectorindex)*GradphiuH1(i,ishapeindex);
-            }
-            DivergenceofPhi(iq,0) = dot;
-        }
-    }
-    
-    return;
-    
-}
 
 ///This method use piola contravariant mapping for nonlinear mappings
 void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
@@ -414,8 +323,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     //int rtens = 2*fDim;
     if(fPermeabilityFunction)
     {
-//        PermTensor.Redim(fDim,fDim);
-//        InvPermTensor.Redim(fDim,fDim);
+
         TPZFNMatrix<3,STATE> resultMat;
         TPZManVector<STATE> res;
         fPermeabilityFunction->Execute(datavec[0].x,res,resultMat);
@@ -433,7 +341,9 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     TPZFMatrix<REAL> &phiQ = datavec[0].phi;
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
-    //    TPZFMatrix<REAL> &dphiP = datavec[1].dphix;
+    TPZFNMatrix<40, REAL> divphi = datavec[0].divphi;
+    REAL divu = datavec[0].divsol[0][0];
+    
     
     int phrq, phrp;
     phrp = phip.Rows();
@@ -468,40 +378,17 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
                     jvecZ(id,0) += InvPermTensor(id,jd)*jvec(jd,0);
                 }
             }
-            //jvecZ.Print("mat1 = ");
+
             REAL prod1 = ivec(0,0)*jvecZ(0,0) + ivec(1,0)*jvecZ(1,0) + ivec(2,0)*jvecZ(2,0);
             ek(iq,jq) += fvisc*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod1;
         }
     }
     
-    TPZFMatrix<STATE> divphi;
-    STATE divu;
-    this->ComputeDivergenceOnMaster(datavec, divphi, divu);
-    
     // Coupling terms between flux and pressure. Matrix B
     for(int iq=0; iq<phrq; iq++)
     {
-        int ivecind = datavec[0].fVecShapeIndex[iq].first;
-        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
-        
-        TPZFNMatrix<3,REAL> ivec(3,1,0.);
-        for(int id=0; id<fDim; id++){
-            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
-            ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
-        }
-        TPZFNMatrix<3,REAL> axesvec(3,1,0.);
-        datavec[0].axes.Multiply(ivec,axesvec);
-        
-        REAL divwq = 0.;
-        for(int iloc=0; iloc<fDim; iloc++)
-        {
-            divwq += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
-        }
-        
-        if (HDivPiola == 1) {
-            divwq = divphi(iq,0)/datavec[0].detjac;
-        }
+
+        REAL divwq = divphi(iq,0)/datavec[0].detjac;
         
         for (int jp=0; jp<phrp; jp++) {
             
@@ -896,8 +783,9 @@ void TPZMatMixedPoisson3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
     //values[2] : erro em semi norma H1
     values[2] = 0.;
     for(id=0; id<fDim; id++) {
-        diff = fabs(dsol[id] - du_exact(id,0));
-        values[2]  += abs(fK)*diff*diff;
+        DebugStop(); /// @omar:: need to be corrected
+//        diff = fabs(dsol[id] - du_exact(id,0));
+//        values[2]  += abs(fK)*diff*diff;
     }
     //values[0] : erro em norma H1 <=> norma Energia
     values[0]  = values[1]+values[2];
