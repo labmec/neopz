@@ -139,8 +139,6 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
     //  Mesh Creation
     TPZGeoMesh * gmesh = gmesh_input;
     if(!gmesh) gmesh = new TPZGeoMesh;
-    int dimension = 0;
-    gmesh->SetDimension(dimension);
     
     {
         
@@ -211,6 +209,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         max_dimension = dimension;
                     }
                 }
+                m_dimension = max_dimension; //  for coherence
                 gmesh->SetDimension(max_dimension);
                 
                 char buf_end[1024];
