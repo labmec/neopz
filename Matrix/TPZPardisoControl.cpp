@@ -239,7 +239,9 @@ void TPZPardisoControl<TVar>::Decompose()
         std::cout << __PRETTY_FUNCTION__ << " error code " << Error << std::endl;
         DebugStop();
     }
+#ifdef PZDEBUG
     std::cout << "Pardiso:: decomposition complete. \n";
+#endif
 }
 
 /// Use the decomposed matrix to invert the system of equations
@@ -343,7 +345,9 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     if (fNonSymmetricSystem) {
         fNonSymmetricSystem->SetIsDecomposed(0);
     }
+#ifdef PZDEBUG
     std::cout << "Pardiso:: release memory complete. \n";
+#endif
 #endif
 }
 
