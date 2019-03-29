@@ -20,7 +20,7 @@ TPZGeoElBC::TPZGeoElBC(TPZGeoEl *el,int side,int matid):fCreatedElement(NULL){
 	this->fCreatedElement = el->CreateBCGeoEl( side, matid );
 }
 
-TPZGeoElBC::TPZGeoElBC(TPZGeoElSide &elside,int matid):fCreatedElement(NULL){
+TPZGeoElBC::TPZGeoElBC(const TPZGeoElSide &elside,int matid):fCreatedElement(NULL){
 	TPZGeoEl * el = elside.Element();
 	const int side = elside.Side();
 	if(el->SideIsUndefined(side)) //Verify if the connectivity was made before the creation of the bc

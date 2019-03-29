@@ -156,7 +156,7 @@ public:
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const {
         
-        return 20;
+        return 2*(elPMaxOrder+1);
     }
     
     /** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */

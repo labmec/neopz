@@ -103,6 +103,9 @@ public:
 	
 	/** @brief Returns problem dimension */
 	virtual int Dimension() const { return this->fDim; }
+    
+    /** @brief Sets problem dimension */
+    virtual void SetDimension(int dim) { this->fDim = dim; }
 	
 	/** @brief Returns number of state variables */
 	virtual int NStateVariables(){ return this->fNStateVars; }
