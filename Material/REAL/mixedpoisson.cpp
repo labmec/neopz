@@ -107,10 +107,6 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     }
 #endif
     
-    
-    
-    
-    
     STATE force = ff;
     if(fForcingFunction) {
 		TPZManVector<STATE> res(1);
@@ -170,8 +166,6 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<3; id++){
             ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
-            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
         }
         
         //Inserindo termo de estabilizacao no termo de fonte
@@ -198,8 +192,6 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             for(int id=0; id<3; id++){
                 jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
-                //jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-                //jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
             }
             
             //dot product between Kinv[u]v

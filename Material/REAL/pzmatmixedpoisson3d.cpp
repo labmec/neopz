@@ -84,16 +84,27 @@ TPZMatMixedPoisson3D::TPZMatMixedPoisson3D(const TPZMatMixedPoisson3D &copy):TPZ
 TPZMaterial(copy){
     
     this->operator=(copy);
+    this->fF = copy.fF;
+    this->falpha = copy.falpha;
+    this->fDim = copy.fDim;
+    this->fMatId = copy.fMatId;
+    this->fmatLagr = copy.fmatLagr;
+    this->fTensorK = copy.fTensorK;
+    this->fInvK = copy.fInvK;
+    this->fSecondIntegration = copy.fSecondIntegration;
+    this->fReactionTerm = copy.fReactionTerm;
 }
 
 TPZMatMixedPoisson3D & TPZMatMixedPoisson3D::operator=(const TPZMatMixedPoisson3D &copy){
     
     TPZMaterial::operator = (copy);
-    this->fF = copy.fF; //fF
+    this->fF = copy.fF;
     this->falpha = copy.falpha;
     this->fDim = copy.fDim;
     this->fMatId = copy.fMatId;
     this->fmatLagr = copy.fmatLagr;
+    this->fTensorK = copy.fTensorK;
+    this->fInvK = copy.fInvK;
     this->fSecondIntegration = copy.fSecondIntegration;
     this->fReactionTerm = copy.fReactionTerm;
     
@@ -101,7 +112,7 @@ TPZMatMixedPoisson3D & TPZMatMixedPoisson3D::operator=(const TPZMatMixedPoisson3
 }
 
 int TPZMatMixedPoisson3D::NStateVariables() {
-    return 1;//(1+fDim);
+    return 1;
 }
 
 void TPZMatMixedPoisson3D::Print(std::ostream &out) {
@@ -342,7 +353,6 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     TPZFMatrix<REAL> &dphiQ = datavec[0].dphix;
     TPZFNMatrix<40, REAL> divphi = datavec[0].divphi;
-    REAL divu = datavec[0].divsol[0][0];
     
     
     int phrq, phrp;

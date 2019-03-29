@@ -90,6 +90,10 @@ public:
         return fMatId;
     }
     
+    virtual TPZMaterial * NewMaterial(){
+        return new TPZMatMixedPoisson3D(*this);
+    }
+    
     virtual int NStateVariables();
     
     void SetPermeability(REAL perm) {

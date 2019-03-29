@@ -1198,6 +1198,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     
     for (int64_t is = 0; is < numbersol ; is++)
     {
+        data.divsol[is].Resize(nstate);
         for (int64_t istate = 0; istate < nstate ; istate++)
         {
             TPZFNMatrix<10,STATE> Graduaxes = data.dsol[is];
@@ -1205,7 +1206,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             for (int i = 0; i < dim; i++) {
                 divu += data.dsol[is](i,i);
             }
-            data.divsol[istate] = divu;
+            data.divsol[is][istate] = divu;
         }
     }
 
