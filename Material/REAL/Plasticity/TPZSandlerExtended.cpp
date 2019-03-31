@@ -241,28 +241,32 @@ REAL TPZSandlerExtended::InitialDamage(const TPZVec<REAL> &stress_pv) const {
         stop_criterion_Q = false;
         REAL J2 = (1.0/3.0) * (stress_pv[0]*stress_pv[0] + stress_pv[1]*stress_pv[1] + stress_pv[2]*stress_pv[2] - stress_pv[1]*stress_pv[2] - stress_pv[0]*stress_pv[2] - stress_pv[0]*stress_pv[1]);
         
-        k = X(k) + k; // guess from the outer part of the cap
-        
-        for (int i = 0; i < n_iter; i++) {
+        bool pure_hydrostatic_state_Q = IsZero(J2) || J2 < 0.0;
+        if (!pure_hydrostatic_state_Q) {
+            k = X(k) + k; // guess from the outer part of the cap
             
-            res = -1 + pow(I1,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
-            J2/pow(fA - exp(fB*k)*fC,2) -
-            (2*I1*k)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
-            pow(k,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2));
-            
-            stop_criterion_Q = fabs(res) < ftol;
-            if (stop_criterion_Q) {
-                break;
+            for (int i = 0; i < n_iter; i++) {
+                
+                res = -1 + pow(I1,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
+                J2/pow(fA - exp(fB*k)*fC,2) -
+                (2*I1*k)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2)) +
+                pow(k,2)/(pow(fA - exp(fB*k)*fC,2)*pow(fR,2));
+                
+                stop_criterion_Q = fabs(res) < ftol;
+                if (stop_criterion_Q) {
+                    break;
+                }
+                jac = (2*(fA*(-I1 + k) + exp(fB*k)*fC*
+                          (I1 + fB*pow(I1,2) + fB*pow(fR,2)*J2 - k - 2*fB*I1*k + fB*pow(k,2))))/
+                (pow(fA - exp(fB*k)*fC,3)*pow(fR,2));
+                dk =  - res /jac;
+                k+=dk;
             }
-            jac = (2*(fA*(-I1 + k) + exp(fB*k)*fC*
-                      (I1 + fB*pow(I1,2) + fB*pow(fR,2)*J2 - k - 2*fB*I1*k + fB*pow(k,2))))/
-            (pow(fA - exp(fB*k)*fC,3)*pow(fR,2));
-            dk =  - res /jac;
-            k+=dk;
-        }
-        
-        if (!stop_criterion_Q) {
-            throw TPZConvergenceException(ftol, n_iter, res, i, "TPZSandlerExtended::InitialDamage:: Newton process did not converge in deviatoric direction.");
+            
+            if (!stop_criterion_Q) {
+                throw TPZConvergenceException(ftol, n_iter, res, i, "TPZSandlerExtended::InitialDamage:: Newton process did not converge in deviatoric direction.");
+            }
+            
         }
         
         YieldFunction(stress_pv, k, f);
