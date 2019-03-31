@@ -68,6 +68,7 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZManVector<int,5> & activ
 
 void TPZMultiphysicsCompMesh::AutoBuild(){
     
+    std::cout << __PRETTY_FUNCTION__ << " has not been implemented. Use BuildMultiphysicsSpace instead\n";
     DebugStop();
 }
 

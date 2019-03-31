@@ -322,6 +322,7 @@ namespace pztopology {
 		if(side==0 || side==1) return 1;
 		else if(side==2) return 3;
 		PZError << "TPZLine::NContainedSides. Bad parameter side = " << side << " .\n";
+        DebugStop();
 		return 0;
 	}
 	

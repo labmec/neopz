@@ -85,6 +85,11 @@ public:
     
     int Dimension() const {return fDim;}
     
+    void SetDimension(int dim)
+    {
+        
+        fDim = dim;
+    }
     int MatId()
     {
         return fMatId;
