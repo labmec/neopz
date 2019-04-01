@@ -64,10 +64,12 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
     
     if (m_format_version == "3.0" || m_format_version == "3") {
         return GeometricGmshMesh3(file_name,gmesh_input);
-    }else if(m_format_version == "4.0" || m_format_version == "4"){
+    }else if(m_format_version == "4.1"){
         return GeometricGmshMesh4(file_name,gmesh_input);
     }
+    std::cout << "TPZGmshReader:: Lastest verison supported 4.1 " << std::endl;
     std::cout << "TPZGmshReader:: Reader no available for the msh file version = " << m_format_version << std::endl;
+    DebugStop();
     return NULL;
 }
 
@@ -244,12 +246,19 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         
                         read.getline(buf, 1024);
                         read >> chunk.first;
-                        read >> x_min;
-                        read >> y_min;
-                        read >> z_min;
-                        read >> x_max;
-                        read >> y_max;
-                        read >> z_max;
+                        if(i_dim == 0)
+                        {
+                            read >> x_min;
+                            read >> y_min;
+                            read >> z_min;
+                        }else{
+                            read >> x_min;
+                            read >> y_min;
+                            read >> z_min;
+                            read >> x_max;
+                            read >> y_max;
+                            read >> z_max;
+                        }
                         read >> n_physical_tag;
                         chunk.second.resize(n_physical_tag);
                         for (int i_data = 0; i_data < n_physical_tag; i_data++) {
@@ -280,9 +289,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
             if(str == "$Nodes" || str == "$Nodes\r")
             {
                 
-                int64_t n_entity_blocks, n_nodes;
+                int64_t n_entity_blocks, n_nodes, min_node_tag, max_node_tag;
                 read >> n_entity_blocks;
                 read >> n_nodes;
+                read >> min_node_tag;
+                read >> max_node_tag;
                 
                 int64_t node_id;
                 double nodecoordX , nodecoordY , nodecoordZ ;
@@ -296,10 +307,15 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++)
                 {
                     read.getline(buf, 1024);
-                    read >> entity_tag;
                     read >> entity_dim;
+                    read >> entity_tag;
                     read >> entity_parametric;
                     read >> entity_nodes;
+                    
+                    if (entity_parametric != 0) {
+                        std::cout << "TPZGmshReader:: Characteristic not implemented." << std::endl;
+                        DebugStop();
+                    }
                     
                     for (int64_t inode = 0; inode < entity_nodes; inode++) {
                         
@@ -332,17 +348,19 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
             if(str == "$Elements" || str == "$Elements\r")
             {
                 
-                int64_t n_entity_blocks, n_elements;
+                int64_t n_entity_blocks, n_elements, min_element_tag, max_element_tag;
                 read >> n_entity_blocks;
                 read >> n_elements;
+                read >> min_element_tag;
+                read >> max_element_tag;
                 gmesh->SetMaxElementId(n_elements-1);
                 
                 int entity_tag, entity_dim, entity_el_type, entity_elements;
                 for (int64_t i_block = 0; i_block < n_entity_blocks; i_block++)
                 {
                     read.getline(buf, 1024);
-                    read >> entity_tag;
                     read >> entity_dim;
+                    read >> entity_tag;
                     read >> entity_el_type;
                     read >> entity_elements;
                     
