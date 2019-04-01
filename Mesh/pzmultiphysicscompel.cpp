@@ -328,7 +328,7 @@ int64_t TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int elem, int connect) co
     int first = 0;
     for(int64_t el=0; el<elem; el++){
         TPZCompEl *cel = fElementVec[el].Element();
-        if (cel) {
+        if (cel && fActiveApproxSpace[el]) {
             first+=cel->NConnects();
         }
     }
