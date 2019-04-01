@@ -67,7 +67,8 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh(std::string file_name, TPZGeoMesh 
     }else if(m_format_version == "4.1"){
         return GeometricGmshMesh4(file_name,gmesh_input);
     }
-    std::cout << "TPZGmshReader:: Lastest verison supported 4.1 " << std::endl;
+    std::cout << "TPZGmshReader:: Lastest version supported 4.1 " << std::endl;
+    std::cout << "TPZGmshReader:: This reader supports only the lastest version " << std::endl;
     std::cout << "TPZGmshReader:: Reader no available for the msh file version = " << m_format_version << std::endl;
     DebugStop();
     return NULL;
