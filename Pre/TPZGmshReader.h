@@ -181,6 +181,10 @@ public:
         m_dim_name_and_physical_tag = dim_name_and_physical_tag;
     }
     
+    TPZVec<int64_t> &EntityIndex()
+    {
+        return m_entity_index;
+    }
     
 };
 

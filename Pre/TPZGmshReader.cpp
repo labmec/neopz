@@ -247,15 +247,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         
                         read.getline(buf, 1024);
                         read >> chunk.first;
-                        if(i_dim == 0)
+                        read >> x_min;
+                        read >> y_min;
+                        read >> z_min;
+                        if(i_dim > 0)
                         {
-                            read >> x_min;
-                            read >> y_min;
-                            read >> z_min;
-                        }else{
-                            read >> x_min;
-                            read >> y_min;
-                            read >> z_min;
                             read >> x_max;
                             read >> y_max;
                             read >> z_max;
@@ -264,6 +260,15 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         chunk.second.resize(n_physical_tag);
                         for (int i_data = 0; i_data < n_physical_tag; i_data++) {
                             read >> chunk.second[i_data];
+                        }
+                        if(i_dim > 0)
+                        {
+                            size_t n_bounding_points;
+                            read >> n_bounding_points;
+                            for (int i_data = 0; i_data < n_bounding_points; i_data++) {
+                                int point_tag;
+                                read >> point_tag;
+                            }
                         }
                         n_entities_with_physical_tag[i_dim] += n_physical_tag;
                         m_dim_entity_tag_and_physical_tag[i_dim].insert(chunk);
@@ -318,19 +323,20 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         DebugStop();
                     }
                     
+                    TPZManVector<int64_t,10> nodeids(entity_nodes,-1);
                     for (int64_t inode = 0; inode < entity_nodes; inode++) {
-                        
-                        read.getline(buf, 1024);
-                        read >> node_id;
+                        read >> nodeids[inode];
+                    }
+                    for (int64_t inode = 0; inode < entity_nodes; inode++) {
                         read >> nodecoordX;
                         read >> nodecoordY;
                         read >> nodecoordZ;
                         
-                        Node[node_id-1].SetNodeId(node_id-1);
-                        Node[node_id-1].SetCoord(0,nodecoordX/m_characteristic_lentgh);
-                        Node[node_id-1].SetCoord(1,nodecoordY/m_characteristic_lentgh);
-                        Node[node_id-1].SetCoord(2,nodecoordZ/m_characteristic_lentgh);
-                        gmesh->NodeVec()[node_id-1] = Node[node_id-1];
+                        Node[nodeids[inode]-1].SetNodeId(nodeids[inode]-1);
+                        Node[nodeids[inode]-1].SetCoord(0,nodecoordX/m_characteristic_lentgh);
+                        Node[nodeids[inode]-1].SetCoord(1,nodecoordY/m_characteristic_lentgh);
+                        Node[nodeids[inode]-1].SetCoord(2,nodecoordZ/m_characteristic_lentgh);
+                        gmesh->NodeVec()[nodeids[inode]-1] = Node[nodeids[inode]-1];
                         
                     }
                 }
@@ -371,7 +377,11 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                     
                     for (int64_t iel = 0; iel < entity_elements; iel++) {
                         int physical_identifier;
-                        int n_physical_identifier = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag].size();
+                        int n_physical_identifier = 0;
+                        if(m_dim_entity_tag_and_physical_tag[entity_dim].find(entity_tag) != m_dim_entity_tag_and_physical_tag[entity_dim].end())
+                        {
+                            n_physical_identifier = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag].size();
+                        }
                         bool physical_identifier_Q = n_physical_identifier != 0;
                         if(physical_identifier_Q)
                         {
@@ -398,7 +408,15 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                             /// Internally the nodes index and element index is converted to zero based indexation
                             InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);
                         }else{
-                            std::cout << "The entity with tag " << entity_tag << " does not have a physical tag, consequently it is not going to be considered." << std::endl;
+                            read.getline(buf, 1024);
+                            int el_identifier, n_el_nodes;
+                            n_el_nodes = GetNumberofNodes(entity_el_type);
+                            read >> el_identifier;
+                            std::vector<int> node_identifiers(n_el_nodes);
+                            for (int i_node = 0; i_node < n_el_nodes; i_node++) {
+                                read >> node_identifiers[i_node];
+                            }
+                            std::cout << "The entity with tag " << entity_tag << " does not have a physical tag, element " << el_identifier << " skipped " << std::endl;
                         }
 
                     }
