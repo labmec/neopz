@@ -517,7 +517,6 @@ void TPZStructMatrixTBB::TPZFlowGraph::CreateGraph()
     int64_t nelem = fCMesh->NElements();
     int64_t nconnects = fCMesh->NConnects();
     int64_t numberOfElements=felSequenceColor.NElements();
-    this->felSequenceColor=felSequenceColor;
     
     TPZVec<int64_t> elementloaded(nconnects,-1);
     

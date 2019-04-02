@@ -492,7 +492,6 @@ void TPZStructMatrixTBBFlow::TPZFlowGraph::CreateGraph()
     int64_t nelem = cmesh->NElements();
     int64_t nconnects = cmesh->NConnects();
     int64_t numberOfElements=felSequenceColor.NElements();
-    this->felSequenceColor=felSequenceColor;
     
     // each graphnode represents an element that can be computed and assembled
     fNodes.resize(felSequenceColor.NElements());
