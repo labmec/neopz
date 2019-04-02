@@ -70,14 +70,8 @@ IF(APPLE)
    # Mac OS X specific code
    add_definitions(-DMACOSX)
    set(MACOSX MACOSX)
-   if (NOT CMAKE_GENERATOR MATCHES "Ninja")
-       FIND_LIBRARY(ACCELERATE_LIB Accelerate)
-	   link_libraries(${ACCELERATE_LIB})
-   else()
-       set(CMAKE_FIND_FRAMEWORK NEVER)
-	   find_library(ACCELERATE_LIB Accelerate PATHS /System/Library/Frameworks/Accelerate.framework/Accelerate)
-	   set(CMAKE_FIND_FRAMEWORK FIRST)
-   endif()
+   find_library(ACCELERATE_LIB Accelerate)
+   link_libraries(${ACCELERATE_LIB})
 ENDIF(APPLE)
 
 #enabling Boost library
