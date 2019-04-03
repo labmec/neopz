@@ -185,7 +185,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 
 void TPZElementMatrix::ApplyConstraints(){
 	
-	if (this->fMat.Rows() != 0){
+	if (this->fMat.Rows() == 0){
 		LOGPZ_FATAL(logger, "this->fMat not initialized");
 	}
 	
