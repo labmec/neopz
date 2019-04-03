@@ -1030,6 +1030,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
         this->MemItem(intPt).m_sigma        = sigma;
         this->MemItem(intPt).m_elastoplastic_state = plasticloc.GetState();
         this->MemItem(intPt).m_plastic_steps = plasticloc.IntegrationSteps();
+        this->MemItem(intPt).m_ER = plasticloc.GetElasticResponse();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
         {
@@ -1076,6 +1077,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
         this->MemItem(intPt).m_sigma        = sigma;
         this->MemItem(intPt).m_elastoplastic_state = plasticloc.GetState();
         this->MemItem(intPt).m_plastic_steps = plasticloc.IntegrationSteps();
+        this->MemItem(intPt).m_ER = plasticloc.GetElasticResponse();
         int solsize = data.sol[0].size();
         for(int i=0; i<solsize; i++)
         {
