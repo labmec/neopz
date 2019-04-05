@@ -25,10 +25,7 @@ protected:
 	
 	/** @brief List of pointers to computational elements */
 	TPZManVector<TPZCompElSide ,5>		fElementVec;
-    
-    /** @brief List of active approximation spaces */
-    TPZManVector<int,5> fActiveApproxSpace;
-	
+    	
 	/** @brief Indexes of the connects of the element */
 	TPZVec<int64_t> fConnectIndexes;
     
@@ -60,7 +57,7 @@ public:
 	virtual ~TPZMultiphysicsCompEl();
 	
 	/** @brief Returns a reference to the element pointers vector */
-	TPZManVector<TPZCompElSide,5>   &ElementVec() { return fElementVec; }
+	virtual TPZManVector<TPZCompElSide,5>   &ElementVec() override { return fElementVec; }
 	
 	/**
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
@@ -276,22 +273,6 @@ public:
 	{
 		fConnectIndexes = indexes;
 	}
-    
-    /**
-     * @brief Set the active approximation spaces
-     * @param indexes List of the active approximation spaces
-     */
-    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space) override
-    {
-#ifdef PZDEBUG
-        if(fActiveApproxSpace.size()!= fElementVec.size()){
-            DebugStop();
-        }
-#endif
-        fActiveApproxSpace = active_approx_space;
-        
-    }
-    
 	
 	/**
 	 * @brief Prints element data

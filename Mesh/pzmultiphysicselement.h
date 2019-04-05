@@ -16,8 +16,13 @@ class TPZMultiphysicsInterfaceElement;
 
 class TPZMultiphysicsElement : public TPZCompEl {
 	
+protected:
+    
     /// list of restraints applied to one shape function
     std::list<TPZOneShapeRestraint> fRestraints;
+    
+    /** @brief List of active approximation spaces */
+    TPZManVector<int,5> fActiveApproxSpace;
     
 public:
 	/** @brief Default constructor */
@@ -52,6 +57,9 @@ public:
     
     virtual TPZCompEl *Element(int64_t elindex) = 0;
 	
+    /** @brief Returns a reference to the element pointers vector */
+    virtual TPZManVector<TPZCompElSide,5>   &ElementVec() = 0;
+    
 	virtual TPZCompEl *ReferredElement(int64_t mesh) = 0;
     
     virtual int64_t NMeshes() = 0;
@@ -124,7 +132,31 @@ public:
      * @brief Set the active approximation spaces
      * @param indexes List of the active approximation spaces
      */
-    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space) = 0;
+    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space)
+    {
+#ifdef PZDEBUG
+        if(fActiveApproxSpace.size()!= ElementVec().size()){
+            DebugStop();
+        }
+#endif
+        fActiveApproxSpace = active_approx_space;
+        
+    }
+    
+    /**
+     * @brief Set the active approximation spaces
+     * @param indexes List of the active approximation spaces
+     */
+    virtual TPZManVector<int,5> & GetActiveApproxSpaces()
+    {
+        return fActiveApproxSpace;
+        
+    }
+    
+    virtual bool IsActiveApproxSpaces(int space_index)
+    {
+        return fActiveApproxSpace[space_index];
+    }
     
     virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
     

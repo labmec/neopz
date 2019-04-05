@@ -428,10 +428,14 @@ int64_t TPZCompElDisc::CreateMidSideConnect(){
 		//o atual eh um elemento de volume e
 		//nao achou-se um elemento superposto
 		int nvar = Material()->NStateVariables();
-		const int nshape = this->NShapeF();
+		int nshape = 1; /// if the CompelDisc has no connect NShapeF() return -1
+        /// therefore nshape is initialize to 1
 		int64_t newnodeindex = Mesh()->AllocateNewConnect(nshape,nvar,0);
 		SetConnectIndex(0,newnodeindex);
 		TPZConnect &newnod = Mesh()->ConnectVec()[newnodeindex];
+        newnod.IncrementElConnected();
+        nshape = this->NShapeF();
+        newnod.SetNShape(nshape);
 		int64_t seqnum = newnod.SequenceNumber();
 		Mesh()->Block().Set(seqnum,nvar*nshape);
 		Mesh()->ConnectVec()[fConnectIndex].IncrementElConnected();

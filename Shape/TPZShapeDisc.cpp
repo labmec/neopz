@@ -498,6 +498,8 @@ void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degr
 int  TPZShapeDisc::NShapeF(int degree, int dimension, MShapeType type) {
   int sum =0,i;
   switch(dimension) {
+  case 0:
+      return 1;
   case 1:
     return degree+1;
 //    break;
