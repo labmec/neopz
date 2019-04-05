@@ -385,7 +385,8 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                         bool physical_identifier_Q = n_physical_identifier != 0;
                         if(physical_identifier_Q)
                         {
-                            physical_identifier = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][0];
+                            int gmsh_physical_identifier = m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][0];
+                            physical_identifier = m_dim_physical_tag_and_physical_tag[entity_dim][gmsh_physical_identifier];
                             if(n_physical_identifier !=1){
                                 std::cout << "The entity with tag " << entity_tag << std::endl;
                                 std::cout << "Has associated the following physical tags : " << std::endl;
@@ -393,7 +394,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                                     std::cout << m_dim_entity_tag_and_physical_tag[entity_dim][entity_tag][i_data] << std::endl;
                                 }
                                 
-                                std::cout << "Automatically, the first one = " << physical_identifier << " is used.  The other ones are dropped out." << std::endl;
+                                std::cout << "Automatically, the assgined pz physical tag = " << physical_identifier << " is used.  The other ones are dropped out." << std::endl;
                             }
                             
                             
@@ -407,6 +408,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                             }
                             /// Internally the nodes index and element index is converted to zero based indexation
                             InsertElement(gmesh, physical_identifier, entity_el_type, el_identifier, node_identifiers);
+                            
                         }else{
                             read.getline(buf, 1024);
                             int el_identifier, n_el_nodes;

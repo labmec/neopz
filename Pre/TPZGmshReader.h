@@ -172,11 +172,16 @@ public:
     }
     
     /// Get the structure dim - name - physical tag
+    void SetDimNamePhysical(TPZManVector<std::map<std::string,int>,5> & dim_name_and_physical_tag){
+        m_dim_name_and_physical_tag = dim_name_and_physical_tag;
+    }
+    
+    /// Get the structure dim - name - physical tag
     TPZManVector<std::map<std::string,int>,5> & GetDimNamePhysical(){
         return m_dim_name_and_physical_tag;
     }
     
-    /// Set the structure dim - name - physical tag
+    /// Get the structure dim - name - physical tag
     void GetDimNamePhysical(TPZManVector<std::map<std::string,int>,5> & dim_name_and_physical_tag){
         m_dim_name_and_physical_tag = dim_name_and_physical_tag;
     }

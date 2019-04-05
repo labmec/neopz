@@ -260,6 +260,11 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
     int n_approx_spaces = m_active_approx_spaces.size();
     TPZManVector<int64_t> FirstConnectIndex(n_approx_spaces+1,0);
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
+        
+        if (m_active_approx_spaces[i_as] == 0) {
+            continue;
+        }
+        
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
     TPZBlock<STATE> &blockMF = Block();
