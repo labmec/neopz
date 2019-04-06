@@ -1272,6 +1272,12 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder() {
         ordervec[iref] = msp ? msp->MaxOrder() : 0;
     }
     TPZMaterial * material = Material();
+    if(!material)
+    {
+        int matid = Reference()->MaterialId();
+        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
+        DebugStop();
+    }
     int order = material->IntegrationRuleOrder(ordervec);
     return order;
 }
