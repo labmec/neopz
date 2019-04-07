@@ -94,6 +94,26 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     {
         data.SetAllRequirements(false);
     }
+    
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right)
+    {
+        data.SetAllRequirements(false);
+        data.fNeedsNormal = true;
+        int nref_left = datavec_left.size();
+        for(int iref = 0; iref<nref_left; iref++){
+            datavec_left[iref].SetAllRequirements(false);
+            datavec_left[iref].fNeedsSol    = true;
+            datavec_left[iref].fNeedsNormal = true;
+        }
+        int nref_right = datavec_right.size();
+        for(int iref = 0; iref<nref_right; iref++){
+            datavec_right[iref].SetAllRequirements(false);
+            datavec_right[iref].fNeedsSol    = true;
+            datavec_right[iref].fNeedsNormal = true;
+        }
+        
+    }
 	
     /**
      * @{

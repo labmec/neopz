@@ -715,6 +715,20 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_d
     
     TPZMaterial * mat = this->Material();
     mat->FillDataRequirementsInterface(center_data, data_left, data_right);
+    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
+    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+    
+    TPZVec<int64_t> *leftindices(0), *rightindices(0);
+    if (fLeftElIndices.size()) {
+        leftindices = &fLeftElIndices;
+    }
+    if (fRightElIndices.size()) {
+        rightindices = &fRightElIndices;
+    }
+    
+    leftel->InitMaterialData(data_left,leftindices);
+    rightel->InitMaterialData(data_right,rightindices);
+    
     
 }
 
