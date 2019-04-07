@@ -110,6 +110,9 @@ public:
     /** @brief X coordinate of a point loc of the side */
 	void X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const;
     
+    /** @brief Parametric coordinate of a point loc of the side and return parametric element point */
+    void QsiElement(TPZVec< REAL > &qsi_side, TPZVec< REAL > &qsi_element) const;
+    
     /** @brief X coordinate of a point loc of the side */
     void GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const;
 	
@@ -173,6 +176,9 @@ public:
     
     /** @brief compute the normal to the point from left to right neighbour */
     void Normal(TPZVec<REAL> &point, TPZGeoEl *left, TPZGeoEl *right, TPZVec<REAL> &normal) const;
+    
+    /** @brief compute the normal to the point */
+    void Normal(TPZVec<REAL> &point, TPZVec<REAL> &normal) const;
     
     /** @brief Returns the number of sides in which the current side can be decomposed */
     int NSides() const;

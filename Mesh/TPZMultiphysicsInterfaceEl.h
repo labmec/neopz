@@ -196,8 +196,8 @@ public:
 	 */
 	virtual void Print(std::ostream &out = std::cout) const override;
 	
-    /** @brief Initialize the material data for the neighbouring element */
-    void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel, TPZVec<int64_t> *indices=0);
+    /** @brief Initialize the material data structures */
+    void InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right);
     
     /** @brief initialize the material data for the geometric data */
     void InitMaterialData(TPZMaterialData &data);

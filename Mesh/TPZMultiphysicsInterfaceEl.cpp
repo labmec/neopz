@@ -28,6 +28,7 @@
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
 #include "pzgraphmesh.h"
+#include "TPZMultiphysicsCompMesh.h"
 
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),
@@ -312,11 +313,6 @@ int64_t TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
     
-//    if(!ek.fMesh){ /* @Omar:: Why is not implemented CalcResidual without unefficient "fake ek"  */
-//        this->CalcStiff(ef);
-//        return;
-//    }
-    
 	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -348,26 +344,14 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
        
     TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
     TPZMaterialData data;
-    InitMaterialData(datavecleft, leftel, leftindices);
-    InitMaterialData(datavecright, rightel, rightindices);
+    InitMaterialData(data, datavecleft, datavecright);
     
     TPZManVector<TPZTransform<REAL>,6> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
-       
-    InitMaterialData(data);
-    if(data.fNeedsNeighborSol)
-    {
-        for (int i=0; i<datavecleft.size(); i++) {
-            datavecleft[i].fNeedsSol = true;
-        }
-        for (int i=0; i<datavecright.size(); i++) {
-            datavecright[i].fNeedsSol = true;
-        }
-    }
+
     int nmesh =datavecleft.size();
     for(int id = 0; id<nmesh; id++){
-        datavecleft[id].fNeedsNormal=data.fNeedsNormal;
         datavecleft[id].p = 0;
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel->Element(id));
         if (msp)
@@ -375,7 +359,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
             datavecleft[id].p =msp->MaxOrder();
         }
     }
-//    data.fNeedsHSize=true;
+
     int intleftorder = leftel->IntegrationOrder();
     int intrightorder = rightel->IntegrationOrder();
     int integrationorder = MAX(intleftorder, intrightorder);
@@ -442,8 +426,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     
     TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
     TPZMaterialData data;
-    InitMaterialData(datavecleft, leftel);
-    InitMaterialData(datavecright, rightel);
+    InitMaterialData(data, datavecleft, datavecright);
     
     TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
@@ -715,11 +698,24 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
     }
 }
 
-/** @brief Initialize the material data for the neighbouring element */
-void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel,TPZVec<int64_t> *indices)
-{
-	data.resize(mfcel->NMeshes());
-	mfcel->InitMaterialData(data,indices);
+///** @brief Initialize the material data for the neighbouring element */
+//void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel,TPZVec<int64_t> *indices)
+//{
+//    data.resize(mfcel->NMeshes());
+//    mfcel->InitMaterialData(data,indices);
+//}
+
+/** @brief Initialize the material data structures */
+void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right){
+
+    TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
+    int n_meshes = mp_cmesh->MeshVector().size();
+    data_left.resize(n_meshes);
+    data_right.resize(n_meshes);
+    
+    TPZMaterial * mat = this->Material();
+    mat->FillDataRequirementsInterface(center_data, data_left, data_right);
+    
 }
 
 /** @brief initialize the material data for the geometric data */
@@ -778,13 +774,6 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 		data.HSize = faceSize;
 	}
 
-}
-
-/** @brief Compute the required data from the neighbouring elements */
-void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data)
-{
-    DebugStop();
-    //Neighbour->ComputeR
 }
 
 void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
@@ -873,30 +862,7 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 		
     TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
     TPZMaterialData data;
-    InitMaterialData(datavecleft, leftel);
-    InitMaterialData(datavecright, rightel);
-
-	int nrefl = datavecleft.size();
-	for(int i = 0; i<nrefl; i++)
-		
-	{
-		datavecleft[i].SetAllRequirements(false);
-        datavecleft[i].fNeedsSol = true;
-		datavecleft[i].fNeedsNeighborSol = false;
-		datavecleft[i].fNeedsNeighborCenter = false;
-		datavecleft[i].fNeedsNormal = false;
-	}
-	
-	int nrefr = datavecright.size();
-	for(int i = 0; i<nrefr; i++)
-		
-	{
-		datavecright[i].SetAllRequirements(false);
-        datavecright[i].fNeedsSol = true;
-		datavecright[i].fNeedsNeighborSol = false;
-		datavecright[i].fNeedsNeighborCenter = false;
-		datavecright[i].fNeedsNormal = false;
-	}
+    InitMaterialData(data, datavecleft, datavecright);
 	
     TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);

@@ -141,6 +141,21 @@ public:
         data.fNeedsNormal = false;
     }
     
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right)
+    {
+        data.SetAllRequirements(false);
+        int nref_left = datavec_left.size();
+        for(int iref = 0; iref<nref_left; iref++){
+            datavec_left[iref].SetAllRequirements(false);
+        }
+        int nref_right = datavec_right.size();
+        for(int iref = 0; iref<nref_right; iref++){
+            datavec_right[iref].SetAllRequirements(false);
+        }
+
+    }
+    
     
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }

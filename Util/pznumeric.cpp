@@ -26,6 +26,13 @@ void TPZNumeric::NormalizeVetor3(TPZVec<REAL> &vetor){
 	for(i=0; i<3; i++) vetor[i] = vetor[i]/norma;
 }
 
+void TPZNumeric::NormalizeVetor(TPZVec<REAL> &vetor){
+    int i,n;
+    n = vetor.NElements();
+    REAL norma = TPZNumeric::Norma(vetor);
+    for(i=0; i< n; i++) vetor[i] = vetor[i]/norma;
+}
+
 TPZNumeric::TPZNumeric(){
 }
 TPZNumeric::~TPZNumeric(){

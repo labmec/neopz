@@ -118,12 +118,16 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
 	TPZManVector< REAL,3 > locElement(fGeoEl->Dimension(), 0.);
     result.Resize(3);
-    
-	TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
-	
-	ElementDim.Apply(loc, locElement);
-	
+    QsiElement(loc, locElement);
 	fGeoEl->X(locElement, result);
+}
+
+/** @brief X coordinate of a point loc of the side */
+void TPZGeoElSide::QsiElement(TPZVec< REAL > &qsi_side, TPZVec< REAL > &qsi_element) const{
+    
+    qsi_element.Resize(fGeoEl->Dimension());
+    TPZTransform<> ElementDim = fGeoEl->SideToSideTransform(fSide, fGeoEl->NSides()-1);
+    ElementDim.Apply(qsi_side, qsi_element);
 }
 
 /** @brief X coordinate of a point loc of the side */
@@ -1084,15 +1088,7 @@ bool TPZGeoElSide::IsLinearMapping() const
 /** @brief compute the normal to the point from left to right neighbour */
 void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *RightEl, TPZVec<REAL> &normal) const
 {
-    normal.Resize(3);
-	
-	
-	//  int dim = Reference()->Dimension();
-	// TPZGeoEl *ref = Reference();
-	//  int face = ref->NSides()-1;
-	//face: lado do elemento bidimensional ou aresta
-	//do unidimensional ou canto do ponto
-	normal.Resize(3,0.);
+    normal.Resize(3,0.);
 	normal.Fill(0.);
 	int faceleft,faceright;
 	
@@ -1180,6 +1176,86 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 		for(i=0; i<3; i++) normal[i] = -normal[i];
 	}
 
+}
+
+/** @brief compute the normal to the point */
+void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
+    
+    if (Dimension() != fGeoEl->Dimension()-1) {
+        DebugStop();
+    }
+    
+    normal.Resize(3,0.);
+    normal.Fill(0.);
+
+    TPZManVector<REAL, 3> center_dir(3,0.0), vol_center_x(3,0.0), x(3,0.0);
+    
+    TPZGeoElSide vol_side(fGeoEl,fGeoEl->NSides()-1);
+    vol_side.CenterX(vol_center_x);
+    this->X(qsi_side, x);
+    center_dir = x - vol_center_x;
+    
+    int vol_dim   = vol_side.Dimension();
+    int side_dim = Dimension();
+    
+    TPZManVector<REAL, 3> qsi_vol(vol_dim,0.0);
+    this->QsiElement(qsi_side, qsi_vol);
+    
+    TPZFMatrix<REAL> side_jac(side_dim,side_dim), side_inv_jac(side_dim,side_dim), side_axes(side_dim,3);
+    TPZFMatrix<REAL> vol_jac(vol_dim,vol_dim), vol_inv_jac(vol_dim,vol_dim), vol_axes(vol_dim,3);
+    REAL detjac;
+    
+    this->Jacobian(qsi_side, side_jac, side_axes, detjac, side_inv_jac);
+    vol_side.Jacobian(qsi_vol, vol_jac, vol_axes, detjac, vol_inv_jac);
+    
+    switch (side_dim) {
+        case 0:
+        {
+            for (unsigned int i = 0; i < 3; i++) {
+                normal[i] = vol_axes(i,0);
+            }
+        }
+            break;
+        case 1:
+        {
+            TPZManVector<REAL, 3> v1(3,0.0),v2(3,0.0),v3(3,0.0),v4(3,0.0);
+            for (unsigned int i = 0; i < 3 ; i++) {
+                v1[i] = vol_axes(i,0);
+                v2[i] = vol_axes(i,1);
+                v3[i] = side_axes(i,0);
+            }
+            
+            TPZNumeric::ProdVetorial(v1, v2, v4);
+            TPZNumeric::ProdVetorial(v4, v3, normal);
+            
+        }
+            break;
+        case 2:
+        {
+            TPZManVector<REAL, 3> v1(3,0.0),v2(3,0.0);
+            for (unsigned int i = 0; i < 3 ; i++) {
+                v1[i] = side_axes(i,0);
+                v2[i] = side_axes(i,1);
+            }
+            TPZNumeric::ProdVetorial(v1, v2, normal);
+        }
+            break;
+        default:
+        {
+            DebugStop();
+        }
+            break;
+    }
+    
+    TPZNumeric::NormalizeVetor(normal);
+    
+    //to guarantee the normal points from left to right neighbours:
+    REAL dot = 0.;
+    for(unsigned int i=0; i<3; i++) dot += normal[i]*center_dir[i];
+    if(dot < 0.) {
+        for(unsigned int i=0; i<3; i++) normal[i] = -normal[i];
+    }
+    
 }
 
 /** @brief print geometric characteristics of the element/side */

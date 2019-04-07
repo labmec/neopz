@@ -34,8 +34,10 @@ public:
   	/** dados dois vetores calcula o produto vetorial. */
 	/** @brief Computes the vectorial product u x v */
   	static void ProdVetorial(TPZVec<REAL> &u, TPZVec<REAL> &v, TPZVec<REAL> &result);
-	/** @brief Normalizes the vector */
+	/** @brief Normalizes the vector with 3 elements */
 	static void NormalizeVetor3(TPZVec<REAL> &vetor);
+    /** @brief Normalizes the vector */
+    static void NormalizeVetor(TPZVec<REAL> &vetor);
 	/** @brief Returns the L2-norm of the vector */
     static REAL Norma(const TPZVec<REAL> &vetor);
 };
