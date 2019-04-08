@@ -146,41 +146,6 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
                 continue;
             }
         }
-        
-        
-//        matid = this->Mesh()->Reference()->InterfaceMaterial(this->Reference()->MaterialId(), list[0].Element()->Reference()->MaterialId());
-//		if (matid == GMESHNOMATERIAL && thisdim == neighbourdim){
-//			//      matid = this->Material()->Id();
-//            continue;
-//        }
-//        else if(matid == GMESHNOMATERIAL && thisdim != neighbourdim)
-//        {
-//            // verify if either of the neighbours is a boundary condition
-//			if (thisdim < neighbourdim) 
-//            {
-//                // return the material id of boundary condition IF the associated material is derived from bndcond
-//                TPZMaterial *mat = this->Material();
-//                TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
-//                if(bnd)
-//                {
-//                    matid = this->Material()->Id();
-//                }
-//                else {
-//                    continue;
-//                }
-//            }
-//			else 
-//            {
-//                TPZMaterial *mat = list[is].Element()->Material();
-//                TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
-//                if (bnd) {
-//                    matid = bnd->Id();
-//                }
-//                else {
-//                    continue;
-//                }
-//            }
-//		}
 		
 		int64_t index;
 		
@@ -485,6 +450,9 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
     for (int imesh = 0; imesh < nmeshes; imesh++) {
         TPZCompEl *cel = this->ReferredElement(imesh);
         if (!cel) {
+            continue;
+        }
+        if(!this->IsActiveApproxSpaces(imesh)){
             continue;
         }
         int ncon = cel->NConnects();
