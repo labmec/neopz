@@ -632,7 +632,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     
 }
 
-#define SGPS_Q
+//#define SGPS_Q
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T, TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain) {
