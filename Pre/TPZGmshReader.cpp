@@ -88,6 +88,22 @@ void TPZGmshReader::PrintPartitionSummary(std::ostream & out){
     out << "Number of surfaces with physical tag    = " << m_n_physical_surfaces << std::endl;
     out << "Number of curves with physical tag      = " << m_n_physical_curves << std::endl;
     out << "Number of points with physical tag      = " << m_n_physical_points << std::endl;
+    out << "Number of elements by type : " << std::endl;
+    out << "Points          : " << m_n_point_els << std::endl;
+    out << "Lines           : " << m_n_line_els << std::endl;
+    out << "Triangles       : " << m_n_triangle_els << std::endl;
+    out << "Quadrilaterals  : " << m_n_quadrilateral_els << std::endl;
+    out << "Tetrahera       : " << m_n_tetrahedron_els << std::endl;
+    out << "Hexahedra       : " << m_n_hexahedron_els << std::endl;
+    out << "Prism           : " << m_n_prism_els << std::endl;
+    out << "Pyramids        : " << m_n_pyramid_els << std::endl;
+    int n_vols_els = m_n_pyramid_els + m_n_prism_els + m_n_hexahedron_els + m_n_tetrahedron_els;
+    int n_surf_els = m_n_triangle_els + m_n_quadrilateral_els;
+    out << "Number of elements by type : " << std::endl;
+    out << "3D elements : " << n_vols_els << std::endl;
+    out << "2D elements : " << n_surf_els << std::endl;
+    out << "1D elements : " << m_n_line_els << std::endl;
+    out << "0D elements : " << m_n_point_els << std::endl;
     out << "Characteristic length = " << m_characteristic_lentgh <<std::endl;
     out << std::endl;
 
@@ -461,12 +477,14 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         case 1:
         {   // Line
             new TPZGeoElRefPattern< pzgeom::TPZGeoLinear> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_line_els++;
         }
             break;
         case 2:
         {
             // Triangle
             new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_triangle_els++;
             
         }
             break;
@@ -474,6 +492,7 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Quadrilateral
             new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_quadrilateral_els++;
             
         }
             break;
@@ -481,6 +500,7 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Tetrahedron
             new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_tetrahedron_els++;
             
         }
             break;
@@ -488,18 +508,21 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Hexahedra
             new TPZGeoElRefPattern< pzgeom::TPZGeoCube> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_hexahedron_els++;
         }
             break;
         case 6:
         {
             // Prism
             new TPZGeoElRefPattern< pzgeom::TPZGeoPrism> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_prism_els++;
         }
             break;
         case 7:
         {
             // Pyramid
             new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_pyramid_els++;
         }
             break;
         case 8:
@@ -542,6 +565,7 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         case 15:{
             // Point
             new TPZGeoElement< pzgeom::TPZGeoPoint, pzrefine::TPZRefPoint> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_point_els++;
         }
             break;
         default:
