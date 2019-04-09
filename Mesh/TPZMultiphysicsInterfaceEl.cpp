@@ -762,8 +762,6 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     TPZGeoEl *gel = Reference();
     TPZGeoElSide gelside(gel,gel->NSides()-1);
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
-    //ComputeRequiredData(Point,data);
-    //data.fNeedsNormal = true;
     
     TPZMaterial *mat = Material();
     if (mat) {
@@ -772,15 +770,20 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 
     if (data.fNeedsNormal)
     {
-        gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+        
+        if (gelside.Dimension() == gelside.Element()->Dimension()-1) {
+            gelside.Normal(point, data.normal);
+        }else{
+            gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+        }
     }
     
     if (data.fNeedsHSize){
 		const int dim = this->Dimension();
 		REAL faceSize;
 		if (dim == 0){//it means I am a point
-            DebugStop();
-            faceSize = 1.;
+//            DebugStop();
+            faceSize = 0.;
 		}
 		else{
 			faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio
