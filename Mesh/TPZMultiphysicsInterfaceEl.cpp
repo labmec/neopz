@@ -708,15 +708,15 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 /** @brief Initialize the material data structures */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right){
 
-    TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
-    int n_meshes = mp_cmesh->MeshVector().size();
+    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
+    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+  //  TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
+    int n_meshes = leftel->NMeshes();
     data_left.resize(n_meshes);
     data_right.resize(n_meshes);
     
     TPZMaterial * mat = this->Material();
     mat->FillDataRequirementsInterface(center_data, data_left, data_right);
-    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
-    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
     
     TPZVec<int64_t> *leftindices(0), *rightindices(0);
     if (fLeftElIndices.size()) {
