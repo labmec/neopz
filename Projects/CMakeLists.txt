@@ -118,15 +118,17 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
+			#Projeto Natalia
+			add_subdirectory(WellboreGPU)
 
 			#Testes Douglas
-			add_subdirectory(dactests)
+			#add_subdirectory(dactests)
 
 			#Testes padroes de refinamento
-			add_subdirectory(Heman)
+			#add_subdirectory(Heman)
 
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
-			add_subdirectory(descontinuo)
+			#add_subdirectory(descontinuo)
 
 
 			#Adaptivity based on mesh cloning (Edimar Cesar thesis)
@@ -137,117 +139,117 @@ ENABLE_TESTING()
 
 			#add_subdirectory(projteste)
 
-			add_subdirectory(MultipleLoad)
+			#add_subdirectory(MultipleLoad)
 
 			# add_subdirectory(adaptivity_refactor)
 						
-			add_subdirectory(Cubo_do_Nathan)
+			#add_subdirectory(Cubo_do_Nathan)
 	
-			add_subdirectory(HyperElasticityFAD)
+			#add_subdirectory(HyperElasticityFAD)
 
 			#Increment singular shape function: SingularShapeFunction
-			add_subdirectory(SingularShapeFunction)
-			add_subdirectory(angletest)
-			add_subdirectory(checkconv)
+			#add_subdirectory(SingularShapeFunction)
+			#add_subdirectory(angletest)
+			#add_subdirectory(checkconv)
 
 			#Orthogonalization process of Gram-Schmidt
-			add_subdirectory(matrix)
+			#add_subdirectory(matrix)
 
 			#Inserting material and boundary conditions by function
-			add_subdirectory(termica)
-			add_subdirectory(Steam)
-			add_subdirectory(QuadraticElements)
-			add_subdirectory(ThermalStress)
+			#add_subdirectory(termica)
+			#add_subdirectory(Steam)
+			#add_subdirectory(QuadraticElements)
+			#add_subdirectory(ThermalStress)
 			#Add_subdirectory(Conductivity)
-			add_subdirectory(ConsLaw)
+			#add_subdirectory(ConsLaw)
 			#add_subdirectory(Descontinuo2)
 
-			add_subdirectory(SteamInjection)
+			#add_subdirectory(SteamInjection)
 			
 			#projeto agnaldo 09-09-2011
 			#add_subdirectory(DoubleProjection)
-            add_subdirectory(artigoPira)
-			add_subdirectory(TrabalhosLNCC15)
+            #add_subdirectory(artigoPira)
+			#add_subdirectory(TrabalhosLNCC15)
 			#projeto omar duran 16-12-2012
-			add_subdirectory(PoroElasticAnalysis)
-			add_subdirectory(Poisson2DGID)
-			add_subdirectory(OilWaterSystem)
+			#add_subdirectory(PoroElasticAnalysis)
+			#add_subdirectory(Poisson2DGID)
+			#add_subdirectory(OilWaterSystem)
 			#add_subdirectory(DarcyflowAxisymmetricHdiv)
 			#add_subdirectory(DarcyflowHdiv3D)
-			add_subdirectory(MonophasicWell)
+			#add_subdirectory(MonophasicWell)
 			if(USING_FAD)
 				if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-					add_subdirectory(ElastoPlasticSimulator)
+					#add_subdirectory(ElastoPlasticSimulator)
 				endif()
 			endif()
 			if(USING_FAD)
 				if (USING_LAPACK)
-					add_subdirectory(GradOfX)
+					#add_subdirectory(GradOfX)
                 endif()
-                add_subdirectory(MixedElasticity)
+                #add_subdirectory(MixedElasticity)
 			endif()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
-			add_subdirectory(Elasticity2D)
-			add_subdirectory(DrillPipe)
+			#add_subdirectory(Elasticity2D)
+			#add_subdirectory(DrillPipe)
 
             if (USING_LAPACK)
-			    add_subdirectory(Hdiv3DCurved)
+			    #add_subdirectory(Hdiv3DCurved)
             endif()
-			add_subdirectory(Hdiv3D)
-			add_subdirectory(Gridgeneration)
+			#add_subdirectory(Hdiv3D)
+			#add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)
-			add_subdirectory(MatrixMarket)
-			add_subdirectory(Frac1DHdiv)
-			add_subdirectory(SubStruct)
-			add_subdirectory(MultiphysicsSimulation)
-			add_subdirectory(ProblemGirkmann)
+			#add_subdirectory(MatrixMarket)
+			#add_subdirectory(Frac1DHdiv)
+			#add_subdirectory(SubStruct)
+			#add_subdirectory(MultiphysicsSimulation)
+			#add_subdirectory(ProblemGirkmann)
 
-			add_subdirectory(multplaca)
+			#add_subdirectory(multplaca)
 
 			#Projeto Lua 2012
-			add_subdirectory(Lua01)
+			#add_subdirectory(Lua01)
 
 			#teste nathan
-			add_subdirectory(PlasticityPV)
+			#add_subdirectory(PlasticityPV)
 
 			#Projeto Denise
 			#add_subdirectory(HdivPressureTeste)
-			add_subdirectory(HpAdaptivity)
-			add_subdirectory(AcoplamentoH1Hdiv)
-			add_subdirectory(Validacao)
+			#add_subdirectory(HpAdaptivity)
+			#add_subdirectory(AcoplamentoH1Hdiv)
+			#add_subdirectory(Validacao)
 
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
-			add_subdirectory(Testes_Agnaldo)
-			add_subdirectory(ReducedSpace)
-			add_subdirectory(ReducedSpacePlasticity)
-			add_subdirectory(HydraulicFracturePropagation)
-			add_subdirectory(StabilizedHybridElasticity)
-			add_subdirectory(GlobalPostPro)
-			add_subdirectory(HDiv)
+			#add_subdirectory(Testes_Agnaldo)
+			#add_subdirectory(ReducedSpace)
+			#add_subdirectory(ReducedSpacePlasticity)
+			#add_subdirectory(HydraulicFracturePropagation)
+			#add_subdirectory(StabilizedHybridElasticity)
+			#add_subdirectory(GlobalPostPro)
+			#add_subdirectory(HDiv)
 
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
 
 			#GPU project
-			add_subdirectory(GPU)
+			#add_subdirectory(GPU)
 
 			#Projeto Pablo
-			add_subdirectory(CreepStokes)
+			#add_subdirectory(CreepStokes)
 			
 			
-			add_subdirectory(Bima1)
+			#add_subdirectory(Bima1)
 #			add_subdirectory(EstabSUPG)
 #			add_subdirectory(MetodosEstab)
 			#
 			# Colaboration with Laurent Stainier
 
-			add_subdirectory(MatLib)
+			#add_subdirectory(MatLib)
 
 			if(USING_MKL)
-				add_subdirectory(PardisoSample)
+				#add_subdirectory(PardisoSample)
 			endif(USING_MKL)
 
 		endif(BUILD_COMPLEX_PROJECTS)
