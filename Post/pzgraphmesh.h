@@ -36,10 +36,10 @@ class TPZGraphMesh : public TPZSavable {
 public:
     
 	/** @brief Constructor for graphical mesh */
-    TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
+    TPZGraphMesh(TPZCompMesh *cm, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
     
     /** @brief Constructor with tensorial names for graphical mesh */
-    TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensornames);
+    TPZGraphMesh(TPZCompMesh *cm, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensornames);
     
 	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
@@ -62,10 +62,8 @@ public:
 	int64_t NElements(MElementType type);
 	/** @brief Get the resolution of the draw */
 	int Res() {return fResolution;}
-	/** @brief Sets the material information */
-	void SetMaterial(TPZMaterial * mat) {fMaterial = mat;}
 	/** @brief Sets the computational mesh to associate */
-	virtual void SetCompMesh(TPZCompMesh *mesh, TPZMaterial * &mat);
+    virtual void SetCompMesh(TPZCompMesh *mesh, const std::set<int> & matids);
 	/** @brief Draw the graphical nodes information */
 	virtual void DrawNodes();
 	/** @brief Draw the graphical mesh */
@@ -96,14 +94,23 @@ public:
     /** @brief  Set names with scalar, vectorial and tensorial variable names  */
     void SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<std::string>&vecnames, const TPZVec<std::string>& tensornames);
 	
+    /** @brief Set material ids  */
+    void SetMaterialIds(const std::set<int> & matids);
+    
+    /** @brief Get material ids  */
+    std::set<int> MaterialIds();
+    
+    /** @brief Return a directive if the material id is being postprocessed */
+    bool Material_Is_PostProcessed(int matid);
+    
 protected:
     
 	/** @brief Computational mesh associated */
 	TPZCompMesh *fCompMesh;
 	/** @brief Geometric mesh related */
 	TPZGeoMesh *fGeoMesh;
-	/** @brief Vector of material associated */
-	TPZMaterial * fMaterial;
+	/** @brief Set of material ids being post-processed */
+    std::set<int> fMaterialIds;
 	/** @brief Dimension of the graphical mesh */
 	int fDimension;
 	/** @brief Vector of graphical elements */

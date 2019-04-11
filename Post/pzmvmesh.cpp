@@ -11,16 +11,15 @@
 
 using namespace std;
 
-TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames,
-                               const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat, scalarnames,vecnames) {
+TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames,
+                               const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, matids, scalarnames,vecnames) {
 	fNumCases = 0;
 	fNumSteps = 0;
 	fStyle = EMVStyle;
 }
 
-TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMVGraphMesh *graph,TPZMaterial * mat) :
-TPZGraphMesh(cmesh, dimension,mat,graph->ScalarNames(),graph->VecNames()) {
-	if(!mat) fMaterial = graph->fMaterial;
+TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMVGraphMesh *graph) :
+TPZGraphMesh(cmesh, dimension,graph->fMaterialIds,graph->ScalarNames(),graph->VecNames()) {
 	fNumCases = graph->fNumCases;
 	fNumSteps = graph->fNumSteps;
 	fStyle = EMVStyle;

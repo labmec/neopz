@@ -14,8 +14,8 @@
 
 using namespace std;
 
-TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames,
-                                 const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh,dimension,mat,scalarnames,vecnames) {
+TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames,
+                                 const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh,dimension,matids,scalarnames,vecnames) {
 	fMesh = cmesh;
 	fStyle = EV3DStyle;
 	fNumCases = 0;
@@ -25,9 +25,8 @@ TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial 
 	for(int i=0; i<6; i++) fNumScal[i] = 0;
 }
 
-TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZV3DGraphMesh *graph,TPZMaterial * mat) :
-TPZGraphMesh(cmesh,dimension,mat,graph->ScalarNames(),graph->VecNames()) {
-	if(!mat) fMaterial = graph->Material();
+TPZV3DGraphMesh::TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZV3DGraphMesh *graph) :
+TPZGraphMesh(cmesh,dimension,graph->fMaterialIds,graph->ScalarNames(),graph->VecNames()) {
 	fMesh = cmesh;
 	fStyle = EV3DStyle;
 	fNumCases = graph->fNumCases;
