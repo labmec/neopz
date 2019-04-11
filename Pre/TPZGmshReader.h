@@ -117,6 +117,32 @@ class TPZGmshReader{
     
     /// Entity index to which the element belongs
     TPZManVector<int64_t> m_entity_index;
+
+public:
+    
+    /// Number of hexahedra
+    int m_n_hexahedron_els = 0;
+    
+    /// Number of tetrahedra
+    int m_n_tetrahedron_els = 0;
+    
+    /// Number of prisms
+    int m_n_prism_els = 0;
+    
+    /// Number of pyramids
+    int m_n_pyramid_els = 0;
+    
+    /// Number of quadrilaterals
+    int m_n_quadrilateral_els = 0;
+    
+    /// Number of triangles
+    int m_n_triangle_els = 0;
+    
+    /// Number of triangles
+    int m_n_line_els = 0;
+    
+    /// Number of points
+    int m_n_point_els = 0;
     
 public:
     

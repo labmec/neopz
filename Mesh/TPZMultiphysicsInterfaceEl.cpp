@@ -708,15 +708,15 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 /** @brief Initialize the material data structures */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right){
 
-    TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
-    int n_meshes = mp_cmesh->MeshVector().size();
+    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
+    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+  //  TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
+    int n_meshes = leftel->NMeshes();
     data_left.resize(n_meshes);
     data_right.resize(n_meshes);
     
     TPZMaterial * mat = this->Material();
     mat->FillDataRequirementsInterface(center_data, data_left, data_right);
-    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
-    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
     
     TPZVec<int64_t> *leftindices(0), *rightindices(0);
     if (fLeftElIndices.size()) {
@@ -762,8 +762,6 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     TPZGeoEl *gel = Reference();
     TPZGeoElSide gelside(gel,gel->NSides()-1);
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
-    //ComputeRequiredData(Point,data);
-    //data.fNeedsNormal = true;
     
     TPZMaterial *mat = Material();
     if (mat) {
@@ -772,15 +770,20 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 
     if (data.fNeedsNormal)
     {
-        gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+        
+        if (gelside.Dimension() == gelside.Element()->Dimension()-1) {
+            gelside.Normal(point, data.normal);
+        }else{
+            gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+        }
     }
     
     if (data.fNeedsHSize){
 		const int dim = this->Dimension();
 		REAL faceSize;
 		if (dim == 0){//it means I am a point
-            DebugStop();
-            faceSize = 1.;
+//            DebugStop();
+            faceSize = 0.;
 		}
 		else{
 			faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio

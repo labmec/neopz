@@ -163,6 +163,7 @@ void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const Mat
 	// Print the matrix along with a identification title
 	if(form == EInputFormat) {
 		out << "\nTSYsmpMatrix Print: " << title << '\n'
+        << "\tNon zero elements    = " << fA.size()  << '\n'
 		<< "\tRows    = " << this->Rows()  << '\n'
 		<< "\tColumns = " << this->Cols() << '\n';
 		int i;
