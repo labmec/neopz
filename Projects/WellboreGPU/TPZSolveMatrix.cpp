@@ -17,6 +17,100 @@
 using namespace tbb;
 #endif
 
+void TPZSolveMatrix::Multiplicity1(double *sigma, double eigenvalue, double *eigenvector) {
+    TPZVec<REAL> det(3);
+    det[0] = (sigma[0] - eigenvalue)*(sigma[1] - eigenvalue) - sigma[3]*sigma[3];
+    det[1] = (sigma[0] - eigenvalue)*(sigma[2] - eigenvalue);
+    det[2] = (sigma[1] - eigenvalue)*(sigma[2] - eigenvalue);
+
+    REAL maxdet = fabs(det[0]);
+    for (int i = 1; i < 3; i++) {
+        if (fabs(det[i]) > fabs(maxdet)) {
+            maxdet = fabs(det[i]);
+        }
+    }
+    TPZVec<REAL> v(3);
+    if (maxdet == fabs(det[0])) {
+        v[0] = 0;
+        v[1] = 0;
+        v[2] = 1;
+
+    }
+    else if (maxdet == fabs(det[1])) {
+        v[0] = 1/det[1]*(-(sigma[2] - eigenvalue)*sigma[3]);
+        v[1] = 1;
+        v[2] = 0;
+
+    }
+    else {
+        v[0] = 1;
+        v[1] = 1/det[2]*(-(sigma[2] - eigenvalue)*sigma[3]);
+        v[2] = 0;
+    }
+    REAL norm = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+    eigenvector[0] = v[0]/norm;
+    eigenvector[1] = v[1]/norm;
+    eigenvector[2] = v[2]/norm;
+}
+
+void TPZSolveMatrix::Multiplicity2(double *sigma, double eigenvalue, double *eigenvector1, double *eigenvector2) {
+    TPZVec<REAL> x(3);
+    x[0] = sigma[0] - eigenvalue;
+    x[1] = sigma[1] - eigenvalue;
+    x[2] = sigma[2] - eigenvalue;
+
+    REAL maxx = fabs(x[0]);
+    for (int i = 1; i < 3; i++) {
+        if (fabs(x[i]) > fabs(maxx)) {
+            maxx = fabs(x[i]);
+        }
+    }
+
+    TPZVec<REAL> v1(3);
+    TPZVec<REAL> v2(3);
+
+    if (maxx == fabs(x[0])) {
+        v1[0] = -sigma[3]/x[0];
+        v1[1] = 1;
+        v1[2] = 0;
+
+        v2[0] = 0;
+        v2[1] = 0;
+        v2[2] = 1;
+
+    }
+    else if (maxx == fabs(x[1])) {
+        v1[0] = 1;
+        v1[1] = -sigma[3]/x[1];
+        v1[2] = 0;
+
+        v2[0] = 0;
+        v2[1] = 0;
+        v2[2] = 1;
+
+    }
+    else {
+        v1[0] = 1;
+        v1[1] = 0;
+        v1[2] = 0;
+
+        v2[0] = 0;
+        v2[1] = 1;
+        v2[2] = 0;
+
+    }
+    REAL norm1 = sqrt(v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]);
+    REAL norm2 = sqrt(v2[0]*v2[0] + v2[1]*v1[1] + v2[2]*v2[2]);
+
+    eigenvector1[0] = v1[0]/norm1;
+    eigenvector1[1] = v1[1]/norm1;
+    eigenvector1[2] = v1[2]/norm1;
+
+    eigenvector2[0] = v2[0]/norm2;
+    eigenvector2[1] = v2[1]/norm2;
+    eigenvector2[2] = v2[2]/norm2;
+}
+
 //Spectral decomposition
 void TPZSolveMatrix::Eigenvectors(double *sigma, double *eigenvalues, double *eigenvectors, double &maxel) {
     sigma[0]*=maxel;
@@ -24,7 +118,6 @@ void TPZSolveMatrix::Eigenvectors(double *sigma, double *eigenvalues, double *ei
     sigma[2]*=maxel;
     sigma[3]*=maxel;
 
-    TPZVec<int> multiplicity(3);
     if ((eigenvalues[0] == eigenvalues[1]) && (eigenvalues[1] == eigenvalues[2]) || (fabs(sigma[3]) < 1.e-8)) {
         eigenvectors[0] = 1.;
         eigenvectors[1] = 0.;
@@ -40,107 +133,19 @@ void TPZSolveMatrix::Eigenvectors(double *sigma, double *eigenvalues, double *ei
     }
     else {
         if (eigenvalues[0] != eigenvalues[1] && eigenvalues[0] != eigenvalues[2]) {
-            multiplicity[0] = 1;
+            Multiplicity1(sigma, eigenvalues[0], &eigenvectors[0]);
         } else if (eigenvalues[0] == eigenvalues[1]) {
-            multiplicity[0] = 2;
-            multiplicity[1] = 2;
+            Multiplicity2(sigma, eigenvalues[0], &eigenvectors[0], &eigenvectors[3]);
         } else if (eigenvalues[0] == eigenvalues[2]) {
-            multiplicity[0] = 2;
-            multiplicity[2] = 2;
+            Multiplicity2(sigma, eigenvalues[0], &eigenvectors[0], &eigenvectors[6]);
         }
         if (eigenvalues[1] != eigenvalues[0] && eigenvalues[1] != eigenvalues[2]) {
-            multiplicity[1] = 1;
+            Multiplicity1(sigma, eigenvalues[1], &eigenvectors[3]);
         } else if (eigenvalues[1] == eigenvalues[2]) {
-            multiplicity[1] = 2;
-            multiplicity[2] = 2;
+            Multiplicity2(sigma, eigenvalues[1], &eigenvectors[3], &eigenvectors[6]);
         }
         if (eigenvalues[2] != eigenvalues[0] && eigenvalues[2] != eigenvalues[1]) {
-            multiplicity[2] = 1;
-        }
-    }
-
-    for (int i = 0; i < 3; i++) {
-        if (multiplicity[i] == 1) {
-            TPZVec<REAL> det(3);
-            det[0] = (sigma[0] - eigenvalues[i])*(sigma[1] - eigenvalues[i]) - sigma[3]*sigma[3];
-            det[1] = (sigma[0] - eigenvalues[i])*(sigma[2] - eigenvalues[i]);
-            det[2] = (sigma[1] - eigenvalues[i])*(sigma[2] - eigenvalues[i]);
-
-            REAL maxdet = fabs(det[0]);
-            for (int i = 1; i < 3; i++) {
-                if (fabs(det[i]) > fabs(maxdet)) {
-                    maxdet = fabs(det[i]);
-                }
-            }
-            TPZVec<REAL> v(3);
-            if (maxdet == fabs(det[0])) {
-                v[0] = 0;
-                v[1] = 0;
-                v[2] = 1;
-
-            }
-            else if (maxdet == fabs(det[1])) {
-                v[0] = 1/det[1]*(-(sigma[2] - eigenvalues[i])*sigma[3]);
-                v[1] = 1;
-                v[2] = 0;
-
-            }
-            else {
-                v[0] = 1;
-                v[1] = 1/det[2]*(-(sigma[2] - eigenvalues[i])*sigma[3]);
-                v[2] = 0;
-            }
-            REAL norm = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-            eigenvectors[3*i + 0] = v[0]/norm;
-            eigenvectors[3*i + 1] = v[1]/norm;
-            eigenvectors[3*i + 2] = v[2]/norm;
-        }
-        if (multiplicity[i] == 2) {
-            TPZVec<REAL> x(3);
-            x[0] = sigma[0] - eigenvalues[i];
-            x[1] = sigma[1] - eigenvalues[i];
-            x[2] = sigma[2] - eigenvalues[i];
-
-            REAL maxx = fabs(x[0]);
-            for (int i = 1; i < 3; i++) {
-                if (fabs(x[i]) > fabs(maxx)) {
-                    maxx = fabs(x[i]);
-                }
-            }
-
-            TPZVec<REAL> v1(3);
-            TPZVec<REAL> v2(3);
-
-            if (maxx == fabs(x[0])) {
-                v1[0] = -sigma[3]/x[0];
-                v1[1] = 1;
-                v1[2] = 0;
-
-                v2[0] = 0;
-                v2[1] = 0;
-                v2[2] = 1;
-
-            }
-            else if (maxx == fabs(x[1])) {
-                v1[0] = 1;
-                v1[1] = -sigma[3]/x[1];
-                v1[2] = 0;
-
-                v2[0] = 0;
-                v2[1] = 0;
-                v2[2] = 1;
-
-            }
-            else {
-                v1[0] = 1;
-                v1[1] = 0;
-                v1[2] = 0;
-
-                v2[0] = 0;
-                v2[1] = 1;
-                v2[2] = 0;
-
-            }
+            Multiplicity1(sigma, eigenvalues[2], &eigenvectors[6]);
         }
     }
 }
@@ -480,23 +485,6 @@ void TPZSolveMatrix::DeltaStrain(TPZFMatrix<REAL> &expandsolution, TPZFMatrix<RE
     }
 }
 
-void TPZSolveMatrix::DeltaStrainXYZ(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &delta_strainXYZ) {
-    delta_strain.Print(std::cout);
-    int64_t n_globalsol = fCmesh->Dimension()*fNphis;
-    int64_t size = fCmesh->Dimension()*fCmesh->Dimension()*fNpts;
-    delta_strainXYZ.Resize(size,1);
-    delta_strainXYZ.Zero();
-
-    for (int ipts = 0; ipts < fNpts; ++ipts) {
-        REAL dxy = fAxes[4 * ipts + 2] * delta_strain[2 * ipts] + fAxes[4 * ipts + 2 + 1] * delta_strain[2 * ipts + 1];
-        REAL dyx = fAxes[4 * ipts] * delta_strain[2 * ipts + n_globalsol] + fAxes[4 * ipts + 1] * delta_strain[2 * ipts + n_globalsol + 1];
-        delta_strainXYZ(2 * ipts, 0) = fAxes[4 * ipts] * delta_strain[2 * ipts] + fAxes[4 * ipts + 1] * delta_strain[2 * ipts + 1];
-        delta_strainXYZ(2 * ipts + 1, 0) = (dxy + dyx) / 2;
-        delta_strainXYZ(2 * ipts + n_globalsol, 0) = (dxy + dyx) / 2;
-        delta_strainXYZ(2 * ipts + n_globalsol + 1, 0) = fAxes[4 * ipts + 2] * delta_strain[2 * ipts + n_globalsol] + fAxes[4 * ipts + 2 + 1] * delta_strain[2 * ipts + n_globalsol + 1];
-    }
-}
-
 void TPZSolveMatrix::TotalStrain (TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain) {
     int64_t size = fCmesh->Dimension()*fCmesh->Dimension()*fNpts;
     total_strain.Resize(size,1);
@@ -535,7 +523,6 @@ void TPZSolveMatrix::ComputeStress(TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<
 
     for (int64_t ipts=0; ipts < fNpts; ipts++) {
         //plane strain
-//        fWeight[ipts]*
         sigma(4*ipts,0) = (elastic_strain(2*ipts,0)*E*(1.-nu)/((1.-2*nu)*(1.+nu)) + elastic_strain(2*ipts+2*fNpts+1,0)*E*nu/((1.-2*nu)*(1.+nu))); // Sigma xx
         sigma(4*ipts+1,0) = (elastic_strain(2*ipts+2*fNpts+1,0)*E*(1.-nu)/((1.-2*nu)*(1.+nu)) + elastic_strain(2*ipts,0)*E*nu/((1.-2*nu)*(1.+nu))); // Sigma yy
         sigma(4*ipts+2,0) = (E*nu/((1.+nu)*(1.-2*nu))*(elastic_strain(2*ipts,0) + elastic_strain(2*ipts+2*fNpts+1,0))); // Sigma zz

@@ -198,7 +198,6 @@ public:
     void GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &gather_solution);
 
     void DeltaStrain(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &deltastrain);
-    void DeltaStrainXYZ(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &delta_strainXYZ);
 
     void TotalStrain (TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain);
     void ElasticStrain (TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain);
@@ -209,7 +208,9 @@ public:
     void Normalize(double *sigma, double &maxel);
     void Interval(double *sigma, double *interval);
     void NewtonIterations(double *interval, double *sigma, double *eigenvalues, double &maxel);
-    void Eigenvectors(double *sigma, double *eigenvalues, double *eigenvectors, double &maxel);
+    void Eigenvectors(double *sigma, double *eigenvalue, double *eigenvector, double &maxel);
+    void Multiplicity1(double *sigma, double eigenvalue, double *eigenvector);
+    void Multiplicity2(double *sigma, double eigenvalue, double *eigenvector1, double *eigenvector2);
 
     void ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL> &sigma_projected, TPZFMatrix<REAL> &plastic_strain);
     bool PhiPlane(double *eigenvalues, double *sigma_projected);
