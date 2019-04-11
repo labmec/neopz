@@ -53,11 +53,13 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 	vecind.Resize(numvec);
 	scalind.Fill(-1,0,numscal);
 	vecind.Fill(-1,0,numvec);
-	TPZMaterial * matp = Material();
-	if(!matp) {
-		cout << "TPZMVGraphMesh no material found\n";
-		return;
-	}
+    std::set<int> matids = MaterialIds();
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator it = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*it);
 	int n;
 	for(n=0; n<numscal; n++) {
 		scalind[n] = matp->VariableIndex( fScalarNames[n]);

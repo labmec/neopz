@@ -1351,7 +1351,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grme
 		}//pyram
 	}//3d
 	
-	if(dimension == 1){
+	if(dimension == 1  && to_postpro){
 		new TPZGraphEl1dd(this,&grmesh);
 	}//1d
 }

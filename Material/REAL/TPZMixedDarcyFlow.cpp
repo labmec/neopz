@@ -263,7 +263,7 @@ int TPZMixedDarcyFlow::VariableIndex(const std::string &name){
 }
 
 int TPZMixedDarcyFlow::NSolutionVariables(int var){
-    if(var == 1) return this->Dimension();
+    if(var == 1) return 3;
     if(var == 2) return 1;
     if(var == 3) return 1;
     if(var == 4) return this->Dimension();
@@ -301,7 +301,7 @@ void TPZMixedDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     }
     
     if(var == 4){
-        for (int i  = 0; i < 3; i++) {
+        for (int i  = 0; i < this->Dimension(); i++) {
             Solout[i] = m_kappa(i,i);
         }
         return;

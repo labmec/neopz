@@ -37,11 +37,14 @@ void TPZVTKGraphMesh::DrawMesh(int numcases) {
 
 void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	
-	TPZMaterial * matp = Material();
-	if(!matp) {
-		cout << "TPZMVGraphMesh no material found\n";
-		return;
-	}
+    std::set<int> matid = MaterialIds();
+    std::set<int> matids = MaterialIds(); /// partial solution
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator it = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*it);
 	if(fOutFile.is_open())
 	{
 		fOutFile.close();

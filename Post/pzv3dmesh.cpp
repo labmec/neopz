@@ -95,7 +95,13 @@ void TPZV3DGraphMesh::DrawSolution(int step, REAL /*time*/){
 	scalind.Fill(-1);
 	vecind.Fill(-1);
 	
-	TPZMaterial * matp = Material();
+    std::set<int> matids = MaterialIds(); /// partial solution
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator it = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*it);
 	if(!matp) {
 		cout << "TPZV3DGraphMesh::DrawSolution material not found" << endl;
 		return;

@@ -117,8 +117,6 @@ class TPZGmshReader{
     
     /// Entity index to which the element belongs
     TPZManVector<int64_t> m_entity_index;
-
-public:
     
     /// Number of hexahedra
     int m_n_hexahedron_els = 0;
@@ -215,6 +213,46 @@ public:
     TPZVec<int64_t> &EntityIndex()
     {
         return m_entity_index;
+    }
+    
+    /// Return the number of hexahedra created
+    int NHexahedra(){
+        return m_n_hexahedron_els;
+    }
+    
+    /// Return the number of tetrahedra created
+    int NTetrahera(){
+        return m_n_tetrahedron_els;
+    }
+    
+    /// Return the number of prisms created
+    int NPrisms(){
+        return m_n_prism_els;
+    }
+    
+    /// Return the number of pyramids created
+    int NPyramids(){
+        return m_n_pyramid_els;
+    }
+    
+    /// Return the number of quadrilaterals created
+    int NQuadrilaterals(){
+        return m_n_quadrilateral_els;
+    }
+    
+    /// Return the number of triangles created
+    int NTriangles(){
+        return m_n_triangle_els;
+    }
+    
+    /// Return the number of line created
+    int NLines(){
+        return m_n_line_els;
+    }
+    
+    /// Return the number of line created
+    int NPoints(){
+        return m_n_point_els;
     }
     
 };

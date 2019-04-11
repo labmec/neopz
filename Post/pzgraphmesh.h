@@ -131,8 +131,8 @@ protected:
 	
 public:
     
-	/** @brief Return of the material for graphical mesh */
-	virtual TPZMaterial * Material();
+//    /** @brief Return of the material for graphical mesh */
+//    virtual TPZMaterial * Material();
 	/** @brief Return a pointer of the computational mesh */
 	virtual TPZCompMesh *Mesh() { return fCompMesh;}
     
