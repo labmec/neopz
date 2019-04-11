@@ -52,7 +52,6 @@ public:
     }
 
     TPZSolveMatrix(const TPZSolveMatrix &copy) {
-        fAxes = copy.fAxes;
         fCmesh = copy.fCmesh;
         fNpts = copy.fNpts;
         fNphis = copy.fNphis;
@@ -90,7 +89,6 @@ public:
     }
 
     TPZSolveMatrix &operator=(const TPZSolveMatrix &copy) {
-        fAxes = copy.fAxes;
         fCmesh = copy.fCmesh;
         fStorage = copy.fStorage;
         fColSizes = copy.fColSizes;
@@ -162,10 +160,6 @@ public:
         elmatloc = elmat;
     }
 
-    void SetAxesVector(TPZStack<REAL> axes) {
-        fAxes = axes;
-    }
-
     void SetIndexes(TPZVec<MKL_INT> indexes) {
         int64_t indsize = indexes.size();
         fIndexes.resize(indsize);
@@ -199,8 +193,8 @@ public:
 
     void DeltaStrain(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &deltastrain);
 
-    void TotalStrain (TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain);
-    void ElasticStrain (TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain);
+    void TotalStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain);
+    void ElasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain);
 
     void ComputeStress(TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &sigma);
 
@@ -221,7 +215,7 @@ public:
 
     void StressCompleteTensor(TPZFMatrix<REAL> &sigma_projected, TPZFMatrix<REAL> &eigenvectors, TPZFMatrix<REAL> &sigma);
 
-    void ComputeStrain( TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &elastic_strain);
+    void ComputeStrain(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &elastic_strain);
 
     void NodalForces(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &nodal_forces);
 
@@ -230,8 +224,7 @@ public:
     void ColoringElements() const;
 
 protected:
-    TPZStack<REAL> fAxes;
-
+/// computational mesh
     TPZCompMesh *fCmesh;
 
 ///total number of int points

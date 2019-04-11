@@ -1,7 +1,6 @@
 #include "TPZSolveMatrix.h"
 #include "TPZTensor.h"
 #include "pzmatrix.h"
-#include <mkl.h>
 #include <stdlib.h>
 #include "TPZTensor.h"
 #include "TPZVTKGeoMesh.h"
@@ -12,11 +11,7 @@
 #include <algorithm>
 #endif
 
-#ifdef USING_TBB
-#include "tbb/parallel_for_each.h"
-using namespace tbb;
-#endif
-
+//Spectral decomposition
 void TPZSolveMatrix::Multiplicity1(double *sigma, double eigenvalue, double *eigenvector) {
     TPZVec<REAL> det(3);
     det[0] = (sigma[0] - eigenvalue)*(sigma[1] - eigenvalue) - sigma[3]*sigma[3];
@@ -111,7 +106,6 @@ void TPZSolveMatrix::Multiplicity2(double *sigma, double eigenvalue, double *eig
     eigenvector2[2] = v2[2]/norm2;
 }
 
-//Spectral decomposition
 void TPZSolveMatrix::Eigenvectors(double *sigma, double *eigenvalues, double *eigenvectors, double &maxel) {
     sigma[0]*=maxel;
     sigma[1]*=maxel;
@@ -485,7 +479,7 @@ void TPZSolveMatrix::DeltaStrain(TPZFMatrix<REAL> &expandsolution, TPZFMatrix<RE
     }
 }
 
-void TPZSolveMatrix::TotalStrain (TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain) {
+void TPZSolveMatrix::TotalStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain) {
     int64_t size = fCmesh->Dimension()*fCmesh->Dimension()*fNpts;
     total_strain.Resize(size,1);
     total_strain.Zero();
