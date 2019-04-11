@@ -468,7 +468,9 @@ TPZFMatrix<REAL> AssembleResidualAllPoints(TPZFMatrix<REAL> &du, TPZCompMesh *cm
     solmat.SpectralDecomposition(sigma_trial, eigenvalues, eigenvectors);
     solmat.ProjectSigma(eigenvalues, sigma_projected, plastic_strain);
     solmat.StressCompleteTensor(sigma_projected, eigenvectors, sigma);
-//        solmat.ComputeStrain(sigma, elastic_strain);
+    solmat.ComputeStrain(sigma, elastic_strain);
+    sigma.Print(std::cout);
+    elastic_strain.Print(std::cout);
 //        plastic_strain = total_strain - elastic_strain;
     solmat.NodalForces(sigma, nodal_forces);
     solmat.ColoredAssemble(nodal_forces,res);

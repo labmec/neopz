@@ -500,34 +500,17 @@ void TPZSolveMatrix::ElasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<RE
 
 //Compute stress
 void TPZSolveMatrix::ComputeStress(TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &sigma) {
-    REAL E = fMaterialData.ElasticResponse().E();
-    REAL nu = fMaterialData.ElasticResponse().Poisson();
+    REAL lambda = fMaterialData.ElasticResponse().Lambda();
+    REAL mu = fMaterialData.ElasticResponse().Mu();
     sigma.Resize(4*fNpts,1);
-
-#ifdef USING_TBB
-    parallel_for(size_t(0),size_t(npts_tot/2),size_t(1),[&](size_t ipts)
-                      {
-                            sigma(2*ipts,0) = weight[ipts]*E/(1.-nu*nu)*(result(2*ipts,0)+nu*result(2*ipts+npts_tot+1,0)); // Sigma x
-                            sigma(2*ipts+1,0) = weight[ipts]*E/(1.-nu*nu)*(1.-nu)/2*(result(2*ipts+1,0)+result(2*ipts+npts_tot,0))*0.5; // Sigma xy
-                            sigma(2*ipts+npts_tot,0) = sigma(2*ipts+1,0); //Sigma xy
-                            sigma(2*ipts+npts_tot+1,0) = weight[ipts]*E/(1.-nu*nu)*(result(2*ipts+npts_tot+1,0)+nu*result(2*ipts,0)); // Sigma y
-                      }
-                      );
-#else
 
     for (int64_t ipts=0; ipts < fNpts; ipts++) {
         //plane strain
-        sigma(4*ipts,0) = (elastic_strain(2*ipts,0)*E*(1.-nu)/((1.-2*nu)*(1.+nu)) + elastic_strain(2*ipts+2*fNpts+1,0)*E*nu/((1.-2*nu)*(1.+nu))); // Sigma xx
-        sigma(4*ipts+1,0) = (elastic_strain(2*ipts+2*fNpts+1,0)*E*(1.-nu)/((1.-2*nu)*(1.+nu)) + elastic_strain(2*ipts,0)*E*nu/((1.-2*nu)*(1.+nu))); // Sigma yy
-        sigma(4*ipts+2,0) = (E*nu/((1.+nu)*(1.-2*nu))*(elastic_strain(2*ipts,0) + elastic_strain(2*ipts+2*fNpts+1,0))); // Sigma zz
-        sigma(4*ipts+3,0) = E/(2*(1.+nu))*(elastic_strain(2*ipts+1,0)+elastic_strain(2*ipts+2*fNpts,0)); // Sigma xy
-
-//    sigma(2*ipts,0) = weight[ipts]*E/(1.-nu*nu)*(result(2*ipts,0)+nu*result(2*ipts+npts_tot+1,0)); // Sigma x
-//    sigma(2*ipts+1,0) = weight[ipts]*E/(1.-nu*nu)*(1.-nu)/2*(result(2*ipts+1,0)+result(2*ipts+npts_tot,0))*0.5; // Sigma xy
-//    sigma(2*ipts+npts_tot,0) = sigma(2*ipts+1,0); //Sigma xy
-//    sigma(2*ipts+npts_tot+1,0) = weight[ipts]*E/(1.-nu*nu)*(result(2*ipts+npts_tot+1,0)+nu*result(2*ipts,0)); // Sigma y
+        sigma(4 * ipts, 0) = elastic_strain(2 * ipts, 0) * (lambda + 2. * mu) + elastic_strain(2 * ipts + 2 * fNpts + 1, 0) * lambda; // Sigma xx
+        sigma(4 * ipts + 1, 0) = elastic_strain(2 * ipts + 2 * fNpts + 1, 0) * (lambda + 2. * mu) + elastic_strain(2 * ipts, 0) * lambda; // Sigma yy
+        sigma(4 * ipts + 2, 0) = lambda * (elastic_strain(2 * ipts, 0) + elastic_strain(2 * ipts + 2 * fNpts + 1, 0)); // Sigma zz
+        sigma(4 * ipts + 3, 0) = mu * (elastic_strain(2 * ipts + 1, 0) + elastic_strain(2 * ipts + 2 * fNpts, 0)); // Sigma xy
     }
-#endif
 }
 
 //Compute strain
@@ -537,10 +520,10 @@ void TPZSolveMatrix::ComputeStrain(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &el
     int dim = fCmesh->Dimension();
 
     for (int ipts = 0; ipts < fNpts; ipts++) {
-        elastic_strain(2 * ipts + 0, 0) = 1. / E * (sigma(4*ipts + 0, 0) - nu * (sigma(4*ipts + 1, 0) + sigma(4*ipts + 2, 0))); //exx
-        elastic_strain(2 * ipts + 1, 0) = (1. + nu) / E * sigma(4*ipts + 3, 0); //exy
-        elastic_strain(2 * ipts + dim*fNpts + 0, 0) = (1. + nu) / E * sigma(4*ipts + 3, 0); //exy
-        elastic_strain(2 * ipts + dim*fNpts + 1, 0) = 1. / E * (sigma(4*ipts + 1, 0) - nu * (sigma(4*ipts + 0, 0) + sigma(4*ipts + 2, 0))); //eyy
+        elastic_strain(2 * ipts + 0, 0) = 1/fWeight[ipts]*(1. / E * (sigma(2*ipts,0)*(1.-nu*nu) - sigma(2*ipts + 2*fNpts +1,0)*(nu+nu*nu))); //exx
+        elastic_strain(2 * ipts + 1, 0) = 1/fWeight[ipts]*((1. + nu) / E * sigma(2 * ipts + 1, 0)); //exy
+        elastic_strain(2 * ipts + dim * fNpts + 0, 0) = elastic_strain(2 * ipts + 1, 0); //exy
+        elastic_strain(2 * ipts + dim * fNpts + 1, 0) = 1/fWeight[ipts]*(1. / E * (sigma(2*ipts + 2*fNpts +1,0)*(1.-nu*nu) - sigma(2*ipts,0)*(nu+nu*nu))); //eyy
     }
 }
 
