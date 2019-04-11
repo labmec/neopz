@@ -224,8 +224,8 @@ void TPZSolveMatrix::NewtonIterations(double *interval, double *sigma, double *e
 
 //Project Sigma
 bool TPZSolveMatrix::PhiPlane(double *eigenvalues, double *sigma_projected) {
-    REAL mc_phi = fMaterialData.FrictionAngle();
-    REAL mc_cohesion = fMaterialData.Cohesion();
+    REAL mc_phi = fMaterial->GetPlasticModel().fYC.Phi();
+    REAL mc_cohesion = fMaterial->GetPlasticModel().fYC.Cohesion();
 
     const REAL sinphi = sin(mc_phi);
     const REAL cosphi = cos(mc_phi);
@@ -241,11 +241,11 @@ bool TPZSolveMatrix::PhiPlane(double *eigenvalues, double *sigma_projected) {
 }
 
 bool TPZSolveMatrix::ReturnMappingMainPlane(double *eigenvalues, double *sigma_projected, double &m_hardening) {
-    REAL mc_phi = fMaterialData.FrictionAngle();
-    REAL mc_psi = mc_phi;
-    REAL mc_cohesion = fMaterialData.Cohesion();
-    REAL G = fMaterialData.ElasticResponse().G();
-    REAL K = fMaterialData.ElasticResponse().K();
+    REAL mc_phi = fMaterial->GetPlasticModel().fYC.Phi();
+    REAL mc_psi = fMaterial->GetPlasticModel().fYC.Psi();
+    REAL mc_cohesion = fMaterial->GetPlasticModel().fYC.Cohesion();
+    REAL K = fMaterial->GetPlasticModel().fER.K();
+    REAL G = fMaterial->GetPlasticModel().fER.G();
 
     const REAL sinphi = sin(mc_phi);
     const REAL sinpsi = sin(mc_psi);
@@ -279,11 +279,11 @@ bool TPZSolveMatrix::ReturnMappingMainPlane(double *eigenvalues, double *sigma_p
 }
 
 bool TPZSolveMatrix::ReturnMappingRightEdge(double *eigenvalues, double *sigma_projected, double &m_hardening) {
-    REAL mc_phi = fMaterialData.FrictionAngle();
-    REAL mc_psi = mc_phi;
-    REAL mc_cohesion = fMaterialData.Cohesion();
-    REAL G = fMaterialData.ElasticResponse().G();
-    REAL K = fMaterialData.ElasticResponse().K();
+    REAL mc_phi = fMaterial->GetPlasticModel().fYC.Phi();
+    REAL mc_psi = fMaterial->GetPlasticModel().fYC.Psi();
+    REAL mc_cohesion = fMaterial->GetPlasticModel().fYC.Cohesion();
+    REAL K = fMaterial->GetPlasticModel().fER.K();
+    REAL G = fMaterial->GetPlasticModel().fER.G();
 
     const REAL sinphi = sin(mc_phi);
     const REAL sinpsi = sin(mc_psi);
@@ -345,11 +345,11 @@ bool TPZSolveMatrix::ReturnMappingRightEdge(double *eigenvalues, double *sigma_p
 }
 
 bool TPZSolveMatrix::ReturnMappingLeftEdge(double *eigenvalues, double *sigma_projected, double &m_hardening) {
-    REAL mc_phi = fMaterialData.FrictionAngle();
-    REAL mc_psi = mc_phi;
-    REAL mc_cohesion = fMaterialData.Cohesion();
-    REAL G = fMaterialData.ElasticResponse().G();
-    REAL K = fMaterialData.ElasticResponse().K();
+    REAL mc_phi = fMaterial->GetPlasticModel().fYC.Phi();
+    REAL mc_psi = fMaterial->GetPlasticModel().fYC.Psi();
+    REAL mc_cohesion = fMaterial->GetPlasticModel().fYC.Cohesion();
+    REAL K = fMaterial->GetPlasticModel().fER.K();
+    REAL G = fMaterial->GetPlasticModel().fER.G();
 
     const REAL sinphi = sin(mc_phi);
     const REAL sinpsi = sin(mc_psi);
@@ -413,10 +413,10 @@ bool TPZSolveMatrix::ReturnMappingLeftEdge(double *eigenvalues, double *sigma_pr
 }
 
 void TPZSolveMatrix::ReturnMappingApex(double *eigenvalues, double *sigma_projected, double &m_hardening) {
-    REAL mc_phi = fMaterialData.FrictionAngle();
-    REAL mc_psi = mc_phi;
-    REAL mc_cohesion = fMaterialData.Cohesion();
-    REAL K = fMaterialData.ElasticResponse().K();
+    REAL mc_phi = fMaterial->GetPlasticModel().fYC.Phi();
+    REAL mc_psi = fMaterial->GetPlasticModel().fYC.Psi();
+    REAL mc_cohesion = fMaterial->GetPlasticModel().fYC.Cohesion();
+    REAL K = fMaterial->GetPlasticModel().fER.K();
 
     const REAL cotphi = 1. / tan(mc_phi);
 
@@ -493,8 +493,8 @@ void TPZSolveMatrix::PlasticStrain(TPZFMatrix<REAL> &total_strain, TPZFMatrix<RE
 
 //Compute stress
 void TPZSolveMatrix::ComputeStress(TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &sigma) {
-    REAL lambda = fMaterialData.ElasticResponse().Lambda();
-    REAL mu = fMaterialData.ElasticResponse().Mu();
+    REAL lambda = fMaterial->GetPlasticModel().fER.Lambda();
+    REAL mu = fMaterial->GetPlasticModel().fER.Mu();
     sigma.Resize(4*fNpts,1);
 
     for (int64_t ipts=0; ipts < fNpts; ipts++) {
@@ -508,8 +508,8 @@ void TPZSolveMatrix::ComputeStress(TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<
 
 //Compute strain
 void TPZSolveMatrix::ComputeStrain(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &elastic_strain) {
-    REAL E = fMaterialData.ElasticResponse().E();
-    REAL nu = fMaterialData.ElasticResponse().Poisson();
+    REAL E = fMaterial->GetPlasticModel().fER.E();
+    REAL nu = fMaterial->GetPlasticModel().fER.Poisson();
     int dim = fCmesh->Dimension();
 
     for (int ipts = 0; ipts < fNpts; ipts++) {
@@ -537,7 +537,7 @@ void TPZSolveMatrix::SpectralDecomposition(TPZFMatrix<REAL> &sigma_trial, TPZFMa
 void TPZSolveMatrix::ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL> &sigma_projected) {
     int dim = fCmesh->Dimension();
 
-    REAL mc_psi = fMaterialData.FrictionAngle();
+    REAL mc_psi = fMaterial->GetPlasticModel().fYC.Psi();
 
     sigma_projected.Resize(3*fNpts,1);
     sigma_projected.Zero();

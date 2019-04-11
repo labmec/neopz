@@ -47,7 +47,7 @@ TPZCompMesh *CmeshElastoplasticityNoBoundary(TPZGeoMesh *gmesh, int pOrder);
 TElastoPlasticData WellboreConfig();
 
 /// Residual calculation
-void SolutionAllPoints(int n_iterations, REAL tolerance, TPZAnalysis * an, TElastoPlasticData & wellbore_material);
+void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material);
 TPZFMatrix<REAL> AssembleResidualAllPoints(TPZFMatrix<REAL> &du, TPZSolveMatrix solmat, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain);
 TPZFMatrix<REAL> ResidualWithoutBoundary(TPZCompMesh *cmesh, TPZCompMesh *cmesh_noboundary);
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 //    TPZFMatrix<REAL> residual = Residual(cmesh, cmesh_noboundary);
 
 // Calculates residual using matrix operations
-    SolutionAllPoints(n_iterations, tolerance, analysis, wellbore_material);
+    SolutionAllPoints(analysis, n_iterations, tolerance, wellbore_material);
 
     return 0;
 }
@@ -410,30 +410,22 @@ TPZCompMesh *CmeshElastoplasticityNoBoundary(TPZGeoMesh * gmesh, int p_order) {
     return cmesh;
 }
 
-void SolutionAllPoints(int n_iterations, REAL tolerance, TPZAnalysis * analysis, TElastoPlasticData & wellbore_material){
+void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material){
     TPZCompMesh *cmesh = analysis->Mesh();
-
-    TPZSolveMatrix solmat(cmesh, wellbore_material);
-
-    bool stop_criterion_Q = false;
-    REAL norm_res;
     int neq = cmesh->NEquations();
-    int dim = cmesh->Dimension();
-    int64_t npts = solmat.NumberofIntPoints();
 
-    TPZFMatrix<REAL> total_strain(dim * dim * npts, 1, 0.);
-    TPZFMatrix<REAL> plastic_strain(dim * dim * npts, 1, 0.);
     TPZFMatrix<REAL> du(neq, 1, 0.);
     TPZFMatrix<REAL> delta_du;
     TPZFMatrix<REAL> res;
 
+    TPZSolveMatrix solmat(cmesh, wellbore_material.Id());
+
     analysis->Assemble();
     analysis->Solve();
-
-    solmat.SetTotalStrain(total_strain);
-    solmat.SetPlasticStrain(plastic_strain);
-
     delta_du = analysis->Solution();
+
+    REAL norm_res;
+    bool stop_criterion_Q = false;
 
     for (int i = 0; i < n_iterations; i++) {
         du += delta_du;

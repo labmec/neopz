@@ -9,7 +9,10 @@
 #include "pzfmatrix.h"
 #include "pzinterpolationspace.h"
 #include "pzcmesh.h"
-#include "TElastoPlasticData.h"
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZElastoPlasticMem.h"
+#include "TPZMatElastoPlastic2D.h"
 
 #ifdef USING_MKL
 #include "mkl.h"
@@ -44,10 +47,16 @@ public:
 
     }
 
-    TPZSolveMatrix(TPZCompMesh *cmesh, TElastoPlasticData materialdata) {
+    TPZSolveMatrix(TPZCompMesh *cmesh, int materialid) {
         SetCompMesh(cmesh);
-        SetMaterialData(materialdata);
+        SetMaterialId(materialid);
         SetDataStructure();
+
+        int dim = fCmesh->Dimension();
+        fTotalStrain.Resize(dim * dim * fNpts, 1);
+        fPlasticStrain.Resize(dim * dim * fNpts, 1);
+        fTotalStrain.Zero();
+        fPlasticStrain.Zero();
     }
 
     ~TPZSolveMatrix() {
@@ -71,7 +80,7 @@ public:
         fIndexes = copy.fIndexes;
         fIndexesColor = copy.fIndexesColor;
         fWeight = copy.fWeight;
-        fMaterialData = copy.fMaterialData;
+        fMaterial = copy.fMaterial;
 
 #ifdef __CUDACC__
         d_fStorage = copy.d_fStorage;
@@ -109,7 +118,7 @@ public:
         fIndexes = copy.fIndexes;
         fIndexesColor = copy.fIndexesColor;
         fWeight = copy.fWeight;
-        fMaterialData = copy.fMaterialData;
+        fMaterial = copy.fMaterial;
 
 #ifdef __CUDACC__
         d_fStorage = copy.d_fStorage;
@@ -196,20 +205,13 @@ public:
         fWeight = wvec;
     }
 
-    void SetMaterialData (TElastoPlasticData materialdata) {
-        fMaterialData = materialdata;
+    void SetMaterialId (int materialid) {
+        TPZMaterial *material = fCmesh->FindMaterial(materialid);
+        fMaterial = dynamic_cast<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> *>(material);
     }
 
     void SetSolution (TPZFMatrix<REAL> sol) {
         fSolution = sol;
-    }
-
-    void SetTotalStrain (TPZFMatrix<REAL> totalstrain) {
-        fTotalStrain = totalstrain;
-    }
-
-    void SetPlasticStrain (TPZFMatrix<REAL> plasticstrain) {
-        fPlasticStrain = plasticstrain;
     }
 
     void SetDataStructure();
@@ -301,8 +303,8 @@ protected:
 /// Weight Vector
     TPZStack<REAL> fWeight;
 
-/// material data
-    TElastoPlasticData fMaterialData;
+/// material
+    TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZElastoPlasticMem> *fMaterial;
 
 /// Parameters stored on device
 #ifdef __CUDACC__
