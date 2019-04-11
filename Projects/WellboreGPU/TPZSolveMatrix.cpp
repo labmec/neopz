@@ -112,7 +112,7 @@ void TPZSolveMatrix::Eigenvectors(double *sigma, double *eigenvalues, double *ei
     sigma[2]*=maxel;
     sigma[3]*=maxel;
 
-    if ((eigenvalues[0] == eigenvalues[1]) && (eigenvalues[1] == eigenvalues[2]) || (fabs(sigma[3]) < 1.e-8)) {
+    if ((eigenvalues[0] == eigenvalues[1]) && (eigenvalues[1] == eigenvalues[2])) {
         eigenvectors[0] = 1.;
         eigenvectors[1] = 0.;
         eigenvectors[2] = 0.;
@@ -480,22 +480,15 @@ void TPZSolveMatrix::DeltaStrain(TPZFMatrix<REAL> &expandsolution, TPZFMatrix<RE
 }
 
 void TPZSolveMatrix::TotalStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain) {
-    int64_t size = fCmesh->Dimension()*fCmesh->Dimension()*fNpts;
-    total_strain.Resize(size,1);
-    total_strain.Zero();
-
     total_strain = total_strain + delta_strain;
 }
 
-void TPZSolveMatrix::ElasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain) {
-    int64_t size = fCmesh->Dimension()*fCmesh->Dimension()*fNpts;
-    plastic_strain.Resize(size,1);
-    plastic_strain.Zero();
-
-    elastic_strain.Resize(size,1);
-    elastic_strain.Zero();
-
+void TPZSolveMatrix::ElasticStrain(TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain) {
     elastic_strain = total_strain - plastic_strain;
+}
+
+void TPZSolveMatrix::PlasticStrain(TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &plastic_strain) {
+    plastic_strain = total_strain - elastic_strain;
 }
 
 //Compute stress
@@ -541,7 +534,7 @@ void TPZSolveMatrix::SpectralDecomposition(TPZFMatrix<REAL> &sigma_trial, TPZFMa
     }
 }
 
-void TPZSolveMatrix::ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL> &sigma_projected, TPZFMatrix<REAL> &plastic_strain) {
+void TPZSolveMatrix::ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL> &sigma_projected) {
     int dim = fCmesh->Dimension();
 
     REAL mc_psi = fMaterialData.FrictionAngle();
@@ -550,29 +543,28 @@ void TPZSolveMatrix::ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL
     sigma_projected.Zero();
     TPZFMatrix<REAL> elastic_strain_np1(dim*dim*fNpts);
 
-    TPZVec<int> m_type(fNpts,0);
-    TPZVec<REAL> m_hardening(fNpts, 0.);
+    TPZFMatrix<REAL> m_type(fNpts, 1, 0.);
+    TPZFMatrix<REAL> alpha(fNpts, 1, 0.);
     bool check = false;
 
     for (int ipts = 0; ipts < fNpts; ipts++) {
-        m_type[ipts] = 0;
+        m_type(ipts,0) = 0;
         check = PhiPlane(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0)); //elastic domain
         if (!check) { //plastic domain
-            m_type[ipts] = 1;
-            check = ReturnMappingMainPlane(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), m_hardening[ipts]); //main plane
+            m_type(ipts,0) = 1;
+            check = ReturnMappingMainPlane(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), alpha(ipts,0)); //main plane
             if (!check) { //edges or apex
                 if  (((1 - sin(mc_psi)) * eigenvalues(0 + 3*ipts, 0) - 2. * eigenvalues(1 + 3*ipts, 0) + (1 + sin(mc_psi)) * eigenvalues(2 + 3*ipts, 0)) > 0) { // right edge
-                    check = ReturnMappingRightEdge(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), m_hardening[ipts]);
+                    check = ReturnMappingRightEdge(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), alpha(ipts,0));
                 } else { //left edge
-                    check = ReturnMappingLeftEdge(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), m_hardening[ipts]);
+                    check = ReturnMappingLeftEdge(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), alpha(ipts,0));
                 }
                 if (!check) { //apex
-                    m_type[ipts] = -1;
-                    ReturnMappingApex(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), m_hardening[ipts]);
+                    m_type(ipts,0) = -1;
+                    ReturnMappingApex(&eigenvalues(3*ipts, 0), &sigma_projected(3*ipts, 0), alpha(ipts,0));
                 }
             }
         }
-
     }
 }
 
@@ -682,6 +674,37 @@ void TPZSolveMatrix::ColoringElements() const {
             fIndexesColor[cont_cols+ fNphis + icols] = fIndexes[cont_cols + fNphis + icols] + fElemColor[iel]*neq;
         }
     }
+}
+
+TPZFMatrix<REAL> TPZSolveMatrix::AssembleResidual() {
+    TPZFMatrix<REAL> gather_solution;
+    TPZFMatrix<REAL> delta_strain;
+    TPZFMatrix<REAL> elastic_strain;
+    TPZFMatrix<REAL> sigma_trial;
+    TPZFMatrix<REAL> eigenvalues;
+    TPZFMatrix<REAL> eigenvectors;
+    TPZFMatrix<REAL> sigma_projected;
+    TPZFMatrix<REAL> sigma;
+    TPZFMatrix<REAL> nodal_forces;
+    TPZFMatrix<REAL> residual;
+
+    //residual assemble
+    GatherSolution(fSolution, gather_solution);
+    DeltaStrain(gather_solution, delta_strain);
+    TotalStrain(delta_strain, fTotalStrain);
+    ElasticStrain(fTotalStrain, fPlasticStrain, elastic_strain);
+    ComputeStress(elastic_strain, sigma_trial);
+    SpectralDecomposition(sigma_trial, eigenvalues, eigenvectors);
+    ProjectSigma(eigenvalues, sigma_projected);
+    StressCompleteTensor(sigma_projected, eigenvectors, sigma);
+    NodalForces(sigma, nodal_forces);
+    ColoredAssemble(nodal_forces,residual);
+
+    //update strain
+    ComputeStrain(sigma, elastic_strain);
+    PlasticStrain(fTotalStrain, elastic_strain, fPlasticStrain);
+
+    return residual;
 }
 
 void TPZSolveMatrix::SetDataStructure(){

@@ -48,7 +48,7 @@ TElastoPlasticData WellboreConfig();
 
 /// Residual calculation
 void SolutionAllPoints(int n_iterations, REAL tolerance, TPZAnalysis * an, TElastoPlasticData & wellbore_material);
-TPZFMatrix<REAL> AssembleResidualAllPoints(TPZFMatrix<REAL> &du, TPZCompMesh *cmesh, TElastoPlasticData & wellbore_material);
+TPZFMatrix<REAL> AssembleResidualAllPoints(TPZFMatrix<REAL> &du, TPZSolveMatrix solmat, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain);
 TPZFMatrix<REAL> ResidualWithoutBoundary(TPZCompMesh *cmesh, TPZCompMesh *cmesh_noboundary);
 
 ///Set Analysis
@@ -95,13 +95,13 @@ int main(int argc, char *argv[]) {
     REAL tolerance = 1.e-8;
     Solution(analysis, n_iterations, tolerance);
 
-    // Post process
+//Post process
 //    PostProcess(cmesh, wellbore_material, n_threads);
 
 // Calculates residual without boundary conditions
 //    TPZFMatrix<REAL> residual = Residual(cmesh, cmesh_noboundary);
 
-// Calculates residual using matrix operations and check if the result is ok
+// Calculates residual using matrix operations
     SolutionAllPoints(n_iterations, tolerance, analysis, wellbore_material);
 
     return 0;
@@ -122,7 +122,6 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
         analysis->LoadSolution(du);
         analysis->AssembleResidual();
         norm_res = Norm(analysis->Rhs());
-        analysis->Rhs().Print(std::cout);
         stop_criterion_Q = norm_res < tolerance;
 
         if (stop_criterion_Q) {
@@ -413,19 +412,33 @@ TPZCompMesh *CmeshElastoplasticityNoBoundary(TPZGeoMesh * gmesh, int p_order) {
 
 void SolutionAllPoints(int n_iterations, REAL tolerance, TPZAnalysis * analysis, TElastoPlasticData & wellbore_material){
     TPZCompMesh *cmesh = analysis->Mesh();
-    analysis->Assemble();
-    analysis->Solve();
+
+    TPZSolveMatrix solmat(cmesh, wellbore_material);
 
     bool stop_criterion_Q = false;
     REAL norm_res;
     int neq = cmesh->NEquations();
-    TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
+    int dim = cmesh->Dimension();
+    int64_t npts = solmat.NumberofIntPoints();
+
+    TPZFMatrix<REAL> total_strain(dim * dim * npts, 1, 0.);
+    TPZFMatrix<REAL> plastic_strain(dim * dim * npts, 1, 0.);
+    TPZFMatrix<REAL> du(neq, 1, 0.);
+    TPZFMatrix<REAL> delta_du;
     TPZFMatrix<REAL> res;
+
+    analysis->Assemble();
+    analysis->Solve();
+
+    solmat.SetTotalStrain(total_strain);
+    solmat.SetPlasticStrain(plastic_strain);
+
     delta_du = analysis->Solution();
 
     for (int i = 0; i < n_iterations; i++) {
         du += delta_du;
-        res = AssembleResidualAllPoints(du, cmesh, wellbore_material);
+        solmat.SetSolution(du);
+        res = solmat.AssembleResidual();
 
         norm_res = Norm(res);
         stop_criterion_Q = norm_res < tolerance;
@@ -440,42 +453,6 @@ void SolutionAllPoints(int n_iterations, REAL tolerance, TPZAnalysis * analysis,
     if (stop_criterion_Q == false) {
         std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
-}
-
-TPZFMatrix<REAL> AssembleResidualAllPoints(TPZFMatrix<REAL> &du, TPZCompMesh *cmesh, TElastoPlasticData & wellbore_material) {
-    TPZFMatrix<REAL> res;
-    TPZFMatrix<REAL> sigma_trial;
-    TPZFMatrix<REAL> eigenvalues;
-    TPZFMatrix<REAL> eigenvectors;
-    TPZFMatrix<REAL> nodal_forces_vec;
-    TPZFMatrix<REAL> gather_solution;
-    TPZFMatrix<REAL> delta_strain;
-    TPZFMatrix<REAL> delta_strainXYZ;
-    TPZFMatrix<REAL> total_strain;
-    TPZFMatrix<REAL> plastic_strain;
-    TPZFMatrix<REAL> elastic_strain;
-    TPZFMatrix<REAL> sigma_projected;
-    TPZFMatrix<REAL> sigma;
-    TPZFMatrix<REAL> nodal_forces;
-
-    TPZSolveMatrix solmat(cmesh, wellbore_material);
-
-    solmat.GatherSolution(du, gather_solution);
-    solmat.DeltaStrain(gather_solution, delta_strain);
-    solmat.TotalStrain(delta_strain, total_strain);
-    solmat.ElasticStrain(delta_strain, total_strain, plastic_strain, elastic_strain);
-    solmat.ComputeStress(elastic_strain, sigma_trial);
-    solmat.SpectralDecomposition(sigma_trial, eigenvalues, eigenvectors);
-    solmat.ProjectSigma(eigenvalues, sigma_projected, plastic_strain);
-    solmat.StressCompleteTensor(sigma_projected, eigenvectors, sigma);
-    solmat.ComputeStrain(sigma, elastic_strain);
-    sigma.Print(std::cout);
-    elastic_strain.Print(std::cout);
-//        plastic_strain = total_strain - elastic_strain;
-    solmat.NodalForces(sigma, nodal_forces);
-    solmat.ColoredAssemble(nodal_forces,res);
-
-    return res;
 }
 
 TPZFMatrix<REAL> ResidualWithoutBoundary(TPZCompMesh *cmesh, TPZCompMesh *cmesh_noboundary) {

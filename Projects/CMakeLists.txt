@@ -113,7 +113,7 @@ ENABLE_TESTING()
 			########################## Nao aplicavel para Windows
 			if (NOT WIN32)
 				#Projeto Teo Refinamento Paralelo
-				add_subdirectory(RefThread)
+				#add_subdirectory(RefThread)
 				# Projeto Caju: precisamos consertar para rodar no windows! problema com SWX components
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()

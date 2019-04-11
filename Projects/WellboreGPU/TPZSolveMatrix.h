@@ -26,6 +26,9 @@ class TPZSolveMatrix {
 public:
 
     TPZSolveMatrix() {
+        fTotalStrain.Resize(0,0);
+        fPlasticStrain.Resize(0,0);
+        fSolution.Resize(0,0);
         fNpts = -1;
         fNphis = -1;
         fStorage.resize(0);
@@ -52,6 +55,9 @@ public:
     }
 
     TPZSolveMatrix(const TPZSolveMatrix &copy) {
+        fTotalStrain = copy.fTotalStrain;
+        fPlasticStrain = copy.fPlasticStrain;
+        fSolution = copy.fSolution;
         fCmesh = copy.fCmesh;
         fNpts = copy.fNpts;
         fNphis = copy.fNphis;
@@ -89,6 +95,9 @@ public:
     }
 
     TPZSolveMatrix &operator=(const TPZSolveMatrix &copy) {
+        fTotalStrain = copy.fTotalStrain;
+        fPlasticStrain = copy.fPlasticStrain;
+        fSolution = copy.fSolution;
         fCmesh = copy.fCmesh;
         fStorage = copy.fStorage;
         fColSizes = copy.fColSizes;
@@ -171,6 +180,10 @@ public:
         fNpts = npts;
     }
 
+    int64_t NumberofIntPoints() {
+        return fNpts;
+    }
+
     void SetNumberofPhis(int64_t nphis) {
         fNphis = nphis;
     }
@@ -187,6 +200,18 @@ public:
         fMaterialData = materialdata;
     }
 
+    void SetSolution (TPZFMatrix<REAL> sol) {
+        fSolution = sol;
+    }
+
+    void SetTotalStrain (TPZFMatrix<REAL> totalstrain) {
+        fTotalStrain = totalstrain;
+    }
+
+    void SetPlasticStrain (TPZFMatrix<REAL> plasticstrain) {
+        fPlasticStrain = plasticstrain;
+    }
+
     void SetDataStructure();
 
     void GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &gather_solution);
@@ -194,7 +219,8 @@ public:
     void DeltaStrain(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &deltastrain);
 
     void TotalStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain);
-    void ElasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain);
+    void ElasticStrain(TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain);
+    void PlasticStrain(TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &plastic_strain);
 
     void ComputeStress(TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &sigma);
 
@@ -206,7 +232,7 @@ public:
     void Multiplicity1(double *sigma, double eigenvalue, double *eigenvector);
     void Multiplicity2(double *sigma, double eigenvalue, double *eigenvector1, double *eigenvector2);
 
-    void ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL> &sigma_projected, TPZFMatrix<REAL> &plastic_strain);
+    void ProjectSigma(TPZFMatrix<REAL> &eigenvalues, TPZFMatrix<REAL> &sigma_projected);
     bool PhiPlane(double *eigenvalues, double *sigma_projected);
     bool ReturnMappingMainPlane(double *eigenvalues, double *sigma_projected, double &m_hardening);
     bool ReturnMappingRightEdge(double *eigenvalues, double *sigma_projected, double &m_hardening);
@@ -221,9 +247,21 @@ public:
 
     void ColoredAssemble(TPZFMatrix<REAL> &nodal_forces_vec, TPZFMatrix<REAL> &nodal_forces_global);
 
+    TPZFMatrix<REAL> AssembleResidual();
+
     void ColoringElements() const;
 
 protected:
+
+///total strain
+    TPZFMatrix<REAL> fTotalStrain;
+
+///plastic strain
+    TPZFMatrix<REAL> fPlasticStrain;
+
+/// solution
+    TPZFMatrix<REAL> fSolution;
+
 /// computational mesh
     TPZCompMesh *fCmesh;
 
