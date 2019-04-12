@@ -327,9 +327,19 @@ public:
     STATE B() {
         return fB;
     }
+    
+    void SetB(STATE B)
+    {
+        fB = B;
+    }
 
     STATE C() {
         return fC;
+    }
+    
+    void SetC(STATE C)
+    {
+        fC = C;
     }
 
     STATE D() {
