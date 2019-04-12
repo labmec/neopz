@@ -41,15 +41,12 @@ void PrintGeometry(TPZGeoMesh * geometry);
 
 /// CompMesh elastoplasticity
 TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int pOrder, TElastoPlasticData & material_data);
-TPZCompMesh *CmeshElastoplasticityNoBoundary(TPZGeoMesh *gmesh, int pOrder);
 
 /// Material configuration
 TElastoPlasticData WellboreConfig();
 
-/// Residual calculation
+/// Solve using assemble residual of all intg points at once
 void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material);
-TPZFMatrix<REAL> AssembleResidualAllPoints(TPZFMatrix<REAL> &du, TPZSolveMatrix solmat, TPZFMatrix<REAL> &total_strain, TPZFMatrix<REAL> &plastic_strain);
-TPZFMatrix<REAL> ResidualWithoutBoundary(TPZCompMesh *cmesh, TPZCompMesh *cmesh_noboundary);
 
 ///Set Analysis
 TPZAnalysis * Analysis(TPZCompMesh * cmesh, int n_threads);
@@ -68,7 +65,7 @@ void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::os
 
 int main(int argc, char *argv[]) {
     
-    int pOrder = 1; // Computational mesh order
+    int pOrder = 3; // Computational mesh order
     
 // Generates the geometry
     std::string file("wellbore.msh");
@@ -78,7 +75,6 @@ int main(int argc, char *argv[]) {
 // Creates the computational mesh
     TElastoPlasticData wellbore_material = WellboreConfig();
     TPZCompMesh *cmesh = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
-//    TPZCompMesh *cmesh_noboundary = CmeshElastoplasticityNoBoundary(gmesh, pOrder);
 
 // Runge Kutta approximation
     int np = 100;
@@ -98,10 +94,7 @@ int main(int argc, char *argv[]) {
 //Post process
 //    PostProcess(cmesh, wellbore_material, n_threads);
 
-// Calculates residual without boundary conditions
-//    TPZFMatrix<REAL> residual = Residual(cmesh, cmesh_noboundary);
-
-// Calculates residual using matrix operations
+// Calculates the solution using all intg points at once
     SolutionAllPoints(analysis, n_iterations, tolerance, wellbore_material);
 
     return 0;
@@ -374,65 +367,23 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
     return cmesh;
 }
 
-TPZCompMesh *CmeshElastoplasticityNoBoundary(TPZGeoMesh * gmesh, int p_order) {
-
-// Creates the computational mesh
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDefaultOrder(p_order);
-
-// Mohr Coulomb data
-    REAL mc_cohesion    = 10.0;
-    REAL mc_phi         = (20.0*M_PI/180);
-    REAL mc_psi         = mc_phi;
-
-// ElastoPlastic Material using Mohr Coulomb
-// Elastic predictor
-    TPZElasticResponse ER;
-    REAL G = 400*mc_cohesion;
-    REAL nu = 0.3;
-    REAL E = 2.0*G*(1+nu);
-
-    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> LEMC;
-    ER.SetEngineeringData(E,nu);
-    LEMC.SetElasticResponse(ER);
-    LEMC.fYC.SetUp(mc_phi, mc_psi, mc_cohesion, ER);
-    int PlaneStrain = 1;
-    int matid = 1;
-
-// Creates elastoplatic material
-    TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem > * material = new TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem >(matid,PlaneStrain);
-    material->SetPlasticityModel(LEMC);
-
-    cmesh->InsertMaterialObject(material);
-    cmesh->SetAllCreateFunctionsContinuousWithMem();
-    cmesh->AutoBuild();
-
-    return cmesh;
-}
-
 void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material){
-    TPZCompMesh *cmesh = analysis->Mesh();
-    int neq = cmesh->NEquations();
+    bool stop_criterion_Q = false;
+    REAL norm_res;
+    int neq = analysis->Solution().Rows();
+    TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
 
-    TPZFMatrix<REAL> du(neq, 1, 0.);
-    TPZFMatrix<REAL> delta_du;
-    TPZFMatrix<REAL> res;
-
-    TPZSolveMatrix solmat(cmesh, wellbore_material.Id());
+    TPZSolveMatrix solmat(analysis->Mesh(), wellbore_material.Id());
 
     analysis->Assemble();
-    analysis->Solve();
-    delta_du = analysis->Solution();
-
-    REAL norm_res;
-    bool stop_criterion_Q = false;
 
     for (int i = 0; i < n_iterations; i++) {
+        analysis->Solve();
+        delta_du = analysis->Solution();
         du += delta_du;
-        solmat.SetSolution(du);
-        res = solmat.AssembleResidual();
-
-        norm_res = Norm(res);
+        solmat.LoadSolution(du);
+        solmat.AssembleResidual();
+        norm_res = Norm(solmat.Rhs());
         stop_criterion_Q = norm_res < tolerance;
 
         if (stop_criterion_Q) {
@@ -445,26 +396,6 @@ void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
     if (stop_criterion_Q == false) {
         std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
-}
-
-TPZFMatrix<REAL> ResidualWithoutBoundary(TPZCompMesh *cmesh, TPZCompMesh *cmesh_noboundary) {
-    bool optimizeBandwidth = true;
-    int n_threads = 16;
-
-    TPZAnalysis an_d(cmesh_noboundary, optimizeBandwidth);
-    TPZSymetricSpStructMatrix strskyl(cmesh_noboundary);
-    strskyl.SetNumThreads(n_threads);
-    an_d.SetStructuralMatrix(strskyl);
-
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
-    an_d.SetSolver(step);
-    an_d.Assemble();
-    an_d.Solve();
-
-    TPZFMatrix<STATE> res;
-    an_d.Solver().Matrix()->Multiply(cmesh->Solution(), res);
-    return res;
 }
 
 void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::ostream &out, bool euler) {

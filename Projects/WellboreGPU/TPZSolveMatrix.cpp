@@ -5,6 +5,7 @@
 #include "TPZTensor.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzintel.h"
+#include "pzskylstrmatrix.h"
 
 #ifdef USING_MKL
 #include <mkl.h>
@@ -676,7 +677,7 @@ void TPZSolveMatrix::ColoringElements() const {
     }
 }
 
-TPZFMatrix<REAL> TPZSolveMatrix::AssembleResidual() {
+void TPZSolveMatrix::AssembleResidual() {
     TPZFMatrix<REAL> gather_solution;
     TPZFMatrix<REAL> delta_strain;
     TPZFMatrix<REAL> elastic_strain;
@@ -704,7 +705,7 @@ TPZFMatrix<REAL> TPZSolveMatrix::AssembleResidual() {
     ComputeStrain(sigma, elastic_strain);
     PlasticStrain(fTotalStrain, elastic_strain, fPlasticStrain);
 
-    return residual;
+    fRhs = residual + fRhsBoundary;
 }
 
 void TPZSolveMatrix::SetDataStructure(){
@@ -717,8 +718,9 @@ void TPZSolveMatrix::SetDataStructure(){
         TPZCompEl *cel = fCmesh->Element(i);
         if (!cel) continue;
         TPZGeoEl *gel = fCmesh->Element(i)->Reference();
-        if (!gel || gel->Dimension() != dim_mesh) continue;
-        cel_indexes.push_back(cel->Index());
+        if (!gel) continue;
+        if( gel->Dimension() == dim_mesh) cel_indexes.push_back(cel->Index());
+        if( gel->Dimension() < dim_mesh) fBoundaryElements.Push(cel->Index());
     }
 
     if (cel_indexes.size() == 0) {
@@ -829,4 +831,19 @@ void TPZSolveMatrix::SetDataStructure(){
     this->SetIndexes(indexes);
     this->SetWeightVector(weight);
     this->ColoringElements();
+}
+
+void TPZSolveMatrix::AssembleRhsBoundary() {
+    int64_t neq = fCmesh->NEquations();
+    fRhsBoundary.Resize(neq, 1);
+    fRhsBoundary.Zero();
+
+        for (auto iel : fBoundaryElements) {
+            TPZCompEl *cel = fCmesh->Element(iel);
+            if (!cel) continue;
+            TPZElementMatrix ef(fCmesh, TPZElementMatrix::EF);
+            cel->CalcResidual(ef);
+            ef.ComputeDestinationIndices();
+            fRhsBoundary.AddFel(ef.fMat, ef.fSourceIndex, ef.fDestinationIndex);
+        }
 }

@@ -29,6 +29,9 @@ class TPZSolveMatrix {
 public:
 
     TPZSolveMatrix() {
+        fRhs = fRhs.Resize(0,0);
+        fRhsBoundary.Resize(0,0);
+        fBoundaryElements.resize(0);
         fTotalStrain.Resize(0,0);
         fPlasticStrain.Resize(0,0);
         fSolution.Resize(0,0);
@@ -44,13 +47,13 @@ public:
         fIndexes.resize(0);
         fIndexesColor.resize(0);
         fWeight.resize(0);
-
     }
 
     TPZSolveMatrix(TPZCompMesh *cmesh, int materialid) {
         SetCompMesh(cmesh);
         SetMaterialId(materialid);
         SetDataStructure();
+        AssembleRhsBoundary();
 
         int dim = fCmesh->Dimension();
         fTotalStrain.Resize(dim * dim * fNpts, 1);
@@ -64,6 +67,9 @@ public:
     }
 
     TPZSolveMatrix(const TPZSolveMatrix &copy) {
+        fRhs = copy.fRhs;
+        fRhsBoundary = copy.fRhsBoundary;
+        fBoundaryElements = copy.fBoundaryElements;
         fTotalStrain = copy.fTotalStrain;
         fPlasticStrain = copy.fPlasticStrain;
         fSolution = copy.fSolution;
@@ -104,6 +110,9 @@ public:
     }
 
     TPZSolveMatrix &operator=(const TPZSolveMatrix &copy) {
+        fRhs = copy.fRhs;
+        fRhsBoundary = copy.fRhsBoundary;
+        fBoundaryElements = copy.fBoundaryElements;
         fTotalStrain = copy.fTotalStrain;
         fPlasticStrain = copy.fPlasticStrain;
         fSolution = copy.fSolution;
@@ -210,8 +219,12 @@ public:
         fMaterial = dynamic_cast<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> *>(material);
     }
 
-    void SetSolution (TPZFMatrix<REAL> sol) {
+    void LoadSolution (TPZFMatrix<REAL> sol) {
         fSolution = sol;
+    }
+
+     TPZFMatrix<REAL> Rhs() {
+        return fRhs;
     }
 
     void SetDataStructure();
@@ -249,11 +262,21 @@ public:
 
     void ColoredAssemble(TPZFMatrix<REAL> &nodal_forces_vec, TPZFMatrix<REAL> &nodal_forces_global);
 
-    TPZFMatrix<REAL> AssembleResidual();
+    void AssembleResidual();
 
     void ColoringElements() const;
 
+    void AssembleRhsBoundary();
+
 protected:
+///rhs
+    TPZFMatrix<REAL> fRhs;
+
+///boundary rhs
+    TPZFMatrix<REAL> fRhsBoundary;
+
+///boundary elements vector
+    TPZStack<int64_t> fBoundaryElements;
 
 ///total strain
     TPZFMatrix<REAL> fTotalStrain;
