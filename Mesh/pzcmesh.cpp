@@ -453,6 +453,7 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
         for(i=0;i<nrow;i++)
         {
             val = (mat.GetVal(i,j));
+
             fSolution(i,j) =  val;
         }
         

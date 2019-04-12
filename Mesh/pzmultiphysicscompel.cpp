@@ -923,11 +923,7 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 {
 	int64_t ElemVecSize = fElementVec.size();
 	for (int64_t iref = 0; iref < ElemVecSize; iref++)
-	{
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
+	{        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		if (!msp) {
 			continue;

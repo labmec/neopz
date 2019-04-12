@@ -16,7 +16,9 @@
 
 class TPZMultiphysicsCompMesh : public TPZCompMesh {
     
-    /// Vector of active physics
+    /// Vector of active physics: index vector
+    /// Define wich space will be active in order to generate equations. Should be defined for each space that you want to use by 0: no active or 1: active
+    ///The size have to be the same as the m_mesh_vector
     TPZManVector<int,5> m_active_approx_spaces;
     
     /// Vector of computational meshes

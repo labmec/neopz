@@ -20,10 +20,10 @@ class TPZCompElSide;
 class TPZInterpolatedElement;
 
 struct TPZHybridizeHDiv {
-    int HDivWrapMatid = -10;
-    int LagrangeInterface = -9;
-    int InterfaceMatid = -8;
-    int NState = 1;
+    int fHDivWrapMatid = -10;
+    int fLagrangeInterface = -9;
+    int fInterfaceMatid = -8;
+    int fNState = 1;
     
     TPZHybridizeHDiv() = default;
     
@@ -37,7 +37,7 @@ struct TPZHybridizeHDiv {
     /// return true if a material id is a peripheral material
     bool IsPeriferalMaterialId(int matid)
     {
-        return matid == HDivWrapMatid || matid == LagrangeInterface || matid == InterfaceMatid;
+        return matid == fHDivWrapMatid || matid == fLagrangeInterface || matid == fInterfaceMatid;
     }
     /// split the connects between flux elements and create a dim-1 pressure element
     void HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid);

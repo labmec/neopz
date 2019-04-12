@@ -99,13 +99,14 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-#ifdef PZDEBUG
-    int nref = datavec.size();
-    if (nref != 2) {
-        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    int nref = datavec.size();
+//
+//    if (nref != 2) {
+//        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+//        DebugStop();
+//    }
+//#endif
     
     STATE force = ff;
     if(fForcingFunction) {
@@ -316,16 +317,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         }
     }
     //
-    //#ifdef LOG4CXX
-    //    if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Matriz ek e vetor fk \n ";
-    //        ek.Print("ekmph = ",sout,EMathematicaInput);
-    //        ef.Print("efmph = ",sout,EMathematicaInput);
-    //        LOGPZ_DEBUG(logdata,sout.str());
-    //	}
-    //#endif
+//    #ifdef LOG4CXX
+//        if(logdata->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout<<"\n\n Matriz ek e vetor fk \n ";
+//            ek.Print("ekmph = ",sout,EMathematicaInput);
+//            ef.Print("efmph = ",sout,EMathematicaInput);
+//            LOGPZ_DEBUG(logdata,sout.str());
+//        }
+//    #endif
     
 }
 
@@ -512,10 +513,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     
 #ifdef PZDEBUG
     int nref =  datavec.size();
-	if (nref != 2 ) {
-        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
-		DebugStop();
-	}
+//    if (nref != 2 ) {
+//        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+//        DebugStop();
+//    }
 	if (bc.Type() > 2 ) {
         std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
 		DebugStop();
@@ -645,7 +646,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 31){ //function (state variable Q)
-        for (int i=0; i<3; i++)
+        for (int i=0; i<fDim; i++)
         {
             Solout[i] = datavec[0].sol[0][i];
         }
