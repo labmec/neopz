@@ -587,8 +587,9 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     TPZVec<STATE> SolP, SolQ;
     
-    // SolQ = datavec[0].sol[0];
+   //  SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
+    
     
     if(var == 1){ //function (state variable Q)
         for (int ip = 0; ip<fDim; ip++)

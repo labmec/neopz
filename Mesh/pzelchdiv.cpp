@@ -1050,7 +1050,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
-    const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
+    const int dim = this->Reference()->Dimension();//data.fNormalVec.Rows(); //this->Reference()->Dimension();
     const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
@@ -1130,9 +1130,13 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     //  Compute grad_{hat}(PhiH1)
                     GradofPhi(ir,0) = data.dphi(ir,ishape);
                     
-                    GradOfPhiHdiv(ir,0) = VectorOnMaster(ir,0)*GradofPhi(0,0);
-                    GradOfPhiHdiv(ir,1) = VectorOnMaster(ir,0)*GradofPhi(1,0);
-                    GradOfPhiHdiv(ir,2) = VectorOnMaster(ir,0)*GradofPhi(2,0);
+                    for(int cols=0;cols<dim;cols++){
+                    
+//                    GradOfPhiHdiv(ir,0) = VectorOnMaster(ir,0)*GradofPhi(0,0);
+//                    GradOfPhiHdiv(ir,1) = VectorOnMaster(ir,0)*GradofPhi(1,0);
+//                    GradOfPhiHdiv(ir,2) = VectorOnMaster(ir,0)*GradofPhi(2,0);
+                        GradOfPhiHdiv(ir,cols) = VectorOnMaster(ir,0)*GradofPhi(cols,0);
+                    }
                     
                 }
             
@@ -1177,7 +1181,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     REAL phival = data.phi(ishape,0);
                     TPZManVector<REAL,3> normal(3);
                     TPZManVector<STATE,3> solval(3);
-                    for (int i=0; i<3; i++)
+                    for (int i=0; i<dim; i++)
                     {
                         solval[i] = data.sol[is][i+dim*idf];
                         normal[i] = data.fNormalVec(i,ivec);

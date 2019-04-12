@@ -287,6 +287,7 @@ void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
     int ndif = 0;
     int onemat = 0;
     for (int ir = 0; ir < nref; ir++) {
+        int nphis=datavec[ir].phi.Rows();
         if (datavec[ir].phi.Rows()) {
             onemat = ir;
             ndif++;

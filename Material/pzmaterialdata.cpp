@@ -320,6 +320,7 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
 void TPZMaterialData::ComputeFunctionDivergence()
 {
     int dim = 3;
+    
     // Getting test and basis functions
     TPZFMatrix<REAL> phiuH1         = phi;   // For H1  test functions Q
     TPZFMatrix<REAL> dphiuH1       = dphi; // Derivative For H1  test functions
@@ -370,6 +371,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
             VectorOnMaster *= JacobianDet;
             
             /* Contravariant Piola mapping preserves the divergence */
+
             int n_dir = dphiuH1.Rows();
             for (int k = 0; k < n_dir; k++) {
                 divphi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
