@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
 // Creates the computational mesh
     TElastoPlasticData wellbore_material = WellboreConfig();
     TPZCompMesh *cmesh = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
+    TPZCompMesh *cmesh_npts = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
 
 // Runge Kutta approximation
     int np = 100;
@@ -85,17 +86,18 @@ int main(int argc, char *argv[]) {
 // Defines the analysis
     int n_threads = 0;
     TPZAnalysis *analysis = Analysis(cmesh,n_threads);
+    TPZAnalysis *analysis_npts = Analysis(cmesh_npts,n_threads);
 
 //Calculates the solution using Newton method
     int n_iterations = 10;
-    REAL tolerance = 1.e-8;
+    REAL tolerance = 1.e-3;
     Solution(analysis, n_iterations, tolerance);
 
 //Post process
 //    PostProcess(cmesh, wellbore_material, n_threads);
 
 // Calculates the solution using all intg points at once
-    SolutionAllPoints(analysis, n_iterations, tolerance, wellbore_material);
+    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
 
     return 0;
 }
@@ -187,7 +189,7 @@ TElastoPlasticData WellboreConfig(){
 
     LER.SetEngineeringData(Ey, nu);
     
-    REAL mc_cohesion    = 10000000000.0;
+    REAL mc_cohesion    = 1.0;
     REAL mc_phi         = (20*M_PI/180);
     
 

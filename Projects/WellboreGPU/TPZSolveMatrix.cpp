@@ -269,9 +269,12 @@ bool TPZSolveMatrix::ReturnMappingMainPlane(double *eigenvalues, double *sigma_p
         }
     }
 
-    sigma_projected[0] -= (2. * G *(1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma;
-    sigma_projected[1] += (4. * G / 3. - K * 2.) * sinpsi * gamma;
-    sigma_projected[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma;
+    eigenvalues[0] -= (2. * G *(1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma;
+    eigenvalues[1] += (4. * G / 3. - K * 2.) * sinpsi * gamma;
+    eigenvalues[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma;
+    sigma_projected[0] = eigenvalues[0];
+    sigma_projected[1] = eigenvalues[1];
+    sigma_projected[2] = eigenvalues[2];
 
     m_hardening += gamma * 2. * cosphi;
 
@@ -335,9 +338,12 @@ bool TPZSolveMatrix::ReturnMappingRightEdge(double *eigenvalues, double *sigma_p
         }
     }
 
-    sigma_projected[0] -= (2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * (gamma[0] + gamma[1]);
-    sigma_projected[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] + (2. * G * (1. - sinpsi / 3.) - 2. * K * sinpsi) * gamma[1];
-    sigma_projected[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
+    eigenvalues[0] -= (2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * (gamma[0] + gamma[1]);
+    eigenvalues[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] + (2. * G * (1. - sinpsi / 3.) - 2. * K * sinpsi) * gamma[1];
+    eigenvalues[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
+    sigma_projected[0] = eigenvalues[0];
+    sigma_projected[1] = eigenvalues[1];
+    sigma_projected[2] = eigenvalues[2];
 
     m_hardening += (gamma[0] + gamma[1]) * 2. * cosphi;
 
@@ -403,9 +409,12 @@ bool TPZSolveMatrix::ReturnMappingLeftEdge(double *eigenvalues, double *sigma_pr
         }
     }
 
-    sigma_projected[0] += -(2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
-    sigma_projected[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] - (2. * G * (1. + sinpsi / 3.) + 2. * K * sinpsi) * gamma[1];
-    sigma_projected[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * (gamma[0] + gamma[1]);
+    eigenvalues[0] += -(2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
+    eigenvalues[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] - (2. * G * (1. + sinpsi / 3.) + 2. * K * sinpsi) * gamma[1];
+    eigenvalues[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * (gamma[0] + gamma[1]);
+    sigma_projected[0] = eigenvalues[0];
+    sigma_projected[1] = eigenvalues[1];
+    sigma_projected[2] = eigenvalues[2];
 
     m_hardening += (gamma[0] + gamma[1]) * 2. * cosphi;
 
@@ -592,8 +601,8 @@ void TPZSolveMatrix::NodalForces(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &noda
     for (int iel = 0; iel < nelem; iel++) {
         for (int i = 0; i < fColSizes[iel]; i++) {
             for (int k = 0; k < fRowSizes[iel]; k++) {
-                nodal_forces(i + fColFirstIndex[iel], 0) += fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel], 0);
-                nodal_forces(i + fColFirstIndex[iel] + size/dim, 0) +=  fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel] + size, 0);
+                nodal_forces(i + fColFirstIndex[iel], 0) -= fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel], 0);
+                nodal_forces(i + fColFirstIndex[iel] + size/dim, 0) -=  fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel] + size, 0);
             }
         }
     }
