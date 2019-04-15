@@ -271,6 +271,7 @@ public:
         EStressJ2           = 17,
         EStrainElasticJ2    = 18,
         EStrainPlasticJ2    = 19,
+        EFailureType    = 20,
     };
 
 protected:
