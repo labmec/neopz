@@ -441,25 +441,19 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             
         case 6://PRESSAO DEVE SER POSTA NA POSICAO 0 DO VETOR v2
         {
-            TPZFNMatrix<2, STATE> res(2, 1, 0.);
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < 2; j++) {
-                    res(i, 0) += bc.Val1()(i, j) * data.sol[0][j];
-                }
-            }
-            for (in = 0; in < phi.Rows(); in++) {
-                ef(nstate * in + 0, 0) += (v2[0] * data.normal[0] - res(0, 0)) * phi(in, 0) * weight;
-                ef(nstate * in + 1, 0) += (v2[0] * data.normal[1] - res(1, 0)) * phi(in, 0) * weight;
-                for (jn = 0; jn < phi.Rows(); jn++) {
-                    for (idf = 0; idf < 2; idf++) {
-                        for (jdf = 0; jdf < 2; jdf++) {
-                            ek(nstate * in + idf, nstate * jn + jdf) += bc.Val1()(idf, jdf) * phi(in, 0) * phi(jn, 0) * weight;
-                            // BUG FALTA COLOCAR VAL2
-                            // DebugStop();
-                        }
-                    }
-                }
-                
+            
+            REAL v[1];
+            v[0] = bc.Val2()(0,0);    //    Tn normal traction
+            
+            REAL tn = v[0];
+            TPZManVector<REAL,3> n = data.normal;
+            ///    Neumann condition for each state variable
+            ///    Elasticity Equation
+            for(in = 0 ; in < phi.Rows(); in++)
+            {
+                ///   Normal Tension Components on neumman boundary
+                ef(nstate*in+0,0)    += -1.0 * weight * tn * n[0] * phi(in,0);        //    Tnx
+                ef(nstate*in+1,0)    += -1.0 * weight * tn * n[1] * phi(in,0);        //    Tny
             }
             
         }
