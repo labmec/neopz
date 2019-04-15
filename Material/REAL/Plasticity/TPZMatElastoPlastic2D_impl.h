@@ -452,8 +452,8 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             for(in = 0 ; in < phi.Rows(); in++)
             {
                 ///   Normal Tension Components on neumman boundary
-                ef(nstate*in+0,0)    += -1.0 * weight * tn * n[0] * phi(in,0);        //    Tnx
-                ef(nstate*in+1,0)    += -1.0 * weight * tn * n[1] * phi(in,0);        //    Tny
+                ef(nstate*in+0,0)    += weight * tn * n[0] * phi(in,0);        //    Tnx
+                ef(nstate*in+1,0)    += weight * tn * n[1] * phi(in,0);        //    Tny
             }
             
         }
