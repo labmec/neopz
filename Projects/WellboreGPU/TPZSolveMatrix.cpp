@@ -465,7 +465,7 @@ void TPZSolveMatrix::GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatri
     gather_solution.Resize(fNpts,1);
     gather_solution.Zero();
 
-    cblas_dgthr(fNpts, global_solution, &gather_solution(0,0), &fIndexes[0]);
+    cblas_dgthr(fDim*fNphis, global_solution, &gather_solution(0,0), &fIndexes[0]);
 }
 
 //Strain

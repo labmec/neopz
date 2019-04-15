@@ -69,8 +69,7 @@ int main(int argc, char *argv[]) {
     bool render_vtk_Q = true;
     
 // Generates the geometry
-    std::string file("wellbore_triang.msh");
-//    std::string file("wellbore_quad.msh");
+    std::string file("wellbore.msh");
     TPZGeoMesh *gmesh = ReadGeometry(file);
     PrintGeometry(gmesh);
 
