@@ -65,16 +65,19 @@ void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::os
 
 int main(int argc, char *argv[]) {
     
-    int pOrder = 3; // Computational mesh order
+    int pOrder = 2; // Computational mesh order
+    bool render_vtk_Q = true;
     
 // Generates the geometry
-    std::string file("wellbore.msh");
+//    std::string file("wellbore_triang.msh");
+    std::string file("wellbore_quad.msh");
     TPZGeoMesh *gmesh = ReadGeometry(file);
     PrintGeometry(gmesh);
 
 // Creates the computational mesh
     TElastoPlasticData wellbore_material = WellboreConfig();
     TPZCompMesh *cmesh = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
+    TPZCompMesh *cmesh_npts = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
 
 // Runge Kutta approximation
     int np = 100;
@@ -85,45 +88,52 @@ int main(int argc, char *argv[]) {
 // Defines the analysis
     int n_threads = 0;
     TPZAnalysis *analysis = Analysis(cmesh,n_threads);
+    TPZAnalysis *analysis_npts = Analysis(cmesh_npts,n_threads);
 
 //Calculates the solution using Newton method
-    int n_iterations = 10;
-    REAL tolerance = 1.e-8;
+    int n_iterations = 30;
+    REAL tolerance = 1.e-4; /// NVB this tolerance is more apropriated for nonlinear problems
     Solution(analysis, n_iterations, tolerance);
 
 //Post process
-//    PostProcess(cmesh, wellbore_material, n_threads);
+    if (render_vtk_Q) {
+        PostProcess(cmesh, wellbore_material, n_threads);
+    }
 
 // Calculates the solution using all intg points at once
-    SolutionAllPoints(analysis, n_iterations, tolerance, wellbore_material);
+//    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
 
     return 0;
 }
 
 void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
     bool stop_criterion_Q = false;
-    REAL norm_res;
-    int neq = analysis->Solution().Rows();
-    TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
+    REAL norm_res, norm_delta_du;
 
-    analysis->Assemble();
+    int neq = analysis->Solution().Rows();
+    std::cout  << "Solving a NLS with DOF = " << neq << std::endl;
+
+    analysis->Solution().Zero();
+    TPZFMatrix<REAL> du(analysis->Solution()), delta_du;
 
     for (int i = 0; i < n_iterations; i++) {
+        analysis->Assemble();
         analysis->Solve();
         delta_du = analysis->Solution();
         du += delta_du;
         analysis->LoadSolution(du);
         analysis->AssembleResidual();
+        norm_delta_du = Norm(delta_du);
         norm_res = Norm(analysis->Rhs());
         stop_criterion_Q = norm_res < tolerance;
-
+        std::cout << "Nonlinear process :: delta_du norm = " << norm_delta_du << std::endl;
+        std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
         if (stop_criterion_Q) {
             AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
-        analysis->Assemble();
     }
 
     if (stop_criterion_Q == false) {
@@ -144,7 +154,7 @@ TPZAnalysis *Analysis(TPZCompMesh *cmesh, int n_threads) {
 }
 
 void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n_threads) {
-    int div = 1;
+    int div = 0;
     TPZPostProcAnalysis * post_processor = new TPZPostProcAnalysis;
     post_processor->SetCompMesh(cmesh, true);
 
@@ -153,8 +163,12 @@ void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n
     post_mat_id[0] = wellbore_material.Id();
 
     TPZStack<std::string,50> names, scalnames,vecnames,tensnames;
+    scalnames.push_back("FailureType");
     vecnames.push_back("Displacement");
     tensnames.push_back("Stress");
+    tensnames.push_back("StrainElastic");
+    tensnames.push_back("StrainPlastic");
+
 
     for (auto i : scalnames) {
         names.push_back(i);
@@ -181,47 +195,50 @@ void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n
 
 TElastoPlasticData WellboreConfig(){
     TPZElasticResponse LER;
-    
+
     REAL Ey = 2000.0;
     REAL nu = 0.2;
 
     LER.SetEngineeringData(Ey, nu);
-    
-    REAL mc_cohesion    = 10000000000.0;
+
+//    REAL mc_cohesion    = 10000000000.0;
+//    REAL mc_phi         = (20*M_PI/180);
+    REAL mc_cohesion    = 10.0;
     REAL mc_phi         = (20*M_PI/180);
-    
+
+    /// NVB it is important to check the correct sign for ef in TPZMatElastoPlastic and TPZMatElastoPlastic2D materials. It is better to avoid problems with tensile state of stress.
 
     std::vector<TBCData> bc_data;
     TBCData bc_inner, bc_outer, bc_ux_fixed, bc_uy_fixed;
     bc_inner.SetId(2);
     bc_inner.SetType(6);
     bc_inner.SetInitialValue(-50.);
-    bc_inner.SetValue({-10.-bc_inner.InitialValue()}); /// tr(sigma)/3
+    bc_inner.SetValue({-1.0*(-20.-bc_inner.InitialValue())}); /// tr(sigma)/3
 
     bc_outer.SetId(3);
     bc_outer.SetType(6);
     bc_outer.SetInitialValue(-50.0); /// tr(sigma)/3
-    bc_outer.SetValue({-50.-bc_outer.InitialValue()}); /// tr(sigma)/3
+    bc_outer.SetValue({-1.0*(-50.-bc_outer.InitialValue())}); /// tr(sigma)/3
 
     bc_ux_fixed.SetId(4);
     bc_ux_fixed.SetType(3);
     bc_ux_fixed.SetValue({1,0});
-    
+
     bc_uy_fixed.SetId(5);
     bc_uy_fixed.SetType(3);
     bc_uy_fixed.SetValue({0,1});
-    
+
     bc_data.push_back(bc_inner);
     bc_data.push_back(bc_outer);
     bc_data.push_back(bc_ux_fixed);
     bc_data.push_back(bc_uy_fixed);
-    
+
     TElastoPlasticData rock;
     rock.SetMaterialParameters(LER, mc_phi, mc_cohesion);
     rock.SetId(1);
 
     rock.SetBoundaryData(bc_data);
-    
+
     return rock;
 }
 
@@ -391,6 +408,7 @@ void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
+        analysis->Assemble();
     }
 
     if (stop_criterion_Q == false) {

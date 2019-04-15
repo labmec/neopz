@@ -269,9 +269,12 @@ bool TPZSolveMatrix::ReturnMappingMainPlane(double *eigenvalues, double *sigma_p
         }
     }
 
-    sigma_projected[0] -= (2. * G *(1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma;
-    sigma_projected[1] += (4. * G / 3. - K * 2.) * sinpsi * gamma;
-    sigma_projected[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma;
+    eigenvalues[0] -= (2. * G *(1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma;
+    eigenvalues[1] += (4. * G / 3. - K * 2.) * sinpsi * gamma;
+    eigenvalues[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma;
+    sigma_projected[0] = eigenvalues[0];
+    sigma_projected[1] = eigenvalues[1];
+    sigma_projected[2] = eigenvalues[2];
 
     m_hardening += gamma * 2. * cosphi;
 
@@ -335,9 +338,13 @@ bool TPZSolveMatrix::ReturnMappingRightEdge(double *eigenvalues, double *sigma_p
         }
     }
 
-    sigma_projected[0] -= (2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * (gamma[0] + gamma[1]);
-    sigma_projected[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] + (2. * G * (1. - sinpsi / 3.) - 2. * K * sinpsi) * gamma[1];
-    sigma_projected[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
+    eigenvalues[0] -= (2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * (gamma[0] + gamma[1]);
+    eigenvalues[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] + (2. * G * (1. - sinpsi / 3.) - 2. * K * sinpsi) * gamma[1];
+    eigenvalues[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
+    sigma_projected[0] = eigenvalues[0];
+    sigma_projected[1] = eigenvalues[1];
+    sigma_projected[2] = eigenvalues[2];
+
 
     m_hardening += (gamma[0] + gamma[1]) * 2. * cosphi;
 
@@ -403,9 +410,12 @@ bool TPZSolveMatrix::ReturnMappingLeftEdge(double *eigenvalues, double *sigma_pr
         }
     }
 
-    sigma_projected[0] += -(2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
-    sigma_projected[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] - (2. * G * (1. + sinpsi / 3.) + 2. * K * sinpsi) * gamma[1];
-    sigma_projected[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * (gamma[0] + gamma[1]);
+    eigenvalues[0] += -(2. * G * (1 + sinpsi / 3.) + 2. * K * sinpsi) * gamma[0] + ((4. * G / 3. - 2. * K) * sinpsi) * gamma[1];
+    eigenvalues[1] += ((4. * G / 3. - K * 2.) * sinpsi) * gamma[0] - (2. * G * (1. + sinpsi / 3.) + 2. * K * sinpsi) * gamma[1];
+    eigenvalues[2] += (2. * G * (1 - sinpsi / 3.) - 2. * K * sinpsi) * (gamma[0] + gamma[1]);
+    sigma_projected[0] = eigenvalues[0];
+    sigma_projected[1] = eigenvalues[1];
+    sigma_projected[2] = eigenvalues[2];
 
     m_hardening += (gamma[0] + gamma[1]) * 2. * cosphi;
 
@@ -453,7 +463,7 @@ void TPZSolveMatrix::ReturnMappingApex(double *eigenvalues, double *sigma_projec
 
 //Gather solution
 void TPZSolveMatrix::GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &gather_solution) {
-    int64_t n_globalsol = fCmesh->Dimension()*fNphis;
+    int64_t n_globalsol = fNpts;
 
     gather_solution.Resize(n_globalsol,1);
     gather_solution.Zero();
@@ -465,7 +475,7 @@ void TPZSolveMatrix::GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatri
 //Strain
 void TPZSolveMatrix::DeltaStrain(TPZFMatrix<REAL> &expandsolution, TPZFMatrix<REAL> &delta_strain) {
     int64_t nelem = fRowSizes.size();
-    int64_t n_globalsol = fCmesh->Dimension()*fNphis;
+    int64_t n_globalsol = fNpts;
 
     delta_strain.Resize(2*n_globalsol,1);
     delta_strain.Zero();
@@ -592,8 +602,8 @@ void TPZSolveMatrix::NodalForces(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &noda
     for (int iel = 0; iel < nelem; iel++) {
         for (int i = 0; i < fColSizes[iel]; i++) {
             for (int k = 0; k < fRowSizes[iel]; k++) {
-                nodal_forces(i + fColFirstIndex[iel], 0) += fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel], 0);
-                nodal_forces(i + fColFirstIndex[iel] + size/dim, 0) +=  fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel] + size, 0);
+                nodal_forces(i + fColFirstIndex[iel], 0) -= fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel], 0);
+                nodal_forces(i + fColFirstIndex[iel] + size/dim, 0) -=  fStorage[k + i * fRowSizes[iel] + fMatrixPosition[iel]] * sigma(k + fRowFirstIndex[iel] + size, 0);
             }
         }
     }
@@ -756,7 +766,7 @@ void TPZSolveMatrix::SetDataStructure(){
         npts_tot += npts;
         nf_tot += nf;
     }
-    this->SetNumberofIntPoints(npts_tot);
+    this->SetNumberofIntPoints(dim_mesh*npts_tot);
     this->SetNumberofPhis(nf_tot);
     this->SetRowandColSizes(rowsizes, colsizes);
 

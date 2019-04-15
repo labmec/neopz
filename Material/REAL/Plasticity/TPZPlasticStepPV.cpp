@@ -93,10 +93,6 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     sig_eigen_system.fEigenvalues = sig_projected; // Under the assumption of isotropic material eigen vectors remain unaltered
     sigma = TPZTensor<REAL>(sig_eigen_system);
 
-    std::cout << sig_projected[0] << std::endl;
-    std::cout << sig_projected[1] << std::endl;
-    std::cout << sig_projected[2] << std::endl;
-
     TPZTensor<REAL> eps_e_Np1;
     fER.ComputeStrain(sigma, eps_e_Np1);
     fN.m_eps_t = epsTotal;
