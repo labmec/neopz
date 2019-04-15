@@ -167,103 +167,200 @@ namespace pzgeom
     
     template <class TGeo>
     template<class T>
-    inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const
+    inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T>& qsi, TPZVec<T> &result) const
     {
-        TPZFNMatrix<45> coord(3,TGeo::NNodes);
-        this->CornerCoordinates(gel,coord);
-        
         result.Resize(3);
         result.Fill(0);
-        
-        TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.);
-        
-        int majorSide = TGeo::NSides - 1;
-        
-        TPZManVector<REAL,27> SidesCounter(TGeo::NSides,0);
-        TPZStack<int> LowNodeSides, LowAllSides;
-        
-        TPZFNMatrix<9,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
-        TGeo::TShape(par,blend,Dblend);
-        TPZGeoMesh *gmesh = gel.Mesh();
-        
-        for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
-        {
-            TPZGeoElSide gelside(fNeighbours[byside-TGeo::NNodes],gmesh);
-            if(gelside.Exists())
-            {
-                TGeo::LowerDimensionSides(byside,LowNodeSides,0);
-                TGeo::LowerDimensionSides(byside,LowAllSides);
-                T blendTemp = 0.;
-                for(int a = 0; a < LowNodeSides.NElements(); a++)
-                {
-                    blendTemp += blend(LowNodeSides[a],0);
-                }
-                int sidedim = gelside.Dimension();
-                
-                if(!MapToNeighSide(byside,sidedim,par,NeighPar,NotUsedHere))
-                {
-#ifdef LOG4CXX2
-                    if(logger->isDebugEnabled())
-                    {
-                        std::stringstream sout;
-                        sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
-                        LOGPZ_DEBUG(logger,sout.str())
-                    }
-#endif
-                    
-                    continue;
-                }
-                
-                Neighbour(byside,gmesh).X(NeighPar,Xside);
-                
-#ifdef LOG4CXX2
-                if(logger->isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    sout << "NeighPar " << NeighPar << ' ';
-                    sout << "Xside " << Xside << ' ';
-                    sout << "blendTemp " << blendTemp;
-                    LOGPZ_DEBUG(logger,sout.str())
-                }
-#endif
-                
-                for(int c = 0; c < 3; c++)
-                {
-                    result[c] += (1 - SidesCounter[byside]) * Xside[c]*blendTemp;
-                }
-                
-                for(int b = 0; b < LowAllSides.NElements(); b++)
-                {
-                    SidesCounter[LowAllSides[b]] += (1 - SidesCounter[byside]);
-                }
+        /**
+         * The non-linear mapping is calculated from deviations of the linear mapping.
+         * The linear mapping of an element (or of any of its side) can be calculated with the barycentric coordinates
+         * of the nodes contained in it
+         */
+        TPZFNMatrix<9,T> baryCoordNodes(TGeo::NNodes,1), dBaryCoordNodesDeta(TGeo::Dimension,TGeo::NNodes);
+        TGeo::TShape(qsi,baryCoordNodes,dBaryCoordNodesDeta);//gets the barycentric coordinates
+
+        TPZFNMatrix<45> coord(3,TGeo::NNodes);
+        this->CornerCoordinates(gel,coord);//gets nodes coordinates in the deformed element
+
+        for(int iNode = 0; iNode < TGeo::NNodes; iNode++){//calculates the linear mapping
+            for(int x = 0; x < 3; x++){
+                result[x] += coord(x,iNode)*baryCoordNodes(iNode,0);
             }
         }
-        
-#ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "sidescounter before contributing linear map " << SidesCounter;
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-        
-        for(int a = 0; a < TGeo::NNodes; a++)
-        {
-            for(int b = 0; b < 3; b++)
-            {
-                result[b] += (1 - SidesCounter[a]) * coord(b,a)*blend(a,0);
+
+        /**
+         * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
+         */
+        TPZVec<T> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
+        TPZFNMatrix<27,T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
+        TPZFNMatrix<27,T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3,  0.);
+        for(int iSide = TGeo::NNodes; iSide < TGeo::NSides; iSide++ ){
+            //TODO:Calculate correction factor
+            //TGeo::CorrectionFactor(qsi,iSide,this->IsLinearMapping(iSide),correctionFactor[iSide]);
+            /*
+             * It will be something like (int)(!isLinearMapping)*corrFactor, so if the side is linear, correctionFactor
+             * will be equal to zero
+             */
+
+
+            /**
+             * Now, the linear mapping of the side will be calculated based on the barycentric coordinates of the nodes.
+             * Also, for optimisation purposes, the projection of the point qsi onto the side iSide will also be
+             * calculated in the same loop
+             */
+            TPZStack<int> LowNodeSides;
+            TGeo::LowerDimensionSides(iSide,LowNodeSides,0);
+            T barycentricSum(0.);
+            TPZVec<T> projectionOverSide(TGeo::Dimension,  0.);
+            for(int iNode = 0; iNode < LowNodeSides.NElements(); iNode++){
+                /*
+                 * Calculates the linear mapping. The non linear mapping is identical, for now, and the deviations
+                 * are still to be calculated.
+                 */
+                for(int x = 0; x < 3; x++){
+                    linearSideMappings(iSide,x) += coord(x,LowNodeSides[iNode])*baryCoordNodes(LowNodeSides[iNode],0);
+                    nonLinearSideMappings(iSide,x) += coord(x,LowNodeSides[iNode])*baryCoordNodes(LowNodeSides[iNode],0);
+                }
+
+                /**
+                 * Calculates the projetion qsi_0
+                 */
+                TPZVec<REAL> nodeCoord(TGeo::Dimension,0.);
+                TGeo::ParametricDomainNodeCoord(LowNodeSides[iNode], nodeCoord);
+                for(int xLoc = 0; xLoc < TGeo::Dimension; xLoc++){
+                    projectionOverSide[xLoc] += baryCoordNodes(LowNodeSides[iNode],0)*nodeCoord[xLoc];
+                }
+                barycentricSum += baryCoordNodes(LowNodeSides[iNode],0);
+            }
+
+            for(int xLoc = 0; xLoc < TGeo::Dimension; xLoc++){//Finally, the projection onto the side is calculated.
+                projectionOverSide[xLoc] /= barycentricSum;
+            }
+
+            /**
+             * Now that the projection (which is in the same domain as the element) was calculated, its equivalent
+             * in local side's coordinates must be calculated
+             */
+            TPZVec<T> parametricSidePoint(0,0.);
+            TPZFNMatrix<3,T> jacToSide(0,0,0.);
+            TGeo::MapToSide(iSide, projectionOverSide, parametricSidePoint, jacToSide);
+
+            TPZStack<int> allContainedSides;
+            TGeo::LowerDimensionSides(iSide,allContainedSides);
+            for(int iSubSide = LowNodeSides.NElements(); iSubSide < allContainedSides.NElements(); iSubSide++){
+                for(int x = 0; x < 3; x++){
+                    nonLinearSideMappings(iSide,x) += correctionFactor[allContainedSides[iSubSide]] *
+                            (nonLinearSideMappings(iSubSide,x) - linearSideMappings(iSubSide,x));
+                }
+            }
+            /**
+             * Calculates the non-linear mapping of the side iSide
+             */
+
+            /**
+            * Calculates the contribution of the side iSide to the non-linear mapping
+            */
+            for(int x = 0; x < 3; x++){
+                nonLinearSideMappings(iSide,x) += correctionFactor[iSide] *
+                                                  (nonLinearSideMappings(iSide,x) - linearSideMappings(iSide,x));
             }
         }
-        
-#ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "result " << result;
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
+
+//        TPZFNMatrix<45> coord(3,TGeo::NNodes);
+//        this->CornerCoordinates(gel,coord);
+//
+//        result.Resize(3);
+//        result.Fill(0);
+//
+//        TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.);
+//
+//        int majorSide = TGeo::NSides - 1;
+//
+//        TPZManVector<REAL,27> SidesCounter(TGeo::NSides,0);
+//        TPZStack<int> LowNodeSides, LowAllSides;
+//
+//        TPZFNMatrix<9,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+//        TGeo::TShape(par,blend,Dblend);
+//        TPZGeoMesh *gmesh = gel.Mesh();
+//
+//        for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
+//        {
+//            TPZGeoElSide gelside(fNeighbours[byside-TGeo::NNodes],gmesh);
+//            if(gelside.Exists())
+//            {
+//                TGeo::LowerDimensionSides(byside,LowNodeSides,0);
+//                TGeo::LowerDimensionSides(byside,LowAllSides);
+//                T blendTemp = 0.;
+//                for(int a = 0; a < LowNodeSides.NElements(); a++)
+//                {
+//                    blendTemp += blend(LowNodeSides[a],0);
+//                }
+//                int sidedim = gelside.Dimension();
+//
+//                if(!MapToNeighSide(byside,sidedim,par,NeighPar,NotUsedHere))
+//                {
+//#ifdef LOG4CXX2
+//                    if(logger->isDebugEnabled())
+//                    {
+//                        std::stringstream sout;
+//                        sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
+//                        LOGPZ_DEBUG(logger,sout.str())
+//                    }
+//#endif
+//
+//                    continue;
+//                }
+//
+//                Neighbour(byside,gmesh).X(NeighPar,Xside);
+//
+//#ifdef LOG4CXX2
+//                if(logger->isDebugEnabled())
+//                {
+//                    std::stringstream sout;
+//                    sout << "NeighPar " << NeighPar << ' ';
+//                    sout << "Xside " << Xside << ' ';
+//                    sout << "blendTemp " << blendTemp;
+//                    LOGPZ_DEBUG(logger,sout.str())
+//                }
+//#endif
+//
+//                for(int c = 0; c < 3; c++)
+//                {
+//                    result[c] += (1 - SidesCounter[byside]) * Xside[c]*blendTemp;
+//                }
+//
+//                for(int b = 0; b < LowAllSides.NElements(); b++)
+//                {
+//                    SidesCounter[LowAllSides[b]] += (1 - SidesCounter[byside]);
+//                }
+//            }
+//        }
+//
+//#ifdef LOG4CXX2
+//        if(logger->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout << "sidescounter before contributing linear map " << SidesCounter;
+//            LOGPZ_DEBUG(logger,sout.str())
+//        }
+//#endif
+//
+//        for(int a = 0; a < TGeo::NNodes; a++)
+//        {
+//            for(int b = 0; b < 3; b++)
+//            {
+//                result[b] += (1 - SidesCounter[a]) * coord(b,a)*blend(a,0);
+//            }
+//        }
+//
+//#ifdef LOG4CXX2
+//        if(logger->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout << "result " << result;
+//            LOGPZ_DEBUG(logger,sout.str())
+//        }
+//#endif
         
     }
     
