@@ -29,6 +29,7 @@ class TPZSolveMatrix {
 public:
 
     TPZSolveMatrix() {
+        fDim = -1;
         fRhs = fRhs.Resize(0,0);
         fRhsBoundary.Resize(0,0);
         fBoundaryElements.resize(0);
@@ -55,9 +56,9 @@ public:
         SetDataStructure();
         AssembleRhsBoundary();
 
-        int dim = fCmesh->Dimension();
-        fTotalStrain.Resize(dim * dim * fNpts, 1);
-        fPlasticStrain.Resize(dim * dim * fNpts, 1);
+        fDim = fCmesh->Dimension();
+        fTotalStrain.Resize(fDim * fNpts, 1);
+        fPlasticStrain.Resize(fDim * fNpts, 1);
         fTotalStrain.Zero();
         fPlasticStrain.Zero();
     }
@@ -67,6 +68,7 @@ public:
     }
 
     TPZSolveMatrix(const TPZSolveMatrix &copy) {
+        fDim = copy.fDim;
         fRhs = copy.fRhs;
         fRhsBoundary = copy.fRhsBoundary;
         fBoundaryElements = copy.fBoundaryElements;
@@ -110,6 +112,7 @@ public:
     }
 
     TPZSolveMatrix &operator=(const TPZSolveMatrix &copy) {
+        fDim = copy.fDim;
         fRhs = copy.fRhs;
         fRhsBoundary = copy.fRhsBoundary;
         fBoundaryElements = copy.fBoundaryElements;
@@ -269,6 +272,7 @@ public:
     void AssembleRhsBoundary();
 
 protected:
+    int fDim;
 ///rhs
     TPZFMatrix<REAL> fRhs;
 

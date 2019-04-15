@@ -65,12 +65,12 @@ void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::os
 
 int main(int argc, char *argv[]) {
     
-    int pOrder = 2; // Computational mesh order
+    int pOrder = 3; // Computational mesh order
     bool render_vtk_Q = true;
     
 // Generates the geometry
-//    std::string file("wellbore_triang.msh");
-    std::string file("wellbore_quad.msh");
+    std::string file("wellbore_triang.msh");
+//    std::string file("wellbore_quad.msh");
     TPZGeoMesh *gmesh = ReadGeometry(file);
     PrintGeometry(gmesh);
 
@@ -101,8 +101,7 @@ int main(int argc, char *argv[]) {
     }
 
 // Calculates the solution using all intg points at once
-//    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
-//    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
+    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
 
     return 0;
 }
@@ -202,10 +201,10 @@ TElastoPlasticData WellboreConfig(){
 
     LER.SetEngineeringData(Ey, nu);
 
-//    REAL mc_cohesion    = 10000000000.0;
-//    REAL mc_phi         = (20*M_PI/180);
-    REAL mc_cohesion    = 10.0;
+    REAL mc_cohesion    = 10000000000.0;
     REAL mc_phi         = (20*M_PI/180);
+//    REAL mc_cohesion    = 10.0;
+//    REAL mc_phi         = (20*M_PI/180);
 
     /// NVB it is important to check the correct sign for ef in TPZMatElastoPlastic and TPZMatElastoPlastic2D materials. It is better to avoid problems with tensile state of stress.
 
