@@ -28,6 +28,7 @@ namespace pzgeom
 	class TPZGeoBlend : public TGeo {
 		
 	public:
+	    bool useNewX = false;
             
             virtual int ClassId() const;
 		
@@ -99,6 +100,12 @@ namespace pzgeom
         /** @brief Get the coordinates of the point at geometric elements from coordinates of the parametric point at the master element */
         template<class T>
 		void X(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const;
+
+        template<class T>
+        void X1(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const;
+
+        template<class T>
+        void X2(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const;
         
 		/** @brief Computes the Jacobian for parametric point at master element */
 		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
@@ -163,11 +170,127 @@ namespace pzgeom
 		TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZTransform<> fTrans[1+TGeo::NSides - TGeo::NNodes];
 	};
-    
-    
+
+
+
     template <class TGeo>
     template<class T>
-    inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T>& qsi, TPZVec<T> &result) const
+    inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const {
+        if(this->useNewX){
+            return this->X2(gel,par,result);
+        }else{
+            return this->X1(gel,par,result);
+        }
+    }
+
+
+
+    template <class TGeo>
+    template<class T>
+    inline void pzgeom::TPZGeoBlend<TGeo>::X1(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const
+    {
+        TPZFNMatrix<45> coord(3,TGeo::NNodes);
+        this->CornerCoordinates(gel,coord);
+        
+        result.Resize(3);
+        result.Fill(0);
+        
+        TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.);
+        
+        int majorSide = TGeo::NSides - 1;
+        
+        TPZManVector<REAL,27> SidesCounter(TGeo::NSides,0);
+        TPZStack<int> LowNodeSides, LowAllSides;
+        
+        TPZFNMatrix<9,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
+        TGeo::TShape(par,blend,Dblend);
+        TPZGeoMesh *gmesh = gel.Mesh();
+        
+        for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
+        {
+            TPZGeoElSide gelside(fNeighbours[byside-TGeo::NNodes],gmesh);
+            if(gelside.Exists())
+            {
+                TGeo::LowerDimensionSides(byside,LowNodeSides,0);
+                TGeo::LowerDimensionSides(byside,LowAllSides);
+                T blendTemp = 0.;
+                for(int a = 0; a < LowNodeSides.NElements(); a++)
+                {
+                    blendTemp += blend(LowNodeSides[a],0);
+                }
+                int sidedim = gelside.Dimension();
+                
+                if(!MapToNeighSide(byside,sidedim,par,NeighPar,NotUsedHere))
+                {
+#ifdef LOG4CXX2
+                    if(logger->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
+                        LOGPZ_DEBUG(logger,sout.str())
+                    }
+#endif
+                    
+                    continue;
+                }
+                
+                Neighbour(byside,gmesh).X(NeighPar,Xside);
+                
+#ifdef LOG4CXX2
+                if(logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "NeighPar " << NeighPar << ' ';
+                    sout << "Xside " << Xside << ' ';
+                    sout << "blendTemp " << blendTemp;
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
+#endif
+                
+                for(int c = 0; c < 3; c++)
+                {
+                    result[c] += (1 - SidesCounter[byside]) * Xside[c]*blendTemp;
+                }
+                
+                for(int b = 0; b < LowAllSides.NElements(); b++)
+                {
+                    SidesCounter[LowAllSides[b]] += (1 - SidesCounter[byside]);
+                }
+            }
+        }
+        
+#ifdef LOG4CXX2
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "sidescounter before contributing linear map " << SidesCounter;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        
+        for(int a = 0; a < TGeo::NNodes; a++)
+        {
+            for(int b = 0; b < 3; b++)
+            {
+                result[b] += (1 - SidesCounter[a]) * coord(b,a)*blend(a,0);
+            }
+        }
+        
+#ifdef LOG4CXX2
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "result " << result;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        
+    }
+
+
+    template <class TGeo>
+    template<class T>
+    inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T>& qsi, TPZVec<T> &result) const
     {
         result.Resize(3);
         result.Fill(0);
@@ -250,7 +373,7 @@ namespace pzgeom
             for(int iSubSide = LowNodeSides.NElements(); iSubSide < allContainedSides.NElements(); iSubSide++){
                 for(int x = 0; x < 3; x++){
                     nonLinearSideMappings(iSide,x) += correctionFactor[allContainedSides[iSubSide]] *
-                            (nonLinearSideMappings(iSubSide,x) - linearSideMappings(iSubSide,x));
+                                                      (nonLinearSideMappings(iSubSide,x) - linearSideMappings(iSubSide,x));
                 }
             }
             /**
@@ -361,9 +484,9 @@ namespace pzgeom
 //            LOGPZ_DEBUG(logger,sout.str())
 //        }
 //#endif
-        
+
     }
-    
+
     template <class TGeo>
     template<class T>
     inline bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, int SideDim, TPZVec<T> &InternalPar, TPZVec<T> &NeighPar, TPZFMatrix<T> &JacNeighSide) const
