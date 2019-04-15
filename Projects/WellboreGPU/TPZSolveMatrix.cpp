@@ -345,7 +345,6 @@ bool TPZSolveMatrix::ReturnMappingRightEdge(double *eigenvalues, double *sigma_p
     sigma_projected[1] = eigenvalues[1];
     sigma_projected[2] = eigenvalues[2];
 
-
     m_hardening += (gamma[0] + gamma[1]) * 2. * cosphi;
 
     bool check_validity = (eigenvalues[0] > eigenvalues[1] || fabs(eigenvalues[0]-eigenvalues[1]) < 1.e-12) && (eigenvalues[1] > eigenvalues[2] || fabs(eigenvalues[1]-eigenvalues[2]) < 1.e-12);
@@ -463,7 +462,7 @@ void TPZSolveMatrix::ReturnMappingApex(double *eigenvalues, double *sigma_projec
 
 //Gather solution
 void TPZSolveMatrix::GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatrix<REAL> &gather_solution) {
-    int64_t n_globalsol = fNpts;
+    int64_t n_globalsol = fCmesh->Dimension()*fNphis;
 
     gather_solution.Resize(n_globalsol,1);
     gather_solution.Zero();
@@ -475,7 +474,7 @@ void TPZSolveMatrix::GatherSolution(TPZFMatrix<REAL> &global_solution, TPZFMatri
 //Strain
 void TPZSolveMatrix::DeltaStrain(TPZFMatrix<REAL> &expandsolution, TPZFMatrix<REAL> &delta_strain) {
     int64_t nelem = fRowSizes.size();
-    int64_t n_globalsol = fNpts;
+    int64_t n_globalsol = fCmesh->Dimension()*fNphis;
 
     delta_strain.Resize(2*n_globalsol,1);
     delta_strain.Zero();
@@ -766,7 +765,7 @@ void TPZSolveMatrix::SetDataStructure(){
         npts_tot += npts;
         nf_tot += nf;
     }
-    this->SetNumberofIntPoints(dim_mesh*npts_tot);
+    this->SetNumberofIntPoints(npts_tot);
     this->SetNumberofPhis(nf_tot);
     this->SetRowandColSizes(rowsizes, colsizes);
 

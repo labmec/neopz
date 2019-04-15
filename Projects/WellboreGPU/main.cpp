@@ -102,6 +102,7 @@ int main(int argc, char *argv[]) {
 
 // Calculates the solution using all intg points at once
 //    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
+//    SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
 
     return 0;
 }
