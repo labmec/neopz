@@ -17,6 +17,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
 template<class TGeo>
+bool pzgeom::TPZGeoBlend<TGeo>::fUseNewX = false;
+
+template<class TGeo>
 bool pzgeom::TPZGeoBlend<TGeo>::IsLinearMapping(int side) const
 {
     TPZStack<int> LowAllSides;

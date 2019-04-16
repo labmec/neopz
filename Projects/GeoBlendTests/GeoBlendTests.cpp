@@ -22,7 +22,14 @@ int main()
 
 
     TPZGeoMesh * gmesh = nullptr;
+
+    pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>::fUseNewX = false;
     CreateGeoMesh(gmesh, printGMesh, nDiv);
+    delete gmesh;
+
+//    pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>::fUseNewX = true;
+//    CreateGeoMesh(gmesh, printGMesh, nDiv);
+//    delete gmesh;
 
 
 }

@@ -28,7 +28,7 @@ namespace pzgeom
 	class TPZGeoBlend : public TGeo {
 		
 	public:
-	    bool useNewX = false;
+	    static bool fUseNewX;
             
             virtual int ClassId() const;
 		
@@ -176,7 +176,7 @@ namespace pzgeom
     template <class TGeo>
     template<class T>
     inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T>& par, TPZVec<T> &result) const {
-        if(this->useNewX){
+        if(this->fUseNewX){
             return this->X2(gel,par,result);
         }else{
             return this->X1(gel,par,result);
@@ -317,7 +317,8 @@ namespace pzgeom
         TPZVec<T> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
         TPZFNMatrix<27,T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
         TPZFNMatrix<27,T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3,  0.);
-        for(int iSide = TGeo::NNodes; iSide < TGeo::NSides; iSide++ ){
+        for(int iSide = 0; iSide < TGeo::NSides - TGeo::NNodes; iSide++ ){
+            int actualSide = TGeo::NNodes + iSide - 1;
             //TODO:Calculate correction factor
             //TGeo::CorrectionFactor(qsi,iSide,this->IsLinearMapping(iSide),correctionFactor[iSide]);
             /*
@@ -332,7 +333,7 @@ namespace pzgeom
              * calculated in the same loop
              */
             TPZStack<int> LowNodeSides;
-            TGeo::LowerDimensionSides(iSide,LowNodeSides,0);
+            TGeo::LowerDimensionSides(actualSide,LowNodeSides,0);
             T barycentricSum(0.);
             TPZVec<T> projectionOverSide(TGeo::Dimension,  0.);
             for(int iNode = 0; iNode < LowNodeSides.NElements(); iNode++){
@@ -366,10 +367,10 @@ namespace pzgeom
              */
             TPZVec<T> parametricSidePoint(0,0.);
             TPZFNMatrix<3,T> jacToSide(0,0,0.);
-            TGeo::MapToSide(iSide, projectionOverSide, parametricSidePoint, jacToSide);
+            TGeo::MapToSide(actualSide, projectionOverSide, parametricSidePoint, jacToSide);
 
             TPZStack<int> allContainedSides;
-            TGeo::LowerDimensionSides(iSide,allContainedSides);
+            TGeo::LowerDimensionSides(actualSide,allContainedSides);
             for(int iSubSide = LowNodeSides.NElements(); iSubSide < allContainedSides.NElements(); iSubSide++){
                 for(int x = 0; x < 3; x++){
                     nonLinearSideMappings(iSide,x) += correctionFactor[allContainedSides[iSubSide]] *
