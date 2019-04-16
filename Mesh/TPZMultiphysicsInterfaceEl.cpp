@@ -321,13 +321,6 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 		return;
 	}
     
-    TPZVec<int64_t> *leftindices(0), *rightindices(0);
-    if (fLeftElIndices.size()) {
-        leftindices = &fLeftElIndices;
-    }
-    if (fRightElIndices.size()) {
-        rightindices = &fRightElIndices;
-    }
 	
 	InitializeElementMatrix(ek,ef);
 	
@@ -392,15 +385,46 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, leftindices);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, fLeftElIndices);
+        ComputeNormal(leftPoint,neighleft,datavecleft,fLeftElIndices);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, rightindices);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, fRightElIndices);
+        ComputeNormal(rightPoint,neighright,datavecright,fRightElIndices);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }	
 	
 }//CalcStiff
+
+void TPZMultiphysicsInterfaceElement::ComputeNormal(TPZManVector<REAL,3> point, TPZGeoElSide neighside, TPZVec<TPZMaterialData> &datavec, TPZManVector<int64_t,3> indices)
+{
+
+    TPZGeoEl* gel = neighside.Element();
+    int side = neighside.Side();
+    TPZTransform<> loctr = gel->SideToSideTransform(gel->NSides()-1, side);
+
+    TPZManVector<REAL,3> sidepoint(neighside.Dimension(),0.);
+    loctr.Apply(point, sidepoint);
+    
+    int64_t nindices = indices.size();
+    point.Resize(3);
+    if(nindices>0){
+        for (int64_t iel = 0; iel<nindices; iel++) {
+            int64_t indicel = indices.operator[](iel);
+            if (datavec[indicel].fNeedsNormal){
+                neighside.Normal(sidepoint, datavec[indicel].normal);
+            }
+        }
+    }else{
+        for (int64_t iel = 0; iel<datavec.size(); iel++) {
+            if (datavec[iel].fNeedsNormal){
+                neighside.Normal(point, datavec[iel].normal);
+            }
+        }
+    }
+    
+}
 
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
 {
@@ -473,9 +497,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, fLeftElIndices);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, fRightElIndices);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ef.fMat);
@@ -715,9 +739,6 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_d
     data_left.resize(n_meshes);
     data_right.resize(n_meshes);
     
-    TPZMaterial * mat = this->Material();
-    mat->FillDataRequirementsInterface(center_data, data_left, data_right);
-    
     TPZVec<int64_t> *leftindices(0), *rightindices(0);
     if (fLeftElIndices.size()) {
         leftindices = &fLeftElIndices;
@@ -728,6 +749,9 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_d
     
     leftel->InitMaterialData(data_left,leftindices);
     rightel->InitMaterialData(data_right,rightindices);
+    
+    TPZMaterial * mat = this->Material();
+    mat->FillDataRequirementsInterface(center_data, data_left, data_right);
     
     
 }
@@ -898,8 +922,8 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	lefttr.Apply(qsi, myqsi);
 	lefttr.Apply(qsi, myqsi);
 	
-	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft);
-	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright);
+	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft,fLeftElIndices);
+	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright,fRightElIndices);
 		
 	material->Solution(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
 }
