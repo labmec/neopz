@@ -134,6 +134,12 @@ static const REAL FI = 1.;
 static const REAL a = 0.5;
 static const REAL b = 0.5;
 
+REAL TElasticity2DAnalytic::gE = 1.;
+
+REAL TElasticity2DAnalytic::gPoisson = 0.3;
+
+int TElasticity2DAnalytic::gOscilatoryElasticity = 0;
+
 template<>
 void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
@@ -179,13 +185,13 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
     else if(fProblemType == EUniAxialx)
     {
         if (fPlaneStress == 0) {
-            disp[0] = x[0]*(1.-fPoisson*fPoisson)/fE;
-            disp[1] = -x[1]*(1.+fPoisson)*fPoisson/fE;
+            disp[0] = x[0]*(1.-gPoisson*gPoisson)/gE;
+            disp[1] = -x[1]*(1.+gPoisson)*gPoisson/gE;
         }
         else
         {
-            disp[0] = x[0]/fE;
-            disp[1] = -x[1]*fPoisson/fE;
+            disp[0] = x[0]/gE;
+            disp[1] = -x[1]*gPoisson/gE;
         }
     }
     else if(fProblemType ==EStretchy)//strech y
@@ -209,15 +215,21 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
         disp[0] += (FADFADREAL) 0.;
         disp[0] += (FADFADREAL) 1.;
     }
-    else if(fProblemType==EBend)
+    else if (fProblemType == EThiago){
+        disp[0] = FADcos(M_PI * x[0]) * FADsin(2 * M_PI * x[1]);
+        disp[1] = FADcos(M_PI * x[1]) * FADsin(M_PI * x[0]);
+    } else if(fProblemType == EPoly){
+        disp[0] = 0. * x[0]; //*x[0]*x[1];
+        disp[1] = x[1] * x[0]; //(x[1]-1.)*(x[1]-x[0])*(x[0]+4.*x[1]);
+    } else if(fProblemType==EBend)
     {
         typedef TVar FADFADREAL;
-        TVar poiss = fPoisson;
-        TVar elast = fE;
+        TVar poiss = gPoisson;
+        TVar elast = gE;
         if(fPlaneStress == 0)
         {
             poiss = poiss/(1.-poiss);
-            elast /= (1-fPoisson*fPoisson);
+            elast /= (1-gPoisson*gPoisson);
         }
         disp[0] = 5.*x[0]*x[1]/elast;
         disp[1] = (-poiss*5.*x[1]*x[1]/2.-5.*x[0]*x[0]/2.)/elast;
@@ -227,17 +239,17 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
     {
         TVar Est,nust,G;
         REAL MI = 5, h = 1.;
-        G = fE/(2.*(1.+fPoisson));
+        G = gE/(2.*(1.+gPoisson));
         if (fPlaneStress == 0) {
-            Est = fE/((1.-fPoisson*fPoisson));
-            nust = fPoisson/(1-fPoisson);
-//            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
-//            nust = fPoisson/(1.+fPoisson);
+            Est = gE/((1.-gPoisson*gPoisson));
+            nust = gPoisson/(1-gPoisson);
+//            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
+//            nust = gPoisson/(1.+gPoisson);
         }
         else
         {
-            Est = fE;
-            nust = fPoisson;
+            Est = gE;
+            nust = gPoisson;
         }
         disp[0] = MI*h*h*x[1]/(2.*G)+ MI*x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
         disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
@@ -247,19 +259,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
         TVar Est,nust,G, kappa;
         TVar theta = FADatan2(x[1],x[0]);
         TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
-        G = fE/(2.*(1.+fPoisson));
+        G = gE/(2.*(1.+gPoisson));
         if (fPlaneStress == 0) {
-            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
-            //            nust = fPoisson/(1.+fPoisson);
-            Est = fE/((1.-fPoisson*fPoisson));
-            nust = fPoisson/(1-fPoisson);
-            kappa = 3.-4.*fPoisson;
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE/((1.-gPoisson*gPoisson));
+            nust = gPoisson/(1-gPoisson);
+            kappa = 3.-4.*gPoisson;
         }
         else
         {
-            Est = fE;
-            nust = fPoisson;
-            kappa = (3.-fPoisson)/(1+fPoisson);
+            Est = gE;
+            nust = gPoisson;
+            kappa = (3.-gPoisson)/(1+gPoisson);
         }
         TVar costh = FADcos(theta/2.);
         TVar sinth = FADsin(theta/2.);
@@ -274,19 +286,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
             theta -= (2.*M_PI);
         }
         TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
-        G = fE/(2.*(1.+fPoisson));
+        G = gE/(2.*(1.+gPoisson));
         if (fPlaneStress == 0) {
-            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
-            //            nust = fPoisson/(1.+fPoisson);
-            Est = fE/((1.-fPoisson*fPoisson));
-            nust = fPoisson/(1-fPoisson);
-            kappa = 3.-4.*fPoisson;
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE/((1.-gPoisson*gPoisson));
+            nust = gPoisson/(1-gPoisson);
+            kappa = 3.-4.*gPoisson;
         }
         else
         {
-            Est = fE;
-            nust = fPoisson;
-            kappa = (3.-fPoisson)/(1+fPoisson);
+            Est = gE;
+            nust = gPoisson;
+            kappa = (3.-gPoisson)/(1+gPoisson);
         }
         TVar costh = FADcos(theta/2.);
         TVar sinth = FADsin(theta/2.);
@@ -301,19 +313,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
             theta += (2.*M_PI);
         }
         TVar r = FADsqrt(x[0]*x[0]+x[1]*x[1]);
-        G = fE/(2.*(1.+fPoisson));
+        G = gE/(2.*(1.+gPoisson));
         if (fPlaneStress == 0) {
-            //            Est = (1.+2.*fPoisson)/((1+fPoisson)*(1.+fPoisson))*fE;
-            //            nust = fPoisson/(1.+fPoisson);
-            Est = fE/((1.-fPoisson*fPoisson));
-            nust = fPoisson/(1-fPoisson);
-            kappa = 3.-4.*fPoisson;
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE/((1.-gPoisson*gPoisson));
+            nust = gPoisson/(1-gPoisson);
+            kappa = 3.-4.*gPoisson;
         }
         else
         {
-            Est = fE;
-            nust = fPoisson;
-            kappa = (3.-fPoisson)/(1+fPoisson);
+            Est = gE;
+            nust = gPoisson;
+            kappa = (3.-gPoisson)/(1+gPoisson);
         }
         TVar costh = FADcos(theta/2.);
         TVar sinth = FADsin(theta/2.);
@@ -322,6 +334,179 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL 
     }
     else
     {
+        DebugStop();
+    }
+}
+
+template<typename TVar1, typename TVar2>
+void TElasticity2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) const {
+    
+    if (fProblemType == Etest1) {
+        disp[0] = TVar2(1. / 27.) * x[0] * x[0] * x[1] * x[1] * cos(TVar2(6. * M_PI) * x[0]) * sin(TVar2(7. * M_PI) * x[1]);
+        disp[1] = TVar2(0.2) * exp(x[1]) * sin(TVar2(4. * M_PI) * x[0]);
+    } else if (fProblemType == Etest2) {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] = ((TVar2(1) - x[0] * x[0])*(1. + x[1] * x[1] * x[1] * x[1]));
+        disp[1] = ((TVar2(1) - x[1] * x[1])*(1. + x[0] * x[0] * x[0] * x[0]));
+    }
+    else if (fProblemType == ERot)//rotation
+    {
+        disp[0] = (TVar2) - x[1];
+        disp[1] = (TVar2) x[0];
+    }
+    else if (fProblemType == EShear)//pure shear
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar2) x[1];
+        disp[1] += (TVar2) 0.;
+    } else if (fProblemType == EStretchx)//strech x
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar2) x[0];
+        disp[1] += (TVar2) 0.;
+    } else if (fProblemType == EUniAxialx) {
+        if (fPlaneStress == 0) {
+            disp[0] = x[0]*(1. - gPoisson * gPoisson) / gE;
+            disp[1] = -x[1]*(1. + gPoisson) * gPoisson / gE;
+        } else {
+            disp[0] = x[0] / gE;
+            disp[1] = -x[1] * gPoisson / gE;
+        }
+    } else if (fProblemType == EStretchy)//strech y
+    {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar2) 0.;
+        disp[1] += (TVar2) x[1];
+    } else if (fProblemType == EDispx) {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += 1.;
+        disp[0] += 0.;
+    } else if (fProblemType == EDispy) {
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        disp[0] += (TVar2) 0.;
+        disp[0] += (TVar2) 1.;
+    } else if (fProblemType == EThiago){
+        disp[0] = x[0]*0.;
+        disp[1] = x[0]*0.;
+        //disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
+        //disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[0] = (TVar2) cos(M_PI * x[0])*(TVar2) sin(2 * M_PI * x[1]);
+        disp[1] = (TVar2) cos(M_PI * x[1])*(TVar2) sin(M_PI * x[0]);
+    } else if(fProblemType == EPoly){
+        disp[0] = 0. * x[0]; //*x[0]*x[1];
+        disp[1] = x[1] * x[0]; //(x[1]-1.)*(x[1]-x[0])*(x[0]+4.*x[1]);
+    } else if (fProblemType == EBend) {
+        TVar2 poiss = gPoisson;
+        TVar2 elast = gE;
+        if (fPlaneStress == 0) {
+            poiss = poiss / (1. - poiss);
+            elast /= (1 - gPoisson * gPoisson);
+        }
+        disp[0] = 5. * x[0] * x[1] / elast;
+        disp[1] = (-poiss * 5. * x[1] * x[1] / 2. - 5. * x[0] * x[0] / 2.) / elast;
+    } else if (fProblemType == ELoadedBeam) {
+        TVar2 Est, nust, G;
+        REAL MI = 5, h = 1.;
+        G = gE / (2. * (1. + gPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*gE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE / ((1. - gPoisson * gPoisson));
+            nust = gPoisson / (1 - gPoisson);
+        } else {
+            Est = gE;
+            nust = gPoisson;
+        }
+        disp[0] = MI * h * h * x[1] / (2. * G) + MI * x[0] * x[0] * x[1] / (2. * Est) - MI * x[1] * x[1] * x[1] / (6. * G) + MI * nust * x[1] * x[1] * x[1] / (6. * Est);
+        disp[1] = -MI * x[0] * x[0] * x[0] / (6. * Est) - MI * nust * x[0] * x[1] * x[1] / (2. * Est);
+    } else if (fProblemType == ESquareRoot) {
+#ifdef STATE_COMPLEX
+        DebugStop();
+#else
+        TVar2 Est, nust, G, kappa;
+        TVar2 theta = atan2(x[1], x[0]);
+        TVar2 r = sqrt(x[0] * x[0] + x[1] * x[1]);
+        G = gE / (2. * (1. + gPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*gE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE / ((1. - gPoisson * gPoisson));
+            nust = gPoisson / (1 - gPoisson);
+            kappa = 3. - 4. * gPoisson;
+        } else {
+            Est = gE;
+            nust = gPoisson;
+            kappa = (3. - gPoisson) / (1 + gPoisson);
+        }
+        TVar2 costh = cos(theta / 2.);
+        TVar2 sinth = sin(theta / 2.);
+        disp[0] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * costh * (kappa - 1. + 2. * sinth * sinth);
+        disp[1] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * sinth * (kappa + 1. - 2. * costh * costh);
+        //        std::cout << "SQ x " << x << " theta " << theta << " disp " << disp << std::endl;
+#endif
+    } else if (fProblemType == ESquareRootLower) {
+#ifdef STATE_COMPLEX
+        DebugStop();
+#else
+        TVar2 Est, nust, G, kappa;
+        TVar2 theta = atan2(x[1], x[0]);
+        if (shapeFAD::val(theta) > 0.) {
+            theta -= (2. * M_PI);
+        }
+        TVar2 r = sqrt(x[0] * x[0] + x[1] * x[1]);
+        G = gE / (2. * (1. + gPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*gE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE / ((1. - gPoisson * gPoisson));
+            nust = gPoisson / (1 - gPoisson);
+            kappa = 3. - 4. * gPoisson;
+        } else {
+            Est = gE;
+            nust = gPoisson;
+            kappa = (3. - gPoisson) / (1 + gPoisson);
+        }
+        TVar2 costh = cos(theta / 2.);
+        TVar2 sinth = sin(theta / 2.);
+        disp[0] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * costh * (kappa - 1. + 2. * sinth * sinth);
+        disp[1] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * sinth * (kappa + 1. - 2. * costh * costh);
+        //        std::cout << "SQL x " << x << " theta " << theta << " disp " << disp << std::endl;
+#endif
+    } else if (fProblemType == ESquareRootUpper) {
+#ifdef STATE_COMPLEX
+        DebugStop();
+#else
+        TVar2 Est, nust, G, kappa;
+        TVar2 theta = atan2(x[1], x[0]);
+        if (shapeFAD::val(theta) < 0.) {
+            theta += (2. * M_PI);
+        }
+        TVar2 r = sqrt(x[0] * x[0] + x[1] * x[1]);
+        G = gE / (2. * (1. + gPoisson));
+        if (fPlaneStress == 0) {
+            //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*gE;
+            //            nust = gPoisson/(1.+gPoisson);
+            Est = gE / ((1. - gPoisson * gPoisson));
+            nust = gPoisson / (1 - gPoisson);
+            kappa = 3. - 4. * gPoisson;
+        } else {
+            Est = gE;
+            nust = gPoisson;
+            kappa = (3. - gPoisson) / (1 + gPoisson);
+        }
+        TVar2 costh = cos(theta / 2.);
+        TVar2 sinth = sin(theta / 2.);
+        disp[0] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * costh * (kappa - 1. + 2. * sinth * sinth);
+        disp[1] = 1 / (2. * G) * sqrt(r / (2. * M_PI)) * sinth * (kappa + 1. - 2. * costh * costh);
+        //        std::cout << "SQU x " << x << " theta " << theta << " disp " << disp << std::endl;
+#endif
+    } else {
         DebugStop();
     }
 }
@@ -340,11 +525,17 @@ void TElasticity2DAnalytic::uxy<STATE,STATE>(const TPZVec<STATE> &x, TPZVec<STAT
 #endif
 
 template<class TVar>
-void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu) const
+void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu)
 {
-//    Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
-    Elast = fE;
-    nu = TVar(fPoisson);
+    if(gOscilatoryElasticity != 0)
+    {
+        Elast = (TVar(100.) * (TVar(1.) + TVar(0.3) * sin(TVar(10 * M_PI) * (x[0] - TVar(0.5))) * cos(TVar(10. * M_PI) * x[1])));
+    }
+    else
+    {
+        Elast = gE;
+    }
+    nu = TVar(gPoisson);
 }
 
 //template<>
@@ -362,8 +553,9 @@ void TElasticity2DAnalytic::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &r
     for (int i=0; i<xstate.size(); i++) {
         xstate[i] = x[i];
     }
+    
     STATE E = 1,nu = 0.3;
-//    Elastic(xstate,E,nu);
+    Elastic(xstate,E,nu);
     result[0] = E;
     result[1] = nu;
 }

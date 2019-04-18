@@ -1195,6 +1195,9 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	//values[0] = calculo do erro estimado em norma Energia
     values[0] = (sigx*(epsx-epsx_exact)+sigy*(epsy-epsy_exact)+2.*sigxy*(epsxy-epsxy_exact));
 	
+    //values[3] = calculo da energia da solucao exata
+    values[3] = (SigX*(epsx_exact)+SigY*(epsy_exact)+2.*TauXY*(epsxy_exact));
+    
 	//values[1] : erro em norma L2 em tensoes
 	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
 	

@@ -22,6 +22,9 @@ protected:
     // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
     TPZAutoPointer<TPZCompMesh> fFluxMesh;
     
+    /// computational mesh to contain the rotation elements
+    TPZAutoPointer<TPZCompMesh> fRotationMesh;
+    
 
 public:
     
@@ -59,6 +62,9 @@ public:
     
     /// Insert the necessary Pressure material objects to create the flux mesh
     virtual void InsertPeriferalPressureMaterialObjects();
+    
+    /// Insert the necessary Rotation material objects to create the flux mesh
+    virtual void InsertPeriferalRotationMaterialObjects();
     
     /// Create all data structures for the computational mesh
     virtual void BuildComputationalMesh(bool usersubstructure);
@@ -114,6 +120,9 @@ protected:
     
     /// Create the pressure mesh which is dual to the flux mesh
     virtual void CreatePressureMHMMesh();
+    
+    /// Create the rotation mesh to elasticity problem
+    virtual void CreateRotationMesh();
     
     // create the elements domain per domain with approximation spaces disconnected from each other
     virtual void CreateInternalFluxElements();

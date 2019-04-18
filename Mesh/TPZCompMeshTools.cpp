@@ -471,6 +471,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
         if (!subcmesh) {
             DebugStop();
         }
+        int count = 0;
         if (KeepOneLagrangian)
         {
             int64_t nconnects = subcmesh->NConnects();
@@ -478,7 +479,19 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
                 TPZConnect &c = subcmesh->Connect(ic);
                 if (c.LagrangeMultiplier() > 0) {
                     c.IncrementElConnected();
-                    break;
+                    count++;
+                    if(count == 1 && c.NState() == 1)
+                    {
+                        break;
+                    }
+                    else if(count == 2 && c.NState() == 2)
+                    {
+                        break;
+                    }
+                    else if(count == 3 && c.NState() == 3)
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -526,16 +539,28 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
             continue;
         }
         int nc = cel->NConnects();
-        int ic;
         if (KeepOneLagrangian) {
-            for (ic=0; ic<nc; ic++) {
+            int count = 0;
+            for (int ic=0; ic<nc; ic++) {
                 TPZConnect &c = cel->Connect(ic);
                 if (c.LagrangeMultiplier() > 0) {
                     c.IncrementElConnected();
-                    break;
+                    count++;
+                    if(count == 1 && c.NState() == 1)
+                    {
+                        break;
+                    } else if(count == 2 && c.NState() == 2)
+                    {
+                        break;
+                    } else if(count == 3 && c.NState() == 3)
+                    {
+                        break;
+                    }
+                    
                 }
             }
         }
+        int ic;
         for (ic=0; ic<nc; ic++) {
             TPZConnect &c = cel->Connect(ic);
             if (c.HasDependency() || c.NElConnected() > 1) {

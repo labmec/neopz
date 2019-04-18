@@ -478,7 +478,8 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
         if(dim == 2)
         {
             auto matPerif = new TPZNullMaterial(fLagrangeInterface);
-            matPerif->SetMaterial(xk, xc, xb, xf);
+            matPerif->SetNStateVariables(fNState);
+            matPerif->SetDimension(1);
             cmesh_Hybrid->InsertMaterialObject(matPerif);
         }
         else if(dim == 3)
@@ -497,7 +498,8 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
         if(dim == 2)
         {
             auto matPerif = new TPZNullMaterial(fHDivWrapMatid);
-            matPerif->SetMaterial(xk, xc, xb, xf);
+            matPerif->SetNStateVariables(fNState);
+            matPerif->SetDimension(dim-1);
             cmesh_Hybrid->InsertMaterialObject(matPerif);
         }
         else if(dim == 3)

@@ -1,4 +1,4 @@
-/**
+ /**
  * @file pzmaterial.h
  * @brief Header file for abstract class TPZMaterial.\n
  * It implements the weak statement of the differential equation within the PZ environment.
@@ -20,13 +20,12 @@
 class  TPZNullMaterial : public TPZMaterial
 {
     
-    TPZFMatrix<STATE>        fXk,fXc,fXb,fXf;
 public:
-    TPZNullMaterial(int num) : TPZRegisterClassId(&TPZNullMaterial::ClassId), TPZMaterial(num) , fXk(1,1,0.), fXc(1,1,0.), fXb(1,1,0.), fXf(1,1,0.) {
+    TPZNullMaterial(int num) : TPZRegisterClassId(&TPZNullMaterial::ClassId), TPZMaterial(num) {
     }
     
     TPZNullMaterial(const TPZNullMaterial &copy) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
-    TPZMaterial(copy), fXk(copy.fXk), fXc(copy.fXc), fXb(copy.fXb), fXf(copy.fXf)
+    TPZMaterial(copy)
     {
         
     }
@@ -34,17 +33,7 @@ public:
     TPZNullMaterial &operator=(const TPZNullMaterial &copy)
     {
         TPZMaterial::operator=(copy);
-        fXk = copy.fXk;
-        fXc = copy.fXc;
-        fXb = copy.fXb;
-        fXf = copy.fXf;
         return *this;
-    }
-    void SetMaterial(TPZFMatrix<STATE> &xkin,TPZFMatrix<STATE> &xcin,TPZFMatrix<STATE> &xbin,TPZFMatrix<STATE> &xfin){
-        fXk = xkin;
-        fXc = xcin;
-        fXb = xbin;
-        fXf = xfin;
     }
     
     /** @brief Creates a material object and inserts it in the vector of material pointers of the mesh. */

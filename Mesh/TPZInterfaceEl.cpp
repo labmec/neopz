@@ -112,7 +112,6 @@ TPZInterfaceElement::~TPZInterfaceElement() {
             delete gel; // deleta o elemento
         }
     }
-    if(fIntegrationRule) delete fIntegrationRule;
 }
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int64_t &index,

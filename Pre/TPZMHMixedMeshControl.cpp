@@ -28,6 +28,7 @@
 #include "TPZMultiphysicsInterfaceEl.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "TPZNullMaterial.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mhmixedmeshcontrol"));
@@ -108,7 +109,8 @@ void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
     if (!mat) {
         DebugStop();
     }
-    TPZFNMatrix<1,STATE> val1(1,1,0.), val2Flux(1,1,0.);
+    int nstate = mat->NStateVariables();
+    TPZFNMatrix<1,STATE> val1(nstate,nstate,0.), val2Flux(nstate,1,0.);
     int typePressure = 0;
     
     TPZBndCond * bcFlux = mat->CreateBC(mat, fSkeletonMatId, typePressure, val1, val2Flux);
@@ -132,7 +134,10 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     CreateHDivMHMMesh();
     
     InsertPeriferalPressureMaterialObjects();
-
+    if(fNState > 1){
+        fRotationMesh = new TPZCompMesh(fGMesh);
+        InsertPeriferalRotationMaterialObjects();
+    }
 #ifdef PZDEBUG
     if (fFluxMesh->Dimension() != fGMesh->Dimension()) {
         DebugStop();
@@ -140,7 +145,10 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
 #endif
     
     CreatePressureMHMMesh();
-    
+    if(fNState > 1)
+    {
+        CreateRotationMesh();
+    }
     
     CreateHDivPressureMHMMesh();
     std::cout << "Total number of equations " << fCMesh->Solution().Rows() << std::endl;
@@ -210,15 +218,16 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
     for (auto item:fMaterialIds) {
         TPZVecL2 *mat = new TPZVecL2(item);
         matl2 = mat;
+        mat->SetNStateVariables(fNState);
         cmeshHDiv->InsertMaterialObject(matl2);
     }
     for (auto item:fMaterialBCIds) {
-        TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
+        TPZFNMatrix<1,STATE> val1(fNState,fNState,0.),val2(fNState,1,0.);
         TPZBndCond *bc = matl2->CreateBC(matl2, item, 0, val1, val2);
         cmeshHDiv->InsertMaterialObject(bc);
     }
     {
-        TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
+        TPZFNMatrix<1,STATE> val1(fNState,fNState,0.),val2(fNState,1,0.);
         TPZBndCond *bc = matl2->CreateBC(matl2, fSkeletonMatId, 0, val1, val2);
         cmeshHDiv->InsertMaterialObject(bc);
         if(fSecondSkeletonMatId != 0)
@@ -257,6 +266,13 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     cmeshPressure->AutoBuild(matids);
     fPressureFineMesh->ExpandSolution();
     
+    if(0)
+    {
+        std::ofstream out("PressureFineMesh.txt");
+        fPressureFineMesh->Print(out);
+    }
+
+    
 #ifdef PZDEBUG
     {
         int64_t nel = fGMesh->NElements();
@@ -272,6 +288,9 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
 #endif
     
     int64_t nc = cmeshPressure->NConnects();
+    if(nskeletonconnects != 0){
+        DebugStop();
+    }
     for (int64_t ic=nskeletonconnects; ic<nc; ic++) {
         cmeshPressure->ConnectVec()[ic].SetLagrangeMultiplier(1);
     }
@@ -302,17 +321,94 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     return;
 }
 
+
+void TPZMHMixedMeshControl::CreateRotationMesh()
+{
+    TPZGeoMesh * gmesh = fGMesh.operator->();
+    gmesh->ResetReference();
+    int porder = fpOrderInternal;
+    TPZCompMesh * cmeshRotation = fRotationMesh.operator->();
+    gmesh->ResetReference();
+    cmeshRotation->SetName("RotationMesh");
+    cmeshRotation->SetDimModel(gmesh->Dimension());
+    cmeshRotation->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+    cmeshRotation->SetDefaultOrder(porder);
+    
+    int meshdim = cmeshRotation->Dimension();
+    std::set<int> matids;
+    for (auto it:fMaterialIds) {
+        TPZMaterial *mat = cmeshRotation->FindMaterial(it);
+        if (mat && mat->Dimension() == meshdim) {
+            matids.insert(it);
+        }
+    }
+    cmeshRotation->AutoBuild(matids);
+    fRotationMesh->ExpandSolution();
+    
+    if(0)
+    {
+        std::ofstream out("RotationsMesh.txt");
+        fPressureFineMesh->Print(out);
+    }
+
+    
+    int64_t nel = cmeshRotation->NElements();
+    for(int64_t i=0; i<nel; i++){
+        TPZCompEl *cel = cmeshRotation->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(!celdisc) DebugStop();
+        if(celdisc && celdisc->Reference()->Dimension() != meshdim)
+        {
+            DebugStop();
+        }
+        celdisc->SetTotalOrderShape();
+    }
+    
+    int64_t nc = cmeshRotation->NConnects();
+    for (int64_t ic=0; ic<nc; ic++) {
+        cmeshRotation->ConnectVec()[ic].SetLagrangeMultiplier(1);
+    }
+    gmesh->ResetReference();
+    
+    for (int64_t el=0; el<nel; el++)
+    {
+        TPZCompEl *cel = cmeshRotation->Element(el);
+#ifdef PZDEBUG
+        if (! cel) {
+            DebugStop();
+        }
+#endif
+        TPZGeoEl *gel = cel->Reference();
+        if(fMaterialIds.find (gel->MaterialId()) == fMaterialIds.end())
+        {
+            continue;
+        }
+#ifdef PZDEBUG
+        if (fGeoToMHMDomain[gel->Index()] == -1) {
+            DebugStop();
+        }
+#endif
+        
+        SetSubdomain(cel, fGeoToMHMDomain[gel->Index()]);
+    }
+    
+    
+    return;
+}
+
 /// Insert the necessary Pressure material objects to create the flux mesh
 void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
 {
     TPZCompMesh * cmeshPressure = fPressureFineMesh.operator->();
+    
     
     for (auto it = fMaterialIds.begin(); it != fMaterialIds.end(); it++)
     {
         int matid = *it;
         if (cmeshPressure->MaterialVec().find(matid) == cmeshPressure->MaterialVec().end())
         {
-            TPZMatLaplacian *matl2 = new TPZMatLaplacian((matid));
+            TPZNullMaterial *matl2 = new TPZNullMaterial((matid));
+            matl2->SetNStateVariables(fNState);
             matl2->SetDimension(fGMesh->Dimension());
             cmeshPressure->InsertMaterialObject(matl2);
         }
@@ -326,8 +422,9 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
         if (fPressureFineMesh->FindMaterial(fPressureSkeletonMatId) != 0) {
             DebugStop();
         }
-        TPZMatLaplacian *mathybrid = new TPZMatLaplacian(fPressureSkeletonMatId);
+        TPZNullMaterial *mathybrid = new TPZNullMaterial(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
+        mathybrid->SetNStateVariables(fNState);
         fPressureFineMesh->InsertMaterialObject(mathybrid);
     }
     else
@@ -337,12 +434,46 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
 
 }
 
+/// Insert the necessary Rotation material objects to create the flux mesh
+void TPZMHMixedMeshControl::InsertPeriferalRotationMaterialObjects()
+{
+    TPZCompMesh * cmeshRotation = fRotationMesh.operator->();
+    
+    for (auto it = fMaterialIds.begin(); it != fMaterialIds.end(); it++)
+    {
+        int matid = *it;
+        if (cmeshRotation->MaterialVec().find(matid) == cmeshRotation->MaterialVec().end())
+        {
+            TPZNullMaterial *matl2 = new TPZNullMaterial((matid));
+            if(fNState == 2)
+            {
+                matl2->SetNStateVariables(1);
+            } else if(fNState == 3)
+            {
+                matl2->SetNStateVariables(fNState);
+            }
+            matl2->SetDimension(fGMesh->Dimension());
+            cmeshRotation->InsertMaterialObject(matl2);
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
+    
+}
+
+
 
 void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
 {
-    TPZManVector<TPZCompMesh *,2 > cmeshes(2);
+    TPZManVector<TPZCompMesh *,3 > cmeshes(2);
     cmeshes[0] = fFluxMesh.operator->();
     cmeshes[1] = fPressureFineMesh.operator->();
+    if(fNState > 1) {
+        cmeshes.Resize(3);
+        cmeshes[2] = fRotationMesh.operator->();
+    }
     TPZGeoMesh *gmesh = cmeshes[0]->Reference();
     if(!gmesh)
     {
@@ -360,7 +491,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     MixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElem();
     
     BuildMultiPhysicsMesh();
-    TPZManVector<TPZCompMesh * ,2> meshvector(2);
+    TPZManVector<TPZCompMesh * ,3> meshvector;
     
     if(0)
     {
@@ -372,8 +503,8 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
         fPressureFineMesh->Print(out4);
     }
     
-    meshvector[0] = cmeshes[0];
-    meshvector[1] = cmeshes[1];
+    meshvector = cmeshes;
+
     
     JoinSubdomains(meshvector, MixedFluxPressureCmesh);
     
@@ -396,7 +527,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     CreateMultiPhysicsInterfaceElements(fGMesh->Dimension()-2);
     MixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     
-    if(0)
+    if(1)
     {
         std::ofstream out("multiphysics.txt");
         MixedFluxPressureCmesh->Print(out);
@@ -1070,6 +1201,8 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         }
         TPZCompMeshTools::GroupElements(subcmesh);
         subcmesh->ComputeNodElCon();
+        
+        // TODO: increment nelconnected of exterior connects
         bool keeplagrange = true;
         TPZCompMeshTools::CreatedCondensedElements(subcmesh, keeplagrange);
         subcmesh->CleanUpUnconnectedNodes();
