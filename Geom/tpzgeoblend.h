@@ -320,7 +320,26 @@ namespace pzgeom {
                 correctionFactor[iSide] = 0;
                 continue;
             }
-
+            {
+                /**
+             * Calculates the linear mapping of the side iSide
+             */
+                TPZFNMatrix<9, T> notUsedHere;
+                TPZManVector<T, 3> neighQsi, sideQsi;
+                this->MapToSide(actualSide, qsi, sideQsi, notUsedHere);
+                MElementType sideType = TGeo::Type(actualSide);
+                const int nSideNodes = MElementType_NNodes(sideType);
+                TPZFNMatrix<9, T> sidePhi(nSideNodes, 1), sideDPhi(TGeo::Dimension, nSideNodes);
+                TGeo::GetSideShapeFunction(actualSide,sideQsi,sidePhi,sideDPhi);
+                for (int iNode = 0; iNode < nSideNodes; iNode++) {
+                    const int currentNode = TGeo::SideNodeLocId(actualSide, iNode);
+                    correctionFactor[iSide] += baryCoordNodes(currentNode, 0);
+                    for (int x = 0; x < 3; x++) {
+                        linearSideMappings(iSide, x) +=
+                                coord(x, currentNode) * sidePhi(iNode, 0);
+                    }
+                }
+            }
             /**
              * Calculates the non-linear mapping of the side iSide
              */
@@ -348,23 +367,6 @@ namespace pzgeom {
             }
             TPZStack<int> containedNodesInSide;
             TGeo::LowerDimensionSides(actualSide, containedNodesInSide, 0);
-            T barycentricSum(0.);
-            for (int iNode = 0; iNode < containedNodesInSide.NElements(); iNode++) {
-                const int currentNode = containedNodesInSide[iNode];
-                correctionFactor[iSide] += baryCoordNodes(currentNode, 0);
-                /*
-                 * Calculates the linear mapping.
-                 */
-                for (int x = 0; x < 3; x++) {
-                    linearSideMappings(iSide, x) +=
-                            coord(x, currentNode) * baryCoordNodes(currentNode, 0);
-                }
-
-                barycentricSum += baryCoordNodes(currentNode, 0);
-            }
-            for (int x = 0; x < 3; x++) {
-                linearSideMappings(iSide, x) /= barycentricSum;
-            }
 
             TPZStack<int> allContainedSides;
             TGeo::LowerDimensionSides(actualSide, allContainedSides);
