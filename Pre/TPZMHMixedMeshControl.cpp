@@ -362,6 +362,7 @@ void TPZMHMixedMeshControl::CreateRotationMesh()
             DebugStop();
         }
         celdisc->SetTotalOrderShape();
+        celdisc->SetFalseUseQsiEta();
     }
     
     int64_t nc = cmeshRotation->NConnects();
