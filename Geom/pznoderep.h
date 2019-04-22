@@ -45,10 +45,11 @@ namespace pzgeom {
     private:
         
         /** @brief Verifies if pt (in parametric domain of the side) is within boundaries */
-        bool IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol);
+        static bool IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol);
         
     public:
-        
+        static void GetSideShapeFunction(int side, TPZVec<REAL> &qsiSide, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi );
+
         virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) {
             std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";
             std::cout << "See TPZGeoElRefLess::SetNeighbourInfo() Method!\n";
