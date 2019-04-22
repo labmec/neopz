@@ -70,7 +70,7 @@ public:
 	
 	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) = 0;
     
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> *indices = 0);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> indices);
     
     /** @brief Compute and fill data with requested attributes */
     virtual void ComputeRequiredData(TPZMaterialData &data,

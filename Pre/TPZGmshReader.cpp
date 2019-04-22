@@ -166,14 +166,13 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
         if(!read)
         {
             std::cout << "Couldn't open the file " << file_name << std::endl;
+            DebugStop();
         }
         
-#ifdef PZDEBUG
         if (!read) {
             std::cout << "Gmsh Reader: the mesh file path is wrong " << std::endl;
             DebugStop();
         }
-#endif
         
         while(read)
         {
@@ -693,14 +692,13 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
         if(!read)
         {
             std::cout << "Couldn't open the file " << file_name << std::endl;
+            DebugStop();
         }
         
-#ifdef PZDEBUG
         if (!read) {
             std::cout << "Gmsh Reader: the mesh file path is wrong " << std::endl;
             DebugStop();
         }
-#endif
         
         while(read)
         {
