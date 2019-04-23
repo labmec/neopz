@@ -668,7 +668,7 @@ public:
 	bool VerifyNodeCoordinates(REAL tol = 1e-1);
 
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
-	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1.e-2) = 0;
+	virtual bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1.e-2) = 0;
 	
 	/**
 	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)

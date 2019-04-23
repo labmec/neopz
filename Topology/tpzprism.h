@@ -93,7 +93,7 @@ namespace pztopology {
 		static void CenterPoint(int side, TPZVec<REAL> &center);
 
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
-		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
+		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6L);
         
         /** @brief Generates a random point in the master domain */
         static void RandomPoint(TPZVec<REAL> &pt);

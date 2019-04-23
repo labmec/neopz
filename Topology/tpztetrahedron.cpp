@@ -594,7 +594,7 @@ namespace pztopology {
 		return -1;
 	}
 	
-	bool TPZTetrahedron::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZTetrahedron::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 		const REAL qsi = pt[0];
 		const REAL eta = pt[1];
 		const REAL zeta = pt[2];

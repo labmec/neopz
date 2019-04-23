@@ -299,7 +299,7 @@ virtual int ClassId() const;
     }
     
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
-	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
+	virtual bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6);
 	
 	/**
 	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)
@@ -320,7 +320,7 @@ virtual int ClassId() const;
 
 template<class TGeo>
 inline
-bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 	const bool result = fGeo.IsInParametricDomain(pt,tol);
 	return result;
 }

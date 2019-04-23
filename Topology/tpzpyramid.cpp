@@ -696,7 +696,7 @@ namespace pztopology {
 		return -1;
 	}
 	
-	bool TPZPyramid::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZPyramid::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 		const REAL qsi = pt[0];
 		const REAL eta = pt[1];
 		const REAL zeta = pt[2];
