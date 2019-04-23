@@ -119,7 +119,7 @@ namespace pzgeom {
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 		/**
 		 * @brief Method which creates a geometric boundary condition 
@@ -154,7 +154,7 @@ namespace pzgeom {
 	};
     
     template<class T>
-    inline void TPZGeoTetrahedra::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+    inline void TPZGeoTetrahedra::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
         
         phi(0,0)  = 1.0-qsi-eta-zeta;

@@ -28,7 +28,7 @@ TPZQuadraticTetra::~TPZQuadraticTetra()
 }
 
 template<class T>
-void TPZQuadraticTetra::TShape(TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
+void TPZQuadraticTetra::TShape(const TPZVec<T> &par, TPZFMatrix<T> &phi, TPZFMatrix<T> &dphi)
 {
 	T qsi = par[0], eta = par[1], zeta = par[2];
 	

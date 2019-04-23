@@ -112,7 +112,7 @@ namespace pzgeom {
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
@@ -140,7 +140,7 @@ virtual int ClassId() const;
     };
     
     template<class T>
-    inline void TPZGeoCube::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+    inline void TPZGeoCube::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
         
         T x[2],dx[2],y[2],dy[2],z[2],dz[2];

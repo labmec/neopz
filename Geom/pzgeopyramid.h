@@ -125,7 +125,7 @@ namespace pzgeom {
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 
@@ -161,7 +161,7 @@ namespace pzgeom {
 	};
     
     template<class T>
-    inline void TPZGeoPyramid::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+    inline void TPZGeoPyramid::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T xi = loc[0], eta = loc[1] , zeta  = loc[2];
         
         if (zeta> 1.) {

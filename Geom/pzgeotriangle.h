@@ -117,7 +117,7 @@ namespace pzgeom {
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 //        /** @brief Compute the jacoabina associated to the x mapping from local parametric coordinates  */
 //        static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
@@ -176,7 +176,7 @@ namespace pzgeom {
 	};
     
     template<class T>
-    inline void TPZGeoTriangle::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {        
+    inline void TPZGeoTriangle::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
         phi(0,0) = 1.0-qsi-eta;
         phi(1,0) = qsi;

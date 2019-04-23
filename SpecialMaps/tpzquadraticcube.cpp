@@ -33,7 +33,7 @@ namespace pzgeom
 {
     
 template<class T>
-void TPZQuadraticCube::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+void TPZQuadraticCube::TShape(const TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
 	T qsi = par[0], eta = par[1], zeta = par[2];
 		
 	phi(0,0)   =  1./8.*((-1. + eta)*(-1. + qsi)*(-1. + zeta)*(2. + eta + qsi + zeta));
