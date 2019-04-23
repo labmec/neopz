@@ -310,13 +310,13 @@ namespace pzgeom {
          * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
          */
         TPZGeoMesh *gmesh = gel.Mesh();
-        TPZManVector<T,20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
+        TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
         TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
         TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
         for (int iSide = 0; iSide < TGeo::NSides - TGeo::NNodes - 1; iSide++) {
             int actualSide = TGeo::NNodes + iSide;
             //TODO:Calculate correction factor
-            if(IsLinearMapping(actualSide)) {
+            if (IsLinearMapping(actualSide)) {
                 correctionFactor[iSide] = 0;
                 continue;
             }
@@ -330,7 +330,7 @@ namespace pzgeom {
                 MElementType sideType = TGeo::Type(actualSide);
                 const int nSideNodes = MElementType_NNodes(sideType);
                 TPZFNMatrix<9, T> sidePhi(nSideNodes, 1), sideDPhi(TGeo::Dimension, nSideNodes);
-                TGeo::GetSideShapeFunction(actualSide,sideQsi,sidePhi,sideDPhi);
+                TGeo::GetSideShapeFunction(actualSide, sideQsi, sidePhi, sideDPhi);
                 for (int iNode = 0; iNode < nSideNodes; iNode++) {
                     const int currentNode = TGeo::SideNodeLocId(actualSide, iNode);
                     correctionFactor[iSide] += baryCoordNodes(currentNode, 0);
@@ -362,7 +362,7 @@ namespace pzgeom {
 
                 Neighbour(actualSide, gmesh).X(neighQsi, Xside);
                 for (int x = 0; x < 3; x++) {
-                    nonLinearSideMappings(iSide,x) = Xside[x];
+                    nonLinearSideMappings(iSide, x) = Xside[x];
                 }
             }
             TPZStack<int> containedNodesInSide;
@@ -370,12 +370,14 @@ namespace pzgeom {
 
             TPZStack<int> allContainedSides;
             TGeo::LowerDimensionSides(actualSide, allContainedSides);
-            for (int iSubSide = containedNodesInSide.NElements(); iSubSide < allContainedSides.NElements(); iSubSide++) {
+            for (int iSubSide = containedNodesInSide.NElements();
+                 iSubSide < allContainedSides.NElements(); iSubSide++) {
                 const int subSideIndex = allContainedSides[iSubSide] - TGeo::NNodes;
                 for (int x = 0; x < 3 && correctionFactor[subSideIndex] > zero; x++) {
-                    nonLinearSideMappings(iSide, x) += correctionFactor[subSideIndex] * //TODO: calcular direito o f_corr
-                                                       (nonLinearSideMappings(subSideIndex, x) -
-                                                        linearSideMappings(subSideIndex, x));
+                    nonLinearSideMappings(iSide, x) +=
+                            correctionFactor[subSideIndex] * //TODO: calcular direito o f_corr
+                            (nonLinearSideMappings(subSideIndex, x) -
+                             linearSideMappings(subSideIndex, x));
                 }
             }
 
@@ -384,7 +386,7 @@ namespace pzgeom {
             */
             for (int x = 0; x < 3 && correctionFactor[iSide] > zero; x++) {
                 result[x] += correctionFactor[iSide] *
-                                                   (nonLinearSideMappings(iSide, x) - linearSideMappings(iSide, x));
+                             (nonLinearSideMappings(iSide, x) - linearSideMappings(iSide, x));
             }
         }
 

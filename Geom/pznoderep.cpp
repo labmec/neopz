@@ -38,7 +38,8 @@ bool TPZNodeRep<N,Topology>::IsLinearMapping() const
 }
 
 template<int N, class Topology>
-void TPZNodeRep<N,Topology>::GetSideShapeFunction(int side, TPZVec<REAL> &qsiSide, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi ){
+template<class T>
+void TPZNodeRep<N,Topology>::GetSideShapeFunction(int side, TPZVec<T> &qsiSide, TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi ){
     MElementType  sideType = Topology::Type(side);
 #ifdef PZDEBUG
     REAL tol = 1e-12;
@@ -86,4 +87,26 @@ template class TPZNodeRep<5,TPZPyramid>;
 template class TPZNodeRep<4,TPZTetrahedron>;
 template class TPZNodeRep<6,TPZPrism>;
 template class TPZNodeRep<8,TPZCube>;
+
+template void TPZNodeRep<1,TPZPoint>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<2,TPZLine>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<3,TPZTriangle>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<4,TPZQuadrilateral>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<5,TPZPyramid>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<4,TPZTetrahedron>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<6,TPZPrism>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+template void TPZNodeRep<8,TPZCube>::GetSideShapeFunction<REAL>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
+
+#ifdef _AUTODIFF
+#include "tfad.h"
+#include "fad.h"
+template void TPZNodeRep<1,TPZPoint>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<2,TPZLine>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<3,TPZTriangle>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<4,TPZQuadrilateral>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<5,TPZPyramid>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<4,TPZTetrahedron>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<6,TPZPrism>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+template void TPZNodeRep<8,TPZCube>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+#endif
 }
