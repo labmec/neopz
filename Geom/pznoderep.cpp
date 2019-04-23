@@ -43,10 +43,12 @@ void TPZNodeRep<N,Topology>::GetSideShapeFunction(int side, TPZVec<T> &qsiSide, 
     MElementType  sideType = Topology::Type(side);
 #ifdef PZDEBUG
     REAL tol = 1e-12;
+    std::ostringstream sout;
     if(!IsInSideParametricDomain(side,qsiSide,tol)){
-        PZError<<"The method expects the coordinates in the side's parametric domain. Exiting..."<<std::endl;
+        sout<<"The method expects the coordinates in the side's parametric domain. Exiting..."<<std::endl;
         DebugStop();
     }
+    PZError<<std::endl<<sout.str()<<std::endl;
 #ifdef LOG4CXX
     LOGPZ_FATAL(lognoderep,sout.str().c_str());
 #endif
@@ -69,9 +71,10 @@ void TPZNodeRep<N,Topology>::GetSideShapeFunction(int side, TPZVec<T> &qsiSide, 
         case ECube:
             return TPZGeoCube::TShape(qsiSide,phi,dphi);
         default:
-            PZError<<"Could not find associated shape function to the side. Details are as follows:"<<std::endl;
-            PZError<<"Element is of type "<<MElementType_Name(Topology::Type())<<std::endl;
-            PZError<<"Side\t"<<side<<" is of type\t"<< MElementType_Name(sideType)<<std::endl;
+            sout<<"Could not find associated shape function to the side. Details are as follows:"<<std::endl;
+            sout<<"Element is of type "<<MElementType_Name(Topology::Type())<<std::endl;
+            sout<<"Side\t"<<side<<" is of type\t"<< MElementType_Name(sideType)<<std::endl;
+            PZError<<std::endl<<sout.str()<<std::endl;
         #ifdef LOG4CXX
             LOGPZ_FATAL(lognoderep,sout.str().c_str());
         #endif
