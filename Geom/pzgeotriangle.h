@@ -62,7 +62,17 @@ namespace pzgeom {
         TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp)
 		{
 		}
-        
+
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param qsi coordinates of the interior point
+         * @param fCorr influence (0 <= fCorr <= 1)
+         */
+         template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &fCorr);
+
         void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
         
         static bool IsLinearMapping(int side)

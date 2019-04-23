@@ -77,15 +77,15 @@ namespace pzgeom {
 				sout << "Fatal error at " << __PRETTY_FUNCTION__ << " - Element type " << type << " not found";
 				PZError << "\n" << sout.str() << "\n";
 #ifdef LOG4CXX
-				LOGPZ_FATAL(lognoderep,sout.str().c_str());
+                LOGPZ_FATAL(lognoderep,sout.str().c_str());
 #endif
-				DebugStop();
-				return false;
-				break;
-		}//case
-		
-		return false;
-	}//method
+                DebugStop();
+                return false;
+                break;
+        }//case
+
+        return false;
+    }//method
 	
 }
 

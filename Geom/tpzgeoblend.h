@@ -311,6 +311,7 @@ namespace pzgeom {
          */
         TPZGeoMesh *gmesh = gel.Mesh();
         TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
+        TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
         TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
         TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
         for (int iSide = 0; iSide < TGeo::NSides - TGeo::NNodes - 1; iSide++) {
@@ -320,9 +321,8 @@ namespace pzgeom {
                 correctionFactor[iSide] = 0;
                 continue;
             }
-            {
                 /**
-             * Calculates the linear mapping of the side iSide
+             * Calculates the linear mapping of the side iSide, and the projected point on iSide
              */
                 TPZFNMatrix<9, T> notUsedHere;
                 TPZManVector<T, 3> neighQsi, sideQsi;
@@ -331,22 +331,31 @@ namespace pzgeom {
                 const int nSideNodes = MElementType_NNodes(sideType);
                 TPZFNMatrix<9, T> sidePhi(nSideNodes, 1), sideDPhi(TGeo::Dimension, nSideNodes);
                 TGeo::GetSideShapeFunction(actualSide, sideQsi, sidePhi, sideDPhi);
-                for (int iNode = 0; iNode < nSideNodes; iNode++) {
+
+            TPZManVector<REAL,3> nodeCoord;
+            for (int iNode = 0; iNode < nSideNodes; iNode++) {
                     const int currentNode = TGeo::SideNodeLocId(actualSide, iNode);
-                    correctionFactor[iSide] += baryCoordNodes(currentNode, 0);
+
                     for (int x = 0; x < 3; x++) {
                         linearSideMappings(iSide, x) +=
                                 coord(x, currentNode) * sidePhi(iNode, 0);
+                        nonLinearSideMappings(iSide, x) +=
+                                coord(x, currentNode) * sidePhi(iNode, 0);
                     }
+                TGeo::ParametricDomainNodeCoord(currentNode,nodeCoord);
+                for (int x = 0; x < TGeo::Dimension; x++) {
+                    projectedPointOverSide(iSide,x) = nodeCoord[x] * sidePhi(iNode,0);
                 }
             }
+
             /**
              * Calculates the non-linear mapping of the side iSide
              */
-            TPZFNMatrix<9, T> notUsedHere;
+
             TPZGeoElSide gelside(fNeighbours[iSide], gmesh);
-            TPZManVector<T, 3> neighQsi, sideQsi, Xside(3, 0.);
+            TPZManVector<T, 3> Xside(3, 0.);
             if (gelside.Exists()) {
+                TGeo::CalcSideInfluence(actualSide,qsi,correctionFactor[iSide]);
                 int sidedim = gelside.Dimension();
                 if (!MapToNeighSide(actualSide, sidedim, qsi, neighQsi, notUsedHere)) {
 #ifdef LOG4CXX2
@@ -373,9 +382,15 @@ namespace pzgeom {
             for (int iSubSide = containedNodesInSide.NElements();
                  iSubSide < allContainedSides.NElements(); iSubSide++) {
                 const int subSideIndex = allContainedSides[iSubSide] - TGeo::NNodes;
-                for (int x = 0; x < 3 && correctionFactor[subSideIndex] > zero; x++) {
+                TPZManVector<T,3> projectedPoint(TGeo::Dimension,-1);
+                for(int x = 0; x < TGeo::Dimension; x++){
+                    projectedPoint[x] = projectedPointOverSide(iSide,x);
+                }
+                T fCorr = -1;
+                TGeo::CalcSideInfluence(subSideIndex,projectedPoint,fCorr);
+                for (int x = 0; x < 3 && fCorr > zero; x++) {
                     nonLinearSideMappings(iSide, x) +=
-                            correctionFactor[subSideIndex] * //TODO: calcular direito o f_corr
+                            fCorr *
                             (nonLinearSideMappings(subSideIndex, x) -
                              linearSideMappings(subSideIndex, x));
                 }

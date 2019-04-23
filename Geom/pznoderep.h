@@ -46,10 +46,33 @@ namespace pzgeom {
         
         /** @brief Verifies if pt (in parametric domain of the side) is within boundaries */
         static bool IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol);
+
+        #ifdef _AUTODIFF
+        template<typename T,
+                typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
+        static bool IsInSideParametricDomain(int side, TPZVec<T> &pt, REAL tol){
+            TPZVec<REAL> qsiReal(pt.size(),-1);
+            for(int i = 0; i < qsiReal.size(); i++) qsiReal[i] = pt[i].val();
+            return IsInSideParametricDomain(side,qsiReal,tol);
+        }
+        #endif
         
     public:
         template<class T>
         static void GetSideShapeFunction(int side, TPZVec<T> &qsiSide, TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi );
+
+        template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &fCorr){
+            std::ostringstream sout;
+            sout<<"The method CalcSideInfluence is not implemented for the desired element type."<<std::endl;
+            sout<<"The method is used in TPZGeoBlend elements. Check their usage. Aborting..."<<std::endl;
+
+            PZError<<sout.str()<<std::endl;
+#ifdef LOG4CXX
+            LOGPZ_FATAL(lognoderep,sout.str().c_str());
+#endif
+            DebugStop();
+        }
 
         virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) {
             std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";

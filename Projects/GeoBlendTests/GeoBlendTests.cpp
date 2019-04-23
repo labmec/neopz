@@ -31,7 +31,7 @@ int main()
 
 
     TPZGeoMesh * gmesh = nullptr;
-    meshType elType = ETriang;
+    meshType elType = EQuad;
 
     switch(elType){
         case EQuad:
