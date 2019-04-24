@@ -548,6 +548,150 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
     gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
 }
 
+template<class TGeo>
+template<class T>
+inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, TPZVec<T> &result) const {
+
+    const REAL zero = 1e-14;
+    result.Resize(3);
+    result.Fill(0);
+    /**
+     * The non-linear mapping is calculated from deviations of the linear mapping.
+     * The linear mapping of an element (or of any of its side) can be calculated with the barycentric coordinates
+     * of the nodes contained in it
+     */
+    TPZFNMatrix<9, T> baryCoordNodes(TGeo::NNodes, 1), dBaryCoordNodesDeta(TGeo::Dimension, TGeo::NNodes);
+    TGeo::TShape(qsi, baryCoordNodes, dBaryCoordNodesDeta);//gets the barycentric coordinates
+
+    TPZFNMatrix<45> coord(3, TGeo::NNodes);
+    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
+
+    for (int iNode = 0; iNode < TGeo::NNodes; iNode++) {//calculates the linear mapping
+        for (int x = 0; x < 3; x++) {
+            result[x] += coord(x, iNode) * baryCoordNodes(iNode, 0);
+        }
+    }
+
+
+
+    /**
+     * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
+     */
+    TPZGeoMesh *gmesh = gel.Mesh();
+    TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
+    TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
+    TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
+    TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
+    for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
+        int side = TGeo::NNodes + sideIndex;
+        if (IsLinearMapping(side)) {
+            correctionFactor[sideIndex] = 0;
+            continue;
+        }
+        /**
+     * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
+     */
+        TPZFNMatrix<9, T> notUsedHere;
+        TPZManVector<T, 3> neighQsi, sideQsi;
+        this->MapToSide(side, qsi, sideQsi, notUsedHere);
+        MElementType sideType = TGeo::Type(side);
+        const int nSideNodes = MElementType_NNodes(sideType);
+        TPZFNMatrix<9, T> sidePhi(nSideNodes, 1), sideDPhi(TGeo::Dimension, nSideNodes);
+        TGeo::GetSideShapeFunction(side, sideQsi, sidePhi, sideDPhi);
+
+        TPZManVector<REAL,3> nodeCoord;
+        for (int iNode = 0; iNode < nSideNodes; iNode++) {
+            const int currentNode = TGeo::SideNodeLocId(side, iNode);
+
+            for (int x = 0; x < 3; x++) {
+                linearSideMappings(sideIndex, x) +=
+                        coord(x, currentNode) * sidePhi(iNode, 0);
+                nonLinearSideMappings(sideIndex, x) +=
+                        coord(x, currentNode) * sidePhi(iNode, 0);
+            }
+            TGeo::ParametricDomainNodeCoord(currentNode,nodeCoord);
+            for (int x = 0; x < TGeo::Dimension; x++) {
+                projectedPointOverSide(sideIndex,x) = nodeCoord[x] * sidePhi(iNode,0);
+            }
+        }
+
+        /**
+         * Calculates the non-linear mapping of the side sideIndex
+         */
+
+        TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
+        TPZManVector<T, 3> Xside(3, 0.);
+        if (gelside.Exists()) {
+            TGeo::CalcSideInfluence(side,qsi,correctionFactor[sideIndex]);
+            int sidedim = gelside.Dimension();
+            if (!MapToNeighSide(side, sidedim, qsi, neighQsi, notUsedHere)) {
+#ifdef LOG4CXX2
+                if(logger->isDebugEnabled())
+                    {
+                        std::stringstream sout;
+                        sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
+                        LOGPZ_DEBUG(logger,sout.str())
+                    }
+#endif
+                continue;
+            }
+
+            Neighbour(side, gmesh).X(neighQsi, Xside);
+            for (int x = 0; x < 3; x++) {
+                nonLinearSideMappings(sideIndex, x) = Xside[x];
+            }
+        }
+        TPZStack<int> containedNodesInSide;
+        TGeo::LowerDimensionSides(side, containedNodesInSide, 0);
+
+        TPZStack<int> allContainedSides;
+        TGeo::LowerDimensionSides(side, allContainedSides);
+        for (int subSideIndex = containedNodesInSide.NElements();
+             subSideIndex < allContainedSides.NElements(); subSideIndex++) {
+            const int subSide = allContainedSides[subSideIndex];
+            TPZManVector<T,3> projectedPoint(TGeo::Dimension,-1);
+            for(int x = 0; x < TGeo::Dimension; x++){
+                projectedPoint[x] = projectedPointOverSide(sideIndex,x);
+            }
+
+            T correctionFactorSide = -1;
+            TGeo::CalcSideInfluence(subSide,projectedPoint,correctionFactorSide);
+            for (int x = 0; x < 3 && correctionFactorSide > zero; x++) {
+                nonLinearSideMappings(sideIndex, x) +=
+                        correctionFactorSide *
+                        (nonLinearSideMappings(subSide - nSideNodes, x) -
+                         linearSideMappings(subSide - nSideNodes, x));
+            }
+
+        }
+
+//            for (int subSideIndex = containedNodesInSide.NElements();
+//                 subSideIndex < allContainedSides.NElements(); subSideIndex++) {
+//                const int subSide = allContainedSides[subSideIndex];
+//                TPZManVector<T,3> projectedPoint(TGeo::Dimension,-1);
+//                for(int x = 0; x < TGeo::Dimension; x++){
+//                    projectedPoint[x] = projectedPointOverSide(sideIndex,x);
+//                }
+//
+//                T correctionFactorSide = -1;
+//                TGeo::CalcSideInfluence(subSide,projectedPoint,correctionFactorSide);
+//                for (int x = 0; x < 3 && correctionFactorSide > zero; x++) {
+//                    nonLinearSideMappings(sideIndex, x) -= nonLinearSideMappings(subSideIndex, x);
+//                }
+//
+//            }
+
+
+        /**
+        * Calculates the contribution of the side sideIndex to the non-linear mapping
+        */
+        for (int x = 0; x < 3 && correctionFactor[sideIndex] > zero; x++) {
+            result[x] += correctionFactor[sideIndex] *
+                         (nonLinearSideMappings(sideIndex, x) - linearSideMappings(sideIndex, x));
+        }
+    }
+
+}
 
 
 

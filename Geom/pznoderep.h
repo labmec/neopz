@@ -68,9 +68,6 @@ namespace pzgeom {
             sout<<"The method is used in TPZGeoBlend elements. Check their usage. Aborting..."<<std::endl;
 
             PZError<<sout.str()<<std::endl;
-#ifdef LOG4CXX
-            LOGPZ_FATAL(lognoderep,sout.str().c_str());
-#endif
             DebugStop();
         }
 

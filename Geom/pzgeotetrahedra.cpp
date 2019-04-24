@@ -22,8 +22,70 @@ static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotetrahedra"));
 namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
-	
-	
+
+
+    /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param qsi coordinates of the interior point
+         * @param correctionFactor influence (0 <= correctionFactor <= 1)
+         */
+    template<class T>
+    void TPZGeoTetrahedra::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor){
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(qsi,tol)){
+            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        TPZFNMatrix<4,T> phi(NNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NNodes);
+        TPZGeoTetrahedra::TShape(qsi,phi,dphi);
+        int i = -1;
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                correctionFactor = 0;
+                return;
+            case  4:
+            case  5:
+            case  6:
+            case  7:
+            case  8:
+            case  9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+                correctionFactor = 0;
+                for(int i = 0; i < TPZGeoTetrahedra::NSideNodes(side);i++){
+                    const int currentNode = TPZGeoTetrahedra::SideNodeLocId(side, i);
+                    correctionFactor += phi(currentNode,0);
+                }
+                return;
+            case 14:
+                correctionFactor = 1;
+                return;
+        }
+//        correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
+    }
+
 	TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side<0 || side>14){
 			cout << "TPZGeoTetrahedra::CreateBCCompEl with bad side = " << side << "not implemented\n";	
@@ -247,4 +309,13 @@ namespace pzgeom {
     }
 
 
+    template void TPZGeoTetrahedra::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+
 };
+
+#ifdef _AUTODIFF
+template<class T=REAL>
+class Fad;
+
+template void pzgeom::TPZGeoTetrahedra::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+#endif

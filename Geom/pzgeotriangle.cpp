@@ -32,9 +32,6 @@ namespace pzgeom {
         if(side < NNodes || side >= NSides){
             sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
-            LOGPZ_FATAL(logger,sout.str().c_str());
-            #endif
             DebugStop();
         }
 
