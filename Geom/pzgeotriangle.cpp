@@ -11,6 +11,9 @@
 #include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
 
 #ifdef LOG4CXX
 static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotriangle"));
@@ -23,7 +26,7 @@ namespace pzgeom {
 	
 	const REAL tol = pzgeom_TPZNodeRep_tol;
     template<class T>
-    void TPZGeoTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &fCorr){
+    void TPZGeoTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor){
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NNodes || side >= NSides){
@@ -53,7 +56,7 @@ namespace pzgeom {
             case 0:
             case 1:
             case 2:
-                fCorr = 0;
+                correctionFactor = 0;
                 return;
             case 3:
                 i = 0;
@@ -65,11 +68,11 @@ namespace pzgeom {
                 i = 2;
                 break;
             case 6:
-                fCorr = 1;
+                correctionFactor = 1;
                 return;
         }
-        fCorr = phi(i,0) + phi((i+1)%NNodes,0);
-        fCorr *= fCorr;
+        correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
+        correctionFactor *= correctionFactor;
 
     }
 

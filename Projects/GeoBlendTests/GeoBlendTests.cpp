@@ -27,11 +27,11 @@ int main()
 
     bool printGMesh = true;
     bool newBlend = true;
-    int nDiv = 4;
+    int nDiv = 6;
 
 
     TPZGeoMesh * gmesh = nullptr;
-    meshType elType = EQuad;
+    meshType elType = ETriang;
 
     switch(elType){
         case EQuad:

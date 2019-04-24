@@ -21,7 +21,7 @@ namespace pzgeom {
     const REAL tol = pzgeom_TPZNodeRep_tol;
 
     template<class T>
-    void TPZGeoQuad::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &fCorr){
+    void TPZGeoQuad::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor){
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NNodes || side >= NSides){
@@ -53,7 +53,7 @@ namespace pzgeom {
             case 1:
             case 2:
             case 3:
-                fCorr = 0;
+                correctionFactor = 0;
                 return;
             case 4:
                 i = 0;
@@ -68,10 +68,10 @@ namespace pzgeom {
                 i = 3;
                 break;
             case 8:
-                fCorr = 1;
+                correctionFactor = 1;
                 return;
         }
-        fCorr = phi(i,0) + phi((i+1)%NNodes,0);
+        correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
 
     }
 	

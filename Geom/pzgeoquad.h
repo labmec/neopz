@@ -77,10 +77,10 @@ namespace pzgeom {
          * interior point qsi. It is used by the TPZGeoBlend class.
          * @param side the index of the side
          * @param qsi coordinates of the interior point
-         * @param fCorr influence (0 <= fCorr <= 1)
+         * @param correctionFactor influence (0 <= correctionFactor <= 1)
          */
          template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &fCorr);
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor);
         /* @brief Compute x mapping from local parametric coordinates */
         template<class T>
         void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
