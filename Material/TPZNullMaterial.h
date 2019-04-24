@@ -22,16 +22,21 @@ class  TPZNullMaterial : public TPZMaterial
     
 public:
     TPZNullMaterial(int num) : TPZRegisterClassId(&TPZNullMaterial::ClassId), TPZMaterial(num) {
+        fDim = 1;
+        fNState = 1;
     }
     
     TPZNullMaterial(const TPZNullMaterial &copy) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
     TPZMaterial(copy)
     {
-        
+        fDim = copy.fDim;
+        fNState = copy.fNState;
     }
     
     TPZNullMaterial &operator=(const TPZNullMaterial &copy)
     {
+        fDim = copy.fDim;
+        fNState = copy.fNState;
         TPZMaterial::operator=(copy);
         return *this;
     }
@@ -49,16 +54,23 @@ public:
     /** @brief Default destructor */
     virtual ~TPZNullMaterial();
     
+    /** @brief To create another material of the same type*/
+    virtual TPZMaterial * NewMaterial() override
+    {
+        return new TPZNullMaterial(*this);
+    }
+    
+
     /** 
 	 * @brief Fill material data parameter with necessary requirements for the
 	 * @since April 10, 2007
 	 */
 
     /** @brief Returns the name of the material */
-    virtual std::string Name() { return "TPZNullMaterial"; }
+    virtual std::string Name() override { return "TPZNullMaterial"; }
     
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() const
+    virtual int Dimension() const override
     {
         return fDim;
     }
@@ -203,9 +215,6 @@ public:
 	
     /** @} */
 	
-    
-    /** @brief To create another material of the same type*/
-    virtual TPZMaterial * NewMaterial();
     
     /** @{
      * @name Save and Load methods
