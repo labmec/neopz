@@ -45,12 +45,12 @@ namespace pzgeom {
     private:
         
         /** @brief Verifies if pt (in parametric domain of the side) is within boundaries */
-        static bool IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol);
+        static bool IsInSideParametricDomain(int side, const TPZVec<REAL> &pt, REAL tol);
 
         #ifdef _AUTODIFF
         template<typename T,
                 typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
-        static bool IsInSideParametricDomain(int side, TPZVec<T> &pt, REAL tol){
+        static bool IsInSideParametricDomain(int side, const TPZVec<T> &pt, REAL tol){
             TPZVec<REAL> qsiReal(pt.size(),-1);
             for(int i = 0; i < qsiReal.size(); i++) qsiReal[i] = pt[i].val();
             return IsInSideParametricDomain(side,qsiReal,tol);

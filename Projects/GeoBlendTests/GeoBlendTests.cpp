@@ -245,6 +245,10 @@ namespace blendtest {
         qsi[2] = 0.25;
         TPZManVector<REAL, 3> result(3, 0);
         volEl->X(qsi, result);
+        qsi[0] = 0.3333333333333333332;
+        qsi[1] = 0.3333333333333333332;
+        qsi[2] = 0.3333333333333333332;
+        volEl->X(qsi, result);
 
         {
             TPZVec<TPZGeoEl *> sons;

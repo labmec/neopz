@@ -705,7 +705,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
                 }
 
                 T correctionFactorSide = -1;
-                TGeo::GetPointInSideInfluence(side, subSideIndex,sideQsi,correctionFactorSide);
+                TGeo::CalcSideInfluence(subSide,projectedPoint,correctionFactorSide);
                 bool shouldContributeToMapping = correctionFactorSide > zero;
                 if(gelside.Exists()){
                     correctionFactorSide *= -1.;
@@ -762,8 +762,17 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
 //        }
     }
 #ifdef LOG4CXX
-    LOGPZ_DEBUG(logger,soutLogDebug.str())
-    soutLogDebug.str("");
+    if(logger->isDebugEnabled()){
+        soutLogDebug << "================================" <<std::endl;
+        soutLogDebug << "=============result=============" <<std::endl;
+        soutLogDebug <<"================================"<<std::endl;
+        for (int x = 0; x < 3; x++) soutLogDebug<<result[x]<<"\t";
+        soutLogDebug << "\n================================" <<std::endl;
+        soutLogDebug << "================================" <<std::endl;
+        soutLogDebug << "================================" <<std::endl;
+        LOGPZ_DEBUG(logger,soutLogDebug.str())
+        soutLogDebug.str("");
+    }
 #endif
 }
 

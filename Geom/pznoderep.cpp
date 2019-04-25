@@ -84,53 +84,6 @@ void TPZNodeRep<N,Topology>::GetSideShapeFunction(int side, TPZVec<T> &qsiSide, 
     }
 }
 
-    template<int N, class Topology>
-    template<class T>
-    void TPZNodeRep<N,Topology>::GetPointInSideInfluence(const int &origSide, const int &subSide, const TPZVec<T> &qsiSide, T &correctionFactor){
-        MElementType  sideType = Topology::Type(origSide);
-#ifdef PZDEBUG
-        std::stringstream sout;
-        REAL tol = 1e-12;
-        if(!IsInSideParametricDomain(origSide,qsiSide,tol)){
-            sout<<"The method expects the coordinates in the side's parametric domain. Exiting..."<<std::endl;
-            DebugStop();
-            PZError << "\n" << sout.str() << "\n";
-            #ifdef LOG4CXX
-            LOGPZ_FATAL(lognoderep,sout.str().c_str());
-            #endif
-        }
-#endif
-        switch (sideType){
-            case EPoint:
-                return TPZGeoPoint::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case EOned:
-                return TPZGeoLinear::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case ETriangle:
-                return TPZGeoTriangle::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case EQuadrilateral:
-                return TPZGeoQuad::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case ETetraedro:
-                return TPZGeoTetrahedra::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case EPiramide:
-                return TPZGeoPyramid::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case EPrisma:
-                return TPZGeoPrism::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            case ECube:
-                return TPZGeoCube::CalcSideInfluence(subSide,qsiSide,correctionFactor);
-            default:{
-//                std::stringstream sout;
-//                sout<<"Could not find associated shape function to the side. Details are as follows:"<<std::endl;
-//                sout<<"Element is of type "<<MElementType_Name(Topology::Type())<<std::endl;
-//                sout<<"Side\t"<<side<<" is of type\t"<< MElementType_Name(sideType)<<std::endl;
-//                PZError<<std::endl<<sout.str()<<std::endl;
-//                #ifdef LOG4CXX
-//                LOGPZ_FATAL(lognoderep,sout.str().c_str());
-//                #endif
-                DebugStop();
-            }
-        }
-    }
-
 template class TPZNodeRep<1,TPZPoint>;
 template class TPZNodeRep<2,TPZLine>;
 template class TPZNodeRep<3,TPZTriangle>;
@@ -161,5 +114,6 @@ template void pzgeom::TPZNodeRep<5,TPZPyramid>::GetSideShapeFunction<Fad<REAL>>(
 template void pzgeom::TPZNodeRep<4,TPZTetrahedron>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
 template void pzgeom::TPZNodeRep<6,TPZPrism>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
 template void pzgeom::TPZNodeRep<8,TPZCube>::GetSideShapeFunction<Fad<REAL>>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
+
 #endif
 

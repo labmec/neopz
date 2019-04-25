@@ -55,6 +55,7 @@ namespace pzgeom {
         TPZFNMatrix<4,T> phi(NNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NNodes);
         TPZGeoTetrahedra::TShape(qsi,phi,dphi);
+        correctionFactor = 0;
         for(int i = 0; i < TPZGeoTetrahedra::NSideNodes(side);i++){
             const int currentNode = TPZGeoTetrahedra::SideNodeLocId(side, i);
             correctionFactor += phi(currentNode,0);

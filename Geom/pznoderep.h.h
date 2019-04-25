@@ -48,7 +48,7 @@ namespace pzgeom {
 	}
 	
 	template<int N, class Topology>
-	bool TPZNodeRep<N,Topology>::IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol){
+	bool TPZNodeRep<N,Topology>::IsInSideParametricDomain(int side, const TPZVec<REAL> &pt, REAL tol){
 		MElementType type = Topology::Type(side);
 		switch(type){
 			case EPoint:
