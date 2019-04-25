@@ -264,7 +264,7 @@ void TPZMixedElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, RE
     nshapeU = datavec[1].phi.Rows();
     nshapeP = datavec[2].phi.Rows();
 
-    TPZManVector<double, 2> force(2, 0.);
+    TPZManVector<STATE, 2> force(2, 0.);
     TPZFMatrix<STATE> phiSi(3, 1, 0.), phiSj(fDimension, 1, 0.);
     TPZManVector<STATE, 2> divSi1x(2, 0.), divSi1y(2, 0.);
     TPZManVector<STATE, 4> phiSi1x(4, 0.0), phiSj1x(4, 0.0), phiSi1y(4, 0.0), phiSj1y(4, 0.0), phiPj1x(4, 0.0), phiPj1y(4, 0.0);
