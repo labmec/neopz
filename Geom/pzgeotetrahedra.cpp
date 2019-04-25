@@ -55,7 +55,10 @@ namespace pzgeom {
         TPZFNMatrix<4,T> phi(NNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NNodes);
         TPZGeoTetrahedra::TShape(qsi,phi,dphi);
-        int i = -1;
+        for(int i = 0; i < TPZGeoTetrahedra::NSideNodes(side);i++){
+            const int currentNode = TPZGeoTetrahedra::SideNodeLocId(side, i);
+            correctionFactor += phi(currentNode,0);
+        }
         switch(side){
             case 0:
             case 1:
@@ -69,21 +72,18 @@ namespace pzgeom {
             case  7:
             case  8:
             case  9:
+                correctionFactor *= correctionFactor;
+                return;
             case 10:
             case 11:
             case 12:
             case 13:
-                correctionFactor = 0;
-                for(int i = 0; i < TPZGeoTetrahedra::NSideNodes(side);i++){
-                    const int currentNode = TPZGeoTetrahedra::SideNodeLocId(side, i);
-                    correctionFactor += phi(currentNode,0);
-                }
+                correctionFactor *= correctionFactor * correctionFactor;
                 return;
             case 14:
                 correctionFactor = 1;
                 return;
         }
-//        correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
     }
 
 	TPZGeoEl *TPZGeoTetrahedra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {

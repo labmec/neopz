@@ -27,10 +27,10 @@ using namespace blendtest;
  */
 int main()
 {
-
+    InitializePZLOG();
     bool printGMesh = true;
     bool newBlend = true;
-    int nDiv = 0;
+    int nDiv = 4;
 
 
     TPZGeoMesh * gmesh = nullptr;
@@ -49,7 +49,7 @@ int main()
         default:
             DebugStop();
     }
-    std::string prefix = "new";
+    std::string prefix = newBlend? "new" : "old";
     if(elType == EQuad || elType == ETriang){
         CreateGeoMesh2D(gmesh, elType, nDiv, printGMesh, prefix);
     }else{
@@ -193,7 +193,6 @@ namespace blendtest {
             coord[2] = ((int)(i==3)) * radius;
             gmesh->NodeVec()[i].SetCoord(coord);
             gmesh->NodeVec()[i].SetNodeId(i);
-            std::cout<<"x:  "<<coord[0]<<"\ty:  "<<coord[1]<<"\tz:  "<<coord[2]<<std::endl;
         }
 
 //        for (int64_t i = 0; i < nNodesArc; i++) {
@@ -240,6 +239,12 @@ namespace blendtest {
 
         }
         gmesh->BuildConnectivity();
+        TPZManVector<REAL, 3> qsi(3, 0);
+        qsi[0] = 0.25;
+        qsi[1] = 0.25;
+        qsi[2] = 0.25;
+        TPZManVector<REAL, 3> result(3, 0);
+        volEl->X(qsi, result);
 
         {
             TPZVec<TPZGeoEl *> sons;
