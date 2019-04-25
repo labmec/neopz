@@ -660,8 +660,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
             else soutLogDebug<<"false"<<std::endl;
         }
         #endif
+        TGeo::CalcSideInfluence(side,qsi,correctionFactor[sideIndex]);
         if (gelside.Exists()) {
-            TGeo::CalcSideInfluence(side,qsi,correctionFactor[sideIndex]);
             int sidedim = gelside.Dimension();
             TPZManVector<T, 3> neighQsi;
             if (!MapToNeighSide(side, sidedim, qsi, neighQsi, notUsedHere)) {
@@ -681,7 +681,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
                 nonLinearSideMappings(sideIndex, x) = Xside[x];
             }
         }
-        else{
+//        else{
             TPZStack<int> containedNodesInSide;
             TGeo::LowerDimensionSides(side, containedNodesInSide, 0);
 
@@ -705,15 +705,19 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
                 }
 
                 T correctionFactorSide = -1;
-                TGeo::CalcSideInfluence(subSide,projectedPoint,correctionFactorSide);
+                TGeo::GetPointInSideInfluence(side, subSideIndex,sideQsi,correctionFactorSide);
+                bool shouldContributeToMapping = correctionFactorSide > zero;
+                if(gelside.Exists()){
+                    correctionFactorSide *= -1.;
+                }
                 #ifdef LOG4CXX
                 if(logger->isDebugEnabled())
                 {
-                    if(correctionFactorSide <= zero)    soutLogDebug << "\tSubside influence :0"<<std::endl;
+                    if(!shouldContributeToMapping)    soutLogDebug << "\tSubside influence :0"<<std::endl;
                     else    soutLogDebug << "\tSubside influence :"<<correctionFactorSide<<std::endl;
                 }
                 #endif
-                for (int x = 0; x < 3 && correctionFactorSide > zero; x++) {
+                for (int x = 0; x < 3 && shouldContributeToMapping; x++) {
                     nonLinearSideMappings(sideIndex, x) +=
                             correctionFactorSide *
                             (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
@@ -721,7 +725,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
                 }
 
             }
-        }
+//        }
         #ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
@@ -744,7 +748,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
         /**
         * Calculates the contribution of the side sideIndex to the non-linear mapping
         */
-        if(TGeo::SideDimension(side) == TGeo::Dimension - 1){
+//        if(TGeo::SideDimension(side) == TGeo::Dimension - 1){
             #ifdef LOG4CXX
             if(logger->isDebugEnabled()){
                 soutLogDebug <<"adding to result mapping of side: "<<side<<std::endl;
@@ -755,7 +759,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
                 result[x] += correctionFactor[sideIndex] *
                              (nonLinearSideMappings(sideIndex, x) - linearSideMappings(sideIndex, x));
             }
-        }
+//        }
     }
 #ifdef LOG4CXX
     LOGPZ_DEBUG(logger,soutLogDebug.str())
