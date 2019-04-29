@@ -318,10 +318,10 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 
                 int64_t node_id;
                 double nodecoordX , nodecoordY , nodecoordZ ;
-                gmesh -> NodeVec().Resize(n_nodes);
-                gmesh->SetMaxNodeId(n_nodes-1);
+                gmesh -> NodeVec().Resize(max_node_tag);
+                gmesh->SetMaxNodeId(max_node_tag);
                 // needed for node insertion
-                const int64_t Tnodes = n_nodes;
+                const int64_t Tnodes = max_node_tag;
                 TPZVec <TPZGeoNode> Node(Tnodes);
                 
                 int entity_tag, entity_dim, entity_parametric, entity_nodes;
