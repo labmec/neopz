@@ -584,7 +584,7 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         }
     }
     out << "Internal index resequencing: " << fIndexes << std::endl;
-    fCondensed.Print("Condensed matrix",out);
+    fCondensed.Print("Condensed matrix",out,EMathematicaInput);
 }
 
 

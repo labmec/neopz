@@ -72,30 +72,30 @@ void TPZNullMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 
 void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
 {
-		this->Solution(data,dataleftvec,datarightvec, var, Solout);
+	//	this->Solution(data,dataleftvec,datarightvec, var, Solout);
 }
 
 void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *right)
 {
-	this->Solution(data,dataleftvec,datarightvec, var, Solout, left, right);
+	//this->Solution(data,dataleftvec,datarightvec, var, Solout, left, right);
 }
 
 void TPZNullMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
 						   TPZVec<STATE> &Solout){
-    if(var == 0) Solout = Sol;
-    
-    else if (var==1){
-        STATE val = 0.;
-        for(int i=0; i<fDim; i++){
-            val += DSol(i,i);
-        }
-        Solout[0] = val;
-    }
-    
-    else
-    {
-        TPZMaterial::Solution(Sol, DSol,axes,var,Solout);
-    }
+//    if(var == 0) Solout = Sol;
+//
+//    else if (var==1){
+//        STATE val = 0.;
+//        for(int i=0; i<fDim; i++){
+//            val += DSol(i,i);
+//        }
+//        Solout[0] = val;
+//    }
+//
+//    else
+//    {
+//        TPZMaterial::Solution(Sol, DSol,axes,var,Solout);
+//    }
 }
 
 
