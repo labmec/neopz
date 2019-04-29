@@ -174,7 +174,7 @@ int64_t TPZMHMixedMeshChannelControl::WhichSubdomain(TPZCompEl *cel)
     //        std::cout << std::endl;
     //        DebugStop();
     //    }
-    if (domains.size() ==0 or domains.size() ==2) {
+    if (domains.size() ==0 || domains.size() ==2) {
         return -1;
     }
     int64_t domain = *domains.begin();
