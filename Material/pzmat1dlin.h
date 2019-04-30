@@ -48,7 +48,7 @@ class TPZMat1dLin : public TPZMaterial{
         return *this;
     }
     
-    virtual TPZMaterial *NewMaterial() 
+    virtual TPZMaterial *NewMaterial()  override 
     {
         return new TPZMat1dLin(*this);
     }
@@ -57,11 +57,11 @@ class TPZMat1dLin : public TPZMaterial{
         return fXk.Rows();
     }
 	
-	virtual int Dimension() const {
+	virtual int Dimension() const  override {
         return 1;
     }
 	
-	void Print(std::ostream & out);
+	void Print(std::ostream & out) override ;
 	
 	void SetMaterial(TPZFMatrix<STATE> &xkin,TPZFMatrix<STATE> &xcin,TPZFMatrix<STATE> &xbin,TPZFMatrix<STATE> &xfin){
 		fXk = xkin;
@@ -70,16 +70,16 @@ class TPZMat1dLin : public TPZMaterial{
 		fXf = xfin;
 	}
 	
-	virtual std::string Name() { return "TPZMat1dLin"; }
+	virtual std::string Name()  override { return "TPZMat1dLin"; }
 	
-	int NFluxes() { return NStateVariables(); }
+	int NFluxes() override  { return NStateVariables(); }
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override ;
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at an integration point*/
@@ -96,24 +96,24 @@ class TPZMat1dLin : public TPZMaterial{
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override ;
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override 
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl) override ;
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override ;
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override ;
  
 };
 
