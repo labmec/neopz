@@ -40,44 +40,44 @@ class TPZMatOrthotropic : public TPZMaterial {
 	
 	virtual int NStateVariables() const override;
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMatOrthotropic"; }
+	virtual std::string Name()  override { return "TPZMatOrthotropic"; }
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes(){ return 3;}
+	virtual int NFluxes() override { return 3;}
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -87,11 +87,11 @@ public:
 	}
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-		        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);//Cedric
+		        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;//Cedric
 	
 	/** @brief Verifies the consistency of the axles */
 	/** In case that they are not normal or they are not linearly independent calculates new axles based on the input data */

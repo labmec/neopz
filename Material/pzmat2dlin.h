@@ -37,9 +37,9 @@ class TPZMat2dLin : public TPZMaterial {
 	
 	virtual int NStateVariables() const override { return fKxx.Rows(); }
 	
-	virtual int Dimension() const { return 2; }
+	virtual int Dimension() const  override { return 2; }
 	
-	void Print(std::ostream & out = std::cout);
+	void Print(std::ostream & out = std::cout) override;
 	
 	void SetMaterial(TPZFMatrix<STATE> &xkin,TPZFMatrix<STATE> &xcin,TPZFMatrix<STATE> &xfin){
 		int r = xkin.Rows();
@@ -61,46 +61,46 @@ class TPZMat2dLin : public TPZMaterial {
 	TPZFMatrix<STATE> &Ck() {return fK00;}
 	TPZFMatrix<STATE> &Xf() {return fXf;}
 	
-	virtual std::string Name() { return "TPZMat2dLin"; }
+	virtual std::string Name()  override { return "TPZMat2dLin"; }
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-							  TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+							  TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int NFluxes();
+	virtual int NFluxes() override;
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl) override;
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,TPZVec<STATE> &flux,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int index);
+	virtual int NSolutionVariables(int index) override;
 	
 protected:
-	void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<STATE> &Solout);
+	void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	/** @brief Creates a copy of the material object */
-	virtual TPZMaterial * NewMaterial();
+	virtual TPZMaterial * NewMaterial() override;
 	
 	TPZBndCond *OutflowFlux(TPZMaterial * &reference, int bc);
 	
@@ -110,14 +110,14 @@ public:
     
 	/** @brief returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 	
     /**
      * @}

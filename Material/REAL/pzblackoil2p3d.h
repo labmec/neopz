@@ -67,16 +67,16 @@ public:
 	}
 	
 	/** @brief Creates another material of the same type  */
-	virtual TPZMaterial * NewMaterial();
+	virtual TPZMaterial * NewMaterial() override;
 	
 	/** @brief Returns problem dimension */
-	virtual int Dimension() const { return 3; }
+	virtual int Dimension() const override { return 3; }
 	
 	/** @brief Returns number of state variables: oil pressure and oil saturation */
 	virtual int NStateVariables() const override{ return 2; }
 	
 	/** @brief Contribute method */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -86,13 +86,13 @@ public:
 	 * @param ef [out] is the load vector
 	 * @param bc [in] is the boundary condition material
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 	
 	/**
@@ -104,20 +104,20 @@ public:
 	enum ESolutionVars { ENone = 0, EWaterPressure = 1, EOilPressure, EWaterSaturation, EOilSaturation, EDarcyVelocity };
 	
 	/** @brief It returns the variable index associated with the name */
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
 	/** 
 	 * @brief It returns the number of variables associated with the variable indexed by var.  
 	 * @param var is obtained by calling VariableIndex
 	 */
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 	/** 
 	 * @brief It returns the solution associated with the var index based on
 	 * the finite element approximation
 	 */
 	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout);
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout) override;
 	/** @} */
 	
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
@@ -125,7 +125,7 @@ public:
 	 * Here, in base class, all requirements are considered as necessary. \n
 	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
-	virtual void FillDataRequirements(TPZMaterialData &data){
+	virtual void FillDataRequirements(TPZMaterialData &data) override {
 		data.SetAllRequirements(true);
 		data.fNeedsNeighborSol = false;
 		data.fNeedsNeighborCenter = false;
@@ -136,7 +136,7 @@ public:
 	 * Here, in base class, all requirements are considered as necessary. \n
 	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
-	virtual void FillDataRequirementsInterface(TPZMaterialData &data){
+	virtual void FillDataRequirementsInterface(TPZMaterialData &data) override {
 		data.SetAllRequirements(true);
 		data.fNeedsSol = false;
 	}
