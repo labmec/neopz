@@ -4,7 +4,9 @@
 #include <TPZVTKGeoMesh.h>
 #include <pzanalysis.h>
 #include <pzgeotetrahedra.h>
+#include <TPZGeoCube.h>
 #include <TPZTriangleSphere.h>
+#include <TPZQuadSphere.h>
 #include "tpzgeoblend.h"
 #include "pzgeoquad.h"
 #include "pzgmesh.h"
@@ -12,7 +14,7 @@
 
 namespace blendtest{
     enum meshType {
-        EQuad = 0, ETriang = 1, ETetra = 2
+        EQuad = 0, ETriang = 1, ETetra = 2, EHexa = 3
     };
     void CreateGeoMesh2D(TPZGeoMesh *&gmesh, meshType elType, int nDiv, bool printGMesh, std::string prefix);
     void CreateGeoMesh3D(TPZGeoMesh *&gmesh, meshType elType, int nDiv, bool printGMesh, std::string prefix);
@@ -45,6 +47,9 @@ int main()
             break;
         case ETetra:
             pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra>::fUseNewX = newBlend;
+            break;
+        case EHexa:
+            pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube>::fUseNewX = newBlend;
             break;
         default:
             DebugStop();
@@ -179,76 +184,134 @@ namespace blendtest {
     void CreateGeoMesh3D(TPZGeoMesh *&gmesh, meshType elType, int nDiv, bool printGMesh, std::string prefix){
         gmesh = new TPZGeoMesh();
 
-        const int64_t nNodesTetra = 4;
-//        const int64_t nNodesArc = 3;
-        const int64_t nNodes= nNodesTetra;//+nNodesArc;
+        const int64_t nNodesHexa = 8;
+        const int64_t nNodes= nNodesHexa;//+nNodesArc;
         gmesh->NodeVec().Resize(nNodes);
 
-        const REAL radius = 0.5;
+        const REAL radius = std::sqrt(3);
+        const REAL cubeSide= 2;
         TPZVec<REAL> coord(3, 0.);
-
-        for (int64_t i = 0; i < nNodesTetra; i++) {
-            coord[0] = ((int)(i==1)) * radius;
-            coord[1] = ((int)(i==2)) * radius;
-            coord[2] = ((int)(i==3)) * radius;
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///                                                                                                         ////
+        ////the face containing the nodes 0,1,2 and 3 will be joined with a half-sphere                             ////
+        ///                                                                                                         ////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        for (int64_t i = 0; i < nNodesHexa; i++) {
+            int iAux = i%4;
+            bool xFactor = (bool) !( (iAux % 2) == (iAux / 2) );
+            bool yFactor = (bool) ( i / 4 );
+            bool zFactor = (bool) ( ( iAux /2 ) % 2 );
+            coord[0] = 0.5 * cubeSide * (2 * (int)xFactor - 1) ;
+            coord[1] = 0.5 * cubeSide  * (1 - 2 * (int)yFactor);
+            coord[2] = 0.5 * cubeSide * (2 * (int)zFactor - 1) ;
             gmesh->NodeVec()[i].SetCoord(coord);
             gmesh->NodeVec()[i].SetNodeId(i);
+            std::cout<<"x : "<<xFactor<<"\ty : "<<yFactor<<"\tz : "<<zFactor<<std::endl;
+            std::cout<<"x : "<<coord[0]<<"\ty : "<<coord[1]<<"\tz : "<<coord[2]<<std::endl;
         }
 
-//        for (int64_t i = 0; i < nNodesArc; i++) {
-//            coord[0] = ((i+1)%2) * radius * M_SQRT1_2;
-//            coord[1] = (1-i/2) * radius * M_SQRT1_2;
-//            coord[2] = ((int)(!!i))* radius * M_SQRT1_2;
-//            gmesh->NodeVec()[i+nNodesTetra].SetCoord(coord);
-//            gmesh->NodeVec()[i+nNodesTetra].SetNodeId(i+nNodesTetra);
-//            std::cout<<"x:  "<<coord[0]<<"\ty:  "<<coord[1]<<"\tz:  "<<coord[2]<<std::endl;
-//        }
 
         int matIdVol = 1, matIdSphere = 2;
         TPZVec<int64_t> nodesIdVec(1);
         int64_t elId = 0;
         TPZGeoEl *volEl = nullptr;
-        TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<>> *sphere = nullptr;
+        TPZGeoElRefPattern<pzgeom::TPZQuadSphere<>> *sphere = nullptr;
         switch (elType) {
             case ETetra: {
                 nodesIdVec.Resize(4);
+                TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > *tetraEl = nullptr;
+
+                nodesIdVec[0] = 0;
+                nodesIdVec[1] = 1;
+                nodesIdVec[2] = 3;
+                nodesIdVec[3] = 4;
+
+                tetraEl =
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
+                                                                                         *gmesh);
+                nodesIdVec[0] = 1;
+                nodesIdVec[1] = 2;
+                nodesIdVec[2] = 3;
+                nodesIdVec[3] = 6;
+
+                tetraEl =
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
+                                                                                               *gmesh);
+                nodesIdVec[0] = 3;
+                nodesIdVec[1] = 4;
+                nodesIdVec[2] = 6;
+                nodesIdVec[3] = 7;
+
+                tetraEl =
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
+                                                                                               *gmesh);
+                nodesIdVec[0] = 1;
+                nodesIdVec[1] = 4;
+                nodesIdVec[2] = 5;
+                nodesIdVec[3] = 6;
+
+                tetraEl =
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
+                                                                                               *gmesh);
+
+                nodesIdVec[0] = 1;
+                nodesIdVec[1] = 3;
+                nodesIdVec[2] = 4;
+                nodesIdVec[3] = 6;
+
+                tetraEl =
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
+                                                                                               *gmesh);
+                volEl = tetraEl;
+                break;
+            }
+            case EHexa:{
+                nodesIdVec.Resize(8);
+                TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > *hexaEl = nullptr;
+
                 nodesIdVec[0] = 0;
                 nodesIdVec[1] = 1;
                 nodesIdVec[2] = 2;
                 nodesIdVec[3] = 3;
+                nodesIdVec[4] = 4;
+                nodesIdVec[5] = 5;
+                nodesIdVec[6] = 6;
+                nodesIdVec[7] = 7;
 
-                TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > *tetraEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
+                hexaEl =
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodesIdVec, matIdVol,
                                                                                          *gmesh);
-                volEl = tetraEl;
-
-            }
+                volEl = hexaEl;
                 break;
+            }
             default:
                 DebugStop();
         }
-        nodesIdVec.Resize(3);
+        nodesIdVec.Resize(4);
         {
-            nodesIdVec[0] = 1;
-            nodesIdVec[1] = 2;
-            nodesIdVec[2] = 3;
+            nodesIdVec[0] = 0;
+            nodesIdVec[1] = 1;
+            nodesIdVec[2] = 2;
+            nodesIdVec[3] = 3;
             sphere =
-                    new TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<>>(nodesIdVec, matIdSphere, *gmesh);
+                    new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<>>(nodesIdVec, matIdSphere, *gmesh);
             coord[0]=coord[1]=coord[2] = 0;
             sphere->Geom().SetData(radius,coord);
 
         }
         gmesh->BuildConnectivity();
-        TPZManVector<REAL, 3> qsi(3, 0);
-        qsi[0] = 0.25;
-        qsi[1] = 0.25;
-        qsi[2] = 0.25;
-        TPZManVector<REAL, 3> result(3, 0);
-        volEl->X(qsi, result);
-        qsi[0] = 0.3333333333333333332;
-        qsi[1] = 0.3333333333333333332;
-        qsi[2] = 0.3333333333333333332;
-        volEl->X(qsi, result);
+        if(volEl){
+            TPZManVector<REAL, 3> qsi(3, 0);
+            qsi[0] = 0.25;
+            qsi[1] = 0.25;
+            qsi[2] = 0.25;
+            TPZManVector<REAL, 3> result(3, 0);
+            volEl->X(qsi, result);
+            qsi[0] = 0.3333333333333333332;
+            qsi[1] = 0.3333333333333333332;
+            qsi[2] = 0.3333333333333333332;
+            volEl->X(qsi, result);
+        }
 
         {
             TPZVec<TPZGeoEl *> sons;
