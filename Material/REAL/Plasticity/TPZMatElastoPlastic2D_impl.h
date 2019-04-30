@@ -508,21 +508,21 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
     int nstate = NStateVariables();
     const REAL BIGNUMBER = TPZMaterial::gBigNumber;
     
-    TPZBndCondWithMem<TMEM> & bc_with_memory = dynamic_cast<TPZBndCondWithMem<TMEM> &>(bc);
+    TPZBndCondWithMem<TMEM> * bc_with_memory = dynamic_cast<TPZBndCondWithMem<TMEM> *>(&bc);
     
     /// Accepting  solution on bc data.
     int gp_index = data.intGlobPtIndex;
     TPZFMatrix<REAL> &phi = data.phi;
     TPZManVector<STATE,3> delta_u    = data.sol[0];
     TPZManVector<STATE,3> u_n(nstate,0.0);
-    TPZManVector<STATE,3> u(bc_with_memory.MemItem(gp_index).m_u);
+    TPZManVector<STATE,3> u(bc_with_memory->MemItem(gp_index).m_u);
     for (int i = 0; i < nstate; i++) {
         u_n[i] = delta_u[i] + u[i];
     }
     
     if(TPZMatWithMem<TMEM>::fUpdateMem)
     {
-        bc_with_memory.MemItem(gp_index).m_u = u_n;
+        bc_with_memory->MemItem(gp_index).m_u = u_n;
     }
     
     const int phr = phi.Rows();
