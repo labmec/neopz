@@ -271,7 +271,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	
 	
 	
-	virtual int NStateVariables()
+	virtual int NStateVariables() const override
     {
         return fNStateVariables;
     }

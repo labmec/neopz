@@ -40,7 +40,7 @@ protected:
 	int Dimension() const { return 2;}
 	
 	/** @brief Returns one because of scalar problem */
-	int NStateVariables(){
+	virtual int NStateVariables() const override {
 		return 1;
 	};
 	

@@ -41,7 +41,8 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
 	virtual void FillDataRequirementsInterface(TPZMaterialData &data);
-	
+	/// return the integration order as a function of interpolation orders of the left and right elements
+    virtual int GetIntegrationOrder(TPZVec<int> &porder_left, TPZVec<int> &porder_right) const;
     /**
      * @{
      * @name Contribute methods
@@ -206,9 +207,7 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	 */
 	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump);
 	
-	
-	virtual int NStateVariables() = 0;
-	
+		
 	
 	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 										   REAL weight,

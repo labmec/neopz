@@ -137,13 +137,13 @@ public:
 	 * Contribute method. Here, in base class, all requirements are considered as necessary. 
 	 * Each derived class may optimize performance by selecting only the necessary data.
      */
-    virtual void FillDataRequirements(TPZMaterialData &data)
+    virtual void FillDataRequirements(TPZMaterialData &data) override
     {
         data.SetAllRequirements(false);
     }
 	    
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override
     {
         data.SetAllRequirements(false);
         if (type == 50) {
@@ -155,9 +155,13 @@ public:
     }
     
 	
-	int Dimension() const { return fDim;}
+	int Dimension() const override{ return fDim;}
 	
-	int NStateVariables();
+    /** @brief Returns the number of state variables associated with the material */
+	virtual int NStateVariables() const override
+    {
+        return 1;
+    }
 	
 	virtual void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
 	

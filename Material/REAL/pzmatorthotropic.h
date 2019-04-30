@@ -38,7 +38,7 @@ class TPZMatOrthotropic : public TPZMaterial {
 	
 //	int Dimension() { return 3;}
 	
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	virtual void Print(std::ostream & out);
 	

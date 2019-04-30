@@ -35,7 +35,7 @@ class TPZMat2dLin : public TPZMaterial {
 	fKx0(copy.fKx0), fK0x(copy.fK0x), fKy0(copy.fKy0),
 	fK0y(copy.fK0y), fK00(copy.fK00), fXf(copy.fXf){}
 	
-	virtual int NStateVariables() { return fKxx.Rows(); }
+	virtual int NStateVariables() const override { return fKxx.Rows(); }
 	
 	virtual int Dimension() const { return 2; }
 	

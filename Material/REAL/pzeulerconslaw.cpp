@@ -88,7 +88,7 @@ int TPZEulerConsLaw::NStateVariables(int dim) {
 	return (2 + dim);//U = (rho, rhou, rhov, rhow, rhoe)
 }
 
-int TPZEulerConsLaw::NStateVariables() {
+int TPZEulerConsLaw::NStateVariables() const {
 	return NStateVariables(Dimension());//U = (rho, rhou, rhov, rhow, rhoe)
 }
 

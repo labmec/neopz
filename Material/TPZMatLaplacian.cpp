@@ -84,7 +84,7 @@ void TPZMatLaplacian::SetParameters(STATE diff, STATE f) {
 TPZMatLaplacian::~TPZMatLaplacian() {
 }
 
-int TPZMatLaplacian::NStateVariables() {
+int TPZMatLaplacian::NStateVariables() const {
 	return 1;
 }
 

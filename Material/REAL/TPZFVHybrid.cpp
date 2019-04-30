@@ -20,7 +20,7 @@ TPZMatHybrid::TPZMatHybrid(int nummat) : TPZMaterial(nummat), fXf(1,1,0.) {
 TPZMatHybrid::~TPZMatHybrid() {
 }
 
-int TPZMatHybrid::NStateVariables() {
+int TPZMatHybrid::NStateVariables() const {
 	return 1;
 }
 

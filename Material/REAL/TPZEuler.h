@@ -42,7 +42,7 @@ virtual int ClassId() const;
     virtual int Dimension() const;
 	
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables()  ;
+    virtual int NStateVariables() const override ;
 	
     /** @brief Return the number of components which form the flux function */
     virtual int NFluxes() {return 2;}

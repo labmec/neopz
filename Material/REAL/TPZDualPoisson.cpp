@@ -40,7 +40,10 @@ TPZDualPoisson & TPZDualPoisson::operator=(const TPZDualPoisson &other){
 
 int TPZDualPoisson::Dimension() const { return 3;}
 
-int TPZDualPoisson::NStateVariables() {return 1;}
+int TPZDualPoisson::NStateVariables() const
+{
+    return 1;
+}
 
 void TPZDualPoisson::Print(std::ostream & out){
     TPZMaterial::Print(out);

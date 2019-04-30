@@ -49,7 +49,7 @@ public:
 	virtual int Dimension() const;
 	
 	/** @brief It returns the number of state variables associated with the material */
-	virtual int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.

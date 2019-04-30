@@ -66,7 +66,7 @@ public:
     virtual int Dimension() const;
 	
     /** @brief Returns the number of state variables associated with the material*/
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
 	
     /** @brief Print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);

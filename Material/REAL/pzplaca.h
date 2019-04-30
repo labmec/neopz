@@ -32,7 +32,7 @@ class TPZPlaca : public TPZMaterial{
 			 STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
 			 STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf);
 	
-	virtual int NStateVariables() { return 6; }
+	virtual int NStateVariables() const override { return 6; }
 	
 	int Dimension() const { return 2; }
 	

@@ -28,7 +28,7 @@ class TPZMatHybrid : public TPZMaterial {
 		fXf = xkin;
 	}
 	
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	virtual void Print(std::ostream & out);
 	

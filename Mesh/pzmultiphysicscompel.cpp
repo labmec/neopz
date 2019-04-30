@@ -1254,28 +1254,24 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
 }
 /** Returns the maximum interpolation order of all connected elements */
 template <class TGeometry>
-int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder() {
+void TPZMultiphysicsCompEl<TGeometry>::PolynomialOrder(TPZVec<int> &order) const {
     const int64_t nref = fElementVec.size();
-    TPZVec<int> ordervec;
-    ordervec.resize(nref);
+    order.resize(nref);
     for (int64_t iref = 0; iref < nref; iref++) {
         
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
         TPZInterpolationSpace *msp = dynamic_cast<TPZInterpolationSpace *> (fElementVec[iref].Element());
-        ordervec[iref] = msp ? msp->MaxOrder() : 0;
+        order[iref] = msp ? msp->MaxOrder() : 0;
     }
-    TPZMaterial * material = Material();
-    if(!material)
-    {
-        int matid = Reference()->MaterialId();
-        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
-        DebugStop();
-    }
-    int order = material->IntegrationRuleOrder(ordervec);
-    return order;
+    
+//    TPZMaterial * material = Material();
+//    if(!material)
+//    {
+//        int matid = Reference()->MaterialId();
+//        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
+//        DebugStop();
+//    }
+//    int order = material->IntegrationRuleOrder(ordervec);
+//    return order;
 }
 
 template<class TGeometry>

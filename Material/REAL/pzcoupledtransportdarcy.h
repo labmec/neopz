@@ -113,7 +113,7 @@ public:
 		return this->GetCurrentMaterial()->Dimension();
 	}
 	
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	void SetAlpha(REAL alpha);
 	

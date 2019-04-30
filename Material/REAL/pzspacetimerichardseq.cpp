@@ -52,7 +52,7 @@ int TPZSpaceTimeRichardsEq::Dimension() const {
 	return 2;
 }
 
-int TPZSpaceTimeRichardsEq::NStateVariables(){
+int TPZSpaceTimeRichardsEq::NStateVariables() const{
 	return 1;
 }
 

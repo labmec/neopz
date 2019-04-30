@@ -96,7 +96,7 @@ virtual int ClassId() const;
     
     int Dimension() const {return 2;}
     
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
 
     /**
      * @brief Set parameters of elastic material:

@@ -58,7 +58,7 @@ public:
     
     virtual int Dimension() const { return mydim;}
     
-    int NStateVariables(){
+    virtual int NStateVariables() const override{
         return 1;
     }
     

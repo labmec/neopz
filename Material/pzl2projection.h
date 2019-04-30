@@ -108,7 +108,7 @@ public:
     virtual void SetDimension(int dim) { this->fDim = dim; }
 	
 	/** @brief Returns number of state variables */
-	virtual int NStateVariables(){ return this->fNStateVars; }
+	virtual int NStateVariables() const override { return this->fNStateVars; }
     
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.

@@ -115,7 +115,7 @@ public:
 	TPZMaterial * NewMaterial();
 	
 	/** @brief Object-based overload */
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	/** @brief Object-based overload */
 	virtual int Dimension() const;

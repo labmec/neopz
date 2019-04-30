@@ -48,7 +48,7 @@ public:
 
 	virtual int Dimension() const { return 2;}
 
-	int NStateVariables(){ return 1; }
+	virtual int NStateVariables() const override { return 1; }
 
 	virtual void Print(std::ostream & out);
 

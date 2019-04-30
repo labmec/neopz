@@ -47,7 +47,7 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	
 	STATE T(int jn,TPZVec<REAL> &x);
 	
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	virtual void Print(std::ostream & out);
 	

@@ -124,7 +124,7 @@ public:
 	virtual int Dimension() const override;
 
     /** Returns the maximum interpolation order of all connected elements */
-    virtual int IntegrationOrder() override;
+    virtual void PolynomialOrder(TPZVec<int> &order) const override;
 
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.

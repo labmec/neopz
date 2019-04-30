@@ -74,7 +74,7 @@ public:
     
     virtual int Dimension() const;
     
-    virtual int NStateVariables();  
+    virtual int NStateVariables() const override;  
     
     virtual int MatId();
     

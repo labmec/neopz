@@ -242,7 +242,7 @@ protected:
 	
 	virtual int NFluxes(){ return fMaterial->NFluxes(); }
 	
-	int NStateVariables() { return fMaterial->NStateVariables(); }
+	virtual int NStateVariables() const override { return fMaterial->NStateVariables(); }
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
 	virtual int NEvalErrors() {return fMaterial->NEvalErrors();}
@@ -261,7 +261,7 @@ protected:
         return fBCs[loadcase-1].fBCVal2;
     }
 	
-	TPZMaterial * Material() { return fMaterial; }
+	TPZMaterial * Material() const { return fMaterial; }
     
     void SetLoadCases(TPZVec<TPZFMatrix<STATE> > &val2vec)
     {

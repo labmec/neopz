@@ -43,7 +43,7 @@ public:
     
     int Dimension() const {return 2;}
     
-    int NStateVariables(){
+    virtual int NStateVariables() const override{
         DebugStop();
         return 0;
     }

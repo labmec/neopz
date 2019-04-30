@@ -73,7 +73,7 @@ public:
 	virtual int Dimension() const { return 3; }
 	
 	/** @brief Returns number of state variables: oil pressure and oil saturation */
-	virtual int NStateVariables(){ return 2; }
+	virtual int NStateVariables() const override{ return 2; }
 	
 	/** @brief Contribute method */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);

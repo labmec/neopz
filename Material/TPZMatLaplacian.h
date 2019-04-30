@@ -133,7 +133,7 @@ public:
 
 	virtual int Dimension() const { return fDim;}
 
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 
     /// Set a uniform diffusion constant and external flux
 	void SetParameters(STATE diff, STATE f);

@@ -53,7 +53,7 @@ class TPZMat1dLin : public TPZMaterial{
         return new TPZMat1dLin(*this);
     }
 	
-	virtual int NStateVariables() {
+	virtual int NStateVariables() const override {
         return fXk.Rows();
     }
 	

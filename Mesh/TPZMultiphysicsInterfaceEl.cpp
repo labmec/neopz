@@ -353,9 +353,11 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         }
     }
 
-    int intleftorder = leftel->IntegrationOrder();
-    int intrightorder = rightel->IntegrationOrder();
-    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZManVector<int> intleftorder;
+    leftel->PolynomialOrder(intleftorder);
+    TPZManVector<int> intrightorder;
+    rightel->PolynomialOrder(intrightorder);
+    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int dimension = gel->Dimension();
     int thisside = gel->NSides()-1;
@@ -465,9 +467,11 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     }
     data.fNeedsHSize=true;
     
-    int intleftorder = leftel->IntegrationOrder();
-    int intrightorder = rightel->IntegrationOrder();
-    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZManVector<int> intleftorder;
+    leftel->PolynomialOrder(intleftorder);
+    TPZManVector<int> intrightorder;
+    rightel->PolynomialOrder(intrightorder);
+    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int dimension = gel->Dimension();
     int thisside = gel->NSides()-1;
@@ -552,9 +556,11 @@ void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
     }
 #endif
     
-    int intleftorder = leftel->IntegrationOrder();
-    int intrightorder = rightel->IntegrationOrder();
-    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZManVector<int> intleftorder;
+    leftel->PolynomialOrder(intleftorder);
+    TPZManVector<int> intrightorder;
+    rightel->PolynomialOrder(intrightorder);
+    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int thisside = gel->NSides()-1;
     

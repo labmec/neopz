@@ -88,7 +88,7 @@ public:
     
     
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables() 
+    virtual int NStateVariables() const override
     {
         return 0;
     }

@@ -116,3 +116,16 @@ void TPZDiscontinuousGalerkin::Write(TPZStream &buf, int withclassid) const{
 void TPZDiscontinuousGalerkin::Read(TPZStream &buf, void *context){
 	TPZMaterial::Read(buf, context);
 }
+
+/// return the integration order as a function of interpolation orders of the left and right elements
+int TPZDiscontinuousGalerkin::GetIntegrationOrder(TPZVec<int> &porder_left, TPZVec<int> &porder_right) const
+{
+    int maxl = 0, maxr = 0;
+    for (auto porder: porder_left) {
+        maxl = std::max(maxl,porder);
+    }
+    for (auto porder: porder_right) {
+        maxr = std::max(maxr,porder);
+    }
+    return maxl+maxr;
+}

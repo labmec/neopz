@@ -37,7 +37,7 @@ protected:
 				 STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
 				 STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf);
 	
-	virtual int NStateVariables() { return fIdfMax; }
+	virtual int NStateVariables() const override { return fIdfMax; }
 	
 	virtual int Dimension() const { return 2; }
 	

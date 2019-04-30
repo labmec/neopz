@@ -70,7 +70,7 @@ class TPZElasticity3D : public TPZMaterial {
 	int Dimension() const { return 3;}
 	
 	/** @brief Number of state variables */
-	int NStateVariables(){ return 3;}
+	int NStateVariables() const override { return 3;}
 	
     /** 
      * @brief Gets the order of the integration rule necessary to integrate an

@@ -76,7 +76,7 @@ protected:
 	
 	virtual int NFluxes(){ return this->GetNonNullMaterial()->NFluxes(); }
 	
-	int NStateVariables() { return this->GetNonNullMaterial()->NStateVariables(); }
+	virtual int NStateVariables() const override { return this->GetNonNullMaterial()->NStateVariables(); }
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
 	virtual int NEvalErrors() {return this->GetNonNullMaterial()->NEvalErrors();}
