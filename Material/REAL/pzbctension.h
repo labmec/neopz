@@ -37,7 +37,7 @@ private:
 	
 	virtual int NFluxes(){ return Material()->NFluxes(); }
 	
-	int NStateVariables() { return Material()->NStateVariables(); }
+	virtual int NStateVariables() const override { return Material()->NStateVariables(); }
 	
 	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 

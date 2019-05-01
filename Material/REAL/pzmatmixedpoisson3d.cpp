@@ -111,7 +111,7 @@ TPZMatMixedPoisson3D & TPZMatMixedPoisson3D::operator=(const TPZMatMixedPoisson3
     return *this;
 }
 
-int TPZMatMixedPoisson3D::NStateVariables() {
+int TPZMatMixedPoisson3D::NStateVariables() const {
     return 1;
 }
 

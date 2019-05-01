@@ -99,7 +99,7 @@ public:
         return new TPZMatMixedPoisson3D(*this);
     }
     
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
     
     void SetPermeability(REAL perm) {
 

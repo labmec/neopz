@@ -124,7 +124,7 @@ class TPZSwelling : public TPZMaterial {
 	 * @brief Number of state variables, in this case: \n
 	 * 3 displacements, 1 pressure, 3 eletrochemical potencials, 1 eletrical potencial
 	 */
-	int NStateVariables() { return 8;}
+	virtual int NStateVariables() const override{ return 8;}
 	
 	virtual void Print(std::ostream & out);
 	

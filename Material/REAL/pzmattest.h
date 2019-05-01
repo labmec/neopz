@@ -37,7 +37,7 @@ class TPZMaterialTest : public TPZMaterial {
 	
 //	int Dimension() { return 2;}
 	
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	virtual void Print(std::ostream & out);
 	

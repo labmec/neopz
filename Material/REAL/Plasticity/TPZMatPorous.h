@@ -65,7 +65,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual int Dimension() const { return TBASEPOROUS(T, TMEM)::Dimension(); }
 
       /** returns the number of state variables associated with the material*/
-      virtual int NStateVariables() { return TBASEPOROUS(T, TMEM)::NStateVariables() + 1; }
+      virtual int NStateVariables() const override{ return TBASEPOROUS(T, TMEM)::NStateVariables() + 1; }
 
       /** print out the data associated with the material*/
       virtual void Print(std::ostream &out = std::cout, const int memory = 0);

@@ -125,7 +125,7 @@ public:
 		return false;
 	}
 	
-	virtual TPZMaterial * NewMaterial(){
+	virtual TPZMaterial * NewMaterial() override {
 		return new TPZMatPoisson3d(*this);
 	}
     
@@ -137,13 +137,13 @@ public:
 	 * Contribute method. Here, in base class, all requirements are considered as necessary. 
 	 * Each derived class may optimize performance by selecting only the necessary data.
      */
-    virtual void FillDataRequirements(TPZMaterialData &data)
+    virtual void FillDataRequirements(TPZMaterialData &data) override
     {
         data.SetAllRequirements(false);
     }
 	    
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override
     {
         data.SetAllRequirements(false);
         if (type == 50) {
@@ -155,9 +155,13 @@ public:
     }
     
 	
-	int Dimension() const { return fDim;}
+	int Dimension() const override{ return fDim;}
 	
-	int NStateVariables();
+    /** @brief Returns the number of state variables associated with the material */
+	virtual int NStateVariables() const override
+    {
+        return 1;
+    }
 	
 	virtual void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
 	
@@ -183,24 +187,24 @@ public:
 	}
 	
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMatPoisson3d"; }
+	virtual std::string Name() override { return "TPZMatPoisson3d"; }
 
 	/**
 	 * @name Contribute methods (weak formulation)
 	 * @{
 	 */
 	 
-	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) {
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) override {
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
-	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
         TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);
     }
 	
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
         TPZDiscontinuousGalerkin::ContributeBC(datavec,weight,ek,ef,bc);
     }
 
@@ -219,25 +223,25 @@ public:
 						  REAL weight);
 #endif
 	
-	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
-									 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+									 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,TPZMaterialData &dataleft,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+	virtual void ContributeBCInterface(TPZMaterialData &data,TPZMaterialData &dataleft,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,REAL weight,
-									 TPZFMatrix<STATE> &ef)
+									 TPZFMatrix<STATE> &ef) override
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
@@ -250,40 +254,40 @@ public:
 	/** @} */
     
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes(){ return 3;}
+	virtual int NFluxes() override { return 3;}
 	
 protected:
-    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) {
+    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override {
         TPZDiscontinuousGalerkin::Solution(datavec,var,Solout);
     }
     
-    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) {
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec)  override {
         TPZDiscontinuousGalerkin::FillDataRequirements(datavec);
     }
     
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
 	
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) {
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override {
         TPZDiscontinuousGalerkin::Errors(data,u_exact,du_exact,errors);
     }
     
-	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 	
-	virtual int NEvalErrors() {return 6;}
+	virtual int NEvalErrors()  override {return 6;}
 	
 	/**
 	 * @brief Compute square of residual of the differential equation at one integration point.
@@ -291,7 +295,7 @@ public:
 	 * @param sol is the solution vector
 	 * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
 	 */   
-	virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
+	virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) override;
 	
 	
 	void InterfaceErrors(TPZVec<REAL> &/*x*/,
@@ -306,17 +310,17 @@ public:
 	 * @return Returns sol-u_dirichlet
 	 * @since Mar 08, 2006
 	 */
-	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump);
+	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump) override;
 	
-	virtual int IsInterfaceConservative(){ return 1;}
+	virtual int IsInterfaceConservative() override { return 1;}
 	
         public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 
 };
 

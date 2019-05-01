@@ -115,7 +115,7 @@ public:
     /// After adding the elements initialize the integration rule
     virtual void InitializeIntegrationRule() override = 0 ;
 
-    virtual int IntegrationOrder() = 0;
+    virtual void PolynomialOrder(TPZVec<int> &order) const = 0;
     
     virtual int ComputeIntegrationOrder() const override;
     

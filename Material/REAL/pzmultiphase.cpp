@@ -72,7 +72,7 @@ int TPZMultiphase::Dimension() const {return fDim;};
 
 int TPZMultiphase::MatId() {return fmatId;}
 
-int TPZMultiphase::NStateVariables() {return 8;}
+int TPZMultiphase::NStateVariables() const {return 8;}
 
 void TPZMultiphase::Print(std::ostream &out) {
     out << "name of material : " << Name() << "\n";

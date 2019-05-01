@@ -52,7 +52,7 @@ int TPZReynoldsFlow::Dimension() const
 }
 
 
-int TPZReynoldsFlow::NStateVariables()
+int TPZReynoldsFlow::NStateVariables() const
 {
     return 1;
 }

@@ -62,7 +62,7 @@ public:
      * @brief Get the order of the integration rule necessary to integrate an
      * element with polinomial order p
      */
-    virtual int IntegrationRuleOrder(int elPMaxOrder) const;
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const override ;
 	
     /**
      * @brief Set a scale factor for the stiffness matrix and right hand side
@@ -73,7 +73,7 @@ public:
         fScale = scale;
     }
     
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override ;
     virtual void ContributeVecShape(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
@@ -82,33 +82,33 @@ public:
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override {
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief Returns problem dimension */
-	virtual int Dimension() const { return this->fDim; }
+	virtual int Dimension() const  override { return this->fDim; }
     
     /** @brief Sets problem dimension */
     virtual void SetDimension(int dim) { this->fDim = dim; }
 	
 	/** @brief Returns number of state variables */
-	virtual int NStateVariables(){ return this->fNStateVars; }
+	virtual int NStateVariables() const override { return this->fNStateVars; }
     
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -119,29 +119,29 @@ public:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override ;
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
+		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc) ;
 	}
 	
 	/** @brief Define if material is referred or not */
 	void SetIsReferred(bool val);
 	
 	/** @brief To create another material of the same type */
-	virtual TPZMaterial * NewMaterial();
+	virtual TPZMaterial * NewMaterial() override ;
 	
 	/** @brief It returns the variable index associated with the name */
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override ;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override ;
 	
 protected:
 	/** @brief It returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout);
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout) override ;
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation*/
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override 
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -154,9 +154,9 @@ public:
     
     virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
-           TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &    values);
+           TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &    values) override ;
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override ;
 
 };
 

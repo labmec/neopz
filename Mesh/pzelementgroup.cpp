@@ -179,6 +179,14 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Calcstiff Element Group Index " << Index();
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     InitializeElementMatrix(ek, ef);
     int64_t nel = fElGroup.size();
     TPZElementMatrix ekloc,efloc;
@@ -237,7 +245,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             }
 
         }
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if (logger->isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;

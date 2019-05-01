@@ -84,7 +84,7 @@ public:
         return fmatId;
     }
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const override;
     
     void SetInternalFlux(REAL flux);
 	

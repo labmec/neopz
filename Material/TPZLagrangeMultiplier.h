@@ -54,7 +54,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
         return *this;
     }
     
-    TPZMaterial *NewMaterial()
+    TPZMaterial *NewMaterial() override
     {
         return new TPZLagrangeMultiplier(*this);
     }
@@ -66,7 +66,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     }
     
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() const
+    virtual int Dimension() const override
     {
         return fDimension;
     }
@@ -77,7 +77,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     }
     
 	
-	virtual std::string Name()
+	virtual std::string Name() override
     {
         return "TPZLagrangeMultiplier";
     }
@@ -90,13 +90,13 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * Here, in base class, all requirements are considered as necessary. \n
 	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
-	virtual void FillDataRequirementsInterface(TPZMaterialData &data)
+	virtual void FillDataRequirementsInterface(TPZMaterialData &data) override
     {
         data.SetAllRequirements(false);
     }
     
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
-    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right)
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) override
     {
         data.SetAllRequirements(false);
 //        data.fNeedsNormal = true;
@@ -121,25 +121,25 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
      * @}
      */
     
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override
     {
         DebugStop();
     }
     
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override
     {
         DebugStop();
     }
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)  override {
         DebugStop();
     }
     
-	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) {
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef)  override {
 		DebugStop();
 	}
-	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
 		DebugStop();
 	}
     
@@ -153,7 +153,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
     
 //    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
@@ -172,7 +172,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param ef [out] is the load vector
 	 * @since June 5, 2012
 	 */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
 	
 	/**
@@ -184,7 +184,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
     
 	/**
@@ -196,7 +196,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param ef [out] is the load vector
 	 * @since June 5, 2012
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef)
+	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef) override
     {
         ContributeInterface(data, dataleft[0], dataright[0], weight, ef);
     }
@@ -212,7 +212,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param bc [in] is the boundary condition object
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
     {
         DebugStop();
     }
@@ -227,7 +227,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param bc [in] is the boundary condition object
 	 * @since February 21, 2013
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
     {
         DebugStop();
     }
@@ -242,7 +242,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @param bc [in] is the boundary condition object
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
     {
         DebugStop();
     }
@@ -264,14 +264,14 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 	 * @brief Computes interface jump = leftu - rightu
 	 * @since Feb 14, 2006
 	 */
-	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump)
+	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump) override
     {
         DebugStop();
     }
 	
 	
 	
-	virtual int NStateVariables()
+	virtual int NStateVariables() const override
     {
         return fNStateVariables;
     }
@@ -281,7 +281,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 										   REAL weight,
 										   TPZVec<STATE> &nkL,
 										   TPZVec<STATE> &nkR,
-										   int &errorid) {
+										   int &errorid)  override {
 		PZError << "Method not implemented\n";
 	}
 	
@@ -289,7 +289,7 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
 											 REAL weight,
 											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
-											 int &errorid) {
+											 int &errorid)  override {
 		PZError << "Method not implemented\n";
 	}
 	
@@ -299,14 +299,14 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     
 	/** @brief Unique identifier for serialization purposes */
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 	
     /**
      * @}

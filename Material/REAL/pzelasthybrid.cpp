@@ -41,7 +41,7 @@ TPZElasticityMaterial(num, E, nu, fx, fy, plainstress) {
 TPZElasticityHybridMaterial::~TPZElasticityHybridMaterial() {
 }
 
-int TPZElasticityHybridMaterial::NStateVariables() {
+int TPZElasticityHybridMaterial::NStateVariables() const {
 	return 2;
 }
 

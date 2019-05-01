@@ -57,7 +57,7 @@ public:
     void SetDimension(int dim) { m_dim = dim; }
     
     /** @brief return the number of state variables associated with each trial function */
-    int NStateVariables();
+    virtual int NStateVariables() const override;
     
     /** @brief print all material information */
     void Print(std::ostream & out);

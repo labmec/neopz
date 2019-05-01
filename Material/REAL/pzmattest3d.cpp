@@ -36,7 +36,7 @@ TPZMaterialTest3D::~TPZMaterialTest3D()
 {
 }
 
-int TPZMaterialTest3D::NStateVariables()
+int TPZMaterialTest3D::NStateVariables() const
 {
 	return 1;
 }

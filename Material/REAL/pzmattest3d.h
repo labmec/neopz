@@ -38,7 +38,7 @@ private:
 	
 	virtual int Dimension() const;
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	/** @brief Prints the object data structure */
 	virtual void Print(std::ostream & out);

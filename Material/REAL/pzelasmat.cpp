@@ -85,7 +85,7 @@ TPZDiscontinuousGalerkin(num), ff(3,0.) {
 TPZElasticityMaterial::~TPZElasticityMaterial() {
 }
 
-int TPZElasticityMaterial::NStateVariables() {
+int TPZElasticityMaterial::NStateVariables() const {
 	return 2;
 }
 

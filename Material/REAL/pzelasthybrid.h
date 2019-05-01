@@ -46,7 +46,7 @@ class TPZElasticityHybridMaterial : public TPZElasticityMaterial {
 	virtual int Dimension() const { return 2;}
 	
 	/** @brief Returns the number of state variables associated with the material */
-	virtual  int NStateVariables();
+	virtual  int NStateVariables() const override;
 		
 	/** @brief Returns the material name*/
 	std::string Name() { return "TPZElasticityHybridMaterial"; }

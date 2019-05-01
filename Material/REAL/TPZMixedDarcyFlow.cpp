@@ -56,7 +56,7 @@ int TPZMixedDarcyFlow::Dimension() const {
     return m_dim;
 }
 
-int TPZMixedDarcyFlow::NStateVariables(){
+int TPZMixedDarcyFlow::NStateVariables() const{
     return 1;
 }
 

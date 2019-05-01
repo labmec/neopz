@@ -86,7 +86,7 @@ TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
     return *this;
 } 
 
-int TPZMixedPoisson::NStateVariables() {
+int TPZMixedPoisson::NStateVariables() const {
 	return 1;
 }
 

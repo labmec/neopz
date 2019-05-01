@@ -74,7 +74,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	static int NStateVariables(int dim);
 	
 	/** @brief Object-based overload */
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
 	/** @brief Estimates the deltax (element diameter) based on the inverse of the jacobian. */
 	/**

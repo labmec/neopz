@@ -73,16 +73,16 @@ public:
     
     TPZMixedPoisson &operator=(const TPZMixedPoisson &copy);
     
-    virtual TPZMaterial * NewMaterial(){
+    virtual TPZMaterial * NewMaterial() override{
         return new TPZMixedPoisson(*this);
     }
     
 
-    virtual void Print(std::ostream & out);
+    virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMixedPoisson"; }
+	virtual std::string Name() override{ return "TPZMixedPoisson"; }
     
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
 	
 	void SetPermeability(REAL perm) {
 		fK = perm;
@@ -149,14 +149,14 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 	/**
      * @brief It return a solution to multiphysics simulation.
@@ -164,10 +164,10 @@ public:
      * @param var [in] number of solution variables. See  NSolutionVariables() method
      * @param Solout [out] is the solution vector
      */	
-     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
     
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec) override
     {
         // default is no specific data requirements
         int nref = datavec.size();
@@ -182,15 +182,15 @@ public:
         }
     }
 
-    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
 	
     
-    virtual int NEvalErrors() {return 3;}
+    virtual int NEvalErrors() override {return 3;}
 
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
     
     public:
-virtual int ClassId() const;
+virtual int ClassId() const  override;
 
 };
 
