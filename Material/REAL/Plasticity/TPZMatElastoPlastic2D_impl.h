@@ -509,6 +509,10 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
     const REAL BIGNUMBER = TPZMaterial::gBigNumber;
     
     TPZBndCondWithMem<TMEM> * bc_with_memory = dynamic_cast<TPZBndCondWithMem<TMEM> *>(&bc);
+    if(!bc_with_memory){
+        PZError << "TPZMatElastoPlastic2D::ContributeBC error - Wrong boundary objected: expected TPZBndCondWithMem<TMEM>" << std::endl;
+        DebugStop();
+    }
     
     /// Accepting  solution on bc data.
     int gp_index = data.intGlobPtIndex;
