@@ -10,25 +10,32 @@
 #include "TPZPlasticStepPV.h"
 #include "TPZElastoPlasticMem.h"
 #include "TPZMatElastoPlastic2D.h"
+#include "TPZTensor.h"
 
 
 class TRKSolution {
+    
+    // @TODO:: NVB for your kind understanding please document this class.
 protected:
-    TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem > *m_material;
+    
+    TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> m_elastoplastic_model;
 
     REAL m_re = -1;
 
     REAL m_rw = -1;
 
-    TPZTensor<REAL> m_sigma;
+    REAL m_ure = -1;
+    
+    REAL m_sigma_re = -1.0;
 
-    REAL m_pw = -1;
-
-    REAL m_sigma0 = -1;
-
-    REAL m_theta = -1;
+    int m_n_points = 0;
+    
+    TPZManVector<TPZElastoPlasticMem,10> m_memory_vector;
+    
+    TPZElastoPlasticMem m_initial_state_memory;
 
 public:
+    
     /// Default constructor
     TRKSolution();
 
@@ -40,47 +47,38 @@ public:
 
     /// Default destructor
     ~TRKSolution();
+    
+   void SetElastoPlasticModel(TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse> & model);
 
-    void SetMaterial(TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem > *material);
+    void SetExternalRadius(REAL re);
 
-    TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem > * Material();
-
-    void SetExternRadius(REAL re);
-
-    REAL ExternRadius();
+    REAL ExternalRadius();
 
     void SetWellboreRadius(REAL rw);
 
     REAL WellboreRadius();
 
-    void SetStressXYZ(TPZTensor<REAL> &sigma, REAL m_theta);
+    void SetRadialDisplacement(REAL m_sigma);
+    
+    REAL RadialRadialDisplacement();
+    
+    void SetRadialStress(REAL m_sigma);
 
-    TPZTensor<REAL> StressXYZ();
-
-    REAL Theta();
-
-    void SetWellborePressure(REAL pw);
-
-    REAL WellborePressure();
-
-    void SetInitialStress(REAL sigma0);
-
-    REAL InitialStress();
+    REAL RadialStress();
+    
+    void SetInitialStateMemory(TPZElastoPlasticMem memory);
+    
+    void SetNumberOfPoints(int n_points);
+    
+    int GetNumberOfPoints();
 
     void CreateMaterial();
-
-    void F (REAL r, REAL ur, REAL sigma_r, REAL &d_ur, REAL &d_sigmar);
-
-    void ParametersAtRe (TPZFNMatrix<3,REAL> &sigma, REAL &u_re);
-
-    void RKProcess(int np, std::ostream &out, bool euler);
-
-
-
-
-
-
-
+    
+    void FillPointsMemory();
+    
+    void F(REAL r, REAL ur, REAL sigma_r, REAL &d_ur, REAL &d_sigmar, REAL & lambda, REAL & G);
+    
+    void RKProcess(std::ostream &out, bool euler);
 
 };
 

@@ -5,16 +5,16 @@
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
 
-IsquadQ = 1;
-
+IsquadQ = 0;
+ 
 Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
 wr = 0.1;
 fr = 4.0;
 
-nt = 16;
-nr = 16;
+nt = 20;
+nr = 20;
 radial_progression = 1.25;
 
 // center point

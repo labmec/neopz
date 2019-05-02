@@ -1,4 +1,5 @@
 
+#include "path.h"
 #include <iostream>
 #include <string.h>
 #include <ctime>
@@ -28,10 +29,10 @@
 #include "TPZElastoPlasticMem.h"
 #include "TPZElasticCriterion.h"
 #include "TPZPlasticStepPV.h"
-#include "TPZSandlerExtended.h"
 #include "TPZYCMohrCoulombPV.h"
+#include "TPZBndCondWithMem.h"
+#include "TPZIntPointsFEM.h"
 
-#include "TPZSolveMatrix.h"
 #include "TElastoPlasticData.h"
 #include "TRKSolution.h"
 
@@ -45,6 +46,9 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int pOrder, TElastoPlastic
 /// Material configuration
 TElastoPlasticData WellboreConfig();
 
+/// Material configuration for RK verification
+TElastoPlasticData WellboreConfigRK();
+
 /// Solve using assemble residual of all intg points at once
 void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material);
 
@@ -57,51 +61,60 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance);
 /// Accept solution
 void AcceptPseudoTimeStepSolution(TPZAnalysis * an, TPZCompMesh * cmesh);
 
+/// Print mesh memory data
+void PrintMemory(TPZCompMesh * cmesh);
+
 /// Post process
-void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData material, int n_threads);
+void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData material, int n_threads, std::string vtk_file);
 
 ///RK Approximation
-void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::ostream &outbool, bool euler = false);
+void RKApproximation (REAL u_re, REAL sigma_re, TElastoPlasticData wellbore_material, int npoints, std::ostream &out, bool euler = false);
 
 int main(int argc, char *argv[]) {
     
-    int pOrder = 3; // Computational mesh order
-    bool render_vtk_Q = true;
+    int pOrder = 2; // Computational mesh order
+    bool render_vtk_Q = false;
     
 // Generates the geometry
-    std::string file("wellbore.msh");
-    TPZGeoMesh *gmesh = ReadGeometry(file);
+    std::string source_dir = SOURCE_DIR;
+    std::string msh_file = source_dir + "/gmsh/wellbore.msh";
+//    std::string msh_file = source_dir + "/gmsh/wellbore-small.msh";
+    TPZGeoMesh *gmesh = ReadGeometry(msh_file);
     PrintGeometry(gmesh);
 
 // Creates the computational mesh
-    TElastoPlasticData wellbore_material = WellboreConfig();
+//    TElastoPlasticData wellbore_material = WellboreConfig(); /// NVB this one is for recurrent usage
+    TElastoPlasticData wellbore_material = WellboreConfigRK(); /// NVB this one is just for verification purposes
     TPZCompMesh *cmesh = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
-    TPZCompMesh *cmesh_npts = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
-
-// Runge Kutta approximation
-    int np = 100;
-    ofstream rkfile("rkdata.txt");
-    bool euler = true;
-    RKApproximation(wellbore_material, np, rkfile, euler);
 
 // Defines the analysis
     int n_threads = 0;
     TPZAnalysis *analysis = Analysis(cmesh,n_threads);
+    
+// Calculates the solution using Newton method
+    int n_iterations = 50;
+    REAL tolerance = 1.e-5;
+   Solution(analysis, n_iterations, tolerance);
+
+// Post process
+   if (render_vtk_Q) {
+       std::string vtk_file = "Approximation.vtk";
+       PostProcess(cmesh, wellbore_material, n_threads, vtk_file);
+   }
+
+// Creates the computational mesh
+    TPZCompMesh *cmesh_npts = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
     TPZAnalysis *analysis_npts = Analysis(cmesh_npts,n_threads);
-
-//Calculates the solution using Newton method
-    int n_iterations = 30;
-    REAL tolerance = 1.e-4; /// NVB this tolerance is more apropriated for nonlinear problems
-    Solution(analysis, n_iterations, tolerance);
-
-//Post process
-    if (render_vtk_Q) {
-        PostProcess(cmesh, wellbore_material, n_threads);
-    }
-
+    
 // Calculates the solution using all intg points at once
     SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
+    std::cout << "main:: After SolutionAllPoints calling ... " << std::endl;
+    if (render_vtk_Q) { //Post process
+        std::string vtk_file = "Approximation_IntPointFEM.vtk";
+        PostProcess(cmesh_npts, wellbore_material, n_threads, vtk_file);
+    }
 
+    std::cout << "Final ..." <<std::endl;
     return 0;
 }
 
@@ -114,9 +127,9 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
 
     analysis->Solution().Zero();
     TPZFMatrix<REAL> du(analysis->Solution()), delta_du;
+    analysis->Assemble();
 
     for (int i = 0; i < n_iterations; i++) {
-        analysis->Assemble();
         analysis->Solve();
         delta_du = analysis->Solution();
         du += delta_du;
@@ -128,14 +141,17 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
         std::cout << "Nonlinear process :: delta_du norm = " << norm_delta_du << std::endl;
         std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
         if (stop_criterion_Q) {
+
             AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
+        analysis->Assemble();
     }
 
     if (stop_criterion_Q == false) {
+        AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
         std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
     }
 }
@@ -152,8 +168,8 @@ TPZAnalysis *Analysis(TPZCompMesh *cmesh, int n_threads) {
     return analysis;
 }
 
-void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n_threads) {
-    int div = 0;
+void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n_threads, std::string vtk_file) {
+    int div = 1;
     TPZPostProcAnalysis * post_processor = new TPZPostProcAnalysis;
     post_processor->SetCompMesh(cmesh, true);
 
@@ -165,9 +181,9 @@ void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n
     scalnames.push_back("FailureType");
     vecnames.push_back("Displacement");
     tensnames.push_back("Stress");
-    tensnames.push_back("StrainElastic");
+    tensnames.push_back("Strain");
     tensnames.push_back("StrainPlastic");
-
+    
 
     for (auto i : scalnames) {
         names.push_back(i);
@@ -178,9 +194,6 @@ void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n
     for (auto i : tensnames) {
         names.push_back(i);
     }
-
-
-    std::string vtk_file("Approximation.vtk");
 
     post_processor->SetPostProcessVariables(post_mat_id, names);
     TPZFStructMatrix structmatrix(post_processor->Mesh());
@@ -194,16 +207,15 @@ void PostProcess(TPZCompMesh *cmesh, TElastoPlasticData wellbore_material, int n
 
 TElastoPlasticData WellboreConfig(){
     TPZElasticResponse LER;
-
+    
     REAL Ey = 2000.0;
     REAL nu = 0.2;
 
     LER.SetEngineeringData(Ey, nu);
 
     REAL mc_cohesion    = 10000000000.0;
+//    REAL mc_cohesion    = 5.0;
     REAL mc_phi         = (20*M_PI/180);
-//    REAL mc_cohesion    = 10.0;
-//    REAL mc_phi         = (20*M_PI/180);
 
     /// NVB it is important to check the correct sign for ef in TPZMatElastoPlastic and TPZMatElastoPlastic2D materials. It is better to avoid problems with tensile state of stress.
 
@@ -222,22 +234,95 @@ TElastoPlasticData WellboreConfig(){
     bc_ux_fixed.SetId(4);
     bc_ux_fixed.SetType(3);
     bc_ux_fixed.SetValue({1,0});
-
+    
     bc_uy_fixed.SetId(5);
     bc_uy_fixed.SetType(3);
     bc_uy_fixed.SetValue({0,1});
-
+    
     bc_data.push_back(bc_inner);
     bc_data.push_back(bc_outer);
     bc_data.push_back(bc_ux_fixed);
     bc_data.push_back(bc_uy_fixed);
-
+    
     TElastoPlasticData rock;
     rock.SetMaterialParameters(LER, mc_phi, mc_cohesion);
     rock.SetId(1);
 
     rock.SetBoundaryData(bc_data);
+    
+    return rock;
+}
 
+/// Material configuration for RK verification
+TElastoPlasticData WellboreConfigRK(){
+    
+    /// Elastic verification -> true
+    /// ElastoPlastic verification -> false
+    bool is_elastic_Q = false;
+    
+    TPZElasticResponse LER;
+    REAL Ey = 2000.0;
+    REAL nu = 0.2;
+    
+    LER.SetEngineeringData(Ey, nu);
+    REAL mc_cohesion, mc_phi;
+    if (is_elastic_Q) {
+        mc_cohesion    = 10000000000.0;
+        mc_phi         = (20*M_PI/180);
+    }else{
+        mc_cohesion    = 5.0;
+        mc_phi         = (20*M_PI/180);
+    }
+    
+    std::vector<TBCData> bc_data;
+    TBCData bc_inner, bc_outer, bc_ux_fixed, bc_uy_fixed;
+    bc_inner.SetId(2);
+    bc_inner.SetType(6);
+    bc_inner.SetInitialValue(-50.);
+    bc_inner.SetValue({-1.0*(-40.-bc_inner.InitialValue())}); /// tr(sigma)/3
+    
+    bc_outer.SetId(3);
+    bc_outer.SetType(6);
+    bc_outer.SetInitialValue(-50.0); /// tr(sigma)/3
+    bc_outer.SetValue({-1.0*(-50.-bc_outer.InitialValue())+0.001}); /// tr(sigma)/3
+    
+    bc_ux_fixed.SetId(4);
+    bc_ux_fixed.SetType(3);
+    bc_ux_fixed.SetValue({1,0});
+    
+    bc_uy_fixed.SetId(5);
+    bc_uy_fixed.SetType(3);
+    bc_uy_fixed.SetValue({0,1});
+    
+    bc_data.push_back(bc_inner);
+    bc_data.push_back(bc_outer);
+    bc_data.push_back(bc_ux_fixed);
+    bc_data.push_back(bc_uy_fixed);
+    
+    TElastoPlasticData rock;
+    rock.SetMaterialParameters(LER, mc_phi, mc_cohesion);
+    rock.SetId(1);
+    
+    rock.SetBoundaryData(bc_data);
+    
+// Runge Kutta approximation
+    int np = 2000;
+    bool euler = false;
+    
+    if(is_elastic_Q){
+
+        REAL u_re, simga_re;
+        u_re = 0.0000254403;
+        simga_re = 0.00124267;
+        std::ofstream rkfile("ElasticRKdata.txt");
+        RKApproximation(u_re, simga_re, rock, np, rkfile, euler);
+    }else{
+        REAL u_re, simga_re;
+        u_re = 0.0000318827;
+        simga_re = 0.00130781;
+        std::ofstream rkfile("ElastoPlasticRKdata.txt");
+        RKApproximation(u_re, simga_re, rock, np, rkfile, euler);
+    }
     return rock;
 }
 
@@ -318,6 +403,24 @@ void AcceptPseudoTimeStepSolution(TPZAnalysis * an, TPZCompMesh * cmesh){
     
 }
 
+void PrintMemory(TPZCompMesh * cmesh){
+    
+    std::map<int, TPZMaterial *> & refMatVec = cmesh->MaterialVec();
+    std::map<int, TPZMaterial * >::iterator mit;
+    TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem;
+    for(mit=refMatVec.begin(); mit!= refMatVec.end(); mit++)
+    {
+        pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *>( mit->second );
+        if(pMatWithMem != NULL)
+        {
+            for(auto memory: *pMatWithMem->GetMemory()){
+                memory.Print();
+            }
+        }
+    }
+    
+}
+
 TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasticData & wellbore_material) {
 
 // Creates the computational mesh
@@ -352,8 +455,8 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
     material->SetPlasticityModel(LEMC);
     material->SetDefaultMem(default_memory);
     cmesh->InsertMaterialObject(material);
-    // Set the boundary conditions
     
+    // Set the boundary conditions
     TPZFNMatrix<3,REAL> val1(dim,dim), val2(dim,dim);
     val1.Zero();
     val2.Zero();
@@ -367,8 +470,10 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
         for (int k = 0; k < n_values; k++) {
             val2(k,0) = wellbore_material.BoundaryData()[i].Value()[k];
         }
-        TPZMaterial *bc = material->CreateBC(material, bc_id, type, val1, val2);
+        
+        TPZBndCondWithMem<TPZElastoPlasticMem> * bc = new  TPZBndCondWithMem<TPZElastoPlasticMem>(material, bc_id, type, val1, val2);
         cmesh->InsertMaterialObject(bc);
+        
     }
 
     cmesh->SetDimModel(dim);
@@ -384,30 +489,42 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
 }
 
 void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material){
+	std::cout << "Solving with IntPointsFEM ..." << std::endl;
     bool stop_criterion_Q = false;
-    REAL norm_res;
+    REAL norm_res, norm_delta_du;
     int neq = analysis->Solution().Rows();
     TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
-
-    TPZSolveMatrix solmat(analysis->Mesh(), wellbore_material.Id());
-
+//    {
+    	std::cout << "SolutionAllPoints:: Creating IntPointsFEM ..." << std::endl;
+    	TPZIntPointsFEM solveintpoints(analysis->Mesh(), wellbore_material.Id());
+    	solveintpoints.SetDataStructure();
+    	std::cout << "SolutionAllPoints:: Destroying with IntPointsFEM ..." << std::endl;
+//    }
+//
+    analysis->Solution().Zero();
     analysis->Assemble();
-
     for (int i = 0; i < n_iterations; i++) {
         analysis->Solve();
         delta_du = analysis->Solution();
         du += delta_du;
-        solmat.LoadSolution(du);
-        solmat.AssembleResidual();
-        norm_res = Norm(solmat.Rhs());
+        solveintpoints.LoadSolution(du);
+        solveintpoints.AssembleResidual();
+        norm_delta_du = Norm(delta_du);
+        norm_res = Norm(solveintpoints.Rhs());
         stop_criterion_Q = norm_res < tolerance;
-
+        std::cout << "Nonlinear process :: delta_du norm = " << norm_delta_du << std::endl;
+        std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
+//        PrintMemory(analysis->Mesh());
         if (stop_criterion_Q) {
+            AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
+//            PrintMemory(analysis->Mesh());
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
-        analysis->Assemble();
+//        analysis->Assemble();
+        analysis->Rhs() = solveintpoints.Rhs();
+
     }
 
     if (stop_criterion_Q == false) {
@@ -415,9 +532,9 @@ void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
     }
 }
 
-void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::ostream &out, bool euler) {
+void RKApproximation (REAL u_re, REAL sigma_re, TElastoPlasticData wellbore_material, int npoints, std::ostream &out, bool euler) {
     REAL rw = 0.1;
-    REAL re = 4.;
+    REAL re = 4.0;
     REAL theta = 0.;
 
     //Initial stress and wellbore pressure
@@ -458,12 +575,13 @@ void RKApproximation (TElastoPlasticData wellbore_material, int npoints, std::os
 
     TRKSolution rkmethod;
     rkmethod.SetWellboreRadius(rw);
-    rkmethod.SetExternRadius(re);
-    rkmethod.SetMaterial(material);
-    rkmethod.SetStressXYZ(sigmaXYZ,theta);
-    rkmethod.SetInitialStress(sigma0);
-    rkmethod.SetWellborePressure(pw);
-
-    rkmethod.RKProcess(npoints,out, euler);
+    rkmethod.SetExternalRadius(re);
+    rkmethod.SetNumberOfPoints(npoints);
+    rkmethod.SetInitialStateMemory(default_memory);
+    rkmethod.SetElastoPlasticModel(LEMC);
+    rkmethod.SetRadialDisplacement(u_re);
+    rkmethod.SetRadialStress(sigma_re);
+    rkmethod.FillPointsMemory();
+    rkmethod.RKProcess(out, euler);
 }
 
