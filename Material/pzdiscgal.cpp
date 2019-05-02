@@ -5,6 +5,8 @@
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"
+#include <algorithm>
+
 
 
 TPZDiscontinuousGalerkin::TPZDiscontinuousGalerkin() : TPZMaterial(){}
