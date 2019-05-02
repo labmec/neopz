@@ -77,8 +77,8 @@ int main(int argc, char *argv[]) {
     
 // Generates the geometry
     std::string source_dir = SOURCE_DIR;
-    std::string msh_file = source_dir + "/gmsh/wellbore.msh";
-//    std::string msh_file = source_dir + "/gmsh/wellbore-small.msh";
+    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore.msh";
+//    std::string msh_file = source_dir + "/gmsh/wellbore-3.msh";
     TPZGeoMesh *gmesh = ReadGeometry(msh_file);
     PrintGeometry(gmesh);
 
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     TPZAnalysis *analysis = Analysis(cmesh,n_threads);
     
 // Calculates the solution using Newton method
-    int n_iterations = 50;
+    int n_iterations = 2;
     REAL tolerance = 1.e-5;
    Solution(analysis, n_iterations, tolerance);
 
@@ -114,7 +114,6 @@ int main(int argc, char *argv[]) {
         PostProcess(cmesh_npts, wellbore_material, n_threads, vtk_file);
     }
 
-    std::cout << "Final ..." <<std::endl;
     return 0;
 }
 
@@ -147,7 +146,7 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
-        analysis->Assemble();
+//        analysis->Assemble();
     }
 
     if (stop_criterion_Q == false) {
@@ -494,13 +493,10 @@ void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
     REAL norm_res, norm_delta_du;
     int neq = analysis->Solution().Rows();
     TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
-//    {
-    	std::cout << "SolutionAllPoints:: Creating IntPointsFEM ..." << std::endl;
-    	TPZIntPointsFEM solveintpoints(analysis->Mesh(), wellbore_material.Id());
-    	solveintpoints.SetDataStructure();
-    	std::cout << "SolutionAllPoints:: Destroying with IntPointsFEM ..." << std::endl;
-//    }
-//
+
+    TPZIntPointsFEM solveintpoints(analysis->Mesh(), wellbore_material.Id());
+    solveintpoints.SetDataStructure();
+
     analysis->Solution().Zero();
     analysis->Assemble();
     for (int i = 0; i < n_iterations; i++) {

@@ -667,26 +667,26 @@ void TPZIntPointsFEM::NodalForces(TPZFMatrix<REAL> &sigma, TPZFMatrix<REAL> &nod
     }
 }
 
-void TPZIntPointsFEM::ColoredAssemble(TPZFMatrix<STATE>  &nodal_forces_vec, TPZFMatrix<STATE> &nodal_forces_global) {
+void TPZIntPointsFEM::ColoredAssemble(TPZFMatrix<STATE>  &nodal_forces, TPZFMatrix<STATE> &residual) {
     int64_t ncolor = *std::max_element(fElemColor.begin(), fElemColor.end())+1;
     int64_t sz = fIndexes.size();
     int64_t neq = fCmesh->NEquations();
-    nodal_forces_global.Resize(neq*ncolor,1);
-    nodal_forces_global.Zero();
+    residual.Resize(neq*ncolor,1);
+    residual.Zero();
 
 
-    cblas_dsctr(sz, nodal_forces_vec, &fIndexesColor[0], &nodal_forces_global(0,0));
+    cblas_dsctr(sz, nodal_forces, &fIndexesColor[0], &residual(0,0));
 
     int64_t colorassemb = ncolor / 2.;
     while (colorassemb > 0) {
 
         int64_t firsteq = (ncolor - colorassemb) * neq;
-        cblas_daxpy(firsteq, 1., &nodal_forces_global(firsteq, 0), 1., &nodal_forces_global(0, 0), 1.);
+        cblas_daxpy(colorassemb * neq, 1., &residual(firsteq, 0), 1., &residual(0, 0), 1.);
 
         ncolor -= colorassemb;
         colorassemb = ncolor/2;
     }
-    nodal_forces_global.Resize(neq, 1);
+    residual.Resize(neq, 1);
 
 }
 
