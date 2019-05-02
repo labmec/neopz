@@ -94,7 +94,7 @@ public:
         return fmatId;
     }
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const {return 1;}
     
     void SetForcesPressure(REAL fxfPQ);
     
