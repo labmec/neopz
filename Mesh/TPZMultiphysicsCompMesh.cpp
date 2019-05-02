@@ -31,6 +31,15 @@ TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(const TPZMultiphysicsCompMesh &
     m_mesh_vector           = other.m_mesh_vector;
 }
 
+/// Destructor
+TPZMultiphysicsCompMesh::~TPZMultiphysicsCompMesh()
+{
+    m_active_approx_spaces.Resize(0);
+    m_mesh_vector.Resize(0);
+}
+
+
+
 TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysicsCompMesh &other){
     
     if (this != & other) // prevent self-assignment
@@ -42,15 +51,15 @@ TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysi
     return *this;
 }
 
-TPZManVector<TPZCompMesh *, 3> & TPZMultiphysicsCompMesh::MeshVector() {
+TPZVec<TPZCompMesh *> & TPZMultiphysicsCompMesh::MeshVector() {
     return  m_mesh_vector;
 }
 
-TPZManVector<int,5> &  TPZMultiphysicsCompMesh::GetActiveApproximationSpaces(){
+TPZVec<int> &  TPZMultiphysicsCompMesh::GetActiveApproximationSpaces(){
     return m_active_approx_spaces;
 }
 
-void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
     
     if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;

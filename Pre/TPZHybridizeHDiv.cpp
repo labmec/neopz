@@ -24,6 +24,8 @@
 #include "TPZLagrangeMultiplier.h"
 #include "TPZNullMaterial.h"
 
+#include "TPZMultiphysicsCompMesh.h"
+
 #include <algorithm>
 
 using namespace std;
@@ -342,6 +344,11 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
     pressuremesh->InitializeBlock();
 }
 
+void TPZHybridizeHDiv::CreateInterfaceElements(TPZMultiphysicsCompMesh *cmesh_Hybrid)
+{
+    CreateInterfaceElements(cmesh_Hybrid, cmesh_Hybrid->MeshVector());
+}
+
 TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, TPZVec<TPZCompMesh *> &meshvector_Hybrid, double Lagrange_term_multiplier /* = 1. */) {
     TPZGeoMesh *gmesh = cmesh_HDiv->Reference();
     TPZCompMesh *cmesh_Hybrid = new TPZCompMesh(gmesh);
@@ -353,6 +360,23 @@ TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZCompMesh *cmesh_HDiv, 
     TPZBuildMultiphysicsMesh::AddElements(meshvector_Hybrid, cmesh_Hybrid);
     TPZBuildMultiphysicsMesh::AddConnects(meshvector_Hybrid, cmesh_Hybrid);
     cmesh_Hybrid->LoadReferences();
+    return cmesh_Hybrid;
+}
+
+TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_HDiv, double Lagrange_term_multiplier /* = 1. */) {
+    TPZManVector<TPZCompMesh *, 3> meshvec_Hybrid(cmesh_HDiv->MeshVector().size(), 0);
+    for (int i = 0; i < cmesh_HDiv->MeshVector().size(); i++) {
+        meshvec_Hybrid[i] = cmesh_HDiv->MeshVector()[i]->Clone();
+    }
+    HybridizeInternalSides(meshvec_Hybrid);
+
+    TPZGeoMesh *gmesh = cmesh_HDiv->Reference();
+    TPZMultiphysicsCompMesh *cmesh_Hybrid = new TPZMultiphysicsCompMesh(gmesh);
+    cmesh_HDiv->CopyMaterials(*cmesh_Hybrid);
+    InsertPeriferalMaterialObjects(cmesh_Hybrid, Lagrange_term_multiplier);
+
+    TPZManVector<int,5> active(meshvec_Hybrid.size(),1);
+    cmesh_Hybrid->BuildMultiphysicsSpace(active, meshvec_Hybrid);
     return cmesh_Hybrid;
 }
 
@@ -418,48 +442,22 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &mes
         DebugStop();
     }
 
-    TPZFNMatrix<1, STATE> xk(fNState, fNState, 0.), xb(fNState, fNState, 0.), xc(fNState, fNState, 0.), xf(fNState, 1, 0.);
 
     TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
     int dim = pressuremesh->Dimension();
     
     if (!pressuremesh->FindMaterial(fLagrangeInterface)) {
-        if(dim == 2)
-        {
-            auto matPerif = new TPZMat1dLin(fLagrangeInterface);
-            matPerif->SetMaterial(xk, xc, xb, xf);
-            pressuremesh->InsertMaterialObject(matPerif);
-        }
-        else if(dim == 3)
-        {
-            auto matPerif = new TPZMat2dLin(fLagrangeInterface);
-            matPerif->SetMaterial(xk, xc, xf);
-            pressuremesh->InsertMaterialObject(matPerif);
-        }
-        else
-        {
-            DebugStop();
-        }
+        auto matPerif = new TPZNullMaterial(fLagrangeInterface);
+        matPerif->SetDimension(dim-1);
+        matPerif->SetNStateVariables(fNState);
+        pressuremesh->InsertMaterialObject(matPerif);
     }
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
     if (!fluxmesh->FindMaterial(fHDivWrapMatid)) {
-        if(dim == 2)
-        {
-            auto matPerif = new TPZMat1dLin(fHDivWrapMatid);
-            matPerif->SetMaterial(xk, xc, xb, xf);
-            fluxmesh->InsertMaterialObject(matPerif);
-        }
-        else if(dim == 3)
-        {
-            auto matPerif = new TPZMat2dLin(fHDivWrapMatid);
-            matPerif->SetMaterial(xk, xc, xf);
-            fluxmesh->InsertMaterialObject(matPerif);
-
-        }
-        else
-        {
-            DebugStop();
-        }
+        auto matPerif = new TPZNullMaterial(fHDivWrapMatid);
+        matPerif->SetDimension(dim-1);
+        matPerif->SetNStateVariables(fNState);
+        fluxmesh->InsertMaterialObject(matPerif);
     }
 }
 
@@ -523,7 +521,7 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
 }
 
 std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZCompMesh* cmesh_HDiv, TPZVec<TPZCompMesh*>& meshvec_HDiv, bool group_elements, double Lagrange_term_multiplier /* = 1. */) {
-    TPZManVector<TPZCompMesh *, 2> meshvec_Hybrid(meshvec_HDiv.size(), 0);
+    TPZManVector<TPZCompMesh *, 3> meshvec_Hybrid(meshvec_HDiv.size(), 0);
     for (int i = 0; i < meshvec_HDiv.size(); i++) {
         meshvec_Hybrid[i] = meshvec_HDiv[i]->Clone();
     }
@@ -539,6 +537,21 @@ std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZC
     }
     return std::make_tuple(cmesh_Hybrid, meshvec_Hybrid);
 }
+
+/// make a hybrid mesh from a H(div) multiphysics mesh
+TPZMultiphysicsCompMesh *TPZHybridizeHDiv::Hybridize(TPZMultiphysicsCompMesh *multiphysics, bool group_elements, double Lagrange_term_multiplier)
+{
+    ComputePeriferalMaterialIds(multiphysics->MeshVector());
+    ComputeNState(multiphysics->MeshVector());
+
+    TPZCompMesh *cmesh = CreateMultiphysicsMesh(multiphysics);
+    TPZMultiphysicsCompMesh *result = dynamic_cast<TPZMultiphysicsCompMesh *>(cmesh);
+    CreateInterfaceElements(result);
+    if(!result) DebugStop();
+    return result;
+
+}
+
 
 static void CompareFluxes(TPZCompElSide &left, TPZCompElSide &right, std::ostream &out)
 {
