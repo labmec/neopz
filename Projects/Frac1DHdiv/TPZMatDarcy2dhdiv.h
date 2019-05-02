@@ -59,7 +59,7 @@ public:
     virtual int Dimension() const;
     
     /** @brief Return the number of state variables */
-    virtual int NStateVariables();
+    virtual int NStateVariables() const { return 1; }
     
     
     /** @brief Not used contribute methods */

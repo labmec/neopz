@@ -49,7 +49,7 @@ public:
   virtual int Dimension() const;
   
   /** @brief Return the number of state variables */
-  virtual int NStateVariables();
+  virtual int NStateVariables() const { return 1; }
   
   /** @brief Contribute method for not multiphysics materials */
   virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)

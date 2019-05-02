@@ -60,9 +60,6 @@ int TPZPoroElastic2d::ClassId() const{
 }
 
 
-int TPZPoroElastic2d::NStateVariables() {
-	return 3;
-}
 
 
 void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE>  &ek, TPZFMatrix<STATE> &ef) {
