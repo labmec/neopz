@@ -72,13 +72,13 @@ void RKApproximation (REAL u_re, REAL sigma_re, TElastoPlasticData wellbore_mate
 
 int main(int argc, char *argv[]) {
     
-    int pOrder = 2; // Computational mesh order
+    int pOrder = 3; // Computational mesh order
     bool render_vtk_Q = false;
     
 // Generates the geometry
     std::string source_dir = SOURCE_DIR;
-    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore.msh";
-//    std::string msh_file = source_dir + "/gmsh/wellbore-3.msh";
+//    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore.msh";
+    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore-5.msh";
     TPZGeoMesh *gmesh = ReadGeometry(msh_file);
     PrintGeometry(gmesh);
 
@@ -92,8 +92,8 @@ int main(int argc, char *argv[]) {
     TPZAnalysis *analysis = Analysis(cmesh,n_threads);
     
 // Calculates the solution using Newton method
-    int n_iterations = 2;
-    REAL tolerance = 1.e-5;
+    int n_iterations = 80;
+    REAL tolerance = 1.e-3;
    Solution(analysis, n_iterations, tolerance);
 
 // Post process
@@ -108,7 +108,6 @@ int main(int argc, char *argv[]) {
     
 // Calculates the solution using all intg points at once
     SolutionAllPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
-    std::cout << "main:: After SolutionAllPoints calling ... " << std::endl;
     if (render_vtk_Q) { //Post process
         std::string vtk_file = "Approximation_IntPointFEM.vtk";
         PostProcess(cmesh_npts, wellbore_material, n_threads, vtk_file);
@@ -118,6 +117,7 @@ int main(int argc, char *argv[]) {
 }
 
 void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
+    std::cout << "\n\nSolving with PZ ...\n" << std::endl;
     bool stop_criterion_Q = false;
     REAL norm_res, norm_delta_du;
 
@@ -488,7 +488,7 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
 }
 
 void SolutionAllPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material){
-	std::cout << "Solving with IntPointsFEM ..." << std::endl;
+	std::cout << "\n\nSolving with IntPointsFEM ...\n" << std::endl;
     bool stop_criterion_Q = false;
     REAL norm_res, norm_delta_du;
     int neq = analysis->Solution().Rows();

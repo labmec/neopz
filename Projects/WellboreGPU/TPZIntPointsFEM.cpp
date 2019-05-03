@@ -560,10 +560,17 @@ void TPZIntPointsFEM::DeltaStrain(TPZFMatrix<REAL> &expandsolution, TPZFMatrix<R
 }
 
 void TPZIntPointsFEM::ElasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &plastic_strain, TPZFMatrix<REAL> &elastic_strain) {
+    elastic_strain.Resize(fDim*fNpts,1);
+    elastic_strain.Zero();
+
+    plastic_strain.Zero();
+
     elastic_strain = delta_strain - plastic_strain;
 }
 
 void TPZIntPointsFEM::PlasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &elastic_strain, TPZFMatrix<REAL> &plastic_strain) {
+    plastic_strain.Resize(fDim*fNpts,1);
+
     plastic_strain = delta_strain - elastic_strain;
 }
 
