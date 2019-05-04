@@ -528,24 +528,32 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Quadratic Line
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_line_els++;
         }
             break;
         case 9:
         {
             // Triangle
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_triangle_els++;
         }
             break;
         case 10:
         {
+            TPZManVector <int64_t,15> Topology_c(n_nodes-1);
+            for (int k_node = 0; k_node < n_nodes-1; k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by default Quadrangle9 is always generated. (?_?).
+                Topology_c[k_node] = Topology[k_node];
+            }
             // Quadrilateral
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology, physical_identifier, *gmesh);
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology_c, physical_identifier, *gmesh);
+            m_n_quadrilateral_els++;
         }
             break;
         case 11:
         {
             // Tetrahedron
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_tetrahedron_els++;
             
         }
             break;
@@ -553,12 +561,14 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Hexahedra
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_hexahedron_els++;
         }
             break;
         case 13:
         {
             // Prism
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_pyramid_els++;
         }
             break;
         case 15:{
@@ -637,7 +647,7 @@ int TPZGmshReader::GetNumberofNodes(int & el_type){
         case 10:
         {
             // Quadratic Quadrilateral
-            n_nodes = 8;
+            n_nodes = 9;
         }
             break;
         case 11:
