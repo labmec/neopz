@@ -92,6 +92,10 @@ public:
     /** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZMaterial(const TPZMaterial &mat);
+    
+    /// operator =
+    TPZMaterial &operator=(const TPZMaterial &copy);
+    
     /** @brief Default destructor */
     virtual ~TPZMaterial();
     
