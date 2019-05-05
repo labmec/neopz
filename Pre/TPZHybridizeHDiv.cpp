@@ -543,7 +543,8 @@ TPZMultiphysicsCompMesh *TPZHybridizeHDiv::Hybridize(TPZMultiphysicsCompMesh *mu
 {
     ComputePeriferalMaterialIds(multiphysics->MeshVector());
     ComputeNState(multiphysics->MeshVector());
-
+    InsertPeriferalMaterialObjects(multiphysics->MeshVector());
+    HybridizeInternalSides(multiphysics->MeshVector());
     TPZCompMesh *cmesh = CreateMultiphysicsMesh(multiphysics);
     TPZMultiphysicsCompMesh *result = dynamic_cast<TPZMultiphysicsCompMesh *>(cmesh);
     CreateInterfaceElements(result);
