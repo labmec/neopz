@@ -30,23 +30,23 @@ class TPZMatHybrid : public TPZMaterial {
 	
 	virtual int NStateVariables() const override;
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMatHybrid"; }
+	virtual std::string Name() override { return "TPZMatHybrid"; }
 	
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> & ek,
-							TPZFMatrix<STATE> & ef);
+							TPZFMatrix<STATE> & ef) override;
 	
     virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> & ek,
 							  TPZFMatrix<STATE> & ef,
-							  TPZBndCond & bc);
+							  TPZBndCond & bc) override;
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> & ef)
+							TPZFMatrix<STATE> & ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -54,20 +54,20 @@ class TPZMatHybrid : public TPZMaterial {
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> & ef,
-							  TPZBndCond & bc)
+							  TPZBndCond & bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes(){ return 3;}
+	virtual int NFluxes() override { return 3;}
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -77,10 +77,10 @@ public:
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 };
 
 #endif

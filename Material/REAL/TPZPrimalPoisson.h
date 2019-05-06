@@ -41,7 +41,7 @@ public:
     TPZPrimalPoisson(const TPZPrimalPoisson &copy);
     
     /** @brief return a material object from a this object */
-    TPZMaterial * NewMaterial();
+    TPZMaterial * NewMaterial() override;
 
     /** @brief assignment operator */
     TPZPrimalPoisson &operator=(const TPZPrimalPoisson &other);
@@ -52,82 +52,82 @@ public:
      */
 
     /** @brief return the euclidean dimension of the weak statement */
-    int Dimension() const;
+    int Dimension() const override ;
     
     /** @brief return the number of state variables associated with each trial function */
     virtual int NStateVariables() const override;
 
     /** @brief print all material information */        
-    void Print(std::ostream & out);
+    void Print(std::ostream & out) override;
 
     /** @brief print material name */
-    std::string Name();
+    std::string Name() override;
 
     /** @brief fill requirements for volumetric contribute methods */
-    void FillDataRequirements(TPZMaterialData &data);
+    void FillDataRequirements(TPZMaterialData &data) override;
     
     /** @brief fill requirements for bounadry contribute methods */
-    void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
+    void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override;
 
     /** @brief fill requirements for volumetric contribute methods multiphsycis mesh */
-    void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
+    void FillDataRequirements(TPZVec<TPZMaterialData> &datavec) override;
 
     /** @brief fill requirements for boundary contribute methods multiphsycis mesh */
-    void FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec);
+    void FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec) override;
     
     /** @brief unique class identifier */
     public:
     
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     /** @brief write class in disk */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    virtual void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief write class from disk */
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 
     
     /** @brief Volumetric contribute with jacobian matrix */
-    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 
     /** @brief Volumetric contribute */
-    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef);
+    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) override;
 
     /** @brief Boundary contribute with jacobian matrix */
-    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 
     /** @brief Boundary contribute */
-    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     
     /** @brief Volumetric contribute with jacobian matrix */
-    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
     
     /** @brief Volumetric contribute */
-    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef) override;
     
     /** @brief Boundary contribute with jacobian matrix */
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     
     /** @brief Boundary contribute */
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 
     /** @brief Number of errors being computed = { 0-> h1, 1 ->L2 primal, 2 L2 dual} */
-    int NEvalErrors();
+    int NEvalErrors() override;
 
     /** @brief Variable index based on variable naming */
-    int VariableIndex(const std::string &name);
+    int VariableIndex(const std::string &name) override;
 
     /** @brief size of the current variable (1 -> scalar, 3-> vector, 9 ->  Tensor ) */
-    int NSolutionVariables(int var);
+    int NSolutionVariables(int var) override;
 
     /** @brief Postprocess required variables */
-    void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+    void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
 
     /** @brief Postprocess required variables multiphysics */
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
 
     /** @brief Compute errors, no comments!!! */
-    void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error);
+    void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error) override;
     
 };
 
