@@ -34,8 +34,6 @@ ENABLE_TESTING()
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
 			#add_subdirectory(Finite3DElasticity)
 
-			#exemplo simples de construcao de espaco HDiv
-			add_subdirectory(HDiv_demo)
 
 			#Example to reading and using geometric mesh
 			#add_subdirectory(testgeom)
@@ -58,10 +56,6 @@ ENABLE_TESTING()
 
 			#Example of the tracer flow problem in multiphysics simulation.
   			add_subdirectory(TracadorPassivo)
-
-			#Project to test the method hdiv stabilized.
-			add_subdirectory(HDivEstabilizado)
-			add_subdirectory(HDivEstabHHetero)
 
 
 			#Example of the hybrid mesh
@@ -190,10 +184,6 @@ ENABLE_TESTING()
 			add_subdirectory(Elasticity2D)
 			add_subdirectory(DrillPipe)
 
-            if (USING_LAPACK)
-			    add_subdirectory(Hdiv3DCurved)
-            endif()
-			add_subdirectory(Hdiv3D)
 			add_subdirectory(Gridgeneration)
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)
@@ -225,7 +215,6 @@ ENABLE_TESTING()
 			add_subdirectory(HydraulicFracturePropagation)
 			add_subdirectory(StabilizedHybridElasticity)
 			add_subdirectory(GlobalPostPro)
-			add_subdirectory(HDiv)
 
 			#Projetos de Thiago Dias dos Santos
 			#add_subdirectory(SantosProjects)
