@@ -82,7 +82,7 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	virtual TPZMaterial * NewMaterial();
+	virtual TPZMaterial * NewMaterial() override;
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux( TPZVec<REAL> &x, TPZVec<STATE> &Sol,
