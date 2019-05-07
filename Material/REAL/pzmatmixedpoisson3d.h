@@ -95,7 +95,7 @@ public:
         return fMatId;
     }
     
-    virtual TPZMaterial * NewMaterial(){
+    virtual TPZMaterial * NewMaterial() override {
         return new TPZMatMixedPoisson3D(*this);
     }
     

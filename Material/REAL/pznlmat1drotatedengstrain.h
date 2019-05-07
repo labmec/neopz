@@ -29,10 +29,10 @@ public:
     /** @brief Default destructor */
     virtual ~TPZNLMat1dRotatedEngStrain();
 	
-    virtual std::string Name() { return "nonlinear_RotatedEnginneringStrain"; }
+    virtual std::string Name()  override { return "nonlinear_RotatedEnginneringStrain"; }
 	
     /** @brief Returns the integrable dimension of the material: Material is 1d */
-    virtual int Dimension() const {return  1;}
+    virtual int Dimension() const  override {return  1;}
 	
     /** @brief Returns the number of state variables associated with the material: Only w? */
     virtual int NStateVariables() const override{return  1;}
@@ -49,7 +49,7 @@ protected:
 //	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 //						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -80,7 +80,7 @@ public:
 */	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZNLMat1d::ContributeBC(data,weight,ef,bc);
 	}

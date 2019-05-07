@@ -205,7 +205,7 @@ public:
 						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values,
 						 TPZVec<REAL> normal, REAL elsize);
 	
-	virtual int IsInterfaceConservative(){ return 1;}
+	virtual int IsInterfaceConservative() override { return 1;}
         
         virtual int ClassId() const override;
 

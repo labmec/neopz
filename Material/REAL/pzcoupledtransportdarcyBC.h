@@ -129,7 +129,7 @@ protected:
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
-                                     TPZFMatrix<STATE> &ef);
+                                     TPZFMatrix<STATE> &ef) override;
 	
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,

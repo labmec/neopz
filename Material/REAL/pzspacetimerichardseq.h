@@ -46,7 +46,7 @@ public:
     void Set(STATE Alpha, STATE N, STATE ThetaS, STATE ThetaR, STATE Ks);
 	
 	/** @brief It returns the integrable dimension of the material */
-	virtual int Dimension() const;
+	virtual int Dimension() const override;
 	
 	/** @brief It returns the number of state variables associated with the material */
 	virtual int NStateVariables() const override;
@@ -59,7 +59,7 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -70,7 +70,7 @@ public:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
 	/** @brief Computes coeficient C(sol) based on current solution sol */
 	STATE C_Coef(STATE sol);
@@ -86,7 +86,7 @@ public:
 	
 	static void DirichletT0(TPZVec<REAL> &x, TPZVec<STATE> &f);
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 };

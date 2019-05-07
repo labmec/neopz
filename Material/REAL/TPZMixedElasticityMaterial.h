@@ -221,7 +221,7 @@ public:
 
     /** @brief Applies the element boundary conditions */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-            TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
+            TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
         TPZDiscontinuousGalerkin::ContributeBC(data, weight, ef, bc);
     }
 

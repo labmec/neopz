@@ -36,48 +36,48 @@ private:
 	/** @brief Set the flow */
 	void SetMaterial(TPZFMatrix<STATE> &xfin);
 	
-	virtual int Dimension() const;
+	virtual int Dimension() const override;
 	
 	virtual int NStateVariables() const override;
 	
 	/** @brief Prints the object data structure */
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMaterialTest3D"; }
+	virtual std::string Name()  override { return "TPZMaterialTest3D"; }
 	
 	virtual void Contribute( TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef );
+							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef ) override;
 	
 	virtual void ContributeBC( TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc );
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc ) override;
 	
 	virtual void Contribute( TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ef )
+							TPZFMatrix<STATE> &ef ) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeBC( TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ef,TPZBndCond &bc )
+							  TPZFMatrix<STATE> &ef,TPZBndCond &bc ) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes(){ return 3;}
+	virtual int NFluxes() override { return 3;}
 	
 protected:
 	virtual void Solution( TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,
-						  int var,TPZVec<STATE> &Solout );
+						  int var,TPZVec<STATE> &Solout ) override;
 public:
 	/**
 	 * @brief Returns the solution associated with the var index based on
 	 * the finite element approximation
 	 */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -86,19 +86,19 @@ public:
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux( TPZVec<REAL> &x, TPZVec<STATE> &Sol,
-					  TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux );
+					  TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux ) override;
 	
 	virtual void Errors( TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
 						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,
-						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values );
+						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values ) override;
 	
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 	
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 };
 
 #endif
