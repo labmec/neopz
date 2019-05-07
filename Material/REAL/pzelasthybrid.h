@@ -37,30 +37,30 @@ class TPZElasticityHybridMaterial : public TPZElasticityMaterial {
 	TPZElasticityHybridMaterial(const TPZElasticityHybridMaterial &copy);
 	
 	/** @brief Creates a new material from the current object   ??*/
-	virtual TPZMaterial * NewMaterial() { return new TPZElasticityHybridMaterial(*this);}
+	virtual TPZMaterial * NewMaterial()  override { return new TPZElasticityHybridMaterial(*this);}
 	
 	/** @brief Default destructor */
 	virtual ~TPZElasticityHybridMaterial();
 	
 	/** @brief Returns the model dimension */
-	virtual int Dimension() const { return 2;}
+	virtual int Dimension() const override { return 2;}
 	
 	/** @brief Returns the number of state variables associated with the material */
 	virtual  int NStateVariables() const override;
 		
 	/** @brief Returns the material name*/
-	std::string Name() { return "TPZElasticityHybridMaterial"; }
+	std::string Name()  override { return "TPZElasticityHybridMaterial"; }
 	
     
 	/** @name Contribute methods */
 	/** @{ */
 	
 	/** @brief Calculates the element stiffness matrix */
-	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 		
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 //	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
 	
@@ -73,7 +73,7 @@ public:
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
     
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 

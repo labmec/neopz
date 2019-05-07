@@ -112,13 +112,13 @@ public:
 	TPZEulerEquation(const TPZEulerEquation &cp);
 	
 	/** @brief Creates a copy of this */
-	TPZMaterial * NewMaterial();
+	TPZMaterial * NewMaterial() override;
 	
 	/** @brief Object-based overload */
 	virtual int NStateVariables() const override;
 	
 	/** @brief Object-based overload */
-	virtual int Dimension() const;
+	virtual int Dimension() const override;
 	
 	/** @brief Returns the pressure value */
 	static REAL Pressure(TPZVec<STATE> &U, double gamma);
@@ -129,15 +129,15 @@ public:
 	/** @brief Returns \f$ u = Sqrt(u2 + v2 + w2) \f$ */
 	STATE uRes(TPZVec<STATE> & sol);
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name(){return "TPZEulerEquation";}
+	virtual std::string Name() override {return "TPZEulerEquation";}
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 
 	/** 
 	 * @name Contribute methods 
@@ -145,30 +145,30 @@ public:
 	 */
 	/** @{ */
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	/** @} */
 };

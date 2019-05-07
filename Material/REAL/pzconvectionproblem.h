@@ -73,11 +73,11 @@ public:
     
     TPZMatConvectionProblem &operator=(const TPZMatConvectionProblem &copy);
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMatConvectionProblem"; }
+	virtual std::string Name()  override { return "TPZMatConvectionProblem"; }
 	
-	int Dimension() const {return fDim;}
+	int Dimension() const  override {return fDim;}
     
     int MatId()
     {
@@ -129,7 +129,7 @@ public:
      * @param ef [out] is the load vector
      * @since March 2, 2013
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -140,7 +140,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since March 04, 2013
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
     
     /**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -152,7 +152,7 @@ public:
 	 * @param bc [in] is the boundary condition object
 	 * @since March 04, 2013
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     /**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @param data [in]
@@ -163,11 +163,11 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since March 04, 2013
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 	/**
      * @brief It return a solution to multiphysics simulation.
@@ -175,13 +175,13 @@ public:
      * @param var [in] number of solution variables. See  NSolutionVariables() method
      * @param Solout [out] is the solution vector
      */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
     
     void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 };
 

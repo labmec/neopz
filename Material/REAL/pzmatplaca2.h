@@ -39,26 +39,26 @@ protected:
 	
 	virtual int NStateVariables() const override { return fIdfMax; }
 	
-	virtual int Dimension() const { return 2; }
+	virtual int Dimension() const  override { return 2; }
 	
-	void Print(std::ostream & out);
+	void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMatPlaca2"; }
+	virtual std::string Name() override { return "TPZMatPlaca2"; }
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<STATE> &ek,
-                            TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
-                              TPZBndCond &bc);
+                              TPZBndCond &bc) override;
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -66,26 +66,26 @@ protected:
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int NFluxes();
+	virtual int NFluxes() override;
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl) override;
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 	/** @brief Returns the variable index associated with the name */
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
 	/**
 	 * @brief Returns the number of variables associated with the variable indexed by var.
 	 * @param var is obtained by calling VariableIndex
 	 */
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
@@ -93,12 +93,12 @@ protected:
 public:
 	/** @brief Returns the solution associated with the var index based on
 	 * the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
  
 };
 

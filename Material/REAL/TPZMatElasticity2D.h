@@ -61,7 +61,7 @@ protected:
     
 public:
     
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     TPZMatElasticity2D();
     
@@ -85,16 +85,16 @@ virtual int ClassId() const;
     /** @brief Copy constructor */
     TPZMatElasticity2D(const TPZMatElasticity2D &cp);    
     
-    virtual TPZMaterial *NewMaterial()
+    virtual TPZMaterial *NewMaterial() override
     {
         return new TPZMatElasticity2D(*this);
     }
     
-    virtual void Print(std::ostream & out);
+    virtual void Print(std::ostream & out) override;
     
-    virtual std::string Name() { return "TPZMatElasticity2D"; }
+    virtual std::string Name()  override { return "TPZMatElasticity2D"; }
     
-    int Dimension() const {return 2;}
+    int Dimension() const  override {return 2;}
     
     virtual int NStateVariables() const override;
 
@@ -193,9 +193,9 @@ virtual int ClassId() const;
     STATE GetMu() {return m_mu;}
 
     
-    virtual void FillDataRequirements(TPZMaterialData &data);
+    virtual void FillDataRequirements(TPZMaterialData &data) override;
     
-    virtual void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data);
+    virtual void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data) override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
@@ -204,21 +204,21 @@ virtual int ClassId() const;
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override;
     void ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     void ContributeVec(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
 
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     
-    virtual int VariableIndex(const std::string &name);
+    virtual int VariableIndex(const std::string &name) override;
     
-    virtual int NSolutionVariables(int var);
+    virtual int NSolutionVariables(int var) override;
     
     //public:
-    virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) override {
         DebugStop();
     }
     
@@ -229,18 +229,18 @@ virtual int ClassId() const;
     virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
                         TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
                         TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
-                        TPZVec<REAL> &val);
+                        TPZVec<REAL> &val) override;
 
     
     /**
      * Save the element data to a stream
      */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    virtual void Write(TPZStream &buf, int withclassid) const override;
     
     /**
      * Read the element data from a stream
      */
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 
 };
 

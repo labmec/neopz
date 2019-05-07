@@ -46,7 +46,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual ~TPZMatPorous();
 	
       /** returns the name of the material*/
-      virtual std::string Name();
+      virtual std::string Name() override;
 	
 	  /**
 	   * @brief Initializes the poroelastic material coefficients
@@ -62,29 +62,29 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 								const REAL &Rhof);
 
       /**returns the integrable dimension of the material*/
-      virtual int Dimension() const { return TBASEPOROUS(T, TMEM)::Dimension(); }
+      virtual int Dimension() const override { return TBASEPOROUS(T, TMEM)::Dimension(); }
 
       /** returns the number of state variables associated with the material*/
       virtual int NStateVariables() const override{ return TBASEPOROUS(T, TMEM)::NStateVariables() + 1; }
 
       /** print out the data associated with the material*/
-      virtual void Print(std::ostream &out = std::cout, const int memory = 0);
+      virtual void Print(std::ostream &out = std::cout, const int memory = 0) override;
 
       /**returns the variable index associated with the name*/
-      virtual int VariableIndex(const std::string &name);
+      virtual int VariableIndex(const std::string &name) override;
 
       /** returns the number of variables associated with the variable
 	  indexed by var.  var is obtained by calling VariableIndex*/
-      virtual int NSolutionVariables(int var);
+      virtual int NSolutionVariables(int var) override;
 
       /**returns the solution associated with the var index based on
        * the finite element approximation*/
-      virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+      virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) override;
 	
       /** Return the number of components which form the flux function
        * Method not implemented.
        */
-      virtual int NFluxes() 
+      virtual int NFluxes()  override
 	  {
          PZError << "TPZMatPorous<TBASEPOROUS(T, TMEM)>::NFluxes() - Method not implemented\n";
          return 0;
@@ -93,7 +93,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       /** Compute the value of the flux function to be used by ZZ error estimator.
        * Method not implemented.
        */
-      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
+      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) override
 	  {
          PZError << "TPZMatPorous<TBASEPOROUS(T, TMEM)>::Flux - Method not implemented\n";
       }
@@ -103,12 +103,12 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        */
       virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
                           TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) override;
       /**
        * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
 	   * Method not implemented
        */
-      virtual int NEvalErrors() {return NStateVariables();}
+      virtual int NEvalErrors() override {return NStateVariables();}
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -117,7 +117,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param ek [out] is the stiffness matrix
        * @param ef [out] is the load vector
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) override;
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -127,7 +127,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param ef [out] is the load vector
        * @param bc [in] is the boundary condition material
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) override;
 
       /**
        * It computes a contribution to the residual vector at one integration point.
@@ -135,7 +135,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param weight [in] is the weight of the integration rule
        * @param ef [out] is the residual vector
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef) override;
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -144,27 +144,27 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param ef [out] is the load vector
        * @param bc [in] is the boundary condition material
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc) override;
 
       /**To create another material of the same type*/
-      virtual TPZMaterial * NewMaterial();
+      virtual TPZMaterial * NewMaterial() override;
 
       /** Unique identifier for serialization purposes */
       public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 
       /** Save the element data to a stream */
-      virtual void Write(TPZStream &buf, int withclassid) const;
+      virtual void Write(TPZStream &buf, int withclassid) const override;
 
       /** Read the element data from a stream */
-      virtual void Read(TPZStream &buf, void *context);
+      virtual void Read(TPZStream &buf, void *context) override;
 	
 	  /**
 	   * Defining what parameters the material needs. In particular this material needs the
 	   * evaluation of normal vector for the sake of boundary conditions
 	   */
-	  virtual void FillDataRequirements(TPZMaterialData &data);
+	  virtual void FillDataRequirements(TPZMaterialData &data) override;
 	
 	  /** Returns the porepressure and its divergent at the current integration point */
 	  void ComputePorePressure(TPZMaterialData & data, REAL & Pp, TPZVec<REAL> & dPp);

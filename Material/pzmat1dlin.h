@@ -85,7 +85,7 @@ class TPZMat1dLin : public TPZMaterial{
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}

@@ -34,17 +34,17 @@ public:
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> & ek,
-							TPZFMatrix<STATE> & ef);
+							TPZFMatrix<STATE> & ef) override;
 	
     virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> & ek,
 							  TPZFMatrix<STATE> & ef,
-							  TPZBndCond & bc);
+							  TPZBndCond & bc) override;
 	
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> & ef)
+							TPZFMatrix<STATE> & ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
     }
@@ -52,22 +52,22 @@ public:
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> & ef,
-							  TPZBndCond & bc)
+							  TPZBndCond & bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
 
 	/** @} */
 	
-    virtual int VariableIndex(const std::string &name);
+    virtual int VariableIndex(const std::string &name) override;
 	
-    virtual int NSolutionVariables(int var);
+    virtual int NSolutionVariables(int var) override;
 
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec < STATE > & Sol, TPZFMatrix<STATE> & DSol, TPZFMatrix<REAL> & axes, int var, TPZVec < STATE > & Solout);
+	virtual void Solution(TPZVec < STATE > & Sol, TPZFMatrix<STATE> & DSol, TPZFMatrix<REAL> & axes, int var, TPZVec < STATE > & Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec < STATE > & Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec < STATE > & Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -81,9 +81,9 @@ public:
     virtual int NStateVariables() const override;
 	
 	/** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() const {return 2;}
+    virtual int Dimension() const  override {return 2;}
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 private:
 	/** @brief Vector of layers */

@@ -55,7 +55,7 @@ protected:
 		return 0;
 	}
 	
-	virtual int HasForcingFunction() {
+	virtual int HasForcingFunction()  override {
 		TPZBndCond * bc = this->GetCurrentMaterial();
 		if (bc) return bc->HasForcingFunction();
 		return 0;
@@ -70,34 +70,34 @@ protected:
 	}
 	
 	/** @brief Returns the integrable dimension of the material */
-	int Dimension() const {
+	int Dimension() const  override {
 		return this->GetNonNullMaterial()->Dimension();
 	}
 	
-	virtual int NFluxes(){ return this->GetNonNullMaterial()->NFluxes(); }
+	virtual int NFluxes() override { return this->GetNonNullMaterial()->NFluxes(); }
 	
 	virtual int NStateVariables() const override { return this->GetNonNullMaterial()->NStateVariables(); }
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
-	virtual int NEvalErrors() {return this->GetNonNullMaterial()->NEvalErrors();}
+	virtual int NEvalErrors()  override {return this->GetNonNullMaterial()->NEvalErrors();}
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
+	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
 		flux.Fill(0.);
 	}
 	
-	void Print(std::ostream & out = std::cout) {
+	void Print(std::ostream & out = std::cout)  override {
 		out << " Boundary condition number = " << Id() << "\n";
 	}
 	
 	void Contribute(TPZMaterialData &data,
 					REAL weight,
 					TPZFMatrix<STATE> &ek,
-					TPZFMatrix<STATE> &ef);
+					TPZFMatrix<STATE> &ef) override;
 	
 	void Contribute(TPZMaterialData &data,
 					REAL weight,
-					TPZFMatrix<STATE> &ef)
+					TPZFMatrix<STATE> &ef) override
 	{
 		TPZBndCond::Contribute(data,weight,ef);
 	}
@@ -106,26 +106,26 @@ protected:
 					  REAL weight,
 					  TPZFMatrix<STATE> &ek,
 					  TPZFMatrix<STATE> &ef,
-					  TPZBndCond &bc) {  }
+					  TPZBndCond &bc)  override {  }
 	
     void ContributeBC(TPZMaterialData &data,
 					  REAL weight,
 					  TPZFMatrix<STATE> &ef,
-					  TPZBndCond &bc)
+					  TPZBndCond &bc) override
 	{
 		TPZBndCond::ContributeBC(data,weight,ef,bc);
 	}
 	
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val){
+				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val) override {
 		val.Fill(0.);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix<STATE> &ek,
-                                     TPZFMatrix<STATE> &ef);
+                                     TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
@@ -136,19 +136,19 @@ protected:
 									   REAL weight,
 									   TPZFMatrix<STATE> &ek,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc) {
+									   TPZBndCond &bc) override {
 		//NOTHING TO BE DONE HERE
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc)
+									   TPZBndCond &bc) override
 	{
 		TPZBndCond::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 };
 

@@ -48,7 +48,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	{
 	}
 	
-	TPZMaterial * NewMaterial()
+	virtual TPZMaterial * NewMaterial()  override
 	{
 		return new TPZEulerConsLaw(*this);
 	}
@@ -68,7 +68,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	REAL OptimalCFL(int degree);
 	
 	/** @brief See declaration in base class */
-	virtual REAL SetTimeStep(REAL maxveloc,REAL deltax,int degree);
+	virtual REAL SetTimeStep(REAL maxveloc,REAL deltax,int degree) override;
 	
 	/** @brief See declaration in base class */
 	static int NStateVariables(int dim);
@@ -108,17 +108,17 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	template <class T>
 	static void uRes(TPZVec<T> & sol, T & us);
 	
-	virtual STATE Pressure(TPZVec<STATE> &U);
+	virtual STATE Pressure(TPZVec<STATE> &U) override;
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name();
+	virtual std::string Name() override;
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes();
+	virtual int NFluxes() override;
 	
 	
 	/** @name Solutions methods */
@@ -129,11 +129,11 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix);
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
 	
 	/** @brief returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZConservationLaw::Solution(data,var,Solout);
 	}
@@ -329,23 +329,23 @@ public:
 	/** @name Contributions methods */
 	/** @{ */
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
     	TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
@@ -353,12 +353,12 @@ public:
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
 	
 	/** @name Internal contributions */
 	/** @{ */
@@ -522,14 +522,14 @@ public:
 	/** @} */
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Class identificator */
 public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 	/** @name Attributes 

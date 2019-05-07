@@ -42,45 +42,45 @@ public:
 
 	virtual ~TPZLinearConvecDiff();
 
-	virtual TPZMaterial * NewMaterial(){
+	virtual TPZMaterial * NewMaterial() override {
 		return new TPZLinearConvecDiff(*this);
 	}
 
-	virtual int Dimension() const { return 2;}
+	virtual int Dimension() const  override { return 2;}
 
 	virtual int NStateVariables() const override { return 1; }
 
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 
-	virtual std::string Name() { return "TPZLinearConvecDiff"; }
+	virtual std::string Name()  override { return "TPZLinearConvecDiff"; }
 
-	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							              TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+							              TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 
-	virtual int NFluxes(){ return 2;}
+	virtual int NFluxes() override { return 2;}
 
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
 
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 
-	virtual int NEvalErrors() {return 3;}
+	virtual int NEvalErrors() override {return 3;}
 
         public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
-	virtual void Write(TPZStream &buf, int withclassid) const{
+	virtual void Write(TPZStream &buf, int withclassid) const override {
     DebugStop();///implementar
   }
 
-	virtual void Read(TPZStream &buf, void *context){
+	virtual void Read(TPZStream &buf, void *context) override {
     DebugStop();///implementar
   }
 
