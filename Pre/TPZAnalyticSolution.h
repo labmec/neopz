@@ -240,7 +240,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     }
 
     template<typename TVar>
-    static void Elastic(const TPZVec<REAL> &x, TVar &Elast, TVar &nu);
+    static void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu);
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     

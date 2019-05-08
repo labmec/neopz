@@ -550,7 +550,7 @@ void TElasticity2DAnalytic::Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu
 void TElasticity2DAnalytic::ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)
 {
     //TPZManVector<STATE> xstate(x.size());
-	TPZManVector<REAL> xstate(x.size());
+    TPZManVector<STATE> xstate(x.size());
     for (int i=0; i<xstate.size(); i++) {
         xstate[i] = x[i];
     }
@@ -1153,7 +1153,7 @@ template
 void TElasticity3DAnalytic::Sigma<REAL>(const TPZVec<REAL> &x, TPZFMatrix<REAL> &divsigma) const;
 
 template<class TVar>
-void TElasticity3DAnalytic::DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const
+void TElasticity3DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const
 {
     int sz = x.size();
     TPZManVector<Fad<TVar>,3> xfad(sz);
