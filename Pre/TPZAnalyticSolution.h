@@ -213,7 +213,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     void Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
     
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const;
+    void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
     
     template<typename TVar1, typename TVar2>
     void uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &disp) const;
@@ -240,7 +240,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     }
 
     template<typename TVar>
-    static void Elastic(const TPZVec<TVar> &x, TVar &Elast, TVar &nu);
+    static void Elastic(const TPZVec<REAL> &x, TVar &Elast, TVar &nu);
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
@@ -280,7 +280,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const;
 
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const;
+    void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
     
     template<class TVar>
     void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;

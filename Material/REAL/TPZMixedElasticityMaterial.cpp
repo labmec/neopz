@@ -241,8 +241,9 @@ void TPZMixedElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, RE
     TElasticityAtPoint elast(fE_const,fnu_const);
     if(fElasticity)
     {
-        TPZManVector<REAL,3> result(2);
-        TPZFNMatrix<4,STATE> Dres(0,0);
+        //TPZManVector<REAL,3> result(2);
+		TPZManVector<STATE, 3> result(2);
+		TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(datavec[0].x, result, Dres);
         REAL E = result[0];
         REAL nu = result[1];
@@ -457,7 +458,8 @@ void TPZMixedElasticityMaterial::Contribute(TPZMaterialData &data, REAL weight, 
         return;
         //        PZError.show();
     }
-    TPZManVector<REAL, 2> force(2, 0.);
+    //TPZManVector<REAL, 2> force(2, 0.);
+	TPZManVector<STATE, 2> force(2, 0.);
     force[0] = fForce[0];
     force[1] = fForce[1];
     if (fForcingFunction) { // phi(in, 0) :  node in associated forcing function
@@ -468,7 +470,8 @@ void TPZMixedElasticityMaterial::Contribute(TPZMaterialData &data, REAL weight, 
     TElasticityAtPoint elast(fE_const,fnu_const);
     if(fElasticity)
     {
-        TPZManVector<REAL,3> result(2);
+        //TPZManVector<REAL,3> result(2);
+		TPZManVector<STATE, 3> result(2);
         TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(data.x, result, Dres);
         REAL E = result[0];
@@ -889,8 +892,9 @@ void TPZMixedElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec
     TElasticityAtPoint elast(fE_const,fnu_const);
     if(fElasticity)
     {
-        TPZManVector<REAL,3> result(2), x = data.x;
-        TPZFNMatrix<4,STATE> Dres(0,0);
+        TPZManVector<REAL,3> x = data.x;
+		TPZManVector<STATE, 3> result(2);
+		TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(x, result, Dres);
         REAL E = result[0];
         REAL nu = result[1];
@@ -1123,7 +1127,8 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
     TElasticityAtPoint elast(fE_const,fnu_const);
     if(fElasticity)
     {
-        TPZManVector<REAL,3> result(2);
+        //TPZManVector<REAL,3> result(2);
+		TPZManVector<STATE, 3> result(2);
         TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(x, result, Dres);
         REAL E = result[0];
@@ -1136,7 +1141,8 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
     REAL E = elast.fE;
     REAL Pressure;
 
-    TPZManVector<REAL, 4> SIGMA(4, 0.), EPSZ(4, 0.);
+    //TPZManVector<REAL, 4> SIGMA(4, 0.), EPSZ(4, 0.);
+	TPZManVector<STATE, 4> SIGMA(4, 0.), EPSZ(4, 0.);
 
     ToVoigt(sigma, SIGMA);
 
@@ -1315,8 +1321,9 @@ int TPZMixedElasticityMaterial::NEvalErrors() {
 
 void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) {
     //values[0] = 0.;
-    TPZManVector<REAL, 4> SigmaV(4, 0.), sigma_exactV(4, 0.), eps_exactV(4, 0.), EPSZV(4, 0.);
-    TPZFNMatrix<9, STATE> sigma(2, 2, 0.), eps(2, 2, 0.), grad(2, 2, 0.);
+    //TPZManVector<REAL, 4> SigmaV(4, 0.), sigma_exactV(4, 0.), eps_exactV(4, 0.), EPSZV(4, 0.);
+	TPZManVector<STATE, 4> SigmaV(4, 0.), sigma_exactV(4, 0.), eps_exactV(4, 0.), EPSZV(4, 0.);
+	TPZFNMatrix<9, STATE> sigma(2, 2, 0.), eps(2, 2, 0.), grad(2, 2, 0.);
     TPZFNMatrix<4, STATE> eps_exact(2, 2, 0.);
     TPZManVector<REAL, 3> x = data[0].x;
     int dim = Dimension();
@@ -1360,7 +1367,8 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
     TElasticityAtPoint elast(fE_const,fnu_const);
     if(fElasticity)
     {
-        TPZManVector<REAL,3> result(2);
+        //TPZManVector<REAL,3> result(2);
+		TPZManVector<STATE, 3> result(2);
         TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(x, result, Dres);
         REAL E = result[0];
@@ -1515,7 +1523,8 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<REAL> &x, TPZVec<STATE> &u,
     TElasticityAtPoint elast(fE_const,fnu_const);
     if(fElasticity)
     {
-        TPZManVector<REAL,3> result(2);
+        //TPZManVector<REAL,3> result(2);
+		TPZManVector<STATE, 3> result(2);
         TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(x, result, Dres);
         REAL E = result[0];
