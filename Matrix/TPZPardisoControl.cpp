@@ -209,8 +209,6 @@ void TPZPardisoControl<TVar>::Decompose()
     }
     perm = &fPermutation[0];
     
-    fParam[4 ] = 1; // user permutation PERM
-    
     /// analyse and factor the equations
     // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
     if (fProperty == EIndefinite) {
