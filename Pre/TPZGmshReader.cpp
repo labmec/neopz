@@ -48,10 +48,10 @@ TPZGmshReader::TPZGmshReader() {
     m_n_physical_points = 0;
     m_dimension = 0;
     m_characteristic_lentgh = 1.0;
-    m_dim_entity_tag_and_physical_tag.Resize(4);
-    m_dim_physical_tag_and_name.Resize(4);
-    m_dim_name_and_physical_tag.Resize(4);
-    m_dim_physical_tag_and_physical_tag.Resize(4);
+    m_dim_entity_tag_and_physical_tag.Resize(0);
+    m_dim_physical_tag_and_name.Resize(0);
+    m_dim_name_and_physical_tag.Resize(0);
+    m_dim_physical_tag_and_physical_tag.Resize(0);
     m_entity_index.Resize(0);
     
 }//method
