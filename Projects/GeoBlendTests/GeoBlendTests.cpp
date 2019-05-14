@@ -34,6 +34,13 @@ int main()
     bool newBlend = true;
     int nDiv = 4;
 
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    gRefDBase.InitializeUniformRefPattern(ETetraedro);
+    gRefDBase.InitializeUniformRefPattern(EPiramide);
+    gRefDBase.InitializeUniformRefPattern(EPrisma);
+    gRefDBase.InitializeUniformRefPattern(ECube);
 
     TPZGeoMesh * gmesh = nullptr;
     meshType elType = ETetra;
@@ -206,8 +213,8 @@ namespace blendtest {
             coord[2] = 0.5 * cubeSide * (2 * (int)zFactor - 1) ;
             gmesh->NodeVec()[i].SetCoord(coord);
             gmesh->NodeVec()[i].SetNodeId(i);
-            std::cout<<"x : "<<xFactor<<"\ty : "<<yFactor<<"\tz : "<<zFactor<<std::endl;
-            std::cout<<"x : "<<coord[0]<<"\ty : "<<coord[1]<<"\tz : "<<coord[2]<<std::endl;
+//            std::cout<<"x : "<<xFactor<<"\ty : "<<yFactor<<"\tz : "<<zFactor<<std::endl;
+//            std::cout<<"x : "<<coord[0]<<"\ty : "<<coord[1]<<"\tz : "<<coord[2]<<std::endl;
         }
 
 
@@ -297,9 +304,45 @@ namespace blendtest {
                     new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<>>(nodesIdVec, matIdSphere, *gmesh);
             coord[0]=coord[1]=coord[2] = 0;
             sphere->Geom().SetData(radius,coord);
-
+            if(elType == ETetra){
+                gmesh->BuildConnectivity();
+                TPZAutoPointer<TPZRefPattern> refp;
+                char buf[] =
+                        "4 3 "
+                        "-50 Quad0000111111111 "
+                        "-1 -1 0 "
+                        "1 -1 0 "
+                        "1 1 0 "
+                        "-1 1 0 "
+                        "3 4 0  1  2  3 "
+                        "2 3 0  1  3 "
+                        "2 3 1  2  3 ";
+                std::istringstream str(buf);
+                refp = new TPZRefPattern(str);
+                refp->GenerateSideRefPatterns();
+                gRefDBase.InsertRefPattern(refp);
+                sphere->SetRefPattern(refp);
+                TPZVec<TPZGeoEl *> sons;
+                sphere->Divide(sons);
+                sphere->ResetSubElements();
+                sphere->RemoveConnectivities();
+                delete sphere;
+            }
         }
         gmesh->BuildConnectivity();
+        if (printGMesh) {
+            std::string meshFileName = prefix + "gmesh_partial";
+            const size_t strlen = meshFileName.length();
+            meshFileName.append(".vtk");
+            std::ofstream outVTK(meshFileName.c_str());
+            meshFileName.replace(strlen, 4, ".txt");
+            std::ofstream outTXT(meshFileName.c_str());
+
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+            gmesh->Print(outTXT);
+            outTXT.close();
+            outVTK.close();
+        }
         if(volEl){
             TPZManVector<REAL, 3> qsi(3, 0);
             qsi[0] = 0.25;

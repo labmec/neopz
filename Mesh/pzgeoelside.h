@@ -146,6 +146,10 @@ public:
 	TPZGeoElSide(const TPZGeoElSideIndex &index, const TPZGeoMesh * mesh){
 		this->fSide = index.Side();
 		this->fGeoEl = index.Element(mesh);
+		if(fGeoEl == 0 && index.ElementIndex() != -1)
+        {
+		    DebugStop();
+        }
 	}
     
     TPZGeoElSide(int zero) : fGeoEl(0), fSide(-1)

@@ -1079,7 +1079,17 @@ void TPZGeoEl::RemoveConnectivities(){
 	int nsides = NSides(),side;
 	for(side=0;side<nsides;side++){
 		TPZGeoElSide thisside(this,side);
+		TPZGeoElSide neighbour (thisside.Neighbour());
 		thisside.RemoveConnectivity();
+		if(neighbour != thisside){
+		    TPZGeoElSide neighneigh = neighbour;
+		    do{
+                if(neighneigh.ResetBlendConnectivity(fIndex)){
+                    neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
+                }
+		        neighneigh = neighneigh.Neighbour();
+            }   while (neighbour != neighneigh);
+        }
 	}
 }
 
