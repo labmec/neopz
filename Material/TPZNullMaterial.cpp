@@ -50,11 +50,11 @@ int TPZNullMaterial::VariableIndex(const std::string &name) {
 }
 
 int TPZNullMaterial::NSolutionVariables(int index) {
-#ifdef STATE_COMPLEX
-	if(index == 0) return NStateVariables()*2;    
-#else
-	if(index == 0) return 3;
-#endif
+//#ifdef STATE_COMPLEX
+//    if(index == 0) return NStateVariables()*2;
+//#else
+//    if(index == 0) return 3;
+//#endif
     return TPZMaterial::NSolutionVariables(index);
 }
 
@@ -82,20 +82,20 @@ void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &d
 
 void TPZNullMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
 						   TPZVec<STATE> &Solout){
-//    if(var == 0) Solout = Sol;
-//
-//    else if (var==1){
-//        STATE val = 0.;
-//        for(int i=0; i<fDim; i++){
-//            val += DSol(i,i);
-//        }
-//        Solout[0] = val;
-//    }
-//
-//    else
-//    {
-//        TPZMaterial::Solution(Sol, DSol,axes,var,Solout);
-//    }
+    if(var == 0) Solout = Sol;
+
+    else if (var==1){
+        STATE val = 0.;
+        for(int i=0; i<fDim; i++){
+            val += DSol(i,i);
+        }
+        Solout[0] = val;
+    }
+
+    else
+    {
+        TPZMaterial::Solution(Sol, DSol,axes,var,Solout);
+    }
 }
 
 

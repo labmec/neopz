@@ -682,7 +682,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 	TPZVec<STATE> solExata(1);
 	TPZFMatrix<STATE> flux(fDim+1,1);
     
-    //Exact soluion
+    //Exact solution
 	if(var == 36){
 		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[0];

@@ -69,7 +69,7 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx
     m_mesh_vector          = mesh_vector;
     int n_approx_spaces = m_mesh_vector.size();
     SetNMeshes(n_approx_spaces);
-    
+    Reference()->ResetReference();
     SetAllCreateFunctionsMultiphysicElem();
     TPZCompMesh::AutoBuild();
     AddElements();
