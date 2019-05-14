@@ -293,8 +293,7 @@ int TPZMaterialData::ClassId() const{
     return Hash("TPZMaterialData");
 }
 
-/** @brief Computes the flux values based on a Material of Hdiv approx space */
-// @TODO:: Implement a method that computes the divergence of the fluxes
+/// Computes the flux values based on a Material of Hdiv approx space
 void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
     
     if (fShapeType != EVecandShape) {
@@ -319,20 +318,20 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
 /// Compute the divergence of the shape functions
 void TPZMaterialData::ComputeFunctionDivergence()
 {
-    int dim = 3;
+    int dim = 3; // Hdiv vectors are always in R3
     
     // Getting test and basis functions
-    TPZFMatrix<REAL> phiuH1         = phi;   // For H1  test functions Q
-    TPZFMatrix<REAL> dphiuH1       = dphi; // Derivative For H1  test functions
-    TPZFMatrix<REAL> dphiuH1axes   = dphix; // Derivative For H1  test functions
+    TPZFMatrix<REAL> phi_s         = phi;   // For H1  test functions Q
+    TPZFMatrix<REAL> dphi_s       = dphi; // Derivative For H1  test functions
+    TPZFMatrix<REAL> dphi_s_axes   = dphix; // Derivative For H1  test functions
 
-    TPZFNMatrix<660> GradphiuH1;
-    TPZAxesTools<REAL>::Axes2XYZ(dphiuH1axes, GradphiuH1, axes);
+    TPZFNMatrix<660> grad_phi_s;
+    TPZAxesTools<REAL>::Axes2XYZ(dphi_s_axes, grad_phi_s, axes);
     
-    int nphiuHdiv = fVecShapeIndex.NElements();
-    divphi.Resize(nphiuHdiv,1);
-    divphi.Zero();
-    REAL JacobianDet = detjac;
+    int n_phi_v = fVecShapeIndex.NElements();
+    divphi.Resize(n_phi_v,1);
+    divphi.Zero(); // Initialization
+    REAL det_jac = detjac;
 
     TPZFMatrix<REAL> Qaxes = axes;
     TPZFMatrix<REAL> QaxesT;
@@ -353,43 +352,45 @@ void TPZMaterialData::ComputeFunctionDivergence()
         }
     }
 
-    int ivectorindex = 0;
-    int ishapeindex = 0;
+    int i_vec = 0;
+    int i_phi_s = 0;
 
     if (HDivPiola == 1)
     {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
+        for (int iq = 0; iq < n_phi_v; iq++)
         {
-            ivectorindex = fVecShapeIndex[iq].first;
-            ishapeindex = fVecShapeIndex[iq].second;
+            i_vec = fVecShapeIndex[iq].first;
+            i_phi_s = fVecShapeIndex[iq].second;
 
             for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = fNormalVec(k,ivectorindex);
+                VectorOnXYZ(k,0) = fNormalVec(k,i_vec);
             }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-            VectorOnMaster *= JacobianDet;
+            VectorOnMaster *= det_jac;
             
             /* Contravariant Piola mapping preserves the divergence */
 
-            int n_dir = dphiuH1.Rows();
+            int n_dir = dphi_s.Rows();
             for (int k = 0; k < n_dir; k++) {
-                divphi(iq,0) +=  dphiuH1(k,ishapeindex)*VectorOnMaster(k,0);
+                divphi(iq,0) +=  dphi_s(k,i_phi_s)*VectorOnMaster(k,0);
             }
         }
+        
+        divphi *= 1.0/det_jac;
 
     }
     else
     {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
+        for (int iq = 0; iq < n_phi_v; iq++)
         {
-            ivectorindex = fVecShapeIndex[iq].first;
-            ishapeindex = fVecShapeIndex[iq].second;
+            i_vec = fVecShapeIndex[iq].first;
+            i_phi_s = fVecShapeIndex[iq].second;
 
             /* Computing the divergence for constant jacobian elements */
-            int n_dir = GradphiuH1.Rows();
+            int n_dir = grad_phi_s.Rows();
             for (int k = 0; k < n_dir; k++) {
-                divphi(iq,0) +=  fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+                divphi(iq,0) +=  fNormalVec(k,i_vec)*grad_phi_s(k,i_phi_s);
             }
         }
     }

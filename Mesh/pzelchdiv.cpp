@@ -1050,7 +1050,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
-    const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
+    const int dim = 3; // Hdiv vectors are always in R3
     const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
@@ -1065,7 +1065,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     
     for (int64_t is=0; is<numbersol; is++)
     {
-        data.sol[is].Resize(dim*nstate);//2 components to the flow
+        data.sol[is].Resize(dim*nstate);
         data.sol[is].Fill(0);
         data.dsol[is].Redim(dim*nstate, dim);
         data.dsol[is].Zero();
