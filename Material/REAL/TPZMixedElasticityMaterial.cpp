@@ -1442,15 +1442,14 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
         std::cout << "I should stop \n";
     }
 
-    TPZVec<STATE> divSigmaExact(2,0.);
-#ifdef _AUTODIFF
-    //TElasticityExample1 ee1;
-    TElasticity2DAnalytic ee1;
-    
-    ee1.DivSigma(x, divSigmaExact);
+    TPZManVector<STATE,3> divSigmaExact(fDimension,0.);
+    if(HasForcingFunction())
+    {
+        fForcingFunction->Execute(data[0].x, divSigmaExact);
+        for(int i=0; i<fDimension; i++) divSigmaExact[i] *= -1.;
+    }
     
     errors[2] = pow(divSigma[0]-divSigmaExact[0],2) + pow(divSigma[1]-divSigmaExact[1],2);
-#endif
 
     errors[4] = pow(rotation-rotationExact,2);
     
