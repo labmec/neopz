@@ -101,7 +101,8 @@ namespace pzgeom {
             
             GradX(coord,loc,gradx);
         }
-        
+        template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor);
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodecoordinates,TPZVec<T> &loc,TPZVec<T> &x);

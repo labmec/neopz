@@ -43,7 +43,7 @@ int main()
     gRefDBase.InitializeUniformRefPattern(ECube);
 
     TPZGeoMesh * gmesh = nullptr;
-    meshType elType = ETetra;
+    meshType elType = EHexa;
 
     switch(elType){
         case EQuad:

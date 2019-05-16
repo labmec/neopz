@@ -19,7 +19,42 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
-	
+    const double tol = pzgeom_TPZNodeRep_tol;
+    template<class T>
+    void TPZGeoCube::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor){
+        std::ostringstream sout;
+        if(side < NNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+        #ifdef PZDEBUG
+
+        if(!IsInParametricDomain(qsi,tol)){
+            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        if(side < NSides - 1){
+            TPZFNMatrix<4,T> phi(NNodes,1);
+            TPZFNMatrix<8,T> dphi(Dimension,NNodes);
+            TPZGeoCube::TShape(qsi,phi,dphi);
+            correctionFactor = 0;
+            for(int i = 0; i < TPZGeoCube::NSideNodes(side);i++){
+                const int currentNode = TPZGeoCube::SideNodeLocId(side, i);
+                correctionFactor += phi(currentNode,0);
+            }
+
+        }else{
+            correctionFactor = 1;
+        }
+    }
     
 	TPZGeoEl *TPZGeoCube::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc) {
 		
@@ -129,4 +164,13 @@ namespace pzgeom {
         }
 
 
+    template void TPZGeoCube::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+
 };
+
+#ifdef _AUTODIFF
+template<class T=REAL>
+class Fad;
+
+template void pzgeom::TPZGeoCube::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+#endif
