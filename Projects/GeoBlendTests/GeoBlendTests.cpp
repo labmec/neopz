@@ -32,18 +32,18 @@ int main()
     InitializePZLOG();
     bool printGMesh = true;
     bool newBlend = true;
-    int nDiv = 2;
+    int nDiv = 4;
 
-    gRefDBase.InitializeUniformRefPattern(EOned);
-    gRefDBase.InitializeUniformRefPattern(ETriangle);
-    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-    gRefDBase.InitializeUniformRefPattern(ETetraedro);
-    gRefDBase.InitializeUniformRefPattern(EPiramide);
-    gRefDBase.InitializeUniformRefPattern(EPrisma);
-    gRefDBase.InitializeUniformRefPattern(ECube);
+//    gRefDBase.InitializeUniformRefPattern(EOned);
+//    gRefDBase.InitializeUniformRefPattern(ETriangle);
+//    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+//    gRefDBase.InitializeUniformRefPattern(ETetraedro);
+//    gRefDBase.InitializeUniformRefPattern(EPiramide);
+//    gRefDBase.InitializeUniformRefPattern(EPrisma);
+//    gRefDBase.InitializeUniformRefPattern(ECube);
 
     TPZGeoMesh * gmesh = nullptr;
-    meshType elType = EHexa;
+    meshType elType = ETetra;
 
     switch(elType){
         case EQuad:
@@ -223,114 +223,88 @@ namespace blendtest {
         int64_t elId = 0;
         TPZGeoEl *volEl = nullptr;
         TPZGeoElRefPattern<pzgeom::TPZQuadSphere<>> *sphere = nullptr;
-        switch (elType) {
-            case ETetra: {
-                nodesIdVec.Resize(4);
-                TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> > *tetraEl = nullptr;
 
-                nodesIdVec[0] = 0;
-                nodesIdVec[1] = 1;
-                nodesIdVec[2] = 3;
-                nodesIdVec[3] = 4;
+        nodesIdVec.Resize(8);
+        TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > *hexaEl = nullptr;
 
-                tetraEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
-                                                                                         *gmesh);
-                nodesIdVec[0] = 1;
-                nodesIdVec[1] = 2;
-                nodesIdVec[2] = 3;
-                nodesIdVec[3] = 6;
+        nodesIdVec[0] = 0;
+        nodesIdVec[1] = 1;
+        nodesIdVec[2] = 2;
+        nodesIdVec[3] = 3;
+        nodesIdVec[4] = 4;
+        nodesIdVec[5] = 5;
+        nodesIdVec[6] = 6;
+        nodesIdVec[7] = 7;
 
-                tetraEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
-                                                                                               *gmesh);
-                nodesIdVec[0] = 3;
-                nodesIdVec[1] = 4;
-                nodesIdVec[2] = 6;
-                nodesIdVec[3] = 7;
-
-                tetraEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
-                                                                                               *gmesh);
-                nodesIdVec[0] = 1;
-                nodesIdVec[1] = 4;
-                nodesIdVec[2] = 5;
-                nodesIdVec[3] = 6;
-
-                tetraEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
-                                                                                               *gmesh);
-
-                nodesIdVec[0] = 1;
-                nodesIdVec[1] = 3;
-                nodesIdVec[2] = 4;
-                nodesIdVec[3] = 6;
-
-                tetraEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra> >(nodesIdVec, matIdVol,
-                                                                                               *gmesh);
-                volEl = tetraEl;
-                break;
-            }
-            case EHexa:{
-                nodesIdVec.Resize(8);
-                TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > *hexaEl = nullptr;
-
-                nodesIdVec[0] = 0;
-                nodesIdVec[1] = 1;
-                nodesIdVec[2] = 2;
-                nodesIdVec[3] = 3;
-                nodesIdVec[4] = 4;
-                nodesIdVec[5] = 5;
-                nodesIdVec[6] = 6;
-                nodesIdVec[7] = 7;
-
-                hexaEl =
-                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodesIdVec, matIdVol,
-                                                                                         *gmesh);
-                volEl = hexaEl;
-                break;
-            }
-            default:
-                DebugStop();
-        }
-        nodesIdVec.Resize(4);
-        {
-            nodesIdVec[0] = 0;
-            nodesIdVec[1] = 1;
-            nodesIdVec[2] = 2;
-            nodesIdVec[3] = 3;
-            sphere =
-                    new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<>>(nodesIdVec, matIdSphere, *gmesh);
-            coord[0]=coord[1]=coord[2] = 0;
-            sphere->Geom().SetData(radius,coord);
-            if(elType == ETetra){
-                gmesh->BuildConnectivity();
-                TPZAutoPointer<TPZRefPattern> refp;
+        hexaEl =
+                new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodesIdVec, matIdVol,
+                                                                                 *gmesh);
+        volEl = hexaEl;
+        TPZAutoPointer<TPZRefPattern> refp;
+        switch (elType){
+            case ETetra:{
                 char buf[] =
-                        "4 3 "
-                        "-50 Quad0000111111111 "
-                        "-1 -1 0 "
-                        "1 -1 0 "
-                        "1 1 0 "
-                        "-1 1 0 "
-                        "3 4 0  1  2  3 "
-                        "2 3 0  1  3 "
-                        "2 3 1  2  3 ";
+                        "12 5 "
+                        "-99 CubeIntoAll "
+                        "-1 -1  -1 "
+                        " 1 -1  -1 "
+                        " 1  1  -1 "
+                        "-1  1  -1 "
+                        "-1 -1   0 "
+                        " 1 -1   0 "
+                        " 1  1   0 "
+                        "-1  1   0 "
+                        "-1 -1   1 "
+                        " 1 -1   1 "
+                        " 1  1   1 "
+                        "-1  1   1 "
+                        "7 8  0 1 2 3 8 9 10 11 " //master cube
+                        "7 8  4 5 6 7 8 9 10 11 " //upper half of the cube
+                        "6 6  0 5 4 3 6 7 "//prism
+                        "5 5  0 3 6 5 2 " //pyramid
+                        "4 4  1 2 5 0 "; //tetra
+
                 std::istringstream str(buf);
                 refp = new TPZRefPattern(str);
                 refp->GenerateSideRefPatterns();
                 gRefDBase.InsertRefPattern(refp);
-                sphere->SetRefPattern(refp);
+                const int firstFace = pztopology::TPZCube::NumSides(0) + pztopology::TPZCube::NumSides(1);
+                const int nFaces = pztopology::TPZCube::NumSides(2);
+                hexaEl->SetRefPattern(refp);
+                for(int face = firstFace; face < firstFace + nFaces; face++){
+                    const int nNodes = pztopology::TPZCube::NSideNodes(face);
+                    nodesIdVec.Resize(nNodes);
+                    for (int node = 0; node < nNodes; node++){
+                       nodesIdVec[node] = pztopology::TPZCube::SideNodeLocId(face,node);
+                    }
+                    sphere =
+                            new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<>>(nodesIdVec, matIdSphere, *gmesh);
+                    coord[0] = coord[1] = coord[2] = 0;
+                    sphere->Geom().SetData(radius, coord);
+                    auto sphereRefp = refp->SideRefPattern(face);
+                    sphere->SetRefPattern(sphereRefp);
+                }
+                gmesh->BuildConnectivity();
+
                 TPZVec<TPZGeoEl *> sons;
-                sphere->Divide(sons);
-//                sphere->ResetSubElements();
-//                sphere->RemoveConnectivities();
-//                delete sphere;
+                const int nel = gmesh->NElements();
+                TPZGeoEl *hexaEl = gmesh->Element(0);
+                hexaEl->Divide(sons);
+                for (int iel = 1; iel < nel; iel++) {
+                    TPZGeoEl *geo = gmesh->Element(iel);
+                    auto geoElSide = geo->Neighbour(geo->NSides()-1);
+                    if(geoElSide.NSubElements() > 1)
+                    {
+                        geo->Divide(sons);
+                    }
+                }
+                gmesh->ResetConnectivities();
+                gmesh->BuildConnectivity();
             }
+                break;
+            case EHexa://Do nothing
+                break;
         }
-        gmesh->ResetConnectivities();
-        gmesh->BuildConnectivity();
         if (printGMesh) {
             std::string meshFileName = prefix + "gmesh_partial";
             const size_t strlen = meshFileName.length();
@@ -344,18 +318,18 @@ namespace blendtest {
             outTXT.close();
             outVTK.close();
         }
-        if(volEl){
-            TPZManVector<REAL, 3> qsi(3, 0);
-            qsi[0] = 0.25;
-            qsi[1] = 0.25;
-            qsi[2] = 0.25;
-            TPZManVector<REAL, 3> result(3, 0);
-            volEl->X(qsi, result);
-            qsi[0] = 0.3333333333333333332;
-            qsi[1] = 0.3333333333333333332;
-            qsi[2] = 0.3333333333333333332;
-            volEl->X(qsi, result);
-        }
+//        if(volEl){
+//            TPZManVector<REAL, 3> qsi(3, 0);
+//            qsi[0] = 0.25;
+//            qsi[1] = 0.25;
+//            qsi[2] = 0.25;
+//            TPZManVector<REAL, 3> result(3, 0);
+//            volEl->X(qsi, result);
+//            qsi[0] = 0.3333333333333333332;
+//            qsi[1] = 0.3333333333333333332;
+//            qsi[2] = 0.3333333333333333332;
+//            volEl->X(qsi, result);
+//        }
 
         {
             TPZVec<TPZGeoEl *> sons;
