@@ -329,7 +329,16 @@ public:
 	
 	/// Set connectivity information elements with blend geometric map
 	void BuildBlendConnectivity();
-	
+
+    /**
+	 * If the element is a TPZGeoBlend element, this method will ensure that if the side side is connected to the
+	 * element with index index, its blend connectivity is erased (for instance, this element may have been deleted).
+	 * If it is not a TPZGeoBlend element, the method will just return false.
+	 * @param side side in which to seek for connectivities
+	 * @param index index of the element that will be disconnected from this
+	 * @return true if the element is a TPZGeoBlend element.
+	 */
+    virtual bool ResetBlendConnectivity(const int64_t &side, const int64_t &index) = 0;
 	/** @brief TPZGeoBlend need to find a non-linear neighbour */
 	/** 
 	 * Although TPZGeoElMapped have non-linear mapping

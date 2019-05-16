@@ -85,6 +85,8 @@ namespace pzgeom {
 
         void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans);
 
+        bool ResetBlendConnectivity(const int64_t &side, const int64_t &index);
+
         TPZGeoElSide Neighbour(int side, TPZGeoMesh *gmesh) const {
             if (side < TGeo::NNodes) {
                 DebugStop();

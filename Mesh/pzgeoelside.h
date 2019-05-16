@@ -115,6 +115,8 @@ public:
     
     /** @brief X coordinate of a point loc of the side */
     void GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const;
+
+    bool ResetBlendConnectivity(const int64_t &index);
 	
 #ifdef _AUTODIFF
     /** @brief X coordinate of a point loc of the side */

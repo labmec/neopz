@@ -333,6 +333,10 @@ bool TPZGeoElRefLess<TGeo>::IsGeoBlendEl() const
 { 
 	return fGeo.IsGeoBlendEl();
 }
+template<class TGeo>
+bool TPZGeoElRefLess<TGeo>::ResetBlendConnectivity(const int64_t &side, const int64_t &index){
+    return fGeo.ResetBlendConnectivity(side,index);
+}
 
 template<class TGeo>
 TPZTransform<>

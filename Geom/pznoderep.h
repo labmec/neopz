@@ -86,6 +86,10 @@ namespace pzgeom {
         {
             return false;
         }
+
+        bool ResetBlendConnectivity(const int64_t &side, const int64_t &index){
+            return false;
+        }
         
         static const int NNodes=N;
         /** @brief Node indexes of the element */

@@ -337,6 +337,9 @@ void TPZGeoElSide::RemoveConnectivity(){
 	}
 }
 
+bool TPZGeoElSide::ResetBlendConnectivity(const int64_t &index){
+    return fGeoEl->ResetBlendConnectivity(fSide, index);
+}
 using namespace std;
 
 /**

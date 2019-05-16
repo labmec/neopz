@@ -47,6 +47,14 @@ bool pzgeom::TPZGeoBlend<TGeo>::IsLinearMapping(int side) const
     return straight;
 }
 
+template <class TGeo>
+bool pzgeom::TPZGeoBlend<TGeo>::ResetBlendConnectivity(const int64_t &side, const int64_t &index){
+    if(fNeighbours[side-TGeo::NNodes].ElementIndex() == index){
+        fNeighbours[side-TGeo::NNodes].SetElementIndex(-1);
+        return true;
+    }
+    return false;
+}
 
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans)

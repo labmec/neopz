@@ -32,7 +32,7 @@ int main()
     InitializePZLOG();
     bool printGMesh = true;
     bool newBlend = true;
-    int nDiv = 4;
+    int nDiv = 2;
 
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -324,11 +324,12 @@ namespace blendtest {
                 sphere->SetRefPattern(refp);
                 TPZVec<TPZGeoEl *> sons;
                 sphere->Divide(sons);
-                sphere->ResetSubElements();
-                sphere->RemoveConnectivities();
-                delete sphere;
+//                sphere->ResetSubElements();
+//                sphere->RemoveConnectivities();
+//                delete sphere;
             }
         }
+        gmesh->ResetConnectivities();
         gmesh->BuildConnectivity();
         if (printGMesh) {
             std::string meshFileName = prefix + "gmesh_partial";
@@ -362,15 +363,8 @@ namespace blendtest {
                 int nel = gmesh->NElements();
                 for (int iel = 0; iel < nel; iel++) {
                     TPZGeoEl *geo = gmesh->Element(iel);
-                    TPZGeoEl *current = geo;
-                    int nFather = 0;
-                    while (current->Father()) {
-                        current = current->Father();
-                        nFather++;
-                    }
-                    if (nFather <= iDiv && !geo->HasSubElement()) {
+                    if (!geo->HasSubElement()) {
                         geo->Divide(sons);
-                        nel = gmesh->NElements();
                     }
                 }
             }
