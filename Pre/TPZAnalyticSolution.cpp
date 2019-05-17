@@ -1585,4 +1585,166 @@ void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<TVar> &x, TVar &divsigm
 template
 void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<REAL> &x, REAL &divsigma) const;
 
+
+template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &flux) const
+{
+    TVar1 x1 = x[0];
+    TVar1 x2 = x[1];
+    
+    switch(fProblemType)
+    {
+        case EStokes0:
+            flux[0] = -0.1*x2*x2+0.2*x2;
+            flux[1] = 0.;
+            break;
+        case EStokesLimit1:
+            flux[0] = -1.*sin(x1)*sin(x2);;
+            flux[1] = -1.*cos(x1)*cos(x2);
+            break;
+        case EBrinkman1:
+            flux[0] = 0.;
+              break;
+        case EDarcyLimit1:
+            flux[0] = 0.;
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+
+template<>
+void TStokes2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &flux) const
+{
+    FADFADREAL x1 = x[0];
+    FADFADREAL x2 = x[1];
+
+    switch(fProblemType)
+    {
+        case EStokes0:
+            flux[0] = -0.1*x2*x2+0.2*x2;
+            flux[1] = 0.;
+            break;
+        case EStokesLimit1:
+            flux[0] = -1.*FADsin(x1)*FADsin(x2);;
+            flux[1] = -1.*FADcos(x1)*FADcos(x2);
+            break;
+        case EBrinkman1:
+            flux[0] = 0.;
+            break;
+        case EDarcyLimit1:
+            flux[0] = 0.;
+            break;
+        default:
+            DebugStop();
+    }
+    
+}
+
+template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::pressure(const TPZVec<TVar1> &x, TVar2 &p) const
+{
+    TVar1 x1 = x[0];
+    TVar1 x2 = x[1];
+    
+    switch(fProblemType)
+    {
+        case EStokes0:
+            p = 1.-0.2*x1;
+            break;
+        case EStokesLimit1:
+            p = cos(x1)*sin(x2);
+            break;
+        case EBrinkman1:
+            p = 0.;
+            break;
+        case EDarcyLimit1:
+            p = 0.;
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &gradu) const
+{
+    TPZManVector<Fad<REAL>,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<REAL>,3> result(2);
+    uxy(xfad,result);
+    gradu.Redim(2,2);
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<2; j++)
+        {
+            gradu(i,j) = result[j].d(i);
+        }
+    }
+}
+
+template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) const
+{
+    TPZFMatrix<TVar2> grad(3,3,0.), gradT(3,3,0.);
+    graduxy(x,grad);
+    grad.Transpose(&gradT);
+    Du = (grad+gradT)*(TVar2)0.5;
+}
+
+template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
+{
+    TPZFMatrix<TVar2> Du, pIdentity(sigma.Rows(),sigma.Cols());
+    TVar2 p=0.;
+    Duxy(x,Du);
+    pressure(x, p);
+    for (int i=0; i< pIdentity.Rows(); i++) {
+        pIdentity(i,i) = p;
+    }
+    sigma = 2*fvisco*Du-pIdentity;
+}
+
+template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma) const
+{
+    int sz = x.size();
+    TPZManVector<Fad<TVar2>,3> xfad(sz);
+    for(int i=0; i<sz; i++)
+    {
+        xfad[i] = Fad<TVar2>(sz,i,x[i]);
+    }
+    TPZFNMatrix<9, Fad<TVar2> > sigma(3,3);
+    Sigma(xfad,sigma);
+    for (int i=0; i<3; i++) {
+        divsigma[i] = sigma(i,0).dx(0)+sigma(i,1).dx(1)+sigma(i,2).dx(2);
+    }
+}
+
+void TStokes2DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
+{
+    TPZManVector<Fad<REAL>,3> xfad(x.size());
+    for(int i=0; i<3; i++)
+    {
+        Fad<REAL> temp = Fad<REAL>(3,i,x[i]);
+        xfad[i] = temp;
+    }
+    TPZManVector<Fad<REAL>,3> result(1);
+    uxy(xfad,result);
+    gradu.Redim(3,1);
+    u[0] = result[0].val();
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<1; j++)
+        {
+            gradu(i,j) = result[j].d(i);
+        }
+    }
+    
+}
+
 #endif
