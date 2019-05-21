@@ -212,6 +212,7 @@ void TPZPardisoControl<TVar>::Decompose()
     /// analyse and factor the equations
     // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
     if (fProperty == EIndefinite) {
+        fParam[4] = 1;
         if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
             fParam[3 ] = 10*6+2;
         }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
