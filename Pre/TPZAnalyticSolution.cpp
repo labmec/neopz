@@ -1701,7 +1701,7 @@ void TStokes2DAnalytic::graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &gradu
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
     {
-        Fad<REAL> temp = Fad<REAL>(2,i,x[i]);
+        Fad<REAL> temp = Fad<REAL>(2,i,shapeFAD::val(x[i]));
         xfad[i] = temp;
     }
     xfad[2] = x[2];
@@ -1726,16 +1726,30 @@ void TStokes2DAnalytic::Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) cons
 }
 
 template<typename TVar1, typename TVar2>
+void TStokes2DAnalytic::Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
+{
+    SigmaLoc(x, sigma);
+}
+
+
+template<typename TVar1, typename TVar2>
 void TStokes2DAnalytic::SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
 {
     TPZFMatrix<TVar2> Du, pIdentity(sigma.Rows(),sigma.Cols());
     TVar2 p=0.;
     Duxy(x,Du);
+    for(int i=0; i<Du.Rows(); i++)
+    {
+        for(int j=0; j<Du.Cols(); j++)
+        {
+            Du(i,j) *= 2.*fvisco;
+        }
+    }
     pressure(x, p);
     for (int i=0; i< pIdentity.Rows(); i++) {
         pIdentity(i,i) = p;
     }
-    sigma = 2*fvisco*Du-pIdentity;
+    sigma = Du-pIdentity;
 }
 
 template<typename TVar1, typename TVar2>
