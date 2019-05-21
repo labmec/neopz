@@ -353,7 +353,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     u = datavec[ub].sol[0];
     p = datavec[pb].sol[0];
     
-    TPZFMatrix<STATE> dudx = datavec[ub].dsol[0];
+    STATE div_u = datavec[ub].divsol[0][0];
     
     if(var == 1){
         for (int i=0; i < this->Dimension(); i++)
@@ -403,7 +403,7 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     }
     
     if(var == 6){
-        Solout[0] = dudx(0,0) + dudx(1,1) + dudx(2,2);
+        Solout[0] = div_u;
         return;
     }
     

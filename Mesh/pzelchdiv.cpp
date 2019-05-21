@@ -1050,7 +1050,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
-    const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
+    const int dim = 3; // Hdiv vectors are always in R3
     const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
@@ -1065,7 +1065,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     
     for (int64_t is=0; is<numbersol; is++)
     {
-        data.sol[is].Resize(dim*nstate);//2 components to the flow
+        data.sol[is].Resize(dim*nstate);
         data.sol[is].Fill(0);
         data.dsol[is].Redim(dim*nstate, dim);
         data.dsol[is].Zero();
@@ -1085,15 +1085,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         
         for(int jn=0; jn<dfvar/nstate; jn++)
         {
-            ivec=data.fVecShapeIndex[jv].first;
-            ishape=data.fVecShapeIndex[jv].second;
-            
-            TPZFNMatrix<3> ivecDiv(3,1);
-            ivecDiv(0,0) = data.fNormalVec(0,ivec);
-            ivecDiv(1,0) = data.fNormalVec(1,ivec);
-            ivecDiv(2,0) = data.fNormalVec(2,ivec);
-            TPZFNMatrix<3> axesvec(3,1);
-            data.axes.Multiply(ivecDiv,axesvec);
+            ivec    = data.fVecShapeIndex[jv].first;
+            ishape  = data.fVecShapeIndex[jv].second;
             
             if (HDivPiola) {
                 
@@ -1201,7 +1194,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         data.divsol[is].Resize(nstate);
         for (int64_t istate = 0; istate < nstate ; istate++)
         {
-            TPZFNMatrix<10,STATE> Graduaxes = data.dsol[is];
             STATE divu = 0;
             for (int i = 0; i < dim; i++) {
                 divu += data.dsol[is](i,i);
