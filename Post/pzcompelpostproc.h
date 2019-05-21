@@ -404,8 +404,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
         
         TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
-        int status = ekTemp.Solve_Cholesky(&(rhsTemp));
-//        int status = ekTemp.Solve_LU(&(rhsTemp));
+//        int status = ekTemp.Solve_Cholesky(&(rhsTemp));
+        int status = ekTemp.Solve_LU(&(rhsTemp));
         
         ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
         REAL invRes = Norm(result);

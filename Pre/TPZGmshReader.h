@@ -100,20 +100,19 @@ class TPZGmshReader{
     
     //////////// Members related to file format with version 4 ////////////
     
-    /// Data structure of both: physical entities dimension and names
-    TPZVec<std::map<int,std::vector<int>>> m_dim_entity_tag_and_physical_tag;
+    /// Data structure of both: physical entities and names indexed by dimension
+    TPZManVector<std::map<int,std::vector<int>>,4> m_dim_entity_tag_and_physical_tag;
     
     //////////// Members related to file format with version 3 ////////////
     
-    /// Structure of both: physical entities dimension and names
-    TPZVec<std::map<int,std::string>> m_dim_physical_tag_and_name;
+    /// Structure of both: physical entities and names indexed by dimension
+    TPZManVector<std::map<int,std::string>,4> m_dim_physical_tag_and_name;
     
-    /// Structure of both: names and physical id
-    TPZVec<std::map<std::string,int>> m_dim_name_and_physical_tag;
+    /// Structure of both: names and physical id indexed by dimension
+    TPZManVector<std::map<std::string,int>,4> m_dim_name_and_physical_tag;
     
-    /// Structure of both: dimesion and physical id and "physical tag" @TODO:: Phil please state the need for this
-    /// from my point of view this is useless
-    TPZVec<std::map<int,int>> m_dim_physical_tag_and_physical_tag;
+    /// Structure of both: physical id and user defined physical tag indexed by dimension
+    TPZManVector<std::map<int,int>,4> m_dim_physical_tag_and_physical_tag;
     
     /// Entity index to which the element belongs
     TPZVec<int64_t> m_entity_index;
@@ -186,23 +185,23 @@ public:
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
     
     /// Get the structure dim -  physical tag - name
-    TPZVec<std::map<int,std::string>> & GetDimPhysicalTagName(){
+    TPZManVector<std::map<int,std::string>,4> & GetDimPhysicalTagName(){
         return m_dim_physical_tag_and_name;
     }
     
     /// Set the structure dim -  physical tag - name
-    void SetDimPhysicalTagName(TPZVec<std::map<int,std::string>> & dim_physical_tag_and_name){
+    void SetDimPhysicalTagName(TPZManVector<std::map<int,std::string>,4> & dim_physical_tag_and_name){
         m_dim_physical_tag_and_name = dim_physical_tag_and_name;
     }
     
     /// Get the structure dim - name - physical tag
-    void SetDimNamePhysical(TPZVec<std::map<std::string,int>> & dim_name_and_physical_tag){
+    void SetDimNamePhysical(TPZManVector<std::map<std::string,int>,4> & dim_name_and_physical_tag){
         m_dim_name_and_physical_tag = dim_name_and_physical_tag;
     }
     
     /// Get the structure dim - name - physical tag
     
-    TPZVec<std::map<std::string,int>> & GetDimNamePhysical(){
+    TPZManVector<std::map<std::string,int>,4> & GetDimNamePhysical(){
         return m_dim_name_and_physical_tag;
     }
     
