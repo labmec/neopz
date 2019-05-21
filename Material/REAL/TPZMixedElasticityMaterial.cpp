@@ -1413,7 +1413,7 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
     //sigy  = (SigmaV[1] - sigma_exactV[1]);
     //sigxy = (SigmaV[2] - sigma_exactV[2]);
     
-    // L_2 norm error do deslocamento
+    //L2_Error: for the displacement (u)
     errors[3] = (disp[0] - u_exact[0])*(disp[0] - u_exact[0])+(disp[1] - u_exact[1])*(disp[1] - u_exact[1]);
     //Energe norm
     //TPZManVector<REAL,4> SIGMA(4,0.) , EPSZ(4,0.);
@@ -1432,10 +1432,10 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
     errors[0] = 0.;
     errors[1] = 0.;
     for (int i = 0; i < 4; i++) {
-        //Erro L2 da tensao
+        //L2_Error: for the stress tensor (sigma)
         errors[0] += (SigmaV[i] - sigma_exactV[i])*(SigmaV[i] - sigma_exactV[i]);
         
-        //Erro na norma energia
+        //Energy_Error: for the stress tensor (sigma)
         errors[1] += (SigmaV[i] - sigma_exactV[i])*(EPSZV[i] - eps_exactV[i]);
     }
     if (errors[1] < 0.) {
@@ -1448,14 +1448,14 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
         fForcingFunction->Execute(data[0].x, divSigmaExact);
         for(int i=0; i<fDimension; i++) divSigmaExact[i] *= -1.;
     }
-    
+    //L2_Error: divergent of the stress tensor (div(sigma))
     errors[2] = pow(divSigma[0]-divSigmaExact[0],2) + pow(divSigma[1]-divSigmaExact[1],2);
-
+    //L2_Error: for the rotation (q)
     errors[4] = pow(rotation-rotationExact,2);
-    
+    //L2_Error: for the symmetry measure (asym)
     errors[5] = pow(SigmaV[Exy]-SigmaV[Eyx],2);
     
-    //Energia de deformacao da solucao exata
+    //Energy_Norm: for the exact displacement solution
     errors[6] = 0.;
     for(int i=0; i<4; i++)
     {
