@@ -29,7 +29,7 @@ int main()
 {
     InitializePZLOG();
     bool printGMesh = true;
-    bool newBlend = false;
+    bool newBlend = true;
     int nDiv = 4;
     bool run3d = true;
 
@@ -257,8 +257,8 @@ namespace blendtest {
         nodesIdVec[5] = 5;
         nodesIdVec[6] = 6;
         nodesIdVec[7] = 7;
-        TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > *hexaEl =
-                new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodesIdVec, matIdVol, *gmesh);
+        TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> > *hexaEl =
+                new TPZGeoElRefPattern< pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >(nodesIdVec, matIdVol, *gmesh);
         TPZAutoPointer<TPZRefPattern> refp;
         char buf[] =
                 "12 5 "
@@ -303,16 +303,67 @@ namespace blendtest {
         }
         gmesh->BuildConnectivity();
 
-        TPZVec<TPZGeoEl *> sons;
-        const int nel = gmesh->NElements();
-        hexaEl->Divide(sons);
-        for (int iel = 1; iel < nel; iel++) {
-            TPZGeoEl *geo = gmesh->Element(iel);
-            auto geoElSide = geo->Neighbour(geo->NSides()-1);
-            if(geoElSide.NSubElements() > 1)
-            {
-                geo->Divide(sons);
+        {
+            TPZVec<TPZGeoEl *> sons;
+            const int nel = gmesh->NElements();
+            hexaEl->Divide(sons);
+            for (int iel = 1; iel < nel; iel++) {
+                TPZGeoEl *geo = gmesh->Element(iel);
+                auto geoElSide = geo->Neighbour(geo->NSides()-1);
+                if(geoElSide.NSubElements() > 1)
+                {
+                    geo->Divide(sons);
+                }
             }
+        }
+
+        //Create GeoBlend elements
+        {
+            TPZGeoMesh *newgmesh = new TPZGeoMesh();
+            newgmesh->NodeVec().Resize(gmesh->NNodes());
+            for (int64_t i = 0; i < gmesh->NNodes(); i++) {
+                coord[0] = gmesh->NodeVec()[i].Coord(0);
+                coord[1] = gmesh->NodeVec()[i].Coord(1);
+                coord[2] = gmesh->NodeVec()[i].Coord(2);
+                newgmesh->NodeVec()[i].SetCoord(coord);
+                newgmesh->NodeVec()[i].SetNodeId(i);
+                newgmesh->SetMaxNodeId(i);
+            }
+            //TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >
+            const int nel = gmesh->NElements();
+            newgmesh->ElementVec().Resize(nel);
+            for (int iel = 0; iel < nel; iel++) {
+                newgmesh->ElementVec()[iel] = nullptr;
+                TPZGeoEl *geo = gmesh->Element(iel);
+                nodesIdVec.resize(geo->NNodes());
+                for(int i = 0; i < nodesIdVec.size(); i++){
+                    nodesIdVec[i] = geo->NodeIndex(i);
+                }
+                const int matId = geo->MaterialId();
+                const int elId = geo->Index();
+                switch(geo->Type()){
+                    case ETetraedro:
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra>>(elId,nodesIdVec,matId,*newgmesh);
+                        break;
+                    case EPiramide:
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoPyramid>>(elId,nodesIdVec,matId,*newgmesh);
+                        break;
+                    case EPrisma:
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoPrism>>(elId,nodesIdVec,matId,*newgmesh);
+                        break;
+                    case ECube:
+                        if(geo->HasSubElement()) continue;//the original cube should not be copied
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube>>(elId,nodesIdVec,matId,*newgmesh);
+                        break;
+                    default:
+                        geo->Clone(*newgmesh);
+                        break; //the element should not be deleted
+                }
+                geo->Print(std::cout);
+                //TPZGeoElRefPattern(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh);
+            }
+            delete gmesh;
+            gmesh = newgmesh;
         }
         gmesh->ResetConnectivities();
         gmesh->BuildConnectivity();
@@ -333,10 +384,11 @@ namespace blendtest {
         {
             TPZVec<TPZGeoEl *> sons;
             for (int iDiv = 0; iDiv < nDiv; iDiv++) {
-                int nel = gmesh->NElements();
+                const int nel = gmesh->NElements();
                 for (int iel = 0; iel < nel; iel++) {
-                    TPZGeoEl *geo = gmesh->Element(iel);
-                    if (!geo->HasSubElement()) {
+                    std::cout<<iel<<"\t"<<nel<<std::endl;
+                    TPZGeoEl *geo = gmesh->ElementVec()[iel];
+                    if (geo && !geo->HasSubElement()) {
                         geo->Divide(sons);
                     }
                 }

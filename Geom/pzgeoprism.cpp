@@ -21,7 +21,84 @@ using namespace std;
 namespace pzgeom {
 	
 	static const double tol = pzgeom_TPZNodeRep_tol;
-	
+    template<class T>
+    void TPZGeoPrism::CalcSideInfluence(const int &side, const TPZVec<T> &qsiVec, T &correctionFactor){
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(qsiVec,tol)){
+            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        const T &qsi = qsiVec[0];
+        const T &eta = qsiVec[1];
+        const T &zeta = qsiVec[2];
+        switch(side){
+            case  0:
+            case  1:
+            case  2:
+            case  3:
+            case  4:
+            case  5:
+                correctionFactor = 0;
+                return;
+            case  6:
+                correctionFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
+                return;
+            case  7:
+                correctionFactor = 0.5*(1.-zeta)*(qsi+eta)*(qsi+eta);
+                return;
+            case  8:
+                correctionFactor = 0.5*(1.-zeta)*(1.-qsi)*(1.-qsi);
+                return;
+            case  9:
+                correctionFactor = 1. - qsi - eta;
+                return;
+            case 10:
+                correctionFactor = qsi;
+                return;
+            case 11:
+                correctionFactor = eta;
+                return;
+            case 12:
+                correctionFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
+                return;
+            case 13:
+                correctionFactor = 0.5*(1.+zeta)*(qsi+eta)*(qsi+eta);
+                return;
+            case 14:
+                correctionFactor = 0.5*(1.+zeta)*(1.-qsi)*(1.-qsi);
+                return;
+            case 15:
+                correctionFactor = (1.-zeta)*(1.-zeta)*(1.-zeta);
+                return;
+            case 16:
+                correctionFactor = 1.-eta;
+                return;
+            case 17:
+                correctionFactor = qsi+eta;
+                return;
+            case 18:
+                correctionFactor = 1.-qsi;
+                return;
+            case 19:
+                correctionFactor = (1.+zeta)*(1.+zeta)*(1.+zeta);
+                return;
+        }
+    }
+
 	TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		TPZGeoEl *result = 0;
 		if(side<0 || side>20) {
@@ -245,5 +322,14 @@ namespace pzgeom {
     void TPZGeoPrism::Write(TPZStream& buf, int withclassid) const {
         TPZNodeRep<6, pztopology::TPZPrism>::Write(buf,withclassid);
     }
-    
+
+    template void TPZGeoPrism::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+
 };
+
+#ifdef _AUTODIFF
+template<class T=REAL>
+class Fad;
+
+template void pzgeom::TPZGeoPrism::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+#endif

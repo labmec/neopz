@@ -25,7 +25,70 @@ using namespace std;
 namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
-	
+
+    template<class T>
+    void TPZGeoPyramid::CalcSideInfluence(const int &side, const TPZVec<T> &qsiVec, T &correctionFactor){
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(qsiVec,tol)){
+            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        TPZFNMatrix<4,T> phi(NNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NNodes);
+        TPZGeoPyramid::TShape(qsiVec,phi,dphi);
+        correctionFactor = 0;
+        for(int i = 0; i < TPZGeoPyramid::NSideNodes(side);i++){
+            const int currentNode = TPZGeoPyramid::SideNodeLocId(side, i);
+            correctionFactor += phi(currentNode,0);
+        }
+
+        const T &qsi = qsiVec[0];
+        const T &eta = qsiVec[1];
+        const T &zeta = qsiVec[2];
+        switch(side){
+            case  0:
+            case  1:
+            case  2:
+            case  3:
+            case  4:
+                correctionFactor = 0;
+                return;
+            case  5:
+            case  6:
+            case  7:
+            case  8:
+                correctionFactor = correctionFactor * (1-zeta);
+                return;
+            case  9:
+            case 10:
+            case 11:
+            case 12:
+                correctionFactor *= correctionFactor;
+                return;
+            case 13:
+                return;//correct
+            case 14:
+            case 15:
+            case 16:
+            case 17:
+                correctionFactor *= correctionFactor * correctionFactor;
+                return;
+        }
+    }
 //    void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 //        if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
 //            //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
@@ -412,5 +475,13 @@ namespace pzgeom {
         TPZNodeRep<5, pztopology::TPZPyramid>::Write(buf,withclassid);
     }
 
-    
+    template void TPZGeoPyramid::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+
 };
+
+#ifdef _AUTODIFF
+template<class T=REAL>
+class Fad;
+
+template void pzgeom::TPZGeoPyramid::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+#endif

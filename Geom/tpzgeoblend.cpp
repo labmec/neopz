@@ -630,7 +630,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
      */
         TPZFNMatrix<9, T> notUsedHere;
         TPZManVector<T, 3>  sideQsi;
-        this->MapToSide(side, qsi, sideQsi, notUsedHere);
+        bool regularMap = this->MapToSide(side, qsi, sideQsi, notUsedHere);
+        if(!regularMap) continue;
         MElementType sideType = TGeo::Type(side);
         const int nSideNodes = MElementType_NNodes(sideType);
         TPZFNMatrix<9, T> sidePhi(nSideNodes, 1), sideDPhi(TGeo::Dimension, nSideNodes);

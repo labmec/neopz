@@ -29,9 +29,9 @@ namespace pztopology {
 	
 	
 	static int nhighdimsides[19] = {7,7,7,7,9,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
-	
+	                                     //5   //6   //7   //8   //9   //10  //11  //12
 	int TPZPyramid::SideNodes[8][2]  = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,4},{2,4},{3,4} };
-	
+	                                     //13      //14       //15       //16       //17
 	int TPZPyramid::FaceNodes[5][4]  = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
 	
 	int TPZPyramid::ShapeFaceId[5][4] = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
@@ -879,7 +879,7 @@ namespace pztopology {
 				
 			case 12://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if( fabs((T)(qsi-1.)) < zero || fabs((T)(eta+1.)) > zero)
+				if( fabs((T)(qsi-1.)) < zero || fabs((T)(eta+1.)) < zero)
 				{
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -1043,12 +1043,18 @@ namespace pztopology {
                 JacToSide.Identity();
             }
                 break;
+		    default:
+		        PZError<<"Cannot compute MapToSide method in TPZGeoPyramid class. Invalid parameter (side):\t";
+		        PZError<<side<<std::endl;
+		        DebugStop();
 		}
-		if(side > 18)
-		{
-			cout << "Cant compute MapToSide method in TPZGeoPyramid class!\nParameter (SIDE) must be between 5 and 17!\nMethod Aborted!\n";
-			DebugStop();
-		}
+        #ifdef PZDEBUG
+		for(int i = 0; i < SidePar.size();i++){
+           if(IsNanPZ(SidePar[i])){
+               DebugStop();
+           }
+        }
+        #endif
 		return regularmap;
 		
 	}
