@@ -56,8 +56,6 @@ namespace pzgeom {
             correctionFactor += phi(currentNode,0);
         }
 
-        const T &qsi = qsiVec[0];
-        const T &eta = qsiVec[1];
         const T &zeta = qsiVec[2];
         switch(side){
             case  0:
@@ -71,7 +69,7 @@ namespace pzgeom {
             case  6:
             case  7:
             case  8:
-                correctionFactor = correctionFactor * (1-zeta);
+                correctionFactor *= 1.-zeta;
                 return;
             case  9:
             case 10:

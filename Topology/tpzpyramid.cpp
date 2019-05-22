@@ -898,6 +898,11 @@ namespace pztopology {
                     JacToSide(0,0) = (-8.*(1. + eta - zeta)*(-1. + zeta)*zeta)/(den*den);
                     JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/(den*den);
                     JacToSide(0,2) = (8.*(-((-1. + qsi)*(-1. + zeta)*(-1. + zeta)) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/(den*den);
+//                    SidePar[0] = (-(eta*(-1. + qsi + zeta)) + (-1. + zeta)*(-1. + qsi + 5.*zeta))/(-((-1. + qsi - 3.*zeta)*(-1. + zeta)) + eta*(-1. + qsi + zeta));
+//                    T den = (-1. + qsi - 3.*zeta)*(-1. + zeta) - eta*(-1. + qsi + zeta);
+//                    JacToSide(0,0) = (-8.*(1. + eta - zeta)*(-1. + zeta)*zeta)/(den*den);
+//                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/(den*den);
+//                    JacToSide(0,2) = (8.*(-((-1. + qsi)*(-1. + zeta)*(-1. + zeta)) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/(den*den);
 				}
 				break;
 				
