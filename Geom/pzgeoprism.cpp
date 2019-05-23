@@ -82,7 +82,7 @@ namespace pzgeom {
                 correctionFactor = 0.5*(1.+zeta)*(1.-qsi)*(1.-qsi);
                 return;
             case 15:
-                correctionFactor = 0.125*(1.-zeta)*(1.-zeta)*(1.-zeta);
+                correctionFactor = 0.5*(1.-zeta);
                 return;
             case 16:
                 correctionFactor = 1.-eta;
@@ -94,7 +94,7 @@ namespace pzgeom {
                 correctionFactor = 1.-qsi;
                 return;
             case 19:
-                correctionFactor = 0.125*(1.+zeta)*(1.+zeta)*(1.+zeta);
+                correctionFactor = 0.5*(1.+zeta);
                 return;
         }
     }
