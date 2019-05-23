@@ -30,7 +30,7 @@ int main()
     InitializePZLOG();
     bool printGMesh = true;
     bool newBlend = true;
-    int nDiv = 4;
+    int nDiv = 3;
     bool run3d = true;
 
 //    gRefDBase.InitializeUniformRefPattern(EOned);
@@ -341,6 +341,7 @@ namespace blendtest {
                 }
                 const int matId = geo->MaterialId();
                 const int elId = geo->Index();
+//                geo->Ind
                 switch(geo->Type()){
                     case ETetraedro:
                         new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTetrahedra>>(elId,nodesIdVec,matId,*newgmesh);
@@ -359,7 +360,6 @@ namespace blendtest {
                         geo->Clone(*newgmesh);
                         break; //the element should not be deleted
                 }
-                geo->Print(std::cout);
                 //TPZGeoElRefPattern(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh);
             }
             delete gmesh;
@@ -386,7 +386,6 @@ namespace blendtest {
             for (int iDiv = 0; iDiv < nDiv; iDiv++) {
                 const int nel = gmesh->NElements();
                 for (int iel = 0; iel < nel; iel++) {
-                    std::cout<<iel<<"\t"<<nel<<std::endl;
                     TPZGeoEl *geo = gmesh->ElementVec()[iel];
                     if (geo && !geo->HasSubElement()) {
                         geo->Divide(sons);

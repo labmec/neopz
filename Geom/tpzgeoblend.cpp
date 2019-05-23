@@ -631,7 +631,15 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
         TPZFNMatrix<9, T> notUsedHere;
         TPZManVector<T, 3>  sideQsi;
         bool regularMap = this->MapToSide(side, qsi, sideQsi, notUsedHere);
-        if(!regularMap) continue;
+        if(!regularMap) {
+            #ifdef LOG4CXX
+            if(logger->isDebugEnabled()){
+                soutLogDebug <<"mapping is not regular. skipping side... ";
+
+            }
+            #endif
+            continue;
+        }
         MElementType sideType = TGeo::Type(side);
         const int nSideNodes = MElementType_NNodes(sideType);
         TPZFNMatrix<9, T> sidePhi(nSideNodes, 1), sideDPhi(TGeo::Dimension, nSideNodes);
@@ -740,6 +748,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
         if (logger->isDebugEnabled()) {
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
             soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
+            LOGPZ_DEBUG(logger,soutLogDebug.str())
+            soutLogDebug.str("");
         }
 #endif
         for (int x = 0; x < 3 && correctionFactor[sideIndex] > zero; x++) {
