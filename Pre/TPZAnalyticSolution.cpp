@@ -1717,6 +1717,27 @@ void TStokes2DAnalytic::graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &gradu
     }
 }
 
+template<>
+void TStokes2DAnalytic::graduxy(const TPZVec<std::complex<double> > &x, TPZFMatrix<std::complex<double> > &gradu) const
+{
+    TPZManVector<Fad<std::complex<double> >,3> xfad(x.size());
+    for(int i=0; i<2; i++)
+    {
+        Fad<std::complex<double>> temp = Fad<std::complex<double>>(2,i,shapeFAD::val(x[i]));
+        xfad[i] = temp;
+    }
+    xfad[2] = x[2];
+    TPZManVector<Fad<std::complex<double>>,3> result(2);
+    uxy(xfad,result);
+    gradu.Redim(2,2);
+    for (int i=0; i<2; i++) {
+        for (int j=0; j<2; j++)
+        {
+            gradu(i,j) = result[j].d(i);
+        }
+    }
+}
+
 template<typename TVar1, typename TVar2>
 void TStokes2DAnalytic::Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) const
 {
