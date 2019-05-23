@@ -52,6 +52,7 @@ TPZGmshReader::TPZGmshReader() {
     m_dim_physical_tag_and_name.Resize(4);
     m_dim_name_and_physical_tag.Resize(4);
     m_dim_physical_tag_and_physical_tag.Resize(4);
+
     m_entity_index.Resize(0);
     
 }//method
@@ -257,7 +258,8 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 std::vector<int> n_entities = {m_n_points,m_n_curves,m_n_surfaces,m_n_volumes};
                 std::vector<int> n_entities_with_physical_tag = {0,0,0,0};
                 
-                for (int i_dim = 0; i_dim < 4; i_dim++) {
+                
+                for (int i_dim = 0; i_dim <4; i_dim++) {
                     for (int64_t i_entity = 0; i_entity < n_entities[i_dim]; i_entity++) {
                         
                         read.getline(buf, 1024);

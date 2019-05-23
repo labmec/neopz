@@ -1189,6 +1189,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
     }
     TVar r = sqrt(r2);
     disp[0] = xloc[0]*(TVar)(0.);
+     
     switch (fExact) {
         case EConst:
             disp[0] += 1.;
