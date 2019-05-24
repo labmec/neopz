@@ -29,7 +29,7 @@ public:
     
     /** @brief Default destructor */
     ~TPZBndCondWithMem(){
-        DebugStop();
+
     }
     
     TPZBndCondWithMem(TPZMaterial * material,int matid,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) : TPZBndCond(material,matid,type,val1,val2),fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
