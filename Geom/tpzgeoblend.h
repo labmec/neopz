@@ -120,6 +120,12 @@ namespace pzgeom {
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
 
+        template<class T>
+        void GradX1(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
+
+        template<class T>
+        void GradX2(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
+
         /** @brief Print all relevant data of the element to cout*/
         void Print(std::ostream &out = std::cout) const;
 
@@ -178,6 +184,15 @@ namespace pzgeom {
         TPZTransform<> fTrans[1 + TGeo::NSides - TGeo::NNodes];
     };
 
+    template <class TGeo>
+    template<class T>
+    inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const{
+        if (this->fUseNewX) {
+            return this->GradX2(gel, par, gradx);
+        } else {
+            return this->GradX1(gel, par, gradx);
+        }
+    }
 
     template<class TGeo>
     template<class T>
