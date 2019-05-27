@@ -384,6 +384,10 @@ namespace blendtest {
             outVTK.close();
         }
 
+        ///TODO: GRADX TEST
+        {
+
+        }
         {
             TPZVec<TPZGeoEl *> sons;
             std::vector<std::string> loading = {"-","/","|","\\"};
