@@ -116,7 +116,7 @@ public:
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
-	TPZTransform<> TransformSideToElement(int side);
+	TPZTransform<> TransformSideToElement(int side) override;
 	
 	virtual const TPZIntPoints &GetIntegrationRule() const  override {
     if (this->fIntegrationRule) {
