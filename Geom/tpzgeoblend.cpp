@@ -204,14 +204,14 @@ template <class TGeo>
 template<class T>
 void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &qsi, TPZFMatrix<T> &gradx) const {
 
-    //TODO: refactor CalcSideInfluence in order to include the calculation of derivatives
+    //DONE: refactor CalcSideInfluence in order to include the calculation of derivatives
     //TODO: write this method based on the steps taken in pzgeom::TPZGeoBlend<TGeo>::X2
     //TODO: compute the derivative of the projected point based on the transformation obtained in MapToSide and the
     // derivatives of the associated shape, i.e.:
     // \sum_i \left(  \nable\phi_i \times \epsilon_{side} + \phi_i\nabla\epsilon_{side}  \right)
     //TODO: analyze pzgeom::TPZGeoBlend<TGeo>::GradX1 in order to see how the derivatives of the neighbour's
     // mapping is calculated
-    
+
 //
 //    TPZVec<T> result;
 //    #ifdef LOG4CXX
@@ -822,6 +822,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
      * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
      */
     TPZGeoMesh *gmesh = gel.Mesh();
+    TPZManVector<T, 3> notUsedHereVec(3, 0.);
     TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
     TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
     TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
@@ -854,9 +855,9 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
         /**
      * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
      */
-        TPZFNMatrix<9, T> notUsedHere;
+        TPZFNMatrix<9, T> notUsedHereMat;
         TPZManVector<T, 3>  sideQsi;
-        bool regularMap = this->MapToSide(side, qsi, sideQsi, notUsedHere);
+        bool regularMap = this->MapToSide(side, qsi, sideQsi, notUsedHereMat);
         if(!regularMap) {
             #ifdef LOG4CXX
             if(logger->isDebugEnabled()){
@@ -901,10 +902,10 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
         }
         #endif
 
-        TGeo::CalcSideInfluence(side, qsi, correctionFactor[sideIndex]);
+        TGeo::CalcSideInfluence(side, qsi, correctionFactor[sideIndex], notUsedHereVec);
         int sidedim = gelside.Dimension();
         TPZManVector<T, 3> neighQsi;
-        if (!MapToNeighSide(side, sidedim, qsi, neighQsi, notUsedHere)) {
+        if (!MapToNeighSide(side, sidedim, qsi, neighQsi, notUsedHereMat)) {
 #ifdef LOG4CXX2
             if(logger->isDebugEnabled()) {
                 std::stringstream sout;
@@ -943,7 +944,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &qsi, T
             }
 
             T correctionFactorSide = -1;
-            TGeo::CalcSideInfluence(subSide, projectedPoint, correctionFactorSide);
+            TGeo::CalcSideInfluence(subSide, projectedPoint, correctionFactorSide,notUsedHereVec);
             bool shouldContributeToMapping = correctionFactorSide > zero;
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {

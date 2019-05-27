@@ -26,7 +26,8 @@ namespace pzgeom {
 	
 	const REAL tol = pzgeom_TPZNodeRep_tol;
     template<class T>
-    void TPZGeoTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor){
+    void TPZGeoTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+            TPZVec<T> &correctionFactorDxi){
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NNodes || side >= NSides){
@@ -35,8 +36,8 @@ namespace pzgeom {
             DebugStop();
         }
 
-        if(!pztopology::TPZTriangle::IsInParametricDomain(qsi,tol)){
-            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+        if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
+            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
             #ifdef LOG4CXX
@@ -47,7 +48,8 @@ namespace pzgeom {
 #endif
         TPZFNMatrix<4,T> phi(NNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NNodes);
-        TPZGeoTriangle::TShape(qsi,phi,dphi);
+        TPZGeoTriangle::TShape(xi,phi,dphi);
+        correctionFactorDxi.Resize(TPZGeoTriangle::Dimension, (T) 0);
         int i = -1;
         switch(side){
             case 0:
@@ -70,6 +72,8 @@ namespace pzgeom {
         }
         correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
         correctionFactor *= correctionFactor;
+        correctionFactorDxi[0] = 2 * ( phi(i,0) + phi((i+1)%NNodes,0) ) * ( dphi(0,i) + dphi(0,(i+1)%NNodes) );
+        correctionFactorDxi[1] = 2 * ( phi(i,0) + phi((i+1)%NNodes,0) ) * ( dphi(1,i) + dphi(1,(i+1)%NNodes) );
 
     }
 
@@ -427,7 +431,7 @@ namespace pzgeom {
 
 
 
-    template void TPZGeoTriangle::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+    template void TPZGeoTriangle::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
 };
 
@@ -435,5 +439,6 @@ namespace pzgeom {
 template<class T=REAL>
 class Fad;
 
-template void pzgeom::TPZGeoTriangle::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+template void pzgeom::TPZGeoTriangle::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+        TPZVec<Fad<REAL>> &);
 #endif

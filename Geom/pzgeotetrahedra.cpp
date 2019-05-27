@@ -24,15 +24,9 @@ namespace pzgeom {
 	const double tol = pzgeom_TPZNodeRep_tol;
 
 
-    /**
-         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
-         * interior point qsi. It is used by the TPZGeoBlend class.
-         * @param side the index of the side
-         * @param qsi coordinates of the interior point
-         * @param correctionFactor influence (0 <= correctionFactor <= 1)
-         */
     template<class T>
-    void TPZGeoTetrahedra::CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor){
+    void TPZGeoTetrahedra::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                             TPZVec<T> &corrFactorDxi){
         #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NNodes || side >= NSides){
@@ -42,8 +36,8 @@ namespace pzgeom {
             DebugStop();
         }
 
-        if(!IsInParametricDomain(qsi,tol)){
-            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+        if(!IsInParametricDomain(xi,tol)){
+            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
             #ifdef LOG4CXX
@@ -54,17 +48,24 @@ namespace pzgeom {
         #endif
         TPZFNMatrix<4,T> phi(NNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NNodes);
-        TPZGeoTetrahedra::TShape(qsi,phi,dphi);
+        TPZGeoTetrahedra::TShape(xi,phi,dphi);
+        corrFactorDxi.Resize(TPZGeoTetrahedra::Dimension,(T)0);
         correctionFactor = 0;
         for(int i = 0; i < TPZGeoTetrahedra::NSideNodes(side);i++){
             const int currentNode = TPZGeoTetrahedra::SideNodeLocId(side, i);
             correctionFactor += phi(currentNode,0);
+            corrFactorDxi[0] +=  dphi(0,currentNode);
+            corrFactorDxi[1] +=  dphi(1,currentNode);
+            corrFactorDxi[2] +=  dphi(2,currentNode);
         }
         switch(side){
             case 0:
             case 1:
             case 2:
             case 3:
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
                 correctionFactor = 0;
                 return;
             case  4:
@@ -73,15 +74,24 @@ namespace pzgeom {
             case  7:
             case  8:
             case  9:
+                corrFactorDxi[0] *=  2 * correctionFactor;
+                corrFactorDxi[1] *=  2 * correctionFactor;
+                corrFactorDxi[2] *=  2 * correctionFactor;
                 correctionFactor *= correctionFactor;
                 return;
             case 10:
             case 11:
             case 12:
             case 13:
+                corrFactorDxi[0] *=  3 * correctionFactor * correctionFactor;
+                corrFactorDxi[1] *=  3 * correctionFactor * correctionFactor;
+                corrFactorDxi[2] *=  3 * correctionFactor * correctionFactor;
                 correctionFactor *= correctionFactor * correctionFactor;
                 return;
             case 14:
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
                 correctionFactor = 1;
                 return;
         }
@@ -310,7 +320,7 @@ namespace pzgeom {
     }
 
 
-    template void TPZGeoTetrahedra::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+    template void TPZGeoTetrahedra::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
 };
 
@@ -318,5 +328,6 @@ namespace pzgeom {
 template<class T=REAL>
 class Fad;
 
-template void pzgeom::TPZGeoTetrahedra::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+template void pzgeom::TPZGeoTetrahedra::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &,
+        Fad<REAL> &, TPZVec<Fad<REAL>> &);
 #endif

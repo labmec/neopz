@@ -71,11 +71,13 @@ namespace pzgeom {
          * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
          * interior point qsi. It is used by the TPZGeoBlend class.
          * @param side the index of the side
-         * @param qsi coordinates of the interior point
+         * @param xi coordinates of the interior point
          * @param correctionFactor influence (0 <= correctionFactor <= 1)
+         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
          */
         template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsi, T &correctionFactor);
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                      TPZVec<T> &corrFactorDxi);
 
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pyramid";}

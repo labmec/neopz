@@ -22,7 +22,8 @@ namespace pzgeom {
 	
 	static const double tol = pzgeom_TPZNodeRep_tol;
     template<class T>
-    void TPZGeoPrism::CalcSideInfluence(const int &side, const TPZVec<T> &qsiVec, T &correctionFactor){
+    void TPZGeoPrism::CalcSideInfluence(const int &side, const TPZVec<T> &xiVec, T &correctionFactor,
+                                        TPZVec<T> &corrFactorDxi){
         #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NNodes || side >= NSides){
@@ -32,7 +33,7 @@ namespace pzgeom {
             DebugStop();
         }
 
-        if(!IsInParametricDomain(qsiVec,tol)){
+        if(!IsInParametricDomain(xiVec,tol)){
             sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
@@ -42,9 +43,10 @@ namespace pzgeom {
             DebugStop();
         }
         #endif
-        const T &qsi = qsiVec[0];
-        const T &eta = qsiVec[1];
-        const T &zeta = qsiVec[2];
+        corrFactorDxi.Resize(TPZGeoPrism::Dimension, (T) 0);
+        const T &xi = xiVec[0];
+        const T &eta = xiVec[1];
+        const T &zeta = xiVec[2];
         switch(side){
             case  0:
             case  1:
@@ -56,45 +58,87 @@ namespace pzgeom {
                 return;
             case  6:
                 correctionFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1.*(1 - eta)*(1 - zeta);
+                corrFactorDxi[2] = -0.5*((1 - eta)*(1 - eta));
                 return;
             case  7:
-                correctionFactor = 0.5*(1.-zeta)*(qsi+eta)*(qsi+eta);
+                correctionFactor = 0.5*(1.-zeta)*(xi+eta)*(xi+eta);
+                corrFactorDxi[0] =1.*(eta + xi)*(1 - zeta);
+                corrFactorDxi[1] =1.*(eta + xi)*(1 - zeta);
+                corrFactorDxi[2] =-0.5*((eta + xi)*(eta + xi));
                 return;
             case  8:
-                correctionFactor = 0.5*(1.-zeta)*(1.-qsi)*(1.-qsi);
+                correctionFactor = 0.5*(1.-zeta)*(1.-xi)*(1.-xi);
+                corrFactorDxi[0] =-1.*(1 - xi)*(1 - zeta);
+                corrFactorDxi[1] =0;
+                corrFactorDxi[2] =-0.5*((1 - xi)*(1 - xi));
                 return;
             case  9:
-                correctionFactor = 1. - qsi - eta;
+                correctionFactor = 1. - xi - eta;
+                corrFactorDxi[0] = -1;
+                corrFactorDxi[1] = -1;
+                corrFactorDxi[2] = 0;
                 return;
             case 10:
-                correctionFactor = qsi;
+                correctionFactor = xi;
+                corrFactorDxi[0] = 1;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
                 return;
             case 11:
                 correctionFactor = eta;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 1;
+                corrFactorDxi[2] = 0;
                 return;
             case 12:
                 correctionFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1.*(1 - eta)*(1 + zeta);
+                corrFactorDxi[2] = 0.5*((1 - eta)*(1 - eta));
                 return;
             case 13:
-                correctionFactor = 0.5*(1.+zeta)*(qsi+eta)*(qsi+eta);
+                correctionFactor = 0.5*(1.+zeta)*(xi+eta)*(xi+eta);
+                corrFactorDxi[0] = 1.*(eta + xi)*(1 + zeta);
+                corrFactorDxi[1] = 1.*(eta + xi)*(1 + zeta);
+                corrFactorDxi[2] = 0.5*((eta + xi)*(eta + xi));
                 return;
             case 14:
-                correctionFactor = 0.5*(1.+zeta)*(1.-qsi)*(1.-qsi);
+                correctionFactor = 0.5*(1.+zeta)*(1.-xi)*(1.-xi);
+                corrFactorDxi[0] = -1.*(1 - xi)*(1 + zeta);
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0.5*((1 - xi)*(1 - xi));
                 return;
             case 15:
                 correctionFactor = 0.5*(1.-zeta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = -0.5;
                 return;
             case 16:
                 correctionFactor = 1.-eta;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1;
+                corrFactorDxi[2] = 0;
                 return;
             case 17:
-                correctionFactor = qsi+eta;
+                correctionFactor = xi+eta;
+                corrFactorDxi[0] = 1;
+                corrFactorDxi[1] = 1;
+                corrFactorDxi[2] = 0;
                 return;
             case 18:
-                correctionFactor = 1.-qsi;
+                correctionFactor = 1.-xi;
+                corrFactorDxi[0] = -1;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
                 return;
             case 19:
                 correctionFactor = 0.5*(1.+zeta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0.5;
                 return;
         }
     }
@@ -323,7 +367,7 @@ namespace pzgeom {
         TPZNodeRep<6, pztopology::TPZPrism>::Write(buf,withclassid);
     }
 
-    template void TPZGeoPrism::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &);
+    template void TPZGeoPrism::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
 };
 
@@ -331,5 +375,6 @@ namespace pzgeom {
 template<class T=REAL>
 class Fad;
 
-template void pzgeom::TPZGeoPrism::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &);
+template void pzgeom::TPZGeoPrism::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+        TPZVec<Fad<REAL>> &);
 #endif

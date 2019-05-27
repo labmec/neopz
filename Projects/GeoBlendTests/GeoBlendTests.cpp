@@ -33,13 +33,15 @@ int main()
     int nDiv = 3;
     bool run3d = true;
 
-//    gRefDBase.InitializeUniformRefPattern(EOned);
-//    gRefDBase.InitializeUniformRefPattern(ETriangle);
-//    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-//    gRefDBase.InitializeUniformRefPattern(ETetraedro);
-//    gRefDBase.InitializeUniformRefPattern(EPiramide);
-//    gRefDBase.InitializeUniformRefPattern(EPrisma);
-//    gRefDBase.InitializeUniformRefPattern(ECube);
+    gRefDBase.InitializeUniformRefPattern(EOned);
+    gRefDBase.InitializeUniformRefPattern(ETriangle);
+    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+    if(run3d){
+        gRefDBase.InitializeUniformRefPattern(ETetraedro);
+        gRefDBase.InitializeUniformRefPattern(EPiramide);
+        gRefDBase.InitializeUniformRefPattern(EPrisma);
+        gRefDBase.InitializeUniformRefPattern(ECube);
+    }
 
 
     pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>::fUseNewX = newBlend;
@@ -369,6 +371,7 @@ namespace blendtest {
         gmesh->BuildConnectivity();
         if (printGMesh) {
             std::string meshFileName = prefix + "gmesh_partial";
+            std::cout<<"Printing "<<meshFileName<<".vtk and .txt"<<std::endl;
             const size_t strlen = meshFileName.length();
             meshFileName.append(".vtk");
             std::ofstream outVTK(meshFileName.c_str());
@@ -383,14 +386,18 @@ namespace blendtest {
 
         {
             TPZVec<TPZGeoEl *> sons;
+            std::vector<std::string> loading = {"-","/","|","\\"};
             for (int iDiv = 0; iDiv < nDiv; iDiv++) {
+                std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
                 const int nel = gmesh->NElements();
                 for (int iel = 0; iel < nel; iel++) {
+                    std::cout<<"\b"<<loading[iel%4]<<std::flush;
                     TPZGeoEl *geo = gmesh->ElementVec()[iel];
                     if (geo && !geo->HasSubElement()) {
                         geo->Divide(sons);
                     }
                 }
+                std::cout<<"\b";
             }
         }
 
