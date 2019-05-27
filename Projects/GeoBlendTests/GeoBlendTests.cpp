@@ -386,7 +386,37 @@ namespace blendtest {
 
         ///TODO: GRADX TEST
         {
-
+            TPZManVector<REAL,3> xiReal;
+            TPZManVector<Fad<REAL>,3> xiFad, xFad(3,-1);
+            REAL weight = -1;//useless
+            const REAL tol = 1e-8;
+            const int pOrder = 3;
+            const int nel = gmesh->NElements();
+            TPZFNMatrix<9,REAL> gradXreal(3,3,0);
+            for (int iel = 0; iel < nel; iel++) {
+                TPZGeoEl *geo = gmesh->ElementVec()[iel];
+                if (geo && !geo->HasSubElement()) {
+                    auto intRule = geo->CreateSideIntegrationRule(geo->NSides()-1, pOrder);
+                    xiReal.Resize(geo->Dimension(),0);
+                    xiFad.Resize(geo->Dimension(),0);
+                    for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                        intRule->Point(iPt,xiReal,weight);
+                        for(int x = 0; x < geo->Dimension(); x++){
+                            xiFad[x] = xiReal[x];
+                        }
+                        geo->GradX(xiReal, gradXreal);
+                        geo->X(xiFad, xFad);
+                        for(int i = 0; i < gradXreal.Rows(); i++){
+                            for(int j = 0; j < gradXreal.Cols(); j++){
+                                const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*xFad[i].dx(j)-gradXreal(i,j);
+                                if(diff > tol){
+                                    DebugStop();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         {
             TPZVec<TPZGeoEl *> sons;
@@ -401,7 +431,7 @@ namespace blendtest {
                         geo->Divide(sons);
                     }
                 }
-                std::cout<<"\b";
+                std::cout<<"\b"<<std::endl;
             }
         }
 

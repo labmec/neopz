@@ -203,7 +203,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX1(const TPZGeoEl &gel, TPZVec<T> &par, TPZF
 template <class TGeo>
 template<class T>
 void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
-    
+
     #ifdef LOG4CXX
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
