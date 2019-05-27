@@ -111,9 +111,9 @@ public:
 	/** @brief Compute the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 	
-	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
+	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
 	TPZTransform<> TransformSideToElement(int side);
