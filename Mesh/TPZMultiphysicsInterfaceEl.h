@@ -190,8 +190,6 @@ public:
     
    // void ComputeNormal(TPZVec<REAL> &qsi, TPZVec<REAL> &normal);
     
-    void ComputeNormal(TPZManVector<REAL,3> point, TPZGeoElSide neighside, TPZVec<TPZMaterialData> &datavec, TPZManVector<int64_t,3> fElIndices);
-    
     /**
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
