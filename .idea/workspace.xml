@@ -18,12 +18,12 @@
       <config projectName="PZ" targetName="ContinuousStart" />
       <config projectName="PZ" targetName="pz" />
       <config projectName="PZ" targetName="ExperimentalUpdate" />
+      <config projectName="PZ" targetName="ExperimentalCoverage" />
       <config projectName="PZ" targetName="ContinuousCoverage" />
       <config projectName="PZ" targetName="Experimental" />
-      <config projectName="PZ" targetName="ExperimentalSubmit" />
       <config projectName="PZ" targetName="ExperimentalTest" />
       <config projectName="PZ" targetName="ContinuousTest" />
-      <config projectName="PZ" targetName="ExperimentalCoverage" />
+      <config projectName="PZ" targetName="ExperimentalSubmit" />
       <config projectName="PZ" targetName="NightlyBuild" />
       <config projectName="PZ" targetName="ContinuousSubmit" />
       <config projectName="PZ" targetName="NightlyCoverage" />
@@ -45,9 +45,18 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Analysis/pzanalysis.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Analysis/pzanalysis.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.h" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/gmsh/wellbore.msh" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/gmsh/wellbore.msh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.h" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsData.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsData.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsFEM.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsFEM.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIrregularBlockMatrix.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZIrregularBlockMatrix.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZSolveMatrix.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/TPZSolveMatrix.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Projects/WellboreGPU/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Projects/WellboreGPU/main.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
@@ -78,56 +87,32 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="663">
-              <caret line="127" selection-start-line="127" selection-end-line="127" />
+            <state relative-caret-position="768">
+              <caret line="504" selection-start-line="504" selection-end-line="504" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Analysis/pzanalysis.cpp">
+        <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="663">
-              <caret line="292" selection-start-line="292" selection-end-line="292" />
+            <state relative-caret-position="571">
+              <caret line="50" column="27" selection-start-line="50" selection-start-column="11" selection-end-line="50" selection-end-column="27" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Matrix/pzstepsolver.cpp">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="168" selection-start-line="168" selection-end-line="168" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Analysis/pzanalysis.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="173" selection-start-line="173" selection-end-line="173" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Util/tpzautopointer.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="169" selection-start-line="169" selection-end-line="169" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
-              <caret line="25" column="23" selection-start-line="25" selection-start-column="23" selection-end-line="25" selection-end-column="23" />
+            <state relative-caret-position="1058">
+              <caret line="273" column="11" lean-forward="true" selection-start-line="260" selection-start-column="21" selection-end-line="273" selection-end-column="11" />
+              <folding>
+                <element signature="e#832#8978#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -135,12 +120,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="62" selection-start-line="62" selection-end-line="62" />
+            <state relative-caret-position="239">
+              <caret line="90" column="20" selection-start-line="90" selection-start-column="20" selection-end-line="90" selection-end-column="20" />
               <folding>
                 <element signature="e#99#130#0" expanded="true" />
                 <element signature="e#571#675#0" />
-                <element signature="e#2220#8615#0" />
                 <element signature="e#8848#10879#0" />
               </folding>
             </state>
@@ -148,10 +132,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Mesh/pzcmesh.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="58">
+              <caret line="1089" column="18" selection-start-line="1089" selection-start-column="18" selection-end-line="1089" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/StrMatrix/pzstrmatrix.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="12">
-              <caret line="106" selection-start-line="106" selection-end-line="106" />
+            <state relative-caret-position="121">
+              <caret line="79" column="24" selection-start-line="79" selection-start-column="24" selection-end-line="79" selection-end-column="24" />
               <folding>
                 <element signature="e#90#114#0" expanded="true" />
                 <element signature="e#619#637#0" expanded="true" />
@@ -161,10 +154,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt">
+        <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZCoefToGradSol.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="18" column="7" selection-start-line="18" selection-start-column="7" selection-end-line="18" selection-end-column="7" />
+            <state relative-caret-position="441">
+              <caret line="73" column="33" lean-forward="true" selection-start-line="73" selection-start-column="33" selection-end-line="73" selection-end-column="33" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZCoefToGradSol.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="592">
+              <caret line="53" column="29" lean-forward="true" selection-start-line="53" selection-start-column="29" selection-end-line="53" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -223,16 +225,18 @@
         <option value="$PROJECT_DIR$/Material/REAL/Plasticity/TPZPlasticStepPV.cpp" />
         <option value="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsFEM.cpp" />
         <option value="$PROJECT_DIR$/Matrix/pzmatrix.h" />
-        <option value="$PROJECT_DIR$/Projects/WellboreGPU/main.cpp" />
         <option value="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.h" />
         <option value="$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.cpp" />
         <option value="$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.h" />
         <option value="$PROJECT_DIR$/StrMatrix/pzstrmatrix.cpp" />
         <option value="$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.cpp" />
-        <option value="$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/StrMatrix/TPZStructMatrixBase.h" />
         <option value="$PROJECT_DIR$/Projects/WellboreGPU/gmsh/wellbore.msh" />
         <option value="$PROJECT_DIR$/Analysis/pzanalysis.cpp" />
+        <option value="$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.h" />
+        <option value="$PROJECT_DIR$/Projects/WellboreGPU/main.cpp" />
+        <option value="$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.cpp" />
       </list>
     </option>
   </component>
@@ -248,13 +252,17 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="PZ" type="b2602c69:ProjectViewProjectNode" />
               <item name="neopz" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="PZ" type="b2602c69:ProjectViewProjectNode" />
+              <item name="neopz" type="462c0819:PsiDirectoryNode" />
+              <item name="Analysis" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="PZ" type="b2602c69:ProjectViewProjectNode" />
@@ -283,6 +291,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -530,6 +539,8 @@
       <workItem from="1558701467079" duration="2130000" />
       <workItem from="1558703675739" duration="7522000" />
       <workItem from="1558958763082" duration="9418000" />
+      <workItem from="1559047673880" duration="5649000" />
+      <workItem from="1559061153774" duration="2587000" />
     </task>
     <task id="LOCAL-00001" summary="Setting up code for plasticity">
       <created>1555006660036</created>
@@ -591,18 +602,19 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="135479000" />
+    <option name="totallyTimeSpent" value="143715000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="57" y="-4" width="1863" height="1204" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6465638" visible="true" weight="0.18326913" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.6465638" visible="true" weight="0.18767199" />
       <window_info id="Structure" order="1" sideWeight="0.35343617" side_tool="true" weight="0.23085399" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.21636876" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.37158984" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.37158984" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -610,8 +622,8 @@
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="10" />
-      <window_info anchor="bottom" id="CMake" order="11" weight="0.26434618" />
-      <window_info anchor="bottom" id="Messages" order="12" weight="0.4534337" />
+      <window_info anchor="bottom" id="CMake" order="11" visible="true" weight="0.26340544" />
+      <window_info anchor="bottom" id="Messages" order="12" weight="0.33019754" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -658,13 +670,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/Projects/WellboreGPU/main.cpp</url>
-          <line>512</line>
-          <option name="timeStamp" value="160" />
+          <line>504</line>
+          <option name="timeStamp" value="191" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/Analysis/pzanalysis.cpp</url>
-          <line>327</line>
-          <option name="timeStamp" value="173" />
+          <url>file://$PROJECT_DIR$/Projects/WellboreGPU/main.cpp</url>
+          <line>498</line>
+          <option name="timeStamp" value="193" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -724,65 +736,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Mesh/pzcompel.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="608" column="16" selection-start-line="608" selection-start-column="16" selection-end-line="608" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZTensor.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="404">
-          <caret line="1847" selection-start-line="1847" selection-end-line="1847" />
-          <folding>
-            <element signature="e#594#651#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZPlasticState.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3067">
-          <caret line="18" column="26" selection-start-line="18" selection-start-column="26" selection-end-line="18" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZYCMohrCoulombPV.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="56" column="12" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Mesh/pzcompel.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="308" column="17" selection-start-line="308" selection-start-column="17" selection-end-line="308" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZMatElastoPlastic2D_impl.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="54" column="36" selection-start-line="54" selection-start-column="36" selection-end-line="54" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZMatElastoPlastic.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="297" column="6" selection-start-line="297" selection-start-column="6" selection-end-line="297" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZElasticResponse.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="167">
-          <caret line="101" column="44" selection-start-line="101" selection-start-column="44" selection-end-line="101" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Material/REAL/Plasticity/TPZMatElastoPlastic_impl.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="411">
@@ -807,13 +760,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsFEM.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="16128">
-          <caret line="768" selection-start-line="768" selection-end-line="768" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsFEM.cpp" />
     <entry file="file://$PROJECT_DIR$/Matrix/pzysmp.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2100">
@@ -832,13 +779,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="209">
           <caret line="236" selection-start-line="236" selection-end-line="236" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Common/pzerror.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="10" selection-start-line="10" selection-end-line="10" />
         </state>
       </provider>
     </entry>
@@ -867,13 +807,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-4302">
           <caret line="393" column="6" selection-start-line="393" selection-start-column="6" selection-end-line="393" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-265">
-          <caret line="11" column="55" selection-start-line="11" selection-start-column="55" selection-end-line="11" selection-end-column="55" />
         </state>
       </provider>
     </entry>
@@ -947,23 +880,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="276" selection-start-line="276" selection-end-line="276" selection-end-column="110" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/StrMatrix/TPZStructMatrixBase.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="861">
-          <caret line="41" column="21" selection-start-line="41" selection-start-column="21" selection-end-line="41" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Matrix/pzmatrix.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="201">
@@ -989,13 +905,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="482">
           <caret line="354" column="12" selection-start-line="354" selection-start-column="12" selection-end-line="354" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Matrix/pzfmatrix.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="683" column="9" selection-start-line="683" selection-start-column="4" selection-end-line="683" selection-end-column="9" />
         </state>
       </provider>
     </entry>
@@ -1041,33 +950,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="25" column="23" selection-start-line="25" selection-start-column="23" selection-end-line="25" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="18" column="7" selection-start-line="18" selection-start-column="7" selection-end-line="18" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="62" selection-start-line="62" selection-end-line="62" />
-          <folding>
-            <element signature="e#99#130#0" expanded="true" />
-            <element signature="e#571#675#0" />
-            <element signature="e#2220#8615#0" />
-            <element signature="e#8848#10879#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/gmsh/wellbore.msh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="502">
@@ -1077,8 +959,69 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Matrix/pzstepsolver.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
+        <state relative-caret-position="3528">
           <caret line="168" selection-start-line="168" selection-end-line="168" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.cpp" />
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZIntPointsStructMatrix.h" />
+    <entry file="file:///usr/include/x86_64-linux-gnu/bits/string3.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="89" selection-start-line="89" selection-end-line="89" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Matrix/pzfmatrix.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="587" selection-start-line="587" selection-end-line="587" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="483">
+          <caret line="39" column="32" lean-forward="true" selection-start-line="39" selection-start-column="32" selection-end-line="39" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/StrMatrix/TPZStructMatrixBase.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="314">
+          <caret line="65" selection-start-line="65" selection-end-line="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Analysis/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="399">
+          <caret line="19" column="44" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Analysis/pzanalysis.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="146">
+          <caret line="173" selection-start-line="173" selection-end-line="173" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Matrix/pzsolve.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="139" selection-start-line="139" selection-end-line="139" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Common/pzerror.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="10" selection-start-line="10" selection-end-line="10" />
         </state>
       </provider>
     </entry>
@@ -1089,17 +1032,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Analysis/pzanalysis.h">
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZCoefToGradSol.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="173" selection-start-line="173" selection-end-line="173" />
+        <state relative-caret-position="441">
+          <caret line="73" column="33" lean-forward="true" selection-start-line="73" selection-start-column="33" selection-end-line="73" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZCoefToGradSol.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="592">
+          <caret line="53" column="29" lean-forward="true" selection-start-line="53" selection-start-column="29" selection-end-line="53" selection-end-column="29" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/StrMatrix/pzstrmatrix.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12">
-          <caret line="106" selection-start-line="106" selection-end-line="106" />
+        <state relative-caret-position="121">
+          <caret line="79" column="24" selection-start-line="79" selection-start-column="24" selection-end-line="79" selection-end-column="24" />
           <folding>
             <element signature="e#90#114#0" expanded="true" />
             <element signature="e#619#637#0" expanded="true" />
@@ -1107,17 +1057,53 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/StrMatrix/TPZSSpStructMatrix.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="239">
+          <caret line="90" column="20" selection-start-line="90" selection-start-column="20" selection-end-line="90" selection-end-column="20" />
+          <folding>
+            <element signature="e#99#130#0" expanded="true" />
+            <element signature="e#571#675#0" />
+            <element signature="e#8848#10879#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="571">
+          <caret line="50" column="27" selection-start-line="50" selection-start-column="11" selection-end-line="50" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Mesh/pzcmesh.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="58">
+          <caret line="1089" column="18" selection-start-line="1089" selection-start-column="18" selection-end-line="1089" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Analysis/pzanalysis.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="663">
-          <caret line="292" selection-start-line="292" selection-end-line="292" />
+        <state relative-caret-position="-240">
+          <caret line="296" selection-start-line="296" selection-end-line="296" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="663">
-          <caret line="127" selection-start-line="127" selection-end-line="127" />
+        <state relative-caret-position="768">
+          <caret line="504" selection-start-line="504" selection-end-line="504" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Projects/WellboreGPU/TPZElastoPlasticIntPointsStructMatrix.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1058">
+          <caret line="273" column="11" lean-forward="true" selection-start-line="260" selection-start-column="21" selection-end-line="273" selection-end-column="11" />
+          <folding>
+            <element signature="e#832#8978#0" />
+          </folding>
         </state>
       </provider>
     </entry>

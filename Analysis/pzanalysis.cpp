@@ -325,7 +325,6 @@ void TPZAnalysis::Assemble()
 	{
         
 		TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
-        fRhs.Print("F = ", std::cout, EMathematicaInput);
 		fSolver->SetMatrix(mat);
 		//aqui TPZFMatrix<STATE> nao eh nula
 	}
