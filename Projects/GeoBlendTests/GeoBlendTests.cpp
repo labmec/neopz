@@ -387,34 +387,48 @@ namespace blendtest {
         ///TODO: GRADX TEST
         {
             TPZManVector<REAL,3> xiReal;
-            TPZManVector<Fad<REAL>,3> xiFad, xFad(3,-1);
+            TPZManVector<Fad<REAL>,3> xiFad;
             REAL weight = -1;//useless
             const REAL tol = 1e-8;
             const int pOrder = 3;
             const int nel = gmesh->NElements();
-            TPZFNMatrix<9,REAL> gradXreal(3,3,0);
             for (int iel = 0; iel < nel; iel++) {
                 TPZGeoEl *geo = gmesh->ElementVec()[iel];
                 if (geo && !geo->HasSubElement()) {
+                    uint64_t errors = 0;
                     auto intRule = geo->CreateSideIntegrationRule(geo->NSides()-1, pOrder);
                     xiReal.Resize(geo->Dimension(),0);
                     xiFad.Resize(geo->Dimension(),0);
                     for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
                         intRule->Point(iPt,xiReal,weight);
                         for(int x = 0; x < geo->Dimension(); x++){
-                            xiFad[x] = xiReal[x];
+                            xiFad[x] = Fad<REAL>(geo->Dimension(),x,xiReal[x]);
                         }
-                        geo->GradX(xiReal, gradXreal);
+//                        Fad<REAL> func;
+//                        func = 9*xiFad[0];
+//                        for(int i =0; i < func.size(); i++){
+//                            std::cout<<"dx["<<i<<"]:\t"<<func.dx(i)<<std::endl;
+//                        }
+                        TPZManVector<Fad<REAL>,3> xFad(3);
                         geo->X(xiFad, xFad);
+                        TPZFNMatrix<9,REAL> gradXreal(3,3,0);
+                        geo->GradX(xiReal, gradXreal);
                         for(int i = 0; i < gradXreal.Rows(); i++){
                             for(int j = 0; j < gradXreal.Cols(); j++){
-                                const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*xFad[i].dx(j)-gradXreal(i,j);
+                                std::cout<<"xFad["<<i<<"].dx("<<j<<") = "<<xFad[i].dx(j)<<std::endl;
+                                std::cout<<"gradXreal("<<i<<","<<j<<") = "<<gradXreal(i,j)<<std::endl;
+                                const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*(xFad[i].dx(j)-gradXreal(i,j));
+                                std::cout<<"diff:\t"<<diff<<std::endl;
                                 if(diff > tol){
-                                    DebugStop();
+                                    errors++;
                                 }
                             }
                         }
                     }
+                    std::cout<<"============================"<<std::endl;
+                    std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
+                    std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
+                    std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
                 }
             }
         }

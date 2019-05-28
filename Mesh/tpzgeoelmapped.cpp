@@ -181,10 +181,25 @@ TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 using namespace pzgeom;
 
 /// Macro to define templates to TPZGeoElMapped for all the geometric element types
+#ifdef _AUTODIFF
+template<class T=REAL>
+class Fad;
+
 #define INSERTCLASS(TCL,CLID) \
-template class \
-TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
-template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
+    template class \
+    TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
+    template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >; \
+    template \
+    void TPZGeoElMapped<TPZGeoElRefPattern<TCL>>::X<REAL>(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const; \
+    template \
+    void TPZGeoElMapped<TPZGeoElRefPattern<TCL>>::X<Fad<REAL>>(TPZVec<Fad<REAL>> &ksi,TPZVec<Fad<REAL>> &result) const;
+#else
+    template class \
+    TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
+    template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >; \
+    template \
+    void TPZGeoElMapped<TPZGeoElRefPattern<TCL>>::X<REAL>(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const;
+#endif
 
 INSERTCLASS(TPZGeoPoint,TPZGEOELREFPATMAPPEDPOINTID)
 INSERTCLASS(TPZGeoLinear,TPZGEOELREFPATMAPPEDLINEID)

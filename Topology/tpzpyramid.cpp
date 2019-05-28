@@ -1078,7 +1078,7 @@ namespace pztopology {
 		}
         #ifdef PZDEBUG
 		for(int i = 0; i < SidePar.size();i++){
-           if(IsNanPZ(SidePar[i])){
+           if(IsNanPZ( TPZExtractVal::val(SidePar[i]) )){
                DebugStop();
            }
         }

@@ -473,8 +473,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
         if (logger->isDebugEnabled()) {
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
             soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
-            LOGPZ_DEBUG(logger, soutLogDebug.str())
-            soutLogDebug.str("");
+//            LOGPZ_DEBUG(logger, soutLogDebug.str())
+//            soutLogDebug.str("");
         }
 #endif
 
@@ -1059,8 +1059,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
         if (logger->isDebugEnabled()) {
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
             soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
-            LOGPZ_DEBUG(logger,soutLogDebug.str())
-            soutLogDebug.str("");
+//            LOGPZ_DEBUG(logger,soutLogDebug.str())
+//            soutLogDebug.str("");
         }
 #endif
         for (int x = 0; x < 3 && correctionFactor[sideIndex] > zero; x++) {
