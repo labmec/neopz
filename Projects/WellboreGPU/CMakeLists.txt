@@ -17,7 +17,7 @@ IF (WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
     find_package(PZ PATHS "C:/Arquivos de Programas/PZ" REQUIRED NO_DEFAULT_PATH)
 ELSE ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fPIC -mfma -ffast-math -std=c++11") #ligar -O3
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -mfma -ffast-math -std=c++11") #ligar -O3
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
     find_package(PZ REQUIRED)
 ENDIF()

@@ -30,11 +30,13 @@ public:
     // need help
     TPZMatrix<STATE> *CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
-    void AssembleRhsBoundary(TPZFMatrix<REAL> &rhsboundary);
+//    void AssembleRhsBoundary(TPZFMatrix<REAL> &rhsboundary);
 
     void SetUpDataStructure();
 
-    void CalcResidual(TPZFMatrix<REAL> &rhs);
+    void Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+//    void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+//    void CalcResidual(TPZFMatrix<REAL> &rhs);
 
     bool isBuilt() {
         if(fCoefToGradSol.IrregularBlocksMatrix().Rows() != 0) return true;
@@ -46,7 +48,7 @@ private:
 
     TPZMyLambdaExpression fLambdaExp;
 
-    TPZStructMatrix fStructMatrix;
+    TPZSymetricSpStructMatrix fStructMatrix;
 };
 
 #endif /* TPZIntPointsFEM_h */

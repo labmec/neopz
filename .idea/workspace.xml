@@ -540,7 +540,7 @@
       <workItem from="1558703675739" duration="7522000" />
       <workItem from="1558958763082" duration="9418000" />
       <workItem from="1559047673880" duration="5649000" />
-      <workItem from="1559061153774" duration="2587000" />
+      <workItem from="1559061153774" duration="2898000" />
     </task>
     <task id="LOCAL-00001" summary="Setting up code for plasticity">
       <created>1555006660036</created>
@@ -598,11 +598,18 @@
       <option name="project" value="LOCAL" />
       <updated>1558617828611</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Removed print">
+      <created>1559065779127</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1559065779127</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="143715000" />
+    <option name="totallyTimeSpent" value="144026000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="57" y="-4" width="1863" height="1204" extended-state="6" />
@@ -663,7 +670,8 @@
     <MESSAGE value="Updated wellbore mesh" />
     <MESSAGE value="Corrections in elastoplastic calculation done" />
     <MESSAGE value="Updating project" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updating project" />
+    <MESSAGE value="Removed print" />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed print" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

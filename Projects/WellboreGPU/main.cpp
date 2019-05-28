@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     
 // Generates the geometry
     std::string source_dir = SOURCE_DIR;
-    std::string msh_file = source_dir + "/gmsh/wellbore.msh";
+    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore.msh";
     TPZGeoMesh *gmesh = ReadGeometry(msh_file);
     PrintGeometry(gmesh);
 
@@ -475,40 +475,49 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
 }
 
 void SolutionIntPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material){
+    bool optimizeBandwidth = true;
+    TPZAnalysis *analysistest = new TPZAnalysis(analysis->Mesh(), optimizeBandwidth);
+    TPZElastoPlasticIntPointsStructMatrix intPointsStructMatrix(analysis->Mesh());
+    intPointsStructMatrix.SetNumThreads(0);
+    analysistest->SetStructuralMatrix(intPointsStructMatrix);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    analysistest->SetSolver(step);
+
     std::cout << "\n\nSolving with IntPointsFEM ...\n" << std::endl;
     bool stop_criterion_Q = false;
     REAL norm_res, norm_delta_du;
-    int neq = analysis->Solution().Rows();
+    int neq = analysistest->Solution().Rows();
     TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
     TPZFMatrix<REAL> rhs(neq, 1, 0.);
 
-    TPZElastoPlasticIntPointsStructMatrix *intPointsStructMatrix = new TPZElastoPlasticIntPointsStructMatrix(analysis->Mesh());
+//    TPZElastoPlasticIntPointsStructMatrix *intPointsStructMatrix = new TPZElastoPlasticIntPointsStructMatrix(analysis->Mesh());
 //
     std::cout  << "Solving a NLS with DOF = " << neq << std::endl;
 
-    analysis->Solution().Zero();
-    analysis->Assemble();
+    analysistest->Solution().Zero();
+    analysistest->Assemble();
     for (int i = 0; i < n_iterations; i++) {
-        analysis->Solve();
-        delta_du = analysis->Solution();
+        analysistest->Solve();
+        delta_du = analysistest->Solution();
         du += delta_du;
-        analysis->LoadSolution(du);
-        intPointsStructMatrix->CalcResidual(rhs);
+        analysistest->LoadSolution(du);
+        analysistest->Assemble();
         norm_delta_du = Norm(delta_du);
-        norm_res = Norm(rhs);
+        norm_res = Norm(analysistest->Rhs());
         stop_criterion_Q = norm_res < tolerance;
         std::cout << "Nonlinear process :: delta_du norm = " << norm_delta_du << std::endl;
         std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
 //        PrintMemory(analysis->Mesh());
         if (stop_criterion_Q) {
-            AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
+            AcceptPseudoTimeStepSolution(analysistest, analysistest->Mesh());
 //            PrintMemory(analysis->Mesh());
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
 //        analysis->Assemble();
-        analysis->Rhs() = rhs;
+//        analysistest->Rhs() = rhs;
 
     }
 
