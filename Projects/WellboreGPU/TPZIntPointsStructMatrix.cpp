@@ -7,12 +7,29 @@
 #endif
 #include "TPZMyLambdaExpression.h"
 
-TPZIntPointsStructMatrix::TPZIntPointsStructMatrix() : fRhs(0,0), fRhsBoundary(0,0), fBlockMatrix(0), fIntPointsData(0), fElemIndexes(0){
+TPZIntPointsStructMatrix::TPZIntPointsStructMatrix() : TPZStructMatrix() {
+    fRhs.Resize(0,0);
+    fRhsBoundary.Resize(0,0);
+    fBlockMatrix.resize(0);
+    fIntPointsData.resize(0);
+    fElemIndexes.resize(0);
 
 }
 
-TPZIntPointsStructMatrix::TPZIntPointsStructMatrix(TPZCompMesh *cmesh) : fRhs(0,0), fRhsBoundary(0,0), fBlockMatrix(0), fIntPointsData(0), fElemIndexes(0) {
-    SetMesh(cmesh);
+TPZIntPointsStructMatrix::TPZIntPointsStructMatrix(TPZCompMesh *cmesh) : TPZStructMatrix(cmesh)  {
+    fRhs.Resize(0,0);
+    fRhsBoundary.Resize(0,0);
+    fBlockMatrix.resize(0);
+    fIntPointsData.resize(0);
+    fElemIndexes.resize(0);
+}
+
+TPZIntPointsStructMatrix::TPZIntPointsStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh)  {
+    fRhs.Resize(0,0);
+    fRhsBoundary.Resize(0,0);
+    fBlockMatrix.resize(0);
+    fIntPointsData.resize(0);
+    fElemIndexes.resize(0);
 }
 
 TPZIntPointsStructMatrix::~TPZIntPointsStructMatrix() {
@@ -257,7 +274,7 @@ void TPZIntPointsStructMatrix::Initialize() {
     }
 }
 
-void TPZIntPointsStructMatrix::AssembleResidual() {
+void TPZIntPointsStructMatrix::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     int nmat = fElemIndexes.size();
     int dim = fMesh->Dimension();
     int neq = fMesh->NEquations();
@@ -296,6 +313,7 @@ void TPZIntPointsStructMatrix::AssembleResidual() {
         fRhs += residual;
     }
     fRhs += fRhsBoundary;
+    rhs = fRhs;
 }
 
 void TPZIntPointsStructMatrix::ColoringElements(int imat)  {

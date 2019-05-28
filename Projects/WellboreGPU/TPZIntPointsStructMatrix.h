@@ -19,6 +19,8 @@ public:
      */
     TPZIntPointsStructMatrix(TPZCompMesh *cmesh);
 
+    TPZIntPointsStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh);
+
     /** @brief Default destructor */
     ~TPZIntPointsStructMatrix();
 
@@ -46,7 +48,7 @@ public:
     void IntPointsInfo(int imat);
 
     /** @brief Assemble the load vector */
-    void AssembleResidual();
+    void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
     /** @brief Performs elements coloring */
     void ColoringElements(int imat);

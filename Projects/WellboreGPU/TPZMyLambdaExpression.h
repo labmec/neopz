@@ -1,18 +1,20 @@
 //
 // Created by natalia on 17/05/19.
 //
+#include "TPZPlasticStepPV.h"
+#include "TPZYCMohrCoulombPV.h"
+#include "TPZElastoPlasticMem.h"
+#include "TPZMatElastoPlastic2D.h"
 
 #ifndef INTPOINTSFEM_TPZMYLAMBDAEXPRESSION_H
 #define INTPOINTSFEM_TPZMYLAMBDAEXPRESSION_H
-
-#include "TPZIntPointsStructMatrix.h"
 
 class TPZMyLambdaExpression {
 
 public:
     TPZMyLambdaExpression();
 
-    TPZMyLambdaExpression(TPZIntPointsStructMatrix *intPointsStructMatrix, int imat);
+    TPZMyLambdaExpression(int npts, TPZVec<REAL> weight, TPZMaterial *material);
 
     ~TPZMyLambdaExpression();
 
@@ -20,15 +22,11 @@ public:
 
     TPZMyLambdaExpression &operator=(const TPZMyLambdaExpression &copy);
 
-    void SetIntPoints(TPZIntPointsStructMatrix *IntPoints) {
-        fIntPointsStructMatrix = IntPoints;
-    }
+    void SetIntPoints(int64_t npts);
 
-    void SetMaterialId(int imat) {
-        fIMat = imat;
-        TPZMaterial *material = fIntPointsStructMatrix->Mesh()->FindMaterial(imat + 1);
-        fMaterial = dynamic_cast<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse> , TPZElastoPlasticMem> *>(material);
-    }
+    void SetWeightVector(TPZVec<REAL> weight);
+
+    void SetMaterial(TPZMaterial *material);
 
     void ElasticStrain(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &elastic_strain);
 
@@ -47,9 +45,9 @@ public:
     void ComputeSigma(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &sigma);
 
 protected:
-    int fIMat;
+    int64_t fNpts;
 
-    int fNpts;
+    TPZVec<REAL> fWeight;
 
     TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV,TPZElasticResponse>, TPZElastoPlasticMem> *fMaterial;
 
@@ -58,8 +56,6 @@ protected:
     TPZFMatrix<REAL> fMType;
 
     TPZFMatrix<REAL> fAlpha;
-
-    TPZIntPointsStructMatrix *fIntPointsStructMatrix;
 
 };
 

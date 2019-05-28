@@ -9,7 +9,7 @@
 #include "TPZBndCondWithMem.h"
 
 #include "TPZMyLambdaExpression.h"
-#include "TPZIntPointsStructMatrix.h"
+#include "TPZElastoPlasticIntPointsStructMatrix.h"
 #include "TElastoPlasticData.h"
 #include "TRKSolution.h"
 
@@ -61,8 +61,7 @@ int main(int argc, char *argv[]) {
     
 // Generates the geometry
     std::string source_dir = SOURCE_DIR;
-    std::cout << SOURCE_DIR << std::endl;
-    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore.msh";
+    std::string msh_file = source_dir + "/gmsh/wellbore.msh";
     TPZGeoMesh *gmesh = ReadGeometry(msh_file);
     PrintGeometry(gmesh);
 
@@ -481,9 +480,9 @@ void SolutionIntPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
     REAL norm_res, norm_delta_du;
     int neq = analysis->Solution().Rows();
     TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
+    TPZFMatrix<REAL> rhs(neq, 1, 0.);
 
-    TPZIntPointsStructMatrix *intPointsStructMatrix = new TPZIntPointsStructMatrix(analysis->Mesh());
-    intPointsStructMatrix->Initialize();
+    TPZElastoPlasticIntPointsStructMatrix *intPointsStructMatrix = new TPZElastoPlasticIntPointsStructMatrix(analysis->Mesh());
 //
     std::cout  << "Solving a NLS with DOF = " << neq << std::endl;
 
@@ -494,9 +493,9 @@ void SolutionIntPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
         delta_du = analysis->Solution();
         du += delta_du;
         analysis->LoadSolution(du);
-        intPointsStructMatrix->AssembleResidual();
+        intPointsStructMatrix->CalcResidual(rhs);
         norm_delta_du = Norm(delta_du);
-        norm_res = Norm(intPointsStructMatrix->Rhs());
+        norm_res = Norm(rhs);
         stop_criterion_Q = norm_res < tolerance;
         std::cout << "Nonlinear process :: delta_du norm = " << norm_delta_du << std::endl;
         std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
@@ -509,7 +508,7 @@ void SolutionIntPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
             break;
         }
 //        analysis->Assemble();
-        analysis->Rhs() = intPointsStructMatrix->Rhs();
+        analysis->Rhs() = rhs;
 
     }
 
