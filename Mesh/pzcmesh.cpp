@@ -1125,6 +1125,46 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &el
 	elgraphindex.Resize(curel+1);
 }
 
+void TPZCompMesh::ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, std::set<int> & mat_ids){
+    
+    int64_t i, ncon;
+    TPZStack<int64_t> connectstack;
+    int64_t nelem = NElements();
+    elgraphindex.Resize(nelem+1);
+    elgraphindex[0] = 0;
+    elgraph.Resize(0);
+    int64_t curel=0;
+    int64_t nindep = this->NIndependentConnects();
+    for(i=0; i<nelem; i++) {
+        TPZCompEl *el = fElementVec[i];
+        /// Apply the filter by material identifiers
+        bool has_material_Q = el->HasMaterial(mat_ids);
+        if(!el || has_material_Q){
+            elgraphindex[curel+1]=elgraph.NElements();
+            curel++;
+            continue;
+        }
+        connectstack.Resize(0);
+        el->BuildConnectList(connectstack);
+        int64_t in;
+        ncon = connectstack.NElements();
+        for(in=0; in<ncon; in++) {
+            int ic = connectstack[in];
+            TPZConnect &c = fConnectVec[ic];
+            if(c.HasDependency() || c.IsCondensed()) continue;
+#ifdef  PZDEBUG
+            if (c.SequenceNumber() >= nindep) {
+                DebugStop();
+            }
+#endif
+            elgraph.Push(c.SequenceNumber());
+        }
+        elgraphindex[curel+1]=elgraph.NElements();
+        curel++;
+    }
+    elgraphindex.Resize(curel+1);
+}
+
 void TPZCompMesh::Divide(int64_t index,TPZVec<int64_t> &subindex,int interpolate) {
 	
 	TPZCompEl * el = fElementVec[index];
