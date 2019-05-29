@@ -299,7 +299,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin, ESinSinDirNonHom,ESinMark};
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst};
     
     int fDimension = 2;
     
