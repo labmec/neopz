@@ -254,7 +254,11 @@ public:
     int NPoints(){
         return m_n_point_els;
     }
-    
+
+    /// Return the dimension of the mesh
+    int Dimension() {
+        return m_dimension;
+    }
 };
 
 #endif /* TPZGmshReader_h */
