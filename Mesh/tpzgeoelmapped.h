@@ -297,43 +297,14 @@ virtual int ClassId() const;
 //    }
     
     /** @brief Return the Jacobian matrix at the point*/
-    template<class T>
-    void GradX(TPZVec<T> &qsi, TPZFMatrix<T> &gradx) const {
-        
-        /// Creating Variables
-        TPZGeoEl *father = TBase::Father();
-        if(!father)
-        {
-            TBase::GradX(qsi,gradx);
-            return;
-        }
-        TPZGeoEl *nextfather = father;
-        while(nextfather)
-        {
-            father = nextfather;
-            nextfather = father->Father();
-        }
-        
-        TPZManVector<T,3> ksibar(father->Dimension());
-        TPZFNMatrix<9,T> gradxlocal;
-        Geo::GradX(fCornerCo,qsi,gradxlocal);
-        Geo::X(fCornerCo,qsi,ksibar);
-        TPZFNMatrix<9,T> gradxfather;
-        father->GradX(ksibar, gradxfather);
-
-        /// @brief Combining Variables
-        gradxfather.Multiply(gradxlocal, gradx);
-#ifdef LOG4CXX
-        if(loggermapped->isDebugEnabled())
-        {
-            std::stringstream sout;
-            gradxfather.Print("gradx father",sout);
-            gradxlocal.Print("gradx local",sout);
-            gradx.Print("gradx",sout);
-            LOGPZ_DEBUG(loggermapped, sout.str())
-        }
-#endif
+    void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
+        return TGradX(qsi, gradx);
     }
+#ifdef _AUTODIFF
+    void GradX(TPZVec<Fad<REAL>> &qsi, TPZFMatrix<Fad<REAL>> &gradx) const {
+        return TGradX(qsi, gradx);
+    }
+#endif
 	
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
 //	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
@@ -386,32 +357,15 @@ virtual int ClassId() const;
 //	}
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-    template<class T>
-	void X(TPZVec<T> &ksi,TPZVec<T> &result) const
-	{
-		TPZGeoEl *father = TBase::Father();
-		
-		if(!father)
-		{
-			return TBase::X(ksi,result);
-		}
-		
-		else
-		{
-			TPZGeoEl *nextfather = 0;
-			if(father) nextfather = father->Father();
-			while(nextfather)
-			{
-				father = nextfather;
-				nextfather = father->Father();
-			}
-			
-			TPZManVector<T,3> ksibar(this->Dimension());
-			KsiBar(ksi,ksibar);
-			father->X(ksibar,result);
-		}
+    void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const{
+	        return TX(ksi,result);
 	}
-	
+#ifdef _AUTODIFF
+    void X(TPZVec<Fad<REAL>> &ksi,TPZVec<Fad<REAL>> &result) const{
+        return TX(ksi,result);
+    }
+#endif
+
 	virtual void Print(std::ostream & out = std::cout)
 	{
         TBase::Print(out);
@@ -517,24 +471,15 @@ private:
     }
 	
     /** @brief Compute the map of the point ksi to the ancestor ksibar */
-    template<class T>
-    void KsiBar(TPZVec<T> &ksi, TPZVec<T> &ksibar) const
-    {
-		const int dim = Geo::Dimension;
-		TPZFNMatrix<Geo::NNodes,T> phi(Geo::NNodes,1,0.);
-		TPZFNMatrix<dim*dim+1,T> jac(dim,dim,0.);
-		TPZFNMatrix<dim*Geo::NNodes+1,T> dphi(dim,Geo::NNodes,0.);
-		Geo::TShape(ksi,phi,dphi);
-		ksibar.Fill(0.);
-		int in,id;
-		for(in=0; in<Geo::NNodes; in++)
-		{
-			for(id=0; id<dim; id++)
-			{
-				ksibar[id] += phi(in,0)*fCornerCo.GetVal(id,in);
-			}
-		}
+    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar) const{
+        return TKsiBar(ksi,ksibar);
     }
+
+    #ifdef _AUTODIFF
+    void KsiBar(TPZVec<Fad<REAL>> &ksi, TPZVec<Fad<REAL>> &ksibar) const{
+        return TKsiBar(ksi,ksibar);
+    }
+    #endif
 	
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc){
 		int ns = this->NSideNodes(side);
@@ -558,7 +503,91 @@ private:
 		
 		return newel;
 	}
-	
+
+protected:
+    template<class T>
+    void TGradX(TPZVec<T> &qsi, TPZFMatrix<T> &gradx) const {
+
+        /// Creating Variables
+        TPZGeoEl *father = TBase::Father();
+        if(!father)
+        {
+            TBase::GradX(qsi,gradx);
+            return;
+        }
+        TPZGeoEl *nextfather = father;
+        while(nextfather)
+        {
+            father = nextfather;
+            nextfather = father->Father();
+        }
+
+        TPZManVector<T,3> ksibar(father->Dimension());
+        TPZFNMatrix<9,T> gradxlocal;
+        Geo::GradX(fCornerCo,qsi,gradxlocal);
+        Geo::X(fCornerCo,qsi,ksibar);
+        TPZFNMatrix<9,T> gradxfather;
+        father->GradX(ksibar, gradxfather);
+
+        /// @brief Combining Variables
+        gradxfather.Multiply(gradxlocal, gradx);
+#ifdef LOG4CXX
+        if(loggermapped->isDebugEnabled())
+        {
+            std::stringstream sout;
+            gradxfather.Print("gradx father",sout);
+            gradxlocal.Print("gradx local",sout);
+            gradx.Print("gradx",sout);
+            LOGPZ_DEBUG(loggermapped, sout.str())
+        }
+#endif
+    }
+
+    template<class T>
+    void TX(TPZVec<T> &ksi,TPZVec<T> &result) const
+    {
+        TPZGeoEl *father = TBase::Father();
+
+        if(!father)
+        {
+            return TBase::X(ksi,result);
+        }
+
+        else
+        {
+            TPZGeoEl *nextfather = 0;
+            if(father) nextfather = father->Father();
+            while(nextfather)
+            {
+                father = nextfather;
+                nextfather = father->Father();
+            }
+
+            TPZManVector<T,3> ksibar(this->Dimension());
+            KsiBar(ksi,ksibar);
+            father->X(ksibar,result);
+        }
+    }
+
+    /** @brief Compute the map of the point ksi to the ancestor ksibar */
+    template<class T>
+    void TKsiBar(TPZVec<T> &ksi, TPZVec<T> &ksibar) const
+    {
+        const int dim = Geo::Dimension;
+        TPZFNMatrix<Geo::NNodes,T> phi(Geo::NNodes,1,0.);
+        TPZFNMatrix<dim*dim+1,T> jac(dim,dim,0.);
+        TPZFNMatrix<dim*Geo::NNodes+1,T> dphi(dim,Geo::NNodes,0.);
+        Geo::TShape(ksi,phi,dphi);
+        ksibar.Fill(0.);
+        int in,id;
+        for(in=0; in<Geo::NNodes; in++)
+        {
+            for(id=0; id<dim; id++)
+            {
+                ksibar[id] += phi(in,0)*fCornerCo.GetVal(id,in);
+            }
+        }
+    }
 };
 
 template<class TBase>

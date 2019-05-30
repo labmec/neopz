@@ -107,18 +107,7 @@ namespace pzgeom {
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
-            
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
@@ -127,7 +116,7 @@ namespace pzgeom {
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
@@ -207,7 +196,7 @@ namespace pzgeom {
     
     
     template<class T>
-    inline void TPZGeoTetrahedra::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    inline void TPZGeoTetrahedra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
         gradx.Resize(3,3);
         gradx.Zero();
