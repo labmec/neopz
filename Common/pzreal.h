@@ -92,14 +92,16 @@ struct has_val {
 
     static constexpr bool value = test_val<T>(int());
 };
-template<typename T, typename std::enable_if<has_val<T>::value,int>::type * = nullptr>
-bool IsNanPZ(const T& var){
-    return isnan(var.val());
-}
-template<typename T, typename std::enable_if<!(has_val<T>::value),int>::type * = nullptr>
-bool IsNanPZ(const T& var){
-    return isnan(var);
-}
+
+//I forgot about TPZExtractVal. IsNanPZ is not really necessary.
+//template<typename T, typename std::enable_if<has_val<T>::value,int>::type * = nullptr>
+//bool IsNanPZ(const T& var){
+//    return isnan(var.val());
+//}
+//template<typename T, typename std::enable_if<!(has_val<T>::value),int>::type * = nullptr>
+//bool IsNanPZ(const T& var){
+//    return isnan(var);
+//}
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
 #define MAX( a, b )   ( (a) > (b) ? (a) : (b) )

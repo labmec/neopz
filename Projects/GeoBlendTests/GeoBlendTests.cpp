@@ -10,8 +10,10 @@
 #include <TPZQuadSphere.h>
 #include "tpzgeoblend.h"
 #include "pzgeoquad.h"
+#include "TPZGeoLinear.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
+#include "tpzgeoelmapped.h"
 
 namespace blendtest{
     void CreateGeoMesh2D(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix);
@@ -400,6 +402,7 @@ namespace blendtest {
                     xiReal.Resize(geo->Dimension(),0);
                     xiFad.Resize(geo->Dimension(),0);
                     for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                        bool hasAnErrorOccurred = false;
                         intRule->Point(iPt,xiReal,weight);
                         for(int x = 0; x < geo->Dimension(); x++){
                             xiFad[x] = Fad<REAL>(geo->Dimension(),x,xiReal[x]);
@@ -413,16 +416,27 @@ namespace blendtest {
                         geo->X(xiFad, xFad);
                         TPZFNMatrix<9,REAL> gradXreal(3,3,0);
                         geo->GradX(xiReal, gradXreal);
+                        std::ostringstream xFadM, gradXM;
+                        xFadM<<"xFad:"<<std::endl;
+                        gradXM<<"grad x:"<<std::endl;
+                        const auto VAL_WIDTH = 10;
                         for(int i = 0; i < gradXreal.Rows(); i++){
                             for(int j = 0; j < gradXreal.Cols(); j++){
-                                std::cout<<"xFad["<<i<<"].dx("<<j<<") = "<<xFad[i].dx(j)<<std::endl;
-                                std::cout<<"gradXreal("<<i<<","<<j<<") = "<<gradXreal(i,j)<<std::endl;
+                                xFadM<<std::setw(VAL_WIDTH) << std::right<<xFad[i].dx(j)<<"\t";
+                                gradXM<<std::setw(VAL_WIDTH) << std::right<<gradXreal(i,j)<<"\t";
                                 const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*(xFad[i].dx(j)-gradXreal(i,j));
-                                std::cout<<"diff:\t"<<diff<<std::endl;
                                 if(diff > tol){
-                                    errors++;
+                                    if(!hasAnErrorOccurred) errors++;
+                                    hasAnErrorOccurred = true;
                                 }
                             }
+                            xFadM<<std::endl;
+                            gradXM<<std::endl;
+                        }
+                        if(hasAnErrorOccurred){
+                            std::cout<<std::flush;
+                            std::cout<<xFadM.str()<<std::endl;
+                            std::cout<<gradXM.str()<<std::endl;
                         }
                     }
                     std::cout<<"============================"<<std::endl;

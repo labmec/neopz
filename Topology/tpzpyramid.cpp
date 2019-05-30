@@ -909,7 +909,8 @@ namespace pztopology {
 				else
 				{
                     SidePar[0] = -1 + (8*(-1 + zeta)*zeta)/(qsi*(1 + eta - zeta) + (-1 + zeta)*(1 + eta + 3*zeta));
-                    T denominator =
+                    T denominator = (qsi*(1 + eta - zeta) + (-1 + zeta)*(1 + eta + 3*zeta))*
+                            (qsi*(1 + eta - zeta) + (-1 + zeta)*(1 + eta + 3*zeta));
                     JacToSide(0,0) = (-8*(1 + eta - zeta)*(-1 + zeta)*zeta)/denominator;
                     JacToSide(0,1) = (-8*(-1 + zeta)*zeta*(-1 + qsi + zeta))/denominator;
                     JacToSide(0,2) = (-8*(-1 + qsi)*((-1 + zeta)*(-1 + zeta)) +
@@ -1078,7 +1079,7 @@ namespace pztopology {
 		}
         #ifdef PZDEBUG
 		for(int i = 0; i < SidePar.size();i++){
-           if(IsNanPZ( TPZExtractVal::val(SidePar[i]) )){
+           if(std::isnan( TPZExtractVal::val(SidePar[i]) )){
                DebugStop();
            }
         }
