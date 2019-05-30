@@ -1091,15 +1091,8 @@ int64_t TPZCompMesh::NIndependentConnects() {
 void TPZCompMesh::ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex){
 	
     std::set<int> mat_ids;
-    int64_t nelem = NElements();
-    for(int64_t i=0; i<nelem; i++) {
-        TPZCompEl *cel = fElementVec[i];
-        TPZMaterial * mat = cel->Material();
-        if(!mat) {
-            DebugStop();
-        }
-        int mat_id = mat->Id();
-        mat_ids.insert(mat_id);
+    for (auto item : fMaterialVec) {
+        mat_ids.insert(item.first);
     }
     ComputeElGraph(elgraph, elgraphindex, mat_ids);
 }
