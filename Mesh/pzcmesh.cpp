@@ -166,9 +166,7 @@ void TPZCompMesh::CleanUp() {
 		ref->ResetReference();
 		this->LoadReferences();
 	}
-#ifdef PZDEBUG
-    //ComputeNodElCon();
-#endif
+
 	int64_t i, nelem = this->NElements();
 
 	//deleting subcompmesh
