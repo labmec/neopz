@@ -680,8 +680,8 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(fDim+1,1);
-    TPZFMatrix<STATE> gradu(fDim+1,1);
+    TPZFNMatrix<3,REAL> flux(fDim+1,1);
+    TPZFNMatrix<3,REAL> gradu(fDim+1,1);
     
     //Exact solution
 	if(var == 36){
@@ -710,7 +710,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0] = flux(0,0);
         Solout[1] = flux(1,0);
     
-     //   std::cout<<"\ndata x "<<datavec[0].x<< " K "<<PermTensor<<" -------fluxo "<<Solout<<std::endl;
+        std::cout<<"\ndata x "<<datavec[0].x<< " K "<<PermTensor<<" -------fluxo "<<Solout<<std::endl;
 
 		return;
 	}//var7
