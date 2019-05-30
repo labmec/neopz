@@ -209,7 +209,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
     {
-        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX2"<<std::endl;
+        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX2_______REF_1"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
         soutLogDebug << "xi: ";
         for(int i = 0; i < xiInterior.size(); i++) soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<xiInterior[i]<<"\t";
@@ -245,7 +245,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
 
 #ifdef LOG4CXX
     soutLogDebug << "================================" << std::endl;
-    soutLogDebug << "gradient of linear mapping:\n";
+    soutLogDebug << "gradient of linear mapping:_______REF_2\n";
     if (logger->isDebugEnabled()) {
         for (int i = 0; i < gradXLin.Rows(); i++) {
             for (int j = 0; j < gradXLin.Cols(); j++) {
@@ -934,10 +934,10 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
     {
-        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2"<<std::endl;
+        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
         soutLogDebug << "xi: ";
-        for(int i = 0; i < xi.size(); i++) soutLogDebug<<xi[i]<<"\t";
+        for(int i = 0; i < xi.size(); i++) soutLogDebug<<xi[i]<<"\n";
         soutLogDebug<<std::endl;
     }
     #endif
@@ -960,7 +960,15 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
             result[x] += coord(x, iNode) * phi(iNode, 0);
         }
     }
-
+    #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        soutLogDebug << "================================" << std::endl;
+        soutLogDebug << "Linear mapping_______REF_2"<<std::endl;
+        for(int i = 0; i < result.size(); i++) soutLogDebug<<result[i]<<"\n";
+        soutLogDebug<<std::endl;
+    }
+    #endif
 
     /**
      * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
@@ -1034,11 +1042,11 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
         #ifdef LOG4CXX
         if(logger->isDebugEnabled()){
             soutLogDebug <<"xi projection over side: ";
-            for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\t";
+            for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\n";
             soutLogDebug<<std::endl<<"xi projection in side domain: ";
-            for (int x = 0; x < sideXi.size(); x++) soutLogDebug<<sideXi[x]<<"\t";
+            for (int x = 0; x < sideXi.size(); x++) soutLogDebug<<sideXi[x]<<"\n";
             soutLogDebug<<std::endl<<"linear mapping of projected point: ";
-            for (int x = 0; x < 3; x++) soutLogDebug<<linearSideMappings(sideIndex, x)<<"\t";
+            for (int x = 0; x < 3; x++) soutLogDebug<<linearSideMappings(sideIndex, x)<<"\n";
             soutLogDebug<<std::endl<<"gelside exists: ";
             if(gelside.Exists()) soutLogDebug<<"true"<<std::endl;
             else soutLogDebug<<"false"<<std::endl;
@@ -1109,7 +1117,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
             soutLogDebug << "Non-linear mapping: ";
-            for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\t";
+            for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\n";
             soutLogDebug << std::endl;
         }
 #endif
@@ -1132,7 +1140,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;
-        for (int x = 0; x < 3; x++) soutLogDebug<<result[x]<<"\t";
+        for (int x = 0; x < 3; x++) soutLogDebug<<result[x]<<"\n";
         soutLogDebug << "\n================================" <<std::endl;
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "================================" <<std::endl;
