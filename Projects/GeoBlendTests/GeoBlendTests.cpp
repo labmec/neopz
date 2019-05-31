@@ -385,8 +385,7 @@ namespace blendtest {
             outTXT.close();
             outVTK.close();
         }
-
-        ///TODO: GRADX TEST
+#ifdef _AUTODIFF
         {
             TPZManVector<REAL,3> xiReal;
             TPZManVector<Fad<REAL>,3> xiFad;
@@ -446,6 +445,7 @@ namespace blendtest {
                 }
             }
         }
+#endif
         {
             TPZVec<TPZGeoEl *> sons;
             std::vector<std::string> loading = {"-","/","|","\\"};

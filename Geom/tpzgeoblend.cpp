@@ -8,7 +8,7 @@
 #include "tpzgeoelmapped.h"
 #include "pzgeoelrefless.h"
 #include "tpzgeoelrefpattern.h"
-
+#include "pzextractval.h"
 #include "pzlog.h"
 #include <sstream>
 
@@ -208,8 +208,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
     const auto VAL_WIDTH = 10;
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
-    {
-        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX2_______REF_1"<<std::endl;
+    {   soutLogDebug<<"======================_______REF_1"<<std::endl;
+        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX2"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
         soutLogDebug << "xi: ";
         for(int i = 0; i < xiInterior.size(); i++) soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<xiInterior[i]<<"\t";
@@ -244,8 +244,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
     }
 
 #ifdef LOG4CXX
-    soutLogDebug << "================================" << std::endl;
-    soutLogDebug << "gradient of linear mapping:_______REF_2\n";
+    soutLogDebug<<"======================_______REF_2"<<std::endl;
+    soutLogDebug << "gradient of linear mapping:\n";
     if (logger->isDebugEnabled()) {
         for (int i = 0; i < gradXLin.Rows(); i++) {
             for (int j = 0; j < gradXLin.Cols(); j++) {
@@ -348,14 +348,38 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
                 }
             }
         }
+
+        gradLinSideXiSide.Multiply(transfXiToSideXi,gradLinSide);//gradLinSideTemp = gradLinSideXiSide.transfXiToSideXi
+        dXprojDxiSide.Multiply(transfXiToSideXi,dXiProjectedOverSideDxi);//dXprojDxiTemp = dXprojDxiSide.transfXiToSideXi
+
         #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
+            soutLogDebug<<"======================_______REF_3"<<std::endl;
             soutLogDebug << "xi projection over side: ";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug << xiProjectedOverSide[x] << "\t";
+            soutLogDebug << "\nGrad of projected point to side:\n";
+            for(int i = 0; i < dXiProjectedOverSideDxi.Rows(); i++){
+                for(int j = 0; j < dXiProjectedOverSideDxi.Cols(); j++){
+                    soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<dXiProjectedOverSideDxi(i,j);
+                    if(j != dXiProjectedOverSideDxi.Cols() - 1) soutLogDebug<<"\t";
+                }
+                soutLogDebug<<std::endl;
+            }
             soutLogDebug << std::endl << "xi projection in side domain: ";
             for (int x = 0; x < sideXi.size(); x++) soutLogDebug << sideXi[x] << "\t";
             soutLogDebug << std::endl << "linear mapping of projected point: ";
             for (int x = 0; x < 3; x++) soutLogDebug << linearSideMappings(sideIndex, x) << "\t";
+                soutLogDebug << "\nGrad of linear mapping of point projected to side:\n";
+            for(int i = 0; i < gradLinSide.Rows(); i++){
+                for(int j = 0; j < gradLinSide.Cols(); j++){
+                    soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<gradLinSide(i,j);
+                    if(j != gradLinSide.Cols() - 1) soutLogDebug<<"\t";
+                }
+                soutLogDebug<<std::endl;
+            }
+
+
+
             soutLogDebug << "\nGrad of linear mapping of point projected to side(resp. x side):\n";
             for(int i = 0; i < gradLinSideXiSide.Rows(); i++){
                 for(int j = 0; j < gradLinSideXiSide.Cols(); j++){
@@ -382,32 +406,9 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             }
         }
         #endif
-
-        gradLinSideXiSide.Multiply(transfXiToSideXi,gradLinSide);//gradLinSideTemp = gradLinSideXiSide.transfXiToSideXi
-        dXprojDxiSide.Multiply(transfXiToSideXi,dXiProjectedOverSideDxi);//dXprojDxiTemp = dXprojDxiSide.transfXiToSideXi
         /**
          * Calculates the non-linear mapping of the side sideIndex
          */
-        #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
-            soutLogDebug << "\nGrad of linear mapping of point projected to side:\n";
-            for(int i = 0; i < gradLinSide.Rows(); i++){
-                for(int j = 0; j < gradLinSide.Cols(); j++){
-                    soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<gradLinSide(i,j);
-                    if(j != gradLinSide.Cols() - 1) soutLogDebug<<"\t";
-                }
-                soutLogDebug<<std::endl;
-            }
-            soutLogDebug << "\nGrad of projected point to side:\n";
-            for(int i = 0; i < dXiProjectedOverSideDxi.Rows(); i++){
-                for(int j = 0; j < dXiProjectedOverSideDxi.Cols(); j++){
-                    soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<dXiProjectedOverSideDxi(i,j);
-                    if(j != dXiProjectedOverSideDxi.Cols() - 1) soutLogDebug<<"\t";
-                }
-                soutLogDebug<<std::endl;
-            }
-        }
-        #endif
         {
             TPZManVector<T,3> dCorrFactor(TGeo::Dimension,(T)0);
             TGeo::CalcSideInfluence(side, xiInterior, correctionFactor[sideIndex], dCorrFactor);
@@ -509,6 +510,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
 //        }
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
+            soutLogDebug<<"======================_______REF_4"<<std::endl;
             soutLogDebug << "Non-linear mapping: ";
             for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\t";
             soutLogDebug << "\nGrad of non-linear mapping:\n";
@@ -522,8 +524,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             soutLogDebug << std::endl;
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
             soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
-//            LOGPZ_DEBUG(logger, soutLogDebug.str())
-//            soutLogDebug.str("");
+            for(int i = 0; i < TGeo::Dimension; i++) soutLogDebug<<dCorrFactorDxi(sideIndex,i)<<"\t";
+            soutLogDebug<<std::endl;
         }
 #endif
 
@@ -538,6 +540,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
     }
 #ifdef LOG4CXX
     if(logger->isDebugEnabled()){
+        soutLogDebug<<"======================_______REF_5"<<std::endl;
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;
@@ -934,6 +937,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
     {
+        soutLogDebug<<"======================_______REF_1"<<std::endl;
         soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
         soutLogDebug << "xi: ";
@@ -963,8 +967,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
     #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
-        soutLogDebug << "================================" << std::endl;
-        soutLogDebug << "Linear mapping_______REF_2"<<std::endl;
+        soutLogDebug<<"======================_______REF_2"<<std::endl;
+        soutLogDebug << "Linear mapping"<<std::endl;
         for(int i = 0; i < result.size(); i++) soutLogDebug<<result[i]<<"\n";
         soutLogDebug<<std::endl;
     }
@@ -1041,6 +1045,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
          */
         #ifdef LOG4CXX
         if(logger->isDebugEnabled()){
+            soutLogDebug<<"======================_______REF_3"<<std::endl;
             soutLogDebug <<"xi projection over side: ";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\n";
             soutLogDebug<<std::endl<<"xi projection in side domain: ";
@@ -1116,14 +1121,11 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
 //        }
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
+            soutLogDebug<<"======================_______REF_4"<<std::endl;
             soutLogDebug << "Non-linear mapping: ";
             for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\n";
             soutLogDebug << std::endl;
-        }
-#endif
 
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
             soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
 //            LOGPZ_DEBUG(logger,soutLogDebug.str())
@@ -1137,6 +1139,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
     }
 #ifdef LOG4CXX
     if(logger->isDebugEnabled()){
+        soutLogDebug<<"======================_______REF_5"<<std::endl;
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;

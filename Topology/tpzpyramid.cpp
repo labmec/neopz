@@ -11,6 +11,7 @@
 
 #include "pzcreateapproxspace.h"
 #include "pzlog.h"
+#include "pzextractval.h"
 
 #ifdef _AUTODIFF
 #include "fad.h"
