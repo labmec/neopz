@@ -325,19 +325,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
                     dXiProjectedOverSideDxi(TGeo::Dimension,TGeo::Dimension,(T)0);
         TPZManVector<REAL, 3> nodeCoord;
         //calculation of transformation for the derivatives of sidephi
-        TPZFNMatrix<9,T> transfMat;
-        {
-            TPZTransform<T> Transf;
-            Transf.CopyFrom(TGeo::SideToSideTransform(side, TGeo::NSides - 1));
 
-            int R = Transf.Mult().Rows();
-            int C = Transf.Mult().Cols();
-            transfMat.Resize(R,C);
-            for(int i = 0; i < R; i++)
-            {
-                for(int j = 0; j < C; j++) transfMat(i,j) = Transf.Mult()(i,j);
-            }
-        }
         //TODO:verificar tentativa atual, transformando o gradiente das sidePhi antes de realizar a conta.
         // nao sei se está correto. encontrei erros na projeção do tetraedro.
         TPZFNMatrix<9, T> gradLinSideXiSide(3,sideDim,(T)0);
@@ -353,43 +341,23 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             for (int x = 0; x < TGeo::Dimension; x++) {
                 xiProjectedOverSide[x] += nodeCoord[x] * sidePhiVec(iNode, 0);
             }
-            TPZManVector<T,3> dSidePhiDxi(TGeo::Dimension);
-            for(int xi = 0; xi < TGeo::Dimension; xi++){
-                dSidePhiDxi[xi] = 0;
-                for(int xiSide = 0; xiSide < sideDim; xiSide++) {
-                    dSidePhiDxi[xi]+= transfXiToSideXi(xiSide,xi)* dSidePhiDSideXiVec(xiSide,iNode);
-                }
-            }
 
             for(int x = 0; x < 3; x++){
-                for(int xi = 0; xi < TGeo::Dimension; xi++) {
-                    gradLinSide(x,xi) += coord(x, currentNode) * dSidePhiDxi[xi];
+                for(int xi = 0; xi < sideDim; xi++) {
+                    gradLinSideXiSide(x,xi) += coord(x, currentNode) * dSidePhiDSideXiVec(xi,iNode);
                 }
             }
 
             for (int i = 0; i < TGeo::Dimension; i++) {
-                for (int j = 0; j < TGeo::Dimension; j++) {
-                    dXiProjectedOverSideDxi(i,j) += nodeCoord[i] * dSidePhiDxi[j];
+                for (int j = 0; j < sideDim; j++) {
+                    dXprojDxiSide(i,j) += nodeCoord[i] * dSidePhiDSideXiVec(j,iNode);
                 }
             }
 
-
-//            for(int x = 0; x < 3; x++){
-//                for(int xi = 0; xi < sideDim; xi++) {
-//                    gradLinSideXiSide(x,xi) += coord(x, currentNode) * dSidePhiDSideXiVec(xi,iNode);
-//                }
-//            }
-//
-//            for (int i = 0; i < TGeo::Dimension; i++) {
-//                for (int j = 0; j < sideDim; j++) {
-//                    dXprojDxiSide(i,j) += nodeCoord[i] * dSidePhiDSideXiVec(j,iNode);
-//                }
-//            }
-
         }
 
-//        gradLinSideXiSide.Multiply(transfXiToSideXi,gradLinSide);//gradLinSideTemp = gradLinSideXiSide.transfXiToSideXi
-//        dXprojDxiSide.Multiply(transfXiToSideXi,dXiProjectedOverSideDxi);//dXprojDxiTemp = dXprojDxiSide.transfXiToSideXi
+        gradLinSideXiSide.Multiply(transfXiToSideXi,gradLinSide);//gradLinSideTemp = gradLinSideXiSide.transfXiToSideXi
+        dXprojDxiSide.Multiply(transfXiToSideXi,dXiProjectedOverSideDxi);//dXprojDxiTemp = dXprojDxiSide.transfXiToSideXi
 
         #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
@@ -491,13 +459,16 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             }
 #endif
             if (shouldContributeToMapping) {
-                TPZFNMatrix<3, T> dCorrFactorSideDxiProjMat(TGeo::Dimension,1,(T)0);
+                TPZFNMatrix<3, T> dCorrFactorSideDxiProjMat(1,TGeo::Dimension,(T)0);
                 for(int xi = 0; xi < TGeo::Dimension; xi++){
-                    dCorrFactorSideDxiProjMat(xi,0) = dCorrFactorSideDxiProj[xi];
+                    dCorrFactorSideDxiProjMat(0,xi) = dCorrFactorSideDxiProj[xi];
                 }
 
 //                 dCorrFactorSideDxi = dXiProjectedOverSideDxi. dCorrFactorSideDxiProjMat
-                dXiProjectedOverSideDxi.Multiply(dCorrFactorSideDxiProjMat,dCorrFactorSideDxi);//mostrarphil
+//                dXiProjectedOverSideDxi.Multiply(dCorrFactorSideDxiProjMat,dCorrFactorSideDxi);//mostrarphil
+
+//                dCorrFactorSideDxi = dCorrFactorSideDxiProjMat . dXiProjectedOverSideDxi;
+                dCorrFactorSideDxiProjMat.Multiply(dXiProjectedOverSideDxi,dCorrFactorSideDxi);
                 #ifdef LOG4CXX
                 if (logger->isDebugEnabled()) {
                     soutLogDebug << "\n\tGrad of correction factor of point projected to side:\n";
@@ -520,7 +491,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
                              linearSideMappings(subSide - TGeo::NNodes, x));
                     for (int j = 0; j < TGeo::Dimension; j++) {
                         gradNonLinSide(x,j) -= correctionFactorSide *  (gradNonLinSubSide(x,j)-gradLinSubSide(x,j));
-                        gradNonLinSide(x,j) -= dCorrFactorSideDxi(j,0) *
+                        gradNonLinSide(x,j) -= dCorrFactorSideDxi(0,j) *
                                 (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
                                 linearSideMappings(subSide - TGeo::NNodes, x));
                     }
@@ -1072,9 +1043,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TP
             for (int x = 0; x < sideXi.size(); x++) soutLogDebug<<sideXi[x]<<"\n";
             soutLogDebug<<std::endl<<"linear mapping of projected point:\n";
             for (int x = 0; x < 3; x++) soutLogDebug<<linearSideMappings(sideIndex, x)<<"\n";
-            soutLogDebug<<std::endl<<"gelside exists: ";
-            if(gelside.Exists()) soutLogDebug<<"true"<<std::endl;
-            else soutLogDebug<<"false"<<std::endl;
         }
         #endif
 
