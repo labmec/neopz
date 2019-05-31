@@ -792,18 +792,18 @@ namespace pztopology {
         pt[2] = val;
     }
 
-    
+
     template<class T>
     bool TPZPrism::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
         double zero = 1.E-5;
-		
-		T qsi = InternalPar[0];
-		T eta = InternalPar[1];
-		T zeta = InternalPar[2];
 
-		bool regularmap = true;
-		switch(side)
-		{
+        T qsi = InternalPar[0];
+        T eta = InternalPar[1];
+        T zeta = InternalPar[2];
+
+        bool regularmap = true;
+        switch(side)
+        {
             case 0:
             case 1:
             case 2:
@@ -814,196 +814,243 @@ namespace pztopology {
                 SidePar.Resize(0); JacToSide.Resize(0,0);
                 break;
             }
-			case 6://1D
-				SidePar.Resize(1);
-				JacToSide.Resize(1,3);
-				if(fabs((T)(eta-1.)) < zero)
-				{
-					SidePar[0] = 0.;
-					JacToSide(0,0) = 1.;
-					JacToSide(0,1) = 1.;
-					JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-					SidePar[0] = 2.*qsi/(1.-eta) - 1.;
-					JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 7://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs((T)(qsi+eta)) < zero)
-				{
-					SidePar[0] = 0.;
+            case 6://1D
+                SidePar.Resize(1);
+                JacToSide.Resize(1,3);
+                if(fabs((T)(eta-1.)) < zero)
+                {
+                    SidePar[0] = 0.;
                     JacToSide(0,0) = 1.;
-					JacToSide(0,1) = 1.;
-					JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*qsi/(qsi + eta);
-                    JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta)); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 8://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs((T)(qsi-1.)) < zero)
-				{
+                    JacToSide(0,1) = 1.;
+                    JacToSide(0,2) = 0.;
+                    regularmap = false;
+                }
+                else
+                {
+                    T den = -1 + eta;
+                    SidePar[0] = -1 - (2*qsi)/den;
+                    JacToSide(0,0) = -2/den;
+                    JacToSide(0,1) = (2*qsi)/(den*den);
+                    JacToSide(0,2) = 0;
+                }
+                break;
+
+            case 7://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs((T)(qsi+eta)) < zero)
+                {
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 1.;
+                    JacToSide(0,1) = 1.;
+                    JacToSide(0,2) = 0.;
+                    regularmap = false;
+                }
+                else
+                {
+                    T den = eta + qsi;
+                    SidePar[0] = -1 + (2*eta)/den;
+                    JacToSide(0,0) = (-2*eta)/(den*den);
+                    JacToSide(0,1) = (2*qsi)/(den*den);
+                    JacToSide(0,2) = 0;
+                }
+                break;
+
+            case 8://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs((T)(qsi-1.)) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*eta/(1.-qsi);
-                    JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 9://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				SidePar[0] = zeta;
-				JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 1.;
-				break;
-				
-			case 10://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				SidePar[0] = zeta;
-				JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 1.;
-				break;
-				
-			case 11://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				SidePar[0] = zeta;
-				JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 1.;
-				break;
-				
-			case 12://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs((T)(eta-1.)) < zero)
-				{
+                    regularmap = false;
+                }
+                else
+                {
+                    T den = -1 + qsi;
+                    SidePar[0] = 1 + (2*eta)/den;
+                    JacToSide(0,0) = (-2*eta)/(den*den);
+                    JacToSide(0,1) = 2/den;
+                    JacToSide(0,2) = 0;
+                }
+                break;
+
+            case 9://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                SidePar[0] = zeta;
+                JacToSide(0,0) = 0;
+                JacToSide(0,1) = 0;
+                JacToSide(0,2) = 1;
+                break;
+
+            case 10://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                SidePar[0] = zeta;
+                JacToSide(0,0) = 0;
+                JacToSide(0,1) = 0;
+                JacToSide(0,2) = 1;
+                break;
+
+            case 11://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                SidePar[0] = zeta;
+                JacToSide(0,0) = 0;
+                JacToSide(0,1) = 0;
+                JacToSide(0,2) = 1;
+                break;
+
+            case 12://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs((T)(eta-1.)) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 2.*qsi/(1.-eta) - 1.;
-                    JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 13://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs((T)(qsi+eta)) < zero)
-				{
+                    regularmap = false;
+                }
+                else
+                {
+                    T den = 1 - eta;
+                    SidePar[0] = -1 +(2*qsi)/den;
+                    JacToSide(0,0) = 2/den;
+                    JacToSide(0,1) = (2*qsi)/(den*den);
+                    JacToSide(0,2) = 0;
+                }
+                break;
+
+            case 13://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs((T)(qsi+eta)) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*qsi/(qsi + eta);
-                    JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta)); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 14://1D
-				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if(fabs((T)(qsi-1.)) < zero)
-				{
+                    regularmap = false;
+                }
+                else
+                {
+                    SidePar[0] = -1 + (2*eta)/(eta + qsi);
+                    JacToSide(0,0) = (-2*eta)/((eta + qsi)*(eta + qsi));
+                    JacToSide(0,1) = (2*qsi)/((eta + qsi)*(eta + qsi));
+                    JacToSide(0,2) = 0;
+                }
+                break;
+
+            case 14://1D
+                SidePar.Resize(1); JacToSide.Resize(1,3);
+                if(fabs((T)(qsi-1.)) < zero)
+                {
                     SidePar[0] = 0.;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*eta/(1.-qsi);
-                    JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi); JacToSide(0,2) = 0.;
-				}
-				break;
-				
-			case 15://2D - triangle
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				SidePar[0] = qsi; SidePar[1] = eta;
-				JacToSide(0,0) = 1.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-				JacToSide(1,0) = 0.; JacToSide(1,1) = 1.; JacToSide(1,2) = 0.;
-				break;
-				
-			case 16://2D - quadrilateral
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(eta-1.)) < zero)
-				{
+                    regularmap = false;
+                }
+                else
+                {
+                    SidePar[0] = 1 + (2*eta)/(-1 + qsi);
+                    JacToSide(0,0) = (-2*eta)/((-1 + qsi)*(-1 + qsi));
+                    JacToSide(0,1) = 2/(-1 + qsi);
+                    JacToSide(0,2) = 0;
+                }
+                break;
+
+            case 15://2D - triangle
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                SidePar[0] = qsi;
+                SidePar[1] = eta;
+                JacToSide(0,0) = 1;
+                JacToSide(0,1) = 0;
+                JacToSide(0,2) = 0;
+                JacToSide(1,0) = 0;
+                JacToSide(1,1) = 1;
+                JacToSide(1,2) = 0;
+                break;
+
+            case 16://2D - quadrilateral
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs((T)(eta-1.)) < zero)
+                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 2.*qsi/(1.-eta) - 1.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta)); JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(0,2) = 1.;
-				}
-				break;
-				
-			case 17://2D - quadrilateral
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(qsi+eta)) < zero)
-				{
+                    regularmap = false;
+                }
+                else
+                {
+                    SidePar[0] = -1 - (2*qsi)/(-1 + eta);
+                    SidePar[1] = zeta;
+                    JacToSide(0,0) = -2/(-1 + eta);
+                    JacToSide(0,1) = (2*qsi)/((-1 + eta)*(-1 + eta));
+                    JacToSide(0,2) = 0;
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = 0;
+                    JacToSide(1,2) = 1;
+                }
+                break;
+
+            case 17://2D - quadrilateral
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs((T)(qsi+eta)) < zero)
+                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*qsi/(qsi + eta); SidePar[1] = zeta;
-                    JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta)); JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(0,2) = 1.;
-				}
-				break;
-				
-			case 18://2D - quadrilateral
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(qsi-1.)) < zero)
-				{
+                    regularmap = false;
+                }
+                else
+                {
+                    SidePar[0] = -1 + (2*eta)/(eta + qsi);
+                    SidePar[1] = zeta;
+                    JacToSide(0,0) = (-2*eta)/((eta + qsi)*(eta + qsi));
+                    JacToSide(0,1) = (2*qsi)/((eta + qsi)*(eta + qsi));
+                    JacToSide(0,2) = 0;
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = 0;
+                    JacToSide(1,2) = 1;
+                }
+                break;
+
+            case 18://2D - quadrilateral
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                if(fabs((T)(qsi-1.)) < zero)
+                {
                     SidePar[0] = 0.; SidePar[1] = zeta;
                     JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*eta/(1.-qsi); SidePar[1] = zeta;
-                    JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi); JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(0,2) = 1.;
-				}
-				break;
-				
-			case 19://2D - triangle
-				SidePar.Resize(2); JacToSide.Resize(2,3);
-				SidePar[0] = qsi; SidePar[1] = eta;
-				JacToSide(0,0) = 1.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
-				JacToSide(1,0) = 0.; JacToSide(1,1) = 1.; JacToSide(1,2) = 0.;
-				break;
+                    regularmap = false;
+                }
+                else
+                {
+                    SidePar[0] = -1 - (2*eta)/(-1 + qsi);
+                    SidePar[1] = zeta;
+                    JacToSide(0,0) = (2*eta)/((-1 + qsi)*(-1 + qsi));
+                    JacToSide(0,1) = -2/(-1 + qsi);
+                    JacToSide(0,2) = 0;
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = 0;
+                    JacToSide(1,2) = 1;
+                }
+                break;
+
+            case 19://2D - triangle
+                SidePar.Resize(2); JacToSide.Resize(2,3);
+                SidePar[0] = qsi;
+                SidePar[1] = eta;
+                JacToSide(0,0) = 1;
+                JacToSide(0,1) = 0;
+                JacToSide(0,2) = 0;
+                JacToSide(1,0) = 0;
+                JacToSide(1,1) = 1;
+                JacToSide(1,2) = 0;
+                break;
             case 20:
                 SidePar = InternalPar;
                 JacToSide.Resize(3, 3);
                 JacToSide.Identity();
                 break;
-		}
-		if(side > 20)
-		{
-			cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n";
-			DebugStop();
-		}
-		return regularmap;
-	}
+        }
+        if(side > 20)
+        {
+            cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n";
+            DebugStop();
+        }
+        return regularmap;
+    }
     
     void TPZPrism::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
     {
