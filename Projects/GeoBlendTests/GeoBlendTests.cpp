@@ -33,7 +33,7 @@ int main()
     bool printGMesh = true;
     bool newBlend = true;
     int nDiv = 3;
-    bool run3d = true;
+    bool run3d = false;
 
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -76,17 +76,16 @@ namespace blendtest {
     void CreateGeoMesh2D(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix) {
         gmesh = new TPZGeoMesh();
 
-        int64_t nNodes= 8;
-        gmesh->NodeVec().Resize(nNodes);
-
         TPZVec<REAL> coord(3, 0.);
         for (int64_t i = 0; i < 4; i++) {
             coord[0] = i/2 == i % 2 ? -1 : 1;
             coord[1] = -1 + 2 * (i/2);
 //            std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
-            gmesh->NodeVec()[i].SetCoord(coord);
-            gmesh->NodeVec()[i].SetNodeId(i);
+            const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+            gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
         }//quad nodes
+
+        TPZManVector<int64_t,4> nodesIdArcsVec(4);
         for (int64_t i = 0; i < 4; i++) {
             const int xOff = i%2;
             const int yOff = 1 - xOff;
@@ -97,12 +96,13 @@ namespace blendtest {
 //            std::cout<<"xOff:\t"<<xOff<<"\txSign:"<<xSign<<std::endl;
 //            std::cout<<"yOff:\t"<<yOff<<"\tySign:"<<ySign<<std::endl;
 //            std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
-            gmesh->NodeVec()[4+i].SetCoord(coord);
-            gmesh->NodeVec()[4+i].SetNodeId(4+i);
+            const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+            gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
+            nodesIdArcsVec[i] = newindex;
         }//quad nodes
 
         int matIdQuad = 1, matIdArc = 2;
-        TPZVec<int64_t> nodesIdVec(1);
+        TPZManVector<int64_t,4> nodesIdVec(1);
         int64_t elId = 0;
 
         nodesIdVec.Resize(4);
@@ -145,10 +145,10 @@ namespace blendtest {
             nodesIdVec.Resize(nNodes+1);
             for (int node = 0; node < nNodes; node++){
                 nodesIdVec[node] = pztopology::TPZQuadrilateral::SideNodeLocId(edge,node);
-                std::cout<<nodesIdVec[node]<<"\t";
+//                std::cout<<nodesIdVec[node]<<"\t";
             }
-            nodesIdVec[nNodes] = edge;
-            std::cout<<nodesIdVec[nNodes]<<std::endl;
+            nodesIdVec[nNodes] = nodesIdArcsVec[edge-firstEdge];
+//            std::cout<<nodesIdVec[nNodes]<<std::endl;
             arc = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodesIdVec, matIdArc, *gmesh);
             auto arcRefp = refp->SideRefPattern(edge);
             arc->SetRefPattern(arcRefp);
@@ -166,10 +166,53 @@ namespace blendtest {
                 geo->Divide(sons);
             }
         }
+
+        //Create GeoBlend elements
+        {
+            TPZGeoMesh *newgmesh = new TPZGeoMesh();
+            for (int64_t i = 0; i < gmesh->NNodes(); i++) {
+                coord[0] = gmesh->NodeVec()[i].Coord(0);
+                coord[1] = gmesh->NodeVec()[i].Coord(1);
+                coord[2] = gmesh->NodeVec()[i].Coord(2);
+                const int64_t newindex = newgmesh->NodeVec().AllocateNewElement();
+                newgmesh->NodeVec()[newindex].Initialize(coord,*newgmesh);
+            }
+            //TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >
+            const int nel = gmesh->NElements();
+            newgmesh->ElementVec().Resize(nel);
+            for (int iel = 0; iel < nel; iel++) {
+                newgmesh->ElementVec()[iel] = nullptr;
+                TPZGeoEl *geo = gmesh->Element(iel);
+                nodesIdVec.resize(geo->NNodes());
+                for(int i = 0; i < nodesIdVec.size(); i++){
+                    nodesIdVec[i] = geo->NodeIndex(i);
+                }
+                const int matId = geo->MaterialId();
+                const int elId = geo->Index();
+//                geo->Ind
+                switch(geo->Type()){
+                    case ETriangle:
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle>>(elId,nodesIdVec,matId,*newgmesh);
+                        break;
+                    case EQuadrilateral:
+                        if(geo->HasSubElement()) continue;//the original cube should not be copied
+                        new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>>(elId,nodesIdVec,matId,*newgmesh);
+                        break;
+                    default:
+                        geo->Clone(*newgmesh);
+                        break; //the element should not be deleted
+                }
+                //TPZGeoElRefPattern(int64_t id,TPZVec<int64_t> &nodeindexes,int matind,TPZGeoMesh &mesh);
+            }
+            delete gmesh;
+            gmesh = newgmesh;
+        }
+
+
         gmesh->ResetConnectivities();
         gmesh->BuildConnectivity();
         if (printGMesh) {
-            std::string meshFileName = prefix + "gmesh_partial";
+            std::string meshFileName = prefix + "gmesh2D_partial";
             const size_t strlen = meshFileName.length();
             meshFileName.append(".vtk");
             std::ofstream outVTK(meshFileName.c_str());
@@ -182,28 +225,88 @@ namespace blendtest {
             outVTK.close();
         }
 
+        #ifdef _AUTODIFF
+        {
+            TPZManVector<REAL,3> xiReal;
+            TPZManVector<Fad<REAL>,3> xiFad;
+            REAL weight = -1;//useless
+            const REAL tol = 1e-8;
+            const int pOrder = 3;
+            const int nel = gmesh->NElements();
+            for (int iel = 0; iel < nel; iel++) {
+                TPZGeoEl *geo = gmesh->ElementVec()[iel];
+                if (geo && !geo->HasSubElement()) {
+                    uint64_t errors = 0;
+                    auto intRule = geo->CreateSideIntegrationRule(geo->NSides()-1, pOrder);
+                    xiReal.Resize(geo->Dimension(),0);
+                    xiFad.Resize(geo->Dimension(),0);
+                    for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                        bool hasAnErrorOccurred = false;
+                        intRule->Point(iPt,xiReal,weight);
+                        for(int x = 0; x < geo->Dimension(); x++){
+                            xiFad[x] = Fad<REAL>(geo->Dimension(),x,xiReal[x]);
+                        }
+//                        Fad<REAL> func;
+//                        func = 9*xiFad[0];
+//                        for(int i =0; i < func.size(); i++){
+//                            std::cout<<"dx["<<i<<"]:\t"<<func.dx(i)<<std::endl;
+//                        }
+                        TPZManVector<Fad<REAL>,3> xFad(3);
+                        geo->X(xiFad, xFad);
+                        TPZFNMatrix<9,REAL> gradXreal(3,3,0);
+                        geo->GradX(xiReal, gradXreal);
+                        std::ostringstream xFadM, gradXM;
+                        xFadM<<"xFad:"<<std::endl;
+                        gradXM<<"grad x:"<<std::endl;
+                        const auto VAL_WIDTH = 10;
+                        for(int i = 0; i < gradXreal.Rows(); i++){
+                            for(int j = 0; j < gradXreal.Cols(); j++){
+                                xFadM<<std::setw(VAL_WIDTH) << std::right<<xFad[i].dx(j)<<"\t";
+                                gradXM<<std::setw(VAL_WIDTH) << std::right<<gradXreal(i,j)<<"\t";
+                                const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*(xFad[i].dx(j)-gradXreal(i,j));
+                                if(diff > tol){
+                                    if(!hasAnErrorOccurred) errors++;
+                                    hasAnErrorOccurred = true;
+                                }
+                            }
+                            xFadM<<std::endl;
+                            gradXM<<std::endl;
+                        }
+                        if(hasAnErrorOccurred){
+                            std::cout<<std::flush;
+                            std::cout<<xFadM.str()<<std::endl;
+                            std::cout<<gradXM.str()<<std::endl;
+                        }
+                    }
+                    std::cout<<"============================"<<std::endl;
+                    std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
+                    std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
+                    std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
+                }
+            }
+        }
+        #endif
+
+
         {
             TPZVec<TPZGeoEl *> sons;
+            std::vector<std::string> loading = {"-","/","|","\\"};
             for (int iDiv = 0; iDiv < nDiv; iDiv++) {
-                int nel = gmesh->NElements();
+                std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
+                const int nel = gmesh->NElements();
                 for (int iel = 0; iel < nel; iel++) {
-                    TPZGeoEl *geo = gmesh->Element(iel);
-                    TPZGeoEl *current = geo;
-                    int nFather = 0;
-                    while (current->Father()) {
-                        current = current->Father();
-                        nFather++;
-                    }
-                    if (nFather <= iDiv && !geo->HasSubElement()) {
+                    std::cout<<"\b"<<loading[iel%4]<<std::flush;
+                    TPZGeoEl *geo = gmesh->ElementVec()[iel];
+                    if (geo && !geo->HasSubElement()) {
                         geo->Divide(sons);
-                        nel = gmesh->NElements();
                     }
                 }
+                std::cout<<"\b"<<std::endl;
             }
         }
 
         if (printGMesh) {
-            std::string meshFileName = prefix + "gmesh";
+            std::string meshFileName = prefix + "gmesh2D";
             const size_t strlen = meshFileName.length();
             meshFileName.append(".vtk");
             std::ofstream outVTK(meshFileName.c_str());
@@ -372,7 +475,7 @@ namespace blendtest {
         gmesh->ResetConnectivities();
         gmesh->BuildConnectivity();
         if (printGMesh) {
-            std::string meshFileName = prefix + "gmesh_partial";
+            std::string meshFileName = prefix + "gmesh3D_partial";
             std::cout<<"Printing "<<meshFileName<<".vtk and .txt"<<std::endl;
             const size_t strlen = meshFileName.length();
             meshFileName.append(".vtk");
@@ -464,7 +567,7 @@ namespace blendtest {
         }
 
         if (printGMesh) {
-            std::string meshFileName = prefix + "gmesh";
+            std::string meshFileName = prefix + "gmesh3D";
             const size_t strlen = meshFileName.length();
             meshFileName.append(".vtk");
             std::ofstream outVTK(meshFileName.c_str());
