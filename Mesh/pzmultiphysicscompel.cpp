@@ -683,7 +683,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZManVector<TPZMaterialData,3> datavec;
+	TPZManVector<TPZMaterialData,4> datavec;
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
@@ -694,10 +694,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule;
 	
-    TPZManVector<REAL,3> intpointtemp(TGeometry::Dimension,0.);
+    TPZManVector<REAL,4> intpointtemp(TGeometry::Dimension,0.);
 	REAL weight = 0.;
 	
-	TPZManVector<int,3> ordervec;
+	TPZManVector<int,4> ordervec;
 	//ordervec.resize(nref);
 	for (int64_t iref=0;  iref<nref; iref++)
 	{
@@ -720,7 +720,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZGeoEl *ref = this->Reference();
 	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
 	
-	TPZManVector<int,3> intorder(dim,order);
+	TPZManVector<int,4> intorder(dim,order);
 	intrule->SetOrder(intorder);
 	int intrulepoints = intrule->NPoints();
     if(intrulepoints > 1000) {
