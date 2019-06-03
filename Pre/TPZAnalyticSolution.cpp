@@ -1254,11 +1254,16 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         {
     
             TVar theta=atan2(xloc[1],xloc[0]);//theta=arctan(y/x)
-            //disp[0]= (TVar)(2.)*xloc[0]*xloc[1]/r2;//
-            //TVar factor=pow(r2,TVar (1.)/TVar (3.))-pow(r,TVar (3.));
-           // disp[0]= factor*((TVar)(2.)*xloc[0]*xloc[1]/r2);
-            disp[0]=(pow(r2, 1./3.)- pow(r, 3) )*sin(2.*theta/3.);
-            std::cout<< "r2 "<< r2<< " r "<<r << "x " << xloc<< std::endl;
+            
+             if( theta < TVar(0.)) theta += 2.*M_PI;
+        
+            
+   //         std::cout<< "theta "<<theta<<std::endl;
+            
+            TVar factor=pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (3.));
+            disp[0]= factor*((TVar)(2.)*sin((TVar)(2.)*theta/TVar(3.)));
+           
+            
             
         }
             break;
@@ -1274,7 +1279,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             
             break;
             
-        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=100, Omega2=Omega4=1
+        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3, Omega2=Omega4=5
         {
             TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
                 -0.7453559924999296, 0.5555555555555556,
@@ -1285,34 +1290,34 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             if(t < TVar(0.)) t += 2.*M_PI;
             
             if((xloc[0] >=TVar(0.)) && (xloc[1] >=TVar(0.))){
-                std::cout<<"1o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+               // std::cout<<"1o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
                 
                 disp[0]=pow(r, lambda)*(TVar(coefs[0])*cos(lambda *t) + TVar(coefs[1])*sin(lambda*t) );
-                std::cout<<"valor da funcao no 1o. Q "<<disp[0]<<std::endl;
+               // std::cout<<"valor da funcao no 1o. Q "<<disp[0]<<std::endl;
                // disp[0]=pow(r, lambda)*(cos(lambda *t)+TVar(-1.)*TVar(0.1)*sin(lambda*t));
                 
             }
             
             if(( xloc[0] <= TVar(0.)) && (xloc[1] >=TVar(0.))){
-                std::cout<<"2o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+               // std::cout<<"2o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
                 
                 disp[0]= pow(r, lambda)*(TVar(coefs[2])*cos(lambda*t) + TVar(coefs[3])*sin(lambda* t));
-                //disp[0]= pow(r, lambda)*(TVar(2.9604)*cos(lambda*t) +TVar(-1.)* TVar(9.60396)*sin(lambda* t));
-                 std::cout<<"valor da funcao no 2o. Q "<<disp[0]<<std::endl;
+                
+             //    std::cout<<"valor da funcao no 2o. Q "<<disp[0]<<std::endl;
             }
             
             if((xloc[0] <TVar(0.)) && ( xloc[1] <= TVar(0.))){
-                std::cout<<"3o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+               // std::cout<<"3o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
                 disp[0]= pow(r, lambda)*(TVar(coefs[4] )*cos(lambda*t) + TVar(coefs[5])*sin(lambda* t));
                 //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(0.882757 )*cos(lambda*t) + TVar(-1.)*TVar(0.480355)*sin(lambda* t));
-                 std::cout<<"valor da funcao no 3o. Q "<<disp[0]<<std::endl;
+              //   std::cout<<"valor da funcao no 3o. Q "<<disp[0]<<std::endl;
             }
             if(( xloc[0] >= TVar(0.)) && ( xloc[1] < TVar(0.))){
-                std::cout<<"4o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
+              //  std::cout<<"4o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
 
                 disp[0]= pow(r, lambda)*(TVar(coefs[6])*cos(lambda*t) +  TVar(coefs[7])*sin(lambda* t));
-                //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(6.45646)*cos(lambda*t) +  TVar(7.70156 )*sin(lambda* t));
-                std::cout<<"valor da funcao no 4o. Q "<<disp[0]<<std::endl;
+                
+               // std::cout<<"valor da funcao no 4o. Q "<<disp[0]<<std::endl;
                 
             }
             
@@ -1368,6 +1373,19 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                 
                 
             }
+            
+            
+        }
+            break;
+            
+        case EBoundaryLayer:{
+            TVar term1 = xloc[0]*xloc[1]*(1-xloc[0])*(1-xloc[1]);
+            TVar term2 = exp(TVar(10.)*xloc[0])*exp(TVar(10.)*xloc[1]);
+            TVar factor = TVar(537930);
+            
+            disp[0] = (term1*term2)/factor;
+            
+          //  std::cout<<"Pto "<<xloc<<" valor da funcao "<<disp[0]<<std::endl;
             
             
         }
@@ -1463,8 +1481,10 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         {
             
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
-            TVar factor=pow(r2,TVar (1.)/TVar (3.))-pow(r,TVar (3.));
-            disp[0]= factor*((TVar)(2.)*xloc[0]*xloc[1]/r2);//(pow(r2, (TVar)(1.)/(TVar)(3.))- pow(r, (TVar)(3.)))*FADsin((TVar)(2.)*theta/(TVar)(3.));
+            if( theta < TVar(0.)) theta += 2.*M_PI;
+            
+            TVar factor=pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (3.));
+            disp[0]= factor*((TVar)(2.)*FADsin((TVar)(2.)*theta/TVar(3.)));
             
         }
             break;
@@ -1564,6 +1584,17 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
                 
                 
             }
+        }
+            break;
+            
+        case EBoundaryLayer:{
+            TVar term1 = xloc[0]*xloc[1]*(1-xloc[0])*(1-xloc[1]);
+            TVar term2 = FADexp(TVar(10.)*xloc[0])*FADexp(TVar(10.)*xloc[1]);
+            TVar factor = TVar(537930);
+            
+            disp[0] = (term1*term2)/factor;
+
+            
         }
             break;
             
