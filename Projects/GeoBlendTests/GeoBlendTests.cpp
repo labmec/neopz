@@ -33,7 +33,7 @@ int main()
     bool printGMesh = true;
     bool newBlend = true;
     int nDiv = 3;
-    bool run3d = false;
+    bool run3d = true;
 
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -325,7 +325,6 @@ namespace blendtest {
 
         const int64_t nNodesHexa = 8;
         const int64_t nNodes= nNodesHexa;//+nNodesArc;
-        gmesh->NodeVec().Resize(nNodes);
 
         const REAL radius = std::sqrt(3);
         const REAL cubeSide= 2;
@@ -343,8 +342,8 @@ namespace blendtest {
             coord[0] = 0.5 * cubeSide * (2 * (int)xFactor - 1) ;
             coord[1] = 0.5 * cubeSide  * (1 - 2 * (int)yFactor);
             coord[2] = 0.5 * cubeSide * (2 * (int)zFactor - 1) ;
-            gmesh->NodeVec()[i].SetCoord(coord);
-            gmesh->NodeVec()[i].SetNodeId(i);
+            const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+            gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
 //            std::cout<<"x : "<<xFactor<<"\ty : "<<yFactor<<"\tz : "<<zFactor<<std::endl;
 //            std::cout<<"x : "<<coord[0]<<"\ty : "<<coord[1]<<"\tz : "<<coord[2]<<std::endl;
         }
@@ -427,14 +426,12 @@ namespace blendtest {
         //Create GeoBlend elements
         {
             TPZGeoMesh *newgmesh = new TPZGeoMesh();
-            newgmesh->NodeVec().Resize(gmesh->NNodes());
             for (int64_t i = 0; i < gmesh->NNodes(); i++) {
                 coord[0] = gmesh->NodeVec()[i].Coord(0);
                 coord[1] = gmesh->NodeVec()[i].Coord(1);
                 coord[2] = gmesh->NodeVec()[i].Coord(2);
-                newgmesh->NodeVec()[i].SetCoord(coord);
-                newgmesh->NodeVec()[i].SetNodeId(i);
-                newgmesh->SetMaxNodeId(i);
+                const int64_t newindex = newgmesh->NodeVec().AllocateNewElement();
+                newgmesh->NodeVec()[newindex].Initialize(coord,*newgmesh);
             }
             //TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoCube> >
             const int nel = gmesh->NElements();
