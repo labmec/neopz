@@ -8,6 +8,9 @@
 #include <pzgeopyramid.h>
 #include <TPZTriangleSphere.h>
 #include <TPZQuadSphere.h>
+#include <tpzquadraticquad.h>
+#include <tpzquadratictrig.h>
+#include <tpzquadraticline.h>
 #include "tpzgeoblend.h"
 #include "pzgeoquad.h"
 #include "TPZGeoLinear.h"
@@ -17,6 +20,8 @@
 
 namespace blendtest{
     void CreateGeoMesh2D(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix);
+    template <class TGeo>
+    void CreateGeoMesh2DNew(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix);
     void CreateGeoMesh3D(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix);
 }
 
@@ -33,7 +38,7 @@ int main()
     bool printGMesh = true;
     bool newBlend = true;
     int nDiv = 3;
-    bool run3d = true;
+    bool run3d = false;
 
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -60,8 +65,18 @@ int main()
         delete gmesh;
     }
     else{
+
         TPZGeoMesh * gmesh = nullptr;
-        CreateGeoMesh2D(gmesh, nDiv, printGMesh, prefix);
+//        CreateGeoMesh2D(gmesh, nDiv, printGMesh, prefix);
+//        delete gmesh;
+
+        gmesh = nullptr;
+//        CreateGeoMesh2D(gmesh, nDiv, printGMesh, prefix);
+        CreateGeoMesh2DNew<pzgeom::TPZGeoTriangle>(gmesh, nDiv, printGMesh, prefix);
+        delete gmesh;
+
+        gmesh = nullptr;
+        CreateGeoMesh2DNew<pzgeom::TPZGeoQuad>(gmesh, nDiv, printGMesh, prefix);
         delete gmesh;
     }
 
@@ -73,6 +88,189 @@ int main()
 }
 
 namespace blendtest {
+    template <class TGeo>
+    void CreateGeoMesh2DNew(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix) {
+        auto elType = TGeo::Type();
+        switch(elType){
+            case ETriangle:
+            case EQuadrilateral:
+                break;
+            default:
+                DebugStop();
+        }
+        const int64_t nNodesVolEl = TGeo::NNodes;
+        const int64_t dim = TGeo::Dimension;
+        gmesh = new TPZGeoMesh();
+
+
+        TPZManVector<REAL,3> coordsOffset(3,0);
+        coordsOffset[0] = 2;
+
+        TPZManVector<int64_t,4> nodesIdArcsVec(nNodesVolEl,-1);
+        {
+            TPZVec<REAL> coord(3, 0.);
+            const REAL xIni = 1;
+            const REAL yIni = 0;
+
+            ///CREATE NODES FOR QUADRATIC ELEMENT
+            for (int64_t i = 0; i < nNodesVolEl; i++) {
+                const REAL theta = ((REAL)i/nNodesVolEl) *2*M_PI;
+                coord[0] = cos(theta) * xIni - sin(theta) * yIni;
+                coord[1] = sin(theta) * xIni + cos(theta) * yIni;
+                coord[2] = 0;
+//            std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
+            }//quadraticElCornerNodes
+
+            REAL thetaOff = (1./nNodesVolEl) *M_PI;
+            for (int64_t i = 0; i < nNodesVolEl; i++) {
+                const REAL theta = ((REAL)i/nNodesVolEl) *2*M_PI + thetaOff;
+                coord[0] = cos(theta) * xIni - sin(theta) * yIni;
+                coord[1] = sin(theta) * xIni + cos(theta) * yIni;
+                coord[2] = 0;
+//            std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
+            }//quadraticElMidSideNodes
+
+            ///CREATE NODES FOR BLEND ELEMENT
+            for (int64_t i = 0; i < nNodesVolEl; i++) {
+                const REAL theta = ((REAL)i/nNodesVolEl) *2*M_PI;
+                coord[0] = cos(theta) * xIni - sin(theta) * yIni + coordsOffset[0];
+                coord[1] = sin(theta) * xIni + cos(theta) * yIni + coordsOffset[1];
+                coord[2] = 0 + coordsOffset[2];
+//            std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
+            }//blendElCornerNodes
+
+            for (int64_t i = 0; i < nNodesVolEl; i++) {
+                const REAL theta = ((REAL)i/nNodesVolEl) *2*M_PI + thetaOff;
+                coord[0] = cos(theta) * xIni - sin(theta) * yIni + coordsOffset[0];
+                coord[1] = sin(theta) * xIni + cos(theta) * yIni + coordsOffset[1];
+                coord[2] = 0 + coordsOffset[2];
+//            std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord,*gmesh);
+                nodesIdArcsVec[i] = gmesh->NodeVec()[newindex].Id();
+            }//blendElMidSideNodes
+        }
+        const int matIdVol = 1, matIdSphere = 2;
+        TPZManVector<int64_t,8> nodesIdVec(1);
+        int64_t elId = 0;
+
+        ///////CREATE MAX DIM ELEMENTS
+        nodesIdVec.Resize(nNodesVolEl * 2);
+        for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i;
+
+        TPZGeoEl *quadraticEl = nullptr, *blendEl = nullptr;
+        switch(elType){
+            case ETriangle:
+                quadraticEl = new TPZGeoElRefLess<pzgeom::TPZQuadraticTrig>(elId,nodesIdVec,matIdVol,*gmesh);
+                nodesIdVec.Resize(nNodesVolEl);
+                for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i + 2 * nNodesVolEl;
+                blendEl = new TPZGeoElRefLess<pzgeom::TPZGeoBlend<TGeo>>(elId,nodesIdVec,matIdVol,*gmesh);
+                break;
+            case EQuadrilateral:
+                quadraticEl = new TPZGeoElRefLess<pzgeom::TPZQuadraticQuad>(elId,nodesIdVec,matIdVol,*gmesh);
+                nodesIdVec.Resize(nNodesVolEl);
+                for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i + 2 * nNodesVolEl;
+                blendEl = new TPZGeoElRefLess<pzgeom::TPZGeoBlend<TGeo>>(elId,nodesIdVec,matIdVol,*gmesh);
+                break;
+            default:
+                DebugStop();
+                break; //the element should not be deleted
+        }
+
+        if (printGMesh) {
+            std::string meshFileName = prefix + "gmesh_" + TGeo::TypeName();
+            const size_t strlen = meshFileName.length();
+            meshFileName.replace(strlen, 4, ".txt");
+            std::ofstream outTXT(meshFileName.c_str());
+            gmesh->Print(outTXT);
+            outTXT.close();
+        }
+        ///////CREATE MAX DIM - 1 ELEMENTS FOR BLENDING
+        {
+            TPZStack<int> containedSides;
+            TGeo::LowerDimensionSides(TGeo::NSides - 1, containedSides, TGeo::Dimension - 1);
+            for (int64_t subSideIndex = 0;
+                 subSideIndex < containedSides.NElements(); subSideIndex++){
+                const int64_t subSide = containedSides[subSideIndex];
+                const int64_t nNodesSide = TGeo::NSideNodes(subSide);
+                nodesIdVec.Resize(nNodesSide+1);//TODO: depends on the type of the side
+                for (int64_t node = 0; node < nNodesSide; node++){
+                    const int64_t nodeId = TGeo::SideNodeLocId(subSide,node);
+                    nodesIdVec[node] = blendEl->Node(nodeId).Id();
+//                std::cout<<nodesIdVec[node]<<"\t";
+                }
+                nodesIdVec[nNodesSide] = nodesIdArcsVec[subSideIndex];//TODO: depends on the type of the side
+//            std::cout<<nodesIdVec[nNodes]<<std::endl;
+                new TPZGeoElRefLess<pzgeom::TPZQuadraticLine>(nodesIdVec, matIdSphere, *gmesh);//TODO: depends on the type of the side
+            }
+        }
+        gmesh->BuildConnectivity();
+
+
+        if (printGMesh) {
+            std::string meshFileName = prefix + "gmesh_" + TGeo::TypeName();
+            const size_t strlen = meshFileName.length();
+            meshFileName.append(".vtk");
+            std::ofstream outVTK(meshFileName.c_str());
+            meshFileName.replace(strlen, 4, ".txt");
+            std::ofstream outTXT(meshFileName.c_str());
+
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+            gmesh->Print(outTXT);
+            outTXT.close();
+            outVTK.close();
+        }
+        //X COMPARE
+        {
+            TPZManVector<REAL,3> xi;
+            REAL notUsedHere = -1;
+            const REAL tol = 1e-8;
+            const int pOrder = 10;
+            uint64_t errors = 0;
+            auto intRule = blendEl->CreateSideIntegrationRule(blendEl->NSides()-1, pOrder);
+            xi.Resize(dim,0);
+            for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                bool hasAnErrorOccurred = false;
+                intRule->Point(iPt,xi,notUsedHere);
+                TPZManVector<REAL,3> xBlend(3);
+                blendEl->X(xi, xBlend);
+                TPZManVector<REAL,3> xQuad(3);
+                quadraticEl->X(xi, xQuad);
+                std::ostringstream xBlendM, xQuadM;
+                xBlendM<<"x_blend:"<<std::endl;
+                xQuadM<<"x_quad:"<<std::endl;
+                const auto VAL_WIDTH = 15;
+                REAL diff = 0;
+                for(int i = 0; i < xBlend.size(); i++){
+                    xBlendM<<std::setw(VAL_WIDTH) << std::right<<xBlend[i] - coordsOffset[i]<<"\t";
+                    xQuadM <<std::setw(VAL_WIDTH) << std::right<<xQuad[i] <<"\t";
+                    diff += (xBlend[i] - coordsOffset[i] - xQuad[i])*(xBlend[i] - coordsOffset[i] - xQuad[i]);
+                }
+                xBlendM<<std::endl;
+                xQuadM<<std::endl;
+                if(diff > tol){
+                    if(!hasAnErrorOccurred) errors++;
+                    hasAnErrorOccurred = true;
+                }
+                if(hasAnErrorOccurred){
+                    std::cout<<std::flush;
+                    std::cout<<xBlendM.str()<<std::endl;
+                    std::cout<<xQuadM.str()<<std::endl;
+                    std::cout<<"diff :"<<diff<<std::endl;
+                }
+            }
+            std::cout<<"============================"<<std::endl;
+            std::cout<<"Element: "<<MElementType_Name(TGeo::Type());
+            std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
+        }
+    }
+
     void CreateGeoMesh2D(TPZGeoMesh *&gmesh, int nDiv, bool printGMesh, std::string prefix) {
         gmesh = new TPZGeoMesh();
 

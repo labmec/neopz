@@ -105,7 +105,7 @@ void TPZGeoMesh::CleanUp() {
     for (i = 0; i < nel; i++) {
         TPZGeoEl *el = fElementVec[i];
         if (el) {
-            el->ResetSubElements();
+            if(el->HasSubElement()) el->ResetSubElements();
             delete el;
             fElementVec[i] = 0;
         }
