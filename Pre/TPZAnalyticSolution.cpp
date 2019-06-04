@@ -1391,6 +1391,13 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         }
             break;
             
+        case EBubble:{
+            
+            disp[0] = xloc[0]*xloc[1]*xloc[2]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1])*(TVar(1.)-xloc[2]);
+           // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
+        }
+            break;
+            
         default:
             disp[0] = 0.;
             break;
@@ -1594,6 +1601,14 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             
             disp[0] = (term1*term2)/factor;
 
+            
+        }
+            break;
+            
+        case EBubble:{
+            
+            disp[0] = xloc[0]*xloc[1]*xloc[2]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1])*(TVar(1.)-xloc[2]);
+         //   std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
             
         }
             break;
