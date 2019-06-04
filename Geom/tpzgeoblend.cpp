@@ -17,9 +17,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 #endif
 
 template<class TGeo>
-bool pzgeom::TPZGeoBlend<TGeo>::fUseNewX = false;
-
-template<class TGeo>
 bool pzgeom::TPZGeoBlend<TGeo>::IsLinearMapping(int side) const
 {
     TPZStack<int> LowAllSides;
@@ -84,125 +81,7 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 
 template <class TGeo>
 template<class T>
-void pzgeom::TPZGeoBlend<TGeo>::GradX1(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
-{
-    
-    TPZFNMatrix<45> coord(3,TGeo::NNodes);
-    this->CornerCoordinates(gel,coord);
-    
-    TPZManVector<T,3> NeighPar, SidePar, Xside(3,0.), XNode(3,0.);
-    int majorSide = TGeo::NSides - 1;
-    
-    TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
-    TPZStack<int> LowNodeSides, LowAllSides;
-    
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "input parameter par " << par;
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    
-    TPZFNMatrix<24,T> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes);
-    TGeo::TShape(par,blend,Dblend);
-    
-    TPZFNMatrix<9,T> Grad1, Grad2, Gradient(3,TGeo::Dimension, 0.), Jneighbourhood;
-    REAL Det;
-    TPZGeoMesh *gmesh = gel.Mesh();
-    for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
-    {
-        TPZGeoElSide neighbyside = Neighbour(byside, gmesh);
-        if(neighbyside.Exists())
-        {
-            TGeo::LowerDimensionSides(byside,LowNodeSides,0);
-            TGeo::LowerDimensionSides(byside,LowAllSides);
-            int dim = Neighbour(byside, gmesh).Dimension();
-            TPZFNMatrix<9> Inv(dim,dim);
-            int sidedim = neighbyside.Dimension();
-            if(!MapToNeighSide(byside,sidedim,par,NeighPar, Jneighbourhood))
-            {
-                continue;
-            }
-            Neighbour(byside,gmesh).X(NeighPar,Xside);
-            Neighbour(byside, gmesh).GradX(NeighPar,Grad2);
-            
-            Grad2.Multiply(Jneighbourhood,Grad1);
-            
-#ifdef LOG4CXX
-            if(logger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                Grad1.Print("acumulated jacobian(J1) ",sout);
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
-            T blendTemp = 0.;
-            TPZManVector<T,3> DblendTemp(TGeo::Dimension,0.);
-            for(int a = 0; a < LowNodeSides.NElements(); a++)
-            {
-                TPZManVector<T> parChanged(par);
-                TGeo::TFixSingularity(byside,par,parChanged);
-                TGeo::TShape(parChanged,blend,Dblend);
-                
-                blendTemp += blend(LowNodeSides[a],0);
-                for(int b = 0; b < TGeo::Dimension; b++)
-                {
-                    DblendTemp[b] += Dblend(b,LowNodeSides[a]);
-                }
-            }
-            
-            for(int a = 0; a < 3; a++)
-            {
-                for(int b = 0; b < TGeo::Dimension; b++)
-                {
-                    Gradient(a,b) += (1 - SidesCounter[byside]) * (Grad1(a,b)*blendTemp + Xside[a]*DblendTemp[b]);
-                }
-            }
-            for(int a = 0; a < LowAllSides.NElements(); a++)
-            {
-                SidesCounter[LowAllSides[a]] += (1 - SidesCounter[byside]);
-            }
-        }
-    }
-    
-    for(int a = 0; a < TGeo::NNodes; a++)
-    {
-        for(int b = 0; b < 3; b++)
-        {
-            for(int c = 0; c < TGeo::Dimension; c++)
-            {
-                Gradient(b,c) += (1 - SidesCounter[a]) * coord(b,a)*Dblend(c,a);
-            }
-        }
-    }
-    
-    //    @omar:: this operation gradx = Gradient, cause something wrong during destruction of gradx
-    gradx.Resize(Gradient.Rows(),Gradient.Cols());
-    int r = gradx.Rows();
-    int c = gradx.Cols();
-    for(int i = 0; i < r; i++ ){
-        for(int j = 0; j < c; j++ ){
-            gradx(i,j) = Gradient(i,j);
-        }
-    }
-    
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        gradx.Print("GradX of blend",sout);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-
-}
-
-
-template <class TGeo>
-template<class T>
-void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
+inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
 
     #ifdef LOG4CXX
     const auto VAL_WIDTH = 10;
@@ -262,9 +141,9 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
      */
     TPZGeoMesh *gmesh = gel.Mesh();
     TPZVec<TPZFMatrix<T> > gradNonLinSideVec(TGeo::NSides - TGeo::NNodes,
-            TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
+                                             TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
     TPZVec<TPZFMatrix<T> > gradLinSideVec(TGeo::NSides - TGeo::NNodes,
-            TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
+                                          TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
     TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, (T)0);
     TPZFNMatrix<27,T> dCorrFactorDxi(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, (T) 0);
     TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
@@ -318,11 +197,11 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
         const int nSideNodes = MElementType_NNodes(sideType);
         const int sideDim = TGeo::SideDimension(side);
         TPZFNMatrix<9, T> sidePhiVec(nSideNodes, 1),
-                        dSidePhiDSideXiVec(sideDim, nSideNodes);
+                dSidePhiDSideXiVec(sideDim, nSideNodes);
         TGeo::GetSideShapeFunction(side, sideXi, sidePhiVec, dSidePhiDSideXiVec);
 
         TPZFNMatrix<9, T> dXprojDxiSide(TGeo::Dimension,sideDim,(T)0),
-                    dXiProjectedOverSideDxi(TGeo::Dimension,TGeo::Dimension,(T)0);
+                dXiProjectedOverSideDxi(TGeo::Dimension,TGeo::Dimension,(T)0);
         TPZManVector<REAL, 3> nodeCoord;
         //calculation of transformation for the derivatives of sidephi
 
@@ -384,7 +263,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             }
             soutLogDebug << std::endl << "\nLinear mapping of projected point: ";
             for (int x = 0; x < 3; x++) soutLogDebug << linearSideMappings(sideIndex, x) << "\t";
-                soutLogDebug << "\nGrad of linear mapping of point projected to side:\n";
+            soutLogDebug << "\nGrad of linear mapping of point projected to side:\n";
             for(int i = 0; i < gradLinSide.Rows(); i++){
                 for(int j = 0; j < gradLinSide.Cols(); j++){
                     soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<gradLinSide(i,j);
@@ -450,7 +329,7 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             TPZManVector<T,3> dCorrFactorSideDxiProj(TGeo::Dimension,(T)0);
             TPZFNMatrix<3, T> dCorrFactorSideDxi(TGeo::Dimension,1,(T)0);
             TGeo::CalcSideInfluence(subSide, xiProjectedOverSide, correctionFactorSide, dCorrFactorSideDxiProj);
-            
+
             bool shouldContributeToMapping = correctionFactorSide > zero;
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
@@ -492,8 +371,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
                     for (int j = 0; j < TGeo::Dimension; j++) {
                         gradNonLinSide(x,j) -= correctionFactorSide *  (gradNonLinSubSide(x,j)-gradLinSubSide(x,j));
                         gradNonLinSide(x,j) -= dCorrFactorSideDxi(0,j) *
-                                (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
-                                linearSideMappings(subSide - TGeo::NNodes, x));
+                                               (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
+                                                linearSideMappings(subSide - TGeo::NNodes, x));
                     }
                 }
             }
@@ -524,8 +403,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
             for (int j = 0; j < TGeo::Dimension; j++) {
                 gradx(i,j) += correctionFactor[sideIndex] *  (gradNonLinSide(i,j)-gradLinSide(i,j));
                 gradx(i,j) += dCorrFactorDxi(sideIndex,j) *
-                                       (nonLinearSideMappings(sideIndex, i) -
-                                        linearSideMappings(sideIndex,i));
+                              (nonLinearSideMappings(sideIndex, i) -
+                               linearSideMappings(sideIndex,i));
             }
         }
     }
@@ -561,6 +440,229 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX2(const TPZGeoEl &gel, TPZVec<T> &xiInterio
 
 }
 
+template<class TGeo>
+template<class T>
+inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T> &xi, TPZVec<T> &result) const {
+    TPZManVector<T,3> notUsedHereVec(3,(T)0);
+    TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
+    // bigger than needed.
+
+    #ifdef LOG4CXX
+    std::ostringstream soutLogDebug;
+    if(logger->isDebugEnabled())
+    {
+        soutLogDebug<<"======================_______REF_1"<<std::endl;
+        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
+        soutLogDebug << "element id " <<gel.Id()<<std::endl;
+        soutLogDebug << "xi: ";
+        for(int i = 0; i < xi.size(); i++) soutLogDebug<<xi[i]<<"\n";
+        soutLogDebug<<std::endl;
+    }
+    #endif
+    const REAL zero = 1e-14;
+    result.Resize(3);
+    result.Fill(0);
+    /**
+     * The non-linear mapping is calculated from deviations of the linear mapping.
+     * The linear mapping of an element (or of any of its side) can be calculated with the barycentric coordinates
+     * of the nodes contained in it
+     */
+    TPZFNMatrix<9, T> phi(TGeo::NNodes, 1);
+    TGeo::TShape(xi, phi, notUsedHereMat);//gets the barycentric coordinates
+
+    TPZFNMatrix<45> coord(3, TGeo::NNodes);
+    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
+
+    for (int iNode = 0; iNode < TGeo::NNodes; iNode++) {//calculates the linear mapping
+        for (int x = 0; x < 3; x++) {
+            result[x] += coord(x, iNode) * phi(iNode, 0);
+        }
+    }
+    #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        soutLogDebug<<"======================_______REF_2"<<std::endl;
+        soutLogDebug << "Linear mapping:\n"<<std::endl;
+        for(int i = 0; i < result.size(); i++) soutLogDebug<<result[i]<<"\n";
+        soutLogDebug<<std::endl;
+    }
+    #endif
+
+    /**
+     * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
+     */
+    TPZGeoMesh *gmesh = gel.Mesh();
+    TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
+    TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
+    TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
+    TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
+    for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
+        int side = TGeo::NNodes + sideIndex;
+        TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
+        #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            soutLogDebug << "================================" <<std::endl;
+            soutLogDebug << "side: "<<side<<" is linear: ";
+        }
+        #endif
+        if (IsLinearMapping(side) || !gelside.Exists()) {
+            correctionFactor[sideIndex] = 0;
+            #ifdef LOG4CXX
+            if(logger->isDebugEnabled()){
+                if( IsLinearMapping(side) )  soutLogDebug <<"true"<<std::endl;
+                else    soutLogDebug <<"false (no gelside) "<<std::endl;
+            }
+            #endif
+            continue;
+        }
+        #ifdef LOG4CXX
+        if(logger->isDebugEnabled()){
+            soutLogDebug <<"false (gelside exists) "<<std::endl;
+        }
+        #endif
+        /**
+     * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
+     */
+        TPZManVector<T, 3>  sideXi;
+        bool regularMap = this->MapToSide(side, xi, sideXi, notUsedHereMat);
+        if(!regularMap) {
+            #ifdef LOG4CXX
+            if(logger->isDebugEnabled()){
+                soutLogDebug <<"mapping is not regular. skipping side... ";
+
+            }
+            #endif
+            continue;
+        }
+        MElementType sideType = TGeo::Type(side);
+        const int nSideNodes = MElementType_NNodes(sideType);
+        TPZFNMatrix<9, T> sidePhi(nSideNodes, 1);
+        notUsedHereMat.Resize(TGeo::Dimension,nSideNodes);
+        TGeo::GetSideShapeFunction(side, sideXi, sidePhi, notUsedHereMat);
+
+        TPZManVector<REAL,3> nodeCoord;
+        for (int iNode = 0; iNode < nSideNodes; iNode++) {
+            const int currentNode = TGeo::SideNodeLocId(side, iNode);
+
+            for (int x = 0; x < 3; x++) {
+                linearSideMappings(sideIndex, x) +=
+                        coord(x, currentNode) * sidePhi(iNode, 0);
+            }
+            TGeo::ParametricDomainNodeCoord(currentNode,nodeCoord);
+            for (int x = 0; x < TGeo::Dimension; x++) {
+                projectedPointOverSide(sideIndex,x) += nodeCoord[x] * sidePhi(iNode,0);
+            }
+        }
+        /**
+         * Calculates the non-linear mapping of the side sideIndex
+         */
+        #ifdef LOG4CXX
+        if(logger->isDebugEnabled()){
+            soutLogDebug<<"======================_______REF_3"<<std::endl;
+            soutLogDebug <<"xi projection over side:\n";
+            for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\n";
+            soutLogDebug<<std::endl<<"xi projection in side domain:\n";
+            for (int x = 0; x < sideXi.size(); x++) soutLogDebug<<sideXi[x]<<"\n";
+            soutLogDebug<<std::endl<<"linear mapping of projected point:\n";
+            for (int x = 0; x < 3; x++) soutLogDebug<<linearSideMappings(sideIndex, x)<<"\n";
+        }
+        #endif
+
+        TGeo::CalcSideInfluence(side, xi, correctionFactor[sideIndex], notUsedHereVec);
+        int sidedim = gelside.Dimension();
+        TPZManVector<T, 3> neighXi;
+        if (!MapToNeighSide(side, sidedim, xi, neighXi, notUsedHereMat)) {
+#ifdef LOG4CXX2
+            if(logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            continue;
+        }
+        TPZManVector<T, 3> Xside(3, 0.);
+        Neighbour(side, gmesh).X(neighXi, Xside);
+        for (int x = 0; x < 3; x++) {
+            nonLinearSideMappings(sideIndex, x) = Xside[x];
+        }
+
+//        else{
+        TPZStack<int> containedNodesInSide;
+        TGeo::LowerDimensionSides(side, containedNodesInSide, 0);
+
+        TPZStack<int> allContainedSides;
+        TGeo::LowerDimensionSides(side, allContainedSides);
+        for (int subSideIndex = containedNodesInSide.NElements();
+             subSideIndex < allContainedSides.NElements(); subSideIndex++) {
+            const int subSide = allContainedSides[subSideIndex];
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                soutLogDebug << "\tSubside " << subSideIndex << " (global: " << subSide << ") is linear: ";
+                if (IsLinearMapping(subSide)) soutLogDebug << "true" << std::endl;
+                else soutLogDebug << "false" << std::endl;
+            }
+#endif
+            if (IsLinearMapping(subSide)) continue;
+            TPZManVector<T, 3> projectedPoint(TGeo::Dimension, -1);
+            for (int x = 0; x < TGeo::Dimension; x++) {
+                projectedPoint[x] = projectedPointOverSide(sideIndex, x);
+            }
+
+            T correctionFactorSide = -1;
+            TGeo::CalcSideInfluence(subSide, projectedPoint, correctionFactorSide,notUsedHereVec);
+            bool shouldContributeToMapping = correctionFactorSide > zero;
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                if (!shouldContributeToMapping) soutLogDebug << "\tSubside influence :0" << std::endl;
+                else soutLogDebug << "\tSubside influence :" << correctionFactorSide << std::endl;
+            }
+#endif
+            if(shouldContributeToMapping){
+                for (int x = 0; x < 3; x++) {
+                    nonLinearSideMappings(sideIndex, x) -=
+                            correctionFactorSide *
+                            (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
+                             linearSideMappings(subSide - TGeo::NNodes, x));
+                }
+            }
+
+        }
+//        }
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            soutLogDebug<<"======================_______REF_4"<<std::endl;
+            soutLogDebug << "Non-linear mapping\n";
+            for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\n";
+            soutLogDebug << std::endl;
+
+            soutLogDebug << "adding to result mapping of side: " << side << std::endl;
+            soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
+//            LOGPZ_DEBUG(logger,soutLogDebug.str())
+//            soutLogDebug.str("");
+        }
+#endif
+        for (int x = 0; x < 3 && correctionFactor[sideIndex] > zero; x++) {
+            result[x] += correctionFactor[sideIndex] *
+                         (nonLinearSideMappings(sideIndex, x) - linearSideMappings(sideIndex, x));
+        }
+    }
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled()){
+        soutLogDebug<<"======================_______REF_5"<<std::endl;
+        soutLogDebug << "================================" <<std::endl;
+        soutLogDebug << "=============result=============" <<std::endl;
+        soutLogDebug <<"================================"<<std::endl;
+        for (int x = 0; x < 3; x++) soutLogDebug<<result[x]<<"\n";
+        soutLogDebug << "\n================================" <<std::endl;
+        soutLogDebug << "================================" <<std::endl;
+        soutLogDebug << "================================" <<std::endl;
+        LOGPZ_DEBUG(logger,soutLogDebug.str())
+        soutLogDebug.str("");
+    }
+#endif
+}
 
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
@@ -915,230 +1017,6 @@ void pzgeom::TPZGeoBlend<TGeo>::InsertExampleElement(TPZGeoMesh &gmesh, int mati
     delete gel;
     int64_t index;
     gmesh.CreateGeoBlendElement(TGeo::Type(), nodeindexes, matid, index);
-}
-
-template<class TGeo>
-template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::X2(const TPZGeoEl &gel, TPZVec<T> &xi, TPZVec<T> &result) const {
-    TPZManVector<T,3> notUsedHereVec(3,(T)0);
-    TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
-                                                                     // bigger than needed.
-
-    #ifdef LOG4CXX
-    std::ostringstream soutLogDebug;
-    if(logger->isDebugEnabled())
-    {
-        soutLogDebug<<"======================_______REF_1"<<std::endl;
-        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
-        soutLogDebug << "element id " <<gel.Id()<<std::endl;
-        soutLogDebug << "xi: ";
-        for(int i = 0; i < xi.size(); i++) soutLogDebug<<xi[i]<<"\n";
-        soutLogDebug<<std::endl;
-    }
-    #endif
-    const REAL zero = 1e-14;
-    result.Resize(3);
-    result.Fill(0);
-    /**
-     * The non-linear mapping is calculated from deviations of the linear mapping.
-     * The linear mapping of an element (or of any of its side) can be calculated with the barycentric coordinates
-     * of the nodes contained in it
-     */
-    TPZFNMatrix<9, T> phi(TGeo::NNodes, 1);
-    TGeo::TShape(xi, phi, notUsedHereMat);//gets the barycentric coordinates
-
-    TPZFNMatrix<45> coord(3, TGeo::NNodes);
-    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
-
-    for (int iNode = 0; iNode < TGeo::NNodes; iNode++) {//calculates the linear mapping
-        for (int x = 0; x < 3; x++) {
-            result[x] += coord(x, iNode) * phi(iNode, 0);
-        }
-    }
-    #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-    {
-        soutLogDebug<<"======================_______REF_2"<<std::endl;
-        soutLogDebug << "Linear mapping:\n"<<std::endl;
-        for(int i = 0; i < result.size(); i++) soutLogDebug<<result[i]<<"\n";
-        soutLogDebug<<std::endl;
-    }
-    #endif
-
-    /**
-     * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
-     */
-    TPZGeoMesh *gmesh = gel.Mesh();
-    TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
-    TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
-    TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
-    TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
-    for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
-        int side = TGeo::NNodes + sideIndex;
-        TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
-        #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
-        {
-            soutLogDebug << "================================" <<std::endl;
-            soutLogDebug << "side: "<<side<<" is linear: ";
-        }
-        #endif
-        if (IsLinearMapping(side) || !gelside.Exists()) {
-            correctionFactor[sideIndex] = 0;
-            #ifdef LOG4CXX
-            if(logger->isDebugEnabled()){
-                if( IsLinearMapping(side) )  soutLogDebug <<"true"<<std::endl;
-                else    soutLogDebug <<"false (no gelside) "<<std::endl;
-            }
-            #endif
-            continue;
-        }
-        #ifdef LOG4CXX
-        if(logger->isDebugEnabled()){
-            soutLogDebug <<"false (gelside exists) "<<std::endl;
-        }
-        #endif
-        /**
-     * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
-     */
-        TPZManVector<T, 3>  sideXi;
-        bool regularMap = this->MapToSide(side, xi, sideXi, notUsedHereMat);
-        if(!regularMap) {
-            #ifdef LOG4CXX
-            if(logger->isDebugEnabled()){
-                soutLogDebug <<"mapping is not regular. skipping side... ";
-
-            }
-            #endif
-            continue;
-        }
-        MElementType sideType = TGeo::Type(side);
-        const int nSideNodes = MElementType_NNodes(sideType);
-        TPZFNMatrix<9, T> sidePhi(nSideNodes, 1);
-        notUsedHereMat.Resize(TGeo::Dimension,nSideNodes);
-        TGeo::GetSideShapeFunction(side, sideXi, sidePhi, notUsedHereMat);
-
-        TPZManVector<REAL,3> nodeCoord;
-        for (int iNode = 0; iNode < nSideNodes; iNode++) {
-            const int currentNode = TGeo::SideNodeLocId(side, iNode);
-
-            for (int x = 0; x < 3; x++) {
-                linearSideMappings(sideIndex, x) +=
-                        coord(x, currentNode) * sidePhi(iNode, 0);
-            }
-            TGeo::ParametricDomainNodeCoord(currentNode,nodeCoord);
-            for (int x = 0; x < TGeo::Dimension; x++) {
-                projectedPointOverSide(sideIndex,x) += nodeCoord[x] * sidePhi(iNode,0);
-            }
-        }
-        /**
-         * Calculates the non-linear mapping of the side sideIndex
-         */
-        #ifdef LOG4CXX
-        if(logger->isDebugEnabled()){
-            soutLogDebug<<"======================_______REF_3"<<std::endl;
-            soutLogDebug <<"xi projection over side:\n";
-            for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\n";
-            soutLogDebug<<std::endl<<"xi projection in side domain:\n";
-            for (int x = 0; x < sideXi.size(); x++) soutLogDebug<<sideXi[x]<<"\n";
-            soutLogDebug<<std::endl<<"linear mapping of projected point:\n";
-            for (int x = 0; x < 3; x++) soutLogDebug<<linearSideMappings(sideIndex, x)<<"\n";
-        }
-        #endif
-
-        TGeo::CalcSideInfluence(side, xi, correctionFactor[sideIndex], notUsedHereVec);
-        int sidedim = gelside.Dimension();
-        TPZManVector<T, 3> neighXi;
-        if (!MapToNeighSide(side, sidedim, xi, neighXi, notUsedHereMat)) {
-#ifdef LOG4CXX2
-            if(logger->isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
-                LOGPZ_DEBUG(logger,sout.str())
-            }
-#endif
-            continue;
-        }
-        TPZManVector<T, 3> Xside(3, 0.);
-        Neighbour(side, gmesh).X(neighXi, Xside);
-        for (int x = 0; x < 3; x++) {
-            nonLinearSideMappings(sideIndex, x) = Xside[x];
-        }
-
-//        else{
-        TPZStack<int> containedNodesInSide;
-        TGeo::LowerDimensionSides(side, containedNodesInSide, 0);
-
-        TPZStack<int> allContainedSides;
-        TGeo::LowerDimensionSides(side, allContainedSides);
-        for (int subSideIndex = containedNodesInSide.NElements();
-             subSideIndex < allContainedSides.NElements(); subSideIndex++) {
-            const int subSide = allContainedSides[subSideIndex];
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
-                soutLogDebug << "\tSubside " << subSideIndex << " (global: " << subSide << ") is linear: ";
-                if (IsLinearMapping(subSide)) soutLogDebug << "true" << std::endl;
-                else soutLogDebug << "false" << std::endl;
-            }
-#endif
-            if (IsLinearMapping(subSide)) continue;
-            TPZManVector<T, 3> projectedPoint(TGeo::Dimension, -1);
-            for (int x = 0; x < TGeo::Dimension; x++) {
-                projectedPoint[x] = projectedPointOverSide(sideIndex, x);
-            }
-
-            T correctionFactorSide = -1;
-            TGeo::CalcSideInfluence(subSide, projectedPoint, correctionFactorSide,notUsedHereVec);
-            bool shouldContributeToMapping = correctionFactorSide > zero;
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
-                if (!shouldContributeToMapping) soutLogDebug << "\tSubside influence :0" << std::endl;
-                else soutLogDebug << "\tSubside influence :" << correctionFactorSide << std::endl;
-            }
-#endif
-            if(shouldContributeToMapping){
-                for (int x = 0; x < 3; x++) {
-                    nonLinearSideMappings(sideIndex, x) -=
-                            correctionFactorSide *
-                            (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
-                            linearSideMappings(subSide - TGeo::NNodes, x));
-                }
-            }
-
-        }
-//        }
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
-            soutLogDebug<<"======================_______REF_4"<<std::endl;
-            soutLogDebug << "Non-linear mapping\n";
-            for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\n";
-            soutLogDebug << std::endl;
-
-            soutLogDebug << "adding to result mapping of side: " << side << std::endl;
-            soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
-//            LOGPZ_DEBUG(logger,soutLogDebug.str())
-//            soutLogDebug.str("");
-        }
-#endif
-        for (int x = 0; x < 3 && correctionFactor[sideIndex] > zero; x++) {
-            result[x] += correctionFactor[sideIndex] *
-                         (nonLinearSideMappings(sideIndex, x) - linearSideMappings(sideIndex, x));
-        }
-    }
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
-        soutLogDebug<<"======================_______REF_5"<<std::endl;
-        soutLogDebug << "================================" <<std::endl;
-        soutLogDebug << "=============result=============" <<std::endl;
-        soutLogDebug <<"================================"<<std::endl;
-        for (int x = 0; x < 3; x++) soutLogDebug<<result[x]<<"\n";
-        soutLogDebug << "\n================================" <<std::endl;
-        soutLogDebug << "================================" <<std::endl;
-        soutLogDebug << "================================" <<std::endl;
-        LOGPZ_DEBUG(logger,soutLogDebug.str())
-        soutLogDebug.str("");
-    }
-#endif
 }
 
 
