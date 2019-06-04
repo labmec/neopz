@@ -186,7 +186,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
             u_dot_phi_u_i        += u[i]*phi_u_i(i,0);
         }
         
-        ef(iu + firstu) += weight * ( u_dot_phi_u_i - (1.0/jac_det) * (p) * div_on_master(iu,0));
+        ef(iu + firstu) += weight * ( u_dot_phi_u_i - p * div_on_master(iu,0));
         
         for (int ju = 0; ju < nphiu; ju++)
         {
@@ -205,7 +205,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
         
         for (int jp = 0; jp < nphip; jp++)
         {
-            ek(iu + firstu, jp + firstp) += weight * ( - (1.0/jac_det) * div_on_master(iu,0) ) * phi_ps(jp,0);
+            ek(iu + firstu, jp + firstp) += weight * ( - div_on_master(iu,0) ) * phi_ps(jp,0);
         }
         
     }
@@ -222,7 +222,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
         
         for (int ju = 0; ju < nphiu; ju++)
         {
-            ek(ip + firstp, ju + firstu) += -1.0 * weight * (1.0/jac_det) * div_on_master(ju,0) * phi_ps(ip,0);
+            ek(ip + firstp, ju + firstu) += -1.0 * weight * div_on_master(ju,0) * phi_ps(ip,0);
         }
         
     }
