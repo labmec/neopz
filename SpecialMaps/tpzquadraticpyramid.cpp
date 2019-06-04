@@ -101,85 +101,73 @@ void TPZQuadraticPyramid::TShape(const TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMat
         
         return;
     }
-    
-    phi(0,0) = (1. - 2.*zeta)*(1. - zeta)*(-0.25*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (eta*qsi*(-1. + eta + zeta)*(-1. + qsi + zeta))/(4.*((1. - zeta)*(1. - zeta)*(1. - zeta)*(1. - zeta))));
-    phi(1,0) = (1. - 2.*zeta)*(1. - zeta)*(-0.25*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (eta*qsi*(1. + qsi - zeta)*(-1. + eta + zeta))/(4.*((1. - zeta)*(1. - zeta)*(1. - zeta)*(1. - zeta))));
-    phi(2,0) = (-0.25*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (eta*qsi*(1. + eta - zeta)*(1. + qsi - zeta))/(4.*((1. - zeta)*(1. - zeta)*(1. - zeta)*(1. - zeta))))*(1. - 2.*zeta)*(1. - zeta);
-    phi(3,0) = (1. - 2.*zeta)*(1. - zeta)*(-0.25*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (eta*qsi*(1. + eta - zeta)*(-1. + qsi + zeta))/(4.*((1. - zeta)*(1. - zeta)*(1. - zeta)*(1. - zeta))));
-    phi(4,0) = zeta*(-1. + 2.*zeta);
-    phi(5,0) = (1. - 2.*zeta)*(1. - zeta)*(0.5*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (eta*(1. - qsi*qsi/((1. - zeta)*(1. - zeta)))*(-1. + eta + zeta))/(2.*((1. - zeta)*(1. - zeta))));
-    phi(6,0) = (0.5*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (qsi*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. + qsi - zeta))/(2.*((1. - zeta)*(1. - zeta))))*(1. - 2.*zeta)*(1. - zeta);
-    phi(7,0) = (0.5*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (eta*(1. - qsi*qsi/((1. - zeta)*(1. - zeta)))*(1. + eta - zeta))/(2.*((1. - zeta)*(1. - zeta))))*(1. - 2.*zeta)*(1. - zeta);
-    phi(8,0) = (1. - 2.*zeta)*(1. - zeta)*(0.5*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(1. - qsi*qsi/((1. - zeta)*(1. - zeta))) + (qsi*(1. - eta*eta/((1. - zeta)*(1. - zeta)))*(-1. + qsi + zeta))/(2.*((1. - zeta)*(1. - zeta))));
-    phi(9,0) = (zeta*(-1. + eta + zeta)*(-1. + qsi + zeta))/(1. - zeta);
-    phi(10,0) = -(((1. + qsi - zeta)*zeta*(-1. + eta + zeta))/(1. - zeta));
-    phi(11,0) = ((1. + eta - zeta)*(1. + qsi - zeta)*zeta)/(1. - zeta);
-    phi(12,0) = -(((1. + eta - zeta)*zeta*(-1. + qsi + zeta))/(1. - zeta));
-    
-    
-    dphi(0,0) = (0.5*(-0.5 + 1.*zeta)*(1.*(eta*eta) + eta*(-1. + 2.*qsi + 1.*zeta) + qsi*(-2. + 2.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(1,0) = (1.*(-0.5 + 1.*zeta)*(qsi*(-0.5 + 0.5*qsi + 0.5*zeta) + eta*(-1. + 1.*qsi + 1.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(2,0) = ((qsi*qsi)*(0.25 - 0.25*zeta) - 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))*(-0.75 + 1.*zeta) +
-                 (eta*eta)*(0.25 + (-0.25 - 0.5*qsi)*zeta) + eta*qsi*(0.25 + (-0.25 - 0.5*qsi)*zeta))/((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta));
-    
-    dphi(0,1) = (-0.5*(-0.5 + 1.*zeta)*(1.*(eta*eta) + qsi*(2. - 2.*zeta) + eta*(-1. - 2.*qsi + 1.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(1,1) = (1.*(-0.5 + 1.*zeta)*(qsi*(0.5 + 0.5*qsi - 0.5*zeta) + eta*(-1. - 1.*qsi + 1.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(2,1) = ((qsi*qsi)*(0.25 - 0.25*zeta) - 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))*(-0.75 + 1.*zeta) +
-                 eta*qsi*(-0.25 + (0.25 - 0.5*qsi)*zeta) + (eta*eta)*(0.25 + (-0.25 + 0.5*qsi)*zeta))/((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta));
-    
-    dphi(0,2) = (0.5*(-0.5 + 1.*zeta)*(-1.*(eta*eta) + eta*(-1. - 2.*qsi + 1.*zeta) + qsi*(-2. + 2.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(1,2) = (1.*(-0.5 + 1.*zeta)*(qsi*(-0.5 - 0.5*qsi + 0.5*zeta) + eta*(-1. - 1.*qsi + 1.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(2,2) = ((qsi*qsi)*(0.25 - 0.25*zeta) - 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))*(-0.75 + 1.*zeta) + (eta*eta)*(0.25 + (-0.25 + 0.5*qsi)*zeta) + eta*qsi*(0.25 + (-0.25 + 0.5*qsi)*zeta))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    
-    dphi(0,3) = (-0.5*(-0.5 + 1.*zeta)*(-1.*(eta*eta) + qsi*(2. - 2.*zeta) + eta*(-1. + 2.*qsi + 1.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(1,3) = (1.*(-0.5 + 1.*zeta)*(qsi*(0.5 - 0.5*qsi - 0.5*zeta) + eta*(-1. + 1.*qsi + 1.*zeta)))/((-1. + zeta)*(-1. + zeta));
-    dphi(2,3) = ((qsi*qsi)*(0.25 - 0.25*zeta) - 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))*(-0.75 + 1.*zeta) +
-                 (eta*eta)*(0.25 + (-0.25 - 0.5*qsi)*zeta) + eta*qsi*(-0.25 + (0.25 + 0.5*qsi)*zeta))/((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta));
-    
-    dphi(0,4) = 0.0;
-    dphi(1,4) = 0.0;
-    dphi(2,4) = -1.0 + 4.0*zeta;
-    
-    
-    dphi(0,5) = (-2.*qsi*(-0.5 + 1.*zeta)*(1.*((1. - 1.*zeta)*(1. - 1.*zeta)) + eta*(-1. + 1.*zeta)))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(1,5) = (1.*(-0.5 + 1.*zeta)*((qsi*qsi)*(1. - 1.*zeta) + 1.*((-1. + zeta)*(-1. + zeta)*(-1. + zeta))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(2,5) = (0.5*(qsi*qsi)*((1. - 1.*zeta)*(1. - 1.*zeta)) +
-                 2.0*((1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta))*(-0.75 + 1.*zeta) +
-                 eta*(1. + zeta*(-4. + (qsi*qsi)*(-1. + 1.*zeta) + zeta*(6. + zeta*(-4.0 + 1.*zeta)))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    
-    
-    dphi(0,6) = (1.*(-0.5 + 1.*zeta)*((eta*eta)*(-1. + 1.*zeta) - 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(1,6) = (2.*eta*(-0.5 + 1.*zeta)*(-1.*((1. - 1.*zeta)*(1. - 1.*zeta)) + qsi*(-1. + 1.*zeta)))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(2,6) = (2.0*((1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta))*(-0.75 + 1.*zeta) +
-                 (eta*eta)*(0.5 + (-1. + qsi*(1. - 1.*zeta) + 0.5*zeta)*zeta) +
-                 qsi*(-1. + zeta*(4. + zeta*(-6. + (4.0 - 1.*zeta)*zeta))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    
-    dphi(0,7) = (2.*qsi*(-0.5 + 1.*zeta)*(-1.*((1. - 1.*zeta)*(1. - 1.*zeta)) + eta*(-1. + 1.*zeta)))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(1,7) = (1.*(-0.5 + 1.*zeta)*((qsi*qsi)*(-1. + 1.*zeta) - 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(2,7) = (0.5*(qsi*qsi)*((1. - 1.*zeta)*(1. - 1.*zeta)) + 2.0*((1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta))*
-                 (-0.75 + 1.*zeta) + eta*(-1. + zeta*(4. + (qsi*qsi)*(1. - 1.*zeta) + zeta*(-6. + (4.0 - 1.*zeta)*zeta))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    
-    dphi(0,8) = (1.*(-0.5 + 1.*zeta)*((eta*eta)*(1. - 1.*zeta) + 1.*((-1. + 1.*zeta)*(-1. + 1.*zeta)*(-1. + 1.*zeta))))/((-1. + zeta)*(-1. + zeta)*(-1. + zeta));
-    dphi(1,8) = (-2.*eta*(-0.5 + 1.*zeta)*(-1. + 1.*qsi + 1.*zeta))/((1. - 1.*zeta)*(1. - 1.*zeta));
-    dphi(2,8) = (2.0*((1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta))*(-0.75 + 1.*zeta) +
-                 (eta*eta)*(0.5 + zeta*(-1. + 0.5*zeta + qsi*(-1. + 1.*zeta))) +
-                 qsi*(1. + zeta*(-4. + zeta*(6. + zeta*(-4.0 + 1.*zeta)))))/((1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta)*(1.0 - 1.*zeta));
-    
-    dphi(0,9) = (-1.*zeta*(-1. + eta + zeta))/(-1. + zeta);
-    dphi(1,9) = (-1.*zeta*(-1. + qsi + zeta))/(-1. + zeta);
-    dphi(2,9) = 1.0 - 1.*eta - 1.*qsi + (1.*eta*qsi)/((1. - 1.*zeta)*(1. - 1.*zeta)) - 2.*zeta;
-    
-    dphi(0,10) = (1.*zeta*(-1. + eta + zeta))/(-1. + zeta);
-    dphi(1,10) = (-1.*zeta*(-1. - 1.*qsi + zeta))/(-1. + zeta);
-    dphi(2,10) = 1.0 - 1.*eta + 1.*qsi - (1.*eta*qsi)/((1. - 1.*zeta)*(1. - 1.*zeta)) - 2.*zeta;
-    
-    dphi(0,11) = (1.*zeta*(-1. - 1.*eta + zeta))/(-1. + zeta);
-    dphi(1,11) = (1.*zeta*(-1. - 1.*qsi + zeta))/(-1. + zeta);
-    dphi(2,11) = 1.0 + 1.*eta + 1.*qsi + (1.*eta*qsi)/((1. - 1.*zeta)*(1. - 1.*zeta)) - 2.*zeta;
-    
-    dphi(0,12) = (-1.*zeta*(-1. - 1.*eta + zeta))/(-1. + zeta);
-    dphi(1,12) = (1.*zeta*(-1. + qsi + zeta))/(-1. + zeta);
-    dphi(2,12) = 1.0 + 1.*eta - 1.*qsi - (1.*eta*qsi)/((1. - 1.*zeta)*(1. - 1.*zeta)) - 2.*zeta;
+
+    phi(0,0) = ((1 + eta + qsi)*(-1 + eta + zeta)*(-1 + qsi + zeta))/(4.*(-1 + zeta));
+    phi(1,0) = -((1 + eta - qsi)*(1 + qsi - zeta)*(-1 + eta + zeta))/(4.*(-1 + zeta));
+    phi(2,0) = -((-1 + eta + qsi)*(1 + eta - zeta)*(1 + qsi - zeta))/(4.*(-1 + zeta));
+    phi(3,0) = ((-1 + eta - qsi)*(1 + eta - zeta)*(-1 + qsi + zeta))/(4.*(-1 + zeta));
+    phi(4,0) = zeta*(-1 + 2*zeta);
+    phi(5,0) = ((-1 + eta + zeta)*(-1 - qsi + zeta)*(-1 + qsi + zeta))/(2.*(-1 + zeta));
+    phi(6,0) = ((-1 - eta + zeta)*(-1 + eta + zeta)*(-1 - qsi + zeta))/(2.*(-1 + zeta));
+    phi(7,0) = ((qsi*qsi - (-1 + zeta)*(-1 + zeta))*(1 + eta - zeta))/(2.*(-1 + zeta));
+    phi(8,0) = ((-(eta*eta) + (-1 + zeta)*(-1 + zeta))*(-1 + qsi + zeta))/(2.*(-1 + zeta));
+    phi(9,0) = -((zeta*(-1 + eta + zeta)*(-1 + qsi + zeta))/(-1 + zeta));
+    phi(10,0) = -((zeta*(-1 + eta + zeta)*(-1 - qsi + zeta))/(-1 + zeta));
+    phi(11,0) = ((1 + eta - zeta)*(1 + qsi - zeta)*zeta)/(1 - zeta);
+    phi(12,0) = -((zeta*(-1 - eta + zeta)*(-1 + qsi + zeta))/(-1 + zeta));
+
+
+    dphi(0,0) = ((-1 + eta + zeta)*(eta + 2*qsi + zeta))/(4.*(-1 + zeta));
+    dphi(1,0) = ((-1 + qsi + zeta)*(2*eta + qsi + zeta))/(4.*(-1 + zeta));
+    dphi(2,0) = -(eta*eta*qsi + eta*(qsi + qsi*qsi - (-1 + zeta)*(-1 + zeta)) - (1 + qsi)*((-1 + zeta)*(-1 + zeta)))/(4.*((-1 + zeta)*(-1 + zeta)));
+
+    dphi(0,1) = -((-1 + eta + zeta)*(eta - 2*qsi + zeta))/(4.*(-1 + zeta));
+    dphi(1,1) = ((1 + qsi - zeta)*(-2*eta + qsi - zeta))/(4.*(-1 + zeta));
+    dphi(2,1) = (eta*eta*qsi + eta*(qsi - qsi*qsi + (-1 + zeta)*(-1 + zeta)) - (-1 + qsi)*((-1 + zeta)*(-1 + zeta)))/(4.*((-1 + zeta)*(-1 + zeta)));
+
+    dphi(0,2) = -((1 + eta - zeta)*(eta + 2*qsi - zeta))/(4.*(-1 + zeta));
+    dphi(1,2) = -((1 + qsi - zeta)*(2*eta + qsi - zeta))/(4.*(-1 + zeta));
+    dphi(2,2) = (eta*eta*qsi + eta*(-qsi + qsi*qsi - (-1 + zeta)*(-1 + zeta)) - (-1 + qsi)*((-1 + zeta)*(-1 + zeta)))/(4.*((-1 + zeta)*(-1 + zeta)));
+
+    dphi(0,3) = ((1 + eta - zeta)*(eta - 2*qsi - zeta))/(4.*(-1 + zeta));
+    dphi(1,3) = ((2*eta - qsi - zeta)*(-1 + qsi + zeta))/(4.*(-1 + zeta));
+    dphi(2,3) = (-(eta*eta*qsi) + eta*(qsi + qsi*qsi - (-1 + zeta)*(-1 + zeta)) + (1 + qsi)*((-1 + zeta)*(-1 + zeta)))/(4.*((-1 + zeta)*(-1 + zeta)));
+
+    dphi(0,4) = 0;
+    dphi(1,4) = 0;
+    dphi(2,4) = -1 + 4*zeta;
+
+    dphi(0,5) = -((qsi*(-1 + eta + zeta))/(-1 + zeta));
+    dphi(1,5) = (-(qsi*qsi) + (-1 + zeta)*(-1 + zeta))/(2.*(-1 + zeta));
+    dphi(2,5) = (-2 + eta + (eta*(qsi*qsi))/((-1 + zeta)*(-1 + zeta)) + 2*zeta)/2.;
+
+    dphi(0,6) = (eta*eta - (-1 + zeta)*(-1 + zeta))/(2.*(-1 + zeta));
+    dphi(1,6) = (eta*(1 + qsi - zeta))/(-1 + zeta);
+    dphi(2,6) = -1 + qsi*(-0.5 - (eta*eta)/(2.*((-1 + zeta)*(-1 + zeta)))) + zeta;
+
+    dphi(0,7) = (qsi*(1 + eta - zeta))/(-1 + zeta);
+    dphi(1,7) = (qsi*qsi - (-1 + zeta)*(-1 + zeta))/(2.*(-1 + zeta));
+    dphi(2,7) = -1 + eta*(-0.5 - (qsi*qsi)/(2.*((-1 + zeta)*(-1 + zeta)))) + zeta;
+
+    dphi(0,8) = (-(eta*eta) + (-1 + zeta)*(-1 + zeta))/(2.*(-1 + zeta));
+    dphi(1,8) = -((eta*(-1 + qsi + zeta))/(-1 + zeta));
+    dphi(2,8) = (-2 + qsi + (eta*eta*qsi)/((-1 + zeta)*(-1 + zeta)) + 2*zeta)/2.;
+
+    dphi(0,9) = -((zeta*(-1 + eta + zeta))/(-1 + zeta));
+    dphi(1,9) = -((zeta*(-1 + qsi + zeta))/(-1 + zeta));
+    dphi(2,9) = 1 - qsi + eta*(-1 + qsi/((-1 + zeta)*(-1 + zeta))) - 2*zeta;
+
+    dphi(0,10) = (zeta*(-1 + eta + zeta))/(-1 + zeta);
+    dphi(1,10) = ((1 + qsi - zeta)*zeta)/(-1 + zeta);
+    dphi(2,10) = 1 + qsi + eta*(-1 - qsi/((-1 + zeta)*(-1 + zeta))) - 2*zeta;
+
+    dphi(0,11) = (zeta*(-1 - eta + zeta))/(-1 + zeta);
+    dphi(1,11) = (zeta*(-1 - qsi + zeta))/(-1 + zeta);
+    dphi(2,11) = 1 + eta + qsi + (eta*qsi)/((-1 + zeta)*(-1 + zeta)) - 2*zeta;
+
+    dphi(0,12) = ((1 + eta - zeta)*zeta)/(-1 + zeta);
+    dphi(1,12) = (zeta*(-1 + qsi + zeta))/(-1 + zeta);
+    dphi(2,12) = 1 + eta - qsi - (eta*qsi)/((-1 + zeta)*(-1 + zeta)) - 2*zeta;
     
 }
 
