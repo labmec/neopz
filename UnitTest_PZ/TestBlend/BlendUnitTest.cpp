@@ -69,7 +69,6 @@ std::string dirname = PZSOURCEDIR;
 
 
 BOOST_AUTO_TEST_SUITE(blend_tests)
-
     namespace blendtest{
         const int pOrder = 10;
         const REAL tol = 1e-8;
@@ -80,13 +79,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
     }
 
     BOOST_AUTO_TEST_CASE(geoblend_tests) {
-        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoQuad>();
-        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTriangle>();
-        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTetrahedra>();
-        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoCube>();
-        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoPrism>();
-        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoPyramid>();
-
+        InitializePZLOG();
         gRefDBase.InitializeUniformRefPattern(EOned);
         gRefDBase.InitializeUniformRefPattern(ETriangle);
         gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -103,6 +96,14 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             const int nDiv = 3;
             blendtest::CreateGeoMesh3D(nDiv);
         }
+    }
+    BOOST_AUTO_TEST_CASE(compare_blend_quad) {
+        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoQuad>();
+        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTriangle>();
+        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTetrahedra>();
+        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoCube>();
+        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoPrism>();
+        blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoPyramid>();
     }
 
     namespace blendtest{
@@ -341,7 +342,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 REAL notUsedHere = -1;
                 uint64_t errorsInterior = 0;
                 TPZManVector<uint64_t,18> errorsSide(TGeo::NSides - TGeo::NNodes - 1,0);
-                std::cout<<"Element: "<<MElementType_Name(TGeo::Type())<<std::endl;
                 uint64_t nPoints = 0;
                 for(int iSide = TGeo::NNodes; iSide < TGeo::NSides; iSide ++){
                     auto intRule = blendEl->CreateSideIntegrationRule(iSide, pOrder);
@@ -644,6 +644,13 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                             std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
                             std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
                             std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
+                        }else{
+                            if(geo->IsGeoBlendEl()){
+                                std::cout<<"============================"<<std::endl;
+                                std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
+                                std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
+                                std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
+                            }
                         }
                     }
                 }
@@ -912,6 +919,13 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                             std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
                             std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
                             std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
+                        }else{
+                            if(geo->IsGeoBlendEl()){
+                                std::cout<<"============================"<<std::endl;
+                                std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
+                                std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
+                                std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
+                            }
                         }
                     }
                 }
@@ -921,22 +935,16 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 TPZVec<TPZGeoEl *> sons;
                 std::vector<std::string> loading = {"-","/","|","\\"};
                 for (int iDiv = 0; iDiv < nDiv; iDiv++) {
-                    #ifdef NOISY_BLEND
                     std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
-                    #endif
                     const int nel = gmesh->NElements();
                     for (int iel = 0; iel < nel; iel++) {
-                        #ifdef NOISY_BLEND
                         std::cout<<"\b"<<loading[iel%4]<<std::flush;
-                        #endif
                         TPZGeoEl *geo = gmesh->ElementVec()[iel];
                         if (geo && !geo->HasSubElement()) {
                             geo->Divide(sons);
                         }
                     }
-                    #ifdef NOISY_BLEND
                     std::cout<<"\b"<<std::endl;
-                    #endif
                 }
             }
 
