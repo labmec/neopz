@@ -255,7 +255,7 @@ public:
 							   TPZVec<REAL> &errors, bool store_error) override;
 
     /** @brief Verifies if the material associated with the element is contained in the set */
-    virtual bool HasMaterial(const std::set<int> &materialids) override;
+    virtual bool HasMaterial(const std::set<int> &materialids) const override;
     
 	/**
 	 * @brief Computes the element right hand side

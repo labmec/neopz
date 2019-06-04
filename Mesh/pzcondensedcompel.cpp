@@ -538,7 +538,7 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
 }
 
 /** @brief Verifies if the material associated with the element is contained in the set */
-bool TPZCondensedCompEl::HasMaterial(const std::set<int> &materialids) {
+bool TPZCondensedCompEl::HasMaterial(const std::set<int> &materialids) const {
     if(!fReferenceCompEl){
         return false;
     }

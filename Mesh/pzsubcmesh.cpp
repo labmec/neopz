@@ -1977,11 +1977,11 @@ bool TPZSubCompMesh::VerifyDatastructureConsistency()
 }
 
 /** Verify if the material associated with the element is contained in the set */
-bool TPZSubCompMesh::HasMaterial(const std::set<int> &materialids)
+bool TPZSubCompMesh::HasMaterial(const std::set<int> &materialids) const
 {
     int nel = NElements();
     for (int el=0; el<nel ; el++) {
-        TPZCompEl *cel = ElementVec()[el];
+        TPZCompEl *cel = ElementVec()[el];        
         if (!cel) {
             continue;
         }
@@ -1990,6 +1990,7 @@ bool TPZSubCompMesh::HasMaterial(const std::set<int> &materialids)
             return true;
         }
     }
+    return false;
 }
 
 int TPZSubCompMesh::NumberRigidBodyModes()

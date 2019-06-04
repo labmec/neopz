@@ -965,7 +965,7 @@ TPZMaterial * TPZCompEl::Material() const
 }
 
 /** Verify if the material associated with the element is contained in the set */
-bool TPZCompEl::HasMaterial(const std::set<int> &materialids)
+bool TPZCompEl::HasMaterial(const std::set<int> &materialids) const
 {
     if(!Reference()){
         return false;
