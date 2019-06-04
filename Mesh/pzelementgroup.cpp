@@ -257,6 +257,21 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 }
 
+/** @brief Verifies if the material associated with the element is contained in the set */
+bool TPZElementGroup::HasMaterial(const std::set<int> &materialids){
+    
+    int64_t nel = fElGroup.size();
+    TPZElementMatrix efloc;
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = fElGroup[el];
+        bool has_material_Q = cel->HasMaterial(materialids);
+        if (has_material_Q) {
+            return true;
+        }
+    }
+    
+}
+
 
 /**
  * @brief Computes the element right hand side

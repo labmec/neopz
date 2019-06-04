@@ -254,7 +254,9 @@ public:
     virtual void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
 							   TPZVec<REAL> &errors, bool store_error) override;
 
-	
+    /** @brief Verifies if the material associated with the element is contained in the set */
+    virtual bool HasMaterial(const std::set<int> &materialids) override;
+    
 	/**
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
