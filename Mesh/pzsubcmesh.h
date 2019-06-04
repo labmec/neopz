@@ -389,6 +389,9 @@ virtual int ClassId() const;
     
     /** @brief Return the number of rigid body modes associated with the internal degrees of freedom */
     int NumberRigidBodyModes();
+        
+    /** @brief Verifies if the material associated with the element is contained in the set */
+    virtual bool HasMaterial(const std::set<int> &materialids);
 
 	/** @brief Static function for validation tests. */
 	static int main();
