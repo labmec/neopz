@@ -85,7 +85,7 @@ TPZDiscontinuousGalerkin(num), ff(3,0.) {
 TPZElasticityMaterial::~TPZElasticityMaterial() {
 }
 
-int TPZElasticityMaterial::NStateVariables() {
+int TPZElasticityMaterial::NStateVariables() const {
 	return 2;
 }
 
@@ -1195,8 +1195,11 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	//values[0] = calculo do erro estimado em norma Energia
     values[0] = (sigx*(epsx-epsx_exact)+sigy*(epsy-epsy_exact)+2.*sigxy*(epsxy-epsxy_exact));
 	
-	//values[1] : erro em norma L2 em tensoes
-	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
+    //values[3] = calculo da energia da solucao exata
+    values[3] = (SigX*(epsx_exact)+SigY*(epsy_exact)+2.*TauXY*(epsxy_exact));
+    
+	//values[4] : erro em norma L2 em tensoes
+	values[4] = sigx*sigx + sigy*sigy + 2.*sigxy*sigxy;
 	
 	//values[1] : erro em norma L2 em deslocamentos
 	values[1] = (u[0] - u_exact[0])*(u[0] - u_exact[0])+(u[1] - u_exact[1])*(u[1] - u_exact[1]);

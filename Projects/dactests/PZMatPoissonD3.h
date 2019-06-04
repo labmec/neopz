@@ -76,13 +76,12 @@ public:
     {
         return fMatId;
     }
-	
-	virtual int NStateVariables();
-    
+	    
     void SetPermeability(REAL perm) {
 		fK = perm;
 	}
-    
+	virtual int NStateVariables(void) const { return 1; }
+
     //Set the permeability tensor and inverser tensor
     void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
         

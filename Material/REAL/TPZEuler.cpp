@@ -271,7 +271,7 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &
 		}
     }
 }
-int TPZEuler::NStateVariables()  {
+int TPZEuler::NStateVariables() const {
 	return 4;
 }
 int TPZEuler::Dimension() const {

@@ -43,9 +43,14 @@ public:
 		this->falpha = copy.falpha;
 	}
 	
-	virtual TPZMaterial * NewMaterial(){
+	virtual TPZMaterial * NewMaterial() override{
 		return new TPZMatPoisson3dReferred(*this);
 	}
+    
+    virtual int NStateVariables() const override
+    {
+        return 1;
+    }
 	
 	void SetAlpha(REAL alpha){
 		this->falpha = alpha;
@@ -59,39 +64,39 @@ public:
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<STATE> &ek, 
-                            TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
 							  TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
-                              TPZBndCond &bc);
+                              TPZBndCond &bc) override;
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix<STATE> &ek,
-									 TPZFMatrix<STATE> &ef);
+									 TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ek,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
     
-	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef)
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) override
 	{
 		TPZMatPoisson3d::Contribute(data,weight,ef);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMatPoisson3d::ContributeBC(data,weight,ef,bc);
 	}
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<STATE> &ef)
+									 TPZFMatrix<STATE> &ef) override
 	{
 		TPZMatPoisson3d::ContributeInterface(data,dataleft, dataright, weight,ef);
 	}
@@ -99,11 +104,11 @@ public:
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc)
+									   TPZBndCond &bc) override
 	{
 		TPZMatPoisson3d::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 };
 
 #endif

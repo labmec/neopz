@@ -51,7 +51,8 @@ public:
 	
 	int Dimension() const {return fDim;}
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const {return 1;}
+	
 	
 	void SetParameters(REAL diff1, REAL diff2){
 		fK1= diff1;

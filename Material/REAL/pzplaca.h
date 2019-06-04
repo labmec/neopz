@@ -32,27 +32,27 @@ class TPZPlaca : public TPZMaterial{
 			 STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
 			 STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf);
 	
-	virtual int NStateVariables() { return 6; }
+	virtual int NStateVariables() const override { return 6; }
 	
-	int Dimension() const { return 2; }
+	int Dimension() const  override { return 2; }
 	
-	void Print(std::ostream & out);
+	void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZPlaca"; }
+	virtual std::string Name() override { return "TPZPlaca"; }
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<STATE> &ek,
-                            TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -60,26 +60,26 @@ class TPZPlaca : public TPZMaterial{
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int NFluxes();
+	virtual int NFluxes() override;
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl) override;
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -98,7 +98,7 @@ protected:
 	
 	void (*fExactFunction)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<STATE> &uexact,TPZFMatrix<STATE> &duexact);
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 };
 

@@ -102,7 +102,7 @@ TPZMaterial *TPZEulerEquation::NewMaterial() {
 	return new TPZEulerEquation(*this);
 }
 
-int TPZEulerEquation::NStateVariables() {
+int TPZEulerEquation::NStateVariables() const {
 	return 5; //U = (rho, rhou, rhov, rhow, rhoe)
 }
 

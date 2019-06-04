@@ -337,7 +337,7 @@ void TPZAnalysis::Assemble()
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
-		
+    
 	fSolver->UpdateFrom(fSolver->Matrix());
 }
 

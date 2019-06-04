@@ -683,7 +683,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZManVector<TPZMaterialData,3> datavec;
+	TPZManVector<TPZMaterialData,4> datavec;
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
@@ -694,10 +694,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule;
 	
-    TPZManVector<REAL,3> intpointtemp(TGeometry::Dimension,0.);
+    TPZManVector<REAL,4> intpointtemp(TGeometry::Dimension,0.);
 	REAL weight = 0.;
 	
-	TPZManVector<int,3> ordervec;
+	TPZManVector<int,4> ordervec;
 	//ordervec.resize(nref);
 	for (int64_t iref=0;  iref<nref; iref++)
 	{
@@ -720,7 +720,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZGeoEl *ref = this->Reference();
 	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
 	
-	TPZManVector<int,3> intorder(dim,order);
+	TPZManVector<int,4> intorder(dim,order);
 	intrule->SetOrder(intorder);
 	int intrulepoints = intrule->NPoints();
     if(intrulepoints > 1000) {
@@ -1254,28 +1254,24 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
 }
 /** Returns the maximum interpolation order of all connected elements */
 template <class TGeometry>
-int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder() {
+void TPZMultiphysicsCompEl<TGeometry>::PolynomialOrder(TPZVec<int> &order) const {
     const int64_t nref = fElementVec.size();
-    TPZVec<int> ordervec;
-    ordervec.resize(nref);
+    order.resize(nref);
     for (int64_t iref = 0; iref < nref; iref++) {
         
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
         TPZInterpolationSpace *msp = dynamic_cast<TPZInterpolationSpace *> (fElementVec[iref].Element());
-        ordervec[iref] = msp ? msp->MaxOrder() : 0;
+        order[iref] = msp ? msp->MaxOrder() : 0;
     }
-    TPZMaterial * material = Material();
-    if(!material)
-    {
-        int matid = Reference()->MaterialId();
-        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
-        DebugStop();
-    }
-    int order = material->IntegrationRuleOrder(ordervec);
-    return order;
+    
+//    TPZMaterial * material = Material();
+//    if(!material)
+//    {
+//        int matid = Reference()->MaterialId();
+//        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
+//        DebugStop();
+//    }
+//    int order = material->IntegrationRuleOrder(ordervec);
+//    return order;
 }
 
 template<class TGeometry>

@@ -209,8 +209,6 @@ void ToolsTransient::Run()
 		CheckConv(OptimizeBandwidth);
 		DebugStop();
 	}
-  
-  TPZCompMesh * lastMPhysicsCMesh = NULL;
 
   while(fMustStop == false)
   {
@@ -373,13 +371,19 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 		//fmeshvec[0]->Solution()(2,0) = 10.;
     fmeshvec[0]->Solution().Print("Solu");
 		TPZMaterial * mat = fmeshvec[0]->FindMaterial(globReservMatId1);
-		TPZManVector<std::string> scalnames(2),vecnames(1);
+		TPZManVector<std::string> scalnames(2),vecnames(1),tennames(0);
 		scalnames[0]= "SigmaX";
 		scalnames[1]= "SigmaY";
 		vecnames[0] = "Displacement";
 		std::string postprocessname("ElasticAfterMultPhysics.vtk");
 		int dim = 2;
-		TPZVTKGraphMesh vtkmesh(fmeshvec[0],dim,mat,scalnames,vecnames);
+        if(!mat){
+            DebugStop();
+        }
+        std::set<int> matids;
+        int matid = mat->Id();
+        matids.insert(matid);
+		TPZVTKGraphMesh vtkmesh(fmeshvec[0],dim,matids,scalnames,vecnames,tennames);
 		vtkmesh.SetFileName(postprocessname);
 		vtkmesh.SetResolution(0);
 		int numcases = 1;

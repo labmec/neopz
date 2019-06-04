@@ -94,9 +94,6 @@ TPZMatPoissonD3 & TPZMatPoissonD3::operator=(const TPZMatPoissonD3 &copy){
 	return *this;
 }
 
-int TPZMatPoissonD3::NStateVariables() {
-	return 1;//(1+fDim);
-}
 
 void TPZMatPoissonD3::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";

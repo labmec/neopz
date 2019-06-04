@@ -38,21 +38,24 @@ public:
     /// Assignement constructor
     TPZMultiphysicsCompMesh & operator=(const TPZMultiphysicsCompMesh &other);
     
+    /// Destructor
+    ~TPZMultiphysicsCompMesh();
+    
     /// Automatic builder for the computational mesh structure
     void AutoBuild();
     
     /// Set active approximation spaces
-    void BuildMultiphysicsSpace(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
+    void BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
     void LoadSolutionFromMeshes();
     
     void LoadSolutionFromMultiPhysics();
     
     /// Get the vector of computational meshes
-    TPZManVector<TPZCompMesh * , 3> & MeshVector();
+    TPZVec<TPZCompMesh *> & MeshVector();
     
     /// Get the vector of active physics
-    TPZManVector<int,5> & GetActiveApproximationSpaces();
+    TPZVec<int> & GetActiveApproximationSpaces();
     
 private:
     

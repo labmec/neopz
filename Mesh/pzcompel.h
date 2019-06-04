@@ -74,7 +74,7 @@ public:
 	
     static int StaticClassId();
     
-virtual int ClassId() const override;
+    virtual int ClassId() const override;
 
     
 	/** @brief Simple Constructor */
@@ -300,7 +300,7 @@ virtual int ClassId() const override;
     
 	
 	/** @brief Verifies if the material associated with the element is contained in the set */
-	virtual bool HasMaterial(const std::set<int> &materialids);
+	virtual bool HasMaterial(const std::set<int> &materialids) const;
 	
 	/**
 	 * @brief Computes the element right hand side

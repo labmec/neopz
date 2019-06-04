@@ -48,10 +48,30 @@ TPZMaterial::~TPZMaterial()
 
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
 	fId = material.fId;
+    fForcingFunction = material.fForcingFunction;
+    fForcingFunctionExact = material.fForcingFunctionExact;
+    fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
+    fTimedependentFunctionExact = material.fTimedependentFunctionExact;
+    fBCForcingFunction = material.fBCForcingFunction;
+    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
+    fLinearContext = material.fLinearContext;
     fNumLoadCases = material.fNumLoadCases;
     fPostProcIndex = material.fPostProcIndex;
-	fForcingFunction = material.fForcingFunction;
-	fLinearContext = material.fLinearContext;
+}
+
+TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
+{
+    fId = material.fId;
+    fForcingFunction = material.fForcingFunction;
+    fForcingFunctionExact = material.fForcingFunctionExact;
+    fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
+    fTimedependentFunctionExact = material.fTimedependentFunctionExact;
+    fBCForcingFunction = material.fBCForcingFunction;
+    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
+    fLinearContext = material.fLinearContext;
+    fNumLoadCases = material.fNumLoadCases;
+    fPostProcIndex = material.fPostProcIndex;
+    return *this;
 }
 
 void TPZMaterial::SetLinearContext(bool IsLinear){

@@ -1,3 +1,4 @@
+
 //
 //  TPZSBFemVolume.cpp
 //  PZ
@@ -597,8 +598,8 @@ void TPZSBFemVolume::CreateGraphicalElement(TPZGraphMesh &graphmesh, int dimensi
 
 #include "pzaxestools.h"
 
-void TPZSBFemVolume::EvaluateError(void (* fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
-        TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux*/) {
+void TPZSBFemVolume::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                                   TPZVec<REAL> &errors,bool store_error) {
     int NErrors = this->Material()->NEvalErrors();
     errors.Resize(NErrors);
     errors.Fill(0.);

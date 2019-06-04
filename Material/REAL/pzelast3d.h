@@ -67,22 +67,22 @@ class TPZElasticity3D : public TPZMaterial {
 	virtual ~TPZElasticity3D();
 	
 	/** @brief Returns model dimension */
-	int Dimension() const { return 3;}
+	int Dimension() const  override { return 3;}
 	
 	/** @brief Number of state variables */
-	int NStateVariables(){ return 3;}
+	int NStateVariables() const override { return 3;}
 	
     /** 
      * @brief Gets the order of the integration rule necessary to integrate an
      * element with polinomial order p
      */
-    virtual int IntegrationRuleOrder(int elPMaxOrder) const
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const override
     {
         return 2*(elPMaxOrder);
     }
 
 	/** @brief Print material report */
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
 	/** 
 	 * @brief Direction to post process stress and strain. \n
@@ -111,16 +111,16 @@ class TPZElasticity3D : public TPZMaterial {
     }
     
 	/** @brief Material name */
-	virtual std::string Name() { return "TPZElasticity3D"; }
+	virtual std::string Name() override { return "TPZElasticity3D"; }
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
     
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -132,7 +132,7 @@ class TPZElasticity3D : public TPZMaterial {
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
     
     virtual void ContributeVecShapeBC(TPZMaterialData & data, REAL weight,
                                       TPZFMatrix<STATE> & ek, TPZFMatrix<STATE> & ef,TPZBndCond &bc);
@@ -141,22 +141,22 @@ class TPZElasticity3D : public TPZMaterial {
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	/** @brief Returns index of post-processing variable */
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
 	/** @brief Number of data of variable var */
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 protected:
 	/** @brief Post-processing method. Based on solution Sol and its derivatives DSol, it computes the post-processed variable var */
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -165,7 +165,7 @@ public:
 	 * @brief Return the number of components which form the flux function
 	 * @note Method not implemented.
 	 */
-	virtual int NFluxes() {
+	virtual int NFluxes()  override {
 		PZError << "\nTPZElasticity3D::NFluxes() - Method not implemented\n";
 		return 0;
 	}
@@ -174,22 +174,22 @@ public:
 	 * @brief Compute the value of the flux function to be used by ZZ error estimator.
 	 * @note Method not implemented.
 	 */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
 		PZError << "\nTPZElasticity3D::Flux - Method not implemented\n";
 	}
 	
 	/** @brief Evaluate error between approximate (FEM) and exact solutions */
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	/** @brief Returns the number of norm errors: 3 (Semi H1, L2 and H1) */
-	virtual int NEvalErrors() {return 3;}
+	virtual int NEvalErrors() override {return 3;}
 	
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
-	void FillDataRequirements(TPZMaterialData &data);
+	void FillDataRequirements(TPZMaterialData &data) override;
 	
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override
     {
         // default is no specific data requirements
         if(type == 50)
@@ -291,15 +291,15 @@ public:
 	
 public:
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	/** @brief Creates a new material from the current object   ??*/
-	virtual TPZMaterial * NewMaterial() { return new TPZElasticity3D(*this);}
+	virtual TPZMaterial * NewMaterial()  override { return new TPZElasticity3D(*this);}
 	
 	static STATE gTolerance;
 	

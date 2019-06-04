@@ -105,10 +105,6 @@ TPZMatPoissonControl & TPZMatPoissonControl::operator=(const TPZMatPoissonContro
 	return *this;
 }
 
-int TPZMatPoissonControl::NStateVariables() {
-	return 1;
-}
-
 void TPZMatPoissonControl::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
     out << "Dimesion of problem " << fDim << endl;

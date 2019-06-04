@@ -1107,7 +1107,7 @@ void TPZPlaneFractureKernel::PostProcessInvariants(int num)
     
     TPZMaterial * mat = this->fmeshVec[0]->FindMaterial(globMaterialIdGen.RockMatId(1));
     
-    TPZManVector<std::string> scalnames(3), vecnames(0);
+    TPZManVector<std::string> scalnames(3), vecnames(0), tennames(0);
     scalnames[0] = "I1";
     scalnames[1] = "I2";
     scalnames[2] = "I3";
@@ -1116,7 +1116,13 @@ void TPZPlaneFractureKernel::PostProcessInvariants(int num)
     nm << "Invariants_Step" << num << ".vtk";
     
     int dim = 3;
-    TPZVTKGraphMesh vtkmesh(this->fmeshVec[0],dim,mat,scalnames,vecnames);
+    if(!mat){
+        DebugStop();
+    }
+    std::set<int> matids;
+    int matid = mat->Id();
+    matids.insert(matid);
+    TPZVTKGraphMesh vtkmesh(this->fmeshVec[0],dim,matids,scalnames,vecnames,tennames);
     vtkmesh.SetFileName(nm.str());
     vtkmesh.SetResolution(0);
     int numcases = 1;

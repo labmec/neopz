@@ -35,7 +35,6 @@ TPZMatfrac1dhdiv::~TPZMatfrac1dhdiv()
 
 int TPZMatfrac1dhdiv::Dimension() const {return fDim;};
 
-int TPZMatfrac1dhdiv::NStateVariables() {return 1;}
 
 void TPZMatfrac1dhdiv::Print(std::ostream &out) {
   out << "name of material : " << Name() << "\n";

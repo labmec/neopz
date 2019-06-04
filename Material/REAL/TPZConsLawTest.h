@@ -47,47 +47,47 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	
 	STATE T(int jn,TPZVec<REAL> &x);
 	
-	int NStateVariables();
+	virtual int NStateVariables() const override;
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZConsLawTest"; }
+	virtual std::string Name()  override { return "TPZConsLawTest"; }
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-                            TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<STATE> &ef) {
+							TPZFMatrix<STATE> &ef) override {
 		TPZConservationLaw::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix<STATE> &ek,
-                                     TPZFMatrix<STATE> &ef);
+                                     TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZConservationLaw::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes(){ return 1;}
+	virtual int NFluxes() override { return 1;}
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -98,11 +98,11 @@ public:
 	}
 	
 	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 	void ComputeSolRight(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
 	void ComputeSolLeft(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);

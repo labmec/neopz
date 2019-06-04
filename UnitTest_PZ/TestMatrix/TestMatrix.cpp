@@ -452,8 +452,8 @@ BOOST_AUTO_TEST_CASE(inverse_tests) {
     int dim;
     for (dim = 9; dim < 10; dim += 5) {
 #ifdef USING_MKL
-        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim, 1, ECholesky);
-        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim, 1, ELDLt);
+//        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim, 1, ECholesky);
+//        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim, 1, ELDLt);
         TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim, 1, ECholesky);
         TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim, 1, ELDLt);
 #endif

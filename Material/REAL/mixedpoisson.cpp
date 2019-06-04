@@ -72,6 +72,7 @@ TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp) :TPZRegisterClassId(
 }
 
 TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
+    TPZMatPoisson3d::operator=(copy);
     fvisc = copy.fvisc;
     ff = copy.ff;
     fIsStabilized = copy.fIsStabilized;
@@ -86,7 +87,7 @@ TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
     return *this;
 } 
 
-int TPZMixedPoisson::NStateVariables() {
+int TPZMixedPoisson::NStateVariables() const {
 	return 1;
 }
 
@@ -679,19 +680,41 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(fDim+1,1);
+    TPZFNMatrix<3,REAL> flux(fDim+1,1);//pq colocar fdim +1?
+    TPZFNMatrix<3,REAL> gradu(fDim+1,1);
     
-    //Exact soluion
+    //Exact solution
 	if(var == 36){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+        if(fForcingFunctionExact)
+        {
+            fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+        }
 		Solout[0] = solExata[0];
 		return;
 	}//var6
     
     if(var == 37){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-		Solout[0] = flux(0,0);
-        Solout[1] = flux(1,0);
+        
+        
+        if(fForcingFunctionExact)
+        {
+            fForcingFunctionExact->Execute(datavec[0].x, solExata,gradu);
+
+        }
+        
+        
+    //    std::cout<<"derivada no analticsolution "<<gradu<<std::endl;
+        
+        PermTensor.Multiply(gradu, flux);
+        
+        for (int i=0; i<fDim; i++)
+        {
+            Solout[i] = flux(i,0);
+        }
+        
+    
+        std::cout<<"\ndata x "<<datavec[0].x<< " K "<<PermTensor<<" -------fluxo "<<Solout<<std::endl;
+
 		return;
 	}//var7
 
@@ -703,11 +726,24 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     if(var==39){
         TPZFNMatrix<3,REAL> dsoldx;
         TPZFMatrix<REAL> dsoldaxes(fDim,1);
-        dsoldaxes(0,0) = datavec[1].dsol[0][0];
-        dsoldaxes(1,0) = datavec[1].dsol[0][1];
+//        dsoldaxes(0,0) = datavec[1].dsol[0][0];
+//        dsoldaxes(1,0) = datavec[1].dsol[0][1];
+        
+        for (int i=0; i<fDim; i++)
+        {
+           dsoldaxes(i,0) = datavec[1].dsol[0][i];;
+        }
+        
         TPZAxesTools<REAL>::Axes2XYZ(dsoldaxes, dsoldx, datavec[1].axes);
-        Solout[0] = dsoldx(0,0);
-        Solout[1] = dsoldx(1,0);
+//        Solout[0] = dsoldx(0,0);
+//        Solout[1] = dsoldx(1,0);
+        
+        for (int i=0; i<fDim; i++)
+        {
+            Solout[i] = dsoldx(i,0);
+        }
+        
+        
         return;
     }
     

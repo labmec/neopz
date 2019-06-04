@@ -37,7 +37,7 @@ TPZPrimalPoisson & TPZPrimalPoisson::operator=(const TPZPrimalPoisson &other){
 
 int TPZPrimalPoisson::Dimension() const { return 3;}
 
-int TPZPrimalPoisson::NStateVariables() {return 1;}
+int TPZPrimalPoisson::NStateVariables() const {return 1;}
 
 void TPZPrimalPoisson::Print(std::ostream & out){
     TPZMaterial::Print(out);

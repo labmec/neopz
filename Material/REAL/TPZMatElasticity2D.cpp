@@ -113,7 +113,7 @@ TPZMatElasticity2D & TPZMatElasticity2D::operator=(const TPZMatElasticity2D &cop
     return *this;
 }
 
-int TPZMatElasticity2D::NStateVariables() {
+int TPZMatElasticity2D::NStateVariables() const {
     return 2;
 }
 

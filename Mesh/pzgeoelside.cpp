@@ -1223,9 +1223,9 @@ void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
         {
             TPZManVector<REAL, 3> v1(3,0.0),v2(3,0.0),v3(3,0.0),v4(3,0.0);
             for (unsigned int i = 0; i < 3 ; i++) {
-                v1[i] = vol_axes(i,0);
-                v2[i] = vol_axes(i,1);
-                v3[i] = side_axes(i,0);
+                v1[i] = vol_axes(0,i);
+                v2[i] = vol_axes(1,i);
+                v3[i] = side_axes(0,i);
             }
             
             TPZNumeric::ProdVetorial(v1, v2, v4);
@@ -1237,8 +1237,8 @@ void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
         {
             TPZManVector<REAL, 3> v1(3,0.0),v2(3,0.0);
             for (unsigned int i = 0; i < 3 ; i++) {
-                v1[i] = side_axes(i,0);
-                v2[i] = side_axes(i,1);
+                v1[i] = side_axes(0,i);
+                v2[i] = side_axes(1,i);
             }
             TPZNumeric::ProdVetorial(v1, v2, normal);
         }

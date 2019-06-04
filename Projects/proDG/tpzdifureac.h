@@ -147,7 +147,7 @@ public:
 
 	virtual int Dimension() const { return fDim;}
 
-	int NStateVariables();
+	virtual int NStateVariables() const {return 1;}
 
 	void SetParameters(STATE diff, STATE f, STATE alf);
 

@@ -313,8 +313,8 @@ public:
     virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                  TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
     
-    void EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
-                       TPZVec<REAL> &/*errors*/,TPZBlock<REAL> * /*flux*/);
+    void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
+                       TPZVec<REAL> &errors,bool store_error);
     
     /**
      * @brief Computes the shape function set at the point x.
