@@ -235,6 +235,9 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef) override;
     
+    /** @brief Verifies if the material associated with the element is contained in the set */
+    virtual bool HasMaterial(const std::set<int> &materialids) const override;
+    
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                   TPZVec<REAL> &errors, bool store_errors) override {
         fReferenceCompEl->EvaluateError(func, errors, store_errors);
@@ -258,7 +261,6 @@ public:
 		return 0;
     }
 
-public:
 virtual int ClassId() const override;
 
 

@@ -1109,12 +1109,17 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &el
         TPZCompEl *el = fElementVec[i];
         /// Apply the filter by material identifiers
         bool has_material_Q = true;
-//        if(el) has_material_Q = el->HasMaterial(mat_ids);
+        if (el) {
+            has_material_Q = el->HasMaterial(mat_ids);
+        }
         if(!el || !has_material_Q){
             elgraphindex[curel+1]=elgraph.NElements();
             curel++;
             continue;
         }
+        
+
+        
         connectstack.Resize(0);
         el->BuildConnectList(connectstack);
         int64_t in;

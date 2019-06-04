@@ -192,6 +192,13 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     TPZElementMatrix ekloc,efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
+        
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
+        
         cel->CalcStiff(ekloc, efloc);
 #ifdef LOG4CXX
         if (logger->isDebugEnabled() ) {
@@ -257,6 +264,26 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 }
 
+/** @brief Verifies if the material associated with the element is contained in the set */
+bool TPZElementGroup::HasMaterial(const std::set<int> &materialids) const {
+    
+    int64_t nel = fElGroup.size();
+    TPZElementMatrix efloc;
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = fElGroup[el];
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
+        bool has_material_Q = cel->HasMaterial(materialids);
+        if (has_material_Q) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /**
  * @brief Computes the element right hand side
@@ -274,8 +301,12 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
     TPZElementMatrix efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
         cel->CalcResidual(efloc);
-        
         int nelcon = efloc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = efloc.fBlock.Size(ic);
