@@ -133,7 +133,7 @@ public:
 	void SetResidualType(TPZResidualType type);
 	
 	/** @brief Number of state variables according to the dimension */
-	virtual int NStateVariables() = 0;
+	virtual int NStateVariables() const = 0;
 	
 	/**
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas

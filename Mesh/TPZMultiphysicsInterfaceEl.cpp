@@ -321,13 +321,6 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 		return;
 	}
     
-    TPZVec<int64_t> *leftindices(0), *rightindices(0);
-    if (fLeftElIndices.size()) {
-        leftindices = &fLeftElIndices;
-    }
-    if (fRightElIndices.size()) {
-        rightindices = &fRightElIndices;
-    }
 	
 	InitializeElementMatrix(ek,ef);
 	
@@ -360,9 +353,11 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         }
     }
 
-    int intleftorder = leftel->IntegrationOrder();
-    int intrightorder = rightel->IntegrationOrder();
-    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZManVector<int> intleftorder;
+    leftel->PolynomialOrder(intleftorder);
+    TPZManVector<int> intrightorder;
+    rightel->PolynomialOrder(intrightorder);
+    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int dimension = gel->Dimension();
     int thisside = gel->NSides()-1;
@@ -392,9 +387,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, leftindices);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, fLeftElIndices);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, rightindices);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, fRightElIndices);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
@@ -441,9 +436,11 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     }
     data.fNeedsHSize=true;
     
-    int intleftorder = leftel->IntegrationOrder();
-    int intrightorder = rightel->IntegrationOrder();
-    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZManVector<int> intleftorder;
+    leftel->PolynomialOrder(intleftorder);
+    TPZManVector<int> intrightorder;
+    rightel->PolynomialOrder(intrightorder);
+    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int dimension = gel->Dimension();
     int thisside = gel->NSides()-1;
@@ -473,9 +470,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, fLeftElIndices);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, fRightElIndices);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ef.fMat);
@@ -528,9 +525,11 @@ void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
     }
 #endif
     
-    int intleftorder = leftel->IntegrationOrder();
-    int intrightorder = rightel->IntegrationOrder();
-    int integrationorder = MAX(intleftorder, intrightorder);
+    TPZManVector<int> intleftorder;
+    leftel->PolynomialOrder(intleftorder);
+    TPZManVector<int> intrightorder;
+    rightel->PolynomialOrder(intrightorder);
+    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int thisside = gel->NSides()-1;
     
@@ -708,15 +707,12 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 /** @brief Initialize the material data structures */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right){
 
-    TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
-    int n_meshes = mp_cmesh->MeshVector().size();
-    data_left.resize(n_meshes);
-    data_right.resize(n_meshes);
-    
-    TPZMaterial * mat = this->Material();
-    mat->FillDataRequirementsInterface(center_data, data_left, data_right);
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+  //  TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
+    int n_meshes = leftel->NMeshes();
+    data_left.resize(n_meshes);
+    data_right.resize(n_meshes);
     
     TPZVec<int64_t> *leftindices(0), *rightindices(0);
     if (fLeftElIndices.size()) {
@@ -728,6 +724,9 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_d
     
     leftel->InitMaterialData(data_left,leftindices);
     rightel->InitMaterialData(data_right,rightindices);
+    
+    TPZMaterial * mat = this->Material();
+    mat->FillDataRequirementsInterface(center_data, data_left, data_right);
     
     
 }
@@ -762,8 +761,6 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     TPZGeoEl *gel = Reference();
     TPZGeoElSide gelside(gel,gel->NSides()-1);
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
-    //ComputeRequiredData(Point,data);
-    //data.fNeedsNormal = true;
     
     TPZMaterial *mat = Material();
     if (mat) {
@@ -772,15 +769,20 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 
     if (data.fNeedsNormal)
     {
-        gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+        
+        if (gelside.Dimension() == gelside.Element()->Dimension()-1) {
+            gelside.Normal(point, data.normal);
+        }else{
+            gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+        }
     }
     
     if (data.fNeedsHSize){
 		const int dim = this->Dimension();
 		REAL faceSize;
 		if (dim == 0){//it means I am a point
-            DebugStop();
-            faceSize = 1.;
+//            DebugStop();
+            faceSize = 0.;
 		}
 		else{
 			faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio
@@ -812,10 +814,11 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
             return;
         }
     }
-	int mat = material->Id();
+	int matid = material->Id();
 	int nsides = ref->NSides();
-	
-	if(dimension == 2 && mat > 0){
+	bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
+    
+	if(dimension == 2 && to_postpro){
 		if(nsides == 9){
 			new TPZGraphElQ2dd(this,&grmesh);
 			return;
@@ -826,7 +829,7 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 		}
 	}//2d
 	
-	if(dimension == 3 && mat > 0){
+	if(dimension == 3 && to_postpro){
 		if(nsides == 27){
 			new TPZGraphElQ3dd(this,&grmesh);
 			return;
@@ -845,7 +848,7 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 		}//pyram
 	}//3d
 	
-	if(dimension == 1 && mat > 0){
+	if(dimension == 1 && to_postpro){
 		new TPZGraphEl1dd(this,&grmesh);
 	}//1d
 	
@@ -894,8 +897,8 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	lefttr.Apply(qsi, myqsi);
 	lefttr.Apply(qsi, myqsi);
 	
-	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft);
-	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright);
+	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft,fLeftElIndices);
+	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright,fRightElIndices);
 		
 	material->Solution(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
 }

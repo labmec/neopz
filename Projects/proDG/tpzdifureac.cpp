@@ -75,9 +75,6 @@ TPZdifureac::~TPZdifureac()
 //destrutor
 }
 
-int TPZdifureac::NStateVariables() {
-	return 1;
-}
 
 void TPZdifureac::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";

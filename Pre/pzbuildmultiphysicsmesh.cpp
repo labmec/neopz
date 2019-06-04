@@ -317,6 +317,7 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
 
 void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
+    
     int64_t imesh;
     int64_t nmeshes = cmeshVec.size();
     TPZManVector<int64_t> FirstConnectIndex(nmeshes+1,0);
@@ -333,8 +334,10 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
 			int64_t seqnum = con.SequenceNumber();
 			if(seqnum<0) continue;       /// Whether connect was deleted by previous refined process
 			int blsize = block.Size(seqnum);
-			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
+            int64_t conindex = FirstConnectIndex[imesh]+ic;
+			TPZConnect &conMF = MFMesh->ConnectVec()[conindex];
 			int64_t seqnumMF = conMF.SequenceNumber();
+            if(seqnumMF < 0) continue;
 			for (int idf=0; idf<blsize; idf++) {
 				blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
 			}

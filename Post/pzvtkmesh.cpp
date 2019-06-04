@@ -12,25 +12,15 @@
 
 using namespace std;
 
-TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat,
-                                 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat,scalnames,vecnames) {
-	fNumCases = 0;
-	fNumSteps = 0;
-	fStyle = EVTKStyle;
-	fVecNames = vecnames;
-	fScalarNames = scalnames;
-    fTensorNames.resize(0);
-}
 
-TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZVTKGraphMesh *graph,TPZMaterial * mat) :
-TPZGraphMesh(cmesh, dimension,mat,graph->ScalarNames(),graph->VecNames()) {
-	if(!mat) fMaterial = graph->fMaterial;
+TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZVTKGraphMesh *graph) :
+TPZGraphMesh(cmesh, dimension, graph->fMaterialIds, graph->ScalarNames(),graph->VecNames(), graph->TensorNames()) {
 	fNumCases = graph->fNumCases;
 	fNumSteps = graph->fNumSteps;
 	fStyle = EVTKStyle;
 }
 
-TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames): TPZGraphMesh(cmesh, dimension, mat,scalnames,vecnames,tensnames) {
+TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames): TPZGraphMesh(cmesh, dimension, matids,scalnames,vecnames,tensnames) {
     fNumCases = 0;
     fNumSteps = 0;
     fStyle = EVTKStyle;
@@ -47,11 +37,14 @@ void TPZVTKGraphMesh::DrawMesh(int numcases) {
 
 void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	
-	TPZMaterial * matp = Material();
-	if(!matp) {
-		cout << "TPZMVGraphMesh no material found\n";
-		return;
-	}
+    std::set<int> matid = MaterialIds();
+    std::set<int> matids = MaterialIds(); /// partial solution
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator it = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*it);
 	if(fOutFile.is_open())
 	{
 		fOutFile.close();

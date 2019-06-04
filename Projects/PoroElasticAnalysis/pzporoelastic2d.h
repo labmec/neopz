@@ -97,7 +97,7 @@ public:
 	
 	virtual ~TPZPoroElastic2d();
 	
-        virtual int ClassId() const;
+    virtual int ClassId() const;
         
 	virtual void Print(std::ostream & out);
 	
@@ -105,7 +105,8 @@ public:
 	
 	int Dimension() const {return fDim;}
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const {return 3;}
+
 	
 	void SetLastState(){ gState = ELastState; }
 	void SetCurrentState(){ gState = ECurrentState; }

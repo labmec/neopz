@@ -315,7 +315,12 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(const std::string &dxout, int d
 	TPZMaterial *  mat = fFlowCompMesh->GetFlowMaterial();
 	int dim = mat->Dimension();
 	//ResetReference(Mesh());//retira refer�ncias para criar graph consistente
-	TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);
+    if (!mat) {
+        DebugStop();
+    }
+    std::set<int> matids;
+    matids.insert(mat->Id());
+	TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,matids,scalar,vector);
 	//SetReference(Mesh());//recupera as refer�ncias retiradas
 	//ofstream *dxout = new ofstream("ConsLaw.dx");
 	//cout << "\nDX output file : ConsLaw.dx\n";

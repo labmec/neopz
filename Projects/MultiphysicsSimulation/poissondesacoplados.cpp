@@ -28,9 +28,6 @@ TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado(int matid, int dim):TPZDiscon
 TPZMatPoissonDesacoplado::~TPZMatPoissonDesacoplado(){
 }
 
-int TPZMatPoissonDesacoplado::NStateVariables() {
-	return 1;
-}
 
 void TPZMatPoissonDesacoplado::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";

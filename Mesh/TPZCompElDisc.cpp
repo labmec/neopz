@@ -30,6 +30,7 @@
 #include "tpzgraphelpyramidmapped.h"
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
+#include "pzgraphmesh.h"
 
 #include <sstream>
 #include <cmath>
@@ -608,10 +609,10 @@ void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<STATE> &uh){
 void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
 	TPZGeoEl *ref = Reference();
-	int mat = Material()->Id();
+	int matid = Material()->Id();
 	int nsides = ref->NSides();
-	
-	if(dimension == 2 && mat > 0){
+    bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
+	if(dimension == 2 && to_postpro){
 		if(nsides == 9){
 			new TPZGraphElQ2dd(this,&grmesh);
 			return;
@@ -622,7 +623,7 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 		}
 	}//2d
 	
-	if(dimension == 3 && mat > 0){
+	if(dimension == 3 && to_postpro){
 		if(nsides == 27){
 			new TPZGraphElQ3dd(this,&grmesh);
 			return;

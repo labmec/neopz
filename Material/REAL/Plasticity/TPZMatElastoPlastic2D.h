@@ -45,24 +45,24 @@ public:
 	virtual ~TPZMatElastoPlastic2D();
 	
 	/** returns the name of the material*/
-	virtual std::string Name();
+	virtual std::string Name() override;
 	
 	/**returns the integrable dimension of the material*/
-	virtual int Dimension() const { return 2; }
+	virtual int Dimension() const override { return 2; }
 	
 	/** returns the number of state variables associated with the material*/
-	virtual int NStateVariables() { return 2; }
+	virtual int NStateVariables() const override { return 2; }
 	
     /** @brief Prints out the data associated with the material */
-    virtual void Print(std::ostream &out);
+    virtual void Print(std::ostream &out) override;
 
 	/** print out the data associated with the material*/
-	virtual void Print(std::ostream &out, const int memory);
+	virtual void Print(std::ostream &out, const int memory) override;
 	
 	
 	/**returns the solution associated with the var index based on
 	 * the finite element approximation*/
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) override;
 	
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -71,7 +71,7 @@ public:
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef) override;
 	
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -80,12 +80,12 @@ public:
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) override;
 	
     /**
      * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
      */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override;
     
 	/**
 	 * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -95,7 +95,7 @@ public:
 	 * @param ef [out] is the load vector
 	 * @param bc [in] is the boundary condition material
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -105,7 +105,7 @@ public:
      * @param ef [out] is the load vector
      * @param bc [in] is the boundary condition material
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 
 	
 	/** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
@@ -134,25 +134,25 @@ public:
 	
 	
 	/**To create another material of the same type*/
-	virtual TPZMaterial * NewMaterial();
+	virtual TPZMaterial * NewMaterial() override;
 	
 	
 	/**
 	 * Unique identifier for serialization purposes
 	 */
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 	/**
 	 * Save the element data to a stream
 	 */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/**
 	 * Read the element data from a stream
 	 */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
     
 	
 protected:

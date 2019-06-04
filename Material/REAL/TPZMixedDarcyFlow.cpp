@@ -56,7 +56,7 @@ int TPZMixedDarcyFlow::Dimension() const {
     return m_dim;
 }
 
-int TPZMixedDarcyFlow::NStateVariables(){
+int TPZMixedDarcyFlow::NStateVariables() const{
     return 1;
 }
 
@@ -110,9 +110,8 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
     TPZFNMatrix<100,REAL> dphi_ps      = datavec[pb].dphix;
     
     
-    TPZFNMatrix<40, REAL> div_on_master = datavec[qb].divphi;
+    TPZFNMatrix<40, REAL> div_phi = datavec[qb].divphi;
     REAL div_q = datavec[qb].divsol[0][0];
-    REAL jac_det = datavec[qb].detjac;
     
     int nphi_q       = datavec[qb].fVecShapeIndex.NElements();
     int nphi_p       = phi_ps.Rows();
@@ -145,7 +144,7 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
             kappa_inv_q_dot_phi_q_i        += kappa_inv_q(i,0)*phi_q_i(i,0);
         }
         
-        ef(iq + first_q) += -1.0 * weight * ( kappa_inv_q_dot_phi_q_i - (1.0/jac_det) * (p) * div_on_master(iq,0));
+        ef(iq + first_q) += -1.0 * weight * ( kappa_inv_q_dot_phi_q_i - p * div_phi(iq,0));
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
@@ -170,7 +169,7 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
         
         for (int jp = 0; jp < nphi_p; jp++)
         {
-            ek(iq + first_q, jp + first_p) += weight * ( - (1.0/jac_det) * div_on_master(iq,0) ) * phi_ps(jp,0);
+            ek(iq + first_q, jp + first_p) += weight * ( - div_phi(iq,0) ) * phi_ps(jp,0);
         }
         
     }
@@ -182,7 +181,7 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
-            ek(ip + first_p, jq + first_q) += -1.0 * weight * (1.0/jac_det) * div_on_master(jq,0) * phi_ps(ip,0);
+            ek(ip + first_p, jq + first_q) += -1.0 * weight * div_phi(jq,0) * phi_ps(ip,0);
         }
         
     }
@@ -263,7 +262,7 @@ int TPZMixedDarcyFlow::VariableIndex(const std::string &name){
 }
 
 int TPZMixedDarcyFlow::NSolutionVariables(int var){
-    if(var == 1) return this->Dimension();
+    if(var == 1) return 3;
     if(var == 2) return 1;
     if(var == 3) return 1;
     if(var == 4) return this->Dimension();
@@ -301,7 +300,7 @@ void TPZMixedDarcyFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
     }
     
     if(var == 4){
-        for (int i  = 0; i < 3; i++) {
+        for (int i  = 0; i < this->Dimension(); i++) {
             Solout[i] = m_kappa(i,i);
         }
         return;

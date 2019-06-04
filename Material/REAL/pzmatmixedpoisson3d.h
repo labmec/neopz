@@ -81,9 +81,9 @@ public:
     
     TPZMatMixedPoisson3D &operator=(const TPZMatMixedPoisson3D &copy);
     
-    virtual std::string Name() { return "TPZMatMixedPoisson3D"; }
+    virtual std::string Name()  override { return "TPZMatMixedPoisson3D"; }
     
-    int Dimension() const {return fDim;}
+    int Dimension() const override {return fDim;}
     
     void SetDimension(int dim)
     {
@@ -95,11 +95,11 @@ public:
         return fMatId;
     }
     
-    virtual TPZMaterial * NewMaterial(){
+    virtual TPZMaterial * NewMaterial() override {
         return new TPZMatMixedPoisson3D(*this);
     }
     
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
     
     void SetPermeability(REAL perm) {
 
@@ -159,13 +159,13 @@ public:
     
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
-    virtual int IntegrationRuleOrder(int elPMaxOrder) const {
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const  override {
         
         return 2*(elPMaxOrder+1);
     }
     
     /** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
-    virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const
+    virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const override
     {
         int polorder = elPMaxOrder[0]*2;
         int forceorder = 0;
@@ -178,7 +178,7 @@ public:
         return polorder;
     }
     
-    void Print(std::ostream &out);
+    void Print(std::ostream &out) override;
     
     /** @name Contribute methods
      * @{
@@ -193,7 +193,7 @@ public:
      * @param ef [out] is the load vector
      * @since June 2, 2014
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
     ///This method use piola contravariant mapping for nonlinear mappings
     void ContributeWithoutSecondIntegration(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
@@ -206,7 +206,7 @@ public:
      * @param ef [out] is the load vector
      * @since June 2, 2014
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
     
@@ -219,7 +219,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since June 2, 2014
      */
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -230,7 +230,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since June 2, 2014
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
         DebugStop();
     }
     
@@ -292,26 +292,26 @@ public:
     //virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 
     
-    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
     
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec) override;
     
-    int VariableIndex(const std::string &name);
+    int VariableIndex(const std::string &name) override;
     
-    int NSolutionVariables(int var);
+    int NSolutionVariables(int var) override;
     
     // metodo para gerar vtk
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
     // metodo para computar erros Pressao
-    void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+    void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
     // metodo para computar erros Hdiv
-    void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+    void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
     // metodo para computar erros Pressao
     void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
                 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
-                TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+                TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     // metodo para computar erros Hdiv
-    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     
     void UseSecondIntegrationByParts(){
         fSecondIntegration=true;
@@ -321,7 +321,7 @@ public:
         return fSecondIntegration;
     }
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 };
 

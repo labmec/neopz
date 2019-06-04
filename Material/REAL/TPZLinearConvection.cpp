@@ -49,7 +49,7 @@ void TPZLinearConvection::Print(std::ostream & out) {
     TPZMaterial::Print(out);
     out << "Convection : " << fConvect[0] << ' ' << fConvect[1] << endl;
 }
-int TPZLinearConvection::NStateVariables()  {
+int TPZLinearConvection::NStateVariables()  const {
     return 1;
 }
 int TPZLinearConvection::Dimension() const {

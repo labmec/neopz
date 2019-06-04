@@ -79,7 +79,7 @@ public:
 	
 	int Dimension() const {return fDim;}
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const {return 1;}
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state

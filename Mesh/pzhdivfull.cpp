@@ -569,10 +569,6 @@ using namespace pztopology;
 using namespace pzgeom;
 using namespace pzshape;
 
-//template<>
-//void TPZCompElHDivFull<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-//	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
-//}
 
 template<class TSHAPE>
 void TPZCompElHDivFull<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {

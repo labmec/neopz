@@ -196,6 +196,7 @@ int TPZMatElastoPlastic<T,TMEM>::VariableIndex(const std::string &name)
     if(!strcmp("StressJ2",name.c_str()))                return TPZMatElastoPlastic<T,TMEM>::EStressJ2;
     if(!strcmp("StrainElasticJ2",name.c_str()))         return TPZMatElastoPlastic<T,TMEM>::EStrainElasticJ2;
     if(!strcmp("StrainPlasticJ2",name.c_str()))         return TPZMatElastoPlastic<T,TMEM>::EStrainPlasticJ2;
+    if(!strcmp("FailureType",name.c_str()))         return TPZMatElastoPlastic<T,TMEM>::EFailureType;
     PZError << "TPZMatElastoPlastic<T,TMEM>:: VariableIndex Error\n";
     return TPZMatElastoPlastic<T,TMEM>::ENone;
 }
@@ -222,6 +223,7 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
     if(var == TPZMatElastoPlastic<T,TMEM>::EStressJ2) return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EStrainElasticJ2) return 1;
     if(var == TPZMatElastoPlastic<T,TMEM>::EStrainPlasticJ2) return 1;
+    if(var == TPZMatElastoPlastic<T,TMEM>::EFailureType) return 1;
     
     if(var == 100) return 1;
     return TPZMatWithMem<TMEM>::NSolutionVariables(var);
@@ -413,6 +415,12 @@ void TPZMatElastoPlastic<T, TMEM>::Solution(TPZMaterialData &data, int var, TPZV
             epsElastic -= Memory.m_elastoplastic_state.m_eps_p;
             plasticloc.Phi(epsElastic, Solout);
         }//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
+            break;
+        case TPZMatElastoPlastic<T, TMEM>::EFailureType:
+        {
+            int m_type = Memory.m_elastoplastic_state.m_m_type;
+            Solout[0] = m_type;
+        }
             break;
         default:
         {

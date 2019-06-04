@@ -16,7 +16,9 @@
 
 class TPZMultiphysicsCompMesh : public TPZCompMesh {
     
-    /// Vector of active physics
+    /// Vector of active physics: index vector
+    /// Define wich space will be active in order to generate equations. Should be defined for each space that you want to use by 0: no active or 1: active
+    ///The size have to be the same as the m_mesh_vector
     TPZManVector<int,5> m_active_approx_spaces;
     
     /// Vector of computational meshes
@@ -36,21 +38,24 @@ public:
     /// Assignement constructor
     TPZMultiphysicsCompMesh & operator=(const TPZMultiphysicsCompMesh &other);
     
+    /// Destructor
+    ~TPZMultiphysicsCompMesh();
+    
     /// Automatic builder for the computational mesh structure
     void AutoBuild();
     
     /// Set active approximation spaces
-    void BuildMultiphysicsSpace(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
+    void BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
     void LoadSolutionFromMeshes();
     
     void LoadSolutionFromMultiPhysics();
     
     /// Get the vector of computational meshes
-    TPZManVector<TPZCompMesh * , 3> & MeshVector();
+    TPZVec<TPZCompMesh *> & MeshVector();
     
     /// Get the vector of active physics
-    TPZManVector<int,5> & GetActiveApproximationSpaces();
+    TPZVec<int> & GetActiveApproximationSpaces();
     
 private:
     

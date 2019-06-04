@@ -70,7 +70,7 @@ TPZMatConvectionProblem & TPZMatConvectionProblem::operator=(const TPZMatConvect
 	return *this;
 }
 
-int TPZMatConvectionProblem::NStateVariables() {
+int TPZMatConvectionProblem::NStateVariables() const {
 	return 1;
 }
 

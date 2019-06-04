@@ -70,7 +70,7 @@ public:
 	
 	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) = 0;
     
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> *indices = 0);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> indices);
     
     /** @brief Compute and fill data with requested attributes */
     virtual void ComputeRequiredData(TPZMaterialData &data,
@@ -115,7 +115,7 @@ public:
     /// After adding the elements initialize the integration rule
     virtual void InitializeIntegrationRule() override = 0 ;
 
-    virtual int IntegrationOrder() = 0;
+    virtual void PolynomialOrder(TPZVec<int> &order) const = 0;
     
     virtual int ComputeIntegrationOrder() const override;
     

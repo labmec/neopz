@@ -80,7 +80,7 @@ int TPZPostProcMat::NSolutionVariables(int var)
 	return fVars[i].fNumEq;
 }
 
-int TPZPostProcMat::NStateVariables()
+int TPZPostProcMat::NStateVariables() const
 {
 	int64_t i, nVars = fVars.NElements(), size = 0;
     for(i = 0; i < nVars; i++) size += fVars[i].fNumEq;

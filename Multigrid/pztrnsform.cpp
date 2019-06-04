@@ -96,6 +96,14 @@ template<class T>
 void TPZTransform<T>::SetMatrix(TPZFMatrix<T> &mult, TPZFMatrix<T> &sum) {
 	fRow = mult.Rows();
 	fCol = mult.Cols();
+
+#ifdef PZDEBUG
+
+    if ((sum.Cols()!=1)||(sum.Rows()!=mult.Rows())) {
+        DebugStop();
+    }
+    
+#endif
 	fMult = mult;
 	fSum = sum;
 }

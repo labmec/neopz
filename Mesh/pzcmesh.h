@@ -305,6 +305,13 @@ public:
 	 * @param elgraphindex graphos indexes vector
 	 */
 	void ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex);
+    
+    /**
+     * @brief Computes the connectivity graph of the elements, as appropriate for the TPZRenumbering class
+     * @param elgraph stack of elements to create the grapho????
+     * @param elgraphindex graphos indexes vector
+     */
+    void ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, std::set<int> & mat_ids);
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
@@ -704,11 +711,13 @@ inline int64_t TPZCompMesh::AllocateNewConnect(const TPZConnect &connect)
 
 inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
 	this->fReference = gmesh;
+    this->fDimModel = gmesh->Dimension();
     fGMesh = TPZAutoPointer<TPZGeoMesh>(0);
 }
 
 inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
     this->fReference = gmesh.operator->();
+    this->fDimModel = gmesh->Dimension();
     fGMesh = gmesh;
 }
 

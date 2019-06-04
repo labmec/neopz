@@ -407,13 +407,13 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> *indices)
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> indices)
 {
     int64_t nmeshes = NMeshes();
-    if(indices){
-        int64_t nindices = indices->size();
+    int64_t nindices = indices.size();
+    if(nindices>0){
         for (int64_t iel = 0; iel<nindices; iel++) {
-            int64_t indicel = indices->operator[](iel);
+            int64_t indicel = indices.operator[](iel);
             TPZCompEl *cel = Element(indicel);
             TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
             if (!intel) {

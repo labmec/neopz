@@ -87,10 +87,7 @@ public:
 	}
   
   /** @brief Returns the number of state variables associated with the material */
-  virtual int NStateVariables()
-  {
-    return 2;
-  }
+  virtual int NStateVariables() const {return 2;}
   
 	/** @brief Prints out the data associated with the material */
 	virtual void Print(std::ostream &out = std::cout);

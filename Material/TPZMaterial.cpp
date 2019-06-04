@@ -48,10 +48,30 @@ TPZMaterial::~TPZMaterial()
 
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
 	fId = material.fId;
+    fForcingFunction = material.fForcingFunction;
+    fForcingFunctionExact = material.fForcingFunctionExact;
+    fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
+    fTimedependentFunctionExact = material.fTimedependentFunctionExact;
+    fBCForcingFunction = material.fBCForcingFunction;
+    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
+    fLinearContext = material.fLinearContext;
     fNumLoadCases = material.fNumLoadCases;
     fPostProcIndex = material.fPostProcIndex;
-	fForcingFunction = material.fForcingFunction;
-	fLinearContext = material.fLinearContext;
+}
+
+TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
+{
+    fId = material.fId;
+    fForcingFunction = material.fForcingFunction;
+    fForcingFunctionExact = material.fForcingFunctionExact;
+    fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
+    fTimedependentFunctionExact = material.fTimedependentFunctionExact;
+    fBCForcingFunction = material.fBCForcingFunction;
+    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
+    fLinearContext = material.fLinearContext;
+    fNumLoadCases = material.fNumLoadCases;
+    fPostProcIndex = material.fPostProcIndex;
+    return *this;
 }
 
 void TPZMaterial::SetLinearContext(bool IsLinear){
@@ -287,6 +307,7 @@ void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZF
     int ndif = 0;
     int onemat = 0;
     for (int ir = 0; ir < nref; ir++) {
+        int nphis=datavec[ir].phi.Rows();
         if (datavec[ir].phi.Rows()) {
             onemat = ir;
             ndif++;

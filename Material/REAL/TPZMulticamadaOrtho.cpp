@@ -424,7 +424,12 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &
 	
 	TPZCompMesh *cmesh = an.Mesh();
 	int dim = mat->Dimension();
-	TPZDXGraphMesh graph(cmesh,dim,mat,scalar,vector);
+    if (!mat) {
+        DebugStop();
+    }
+    std::set<int> matids;
+    matids.insert(mat->Id());
+	TPZDXGraphMesh graph(cmesh,dim,matids,scalar,vector);
 	cout << "\nmain::ComputeSolution out file : MultCam.dx\n";
 	graph.SetFileName("MultCam.dx");
 	int resolution = 0;

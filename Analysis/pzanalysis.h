@@ -229,6 +229,11 @@ public:
 	virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
     /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
     virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
+    /** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
+    virtual void DefineGraphMesh(int dimension, const std::set<int> & matids ,const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
+    /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
+    virtual void DefineGraphMesh(int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
+    
 	/** @brief Clean the GrapMesh vector */
 	virtual void CloseGraphMesh();
 	
@@ -241,6 +246,10 @@ public:
 	/** @brief Draw solution over mesh by dimension  */	
 	virtual void PostProcess(int resolution, int dimension);
 	
+    /** @brief Fill mat ids with materials with provided dimension wich are not boundary conditinos or interface  */
+    void IdentifyPostProcessingMatIds(int dimension, std::set<int> & matids);
+    
+    
 	/**
 	 * @name Related over data structure to post processing
 	 * @{

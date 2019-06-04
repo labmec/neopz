@@ -25,6 +25,7 @@
 #include "pzgraphel.h"
 #include "pzerror.h"
 #include "tpzagglomeratemesh.h"
+#include "pzgraphmesh.h"
 
 using namespace std;
 
@@ -330,10 +331,10 @@ void TPZAgglomerateElement::Print(std::ostream &out) const {
 
 void TPZAgglomerateElement::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) {
 	if(!Reference()) return;
-	int mat = Material()->Id();
+	int matid = Material()->Id();
 	int nsides = NSides();
-	
-	if(dimension == 2 && mat > 0){
+    bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
+	if(dimension == 2 && to_postpro){
 		if(nsides == 9){
 			new TPZGraphElQ2dd(this,&grmesh);
 			return;
@@ -343,10 +344,10 @@ void TPZAgglomerateElement::CreateGraphicalElement(TPZGraphMesh &grmesh, int dim
 			return;
 		}
 	}
-	if(dimension == 3 && mat > 0){
+	if(dimension == 3 && to_postpro){
 		new TPZGraphElQ3dd(this,&grmesh);
 	}
-	if(dimension == 1 && mat > 0){
+	if(dimension == 1 && to_postpro){
 		new TPZGraphEl1dd(this,&grmesh);
 	}
 }

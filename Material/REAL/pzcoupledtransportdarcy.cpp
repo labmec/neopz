@@ -39,7 +39,7 @@ void TPZCoupledTransportDarcy::SetAlpha(REAL alpha){
 TPZCoupledTransportDarcy::~TPZCoupledTransportDarcy() {
 }
 
-int TPZCoupledTransportDarcy::NStateVariables() {
+int TPZCoupledTransportDarcy::NStateVariables() const {
 	return this->GetCurrentMaterial()->NStateVariables();
 }
 

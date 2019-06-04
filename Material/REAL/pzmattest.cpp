@@ -20,7 +20,7 @@ TPZMaterialTest::TPZMaterialTest(int nummat, STATE alfa, STATE x0) : TPZMaterial
 TPZMaterialTest::~TPZMaterialTest() {
 }
 
-int TPZMaterialTest::NStateVariables() {
+int TPZMaterialTest::NStateVariables() const {
 	return 1;
 }
 

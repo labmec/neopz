@@ -57,13 +57,6 @@ TPZNLFluidStructure2d::~TPZNLFluidStructure2d()
 {
 }
 
-
-int TPZNLFluidStructure2d::NStateVariables()
-{
-	return 1;
-}
-
-
 void TPZNLFluidStructure2d::Print(std::ostream &out)
 {
 	out << "name of material : " << Name() << "\n";

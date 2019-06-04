@@ -63,25 +63,25 @@ public:
 	
     virtual ~TPZIncNavierStokesKEps();
 	
-    virtual int Dimension() const;
+    virtual int Dimension() const override;
 	
     /** @brief Returns the number of state variables associated with the material*/
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
 	
     /** @brief Print out the data associated with the material*/
-    virtual void Print(std::ostream &out = std::cout);
+    virtual void Print(std::ostream &out = std::cout) override;
 	
     /** @brief Returns the number of variables associated with the variable
      *  indexed by var. \n var is obtained by calling VariableIndex*/
-    virtual int NSolutionVariables(int var);
+    virtual int NSolutionVariables(int var) override;
 	
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout);
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout) override;
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -91,12 +91,12 @@ public:
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
 	
     /** @brief Computes contribution to the residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
 	
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
@@ -104,13 +104,13 @@ public:
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
         TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
@@ -123,12 +123,12 @@ public:
     virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
                         TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
                         TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
-                        TPZVec<REAL> &val){
+                        TPZVec<REAL> &val) override {
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 };
 

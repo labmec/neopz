@@ -56,7 +56,6 @@ Mat2Dpospro & Mat2Dpospro::operator=(const Mat2Dpospro &copy)
 
 int Mat2Dpospro::Dimension() const {return fDim;};
 
-int Mat2Dpospro::NStateVariables() {return 1;}
 
 void Mat2Dpospro::Print(std::ostream &out) {
   out << "name of material : " << Name() << "\n";

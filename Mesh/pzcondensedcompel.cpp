@@ -279,7 +279,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         std::stringstream sout;
         Print(sout);
         sout << "Connect indices of element stiffness" << ek.fConnect << std::endl;
-        //ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
+        ek.fMat.Print("EKOrig = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -448,7 +448,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 #endif
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled() && (Index() == 927 || Index() == 923))
+    if(logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Index = " << Index() << std::endl;
@@ -537,6 +537,15 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     }
 }
 
+/** @brief Verifies if the material associated with the element is contained in the set */
+bool TPZCondensedCompEl::HasMaterial(const std::set<int> &materialids) const {
+    if(!fReferenceCompEl){
+        return false;
+    }
+    bool has_material_Q = fReferenceCompEl->HasMaterial(materialids);
+    return has_material_Q;
+}
+
 /**
  * @brief Prints element data
  * @param out Indicates the device where the data will be printed
@@ -584,7 +593,7 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         }
     }
     out << "Internal index resequencing: " << fIndexes << std::endl;
-    fCondensed.Print("Condensed matrix",out);
+    fCondensed.Print("Condensed matrix",out,EMathematicaInput);
 }
 
 
@@ -651,7 +660,13 @@ void TPZCondensedCompEl::LoadSolution()
     }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
-        LOGPZ_DEBUG(logger, "Computing UGlobal")
+        std::stringstream sout;
+        sout << "Computing UGlobal Index " << Index();
+        sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;
+        TPZVec<STATE> u1vec(dim1);
+        for(int i=0; i<u1vec.size(); i++) u1vec[i] = u1(i,0);
+        sout << "u1 " << u1vec;
+        LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
     fCondensed.UGlobal(u1, elsol);
@@ -664,6 +679,17 @@ void TPZCondensedCompEl::LoadSolution()
             bl(seqnum,0,ibl,0) = elsol(count++,0);
         }
     }
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "After Computing UGlobal Index " << Index() ;
+        sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;
+        TPZVec<STATE> u1vec(dim1+dim0);
+        for(int i=0; i<u1vec.size(); i++) u1vec[i] = elsol(i,0);
+        sout << "elsol " << u1vec;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 //    if (fKeepMatrix == false) {
 //        fCondensed.Redim(0,0);
 //        fCondensed.K00()->Redim(0, 0);

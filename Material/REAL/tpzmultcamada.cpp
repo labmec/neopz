@@ -127,7 +127,7 @@ int TPZMultCamada::NSolutionVariables(int var) {
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-int TPZMultCamada::NStateVariables() {
+int TPZMultCamada::NStateVariables() const {
 	if(fCamadas.NElements()) return fCamadas[0]->NStateVariables();
 	return 0;
 }

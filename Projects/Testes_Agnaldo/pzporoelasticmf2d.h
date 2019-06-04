@@ -125,7 +125,7 @@ public:
 	
 	int Dimension() const {return fDim;}
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const {return 1;}
     
     void SetIdSourceTerm(int idsourceterm){
         

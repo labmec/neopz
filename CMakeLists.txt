@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 3.11.0)
 #disable excessive warning messages by Microsoft VC compiler
 set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
 
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE  INTERNAL FORCE )
+set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING  INTERNAL FORCE )
 
 project (PZ)
 
@@ -14,6 +14,9 @@ project (PZ)
 IF (WIN32)
 	# Prevents timespec redefinition problem with Visual Studio 2015
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
+    if (NOT CMAKE_GENERATOR MATCHES "Ninja")
+    	set(CMAKE_INSTALL_PREFIX "C:/Program Files/PZ" CACHE PATH "Installation path, prepended onto install directories." FORCE) 
+	endif()
 ELSE (WIN32)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
@@ -87,7 +90,7 @@ if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
-		set(BOOST_ROOT "../externallibs/lib/boost_1_65_0")	
+        set(CMAKE_PREFIX_PATH "C:/local/boost_1_69_0" ${CMAKE_PREFIX_PATH})
 	ENDIF()
 	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
 endif(USING_BOOST)
@@ -821,4 +824,4 @@ install(FILES
  
 # Install the export set for use with the install-tree
 install(EXPORT PZTargets 
-        DESTINATION "${INSTALL_CMAKE_DIR}")
+        DESTINATION "${INSTALL_CMAKE_DIR}")		

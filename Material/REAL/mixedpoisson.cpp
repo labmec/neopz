@@ -72,6 +72,7 @@ TPZMixedPoisson::TPZMixedPoisson(const TPZMixedPoisson &cp) :TPZRegisterClassId(
 }
 
 TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
+    TPZMatPoisson3d::operator=(copy);
     fvisc = copy.fvisc;
     ff = copy.ff;
     fIsStabilized = copy.fIsStabilized;
@@ -86,7 +87,7 @@ TPZMixedPoisson & TPZMixedPoisson::operator=(const TPZMixedPoisson &copy){
     return *this;
 } 
 
-int TPZMixedPoisson::NStateVariables() {
+int TPZMixedPoisson::NStateVariables() const {
 	return 1;
 }
 
@@ -99,13 +100,14 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-#ifdef PZDEBUG
-    int nref = datavec.size();
-    if (nref != 2) {
-        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    int nref = datavec.size();
+//
+//    if (nref != 2) {
+//        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+//        DebugStop();
+//    }
+//#endif
     
     STATE force = ff;
     if(fForcingFunction) {
@@ -316,16 +318,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         }
     }
     //
-    //#ifdef LOG4CXX
-    //    if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Matriz ek e vetor fk \n ";
-    //        ek.Print("ekmph = ",sout,EMathematicaInput);
-    //        ef.Print("efmph = ",sout,EMathematicaInput);
-    //        LOGPZ_DEBUG(logdata,sout.str());
-    //	}
-    //#endif
+//    #ifdef LOG4CXX
+//        if(logdata->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout<<"\n\n Matriz ek e vetor fk \n ";
+//            ek.Print("ekmph = ",sout,EMathematicaInput);
+//            ef.Print("efmph = ",sout,EMathematicaInput);
+//            LOGPZ_DEBUG(logdata,sout.str());
+//        }
+//    #endif
     
 }
 
@@ -512,10 +514,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     
 #ifdef PZDEBUG
     int nref =  datavec.size();
-	if (nref != 2 ) {
-        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
-		DebugStop();
-	}
+//    if (nref != 2 ) {
+//        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+//        DebugStop();
+//    }
 	if (bc.Type() > 2 ) {
         std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
 		DebugStop();
@@ -645,7 +647,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 31){ //function (state variable Q)
-        for (int i=0; i<3; i++)
+        for (int i=0; i<fDim; i++)
         {
             Solout[i] = datavec[0].sol[0][i];
         }
@@ -678,19 +680,38 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-	TPZFMatrix<STATE> flux(fDim+1,1);
+    TPZFNMatrix<3,REAL> flux(fDim+1,1);
+    TPZFNMatrix<3,REAL> gradu(fDim+1,1);
     
-    //Exact soluion
+    //Exact solution
 	if(var == 36){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+        if(fForcingFunctionExact)
+        {
+            fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+        }
 		Solout[0] = solExata[0];
 		return;
 	}//var6
     
     if(var == 37){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-		Solout[0] = flux(0,0);
+        
+        
+        if(fForcingFunctionExact)
+        {
+            fForcingFunctionExact->Execute(datavec[0].x, solExata,gradu);
+
+        }
+        
+        
+    //    std::cout<<"derivada no analticsolution "<<gradu<<std::endl;
+        
+        PermTensor.Multiply(gradu, flux);
+        
+        Solout[0] = flux(0,0);
         Solout[1] = flux(1,0);
+    
+        std::cout<<"\ndata x "<<datavec[0].x<< " K "<<PermTensor<<" -------fluxo "<<Solout<<std::endl;
+
 		return;
 	}//var7
 

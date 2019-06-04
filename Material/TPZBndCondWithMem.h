@@ -29,7 +29,7 @@ public:
     
     /** @brief Default destructor */
     ~TPZBndCondWithMem(){
-        DebugStop();
+
     }
     
     TPZBndCondWithMem(TPZMaterial * material,int matid,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) : TPZBndCond(material,matid,type,val1,val2),fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
@@ -81,6 +81,25 @@ public:
     
     virtual void SetUpdateMem(bool update = 1);
     
+    void Clone(std::map<int, TPZMaterial * > &matvec) {
+        int matid = Id();
+        
+        TPZMaterial * refmaterial = Material();
+        TPZMaterial * newrefmaterial = NULL;
+        int refmatid = 0;
+        if(refmaterial) {
+            refmaterial->Clone(matvec);
+            refmatid = refmaterial->Id();
+            newrefmaterial = matvec[refmatid];
+        }
+        std::map<int, TPZMaterial * >::iterator matit;
+        matit = matvec.find(matid);
+        if(matit == matvec.end())
+        {
+            TPZMaterial * newmat = (new TPZBndCondWithMem<TMEM>(*this, newrefmaterial));
+            matvec[matid] = newmat;
+        }
+    }
     
     void UpdateBCValues(TPZVec<TPZMaterialData> &datavec){
         DebugStop();

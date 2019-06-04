@@ -67,9 +67,9 @@ public:
     int MatId()
     {
         return fMatId;
-    }
+	}
     
-    virtual int NStateVariables();
+	virtual int NStateVariables()const { return 1; }
     
     void SetParameters(REAL k, REAL alpha) {
         fK = k;

@@ -75,13 +75,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     return stiff;
 }
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
-    int64_t neq = fEquationFilter.NActiveEquations();
-    /*    if(fMesh->FatherMesh()) {
-     TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
-     neq = smesh->NumInternalEquations();
-     }*/
-    TPZSYsmpMatrix<STATE> * mat = new TPZSYsmpMatrix<STATE>(neq,neq);
-    
+
     /**
      *Longhin implementation
      */
@@ -89,6 +83,15 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
     TPZVec<int64_t> elgraphindex;
     //    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
+    TPZMatrix<STATE> * mat = SetupMatrixData(elgraph, elgraphindex);
+    return mat;
+}
+
+TPZMatrix<STATE> * TPZSymetricSpStructMatrix::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
+    
+    int64_t neq = fEquationFilter.NActiveEquations();
+    TPZSYsmpMatrix<STATE> * mat = new TPZSYsmpMatrix<STATE>(neq,neq);
+    
     /**Creates a element graph*/
     TPZMetis metis;
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
@@ -150,7 +153,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
             rowdestindices[i] = iblpos+i;
         }
         fEquationFilter.Filter(rowdestindices);
-        
+
         int64_t ibleq;
         // working equation by equation
         for(ibleq=0; ibleq<rowdestindices.size(); ibleq++) {
@@ -242,6 +245,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
             ieq++;
         }
     }
+
     Eq[ieq] = pos;
     mat->SetData(Eq,EqCol,EqValue);
     return mat;

@@ -28,7 +28,13 @@ void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int n
   //       << "\n" << scalar[1] << "\n" << scalar[2] << endl;
   int dim = mat->Dimension();
   ResetReference(Mesh());//retira refer�ncias para criar graph consistente
-  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
+    std::set<int> matids;
+    if (!mat) {
+        DebugStop();
+    }
+    int matdid = mat->Id();
+    matids.insert(matdid);
+  TPZDXGraphMesh graph(Mesh(),dim,matids,scalar,vector);
   SetReference(Mesh());//recupera as refer�ncias retiradas
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
@@ -97,7 +103,13 @@ void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int n
   scalar[0] = "Solution";
   cout << "TPZIterativeAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
   int dim = mat->Dimension();
-  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
+    std::set<int> matids;
+    if (!mat) {
+        DebugStop();
+    }
+    int matdid = mat->Id();
+    matids.insert(matdid);
+  TPZDXGraphMesh graph(Mesh(),dim,matids,scalar,vector);
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
   graph.SetFileName(name);

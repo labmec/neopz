@@ -17,7 +17,7 @@ class TPZBndCond;
 class TPZLinearConvection : public TPZMaterial {
 public:
     
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
     /** @brief Copy constructor */
     TPZLinearConvection(TPZLinearConvection & copy);
@@ -25,13 +25,13 @@ public:
     TPZLinearConvection(int id,TPZVec<STATE> &conv) ;
 
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() const;
+    virtual int Dimension() const override;
 	
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables()  ;
+    virtual int NStateVariables() const override ;
 	
     /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes() {return 2;}
+    virtual int NFluxes()  override {return 2;}
 
 	/**
 	 * @name Contribute methods (weak formulation)
@@ -39,21 +39,21 @@ public:
 	 */
 	 
     virtual void Contribute(TPZMaterialData &data, REAL weight,
-							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	
 	
     virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
     virtual void Contribute(TPZMaterialData &data, REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+							  TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
@@ -61,17 +61,17 @@ public:
     /** @} */
     
 	/** @brief Print out the data associated with the material */
-    virtual void Print(std::ostream &out = std::cout);
+    virtual void Print(std::ostream &out = std::cout) override;
 	
     /** @brief Returns the variable index associated with the name */
-    virtual int VariableIndex(const std::string &name);
+    virtual int VariableIndex(const std::string &name) override;
 	
-    virtual int NSolutionVariables(int var);
+    virtual int NSolutionVariables(int var) override;
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -81,13 +81,13 @@ public:
         Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
     }
 	
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {}
+    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {}
 	
     /** @brief To create another material of the same type */
-    virtual TPZMaterial * NewMaterial();
+    virtual TPZMaterial * NewMaterial() override;
 	
     /** @brief Reads data of the material from a istream (file data) */
-    virtual void SetData(std::istream &data);
+    virtual void SetData(std::istream &data) override;
 	
 private:    
     STATE fConvect[2];

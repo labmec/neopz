@@ -87,7 +87,7 @@ fKZY(3,3,0.),fXf(3,1,0.)
 TPZMatOrthotropic::~TPZMatOrthotropic() {
 }
 
-int TPZMatOrthotropic::NStateVariables() {
+int TPZMatOrthotropic::NStateVariables() const {
 	return 3;
 }
 
