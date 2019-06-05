@@ -141,7 +141,7 @@ namespace pztopology {
 		return nsidenodes[side];
 	}
 	
-	bool TPZTriangle::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZTriangle::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 		const REAL qsi = pt[0];
 		const REAL eta = pt[1];
 		if( ( qsi <= 1. + tol ) && ( qsi >= 0. - tol ) &&

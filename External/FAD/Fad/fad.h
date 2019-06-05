@@ -275,10 +275,11 @@ public:
     
   friend ostream& operator<< (ostream& stream, const Fad<T>& x)
   {
-      stream << x.val();
-//      for (int i=0; i<x.dx_.size(); i++) {
-//          stream << x.dx_[i] << " ";
-//      }
+      const int VAL_WIDTH = 8;
+      stream << std::setw(VAL_WIDTH)<<std::right<<x.val()<<" dx: ";
+      for (int i=0; i<x.dx_.size(); i++) {
+          stream << std::setw(VAL_WIDTH)<<std::right<< x.dx_[i] << " ";
+      }
       return stream;
   }
     

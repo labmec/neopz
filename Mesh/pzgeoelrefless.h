@@ -268,6 +268,16 @@ virtual int ClassId() const;
     
 	virtual bool IsLinearMapping( int side) const;
 	virtual bool IsGeoBlendEl() const;
+
+    /**
+     * If the element is a TPZGeoBlend element, this method will ensure that if the side side is connected to the
+     * element with index index, its blend connectivity is erased (for instance, this element may have been deleted).
+     * If it is not a TPZGeoBlend element, the method will just return false.
+     * @param side side in which to seek for connectivities
+     * @param index index of the element that will be disconnected from this
+     * @return true if the element is a TPZGeoBlend element.
+     */
+    bool ResetBlendConnectivity(const int64_t &side, const int64_t &index) override;
 	TGeo &Geom() { return fGeo; }
 	
 	virtual  TPZTransform<> GetTransform(int side,int son);
@@ -299,7 +309,7 @@ virtual int ClassId() const;
     }
     
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
-	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
+	virtual bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6);
 	
 	/**
 	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)
@@ -320,7 +330,7 @@ virtual int ClassId() const;
 
 template<class TGeo>
 inline
-bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 	const bool result = fGeo.IsInParametricDomain(pt,tol);
 	return result;
 }

@@ -116,7 +116,7 @@ namespace pzgeom {
         }
 		
         template<class T>
-        static void TShape(TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
+        static void TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
         {
             phi(0,0) = (T)1.;
         }

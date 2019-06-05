@@ -27,7 +27,7 @@ using namespace pzgeom;
 using namespace pztopology;
 
 template<class T>
-void TPZQuadraticQuad::TShape(TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+void TPZQuadraticQuad::TShape(const TPZVec<T> &par,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
     
 	T qsi = par[0], eta = par[1];
 	

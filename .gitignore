@@ -1,3 +1,7 @@
 *.msh
 .DS_Store
 CMakeLists.txt.user
+cmake-build-debug
+cmake-build-release
+.idea
+NeoPZ_CMake

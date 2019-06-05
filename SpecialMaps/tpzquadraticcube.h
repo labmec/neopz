@@ -104,7 +104,7 @@ virtual int ClassId() const;
         }
         
         template<class T>
-        static void TShape(TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &x,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
 
         /** @brief Compute X mapping from element nodes and local parametric coordinates */    
         template<class T>

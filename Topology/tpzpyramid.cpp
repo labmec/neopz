@@ -11,6 +11,7 @@
 
 #include "pzcreateapproxspace.h"
 #include "pzlog.h"
+#include "pzextractval.h"
 
 #ifdef _AUTODIFF
 #include "fad.h"
@@ -29,9 +30,9 @@ namespace pztopology {
 	
 	
 	static int nhighdimsides[19] = {7,7,7,7,9,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
-	
+	                                     //5   //6   //7   //8   //9   //10  //11  //12
 	int TPZPyramid::SideNodes[8][2]  = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,4},{2,4},{3,4} };
-	
+	                                     //13      //14       //15       //16       //17
 	int TPZPyramid::FaceNodes[5][4]  = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
 	
 	int TPZPyramid::ShapeFaceId[5][4] = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
@@ -696,7 +697,7 @@ namespace pztopology {
 		return -1;
 	}
 	
-	bool TPZPyramid::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZPyramid::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 		const REAL qsi = pt[0];
 		const REAL eta = pt[1];
 		const REAL zeta = pt[2];
@@ -727,7 +728,7 @@ namespace pztopology {
             pt[i] = val;
         }
     }
-    
+
     template<class T>
     bool TPZPyramid::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		double zero = 1.E-5;
@@ -755,8 +756,10 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = qsi/(1.-zeta);
-                    JacToSide(0,0) = 1./(1.-zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((1.-zeta)*(1.-zeta));
+                    SidePar[0] = qsi/(1 - zeta);
+                    JacToSide(0,0) = 1/(1 - zeta);
+                    JacToSide(0,1) = 0;
+                    JacToSide(0,2) = qsi/((-1 + zeta)*(-1 + zeta));
 				}
 				break;
 				
@@ -770,8 +773,10 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = eta/(1.-zeta);
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 1./(1.-zeta); JacToSide(0,2) = eta/((1.-zeta)*(1.-zeta));
+                    SidePar[0] = eta/(1 - zeta);
+                    JacToSide(0,0) = 0;
+                    JacToSide(0,1) = 1/(1 - zeta);
+                    JacToSide(0,2) = eta/((-1 + zeta)*(-1 + zeta));
 				}
 				break;
 				
@@ -785,8 +790,10 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = qsi/(zeta-1.);
-                    JacToSide(0,0) = 1./(zeta-1.); JacToSide(0,1) = 0.; JacToSide(0,2) = -qsi/((zeta-1.)*(zeta-1.));
+                    SidePar[0] = qsi/(-1 + zeta);
+                    JacToSide(0,0) = 1/(-1 + zeta);
+                    JacToSide(0,1) = 0;
+                    JacToSide(0,2) = -(qsi/((-1 + zeta)*(-1 + zeta)));
 				}
 				break;
 				
@@ -800,8 +807,10 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = eta/(zeta-1.);
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 1./(zeta-1.); JacToSide(0,2) = -eta/((zeta-1.)*(zeta-1.));
+                    SidePar[0] = eta/(-1 + zeta);
+                    JacToSide(0,0) = 0;
+                    JacToSide(0,1) = 1/(-1 + zeta);
+                    JacToSide(0,2) = -(eta/((-1 + zeta)*(-1 + zeta)));
 				}
 				break;
 				
@@ -821,11 +830,13 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = -((eta*(-1. + qsi + zeta) + (-1. + zeta)*(-1. + qsi + 5.*zeta))/((-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta)));
-					T den = (-1. + qsi - 3.*zeta)*(-1. + zeta) + eta*(-1. + qsi + zeta);
-                    JacToSide(0,0) = (8.*(-1. + zeta)*zeta*(-1. + eta + zeta))/(den*den);
-                    JacToSide(0,1) = (8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/(den*den);
-                    JacToSide(0,2) = (-8.*((-1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/(den*den);
+                    SidePar[0] = -1 + (8*(-1 + zeta)*zeta)/(-1 + eta + qsi - eta*qsi - (2 + eta + qsi)*zeta + 3*(zeta*zeta));
+                    T denominator = (((-1 + qsi - 3*zeta)*(-1 + zeta) + eta*(-1 + qsi + zeta))*
+                            ((-1 + qsi - 3*zeta)*(-1 + zeta) + eta*(-1 + qsi + zeta)));
+                    JacToSide(0,0) = (8*(-1 + zeta)*zeta*(-1 + eta + zeta))/denominator;
+                    JacToSide(0,1) = (8*(-1 + zeta)*zeta*(-1 + qsi + zeta))/denominator;
+                    JacToSide(0,2) = (-8*((-1 + qsi)*((-1 + zeta)*(-1 + zeta)) + eta*((-1 + zeta)*
+                            (-1 + zeta) + qsi*(-1 + 2*zeta))))/denominator;
 				}
 				break;
 				
@@ -845,12 +856,15 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = (-((1. + qsi - 5.*zeta)*(-1. + zeta)) + eta*(-1. - qsi + zeta))/(eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta));
-					T den = eta*(1. + qsi - zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta);
-                    JacToSide(0,0) = (-8.*(-1. + zeta)*zeta*(-1. + eta + zeta))/(den*den);
-                    JacToSide(0,1) = (-8.*(1. + qsi - zeta)*(-1. + zeta)*zeta)/(den*den);
-                    JacToSide(0,2) = (8.*((1. + qsi)*(-1. + zeta)*(-1. + zeta) - eta*(qsi + (-1. + zeta)*(-1. + zeta) - 2.*qsi*zeta)))/(den*den);
-				}
+                    SidePar[0] = -1 + (8*(-1 + zeta)*zeta)/(eta*(1 + qsi - zeta) + (-1 + zeta)*(1 + qsi + 3*zeta));
+                    T denominator = ((eta*(1 + qsi - zeta) + (-1 + zeta)*(1 + qsi + 3*zeta))*
+                            (eta*(1 + qsi - zeta) + (-1 + zeta)*(1 + qsi + 3*zeta)));
+                    JacToSide(0,0) = (-8*(-1 + zeta)*zeta*(-1 + eta + zeta))/denominator;
+                    JacToSide(0,1) = (-8*(1 + qsi - zeta)*(-1 + zeta)*zeta)/denominator;
+                    JacToSide(0,2) = (8*(1 + qsi)*((-1 + zeta)*(-1 + zeta)) -
+                            8*eta*(qsi + (-1 + zeta)*(-1 + zeta) - 2*qsi*zeta))/denominator;
+
+                }
 				break;
 				
 			case 11://1D
@@ -869,17 +883,19 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = -1. + (8.*(-1. + zeta)*zeta)/(eta*(-1. - qsi + zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta));
-					T den = eta*(-1. - qsi + zeta) + (-1. + zeta)*(1. + qsi + 3.*zeta);
-                    JacToSide(0,0) = (-8.*(-1. + zeta)*zeta*(-1. - eta + zeta))/(den*den);
-                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. - qsi + zeta))/(den*den);
-                    JacToSide(0,2) = (8.*((1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*(qsi + (-1. + zeta)*(-1. + zeta) - 2.*qsi*zeta)))/(den*den);
+                    SidePar[0] = (1 + eta + qsi + eta*qsi - (6 + eta + qsi)*zeta + 5*(zeta*zeta))/
+                            (eta*(-1 - qsi + zeta) + (-1 + zeta)*(1 + qsi + 3*zeta));
+                    T denominator = (eta*(1 + qsi - zeta) - (-1 + zeta)*(1 + qsi + 3*zeta))*(eta*(1 + qsi - zeta) - (-1 + zeta)*(1 + qsi + 3*zeta));
+                    JacToSide(0,0) = (8*(1 + eta - zeta)*(-1 + zeta)*zeta)/denominator;
+                    JacToSide(0,1) = (8*(1 + qsi - zeta)*(-1 + zeta)*zeta)/denominator;
+                    JacToSide(0,2) = (8*((1 + qsi)*((-1 + zeta)*(-1 + zeta)) +
+                            eta*(qsi + (-1 + zeta)*(-1 + zeta) - 2*qsi*zeta)))/denominator;
 				}
 				break;
 				
 			case 12://1D
 				SidePar.Resize(1); JacToSide.Resize(1,3);
-				if( fabs((T)(qsi-1.)) < zero || fabs((T)(eta+1.)) > zero)
+				if( fabs((T)(qsi-1.)) < zero || fabs((T)(eta+1.)) < zero)
 				{
                     SidePar[0] = -1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -893,11 +909,14 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = (-(eta*(-1. + qsi + zeta)) + (-1. + zeta)*(-1. + qsi + 5.*zeta))/(-((-1. + qsi - 3.*zeta)*(-1. + zeta)) + eta*(-1. + qsi + zeta));
-					T den = (-1. + qsi - 3.*zeta)*(-1. + zeta) - eta*(-1. + qsi + zeta);
-                    JacToSide(0,0) = (-8.*(1. + eta - zeta)*(-1. + zeta)*zeta)/(den*den);
-                    JacToSide(0,1) = (-8.*(-1. + zeta)*zeta*(-1. + qsi + zeta))/(den*den);
-                    JacToSide(0,2) = (8.*(-((-1. + qsi)*(-1. + zeta)*(-1. + zeta)) + eta*((-1. + zeta)*(-1. + zeta) + qsi*(-1. + 2.*zeta))))/(den*den);
+                    SidePar[0] = -1 + (8*(-1 + zeta)*zeta)/(qsi*(1 + eta - zeta) + (-1 + zeta)*(1 + eta + 3*zeta));
+                    T denominator = (qsi*(1 + eta - zeta) + (-1 + zeta)*(1 + eta + 3*zeta))*
+                            (qsi*(1 + eta - zeta) + (-1 + zeta)*(1 + eta + 3*zeta));
+                    JacToSide(0,0) = (-8*(1 + eta - zeta)*(-1 + zeta)*zeta)/denominator;
+                    JacToSide(0,1) = (-8*(-1 + zeta)*zeta*(-1 + qsi + zeta))/denominator;
+                    JacToSide(0,2) = (-8*(-1 + qsi)*((-1 + zeta)*(-1 + zeta)) +
+                            8*eta*((-1 + zeta)*(-1 + zeta) + qsi*(-1 + 2*zeta)))/(((-1 + qsi - 3*zeta)*(-1 + zeta)
+                                    - eta*(-1 + qsi + zeta))*((-1 + qsi - 3*zeta)*(-1 + zeta) - eta*(-1 + qsi + zeta)));
 				}
 				break;
 				
@@ -912,24 +931,27 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = qsi/(1. - zeta);
-                    SidePar[1] = eta/(1. - zeta);
-                    JacToSide(0,0) = 1./(1. - zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((1. - zeta)*(1. - zeta));
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 1./(1. - zeta); JacToSide(1,2) = eta/((1. - zeta)*(1. - zeta));
-					regularmap = false;
+                    SidePar[0] = qsi/(1 - zeta);
+                    SidePar[1] = eta/(1 - zeta);
+                    JacToSide(0,0) = 1/(1 - zeta);
+                    JacToSide(0,1) = 0;
+                    JacToSide(0,2) = qsi/((-1 + zeta)*(-1 + zeta));
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = 1/(1 - zeta);
+                    JacToSide(1,2) = eta/((-1 + zeta)*(-1 + zeta));
 				}
 				break;
 				
 			case 14://2D
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(zeta-1.)) < zero)
+				if(fabs((T)(zeta+eta-1.)) < zero)//is in side 16
 				{
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 					regularmap = false;
 				}
-				else if(fabs((T)(eta-1.)) < zero)
+				else if(fabs((T)(eta-1.)) < zero)//is in side 13
 				{
                     SidePar[0] = qsi/2. + 0.5; SidePar[1] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -938,27 +960,29 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = ((-1. + eta + zeta)*(-1. - qsi + zeta))/(2.*(-1. + eta - zeta)*(-1. + zeta));
-                    SidePar[1] = (2.*zeta)/(1. - eta + zeta);
-                    JacToSide(0,0) = -(-1. + eta + zeta)/(2.*(-1. + eta - zeta)*(-1. + zeta));
-                    JacToSide(0,1) = ((1. + qsi - zeta)*zeta)/((-1. + zeta)*(1. - eta + zeta)*(1. - eta + zeta));
-                    JacToSide(0,2) = (eta*eta*qsi - (2. + qsi)*(-1. + zeta)*(-1. + zeta) + 2.*eta*(1. - (2. + qsi)*zeta + zeta*zeta))/(2.*(-1. + zeta)*(-1. + zeta)*(1. - eta + zeta)*(1. - eta + zeta));
-                    JacToSide(1,0) = 0.;
-                    JacToSide(1,1) = (2.*zeta)/((1. - eta + zeta)*(1. - eta + zeta));
-                    JacToSide(1,2) = (2. - 2.*eta)/((1. - eta + zeta)*(1. - eta + zeta));
+                    SidePar[0] = -((-1 + eta + zeta)*(-1 - qsi + zeta))/(2.*(-1 + zeta)*(1 - eta + zeta));
+                    SidePar[1] = (2*zeta)/(1 - eta + zeta);
+                    JacToSide(0,0) = (-1 + eta + zeta)/(2.*(-1 + zeta)*(1 - eta + zeta));
+                    JacToSide(0,1) = ((1 + qsi - zeta)*zeta)/((-1 + zeta)*((1 - eta + zeta)*(1 - eta + zeta)));
+                    JacToSide(0,2) = (eta*eta*qsi - (2 + qsi)*((-1 + zeta)*(-1 + zeta)) +
+                                    2*eta*(1 - (2 + qsi)*zeta + zeta*zeta))/
+                                    (2.*((-1 + zeta)*(-1 + zeta))*((1 - eta + zeta)*(1 - eta + zeta)));
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = (2*zeta)/((1 - eta + zeta)*(1 - eta + zeta));
+                    JacToSide(1,2) = (2 - 2*eta)/((1 - eta + zeta)*(1 - eta + zeta));
 				}
 				break;
 				
 			case 15://2D
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(zeta-1.)) < zero)
+				if(fabs((T)(zeta-qsi-1.)) < zero)//is in side 17
 				{
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 					regularmap = false;
 				}
-				else if(fabs((T)(qsi+1.)) < zero)
+				else if(fabs((T)(qsi+1.)) < zero)//is in side 13
 				{
                     SidePar[0] = eta/2. + .5; SidePar[1] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.5; JacToSide(0,2) = 0.;
@@ -967,28 +991,30 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = ((1. + eta - zeta)*(-1. - qsi + zeta))/(2.*(-1. + zeta)*(1. + qsi + zeta));
-                    SidePar[1] = (2.*zeta)/(1. + qsi + zeta);
-                    JacToSide(0,0) = (zeta*(-1. - eta + zeta))/((-1. + zeta)*(1. + qsi + zeta)*(1. + qsi + zeta));
-                    JacToSide(0,1) = (-1. - qsi + zeta)/(2.*(-1. + zeta)*(1. + qsi + zeta));
-                    JacToSide(0,2) = (-2.*(1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*(qsi*qsi - (-1. + zeta)*(-1. + zeta) + 2.*qsi*zeta))/(2.*(-1. + zeta)*(-1. + zeta)*(1. + qsi + zeta)*(1. + qsi + zeta));
-                    JacToSide(1,0) = (-2.*zeta)/((1. + qsi + zeta)*(1. + qsi + zeta));
-                    JacToSide(1,1) = 0.;
-                    JacToSide(1,2) = (2.*(1. + qsi))/((1. + qsi + zeta)*(1. + qsi + zeta));
+                    SidePar[0] = ((1 + eta - zeta)*(-1 - qsi + zeta))/(2.*(-1 + zeta)*(1 + qsi + zeta));
+                    SidePar[1] = (2*zeta)/(1 + qsi + zeta);
+                    JacToSide(0,0) = (zeta*(-1 - eta + zeta))/((-1 + zeta)*((1 + qsi + zeta)*(1 + qsi + zeta)));
+                    JacToSide(0,1) = (-1 - qsi + zeta)/(2.*(-1 + zeta)*(1 + qsi + zeta));
+                    JacToSide(0,2) = (-2*(1 + qsi)*((-1 + zeta)*(-1 + zeta)) +
+                            eta*(qsi*qsi - (-1 + zeta)*(-1 + zeta) + 2*qsi*zeta))/
+                                    (2.*((-1 + zeta)*(-1 + zeta))*((1 + qsi + zeta)*(1 + qsi + zeta)));
+                    JacToSide(1,0) = (-2*zeta)/((1 + qsi + zeta)*(1 + qsi + zeta));
+                    JacToSide(1,1) = 0;
+                    JacToSide(1,2) = (2*(1 + qsi))/((1 + qsi + zeta)*(1 + qsi + zeta));
 					
 				}
 				break;
 				
 			case 16://2D
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(zeta-1.)) < zero)
+				if(fabs((T)(1-zeta+eta)) < zero)//is in side 14
 				{
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 					regularmap = false;
 				}
-				else if(fabs((T)(eta+1.)) < zero)
+				else if(fabs((T)(eta+1.)) < zero)//is in side 13
 				{
                     SidePar[0] = -qsi/2. + .5; SidePar[1] = 0.;
                     JacToSide(0,0) = -0.5; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
@@ -997,27 +1023,29 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = ((1. + eta - zeta)*(-1. + qsi + zeta))/(2.*(-1. + zeta)*(1. + eta + zeta));
-                    SidePar[1] = (2.*zeta)/(1. + eta + zeta);
-                    JacToSide(0,0) = (1. + eta - zeta)/(2.*(-1. + zeta)*(1. + eta + zeta));
-                    JacToSide(0,1) = (zeta*(-1. + qsi + zeta))/((-1. + zeta)*(1. + eta + zeta)*(1. + eta + zeta));
-                    JacToSide(0,2) = (-(eta*eta*qsi) + (-2. + qsi)*(-1. + zeta)*(-1. + zeta) - 2.*eta*(1. + (-2. + qsi)*zeta + zeta*zeta))/(2.*(-1. + zeta)*(-1. + zeta)*(1. + eta + zeta)*(1. + eta + zeta));
-                    JacToSide(1,0) = 0.;
-                    JacToSide(1,1) = (-2.*zeta)/((1. + eta + zeta)*(1. + eta + zeta));
-                    JacToSide(1,2) = (2.*(1. + eta))/((1. + eta + zeta)*(1. + eta + zeta));
+                    SidePar[0] = ((1 + eta - zeta)*(-1 - qsi + zeta))/(2.*(-1 + zeta)*(1 + eta + zeta));
+                    SidePar[1] = (2*zeta)/(1 + eta + zeta);
+                    JacToSide(0,0) = (-1 - eta + zeta)/(2.*(-1 + zeta)*(1 + eta + zeta));
+                    JacToSide(0,1) = (zeta*(-1 - qsi + zeta))/((-1 + zeta)*((1 + eta + zeta)*(1 + eta + zeta)));
+                    JacToSide(0,2) = (eta*eta*qsi - (2 + qsi)*((-1 + zeta)*(-1 + zeta)) -
+                                    2*eta*(1 - (2 + qsi)*zeta + zeta*zeta))/
+                                    (2.*((-1 + zeta)*(-1 + zeta))*((1 + eta + zeta)*(1 + eta + zeta)));
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = (-2*zeta)/((1 + eta + zeta)*(1 + eta + zeta));
+                    JacToSide(1,2) = (2*(1 + eta))/((1 + eta + zeta)*(1 + eta + zeta));
 				}
 				break;
 				
 			case 17://2D
 				SidePar.Resize(2); JacToSide.Resize(2,3);
-				if(fabs((T)(zeta-1.)) < zero)
+				if(fabs((T)(zeta+qsi-1.)) < zero)//is in side 15
 				{
                     SidePar[0] = 0.; SidePar[1] = 1.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
                     JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
 					regularmap = false;
 				}
-				else if(fabs((T)(qsi-1.)) < zero)
+				else if(fabs((T)(qsi-1.)) < zero)//is in side 13
 				{
                     SidePar[0] = 0.5 - eta/2.; SidePar[1] = 0.;
                     JacToSide(0,0) = 0.; JacToSide(0,1) = -0.5; JacToSide(0,2) = 0.;
@@ -1026,14 +1054,16 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = ((-1. + eta + zeta)*(-1. + qsi + zeta))/(2.*(-1. + qsi - zeta)*(-1. + zeta));
-                    SidePar[1] = (2.*zeta)/(1. - qsi + zeta);
-                    JacToSide(0,0) = -((zeta*(-1. + eta + zeta))/((-1. + zeta)*(1. - qsi + zeta)*(1. - qsi + zeta)));
-                    JacToSide(0,1) = (-1. + qsi + zeta)/(2.*(-1. + qsi - zeta)*(-1. + zeta));
-                    JacToSide(0,2) = (2.*(-1. + qsi)*(-1. + zeta)*(-1. + zeta) + eta*(-qsi*qsi + (-1. + zeta)*(-1. + zeta) + 2.*qsi*zeta))/(2.*(-1. + zeta)*(-1. + zeta)*(1. - qsi + zeta)*(1. - qsi + zeta));
-                    JacToSide(1,0) = (2.*zeta)/((1. - qsi + zeta)*(1. - qsi + zeta));
-                    JacToSide(1,1) = 0.;
-                    JacToSide(1,2) = (2. - 2.*qsi)/((1. - qsi + zeta)*(1. - qsi + zeta));
+                    SidePar[0] = ((1 + eta - zeta)*(-1 + qsi + zeta))/(2.*(-1 + zeta)*(1 - qsi + zeta));
+                    SidePar[1] = (2*zeta)/(1 - qsi + zeta);
+                    JacToSide(0,0) = ((1 + eta - zeta)*zeta)/((-1 + zeta)*((1 - qsi + zeta)*(1 - qsi + zeta)));
+                    JacToSide(0,1) = (-1 + qsi + zeta)/(2.*(-1 + zeta)*(1 - qsi + zeta));
+                    JacToSide(0,2) = (2*(-1 + qsi)*((-1 + zeta)*(-1 + zeta)) +
+                                    eta*(qsi*qsi - (-1 + zeta)*(-1 + zeta) - 2*qsi*zeta))/
+                                    (2.*((-1 + zeta)*(-1 + zeta))*((1 - qsi + zeta)*(1 - qsi + zeta)));
+                    JacToSide(1,0) = (2*zeta)/((1 - qsi + zeta)*(1 - qsi + zeta));
+                    JacToSide(1,1) = 0;
+                    JacToSide(1,2) = (2 - 2*qsi)/((1 - qsi + zeta)*(1 - qsi + zeta));
 				}
 				break;
             case 18:
@@ -1043,12 +1073,18 @@ namespace pztopology {
                 JacToSide.Identity();
             }
                 break;
+		    default:
+		        PZError<<"Cannot compute MapToSide method in TPZGeoPyramid class. Invalid parameter (side):\t";
+		        PZError<<side<<std::endl;
+		        DebugStop();
 		}
-		if(side > 18)
-		{
-			cout << "Cant compute MapToSide method in TPZGeoPyramid class!\nParameter (SIDE) must be between 5 and 17!\nMethod Aborted!\n";
-			DebugStop();
-		}
+        #ifdef PZDEBUG
+		for(int i = 0; i < SidePar.size();i++){
+           if(std::isnan( TPZExtractVal::val(SidePar[i]) )){
+               DebugStop();
+           }
+        }
+        #endif
 		return regularmap;
 		
 	}

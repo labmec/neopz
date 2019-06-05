@@ -594,7 +594,7 @@ namespace pztopology {
 		return -1;
 	}
 	
-	bool TPZTetrahedron::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZTetrahedron::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 		const REAL qsi = pt[0];
 		const REAL eta = pt[1];
 		const REAL zeta = pt[2];
@@ -649,8 +649,12 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = -(2.*qsi + eta + zeta -1.)/(eta + zeta -1.);
-                    JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
+				    T den = (-1 + eta + zeta);
+                    SidePar[0] = -1 - (2*qsi)/den;
+                    den *=den;
+                    JacToSide(0,0) = -2/(-1 + eta + zeta);
+                    JacToSide(0,1) = (2*qsi)/den;
+                    JacToSide(0,2) = (2*qsi)/den;
 				}
 				break;
 				
@@ -664,8 +668,12 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = (eta - qsi)/(eta + qsi);
-                    JacToSide(0,0) = -2.*eta/((qsi + eta)*(qsi + eta)); JacToSide(0,1) = 2.*qsi/((qsi + eta)*(qsi + eta)); JacToSide(0,2) = 0.;
+				    T den = eta + qsi;
+                    SidePar[0] = -1 + (2*eta)/den;
+                    den *= den;
+                    JacToSide(0,0) = (-2*eta)/den;
+                    JacToSide(0,1) = (2*qsi)/den;
+                    JacToSide(0,2) = 0;
 				}
 				break;
 				
@@ -679,9 +687,14 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = (qsi + 2.*eta + zeta -1.)/(qsi + zeta -1.);
-                    JacToSide(0,0) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.)); JacToSide(0,1) = 2./(qsi + zeta - 1.); JacToSide(0,2) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.));
-				}
+				    T den = (-1 + qsi + zeta);
+                    SidePar[0] = 1 + (2*eta)/den;
+
+                    JacToSide(0,0) = (-2*eta)/(den * den);
+                    JacToSide(0,1) = 2/den;
+                    JacToSide(0,2) = (-2*eta)/(den*den);
+
+                }
 				break;
 				
 			case 7://1D
@@ -694,9 +707,13 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = -(qsi + eta + 2.*zeta -1.)/(qsi + eta -1.);
-                    JacToSide(0,0) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,1) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,2) = -2./(qsi + eta -1.);
-				}
+				    T den = (-1 + eta + qsi);
+                    SidePar[0] = -1 - (2*zeta)/den;
+                    JacToSide(0,0) = (2*zeta)/(den*den);
+                    JacToSide(0,1) = (2*zeta)/(den*den);
+                    JacToSide(0,2) = -2/den;
+
+                }
 				break;
 				
 			case 8://1D
@@ -709,8 +726,12 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = (zeta - qsi)/(zeta + qsi);
-                    JacToSide(0,0) = -2.*zeta/(qsi + zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = 2.*qsi/((qsi + zeta)*(qsi + zeta));
+				    T den = (qsi + zeta);
+                    SidePar[0] = -1 + (2*zeta)/den;
+                    den *= den;
+                    JacToSide(0,0) = (-2*zeta)/den;
+                    JacToSide(0,1) = 0;
+                    JacToSide(0,2) = (2*qsi)/den;
 				}
 				break;
 				
@@ -724,8 +745,12 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = (zeta - eta)/(zeta + eta);
-                    JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
+				    T den = eta + zeta;
+                    SidePar[0] = -1 + (2*zeta)/den;
+                    den *= den;
+                    JacToSide(0,0) = 0;
+                    JacToSide(0,1) = (-2*zeta)/den;
+                    JacToSide(0,2) = (2*eta)/den;
 				}
 				break;
 				
@@ -740,9 +765,14 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = qsi/(1.-zeta); SidePar[1] = eta/(1.-zeta);
-                    JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((zeta-1.)*(zeta-1.));
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = eta/((zeta-1.)*(zeta-1.));
+                    SidePar[0] = qsi/(1 - zeta);
+                    SidePar[1] = eta/(1 - zeta);
+                    JacToSide(0,0) = 1/(1 - zeta);
+                    JacToSide(0,1) = 0;
+                    JacToSide(0,2) = qsi/((-1 + zeta)*(-1 + zeta));
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = 1/(1 - zeta);
+                    JacToSide(1,2) = eta/((-1 + zeta)*(-1 + zeta));
 				}
 				break;
 				
@@ -757,9 +787,14 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = qsi/(1.-eta); SidePar[1] = zeta/(1.-eta);
-                    JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 1/(1.-zeta); JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 1/(1.-zeta); JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = 0.;
+                    SidePar[0] = qsi/(1 - eta);
+                    SidePar[1] = zeta/(1 - eta);
+                    JacToSide(0,0) = 1/(1 - eta);
+                    JacToSide(0,1) = qsi/((-1 + eta)*(-1 + eta));
+                    JacToSide(0,2) = 0;
+                    JacToSide(1,0) = 0;
+                    JacToSide(1,1) = zeta/((-1 + eta)*(-1 + eta));
+                    JacToSide(1,2) = 1/(1 - eta);
 				}
 				break;
 				
@@ -774,9 +809,15 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = eta/(qsi+eta+zeta); SidePar[1] = zeta/(qsi+eta+zeta);
-                    JacToSide(0,0) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,1) = (qsi+zeta)/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,2) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta));
-                    JacToSide(1,0) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,1) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,2) = (qsi+eta)/((qsi+eta+zeta)*(qsi+eta+zeta));
+                    SidePar[0] = eta/(eta + qsi + zeta);
+                    SidePar[1] = zeta/(eta + qsi + zeta);
+                    T den = ((eta + qsi + zeta)*(eta + qsi + zeta));
+                    JacToSide(0,0) = -(eta/den);
+                    JacToSide(0,1) = (qsi + zeta)/den;
+                    JacToSide(0,2) = -(eta/den);
+                    JacToSide(1,0) = -(zeta/den);
+                    JacToSide(1,1) = -(zeta/den);
+                    JacToSide(1,2) = (eta + qsi)/den;
 				}
 				break;
 				
@@ -791,10 +832,15 @@ namespace pztopology {
 				}
 				else
 				{
-                    SidePar[0] = eta/(1.-qsi); SidePar[1] = zeta/(1.-qsi);
-                    JacToSide(0,0) = eta/((qsi-1.)*(qsi-1.)); JacToSide(0,1) = 1/(1.-qsi); JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
-				}
+                    SidePar[0] = eta/(1 - qsi);
+                    SidePar[1] = zeta/(1 - qsi);
+                    JacToSide(0,0) = eta/((-1 + qsi)*(-1 + qsi));
+                    JacToSide(0,1) = 1/(1 - qsi);
+                    JacToSide(0,2) = 0;
+                    JacToSide(1,0) = zeta/((-1 + qsi)*(-1 + qsi));
+                    JacToSide(1,1) = 0;
+                    JacToSide(1,2) = 1/(1 - qsi);
+                }
 				break;
             case 14: //Interno para interno ? aquidouglas aqui
                 SidePar = InternalPar;

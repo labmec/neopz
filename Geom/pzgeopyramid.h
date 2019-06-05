@@ -67,7 +67,18 @@ namespace pzgeom {
         {
             return true;
         }
-		
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param correctionFactor influence (0 <= correctionFactor <= 1)
+         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
+         */
+        template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                      TPZVec<T> &corrFactorDxi);
+
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pyramid";}
 		
@@ -125,7 +136,7 @@ namespace pzgeom {
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 
@@ -161,7 +172,7 @@ namespace pzgeom {
 	};
     
     template<class T>
-    inline void TPZGeoPyramid::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+    inline void TPZGeoPyramid::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T xi = loc[0], eta = loc[1] , zeta  = loc[2];
         
         if (zeta> 1.) {

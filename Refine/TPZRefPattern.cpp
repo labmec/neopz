@@ -713,26 +713,27 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
 	{
 		index = sidenodes[j];
 		//coordenadas do novo no na malha ref pattern
-		TPZManVector<REAL,3> refnodecoord(3,0.);
-		TPZManVector<REAL,3> neighbouraoord(3,0.);
+		TPZManVector<REAL,3> refnodecoord_X(3,0.);
+		TPZManVector<REAL,3> neighbourcoord_X(3,0.);
         
 		for (k=0;k<3;k++)
         {
             double coord = fRefPatternMesh.NodeVec()[index].Coord(k);
-            refnodecoord[k] = coord;
+            refnodecoord_X[k] = coord;
         }
         
 		//passando para as coordenadas do elemento da malha real...
-		TPZManVector<REAL,3> newnodecoord(Element(0)->Dimension(),0.);
+		TPZManVector<REAL,3> newnodecoord_xi(Element(0)->Dimension(),0.);
         
 		//coordenada no espaco do elemento mestre do elemento de
 		//referencia da malha refpattern
 		REAL Tol;
 		ZeroTolerance(Tol);
-		Element(0)->ComputeXInverse(refnodecoord,newnodecoord,Tol);
+		Element(0)->ComputeXInverse(refnodecoord_X,newnodecoord_xi,Tol);
         
 		//coordenada espacial do no na malha real
-		gel->X(newnodecoord,refnodecoord);
+		TPZManVector<REAL,3> newnodecoord_X(3);
+		gel->X(newnodecoord_xi,newnodecoord_X);
         
 		newnodeindexes[index] = -1;
 		REAL mindif = -1.;
@@ -740,11 +741,11 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
 		//verificar se um vizinho ja criou o no
 		for(i=0; i< sideindices.NElements(); i++)
 		{
-			for(k=0; k<3; k++) neighbouraoord[k] = gmesh->NodeVec()[sideindices[i]].Coord(k);
+			for(k=0; k<3; k++) neighbourcoord_X[k] = gmesh->NodeVec()[sideindices[i]].Coord(k);
 			REAL dif = 0.;
 			for (k=0;k<3;k++)
 			{
-				dif += (refnodecoord[k] - neighbouraoord[k]) * (refnodecoord[k] - neighbouraoord[k]);
+				dif += (newnodecoord_X[k] - neighbourcoord_X[k]) * (newnodecoord_X[k] - neighbourcoord_X[k]);
 			}
 			if(mindifindex < 0. || mindif > dif)
 			{
@@ -767,16 +768,17 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
 				LOGPZ_ERROR(logger,sout.str())
 			}
 #endif
-            std::cout << "Refpattern trying to create midnode but there is an other node closer!\n";
-            std::cout << "refnodCoords(" << refnodecoord[0] << "," << refnodecoord[1] << "," << refnodecoord[2] << ")" << std::endl;
-            std::cout << "neighbourCoords(" << neighbouraoord[0] << "," << neighbouraoord[1] << "," << neighbouraoord[2] << ")" << std::endl;
+            std::cout << "Refpattern is trying to create midnode but there is another node which is not in the right position!\n";
+            std::cout << "Either the refinement patterns are incompatible or there is an issue with the mapping.\n";
+            std::cout << "newnodecoord_X(" << newnodecoord_X[0] << "," << newnodecoord_X[1] << "," << newnodecoord_X[2] << ")" << std::endl;
+            std::cout << "neighbourcoord_X(" << neighbourcoord_X[0] << "," << neighbourcoord_X[1] << "," << neighbourcoord_X[2] << ")" << std::endl;
 			DebugStop();
 		}
 		if (newnodeindexes[index] == -1)
 		{
 			//Caso o no nao exista nos vizinhos sera necessario cria-lo...
 			int64_t newindex = gmesh->NodeVec().AllocateNewElement();
-			gmesh->NodeVec()[newindex].Initialize(refnodecoord,*gmesh);
+			gmesh->NodeVec()[newindex].Initialize(newnodecoord_X,*gmesh);
 			newnodeindexes[index] = newindex;
 		}
 	}

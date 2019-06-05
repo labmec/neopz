@@ -102,7 +102,7 @@ namespace pztopology {
 		}
 	}
 	
-	bool TPZLine::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol) {
+	bool TPZLine::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol) {
 		const REAL qsi = pt[0];
 		if( fabs(qsi) <= 1. + tol){
 			return true;

@@ -1079,7 +1079,17 @@ void TPZGeoEl::RemoveConnectivities(){
 	int nsides = NSides(),side;
 	for(side=0;side<nsides;side++){
 		TPZGeoElSide thisside(this,side);
+		TPZGeoElSide neighbour (thisside.Neighbour());
 		thisside.RemoveConnectivity();
+		if(neighbour != thisside){
+		    TPZGeoElSide neighneigh = neighbour;
+		    do{
+                if(neighneigh.ResetBlendConnectivity(fIndex)){
+                    neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
+                }
+		        neighneigh = neighneigh.Neighbour();
+            }   while (neighbour != neighneigh);
+        }
 	}
 }
 
@@ -1880,13 +1890,14 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 	TPZGeoElSide NextSide(this,side);
 	
 	//trying to get a self non-linear neighbour
-	while(NextSide.Neighbour().Element() != ElemSide.Element())
+	TPZGeoElSide NextSideNeighbour = NextSide.Neighbour();
+	while(NextSideNeighbour.Element() != ElemSide.Element())
 	{
-		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+		if(NextSideNeighbour.Exists() && !NextSideNeighbour.Element()->IsLinearMapping() && !NextSideNeighbour.Element()->IsGeoBlendEl())
 		{
-			if(NextSide.Neighbour().IsRelative(ElemSide) == false){
-				if(NextSide.Neighbour().Element()->IsGeoElMapped() == false){
-					TPZGeoElSide NeighSide = NextSide.Neighbour();
+			if(NextSideNeighbour.IsRelative(ElemSide) == false){
+				if(NextSideNeighbour.Element()->IsGeoElMapped() == false){
+					TPZGeoElSide NeighSide = NextSideNeighbour;
 					TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 					ElemSide.SideTransform3(NeighSide,NeighTransf);
 					this->SetNeighbourInfo(side,NeighSide,NeighTransf);
@@ -1895,15 +1906,17 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
+        NextSideNeighbour = NextSide.Neighbour();
 	}
     NextSide = TPZGeoElSide(this,side);
+    NextSideNeighbour = NextSide.Neighbour();
 	//now TPZGeoElMapped are accepted
-	while(NextSide.Neighbour().Element() != ElemSide.Element())
+	while(NextSideNeighbour.Element() != ElemSide.Element())
 	{
-		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+		if(NextSideNeighbour.Exists() && !NextSideNeighbour.Element()->IsLinearMapping() && !NextSideNeighbour.Element()->IsGeoBlendEl())
 		{
-			if(NextSide.Neighbour().IsRelative(ElemSide) == false){
-				TPZGeoElSide NeighSide = NextSide.Neighbour();
+			if(NextSideNeighbour.IsRelative(ElemSide) == false){
+				TPZGeoElSide NeighSide = NextSideNeighbour;
 				TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 				ElemSide.SideTransform3(NeighSide,NeighTransf);
 				this->SetNeighbourInfo(side,NeighSide,NeighTransf);
@@ -1911,6 +1924,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
+        NextSideNeighbour = NextSide.Neighbour();
 	}
 	
 }//method
