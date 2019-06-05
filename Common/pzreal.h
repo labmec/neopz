@@ -75,33 +75,6 @@ struct is_arithmetic_pz : std::integral_constant<bool,
         std::is_integral<T>::value ||
         is_complex_or_floating_point<T>::value> { };
 
-template <typename T>//TODO: refactor this code. I believe there are simpler ways to check if T is Fad
-struct has_val {
-
-    template <typename U>
-    static constexpr
-    decltype(std::declval<U>().val(), bool())
-    test_val(int) {
-        return true;
-    }
-
-    template <typename U>
-    static constexpr bool test_val(...) {
-        return false;
-    }
-
-    static constexpr bool value = test_val<T>(int());
-};
-
-//I forgot about TPZExtractVal. IsNanPZ is not really necessary.
-//template<typename T, typename std::enable_if<has_val<T>::value,int>::type * = nullptr>
-//bool IsNanPZ(const T& var){
-//    return isnan(var.val());
-//}
-//template<typename T, typename std::enable_if<!(has_val<T>::value),int>::type * = nullptr>
-//bool IsNanPZ(const T& var){
-//    return isnan(var);
-//}
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
 #define MAX( a, b )   ( (a) > (b) ? (a) : (b) )

@@ -728,7 +728,7 @@ namespace pztopology {
             pt[i] = val;
         }
     }
-    //TODO: the checks performed on MapToSide must be carefully analyzed.
+
     template<class T>
     bool TPZPyramid::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		double zero = 1.E-5;

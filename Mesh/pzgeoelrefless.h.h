@@ -601,7 +601,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
         id[inode] = NodePtr(nodeindex)->Id();
     }
     
-    // Esse bloco parece pegar todo os vertices do cubo para fazer a permutacao, deveria ser da face
+    // Esse bloco parece pegar todos os vertices do cubo para fazer a permutacao, deveria ser da face
 //    TPZManVector<int64_t,TGeo::NCornerNodes> id(TGeo::NCornerNodes);
 //	for(int i=0; i<TGeo::NCornerNodes; i++)
 //    {

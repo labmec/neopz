@@ -204,9 +204,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiI
                 dXiProjectedOverSideDxi(TGeo::Dimension,TGeo::Dimension,(T)0);
         TPZManVector<REAL, 3> nodeCoord;
         //calculation of transformation for the derivatives of sidephi
-
-        //TODO:verificar tentativa atual, transformando o gradiente das sidePhi antes de realizar a conta.
-        // nao sei se está correto. encontrei erros na projeção do tetraedro.
+        
         TPZFNMatrix<9, T> gradLinSideXiSide(3,sideDim,(T)0);
         for (int iNode = 0; iNode < nSideNodes; iNode++) {
             const int currentNode = TGeo::SideNodeLocId(side, iNode);
