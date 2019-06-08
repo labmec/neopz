@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
-#define Force_Decomposition_and_Release_Memory_Q
+//#define Release_Memory_Q
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -150,12 +150,12 @@ long long TPZPardisoControl<TVar>::MatrixType()
         DebugStop();
     }
     
-    for (long long i=0; i<64; i++) {
-        long long val = fHandle[i];
-        if (val) {
-            DebugStop();
-        }
-    }
+//    for (long long i=0; i<64; i++) {
+//        long long val = fHandle[i];
+//        if (val) {
+//            DebugStop();
+//        }
+//    }
     
     int param[64] = {0};
     int matrixtype = fMatrixType;
@@ -335,7 +335,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     }
     std::cout << "Pardiso:: linear solve complete. \n";
 
-#ifdef Force_Decomposition_and_Release_Memory_Q
+#ifdef Release_Memory_Q
     phase = -1;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     if (fSymmetricSystem) {
