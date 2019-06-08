@@ -196,11 +196,11 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
         //@TODO parallelize
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
 #ifdef PZDEBUG
-//            std::cout << restoreClass->Restore()->ClassId() << "\t" << typeid(*restoreClass->Restore()).name();
-//            if (restoreClass->GetTranslator()){
-//                std::cout << "\t" << typeid(*restoreClass->GetTranslator()).name();
-//            }
-//            std::cout << std::endl;
+            std::cout << restoreClass->Restore()->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
+            if (restoreClass->GetTranslator()){
+                std::cout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
+            }
+            std::cout << std::endl;
 #endif
             TPZSavable *savable = restoreClass->Restore();
             //@TODO ensure thread-safety
