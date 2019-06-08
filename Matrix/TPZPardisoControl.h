@@ -15,7 +15,6 @@
 
 #include <stdio.h>
 
-//#include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
@@ -71,6 +70,9 @@ public:
     
     /// Use the decomposed matrix to invert the system of equations
     void Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const;
+    
+    /// Release all internal memory for all matrices
+    void ReleaseMemory();
     
 protected:
     

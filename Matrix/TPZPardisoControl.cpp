@@ -15,8 +15,6 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
-//#define Release_Memory_Q
-
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl() : fSystemType(ENonSymmetric),
@@ -212,13 +210,16 @@ void TPZPardisoControl<TVar>::Decompose()
     /// analyse and factor the equations
     // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
     if (fProperty == EIndefinite) {
-        fParam[4] = 1;
         if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
             fParam[3 ] = 10*6+2;
+            fParam[9 ] = 16;
+            fParam[10] = 0;
+            fParam[12] = 0;
         }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
             fParam[3 ] = 10*6+1;
-            fParam[10] = 1;
-            fParam[12] = 1;
+            fParam[9 ] = 16;
+            fParam[10] = 0;
+            fParam[12] = 0;
         }
     }else{
         
@@ -323,8 +324,13 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     
     if (Error<0) {
         Error_check(int(Error));
-        std::cout << "Pardiso:: Calling a numerical factorization. \n";
+        std::cout << "Pardiso:: Calling a numerical factorization (22) and Solve, iterative refinement (33). \n";
+        
         phase = 22;
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+        
+        phase = 33;
         pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
@@ -335,24 +341,13 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     }
     std::cout << "Pardiso:: linear solve complete. \n";
 
-#ifdef Release_Memory_Q
-    phase = -1;
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
-    if (fSymmetricSystem) {
-        fSymmetricSystem->SetIsDecomposed(0);
-    }
-    if (fNonSymmetricSystem) {
-        fNonSymmetricSystem->SetIsDecomposed(0);
-    }
-#ifdef PZDEBUG
-    std::cout << "Pardiso:: release memory complete. \n";
-#endif
-#endif
+
 }
 
+/// Release all internal memory for all matrices
 template<class TVar>
-TPZPardisoControl<TVar>::~TPZPardisoControl()
-{
+void TPZPardisoControl<TVar>::ReleaseMemory(){
+    
     long long phase = -1;
     long long n=1;
     long long av,bv,xv;
@@ -360,13 +355,18 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     long long ia,ja,perm,nrhs = 1;
     long long Error = 0;
     
-    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, &ia, &ja, &perm,
-                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, &ia, &ja, &perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    std::cout << "Pardiso:: release memory complete." << std::endl;
     
     if (Error) {
         DebugStop();
     }
-    
+}
+
+template<class TVar>
+TPZPardisoControl<TVar>::~TPZPardisoControl()
+{
+    ReleaseMemory();
 }
 
 template<class TVar>
