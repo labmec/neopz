@@ -196,7 +196,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
         //@TODO parallelize
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
 #ifdef PZDEBUG
-            std::cout << restoreClass->Restore()->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
+            std::cout << "Class : " << restoreClass->Restore()->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
             if (restoreClass->GetTranslator()){
                 std::cout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
             }
@@ -204,7 +204,12 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
 #endif
             TPZSavable *savable = restoreClass->Restore();
             //@TODO ensure thread-safety
-            TPZSavable::RegisterClassId(savable->ClassId(), restoreClass);
+            int classid = savable->ClassId();
+#ifdef PZDEBUG
+            std::cout  << " Class being registered with classid = " << classid << std::endl;
+            std::cout << std::endl;
+#endif
+            TPZSavable::RegisterClassId(classid, restoreClass);
             auto objHistory = savable->VersionHistory();
             for (auto versionMap : objHistory) {
                 if (std::find(mVersionHistory.begin(), mVersionHistory.end(), versionMap) == mVersionHistory.end()) {
