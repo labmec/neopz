@@ -105,7 +105,7 @@ public:
 protected:
     bool fIsReferred;
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 };
 

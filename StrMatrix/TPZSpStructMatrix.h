@@ -33,7 +33,7 @@ public:
     virtual TPZStructMatrix * Clone(); 	
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
     /** Used only for testing */

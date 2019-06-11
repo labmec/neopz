@@ -19,7 +19,7 @@
 class TPBSpStructMatrix : public TPZSpStructMatrix {
 public:    
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
     virtual TPZMatrix<STATE> * Create();    

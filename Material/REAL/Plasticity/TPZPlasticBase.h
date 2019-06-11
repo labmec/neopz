@@ -17,7 +17,7 @@
 class TPZPlasticBase : public TPZSavable {
 public:
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     virtual ~TPZPlasticBase();
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0; //  Candidate to be deprecated.

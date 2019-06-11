@@ -40,9 +40,9 @@ public:
 	/** @brief Extract the values from the global matrix into the local matrix */
 	void ExtractCoarse(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local) const;
     
-        virtual int ClassId() const;
-        virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+        int ClassId() const override;
+        void Write(TPZStream &buf, int withclassid) const override;
+	void Read(TPZStream &buf, void *context) override;
 };
 
 #endif

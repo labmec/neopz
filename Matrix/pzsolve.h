@@ -22,7 +22,7 @@ class TPZSolver: public TPZSavable
 public:
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/**
 	 * @brief Solves the system of linear equations
@@ -170,10 +170,10 @@ protected:
 public:
 	/** @brief Saveable specific methods */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+	void Write(TPZStream &buf, int withclassid) const override;
+	void Read(TPZStream &buf, void *context) override;
 };
 
 template<class TVar>

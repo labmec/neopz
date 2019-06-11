@@ -23,7 +23,7 @@ template<class TVar>
 class TPZTransfer : public TPZMatrix<TVar> {
 	
 public :
-    virtual int ClassId() const;
+    int ClassId() const override;
 
 	/** @brief Default constructor */
     TPZTransfer();

@@ -29,11 +29,11 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 
-                virtual int ClassId() const;
+                int ClassId() const override;
                 
-                void Read(TPZStream& buf, void* context);
+                void Read(TPZStream &buf, void *context) override;
                 
-                void Write(TPZStream& buf, int withclassid) const;
+                void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Constructor with list of nodes */

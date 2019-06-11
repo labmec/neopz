@@ -139,10 +139,10 @@ public:
 	void InitializeElementMatrix(TPZElementMatrix &ef);
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
     
     
     virtual void PRefine ( int order ){
@@ -192,7 +192,7 @@ public:
     
     void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 private:
 

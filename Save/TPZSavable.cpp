@@ -19,8 +19,6 @@ static LoggerPtr logger(Logger::getLogger("pz.saveable"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-using namespace std;
-
 std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {
     std::list<std::map<std::string, uint64_t>> history;
     std::map<std::string, uint64_t> versionMap;
@@ -49,7 +47,7 @@ void TPZSavable::Write(TPZStream &buf, int withclassid) const
 		int var = ClassId();
 		if(var == -1)
 		{
-			cout << "TPZSavable::Write const with classid -1 expect trouble\n";
+			std::cout << "TPZSavable::Write const with classid -1 expect trouble\n";
 		}
 		//buf.Write(&var,1);
 	}
@@ -60,11 +58,11 @@ void TPZSavable::Read(TPZStream &buf, void *context)
 {}
 
 void TPZSavable::Register(TPZRestoreClassBase *restore) {
-	set<TPZRestoreClassBase*>::iterator it;
+	std::set<TPZRestoreClassBase*>::iterator it;
 	it = RestoreClassSet().find(restore);
 	if(it != RestoreClassSet().end()) 
 	{
-		cout << "TPZSavable::Register duplicate RestoreClass " << endl;
+		std::cout << "TPZSavable::Register duplicate RestoreClass " << std::endl;
                 DebugStop();
 	}
 	RestoreClassSet().insert(restore);
@@ -74,17 +72,17 @@ void TPZSavable::Register(TPZRestoreClassBase *restore) {
 void TPZSavable::RegisterClassId(int classid, TPZRestore_t fun) 
 {
 
-    map<int,TPZRestore_t>::iterator it;
+    std::map<int,TPZRestore_t>::iterator it;
 	it = ClassIdMap().find(classid);
 	if(it != ClassIdMap().end()) 
 	{
-		cout << "TPZSavable::Register duplicate classid " << it->second->Restore()->ClassId() << endl;
+		std::cout << "TPZSavable::Register duplicate classid " << it->second->Restore()->ClassId() << std::endl;
                 DebugStop();
 	}
 	ClassIdMap()[classid] = fun;
-        if (fun->GetTranslator()){
-            fun->GetTranslator()->SetClassId(classid);
-        }
+    if (fun->GetTranslator()){
+        fun->GetTranslator()->SetClassId(classid);
+    }
 
 }
 
@@ -117,7 +115,7 @@ bool TPZSavable::Compare(TPZSavable *copy, bool override) const
 
 TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     
-    map<int,TPZRestore_t>::const_iterator it;
+    std::map<int,TPZRestore_t>::const_iterator it;
     it = ClassIdMap().find(classId);
     if(it == ClassIdMap().end()) {
         std::cout << "TPZSavable trying to restore unknown object with classId " << classId << std::endl;

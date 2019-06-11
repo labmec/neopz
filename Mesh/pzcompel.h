@@ -565,10 +565,10 @@ public:
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const override;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context) override;
+	void Read(TPZStream &buf, void *context) override;
 	 
 private:
     

@@ -35,7 +35,7 @@ namespace pzrefine {
 		static int FatherSide(int side,int son);
 		//static int NSubElements();
                 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	};
 	

@@ -28,7 +28,7 @@ namespace pzgeom {
 
     public:
 
-        virtual int ClassId() const;
+        int ClassId() const override;
 
         bool IsLinearMapping(int side) const;
 
@@ -62,7 +62,7 @@ namespace pzgeom {
                                                            TGeo(cp) {
         }
 
-        void Read(TPZStream &buf, void *context) {
+        void Read(TPZStream &buf, void *context) override{
             TGeo::Read(buf, context);
             for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
                 fNeighbours[is].Read(buf, context);
@@ -72,7 +72,7 @@ namespace pzgeom {
             }
         }
 
-        void Write(TPZStream &buf, int withclassid) const {
+        void Write(TPZStream &buf, int withclassid) const override{
             TGeo::Write(buf, withclassid);
             for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
                 fNeighbours[is].Write(buf, withclassid);

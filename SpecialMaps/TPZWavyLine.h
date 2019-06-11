@@ -21,7 +21,7 @@ namespace pzgeom {
 
     public:
 			
-        virtual int ClassId() const;
+        int ClassId() const override;
 
        
         /** @brief Constructor with list of nodes */
@@ -141,13 +141,13 @@ namespace pzgeom {
 										  int matid,
 										  int64_t& index);
 		
-        void Read(TPZStream &buf,void *context) {
+        void Read(TPZStream& buf, void* context) override {
             pzgeom::TPZGeoLinear::Read(buf,0);
             buf.Read(&fNumWaves,1);
             buf.Read<3>( fWaveDir);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const {
+        void Write(TPZStream &buf, int withclassid) const override{
             pzgeom::TPZGeoLinear::Write(buf, withclassid);
             buf.Write(&fNumWaves,1);
             buf.Write( fWaveDir);

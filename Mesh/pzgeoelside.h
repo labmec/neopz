@@ -69,10 +69,9 @@ public:
 	int64_t ElementIndex() const;
 	
 	void SetElementIndex(int64_t i);
-	
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+	        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 };
 
 /**
@@ -314,10 +313,9 @@ public:
 	void HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec, int onlymultiphysicelement, int removeduplicates);
     
     int GelLocIndex(int index) const;
-    
-    int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+        int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 };
 
 /** @brief Overload operator << to print geometric element side data */

@@ -137,9 +137,9 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
         
         public:
-virtual int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 
     public:
         /** @brief Creates a geometric element according to the type of the father element */

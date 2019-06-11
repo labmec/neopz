@@ -39,7 +39,7 @@ template <class TVar, class store, class front>
 class TPZParFrontMatrix : public TPZFrontMatrix<TVar, store, front> 
 {
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 	/** @brief Used in an independent thread to write decomposed equations to a binary file */
 	static void * WriteFile(void *t);
 	

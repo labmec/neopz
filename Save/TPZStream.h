@@ -338,6 +338,14 @@ public:
         if (nc) this->Read(&vec[0], nc);
     }
 
+    template <int N>
+    void Read(TPZManVector<int64_t, N> &vec) {
+        int64_t nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        if (nc) this->Read(&vec[0], nc);
+    }
+
     template <class T, class U> void Read(std::map<T, U> &vec) {
         TPZManVector<T> keyVec;
         this->Read(keyVec);

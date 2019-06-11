@@ -141,17 +141,17 @@ public:
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid );
+	void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Routines to send and receive messages */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 };
 

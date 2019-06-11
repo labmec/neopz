@@ -21,7 +21,7 @@ class TPZTransientMaterial : public TBASEMAT {
 	
 public:
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/** @brief Class constructor */
 	TPZTransientMaterial(int nummat, int dim, REAL TimeStep);

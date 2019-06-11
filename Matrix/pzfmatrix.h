@@ -383,11 +383,11 @@ public:
     
     /** @brief Routines to send and receive messages */
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
-    virtual void Read( TPZStream &buf, void *context );
-    virtual void Write(TPZStream &buf, int withclassid ) const;
+    void Read(TPZStream &buf, void *context ) override;
+    void Write(TPZStream &buf, int withclassid ) const override;
     
     /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
     /**
@@ -702,9 +702,9 @@ public:
         return *this;
     }
     
-    virtual int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
     
 };
 

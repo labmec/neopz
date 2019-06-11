@@ -84,11 +84,11 @@ protected:
 		TTablePostProcess();
 		~TTablePostProcess();
                 
-                virtual int ClassId() const;
+                int ClassId() const override;
                 
-                void Write(TPZStream &buf, int withclassid) const;
+                void Write(TPZStream &buf, int withclassid) const override;
 
-                void Read(TPZStream &buf, void *context);
+                void Read(TPZStream &buf, void *context) override;
 	};
 	
         TTablePostProcess fTable;
@@ -128,9 +128,9 @@ protected:
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
         
-        void Write(TPZStream &buf, int withclassid) const;
+        void Write(TPZStream &buf, int withclassid) const override;
 
-        void Read(TPZStream &buf, void *context);
+        void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -317,7 +317,7 @@ public:
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
   struct ThreadData{
     

@@ -227,13 +227,13 @@ public:
     void Solution_abc(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     /** @brief Save object data to a stream */
-    void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Read object data from a stream */
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     //** @brief Copy the n+1 data to the n data */
     void UpdateMemory();

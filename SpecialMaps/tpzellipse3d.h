@@ -29,7 +29,7 @@ namespace pzgeom
 		/** @brief It is not linear mapping */
                 
                 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
         
         virtual void ParametricDomainNodeCoord(int64_t node, TPZVec<REAL> &nodeCoord);

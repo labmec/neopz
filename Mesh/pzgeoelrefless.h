@@ -34,7 +34,7 @@ protected:
 	//  int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	virtual ~TPZGeoElRefLess();
 	TPZGeoElRefLess();
@@ -82,9 +82,9 @@ virtual int ClassId() const;
     
 	TPZGeoElRefLess(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index);
 	
-	virtual void Read(TPZStream &str, void *context);
+	void Read(TPZStream &str, void *context) override;
 	
-	virtual void Write(TPZStream &str, int withclassid) const;
+	void Write(TPZStream &str, int withclassid) const override;
 	
 	virtual void Initialize()
 	{

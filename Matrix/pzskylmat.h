@@ -257,7 +257,7 @@ public:
     virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     /**
@@ -265,7 +265,7 @@ virtual int ClassId() const;
      * @param buf The buffer containing the object in a packed form
      * @param context 
      */
-    virtual void Read(TPZStream &buf, void *context );
+    void Read(TPZStream &buf, void *context) override;
     
     /**
      * @brief Packs the object structure in a stream of bytes
@@ -273,8 +273,8 @@ virtual int ClassId() const;
      * @param withclassid
      */
     
-    virtual void Write( TPZStream &buf, int withclassid );
-    virtual void Write( TPZStream &buf, int withclassid ) const;
+    void Write(TPZStream &buf, int withclassid) const override;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     virtual std::string ClassName() const { return( "TPZSkylMatrix"); }
     
@@ -536,20 +536,20 @@ public:
 	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) ;
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid ) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
     
 	virtual std::string ClassName() const   { return( "TPZSkylMatrix"); }

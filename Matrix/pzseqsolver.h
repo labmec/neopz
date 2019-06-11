@@ -53,9 +53,9 @@ public:
 	
 	/** @brief Saveable specific methods */
 	
-        virtual int ClassId() const;
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+        int ClassId() const override;
+	void Write(TPZStream &buf, int withclassid) const override;
+	void Read(TPZStream &buf, void *context) override;
 	
 	
 private:    

@@ -33,7 +33,7 @@ public:
 	/** @brief Destructor */
     virtual ~TPZMaterialCoupling();
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 };
 
 #endif

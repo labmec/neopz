@@ -78,12 +78,12 @@ public:
 	}
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
 	}
 	
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
 	}	
     
     static void Steel(TPZVonMises & material)

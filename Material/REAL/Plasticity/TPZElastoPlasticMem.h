@@ -18,7 +18,7 @@ private:
     
 public:
     
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     TPZElastoPlasticMem();
     
@@ -30,9 +30,9 @@ public:
     
     const std::string Name() const;
     
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     virtual void Print(std::ostream &out = std::cout) const;
     

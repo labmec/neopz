@@ -113,12 +113,12 @@ public:
 	 * For OOPAR purposes
 	 */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 
 	/**
 	 * Test and validation routines

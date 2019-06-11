@@ -114,10 +114,10 @@ public:
 	 */
 
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-	virtual void Read(TPZStream &str, void *context);
-	virtual void Write(TPZStream &str, int withclassid) const;
+	void Read(TPZStream &str, void *context) override;
+	void Write(TPZStream &str, int withclassid) const override;
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 
 	/** @} */

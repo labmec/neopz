@@ -97,7 +97,7 @@ public:
 	
 	virtual ~TPZPoroElastic2d();
 	
-    virtual int ClassId() const;
+    int ClassId() const override;
         
 	virtual void Print(std::ostream & out);
 	

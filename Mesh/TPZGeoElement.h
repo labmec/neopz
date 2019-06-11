@@ -55,12 +55,12 @@ public:
 	virtual ~TPZGeoElement(){};
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
-	virtual void Read(TPZStream &str, void *context);
+	void Read(TPZStream &str, void *context) override;
 	
-	virtual void Write(TPZStream &str, int withclassid) const;
+	void Write(TPZStream &str, int withclassid) const override;
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 	

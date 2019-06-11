@@ -254,13 +254,13 @@ namespace pzgeom {
 																			int matid,
 																			int64_t& index);
 		
-		void Read(TPZStream &buf,void *context){
+		void Read(TPZStream& buf, void* context) override {
                     GeomQuad::Read(buf,context);
                     buf.Read(&fR);
                     buf.Read(fxc);
 		}
 		
-		virtual void Write(TPZStream &buf, int withclassid) const {
+		void Write(TPZStream &buf, int withclassid) const override{
                     GeomQuad::Write(buf, withclassid);
                     buf.Write(&fR);
                     buf.Write(fxc);

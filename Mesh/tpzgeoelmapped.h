@@ -63,7 +63,7 @@ public:
 	}
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
@@ -77,13 +77,13 @@ virtual int ClassId() const;
 
     
     /** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const{
+	void Write(TPZStream &buf, int withclassid) const override{
         TBase::Write(buf,withclassid);
         fCornerCo.Write(buf,0);
     }
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context)
+	virtual void Read(TPZStream& buf, void* context) override
     {
         TBase::Read(buf,context);
         fCornerCo.Read(buf,0);

@@ -75,14 +75,13 @@ public:
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh);
-        
-    int ClassId() const;
+            int ClassId() const override;
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
 	/**
 	 * @name data access methods

@@ -108,10 +108,10 @@ public:
 	
 	/** @brief Serialization methods */
 	public:
-virtual int ClassId() const;
+    int ClassId() const override;
 
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+	void Write(TPZStream &buf, int withclassid) const override;
+	void Read(TPZStream &buf, void *context) override;
 	
 	
 private:

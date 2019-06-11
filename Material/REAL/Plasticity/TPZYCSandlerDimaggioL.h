@@ -32,7 +32,7 @@ public:
 
   enum {NYield = 2};
   
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
     TPZYCSandlerDimaggioL():TPZYCSandlerDimaggio() { }

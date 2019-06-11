@@ -79,7 +79,7 @@ public:
     /** @brief Print a brief statement */
     virtual void Print(std::ostream &out);
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
 };

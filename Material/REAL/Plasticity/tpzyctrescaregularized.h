@@ -19,7 +19,7 @@ class TPZYCTrescaRegularized : public TPZYCTresca
 public:
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     const char * Name() const
@@ -64,10 +64,10 @@ public:
 	template <class T> 
 	void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 	
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         
     }
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         
     }
 

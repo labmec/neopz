@@ -137,14 +137,14 @@ public:
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 };
 
 template<class TSHAPE>

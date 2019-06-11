@@ -266,7 +266,7 @@ public:
       return *this;
     }
   
-  virtual int ClassId() const;
+  int ClassId() const override;
   
   template <class ExprT> Fad<T>& operator*= (const FadExpr<ExprT>& fadexpr);
   template <class ExprT> Fad<T>& operator/= (const FadExpr<ExprT>& fadexpr);

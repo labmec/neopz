@@ -120,9 +120,9 @@ public:
 	}
 
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         LADEKIMPARENT::Write(buf, withclassid);
 
         buf.Write(&faPa, 1);
@@ -139,7 +139,7 @@ virtual int ClassId() const;
         fInitialEps.Write(buf, withclassid);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         LADEKIMPARENT::Read(buf, context);
 
         buf.Read(&faPa, 1);

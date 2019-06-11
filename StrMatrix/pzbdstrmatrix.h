@@ -21,7 +21,7 @@
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
 public:
     
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
     

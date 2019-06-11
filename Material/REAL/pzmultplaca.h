@@ -32,7 +32,7 @@ public:
 				 TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf,
 				 int camadaref, int camadaatual);
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 private:
 	TPZFMatrix<STATE> fT;

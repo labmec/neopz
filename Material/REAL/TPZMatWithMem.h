@@ -55,11 +55,11 @@ public:
 public:
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
 
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 
     std::shared_ptr<TPZAdmChunkVector<TMEM>> & GetMemory();
 

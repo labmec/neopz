@@ -146,20 +146,20 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 	 *@brief Return the id of the matrix defined pzmatrixid.h
 	 */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid );
+	void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */

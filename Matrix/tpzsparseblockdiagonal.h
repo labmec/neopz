@@ -44,7 +44,7 @@ public:
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 protected:
 	/** @brief Equation numbers for each block */

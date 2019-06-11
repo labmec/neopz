@@ -127,10 +127,10 @@ public:
     /** @brief Prints the data in a format suitable for Mathematica */
     void PrintMathematica(std::ostream &out) const;
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
     /**
@@ -153,7 +153,7 @@ public:
     void ComputeFunctionDivergence();
     
 public:
-    virtual int ClassId() const;
+    int ClassId() const override;
     
 };
 

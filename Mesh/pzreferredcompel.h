@@ -96,7 +96,7 @@ public:
 	virtual void Print(std::ostream & out = std::cout) const;
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
     public:
 protected:
 	

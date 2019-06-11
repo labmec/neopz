@@ -335,7 +335,7 @@ void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
  * @param withclassid
  */
 template <class TVar, class TSubStruct>
-void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
+void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid ) const
 {
     SAVEABLE_STR_NOTE(buf,"TPZMatrix<TVar>::Write ()");
     TPZMatrix<TVar>::Write(buf, withclassid);
@@ -345,11 +345,12 @@ void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
     buf.Write(&fNumCoarse);
     SAVEABLE_STR_NOTE(buf,"fNumThreads");
     buf.Write(&fNumThreads);
-    typename SubsList::iterator it;
     int size = fGlobal.size();
     SAVEABLE_STR_NOTE(buf,"fGlobal.size()");
     buf.Write(&size);
-    for (it=fGlobal.begin(); it != fGlobal.end(); it++) {
+//    typename SubsList::iterator it;
+//    for (it=fGlobal.begin(); it != fGlobal.end(); it++) {//TODO: check if I have not screwed up here.
+    for (auto it=fGlobal.begin(); it != fGlobal.end(); it++) {
         SAVEABLE_STR_NOTE(buf,"fGlobal[...]");
         (*it)->Write(buf,0);
     }
@@ -381,22 +382,22 @@ void TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::Read(TPZStream 
 }
 
 template <>
-void TPZDohrMatrix<long double,TPZDohrSubstructCondense<long double> >::Write( TPZStream &buf, int withclassid )
+void TPZDohrMatrix<long double,TPZDohrSubstructCondense<long double> >::Write( TPZStream &buf, int withclassid ) const
 {
     DebugStop();
 }
 template <>
-void TPZDohrMatrix<float, TPZDohrSubstruct<float> >::Write( TPZStream &buf, int withclassid )
+void TPZDohrMatrix<float, TPZDohrSubstruct<float> >::Write( TPZStream &buf, int withclassid ) const
 {
     DebugStop();
 }
 template <>
-void TPZDohrMatrix<double, TPZDohrSubstruct<double> >::Write( TPZStream &buf, int withclassid )
+void TPZDohrMatrix<double, TPZDohrSubstruct<double> >::Write( TPZStream &buf, int withclassid ) const
 {
     DebugStop();
 }
 template <>
-void TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::Write( TPZStream &buf, int withclassid )
+void TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::Write( TPZStream &buf, int withclassid ) const
 {
     DebugStop();
 }

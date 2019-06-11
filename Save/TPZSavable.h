@@ -44,16 +44,16 @@ typedef TPZRestoreClassBase * TPZRestore_t;
 #endif
 
 
-//Search for CREATECLASSID to find classes with previously missing ClassId()
-//Comment the default constructor of TPZRegisterClassId in order to 
-//check all TPZSavable  children classes for ClassId()
+//Change the default constructor of TPZRegisterClassId to
+// TPZRegisterClassId() = delete;
+// in order to check all TPZSavable children classes for ClassId()
 class TPZRegisterClassId {
 public:
     // this matches the signature of 'ClassId() const'
     template <typename T>
     TPZRegisterClassId(int (T::*)() const) {
     }
-    TPZRegisterClassId() {}
+    TPZRegisterClassId() = default;
 };
 
 /**
@@ -160,7 +160,7 @@ public:
     }
     
     virtual TPZChunkTranslator *GetTranslator() {
-        return NULL;
+        return nullptr;
     }
     
 private:

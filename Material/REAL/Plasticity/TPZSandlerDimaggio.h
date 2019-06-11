@@ -66,16 +66,16 @@ public:
 		out << "\nTPZSandlerDimaggio internal members: None";		
 	}
 	
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
 	   SANDLERDIMAGGIOPARENT::Write(buf, withclassid);
 	   // fPlasticMem does not need to be stored
 			
 	}
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
 	   SANDLERDIMAGGIOPARENT::Read(buf, context);
 	   this->fPlasticMem.Resize(0);
 	}	

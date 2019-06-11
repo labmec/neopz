@@ -129,9 +129,9 @@ namespace pzgeom
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
         public:
-        virtual int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 
         
         /// create an example element based on the topology

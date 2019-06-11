@@ -131,7 +131,7 @@ public:
 	
 	int64_t NumberofBlocks() {return fBlockSize.NElements();}
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 protected:
 	/** @brief Stores matrix data */

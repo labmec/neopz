@@ -213,7 +213,7 @@ public:
 	
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
 };

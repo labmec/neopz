@@ -41,7 +41,7 @@ public:
 	
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
-virtual int ClassId() const;
+int ClassId() const override;
 };
 
 template<class TVar>
@@ -87,7 +87,7 @@ public:
 	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
-virtual int ClassId() const;
+int ClassId() const override;
     /** @brief Simple Constructor */
     TPZFrontMatrix();
     /** 

@@ -48,7 +48,7 @@ public:
 							  TPZBndCond &bc);
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     virtual void FillDataRequirements(TPZMaterialData &data);

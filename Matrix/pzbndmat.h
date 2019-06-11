@@ -140,7 +140,7 @@ public:
 #endif
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
 private:

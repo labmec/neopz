@@ -63,12 +63,11 @@ public:
         fCreateWithMemory = copy.fCreateWithMemory;
         return *this;
     }
+        int ClassId() const override;
     
-    int ClassId() const;
+    void Read(TPZStream &buf, void *context) override;
     
-    void Read(TPZStream& buf, void* context);
-    
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     void SetCreateLagrange(bool flag)
     {
