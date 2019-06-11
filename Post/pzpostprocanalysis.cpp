@@ -190,6 +190,10 @@ void TPZPostProcAnalysis::AutoBuildDisc()
             continue;
         }
         
+        if (gel->HasSubElement()) {
+            continue;
+        }
+        
         TPZMaterial * mat = pcPostProcMesh->FindMaterial(gel->MaterialId());
         if(!mat)
         {
