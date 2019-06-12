@@ -11,6 +11,8 @@
 #include "TPZChunkTranslator.h"
 #include <algorithm>
 
+//#define VerboseMode_Q
+
 using namespace TPZPersistenceManagerNS;
 
 TPZGeneralFStream *TPZPersistenceManager::mpStream;
@@ -105,7 +107,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         unsigned int size = mCurrentObjectStream.Size();
         mObjectsStream.Write(&size, 1);
         mObjectsStream << mCurrentObjectStream;
-#ifdef PZDEBUG
+#ifdef VerboseMode_Q
         std::cout << " ObjId: " << mNextPointerToSave
                 << " Class name: " << typeid(*pointer).name()
                 << " ClassId: " << classId
@@ -207,7 +209,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     if (TPZSavable::ClassIdMap().size() == 0) {
         //@TODO parallelize
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
-#ifdef PZDEBUG
+#ifdef VerboseMode_Q
             std::cout << "Class : " << restoreClass->Restore()->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
             if (restoreClass->GetTranslator()){
                 std::cout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
@@ -217,7 +219,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
             TPZSavable *savable = restoreClass->Restore();
             //@TODO ensure thread-safety
             int classid = savable->ClassId();
-#ifdef PZDEBUG
+#ifdef VerboseMode_Q
             std::cout  << " Class being registered with classid = " << classid << std::endl;
             std::cout << std::endl;
 #endif
@@ -462,11 +464,6 @@ std::shared_ptr<TPZSavable> TPZPersistenceManager::GetSharedPointer(TPZStream *s
 void TPZPersistenceManager::CloseRead() {
     mMainObjIds.clear();
     mChunksVec.clear();
-    
-    for (auto &item : mObjVec) {
-        std::cout << " Raw pointer reference = " << item.GetPointerToMyObj() << std::endl;
-    }
-    
     mObjVec.clear();
     mNextMainObjIndex = 0;
 }
