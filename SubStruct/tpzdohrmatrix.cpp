@@ -348,8 +348,6 @@ void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid ) c
     int size = fGlobal.size();
     SAVEABLE_STR_NOTE(buf,"fGlobal.size()");
     buf.Write(&size);
-//    typename SubsList::iterator it;
-//    for (it=fGlobal.begin(); it != fGlobal.end(); it++) {//TODO: check if I have not screwed up here.
     for (auto it=fGlobal.begin(); it != fGlobal.end(); it++) {
         SAVEABLE_STR_NOTE(buf,"fGlobal[...]");
         (*it)->Write(buf,0);

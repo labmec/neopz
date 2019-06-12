@@ -105,8 +105,9 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         unsigned int size = mCurrentObjectStream.Size();
         mObjectsStream.Write(&size, 1);
         mObjectsStream << mCurrentObjectStream;
-#ifdef PZDEBUG    
-        std::cout << "ObjId: " << mNextPointerToSave
+#ifdef PZDEBUG
+        std::cout << " ObjId: " << mNextPointerToSave
+                << " Class name: " << typeid(*pointer).name()
                 << " ClassId: " << classId
                 << " range: " << written + 1 << " (0x" << std::hex << written + 1 << std::dec << ") - "
                 << written + sizeof (int64_t) + 2 * sizeof (int) +size
@@ -118,6 +119,17 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
 }
 
 void TPZPersistenceManager::CloseWrite() {
+    
+    bool check_Q = false;
+    for (auto item : mFileVersionInfo) {
+        if(item.first.compare("NeoPZ") == 0){
+            check_Q = true;
+        }
+    }
+    if (!check_Q) {
+        mFileVersionInfo.insert(TPZSavable::NeoPZVersion());
+    }
+    
     mpStream->Write(mFileVersionInfo);
 
     const uint64_t nObjects = mPointersToSave.size();
@@ -212,7 +224,13 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
             TPZSavable::RegisterClassId(classid, restoreClass);
             auto objHistory = savable->VersionHistory();
             for (auto versionMap : objHistory) {
+//                for (auto item : versionMap) {
+//                    std::cout << "Package = " << item.first << " and version = " << item.second << std::endl;
+//                }
                 if (std::find(mVersionHistory.begin(), mVersionHistory.end(), versionMap) == mVersionHistory.end()) {
+//                    for (auto item : versionMap) {
+//                        std::cout << "Package being inserted = " << item.first << " and version = " << item.second << std::endl;
+//                    }
                     //@TODO ensure thread-safety
                     mVersionHistory.push_back(versionMap);
                 }
@@ -444,6 +462,11 @@ std::shared_ptr<TPZSavable> TPZPersistenceManager::GetSharedPointer(TPZStream *s
 void TPZPersistenceManager::CloseRead() {
     mMainObjIds.clear();
     mChunksVec.clear();
+    
+    for (auto &item : mObjVec) {
+        std::cout << " Raw pointer reference = " << item.GetPointerToMyObj() << std::endl;
+    }
+    
     mObjVec.clear();
     mNextMainObjIndex = 0;
 }

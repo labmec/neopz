@@ -20,7 +20,8 @@ public:
     virtual int GetNYield() const = 0;
     
     virtual void Print(std::ostream &out) const {
-        DebugStop();
+        std::cout << __PRETTY_FUNCTION__ << " Should not be called, please check children classes." << std::endl;
+//        DebugStop();
     }
 };
 

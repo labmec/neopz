@@ -37,6 +37,10 @@ std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {
 }
 
 std::pair<std::string, uint64_t> TPZSavable::Version() const {
+    return TPZSavable::NeoPZVersion();
+}
+
+std::pair<std::string, uint64_t> TPZSavable::NeoPZVersion() {
     return std::make_pair("NeoPZ", 4);
 }
 
