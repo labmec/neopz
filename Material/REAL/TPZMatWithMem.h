@@ -123,7 +123,7 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem(int id) :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(id),
-fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false) {
 }
 
 template <class TMEM, class TFather>

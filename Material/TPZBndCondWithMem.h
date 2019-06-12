@@ -18,13 +18,13 @@ class TPZBndCondWithMem : public TPZBndCond {
     
 public:
     
-    TPZBndCondWithMem() : TPZBndCond(){
-//        DebugStop();
+    TPZBndCondWithMem() : TPZBndCond(), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false){
+
     }
     
 
-    TPZBndCondWithMem(int matid) : TPZBndCond(matid){
-//        DebugStop();
+    TPZBndCondWithMem(int matid) : TPZBndCond(matid), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false){
+
     }
     
     /** @brief Default destructor */
@@ -32,10 +32,10 @@ public:
 
     }
     
-    TPZBndCondWithMem(TPZMaterial * material,int matid,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) : TPZBndCond(material,matid,type,val1,val2),fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
+    TPZBndCondWithMem(TPZMaterial * material,int matid,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) : TPZBndCond(material,matid,type,val1,val2),fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false) {
     }
     
-    TPZBndCondWithMem(TPZBndCondWithMem<TMEM> & bc) : TPZBndCond(bc), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
+    TPZBndCondWithMem(TPZBndCondWithMem<TMEM> & bc) : TPZBndCond(bc), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false) {
 
     }
     
