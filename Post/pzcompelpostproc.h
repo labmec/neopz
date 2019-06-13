@@ -396,6 +396,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
     
     TPZFNMatrix<90,STATE> ekCopy(ekTemp);
     
+    ekTemp.Print("ek = ",std::cout,EMathematicaInput);
+    efTemp.Print("ef = ",std::cout,EMathematicaInput);
+    
     TPZFNMatrix<10,STATE> rhsTemp(nshape, 1, 0.);
     for(int i_st = 0; i_st < stackedVarSize; i_st++)
     {
@@ -405,7 +408,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
 //        int status = ekTemp.Solve_Cholesky(&(rhsTemp));
         int status = ekTemp.Solve_LU(&(rhsTemp));
-        
+        rhsTemp.Print("dp = ",std::cout,EMathematicaInput);
         ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
         REAL invRes = Norm(result);
         if(!status ){
