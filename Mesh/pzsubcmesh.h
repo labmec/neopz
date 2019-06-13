@@ -276,6 +276,9 @@ public:
 	 */
 	virtual void SetConnectIndex(int inode, int64_t index);
 	
+    /// Assemble the stiffness matrix in locally kept datastructure
+    virtual void Assemble() override;
+    
   	/** @brief Calculates the submesh stiffness matrix */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 	
