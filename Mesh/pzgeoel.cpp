@@ -1182,20 +1182,19 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             norm_v_1    = sqrt(norm_v_1);
             jac(0,0)    = norm_v_1;
             detjac      = norm_v_1;
-            jacinv(0,0) = 1.0/detjac;
-            
-            detjac = fabs(detjac);            
-            
+
             if(IsZero(detjac))
             {
                 
 #ifdef PZDEBUG
-            std::stringstream sout;
+                std::stringstream sout;
                 sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
-            LOGPZ_ERROR(logger, sout.str())
+                LOGPZ_ERROR(logger, sout.str())
 #endif
                 detjac = ZeroTolerance();
             }
+            
+            jacinv(0,0) = 1.0/detjac;
             
             for(int i=0; i < 3; i++) {
                 axes(0,i) = v_1[i]/norm_v_1;
@@ -1251,8 +1250,6 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jacinv(0,1) = -jac(0,1)/detjac;
             jacinv(1,0) = -jac(1,0)/detjac;
             
-            detjac = fabs(detjac);
-            
             if(IsZero(detjac))
             {
                 
@@ -1292,18 +1289,6 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             detjac -= jac(0,1)*jac(1,0)*jac(2,2);//- a01 a10 a22
             detjac += jac(0,0)*jac(1,1)*jac(2,2);//+ a00 a11 a22
             
-            jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
-            jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
-            jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
-            jacinv(1,0) = ( jac(1,2)*jac(2,0)-jac(1,0)*jac(2,2))/detjac;//a12 a20 - a10 a22
-            jacinv(1,1) = (-jac(0,2)*jac(2,0)+jac(0,0)*jac(2,2))/detjac;//-a02 a20 + a00 a22
-            jacinv(1,2) = ( jac(0,2)*jac(1,0)-jac(0,0)*jac(1,2))/detjac;//a02 a10 - a00 a12
-            jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
-            jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
-            jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
-            
-//            detjac = fabs(detjac);
-            
             if(IsZero(detjac))
             {
                 
@@ -1314,6 +1299,17 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
 #endif
                 detjac = ZeroTolerance();
             }
+
+            jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
+            jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
+            jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
+            jacinv(1,0) = ( jac(1,2)*jac(2,0)-jac(1,0)*jac(2,2))/detjac;//a12 a20 - a10 a22
+            jacinv(1,1) = (-jac(0,2)*jac(2,0)+jac(0,0)*jac(2,2))/detjac;//-a02 a20 + a00 a22
+            jacinv(1,2) = ( jac(0,2)*jac(1,0)-jac(0,0)*jac(1,2))/detjac;//a02 a10 - a00 a12
+            jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
+            jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
+            jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
+
             
             axes.Zero();
             axes(0,0) = 1.0;

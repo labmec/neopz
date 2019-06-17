@@ -13,6 +13,7 @@
 #include "pzstack.h"
 #include "pzfmatrix.h"
 #include "pztrnsform.h"
+#include "tpzintpoints.h"
 #include <set>
 
 #ifdef _AUTODIFF
@@ -311,7 +312,11 @@ public:
      * if onlymultiphysicelement == 1 only elements TPZMultiphysicsElement will be put on the stack \n
      * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
 	void HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec, int onlymultiphysicelement, int removeduplicates);
-    
+
+
+    /* @brief Creates an integration rule for the topology of this side */
+	TPZIntPoints * CreateIntegrationRule(int order);
+
     int GelLocIndex(int index) const;
         int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;

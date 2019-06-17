@@ -1003,6 +1003,31 @@ int TPZSubCompMesh::IsAllowedElement(TPZCompMesh *mesh, int64_t elindex){
 	return 1;
 }
 
+/// Assemble the stiffness matrix in locally kept datastructure
+void TPZSubCompMesh::Assemble()
+{
+    if(fAnalysis)
+    {
+    }
+    else
+    {
+        std::cout << "The SubCompMesh needs a configured analysis\n";
+        DebugStop();//this->SetAnalysis();
+    }
+    std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
+    if(!NeedsComputing(matids))
+    {
+        return;
+    }
+    int i=0;
+    CleanUpUnconnectedNodes();
+    PermuteExternalConnects();
+    fAnalysis->Assemble();
+
+}
+
+
+
 void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	if(fAnalysis)
 	{

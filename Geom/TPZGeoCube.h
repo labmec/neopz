@@ -101,7 +101,7 @@ namespace pzgeom {
             
             GradX(coord,loc,gradx);
         }
-        /*
+        
          /**
          * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
          * interior point qsi. It is used by the TPZGeoBlend class.
