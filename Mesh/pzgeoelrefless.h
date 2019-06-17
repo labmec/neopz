@@ -260,10 +260,10 @@ virtual int ClassId() const override;
     
 #ifdef _AUTODIFF
     /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-    virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const;
+    virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const override;
     
     /** @brief Return the gradient of the transformation at the point */
-    virtual void GradX(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
+    virtual void GradX(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const override;
 #endif
     
 	virtual bool IsLinearMapping( int side) const override;
