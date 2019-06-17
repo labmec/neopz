@@ -99,7 +99,7 @@ void TPZGmshReader::PrintPartitionSummary(std::ostream & out){
     out << "Pyramids        : " << m_n_pyramid_els << std::endl;
     int n_vols_els = m_n_pyramid_els + m_n_prism_els + m_n_hexahedron_els + m_n_tetrahedron_els;
     int n_surf_els = m_n_triangle_els + m_n_quadrilateral_els;
-    out << "Number of elements by type : " << std::endl;
+    out << "Number of elements by dimension : " << std::endl;
     out << "3D elements : " << n_vols_els << std::endl;
     out << "2D elements : " << n_surf_els << std::endl;
     out << "1D elements : " << m_n_line_els << std::endl;

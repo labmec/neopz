@@ -118,6 +118,8 @@ class TPZGmshReader{
     /// Entity index to which the element belongs
     TPZManVector<int64_t> m_entity_index;
 
+public:
+    
     /// Number of hexahedra
     int m_n_hexahedron_els = 0;
     
