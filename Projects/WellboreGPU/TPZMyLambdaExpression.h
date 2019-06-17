@@ -6,6 +6,11 @@
 #include "TPZElastoPlasticMem.h"
 #include "TPZMatElastoPlastic2D.h"
 
+#ifdef USING_CUDA
+#include "TPZVecGPU.h"
+#include "TPZCudaCalls.h"
+#endif
+
 #ifndef INTPOINTSFEM_TPZMYLAMBDAEXPRESSION_H
 #define INTPOINTSFEM_TPZMYLAMBDAEXPRESSION_H
 
@@ -44,7 +49,11 @@ public:
 
     void ComputeSigma(TPZFMatrix<REAL> &delta_strain, TPZFMatrix<REAL> &sigma);
 
-protected:
+#ifdef USING_CUDA
+    void ComputeSigma(TPZVecGPU<REAL> &delta_strain, TPZVecGPU<REAL> &sigma);
+#endif
+
+private:
     int64_t fNpts;
 
     TPZVec<REAL> fWeight;
@@ -56,6 +65,11 @@ protected:
     TPZFMatrix<REAL> fMType;
 
     TPZFMatrix<REAL> fAlpha;
+
+#ifdef USING_CUDA
+    TPZCudaCalls *fCudaCalls;
+    TPZVecGPU<REAL> dWeight;
+#endif
 
 };
 

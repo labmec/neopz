@@ -5,17 +5,17 @@
 // Labmec, State University of Campinas, Brazil
 ////////////////////////////////////////////////////////////////
 
-IsquadQ = 0;
- 
+IsquadQ = 1;
+
 Mesh.ElementOrder = 1;
 Mesh.SecondOrderLinear = 0;
 
 wr = 0.1;
 fr = 4.0;
 
-nt = 20;
-nr = 20;
-radial_progression = 1.25;
+nt = 4;
+nr = 4;
+radial_progression = 1.725;
 
 // center point
 pc = newp; Point(pc) = {0,0,0};
@@ -85,8 +85,8 @@ Transfinite Surface"*";
  EndIf
 
 Physical Surface("Omega") = {the_circle[]};
-Physical Line("bc_wellbore") = {i_circle[]};  
-Physical Line("bc_farfield") = {e_circle[]};  
+Physical Line("bc_wellbore") = {i_circle[]};
+Physical Line("bc_farfield") = {e_circle[]};
 Physical Point("fixed_x") = {fixed_x_points[]};
 Physical Point("fixed_y") = {fixed_y_points[]};
 

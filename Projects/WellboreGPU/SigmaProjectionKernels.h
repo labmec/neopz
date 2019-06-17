@@ -1,6 +1,6 @@
 #include "pzreal.h"
 
-__device__ bool PhiPlane(REAL *eigenvalues, REAL *sigma_projected, REAL mc_phi, REAL mc_cohesion) {
+__device__ bool PhiPlaneDevice(REAL *eigenvalues, REAL *sigma_projected, REAL mc_phi, REAL mc_cohesion) {
 	const REAL sinphi = sin(mc_phi);
 	const REAL cosphi = cos(mc_phi);
 
@@ -16,7 +16,7 @@ __device__ bool PhiPlane(REAL *eigenvalues, REAL *sigma_projected, REAL mc_phi, 
 	return check_validity;
 }
 
-__device__ bool ReturnMappingMainPlane(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+__device__ bool ReturnMappingMainPlaneDevice(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
 	const REAL sinphi = sin(mc_phi);
 	const REAL sinpsi = sin(mc_psi);
 	const REAL cosphi = cos(mc_phi);
@@ -51,7 +51,7 @@ __device__ bool ReturnMappingMainPlane(REAL *eigenvalues, REAL *sigma_projected,
 	return check_validity;
 }
 
-__device__ bool ReturnMappingRightEdge(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+__device__ bool ReturnMappingRightEdgeDevice(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
 	const REAL sinphi = sin(mc_phi);
 	const REAL sinpsi = sin(mc_psi);
 	const REAL cosphi = cos(mc_phi);
@@ -113,7 +113,7 @@ __device__ bool ReturnMappingRightEdge(REAL *eigenvalues, REAL *sigma_projected,
 	return check_validity;
 }
 
-__device__ bool ReturnMappingLeftEdge(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+__device__ bool ReturnMappingLeftEdgeDevice(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
 	const REAL sinphi = sin(mc_phi);
 	const REAL sinpsi = sin(mc_psi);
 	const REAL cosphi = cos(mc_phi);
@@ -174,7 +174,7 @@ __device__ bool ReturnMappingLeftEdge(REAL *eigenvalues, REAL *sigma_projected, 
 	return check_validity;
 }
 
-__device__ bool ReturnMappingApex(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K) {
+__device__ void ReturnMappingApexDevice(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K) {
 	const REAL cotphi = 1. / tan(mc_phi);
 
 	REAL ptrnp1 = 0.;
@@ -207,25 +207,25 @@ __device__ bool ReturnMappingApex(REAL *eigenvalues, REAL *sigma_projected, REAL
 	}
 }
 
-__global__ void ProjectSigmaKernel(int64_t fNpts, int fDim, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G, REAL *eigenvalues, REAL *sigma_projected, REAL *m_type, REAL *alpha) {
+__global__ void ProjectSigmaKernel(REAL *eigenvalues, REAL *sigma_projected, REAL *m_type, REAL *alpha, int64_t npts, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
 	int ipts = blockIdx.x * blockDim.x + threadIdx.x;
 
 	bool check = false;
-	if (ipts < fNpts / fDim) {
+	if (ipts < npts) {
 		m_type[ipts] = 0;
-		check = PhiPlane(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], mc_phi, mc_cohesion); //elastic domain
+		check = PhiPlaneDevice(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], mc_phi, mc_cohesion); //elastic domain
 		if (!check) { //plastic domain
 			m_type[ipts] = 1;
-			check = ReturnMappingMainPlane(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K, G); //main plane
+			check = ReturnMappingMainPlaneDevice(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K, G); //main plane
 			if (!check) { //edges or apex
 				if (((1 - sin(mc_psi)) * eigenvalues[0 + 3 * ipts] - 2. * eigenvalues[1 + 3 * ipts] + (1 + sin(mc_psi)) * eigenvalues[2 + 3 * ipts]) > 0) { // right edge
-					check = ReturnMappingRightEdge(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K, G);
+					check = ReturnMappingRightEdgeDevice(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K, G);
 				} else { //left edge
-					check = ReturnMappingLeftEdge(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K, G);
+					check = ReturnMappingLeftEdgeDevice(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K, G);
 				}
 				if (!check) { //apex
 					m_type[ipts] = -1;
-					ReturnMappingApex(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K);
+					ReturnMappingApexDevice(&eigenvalues[3 * ipts], &sigma_projected[3 * ipts], alpha[ipts], mc_phi, mc_psi, mc_cohesion, K);
 				}
 			}
 		}

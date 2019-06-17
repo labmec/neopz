@@ -6,14 +6,20 @@
 #include "TPZGmshReader.h"
 #include "pzpostprocanalysis.h"
 #include "pzfstrmatrix.h"
+
 #include "TPZBndCondWithMem.h"
 
 #include "TPZMyLambdaExpression.h"
 #include "TPZElastoPlasticIntPointsStructMatrix.h"
 #include "TElastoPlasticData.h"
 #include "TRKSolution.h"
+#include "TPZElasticCriterion.h"
 
 #ifdef USING_OMP
+#include "omp.h"
+#endif
+
+#ifdef _OPENMP
 #include "omp.h"
 #endif
 
@@ -36,6 +42,9 @@ void SolutionIntPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance,
 ///Set Analysis
 TPZAnalysis * Analysis(TPZCompMesh * cmesh, int n_threads);
 
+///Set Analysis
+TPZAnalysis * Analysis_IPFEM(TPZCompMesh * cmesh, int n_threads);
+
 ///Solve using Newton method
 void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance);
 
@@ -56,12 +65,12 @@ int main(int argc, char *argv[]) {
     int nt = omp_get_max_threads();
     std::cout << "Using " << nt << " threads.\n" << std::endl;
 #endif
-    int pOrder = 2; // Computational mesh order
+    int pOrder = 1; // Computational mesh order
     bool render_vtk_Q = false;
     
 // Generates the geometry
     std::string source_dir = SOURCE_DIR;
-    std::string msh_file = source_dir + "/Projects/WellboreGPU/gmsh/wellbore.msh";
+    std::string msh_file = source_dir + "/gmsh/wellbore.msh";
     TPZGeoMesh *gmesh = ReadGeometry(msh_file);
     PrintGeometry(gmesh);
 
@@ -71,8 +80,9 @@ int main(int argc, char *argv[]) {
     TPZCompMesh *cmesh = CmeshElastoplasticity(gmesh, pOrder, wellbore_material);
 
 // Defines the analysis
-    int n_threads = 16;
-    TPZAnalysis *analysis = Analysis(cmesh,n_threads);
+    int n_threads = 0;
+//    TPZAnalysis *analysis = Analysis(cmesh,n_threads);
+    TPZAnalysis *analysis = Analysis_IPFEM(cmesh,n_threads);
     
 // Calculates the solution using Newton method
     int n_iterations = 80;
@@ -90,7 +100,7 @@ int main(int argc, char *argv[]) {
     TPZAnalysis *analysis_npts = Analysis(cmesh_npts,n_threads);
     
 // Calculates the solution using all intg points at once
-    SolutionIntPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
+//    SolutionIntPoints(analysis_npts, n_iterations, tolerance, wellbore_material);
     if (render_vtk_Q) { //Post process
 #ifdef USING_CUDA
         std::string vtk_file = "Approximation_IntPointFEM-GPU.vtk";
@@ -105,7 +115,10 @@ int main(int argc, char *argv[]) {
 }
 
 void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
-    std::cout << "\n\nSolving with PZ ...\n" << std::endl;
+#ifdef USING_CUDA
+    std::cout << "Using CUDA" << std::endl;
+#endif
+
     bool stop_criterion_Q = false;
     REAL norm_res, norm_delta_du;
 
@@ -116,6 +129,7 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
     TPZFMatrix<REAL> du(analysis->Solution()), delta_du;
     analysis->Assemble();
 
+// //    analysis->Solver().Matrix()->Print("kip = ",std::cout, EMathematicaInput);
     for (int i = 0; i < n_iterations; i++) {
         analysis->Solve();
         delta_du = analysis->Solution();
@@ -129,17 +143,18 @@ void Solution(TPZAnalysis *analysis, int n_iterations, REAL tolerance) {
         std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
         if (stop_criterion_Q) {
             AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
+            norm_res = Norm(analysis->Rhs());
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
-//        analysis->Assemble();
+       analysis->Assemble();
     }
 
-    if (stop_criterion_Q == false) {
-        AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
-        std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
-    }
+//     if (stop_criterion_Q == false) {
+//         AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
+//         std::cout << "Nonlinear process not converged with residue norm = " << norm_res << std::endl;
+//     }
 }
 
 TPZAnalysis *Analysis(TPZCompMesh *cmesh, int n_threads) {
@@ -148,6 +163,19 @@ TPZAnalysis *Analysis(TPZCompMesh *cmesh, int n_threads) {
     TPZSymetricSpStructMatrix strskyl(cmesh);
     strskyl.SetNumThreads(n_threads);
     analysis->SetStructuralMatrix(strskyl);
+    TPZStepSolver<STATE> step;
+    step.SetDirect(ELDLt);
+    analysis->SetSolver(step);
+    return analysis;
+}
+
+///Set Analysis
+TPZAnalysis * Analysis_IPFEM(TPZCompMesh * cmesh, int n_threads){
+    bool optimizeBandwidth = true;
+    TPZAnalysis *analysis = new TPZAnalysis(cmesh, optimizeBandwidth);
+    TPZElastoPlasticIntPointsStructMatrix struc_mat(cmesh);
+    struc_mat.SetNumThreads(n_threads);
+    analysis->SetStructuralMatrix(struc_mat);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     analysis->SetSolver(step);
@@ -244,7 +272,7 @@ TElastoPlasticData WellboreConfigRK(){
 
     /// Elastic verification -> true
     /// ElastoPlastic verification -> false
-    bool is_elastic_Q = false;
+    bool is_elastic_Q = true;
 
     TPZElasticResponse LER;
     REAL Ey = 2000.0;
@@ -437,7 +465,7 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
     default_memory.m_elastoplastic_state = LEMC.fN;
 
     // Creates elastoplatic material
-    TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem > * material = new TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem >(matid,PlaneStrain);
+   TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem > * material = new TPZMatElastoPlastic2D < TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem >(matid,PlaneStrain);
     material->SetPlasticityModel(LEMC);
     material->SetDefaultMem(default_memory);
     cmesh->InsertMaterialObject(material);
@@ -458,7 +486,7 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
         }
 
         TPZBndCondWithMem<TPZElastoPlasticMem> * bc = new  TPZBndCondWithMem<TPZElastoPlasticMem>(material, bc_id, type, val1, val2);
-        cmesh->InsertMaterialObject(bc);
+//        cmesh->InsertMaterialObject(bc);
 
     }
 
@@ -475,49 +503,42 @@ TPZCompMesh *CmeshElastoplasticity(TPZGeoMesh *gmesh, int p_order, TElastoPlasti
 }
 
 void SolutionIntPoints(TPZAnalysis * analysis, int n_iterations, REAL tolerance, TElastoPlasticData & wellbore_material){
-    bool optimizeBandwidth = true;
-    TPZAnalysis *analysistest = new TPZAnalysis(analysis->Mesh(), optimizeBandwidth);
-    TPZElastoPlasticIntPointsStructMatrix intPointsStructMatrix(analysis->Mesh());
-    intPointsStructMatrix.SetNumThreads(0);
-    analysistest->SetStructuralMatrix(intPointsStructMatrix);
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
-    analysistest->SetSolver(step);
-
     std::cout << "\n\nSolving with IntPointsFEM ...\n" << std::endl;
     bool stop_criterion_Q = false;
     REAL norm_res, norm_delta_du;
-    int neq = analysistest->Solution().Rows();
+    int neq = analysis->Solution().Rows();
     TPZFMatrix<REAL> du(neq, 1, 0.), delta_du;
     TPZFMatrix<REAL> rhs(neq, 1, 0.);
 
-//    TPZElastoPlasticIntPointsStructMatrix *intPointsStructMatrix = new TPZElastoPlasticIntPointsStructMatrix(analysis->Mesh());
+    TPZElastoPlasticIntPointsStructMatrix *intPointsStructMatrix = new TPZElastoPlasticIntPointsStructMatrix(analysis->Mesh());
 //
     std::cout  << "Solving a NLS with DOF = " << neq << std::endl;
 
-    analysistest->Solution().Zero();
-    analysistest->Assemble();
+
+    analysis->Solution().Zero();
+    analysis->Assemble();
     for (int i = 0; i < n_iterations; i++) {
-        analysistest->Solve();
-        delta_du = analysistest->Solution();
+        analysis->Solve();
+        delta_du = analysis->Solution();
         du += delta_du;
-        analysistest->LoadSolution(du);
-        analysistest->Assemble();
+        analysis->LoadSolution(du);
+        DebugStop();
+//        intPointsStructMatrix->CalcResidual(rhs);
         norm_delta_du = Norm(delta_du);
-        norm_res = Norm(analysistest->Rhs());
+        norm_res = Norm(rhs);
         stop_criterion_Q = norm_res < tolerance;
         std::cout << "Nonlinear process :: delta_du norm = " << norm_delta_du << std::endl;
         std::cout << "Nonlinear process :: residue norm = " << norm_res << std::endl;
 //        PrintMemory(analysis->Mesh());
         if (stop_criterion_Q) {
-            AcceptPseudoTimeStepSolution(analysistest, analysistest->Mesh());
+            AcceptPseudoTimeStepSolution(analysis, analysis->Mesh());
 //            PrintMemory(analysis->Mesh());
             std::cout << "Nonlinear process converged with residue norm = " << norm_res << std::endl;
             std::cout << "Number of iterations = " << i + 1 << std::endl;
             break;
         }
 //        analysis->Assemble();
-//        analysistest->Rhs() = rhs;
+        analysis->Rhs() = rhs;
 
     }
 

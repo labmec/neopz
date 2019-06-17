@@ -48,8 +48,14 @@ if(USING_OMP)
 endif(USING_OMP)
 
 # Enabling CUDA
-option(USING_CUDA on)
+option(USING_CUDA off)
 if(USING_CUDA)
+    
+    option(USING_SPARSE off)
+    if(USING_SPARSE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSING_SPARSE")
+    endif(USING_SPARSE)
+
     find_package(CUDA REQUIRED)
     enable_language(CXX CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSING_CUDA")

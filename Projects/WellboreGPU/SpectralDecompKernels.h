@@ -1,6 +1,6 @@
 #include "pzreal.h"
 
-__device__ void Normalize(REAL *sigma, REAL &maxel) {
+__device__ void NormalizeDevice(REAL *sigma, REAL &maxel) {
 	maxel = sigma[0];
 	for (int i = 1; i < 4; i++) {
 		if (fabs(sigma[i]) > fabs(maxel)) {
@@ -12,7 +12,7 @@ __device__ void Normalize(REAL *sigma, REAL &maxel) {
 	}
 }
 
-__device__ void Interval(REAL *sigma, REAL *interval) {
+__device__ void IntervalDevice(REAL *sigma, REAL *interval) {
 	__shared__ REAL lower_vec[3];
 	__shared__ REAL upper_vec[3];
 
@@ -42,7 +42,7 @@ __device__ void Interval(REAL *sigma, REAL *interval) {
 	}
 }
 
-__device__ void NewtonIterations(REAL *interval, REAL *sigma, REAL *eigenvalues, REAL &maxel) {
+__device__ void NewtonIterationsDevice(REAL *interval, REAL *sigma, REAL *eigenvalues, REAL &maxel) {
 	int numiterations = 20;
 	REAL tol = 10e-12;
 
@@ -85,7 +85,7 @@ __device__ void NewtonIterations(REAL *interval, REAL *sigma, REAL *eigenvalues,
 	}
 }
 
-__device__ void Multiplicity1(REAL *sigma, REAL eigenvalue, REAL *eigenvector) {
+__device__ void Multiplicity1Device(REAL *sigma, REAL eigenvalue, REAL *eigenvector) {
 	__shared__ REAL det[3];
 	det[0] = (sigma[0] - eigenvalue) * (sigma[1] - eigenvalue) - sigma[3] * sigma[3];
 	det[1] = (sigma[0] - eigenvalue) * (sigma[2] - eigenvalue);
@@ -119,7 +119,7 @@ __device__ void Multiplicity1(REAL *sigma, REAL eigenvalue, REAL *eigenvector) {
 	eigenvector[2] = v[2] / norm;
 }
 
-__device__ void Multiplicity2(REAL *sigma, REAL eigenvalue, REAL *eigenvector1,
+__device__ void Multiplicity2Device(REAL *sigma, REAL eigenvalue, REAL *eigenvector1,
 		REAL *eigenvector2) {
 	__shared__ REAL x[3];
 	x[0] = sigma[0] - eigenvalue;
@@ -176,7 +176,7 @@ __device__ void Multiplicity2(REAL *sigma, REAL eigenvalue, REAL *eigenvector1,
 	eigenvector2[2] = v2[2] / norm2;
 }
 
-__device__ void Eigenvectors(REAL *sigma, REAL *eigenvalues, REAL *eigenvectors,
+__device__ void EigenvectorsDevice(REAL *sigma, REAL *eigenvalues, REAL *eigenvectors,
 		REAL &maxel) {
 	sigma[0] *= maxel;
 	sigma[1] *= maxel;
@@ -198,32 +198,32 @@ __device__ void Eigenvectors(REAL *sigma, REAL *eigenvalues, REAL *eigenvectors,
 		eigenvectors[8] = 1.;
 	} else {
 		if (eigenvalues[0] != eigenvalues[1] && eigenvalues[0] != eigenvalues[2]) {
-			Multiplicity1(sigma, eigenvalues[0], &eigenvectors[0]);
+			Multiplicity1Device(sigma, eigenvalues[0], &eigenvectors[0]);
 		} else if (eigenvalues[0] == eigenvalues[1]) {
-			Multiplicity2(sigma, eigenvalues[0], &eigenvectors[0], &eigenvectors[3]);
+			Multiplicity2Device(sigma, eigenvalues[0], &eigenvectors[0], &eigenvectors[3]);
 		} else if (eigenvalues[0] == eigenvalues[2]) {
-			Multiplicity2(sigma, eigenvalues[0], &eigenvectors[0], &eigenvectors[6]);
+			Multiplicity2Device(sigma, eigenvalues[0], &eigenvectors[0], &eigenvectors[6]);
 		}
 		if (eigenvalues[1] != eigenvalues[0] && eigenvalues[1] != eigenvalues[2]) {
-			Multiplicity1(sigma, eigenvalues[1], &eigenvectors[3]);
+			Multiplicity1Device(sigma, eigenvalues[1], &eigenvectors[3]);
 		} else if (eigenvalues[1] == eigenvalues[2]) {
-			Multiplicity2(sigma, eigenvalues[1], &eigenvectors[3], &eigenvectors[6]);
+			Multiplicity2Device(sigma, eigenvalues[1], &eigenvectors[3], &eigenvectors[6]);
 		}
 		if (eigenvalues[2] != eigenvalues[0] && eigenvalues[2] != eigenvalues[1]) {
-			Multiplicity1(sigma, eigenvalues[2], &eigenvectors[6]);
+			Multiplicity1Device(sigma, eigenvalues[2], &eigenvectors[6]);
 		}
 	}
 }
 
-__global__ void SpectralDecompositionKernel(int64_t fNpts, int fDim, REAL *sigma_trial, REAL *eigenvalues, REAL *eigenvectors) {
+__global__ void SpectralDecompositionKernel(REAL *sigma_trial, REAL *eigenvalues, REAL *eigenvectors, int64_t npts) {
 	int ipts = blockIdx.x * blockDim.x + threadIdx.x;
 
 	__shared__ REAL maxel;
 	__shared__ REAL interval[2];
-	if (ipts < fNpts / fDim) {
-		Normalize(&sigma_trial[4 * ipts], maxel);
-		Interval(&sigma_trial[4 * ipts], &interval[0]);
-		NewtonIterations(&interval[0], &sigma_trial[4 * ipts], &eigenvalues[3 * ipts], maxel);
-		Eigenvectors(&sigma_trial[4 * ipts], &eigenvalues[3 * ipts], &eigenvectors[9 * ipts], maxel);
+	if (ipts < npts) {
+		NormalizeDevice(&sigma_trial[4 * ipts], maxel);
+		IntervalDevice(&sigma_trial[4 * ipts], &interval[0]);
+		NewtonIterationsDevice(&interval[0], &sigma_trial[4 * ipts], &eigenvalues[3 * ipts], maxel);
+		EigenvectorsDevice(&sigma_trial[4 * ipts], &eigenvalues[3 * ipts], &eigenvectors[9 * ipts], maxel);
 	}
 }
