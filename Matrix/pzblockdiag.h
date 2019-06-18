@@ -42,26 +42,26 @@ public:
 	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	
-	int    Put(const int64_t row,const int64_t col,const TVar& value );
-	const TVar &Get(const int64_t row,const int64_t col ) const;
+	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;
+	const TVar &Get(const int64_t row,const int64_t col ) const override;
 	
 	TVar &operator()(const int64_t row, const int64_t col);
-	virtual TVar &s(const int64_t row, const int64_t col);
+	virtual TVar &s(const int64_t row, const int64_t col) override;
 
 	/** @brief This method don't make verification if the element exist. It is fast than Put */
-	int    PutVal(const int64_t row,const int64_t col,const TVar& value );
+	int    PutVal(const int64_t row,const int64_t col,const TVar& value ) override;
 	/** @brief This method don't make verification if the element exist. It is fast than Get */
-	const  TVar &GetVal(const int64_t row,const int64_t col ) const;
+	const  TVar &GetVal(const int64_t row,const int64_t col ) const override;
 	
 	/** @brief Computes z = alpha * opt(this)*x + beta * y */
 	/** @note z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
+				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
 	
-	int64_t Dim() const     { return this->Rows(); }
+	int64_t Dim() const  override { return this->Rows(); }
 	
 	/** @brief Zeroes all the elements of the matrix. */
-	int Zero();
+	int Zero() override;
 	
 	/**
 	 * @brief Return the choosen block size
@@ -69,15 +69,15 @@ public:
 	 */
 	int GetSizeofBlock(int64_t blockid) {return fBlockSize[blockid];}
 	
-	void Transpose(TPZMatrix<TVar> *const T) const;
-	virtual int Decompose_LU();
-	virtual int Decompose_LU(std::list<int64_t> &singular);
+	void Transpose(TPZMatrix<TVar> *const T) const override;
+	virtual int Decompose_LU() override;
+	virtual int Decompose_LU(std::list<int64_t> &singular) override;
 	
 	/** @brief Makes the backward and forward substitutions whether the matrix was LU decomposed */
-	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
+	virtual int Substitution( TPZFMatrix<TVar> * B ) const override;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
 	
 	/** @brief This method checks the working of the class */
 	static int main();
@@ -88,7 +88,7 @@ public:
 private:
 	
 	/** @brief Clean data matrix. Zeroes number of columns and rows. */
-	int Clear();
+	int Clear() override;
 
 public:
 	/**
@@ -127,7 +127,7 @@ public:
      * @param out Output device
 	 * @param format Output format to print
 	 */
-	virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const;
+	virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const override;
 	
 	int64_t NumberofBlocks() {return fBlockSize.NElements();}
     public:

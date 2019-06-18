@@ -118,7 +118,7 @@ public:
     }
 	
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix) override
 	{
 		if (fReferenceMatrix == matrix && matrix)
 		{
@@ -126,7 +126,7 @@ public:
 		}
 	}
 	/** @brief Resets current object */
-	void ResetMatrix();
+	void ResetMatrix() override;
 	
 	/** @brief This method gives a preconditioner to share a matrix with the referring solver object */
 	virtual void SetReferenceMatrix(TPZAutoPointer<TPZMatrix<TVar> > matrix)

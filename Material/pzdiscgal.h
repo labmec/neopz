@@ -30,7 +30,7 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	/** @brief Destructor */
 	virtual ~TPZDiscontinuousGalerkin();
 	
-	virtual std::string Name();
+	virtual std::string Name() override;
 	
 	/** 
 	 * @brief Fill material data parameter with necessary requirements for the ContributeInterface method.
@@ -40,7 +40,7 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	 * Here, in base class, all requirements are considered as necessary. \n
 	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
-	virtual void FillDataRequirementsInterface(TPZMaterialData &data);
+	virtual void FillDataRequirementsInterface(TPZMaterialData &data) override;
 	/// return the integration order as a function of interpolation orders of the left and right elements
     virtual int GetIntegrationOrder(TPZVec<int> &porder_left, TPZVec<int> &porder_right) const;
     /**
@@ -49,9 +49,9 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
      * @}
      */
     
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) = 0;
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override = 0;
     
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)  override {
         TPZMaterial::Contribute(datavec,weight,ek,ef);
     }
     
@@ -61,26 +61,26 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
      * @param weight [in] is the weight of the integration rule
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef) override
     {
         TPZMaterial::Contribute(datavec,weight,ef);
     }
 
 
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) = 0;
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override = 0 ;
     
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
         TPZMaterial::ContributeBC(datavec,weight,ek,ef,bc);
     }
 
-	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) {
+	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef)  override {
 		TPZMaterial::Contribute(data,weight,ef);
 	}
-	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)  override {
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override
     {
         TPZMaterial::ContributeBC(datavec,weight,ef,bc);
     }
@@ -227,14 +227,14 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	
     virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
                         TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-                        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
+                        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override {
         TPZMaterial::Errors(x,u, dudx, axes, flux, u_exact,du_exact,values);
 
     }
 
-    virtual void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+    virtual void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
 
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors);
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
 
     /** @{
      * @name Save and Load methods

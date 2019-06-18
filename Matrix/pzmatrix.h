@@ -25,7 +25,7 @@ template<class TVar>
 class TPZFMatrix;
 
 /** @brief To create clone matrix */
-#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const { return new A(*this); }
+#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const override { return new A(*this); }
 
 
 template<class TVar>

@@ -148,9 +148,9 @@ public:
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int64_t &index);
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
 		return new TPZCompElDisc(mesh,*this);
 	}
 	
@@ -163,14 +163,14 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const {
+									std::map<int64_t,int64_t> & gl2lcElMap) const  override {
 		return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
 	}
 	/** @brief Default destructor */
 	virtual ~TPZCompElDisc();
 	
 	/** @brief Divide the computational element */
-	void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
+	void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0) override;
 	
 	/**
 	 * @brief Computes the shape function set at the point x. This method uses the order of interpolation
@@ -179,11 +179,11 @@ public:
 	 * @param phi vector of values of shapefunctions, dimension (numshape,1)
 	 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
 	 */
-	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi);
+	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) override;
 	
 	
 protected:
-	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx) override;
     
     public:
     
@@ -192,7 +192,7 @@ protected:
 	 * @param[in] intpoint point in master element coordinates 
 	 * @param[in] data stores all input data
 	 */
-    virtual void ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data);
+    virtual void ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data) override;
 	
 	/**
 	 */
@@ -202,13 +202,13 @@ protected:
 	void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-	virtual const TPZIntPoints &GetIntegrationRule() const;
+	virtual const TPZIntPoints &GetIntegrationRule() const override;
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-	virtual TPZIntPoints &GetIntegrationRule();
+	virtual TPZIntPoints &GetIntegrationRule() override;
 	
 	/** @brief Type of the element */
-	virtual MElementType Type() {return EDiscontinuous;}
+	virtual MElementType Type()  override {return EDiscontinuous;}
 	
 	/** @brief It returns the constant that normalizes the bases of the element */
 	REAL ConstC() const {return fConstC;}
@@ -240,7 +240,7 @@ protected:
 	void InternalPoint(TPZVec<REAL> &point);
 	
 	/** @brief Prints the features of the element */
-	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void Print(std::ostream & out = std::cout) const override;
 	
 	/** @brief Returns the degree of interpolation of the element */
 	virtual int Degree() const;
@@ -248,26 +248,26 @@ protected:
 	/** @brief Assigns the degree of the element */
 	virtual void SetDegree(int degree);
 	/** @brief Returns the number of connects */
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
 	/** @brief Amount of vertices of the element */
 	int NCornerConnects() const { return Reference()->NNodes();}
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
 	
 	/** @brief Returns dimension from the element */
-	int Dimension() const { return Reference()->Dimension();}
+	int Dimension() const  override { return Reference()->Dimension();}
 	
 	/** @brief Calculates the normalizing constant of the bases of the element */
 	virtual REAL NormalizeConst();
 	
 	/** @brief Returns the connect index from the element */
-	int64_t ConnectIndex(int side = 0) const;
-	void  SetConnectIndex(int /*inode*/, int64_t index) {fConnectIndex = index;}
+	int64_t ConnectIndex(int side = 0) cons overridet;
+	void  SetConnectIndex(int /*inode*/, int64_t index)  override {fConnectIndex = index;}
     
     /** @brief Returns the number of dof nodes along side iside*/
-    virtual int NSideConnects(int iside) const
+    virtual int NSideConnects(int iside) const override
     {
         return NConnects();
     }
@@ -277,7 +277,7 @@ protected:
      * @param icon connect number along side is
      * @param is side which is being queried
      */
-    virtual int SideConnectLocId(int icon,int is) const
+    virtual int SideConnectLocId(int icon,int is) const override
     {
 #ifdef PZDEBUG
         if (icon != 0) {
@@ -289,16 +289,16 @@ protected:
 
 	
 	/** @brief Returns the shapes number of the element */
-	virtual int NShapeF() const;
+	virtual int NShapeF() const override;
 	
 	/** @brief Returns the max order of interpolation. */
-	virtual int MaxOrder();
+	virtual int MaxOrder() override;
 	
 	/** @brief Returns the max order of interpolation excluding external shape order */
 	int MaxOrderExceptExternalShapes();
 	
 	/** @brief Returns the number of shapefunctions associated with a connect*/
-	virtual int NConnectShapeF(int inod, int order) const;
+	virtual int NConnectShapeF(int inod, int order) const override;
 	
 	REAL CenterPoint(int index) const {return fCenterPoint[index];}
 	
@@ -309,7 +309,7 @@ protected:
 	REAL SizeOfElement();
 	
 	/** @brief Returns the volume of the geometric element associated. */
-	virtual  REAL VolumeOfEl() { return Reference()->Volume(); }
+	virtual  REAL VolumeOfEl() override { return Reference()->Volume(); }
 	
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
@@ -317,7 +317,7 @@ protected:
 	 * @param grmesh graphical mesh where the element will be created
 	 * @param dimension target dimension of the graphical element
 	 */
-	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
 	
 	/** @deprecated
 	 * @brief Computes the solution in function of a point in cartesian space
@@ -336,7 +336,7 @@ protected:
 	 * @param dsol solution derivatives
 	 * @param axes axes associated with the derivative of the solution
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes) override;
     
 public:
     
@@ -345,7 +345,7 @@ public:
 	 * @param[in] qsi point in master element coordinates 
 	 * @param[in] data stores all input data
 	 */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -357,7 +357,7 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -374,7 +374,7 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
 								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 	
@@ -396,14 +396,14 @@ int ClassId() const override;
 	void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Define the desired order for entire element. */
-	virtual void SetPreferredOrder ( int order ) { SetDegree( order ); }
+	virtual void SetPreferredOrder  override( int order ) { SetDegree( order ); }
 	
 	/**
 	 * @brief Change the preferred order for the element and proceed the
 	 * adjust of the aproximation space taking in acount the type \n
 	 * of formulation and the neighbours of the element
 	 */
-	virtual void PRefine ( int order ) { SetDegree( order ); }
+	virtual void PRefine ( int order ) override { SetDegree( order ); }
 	
 	/** @brief Compute the integral of the square residual over the element domain. */
 	/** 

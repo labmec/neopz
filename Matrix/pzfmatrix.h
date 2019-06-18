@@ -694,7 +694,7 @@ public:
         TPZFMatrix<TVar>::operator=(val);
     }
     
-    inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy) {
+    inline  TPZFMatrix<TVar> &operator=(const TPZFMatrix<TVar> &copy)  override {
         return TPZFMatrix<TVar>::operator=(copy);
     }
     inline  TPZFNMatrix<N, TVar> &operator=(const TPZFNMatrix<N, TVar> &copy) {

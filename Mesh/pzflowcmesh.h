@@ -66,7 +66,7 @@ public:
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes. */
 	/** In this reimplementation, also calls CollectFluidMaterials; */
-	virtual void AutoBuild();
+	virtual void AutoBuild() override;
 	
 	/** @brief Returns the first flow material in the mesh */
 	TPZMaterial * GetFlowMaterial();

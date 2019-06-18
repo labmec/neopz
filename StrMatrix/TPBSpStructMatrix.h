@@ -22,11 +22,11 @@ public:
 int ClassId() const override;
 
 
-    virtual TPZMatrix<STATE> * Create();    
+    virtual TPZMatrix<STATE> * Create() override;
 	
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
-    virtual TPZStructMatrix * Clone();
+    virtual TPZStructMatrix * Clone() override;
 	
     /** Used only for testing */
     static int main();
