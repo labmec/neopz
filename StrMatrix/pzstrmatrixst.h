@@ -42,13 +42,13 @@ public:
     virtual ~TPZStructMatrixST(){};
         
     /** @brief */
-    virtual TPZMatrix<STATE> * Create();
+    virtual TPZMatrix<STATE> * Create() override;
     
     /** @brief */
-    virtual TPZStructMatrixST * Clone();
+    virtual TPZStructMatrixST * Clone() override;
 
     /** @brief */
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     /** @brief */
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -58,7 +58,7 @@ public:
     }
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Assemble(TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     /** @brief */
     virtual void Assemble(TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -67,7 +67,7 @@ public:
     }
     
     /** @brief Assemble the global right hand side */
-    virtual void Assemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     public:
 int ClassId() const override;
@@ -89,50 +89,50 @@ protected:
 public:
     
     /** @brief Determine that the assembly refers to a range of equations */
-    void SetEquationRange(int64_t mineq, int64_t maxeq)
+    void SetEquationRange(int64_t mineq, int64_t maxeq) override
     {
         fEquationFilter.Reset();
         fEquationFilter.SetMinMaxEq(mineq, maxeq);
     }
     
     /** @brief Verify if a range has been specified */
-    virtual bool HasRange() const
+    virtual bool HasRange() const override
     {
         return fEquationFilter.IsActive();
     }
     
     /** @brief access method for the equation filter */
-    TPZEquationFilter &EquationFilter()
+    TPZEquationFilter &EquationFilter() override
     {
         return fEquationFilter;
     }
     
     /** @brief number of equations after applying the filter */
-    int64_t NReducedEquations() const
+    int64_t NReducedEquations() const override
     {
         return fEquationFilter.NActiveEquations();
     }
     
     /** @brief Access method for the mesh pointer */
-    TPZCompMesh *Mesh() const
+    TPZCompMesh *Mesh() const override
     {
         return fMesh;
     }
     
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const override;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
-    void SetMaterialIds(const std::set<int> &materialids);
+    void SetMaterialIds(const std::set<int> &materialids) override;
     
     /** @brief Establish whether the element should be computed */
-    bool ShouldCompute(int matid) const
+    bool ShouldCompute(int matid) const override
     {
         const size_t size = fMaterialIds.size();
         return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
     }
     /** @brief Returns the material ids */
-    const std::set<int> &MaterialIds()
+    const std::set<int> &MaterialIds() override
     {
         return fMaterialIds;
     }

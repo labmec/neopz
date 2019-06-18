@@ -55,7 +55,7 @@ public:
     
     virtual ~TPZStructMatrixOT(){};
         
-    virtual TPZMatrix<STATE> * Create();
+    virtual TPZMatrix<STATE> * Create() override;
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) {
@@ -63,19 +63,19 @@ public:
         return CreateAssemble(rhs, guiInterface);
     }
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     virtual TPZStructMatrixOT * Clone();
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose) {
         std::cout << "Nothing to do." << std::endl;
     }
     
     /** @brief Assemble the global right hand side */
-    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     public:
 int ClassId() const override;
@@ -105,19 +105,19 @@ public:
     static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);
     
     /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
+    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const override;
     
     /** @brief Set the set of material ids which will be considered when assembling the system */
-    void SetMaterialIds(const std::set<int> &materialids);
+    void SetMaterialIds(const std::set<int> &materialids) override;
     
     /** @brief Establish whether the element should be computed */
-    bool ShouldCompute(int matid) const
+    bool ShouldCompute(int matid) const override
     {
         const size_t size = fMaterialIds.size();
         return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
     }
     /** @brief Returns the material ids */
-    const std::set<int> &MaterialIds()
+    const std::set<int> &MaterialIds() override
     {
         return fMaterialIds;
     }

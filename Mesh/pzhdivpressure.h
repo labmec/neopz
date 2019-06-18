@@ -121,7 +121,7 @@ public:
 	 */
 	virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
     
     ///Compute the solution for a given variable
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;

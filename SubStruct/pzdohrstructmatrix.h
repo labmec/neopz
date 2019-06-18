@@ -36,7 +36,7 @@ public:
 	void SubStructure(int nsub);
 	
 	/** @brief This will create a DohrMatrix */
-	virtual TPZMatrix<STATE> * Create();
+	virtual TPZMatrix<STATE> * Create() override;
 	
 	/**
 	 * @brief This will return the pointer to the preconditioner AND abandon the pointer
@@ -51,23 +51,23 @@ public:
 	
 	/** @brief This will create a DohrMatrix and compute its matrices */
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                                              unsigned numthreads_assemble, unsigned numthreads_decompose);
+                                              unsigned numthreads_assemble, unsigned numthreads_decompose) override;
 	
     /**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                          unsigned numthreads_assemble, unsigned numthreads_decompose);
+                          unsigned numthreads_assemble, unsigned numthreads_decompose) override;
 
     void AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
 	/** @brief Creates a copy of itself */
-	virtual TPZStructMatrix * Clone()
+	virtual TPZStructMatrix * Clone() override
 	{
 		return new TPZDohrStructMatrix(*this);
 	}
