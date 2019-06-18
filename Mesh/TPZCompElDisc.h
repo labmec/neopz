@@ -263,7 +263,7 @@ protected:
 	virtual REAL NormalizeConst();
 	
 	/** @brief Returns the connect index from the element */
-	int64_t ConnectIndex(int side = 0) cons overridet;
+	int64_t ConnectIndex(int side = 0) const override;
 	void  SetConnectIndex(int /*inode*/, int64_t index)  override {fConnectIndex = index;}
     
     /** @brief Returns the number of dof nodes along side iside*/
@@ -396,7 +396,7 @@ int ClassId() const override;
 	void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Define the desired order for entire element. */
-	virtual void SetPreferredOrder  override( int order ) { SetDegree( order ); }
+	virtual void SetPreferredOrder ( int order ) override { SetDegree( order ); }
 	
 	/**
 	 * @brief Change the preferred order for the element and proceed the

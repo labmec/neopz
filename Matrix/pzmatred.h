@@ -64,7 +64,7 @@ public:
 	~TPZMatRed();
 	
 	/** @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not */
-	virtual int IsSimetric() const;
+	virtual int IsSimetric() const override;
 	
 	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()
@@ -80,12 +80,12 @@ public:
 	 * @brief Put and Get values without bounds checking
 	 * these methods are faster than "Put" e "Get" if DEBUG is defined
 	 */
-	virtual int PutVal(const int64_t row, const int64_t col, const TVar& value);
-	virtual const TVar &GetVal(const int64_t row, const int64_t col) const;
-	virtual TVar &s(const int64_t row, const int64_t col);
+	virtual int PutVal(const int64_t row, const int64_t col, const TVar& value) override;
+	virtual const TVar &GetVal(const int64_t row, const int64_t col) const override;
+	virtual TVar &s(const int64_t row, const int64_t col) override;
 	
 	/** @brief This method will zero all submatrices associated with this reducable matrix class */
-	virtual int Zero();
+	virtual int Zero() override;
 	
 	/**
 	 * @brief Sets the matrix pointer of the upper left matrix to K00
@@ -193,10 +193,10 @@ public:
 	
 	/** @brief Prints the object data structure */
 	void Print(const char *name = NULL, std::ostream &out = std::cout,
-			   const MatrixOutputFormat = EFormatted) const;
+			   const MatrixOutputFormat = EFormatted) const override;
 	
 	/** @brief Redim: Set the dimension of the complete matrix and reduced matrix */
-	int Redim(const int64_t dim,const int64_t dim00); //Cesar 19/12/00
+	int Redim(const int64_t dim,const int64_t dim00) override; //Cesar 19/12/00
 	
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
@@ -209,7 +209,7 @@ public:
 	 * vector and N is matrix dimension
 	 */
 	void MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha, const TVar beta, const int opt) const;
+				 const TVar alpha, const TVar beta, const int opt) const override;
 	
 	/** @brief If fK00 is simetric, only part of the matrix is accessible to external objects. */
 	/** Simetrizes copies the data of the matrix to make its data simetric */

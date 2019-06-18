@@ -137,14 +137,14 @@ public:
      * Compares both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSavable *copy, bool override = false);
+    virtual bool Compare(TPZSavable *copy, bool override = false) override;
     
     /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
     /**
      * Compares both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSavable *copy, bool override = false) const;
+    virtual bool Compare(TPZSavable *copy, bool override = false) const override;
     
     /** @brief Computes the flux values based on a Material of Hdiv approx space */
     void ComputeFluxValues(TPZFMatrix<REAL> & fluxes);

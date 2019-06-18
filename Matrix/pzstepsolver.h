@@ -43,7 +43,7 @@ public:
 	
 	void SetMultiply();
 	
-	virtual TPZSolver<TVar> *Clone() const
+	virtual TPZSolver<TVar> *Clone() const override
 	{
 		return new TPZStepSolver<TVar>(*this);
 	}
@@ -75,10 +75,10 @@ public:
 	
 	/** @brief This method will reset the matrix associated with the solver */
 	/** This is useful when the matrix needs to be recomputed in a non linear problem */
-	virtual void ResetMatrix();
+	virtual void ResetMatrix() override;
 
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix) override
 	{
 		if (fPrecond)
 			fPrecond->UpdateFrom(matrix);
@@ -89,7 +89,7 @@ public:
 	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
     
     /** @brief Decompose the system of equations if a direct solver is used */
-    virtual void Decompose();
+    virtual void Decompose() override;
     
     /** @brief Define the preconditioner as a solver object */
 	void SetPreconditioner(TPZSolver<TVar> &solve);
