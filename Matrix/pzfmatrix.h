@@ -118,7 +118,7 @@ public:
     /** @brief Simple destructor */
     virtual  ~TPZFMatrix();
     
-    int64_t MemoryFootprint() const
+    int64_t MemoryFootprint() const  override
     {
         return (sizeof(TVar)*this->Rows()*this->Cols());
     }
@@ -144,7 +144,7 @@ public:
     }
 
     /** @brief Updates the values of the matrix based on the values of the matrix */
-    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> >  mat)
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> >  mat) override
     {
         TPZMatrix<TVar> *matptr = mat.operator->();
         TPZFMatrix<TVar> *from = dynamic_cast<TPZFMatrix<TVar> *>(matptr);
@@ -158,10 +158,10 @@ public:
         }
     }
 
-    int PutVal(const int64_t row,const int64_t col,const TVar & value );
-    const TVar &GetVal(const int64_t row,const int64_t col ) const;
+    int PutVal(const int64_t row,const int64_t col,const TVar & value ) override;
+    const TVar &GetVal(const int64_t row,const int64_t col ) const override;
     
-    virtual TVar &s(const int64_t row, const int64_t col);
+    virtual TVar &s(const int64_t row, const int64_t col) override;
     
     TVar &g(const int64_t row, const int64_t col) const;
     /**
@@ -189,7 +189,7 @@ public:
      * @param opt Indicates if is Transpose or not
      */
     virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                         const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
+                         const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const  override;
     
     
     static void MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
@@ -254,7 +254,7 @@ public:
     /** @} */
     
     /** @brief Redimension a matrix, but maintain your elements. */
-    int Resize(const int64_t newRows,const int64_t wCols );
+    int Resize(const int64_t newRows,const int64_t wCols ) override;
     
     /** @brief Redimension the matrix doing nothing with the elements */
     int SetSize(int64_t newRows, int64_t newCols);
@@ -263,10 +263,10 @@ public:
     int Remodel(const int64_t newRows,const int64_t wCols );
     
     /** @brief Redimension a matrix and ZERO your elements. */
-    int Redim(const int64_t newRows,const int64_t newCols );
+    int Redim(const int64_t newRows,const int64_t newCols ) override;
     
     /** @brief Makes Zero all the elements */
-    int Zero();
+    int Zero() override;
     
 #ifdef USING_LAPACK
     /** @brief Initialize pivot with i = i  */
@@ -285,7 +285,7 @@ public:
     
     void DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse);
     
-    void Transpose(TPZMatrix<TVar> *const T) const;
+    void Transpose(TPZMatrix<TVar> *const T) const override;
     
     /** @see TPZMatrix<TVar>::Transpose */
     
@@ -295,23 +295,23 @@ public:
     /** @{ */
     
     /** @brief Cholesky Decomposition Optmized. for walks in the direction of the vector that composes the matrix */
-    virtual int Decompose_Cholesky();
-    virtual int Decompose_Cholesky(std::list<int64_t> &singular);
+    virtual int Decompose_Cholesky() override;
+    virtual int Decompose_Cholesky(std::list<int64_t> &singular) override;
     
     /** @brief LU Decomposition. Stores L and U matrices at the storage of the same matrix */
-    virtual int Decompose_LU(std::list<int64_t> &singular);
-    virtual int Decompose_LU();
+    virtual int Decompose_LU(std::list<int64_t> &singular) override;
+    virtual int Decompose_LU() override;
     
     /**
      * @brief Decomposes the current matrix using LDLt. \n
      * The current matrix has to be symmetric.
      * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
      */
-    virtual int Decompose_LDLt();
+    virtual int Decompose_LDLt() override;
     
     static int Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B);
     
-    virtual int Substitution( TPZFMatrix<TVar> *B ) const;
+    virtual int Substitution( TPZFMatrix<TVar> *B ) const override;
     
     /** @brief LU Decomposition using pivot */
     virtual int Decompose_LU(TPZVec<int> &index);
@@ -394,14 +394,14 @@ int ClassId() const override;
      * compare both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSavable *copy, bool override = false);
+    virtual bool Compare(TPZSavable *copy, bool override = false) override;
     
     /** @brief Compare the object for identity with the object pointed to, eventually copy the object */
     /**
      * compare both objects bitwise for identity. Put an entry in the log file if different
      * generate an interupt if the override flag is true and the objects are different
      */
-    virtual bool Compare(TPZSavable *copy, bool override = false) const;
+    virtual bool Compare(TPZSavable *copy, bool override = false) const override;
     
     operator const TVar*() const { return fElem; }
     
@@ -410,7 +410,7 @@ int ClassId() const override;
 private:
     
     static int Error(const char *msg1,const char *msg2=0 );
-    int Clear();
+    int Clear() override;
     
     TVar *fElem;
     TVar *fGiven;
