@@ -36,13 +36,13 @@ public:
 	
 	virtual ~TPZCompElHDivFull();
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh){
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override {
 		mesh->SetAllCreateFunctionsHDivFull();
 	}
 	
-	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
+	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
-	virtual MElementType Type();
+	virtual MElementType Type() override;
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
 int ClassId() const override;
@@ -52,14 +52,14 @@ int ClassId() const override;
 	
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context) override;
-	virtual int NConnectShapeF(int connect, int order) const;
-	virtual void SetSideOrder(int side, int order);
+	virtual int NConnectShapeF(int connect, int order) const override;
+	virtual void SetSideOrder(int side, int order) override;
 	virtual void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int64_t> > & ShapeAndVec, int pressureorder);
 	virtual void FirstShapeIndex(TPZVec<int64_t> &Index);
 	virtual void NShapeContinuous(TPZVec<int> &order, int &nshape );
-	virtual void InitMaterialData(TPZMaterialData &data);
-	virtual int NFluxShapeF() const;
-	virtual void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	virtual void InitMaterialData(TPZMaterialData &data) override;
+	virtual int NFluxShapeF() const override;
+	virtual void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 
 
     		

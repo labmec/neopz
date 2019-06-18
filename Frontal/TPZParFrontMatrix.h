@@ -64,7 +64,7 @@ int ClassId() const override;
 	}
 	
 	//CLONEDEF(TPZParFrontMatrix)
-	virtual TPZMatrix<TVar>*Clone() const { return new TPZParFrontMatrix(*this); }
+	virtual TPZMatrix<TVar>*Clone() const override { return new TPZParFrontMatrix(*this); }
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix 
@@ -72,14 +72,14 @@ int ClassId() const override;
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex) override;
 	
     /**
 	 * @brief Add a contribution of a stiffness matrix putting it on destination indexes position
 	 * @param elmat Member stiffness matrix beeing added
 	 * @param destinationindex Positioning of such members on global stiffness matrix
      */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex) override;
 	
 	/** @brief Sets the flag fFinish to its true value*/    		
 	void FinishWriting();    		

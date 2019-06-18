@@ -32,10 +32,10 @@ TPZPostProcAnalysis();
     
     TPZPostProcAnalysis &operator=(const TPZPostProcAnalysis &copy);
 
-virtual ~TPZPostProcAnalysis();
+    virtual ~TPZPostProcAnalysis();
 	
     /// Set the computational mesh we are going to post process
-    void SetCompMesh(TPZCompMesh *pRef, bool mustOptimizeBandwidth = false);
+    void SetCompMesh(TPZCompMesh *pRef, bool mustOptimizeBandwidth = false) override;
     
     TPZCompMesh *ReferenceCompMesh()
     {
@@ -45,14 +45,14 @@ virtual ~TPZPostProcAnalysis();
  *	Assemble() blank implementation in order to avoid its usage. In such an Analysis
  * class the Assemble() method is useless.
  */
-virtual  void Assemble();
+virtual  void Assemble() override;
 
 /**
  *	Solve() blank implementation in order to avoid its usage. In such an Analysis
  * class the Solve() method is useless.
  */
 
-virtual void Solve();
+virtual void Solve() override;
 
 /** 
  * TransferSolution is in charge of transferring the solution from the base analysis/mesh

@@ -43,7 +43,7 @@ public:
 	
 	virtual ~TPZCompElHDivPressure();
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
 		return new TPZCompElHDivPressure<TSHAPE> (mesh, *this);
 	}
 	
@@ -54,40 +54,40 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override
 	{
 		return new TPZCompElHDivPressure<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
     /** @brief Set create function in TPZCompMesh to create elements of this type */
 #ifndef STATE_COMPLEX
-  virtual void SetCreateFunctions(TPZCompMesh *mesh){
+  virtual void SetCreateFunctions(TPZCompMesh *mesh) override {
 		mesh->SetAllCreateFunctionsHDivPressure();
 	}
 #endif
 	
-	virtual MElementType Type();
+	virtual MElementType Type() override;
 	
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
-	virtual void SetConnectIndex(int i, int64_t connectindex);
+	virtual void SetConnectIndex(int i, int64_t connectindex) override;
 	
-	virtual int NConnectShapeF(int connect, int order) const;
+	virtual int NConnectShapeF(int connect, int order) const override;
 	
-	virtual int Dimension() const {
+	virtual int Dimension() const override {
 		return TSHAPE::Dimension;
 	}
 	
-	virtual int NCornerConnects() const {
+	virtual int NCornerConnects() const override {
 		return 0;
 	}
 	
-	virtual int64_t ConnectIndex(int node) const;
+	virtual int64_t ConnectIndex(int node) const override;
     
     /** @brief returns the index of the pressure connect
      * returns -1 if their is no pressure connect
      */
-    virtual int PressureConnectIndex() const
+    virtual int PressureConnectIndex() const override
     {
         return NConnects()-1;
     }
@@ -98,23 +98,23 @@ public:
 	int DualOrder();
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
-	virtual void GetInterpolationOrder(TPZVec<int> &ord);
+	virtual void GetInterpolationOrder(TPZVec<int> &ord) override;
 	
 	/** @brief Sets the preferred interpolation order along a side
 	 
 	 This method only updates the datastructure of the element
 	 In order to change the interpolation order of an element, use the method PRefine*/
-	virtual void SetPreferredOrder(int order);
+	virtual void SetPreferredOrder(int order) override;
 	
-	virtual int ConnectOrder(int connect) const;		
+	virtual int ConnectOrder(int connect) const override;
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	virtual void InitMaterialData(TPZMaterialData &data);
+	virtual void InitMaterialData(TPZMaterialData &data) override;
 	
 	/** @brief Computes the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
 	/** 
 	 * @brief Compute the shape functions corresponding to the dual space
@@ -124,10 +124,10 @@ public:
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
     
     ///Compute the solution for a given variable
-	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
     
 private:
-	virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+	virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
     
 public:
     
@@ -136,20 +136,20 @@ public:
 	 * @param[in] qsi point in master element coordinates 
 	 * @param[in] data stores all input data
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 	
 	void ComputeSolutionPressureHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
+                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 	
     /** @brief Compute the solution using Hdiv structure */
 	void ComputeSolutionPressureHDiv(TPZMaterialData &data);
 	
 	
-	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
+	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
-	TPZTransform<> TransformSideToElement(int side);
+	TPZTransform<> TransformSideToElement(int side) override;
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 
