@@ -62,7 +62,7 @@ public:
     /** @brief reset the data structure of the solver object */
 	void ResetSolver();
     
-    virtual typename TPZMatrixSolver<TVar>::MSolver Solver()
+    virtual typename TPZMatrixSolver<TVar>::MSolver Solver() override
     {
         return fSolver;
     }
@@ -86,7 +86,7 @@ public:
 	}
 	
     
-	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0) override;
     
     /** @brief Decompose the system of equations if a direct solver is used */
     virtual void Decompose() override;

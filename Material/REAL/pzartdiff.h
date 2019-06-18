@@ -115,7 +115,7 @@ public:
 	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Class identificator */
 public:

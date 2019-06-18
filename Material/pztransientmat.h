@@ -41,24 +41,24 @@ int ClassId() const override;
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<STATE> &ek,
-                            TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix<STATE> &ek,
-                                     TPZFMatrix<STATE> &ef);
+                                     TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                        REAL weight,
                                        TPZFMatrix<STATE> &ek,
                                        TPZFMatrix<STATE> &ef,
-                                       TPZBndCond &bc);
+                                       TPZBndCond &bc) override;
 	
 	/** @brief Set material to compute only Integral[- un/deltaT * v, Omega] */
 	void SetLastState();

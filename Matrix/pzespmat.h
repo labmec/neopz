@@ -75,12 +75,12 @@ public:
 	/** @brief Simple destructor */
 	~TPZSpMatrix();
 	
-	int    Put(const int64_t row,const int64_t col,const TVar & value );
-	const TVar &Get(const int64_t row,const int64_t col ) const;
+	int    Put(const int64_t row,const int64_t col,const TVar & value ) override;
+	const TVar &Get(const int64_t row,const int64_t col ) const override;
 	
 	// Nao verifica limites da matriz (e' mais rapido).
-	int    PutVal(const int64_t row,const int64_t col,const TVar & element );
-	const TVar &GetVal(const int64_t row,const int64_t col ) const;
+	int    PutVal(const int64_t row,const int64_t col,const TVar & element ) override;
+	const TVar &GetVal(const int64_t row,const int64_t col ) const override;
 	
 	/**
 	 * @name Operadores com matrizes ESPARSAS NAO simetricas.
@@ -106,7 +106,7 @@ public:
 	/** @} */
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const REAL alpha ,const REAL beta = 0.,const int opt = 0) const;
+						 const REAL alpha ,const REAL beta = 0.,const int opt = 0) const override;
 	
 	
 	/**
@@ -126,7 +126,7 @@ public:
 	TPZSpMatrix &Reset();
 	
 	/// Redimension the matrix to newRows x newCols arrange.
-	int Resize(const int64_t newRows,const int64_t newCols );
+	int Resize(const int64_t newRows,const int64_t newCols ) override;
 	/**
      * @brief Redimensions current matrix keeping its elements
      * @param newDim New matrix dimensio
@@ -134,7 +134,7 @@ public:
 	int Resize(const int64_t newDim )   { return Resize( newDim, newDim ); }
 	
 	/// Redimension the matrix to newRows x newCols arrange and zeroes its elements
-	int Redim(const int64_t newRows,const int64_t newCols );
+	int Redim(const int64_t newRows,const int64_t newCols ) override;
 	/**
      * @brief Redimensions matrix deleting all its elements
      * @param newDim New matrix dimension
@@ -142,7 +142,7 @@ public:
 	int Redim(const int64_t newDim )    { return Redim( newDim, newDim ); }
 	
 	/// Zeroes all elements of the matrix
-	int Zero();
+	int Zero() override;
 	
 	/*** Resolucao de sistemas ***/
 	
@@ -176,7 +176,7 @@ protected:
 	/** Swap (troca) the values of the variables */
 	inline void Swap( int64_t *a, int64_t *b );
 	
-	int  Clear()               { delete [] fElem; return ( 1 );}
+	int  Clear() override { delete [] fElem; return ( 1 );}
 	
 	/**
      * @brief Computes dot product with respect to lines row_i e row_j using only elements that belongs to columns less than k.

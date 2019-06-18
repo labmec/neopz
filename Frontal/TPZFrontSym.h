@@ -57,7 +57,7 @@ public:
 	TPZFrontSym(int64_t GlobalSize);
 	
     /// Set the decomposition type
-    virtual void SetDecomposeType(DecomposeType dectype)
+    virtual void SetDecomposeType(DecomposeType dectype) override
     {
         if (dectype == ECholesky || dectype == ELDLt) {
             this->fDecomposeType = dectype;
@@ -119,7 +119,7 @@ public:
     virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 	
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
-	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
+	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front) override;
         
         public:
 int ClassId() const override;
@@ -154,7 +154,7 @@ private:
     int Local(int64_t global);
 public:
     /** @brief Returns the number of free equations */
-	virtual int64_t NFree();
+	virtual int64_t NFree() override;
     /** @brief Resets data structure */
 	void Reset(int64_t GlobalSize=0);
     /** @brief Allocates data for Front */
@@ -168,7 +168,7 @@ public:
 	DecomposeType GetDecomposeType() const;
 	
 	/** @brief Does the tensor product betweem two vectors in the positions dependent of ithread*/
-	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
+	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data) override;
 	
     /** @link dependency */
     /*#  TPZFileEqnStorage lnkTPZFileEqnStorage; */

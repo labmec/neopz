@@ -61,17 +61,17 @@ public:
 	 * @param ef [out] is the residual vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix<STATE> &ek,
                               TPZFMatrix<STATE> &ef,
-                              TPZBndCond &bc);
+                              TPZBndCond &bc) override;
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMatPoisson3dReferred::ContributeBC(data,weight,ef,bc);
 	}
@@ -79,10 +79,10 @@ public:
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix<STATE> &ek,
-									 TPZFMatrix<STATE> &ef);
+									 TPZFMatrix<STATE> &ef) override;
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<STATE> &ef)
+									 TPZFMatrix<STATE> &ef) override
 	{
 		TPZMatPoisson3dReferred::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
@@ -91,11 +91,11 @@ public:
 									   REAL weight,
 									   TPZFMatrix<STATE> &ek,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc)
+									   TPZBndCond &bc) override
 	{
 		TPZMatPoisson3dReferred::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}

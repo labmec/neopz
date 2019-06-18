@@ -74,7 +74,7 @@ public:
 	virtual ~TPZInterpolatedElement();
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
             int ClassId() const override;
 	
 	/** @brief Saves the element data to a stream */
@@ -90,23 +90,23 @@ public:
 	 */
 	
 	/** @brief Prints the relevant data of the element to the output stream */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 	
 	/** @brief Returns the total number of shapefunctions*/
-	int NShapeF() const;
+	int NShapeF() const override;
 	
 	/** @brief Returns the number of shape functions on a side*/
 	int NSideShapeF(int side) const;
 	
 	/** @brief Returns the number of dof nodes along side iside*/
-	virtual int NSideConnects(int iside) const = 0;
+	virtual int NSideConnects(int iside) const override = 0;
 	
 	/**
 	 * @brief Returns the local node number of icon along is
 	 * @param icon connect number along side is
 	 * @param is side which is being queried
 	 */
-	virtual int SideConnectLocId(int icon,int is) const = 0;
+	virtual int SideConnectLocId(int icon,int is) const override = 0;
 	
 	/**
 	 * @brief Returns the local id of the connect in the middle of the side
@@ -128,16 +128,16 @@ public:
 	TPZConnect &SideConnect(int icon,int is);
 	
 	/** @brief Returns the dimension of the element */
-	virtual int Dimension() const = 0;
+	virtual int Dimension() const override = 0;
 	
 	/** @brief Returns the number of corner connects of the element*/
 	virtual int NCornerConnects() const = 0;
 	
 	/** @brief Returns the number of connect objects of the element*/
-	virtual int NConnects() const = 0;
+	virtual int NConnects() const  override = 0;
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
 
 	
 	/** @brief Identifies the interpolation order of all connects of the element different from the corner connects */
@@ -171,9 +171,9 @@ public:
 	 */
 	
 	/** @brief Sets the node pointer of node i to nod */
-	virtual void SetConnectIndex(int i, int64_t connectindex)=0;
+	virtual void SetConnectIndex(int i, int64_t connectindex) override = 0;
 	
-	virtual void SetIntegrationRule(int order) {
+	virtual void SetIntegrationRule(int order) override {
 		std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
 	}
 	
@@ -182,7 +182,7 @@ public:
 	 * This method only updates the datastructure of the element
 	 * In order to change the interpolation order of an element, use the method PRefine
 	 */
-	virtual void SetPreferredOrder(int order) = 0;
+	virtual void SetPreferredOrder(int order)  override = 0;
 	
 public:
 	/** @brief Sets the interpolation order of side to order */
@@ -208,7 +208,7 @@ public:
 	 */
 	
 	/** @brief Compute the values of the shape function along the side*/
-	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) = 0;
+	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override = 0;
 	
 	/** @} */
 	
@@ -229,7 +229,7 @@ public:
 	 * @param dsol solution derivatives
 	 * @param axes axes indicating the direction of the derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
     
     public:
     
@@ -238,7 +238,7 @@ public:
 	 * @param[in] qsi point in master element coordinates 
 	 * @param[in] data stores all input data
 	 */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -250,7 +250,7 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.\n
@@ -267,7 +267,7 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
 								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	/**
 	 * @brief Compare the L2 norm of the difference between the švarš solution of the current element with
@@ -280,7 +280,7 @@ public:
 	 * and call LoadReference on the mesh of the element with which to compare the solution\n
 	 * This method only computes the error is the name of the material is matname
 	 */
-	virtual REAL CompareElement(int var, char *matname);
+	virtual REAL CompareElement(int var, char *matname) override;
 	
 	/** @} */
 	
@@ -303,7 +303,7 @@ public:
 	 * Divides the current element into subelements. Inserts the subelements in the mesh of the element
 	 * and returns their indices
 	 */
-	void Divide(int64_t index,TPZVec<int64_t> &sub,int interpolatesolution = 0);
+	void Divide(int64_t index,TPZVec<int64_t> &sub,int interpolatesolution = 0) override;
 	
 	/**
 	 * @brief Changes the interpolation order of a side. Updates all constraints and block sizes\n
@@ -315,7 +315,7 @@ public:
 	 * This call will not šnecessarilyš modify the interpolation order of the side. The interpolation
 	 * order of neighbouring elements need to remain compatible. The actual order is obtained by calling ComputeSideOrder
 	 */
-	void PRefine(int order);
+	void PRefine(int order) override;
 	
 	/** @brief Compute the shapefunction restraints which need to be applied to the shape functions
      on the side of the element*/
@@ -359,7 +359,7 @@ public:
 	void RecomputeRestraints(int side);
 	
     /// Add a shape restraint (meant to fit the pyramid to restraint
-    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override
     {
         DebugStop();
     }

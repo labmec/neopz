@@ -35,13 +35,13 @@ public:
     
     ~TPZSBMatrix() { Clear(); }
     
-    int    PutVal(const int64_t row,const int64_t col,const TVar& element );
-    const TVar &GetVal(const int64_t row,const int64_t col ) const;
+    int    PutVal(const int64_t row,const int64_t col,const TVar& element ) override;
+    const TVar &GetVal(const int64_t row,const int64_t col ) const override;
     
     TVar &operator()(int64_t row, int64_t col);
     
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const
+    virtual int IsSimetric() const override
     {
         return 1;
     }
@@ -64,9 +64,9 @@ public:
     /** @brief Computes z = beta * y + alpha * opt(this)*x */
     /** z and x cannot overlap in memory */
     void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-                 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const;
+                 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
     
-    void Print(const char *name = NULL, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
+    void Print(const char *name = NULL, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const override;
     //friend std::ostream & operator<< <>(std::ostream& out,const TPZSBMatrix<TVar>  &A); Leonardo removendo o '<>' antes do (std...
     template<class TT>friend std::ostream & operator<< (std::ostream& out,const TPZSBMatrix<TT>  &A);
     
@@ -88,14 +88,14 @@ public:
     TPZSBMatrix<TVar> operator-() const { return operator*(-1.0); }
     
     /// Redimension the matrix keeping original elements.
-    int Resize(const int64_t newDim ,const int64_t);
+    int Resize(const int64_t newDim ,const int64_t) override;
     
     /// Redimension the matrix and zeroes its elements
     int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
-    int Redim(const int64_t newRows ,const int64_t newCols);
+    int Redim(const int64_t newRows ,const int64_t newCols) override;
     
     /// Zeroes the elements of the matrix
-    int Zero();
+    int Zero() override;
     
     int64_t GetBand() const { return fBand; }
     int   SetBand(const int64_t newBand );
@@ -107,14 +107,14 @@ public:
     int Decompose_Cholesky(std::list<int64_t> &singular);
 #endif
     
-    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
-    int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+    int Subst_Forward( TPZFMatrix<TVar>*B ) const override;
+    int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
 
-    int Decompose_LDLt(std::list<int64_t> &singular);
-    int Decompose_LDLt();
-    int Subst_LForward( TPZFMatrix<TVar> *B ) const;
-    int Subst_LBackward( TPZFMatrix<TVar> *B ) const;
-    int Subst_Diag( TPZFMatrix<TVar> *B ) const;
+    int Decompose_LDLt(std::list<int64_t> &singular) override;
+    int Decompose_LDLt() override;
+    int Subst_LForward( TPZFMatrix<TVar> *B ) const override;
+    int Subst_LBackward( TPZFMatrix<TVar> *B ) const override;
+    int Subst_Diag( TPZFMatrix<TVar> *B ) const override;
 //    int Subst_Forward( TPZFMatrix<TVar>*B ) const;
 //    int Subst_Backward( TPZFMatrix<TVar> *B ) const;
     
@@ -158,7 +158,7 @@ private:
     }
 //    int  PutZero();
     //static int  Error(const char *msg1,const char* msg2="" ) ;
-    int  Clear();
+    int  Clear() override;
     void Copy (const TPZSBMatrix<TVar> & );
     
     int64_t Index(int64_t i, int64_t j) const
