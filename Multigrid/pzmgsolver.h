@@ -47,9 +47,9 @@ public:
 		return this->fStep;
 	}
 	
-	TPZSolver<TVar> * Clone() const;
+	TPZSolver<TVar> * Clone() const override;
 	
-	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0) override;
 	
 	public:
 int ClassId() const override;

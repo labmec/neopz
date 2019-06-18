@@ -52,7 +52,7 @@ public:
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<STATE> &ek,
-                            TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to the residual vector at one integration point.
