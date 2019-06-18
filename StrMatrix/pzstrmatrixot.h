@@ -65,7 +65,7 @@ public:
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    virtual TPZStructMatrixOT * Clone();
+    virtual TPZStructMatrixOT * Clone() override;
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
