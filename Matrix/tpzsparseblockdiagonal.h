@@ -24,24 +24,24 @@ public:
 	
     ~TPZSparseBlockDiagonal();
 	
-    const TVar& Get(const int64_t row, const int64_t col) const;
-    const TVar& GetVal(const int64_t row, const int64_t col) const;
-    int Put(const int64_t row, const int64_t col, const TVar& value);
-    int PutVal(const int64_t row, const int64_t col, const TVar& value);
+    const TVar& Get(const int64_t row, const int64_t col) const override;
+    const TVar& GetVal(const int64_t row, const int64_t col) const override;
+    int Put(const int64_t row, const int64_t col, const TVar& value) override;
+    int PutVal(const int64_t row, const int64_t col, const TVar& value) override;
     TVar& operator ( )(const int64_t row, const int64_t col);
-    virtual int Substitution(TPZFMatrix<TVar>* B) const;
+    virtual int Substitution(TPZFMatrix<TVar>* B) const override;
     
-    virtual TVar &s(const int64_t row, const int64_t col);
+    virtual TVar &s(const int64_t row, const int64_t col) override;
     
-    virtual void Print(const char* message, std::ostream& out, const MatrixOutputFormat=EFormatted) const;
+    virtual void Print(const char* message, std::ostream& out, const MatrixOutputFormat=EFormatted) const override;
     void AddBlock(int64_t i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
     void GetBlock(int64_t i, TPZFMatrix<TVar>& block);
-    void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const;
+    void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt) const override;
     void FindBlockIndex(int64_t glob, int64_t &block, int64_t &blockind) const;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
 	
     public:
 int ClassId() const override;

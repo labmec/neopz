@@ -76,7 +76,7 @@ public:
 	void InitializeElement();
 	
 	/** @brief Sets the inner radius value. */
-	void SetInnerRadius(REAL InnerRadius) { fInnerRadius = InnerRadius;}
+	void SetInnerRadius(REAL InnerRadius) override { fInnerRadius = InnerRadius;}
 	
 	/** @brief Returns the inner radius value. */
 	/** Inner radius mut be set with SetInnerRadius. */
@@ -84,7 +84,7 @@ public:
 	
 	/** @brief Returns the inner radius value. */ 
 	/** Inner radius is the sub-element's radius average weighted by their volumes. */
-	REAL InnerRadius(){
+	REAL InnerRadius() override {
 		int64_t nsubel = this->NIndexes();
 		REAL value = 0.;
 		TPZCompElDisc * disc;
@@ -103,10 +103,10 @@ public:
 	}
 	
 	/** @brief Sets element's number of interfaces. */
-	void SetNInterfaces(int nfaces) {fNFaces = nfaces; }
+	void SetNInterfaces(int nfaces)  override {fNFaces = nfaces; }
 	
 	/** @brief Retunrs the number of interfaces. */
-	int NInterfaces() {return fNFaces;}
+	int NInterfaces() override {return fNFaces;}
 	
 	/** @brief Insert the subelement index. */
 	static void AddSubElementIndex(TPZCompMesh *aggcmesh,int64_t subel,int64_t destind);
@@ -115,7 +115,7 @@ public:
 	~TPZAgglomerateElement(){};
 	
 	/** @brief Type of the element */  
-	MElementType Type() {return EAgglomerate;}
+	MElementType Type() override {return EAgglomerate;}
 	
 	/** @brief Returns father mesh. */
 	TPZCompMesh *MotherMesh(){return fMotherMesh;}
@@ -124,28 +124,28 @@ public:
 	virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 	
 	/** @brief Accumulate the vertices of the agglomerated elements */
-	virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes);
+	virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) override;
 	
 	/** @brief Computes the center of the mass to clustered elements */
 	void CenterPoint();
 	
 	/** @brief Returns the center of the mass */
-	virtual void CenterPoint(TPZVec<REAL> &center);
+	virtual void CenterPoint(TPZVec<REAL> &center) override;
 	
 	/** @brief Returns the volume of the geometric element referenced */
-	REAL VolumeOfEl();
+	REAL VolumeOfEl() override;
 	
 	/** @brief Computes the residual of the solution to father element from clustered subelements. */
 	void CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el);
 	
-	void CalcResidual(TPZElementMatrix &ef)
+	void CalcResidual(TPZElementMatrix &ef) override
 	{
 		std::cout << __PRETTY_FUNCTION__ << " is not implemented\n";
 		exit(-1);
 	}
 	
 	/** @brief Assembles the differential equation to model over the element defined by clustered subelements. */
-	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 	/** @brief Returns the number of clustered subelements. */
 	int64_t NIndexes() const { return fIndexes.NElements(); }
@@ -189,16 +189,16 @@ public:
 	/** @brief Returns the "sub" subelement. */
 	TPZCompEl *SubElement(int64_t sub) const;
 	
-	REAL NormalizeConst();
+	REAL NormalizeConst() override;
 	
 	/** @brief It creates new conect that it associates the degrees of freedom of the element and returns its index */
-	virtual int64_t CreateMidSideConnect();
+	virtual int64_t CreateMidSideConnect() override;
 	
 	/** @brief It returns dimension from the elements */
-	int Dimension() const;
+	int Dimension() const override;
 	
 	/** @brief Prints the features of the element */
-	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void Print(std::ostream & out = std::cout) const override;
 
 	/** @brief Returns a vector of all discontinuous elements in cluster. */
 	void ListOfDiscEl(TPZStack<TPZCompEl *> &elvec);
@@ -209,7 +209,7 @@ public:
 	int NSides();
 	
 	/** Creates graphical element to postprocessing */
-	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
 		
 	static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int64_t> &accumlist,int nivel,int64_t &numaggl,int dim);
 	

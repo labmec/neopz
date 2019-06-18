@@ -499,7 +499,7 @@ public:
 	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz
-	int Zero();
+	int Zero() override;
     
     /**
      * @brief Add a contribution of a stiffness matrix

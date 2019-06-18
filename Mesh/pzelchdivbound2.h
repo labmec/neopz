@@ -51,7 +51,7 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZCompElHDivBound2();
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override {
 		return new TPZCompElHDivBound2<TSHAPE> (mesh, *this);
 	}
 	
@@ -62,64 +62,64 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override
 	{
 		return new TPZCompElHDivBound2<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 	
-	virtual MElementType Type();
+	virtual MElementType Type() override;
 	
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
-	virtual void SetConnectIndex(int i, int64_t connectindex);
+	virtual void SetConnectIndex(int i, int64_t connectindex) override;
 	
-	virtual int NConnectShapeF(int connect, int order) const;
+	virtual int NConnectShapeF(int connect, int order) const override;
 	
-	virtual int Dimension() const {
+	virtual int Dimension() const  override {
 		return TSHAPE::Dimension;
 	}
 	
-	virtual int NCornerConnects() const {
+	virtual int NCornerConnects() const override {
 		return 0;
 	}
 	
-	virtual int NSideConnects(int side) const;
+	virtual int NSideConnects(int side) const override;
 	
-	virtual int SideConnectLocId(int node, int side) const;
+	virtual int SideConnectLocId(int node, int side) const override;
     
     
-    virtual void SetSideOrient(int side, int sideorient);
-    virtual int GetSideOrient(int side);
+    virtual void SetSideOrient(int side, int sideorient) override;
+    virtual int GetSideOrient(int side) override;
 	
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
-	virtual void GetInterpolationOrder(TPZVec<int> &ord);
+	virtual void GetInterpolationOrder(TPZVec<int> &ord) override;
 	
 	/** @brief Returns the preferred order of the polynomial along side iside*/
-	virtual int PreferredSideOrder(int iside);
+	virtual int PreferredSideOrder(int iside) override;
 	
 	/** @brief Sets the interpolation order of side to order*/
-	virtual void SetSideOrder(int side, int order);
+	virtual void SetSideOrder(int side, int order) override;
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int EffectiveSideOrder(int side) const;
+	virtual int EffectiveSideOrder(int side) const override;
 	
-	virtual int ConnectOrder(int connect) const;
+	virtual int ConnectOrder(int connect) const override;
 
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
-	virtual void InitMaterialData(TPZMaterialData &data);
+	virtual void InitMaterialData(TPZMaterialData &data) override;
 	
     
     /** @brief Compute Shape for boundary of a hdiv computational element */
-    void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data);
+    void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data) override;
     
     /** @brief Compute the correspondence between the normal vectors and the shape functions */
     void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
-                      REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+                      REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx) override;
     
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
@@ -129,16 +129,16 @@ public:
 	void FirstShapeIndex(TPZVec<int64_t> &Index);
 	
 	/** @brief Compute the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
 	/** @brief Compute the shape function at the integration point */
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 	
 	/** @brief Returns a matrix index of the shape and vector  associate to element*/
 	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int64_t> > & IndexVecShape);
     
     /// Add a shape restraint (meant to fit the pyramid to restraint
-    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override
     {
         if (fRestraint.IsInitialized()) {
             std::cout << "****************** Overwriting a constraint\n";
@@ -148,7 +148,7 @@ public:
     
 
     /// Return a list with the shape restraints
-    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const override
     {
         std::list<TPZOneShapeRestraint> loc;
         if (fRestraint.IsInitialized()) {
@@ -158,7 +158,7 @@ public:
     }
 
     /// Return a list with the shape restraints
-    virtual void ResetShapeRestraints()
+    virtual void ResetShapeRestraints() override
     {
         fRestraint = TPZOneShapeRestraint();
     }
@@ -174,7 +174,7 @@ int ClassId() const override;
 	void Read(TPZStream &buf, void *context) override;
     
     /** @brief Prints the relevant data of the element to the output stream */
-    virtual void Print(std::ostream &out) const;
+    virtual void Print(std::ostream &out) const override;
 
 };
 

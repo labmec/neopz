@@ -26,7 +26,7 @@ class TPZFBMatrix : public TPZMatrix<TVar>
 {
 	
 public:
-	virtual int Substitution(TPZFMatrix<TVar> *B) const;
+	virtual int Substitution(TPZFMatrix<TVar> *B) const override;
 	/** @brief Simple constructor */
 	TPZFBMatrix ();
 	/**
@@ -72,17 +72,17 @@ public:
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 
     
-	int    Put(const int64_t row,const int64_t col,const TVar& value );
-	const TVar &Get(const int64_t row,const int64_t col ) const;
+	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;
+	const TVar &Get(const int64_t row,const int64_t col ) const override;
 	
 	TVar &operator()(const int64_t row, const int64_t col);
-	virtual TVar &s(const int64_t row, const int64_t col);
+	virtual TVar &s(const int64_t row, const int64_t col) override;
 
-	inline int    PutVal(const int64_t row,const int64_t col,const TVar& value );
-	inline const TVar &GetVal(const int64_t row,const int64_t col ) const;
+	inline int    PutVal(const int64_t row,const int64_t col,const TVar& value ) override;
+	inline const TVar &GetVal(const int64_t row,const int64_t col ) const override;
 	
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha=1,const TVar beta = 0,const int opt = 0) const;
+				 const TVar alpha=1,const TVar beta = 0,const int opt = 0) const override;
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	
@@ -100,7 +100,7 @@ public:
 	
 	TPZFBMatrix operator-() const;
 	
-	int64_t Dim() const     { return this->Rows(); }
+	int64_t Dim() const   override { return this->Rows(); }
 	/** @brief Returns band size */
 	int64_t GetBandLower() const
     {
@@ -124,15 +124,15 @@ public:
 	int SetBand(const int64_t newBand );
 	
 	/// Redimension the matrix preserving its elements
-	int Resize(const int64_t newRows,const int64_t newCols );
+	int Resize(const int64_t newRows,const int64_t newCols ) override;
 	
 	/// Redimension the matrix and make zero its elements
-	int Redim(const int64_t newRows,const int64_t newCols );
+	int Redim(const int64_t newRows,const int64_t newCols ) override;
 	
 	// Zeroes the elements of the matrix
-	int Zero();
+	int Zero() override;
 	
-	void Transpose(TPZMatrix<TVar> *const T) const;
+	void Transpose(TPZMatrix<TVar> *const T) const override;
     
 #ifdef USING_LAPACK
 	int       Decompose_LU(std::list<int64_t> &singular);
@@ -149,7 +149,7 @@ private:
     {
         return fBandLower+fBandUpper+i-j+(fBandUpper+2*fBandLower+1)*j;
     }
-	int Clear();
+	int Clear() override;
 	
 	TPZVec<TVar> fElem;
 	int64_t  fBandLower, fBandUpper;

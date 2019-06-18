@@ -82,7 +82,7 @@ namespace pzgeom {
             }
         }
 
-        void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans);
+        void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) override;
 
         bool ResetBlendConnectivity(const int64_t &side, const int64_t &index);
 
