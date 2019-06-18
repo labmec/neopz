@@ -57,7 +57,7 @@ public:
 	}
 	
 	//	CLONEDEF(TPZDohrMatrix)
-	virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrMatrix(*this); }
+	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrMatrix(*this); }
 	
 	~TPZDohrMatrix();
 	
@@ -86,7 +86,7 @@ public:
 		return (*fGlobal.begin());
 	}
 	/** @brief Just a method for tests */
-	void Print(const char *name, std::ostream& out,const MatrixOutputFormat form = EFormatted) const
+	void Print(const char *name, std::ostream& out,const MatrixOutputFormat form = EFormatted) const override
 	{
 		out << __PRETTY_FUNCTION__ << std::endl;
 		out << name << std::endl;
@@ -123,7 +123,7 @@ public:
 	virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt) const;
     
 	/** The only method any matrix class needs to implement */
-	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt) const override;
 	
 	/** @brief Adjust the residual to zero the residual of the internal connects */
 	void AdjustResidual(TPZFMatrix<TVar> &res);

@@ -50,7 +50,7 @@ public:
 	
 	virtual ~TPZCompElHDiv();
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 		return new TPZCompElHDiv<TSHAPE> (mesh, *this);
 	}
 	
@@ -61,24 +61,24 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override
 	{
 		return new TPZCompElHDiv<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
     /** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 	
     /** @brief Prints the relevant data of the element to the output stream */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 	
 
 	
-	virtual MElementType Type();
+	virtual MElementType Type() override;
 	
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
-	virtual void SetConnectIndex(int i, int64_t connectindex);
+	virtual void SetConnectIndex(int i, int64_t connectindex) override;
 	
     /// return the first one dof restraint
     int RestrainedFace();
@@ -88,13 +88,13 @@ public:
      * @param connect connect number
      * @return number of shape functions
      */
-	virtual int NConnectShapeF(int connect, int order) const;
+	virtual int NConnectShapeF(int connect, int order) const override;
 	
-	virtual int Dimension() const {
+	virtual int Dimension() const  override {
 		return TSHAPE::Dimension;
 	}
 	
-	virtual int NCornerConnects() const {
+	virtual int NCornerConnects() const override {
 		return 0;
 	}
 	/** 
@@ -102,34 +102,34 @@ public:
 	 **/
 	virtual int NFluxShapeF() const;
 	
-	virtual int NSideConnects(int side) const;
+	virtual int NSideConnects(int side) const override;
     
 	/** 
      * @brief return the local index for connect
 	 **/
-	virtual int SideConnectLocId(int node, int side) const;
+	virtual int SideConnectLocId(int node, int side) const override;
     
     /** 
      * @brief return the local index for side
      **/
 	virtual int ConnectSideLocId(int connect) const;
 	
-	virtual int64_t ConnectIndex(int con) const;
+	virtual int64_t ConnectIndex(int con) const override;
     
     /// Add a shape restraint (meant to fit the pyramid to restraint
-    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint)
+    virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override
     {
         fRestraints.push_back(restraint);
     }
     
     /// Return a list with the shape restraints
-    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const
+    virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const override
     {
         return fRestraints;
     }
     
     /// Return a list with the shape restraints
-    virtual void ResetShapeRestraints()
+    virtual void ResetShapeRestraints() override
     {
         fRestraints.clear();
     }
@@ -139,41 +139,41 @@ public:
      * Only side that has dimension larger than zero and smaller than me.
      * @param side: side of the reference elemen
      */
-    virtual int GetSideOrient(int side);
+    virtual int GetSideOrient(int side) override;
     
     /**
      * @brief It set the normal orientation of the element by the side.
      * Only side that has dimension equal to my dimension minus one.
      * @param side: side of the reference elemen
      */
-    virtual void SetSideOrient(int side, int sideorient);
+    virtual void SetSideOrient(int side, int sideorient) override;
     
 	
-	virtual void SetIntegrationRule(int ord);
+	virtual void SetIntegrationRule(int ord) override;
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
-	virtual void GetInterpolationOrder(TPZVec<int> &ord);
+	virtual void GetInterpolationOrder(TPZVec<int> &ord) override;
 	
 	/** @brief Returns the preferred order of the polynomial along side iside*/
-	virtual int PreferredSideOrder(int iside);
+	virtual int PreferredSideOrder(int iside) override;
 	
 	/*
      * @brief Sets the preferred interpolation order along a side \n
 	 * This method only updates the datastructure of the element
 	 * In order to change the interpolation order of an element, use the method PRefine
 	 */
-	virtual void SetPreferredOrder(int order);
+	virtual void SetPreferredOrder(int order) override;
 	
 	/** @brief Sets the interpolation order of side to order*/
-	virtual void SetSideOrder(int side, int order);
+	virtual void SetSideOrder(int side, int order) override;
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int EffectiveSideOrder(int side) const;
+	virtual int EffectiveSideOrder(int side) const override;
 	
     /**
      * @brief return the interpolation order of the polynomial for connect
      **/
-	virtual int ConnectOrder(int connect) const;
+	virtual int ConnectOrder(int connect) const override;
 	/**
      * @brief return the number of continuous functions 
      **/
@@ -183,7 +183,7 @@ public:
     void FillOrder(TPZVec<int> &order) const ;
 	
     /// Return the maximum order??
-    virtual int MaxOrder();
+    virtual int MaxOrder() override;
     
     /// the orientation of the face
     int SideOrient(int face)
@@ -198,11 +198,11 @@ public:
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
-	virtual void InitMaterialData(TPZMaterialData &data);
+	virtual void InitMaterialData(TPZMaterialData &data) override;
     
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialData &data,
-									 TPZVec<REAL> &qsi);
+									 TPZVec<REAL> &qsi) override;
 
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
@@ -231,15 +231,15 @@ public:
     void IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
 
 	/** @brief Computes the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
     
     /** @brief Compute the solution for a given variable */
-	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 	
 public:
-    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
     
 public:
     
@@ -248,11 +248,11 @@ public:
 	 * @param[in] qsi point in master element coordinates 
 	 * @param[in] data stores all input data
 	 */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 	
     void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
     
     /**
      * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -271,7 +271,7 @@ public:
     virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                  TPZVec<REAL> &normal,
                                  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes)
+                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override
     {
         DebugStop();
     }
@@ -280,13 +280,13 @@ public:
     /** @brief Compute the solution using Hdiv structure */
 	void ComputeSolutionHDiv(TPZMaterialData &data);
 	
-	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
+	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	
 	/** Jorge 09/06/2001
 	 * @brief Returns the transformation which transform a point from the side to the interior of the element
 	 */
-	TPZTransform<> TransformSideToElement(int side);
+	TPZTransform<> TransformSideToElement(int side) override;
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
@@ -298,7 +298,7 @@ int ClassId() const override;
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
-    virtual void PRefine(int order);
+    virtual void PRefine(int order) override;
 	
 };
 

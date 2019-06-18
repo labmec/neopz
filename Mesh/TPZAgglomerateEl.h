@@ -121,7 +121,7 @@ public:
 	TPZCompMesh *MotherMesh(){return fMotherMesh;}
 	
 	/** @brief Accumulates integration rule to deformed element. */
-	virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
+	virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight) override;
 	
 	/** @brief Accumulate the vertices of the agglomerated elements */
 	virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes) override;

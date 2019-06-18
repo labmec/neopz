@@ -40,7 +40,7 @@ public:
     virtual ~TPZMatWithMem();
 
     /** @brief Returns the name of the material */
-    virtual std::string Name() {
+    virtual std::string Name()  override {
         return "TPZMatWithMem< >";
     }
 
@@ -48,7 +48,7 @@ public:
     virtual void PrintMem(std::ostream &out = std::cout, const int memory = 0);
 
     /** @brief Prints out the data associated with the material */
-    virtual void Print(std::ostream &out);
+    virtual void Print(std::ostream &out) override;
 
     virtual TMEM &MemItem(const int i) const;
 
@@ -70,10 +70,10 @@ public:
      * @return Returning its index at the internal storage stack
      */
     /** To be implemented only in the proper materials. */
-    virtual int PushMemItem(int sourceIndex = -1);
+    virtual int PushMemItem(int sourceIndex = -1) override;
 
     /** @brief Frees an entry in the material with memory internal history storage */
-    virtual void FreeMemItem(int index);
+    virtual void FreeMemItem(int index) override;
 
     /** @ Reset the memory index to its default value */
     void ResetMemItem(int index) {

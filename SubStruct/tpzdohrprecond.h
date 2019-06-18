@@ -57,7 +57,7 @@ public:
     ~TPZDohrPrecond();
     
 	// CLONEDEF(TPZDohrPrecond)
-	virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrPrecond(*this); }
+	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrPrecond(*this); }
     
     /** @brief The matrix class is a placeholder for a list of substructures */
 	std::list<TPZAutoPointer<TSubStruct> > &Global()
@@ -92,7 +92,7 @@ public:
 	 * In fact, it will compute \f$v1+v2+v3\f$ \n
 	 * It computes \f$ z = beta * y + alpha * opt(this)*x\f$ but z and x can not overlap in memory.
 	 */
-	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const override;
 	
     /** Copy of the MultAdd using TBB */
     virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;

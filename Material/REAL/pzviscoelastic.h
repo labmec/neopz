@@ -67,27 +67,27 @@ public:
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
 	
 	void UpdateQsi(TPZMaterialData &data);
 	
 	/** @brief Returns index of post-processing variable */
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
 	/** @brief Number of data of variable var */
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 	/*
 	 Computes the stress. 
 	 Remember you cant update qsi if you want to calculate stress 
 	 */
-	virtual void ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterialData &data) const;
+	virtual void ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterialData &data) const override;
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
 
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
-	virtual void FillDataRequirements(TPZMaterialData &data);
+	virtual void FillDataRequirements(TPZMaterialData &data) override;
 	
 	/** @brief Saves the element data to a stream */
 	void Write(TPZStream &buf, int withclassid) const override;

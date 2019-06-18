@@ -55,20 +55,20 @@ public:
 	TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp);
 	
 	/** @brief Simetrizes copies the data of the matrix to make its data simetric */
-	void Simetrize();
+	void Simetrize() override;
     
 	/** @brief Put values checking bounds */
-	int PutVal(const int64_t row, const int64_t col, const TVar &val);
+	int PutVal(const int64_t row, const int64_t col, const TVar &val) override;
 	
 	/** @brief Get values checking bounds */
-	virtual const TVar &GetVal(const int64_t row, const int64_t col) const;
+	virtual const TVar &GetVal(const int64_t row, const int64_t col) const override;
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
 	 * @param row Row number.
 	 * @param col Column number.
 	 */
-	virtual TVar &s(const int64_t row, const int64_t col)
+	virtual TVar &s(const int64_t row, const int64_t col) override
 	{
 #ifdef PZDEBUG
 		if(row >= this->Rows() || row<0 || col >= this->Cols() || col<0)
@@ -93,11 +93,11 @@ public:
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y,
 						 TPZFMatrix<TVar> & z, const TVar alpha = 1, const TVar beta = 0,
-						 const int opt = 0) const;
+						 const int opt = 0) const override;
 	
 	/** @brief It makes *T the transpose of current matrix. */
 	virtual void Transpose(TPZVerySparseMatrix<TVar>* T) const;
-	virtual void Transpose(TPZMatrix<TVar>*const T) const {
+	virtual void Transpose(TPZMatrix<TVar>*const T) const  override {
         TPZMatrix<TVar>::Transpose(T);
     }
     
