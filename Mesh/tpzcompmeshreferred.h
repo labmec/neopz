@@ -58,7 +58,7 @@ public:
 	 * @brief Prints mesh data
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void Print(std::ostream & out = std::cout) const override;
     
     /** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:

@@ -66,13 +66,13 @@ public:
 int ClassId() const override;
 
     
-    virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
+    virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const override;
     
 	/** @} */
 	
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
 									std::map<int64_t,int64_t> &gl2lcNdIdx,
-									std::map<int64_t,int64_t> &gl2lcElIdx) const;
+									std::map<int64_t,int64_t> &gl2lcElIdx) const override;
 	
 
     
@@ -89,7 +89,7 @@ int ClassId() const override;
         fCornerCo.Read(buf,0);
     }
 	
-    virtual bool IsLinearMapping(int side) const;
+    virtual bool IsLinearMapping(int side) const override;
 	
     /*
 	virtual bool IsLinearMapping() const
@@ -102,7 +102,7 @@ int ClassId() const override;
 	
 	/** @brief Returns if is a TPZGeoElMapped< T > element */
 	/** It is necessary due to the lack of dynamic cast for these elements */
-	virtual bool IsGeoElMapped() const{
+	virtual bool IsGeoElMapped() const override {
 		return true;
 	}
     
@@ -112,10 +112,10 @@ int ClassId() const override;
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
 									   TPZVec<int64_t>& nodeindexes,
 									   int matid,
-									   int64_t& index);
+									   int64_t& index) override;
 
 	/** @brief Sets the father element index*/
-	virtual void SetFather(int64_t fatherindex)
+	virtual void SetFather(int64_t fatherindex) override
 	{
 		TBase::SetFather(fatherindex);
 		TPZGeoEl *father = TBase::Father();
@@ -258,7 +258,7 @@ int ClassId() const override;
 	
 #ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
-    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const {
+    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const  override {
         DebugStop();
     }
 #endif
@@ -297,11 +297,11 @@ int ClassId() const override;
 //    }
     
     /** @brief Return the Jacobian matrix at the point*/
-    void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
+    void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
 #ifdef _AUTODIFF
-    void GradX(TPZVec<Fad<REAL>> &qsi, TPZFMatrix<Fad<REAL>> &gradx) const {
+    void GradX(TPZVec<Fad<REAL>> &qsi, TPZFMatrix<Fad<REAL>> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
 #endif
@@ -357,16 +357,16 @@ int ClassId() const override;
 //	}
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-    void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const{
+    void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const override {
 	        return TX(ksi,result);
 	}
 #ifdef _AUTODIFF
-    void X(TPZVec<Fad<REAL>> &ksi,TPZVec<Fad<REAL>> &result) const{
+    void X(TPZVec<Fad<REAL>> &ksi,TPZVec<Fad<REAL>> &result) const override {
         return TX(ksi,result);
     }
 #endif
 
-	virtual void Print(std::ostream & out = std::cout)
+	virtual void Print(std::ostream & out = std::cout) override
 	{
         TBase::Print(out);
 		
@@ -481,7 +481,7 @@ private:
     }
     #endif
 	
-	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc){
+	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) override {
 		int ns = this->NSideNodes(side);
 		TPZManVector<int64_t> nodeindices(ns);
 		int in;

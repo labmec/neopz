@@ -72,7 +72,7 @@ namespace pzgeom {
             DebugStop();
         }
 
-        virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) {
+        virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans)  {
             std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";
             std::cout << "See TPZGeoElRefLess::SetNeighbourInfo() Method!\n";
             DebugStop();

@@ -61,23 +61,23 @@ public:
      * @param f function values
      * @param df function derivatives
      */
-    virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df);
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override;
     
     /** @brief Returns number of functions. */
-    virtual int NFunctions() const
+    virtual int NFunctions() const override
     {
         return fNumSolutions;
     }
     
     /** @brief Polynomial order of this function. */
     /** In case of non-polynomial function it can be a reasonable approximation order. */
-    virtual int PolynomialOrder() const
+    virtual int PolynomialOrder() const override
     {
         return fPolynomialOrder;
     }
     
     /** @brief Print a brief statement */
-    virtual void Print(std::ostream &out);
+    virtual void Print(std::ostream &out) override;
     public:
 int ClassId() const override;
 

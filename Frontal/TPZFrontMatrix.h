@@ -140,7 +140,7 @@ int ClassId() const override;
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex) override ;
 	
     virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular) override;
     /**
