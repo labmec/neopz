@@ -326,7 +326,7 @@ public:
         for (int i = 0; i < nel; i++) {
             int val;
             this->Read(&val);
-            vec.insert(val);
+            vec.push_back(val);
         }
     }
 
