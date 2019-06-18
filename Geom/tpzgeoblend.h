@@ -105,12 +105,6 @@ namespace pzgeom {
         template<class T>
         void X(const TPZGeoEl &gel, TPZVec<T> &par, TPZVec<T> &result) const;
 
-        template<class T>
-        void X1(const TPZGeoEl &gel, TPZVec<T> &par, TPZVec<T> &result) const;
-
-        template<class T>
-        void X2(const TPZGeoEl &gel, TPZVec<T> &par, TPZVec<T> &result) const;
-
         /** @brief Computes the Jacobian for parametric point at master element */
         void Jacobian(const TPZGeoEl &gel, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                       REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
@@ -118,12 +112,6 @@ namespace pzgeom {
         /** @brief Computes the gradient of the transformation for parametric point at master element */
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
-
-        template<class T>
-        void GradX1(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
-
-        template<class T>
-        void GradX2(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
 
         /** @brief Print all relevant data of the element to cout*/
         void Print(std::ostream &out = std::cout) const;

@@ -1030,7 +1030,7 @@ template class pzgeom::TPZGeoBlend<TPZGeoLinear>;
 template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 
 ///CreateGeoElement -> TPZGeoBlend
-#define IMPLEMENTBLEND(TGEO,CLASSID,CREATEFUNCTION) \
+#define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
 \
 template class \
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
@@ -1038,14 +1038,14 @@ TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
 template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
 
-IMPLEMENTBLEND(pzgeom::TPZGeoPoint,TPZGEOBLENDPOINTID,CreatePointEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoLinear,TPZGEOBLENDLINEARID,CreateLinearEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoQuad,TPZGEOBLENDQUADID,CreateQuadEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,TPZGEOBLENDTRIANGLEID,CreateTriangleEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoCube,TPZGEOBLENDCUBEID,CreateCubeEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoPrism,TPZGEOBLENDPRISMID,CreatePrismEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,TPZGEOBLENDPYRAMIDID,CreatePyramEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,TPZGEOBLENDTETRAHEDRAID,CreateTetraEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPoint,CreatePointEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoLinear,CreateLinearEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoQuad,CreateQuadEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,CreateTriangleEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoCube,CreateCubeEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPrism,CreatePrismEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
 
 #undef IMPLEMENTBLEND
 
