@@ -258,7 +258,7 @@ int ClassId() const override;
 	
 #ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
-    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const  override {
+    virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const  {
         DebugStop();
     }
 #endif
