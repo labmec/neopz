@@ -103,8 +103,8 @@ public:
     /// To solve linear systems
     // @{
 #ifdef USING_LAPACK
-    int Decompose_Cholesky();  // Faz A = GGt.
-    int Decompose_Cholesky(std::list<int64_t> &singular);
+    int Decompose_Cholesky() override;  // Faz A = GGt.
+    int Decompose_Cholesky(std::list<int64_t> &singular) override;
 #endif
     
     int Subst_Forward( TPZFMatrix<TVar>*B ) const override;

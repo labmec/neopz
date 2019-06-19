@@ -52,7 +52,7 @@ public:
     virtual ~TPZStructMatrixTBB();
     
        
-    virtual TPZMatrix<STATE> * Create();
+    virtual TPZMatrix<STATE> * Create() override;
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) {
@@ -60,19 +60,19 @@ public:
         return CreateAssemble(rhs, guiInterface);
     }
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    virtual TPZStructMatrixTBB * Clone();
+    virtual TPZStructMatrixTBB * Clone() override;
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose) {
         std::cout << "Nothing to do." << std::endl;
     }
     
     /** @brief Assemble the global right hand side */
-    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     public:
     int ClassId() const override;

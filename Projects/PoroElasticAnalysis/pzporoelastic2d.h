@@ -99,13 +99,13 @@ public:
 	
     int ClassId() const override;
         
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZPoroElastic2d"; }
+	virtual std::string Name()  override { return "TPZPoroElastic2d"; }
 	
-	int Dimension() const {return fDim;}
+	int Dimension() const  override {return fDim;}
 	
-	virtual int NStateVariables() const {return 3;}
+	virtual int NStateVariables() const  override {return 3;}
 
 	
 	void SetLastState(){ gState = ELastState; }
@@ -203,7 +203,7 @@ public:
 		viscosity = fvisc;	
 	}			
 	
-	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
@@ -212,17 +212,17 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 
 	//public:
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) {
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
+	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)  override {
         TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
     }
 //	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
@@ -236,12 +236,12 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
-							 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+							 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-									 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+									 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
         TPZDiscontinuousGalerkin::ContributeInterface(data,dataleftvec,datarightvec,weight,ek,ef);
     }
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) {
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override {
         TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
     }
 	
@@ -255,7 +255,7 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
-                                       REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+                                       REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 	/** @name Contribute methods
 	 * @{
@@ -268,7 +268,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
 		DebugStop();
 	}
     
@@ -282,7 +282,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
 		DebugStop();
 	}	
 };

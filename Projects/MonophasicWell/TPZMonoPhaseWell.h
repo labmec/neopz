@@ -82,16 +82,16 @@ private:
     /** @} */
     
     /** @brief Returns the name of the material */
-    std::string Name() { return "TPZMonoPhaseWell";}
+    std::string Name() override { return "TPZMonoPhaseWell";}
     
     /** @brief Returns the integrable dimension of the material */
-    int Dimension() const {return 1;}
+    int Dimension() const override {return 1;}
     
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables() const {return 1;}
+    virtual int NStateVariables() const  override {return 1;}
     
     /** @brief returns the minimum number of load cases for this material */
-    int MinimumNumberofLoadCases()
+    int MinimumNumberofLoadCases() override
     {
         return 1;
     }
@@ -108,7 +108,7 @@ private:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
@@ -120,7 +120,7 @@ private:
      * @param bc [in] is the boundary condition material
      * @since October 18, 2011
      */
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
     
     /** @} */
     
@@ -136,7 +136,7 @@ private:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
     
@@ -148,7 +148,7 @@ private:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef) override;
 
     
     /**

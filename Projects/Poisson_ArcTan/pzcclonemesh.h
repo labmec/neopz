@@ -182,7 +182,7 @@ public:
     //@}
     
     /** Creates the computational elements, and the degree of freedom nodes and copy solution from original computational mesh */
-    virtual void AutoBuild();
+    virtual void AutoBuild() override;
     
     /**
      * @brief Given the solution of the global system of equations, computes and stores the
@@ -192,7 +192,7 @@ public:
     void LoadSolution(TPZFMatrix<REAL> &sol);
     
     
-    void Print(std::ostream &out) const;
+    void Print(std::ostream &out) const override;
 
 };
 

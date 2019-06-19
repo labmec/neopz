@@ -103,7 +103,7 @@ public:
 	/**
 	 * Print object data
 	 */
-	void Print (std::ostream & out);
+	void Print (std::ostream & out) override;
 
 	/**
 	 * Return the index of an element

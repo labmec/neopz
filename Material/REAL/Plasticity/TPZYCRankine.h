@@ -74,12 +74,12 @@ public:
         multiplier = T(1.);
     }
     
-    void Write(TPZStream &buf, int withclassid = 0) const
+    void Write(TPZStream &buf, int withclassid = 0) const override
     {
         T_YCBASE::Write(buf,withclassid);
         buf.Write(&fYieldT);
     }
-    void Read(TPZStream &buf, void *context = 0) 
+    void Read(TPZStream &buf, void *context = 0)  override
     {
         T_YCBASE::Read(buf,context);
         buf.Read(&fYieldT);

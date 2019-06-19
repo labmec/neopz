@@ -34,7 +34,7 @@ int ClassId() const override;
 
     void Read(TPZStream &buf, void *context) override;
 
-	virtual void Print(std::ostream &out = std::cout)const;
+	virtual void Print(std::ostream &out = std::cout)const override;
 	
 	/**
 	 * Operator<<

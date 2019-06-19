@@ -27,7 +27,7 @@ int ClassId() const override;
 		return "TPZYCTrescaRegularized";	
     }
 	
-    void Print(std::ostream & out) const
+    void Print(std::ostream & out) const override
     {
 		out << Name();
     }
@@ -131,7 +131,7 @@ public:
 		
 	}
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const  override {
         return as_integer(NYield);
     }
 };

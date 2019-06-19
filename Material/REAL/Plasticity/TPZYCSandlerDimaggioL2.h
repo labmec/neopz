@@ -117,7 +117,7 @@ public:
 
 public:
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 

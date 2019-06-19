@@ -66,7 +66,7 @@ public:
 		return *this;
     }
 	
-	virtual const char * Name() const
+	virtual const char * Name() const override
 	{
 	   return "TPZLadeKim";	
 	}
@@ -104,11 +104,11 @@ public:
        this->ApplyLoad(nullSigma, epsA /* initial total strain */);
 	   fInitialEps = LADEKIMPARENT::GetState();
     }
-    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal)  override {
         LADEKIMPARENT::SetUp(epsTotal);
     }
 	
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
 		out << "\n" << this->Name();
 		out << "\n Base Class Data:\n";
@@ -159,7 +159,7 @@ int ClassId() const override;
     /**
     Set the plastic state variables
     */
-	virtual void SetState(const TPZPlasticState<REAL> &state)
+	virtual void SetState(const TPZPlasticState<REAL> &state) override
 	{
 		TPZPlasticState<REAL> temp(state);
 		temp += fInitialEps;
@@ -169,7 +169,7 @@ int ClassId() const override;
     /**
     Retrieve the plastic state variables
     */
-    virtual TPZPlasticState<REAL> GetState () const
+    virtual TPZPlasticState<REAL> GetState () const override
     {
 		TPZPlasticState<REAL> temp = LADEKIMPARENT::GetState();
 		temp -= fInitialEps;
@@ -184,7 +184,7 @@ int ClassId() const override;
     @param [in] sigma stress tensor
     @param [out] epsTotal deformation tensor
     */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) override
     {
        // Deformation translation from the cohesive material to the equivalent cohesionless
        epsTotal.Add(fInitialEps.m_eps_t, +1.);
@@ -200,7 +200,7 @@ int ClassId() const override;
     /**
     * Load the converged solution, updating the damage variables
     */
-    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal)
+    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override
     {
         TPZTensor<REAL> translatedEpsTotal(epsTotal);
         // Deformation translation from the cohesive to the equivalent cohesionless material
@@ -211,7 +211,7 @@ int ClassId() const override;
     /**
     * Load the converged solution, updating the damage variables
     */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) 
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)  override
     {
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
@@ -224,7 +224,7 @@ int ClassId() const override;
        sigma.Add(I, - faPa);
     }
 	
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma,  TPZFMatrix<REAL> * tangent = NULL)
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma,  TPZFMatrix<REAL> * tangent = NULL) override
     {
 
         bool require_tangent_Q = true;
@@ -260,7 +260,7 @@ int ClassId() const override;
      * @param epsTotal [in] deformation tensor (total deformation
      * @param phi [out] vector of yield functions
     */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override
     {
         TPZTensor<REAL> translatedEpsTotal(epsTotal);
         // Deformation translation from the cohesive to the equivalent cohesionless material

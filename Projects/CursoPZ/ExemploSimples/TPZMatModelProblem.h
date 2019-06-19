@@ -43,13 +43,13 @@ int ClassId() const override;
     virtual ~TPZMatModelProblem();
 	
     /** @brief Returns the name of the material */
-    virtual std::string Name() { return "TPZMatModelProblem"; }
+    virtual std::string Name() override { return "TPZMatModelProblem"; }
     
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() const {return 1;}
+    virtual int Dimension() const  override {return 1;}
     
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables() const { return 1;}
+    virtual int NStateVariables() const  override { return 1;}
     
 public:
     
@@ -65,7 +65,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
 		
     /**
@@ -77,7 +77,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
   	
 };
 
