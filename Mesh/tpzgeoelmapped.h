@@ -31,7 +31,9 @@ static LoggerPtr loggermapped(Logger::getLogger("pz.mesh.geoelmapped"));
  */
 template<class TBase>
 class TPZGeoElMapped : public TBase {
+    
 public:
+    
 	typedef typename TBase::Geo Geo;
 	TPZGeoElMapped() : TPZRegisterClassId(&TPZGeoElMapped::ClassId),
     TBase(), fCornerCo(Geo::Dimension,Geo::NNodes,0.)
@@ -63,9 +65,9 @@ public:
 	}
 	
 	public:
-int ClassId() const override;
-
     
+    int ClassId() const override;
+
     virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const override;
     
 	/** @} */
