@@ -22,7 +22,7 @@ class TPZAgglomerateMesh : public TPZFlowCompMesh {
     
 public:
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     TPZAgglomerateMesh() : TPZRegisterClassId(&TPZAgglomerateMesh::ClassId), 
     TPZFlowCompMesh(0)

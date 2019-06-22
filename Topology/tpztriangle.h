@@ -36,9 +36,9 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3};
 		
-            virtual int ClassId() const;
-            void Read(TPZStream& buf, void* context);
-            void Write(TPZStream& buf, int withclassid) const;
+            int ClassId() const override;
+            void Read(TPZStream &buf, void *context) override;
+            void Write(TPZStream &buf, int withclassid) const override;
 
 		/** @brief Default constructor */
         TPZTriangle() : TPZRegisterClassId(&TPZTriangle::ClassId){

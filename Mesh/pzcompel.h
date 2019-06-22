@@ -291,6 +291,13 @@ public:
 	 */
 	static void SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,
 														 TPZFMatrix<REAL> & dphi));
+    /**
+     * @brief Computes the element stifness matrix and right hand side
+     * @param ek element stiffness matrix
+     * @param ef element load vector
+     */
+    virtual void Assemble();
+    
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix
@@ -565,10 +572,10 @@ public:
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const override;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context) override;
+	void Read(TPZStream &buf, void *context) override;
 	 
 private:
     
@@ -776,6 +783,10 @@ public:
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
 	std::cout << "TPZCompEl::CreateGraphicalElement called\n";
 	this->Print(std::cout);
+}
+
+inline void TPZCompEl::Assemble(){
+    std::cout << "TPZCompEl::Assemble is called." << std::endl;
 }
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){

@@ -124,12 +124,12 @@ namespace pzgeom {
             memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int64_t));
         }
         
-        void Read(TPZStream &buf, void *context) {
+        void Read(TPZStream &buf, void *context) override{
             Topology::Read(buf, context);
             buf.Read(fNodeIndexes, NNodes);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const { 
+        void Write(TPZStream &buf, int withclassid) const override{
             Topology::Write(buf, withclassid);
             buf.Write(fNodeIndexes, NNodes);
         }
@@ -317,7 +317,7 @@ namespace pzgeom {
         }
         
     public:
-        virtual int ClassId() const;
+        int ClassId() const override;
         
     protected:
         /**

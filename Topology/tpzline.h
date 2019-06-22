@@ -40,9 +40,9 @@ namespace pztopology {
 		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
 		
                 public:
-                virtual int ClassId() const;
-                void Read(TPZStream& buf, void* context);
-                void Write(TPZStream& buf, int withclassid) const;
+                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
+                void Write(TPZStream &buf, int withclassid) const override;
 
 		/** @brief Default constructor */
         TPZLine() : TPZRegisterClassId(&TPZLine::ClassId){

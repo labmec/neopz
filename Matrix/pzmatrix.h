@@ -25,7 +25,7 @@ template<class TVar>
 class TPZFMatrix;
 
 /** @brief To create clone matrix */
-#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const { return new A(*this); }
+#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const override { return new A(*this); }
 
 
 template<class TVar>
@@ -707,7 +707,7 @@ public:
 	 */
 	
         public:
-virtual int ClassId() const;
+int ClassId() const override;
 
         
 	/**
@@ -715,14 +715,14 @@ virtual int ClassId() const;
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid ) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @} */
 	
@@ -731,13 +731,13 @@ virtual int ClassId() const;
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSavable *copy, bool override = false);
+	virtual bool Compare(TPZSavable *copy, bool override = false) override;
 	/// Compare the object for identity with the object pointed to, eventually copy the object
 	/**
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
-	virtual bool Compare(TPZSavable *copy, bool override = false) const;
+	virtual bool Compare(TPZSavable *copy, bool override = false) const override;
 	
 	/** @brief Extract the block indicated by the indices from the matrix */
 	virtual void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar>&block) const;

@@ -126,7 +126,7 @@ public:
 	
 	virtual ~TPZPlasticFrac2D();
         
-        virtual int ClassId() const;
+        int ClassId() const override;
 	
 	virtual void Print(std::ostream & out);
 	
@@ -258,11 +258,11 @@ public:
 	
 	void ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
         
-        void Read(TPZStream& buf, void* context){
+        void Read(TPZStream& buf, void* context) override {
             DebugStop();
         }
 
-        void Write(TPZStream& buf, int withclassid) const{
+        void Write(TPZStream &buf, int withclassid) const override{
             DebugStop();
         }
 

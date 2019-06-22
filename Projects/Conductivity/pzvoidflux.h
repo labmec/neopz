@@ -197,14 +197,14 @@ public:
 
     /** @brief Unique identifier for serialization purposes */
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     /** @brief Save the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Read the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 
     /** @brief create another material of the same type */
     virtual TPZMaterial * NewMaterial();

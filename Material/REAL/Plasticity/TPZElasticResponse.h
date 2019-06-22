@@ -31,7 +31,7 @@ public:
      
      @return The class identifier as integer
      */
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     /**
      Default constructor
@@ -54,7 +54,7 @@ public:
      @param buf The TPZStream object
      @param withclassid The class identifier
      */
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /**
      Read (persistency)
@@ -62,7 +62,7 @@ public:
      @param buf The TPZStream object
      @param context pointer to the associated object
      */
-    void Read(TPZStream& buf, void* context);
+    void Read(TPZStream &buf, void *context) override;
     
     
     /**

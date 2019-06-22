@@ -45,7 +45,7 @@ public:
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<STATE> &ek,
-                            TPZFMatrix<STATE> &ef) {
+                            TPZFMatrix<STATE> &ef) override {
         int numbersol = data.sol.size();
         if(numbersol != 1) 
         {
@@ -61,7 +61,7 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZMatPoisson3dReferred::Contribute(data,weight,ef);
 	}
@@ -75,30 +75,30 @@ public:
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix<STATE> &ek,
-									 TPZFMatrix<STATE> &ef);
+									 TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ek,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc);
+									   TPZBndCond &bc) override;
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMatPoisson3dReferred::ContributeBC(data,weight,ef,bc);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<STATE> &ef)
+									 TPZFMatrix<STATE> &ef) override
 	{
 		TPZMatPoisson3dReferred::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
@@ -106,14 +106,14 @@ public:
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc)
+									   TPZBndCond &bc) override
 	{
     	TPZMatPoisson3dReferred::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 	/** @} */
 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 protected:
     bool fIsReferred;

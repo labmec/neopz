@@ -135,11 +135,11 @@ namespace pzgeom {
          */
         static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
         
-        virtual int ClassId() const;
+        int ClassId() const override;
         
-        void Read(TPZStream& buf, void* context);
+        void Read(TPZStream &buf, void *context) override;
         
-        void Write(TPZStream& buf, int withclassid) const;
+        void Write(TPZStream &buf, int withclassid) const override;
         
     protected:
         /**

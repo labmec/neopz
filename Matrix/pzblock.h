@@ -181,13 +181,13 @@ public:
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
 
-        virtual int ClassId() const;
+        int ClassId() const override;
 	
         /** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 
 private:
 	
@@ -206,12 +206,12 @@ private:
 			dim=0;
 		}
                 
-                virtual int ClassId() const {
-                    return Hash("TNode") ^ ClassIdOrHash<TPZBlock<TVar>>() << 1;
-                }
+        int ClassId() const override{
+            return Hash("TNode") ^ ClassIdOrHash<TPZBlock<TVar>>() << 1;
+        }
                 
-		void Read(TPZStream &buf, void *context);
-		void Write(TPZStream &buf, int withclassid) const;
+		void Read(TPZStream &buf, void *context) override;
+		void Write(TPZStream &buf, int withclassid) const override;
 	};
 	
 	/** @brief Nodes vector */

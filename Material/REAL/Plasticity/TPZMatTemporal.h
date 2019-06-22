@@ -42,7 +42,7 @@ class TPZMatTemporal : public TPZMaterialData
 	 * Whether to compute the initial solution vector based on a constant initial value
 	 */
         public:
-virtual int ClassId() const;
+int ClassId() const override;
 };
 
 #endif

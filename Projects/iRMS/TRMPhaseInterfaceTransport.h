@@ -170,17 +170,17 @@ public:
     /**
      * Unique identifier for serialization purposes
      */
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     /**
      * Save the element data to a stream
      */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /**
      * Read the element data from a stream
      */
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     
     /// Copy the n+1 data to the n data

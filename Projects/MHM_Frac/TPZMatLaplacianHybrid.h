@@ -88,13 +88,13 @@ public:
 
 
 
-    virtual int ClassId() const {
+    int ClassId() const override  {
         return TPZMatLaplacianHybridID;
     }
 
-	virtual void Write(TPZStream &buf, int withclassid);
+	void Write(TPZStream &buf, int withclassid) const override;
 
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 
 };
 

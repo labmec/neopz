@@ -143,7 +143,7 @@ public:
         buf.Write(&fun);
     }
     
-    void Read(TPZStream &buf, void *context)
+    void Read(TPZStream& buf, void* context) override
     {
         buf.Read(&fun);
     }

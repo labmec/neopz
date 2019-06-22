@@ -247,7 +247,7 @@ namespace pzgeom
 			fIBaseCn.Print("fIBaseCn", out);
 		}
         
-        void Read(TPZStream &buf,void *context)
+        void Read(TPZStream& buf, void* context) override
         {
             pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf, context);
             fICnBase.Read(buf,0);
@@ -260,7 +260,7 @@ namespace pzgeom
             buf.Read(&fYcenter,1);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const
+        void Write(TPZStream &buf, int withclassid) const override
         {
             pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf, withclassid);
             fICnBase.Write(buf,0);
@@ -275,7 +275,7 @@ namespace pzgeom
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
     public:
-virtual int ClassId() const;
+int ClassId() const override;
     public:
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
         

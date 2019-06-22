@@ -81,12 +81,12 @@ public:
     }
     
 public:
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    virtual void Write(TPZStream &buf, int withclassid) const { //ok
+    void Write(TPZStream &buf, int withclassid) const override{ //ok
     }
 
-    virtual void Read(TPZStream &buf, void *context) { //ok
+    void Read(TPZStream &buf, void *context) override{ //ok
     }
 	
 };
@@ -168,7 +168,7 @@ public:
 	 * @param f function values
 	 * @param df function derivatives
 	 */
-	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
+	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)  override
     {
         if (!fFunc2) {
 			if (!fFunc)
@@ -189,7 +189,7 @@ public:
 	 * @param f function values
 	 * @param gradf function derivatives
 	 */	
-	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
+	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)  override
     {
         if (!fFunc3) {
 			DebugStop();
@@ -201,7 +201,7 @@ public:
 	 * @brief Execute method receiving axes. It is used in shape functions
 	 * @note NOT IMPLEMENTED
 	 */
-	virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
+	virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df) override {
         DebugStop();
     }
     
@@ -210,7 +210,7 @@ public:
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
 	 * @param f function values
 	 */
-    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f){
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f) override {
 		if (!fFunc) {
 			DebugStop();
 		}
@@ -218,7 +218,7 @@ public:
     }
     
 	/** @brief Returns number of functions. */ 
-	virtual int NFunctions() const
+	virtual int NFunctions() const override
     {
         return 1;
     }
@@ -230,7 +230,7 @@ public:
 	
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() const
+	virtual int PolynomialOrder() const override
     {
 #ifdef PZDEBUG
         if (fPorder == -1) {
@@ -242,17 +242,17 @@ public:
 	
 	/** @brief Unique identifier for serialization purposes */
 	public:
-virtual int ClassId() const;
+    int ClassId() const override;
 
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const
+	void Write(TPZStream &buf, int withclassid) const override
     {
         DebugStop();
     }
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context)
+	void Read(TPZStream &buf, void *context) override
     {
         DebugStop();
     }

@@ -156,7 +156,7 @@ public:
     
     
 
-    void Write(TPZStream &buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         buf.Write(&fp_avg);
         buf.Write(&fp_avg_n);
         buf.Write(&fsa);
@@ -165,7 +165,7 @@ public:
         buf.Write(&fsb_n);
     }
 
-    void Read(TPZStream &buf, void *context)
+    void Read(TPZStream& buf, void* context) override
     {
         buf.Read(&fp_avg);
         buf.Read(&fp_avg_n);

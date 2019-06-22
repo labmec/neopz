@@ -522,7 +522,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )
  * @param withclassid
  */
 template<class TVar, class TSubStruct>
-void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
+void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid ) const
 {
     TPZMatrix<TVar>::Write(buf, withclassid);
     buf.Write(&fNumCoarse);

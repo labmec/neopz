@@ -28,7 +28,7 @@ namespace pzgeom {
 
     public:
 
-        virtual int ClassId() const;
+        int ClassId() const override;
 
         bool IsLinearMapping(int side) const;
 
@@ -62,7 +62,7 @@ namespace pzgeom {
                                                            TGeo(cp) {
         }
 
-        void Read(TPZStream &buf, void *context) {
+        void Read(TPZStream &buf, void *context) override{
             TGeo::Read(buf, context);
             for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
                 fNeighbours[is].Read(buf, context);
@@ -72,7 +72,7 @@ namespace pzgeom {
             }
         }
 
-        void Write(TPZStream &buf, int withclassid) const {
+        void Write(TPZStream &buf, int withclassid) const override{
             TGeo::Write(buf, withclassid);
             for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
                 fNeighbours[is].Write(buf, withclassid);
@@ -82,7 +82,7 @@ namespace pzgeom {
             }
         }
 
-        void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans);
+        void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) override;
 
         bool ResetBlendConnectivity(const int64_t &side, const int64_t &index);
 
@@ -105,12 +105,6 @@ namespace pzgeom {
         template<class T>
         void X(const TPZGeoEl &gel, TPZVec<T> &par, TPZVec<T> &result) const;
 
-        template<class T>
-        void X1(const TPZGeoEl &gel, TPZVec<T> &par, TPZVec<T> &result) const;
-
-        template<class T>
-        void X2(const TPZGeoEl &gel, TPZVec<T> &par, TPZVec<T> &result) const;
-
         /** @brief Computes the Jacobian for parametric point at master element */
         void Jacobian(const TPZGeoEl &gel, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                       REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
@@ -118,12 +112,6 @@ namespace pzgeom {
         /** @brief Computes the gradient of the transformation for parametric point at master element */
         template<class T>
         void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
-
-        template<class T>
-        void GradX1(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
-
-        template<class T>
-        void GradX2(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
 
         /** @brief Print all relevant data of the element to cout*/
         void Print(std::ostream &out = std::cout) const;

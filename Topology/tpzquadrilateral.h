@@ -39,9 +39,9 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4};
 
-            virtual int ClassId() const;
-            void Read(TPZStream& buf, void* context);
-            void Write(TPZStream& buf, int withclassid) const;
+            int ClassId() const override;
+            void Read(TPZStream &buf, void *context) override;
+            void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Default constructor */

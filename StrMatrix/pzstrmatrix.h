@@ -91,9 +91,9 @@ public:
     
     virtual ~TPZStructMatrixOR(){};
     
-    virtual TPZMatrix<STATE> * Create();
+    virtual TPZMatrix<STATE> * Create() override;
     
-    virtual TPZStructMatrixOR * Clone();
+    virtual TPZStructMatrixOR * Clone() override;
     
     using TPZStructMatrixBase::CreateAssemble;
     
@@ -106,19 +106,19 @@ public:
     //virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose) {
         std::cout << "Nothing to do." << std::endl;
     }
     
     /** @brief Assemble the global right hand side */
-    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     public:
-virtual int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
 
 protected:

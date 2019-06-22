@@ -102,10 +102,10 @@ public:
 	}
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         MOHRCOULOMBPARENT::Write(buf, withclassid);
 
         buf.Write(&fYC.fPhi, 1);
@@ -130,7 +130,7 @@ virtual int ClassId() const;
         // fPlasticMem does not need to be stored
     }
     
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         MOHRCOULOMBPARENT::Read(buf, context);
 
         buf.Read(&fYC.fPhi, 1);

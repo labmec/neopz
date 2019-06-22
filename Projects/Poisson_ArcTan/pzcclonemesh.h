@@ -120,13 +120,13 @@ public:
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
     
     /** @brief To clone this mesh */
    // TPZCompCloneMesh* Clone() const;
@@ -182,7 +182,7 @@ public:
     //@}
     
     /** Creates the computational elements, and the degree of freedom nodes and copy solution from original computational mesh */
-    virtual void AutoBuild();
+    virtual void AutoBuild() override;
     
     /**
      * @brief Given the solution of the global system of equations, computes and stores the
@@ -192,7 +192,7 @@ public:
     void LoadSolution(TPZFMatrix<REAL> &sol);
     
     
-    void Print(std::ostream &out) const;
+    void Print(std::ostream &out) const override;
 
 };
 

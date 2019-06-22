@@ -235,6 +235,14 @@ void TPZAnalysis::OptimizeBandwidth() {
 	}
 	fRenumber->SetElementsNodes(nel,nindep);
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
+#ifdef LOG4CXX2
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        fRenumber->Print(elgraph, elgraphindex, "Elgraph of submesh", sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	fRenumber->Resequence(perm,iperm);
 	fCompMesh->Permute(perm);
     if (nel > 100000) {

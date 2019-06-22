@@ -44,16 +44,16 @@ typedef TPZRestoreClassBase * TPZRestore_t;
 #endif
 
 
-//Search for CREATECLASSID to find classes with previously missing ClassId()
-//Comment the default constructor of TPZRegisterClassId in order to 
-//check all TPZSavable  children classes for ClassId()
+//Change the default constructor of TPZRegisterClassId to
+// TPZRegisterClassId() = delete;
+// in order to check all TPZSavable children classes for ClassId()
 class TPZRegisterClassId {
 public:
     // this matches the signature of 'ClassId() const'
     template <typename T>
     TPZRegisterClassId(int (T::*)() const) {
     }
-    TPZRegisterClassId() {}
+    TPZRegisterClassId() = default;
 };
 
 /**
@@ -98,6 +98,8 @@ virtual int ClassId() const = 0;
         
 	virtual std::list<std::map<std::string, uint64_t>> VersionHistory() const;
 	virtual std::pair<std::string, uint64_t> Version() const;
+    
+    static std::pair<std::string, uint64_t> NeoPZVersion();
         	
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	//virtual void Write(TPZStream &buf, int withclassid) const;
@@ -141,7 +143,7 @@ public :
  */
 
 /**
- * A declaration of the type "template class<classname, classid> put in .cpp file does the trick \n
+ * A declaration of the type "template class<classname> put in .cpp file does the trick \n
  * The static object which is "automatically" created calls the proper interface of the TPZSavable class
  */
 template<class T>
@@ -160,7 +162,7 @@ public:
     }
     
     virtual TPZChunkTranslator *GetTranslator() {
-        return NULL;
+        return nullptr;
     }
     
 private:

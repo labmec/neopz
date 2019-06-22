@@ -95,16 +95,16 @@ public:
 
     }
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         DRUCKERPARENT::Write(buf, withclassid);
 
         buf.Write(&faPa, 1);
         fInitialEps.Write(buf, withclassid);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         DRUCKERPARENT::Read(buf, context);
 
         buf.Read(&faPa, 1);

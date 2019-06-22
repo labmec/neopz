@@ -101,7 +101,7 @@ namespace pzgeom {
             
             GradX(coord,loc,gradx);
         }
-        /*
+        
          /**
          * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
          * interior point qsi. It is used by the TPZGeoBlend class.
@@ -137,9 +137,9 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
         
         public:
-virtual int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 
     public:
         /** @brief Creates a geometric element according to the type of the father element */

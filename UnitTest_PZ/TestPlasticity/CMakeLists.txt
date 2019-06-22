@@ -5,7 +5,7 @@ file(GLOB sources *.cpp)
 
 #configure_file("Sandler_Rubin_data_1979.txt" "Sandler_Rubin_data_1979.txt" COPYONLY)
 
-if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD)
+if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD AND BUILD_PLASTICITY_MATERIALS)
 
 	if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
 		include (CTestTestFile.cmake)

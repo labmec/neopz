@@ -44,11 +44,11 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
         
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    void Read(TPZStream& buf, void* context);
+    void Read(TPZStream &buf, void *context) override;
 
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
 
 	/** @brief Find graphical node (connect) */
 	TPZGraphNode &FindNode(int64_t side);

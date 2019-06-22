@@ -79,9 +79,9 @@ public:
 //	/** @brief Reads data of the material from a istream (file data) */
 //	virtual void SetData(std::istream &data);
 		
-//	virtual void Write(TPZStream &buf, int withclassid) const;
+//	void Write(TPZStream &buf, int withclassid) const override;
 	
-//	virtual void Read(TPZStream &buf, void *context);
+//	void Read(TPZStream &buf, void *context) override;
 	
 //	public:
 virtual int ClassId() const override;

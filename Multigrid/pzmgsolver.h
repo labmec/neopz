@@ -47,15 +47,15 @@ public:
 		return this->fStep;
 	}
 	
-	TPZSolver<TVar> * Clone() const;
+	TPZSolver<TVar> * Clone() const override;
 	
-	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0) override;
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+	void Write(TPZStream &buf, int withclassid) const override;
+	void Read(TPZStream &buf, void *context) override;
 	
 	
 private:

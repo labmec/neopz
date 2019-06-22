@@ -67,7 +67,7 @@ public:
     /** @brief Initializes the shape function type in order to allow non ill-conditioned L2 Transfer matrix */
     void InitializeShapeFunctions();
     
-    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const;
+    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override;
     
     /**
      * @brief Create a copy of the given element. The clone copy have the connect indexes
@@ -76,19 +76,19 @@ public:
      * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
      * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
      */
-    virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const;
+    virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override;
     
     /**
      * @brief Prints element data
      * @param out indicates the device where the data will be printed
      */
-    virtual void Print(std::ostream & out = std::cout) const
+    virtual void Print(std::ostream & out = std::cout) const override
     {
         out << __PRETTY_FUNCTION__ << " calling print from superclass\n";
         TPZReferredCompEl<TCOMPEL>::Print(out);
     }
     
-    void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
+    void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
     
     /**
      * @brief The CalcResidual reimplementation is in charge of extracting the data from the
@@ -97,13 +97,13 @@ public:
      * The final ef vector shall be copied onto the solution vector, as it represents
      * the shape functions multipliers of the extrapolation functions.
      */
-    virtual void CalcResidual(TPZElementMatrix &ef);
+    virtual void CalcResidual(TPZElementMatrix &ef) override;
     
     /**
      * @brief Null implementation of the CalcStiff in order to ensure it wouldn't produce
      * any valid system of equations.
      */
-    virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
     
     /** @brief Compare some fields of 2 TPZMaterialData and return true if these do match. */
     bool dataequal(TPZMaterialData &d1,TPZMaterialData &d2);
@@ -120,7 +120,7 @@ public:
      * @param dsol solution derivatives
      */
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
     
     /**
      * @brief Avoids the calling of the TPZCompElReferred::ComputeSolution wich would attempt to
@@ -139,7 +139,7 @@ public:
     virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                  TPZVec<REAL> &normal,
                                  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
     
     
     /**
@@ -149,18 +149,17 @@ public:
      */
     /** @brief Compute shape functions based on master element in the classical FEM manner. */
     virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
-                              REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+                              REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx) override;
     
     
 public:
-    
-    int ClassId() const;
+        int ClassId() const override;
     
     /** @brief Save the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Read the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
 };
 
@@ -397,6 +396,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
     
     TPZFNMatrix<90,STATE> ekCopy(ekTemp);
     
+    ekTemp.Print("ek = ",std::cout,EMathematicaInput);
+    efTemp.Print("ef = ",std::cout,EMathematicaInput);
+    
     TPZFNMatrix<10,STATE> rhsTemp(nshape, 1, 0.);
     for(int i_st = 0; i_st < stackedVarSize; i_st++)
     {
@@ -406,7 +408,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
 //        int status = ekTemp.Solve_Cholesky(&(rhsTemp));
         int status = ekTemp.Solve_LU(&(rhsTemp));
-        
+        rhsTemp.Print("dp = ",std::cout,EMathematicaInput);
         ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
         REAL invRes = Norm(result);
         if(!status ){

@@ -39,7 +39,7 @@ class TPZElasticity2DHybrid : public TPZElasticityMaterial {
 	TPZElasticity2DHybrid(const TPZElasticity2DHybrid &copy);
 	
 	/** @brief Creates a new material from the current object   ??*/
-	virtual TPZMaterial * NewMaterial() { return new TPZElasticity2DHybrid(*this);}
+	virtual TPZMaterial * NewMaterial()  override { return new TPZElasticity2DHybrid(*this);}
 	
 	/** @brief Default destructor */
 	virtual ~TPZElasticity2DHybrid();
@@ -48,11 +48,11 @@ class TPZElasticity2DHybrid : public TPZElasticityMaterial {
     /** @{ */
     
 
-    virtual void Contribute(TPZVec<TPZMaterialData> &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 
 	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
@@ -88,12 +88,12 @@ public:
 
     
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 };
 

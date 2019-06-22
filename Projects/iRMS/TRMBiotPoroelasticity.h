@@ -126,13 +126,13 @@ public:
     void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef);
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     /** @brief Save object data to a stream */
-    void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Read object data from a stream */
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     //** @brief Copy the n+1 data to the n data */
     void UpdateMemory();

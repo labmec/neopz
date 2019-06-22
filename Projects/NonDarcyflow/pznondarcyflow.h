@@ -123,18 +123,18 @@ public:
 	 * Unique identifier for serialization purposes
 	 */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
 	/**
 	 * Save the element data to a stream
 	 */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/**
 	 * Read the element data from a stream
 	 */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
 	/**
 	 * Return the viscosity based on p and if FAD also the correct derivative

@@ -23,7 +23,7 @@ template<class TVar>
 class TPZTransfer : public TPZMatrix<TVar> {
 	
 public :
-    virtual int ClassId() const;
+    int ClassId() const override;
 
 	/** @brief Default constructor */
     TPZTransfer();
@@ -43,10 +43,10 @@ public :
 	{
 	}
 	
-	virtual TPZMatrix<TVar> *Clone() const { return new TPZTransfer(*this); }
+	virtual TPZMatrix<TVar> *Clone() const  override { return new TPZTransfer(*this); }
 	
 	//TPZMatrix<REAL> : EFormatted, EInputFormat, EMathematicaInput
-	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
+	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
 	/** @brief Identifies the number of equations per shapefunction*/
 	void SetNTVarVariables(int TVarvar) { fNTVarVar = TVarvar; }
@@ -76,7 +76,7 @@ public :
 	
 	/** @brief Multiplies the transfer matrix and puts the result in z*/
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha,const TVar beta, const int opt = 0) const ;
+				 const TVar alpha,const TVar beta, const int opt = 0) const  override;
 	
 	/**
 	 * @brief Will transfer the solution, taking into acount there may be more than
@@ -90,7 +90,7 @@ public :
 	 */
 	void TransferResidual(const TPZFMatrix<TVar> &fine, TPZFMatrix<TVar> &coarse);
 	
-	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const;
+	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const override;
 	
 private:
 	

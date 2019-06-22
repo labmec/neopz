@@ -35,7 +35,7 @@ class TPZLadeNelsonElasticResponse : public TPZSavable {
 
 public:
 
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     TPZLadeNelsonElasticResponse() : fLambda(0.), fM(0.), fPoisson(0.), fPa(0.)
     { }
@@ -57,14 +57,14 @@ public:
 		return *this;
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         buf.Write(&fLambda);
         buf.Write(&fM);
         buf.Write(&fPoisson);
         buf.Write(&fPa);
     }
     
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fLambda);
         buf.Read(&fM);
         buf.Read(&fPoisson);

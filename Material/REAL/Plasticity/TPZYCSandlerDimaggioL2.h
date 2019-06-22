@@ -32,7 +32,7 @@ public:
         NYield = 2
     };
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     TPZYCSandlerDimaggioL2() : TPZYCSandlerDimaggioL() {
     }
@@ -117,7 +117,7 @@ public:
 
 public:
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 

@@ -27,7 +27,7 @@ public:
 	
 	enum {NNodes = 15};
         
-virtual int ClassId() const;
+int ClassId() const override;
 
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	

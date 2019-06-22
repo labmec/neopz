@@ -18,13 +18,13 @@ class TPZBndCondWithMem : public TPZBndCond {
     
 public:
     
-    TPZBndCondWithMem() : TPZBndCond(){
-        DebugStop();
+    TPZBndCondWithMem() : TPZBndCond(), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false){
+
     }
     
 
-    TPZBndCondWithMem(int matid) : TPZBndCond(matid){
-        DebugStop();
+    TPZBndCondWithMem(int matid) : TPZBndCond(matid), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false){
+
     }
     
     /** @brief Default destructor */
@@ -32,10 +32,10 @@ public:
 
     }
     
-    TPZBndCondWithMem(TPZMaterial * material,int matid,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) : TPZBndCond(material,matid,type,val1,val2),fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
+    TPZBndCondWithMem(TPZMaterial * material,int matid,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) : TPZBndCond(material,matid,type,val1,val2),fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false) {
     }
     
-    TPZBndCondWithMem(TPZBndCondWithMem<TMEM> & bc) : TPZBndCond(bc), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
+    TPZBndCondWithMem(TPZBndCondWithMem<TMEM> & bc) : TPZBndCond(bc), fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false) {
 
     }
     
@@ -52,11 +52,11 @@ public:
     virtual TMEM &MemItem(const int i) const;
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    int ClassId() const override;
     
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     std::shared_ptr<TPZAdmChunkVector<TMEM>> & GetMemory();
     
@@ -155,103 +155,5 @@ protected:
     bool fUpdateMem;
     
 };
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Print(std::ostream &out)
-{
-    out << this->Name();
-    TPZBndCond::Print(out);
-}
-
-template <class TMEM>
-TMEM & TPZBndCondWithMem<TMEM>::MemItem(const int i) const{
-    return fMemory.get()->operator [](i);
-}
-
-template <class TMEM>
-int TPZBndCondWithMem<TMEM>::ClassId() const{
-    return Hash("TPZBndCondWithMem") ^ TPZBndCond::ClassId() << 1 ^ TMEM().ClassId() << 2;
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Write(TPZStream &buf, int withclassid) const{
-    TPZBndCond::Write(buf, withclassid);
-    int updatemem = fUpdateMem;
-    buf.Write(&updatemem);
-    fDefaultMem.Write(buf, 0);
-    TPZPersistenceManager::WritePointer(fMemory.get(), &buf);
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Read(TPZStream &buf, void *context){
-    TPZBndCond::Read(buf, context);
-    int updatemem;
-    buf.Read(&updatemem);
-    if (updatemem) {
-        fUpdateMem = true;
-    } else {
-        fUpdateMem = false;
-    }
-    fDefaultMem.Read(buf, 0);
-    fMemory = std::dynamic_pointer_cast<TPZAdmChunkVector<TMEM> >(TPZPersistenceManager::GetSharedPointer(&buf));
-}
-
-template <class TMEM>
-std::shared_ptr<TPZAdmChunkVector<TMEM>> & TPZBndCondWithMem<TMEM>::GetMemory(){
-    return fMemory;
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::SetMemory(std::shared_ptr<TPZAdmChunkVector<TMEM>> & memory){
-    fMemory = memory;
-}
-
-template <class TMEM>
-int TPZBndCondWithMem<TMEM>::PushMemItem(int sourceIndex){
-    int index = fMemory->AllocateNewElement();
-    if (sourceIndex < 0) {
-        this->ResetMemItem(index);
-    } else {
-        this->MemItem(index) = this->MemItem(sourceIndex);
-    }
-    return index;
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::FreeMemItem(int index){
-    fMemory->SetFree(index);
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::SetDefaultMem(TMEM & defaultMem){
-    fDefaultMem = defaultMem;
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::SetUpdateMem(bool update){
-    fUpdateMem = update;
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    TPZBndCond::Contribute(data, weight, ek, ef);
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
-    TPZFMatrix<STATE> ek_fake(ef.Rows(),ef.Rows());
-    this->Contribute(data, weight, ek_fake, ef);
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-    TPZBndCond::Contribute(datavec, weight, ek, ef);
-}
-
-template <class TMEM>
-void TPZBndCondWithMem<TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef){
-    TPZFMatrix<STATE> ek_fake(ef.Rows(),ef.Rows());
-    this->Contribute(datavec, weight, ek_fake, ef);
-}
 
 #endif /* TPZBndCondWithMem_h */

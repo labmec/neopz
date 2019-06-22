@@ -21,7 +21,7 @@
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
 public:
     
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
     
@@ -36,11 +36,11 @@ public:
     }
     
     /** @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed */
-    virtual TPZMatrix<STATE> * Create();
+    virtual TPZMatrix<STATE> * Create() override;
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    virtual TPZStructMatrix * Clone();
+    virtual TPZStructMatrix * Clone() override;
     
 public:
     

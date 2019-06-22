@@ -1279,6 +1279,10 @@ void TPZGeoElSide::Print(std::ostream &out) const
     out << "Center coordinate " << centerX << std::endl;
 }
 
+TPZIntPoints *TPZGeoElSide::CreateIntegrationRule(int order) {
+    return this->Element()->CreateSideIntegrationRule(this->Side(), order);
+}
+
 int TPZGeoElSide::GelLocIndex(int index) const
 {
     if (!fGeoEl) {

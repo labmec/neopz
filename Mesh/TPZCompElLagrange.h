@@ -117,7 +117,7 @@ public:
     virtual ~TPZCompElLagrange();
 	
 	/** @brief Method for creating a copy of the element */
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override
     {
         return new TPZCompElLagrange(mesh,*this);
     }
@@ -135,10 +135,10 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const;
+									std::map<int64_t,int64_t> & gl2lcElMap) const override;
 
 	/** @brief Returns the number of nodes of the element */
-	virtual int NConnects() const
+	virtual int NConnects() const override
     {
         return 2*fDef.size();
     }
@@ -147,7 +147,7 @@ public:
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
 	 */
-	virtual int64_t ConnectIndex(int i) const
+	virtual int64_t ConnectIndex(int i) const override
     {
         if (i>=0 && i < 2*fDef.size()) {
             return fDef[i/2].fConnect[i%2];
@@ -157,24 +157,24 @@ public:
     }
 	
 	/** @brief Dimension of the element */
-	virtual int Dimension() const
+	virtual int Dimension() const override
     {
         return 0;
     }
     
-    void CreateGraphicalElement(TPZGraphMesh &, int)
+    void CreateGraphicalElement(TPZGraphMesh &, int) override
     {
     }
     
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                                  TPZVec<REAL> &/*errors*/, bool store_error) {
+                                  TPZVec<REAL> &/*errors*/, bool store_error) override {
         return;
     }
 
 
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override
     {
         for (int64_t i=0; i<fDef.size(); i++) {
             connectindexes.insert(fDef[i].fConnect[0]);
@@ -187,7 +187,7 @@ public:
 	 * @param inode node to set index
 	 * @param index index to be seted
 	 */
-	virtual void SetConnectIndex(int inode, int64_t index)
+	virtual void SetConnectIndex(int inode, int64_t index) override
     {
         if (inode >= 0 && inode < 2*fDef.size()) {
             fDef[inode/2].fConnect[inode%2] = index;
@@ -203,7 +203,7 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
 	
 	/**
 	 * @brief Computes the element right hand side
@@ -213,7 +213,7 @@ public:
 	
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
 };
