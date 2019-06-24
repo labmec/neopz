@@ -596,9 +596,8 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     if (!strcmp("Permeability",name.c_str())) {
         return 43;
     }
-	
-    DebugStop();
-    return -1;
+    return TPZMatPoisson3d::VariableIndex(name);
+    
 }
 
 int TPZMixedPoisson::NSolutionVariables(int var){

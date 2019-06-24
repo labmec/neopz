@@ -269,6 +269,8 @@ void TPZCondensedCompEl::TPZCondensedCompEl::Assemble()
     TPZElementMatrix ek,ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
+    ek.PermuteGather(fIndexes);
+    ef.PermuteGather(fIndexes);
 
     int64_t dim = ek.fMat.Rows();
     for (int64_t i=0; i<dim ; ++i) {

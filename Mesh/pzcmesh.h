@@ -198,6 +198,9 @@ public:
 	/** @brief Returns a reference to the material pointers vector */
 	std::map<int ,TPZMaterial * >	&MaterialVec() { return fMaterialVec; }
 
+    /** @brief Returns a reference to the material pointers vector */
+    std::map<int ,TPZMaterial * >   MaterialVec() const { return fMaterialVec; }
+    
 	/** @brief Returns a pointer to the geometrical mesh associated */
 	TPZGeoMesh *Reference() const { return fReference; }
 	
