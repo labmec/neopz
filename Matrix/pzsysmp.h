@@ -92,6 +92,18 @@ public :
     {
         return fA;
     }
+    
+    /// Access function for the I indexes
+    TPZVec<int64_t> &IA()
+    {
+        return fIA;
+    }
+    
+    /// Access function for the J indexes
+    TPZVec<int64_t> &JA()
+    {
+        return fJA;
+    }
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const override;
     
