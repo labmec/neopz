@@ -53,7 +53,7 @@ public:
         return "TPZYCSandlerDimaggioL2";
     }
 
-    void Print(std::ostream & out) const {
+    void Print(std::ostream & out) const  override {
         out << "\n" << this->Name();
         TPZYCSandlerDimaggioL::Print(out);
     }

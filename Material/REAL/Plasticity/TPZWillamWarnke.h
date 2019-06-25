@@ -54,7 +54,7 @@ public:
 		return *this;
     }
 	
-	virtual const char * Name() const
+	virtual const char * Name() const override
 	{
 		return "TPZWillamWarnke";	
 	}
@@ -82,7 +82,7 @@ public:
 	//		
 	//	}
 	
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
 		out << "\n" << this->Name();
 		out << "\n Base Class Data:\n";
