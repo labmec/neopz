@@ -110,7 +110,7 @@ class TPZNLElasticityMaterial : public TPZDiscontinuousGalerkin {
   
   //virtual void FillDataRequirements(TPZMaterialData &data);
   virtual void FillDataRequirements(TPZMaterialData &data) override;
-  virtual void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data);
+  virtual void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data) override;
   
   
   
