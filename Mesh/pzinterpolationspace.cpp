@@ -366,6 +366,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
         weight *= fabs(data.detjac);
         
         material->Contribute(data, weight, ek.fMat, ef.fMat);
+        ek.fMat.Print("ek = ",std::cout,EMathematicaInput);
+        ef.fMat.Print("er = ",std::cout,EMathematicaInput);
     }//loop over integratin points
     
 }//CalcStiff
@@ -407,16 +409,13 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 		intrule->Point(int_ind,intpoint,weight);
 		
-		//this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
-		
-		//weight *= fabs(data.detjac);
-		
 		data.intLocPtIndex = int_ind;
 		
 		this->ComputeRequiredData(data, intpoint);
         weight *= fabs(data.detjac);
 		
 		material->Contribute(data,weight,ef.fMat);
+        
 		
 	}//loop over integratin points
 	
