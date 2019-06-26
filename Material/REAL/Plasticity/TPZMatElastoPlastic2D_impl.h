@@ -163,6 +163,8 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         this->fForcingFunction->Execute(data.x, ForceLoc);
     }
     
+    weight = 1.0;
+    
     int in;
     for (in = 0; in < phr; in++) {
         
