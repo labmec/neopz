@@ -135,8 +135,8 @@ public:
 	void Transpose(TPZMatrix<TVar> *const T) const override;
     
 #ifdef USING_LAPACK
-	int       Decompose_LU(std::list<int64_t> &singular);
-	int       Decompose_LU();
+	int       Decompose_LU(std::list<int64_t> &singular) override;
+	int       Decompose_LU() override;
 #endif
 	
     public:
