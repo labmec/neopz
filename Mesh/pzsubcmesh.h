@@ -168,7 +168,7 @@ public:
 	 * @{
 	 */
 
-	/** @brief Transfer one element form a submesh to another mesh. */
+	/** @brief Transfer the element elindex belonging to mesh to the current mesh and returns its index */
 	virtual int64_t TransferElement(TPZCompMesh *mesh, int64_t elindex) override;
 	
 	/**
