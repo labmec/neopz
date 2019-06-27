@@ -73,6 +73,28 @@ void TPZElasticResponse::De(TPZFMatrix<REAL> & De) {
     for (i = 0; i < 6; i++)De(i, i) += Mu2;
 }
 
+void TPZElasticResponse::DeEngineeringStrainDef(TPZFMatrix<REAL> & De){
+    
+    De.Zero();
+    
+    De(_XX_, _XX_) += m_lambda;
+    De(_XX_, _YY_) += m_lambda;
+    De(_XX_, _ZZ_) += m_lambda;
+    De(_YY_, _XX_) += m_lambda;
+    De(_YY_, _YY_) += m_lambda;
+    De(_YY_, _ZZ_) += m_lambda;
+    De(_ZZ_, _XX_) += m_lambda;
+    De(_ZZ_, _YY_) += m_lambda;
+    De(_ZZ_, _ZZ_) += m_lambda;
+    
+    int i;
+    for (i = 0; i < 6; i++) De(i, i) += m_mu;
+    
+    De(_XX_, _XX_) += m_mu;
+    De(_YY_, _YY_) += m_mu;
+    De(_ZZ_, _ZZ_) += m_mu;
+}
+
 void TPZElasticResponse::SetEngineeringData(REAL Eyoung, REAL Poisson) {
     
     m_lambda = Poisson * Eyoung / ((1. + Poisson)*(1. - 2. * Poisson));

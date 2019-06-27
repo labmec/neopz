@@ -128,6 +128,14 @@ public:
     
     
     /**
+     Incremental constitutive relation in Voigt notation
+     
+     @param De Return the De operator
+     */
+    void DeEngineeringStrainDef(TPZFMatrix<REAL> & De);
+    
+    
+    /**
      Set elastic parameters using engineering data, i.e. Young modulus and Poisson ratio
      
      @param Eyoung Young modulus
