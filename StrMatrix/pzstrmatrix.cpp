@@ -190,6 +190,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         ek.Reset();
         ef.Reset();
         el->CalcStiff(ek, ef);
+        ek.fMat.Print("ek = ",std::cout,EMathematicaInput);
+        ef.fMat.Print("er = ",std::cout,EMathematicaInput);
         if (guiInterface) if (guiInterface->AmIKilled()) {
                 return;
             }

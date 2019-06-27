@@ -366,8 +366,6 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
         weight *= fabs(data.detjac);
         
         material->Contribute(data, weight, ek.fMat, ef.fMat);
-        ek.fMat.Print("ek = ",std::cout,EMathematicaInput);
-        ef.fMat.Print("er = ",std::cout,EMathematicaInput);
     }//loop over integratin points
     
 }//CalcStiff
