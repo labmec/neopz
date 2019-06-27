@@ -317,6 +317,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             }
         }
     }
+    if(datavec.size() == 4)
+    {
+        for(int ip=0; ip<phrp; ip++)
+        {
+            ek(phrq+ip,phrq+phrp) += phip(ip,0)*weight;
+            ek(phrq+phrp,phrq+ip) += phip(ip,0)*weight;
+        }
+        ek(phrp+phrp+1,phrp+phrq) += -weight;
+        ek(phrp+phrp,phrp+phrq+1) += -weight;
+    }
     //
 //    #ifdef LOG4CXX
 //        if(logdata->isDebugEnabled())
