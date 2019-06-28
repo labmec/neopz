@@ -16,6 +16,7 @@
 #include "TPZInterfaceEl.h"
 #include "pzmultiphysicscompel.h"
 #include "TPZMultiphysicsInterfaceEl.h"
+#include "TPZMultiphysicsCompMesh.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzsubcmesh.h"
 #include "TPZRefPatternTools.h"
@@ -58,7 +59,7 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int6
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    fCMesh = new TPZCompMesh(fGMesh);
+    fCMesh = new TPZMultiphysicsCompMesh(fGMesh);
     fCMesh->SetDimModel(fGMesh->Dimension());
     fPressureFineMesh = fCMesh;
 }
@@ -186,6 +187,9 @@ void TPZMHMeshControl::DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseind
             fMHMtoSubCMesh[gel->Index()] = -1;
         }
     }
+    // set the MHM domain index for all elements
+    // look for a father element that has a MHM domain index
+    // adopt the domain index of the ancester
     for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = fGMesh->Element(el);
         if (!gel || fGeoToMHMDomain[el] != -1) {
@@ -340,14 +344,18 @@ void TPZMHMeshControl::DivideBoundarySkeletonElements()
     while (hasdivided)
     {
         hasdivided = false;
+        // mapdivided will contain the new fInterface structure
         std::map<int64_t, std::pair<int64_t,int64_t> > mapdivided;
         for (it=fInterfaces.begin(); it!=fInterfaces.end(); it++) {
             int64_t elindex = it->first;
+            // if the following condition is not satisfied then the interface is not a boundary
             if (elindex != it->second.second) {
                 mapdivided[it->first] = it->second;
                 continue;
             }
             TPZGeoEl *gel = fGMesh->Element(elindex);
+            // if the geometric element associated with the interface was not divided
+            // then the interface will not be divided either
             if(!gel->HasSubElement())
             {
                 mapdivided[it->first] = it->second;
@@ -364,6 +372,7 @@ void TPZMHMeshControl::DivideBoundarySkeletonElements()
                 fGeoToMHMDomain[subels[is]->Index()] = fGeoToMHMDomain[elindex];
                 mapdivided[subels[is]->Index()] = it->second;
                 // for boundary elements, the second element is the interface element
+                // update the interface data structure
                 if(elindex == it->second.second)
                 {
                     mapdivided[subels[is]->Index()].second = subels[is]->Index();
@@ -1822,6 +1831,7 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
 }
 
 /// associates the connects of an element with a subdomain
+/// adds the association of geometric element with subdomain as well
 void TPZMHMeshControl::SetSubdomain(TPZCompEl *cel, int64_t subdomain)
 {
     int ncon = cel->NConnects();
@@ -1841,6 +1851,7 @@ void TPZMHMeshControl::SetSubdomain(TPZCompEl *cel, int64_t subdomain)
 /// associates the connects index with a subdomain
 void TPZMHMeshControl::SetSubdomain(TPZCompMesh *cmesh, int64_t cindex, int64_t subdomain)
 {
+    // cmesh indicates the atomic mesh. It can be a flux mesh or pressure mesh
     if (cindex >= fConnectToSubDomainIdentifier[cmesh].size()) {
         fConnectToSubDomainIdentifier[cmesh].Resize(cindex+1, -1);
     }
@@ -1863,6 +1874,7 @@ int64_t TPZMHMeshControl::WhichSubdomain(TPZCompEl *cel)
             domains.insert(cvec[cindex]);
         }
     }
+    // if the element has connects in two different subdomains then something is wrong
     if (domains.size() > 1) {
         for (int ic=0; ic<ncon; ic++) {
             int64_t cindex = cel->ConnectIndex(ic);
@@ -1978,12 +1990,15 @@ void TPZMHMeshControl::ConnectedElements(int64_t skeleton, std::pair<int64_t,int
             }
         }
     }
+    // a skeleton element with no computational elements is a bug
     if (ellist.size() == 0) {
         DebugStop();
     }
+    // if the skeleton is boundary and if there are more than one subdomain, it is a bug
     if (skeleton == leftright.second && ellist.size() != 1) {
         DebugStop();
     }
+    // if the skeleton is not boundary then there must be exactly two subdomains connected
     if(skeleton != leftright.second && ellist.size() != 2)
     {
         DebugStop();

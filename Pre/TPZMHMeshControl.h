@@ -31,7 +31,7 @@ protected:
     /// computational MHM mesh being built by this class
     TPZAutoPointer<TPZCompMesh> fCMesh;
     
-    /// computational mesh to represent the constant states
+    /// computational mesh to represent the distributed flux in each subdomain
     TPZAutoPointer<TPZCompMesh> fCMeshLagrange;
     
     /// computational mesh to represent the constant states
