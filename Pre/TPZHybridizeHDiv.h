@@ -61,6 +61,14 @@ struct TPZHybridizeHDiv {
     /// create a multiphysics hybridized mesh based on and input mesh
     TPZCompMesh * CreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_HDiv, double Lagrange_term_multiplier = 1.);
 
+    /// create a multiphysics hybridized mesh based on and input mesh
+    void ReCreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_HDiv, double Lagrange_term_multiplier = 1.);
+    
+    /// Associate elements with a volumetric element
+    // elementgroup[el] = index of the element with which the element should be grouped
+    // this method only gives effective result for hybridized hdiv meshes
+    static void AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup);
+    
     /// group and condense the elements
     static void GroupElements(TPZCompMesh *cmesh_Hybrid);
     
@@ -75,6 +83,9 @@ struct TPZHybridizeHDiv {
     
     /// make a hybrid mesh from a H(div) multiphysics mesh
     TPZMultiphysicsCompMesh *Hybridize(TPZMultiphysicsCompMesh *multiphysics, bool group_elements=true, double Lagrange_term_multiplier = 1.);
+    
+    /// make a hybrid mesh from a H(div) multiphysics mesh
+    void HybridizeGivenMesh(TPZMultiphysicsCompMesh &multiphysics, bool group_elements=true, double Lagrange_term_multiplier = 1.);
     
     /// verify the consistency of the solution of the flux mesh
     static void VerifySolutionConsistency(TPZCompMesh *fluxmesh, std::ostream &out);
