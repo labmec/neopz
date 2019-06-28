@@ -111,6 +111,11 @@ public:
     /** @brief Reset the data of the connect */
     void Reset()
     {
+        if (fDependList) {
+            DebugStop();
+            delete fDependList;
+            fDependList = 0;
+        }
         SetSequenceNumber(-1);
         SetNState(0);
         SetOrder(0,-1);
@@ -118,11 +123,6 @@ public:
         ResetElConnected();
         SetCondensed(false);
         SetLagrangeMultiplier(0);
-        if (fDependList) {
-            DebugStop();
-            delete fDependList;
-            fDependList = 0;
-        }
     }
 	/**
 	 * @brief Number of degrees of freedom associated with the object
