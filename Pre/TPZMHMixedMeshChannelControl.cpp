@@ -92,7 +92,27 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         HideTheElements();
     }
     fNumeq = fCMesh->NEquations();
-    
+#ifdef PZDEBUG
+    {
+        int64_t nel = fCMesh->NElements();
+        for(int64_t el = 0; el<nel; el++)
+        {
+            TPZCompEl *cel = fCMesh->Element(el);
+            TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+            if(sub)
+            {
+                std::stringstream sout;
+                sout << "submesh_" << el << ".vtk";
+                std::ofstream file(sout.str());
+                TPZVTKGeoMesh::PrintCMeshVTK(sub, file,true);
+            }
+        }
+        fCMesh->LoadReferences();
+        std::ofstream out("cmesh_substruct.vtk");
+        TPZVTKGeoMesh::PrintCMeshVTK(fCMesh->Reference(), out,true);
+    }
+#endif
+
 }
 
 /*
