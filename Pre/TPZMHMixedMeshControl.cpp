@@ -1305,9 +1305,15 @@ void TPZMHMixedMeshControl::BuildMultiPhysicsMesh()
     }
     fCMesh->SetAllCreateFunctionsMultiphysicElem();
     TPZMultiphysicsCompMesh *mphysics = dynamic_cast<TPZMultiphysicsCompMesh *>(fCMesh.operator->());
-    TPZManVector<TPZCompMesh *> meshvec(2);
+    int vecsize = 2;
+    if(fNState > 1) vecsize = 3;
+    TPZManVector<TPZCompMesh *> meshvec(vecsize);
     meshvec[0] = fFluxMesh.operator->();
     meshvec[1] = fPressureFineMesh.operator->();
+    if(fNState > 1)
+    {
+        meshvec[2] = this->fRotationMesh.operator->();
+    }
     TPZManVector<int64_t> shouldcreate(fGMesh->NElements(),0);
     std::set<int> matids;
     for (auto it : fCMesh->MaterialVec()) {
