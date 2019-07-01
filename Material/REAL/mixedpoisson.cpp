@@ -154,9 +154,19 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     phrq = datavec[0].fVecShapeIndex.NElements();
 	
 #ifdef PZDEBUG
-    if(phrp+phrq != ek.Rows())
+    if(datavec.size() == 4)
+    {   int phrgb = datavec[2].phi.Rows();
+        int phrub = datavec[3].phi.Rows();
+        if(phrp+phrq+phrgb+phrub != ek.Rows())
+        {
+            DebugStop();
+        }
+    }else
     {
-        DebugStop();
+        if(phrp+phrq != ek.Rows())
+        {
+            DebugStop();
+        }
     }
 #endif
 	//Calculate the matrix contribution for flux. Matrix A
@@ -324,8 +334,8 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             ek(phrq+ip,phrq+phrp) += phip(ip,0)*weight;
             ek(phrq+phrp,phrq+ip) += phip(ip,0)*weight;
         }
-        ek(phrp+phrp+1,phrp+phrq) += -weight;
-        ek(phrp+phrp,phrp+phrq+1) += -weight;
+        ek(phrp+phrq+1,phrq+phrp) += -weight;
+        ek(phrq+phrp,phrp+phrq+1) += -weight;
     }
     //
 //    #ifdef LOG4CXX
@@ -606,6 +616,8 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     if (!strcmp("Permeability",name.c_str())) {
         return 43;
     }
+    if(!strcmp("g_average",name.c_str()))        return  44;
+    if(!strcmp("u_average",name.c_str()))        return  45;
     return TPZMatPoisson3d::VariableIndex(name);
     
 }
@@ -623,6 +635,8 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 40 || var == 41) return 1;
     if(var == 42) return 3;
     if(var == 43) return 1;
+    if(var == 44) return 1;
+    if(var == 45) return 1;
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -650,6 +664,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             }
         }
     }
+
 
     
    // SolQ = datavec[0].sol[0];
@@ -784,6 +799,22 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0] = PermTensor(0,0);
         return;
     }
+    
+    if(datavec.size() == 4)
+    {
+        if(var ==44)
+        {
+            Solout[0] = datavec[2].sol[0][0];
+            return;
+        }
+        if(var ==45)
+        {
+            Solout[0] = datavec[3].sol[0][0];
+            return;
+        }
+        
+    }
+    
     TPZMaterial::Solution(datavec,var,Solout);
 }
 
