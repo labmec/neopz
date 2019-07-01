@@ -92,7 +92,7 @@ void TPZMHMixedMeshChannelControl::BuildComputationalMesh(bool usersubstructure,
         HideTheElements();
     }
     fNumeq = fCMesh->NEquations();
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     {
         int64_t nel = fCMesh->NElements();
         for(int64_t el = 0; el<nel; el++)

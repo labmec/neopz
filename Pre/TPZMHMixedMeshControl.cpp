@@ -168,7 +168,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     fGlobalSystemSize = fCMesh->Solution().Rows();
 
     fCMesh->ComputeNodElCon();
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     {
         std::ofstream out("Friendly.txt");
         PrintFriendly(out);
@@ -181,7 +181,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     }
     fNumeq = fCMesh->NEquations();
     
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     {
         int64_t nel = fCMesh->NElements();
         for(int64_t el = 0; el<nel; el++)
@@ -209,6 +209,7 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
     CreateInternalFluxElements();
     
 #ifdef PZDEBUG
+    if(0)
     {
         std::ofstream out("FluxmeshBeforeSkeleton.txt");
         fFluxMesh->Print(out);
@@ -536,7 +537,8 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     BuildMultiPhysicsMesh();
     TPZManVector<TPZCompMesh * ,3> meshvector;
     
-    if(1)
+#ifdef PZDEBUG
+    if(0)
     {
         std::ofstream out2("gmesh.txt");
         gmesh->Print(out2);
@@ -545,6 +547,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
         std::ofstream out4("PressureMesh.txt");
         fPressureFineMesh->Print(out4);
     }
+#endif
     
     meshvector = cmeshes;
 
@@ -561,7 +564,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     CreateMultiPhysicsInterfaceElements(fGMesh->Dimension()-1);
     CreateMultiPhysicsInterfaceElements(fGMesh->Dimension()-2);
 #ifdef PZDEBUG
-    if(1)
+    if(0)
     {
         MixedFluxPressureCmesh->ComputeNodElCon();
         std::ofstream file("cmeshmphys.vtk");
@@ -572,11 +575,13 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
 #endif
     MixedFluxPressureCmesh->CleanUpUnconnectedNodes();
     
-    if(1)
+#ifdef PZDEBUG
+    if(0)
     {
         std::ofstream out("multiphysics.txt");
         MixedFluxPressureCmesh->Print(out);
     }
+#endif
     
     return;
     
