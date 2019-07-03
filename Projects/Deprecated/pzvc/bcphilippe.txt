@@ -1,0 +1,46 @@
+ condicoes de contorno impostas pelo Philippe
+ ============================================
+ 16/4/99  13hs
+ ============================================
+ 
+   REAL big = 1.e12;
+   TPZFMatrix val1(6,6,0.),val2(6,1,0.);
+
+   val1(0,0)=big;
+   val1(1,1)=big;
+   val1(2,2)=big;
+   val1(3,3)=0.;
+   val1(4,4)=0.;
+   val1(5,5)=0.;
+ 	TPZGeoElBC(elg0,5,-2,*firstmesh);
+   bc = pl->CreateBC(-2,2,val1,val2);
+   secondmesh->InsertMaterialObject(bc);
+
+
+//	TPZGeoElBC(elg0,6,-3,*firstmesh);
+//   bc = pl->CreateBC(-3,2,val1,val2);
+//   secondmesh->InsertMaterialObject(bc);
+
+   val1(0,0)=0.;
+   val1(1,1)=big;
+   val1(2,2)=big;
+   val1(3,3)=big;
+   val1(4,4)=0.;
+   val1(5,5)=0.;
+
+	TPZGeoElBC(elg0,4,-1,*firstmesh);
+   bc = pl->CreateBC(-1,2,val1,val2);
+   secondmesh->InsertMaterialObject(bc);
+
+   val1(0,0)=big;
+   val1(1,1)=0.;
+   val1(2,2)=0.;
+   val1(3,3)=0.;
+   val1(4,4)=big;
+   val1(5,5)=0.;
+
+	TPZGeoElBC(elg0,7,-4,*firstmesh);
+   bc = pl->CreateBC(-4,2,val1,val2);
+   secondmesh->InsertMaterialObject(bc);
+
+   //ordem de interpolacao
