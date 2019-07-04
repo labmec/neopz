@@ -7,7 +7,7 @@
 
 #include "TPZGeoMeshBluider.h"
 
-void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int> & node_identifiers, std::vector<double> & coord) {
+void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<std::size_t> & node_identifiers, std::vector<double> & coord) {
     
     int64_t n_nodes = node_identifiers.size();
     gmesh -> NodeVec().Resize(n_nodes);
