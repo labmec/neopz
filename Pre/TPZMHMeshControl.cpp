@@ -9,6 +9,7 @@
 #include "TPZMHMeshControl.h"
 
 #include "pzl2projection.h"
+#include "TPZNullMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 #include "TPZCompElLagrange.h"
 #include "pzbndcond.h"
@@ -1074,7 +1075,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     int64_t nel = gmesh.NElements();
     // this code needs to be modified to create lagrange computational elements which share a connect
     // between each other
-    DebugStop();
+    //DebugStop();
     for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
@@ -1092,7 +1093,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     std::set<int>::iterator it = matids.begin();
     TPZMaterial *meshmat = 0;
     while (it != matids.end()) {
-        TPZL2Projection *material = new TPZL2Projection(*it,dim,nstate,sol);
+        TPZNullMaterial *material = new TPZNullMaterial(*it);
         fCMeshLagrange->InsertMaterialObject(material);
         if (!meshmat) {
             meshmat = material;

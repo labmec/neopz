@@ -335,9 +335,6 @@ private:
     /// put the element side which face the boundary on the stack
     void AddElementBoundaries(int64_t elseed, int64_t compelindex, TPZStack<TPZCompElSide> &result);
     
-    /// create the lagrange multiplier mesh, one element for each subdomain
-    void CreateLagrangeMultiplierMesh();
-    
     /// transform the computational mesh into a multiphysics mesh
     void TransferToMultiphysics();
     
@@ -380,6 +377,9 @@ private:
     void DivideWrap(TPZGeoEl *wrapelement);
     
 protected:
+    /// create the lagrange multiplier mesh, one element for each subdomain
+    void CreateLagrangeMultiplierMesh();
+    
     /// associates the connects of an element with a subdomain
     void SetSubdomain(TPZCompEl *cel, int64_t subdomain);
     
