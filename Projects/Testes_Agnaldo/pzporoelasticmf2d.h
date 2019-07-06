@@ -31,7 +31,7 @@
  **@ingroup equacao da elasticidade
  * \f$  div(T(u))  + fXf2 = 0  ==> Int{Grad(v).T(u)}dx - Int{v.gN}ds  = Int{ff.v}dx  \f$ (Eq. 1) 
  *
- *\f$ T(u) =  tr(E(u) − alpha*p*I)lambda*I + 2*nu*(E(u) − alpha*p*I)\f$
+ *\f$ T(u) =  tr(E(u) - alpha*p*I)lambda*I + 2*nu*(E(u) - alpha*p*I)\f$
  *
  *@ingroup equacao da pressao
  * \f$ -1/visc*div(gradu k)  = 0 ==> k/visc*Int{Grad(u)Grad(v)}dx - Int{k/visv*Grad(u).n v}ds  = 0   (Eq. 2)  \f$ 

@@ -198,6 +198,9 @@ public:
 	/** @brief Returns a reference to the material pointers vector */
 	std::map<int ,TPZMaterial * >	&MaterialVec() { return fMaterialVec; }
 
+    /** @brief Returns a reference to the material pointers vector */
+    std::map<int ,TPZMaterial * >   MaterialVec() const { return fMaterialVec; }
+    
 	/** @brief Returns a pointer to the geometrical mesh associated */
 	TPZGeoMesh *Reference() const { return fReference; }
 	
@@ -471,6 +474,12 @@ public:
 #endif
 		fCreate.BuildMesh(*this);
 	}
+    
+    /// build the computational elements for the geometric element indexes
+    void AutoBuild(const TPZVec<int64_t> &gelindexes)
+    {
+        fCreate.BuildMesh(*this,gelindexes);
+    }
 		
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	/**

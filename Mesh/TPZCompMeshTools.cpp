@@ -532,6 +532,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &eli
 /// created condensed elements for the elements that have internal nodes
 void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix)
 {
+//    cmesh->ComputeNodElCon();
     int64_t nel = cmesh->NElements();
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);

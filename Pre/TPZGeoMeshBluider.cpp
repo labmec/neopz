@@ -7,10 +7,10 @@
 
 #include "TPZGeoMeshBluider.h"
 
-void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int> & node_identifiers, std::vector<double> & coord) {
+void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<std::size_t> & node_identifiers, std::vector<double> & coord) {
     
     int64_t n_nodes = node_identifiers.size();
-    gmesh -> NodeVec().Resize(n_nodes);
+    gmesh->NodeVec().Resize(n_nodes);
     gmesh->SetMaxNodeId(n_nodes-1);
     
     int64_t node_id;
@@ -19,8 +19,9 @@ void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<int> & node_
     /// Inserting nodes
     TPZGeoNode node_obj;
     for (int64_t inode = 0; inode < n_nodes; inode++) {
+    
         node_id = node_identifiers[inode]-1; //  because pz is zero based.
-        int pos = inode*3; // because the model is always 3D
+        int pos = inode*3; // because the model is dwell in R3
         nodecoordX = coord[pos];
         nodecoordY = coord[pos+1];
         nodecoordZ = coord[pos+2];

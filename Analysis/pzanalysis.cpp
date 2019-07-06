@@ -858,6 +858,41 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
     LoadSolution();
 }
 
+void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const std::string &varname)
+{
+    TPZMaterial *mat = fCompMesh->FindMaterial(matid);
+    if(!mat) DebugStop();
+    int varindex = mat->VariableIndex(varname);
+    if(varindex == -1) DebugStop();
+    SetStep(1);
+    TPZStack<std::string> scalnames,vecnames;
+    int nstate = mat->NSolutionVariables(varindex);
+    if (nstate == 1) {
+        scalnames.Push(varname);
+    }
+    else
+    {
+        vecnames.Push(varname);
+    }
+    DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
+    int porder = fCompMesh->GetDefaultOrder();
+    
+    int neq = equationindices.size();
+    TPZFMatrix<STATE> solkeep(fSolution);
+    fSolution.Zero();
+    for (int ieq = 0; ieq < neq; ieq++) {
+        fSolution(equationindices[ieq],0) = 1.;
+        LoadSolution();
+        Mesh()->TransferMultiphysicsSolution();
+        PostProcess(porder+1);
+        fSolution.Zero();
+    }
+    fSolution = solkeep;
+    LoadSolution();
+}
+
+
+
 void TPZAnalysis::LoadShape(double ,double , int64_t ,TPZConnect* start){
 	//void TPZAnalysis::LoadShape(double dx,double dy, int numelem,TPZConnect* start){
 	Assemble();

@@ -160,7 +160,7 @@ private:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
         DebugStop();
     }
 
@@ -172,7 +172,7 @@ private:
      * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
 
@@ -185,7 +185,7 @@ private:
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
-    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
         DebugStop();
     }
 
@@ -200,31 +200,31 @@ private:
      * Contribute method. Here, in base class, all requirements are considered as necessary.
      * Each derived class may optimize performance by selecting only the necessary data.
      */
-    void FillDataRequirements(TPZMaterialData &data);
+    void FillDataRequirements(TPZMaterialData &data) override;
     
     /**
      * @brief Fill material data parameter with necessary requirements for the
      * Contribute method. Here, in base class, all requirements are considered as necessary.
      * Each derived class may optimize performance by selecting only the necessary data.
      */
-    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
     
     /**
      * @brief Fill material data parameter with necessary requirements for the
      * ContributeBC method. Here, in base class, all requirements are considered as necessary.
      * Each derived class may optimize performance by selecting only the necessary data.
      */
-    void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec) override;
     
     /** @brief Print out the data associated with the material */
-    void Print(std::ostream &out = std::cout);
+    void Print(std::ostream &out = std::cout) override;
     
     /** @brief Returns the variable index associated with the name */
-    int VariableIndex(const std::string &name);
+    int VariableIndex(const std::string &name) override;
     
-    int NSolutionVariables(int var);
+    int NSolutionVariables(int var) override;
 
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
 
     
     /** @{
