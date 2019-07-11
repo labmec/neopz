@@ -248,6 +248,7 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
         TPZVecL2 *mat = new TPZVecL2(item);
         matl2 = mat;
         mat->SetNStateVariables(fNState);
+        mat->SetDimension(meshdim);
         cmeshHDiv->InsertMaterialObject(matl2);
     }
     for (auto item:fMaterialBCIds) {
@@ -257,13 +258,13 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
     }
     {
         TPZNullMaterial *nullmat = new TPZNullMaterial(fSkeletonMatId);
-        nullmat->SetDimension(meshdim);
+        nullmat->SetDimension(meshdim-1);
         nullmat->SetNStateVariables(fNState);
         cmeshHDiv->InsertMaterialObject(nullmat);
         if(fSecondSkeletonMatId != 0)
         {
             TPZNullMaterial *nullmat = new TPZNullMaterial(fSecondSkeletonMatId);
-            nullmat->SetDimension(meshdim);
+            nullmat->SetDimension(meshdim-1);
             nullmat->SetNStateVariables(fNState);
             cmeshHDiv->InsertMaterialObject(nullmat);
         }
