@@ -1158,6 +1158,20 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
     
     REAL mu = elast.fmu;
     REAL E = elast.fE;
+    REAL nu = elast.fnu;
+    
+    if(var == 28)
+    {
+        Solout[0] = E;
+        return ;
+    }
+    if(var == 29)
+    {
+        Solout[0] = elast.fnu;
+        return;
+    }
+    
+
     REAL Pressure;
 
     //TPZManVector<REAL, 4> SIGMA(4, 0.), EPSZ(4, 0.);
@@ -1169,19 +1183,19 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
 
     FromVoigt(EPSZ, eps);
 
-    Pressure = -0.5 * (sigma(0, 0) + sigma(1, 1));
-    sigmah(0, 1) = sigma(0, 1);
-    sigmah(1, 0) = sigma(1, 0);
-    sigmah(0, 0) = sigma(0, 0) - Pressure;
-    sigmah(1, 1) = sigma(1, 1) - Pressure;
-
     if (this->fPlaneStress == 1) {
-        eps(2, 2) = -mu / E * mu * (sigma(0, 0) + sigma(1, 1));
+        eps(2, 2) = -1. / E * nu * (sigma(0, 0) + sigma(1, 1));
     } else {
-        sigma(2, 2) = mu * (sigma(0, 0) + sigma(1, 1));
+        sigma(2, 2) = nu * (sigma(0, 0) + sigma(1, 1));
         eps(2, 2) = 0;
     }
 
+    Pressure = -1/3. * (sigma(0, 0) + sigma(1, 1) + sigma(2,2));
+    sigmah(0, 1) = sigma(0, 1);
+    sigmah(1, 0) = sigma(1, 0);
+    sigmah(0, 0) = sigma(0, 0) + Pressure;
+    sigmah(1, 1) = sigma(1, 1) + Pressure;
+    sigmah(2, 2) = sigma(2, 2) + Pressure;
     // Displacement
     if (var == 9) {
         Solout[0] = disp[0];
@@ -1240,7 +1254,8 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
     }
     //J2
     if (var == 20) {
-        Solout[0] = sigmah(1, 1) * sigmah(0, 0) + sigmah(1, 1) * sigma(2, 2) - sigmah(1, 0) * sigmah(1, 0) - sigmah(0, 1) * sigmah(0, 1);
+        Solout[0] = sigmah(1, 1) * sigmah(0, 0) + sigmah(1, 1) * sigma(2, 2)
+         + sigmah(0,0) * sigmah(2,2) - sigmah(1, 0) * sigmah(1, 0) - sigmah(0, 1) * sigmah(0, 1);
         return;
     }
     //NormalStrain?
