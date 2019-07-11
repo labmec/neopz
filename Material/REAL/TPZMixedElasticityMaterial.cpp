@@ -830,6 +830,8 @@ int TPZMixedElasticityMaterial::VariableIndex(const std::string &name) {
     if (!strcmp("NormalStrain", name.c_str())) return 25;
     if (!strcmp("ShearStrain", name.c_str())) return 26;
     if (!strcmp("Rotation", name.c_str())) return 27; //function P ***
+    if(!strcmp("Young_Modulus",name.c_str()))        return 28;
+    if(!strcmp("Poisson",name.c_str()))        return 29;
 
     return TPZMaterial::VariableIndex(name);
 }
@@ -872,6 +874,9 @@ int TPZMixedElasticityMaterial::NSolutionVariables(int var) {
         case 26:
         case 27:
             return 3;
+        case 28:
+        case 29:
+            return 1;
         default:
             return TPZMaterial::NSolutionVariables(var);
     }
@@ -890,18 +895,32 @@ void TPZMixedElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec
     TPZFNMatrix<4, STATE> DSolxy(2, 2);
 
     TElasticityAtPoint elast(fE_const,fnu_const);
+
+    REAL E(fE_const), nu(fnu_const);
+
     if(fElasticity)
     {
         TPZManVector<REAL,3> x = data.x;
 		TPZManVector<STATE, 3> result(2);
 		TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(x, result, Dres);
-        REAL E = result[0];
-        REAL nu = result[1];
+        E = result[0];
+        nu = result[1];
         TElasticityAtPoint modify(E,nu);
         elast = modify;
     }
-    
+
+    if(var == 28)
+    {
+        Solout[0] = E;
+        return ;
+    }
+    if(var == 29)
+    {
+        Solout[0] = nu;
+        return;
+    }
+
     REAL epsx;
     REAL epsy;
     REAL epsxy;

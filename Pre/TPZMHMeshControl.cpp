@@ -2276,7 +2276,7 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside, int wrapmaterial)
 #ifdef PZDEBUG
     if(gelside.Element()->Mesh()->Dimension() == 2)
     {
-        CheckDivisionConsistency(gelside);
+      //  CheckDivisionConsistency(gelside);
     }
 #endif
     int wrapmat = HasWrapNeighbour(gelside);

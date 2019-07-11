@@ -900,6 +900,7 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
         E = result[0];
         nu = result[1];
     }
+
     if(var == 28)
     {
         Solout[0] = E;
