@@ -1024,6 +1024,23 @@ void TPZSubCompMesh::Assemble()
     PermuteExternalConnects();
     fAnalysis->Assemble();
 
+    //Trying to get a derived Analysis which is a SubMeshAnalysis.
+    //It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
+    TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
+    if(!castedAnal)
+    {
+        DebugStop();
+    }
+
+    TPZAutoPointer<TPZMatrix<STATE> > ReducableStiff = castedAnal->Matrix();
+    if (!ReducableStiff) {
+        DebugStop();
+    }
+    TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (ReducableStiff.operator->());
+    if(!matred) DebugStop();
+    
+    matred->SetF(fAnalysis->Rhs());
+
 }
 
 
