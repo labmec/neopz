@@ -189,7 +189,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         //Inserindo termo de estabilizacao no termo de fonte
         REAL divqi = 0.;
-        if(fIsStabilized==true)
+        if(fIsStabilized)
         {
             //calculando div(qi)
             TPZFNMatrix<3,REAL> axesvec(3,1,0.);
