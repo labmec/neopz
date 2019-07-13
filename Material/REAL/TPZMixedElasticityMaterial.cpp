@@ -830,6 +830,8 @@ int TPZMixedElasticityMaterial::VariableIndex(const std::string &name) {
     if (!strcmp("NormalStrain", name.c_str())) return 25;
     if (!strcmp("ShearStrain", name.c_str())) return 26;
     if (!strcmp("Rotation", name.c_str())) return 27; //function P ***
+    if(!strcmp("Young_Modulus",name.c_str()))        return 28;
+    if(!strcmp("Poisson",name.c_str()))        return 29;
 
     return TPZMaterial::VariableIndex(name);
 }
@@ -872,6 +874,9 @@ int TPZMixedElasticityMaterial::NSolutionVariables(int var) {
         case 26:
         case 27:
             return 3;
+        case 28:
+        case 29:
+            return 1;
         default:
             return TPZMaterial::NSolutionVariables(var);
     }
@@ -890,18 +895,32 @@ void TPZMixedElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec
     TPZFNMatrix<4, STATE> DSolxy(2, 2);
 
     TElasticityAtPoint elast(fE_const,fnu_const);
+
+    REAL E(fE_const), nu(fnu_const);
+
     if(fElasticity)
     {
         TPZManVector<REAL,3> x = data.x;
 		TPZManVector<STATE, 3> result(2);
 		TPZFNMatrix<4,STATE> Dres(0,0);
         fElasticity->Execute(x, result, Dres);
-        REAL E = result[0];
-        REAL nu = result[1];
+        E = result[0];
+        nu = result[1];
         TElasticityAtPoint modify(E,nu);
         elast = modify;
     }
-    
+
+    if(var == 28)
+    {
+        Solout[0] = E;
+        return ;
+    }
+    if(var == 29)
+    {
+        Solout[0] = nu;
+        return;
+    }
+
     REAL epsx;
     REAL epsy;
     REAL epsxy;
@@ -1139,6 +1158,20 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
     
     REAL mu = elast.fmu;
     REAL E = elast.fE;
+    REAL nu = elast.fnu;
+    
+    if(var == 28)
+    {
+        Solout[0] = E;
+        return ;
+    }
+    if(var == 29)
+    {
+        Solout[0] = elast.fnu;
+        return;
+    }
+    
+
     REAL Pressure;
 
     //TPZManVector<REAL, 4> SIGMA(4, 0.), EPSZ(4, 0.);
@@ -1150,19 +1183,19 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
 
     FromVoigt(EPSZ, eps);
 
-    Pressure = -0.5 * (sigma(0, 0) + sigma(1, 1));
-    sigmah(0, 1) = sigma(0, 1);
-    sigmah(1, 0) = sigma(1, 0);
-    sigmah(0, 0) = sigma(0, 0) - Pressure;
-    sigmah(1, 1) = sigma(1, 1) - Pressure;
-
     if (this->fPlaneStress == 1) {
-        eps(2, 2) = -mu / E * mu * (sigma(0, 0) + sigma(1, 1));
+        eps(2, 2) = -1. / E * nu * (sigma(0, 0) + sigma(1, 1));
     } else {
-        sigma(2, 2) = mu * (sigma(0, 0) + sigma(1, 1));
+        sigma(2, 2) = nu * (sigma(0, 0) + sigma(1, 1));
         eps(2, 2) = 0;
     }
 
+    Pressure = -1/3. * (sigma(0, 0) + sigma(1, 1) + sigma(2,2));
+    sigmah(0, 1) = sigma(0, 1);
+    sigmah(1, 0) = sigma(1, 0);
+    sigmah(0, 0) = sigma(0, 0) + Pressure;
+    sigmah(1, 1) = sigma(1, 1) + Pressure;
+    sigmah(2, 2) = sigma(2, 2) + Pressure;
     // Displacement
     if (var == 9) {
         Solout[0] = disp[0];
@@ -1221,7 +1254,8 @@ void TPZMixedElasticityMaterial::Solution(TPZVec<TPZMaterialData> &data, int var
     }
     //J2
     if (var == 20) {
-        Solout[0] = sigmah(1, 1) * sigmah(0, 0) + sigmah(1, 1) * sigma(2, 2) - sigmah(1, 0) * sigmah(1, 0) - sigmah(0, 1) * sigmah(0, 1);
+        Solout[0] = sigmah(1, 1) * sigmah(0, 0) + sigmah(1, 1) * sigma(2, 2)
+         + sigmah(0,0) * sigmah(2,2) - sigmah(1, 0) * sigmah(1, 0) - sigmah(0, 1) * sigmah(0, 1);
         return;
     }
     //NormalStrain?

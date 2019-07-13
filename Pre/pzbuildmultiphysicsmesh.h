@@ -18,6 +18,8 @@ class TPZAnalysis;
  * @since 10/31/2011
  */
 
+typedef std::pair<TPZCompMesh *, int64_t> atomic_index;
+
 class TPZBuildMultiphysicsMesh {
 	
 public:
@@ -124,6 +126,11 @@ public:
      */
     static void AddWrap(TPZMultiphysicsElement *mfcel, int matskeleton, TPZStack< TPZStack<TPZMultiphysicsElement *,7> > &ListGroupEl);
     
+    /**
+     * Compute the correspondence between the connect index in the multiphysics
+     * mesh and the connect indexes in the atomic meshes
+     */
+    static void ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<atomic_index> &indexes);
 };
 
 #endif

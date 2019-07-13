@@ -153,9 +153,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     phrp = phip.Rows();
     phrq = datavec[0].fVecShapeIndex.NElements();
 	
+    int nactive = 0;
+    for (int i=0; i<datavec.size(); i++) {
+        if (datavec[i].fActiveApproxSpace) {
+            nactive++;
+        }
+    }
 #ifdef PZDEBUG
-    if(datavec.size() == 4)
-    {   int phrgb = datavec[2].phi.Rows();
+    if(nactive == 4)
+    {
+        int phrgb = datavec[2].phi.Rows();
         int phrub = datavec[3].phi.Rows();
         if(phrp+phrq+phrgb+phrub != ek.Rows())
         {
@@ -182,7 +189,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         //Inserindo termo de estabilizacao no termo de fonte
         REAL divqi = 0.;
-        if(fIsStabilized==true)
+        if(fIsStabilized)
         {
             //calculando div(qi)
             TPZFNMatrix<3,REAL> axesvec(3,1,0.);
@@ -327,7 +334,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             }
         }
     }
-    if(datavec.size() == 4)
+    if(nactive == 4)
     {
         for(int ip=0; ip<phrp; ip++)
         {

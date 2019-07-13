@@ -225,6 +225,7 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
 /// split the connects between flux elements and create a dim-1 pressure element
 
 void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+    InsertPeriferalMaterialObjects(meshvec_Hybrid);
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
     TPZGeoMesh *gmesh = fluxmesh->Reference();
     int dim = gmesh->Dimension();
@@ -397,8 +398,9 @@ void TPZHybridizeHDiv::ReCreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_H
     TPZManVector<TPZCompMesh *, 3> meshvec_Hybrid = cmesh_HDiv->MeshVector();
     InsertPeriferalMaterialObjects(cmesh_HDiv, Lagrange_term_multiplier);
     InsertPeriferalMaterialObjects(meshvec_Hybrid);
+    TPZManVector<int> active = cmesh_HDiv->GetActiveApproximationSpaces();
     HybridizeInternalSides(meshvec_Hybrid);
-    cmesh_HDiv->BuildMultiphysicsSpace(meshvec_Hybrid);
+    cmesh_HDiv->BuildMultiphysicsSpace(active, meshvec_Hybrid);
 
 }
 
@@ -458,7 +460,7 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
 
 /// group and condense the elements
 
-void TPZHybridizeHDiv::GroupElements(TPZCompMesh *cmesh) {
+void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
 
     int64_t nel = cmesh->NElements();
     TPZVec<int64_t> groupnumber(nel,-1);
@@ -566,7 +568,7 @@ std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZC
     TPZCompMesh *cmesh_Hybrid = CreateMultiphysicsMesh(cmesh_HDiv, meshvec_Hybrid, Lagrange_term_multiplier);
     CreateInterfaceElements(cmesh_Hybrid, meshvec_Hybrid);
     if (group_elements){
-        GroupElements(cmesh_Hybrid);
+        GroupandCondenseElements(cmesh_Hybrid);
     }
     return std::make_tuple(cmesh_Hybrid, meshvec_Hybrid);
 }
@@ -583,7 +585,7 @@ TPZMultiphysicsCompMesh *TPZHybridizeHDiv::Hybridize(TPZMultiphysicsCompMesh *mu
     CreateInterfaceElements(result);
     if(group_elements)
     {
-        GroupElements(result);
+        GroupandCondenseElements(result);
     }
     if(!result) DebugStop();
     return result;
@@ -598,7 +600,7 @@ void TPZHybridizeHDiv::HybridizeGivenMesh(TPZMultiphysicsCompMesh &multiphysics,
     ReCreateMultiphysicsMesh(&multiphysics);
     CreateInterfaceElements(&multiphysics);
     if (group_elements) {
-        GroupElements(&multiphysics);
+        GroupandCondenseElements(&multiphysics);
     }
 }
 
