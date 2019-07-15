@@ -2,16 +2,30 @@
 #include "pzintel.h"
 #include "pzskylstrmatrix.h"
 #include "pzmetis.h"
-#include "TPZMyLambdaExpression.h"
+#include "TPZConstitutiveLawProcessor.h"
 #include "TPZElasticCriterion.h"
+#include "pzbndcond.h"
+#include "Timer.h"
 
 #ifdef USING_MKL
 #include <mkl.h>
 #endif
 
 
-TPZElastoPlasticIntPointsStructMatrix::TPZElastoPlasticIntPointsStructMatrix(TPZCompMesh *cmesh) : TPZSymetricSpStructMatrix(cmesh), fLambdaExp(), fSparseMatrixLinear(), fRhsLinear(), fCoefToGradSol() {
+TPZElastoPlasticIntPointsStructMatrix::TPZElastoPlasticIntPointsStructMatrix(TPZCompMesh *cmesh) : TPZSymetricSpStructMatrix(cmesh), fSparseMatrixLinear(), fRhsLinear(), fIntegrator(), fBCMaterialIds() {
 
+    if (!cmesh->Reference()->Dimension()) {
+        DebugStop();
+    }
+    fDimension = cmesh->Reference()->Dimension();
+    m_IA_to_sequence.resize(0);
+    m_JA_to_sequence.resize(0);
+
+    #ifdef USING_CUDA
+    d_IA_to_sequence.resize(0);    
+    d_JA_to_sequence.resize(0);
+    d_el_color_indexes.resize(0); 
+    #endif
 }
 
 TPZElastoPlasticIntPointsStructMatrix::~TPZElastoPlasticIntPointsStructMatrix() {
@@ -24,134 +38,136 @@ TPZStructMatrix * TPZElastoPlasticIntPointsStructMatrix::Clone(){
 TPZMatrix<STATE> * TPZElastoPlasticIntPointsStructMatrix::Create(){
 
     if(!isBuilt()) {
-        this->SetUpDataStructure();
+        this->SetUpDataStructure(); // When basis functions are computed and storaged
     }
     
     TPZStack<int64_t> elgraph;
     TPZVec<int64_t> elgraphindex;
-    fMesh->ComputeElGraph(elgraph,elgraphindex,fMaterialIds);
+    fMesh->ComputeElGraph(elgraph,elgraphindex,fMaterialIds); // This method seems to be efficient.
     TPZMatrix<STATE> * mat = SetupMatrixData(elgraph, elgraphindex);
+    
+    /// Sparsify global indexes
+    // Filling local std::map
+    TPZSYsmpMatrix<STATE> *stiff = dynamic_cast<TPZSYsmpMatrix<STATE> *> (mat);
+
+    m_IA_to_sequence.resize(stiff->IA().size());
+    for (int i = 0; i < stiff->IA().size(); ++i) {
+        m_IA_to_sequence[i] = stiff->IA()[i];
+    }
+
+    m_JA_to_sequence.resize(stiff->JA().size());
+    for (int i = 0; i < stiff->JA().size(); ++i) {
+        m_JA_to_sequence[i] = stiff->JA()[i];
+    }
+
+    FillLIndexes();
+    
+#ifdef USING_CUDA
+    Timer timer;   
+    timer.TimeUnit(Timer::ESeconds);
+    timer.TimerOption(Timer::ECudaEvent);
+    timer.Start();
+    std::cout << "Transfering data to GPU..." << std::endl;
+    fIntegrator.TransferDataToGPU();
+    this->TransferDataToGPU();
+    timer.Stop();
+    std::cout << "Done! It took " <<  timer.ElapsedTime() << timer.Unit() << std::endl;
+#endif
+
     return mat;
+}
+
+void TPZElastoPlasticIntPointsStructMatrix::FillLIndexes(){
+
+    TPZVec<int> & indexes = fIntegrator.DoFIndexes();
+    TPZVec<int> & el_n_dofs = fIntegrator.IrregularBlocksMatrix().Blocks().fColSizes;
+    TPZVec<int> & cols_first_index = fIntegrator.IrregularBlocksMatrix().Blocks().fColFirstIndex;
+    
+    int n_colors = m_first_color_index.size()-1;
+    m_first_color_l_index.resize(n_colors+1);
+    m_first_color_l_index[0]=0;
+    for (int ic = 0; ic < n_colors; ic++) {
+        
+        int first = m_first_color_index[ic];
+        int last = m_first_color_index[ic + 1];
+        int nel_per_color = last - first;
+        int64_t c = 0;
+        for (int i = 0; i < nel_per_color; i++) {
+            int iel = m_el_color_indexes[first + i];
+            int el_dof = el_n_dofs[iel];
+            int n_entries = (el_dof*el_dof + el_dof)/2;
+            c += n_entries;
+        }
+        m_first_color_l_index[ic+1] = c + m_first_color_l_index[ic];
+    }
+    m_color_l_sequence.resize(m_first_color_l_index[n_colors]);
+    
+    for (int ic = 0; ic < n_colors; ic++) {
+        int first = m_first_color_index[ic];
+        int last = m_first_color_index[ic + 1];
+        int nel_per_color = last - first;
+        int64_t c = m_first_color_l_index[ic];
+        for (int i = 0; i < nel_per_color; i++) {
+            int iel = m_el_color_indexes[first + i];
+            int el_dof = el_n_dofs[iel];
+            int pos = cols_first_index[iel];
+            for (int i_dof = 0; i_dof < el_dof; i_dof++) {
+                int64_t i_dest = indexes[pos + i_dof];
+                for (int j_dof = i_dof; j_dof < el_dof; j_dof++) {
+                    int64_t j_dest = indexes[pos + j_dof];
+                    int64_t l_index = me(m_IA_to_sequence, m_JA_to_sequence, i_dest, j_dest);
+                    m_color_l_sequence[c] = l_index;
+                    c++;
+                }
+            }
+        }
+    }
+    
+    
+}
+
+#ifdef USING_CUDA
+void TPZElastoPlasticIntPointsStructMatrix::TransferDataToGPU() {
+    d_IA_to_sequence.resize(m_IA_to_sequence.size());
+    d_IA_to_sequence.set(&m_IA_to_sequence[0], m_IA_to_sequence.size());
+
+    d_JA_to_sequence.resize(m_JA_to_sequence.size());
+    d_JA_to_sequence.set(&m_JA_to_sequence[0], m_JA_to_sequence.size());
+
+    d_el_color_indexes.resize(m_el_color_indexes.size());
+    d_el_color_indexes.set(&m_el_color_indexes[0], m_el_color_indexes.size());
+
+    d_RhsLinear.resize(fRhsLinear.Rows());
+    d_RhsLinear.set(&fRhsLinear(0,0), fRhsLinear.Rows());
+
+    d_color_l_sequence.resize(m_color_l_sequence.size());
+    d_color_l_sequence.set(&m_color_l_sequence[0], m_color_l_sequence.size());
+
+}
+#endif
+
+int64_t TPZElastoPlasticIntPointsStructMatrix::me(TPZVec<int> &IA, TPZVec<int> &JA, int64_t & i_dest, int64_t & j_dest) {
+    int64_t row(i_dest),col(j_dest);
+    if (i_dest > j_dest) {
+        int64_t temp = i_dest;
+        row = col;
+        col = temp;
+    }
+    for(int ic=IA[row] ; ic < IA[row+1]; ic++ ) {
+        if ( JA[ic] == col )
+        {
+            return ic;
+        }
+    }
+    return 0;
 }
 
 TPZMatrix<STATE> *TPZElastoPlasticIntPointsStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
 
     int64_t neq = fMesh->NEquations();
-    TPZMatrix<STATE> *stiff = Create(); ///
-    TPZSYsmpMatrix<STATE> *mat = dynamic_cast<TPZSYsmpMatrix<STATE> *> (stiff);
+    TPZMatrix<STATE> *stiff = Create(); // @TODO:: Requires optimization.
     rhs.Redim(neq,1);
-    
-    
-    
-    int n_state = 2; /// or dim
-    TPZVec<STATE> & K_g = mat->A();
-    TPZVec<int> & indexes = fCoefToGradSol.Indexes();
-    int64_t n_vols = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fNumBlocks;
-    int64_t n_cols = fCoefToGradSol.IrregularBlocksMatrix().Cols();
-    TPZVec<int> el_n_dofs = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColSizes; // Making copy here!
-    TPZVec<int> mat_indexes = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition; // Making copy here!
-    TPZVec<int> cols_first_index = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColFirstIndex;
-
-    TPZVec<REAL> depxx;
-    TPZVec<REAL> depyy;
-    TPZVec<REAL> depxy;
-    Dep(depxx, depyy, depxy);
-    
-#ifdef USING_CUDA
-    int nblocks = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fNumBlocks;
-    TPZVecGPU<REAL> Kxx(fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition[nblocks]);
-    TPZVecGPU<REAL> Kyy(fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition[nblocks]);
-    TPZVecGPU<REAL> Kxy(fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition[nblocks]);
-    
-    TPZVecGPU<REAL> d_dep(depxx.size());
-    
-    d_dep.set(&depxx[0], depxx.size());
-    fCoefToGradSol.IrregularBlocksMatrix().KMatrix(d_dep.getData(), Kxx.getData());
-    
-    d_dep.set(&depyy[0], depyy.size());
-    fCoefToGradSol.IrregularBlocksMatrix().KMatrix(d_dep.getData(), Kyy.getData());
-    
-    d_dep.set(&depxy[0], depxy.size());
-    fCoefToGradSol.IrregularBlocksMatrix().KMatrix(d_dep.getData(), Kxy.getData());
-#else
-    int nblocks = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fNumBlocks;
-    TPZVec<REAL> Kxx(fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition[nblocks]);
-    TPZVec<REAL> Kyy(fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition[nblocks]);
-    TPZVec<REAL> Kxy(fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColColPosition[nblocks]);
-    
-    fCoefToGradSol.IrregularBlocksMatrix().KMatrix(&depxx[0], &Kxx[0]); /// Can
-    fCoefToGradSol.IrregularBlocksMatrix().KMatrix(&depyy[0], &Kyy[0]);
-    fCoefToGradSol.IrregularBlocksMatrix().KMatrix(&depxy[0], &Kxy[0]);
-
-    std::cout << Kxx << std::endl;
-
-#endif
-    
-    /// implement OptV1
-    if(1){
-        /// Serial
-        for (int iel = 0; iel < n_vols; iel++) {
-            int el_dof = el_n_dofs[iel];
-            int pos = cols_first_index[iel];
-            int mat_pos = mat_indexes[iel];
-
-            TPZFMatrix<REAL> Kel(n_state*el_dof, n_state*el_dof, 0.);
-//            TPZManVector<REAL,64> kg_el(el_dof*el_dof*n_state*n_state);
-            
-            for (int i_dof = 0; i_dof < el_dof; i_dof++){
-                int i_dest_1 = indexes[pos+i_dof];
-                int j_dest_1 = indexes[pos+i_dof+n_cols];
-                
-                for (int j_dof = 0; j_dof < el_dof; j_dof++){
-                    Kel.PutVal(2*i_dof, 2*j_dof, Kxx[mat_pos+i_dof*el_dof+j_dof]);
-                    Kel.PutVal(2*i_dof + 1, 2*j_dof + 1, Kyy[mat_pos+i_dof*el_dof+j_dof]);
-                    Kel.PutVal(2*i_dof, 2*j_dof + 1, Kxy[mat_pos+i_dof*el_dof+j_dof]);
-                    Kel.PutVal(2*i_dof + 1, 2*j_dof, Kxy[mat_pos+i_dof+j_dof*el_dof]);
-                    
-                    STATE val_xx = Kxx[mat_pos+i_dof*el_dof+j_dof];
-                    STATE val_yy = Kyy[mat_pos+i_dof*el_dof+j_dof];
-                    STATE val_xy = Kxy[mat_pos+i_dof*el_dof+j_dof];
-                    STATE val_yx = Kxy[mat_pos+i_dof+j_dof*el_dof];
-//                    std::cout << "val_xx = " << val_xx << std::endl;
-                    int i_dest_2 = indexes[pos+j_dof];
-                    int j_dest_2 = indexes[pos+j_dof+n_cols];
-                    
-                    val_xx += stiff->GetVal(i_dest_1, i_dest_2);
-                    val_yy += stiff->GetVal(j_dest_1, j_dest_2);
-                    val_xy += stiff->GetVal(i_dest_1, j_dest_2);
-                    val_yx += stiff->GetVal(j_dest_2, i_dest_1);
-
-                    stiff->PutVal(i_dest_1, i_dest_2, val_xx);
-                    stiff->PutVal(j_dest_1, j_dest_2, val_yy);
-                    stiff->PutVal(i_dest_1, j_dest_2, val_xy);
-                    stiff->PutVal(j_dest_2, i_dest_1, val_yx);
-                }
-            }
-//            TPZCompEl *cel = fMesh->Element(iel);
-//            TPZElementMatrix ek(fMesh,TPZElementMatrix::EK);
-//            TPZElementMatrix ef(fMesh,TPZElementMatrix::EF);
-//            cel->CalcStiff(ek, ef);
-//
-//            TPZFMatrix<REAL> res(n_state*el_dof, n_state*el_dof);
-//            ek.fMat.Print(std::cout);
-//            Kel.Print(std::cout);
-//            res = ek.fMat - Kel;
-//            res.Print(std::cout);
-        }
-    
-        std::ofstream out("kg.txt");
-        stiff->Print("kg = ",out,EMathematicaInput);
-        out.flush();
-        
-    }
-    
-
-    
     Assemble(*stiff,rhs,guiInterface);
-//    std::ofstream out("Kref.txt");
-//    stiff->Print("Kref = ",out,EMathematicaInput);
-//    out.flush();
-    mat->ComputeDiagonal();
     return stiff;
 }
 
@@ -162,107 +178,258 @@ void TPZElastoPlasticIntPointsStructMatrix::SetUpDataStructure() {
         return;
     }
     
-    TPZStack<int> elindex_domain;
-    std::set<int> boundary_matids;
-    this->GetDomainElements(elindex_domain, boundary_matids); // Candidate to tbb or openmp
+    TPZVec<int> element_indexes;
+    ComputeDomainElementIndexes(element_indexes);
+    
+    ClassifyMaterialsByDimension();
 
     TPZIrregularBlocksMatrix::IrregularBlocks blocksData;
-    this->SetUpIrregularBlocksData(elindex_domain, blocksData);
+    this->SetUpIrregularBlocksData(element_indexes, blocksData);
 
     int64_t rows = blocksData.fRowFirstIndex[blocksData.fNumBlocks];
     int64_t cols = blocksData.fColFirstIndex[blocksData.fNumBlocks];
     TPZIrregularBlocksMatrix blocksMatrix(rows, cols);
     blocksMatrix.SetBlocks(blocksData);
-    fCoefToGradSol.SetIrregularBlocksMatrix(blocksMatrix);
+    fIntegrator.SetIrregularBlocksMatrix(blocksMatrix);
 
-    TPZVec<int> indexes;
-    this->SetUpIndexes(elindex_domain, indexes);
-    fCoefToGradSol.SetIndexes(indexes);
+    TPZVec<int> dof_indexes;
+    this->SetUpIndexes(element_indexes, dof_indexes);
+    fIntegrator.SetDoFIndexes(dof_indexes);
 
-    TPZVec<int> coloredindexes;
+    TPZVec<int> colored_element_indexes;
     int ncolor;
-    this->ColoredIndexes(elindex_domain, indexes, coloredindexes, ncolor);
-    fCoefToGradSol.SetIndexesColor(coloredindexes);
-    fCoefToGradSol.SetNColors(ncolor);
+    
+    this->ColoredIndexes(element_indexes, dof_indexes, colored_element_indexes, ncolor);
+    
+    fIntegrator.SetColorIndexes(colored_element_indexes);
+    fIntegrator.SetNColors(ncolor);
 
-    AssembleBoundaryData(boundary_matids);
-
-#ifdef USING_CUDA
-    std::cout << "Transfering data to GPU..." << std::endl;
-    fCoefToGradSol.TransferDataToGPU();
-    std::cout << "Done!" << std::endl;
-#endif
-
+    AssembleBoundaryData();
 }
 
-void TPZElastoPlasticIntPointsStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-    TPZSymetricSpStructMatrix::Assemble(mat,rhs, guiInterface);
+ void TPZElastoPlasticIntPointsStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
 
-//    auto it_end = fSparseMatrixLinear.MapEnd();
-//    
-//    for (auto it = fSparseMatrixLinear.MapBegin(); it!=it_end; it++) {
-//        int64_t row = it->first.first;
-//        int64_t col = it->first.second;
-//        STATE val = it->second;
-//        STATE vol_val = mat.GetVal(row, col);
-//        vol_val += val; /// TODO:: Add val
-//        mat.PutVal(row, col, vol_val);
-//    }
+    TPZSYsmpMatrix<STATE> &stiff = dynamic_cast<TPZSYsmpMatrix<STATE> &> (mat);
+    TPZVec<STATE> &Kg = stiff.A();
+    int64_t nnz = Kg.size();
+    
+    TPZVec<int> & indexes = fIntegrator.DoFIndexes();
+    TPZVec<int> & el_n_dofs = fIntegrator.IrregularBlocksMatrix().Blocks().fColSizes;
+    TPZVec<int> & cols_first_index = fIntegrator.IrregularBlocksMatrix().Blocks().fColFirstIndex;
 
-    rhs+=fRhsLinear;
+    int n_colors = m_first_color_index.size()-1;
+
+#ifdef USING_CUDA      
+    TPZVecGPU<REAL> d_Kg(nnz);
+    d_Kg.Zero();
+    fIntegrator.ConstitutiveLawProcessor().De();
+#endif
+
+    Timer timer;   
+    timer.TimeUnit(Timer::ESeconds);
+    timer.TimerOption(Timer::EChrono);
+    timer.Start();
+#ifdef USING_CUDA
+    #ifdef COMPUTE_K_GS
+    std::cout << "COMPUTE_K_GPU_GS" << std::endl;          
+        int first = m_first_color_index[0];
+        int last = m_first_color_index[n_colors];
+        int el_dofs = el_n_dofs[0];
+        int nel_per_color = last - first;
+
+        TPZVecGPU<REAL> d_Kc(m_color_l_sequence.size());
+        d_Kc.Zero();
+        fCudaCalls.MatrixAssembleGS(d_Kc.getData(), first, last, d_el_color_indexes.getData(), fIntegrator.ConstitutiveLawProcessor().WeightVectorDev().getData(),
+            fIntegrator.DoFIndexesDev().getData(), fIntegrator.IrregularBlocksMatrix().BlocksDev().dStorage.getData(),
+            fIntegrator.IrregularBlocksMatrix().BlocksDev().dRowSizes.getData(), fIntegrator.IrregularBlocksMatrix().BlocksDev().dColSizes.getData(),
+            fIntegrator.IrregularBlocksMatrix().BlocksDev().dRowFirstIndex.getData(), fIntegrator.IrregularBlocksMatrix().BlocksDev().dColFirstIndex.getData(),
+            fIntegrator.IrregularBlocksMatrix().BlocksDev().dMatrixPosition.getData());
+
+    for (int ic = 0; ic < n_colors; ic++) {
+        int first_l = m_first_color_l_index[ic];
+        int last_l = m_first_color_l_index[ic + 1];
+        int n_l_indexes = last_l - first_l;
+        TPZVecGPU<REAL> aux(n_l_indexes);
+        fCudaCalls.GatherOperation(n_l_indexes, d_Kg.getData(), aux.getData(), &d_color_l_sequence.getData()[first_l]);
+        fCudaCalls.DaxpyOperation(n_l_indexes, 1., &d_Kc.getData()[first_l], aux.getData());
+        fCudaCalls.ScatterOperation(n_l_indexes, aux.getData(), d_Kg.getData(), &d_color_l_sequence.getData()[first_l]);
+    }
+    d_Kg.get(&Kg[0], d_Kg.getSize()); // back to CPU
+    #else
+    std::cout << "COMPUTE_K_GPU" << std::endl;
+    for (int ic = 0; ic < n_colors; ic++) /// Serial by color
+    {     
+        int first = m_first_color_index[ic];
+        int last = m_first_color_index[ic + 1];
+        fCudaCalls.MatrixAssemble(d_Kg.getData(), first, last, &d_el_color_indexes.getData()[first], fIntegrator.ConstitutiveLawProcessor().WeightVectorDev().getData(),
+            fIntegrator.DoFIndexesDev().getData(), fIntegrator.IrregularBlocksMatrix().BlocksDev().dStorage.getData(),
+            fIntegrator.IrregularBlocksMatrix().BlocksDev().dRowSizes.getData(), fIntegrator.IrregularBlocksMatrix().BlocksDev().dColSizes.getData(),
+            fIntegrator.IrregularBlocksMatrix().BlocksDev().dRowFirstIndex.getData(), fIntegrator.IrregularBlocksMatrix().BlocksDev().dColFirstIndex.getData(),
+            fIntegrator.IrregularBlocksMatrix().BlocksDev().dMatrixPosition.getData(), d_IA_to_sequence.getData(), d_JA_to_sequence.getData());
+    }
+    d_Kg.get(&Kg[0], d_Kg.getSize()); // back to CPU    
+    #endif
+#else
+#ifdef COMPUTE_K_GS
+     std::cout << "COMPUTE_K_CPU_GS" << std::endl;
+     
+     int first = m_first_color_index[0];
+     int last = m_first_color_index[n_colors];
+     int el_dofs = el_n_dofs[0];
+     int nel_per_color = last - first;
+     TPZVec<REAL> Kc(m_color_l_sequence.size(),0.0);
+     
+#ifdef USING_TBB
+         tbb::parallel_for(size_t(0),size_t(nel_per_color),size_t(1),[&](size_t i)
+#else
+        for (int i = 0; i < nel_per_color; i++)
+#endif
+         {
+             int iel = m_el_color_indexes[first + i];
+             
+             // Compute Elementary Matrix.
+             TPZFMatrix<STATE> K;
+             fIntegrator.ComputeTangentMatrix(iel,K);
+             int stride = i*(el_dofs * el_dofs + el_dofs)/2;
+             int c = stride;
+             for(int i_dof = 0 ; i_dof < el_dofs; i_dof++){
+                 for(int j_dof = i_dof; j_dof < el_dofs; j_dof++){
+                     Kc[c] += K(i_dof,j_dof);
+                     c++;
+                 }
+             }
+         }
+#ifdef USING_TBB
+);
+#endif
+         
+       for (int ic = 0; ic < n_colors; ic++) {
+           int first_l = m_first_color_l_index[ic];
+           int last_l = m_first_color_l_index[ic + 1];
+           int n_l_indexes = last_l - first_l;
+           /// Gather from Kg
+           TPZVec<REAL> aux(n_l_indexes);
+           cblas_dgthr(n_l_indexes, &Kg[0], &aux[0], &m_color_l_sequence[first_l]);
+           
+           // Contributing
+           cblas_daxpy(n_l_indexes, 1., &Kc[first_l], 1., &aux[0],1);
+           
+           /// Scatter to Kg
+           cblas_dsctr(n_l_indexes, &aux[0], &m_color_l_sequence[first_l], &Kg[0]);
+       }
+
+#else
+     std::cout << "COMPUTE_K_CPU" << std::endl;
+     
+      for (int ic = 0; ic < n_colors; ic++) {
+             
+          
+#ifdef USING_TBB
+       tbb::parallel_for(size_t(m_first_color_index[ic]),size_t(m_first_color_index[ic+1]),size_t(1),[&](size_t i)
+                                                 
+#else
+       for (int i = m_first_color_index[ic]; i < m_first_color_index[ic+1]; i++)
+#endif
+       {
+             int iel = m_el_color_indexes[i];
+           
+             // Compute Elementary Matrix.
+             TPZFMatrix<STATE> K;
+             fIntegrator.ComputeTangentMatrix(iel,K);
+           
+             int el_dof = el_n_dofs[iel];
+             int pos = cols_first_index[iel];
+           
+             for (int i_dof = 0; i_dof < el_dof; i_dof++) {
+                 
+                 int64_t i_dest = indexes[pos + i_dof];
+                 
+                 for (int j_dof = i_dof; j_dof < el_dof; j_dof++) {
+                     
+                     int64_t j_dest = indexes[pos + j_dof];
+                     STATE val = K(i_dof,j_dof);
+                     int64_t  index = me(m_IA_to_sequence, m_JA_to_sequence, i_dest, j_dest);
+                     Kg[index] += val;
+                     
+                 }
+             }
+           
+         }
+#ifdef USING_TBB
+ );
+#endif
+          
+}
+         
+#endif
+
+#endif
+
+    timer.Stop();
+    std::cout << "K Assemble: Elasped time [sec] = " << timer.ElapsedTime() << std::endl;
+     
+    auto it_end = fSparseMatrixLinear.MapEnd();
+    for (auto it = fSparseMatrixLinear.MapBegin(); it!=it_end; it++) {
+      int64_t row = it->first.first;
+      int64_t col = it->first.second;
+      STATE val = it->second + stiff.GetVal(row, col);
+      stiff.PutVal(row, col, val);
+    }
+
+    timer.Start();
+    Assemble(rhs,guiInterface);
+    timer.Stop();
+    std::cout << "R Assemble: Elasped time [sec] = " << timer.ElapsedTime() << std::endl;
+}
+
+int TPZElastoPlasticIntPointsStructMatrix::StressRateVectorSize(){
+
+    switch (fDimension) {
+        case 1:{
+            return 1;
+        }
+        break;
+        case 2:{
+            return 3;
+        }
+        break;
+        case 3:{
+            return 6;
+        }
+        break;
+        default:
+        {
+            DebugStop();
+            return 0;
+        }
+        break;
+    }
 }
 
 void TPZElastoPlasticIntPointsStructMatrix::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-
-    if(!isBuilt()) {
-        this->SetUpDataStructure();
-    }
-
     int neq = fMesh->NEquations();
 
+    rhs.Resize(neq, 1);
+    rhs.Zero();  
 #ifdef USING_CUDA
-    TPZVecGPU<REAL> solution(neq);
-    solution.set(&fMesh->Solution()(0,0), neq);
-
-    TPZVecGPU<REAL> dgrad_u;
-    TPZVecGPU<REAL> drhs(neq);
-    rhs.Resize(neq, 1);
-    rhs.Zero();
-
-    fCoefToGradSol.Multiply(solution, dgrad_u);
-
-    TPZFMatrix<REAL> grad_u(dgrad_u.getSize(),1);
-    TPZFMatrix<REAL> sigma;
-    dgrad_u.get(&grad_u(0,0), dgrad_u.getSize());
-
-    fLambdaExp.ComputeSigma(grad_u, sigma);
-
-    TPZVecGPU<REAL> dsigma(sigma.Rows());
-    dsigma.set(&sigma(0,0), sigma.Rows());
-
-    fCoefToGradSol.MultiplyTranspose(dsigma, drhs);
-    drhs.get(&rhs(0,0), neq);
+    TPZVecGPU<REAL> d_rhs(rhs.Rows());
+    d_rhs.Zero();
+    fIntegrator.ResidualIntegration(fMesh->Solution(),d_rhs);
+    fCudaCalls.DaxpyOperation(neq, 1., d_RhsLinear.getData(), d_rhs.getData());
+    d_rhs.get(&rhs(0,0), neq); //back to CPU
 #else
-    TPZFMatrix<REAL> grad_u;
-    TPZFMatrix<REAL> sigma;
-    rhs.Resize(neq, 1);
-    rhs.Zero();
-
-    fCoefToGradSol.Multiply(fMesh->Solution(), grad_u);
-    fLambdaExp.ComputeSigma(grad_u, sigma);
-    fCoefToGradSol.MultiplyTranspose(sigma, rhs);
-#endif
+    fIntegrator.ResidualIntegration(fMesh->Solution(),rhs);
     rhs += fRhsLinear;
-
-
+#endif
 
 }
 
-void TPZElastoPlasticIntPointsStructMatrix::AssembleBoundaryData(std::set<int> &boundary_matids) {
-    int64_t neq = fMesh->NEquations();
+void TPZElastoPlasticIntPointsStructMatrix::AssembleBoundaryData() {
 
+    int64_t neq = fMesh->NEquations();
     TPZStructMatrix str(fMesh);
-    str.SetMaterialIds(boundary_matids);
+    str.SetMaterialIds(fBCMaterialIds);
+    str.SetNumThreads(fNumThreads);
     TPZAutoPointer<TPZGuiInterface> guiInterface;
     fRhsLinear.Resize(neq, 1);
     fRhsLinear.Zero();
@@ -270,26 +437,38 @@ void TPZElastoPlasticIntPointsStructMatrix::AssembleBoundaryData(std::set<int> &
     str.Assemble(fSparseMatrixLinear, fRhsLinear, guiInterface);
 }
 
-void TPZElastoPlasticIntPointsStructMatrix::GetDomainElements(TPZStack<int> &elindex_domain, std::set<int> &boundary_matids) {
-    boundary_matids.clear();
-    int dim = fMesh->Dimension();
+void TPZElastoPlasticIntPointsStructMatrix::ComputeDomainElementIndexes(TPZVec<int> &element_indexes) {
+
+    TPZStack<int> el_indexes_loc;
     for (int64_t i = 0; i < fMesh->NElements(); i++) {
         TPZCompEl *cel = fMesh->Element(i);
         if (!cel) continue;
         TPZGeoEl *gel = cel->Reference();
         if (!gel) continue;
-        int mat_id = gel->MaterialId();
-        if(gel->Dimension() == dim){
-            fMaterialIds.insert(mat_id);
-            elindex_domain.Push(cel->Index());
-        } else {
-            boundary_matids.insert(mat_id);
+        if(gel->Dimension() == fDimension){
+            el_indexes_loc.Push(cel->Index());
+        }
+    }
+    element_indexes = el_indexes_loc;
+}
+
+void TPZElastoPlasticIntPointsStructMatrix::ClassifyMaterialsByDimension() {
+
+    for (auto material : fMesh->MaterialVec()) {
+        TPZBndCond * bc_mat = dynamic_cast<TPZBndCond *>(material.second);
+        bool domain_material_Q = !bc_mat;
+        if (domain_material_Q) {
+            fMaterialIds.insert(material.first);
+        }else{
+            fBCMaterialIds.insert(material.first);
         }
     }
 }
 
-void TPZElastoPlasticIntPointsStructMatrix::SetUpIrregularBlocksData(TPZStack<int> &elindex_domain, TPZIrregularBlocksMatrix::IrregularBlocks &blocksData) {
-    int nblocks = elindex_domain.size();
+void TPZElastoPlasticIntPointsStructMatrix::SetUpIrregularBlocksData(TPZVec<int> &element_indexes, TPZIrregularBlocksMatrix::IrregularBlocks &blocksData) {
+
+    /// Number of elements
+    int nblocks = element_indexes.size();
 
     blocksData.fNumBlocks = nblocks;
     blocksData.fRowSizes.resize(nblocks);
@@ -302,139 +481,168 @@ void TPZElastoPlasticIntPointsStructMatrix::SetUpIrregularBlocksData(TPZStack<in
     blocksData.fRowFirstIndex[0] = 0;
     blocksData.fColFirstIndex[0] = 0;
 
-    blocksData.fRowRowPosition.resize(nblocks + 1);
-    blocksData.fColColPosition.resize(nblocks + 1);
-    blocksData.fRowRowPosition[0] = 0;
-    blocksData.fColColPosition[0] = 0;
-
-    int64_t rows = 0;
-    int64_t cols = 0;
+    // @TODO Candidate for TBB ParallelScan
+    // Example with lambda expression https://www.threadingbuildingblocks.org/docs/help/reference/algorithms/parallel_scan_func.html
     for(int iel = 0; iel < nblocks; iel++) {
-        TPZCompEl *cel = fMesh->Element(elindex_domain[iel]);
+
+        TPZCompEl *cel = fMesh->Element(element_indexes[iel]);
+        
         TPZInterpolatedElement *cel_inter = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!cel_inter) DebugStop();
+#ifdef PZDEBUG
+        int dim = cel->Reference()->Dimension();
+        if (dim !=fDimension) {
+            DebugStop();
+        }
+#endif
+        
         TPZIntPoints *int_rule = &(cel_inter->GetIntegrationRule());
-
         int64_t npts = int_rule->NPoints(); // number of integration points of the element
-        int64_t dim = cel_inter->Dimension(); //dimension of the element
-        int64_t nf = cel_inter->NShapeF(); // number of shape functions of the element
+        int64_t n_el_dof = cel_inter->NShapeF(); // number of shape functions of the element (Element DoF)
 
-        blocksData.fRowSizes[iel] = dim * npts;
-        blocksData.fColSizes[iel] = nf;
+        blocksData.fRowSizes[iel] = StressRateVectorSize() * npts;
+        blocksData.fColSizes[iel] = n_el_dof * fDimension;
+        
         blocksData.fMatrixPosition[iel + 1] = blocksData.fMatrixPosition[iel] + blocksData.fRowSizes[iel] * blocksData.fColSizes[iel];
         blocksData.fRowFirstIndex[iel + 1] =  blocksData.fRowFirstIndex[iel] + blocksData.fRowSizes[iel];
         blocksData.fColFirstIndex[iel + 1] = blocksData.fColFirstIndex[iel] + blocksData.fColSizes[iel];
-
-        blocksData.fRowRowPosition[iel + 1] = blocksData.fRowRowPosition[iel] + blocksData.fRowSizes[iel] * blocksData.fRowSizes[iel];
-        blocksData.fColColPosition[iel + 1] = blocksData.fColColPosition[iel] + blocksData.fColSizes[iel] * blocksData.fColSizes[iel];
-
-        rows += blocksData.fRowSizes[iel];
-        cols += blocksData.fColSizes[iel];
     }
 
     blocksData.fStorage.resize(blocksData.fMatrixPosition[nblocks]);
-
+    
+    
+    
+    TPZFNMatrix<8,REAL> dphiXY;
+    TPZMaterialData data;
+    TPZVec<REAL> qsi(fDimension);
+    
+    // @TODO Candidate for TBB ParallelFor
     for (int iel = 0; iel < nblocks; ++iel) {
-        TPZCompEl *cel = fMesh->Element(elindex_domain[iel]);
+
+        TPZCompEl *cel = fMesh->Element(element_indexes[iel]);
+        
+        int sigma_entries_times_npts      = blocksData.fRowSizes[iel];
+        int n_el_dof            = blocksData.fColSizes[iel]/fDimension;
+        int pos_el              = blocksData.fMatrixPosition[iel];
+        
+        
         TPZInterpolatedElement *cel_inter = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!cel_inter) DebugStop();
+        
+#ifdef PZDEBUG
+        int dim = cel->Reference()->Dimension();
+        if (dim !=fDimension) {
+            DebugStop();
+        }
+#endif
+        
         TPZIntPoints *int_rule = &(cel_inter->GetIntegrationRule());
+        
+        int npts = int_rule->NPoints();
+        int n_sigma_entries = StressRateVectorSize();
+        
+#ifdef PZDEBUG
+        if (npts != sigma_entries_times_npts / n_sigma_entries) {
+            DebugStop();
+        }
+#endif
 
-        int row_el = blocksData.fRowSizes[iel];
-        int col_el = blocksData.fColSizes[iel];
-        int pos_el = blocksData.fMatrixPosition[iel];
-        int dim = cel->Dimension();
-
-        TPZFMatrix<REAL> elmatrix;
-        elmatrix.Resize(row_el, col_el);
-
-        TPZMaterialData data;
         cel_inter->InitMaterialData(data);
+        TPZFMatrix<REAL> B_el(npts*n_sigma_entries,n_el_dof * fDimension,0.0);
+        for (int64_t i_pts = 0; i_pts < npts; i_pts++) {
 
-        for (int64_t ipts = 0; ipts < row_el / dim; ipts++) {
-            TPZVec<REAL> qsi(dim);
             REAL w;
-            int_rule->Point(ipts, qsi, w);
+            int_rule->Point(i_pts, qsi, w);
             cel_inter->ComputeRequiredData(data, qsi);
 
-            TPZFMatrix<REAL> dphiXY;
             data.axes.Transpose();
             data.axes.Multiply(data.dphix, dphiXY);
 
-            for (int inf = 0; inf < col_el; inf++) {
-                for (int idim = 0; idim < dim; idim++)
-                    elmatrix(ipts * dim + idim, inf) = dphiXY(idim, inf);
+            for (int j_dim = 0; j_dim < 2; j_dim++){
+
+                for (int i_dof = 0; i_dof < n_el_dof; i_dof++) {
+
+                    REAL val = dphiXY(j_dim, i_dof);
+                    for (int i_sigma_comp = 0; i_sigma_comp < fDimension; i_sigma_comp++){
+
+                        B_el(i_pts * n_sigma_entries + i_sigma_comp + j_dim, i_dof*2 + i_sigma_comp) = val;
+                    }
+                }
             }
+
         }
-        elmatrix.Transpose(); // Using CSR format
-        TPZFMatrix<REAL> elmatloc(row_el, col_el, &blocksData.fStorage[pos_el], row_el * col_el);
-        elmatloc = elmatrix;
+        B_el.Transpose();
+        TPZFMatrix<REAL> B_el_loc(npts * n_sigma_entries, n_el_dof * fDimension, &blocksData.fStorage[pos_el], npts * n_sigma_entries * n_el_dof * fDimension);
+        B_el_loc = B_el;
     }
 }
 
-void TPZElastoPlasticIntPointsStructMatrix::SetUpIndexes(TPZStack<int> &elindex_domain, TPZVec<int> & dof_indexes) {
-    int64_t nblocks = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fNumBlocks;
-    int64_t rows = fCoefToGradSol.IrregularBlocksMatrix().Rows();
-    int64_t cols = fCoefToGradSol.IrregularBlocksMatrix().Cols();
+void TPZElastoPlasticIntPointsStructMatrix::SetUpIndexes(TPZVec<int> &element_indexes, TPZVec<int> & dof_indexes) {
 
-    dof_indexes.resize(fMesh->Dimension() * cols);
-    TPZVec<REAL> weight(rows / fMesh->Dimension());
+    int64_t nblocks = fIntegrator.IrregularBlocksMatrix().Blocks().fNumBlocks;
+    int64_t rows = fIntegrator.IrregularBlocksMatrix().Rows();
+    int64_t cols = fIntegrator.IrregularBlocksMatrix().Cols();
+    TPZVec<int> & dof_positions = fIntegrator.IrregularBlocksMatrix().Blocks().fColFirstIndex;
 
-    int64_t cont1 = 0;
-    int64_t cont2 = 0;
+    dof_indexes.resize(cols);
+    int64_t npts = rows / StressRateVectorSize();
+    TPZVec<REAL> weight(npts);
+
     int64_t wit = 0;
     for (int iel = 0; iel < nblocks; ++iel) {
-        TPZCompEl *cel = fMesh->Element(elindex_domain[iel]);
+
+        int dof_pos = dof_positions[iel];
+        TPZCompEl *cel = fMesh->Element(element_indexes[iel]);
+        
+        
         TPZInterpolatedElement *cel_inter = dynamic_cast<TPZInterpolatedElement *>(cel);
         if (!cel_inter) DebugStop();
+        TPZGeoEl * gel = cel->Reference();
+        if (!gel) DebugStop();
+        
         TPZIntPoints *int_rule = &(cel_inter->GetIntegrationRule());
 
-        int64_t npts = int_rule->NPoints(); // number of integration points of the element
+        int64_t el_npts = int_rule->NPoints(); // number of integration points of the element
         int64_t dim = cel_inter->Dimension(); //dimension of the element
 
-        TPZMaterialData data;
-        cel_inter->InitMaterialData(data);
-
-        for (int64_t ipts = 0; ipts < npts; ipts++) {
+        TPZFMatrix<REAL> jac,axes, jacinv;
+        REAL detjac;
+        for (int64_t ipts = 0; ipts < el_npts; ipts++) {
             TPZVec<REAL> qsi(dim);
             REAL w;
             int_rule->Point(ipts, qsi, w);
-            cel_inter->ComputeRequiredData(data, qsi);
-            weight[wit] = w * std::abs(data.detjac);
+            gel->Jacobian(qsi, jac, axes, detjac, jacinv);
+            weight[wit] = w * std::abs(detjac);
             wit++;
         }
 
         int64_t ncon = cel->NConnects();
+        int i_dof = 0;
         for (int64_t icon = 0; icon < ncon; icon++) {
             int64_t id = cel->ConnectIndex(icon);
             TPZConnect &df = fMesh->ConnectVec()[id];
             int64_t conid = df.SequenceNumber();
             if (df.NElConnected() == 0 || conid < 0 || fMesh->Block().Size(conid) == 0) continue;
-            else {
-                int64_t pos = fMesh->Block().Position(conid);
-                int64_t nsize = fMesh->Block().Size(conid);
-                for (int64_t isize = 0; isize < nsize; isize++) {
-                    if (isize % 2 == 0) {
-                        dof_indexes[cont1] = pos + isize;
-                        cont1++;
-                    } else {
-                        dof_indexes[cont2 + cols] = pos + isize;
-                        cont2++;
-                    }
-                }
+            int64_t pos = fMesh->Block().Position(conid);
+            int64_t nsize = fMesh->Block().Size(conid);
+            for (int64_t isize = 0; isize < nsize; isize++) {
+                dof_indexes[dof_pos+i_dof] = pos + isize;
+                i_dof++;
             }
+            
         }
     }
 
     TPZMaterial *material = fMesh->FindMaterial(1);
-    fLambdaExp.SetMaterial(material);
-    fLambdaExp.SetIntPoints(rows / fMesh->Dimension());
-    fLambdaExp.SetWeightVector(weight);
+    fIntegrator.ConstitutiveLawProcessor().SetMaterial(material);
+    fIntegrator.ConstitutiveLawProcessor().SetUpDataByIntPoints(npts);
+    fIntegrator.ConstitutiveLawProcessor().SetWeightVector(weight);
 }
 
-void TPZElastoPlasticIntPointsStructMatrix::ColoredIndexes(TPZStack<int> &elindex_domain, TPZVec<int> &indexes, TPZVec<int> &coloredindexes, int &ncolor) {
-    int64_t nblocks = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fNumBlocks;
-    int64_t cols = fCoefToGradSol.IrregularBlocksMatrix().Cols();
+void TPZElastoPlasticIntPointsStructMatrix::ColoredIndexes(TPZVec<int> &element_indexes, TPZVec<int> &indexes, TPZVec<int> &coloredindexes, int &ncolor) {
+
+    int64_t nblocks = fIntegrator.IrregularBlocksMatrix().Blocks().fNumBlocks;
+    int64_t cols = fIntegrator.IrregularBlocksMatrix().Cols();
 
     TPZVec<int64_t> connects_vec(fMesh->NConnects(),0);
     TPZVec<int64_t> elemcolor(nblocks,-1);
@@ -446,7 +654,7 @@ void TPZElastoPlasticIntPointsStructMatrix::ColoredIndexes(TPZStack<int> &elinde
     {
         int it = 0;
         needstocontinue = false;
-        for (auto iel : elindex_domain) {
+        for (auto iel : element_indexes) {
             TPZCompEl *cel = fMesh->Element(iel);
             if (!cel || cel->Dimension() != fMesh->Dimension()) continue;
 
@@ -475,85 +683,43 @@ void TPZElastoPlasticIntPointsStructMatrix::ColoredIndexes(TPZStack<int> &elinde
     }
 
     ncolor = contcolor;
-    coloredindexes.resize(fMesh->Dimension() * cols);
+    coloredindexes.resize(cols);
     int64_t neq = fMesh->NEquations();
     for (int64_t iel = 0; iel < nblocks; iel++) {
-        int64_t elem_col = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColSizes[iel];
-        int64_t cont_cols = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fColFirstIndex[iel];
+        int64_t elem_col = fIntegrator.IrregularBlocksMatrix().Blocks().fColSizes[iel];
+        int64_t cont_cols = fIntegrator.IrregularBlocksMatrix().Blocks().fColFirstIndex[iel];
 
         for (int64_t icols = 0; icols < elem_col; icols++) {
             coloredindexes[cont_cols + icols] = indexes[cont_cols + icols] + elemcolor[iel]*neq;
-            coloredindexes[cont_cols + cols + icols] = indexes[cont_cols + cols + icols] + elemcolor[iel]*neq;
         }
     }
-}
-
-void TPZElastoPlasticIntPointsStructMatrix::Dep(TPZVec<REAL> &depxx, TPZVec<REAL> &depyy, TPZVec<REAL> &depxy) {
-    int nblocks = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fNumBlocks;
-    int sizedep = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fRowRowPosition[nblocks];
-    // for (int i = 0; i < nblocks; ++i) {
-    //     int rows = fCoefToGradSol.IrregularBlocksMatrix().Blocks().fRowSizes[i];
-    //     sizedep += rows * rows;
-    // }
-
-    depxx.resize(sizedep);
-    depyy.resize(sizedep);
-    depxy.resize(sizedep);
-    depxx.Fill(0.);
-    depyy.Fill(0.);
-    depxy.Fill(0.);
-
-    int depel_pos = 0;
-    for (int iel = 0; iel < fMesh->NElements(); ++iel) {
-        TPZCompEl *cel = fMesh->Element(iel);
-        TPZInterpolatedElement *cel_inter = dynamic_cast<TPZInterpolatedElement *>(cel);
-        if (!cel_inter) DebugStop();
-        if (cel->Reference()->Dimension() != fMesh->Dimension()) continue;
-        TPZIntPoints *int_rule = &(cel_inter->GetIntegrationRule());
-        TPZMaterialData data;
-        cel_inter->InitMaterialData(data);
-
-        TPZMaterial *cel_mat = cel->Material();
-        TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem> *mat = dynamic_cast<TPZMatElastoPlastic2D<TPZPlasticStepPV<TPZYCMohrCoulombPV, TPZElasticResponse>, TPZElastoPlasticMem> *>(cel_mat);
-
-        int64_t npts = int_rule->NPoints(); // number of integration points of the element
-        int64_t dim = cel_inter->Dimension(); //dimension of the element
-
-        for (int64_t ipts = 0; ipts < npts; ipts++) {
-            TPZVec<REAL> qsi(dim);
-            REAL w;
-            int_rule->Point(ipts, qsi, w);
-            cel_inter->ComputeRequiredData(data, qsi);
-            REAL weight = w * fabs(data.detjac);
-
-            TPZTensor<REAL> deltastrain;
-            TPZTensor<REAL> stress;
-            TPZFMatrix<REAL> dep(6,6);
-            deltastrain.Zero();
-            stress.Zero();
-            dep.Zero();
-            mat->GetPlasticModel().ApplyStrainComputeSigma(deltastrain,stress,&dep);
-
-            int pos1 = depel_pos + ipts * (dim * dim * npts + dim);
-            int pos2 = depel_pos + ipts * (dim * dim * npts + dim) + 1;
-            int pos3 = depel_pos + ipts * (dim * dim * npts + dim) + dim * npts;
-            int pos4 = depel_pos + ipts * (dim * dim * npts + dim) + dim * npts + 1;
-
-            depxx[pos1] = weight * dep.GetVal(_XX_, _XX_);
-            depxx[pos2] = dep.GetVal(_XX_, _XY_) * 0.5;
-            depxx[pos3] = dep.GetVal(_XY_, _XX_);
-            depxx[pos4] = weight * dep.GetVal(_XY_, _XY_) * 0.5;
-
-            depyy[pos1] = weight * dep.GetVal(_XY_, _XY_) * 0.5;
-            depyy[pos2] = dep.GetVal(_XY_, _YY_);
-            depyy[pos3] = dep.GetVal(_YY_, _XY_) * 0.5;
-            depyy[pos4] = weight * dep.GetVal(_YY_, _YY_);
-
-            depxy[pos1] = dep.GetVal(_XX_, _XY_) * 0.5;
-            depxy[pos2] = weight * dep.GetVal(_XX_, _YY_);
-            depxy[pos3] = weight * dep.GetVal(_XY_, _XY_) * 0.5;
-            depxy[pos4] = dep.GetVal(_XY_, _YY_);
-        }
-        depel_pos = depel_pos + (npts * dim) * (npts * dim);
+    
+    std::map<int64_t, std::vector<int64_t> > color_map;
+    for (int64_t iel = 0; iel < nblocks; iel++) {
+        color_map[elemcolor[iel]].push_back(iel);
     }
+    
+    if (contcolor != color_map.size()) {
+        DebugStop();
+    }
+    
+    m_el_color_indexes.resize(nblocks);
+    m_first_color_index.resize(color_map.size()+1);
+
+    int c_color = 0;
+
+    m_first_color_index[c_color] = 0;
+    for (auto color_data : color_map) {
+        int n_el_per_color = color_data.second.size();
+        int iel = m_first_color_index[c_color];
+        for (int i = 0; i < n_el_per_color ; i++) {
+            int el_index = color_data.second[i];
+            m_el_color_indexes[iel] = el_index;
+            iel++;
+        }
+        c_color++;
+        m_first_color_index[c_color] = n_el_per_color + m_first_color_index[c_color-1];
+    }
+    
+    std::cout << "Number of colors = " << color_map.size() << std::endl;
 }
