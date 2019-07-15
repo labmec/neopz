@@ -1252,19 +1252,21 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             //----
         case ESinMark://(r^(2/3)-r^3)sin(20/3)
         {
-    
-            TVar theta=atan2(xloc[1],xloc[0]);//theta=arctan(y/x)
-            
-             if( theta < TVar(0.)) theta += 2.*M_PI;
-        
-            
-   //         std::cout<< "theta "<<theta<<std::endl;
-            
-            TVar factor=pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (3.));
-            disp[0]= factor*((TVar)(2.)*sin((TVar)(2.)*theta/TVar(3.)));
-           
-            
-            
+
+            TVar theta = atan2(xloc[1], xloc[0]);//theta=arctan(y/x)
+
+            if (theta < TVar(0.)) theta += 2. * M_PI;
+
+            // Verification to avoid numerical errors when x > 0 and y = 0
+            if (xloc[0] > 0 && xloc[1] < 1e-15 && xloc[1] > -1e-15) {
+               disp[0] = 0.;
+            }
+            else {
+                TVar factor = pow(r, TVar(2.) / TVar(3.)) - pow(r, TVar(3.));
+                disp[0] = factor * ((TVar) (2.) * sin((TVar) (2.) * theta / TVar(3.)));
+            }
+
+
         }
             break;
             
