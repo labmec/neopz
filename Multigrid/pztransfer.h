@@ -31,6 +31,8 @@ public :
 	/** @brief The sparse matrix blocks are defined by row, col */
 	//TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks);
 	TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks);
+    
+    /// copy constructor
 	TPZTransfer(const TPZTransfer &cp) : TPZRegisterClassId(&TPZTransfer::ClassId),
     TPZMatrix<TVar>(cp),
 	fNTVarVar(cp.fNTVarVar), fRowBlock(cp.fRowBlock),
@@ -78,6 +80,9 @@ public :
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha,const TVar beta, const int opt = 0) const  override;
 	
+    /** @brief Multiplies the transfer matrix and puts the result in z*/
+    void MultAddScalar(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+                 const TVar alpha,const TVar beta, const int opt = 0) const;
 	/**
 	 * @brief Will transfer the solution, taking into acount there may be more than
 	 * one TVar variable
@@ -92,6 +97,8 @@ public :
 	
 	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const override;
 	
+    void MultiplyScalar(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const;
+    
 private:
 	
 	/** @brief Increases the storage allocated
