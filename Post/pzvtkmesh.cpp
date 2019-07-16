@@ -99,19 +99,22 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 			vecind[n] = matp->VariableIndex(fVecNames[n]);
             if(vecind[n] == -1)
             {
-                std::cout << "Post processing name " << fVecNames[n] << " not found\n";
-                DebugStop();
+                std::cout << "Post processing vector name " << fVecNames[n] << " not found\n";
+                
             }
 		}
 		for(n=0; n<numvec; n++)
 		{
-			(fOutFile) << "VECTORS " << fVecNames[n] << " float" << std::endl;
-			int64_t nnod = fNodeMap.NElements(), i;
-			for(i=0;i<nnod;i++) {
-				TPZGraphNode *node = &fNodeMap[i];
-				if(node) node->DrawSolution(vecind[n], EVTKStyle);
-			}
-			(fOutFile) << std::endl;
+            if(vecind[n] != -1)
+            {
+                (fOutFile) << "VECTORS " << fVecNames[n] << " float" << std::endl;
+                int64_t nnod = fNodeMap.NElements(), i;
+                for(i=0;i<nnod;i++) {
+                    TPZGraphNode *node = &fNodeMap[i];
+                    if(node) node->DrawSolution(vecind[n], EVTKStyle);
+                }
+                (fOutFile) << std::endl;
+            }
 		}
 	}
     if(numtens)
