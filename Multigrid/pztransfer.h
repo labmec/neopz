@@ -95,7 +95,7 @@ public :
 	 */
 	void TransferResidual(const TPZFMatrix<TVar> &fine, TPZFMatrix<TVar> &coarse);
 	
-	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const override;
+//	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const override;
 	
     void MultiplyScalar(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt) const;
     

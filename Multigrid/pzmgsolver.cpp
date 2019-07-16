@@ -30,20 +30,23 @@ TPZMatrixSolver<TVar>(), fTransfer(trf)
 
 template <class TVar>
 void TPZMGSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual){
-	if(!this->Matrix() || !TransferMatrix()) {
+	if((!this->Matrix() && residual != 0) || !TransferMatrix()) {
 		cout << "TPZMGSolver::Solve called without a matrix pointer\n";
 		DebugStop();
 	}
-	TPZAutoPointer<TPZMatrix<TVar> > mat = this->Matrix();
-	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
-		result.Redim(mat->Rows(),F.Cols());
+    TPZAutoPointer<TPZMatrix<TVar> > tr = TransferMatrix();
+	if(result.Rows() != tr->Cols() || result.Cols() != F.Cols()) {
+		result.Redim(tr->Rows(),F.Cols());
 	}
 	
 	TPZFMatrix<TVar> FCoarse,UCoarse;
-	TPZAutoPointer<TPZMatrix<TVar> > tr = TransferMatrix();
-	tr->Multiply(F,FCoarse,1);
-	fCoarse->Solve(FCoarse,UCoarse);
-	tr->Multiply(UCoarse,result,0);
+	tr->Multiply(F,FCoarse,0);
+    double norm = Norm(FCoarse);
+    if(norm != 0.)
+    {
+        fCoarse->Solve(FCoarse,UCoarse);
+    }
+	tr->Multiply(UCoarse,result,1);
 	if(residual) this->Matrix()->Residual(F,result,*residual);
 }
 
