@@ -438,7 +438,7 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
         }
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
-        //        std::cout << "Analysing element " << cel->Index();
+//        std::cout << "Analysing element " << cel->Index();
         int64_t groupfound = -1;
         for (auto cindex : connectlist) {
             if (groupindex[cindex] != -1) {
@@ -447,11 +447,15 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
                 {
                     DebugStop();
                 }
+//                if(groupfound == -1)
+//                {
+//                    std::cout << " added to " << groupindex[cindex];
+//                }
+
                 groupfound = groupindex[cindex];
-                //                std::cout << " added to " << groupindex[cindex]->Index() << " with size " << groupindex[cindex]->GetElGroup().size();
             }
         }
-        //        std::cout << std::endl;
+//        std::cout << std::endl;
     }
 
 }
@@ -468,7 +472,7 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
     AssociateElements(cmesh, groupnumber);
     std::map<int64_t, TPZElementGroup *> groupmap;
     //    std::cout << "Groups of connects " << groupindex << std::endl;
-    for (int64_t el; el<nel; el++) {
+    for (int64_t el = 0; el<nel; el++) {
         int64_t groupnum = groupnumber[el];
         if(groupnum == -1) continue;
         auto iter = groupmap.find(groupnum);
@@ -486,7 +490,8 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
     }
     cmesh->ComputeNodElCon();
     nel = cmesh->NElements();
-    for (TPZCompEl *cel : cmesh->ElementVec()) {
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
         if (elgr) {
             TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
