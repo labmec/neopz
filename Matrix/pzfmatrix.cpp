@@ -157,7 +157,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
 
 template< class TVar >
 TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list<TVar>& list) {
-	Resize(1, list.size());
+	Resize(list.size(), 1);
 
 	auto it = list.begin();
 	auto it_end = list.end();
@@ -184,7 +184,7 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list< std:
 			col_n_found = true;
 		}
 		else {
-			if (fCol != it->size())
+			if (this->fCol != it->size())
 				Error("TPZFMatrix constructor: inconsistent number of columns in initializer list");
 		}
 	}

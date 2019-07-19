@@ -122,14 +122,13 @@ public:
 	 */
 	inline TPZFMatrix(const std::initializer_list<TVar>& list);
 
-    inline TPZFMatrix(const std::initializer_list< std::initializer_list<TVar> > &list);
-
-    /**
+	/**
 	 * @brief Creates a matrix from initializer list
 	 * @param list : initializer list, usually a list of elements in curly brackets
 	 */
-	//TPZFMatrix(const std::initializer_list< std::initializer_list<Tvar> >& list);
+    inline TPZFMatrix(const std::initializer_list< std::initializer_list<TVar> > &list);
 
+    
     /** @brief Simple destructor */
     virtual  ~TPZFMatrix();
     
@@ -474,7 +473,7 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const int64_t rows,const int64_t cols,const 
 
 template<class TVar>
 inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list) 
-: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(1, list.size())
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(list.size(), 1)
 {
 	if (list.size() > 0) {
 		fElem = new TVar[list.size()];
