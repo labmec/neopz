@@ -184,7 +184,7 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list< std:
 			col_n_found = true;
 		}
 		else {
-			if (this->fCol != it->size())
+			if (n_col != it->size())
 				Error("TPZFMatrix constructor: inconsistent number of columns in initializer list");
 		}
 	}
