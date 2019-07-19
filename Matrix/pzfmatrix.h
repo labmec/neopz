@@ -225,6 +225,8 @@ public:
     
     /** @brief Generic operator with FULL matrices */
     virtual TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
+	TPZFMatrix<TVar>& operator= (const std::initializer_list<TVar>& list);
+	TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
     TPZFMatrix<TVar> operator+  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator-  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator*  ( TPZFMatrix<TVar> A ) const ;
