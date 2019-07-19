@@ -19,6 +19,7 @@
 #include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
 #include "pzvec.h"           // for TPZVec
 #include "tpzautopointer.h"  // for TPZAutoPointer
+#include <cstdlib>
 
 #ifdef _AUTODIFF
 #include "tfad.h"
@@ -114,7 +115,21 @@ public:
     
     CLONEDEF(TPZFMatrix<TVar>)
     TPZFMatrix(const TPZMatrix<TVar> & refmat);
-    
+
+	/**
+	 * @brief Creates a matrix from initializer list (one column matrix)
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+	TPZFMatrix(const std::initializer_list<TVar>& list);
+
+    TPZFMatrix(const std::initializer_list< std::initializer_list<TVar> > &list);
+
+    /**
+	 * @brief Creates a matrix from initializer list
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+	//TPZFMatrix(const std::initializer_list< std::initializer_list<Tvar> >& list);
+
     /** @brief Simple destructor */
     virtual  ~TPZFMatrix();
     
@@ -453,6 +468,56 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const int64_t rows,const int64_t cols,const 
     if ( fElem == NULL && size) Error( "Constructor <memory allocation error>." );
 #endif
     for(int64_t i=0;i<size;i++) fElem[i] = val;
+}
+
+template<class TVar>
+inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list) 
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(list.size(), 1)
+{
+	if (list.size() > 0) {
+		fElem = new TVar[list.size()];
+	}
+
+	auto it = list.begin();
+	auto it_end = list.end();
+	TVar* aux = fElem;
+	for (; it != it_end; it++, aux++)
+		*aux = *it;
+}
+
+template< class TVar >
+TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<TVar>> &list)
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId)
+{
+    fRow = list.size();
+
+    auto row_it = list.begin();
+    auto row_it_end = list.end();
+
+#ifdef PZDEBUG    
+    bool col_n_found = false;
+    for (auto it = row_it; it != row_it_end; it++) {
+        if (!col_n_found) {
+            fCol = it->size();
+            col_n_found = true;
+        } else {
+            if (fCol != it->size())
+                Error("TPZFMatrix constructor: inconsistent number of columns in initializer list");
+        }
+    }
+#else
+    fCol = row_it->size();
+#endif
+
+	fElem = new TVar[fRow * fCol];
+    
+    for (uint32_t row_n = 0; row_it != row_it_end; row_it++, row_n++) {
+        auto col_it = row_it->begin();
+        auto col_it_end = row_it->end();
+        for (uint32_t col_n = 0; col_it != col_it_end; col_it++, col_n++) {
+            fElem[row_n * fRow + col_n] = *col_it;
+        }
+    }
 }
 
 template<class TVar>
