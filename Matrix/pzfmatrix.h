@@ -120,9 +120,9 @@ public:
 	 * @brief Creates a matrix from initializer list (one column matrix)
 	 * @param list : initializer list, usually a list of elements in curly brackets
 	 */
-	TPZFMatrix(const std::initializer_list<TVar>& list);
+	inline TPZFMatrix(const std::initializer_list<TVar>& list);
 
-    TPZFMatrix(const std::initializer_list< std::initializer_list<TVar> > &list);
+    inline TPZFMatrix(const std::initializer_list< std::initializer_list<TVar> > &list);
 
     /**
 	 * @brief Creates a matrix from initializer list
@@ -474,7 +474,7 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const int64_t rows,const int64_t cols,const 
 
 template<class TVar>
 inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list) 
-: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(list.size(), 1)
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(1, list.size())
 {
 	if (list.size() > 0) {
 		fElem = new TVar[list.size()];
@@ -488,10 +488,10 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list)
 }
 
 template< class TVar >
-TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<TVar>> &list)
+inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<TVar>> &list)
 : TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId)
 {
-    fRow = list.size();
+    this->fRow = list.size();
 
     auto row_it = list.begin();
     auto row_it_end = list.end();
@@ -508,16 +508,16 @@ TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<T
         }
     }
 #else
-    fCol = row_it->size();
+    this->fCol = row_it->size();
 #endif
 
-	fElem = new TVar[fRow * fCol];
+	fElem = new TVar[this->fRow * this->fCol];
     
     for (uint32_t row_n = 0; row_it != row_it_end; row_it++, row_n++) {
         auto col_it = row_it->begin();
         auto col_it_end = row_it->end();
         for (uint32_t col_n = 0; col_it != col_it_end; col_it++, col_n++) {
-            fElem[row_n * fRow + col_n] = *col_it;
+            fElem[col_n * this->fRow + row_n] = *col_it;
         }
     }
 }

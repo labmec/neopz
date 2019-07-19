@@ -157,7 +157,7 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
 
 template< class TVar >
 TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list<TVar>& list) {
-	Resize(list.size(), 1);
+	Resize(1, list.size());
 
 	auto it = list.begin();
 	auto it_end = list.end();
@@ -197,7 +197,7 @@ TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list< std:
 		auto col_it = row_it->begin();
 		auto col_it_end = row_it->end();
 		for (uint32_t col_n = 0; col_it != col_it_end; col_it++, col_n++) {
-			fElem[row_n * fRow + col_n] = *col_it;
+			fElem[col_n * this->fRow + row_n] = *col_it;
 		}
 	}
 
