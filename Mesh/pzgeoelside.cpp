@@ -258,13 +258,11 @@ int TPZGeoElSide::NSides() const
 /// Area associated with the side
 REAL TPZGeoElSide::Area()
 {
-	TPZManVector<REAL,3> elparam(fGeoEl->Dimension(),0.), sideparam(Dimension(),0);
-    TPZTransform<> tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1, fSide);
+	TPZManVector<REAL,3> sideparam(Dimension(),0);
 	REAL detjac;
 	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
     //supondo jacobiano constante: X linear
-	CenterPoint(elparam);
-    tr.Apply(elparam, sideparam);
+	CenterPoint(sideparam);
 	Jacobian(sideparam,jacobian,axes,detjac,jacinv);
     TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
     REAL RefElVolume = 0.;

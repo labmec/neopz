@@ -711,8 +711,8 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     
     TPZVec<REAL> ptx(3);
 	TPZVec<STATE> solExata(1);
-    TPZFNMatrix<3,REAL> flux(fDim+1,1);//pq colocar fdim +1?
-    TPZFNMatrix<3,REAL> gradu(fDim+1,1);
+    TPZFNMatrix<3,STATE> flux(fDim+1,1);//pq colocar fdim +1?
+    TPZFNMatrix<3,STATE> gradu(fDim+1,1);
     
     //Exact solution
 	if(var == 36){
