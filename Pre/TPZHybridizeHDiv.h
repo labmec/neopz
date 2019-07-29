@@ -40,6 +40,15 @@ struct TPZHybridizeHDiv {
     /// compute material ids for the periferal material objects
     void ComputePeriferalMaterialIds(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     
+    /// set the periferal material ids
+    void SetPeriferalMaterialIds(int HDivWrapMatid, int LagrangeInterface, int InterfaceMatid)
+    {
+        fHDivWrapMatid = HDivWrapMatid;
+        fLagrangeInterface = LagrangeInterface;
+        fInterfaceMatid = fInterfaceMatid;
+        
+    }
+    
     /// return true if a material id is a peripheral material
     bool IsPeriferalMaterialId(int matid)
     {
