@@ -314,6 +314,8 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     
     virtual ~TLaplaceExample1()
     {
+        fExact = ENone;
+        fDimension = -1;
         
     }
     
