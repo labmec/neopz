@@ -529,9 +529,6 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     gmesh->ResetReference();
     // Multiphysics mesh
     TPZCompMesh * MixedFluxPressureCmesh = fCMesh.operator->();
-    
-    
-    
     MixedFluxPressureCmesh->SetDimModel(dim);
     MixedFluxPressureCmesh->SetAllCreateFunctionsMultiphysicElem();
     

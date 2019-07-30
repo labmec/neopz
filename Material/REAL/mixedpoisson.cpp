@@ -742,9 +742,6 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         {
             Solout[i] = flux(i,0);
         }
-        
-    
-        std::cout<<"\ndata x "<<datavec[0].x<< " K "<<PermTensor<<" -------fluxo "<<Solout<<std::endl;
 
 		return;
 	}//var7

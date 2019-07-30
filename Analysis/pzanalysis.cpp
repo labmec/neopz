@@ -742,6 +742,8 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   
 }
 
+#include "pzsubcmesh.h"
+
 void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
     int64_t neq = fCompMesh->NEquations();
@@ -765,6 +767,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             if(!mat || (!bc && mat->Dimension() == fCompMesh->Dimension()))
             {
                 errors.Fill(0.0);
+            
                 el->EvaluateError(fExact, errors, store_error);
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
