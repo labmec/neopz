@@ -1409,6 +1409,14 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 template<>
 void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
+#ifdef PZDEBUG
+    
+    if(fDimension == -1){
+        DebugStop();
+    }
+    
+#endif
+
     typedef FADFADREAL TVar;
     TPZManVector<TVar,3> xloc(x);
     for (int i = 0; i<xloc.size(); i++) {
