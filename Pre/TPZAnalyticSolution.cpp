@@ -1281,7 +1281,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             
             break;
             
-        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3, Omega2=Omega4=5
+        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.53544094560246 and permeability Omega1=Omega=3, Omega2=Omega4=5
         {
             TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
                 -0.7453559924999296, 0.5555555555555556,
@@ -1397,6 +1397,15 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             
             disp[0] = xloc[0]*xloc[1]*xloc[2]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1])*(TVar(1.)-xloc[2]);
            // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
+        }
+            break;
+        case ESinCosCircle:{
+            
+            TVar coef = pow(r, TVar(4.));
+            TVar theta=atan2(xloc[1],xloc[0]);
+            disp[0] = coef*sin(TVar(2.)*theta)*cos(TVar(2.)*theta);
+            
+            
         }
             break;
             
@@ -1619,6 +1628,16 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             
             disp[0] = xloc[0]*xloc[1]*xloc[2]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1])*(TVar(1.)-xloc[2]);
          //   std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
+            
+        }
+            break;
+            
+        case ESinCosCircle:{
+            
+            TVar coef = pow(r, TVar(4.));
+             TVar theta=FADatan2(xloc[1],xloc[0]);
+            disp[0] = coef*FADsin(TVar(2.)*theta)*FADcos(TVar(2.)*theta);
+           
             
         }
             break;

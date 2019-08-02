@@ -424,7 +424,7 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
         if(fMesh->ElementSolution().Cols() > var-100) {
             sol[0] = fMesh->ElementSolution()(ind,var-100);
         } else {
-            sol[0] = 0.;
+            sol[0] = 0;
         }
     } else {
         sol.Resize(0);

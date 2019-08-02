@@ -785,6 +785,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
         }
     }
     
+    
     int nerrors = errors.NElements();
 	ervec.Resize(nerrors);
 	ervec.Fill(-10.0);
