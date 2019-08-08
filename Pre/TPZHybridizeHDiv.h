@@ -45,7 +45,7 @@ struct TPZHybridizeHDiv {
     {
         fHDivWrapMatid = HDivWrapMatid;
         fLagrangeInterface = LagrangeInterface;
-        fInterfaceMatid = fInterfaceMatid;
+        fInterfaceMatid = InterfaceMatid;
         
     }
     
