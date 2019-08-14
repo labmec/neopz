@@ -91,25 +91,25 @@ public:
 
     
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const int64_t row,const int64_t col ) const;
+	virtual const TVar &GetVal(const int64_t row,const int64_t col ) const override;
 	
 	int64_t NumTerms()
 	{
 		return fIA[this->Rows()];
 	}
 	
-	int PutVal(const int64_t row, const int64_t col, const TVar &Value);
+	int PutVal(const int64_t row, const int64_t col, const TVar &Value) override;
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const;
+						 const TVar alpha=1.,const TVar beta = 0., const int opt = 0) const override;
 	
 	virtual void MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						   const TVar alpha=1.,const TVar beta = 0., const int opt = 0);
 	
 	virtual int GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
-					   const int64_t colSize, TPZFMatrix<TVar> & A ) const;
+					   const int64_t colSize, TPZFMatrix<TVar> & A ) const override;
 	
-	void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const;
+	void GetSub(const TPZVec<int64_t> &indices,TPZFMatrix<TVar> &block) const override;
 	
 	/** @brief Pass the data to the class. */
 	virtual void SetData( int64_t *IA, int64_t *JA, TVar *A );
@@ -118,7 +118,7 @@ public:
     virtual void SetData( TPZVec<int64_t> &IA, TPZVec<int64_t> &JA, TPZVec<TVar> &A );
 	
 	/** @brief Print the matrix along with a identification title */
-	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
+	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const override;
 	
 	/**
 	 * @name Solvers
@@ -139,12 +139,12 @@ public:
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
 	virtual void SolveJacobi(int64_t & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result,
-							 TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent = 0) ;
+							 TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent = 0)  override;
 	
 	void SolveSOR(int64_t &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
 				  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
 				  const REAL overrelax, REAL &tol,
-				  const int FromCurrent = 0,const int direction = 1 ) ;    
+				  const int FromCurrent = 0,const int direction = 1 )  override;
 	// @}
 	
 	/**
@@ -156,13 +156,13 @@ public:
 						   , TPZVec < int > & destinationindex //! Positioning of such members on global stiffness matrix
 						   );    
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
 	
 	void MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatrix<TVar> & Res);
 	
-	virtual int Zero();
+	virtual int Zero() override;
 	
 	/**
 	 * @name Factorization
@@ -172,8 +172,8 @@ public:
 	/**
 	 * @brief Decomposes the current matrix using LU decomposition.
 	 */
-	virtual int Decompose_LU(std::list<int64_t> &singular);
-	virtual int Decompose_LU();
+	virtual int Decompose_LU(std::list<int64_t> &singular) override;
+	virtual int Decompose_LU() override;
 	
 	//@}
 	
@@ -186,12 +186,12 @@ public:
 	 * @brief Computes Forward and Backward substitution for a "LU" decomposed matrix.
 	 * @param B right hand side and result after all
 	 */
-	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
+	virtual int Substitution( TPZFMatrix<TVar> * B ) const override;
 	
 	//@}
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 private:
 	

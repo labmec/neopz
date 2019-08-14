@@ -34,7 +34,7 @@ public:
     
     enum EWeightType {CorrectWeight, Uniform};
     
-    virtual int ClassId() const {
+    int ClassId() const override  {
         return Hash("TPZDohrSubstruct") ^ ClassIdOrHash<TVar>() << 1;
     }
     

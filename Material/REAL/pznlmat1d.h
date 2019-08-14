@@ -27,16 +27,16 @@ public:
 	virtual ~TPZNLMat1d();
 	
 	/** @brief Returns the name of the material */
-	virtual std::string Name() { return "nonlinear_1dMaterial"; }
+	virtual std::string Name()  override { return "nonlinear_1dMaterial"; }
 	
 	/** @brief Returns the integrable dimension of the material: Material is 1d */
-	virtual int Dimension() const {return  1;}
+	virtual int Dimension() const  override {return  1;}
 	
 	/** @brief Returns the number of state variables associated with the material: Only w? */
-	virtual int NStateVariables() {return  1;}
+	virtual int NStateVariables() const override {return  1;}
 	
 	/** @brief Prints out the data associated with the material */
-	virtual void Print(std::ostream &out = std::cout);
+	virtual void Print(std::ostream &out = std::cout) override;
 	
 //	/** Returns the variable index associated with the name */
 //	virtual int VariableIndex(const std::string &name);
@@ -49,14 +49,14 @@ protected:
 //						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,
-                            TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+                            TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 //	/** @brief Computes contribution to the right hand side at an integration point */
 //	virtual void Contribute(TPZMaterialData &data, REAL weight,
 //                            TPZFMatrix<STATE> &ef);
@@ -64,11 +64,11 @@ public:
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
 							  TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	/** @brief Computes contribution to load vector (right hand side) at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
@@ -79,12 +79,12 @@ public:
 //	/** @brief Reads data of the material from a istream (file data) */
 //	virtual void SetData(std::istream &data);
 		
-//	virtual void Write(TPZStream &buf, int withclassid) const;
+//	void Write(TPZStream &buf, int withclassid) const override;
 	
-//	virtual void Read(TPZStream &buf, void *context);
+//	void Read(TPZStream &buf, void *context) override;
 	
 //	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	
 	virtual STATE Eps(TPZVec<STATE> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;

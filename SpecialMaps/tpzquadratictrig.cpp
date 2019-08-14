@@ -40,7 +40,7 @@ using namespace pztopology;
  */
 
 template<class T>
-void TPZQuadraticTrig::TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
+void TPZQuadraticTrig::TShape(const TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
 {
 	T qsi = param[0], eta = param[1];
     

@@ -21,12 +21,15 @@
  * @ingroup structural
  */
 class TPZSymetricSpStructMatrix : public TPZStructMatrix {
+    
 public:    
 	
     TPZSymetricSpStructMatrix(TPZCompMesh *);
 	
     virtual TPZMatrix<STATE> * Create();
 	
+    virtual TPZMatrix<STATE> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
+    
     using TPZStructMatrix::CreateAssemble;
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
@@ -37,6 +40,7 @@ public:
 	static int main();
 	
 private :
+    
     TPZSymetricSpStructMatrix();
     
     friend TPZPersistenceManager;

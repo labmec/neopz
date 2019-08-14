@@ -40,9 +40,9 @@ namespace pztopology {
 		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
 		
                 public:
-                virtual int ClassId() const;
-                void Read(TPZStream& buf, void* context);
-                void Write(TPZStream& buf, int withclassid) const;
+                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
+                void Write(TPZStream &buf, int withclassid) const override;
 
 		/** @brief Default constructor */
         TPZLine() : TPZRegisterClassId(&TPZLine::ClassId){
@@ -96,7 +96,7 @@ namespace pztopology {
 		static void CenterPoint(int side, TPZVec<REAL> &center);
 		
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
-		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
+		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6);
         
         /** @brief Generates a random point in the master domain */
         static void RandomPoint(TPZVec<REAL> &pt);

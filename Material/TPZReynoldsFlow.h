@@ -43,11 +43,11 @@ public:
     }
 
     /** @brief Returns the integrable dimension of the material */
-    virtual int Dimension() const;
+    virtual int Dimension() const override;
     
     
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables();
+    virtual int NStateVariables() const override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -57,7 +57,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
 
     /**
@@ -80,7 +80,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
@@ -99,18 +99,18 @@ public:
     
 	    
     /** @brief To create another material of the same type*/
-    virtual TPZMaterial * NewMaterial();
+    virtual TPZMaterial * NewMaterial() override;
     
     /** @brief Unique identifier for serialization purposes */
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    virtual void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    virtual void Read(TPZStream &buf, void *context) override;
     
 private:
     REAL f_visc;

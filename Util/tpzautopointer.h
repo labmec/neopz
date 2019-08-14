@@ -71,7 +71,7 @@ class TPZAutoPointer {
         
         TPZReference()
         {
-            fPointer = 0;
+            fPointer = nullptr;
             fCounter = new int;
             (*fCounter) = 1;
         }
@@ -88,11 +88,11 @@ class TPZAutoPointer {
             if(fPointer) {
                 delete fPointer;
             }
-            fPointer = 0;
+            fPointer = nullptr;
             if(fCounter) {
                 delete fCounter;
             }
-            fCounter = 0;
+            fCounter = nullptr;
         }
         
         void ReallocForNuma(int node_id)
@@ -177,7 +177,7 @@ public:
                 fRef->Decrease();
             }
             fRef = copy.fRef;
-            copy.fRef = NULL;
+            copy.fRef = nullptr;
             return *this;
         }
         
@@ -226,10 +226,10 @@ public:
     
 	/** @brief Returns if pointer was attributed */
 	operator bool() const{
-		return (this->fRef->fPointer != 0);
+		return (this->fRef->fPointer != nullptr);
 	}
 	operator bool() {
-		return fRef->fPointer != 0;
+		return fRef->fPointer != nullptr;
 	}
     
 	/** @brief Returns the counter value */

@@ -84,11 +84,11 @@ protected:
 		TTablePostProcess();
 		~TTablePostProcess();
                 
-                virtual int ClassId() const;
+                int ClassId() const override;
                 
-                void Write(TPZStream &buf, int withclassid) const;
+                void Write(TPZStream &buf, int withclassid) const override;
 
-                void Read(TPZStream &buf, void *context);
+                void Read(TPZStream &buf, void *context) override;
 	};
 	
         TTablePostProcess fTable;
@@ -128,9 +128,9 @@ protected:
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
         
-        void Write(TPZStream &buf, int withclassid) const;
+        void Write(TPZStream &buf, int withclassid) const override;
 
-        void Read(TPZStream &buf, void *context);
+        void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -220,7 +220,9 @@ private:
 public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices);
-	/** @brief Make assembling and clean the load and solution vectors */
+    /** @brief Graphic of the solution as V3DGrap visualization */
+    void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const std::string &varname);
+    /** @brief Make assembling and clean the load and solution vectors */
 	void LoadShape(double dx,double dy, int64_t numelem,TPZConnect* nod);
 	
 	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
@@ -229,6 +231,11 @@ public:
 	virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
     /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
     virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
+    /** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
+    virtual void DefineGraphMesh(int dimension, const std::set<int> & matids ,const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
+    /** @brief Define GrapMesh as VTK with tensorial names depending on extension of the file */
+    virtual void DefineGraphMesh(int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensnames, const std::string &plotfile);
+    
 	/** @brief Clean the GrapMesh vector */
 	virtual void CloseGraphMesh();
 	
@@ -241,6 +248,10 @@ public:
 	/** @brief Draw solution over mesh by dimension  */	
 	virtual void PostProcess(int resolution, int dimension);
 	
+    /** @brief Fill mat ids with materials with provided dimension wich are not boundary conditinos or interface  */
+    void IdentifyPostProcessingMatIds(int dimension, std::set<int> & matids);
+    
+    
 	/**
 	 * @name Related over data structure to post processing
 	 * @{
@@ -308,7 +319,7 @@ public:
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
   struct ThreadData{
     

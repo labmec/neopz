@@ -17,7 +17,7 @@ class TPZSandlerDimaggioThermoForceA : public TPZSavable {
 public:
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
     TPZSandlerDimaggioThermoForceA() 
@@ -55,11 +55,11 @@ virtual int ClassId() const;
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         
     }
 
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         
     }
 

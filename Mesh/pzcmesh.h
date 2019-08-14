@@ -198,6 +198,9 @@ public:
 	/** @brief Returns a reference to the material pointers vector */
 	std::map<int ,TPZMaterial * >	&MaterialVec() { return fMaterialVec; }
 
+    /** @brief Returns a reference to the material pointers vector */
+    std::map<int ,TPZMaterial * >   MaterialVec() const { return fMaterialVec; }
+    
 	/** @brief Returns a pointer to the geometrical mesh associated */
 	TPZGeoMesh *Reference() const { return fReference; }
 	
@@ -305,6 +308,13 @@ public:
 	 * @param elgraphindex graphos indexes vector
 	 */
 	void ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex);
+    
+    /**
+     * @brief Computes the connectivity graph of the elements, as appropriate for the TPZRenumbering class
+     * @param elgraph stack of elements to create the grapho????
+     * @param elgraphindex graphos indexes vector
+     */
+    void ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, std::set<int> & mat_ids);
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
@@ -464,6 +474,12 @@ public:
 #endif
 		fCreate.BuildMesh(*this);
 	}
+    
+    /// build the computational elements for the geometric element indexes
+    void AutoBuild(const TPZVec<int64_t> &gelindexes)
+    {
+        fCreate.BuildMesh(*this,gelindexes);
+    }
 		
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	/**
@@ -658,13 +674,13 @@ public:
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 
 };
 
@@ -704,11 +720,13 @@ inline int64_t TPZCompMesh::AllocateNewConnect(const TPZConnect &connect)
 
 inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
 	this->fReference = gmesh;
+    this->fDimModel = gmesh->Dimension();
     fGMesh = TPZAutoPointer<TPZGeoMesh>(0);
 }
 
 inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
     this->fReference = gmesh.operator->();
+    this->fDimModel = gmesh->Dimension();
     fGMesh = gmesh;
 }
 

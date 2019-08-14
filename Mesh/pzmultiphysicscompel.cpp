@@ -683,7 +683,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZManVector<TPZMaterialData,3> datavec;
+	TPZManVector<TPZMaterialData,4> datavec;
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
@@ -694,10 +694,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule;
 	
-    TPZManVector<REAL,3> intpointtemp(TGeometry::Dimension,0.);
+    TPZManVector<REAL,4> intpointtemp(TGeometry::Dimension,0.);
 	REAL weight = 0.;
 	
-	TPZManVector<int,3> ordervec;
+	TPZManVector<int,4> ordervec;
 	//ordervec.resize(nref);
 	for (int64_t iref=0;  iref<nref; iref++)
 	{
@@ -720,7 +720,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZGeoEl *ref = this->Reference();
 	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
 	
-	TPZManVector<int,3> intorder(dim,order);
+	TPZManVector<int,4> intorder(dim,order);
 	intrule->SetOrder(intorder);
 	int intrulepoints = intrule->NPoints();
     if(intrulepoints > 1000) {
@@ -923,11 +923,7 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 {
 	int64_t ElemVecSize = fElementVec.size();
 	for (int64_t iref = 0; iref < ElemVecSize; iref++)
-	{
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
+	{        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
 		if (!msp) {
 			continue;
@@ -1130,6 +1126,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
+    
     if(store_errors)
     {
         int64_t index = Index();
@@ -1140,8 +1137,10 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
         }
         for (int ier=0; ier <NErrors; ier++) {
             elvals(index,ier) = errors[ier];
+            std::cout<<"erro["<<ier <<"]= "<<errors[ier]<<std::endl;
         }
     }
+    
 
 	intrule->SetOrder(prevorder);
 }
@@ -1258,28 +1257,24 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
 }
 /** Returns the maximum interpolation order of all connected elements */
 template <class TGeometry>
-int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder() {
+void TPZMultiphysicsCompEl<TGeometry>::PolynomialOrder(TPZVec<int> &order) const {
     const int64_t nref = fElementVec.size();
-    TPZVec<int> ordervec;
-    ordervec.resize(nref);
+    order.resize(nref);
     for (int64_t iref = 0; iref < nref; iref++) {
         
-        if(fActiveApproxSpace[iref] == 0){
-            continue;
-        }
-        
         TPZInterpolationSpace *msp = dynamic_cast<TPZInterpolationSpace *> (fElementVec[iref].Element());
-        ordervec[iref] = msp ? msp->MaxOrder() : 0;
+        order[iref] = msp ? msp->MaxOrder() : 0;
     }
-    TPZMaterial * material = Material();
-    if(!material)
-    {
-        int matid = Reference()->MaterialId();
-        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
-        DebugStop();
-    }
-    int order = material->IntegrationRuleOrder(ordervec);
-    return order;
+    
+//    TPZMaterial * material = Material();
+//    if(!material)
+//    {
+//        int matid = Reference()->MaterialId();
+//        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
+//        DebugStop();
+//    }
+//    int order = material->IntegrationRuleOrder(ordervec);
+//    return order;
 }
 
 template<class TGeometry>
@@ -1300,6 +1295,7 @@ int TPZMultiphysicsCompEl<TGeometry>::ClassId() const{
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
 #include "pzbndcond.h"
+#include "pzgraphmesh.h"
 
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
@@ -1317,10 +1313,10 @@ void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grme
 	if (BDC) {
 		return;
 	}
-	int mat = material->Id();
+	int matid = material->Id();
 	int nsides = ref->NSides();
-	
-	if(dimension == 2 && mat > 0){
+	bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
+	if(dimension == 2 && to_postpro){
 		if(nsides == 9){
 			new TPZGraphElQ2dd(this,&grmesh);
 			return;
@@ -1331,7 +1327,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grme
 		}
 	}//2d
 	
-	if(dimension == 3 && mat > 0){
+	if(dimension == 3 && to_postpro){
 		if(nsides == 27){
 			new TPZGraphElQ3dd(this,&grmesh);
 			return;
@@ -1350,7 +1346,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grme
 		}//pyram
 	}//3d
 	
-	if(dimension == 1){
+	if(dimension == 1  && to_postpro){
 		new TPZGraphEl1dd(this,&grmesh);
 	}//1d
 }

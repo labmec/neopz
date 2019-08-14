@@ -134,13 +134,13 @@ namespace pzgeom {
                                           int matid,
                                           int64_t& index);
         
-        void Read(TPZStream &buf,void *context)
+        void Read(TPZStream& buf, void* context) override
         {
             TGeo::Read(buf,0);
             fCornerCo.Read(buf,0);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const
+        void Write(TPZStream &buf, int withclassid) const override
         {
             TGeo::Write(buf, withclassid);
             fCornerCo.Write(buf,0);

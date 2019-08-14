@@ -74,10 +74,9 @@ public:
     
     const int & MType() const
     { return m_m_type; }
+        int ClassId() const override;
     
-    int ClassId() const;
-    
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         m_eps_t.Read(buf,context);
         m_eps_p.Read(buf,context);
         
@@ -85,7 +84,7 @@ public:
         buf.Read(&m_m_type);
     }
     
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         m_eps_t.Write(buf,withclassid);
         m_eps_p.Write(buf,withclassid);
         

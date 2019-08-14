@@ -52,7 +52,7 @@ public:
 		return *this;
     }
 	
-	virtual const char * Name() const
+	virtual const char * Name() const override
 	{
 		return "TPZMohrCoulomb";	
 	}
@@ -90,11 +90,11 @@ public:
 		MOHRCOULOMBPARENT::fER.SetEngineeringData(young, poisson);
 	}
 	
-    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal) override {
         MOHRCOULOMBPARENT::SetUp(epsTotal);
     }
 
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
 		out << "\n" << this->Name();
 		out << "\n Base Class Data:\n";
@@ -102,10 +102,10 @@ public:
 	}
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         MOHRCOULOMBPARENT::Write(buf, withclassid);
 
         buf.Write(&fYC.fPhi, 1);
@@ -130,7 +130,7 @@ virtual int ClassId() const;
         // fPlasticMem does not need to be stored
     }
     
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         MOHRCOULOMBPARENT::Read(buf, context);
 
         buf.Read(&fYC.fPhi, 1);

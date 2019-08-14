@@ -32,7 +32,7 @@ public:
         NYield = 2
     };
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     TPZYCSandlerDimaggioL2() : TPZYCSandlerDimaggioL() {
     }
@@ -53,7 +53,7 @@ public:
         return "TPZYCSandlerDimaggioL2";
     }
 
-    void Print(std::ostream & out) const {
+    void Print(std::ostream & out) const  override {
         out << "\n" << this->Name();
         TPZYCSandlerDimaggioL::Print(out);
     }
@@ -117,7 +117,7 @@ public:
 
 public:
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const override {
         return as_integer(NYield);
     }
 

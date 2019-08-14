@@ -34,8 +34,6 @@ ENABLE_TESTING()
 			#add_custom_target(PZTutorial SOURCES ${pztutorial})
 			#add_subdirectory(Finite3DElasticity)
 
-			#exemplo simples de construcao de espaco HDiv
-			add_subdirectory(HDiv_demo)
 
 			#Example to reading and using geometric mesh
 			#add_subdirectory(testgeom)
@@ -51,17 +49,13 @@ ENABLE_TESTING()
 
 
 			# project to save and load a computational mesh
-			add_subdirectory(SaveAndLoad)
+			#add_subdirectory(SaveAndLoad)
 
 			#Example of the  multi-physics simulation with discontinuous Galerkin
  			add_subdirectory(PauloBosing)
 
 			#Example of the tracer flow problem in multiphysics simulation.
   			add_subdirectory(TracadorPassivo)
-
-			#Project to test the method hdiv stabilized.
-			add_subdirectory(HDivEstabilizado)
-			add_subdirectory(HDivEstabHHetero)
 
 
 			#Example of the hybrid mesh
@@ -186,18 +180,22 @@ ENABLE_TESTING()
 				if (USING_LAPACK)
 					#add_subdirectory(GradOfX)
                 endif()
+
                 #add_subdirectory(MixedElasticity)
 			endif()
+
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
 			#add_subdirectory(Elasticity2D)
 			#add_subdirectory(DrillPipe)
+
 
             if (USING_LAPACK)
 			    #add_subdirectory(Hdiv3DCurved)
             endif()
 			#add_subdirectory(Hdiv3D)
 			#add_subdirectory(Gridgeneration)
+
 			#add_subdirectory(Poisson2DLabyrinth)
 			#add_subdirectory(Andrade)
 			#add_subdirectory(MatrixMarket)
@@ -222,6 +220,7 @@ ENABLE_TESTING()
 
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
+
 			#add_subdirectory(Testes_Agnaldo)
 			#add_subdirectory(ReducedSpace)
 			#add_subdirectory(ReducedSpacePlasticity)

@@ -119,8 +119,8 @@ public:
         multiplier = T(1.);
     }
 
-//	virtual void Write(TPZStream &buf, int withclassid) const;
-//	virtual void Read(TPZStream &buf, void *context);
+//	void Write(TPZStream &buf, int withclassid) const override;
+//	void Read(TPZStream &buf, void *context) override;
 	public:
 virtual int ClassId() const override;
 

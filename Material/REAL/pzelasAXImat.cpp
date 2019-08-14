@@ -155,7 +155,7 @@ TPZManVector<REAL> TPZElasticityAxiMaterial::GetOrigin()
 TPZElasticityAxiMaterial::~TPZElasticityAxiMaterial() {
 }
 
-int TPZElasticityAxiMaterial::NStateVariables() {
+int TPZElasticityAxiMaterial::NStateVariables() const {
 	return 2;
 }
 

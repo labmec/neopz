@@ -35,11 +35,13 @@ void TangentOperator(REAL *gradient, REAL *stress_eigenvalues, REAL *strain_eige
         const unsigned int kj = kjval[k];
         for (unsigned int i = 0; i < 3; ++i) {
             for (unsigned int j = 0; j < 3; ++j) {
-                REAL temp = 2 * G * strain_eigenvectors[j * 3 + kj] * strain_eigenvectors[j * 3 + ki];
+                REAL temp;
                 if (ki == kj) {
+                    temp = 2 * G * strain_eigenvectors[j * 3 + kj] * strain_eigenvectors[j * 3 + ki];
                     temp += lambda;
                 } else {
-                    temp *= 2.;
+                    temp = 2 * G  * strain_eigenvectors[j * 3 + kj] * strain_eigenvectors[j * 3 + ki];
+                    temp *= 1.;
                 }
                 for (int l = 0; l < 6; ++l) {
                     const unsigned int li = kival[l];
@@ -50,10 +52,20 @@ void TangentOperator(REAL *gradient, REAL *stress_eigenvalues, REAL *strain_eige
         }///i
     }///k
 
+//    for(int i = 0; i < 6; i++) {
+//        for(int j = 0; j < 6; j++) {
+//        std::cout << Tangent[i * 6 + j] << "\t";
+//        }
+//        std::cout << std::endl;
+//    }
+
+
     REAL deigensig = 0., deigeneps = 0.;
     REAL tempMat[3 * 3];
     REAL temp_mat[3 * 3];
     REAL ColCorrV[6];
+
+    for(int i = 0; i < 3 * 3; i++) tempMat[i] = 0;
 
     // Correction of the eigenvectors variation
     for (unsigned int i = 0; i < 2; ++i) {
@@ -65,7 +77,7 @@ void TangentOperator(REAL *gradient, REAL *stress_eigenvalues, REAL *strain_eige
             if (!((fabs(deigeneps) < 1.e-12) || (deigeneps < 0.0))) {
                 factor = deigensig / deigeneps;
             } else {
-                factor = G * (gradient[i * 3 + i] - gradient[i * 3 + j] - gradient[j * 3 + i] + gradient[j * 3 + j]); // expression C.20
+                factor = 0.5 * G * (gradient[i * 3 + i] - gradient[i * 3 + j] - gradient[j * 3 + i] + gradient[j * 3 + j]); // expression C.20
             }
 
             ProdT(&strain_eigenvectors[3 * i], &strain_eigenvectors[3 * j], temp_mat);
@@ -90,7 +102,7 @@ void TangentOperator(REAL *gradient, REAL *stress_eigenvalues, REAL *strain_eige
                     REAL val = strain_eigenvectors[j * 3 + ki] * strain_eigenvectors[i * 3 + kj] * factor;
                     MatrixByScalar(val, tempMat, temp_mat);
                 } else {
-                    REAL val = strain_eigenvectors[j * 3 + ki] * strain_eigenvectors[i * 3 + kj] + strain_eigenvectors[j * 3 + kj] * strain_eigenvectors[i * 3 + ki] * factor;
+                    REAL val = (strain_eigenvectors[j * 3 + ki] * strain_eigenvectors[i * 3 + kj] + strain_eigenvectors[j * 3 + kj] * strain_eigenvectors[i * 3 + ki]) * factor;
                     MatrixByScalar(val, tempMat, temp_mat);
                 }
                 FromMatToVoight(temp_mat, ColCorrV);
@@ -100,5 +112,12 @@ void TangentOperator(REAL *gradient, REAL *stress_eigenvalues, REAL *strain_eige
             }
         } // j
     } // i
+//    for(int i = 0; i < 6; i++) {
+//        for(int j = 0; j < 6; j++) {
+//            std::cout << Tangent[i * 6 + j] << "\t";
+//        }
+//        std::cout << std::endl;
+//    }
+
 
 }

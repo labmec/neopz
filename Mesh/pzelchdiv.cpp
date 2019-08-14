@@ -1050,7 +1050,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 {
-    const int dim = data.fNormalVec.Rows(); //this->Reference()->Dimension();
+    const int dim = 3; // Hdiv vectors are always in R3
     const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
@@ -1065,7 +1065,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     
     for (int64_t is=0; is<numbersol; is++)
     {
-        data.sol[is].Resize(dim*nstate);//2 components to the flow
+        data.sol[is].Resize(dim*nstate);
         data.sol[is].Fill(0);
         data.dsol[is].Redim(dim*nstate, dim);
         data.dsol[is].Zero();
@@ -1075,26 +1075,19 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     GradOfPhiHdiv.Zero();
     
     TPZBlock<STATE> &block =this->Mesh()->Block();
-	int ishape=0,ivec=0,jv=0;
-    for(int in=0; in<ncon; in++) 
+    int ishape=0,ivec=0,jv=0;
+    for(int in=0; in<ncon; in++)
     {
-		TPZConnect *df = &this->Connect(in);
-		int64_t dfseq = df->SequenceNumber();
-		int dfvar = block.Size(dfseq);
-		int64_t pos = block.Position(dfseq);
-		
-		for(int jn=0; jn<dfvar/nstate; jn++)
+        TPZConnect *df = &this->Connect(in);
+        int64_t dfseq = df->SequenceNumber();
+        int dfvar = block.Size(dfseq);
+        int64_t pos = block.Position(dfseq);
+        
+        for(int jn=0; jn<dfvar/nstate; jn++)
         {
-			ivec=data.fVecShapeIndex[jv].first;
-			ishape=data.fVecShapeIndex[jv].second;
-			
-			TPZFNMatrix<3> ivecDiv(3,1);
-			ivecDiv(0,0) = data.fNormalVec(0,ivec);
-			ivecDiv(1,0) = data.fNormalVec(1,ivec);
-			ivecDiv(2,0) = data.fNormalVec(2,ivec);
-			TPZFNMatrix<3> axesvec(3,1);
-			data.axes.Multiply(ivecDiv,axesvec);
-
+            ivec    = data.fVecShapeIndex[jv].first;
+            ishape  = data.fVecShapeIndex[jv].second;
+            
             if (HDivPiola) {
                 
                 // Using Contravariant Piola mapping preserves the divergence
@@ -1135,13 +1128,13 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     GradOfPhiHdiv(ir,2) = VectorOnMaster(ir,0)*GradofPhi(2,0);
                     
                 }
-            
+                
                 GradOfPhiHdiv *= (1.0/data.detjac);
                 
             }
             else{
                 // Using Normalized Piola
-            
+                
                 //  Compute grad(PhiH1) on XYZ
                 TPZFNMatrix<3> GradOfPhiH1(dim,1);
                 GradOfPhiH1.Zero();
@@ -1152,7 +1145,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     GradOfPhiH1(1,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,1);
                     GradOfPhiH1(2,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,2);
                 }
-
+                
                 
                 //  Compute grad(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: This construction needs constant vector basis V on deformed domain
                 GradOfPhiHdiv(0,0) = data.fNormalVec(0,ivec)*GradOfPhiH1(0,0);
@@ -1201,7 +1194,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         data.divsol[is].Resize(nstate);
         for (int64_t istate = 0; istate < nstate ; istate++)
         {
-            TPZFNMatrix<10,STATE> Graduaxes = data.dsol[is];
             STATE divu = 0;
             for (int i = 0; i < dim; i++) {
                 divu += data.dsol[is](i,i);
@@ -1720,10 +1712,6 @@ using namespace pztopology;
 using namespace pzgeom;
 using namespace pzshape;
 
-//template<>
-//void TPZCompElHDiv<TPZShapePoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
-//	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
-//}
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {

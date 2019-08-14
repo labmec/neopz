@@ -96,3 +96,22 @@ void TranslateStress(REAL *full_stress, REAL *stress){
     }
     
 }
+
+#ifdef __CUDACC__
+__device__
+#endif
+void TranslateDep(REAL *full_dep,  REAL *dep) {
+    int dim = 2;
+    int n_sigma_comps = 3;
+    if (dim == 2) {
+        unsigned int ind[] = {_XX_, _XY_, _YY_};
+        for (int i = 0; i < n_sigma_comps; ++i) {
+            dep[3 * i + 0] = full_dep[_XX_ + 6 * ind[i]];
+            dep[3 * i + 1] = full_dep[_XY_ + 6 * ind[i]];
+            dep[3 * i + 2] = full_dep[_YY_ + 6 * ind[i]];
+        }
+//        dep[4]/=2;
+    }else {
+        dep = full_dep;
+    }
+}

@@ -10,6 +10,9 @@
 #include "pzanalysis.h"
 #include "pzstack.h"
 #include "TPZInterfaceEl.h"
+#include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
+#include "pzsubcmesh.h"
 
 #include "pzelchdivbound2.h"
 #include "pzshapequad.h"
@@ -317,71 +320,72 @@ void TPZBuildMultiphysicsMesh::AppendConnects(TPZCompMesh *cmesh, TPZCompMesh *M
 
 void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
-    int64_t imesh;
-    int64_t nmeshes = cmeshVec.size();
-    TPZManVector<int64_t> FirstConnectIndex(nmeshes+1,0);
-    for (imesh = 0; imesh < nmeshes; imesh++) {
-		FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
-    }
+    
+    TPZVec<atomic_index> indexes;
+    ComputeAtomicIndexes(MFMesh, indexes);
+    int64_t nconnect = indexes.size();
     TPZBlock<STATE> &blockMF = MFMesh->Block();
-    for (imesh = 0; imesh < nmeshes; imesh++) {
-		int64_t ncon = cmeshVec[imesh]->NConnects();
-		TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
-		int64_t ic;
-		for (ic=0; ic<ncon; ic++) {
-			TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
-			int64_t seqnum = con.SequenceNumber();
-			if(seqnum<0) continue;       /// Whether connect was deleted by previous refined process
-			int blsize = block.Size(seqnum);
-			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
-			int64_t seqnumMF = conMF.SequenceNumber();
-			for (int idf=0; idf<blsize; idf++) {
-				blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
-			}
-		}
+    for(int64_t connect = 0; connect < nconnect; connect++)
+    {
+        TPZCompMesh *atomic_mesh = indexes[connect].first;
+        if(!atomic_mesh) continue;
+		TPZBlock<STATE> &block = atomic_mesh->Block();
+        TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
+        int64_t seqnum = con.SequenceNumber();
+        if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
+        int blsize = block.Size(seqnum);
+        TPZConnect &conMF = MFMesh->ConnectVec()[connect];
+        int64_t seqnumMF = conMF.SequenceNumber();
+        if(seqnumMF < 0) DebugStop();
+        for (int idf=0; idf<blsize; idf++) {
+            blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
+        }
 	}
+    int64_t nel = MFMesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = MFMesh->Element(el);
+        TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(sub)
+        {
+            TransferFromMeshes(cmeshVec, sub);
+        }
+    }
 }
 
 void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
 {
-    int64_t imesh;
-    int64_t nmeshes = cmeshVec.size();
-    TPZManVector<int64_t> FirstConnectIndex(nmeshes+1,0);
-    for (imesh = 0; imesh < nmeshes; imesh++) {
-		FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
-    }
+    
+    TPZVec<atomic_index> indexes;
+    ComputeAtomicIndexes(MFMesh, indexes);
+    int64_t nconnect = indexes.size();
     TPZBlock<STATE> &blockMF = MFMesh->Block();
-    for (imesh = 0; imesh < nmeshes; imesh++) {
-		int64_t ncon = cmeshVec[imesh]->NConnects();
-		TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
-		int64_t ic;
-		for (ic=0; ic<ncon; ic++) {
-			TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
-			int64_t seqnum = con.SequenceNumber();
-			if(seqnum<0) continue;       /// Whether connect was deleted by previous refined process
-			int blsize = block.Size(seqnum);
-			TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
-            int nelconnected = conMF.NElConnected();
-            if (nelconnected == 0) {
-                continue;
-            }
-			int64_t seqnumMF = conMF.SequenceNumber();
-			int idf;
-			for (idf=0; idf<blsize; idf++) {
-				block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
-			}
-		}
-	}
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "Solutions of the referred meshes";
+    for(int64_t connect = 0; connect < nconnect; connect++)
+    {
+        TPZCompMesh *atomic_mesh = indexes[connect].first;
+        if(!atomic_mesh) continue;
+        TPZBlock<STATE> &block = atomic_mesh->Block();
+        TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
+        int64_t seqnum = con.SequenceNumber();
+        if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
+        int blsize = block.Size(seqnum);
+        TPZConnect &conMF = MFMesh->ConnectVec()[connect];
+        int64_t seqnumMF = conMF.SequenceNumber();
+        if(seqnumMF < 0) DebugStop();
+        for (int idf=0; idf<blsize; idf++) {
+            block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
+        }
     }
-#endif
-    for (imesh=0; imesh<nmeshes; imesh++) {
-        cmeshVec[imesh]->LoadSolution(cmeshVec[imesh]->Solution());
+    int64_t nel = MFMesh->NElements();
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = MFMesh->Element(el);
+        TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(sub)
+        {
+            TransferFromMultiPhysics(cmeshVec, sub);
+        }
     }
 }
+
 
 void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, std::set<int> &BCMaterialIds, int LagrangeMat, int InterfaceMat)
 {
@@ -844,3 +848,78 @@ void TPZBuildMultiphysicsMesh::AddWrap(TPZMultiphysicsElement *mfcel, int matske
     ListGroupEl.push_back(wrapEl);
 }
 
+static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes);
+
+static void FillAtomic(TPZMultiphysicsElement *mphys, TPZVec<atomic_index> &indexes)
+{
+    int ncon = mphys->NConnects();
+    int count = 0;
+    int nmeshes = mphys->NMeshes();
+    for (int imesh = 0; imesh<nmeshes; imesh++) {
+        if(mphys->IsActiveApproxSpaces(imesh) == false) continue;
+        TPZCompEl *cel = mphys->Element(imesh);
+        if(!cel) continue;
+        TPZCompMesh *atomic_mesh = cel->Mesh();
+        int nc = cel->NConnects();
+        for (int ic=0; ic<nc; ic++) {
+            int64_t atomic_conindex = cel->ConnectIndex(ic);
+            int64_t conindex = mphys->ConnectIndex(count);
+            indexes[conindex] = atomic_index(atomic_mesh,atomic_conindex);
+            count++;
+        }
+    }
+    if(count != ncon) DebugStop();
+}
+
+static void FillAtomic(TPZElementGroup *elgr, TPZVec<atomic_index> &indexes)
+{
+    TPZVec<TPZCompEl *> elvec = elgr->GetElGroup();
+    for (int el=0; el<elvec.size(); el++) {
+        TPZCompEl *cel = elvec[el];
+        FillAtomic(cel, indexes);
+    }
+}
+
+static void FillAtomic(TPZCondensedCompEl *cond, TPZVec<atomic_index> &indexes)
+{
+    TPZCompEl *cel = cond->ReferenceCompEl();
+    FillAtomic(cel, indexes);
+}
+
+static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
+{
+    TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
+    TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
+    TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
+    if(mphys)
+    {
+        FillAtomic(mphys, indexes);
+    }
+    if(elgr)
+    {
+        FillAtomic(elgr, indexes);
+    }
+    if(condense)
+    {
+        FillAtomic(condense, indexes);
+    }
+}
+
+/**
+ * Compute the correspondence between the connect index in the multiphysics
+ * mesh and the connect indexes in the atomic meshes
+ */
+void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<atomic_index> &indexes)
+{
+    int64_t ncon = mesh->NConnects();
+    int64_t nel = mesh->NElements();
+    atomic_index def(0,-1);
+    indexes.Resize(ncon, def);
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = mesh->Element(el);
+        if(cel)
+        {
+            FillAtomic(cel, indexes);
+        }
+    }
+}

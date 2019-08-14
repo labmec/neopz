@@ -29,11 +29,11 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 
-                virtual int ClassId() const;
+                int ClassId() const override;
                 
-                void Read(TPZStream& buf, void* context);
+                void Read(TPZStream &buf, void *context) override;
                 
-                void Write(TPZStream& buf, int withclassid) const;
+                void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Constructor with list of nodes */
@@ -71,7 +71,19 @@ namespace pzgeom {
         {
             return true;
         }
-        
+
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param correctionFactor influence (0 <= correctionFactor <= 1)
+         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
+         */
+        template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                      TPZVec<T> &corrFactorDxi);
+
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Tetrahedron";}
 		
@@ -95,18 +107,7 @@ namespace pzgeom {
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
-            int nrow = coord.Rows();
-            int ncol = coord.Cols();
-            TPZFMatrix<T> nodes(nrow,ncol);
-            for(int i = 0; i < nrow; i++)
-            {
-                for(int j = 0; j < ncol; j++)
-                {
-                    nodes(i,j) = coord(i,j);
-                }
-            }
-            
-            GradX(nodes,loc,gradx);
+            GradX(coord,loc,gradx);
         }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
@@ -115,11 +116,11 @@ namespace pzgeom {
         
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
-        static void GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
+        static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 		/**
 		 * @brief Method which creates a geometric boundary condition 
@@ -154,7 +155,7 @@ namespace pzgeom {
 	};
     
     template<class T>
-    inline void TPZGeoTetrahedra::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+    inline void TPZGeoTetrahedra::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
         
         phi(0,0)  = 1.0-qsi-eta-zeta;
@@ -195,7 +196,7 @@ namespace pzgeom {
     
     
     template<class T>
-    inline void TPZGeoTetrahedra::GradX(const TPZFMatrix<T> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
+    inline void TPZGeoTetrahedra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
         
         gradx.Resize(3,3);
         gradx.Zero();

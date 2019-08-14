@@ -40,7 +40,7 @@ public:
     virtual ~TPZMatWithMem();
 
     /** @brief Returns the name of the material */
-    virtual std::string Name() {
+    virtual std::string Name()  override {
         return "TPZMatWithMem< >";
     }
 
@@ -48,18 +48,18 @@ public:
     virtual void PrintMem(std::ostream &out = std::cout, const int memory = 0);
 
     /** @brief Prints out the data associated with the material */
-    virtual void Print(std::ostream &out);
+    virtual void Print(std::ostream &out) override;
 
     virtual TMEM &MemItem(const int i) const;
 
 public:
     
     /** @brief Unique identifier for serialization purposes */
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
 
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 
     std::shared_ptr<TPZAdmChunkVector<TMEM>> & GetMemory();
 
@@ -70,10 +70,10 @@ public:
      * @return Returning its index at the internal storage stack
      */
     /** To be implemented only in the proper materials. */
-    virtual int PushMemItem(int sourceIndex = -1);
+    virtual int PushMemItem(int sourceIndex = -1) override;
 
     /** @brief Frees an entry in the material with memory internal history storage */
-    virtual void FreeMemItem(int index);
+    virtual void FreeMemItem(int index) override;
 
     /** @ Reset the memory index to its default value */
     void ResetMemItem(int index) {
@@ -99,6 +99,9 @@ public:
 
     /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
     virtual void SetUpdateMem(bool update = 1);
+    
+    /** @brief Gets the internal memory data to be updated in the next assemble/contribute call */
+    virtual bool GetUpdateMem();
 
 protected:
 
@@ -123,7 +126,7 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM, TFather>::TPZMatWithMem(int id) :
 TPZRegisterClassId(&TPZMatWithMem::ClassId),
 TFather(id),
-fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(0) {
+fMemory(new TPZAdmChunkVector<TMEM>()), fDefaultMem(), fUpdateMem(false) {
 }
 
 template <class TMEM, class TFather>
@@ -233,6 +236,11 @@ void TPZMatWithMem<TMEM, TFather>::SetDefaultMem(TMEM & defaultMem) {
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM, TFather>::SetUpdateMem(bool update) {
     fUpdateMem = update;
+}
+
+template <class TMEM, class TFather>
+bool TPZMatWithMem<TMEM, TFather>::GetUpdateMem() {
+    return fUpdateMem;
 }
 
 #endif

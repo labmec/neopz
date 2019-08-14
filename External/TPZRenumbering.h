@@ -32,10 +32,9 @@ public:
 	virtual ~TPZRenumbering()
 	{
 	}
-        
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+                int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 
 	void SetElementsNodes(int64_t NElements, int64_t NNodes)
 	{

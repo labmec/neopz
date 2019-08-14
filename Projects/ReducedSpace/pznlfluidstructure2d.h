@@ -29,7 +29,7 @@
  * \f$  div(T(u)) + fxy = 0 \f$ (Eq. 1)
  *
  *@ingroup pressure equation (1d)
- * \f$ *(-wˆ3/visc)div(grad p) + QL= 0 (Eq. 2)  \f$
+ * \f$ *(-w^3/visc)div(grad p) + QL= 0 (Eq. 2)  \f$
  *
  */
 
@@ -79,7 +79,7 @@ public:
 	
 	int Dimension() const {return fDim;}
 	
-	virtual int NStateVariables();
+	virtual int NStateVariables() const {return 1;}
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state

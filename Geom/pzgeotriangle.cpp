@@ -11,6 +11,9 @@
 #include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
 
 #ifdef LOG4CXX
 static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotriangle"));
@@ -21,8 +24,58 @@ using namespace std;
 
 namespace pzgeom {
 	
-	const double tol = pzgeom_TPZNodeRep_tol;
-	
+	const REAL tol = pzgeom_TPZNodeRep_tol;
+    template<class T>
+    void TPZGeoTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+            TPZVec<T> &correctionFactorDxi){
+#ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
+            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+#endif
+        TPZFNMatrix<4,T> phi(NNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NNodes);
+        TPZGeoTriangle::TShape(xi,phi,dphi);
+        correctionFactorDxi.Resize(TPZGeoTriangle::Dimension, (T) 0);
+        int i = -1;
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+                correctionFactor = 0;
+                return;
+            case 3:
+                i = 0;
+                break;
+            case 4:
+                i = 1;
+                break;
+            case 5:
+                i = 2;
+                break;
+            case 6:
+                correctionFactor = 1;
+                return;
+        }
+        correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
+        correctionFactor *= correctionFactor;
+        correctionFactorDxi[0] = 2 * ( phi(i,0) + phi((i+1)%NNodes,0) ) * ( dphi(0,i) + dphi(0,(i+1)%NNodes) );
+        correctionFactorDxi[1] = 2 * ( phi(i,0) + phi((i+1)%NNodes,0) ) * ( dphi(1,i) + dphi(1,(i+1)%NNodes) );
+
+    }
 
 	void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		REAL qsi = param[0], eta = param[1];
@@ -377,4 +430,15 @@ namespace pzgeom {
     }
 
 
+
+    template void TPZGeoTriangle::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
 };
+
+#ifdef _AUTODIFF
+template<class T=REAL>
+class Fad;
+
+template void pzgeom::TPZGeoTriangle::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+        TPZVec<Fad<REAL>> &);
+#endif

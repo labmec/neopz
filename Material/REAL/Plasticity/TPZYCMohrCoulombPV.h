@@ -245,7 +245,13 @@ public:
     STATE Phi() {
         return fPhi;
     }
-
+    
+    /// Set up the phi
+    void SetPhi(STATE phi)
+    {
+        fPhi = phi;
+    }
+    
     /**
      Access to Dilation angle
 
@@ -263,7 +269,14 @@ public:
     STATE Cohesion() {
         return fc;
     }
+    
+    /// Set up the cohesion
+    void SetCohesion(STATE cohesion)
+    {
+        fc = cohesion;
+    }
 
+    
     /**
      Access to Young's modulus
 

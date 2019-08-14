@@ -27,7 +27,7 @@ public:
 	
 	enum {NNodes = 15};
         
-virtual int ClassId() const;
+int ClassId() const override;
 
     //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
@@ -97,7 +97,7 @@ virtual int ClassId() const;
     }
     
     template<class T>
-    static void TShape(TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+    static void TShape(const TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
     
     template<class T>
     static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec< T > &result);

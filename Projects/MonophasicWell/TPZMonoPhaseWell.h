@@ -82,16 +82,16 @@ private:
     /** @} */
     
     /** @brief Returns the name of the material */
-    std::string Name() { return "TPZMonoPhaseWell";}
+    std::string Name() override { return "TPZMonoPhaseWell";}
     
     /** @brief Returns the integrable dimension of the material */
-    int Dimension() const {return 1;}
+    int Dimension() const override {return 1;}
     
     /** @brief Returns the number of state variables associated with the material */
-    int NStateVariables() {return 1;}
+    virtual int NStateVariables() const  override {return 1;}
     
     /** @brief returns the minimum number of load cases for this material */
-    int MinimumNumberofLoadCases()
+    int MinimumNumberofLoadCases() override
     {
         return 1;
     }
@@ -108,7 +108,7 @@ private:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
@@ -120,7 +120,7 @@ private:
      * @param bc [in] is the boundary condition material
      * @since October 18, 2011
      */
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
     
     /** @} */
     
@@ -136,7 +136,7 @@ private:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
     
@@ -148,7 +148,7 @@ private:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef) override;
 
     
     /**
@@ -160,7 +160,7 @@ private:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
         DebugStop();
     }
 
@@ -172,7 +172,7 @@ private:
      * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
 
@@ -185,7 +185,7 @@ private:
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
-    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
         DebugStop();
     }
 
@@ -200,31 +200,31 @@ private:
      * Contribute method. Here, in base class, all requirements are considered as necessary.
      * Each derived class may optimize performance by selecting only the necessary data.
      */
-    void FillDataRequirements(TPZMaterialData &data);
+    void FillDataRequirements(TPZMaterialData &data) override;
     
     /**
      * @brief Fill material data parameter with necessary requirements for the
      * Contribute method. Here, in base class, all requirements are considered as necessary.
      * Each derived class may optimize performance by selecting only the necessary data.
      */
-    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
     
     /**
      * @brief Fill material data parameter with necessary requirements for the
      * ContributeBC method. Here, in base class, all requirements are considered as necessary.
      * Each derived class may optimize performance by selecting only the necessary data.
      */
-    void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+    void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec) override;
     
     /** @brief Print out the data associated with the material */
-    void Print(std::ostream &out = std::cout);
+    void Print(std::ostream &out = std::cout) override;
     
     /** @brief Returns the variable index associated with the name */
-    int VariableIndex(const std::string &name);
+    int VariableIndex(const std::string &name) override;
     
-    int NSolutionVariables(int var);
+    int NSolutionVariables(int var) override;
 
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
 
     
     /** @{
@@ -233,14 +233,14 @@ private:
     
     /** @brief Unique identifier for serialization purposes */
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     /** @} */
     

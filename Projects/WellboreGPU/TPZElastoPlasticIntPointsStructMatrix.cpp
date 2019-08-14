@@ -208,6 +208,10 @@ void TPZElastoPlasticIntPointsStructMatrix::SetUpDataStructure() {
 }
 
  void TPZElastoPlasticIntPointsStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    TPZFMatrix<REAL> Dep;
+     fIntegrator.ResidualIntegration(fMesh->Solution(),rhs, Dep);
+     rhs += fRhsLinear;
+//     Dep.Print(std::cout);
 
     TPZSYsmpMatrix<STATE> &stiff = dynamic_cast<TPZSYsmpMatrix<STATE> &> (mat);
     TPZVec<STATE> &Kg = stiff.A();
@@ -335,8 +339,9 @@ void TPZElastoPlasticIntPointsStructMatrix::SetUpDataStructure() {
            
              // Compute Elementary Matrix.
              TPZFMatrix<STATE> K;
-             fIntegrator.ComputeTangentMatrix(iel,K);
-           
+//             fIntegrator.ComputeTangentMatrix(iel,K);
+             fIntegrator.ComputeTangentMatrix(iel,Dep,K);
+
              int el_dof = el_n_dofs[iel];
              int pos = cols_first_index[iel];
            
@@ -376,10 +381,10 @@ void TPZElastoPlasticIntPointsStructMatrix::SetUpDataStructure() {
       stiff.PutVal(row, col, val);
     }
 
-    timer.Start();
-    Assemble(rhs,guiInterface);
-    timer.Stop();
-    std::cout << "R Assemble: Elasped time [sec] = " << timer.ElapsedTime() << std::endl;
+//    timer.Start();
+//    Assemble(rhs,guiInterface);
+//    timer.Stop();
+//    std::cout << "R Assemble: Elasped time [sec] = " << timer.ElapsedTime() << std::endl;
 }
 
 int TPZElastoPlasticIntPointsStructMatrix::StressRateVectorSize(){

@@ -21,7 +21,7 @@ class TPZRestoredInstance {
     std::shared_ptr<TPZSavable> GetSharedPtrToMyObj();
     TPZVec<int> &MyPointersVec();
     void SetObjId(const uint64_t &objId);
-    uint64_t GetObjId() const;
+//    uint64_t GetObjId() const;
     void SetClassId(const int &classId);
     int GetClassId() const;
     void ResetReadStatus();
@@ -29,7 +29,7 @@ class TPZRestoredInstance {
     void SetRead();
   protected:
     TPZSavable *mpInstance;
-    TPZManVector<int, 1> mPointersVec;
+    TPZManVector<int, 3> mPointersVec;
     TPZAutoPointer<TPZSavable> mAutoPointerToInstance;
     std::shared_ptr<TPZSavable> mSharedPtrToInstance;
     bool is_already_read;

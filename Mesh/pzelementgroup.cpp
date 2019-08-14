@@ -179,11 +179,26 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Calcstiff Element Group Index " << Index();
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     InitializeElementMatrix(ek, ef);
     int64_t nel = fElGroup.size();
     TPZElementMatrix ekloc,efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
+        
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
+        
         cel->CalcStiff(ekloc, efloc);
 #ifdef LOG4CXX
         if (logger->isDebugEnabled() ) {
@@ -237,7 +252,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             }
 
         }
-#ifdef LOG4CXX
+#ifdef LOG4CXX2
         if (logger->isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;
@@ -247,6 +262,26 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
 #endif
     }
+}
+
+/** @brief Verifies if the material associated with the element is contained in the set */
+bool TPZElementGroup::HasMaterial(const std::set<int> &materialids) const {
+    
+    int64_t nel = fElGroup.size();
+    TPZElementMatrix efloc;
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = fElGroup[el];
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
+        bool has_material_Q = cel->HasMaterial(materialids);
+        if (has_material_Q) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -266,8 +301,12 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
     TPZElementMatrix efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
+#ifdef PZDEBUG
+        if(!cel){
+            DebugStop();
+        }
+#endif
         cel->CalcResidual(efloc);
-        
         int nelcon = efloc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = efloc.fBlock.Size(ic);

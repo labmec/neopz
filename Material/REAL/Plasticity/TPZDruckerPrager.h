@@ -46,7 +46,7 @@ public:
         return *this;
     }
 
-    virtual const char * Name() const {
+    virtual const char * Name() const override {
         return "TPZDruckerPrager";
     }
 
@@ -75,7 +75,7 @@ public:
 
     }
 
-    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal)  override {
         DRUCKERPARENT::SetUp(epsTotal);
     }
 
@@ -85,7 +85,7 @@ public:
         return radius;
     }
 
-    virtual void Print(std::ostream & out) const {
+    virtual void Print(std::ostream & out) const override {
         out << "\n" << this->Name();
         out << "\n Base Class Data:\n";
         DRUCKERPARENT::Print(out);
@@ -95,16 +95,16 @@ public:
 
     }
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         DRUCKERPARENT::Write(buf, withclassid);
 
         buf.Write(&faPa, 1);
         fInitialEps.Write(buf, withclassid);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         DRUCKERPARENT::Read(buf, context);
 
         buf.Read(&faPa, 1);

@@ -52,6 +52,7 @@ TPZGmshReader::TPZGmshReader() {
     m_dim_physical_tag_and_name.Resize(4);
     m_dim_name_and_physical_tag.Resize(4);
     m_dim_physical_tag_and_physical_tag.Resize(4);
+
     m_entity_index.Resize(0);
     
 }//method
@@ -166,14 +167,13 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
         if(!read)
         {
             std::cout << "Couldn't open the file " << file_name << std::endl;
+            DebugStop();
         }
         
-#ifdef PZDEBUG
         if (!read) {
             std::cout << "Gmsh Reader: the mesh file path is wrong " << std::endl;
             DebugStop();
         }
-#endif
         
         while(read)
         {
@@ -258,7 +258,8 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 std::vector<int> n_entities = {m_n_points,m_n_curves,m_n_surfaces,m_n_volumes};
                 std::vector<int> n_entities_with_physical_tag = {0,0,0,0};
                 
-                for (int i_dim = 0; i_dim < 4; i_dim++) {
+                
+                for (int i_dim = 0; i_dim <4; i_dim++) {
                     for (int64_t i_entity = 0; i_entity < n_entities[i_dim]; i_entity++) {
                         
                         read.getline(buf, 1024);
@@ -319,10 +320,10 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 
                 int64_t node_id;
                 double nodecoordX , nodecoordY , nodecoordZ ;
-                gmesh -> NodeVec().Resize(n_nodes);
-                gmesh->SetMaxNodeId(n_nodes-1);
+                gmesh -> NodeVec().Resize(max_node_tag);
+                gmesh->SetMaxNodeId(max_node_tag);
                 // needed for node insertion
-                const int64_t Tnodes = n_nodes;
+                const int64_t Tnodes = max_node_tag;
                 TPZVec <TPZGeoNode> Node(Tnodes);
                 
                 int entity_tag, entity_dim, entity_parametric, entity_nodes;
@@ -529,24 +530,32 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Quadratic Line
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_line_els++;
         }
             break;
         case 9:
         {
             // Triangle
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_triangle_els++;
         }
             break;
         case 10:
         {
+            TPZManVector <int64_t,15> Topology_c(n_nodes-1);
+            for (int k_node = 0; k_node < n_nodes-1; k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by default Quadrangle9 is always generated. (?_?).
+                Topology_c[k_node] = Topology[k_node];
+            }
             // Quadrilateral
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology, physical_identifier, *gmesh);
+            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology_c, physical_identifier, *gmesh);
+            m_n_quadrilateral_els++;
         }
             break;
         case 11:
         {
             // Tetrahedron
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_tetrahedron_els++;
             
         }
             break;
@@ -554,12 +563,14 @@ void TPZGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
         {
             // Hexahedra
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_hexahedron_els++;
         }
             break;
         case 13:
         {
             // Prism
             new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (el_identifier, Topology, physical_identifier, *gmesh);
+            m_n_pyramid_els++;
         }
             break;
         case 15:{
@@ -638,7 +649,7 @@ int TPZGmshReader::GetNumberofNodes(int & el_type){
         case 10:
         {
             // Quadratic Quadrilateral
-            n_nodes = 8;
+            n_nodes = 9;
         }
             break;
         case 11:
@@ -693,14 +704,13 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh3(std::string file_name, TPZGeoMesh
         if(!read)
         {
             std::cout << "Couldn't open the file " << file_name << std::endl;
+            DebugStop();
         }
         
-#ifdef PZDEBUG
         if (!read) {
             std::cout << "Gmsh Reader: the mesh file path is wrong " << std::endl;
             DebugStop();
         }
-#endif
         
         while(read)
         {

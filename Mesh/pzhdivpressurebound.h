@@ -56,7 +56,7 @@ public:
 	/** @brief Default destructor */
 	virtual ~TPZCompElHDivPressureBound();
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 		return new TPZCompElHDivPressureBound<TSHAPE> (mesh, *this);
 	}
 	
@@ -67,57 +67,57 @@ public:
 	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
 	 * @param gl2lcElMap map the indexes of the elements between the original element and the patch element
 	 */
-	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int64_t,int64_t> & gl2lcConMap,std::map<int64_t,int64_t>&gl2lcElMap) const override
 	{
 		return new TPZCompElHDivPressureBound<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 
     
     
-    virtual int NConnects() const;
+    virtual int NConnects() const override;
     
     /** @brief Identifies the interpolation order for pressure variable*/
 	virtual void SetPressureOrder(int ord);
     
-    virtual void SetConnectIndex(int i, int64_t connectindex);
+    virtual void SetConnectIndex(int i, int64_t connectindex) override;
     
-    virtual int NConnectShapeF(int connect, int order) const;
+    virtual int NConnectShapeF(int connect, int order) const override;
     
-    virtual int SideConnectLocId(int node, int side) const;
+    virtual int SideConnectLocId(int node, int side) const override;
     
     /** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 	
     //	virtual MElementType Type();
 	
 	
-	virtual int Dimension() const {
+	virtual int Dimension() const  override {
 		return TSHAPE::Dimension;
 	}
 	
-	virtual int NCornerConnects() const {
+	virtual int NCornerConnects() const  override {
 		return 0;
 	}
 	
 //	virtual int NSideConnects(int side) const;
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
-	virtual void GetInterpolationOrder(TPZVec<int> &ord);
+	virtual void GetInterpolationOrder(TPZVec<int> &ord) override;
 	
 	/** @brief Returns the preferred order of the polynomial along side iside*/
     //	virtual int PreferredSideOrder(int iside);
 	
 	/** @brief Sets the interpolation order of side to order*/
-	virtual void SetSideOrder(int side, int order);
+	virtual void SetSideOrder(int side, int order) override;
 	
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-	virtual int EffectiveSideOrder(int side) const;
+	virtual int EffectiveSideOrder(int side) const override;
 	
-	virtual int ConnectOrder(int connect) const;
+	virtual int ConnectOrder(int connect) const override;
     
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
-	virtual void InitMaterialData(TPZMaterialData &data);
+	virtual void InitMaterialData(TPZMaterialData &data) override;
 	
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
@@ -127,24 +127,24 @@ public:
 	void FirstShapeIndex(TPZVec<int64_t> &Index);
 	
 	/** @brief Compute the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
 	/** @brief Compute the shape function at the integration point */
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 	
 	/** @brief Returns a matrix index of the shape and vector  associate to element*/
 	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int64_t> > & IndexVecShape);
     
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
 };
 
 template<class TSHAPE>

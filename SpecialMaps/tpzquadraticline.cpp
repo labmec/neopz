@@ -29,7 +29,7 @@ using namespace pztopology;
 
 
 template<class T>
-void TPZQuadraticLine::TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+void TPZQuadraticLine::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
     
     T qsi = loc[0];
     

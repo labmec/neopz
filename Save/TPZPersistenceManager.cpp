@@ -11,6 +11,8 @@
 #include "TPZChunkTranslator.h"
 #include <algorithm>
 
+//#define VerboseMode_Q
+
 using namespace TPZPersistenceManagerNS;
 
 TPZGeneralFStream *TPZPersistenceManager::mpStream;
@@ -105,8 +107,9 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         unsigned int size = mCurrentObjectStream.Size();
         mObjectsStream.Write(&size, 1);
         mObjectsStream << mCurrentObjectStream;
-#ifdef PZDEBUG    
-        std::cout << "ObjId: " << mNextPointerToSave
+#ifdef VerboseMode_Q
+        std::cout << " ObjId: " << mNextPointerToSave
+                << " Class name: " << typeid(*pointer).name()
                 << " ClassId: " << classId
                 << " range: " << written + 1 << " (0x" << std::hex << written + 1 << std::dec << ") - "
                 << written + sizeof (int64_t) + 2 * sizeof (int) +size
@@ -118,6 +121,17 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
 }
 
 void TPZPersistenceManager::CloseWrite() {
+    
+    bool check_Q = false;
+    for (auto item : mFileVersionInfo) {
+        if(item.first.compare("NeoPZ") == 0){
+            check_Q = true;
+        }
+    }
+    if (!check_Q) {
+        mFileVersionInfo.insert(TPZSavable::NeoPZVersion());
+    }
+    
     mpStream->Write(mFileVersionInfo);
 
     const uint64_t nObjects = mPointersToSave.size();
@@ -195,19 +209,30 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
     if (TPZSavable::ClassIdMap().size() == 0) {
         //@TODO parallelize
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
-#ifdef PZDEBUG
-//            std::cout << restoreClass->Restore()->ClassId() << "\t" << typeid(*restoreClass->Restore()).name();
-//            if (restoreClass->GetTranslator()){
-//                std::cout << "\t" << typeid(*restoreClass->GetTranslator()).name();
-//            }
-//            std::cout << std::endl;
+#ifdef VerboseMode_Q
+            std::cout << "Class : " << restoreClass->Restore()->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
+            if (restoreClass->GetTranslator()){
+                std::cout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
+            }
+            std::cout << std::endl;
 #endif
             TPZSavable *savable = restoreClass->Restore();
             //@TODO ensure thread-safety
-            TPZSavable::RegisterClassId(savable->ClassId(), restoreClass);
+            int classid = savable->ClassId();
+#ifdef VerboseMode_Q
+            std::cout  << " Class being registered with classid = " << classid << std::endl;
+            std::cout << std::endl;
+#endif
+            TPZSavable::RegisterClassId(classid, restoreClass);
             auto objHistory = savable->VersionHistory();
             for (auto versionMap : objHistory) {
+//                for (auto item : versionMap) {
+//                    std::cout << "Package = " << item.first << " and version = " << item.second << std::endl;
+//                }
                 if (std::find(mVersionHistory.begin(), mVersionHistory.end(), versionMap) == mVersionHistory.end()) {
+//                    for (auto item : versionMap) {
+//                        std::cout << "Package being inserted = " << item.first << " and version = " << item.second << std::endl;
+//                    }
                     //@TODO ensure thread-safety
                     mVersionHistory.push_back(versionMap);
                 }

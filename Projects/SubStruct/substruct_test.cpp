@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 		{
 			nvec = 1;
 		}
-		TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
+		TPZManVector<std::string> scalnames(nscal),vecnames(nvec),tennames(0);
 		if(nscal == 1)
 		{
 			scalnames[0]="state";            
@@ -198,7 +198,13 @@ int main(int argc, char *argv[])
 			vecnames[0] = "state";
 		}
 		std::string postprocessname("dohrmann_elastic.vtk");
-		TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
+        if(!mat){
+            DebugStop();
+        }
+        std::set<int> matids;
+        int matid = mat->Id();
+        matids.insert(matid);
+		TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,matids,scalnames,vecnames,tennames);
 		vtkmesh.SetFileName(postprocessname);
 		vtkmesh.SetResolution(1);
 		int numcases = 1;

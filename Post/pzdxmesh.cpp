@@ -16,8 +16,8 @@
 
 using namespace std;
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
-TPZGraphMesh(cmesh,dimension,mat,scalarnames,vecnames) {
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
+TPZGraphMesh(cmesh,dimension,matids,scalarnames,vecnames) {
 	fNextDataField = 1;
 	fStyle = EDXStyle;
 	//	int index = 0;
@@ -48,9 +48,8 @@ TPZGraphMesh(cmesh,dimension,mat,scalarnames,vecnames) {
 	
 }
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZMaterial * mat) :
-TPZGraphMesh(cmesh,dim,mat,graph->ScalarNames(),graph->VecNames()) {
-	if(!mat) fMaterial = graph->fMaterial;
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph) :
+TPZGraphMesh(cmesh,dim,graph->fMaterialIds,graph->ScalarNames(),graph->VecNames()) {
 	fNextDataField = graph->fNextDataField;
 	fStyle = EDXStyle;
 	fElementType = "noname";
@@ -93,7 +92,14 @@ std::string TPZDXGraphMesh::ElementName() {
 
 void TPZDXGraphMesh::DrawMesh(int numcases) {
 	
-	int dim = Material()->Dimension();
+    std::set<int> matids = MaterialIds(); /// partial solution
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator iter = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*iter);
+	int dim = matp->Dimension();
 	int dim1 = dim-1;
 	MElementType eltypes[] = {ENoType, EOned, EQuadrilateral, ETriangle,ECube};
 	int firsttype[4] = {1,2,4,0}, lasttype[4] = {2,4,5,0};
@@ -142,7 +148,13 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 
 void TPZDXGraphMesh::DrawSolution(int step, REAL time) {
 	
-	TPZMaterial * matp = Material();
+    std::set<int> matids = MaterialIds(); /// partial solution
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator iter = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*iter);
 	int64_t i,nel;
 	if(!matp) return;
 	int dim = matp->Dimension();
@@ -340,7 +352,13 @@ void TPZDXGraphMesh::Close() {
 
 void TPZDXGraphMesh::DrawSolution(char * var)
 {
-	TPZMaterial * matp = Material();
+    std::set<int> matids = MaterialIds(); /// partial solution
+    if(matids.size() == 0) {
+        cout << "TPZMVGraphMesh no material found\n";
+        return;
+    }
+    set<int>::iterator iter = matids.begin();
+    TPZMaterial * matp = fCompMesh->FindMaterial(*iter);
     int64_t i,varind;
     varind = matp->VariableIndex(var);
     TPZVec<int> vec(1);

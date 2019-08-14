@@ -97,13 +97,13 @@ class ElasticMatInterface2D  : public TPZElasticityMaterial {
 //		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 //	}
 //	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &left, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &left, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 //	/** @} */
 //	
@@ -144,12 +144,12 @@ class ElasticMatInterface2D  : public TPZElasticityMaterial {
 //	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
 //	
 //	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 //	
-//	virtual void Read(TPZStream &buf, void *context);
+//	void Read(TPZStream &buf, void *context) override;
 //	
-//	virtual void Write(TPZStream &buf, int withclassid) const;
+//	void Write(TPZStream &buf, int withclassid) const override;
 	
 protected:
 	//	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);

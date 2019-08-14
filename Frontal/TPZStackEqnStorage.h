@@ -80,7 +80,7 @@ public:
 	/** @brief Name of Storage */
 	std::string GetStorage();
         
-    virtual int ClassId() const;
+    int ClassId() const override;
 
 private:
     /** @brief Sets the block size to be used */

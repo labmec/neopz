@@ -26,7 +26,7 @@ namespace pzgeom {
     public:
 
         public:
-virtual int ClassId() const;
+int ClassId() const override;
 
         
         /** @brief Constructor with list of nodes */
@@ -159,7 +159,7 @@ virtual int ClassId() const;
 										  int matid,
 										  int64_t& index);
 		
-        void Read(TPZStream &buf,void *context)
+        void Read(TPZStream& buf, void* context) override
         {
             pzgeom::TPZGeoTriangle::Read(buf,0);
             buf.Read(&fR);
@@ -167,7 +167,7 @@ virtual int ClassId() const;
             fPhiTheta.Read(buf,0);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const
+        void Write(TPZStream &buf, int withclassid) const override
         {
             pzgeom::TPZGeoTriangle::Write(buf, withclassid);
             buf.Write(&fR);

@@ -42,7 +42,6 @@ TPZMatDarcy2dhdiv::~TPZMatDarcy2dhdiv()
 
 int TPZMatDarcy2dhdiv::Dimension() const {return fDim;};
 
-int TPZMatDarcy2dhdiv::NStateVariables() {return 1;}
 
 void TPZMatDarcy2dhdiv::Print(std::ostream &out) {
     out << "name of material : " << Name() << "\n";

@@ -72,28 +72,25 @@ public:
 	 * Contribute method. Here, in base class, all requirements are considered as necessary. 
 	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
-	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override
 	{
 		datavec[0].SetAllRequirements(false);
 		datavec[0].fNeedsSol = true;
 	}
 	
 	/** @brief Returns the name of the material */
-	virtual std::string Name() { return "TPZCohesiveBC"; }
+	virtual std::string Name()  override { return "TPZCohesiveBC"; }
 	
 	/** @brief Returns the integrable dimension of the material */
-	virtual int Dimension() const {
+	virtual int Dimension() const override {
 		return 0;
 	}
   
   /** @brief Returns the number of state variables associated with the material */
-  virtual int NStateVariables()
-  {
-    return 2;
-  }
+  virtual int NStateVariables() const  override {return 2;}
   
 	/** @brief Prints out the data associated with the material */
-	virtual void Print(std::ostream &out = std::cout);
+	virtual void Print(std::ostream &out = std::cout) override;
 	
 public:
 
@@ -114,7 +111,7 @@ public:
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
   
   /**
    * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -125,7 +122,7 @@ public:
    * @param bc [in] is the boundary condition material
    * @since October 07, 2011
    */
-  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+  virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
   
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
@@ -134,11 +131,11 @@ public:
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	
 	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const{
+	int ClassId() const override {
 		return TPZCohesiveBCID;
 	}
 	

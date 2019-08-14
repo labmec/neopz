@@ -97,12 +97,12 @@ public:
 	void ResetConnectivities();
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Indicates that a node with id was created */
 	void SetNodeIdUsed(int64_t id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }

@@ -30,10 +30,9 @@ public:
 	TPZGraphNode(TPZConnect *cn, TPZGraphMesh *gm);
 	/** @brief Simple destructor */
 	~TPZGraphNode(void);
-        
-    int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+            int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
 	//int ElIndex();
 	int64_t SequenceNumber() {return fSequenceNumber;}

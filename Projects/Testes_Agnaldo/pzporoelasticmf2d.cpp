@@ -115,11 +115,6 @@ TPZPoroElasticMF2d &TPZPoroElasticMF2d::operator=(const TPZPoroElasticMF2d &copy
     return *this;
 }
 
-int TPZPoroElasticMF2d::NStateVariables() {
-	return 1;
-}
-
-
 void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
     

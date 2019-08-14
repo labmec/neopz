@@ -34,7 +34,8 @@ protected:
 	//  int fNodeIndexes[TGeo::NNodes];
 	TPZGeoElSideIndex fNeighbours[TGeo::NSides];
 public:
-virtual int ClassId() const;
+
+virtual int ClassId() const override;
 
 	virtual ~TPZGeoElRefLess();
 	TPZGeoElRefLess();
@@ -42,7 +43,7 @@ virtual int ClassId() const;
 	/** @brief Copy constructor */
 	TPZGeoElRefLess(const TPZGeoElRefLess &gel);
 	
-	virtual TPZGeoEl *Clone(TPZGeoMesh &dest) const
+	virtual TPZGeoEl *Clone(TPZGeoMesh &dest) const override
 	{
 		return new TPZGeoElRefLess(dest,*this);
 	}
@@ -69,7 +70,7 @@ virtual int ClassId() const;
 					std::map<int64_t,int64_t> & gl2lcElMap);
 	
 	TPZGeoEl *ClonePatchEl(TPZGeoMesh &destmesh,std::map<int64_t,int64_t> & gl2lcNdMap,
-						   std::map<int64_t,int64_t> & gl2lcElMap) const
+						   std::map<int64_t,int64_t> & gl2lcElMap) const  override
 	{
 		return new TPZGeoElRefLess(destmesh,*this,gl2lcNdMap, gl2lcElMap);
 	}
@@ -82,11 +83,11 @@ virtual int ClassId() const;
     
 	TPZGeoElRefLess(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index);
 	
-	virtual void Read(TPZStream &str, void *context);
+	virtual void Read(TPZStream &str, void *context) override;
 	
-	virtual void Write(TPZStream &str, int withclassid) const;
+	virtual void Write(TPZStream &str, int withclassid) const override;
 	
-	virtual void Initialize()
+	virtual void Initialize() override
 	{
 		fGeo.Initialize(this);
 	}
@@ -95,15 +96,15 @@ virtual int ClassId() const;
 	static int main_refless();
 	
 	/** @brief Divides the element and puts the resulting elements in the vector */
-	virtual void Divide(TPZVec < TPZGeoEl * > & pv){
+	virtual void Divide(TPZVec < TPZGeoEl * > & pv) override {
 		DebugStop();
 	}
 	
 	/** @brief Returns 1 if the element has subelements along side*/
-	virtual  int HasSubElement() const {return 0;}//fSubEl[0]!=0;}
+	virtual  int HasSubElement() const  override {return 0;}//fSubEl[0]!=0;}
 	
 	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element */
-	virtual  TPZGeoElSide Neighbour(int side) {
+	virtual  TPZGeoElSide Neighbour(int side) override {
 #ifdef PZDEBUG
         if (fNeighbours[side] < 0 || fNeighbours[side] >= this->Mesh()->NElements()) {
             DebugStop();
@@ -112,33 +113,33 @@ virtual int ClassId() const;
         return TPZGeoElSide(fNeighbours[side],this->Mesh());
     }
 	
-	virtual  int64_t NodeIndex(int node) const;
+	virtual  int64_t NodeIndex(int node) const override;
 	
 	//HDiv
     
-    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides);
+    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
     
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1);
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
     
-	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector);
+	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
 	
 	/** @brief Compute the permutation for an HDiv side */
-	virtual void HDivPermutation(int side, TPZVec<int> &permutegather);
+	virtual void HDivPermutation(int side, TPZVec<int> &permutegather) override;
 	
 	
 	/** @brief Fill in the data structure for the neighbouring information*/
-	virtual  void SetNeighbour(int side,const TPZGeoElSide &neighbour){
+	virtual  void SetNeighbour(int side,const TPZGeoElSide &neighbour) override {
 		fNeighbours[side]=neighbour;
 	}
 	
-	virtual void Print(std::ostream &out)
+	virtual void Print(std::ostream &out) override
 	{
 		TPZGeoEl::Print(out);
 		out << "fGeo:\n";
 		fGeo.Print(out);
 	}
 	/** @brief Prints topological information of: TGeo (TPZGeoCube, TPZGeoPrism, TPZGeoQuad, ...) */
-	virtual void PrintTopologicalInfo(std::ostream &out)
+	virtual void PrintTopologicalInfo(std::ostream &out) override
 	{
 		out << "Geo Element - fId " << fId << "\t Type " << fGeo.TypeName() << "\t";
 		fGeo.Print(out);
@@ -147,159 +148,169 @@ virtual int ClassId() const;
 		for (i = 0;i < NNodes();i++) out << NodePtr(i)->Id() << " ";
 	}
 	
-	virtual  int64_t SideNodeIndex(int side,int node) const;
+	virtual  int64_t SideNodeIndex(int side,int node) const override;
 	
-	virtual  int SideNodeLocIndex(int side,int node) const;
+	virtual  int SideNodeLocIndex(int side,int node) const override;
 	
 	/** @brief Flags the side as defined, this means no neighbouring element was found */
-	virtual  void SetSideDefined(int side) { fNeighbours[side] = TPZGeoElSide(this,side); }
+	virtual  void SetSideDefined(int side)  override { fNeighbours[side] = TPZGeoElSide(this,side); }
 	
-	virtual  void SetSubElement(int id, TPZGeoEl *el);
+	virtual  void SetSubElement(int id, TPZGeoEl *el) override;
 	
 	/**
 	 * @brief Creates an integration rule for the topology of the corresponding side
 	 * and able to integrate a polynom of order exactly
 	 */
-	virtual  TPZIntPoints * CreateSideIntegrationRule(int side, int order);
+	virtual  TPZIntPoints * CreateSideIntegrationRule(int side, int order) override;
 	
 	/** @brief Returns the type of the element acording to the definition in pzeltype.h */
-	virtual  MElementType Type() const {
+	virtual  MElementType Type() const override {
 		return TGeo::Type();
 	}
 	
 	/** @brief Returns the type of the element acording to the definition in pzeltype.h */
-	virtual  MElementType Type(int side) const {
+	virtual  MElementType Type(int side) const override {
 		return TGeo::Type(side);
 	}
 	
 	/** @brief Returns the type of the element as a string */
-    virtual std::string TypeName() const
+    virtual std::string TypeName() const override
     {
 		return fGeo.TypeName();
     }
 	
 	/** @brief Returns the number of nodes of the element*/
-	virtual  int NNodes() const;
+	virtual  int NNodes() const override;
 	
 	/** @brief Returns the number of corner nodes of the element*/
-	virtual  int NCornerNodes() const;
+	virtual  int NCornerNodes() const override;
 	
 	/** @brief Returns the number of connectivities of the element*/
-	virtual  int NSides() const;
+	virtual  int NSides() const override;
 	
 	/** @brief Returns the local node number of the node "node" along side "side" */
 	virtual  int SideNodeLocId(int side, int node) const;
 	
 	/** @brief Volume of the master element*/
-	virtual  REAL RefElVolume();
+	virtual  REAL RefElVolume() override;
 	
 	/** @brief Returns the number of nodes for a particular side*/
-	virtual  int NSideNodes(int side) const;
+	virtual  int NSideNodes(int side) const override;
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	virtual  void MidSideNodeIndex(int side,int64_t &index) const;
+	virtual  void MidSideNodeIndex(int side,int64_t &index) const override;
 	
 	/** @brief Returns 1 if the side has not been defined by buildconnectivity */
 	/** After construction the side is undefined. The buildconnectivity method
 	 * loops over all elements and tries to identify neighbours along their uninitialized sides */
-	virtual  int SideIsUndefined(int side);
+	virtual  int SideIsUndefined(int side) override;
 	
 	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
-	virtual  int NSubElements() const;
+	virtual  int NSubElements() const override;
 	
 	/** @brief Returns the number of subelements of the same dimension of the element at the side*/
-	virtual  int NSideSubElements(int side) const;
+	virtual  int NSideSubElements(int side) const override;
 	
 	/**
 	 * @brief Method which creates a computational boundary condition element based
 	 * on the current geometric element, a side and a boundary condition number
 	 */
-	virtual  TPZGeoEl *CreateBCGeoEl(int side, int bc);
+	virtual  TPZGeoEl *CreateBCGeoEl(int side, int bc) override;
 	
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
 									   TPZVec<int64_t>& nodeindexes,
 									   int matid,
-									   int64_t& index);
+									   int64_t& index) override;
 	
 	/** @brief Initializes the node i of the element*/
-	virtual  void SetNodeIndex(int i,int64_t nodeindex);
+	virtual  void SetNodeIndex(int i,int64_t nodeindex) override;
 	
 	/**
 	 * @brief compute the transformation between the master element space of one side
 	 * of an element to the master element space of a higher dimension side
 	 */
-	virtual  TPZTransform<> SideToSideTransform(int sidefrom,int sideto);
+	virtual  TPZTransform<> SideToSideTransform(int sidefrom,int sideto) override;
 	
 	/** @brief Returns a pointer to the subelement is*/
-	virtual  TPZGeoEl *SubElement(int is) const;
+	virtual  TPZGeoEl *SubElement(int is) const override;
 	
 	/** @brief Return the dimension of side*/
-	virtual  int SideDimension(int side) const;
+	virtual  int SideDimension(int side) const override;
 	
 	/** @brief Returns the dimension of the element*/
-	virtual int Dimension() const;
+	virtual int Dimension() const override;
 	
 	virtual  TPZGeoElSide HigherDimensionSides(int side,int targetdimension);
 	
-	virtual  void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides);
+	virtual  void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) override;
 	
-	virtual  void LowerDimensionSides(int side,TPZStack<int> &smallsides) const;
+	virtual  void LowerDimensionSides(int side,TPZStack<int> &smallsides) const override;
 	
 	/** @brief Accumulates the transformation of the jacobian which maps the current
      master element space into the space of the master element of the father*/
 	virtual  void BuildTransform(int side, TPZGeoEl *father,TPZTransform<> &t);
 	
-	virtual  TPZTransform<> BuildTransform2(int side, TPZGeoEl *father,TPZTransform<> &t);
+	virtual  TPZTransform<> BuildTransform2(int side, TPZGeoEl *father,TPZTransform<> &t) override;
 	
     /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-    virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
+    virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const override;
     
     /** @brief Return the gradient of the transformation at the point */
-    virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const ;
+    virtual void GradX(TPZVec<REAL> &coordinate, TPZFMatrix<REAL> &gradx) const override;
     
 #ifdef _AUTODIFF
     /** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-    virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const;
+    virtual  void X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const override;
     
     /** @brief Return the gradient of the transformation at the point */
-    virtual void GradX(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const ;
+    virtual void GradX(TPZVec<Fad<REAL> > &coordinate, TPZFMatrix<Fad<REAL> > &gradx) const override;
 #endif
     
-	virtual bool IsLinearMapping( int side) const;
-	virtual bool IsGeoBlendEl() const;
+	virtual bool IsLinearMapping( int side) const override;
+	virtual bool IsGeoBlendEl() const override;
+
+    /**
+     * If the element is a TPZGeoBlend element, this method will ensure that if the side side is connected to the
+     * element with index index, its blend connectivity is erased (for instance, this element may have been deleted).
+     * If it is not a TPZGeoBlend element, the method will just return false.
+     * @param side side in which to seek for connectivities
+     * @param index index of the element that will be disconnected from this
+     * @return true if the element is a TPZGeoBlend element.
+     */
+    bool ResetBlendConnectivity(const int64_t &side, const int64_t &index) override;
 	TGeo &Geom() { return fGeo; }
 	
-	virtual  TPZTransform<> GetTransform(int side,int son);
+	virtual  TPZTransform<> GetTransform(int side,int son) override;
 	
 	/** @brief It returns the coordinates of the center of the side of the element */
-	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) const;
+	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) const override;
 	
-	virtual TPZGeoElSide Father2(int side) const;
+	virtual TPZGeoElSide Father2(int side) const override;
 	
-	virtual int FatherSide(int side, int son) {
+	virtual int FatherSide(int side, int son)  override {
 		return side;
 	}
 	
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const override;
 	
-	virtual void ResetSubElements(){
+	virtual void ResetSubElements() override {
 		DebugStop();
 	}
 	
-	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans)
+	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) override
 	{
 		Geom().SetNeighbourInfo(side,neigh,trans);
 	}
 	
     /** @brief Generates a random point in the master domain */
-    virtual void RandomPoint(TPZVec<REAL> &pt)
+    virtual void RandomPoint(TPZVec<REAL> &pt) override
     {
         Geom().RandomPoint(pt);
     }
     
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
-	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
+	virtual bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6) override;
 	
 	/**
 	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)
@@ -308,19 +319,19 @@ virtual int ClassId() const;
      *       this method will returns the nearest node side.
 	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
 	 */
-	virtual int ProjectInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain);
+	virtual int ProjectInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain) override;
     
     /**
 	 * @brief Projection from given qsi to a qsiInDomain (in the element boundary) using bissection method from given qsi to element center.
 	 * @return Returns the side where the point was projected.
 	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
 	 */
-    virtual int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain);
+    virtual int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain) override;
 };
 
 template<class TGeo>
 inline
-bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 	const bool result = fGeo.IsInParametricDomain(pt,tol);
 	return result;
 }

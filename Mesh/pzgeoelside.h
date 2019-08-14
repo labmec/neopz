@@ -13,6 +13,7 @@
 #include "pzstack.h"
 #include "pzfmatrix.h"
 #include "pztrnsform.h"
+#include "tpzintpoints.h"
 #include <set>
 
 #ifdef _AUTODIFF
@@ -69,10 +70,9 @@ public:
 	int64_t ElementIndex() const;
 	
 	void SetElementIndex(int64_t i);
-	
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+	        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 };
 
 /**
@@ -115,6 +115,8 @@ public:
     
     /** @brief X coordinate of a point loc of the side */
     void GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const;
+
+    bool ResetBlendConnectivity(const int64_t &index);
 	
 #ifdef _AUTODIFF
     /** @brief X coordinate of a point loc of the side */
@@ -146,6 +148,10 @@ public:
 	TPZGeoElSide(const TPZGeoElSideIndex &index, const TPZGeoMesh * mesh){
 		this->fSide = index.Side();
 		this->fGeoEl = index.Element(mesh);
+		if(fGeoEl == 0 && index.ElementIndex() != -1)
+        {
+		    DebugStop();
+        }
 	}
     
     TPZGeoElSide(int zero) : fGeoEl(0), fSide(-1)
@@ -306,12 +312,15 @@ public:
      * if onlymultiphysicelement == 1 only elements TPZMultiphysicsElement will be put on the stack \n
      * if removeduplicates == 1 no elements which are direct neighbours will be put on the stack*/
 	void HigherLevelCompElementList3(TPZStack<TPZCompElSide> &elsidevec, int onlymultiphysicelement, int removeduplicates);
-    
+
+
+    /* @brief Creates an integration rule for the topology of this side */
+	TPZIntPoints * CreateIntegrationRule(int order);
+
     int GelLocIndex(int index) const;
-    
-    int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+        int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 };
 
 /** @brief Overload operator << to print geometric element side data */

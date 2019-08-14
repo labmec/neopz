@@ -37,7 +37,7 @@ public:
 	~TPZSFMatrix();
 	
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const    {
+    virtual int IsSimetric() const  override {
         return 1;
     }
 
@@ -57,8 +57,8 @@ public:
     }
     
 
-	int PutVal(const int64_t row,const int64_t col,const TVar &value );
-	const TVar &GetVal(const int64_t row,const int64_t col ) const;
+	int PutVal(const int64_t row,const int64_t col,const TVar &value ) override;
+	const TVar &GetVal(const int64_t row,const int64_t col ) const override;
 	
 	/**
 	 * @name Operators with Full simmetric matrices.
@@ -98,31 +98,31 @@ public:
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
 	
 	/** @brief Resize the array but keeps its entirety. */
-	int Resize(const int64_t newDim, const int64_t );
+	int Resize(const int64_t newDim, const int64_t ) override;
 	
 	/** @brief Resize the array and resets ist entirety. */
-	int Redim(const int64_t newRows ,const int64_t);
+	int Redim(const int64_t newRows ,const int64_t) override;
 	
 	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
 	/** @brief Resets all elements. */
-	int Zero();
+	int Zero() override;
 	
 	
 	/***
 	 * @name To solve linear systems
 	 * @{
 	 */
-	virtual int Decompose_Cholesky();
-	virtual int Decompose_LDLt();
-	virtual int Decompose_Cholesky(std::list<int64_t> &singular);
-	virtual int Decompose_LDLt(std::list<int64_t> &singular);
+	virtual int Decompose_Cholesky() override;
+	virtual int Decompose_LDLt() override;
+	virtual int Decompose_Cholesky(std::list<int64_t> &singular) override;
+	virtual int Decompose_LDLt(std::list<int64_t> &singular) override;
 	
-	virtual int Subst_Forward  ( TPZFMatrix<TVar>  *B ) const;
-	virtual int Subst_Backward ( TPZFMatrix<TVar>  *B ) const;
-	virtual int Subst_LForward ( TPZFMatrix<TVar>  *B ) const;
-	virtual int Subst_LBackward( TPZFMatrix<TVar>  *B ) const;
-	virtual int Subst_Diag     ( TPZFMatrix<TVar>  *B ) const;
+	virtual int Subst_Forward  ( TPZFMatrix<TVar>  *B ) const override;
+	virtual int Subst_Backward ( TPZFMatrix<TVar>  *B ) const override;
+	virtual int Subst_LForward ( TPZFMatrix<TVar>  *B ) const override;
+	virtual int Subst_LBackward( TPZFMatrix<TVar>  *B ) const override;
+	virtual int Subst_Diag     ( TPZFMatrix<TVar>  *B ) const override;
 	/** @} */
 	
 #ifdef OOPARLIB
@@ -135,13 +135,13 @@ public:
 	
 #endif
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 private:
 	
 	int64_t Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
 	
-	int Clear();
+	int Clear() override;
 	
 	TVar   *fElem;
 };

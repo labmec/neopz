@@ -83,9 +83,6 @@ TPZTracerFlow & TPZTracerFlow::operator=(const TPZTracerFlow &copy){
 	return *this;
 }
 
-int TPZTracerFlow::NStateVariables() {
-	return 1;
-}
 
 void TPZTracerFlow::SetForcesPressure(REAL fx){
     fxfPQ = fx;

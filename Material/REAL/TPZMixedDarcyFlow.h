@@ -45,81 +45,81 @@ public:
     TPZMixedDarcyFlow(const TPZMixedDarcyFlow &other);
     
     /** @brief return a material object from a this object */
-    TPZMaterial * NewMaterial();
+    TPZMaterial * NewMaterial() override;
     
     /** @brief assignment operator */
     TPZMixedDarcyFlow &operator=(const TPZMixedDarcyFlow &other);
     
     /** @brief return the euclidean dimension of the weak statement */
-    int Dimension() const;
+    int Dimension() const override;
     
     /** @brief Sets material dimension */
     void SetDimension(int dim) { m_dim = dim; }
     
     /** @brief return the number of state variables associated with each trial function */
-    int NStateVariables();
+    virtual int NStateVariables() const override;
     
     /** @brief print all material information */
-    void Print(std::ostream & out);
+    void Print(std::ostream & out) override;
     
     /** @brief print material name */
-    std::string Name();
+    std::string Name() override;
     
     /** @brief fill requirements for volumetric contribute methods multiphsycis mesh */
-    void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
+    void FillDataRequirements(TPZVec<TPZMaterialData> &datavec) override;
     
     /** @brief fill requirements for boundary contribute methods multiphsycis mesh */
-    void FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec);
+    void FillBoundaryConditionDataRequirement(int type, TPZVec<TPZMaterialData> &datavec) override;
     
     /** @brief unique class identifier */
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
     
     /** @brief write class in disk */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    virtual void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief write class from disk */
-    void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     /** @brief Boundary contribute without jacobian matrix */
-    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
         DebugStop();
     }
     
     /** @brief Boundary contribute */
-    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
         DebugStop();
     }
     
     /** @brief Volumetric contribute with jacobian matrix */
-    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
     
     /** @brief Volumetric contribute */
-    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef){
+    void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
+    
+    /** @brief Volumetric contribute with jacobian matrix */
+    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
     
     /** @brief Volumetric contribute without jacobian matrix */
-    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-    
-    /** @brief Volumetric contribute */
-    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef);
+    void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef) override;
     
     /** @brief Boundary contribute without jacobian matrix */
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     
     /** @brief Boundary contribute */
-    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
     
     /** @brief Variable index based on variable naming */
-    int VariableIndex(const std::string &name);
+    int VariableIndex(const std::string &name) override;
     
     /** @brief size of the current variable (1 -> scalar, 3-> vector, 9 ->  Tensor ) */
-    int NSolutionVariables(int var);
+    int NSolutionVariables(int var) override;
     
     /** @brief Postprocess required variables multiphysics */
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
     
     /// @TODO:: JV document me please
     void SetPermeability(REAL kappa){

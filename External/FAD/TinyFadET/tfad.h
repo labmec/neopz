@@ -122,7 +122,7 @@ public:
   template <class ExprT> TFad<Num,T>& operator+= (const TFadExpr<ExprT>& fadexpr);
   template <class ExprT> TFad<Num,T>& operator-= (const TFadExpr<ExprT>& fadexpr);
 
-  virtual int ClassId() const;
+  int ClassId() const override;
       
 template <typename TEMP=void>
 typename std::enable_if<is_arithmetic_pz<T>::value, TEMP>::type

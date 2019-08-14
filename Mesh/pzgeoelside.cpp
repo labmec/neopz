@@ -258,13 +258,11 @@ int TPZGeoElSide::NSides() const
 /// Area associated with the side
 REAL TPZGeoElSide::Area()
 {
-	TPZManVector<REAL,3> elparam(fGeoEl->Dimension(),0.), sideparam(Dimension(),0);
-    TPZTransform<> tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1, fSide);
+	TPZManVector<REAL,3> sideparam(Dimension(),0);
 	REAL detjac;
 	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
     //supondo jacobiano constante: X linear
-	CenterPoint(elparam);
-    tr.Apply(elparam, sideparam);
+	CenterPoint(sideparam);
 	Jacobian(sideparam,jacobian,axes,detjac,jacinv);
     TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
     REAL RefElVolume = 0.;
@@ -337,6 +335,9 @@ void TPZGeoElSide::RemoveConnectivity(){
 	}
 }
 
+bool TPZGeoElSide::ResetBlendConnectivity(const int64_t &index){
+    return fGeoEl->ResetBlendConnectivity(fSide, index);
+}
 using namespace std;
 
 /**
@@ -1220,9 +1221,9 @@ void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
         {
             TPZManVector<REAL, 3> v1(3,0.0),v2(3,0.0),v3(3,0.0),v4(3,0.0);
             for (unsigned int i = 0; i < 3 ; i++) {
-                v1[i] = vol_axes(i,0);
-                v2[i] = vol_axes(i,1);
-                v3[i] = side_axes(i,0);
+                v1[i] = vol_axes(0,i);
+                v2[i] = vol_axes(1,i);
+                v3[i] = side_axes(0,i);
             }
             
             TPZNumeric::ProdVetorial(v1, v2, v4);
@@ -1234,8 +1235,8 @@ void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
         {
             TPZManVector<REAL, 3> v1(3,0.0),v2(3,0.0);
             for (unsigned int i = 0; i < 3 ; i++) {
-                v1[i] = side_axes(i,0);
-                v2[i] = side_axes(i,1);
+                v1[i] = side_axes(0,i);
+                v2[i] = side_axes(1,i);
             }
             TPZNumeric::ProdVetorial(v1, v2, normal);
         }
@@ -1274,6 +1275,10 @@ void TPZGeoElSide::Print(std::ostream &out) const
         out << SideNodeIndex(i) << " ";
     }
     out << "Center coordinate " << centerX << std::endl;
+}
+
+TPZIntPoints *TPZGeoElSide::CreateIntegrationRule(int order) {
+    return this->Element()->CreateSideIntegrationRule(this->Side(), order);
 }
 
 int TPZGeoElSide::GelLocIndex(int index) const

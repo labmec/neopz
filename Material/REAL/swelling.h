@@ -118,17 +118,17 @@ class TPZSwelling : public TPZMaterial {
 	virtual ~TPZSwelling();
 	
 	/** @brief Dimension of the problem */
-	virtual int Dimension() const { return 3;}
+	virtual int Dimension() const  override { return 3;}
 	
 	/**
 	 * @brief Number of state variables, in this case: \n
 	 * 3 displacements, 1 pressure, 3 eletrochemical potencials, 1 eletrical potencial
 	 */
-	int NStateVariables() { return 8;}
+	virtual int NStateVariables() const override{ return 8;}
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZSwelling"; }
+	virtual std::string Name()  override { return "TPZSwelling"; }
 	
 	void SetComputationMode(int mode) {
 		switch(mode) {
@@ -151,12 +151,12 @@ class TPZSwelling : public TPZMaterial {
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef){
+							TPZFMatrix<STATE> &ef) override {
 		std::cout << "TPZSwelling::Contribute not implemented\n";
 	}
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef){
+							TPZFMatrix<STATE> &ef) override {
 		std::cout << "TPZSwelling::Contribute not implemented\n";
 	}
 	
@@ -164,11 +164,11 @@ class TPZSwelling : public TPZMaterial {
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
@@ -282,16 +282,16 @@ public:
 	
 public:
 
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	/** @brief Returns the number of solution variables associated with a variable index */
 	/** (e.g. 1 for scalar, 3 for vectorial, 9 for tensorial) */
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 protected:
 	/** @brief Computes a post-processed solution variable corresponding to the variable index */
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -300,7 +300,7 @@ public:
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
     public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
  
 };
 

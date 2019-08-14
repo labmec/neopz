@@ -21,7 +21,8 @@
 /**
  * \f$ Q = -(k/visc)*grad(p)  ==> Int{Q.q}dx - (k/visc)*Int{p*div(q)}dx + (k/visc)*Int{pD(q.n)}ds = 0  (Eq. 1)  \f$ 
  *
- * \f$ \alpha p^{n+1)/\Delta t div(Q) = f +\alpha p^n/\Delta t ==> Int{\alpha v*p^{n+1} +div(Q)*v}dx = Int{v*p^n*\alpha /\Delta t f^{n+1}*v}dx (Eq. 2) \f$
+ * \alpha p^{n+1)/\Delta t div(Q) = f +\alpha p^n/\Delta t ==>
+ * \f$ Int{\alpha v*p^{n+1} +div(Q)*v}dx = Int{v*p^n*\alpha /\Delta t f^{n+1}*v}dx (Eq. 2) \f$
  *
  * \f$ p = pD in Dirichlet boundary and Q.n = qN in Neumann boundary\f$
  */

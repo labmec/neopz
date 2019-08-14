@@ -42,7 +42,7 @@ public:
 	~TPZReferredCompEl();
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(TPZCompMesh *mesh);
+	virtual void SetCreateFunctions(TPZCompMesh *mesh) override;
 	
 	/** @brief Returns referred element of this */
 	TPZCompEl * ReferredElement();
@@ -68,7 +68,7 @@ public:
      * @param sol finite element solution
      * @param dsol solution derivatives
      */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
     
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -87,16 +87,16 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
 								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	/**
 	 * @brief Prints element data
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void Print(std::ostream & out = std::cout) const override;
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
     public:
 protected:
 	

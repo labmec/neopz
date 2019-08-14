@@ -365,12 +365,17 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial * mat,
 												   TPZAnalysis &an,int marcha,const std::string &dxout) {
 	
-	TPZVec<std::string> scalar(1),vector(0);
+	TPZVec<std::string> scalar(1),vector(0), tensor(0);
 	scalar[0] = "pressure";
 	int dim = mat->Dimension();
 	TPZCompMesh *anmesh = an.Mesh();
 //	ResetReference(anmesh);//retira refer�cias para criar graph consistente
-	TPZVTKGraphMesh graph(anmesh, dim, mat, scalar, vector);
+    std::set<int> matids;
+    if (!mat) {
+        DebugStop();
+    }
+    matids.insert(mat->Id());
+	TPZVTKGraphMesh graph(anmesh, dim, matids, scalar, vector, tensor);
 //	TPZDXGraphMesh graph(anmesh,dim,mat,scalar,vector);
 //	SetReference(anmesh);//recupera as refer�cias retiradas
 	graph.SetFileName(dxout);
@@ -663,14 +668,24 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	scalar[0] = "pressure";
 	geomesh->ResetReference();
 	fMeshes[2]->LoadReferences();
-	TPZDXGraphMesh finegraph(fMeshes[2],finedim,finemat,scalar,vector);
+    if (!finemat) {
+        DebugStop();
+    }
+    std::set<int> matids;
+    matids.insert(finemat->Id());
+	TPZDXGraphMesh finegraph(fMeshes[2],finedim,matids,scalar,vector);
 	finegraph.SetFileName("FineSmoothing.dx");
 	finegraph.SetResolution(0);
 	finegraph.DrawMesh(finedim);
 	geomesh->ResetReference();
 	fMeshes[1]->LoadReferences();
-	ResetReference(fMeshes[1]);//retira refer�cias para criar coarsegraph consistente  
-	TPZDXGraphMesh coarsegraph(fMeshes[1],coarsedim,coarsemat,scalar,vector);
+	ResetReference(fMeshes[1]);//retira refer�cias para criar coarsegraph consistente
+    if (!coarsemat) {
+        DebugStop();
+    }
+    matids.clear();
+    matids.insert(coarsemat->Id());
+	TPZDXGraphMesh coarsegraph(fMeshes[1],coarsedim,matids,scalar,vector);
 	SetReference(fMeshes[1]);//recupera as refer�cias
 	coarsegraph.SetFileName("CoarseSmoothing.dx");
 	coarsegraph.SetResolution(0);

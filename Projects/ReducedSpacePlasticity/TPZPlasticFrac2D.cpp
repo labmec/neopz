@@ -67,11 +67,6 @@ TPZPlasticFrac2D<T,TMEM>::~TPZPlasticFrac2D()
 {
 }
 
-template<class T,class TMEM>
-int TPZPlasticFrac2D<T,TMEM>::NStateVariables()
-{
-	return 1;
-}
 
 template<class T,class TMEM>
 void TPZPlasticFrac2D<T,TMEM>::Print(std::ostream &out)

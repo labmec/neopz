@@ -96,6 +96,9 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 
 TPZGeoMesh::~TPZGeoMesh()
 {
+#ifdef PZDEBUG2
+    std::cout << "Deleting TPZGeoMesh " << (void *) this << std::endl;
+#endif
 	CleanUp();
 }
 
@@ -105,7 +108,8 @@ void TPZGeoMesh::CleanUp() {
     for (i = 0; i < nel; i++) {
         TPZGeoEl *el = fElementVec[i];
         if (el) {
-            el->ResetSubElements();
+            if(el->HasSubElement()) el->ResetSubElements();
+            if(el->FatherIndex() != -1) el->SetFather((int64_t) -1);
             delete el;
             fElementVec[i] = 0;
         }

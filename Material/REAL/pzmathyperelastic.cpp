@@ -44,7 +44,7 @@ TPZMaterial(nummat)
 TPZMatHyperElastic::~TPZMatHyperElastic() {
 }
 
-int TPZMatHyperElastic::NStateVariables() {
+int TPZMatHyperElastic::NStateVariables() const {
 	return 3;//3 deslocamentos
 }
 

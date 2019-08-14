@@ -7,10 +7,12 @@
 
 #include "TPZMultiphysicsCompMesh.h"
 #include "pzmultiphysicscompel.h"
+#include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysicscompmesh"));
+static LoggerPtr logger(Logger::getLogger("pz.mulptiphysicscompmesh"));
 #endif
+
 
 TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh() : TPZCompMesh(){
     
@@ -24,10 +26,24 @@ TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(TPZGeoMesh * gmesh) : TPZCompMe
     m_mesh_vector.Resize(0);
 }
 
+TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(TPZAutoPointer<TPZGeoMesh>  gmesh) : TPZCompMesh(gmesh),
+    m_active_approx_spaces(), m_mesh_vector(){
+    
+}
+
 TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(const TPZMultiphysicsCompMesh &other) : TPZCompMesh(other) {
     m_active_approx_spaces  = other.m_active_approx_spaces;
     m_mesh_vector           = other.m_mesh_vector;
 }
+
+/// Destructor
+TPZMultiphysicsCompMesh::~TPZMultiphysicsCompMesh()
+{
+    m_active_approx_spaces.Resize(0);
+    m_mesh_vector.Resize(0);
+}
+
+
 
 TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysicsCompMesh &other){
     
@@ -40,27 +56,53 @@ TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysi
     return *this;
 }
 
-TPZManVector<TPZCompMesh *, 3> & TPZMultiphysicsCompMesh::MeshVector() {
+TPZVec<TPZCompMesh *> & TPZMultiphysicsCompMesh::MeshVector() {
     return  m_mesh_vector;
 }
 
-TPZManVector<int,5> &  TPZMultiphysicsCompMesh::GetActiveApproximationSpaces(){
+TPZVec<int> &  TPZMultiphysicsCompMesh::GetActiveApproximationSpaces(){
     return m_active_approx_spaces;
 }
 
-void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZManVector<int,5> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
+/// Set active approximation spaces
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector)
+{
+    TPZManVector<int> active(mesh_vector.size(),1);
+    BuildMultiphysicsSpace(active,mesh_vector);
+}
+
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
     
+    m_active_approx_spaces = active_approx_spaces;
+    m_mesh_vector          = mesh_vector;
     if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
         DebugStop();
     }
-    m_active_approx_spaces = active_approx_spaces;
-    m_mesh_vector          = mesh_vector;
     int n_approx_spaces = m_mesh_vector.size();
     SetNMeshes(n_approx_spaces);
-    
+    Reference()->ResetReference();
     SetAllCreateFunctionsMultiphysicElem();
+    // delete all elements and connects in the mesh
+    CleanElementsConnects();
     TPZCompMesh::AutoBuild();
+    AddElements();
+    AddConnects();
+    LoadSolutionFromMeshes();
+}
+
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector, const TPZVec<int64_t> &gelindexes){
+    
+    m_mesh_vector          = mesh_vector;
+    m_active_approx_spaces.Resize(m_mesh_vector.size());
+    for(int64_t i = 0; i< m_active_approx_spaces.size(); i++) m_active_approx_spaces[i] = 1;
+    int n_approx_spaces = m_mesh_vector.size();
+    SetNMeshes(n_approx_spaces);
+    Reference()->ResetReference();
+    SetAllCreateFunctionsMultiphysicElem();
+    // delete all elements and connects in the mesh
+    CleanElementsConnects();
+    TPZCompMesh::AutoBuild(gelindexes);
     AddElements();
     AddConnects();
     LoadSolutionFromMeshes();
@@ -340,3 +382,22 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
     }
 }
 
+/// delete the elements and connects
+void TPZMultiphysicsCompMesh::CleanElementsConnects()
+{
+    int64_t nel = NElements();
+    for (int64_t el = 0; el<nel; el++) {
+        TPZCompEl *cel = Element(el);
+        if(cel)
+        {
+            delete cel;
+            fElementVec[el] = 0;
+        }
+    }
+    fElementVec.Resize(0);
+    nel = fConnectVec.NElements();
+    for (int64_t el=0; el<nel; el++) {
+        fConnectVec[el].RemoveDepend();
+    }
+    fConnectVec.Resize(0);
+}

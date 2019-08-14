@@ -84,9 +84,7 @@ TPZNLElasticityMaterial::TPZNLElasticityMaterial(int num, REAL E, REAL nu, REAL 
 TPZNLElasticityMaterial::~TPZNLElasticityMaterial() {
 }
 
-int TPZNLElasticityMaterial::NStateVariables() {
-	return 2;
-}
+
 
 void TPZNLElasticityMaterial::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";

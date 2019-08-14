@@ -60,17 +60,17 @@ public:
 	 * @{
 	 */
 	
-	int Decompose_Cholesky(std::list<int64_t> &singular);
-	int Decompose_Cholesky();
+	int Decompose_Cholesky(std::list<int64_t> &singular) override;
+	int Decompose_Cholesky() override;
 	
-	int Decompose_LDLt(std::list<int64_t> &singular);
-	int Decompose_LDLt();
+	int Decompose_LDLt(std::list<int64_t> &singular) override;
+	int Decompose_LDLt() override;
 	
 	void SetSkyline(const TPZVec<int64_t> &skyline);
 
 	/** @} */
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 private:
 	

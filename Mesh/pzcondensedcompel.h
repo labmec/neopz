@@ -221,6 +221,8 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
 								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 
+    /// Assemble the stiffness matrix in locally kept datastructure
+    virtual void Assemble() override;
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix
@@ -234,6 +236,9 @@ public:
 	 * @param ef element load vector(s)
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef) override;
+    
+    /** @brief Verifies if the material associated with the element is contained in the set */
+    virtual bool HasMaterial(const std::set<int> &materialids) const override;
     
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                   TPZVec<REAL> &errors, bool store_errors) override {
@@ -258,7 +263,6 @@ public:
 		return 0;
     }
 
-public:
 virtual int ClassId() const override;
 
 

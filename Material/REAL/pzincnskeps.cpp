@@ -39,7 +39,7 @@ int TPZIncNavierStokesKEps::Dimension() const {
 	return this->fDimension;
 }
 
-int TPZIncNavierStokesKEps::NStateVariables(){
+int TPZIncNavierStokesKEps::NStateVariables() const {
 	return this->Dimension() + 3; //Vi + p + K + Eps
 }
 

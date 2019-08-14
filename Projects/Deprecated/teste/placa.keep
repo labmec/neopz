@@ -1,0 +1,112 @@
+#include "pzfmatrix.h"
+#include "pzplaca.h"
+#include <fstream.h>
+
+TPZMaterial *LerMaterial(char *filename);
+
+int main(){
+
+	ofstream out("saida.txt");
+   TPZFMatrix axes(3,3),naxes(3,3);
+   REAL ni1,ni2,h,E1,E2,G12,G13,G23,f;
+   REAL n00,n01,n02,n10,n11,n12,n20,n21,n22;
+   REAL Pi;
+   Pi=acos(-1.0);
+
+   //ifstream input ("dados.dat");
+   //input >> Ex >> Ey >> h;
+   //TPZPlaca placa(1,Ex,Ey,h);
+
+   E1=210000; E2=210000.; ni1=0.15; ni2=0.15; h=0.15; f=0.075;
+   G12=180000.; G13=180000.; G23=180000.;
+
+
+   axes(0,0) =  1;    axes(0,1) =  0.;    axes(0,2) =  0.;
+   axes(1,0) =  0.;   axes(1,1) =  1.;    axes(1,2) =  0.;
+   axes(2,0) =  0.;   axes(2,1) =  0.;    axes(2,2) =  1.;
+
+   n00= cos(Pi/6);       n01= sin(Pi/6);    n02= 0.;
+   n10=-sin(Pi/6);       n11= n00;          n12= 0.;
+   n20= 0.;              n21= 0.;           n22= 1.;
+
+   naxes(0,0) =  n00;    naxes(0,1) =  n01;    naxes(0,2) =  n02;
+   naxes(1,0) =  n10;    naxes(1,1) =  n11;    naxes(1,2) =  n12;
+   naxes(2,0) =  n20;    naxes(2,1) =  n21;    naxes(2,2) =  n22;
+
+
+
+   TPZVec<REAL> xf(6);
+   TPZPlaca minhaplaca(1,h,f,E1,E2,ni1,ni2,G12,G13,G23,naxes,xf);
+   TPZVec<REAL> Sol(6);
+   TPZFMatrix DSol(2,6);
+   int var;
+   TPZVec<REAL> Solout(1);
+   Sol[0]=1.2;
+   Sol[1]=1.3;
+   Sol[2]=1.4;
+   Sol[3]=-0.5;
+   Sol[4]=-0.7;
+   Sol[5]=0.9;
+   DSol(0,0)=0.4;
+   DSol(0,1)=0.3;
+   DSol(0,2)=-0.2;
+   DSol(0,3)=1.0;
+   DSol(0,4)=1.2;
+   DSol(0,5)=1.3;
+   DSol(1,0)=0.5;
+   DSol(1,1)=-0.25;
+   DSol(1,2)=0.8;
+   DSol(1,3)=-0.9;
+   DSol(1,4)=0.7;
+   DSol(1,5)=-0.93;
+   var=5;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Mn1=  " << Solout[0] << "\n";
+   var=6;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Mn2=  " << Solout[0] << "\n";
+   var=7;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Mn1n2=  " << Solout[0] << "\n";
+   var=7;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Sign1=  " << Solout[0] << "\n";
+   var=8;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Sign2=  " << Solout[0] << "\n";
+   var=9;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Sign1n2=  " << Solout[0] << "\n";
+   var=10;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Taun1n2=  " << Solout[0] << "\n";
+   var=11;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Taun1n3=  " << Solout[0] << "\n";
+   var=12;
+   minhaplaca.Solution(Sol,DSol,axes,var,Solout);
+   out << "Taun2n3=  " << Solout[0] << "\n";
+
+
+    //  Solout.Print(out);
+ //  TPZFMatrix val1(6,6),val2(6,1);
+ //  TPZBndCond *bc = minhaplaca.CreateBC(-1,0,val1,val2);
+	return 0;
+}
+
+TPZMaterial *LerMaterial(char *filename) {
+	ifstream input(filename);
+   TPZFMatrix naxes(3,3);
+   REAL ni1,ni2,h,E1,E2,G12,G13,G23,f;
+   REAL n00,n01,n02,n10,n11,n12,n20,n21,n22;
+   TPZVec<REAL> xf(6);
+   int matindex;
+   input >> matindex;
+   input >> f >> h >> E1 >> E2 >> G12 >> G13 >> G23 >> ni1 >> ni2;
+   input >> n00 >> n01 >> n02 >> n10 >> n11 >> n12 >> n20 >> n21 >> n22;
+	input >> xf[0] >> xf[1] >> xf[2] >> xf[3] >> xf[4] >> xf[5];
+   naxes(0,0) =  n00;    naxes(0,1) =  n01;    naxes(0,2) =  n02;
+   naxes(1,0) =  n10;    naxes(1,1) =  n11;    naxes(1,2) =  n12;
+   naxes(2,0) =  n20;    naxes(2,1) =  n21;    naxes(2,2) =  n22;
+   return new TPZPlaca(matindex,h,f,E1,E2,ni1,ni2,G12,G13,G23,naxes,xf);
+}

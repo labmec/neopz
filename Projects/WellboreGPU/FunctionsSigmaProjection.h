@@ -22,7 +22,12 @@ bool PhiPlane(REAL *eigenvalues, REAL *sigma_projected, REAL mc_phi, REAL mc_coh
 #ifdef __CUDACC__
 __device__ 
 #endif
-bool ReturnMappingMainPlane(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+bool ReturnMappingMainPlane(REAL *sigma_trial, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+    REAL eigenvalues[3];
+    eigenvalues[0] = sigma_trial[0];
+    eigenvalues[1] = sigma_trial[1];
+    eigenvalues[2] = sigma_trial[2];
+
 	const REAL sinphi = sin(mc_phi);
 	const REAL sinpsi = sin(mc_psi);
 	const REAL cosphi = cos(mc_phi);
@@ -61,6 +66,11 @@ bool ReturnMappingMainPlane(REAL *eigenvalues, REAL *sigma_projected, REAL &m_ha
 __device__
 #endif
 void ComputePlaneTangent(REAL *tang, REAL mc_phi, REAL mc_psi, REAL K, REAL G) {
+//    for (int i = 0; i < 9; i++) tang[i] = 0.;
+//    tang[0] = 1.;
+//    tang[4] = 1.;
+//    tang[8] = 1.;
+//    return;
 	const REAL sin_phi = sin(mc_phi);
 	const REAL sin_psi = sin(mc_psi);
 	const REAL denominator = 6.0 * G + 2.0 * (G + 3.0 * K) * sin_phi * sin_psi;
@@ -85,8 +95,13 @@ void ComputePlaneTangent(REAL *tang, REAL mc_phi, REAL mc_psi, REAL K, REAL G) {
 #ifdef __CUDACC__
 __device__ 
 #endif
-bool ReturnMappingRightEdge(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
-	const REAL sinphi = sin(mc_phi);
+bool ReturnMappingRightEdge(REAL *sigma_trial, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+    REAL eigenvalues[3];
+    eigenvalues[0] = sigma_trial[0];
+    eigenvalues[1] = sigma_trial[1];
+    eigenvalues[2] = sigma_trial[2];
+
+    const REAL sinphi = sin(mc_phi);
 	const REAL sinpsi = sin(mc_psi);
 	const REAL cosphi = cos(mc_phi);
 
@@ -151,7 +166,11 @@ bool ReturnMappingRightEdge(REAL *eigenvalues, REAL *sigma_projected, REAL &m_ha
 __device__
 #endif
 void ComputeRightEdgeTangent(REAL *tang, REAL mc_phi, REAL mc_psi, REAL K, REAL G) {
-
+//    for (int i = 0; i < 9; i++) tang[i] = 0.;
+//    tang[0] = 1.;
+//    tang[4] = 1.;
+//    tang[8] = 1.;
+//    return;
 	const REAL sin_phi = sin(mc_phi);
 	const REAL sin_psi = sin(mc_psi);
 	const REAL a = 4.0 * G * (1.0 + (1.0/3.0) * sin_phi * sin_psi) + 4.0 * K * sin_phi * sin_psi;
@@ -181,8 +200,13 @@ void ComputeRightEdgeTangent(REAL *tang, REAL mc_phi, REAL mc_psi, REAL K, REAL 
 #ifdef __CUDACC__
 __device__ 
 #endif
-bool ReturnMappingLeftEdge(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
-	const REAL sinphi = sin(mc_phi);
+bool ReturnMappingLeftEdge(REAL *sigma_trial, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K, REAL G) {
+    REAL eigenvalues[3];
+    eigenvalues[0] = sigma_trial[0];
+    eigenvalues[1] = sigma_trial[1];
+    eigenvalues[2] = sigma_trial[2];
+
+    const REAL sinphi = sin(mc_phi);
 	const REAL sinpsi = sin(mc_psi);
 	const REAL cosphi = cos(mc_phi);
 	const REAL sinphi2 = sinphi * sinphi;
@@ -246,7 +270,11 @@ bool ReturnMappingLeftEdge(REAL *eigenvalues, REAL *sigma_projected, REAL &m_har
 __device__
 #endif
 void ComputeLeftEdgeTangent(REAL *tang, REAL mc_phi, REAL mc_psi, REAL K, REAL G) {
-
+//    for (int i = 0; i < 9; i++) tang[i] = 0.;
+//    tang[0] = 1.;
+//    tang[4] = 1.;
+//    tang[8] = 1.;
+//    return;
 	const REAL sin_phi = sin(mc_phi);
 	const REAL sin_psi = sin(mc_psi);
 	const REAL a = 4.0 * G * (1.0 + (1.0/3.0) * sin_phi * sin_psi) + 4.0 * K * sin_phi * sin_psi;
@@ -276,12 +304,12 @@ void ComputeLeftEdgeTangent(REAL *tang, REAL mc_phi, REAL mc_psi, REAL K, REAL G
 #ifdef __CUDACC__
 __device__ 
 #endif
-void ReturnMappingApex(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K) {
+void ReturnMappingApex(REAL *sigma_trial, REAL *sigma_projected, REAL &m_hardening, REAL mc_phi, REAL mc_psi, REAL mc_cohesion, REAL K) {
 	const REAL cotphi = 1. / tan(mc_phi);
 
 	REAL ptrnp1 = 0.;
 	for (int i = 0; i < 3; i++) {
-		ptrnp1 += eigenvalues[i];
+		ptrnp1 += sigma_trial[i];
 	}
 	ptrnp1 /= 3.;
 
@@ -313,6 +341,11 @@ void ReturnMappingApex(REAL *eigenvalues, REAL *sigma_projected, REAL &m_hardeni
 __device__
 #endif
 void ComputeApexGradient(REAL *gradient) {
+//    for (int i = 0; i < 9; i++) gradient[i] = 0.;
+//    gradient[0] = 1.;
+//    gradient[4] = 1.;
+//    gradient[8] = 1.;
+//    return;
 	for (int i = 0; i < 3 * 3; i++) {
 		gradient[i] = 0;
 	}
@@ -345,12 +378,12 @@ void ProjectSigma(REAL *eigenvalues, REAL *sigma_projected, int &m_type, REAL &a
 		if (!check_Q) { //edges or apex
 			if (((1 - sin(mc_psi)) * eigenvalues[0] - 2. * eigenvalues[1] + (1 + sin(mc_psi)) * eigenvalues[2]) > 0) { // right edge
 				check_Q = ReturnMappingRightEdge(eigenvalues, sigma_projected, alpha, mc_phi, mc_psi, mc_cohesion, K, G);
-				if (require_gradient_Q) {
+				if (check_Q && require_gradient_Q) {
 					ComputeRightEdgeTangent(gradient, mc_phi, mc_psi, K, G);
 				}
 			} else { //left edge
 				check_Q = ReturnMappingLeftEdge(eigenvalues, sigma_projected, alpha, mc_phi, mc_psi, mc_cohesion, K, G);
-				if (require_gradient_Q) {
+				if (check_Q && require_gradient_Q) {
 					ComputeLeftEdgeTangent(gradient, mc_phi, mc_psi, K, G);
 				}
 			}

@@ -57,7 +57,7 @@ public:
     ~TPZDohrPrecond();
     
 	// CLONEDEF(TPZDohrPrecond)
-	virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrPrecond(*this); }
+	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZDohrPrecond(*this); }
     
     /** @brief The matrix class is a placeholder for a list of substructures */
 	std::list<TPZAutoPointer<TSubStruct> > &Global()
@@ -92,7 +92,7 @@ public:
 	 * In fact, it will compute \f$v1+v2+v3\f$ \n
 	 * It computes \f$ z = beta * y + alpha * opt(this)*x\f$ but z and x can not overlap in memory.
 	 */
-	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const override;
 	
     /** Copy of the MultAdd using TBB */
     virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;
@@ -107,20 +107,20 @@ public:
     
 	/** @brief Routines to send and receive messages */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 	
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid );
+	void Write(TPZStream &buf, int withclassid) const override;
 
 };
 

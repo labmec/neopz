@@ -36,9 +36,9 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
 		
-                virtual int ClassId() const;
-                void Read(TPZStream& buf, void* context);
-                void Write(TPZStream& buf, int withclassid) const;
+                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
+                void Write(TPZStream &buf, int withclassid) const override;
 
 		/** @brief Default constructor */
         TPZPyramid() : TPZRegisterClassId(&TPZPyramid::ClassId) {
@@ -90,8 +90,16 @@ namespace pztopology {
 		static void CenterPoint(int side, TPZVec<REAL> &center);
 		
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
-		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
-        
+		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6L);
+        #ifdef _AUTODIFF
+        template<typename T,
+                typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
+        static bool IsInParametricDomain(const TPZVec<T> &pt, REAL tol){
+            TPZVec<REAL> qsiReal(pt.size(),-1);
+            for(int i = 0; i < qsiReal.size(); i++) qsiReal[i] = pt[i].val();
+            return IsInParametricDomain(qsiReal,tol);
+        }
+        #endif
         /** @brief Generates a random point in the master domain */
         static void RandomPoint(TPZVec<REAL> &pt);
         

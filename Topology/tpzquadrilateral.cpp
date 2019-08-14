@@ -261,7 +261,7 @@ namespace pztopology {
 		return TPZTransform<>(0,0);
 	}
 	
-	bool TPZQuadrilateral::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZQuadrilateral::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
 		const REAL qsi = pt[0];
 		const REAL eta = pt[1];
 		if( ( fabs(qsi) <= 1. + tol ) && ( fabs(eta) <= 1. + tol ) ){

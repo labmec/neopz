@@ -18,7 +18,7 @@ class TPZLadeKimThermoForceA : public TPZSavable {
 public:
 
     public:
-virtual int ClassId() const;
+int ClassId() const override;
     
     TPZLadeKimThermoForceA() : fRho(0), fD(0), fPa(0)
     {
@@ -39,13 +39,13 @@ virtual int ClassId() const;
 		return *this;
     }
     
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         buf.Write(&fRho);
         buf.Write(&fD);
         buf.Write(&fPa);
     }
     
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fRho);
         buf.Read(&fD);
         buf.Read(&fPa);

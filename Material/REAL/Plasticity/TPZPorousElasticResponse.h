@@ -46,7 +46,7 @@ public:
     
     //@TODO:: Document the Class
     
-    virtual int ClassId() const;
+    int ClassId() const override;
     
     TPZPorousElasticResponse();
     
@@ -54,9 +54,9 @@ public:
     
     TPZPorousElasticResponse & operator=(const TPZPorousElasticResponse & other);
     
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
-    void Read(TPZStream& buf, void* context);
+    void Read(TPZStream &buf, void *context) override;
     
     void SetPorousElasticity(STATE kappa, STATE pt_el, STATE e_0, STATE p_0);
     

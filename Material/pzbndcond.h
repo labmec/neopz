@@ -86,10 +86,9 @@ protected:
         ~TPZ_BCDefine()
         {
             
-        }
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+        }        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 
     };
     
@@ -238,14 +237,14 @@ protected:
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	
 	/** @brief Returns the integrable dimension of the material*/
-	int Dimension() const { return fMaterial->Dimension(); }
+	int Dimension() const override { return fMaterial->Dimension(); }
 	
-	virtual int NFluxes(){ return fMaterial->NFluxes(); }
+	virtual int NFluxes() override { return fMaterial->NFluxes(); }
 	
-	int NStateVariables() { return fMaterial->NStateVariables(); }
+	virtual int NStateVariables() const override { return fMaterial->NStateVariables(); }
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
-	virtual int NEvalErrors() {return fMaterial->NEvalErrors();}
+	virtual int NEvalErrors() override {return fMaterial->NEvalErrors();}
 	
 	int Type() { return fType; }
 	
@@ -261,7 +260,7 @@ protected:
         return fBCs[loadcase-1].fBCVal2;
     }
 	
-	TPZMaterial * Material() { return fMaterial; }
+	TPZMaterial * Material() const { return fMaterial; }
     
     void SetLoadCases(TPZVec<TPZFMatrix<STATE> > &val2vec)
     {
@@ -272,17 +271,17 @@ protected:
         }
     }
     
-    virtual int MinimumNumberofLoadCases()
+    virtual int MinimumNumberofLoadCases() override
     {
         return 1+fBCs.size();
     }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
+	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
 		flux.Fill(0.);
 	}
 	
-	void Print(std::ostream & out = std::cout) {
+	void Print(std::ostream & out = std::cout) override {
 		out << " Boundary condition number = " << Id() << "\n";
 		out << " boundary condition type = " << fType << "\n";
 		out << " val1 = \n"; fBCVal1.Print("fBCVal1",out);
@@ -306,7 +305,7 @@ protected:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point 
@@ -317,7 +316,7 @@ protected:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -328,7 +327,7 @@ protected:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
 	/**
 	 * @brief It computes a contribution to the residual vector at one integration point.
@@ -337,7 +336,7 @@ protected:
 	 * @param ef [out] is the residual vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -347,44 +346,44 @@ protected:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
     /**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @since March 5, 2013
 	 */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one BC integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val){
+				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val) override {
 		val.Fill(0.);
 	}
 	
-	virtual void Clone(std::map<int, TPZMaterial * > &matvec);
+	virtual void Clone(std::map<int, TPZMaterial * > &matvec) override;
 	
 	/** 
 	 * @brief Compute interface jumps
@@ -395,28 +394,28 @@ protected:
 	 * \f$ values[2] = (dsolleft - dsolright)^2 \f$ \n
 	 * \f$ values[0] = values[1] + values[2] \f$
 	 */
-	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump);
+	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump) override;
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+virtual int ClassId() const override;
 
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context)  override;
 	
 	void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 								   REAL weight,
 								   TPZVec<STATE> &nkL,
 								   TPZVec<STATE> &nkR,
-								   int &errorid);
+								   int &errorid) override;
 	
 	void  ContributeErrors(TPZMaterialData &data,// aqui
 						   REAL weight,
 						   TPZVec<REAL> &nk,
-						   int &errorid){
+						   int &errorid) override {
 		//nothing to be done here
 	};
 	
@@ -426,14 +425,14 @@ virtual int ClassId() const;
 											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
 											 int &errorid
-											 ){
+											 ) override {
 		//nothing to be done here
 	}
 	
 	/** @brief Calls the aggregate material correspondent function */
-	virtual void FillDataRequirements(TPZMaterialData &data);
+	virtual void FillDataRequirements(TPZMaterialData &data) override;
     
-    virtual void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData> &datavec)  override;
 	
 };
 

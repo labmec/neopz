@@ -1003,6 +1003,48 @@ int TPZSubCompMesh::IsAllowedElement(TPZCompMesh *mesh, int64_t elindex){
 	return 1;
 }
 
+/// Assemble the stiffness matrix in locally kept datastructure
+void TPZSubCompMesh::Assemble()
+{
+    if(fAnalysis)
+    {
+    }
+    else
+    {
+        std::cout << "The SubCompMesh needs a configured analysis\n";
+        DebugStop();//this->SetAnalysis();
+    }
+    std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
+    if(!NeedsComputing(matids))
+    {
+        return;
+    }
+    int i=0;
+    CleanUpUnconnectedNodes();
+    PermuteExternalConnects();
+    fAnalysis->Assemble();
+
+    //Trying to get a derived Analysis which is a SubMeshAnalysis.
+    //It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
+    TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
+    if(!castedAnal)
+    {
+        DebugStop();
+    }
+
+    TPZAutoPointer<TPZMatrix<STATE> > ReducableStiff = castedAnal->Matrix();
+    if (!ReducableStiff) {
+        DebugStop();
+    }
+    TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (ReducableStiff.operator->());
+    if(!matred) DebugStop();
+    
+    matred->SetF(fAnalysis->Rhs());
+
+}
+
+
+
 void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	if(fAnalysis)
 	{
@@ -1976,6 +2018,23 @@ bool TPZSubCompMesh::VerifyDatastructureConsistency()
 	return true;
 }
 
+/** Verify if the material associated with the element is contained in the set */
+bool TPZSubCompMesh::HasMaterial(const std::set<int> &materialids) const
+{
+    int nel = NElements();
+    for (int el=0; el<nel ; el++) {
+        TPZCompEl *cel = ElementVec()[el];        
+        if (!cel) {
+            continue;
+        }
+        bool has_material_Q = cel->HasMaterial(materialids);
+        if (has_material_Q) {
+            return true;
+        }
+    }
+    return false;
+}
+
 int TPZSubCompMesh::NumberRigidBodyModes()
 {
 	if (fSingularConnect == -1) {
@@ -2069,7 +2128,7 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
 
 void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                                           TPZVec<REAL> &errors, bool store_errors){
-
+    
   fAnalysis->SetExact(fp);
   fAnalysis->PostProcessError(errors,store_errors);
     int NErrors = errors.size();

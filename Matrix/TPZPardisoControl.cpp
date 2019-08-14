@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
-#define Force_Decomposition_and_Release_Memory_Q
+//#define Release_Memory_Q
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -150,12 +150,12 @@ long long TPZPardisoControl<TVar>::MatrixType()
         DebugStop();
     }
     
-    for (long long i=0; i<64; i++) {
-        long long val = fHandle[i];
-        if (val) {
-            DebugStop();
-        }
-    }
+//    for (long long i=0; i<64; i++) {
+//        long long val = fHandle[i];
+//        if (val) {
+//            DebugStop();
+//        }
+//    }
     
     int param[64] = {0};
     int matrixtype = fMatrixType;
@@ -209,11 +209,10 @@ void TPZPardisoControl<TVar>::Decompose()
     }
     perm = &fPermutation[0];
     
-    fParam[4 ] = 1; // user permutation PERM
-    
     /// analyse and factor the equations
     // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
     if (fProperty == EIndefinite) {
+        fParam[4] = 1;
         if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
             fParam[3 ] = 10*6+2;
         }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
@@ -336,7 +335,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     }
     std::cout << "Pardiso:: linear solve complete. \n";
 
-#ifdef Force_Decomposition_and_Release_Memory_Q
+#ifdef Release_Memory_Q
     phase = -1;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     if (fSymmetricSystem) {

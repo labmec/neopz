@@ -1079,7 +1079,17 @@ void TPZGeoEl::RemoveConnectivities(){
 	int nsides = NSides(),side;
 	for(side=0;side<nsides;side++){
 		TPZGeoElSide thisside(this,side);
+		TPZGeoElSide neighbour (thisside.Neighbour());
 		thisside.RemoveConnectivity();
+		if(neighbour != thisside){
+		    TPZGeoElSide neighneigh = neighbour;
+		    do{
+                if(neighneigh.ResetBlendConnectivity(fIndex)){
+                    neighneigh.Element()->SetNeighbourForBlending(neighneigh.Side());
+                }
+		        neighneigh = neighneigh.Neighbour();
+            }   while (neighbour != neighneigh);
+        }
 	}
 }
 
@@ -1172,20 +1182,19 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             norm_v_1    = sqrt(norm_v_1);
             jac(0,0)    = norm_v_1;
             detjac      = norm_v_1;
-            jacinv(0,0) = 1.0/detjac;
-            
-            detjac = fabs(detjac);            
-            
+
             if(IsZero(detjac))
             {
                 
 #ifdef PZDEBUG
-            std::stringstream sout;
+                std::stringstream sout;
                 sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
-            LOGPZ_ERROR(logger, sout.str())
+                LOGPZ_ERROR(logger, sout.str())
 #endif
                 detjac = ZeroTolerance();
             }
+            
+            jacinv(0,0) = 1.0/detjac;
             
             for(int i=0; i < 3; i++) {
                 axes(0,i) = v_1[i]/norm_v_1;
@@ -1241,8 +1250,6 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jacinv(0,1) = -jac(0,1)/detjac;
             jacinv(1,0) = -jac(1,0)/detjac;
             
-            detjac = fabs(detjac);
-            
             if(IsZero(detjac))
             {
                 
@@ -1282,18 +1289,6 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             detjac -= jac(0,1)*jac(1,0)*jac(2,2);//- a01 a10 a22
             detjac += jac(0,0)*jac(1,1)*jac(2,2);//+ a00 a11 a22
             
-            jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
-            jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
-            jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
-            jacinv(1,0) = ( jac(1,2)*jac(2,0)-jac(1,0)*jac(2,2))/detjac;//a12 a20 - a10 a22
-            jacinv(1,1) = (-jac(0,2)*jac(2,0)+jac(0,0)*jac(2,2))/detjac;//-a02 a20 + a00 a22
-            jacinv(1,2) = ( jac(0,2)*jac(1,0)-jac(0,0)*jac(1,2))/detjac;//a02 a10 - a00 a12
-            jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
-            jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
-            jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
-            
-//            detjac = fabs(detjac);
-            
             if(IsZero(detjac))
             {
                 
@@ -1304,6 +1299,17 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
 #endif
                 detjac = ZeroTolerance();
             }
+
+            jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
+            jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
+            jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
+            jacinv(1,0) = ( jac(1,2)*jac(2,0)-jac(1,0)*jac(2,2))/detjac;//a12 a20 - a10 a22
+            jacinv(1,1) = (-jac(0,2)*jac(2,0)+jac(0,0)*jac(2,2))/detjac;//-a02 a20 + a00 a22
+            jacinv(1,2) = ( jac(0,2)*jac(1,0)-jac(0,0)*jac(1,2))/detjac;//a02 a10 - a00 a12
+            jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
+            jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
+            jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
+
             
             axes.Zero();
             axes(0,0) = 1.0;
@@ -1880,13 +1886,14 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 	TPZGeoElSide NextSide(this,side);
 	
 	//trying to get a self non-linear neighbour
-	while(NextSide.Neighbour().Element() != ElemSide.Element())
+	TPZGeoElSide NextSideNeighbour = NextSide.Neighbour();
+	while(NextSideNeighbour.Element() != ElemSide.Element())
 	{
-		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+		if(NextSideNeighbour.Exists() && !NextSideNeighbour.Element()->IsLinearMapping() && !NextSideNeighbour.Element()->IsGeoBlendEl())
 		{
-			if(NextSide.Neighbour().IsRelative(ElemSide) == false){
-				if(NextSide.Neighbour().Element()->IsGeoElMapped() == false){
-					TPZGeoElSide NeighSide = NextSide.Neighbour();
+			if(NextSideNeighbour.IsRelative(ElemSide) == false){
+				if(NextSideNeighbour.Element()->IsGeoElMapped() == false){
+					TPZGeoElSide NeighSide = NextSideNeighbour;
 					TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 					ElemSide.SideTransform3(NeighSide,NeighTransf);
 					this->SetNeighbourInfo(side,NeighSide,NeighTransf);
@@ -1895,15 +1902,17 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
+        NextSideNeighbour = NextSide.Neighbour();
 	}
     NextSide = TPZGeoElSide(this,side);
+    NextSideNeighbour = NextSide.Neighbour();
 	//now TPZGeoElMapped are accepted
-	while(NextSide.Neighbour().Element() != ElemSide.Element())
+	while(NextSideNeighbour.Element() != ElemSide.Element())
 	{
-		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
+		if(NextSideNeighbour.Exists() && !NextSideNeighbour.Element()->IsLinearMapping() && !NextSideNeighbour.Element()->IsGeoBlendEl())
 		{
-			if(NextSide.Neighbour().IsRelative(ElemSide) == false){
-				TPZGeoElSide NeighSide = NextSide.Neighbour();
+			if(NextSideNeighbour.IsRelative(ElemSide) == false){
+				TPZGeoElSide NeighSide = NextSideNeighbour;
 				TPZTransform<> NeighTransf(NeighSide.Dimension(),NeighSide.Dimension());
 				ElemSide.SideTransform3(NeighSide,NeighTransf);
 				this->SetNeighbourInfo(side,NeighSide,NeighTransf);
@@ -1911,6 +1920,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
+        NextSideNeighbour = NextSide.Neighbour();
 	}
 	
 }//method

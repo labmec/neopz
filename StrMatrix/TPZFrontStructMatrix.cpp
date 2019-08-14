@@ -37,6 +37,7 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 #endif
 
 
+
 template <class front>
 void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected){
 	int64_t ic;

@@ -22,8 +22,8 @@
 
 using namespace std;
 
-TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
-    fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames), fTensorNames()
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
+    fCompMesh(cm), fDimension(dimension), fMaterialIds(matids), fScalarNames(scalarnames), fVecNames(vecnames), fTensorNames()
 {
 	int64_t nel,i;
 	fElementList.Resize(0);
@@ -42,8 +42,8 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat, co
 	
 }
 
-TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat,const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensornames) :
-fCompMesh(cm), fDimension(dimension), fMaterial(mat), fScalarNames(scalarnames), fVecNames(vecnames), fTensorNames(tensornames)
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, const std::set<int> & matids, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames, const TPZVec<std::string> &tensornames) :
+fCompMesh(cm), fDimension(dimension), fMaterialIds(matids), fScalarNames(scalarnames), fVecNames(vecnames), fTensorNames(tensornames)
 {
     int64_t nel,i;
     fElementList.Resize(0);
@@ -223,15 +223,24 @@ void TPZGraphMesh::SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<
     fTensorNames = tensornames;
 }
 
-TPZMaterial * TPZGraphMesh::Material() {
-	return fMaterial;
+
+void TPZGraphMesh::SetMaterialIds(const std::set<int> & matids){
+    SetCompMesh(fCompMesh, matids);
 }
 
-void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZMaterial * &mat){
-	if(fCompMesh == mesh && mat == fMaterial) return;
+std::set<int> TPZGraphMesh::MaterialIds(){
+    return fMaterialIds;
+}
+
+bool TPZGraphMesh::Material_Is_PostProcessed(int matid){
+    return fMaterialIds.find(matid) != fMaterialIds.end();
+}
+
+void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, const std::set<int> & matids){
+	if(fCompMesh == mesh && matids == fMaterialIds) return;
 	int64_t i;
 	fCompMesh = mesh;
-	fMaterial = mat;
+	fMaterialIds = matids;
 	int64_t nel = fElementList.NElements();
 	TPZGraphEl *el;
 	for(i=0;i<nel;i++) {
@@ -289,7 +298,12 @@ int TPZGraphMesh::ClassId() const {
 void TPZGraphMesh::Read(TPZStream& buf, void* context) {
     fCompMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
     fGeoMesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
-    fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
+    TPZManVector<int> mat_ids;
+    buf.Read(mat_ids);
+    for (auto matid: mat_ids) {
+        fMaterialIds.insert(matid);
+    }
+    buf.Write(&fDimension);
     buf.Read(&fDimension);
     buf.ReadPointers(fElementList);
     fNodeMap.Read(buf, context);
@@ -307,7 +321,12 @@ void TPZGraphMesh::Read(TPZStream& buf, void* context) {
 void TPZGraphMesh::Write(TPZStream& buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fCompMesh, &buf);
     TPZPersistenceManager::WritePointer(fGeoMesh, &buf);
-    TPZPersistenceManager::WritePointer(fMaterial, &buf);
+    TPZManVector<int> mat_ids(fMaterialIds.size());
+    auto it = fMaterialIds.begin();
+    for (int i = 0; i < fMaterialIds.size(); i++, it++ ) {
+        mat_ids[i] = *it;
+    }
+    buf.Write(mat_ids);
     buf.Write(&fDimension);
     buf.WritePointers(fElementList);
     fNodeMap.Write(buf, withclassid);

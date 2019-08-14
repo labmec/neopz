@@ -67,13 +67,13 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   //void AddSameStruct(TPZSkylNSymMatrix &B, double k = 1.);
 
   /**declare the object as non-symmetric matrix*/
-  virtual int IsSimetric() const {return 0;}
+  virtual int IsSimetric() const  override {return 0;}
 
   virtual ~TPZSkylNSymMatrix() { Clear(); }
 
-  int PutVal(const int64_t row,const int64_t col,const TVar &element );
+  int PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 
-  const TVar &GetVal(const int64_t row,const int64_t col ) const;
+  const TVar &GetVal(const int64_t row,const int64_t col ) const override;
 
 
   /// Pega o valor na diagonal ou parte de cima da diagonal
@@ -84,17 +84,17 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
 
   TVar &operator()(const int64_t row, const int64_t col);
-  virtual TVar &s(const int64_t row, const int64_t col);
+  virtual TVar &s(const int64_t row, const int64_t col) override;
 
 
   TVar &operator()(const int64_t row);
 
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-		       const TVar	alpha,const TVar beta ,const int opt = 0) const ;
+		       const TVar	alpha,const TVar beta ,const int opt = 0) const  override;
     
     
     /** @brief Updates the values of the matrix based on the values of the matrix */
-    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
+    virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
 
   // Operadores com matrizes SKY LINE.
   //TPZSkylNSymMatrix &operator= (const TPZSkylNSymMatrix &A );
@@ -127,18 +127,18 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   /*** Resolucao de sistemas ***/
 
-  int Decompose_LU();  // Faz A = LU.
+  int Decompose_LU() override;  // Faz A = LU.
 
   //virtual void SolveSOR(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
 	//		TPZFMatrix *residual,TPZFMatrix &scratch,const REAL overrelax, REAL &tol,
 	//		const int FromCurrent = 0,const int direction = 1) ;
 
 
-  //int Subst_Forward  ( TPZFMatrix *b ) const;
-  int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
-  int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
-  //int Subst_LBackward( TPZFMatrix *b ) const;
-  //int Subst_Diag     ( TPZFMatrix *b ) const;
+  //int Subst_Forward  ( TPZFMatrix *b ) const override;
+  int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
+  int Subst_LForward ( TPZFMatrix<TVar> *b ) const override;
+  //int Subst_LBackward( TPZFMatrix *b ) const override;
+  //int Subst_Diag     ( TPZFMatrix *b ) const override;
 
   //void TestSpeed(int col, int prevcol);
 	
@@ -146,20 +146,20 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 	 *@brief Return the id of the matrix defined pzmatrixid.h
 	 */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid );
+	void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
@@ -182,7 +182,7 @@ virtual int ClassId() const;
   // Aloca uma nova coluna. 'fDiag[col].pElem' deve ser NULL.
 
 //static int  Error(const char *msg1,const char* msg2="" );
-  int  Clear();
+  int  Clear() override;
   void Copy (const TPZSkylNSymMatrix & );
   int Size(const int64_t column) const {return fElem[column+1]-fElem[column];}
   static int64_t NumElements(const TPZVec<int64_t> &skyline);
@@ -193,7 +193,7 @@ virtual int ClassId() const;
   static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int> &res);
 	
 	/** @brief Zeroes the matrix */
-	virtual int Zero(){
+	virtual int Zero() override {
 		fStorage.Fill(0.);
         fStorageb.Fill(0.);
 		return 1;

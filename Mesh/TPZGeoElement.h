@@ -55,65 +55,65 @@ public:
 	virtual ~TPZGeoElement(){};
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
-	virtual void Read(TPZStream &str, void *context);
+	void Read(TPZStream &str, void *context) override;
 	
-	virtual void Write(TPZStream &str, int withclassid) const;
+	void Write(TPZStream &str, int withclassid) const override;
 	
-	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
+	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const override;
 	
 	/**
 	 * @see class TPZGeoEl
 	 */
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
 									std::map<int64_t,int64_t> &gl2lcNdIdx,
-									std::map<int64_t,int64_t> &gl2lcElIdx) const;
+									std::map<int64_t,int64_t> &gl2lcElIdx) const override;
 	
 	/** @brief Returns 1 if the element has subelements. */
-	int HasSubElement() const {return fSubEl[0]!=-1;}
+	int HasSubElement() const override {return fSubEl[0]!=-1;}
 	
-	void SetSubElement(int id, TPZGeoEl *el);
+	void SetSubElement(int id, TPZGeoEl *el) override;
 	
 	
 	/** @brief Volume of the master element*/
-	REAL RefElVolume();
+	REAL RefElVolume() override;
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	void MidSideNodeIndex(int side,int64_t &index) const;
+	void MidSideNodeIndex(int side,int64_t &index) const override;
 	
 	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
-	int NSubElements() const;
+	int NSubElements() const override;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	int NSideSubElements(int side) const;
+	int NSideSubElements(int side) const override;
 	
 	/** @brief Returns a pointer to the subelement is*/
-	TPZGeoEl *SubElement(int is) const;
+	TPZGeoEl *SubElement(int is) const override;
 	
 	/** @brief Return a pointer and a side of the subelement of the element at the side
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	TPZTransform<> GetTransform(int side,int son);
+	TPZTransform<> GetTransform(int side,int son) override;
 	
-	virtual int FatherSide(int side, int son) {
+	virtual int FatherSide(int side, int son)  override {
 		return TRef::FatherSide(side,son);
 	}
 	
 	/** @brief Divides the element and puts the resulting elements in the vector*/
-	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
+	virtual void Divide(TPZVec<TPZGeoEl *> &pv) override;
 	
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const override;
 	
-	virtual void ResetSubElements();
+	virtual void ResetSubElements() override;
     
     /** @brief Creates a geometric element according to the type of the father element */
     virtual TPZGeoEl *CreateGeoElement(MElementType type,
                                        TPZVec<int64_t>& nodeindexes,
                                        int matid,
-                                       int64_t& index)
+                                       int64_t& index) override
     {
         return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index,0);
     }

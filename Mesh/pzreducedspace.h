@@ -42,13 +42,13 @@ public:
     static void SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh);
 
     /** @brief Returns the number of nodes of the element */
-	virtual int NConnects() const 
+	virtual int NConnects() const override
     {
         return 1;
     }
     
     /** @brief Returns the number of dof nodes along side iside*/
-    virtual int NSideConnects(int iside) const
+    virtual int NSideConnects(int iside) const override
     {
         return NConnects();
     }
@@ -58,7 +58,7 @@ public:
      * @param icon connect number along side is
      * @param is side which is being queried
      */
-    virtual int SideConnectLocId(int icon,int is) const
+    virtual int SideConnectLocId(int icon,int is) const override
     {
 #ifdef PZDEBUG
         if (icon != 0) {
@@ -71,13 +71,13 @@ public:
 
 	
 	/** @brief It returns the shapes number of the element */
-	virtual int NShapeF() const;
+	virtual int NShapeF() const override;
 	
 	/** @brief Returns the number of shapefunctions associated with a connect*/
-	virtual int NConnectShapeF(int inod, int order) const;
+	virtual int NConnectShapeF(int inod, int order) const override;
 	
 	/** @brief Returns the max order of interpolation. */
-	virtual int MaxOrder();
+	virtual int MaxOrder() override;
 	
 	/** 
 	 * @brief Computes the shape function set at the point x. 
@@ -89,7 +89,7 @@ public:
 	 * This method uses the order of interpolation
 	 * of the element along the sides to compute the number of shapefunctions
 	 */
-	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
 	/** 
 	 * @brief Computes the shape function set at the point x. 
@@ -107,18 +107,18 @@ public:
     //by Agnaldo
     virtual void ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data);
     
-    virtual void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data);
-    virtual void ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data);
+    virtual void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
+    virtual void ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
 
 	/** 
 	 * @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	virtual void InitMaterialData(TPZMaterialData &data);
+	virtual void InitMaterialData(TPZMaterialData &data) override;
 	
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialData &data,
-									 TPZVec<REAL> &qsi);
+									 TPZVec<REAL> &qsi) override;
 
     /**
      * @brief Computes solution and its derivatives in local coordinate qsi
@@ -130,69 +130,69 @@ public:
      * @param dsol solution derivatives
      */
     void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                         const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+                         const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
-	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 	/** @brief Initialize element matrix in which is computed in CalcResidual */
-	void InitializeElementMatrix(TPZElementMatrix &ef);
+	void InitializeElementMatrix(TPZElementMatrix &ef) override;
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
     
     
-    virtual void PRefine ( int order ){
+    virtual void PRefine ( int order ) override {
         DebugStop();
     }
     
-    virtual void SetConnectIndex(int inode, int64_t index) {
+    virtual void SetConnectIndex(int inode, int64_t index)  override {
         DebugStop();
     }
     
-    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const;
+    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override;
     
-    virtual const TPZIntPoints &GetIntegrationRule() const
+    virtual const TPZIntPoints &GetIntegrationRule() const override
     {
         TPZInterpolationSpace *intel = ReferredIntel();
         return intel->GetIntegrationRule();
     }
     
-    virtual TPZIntPoints &GetIntegrationRule()
+    virtual TPZIntPoints &GetIntegrationRule() override
     {
         TPZInterpolationSpace *intel = ReferredIntel();
         return intel->GetIntegrationRule();
     }
     
-    virtual int Dimension() const {
+    virtual int Dimension() const override {
         TPZInterpolationSpace *intel = ReferredIntel();
         return intel->Dimension();
     }
 	
-    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< int64_t, int64_t > &gl2lcConMap, std::map< int64_t, int64_t > &gl2lcElMap) const;
+    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< int64_t, int64_t > &gl2lcConMap, std::map< int64_t, int64_t > &gl2lcElMap) const override;
     
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const{
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override {
         
     }
     
-    virtual int64_t ConnectIndex(int i) const {
+    virtual int64_t ConnectIndex(int i) const  override {
         if (i != 0) {
             DebugStop();
         }
         return 0;
     }
     
-    virtual void SetPreferredOrder ( int order ){
+    virtual void SetPreferredOrder ( int order ) override {
         PZError <<"This method was not implemented";
         DebugStop();
     }
     
-    void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
+    void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 private:
 

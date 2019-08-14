@@ -55,7 +55,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	SetStructuralMatrix(skstr);
 	int nmeshes = fSolvers.NElements();
 	TPZTransfer<STATE> *tr = new TPZTransfer<STATE>;
-	TPZAutoPointer<TPZTransfer<STATE> > trauto(tr);
+	TPZAutoPointer<TPZMatrix<STATE> > trauto(tr);
 	mesh->BuildTransferMatrix(*coarse,*tr);
 	TPZFMatrix<STATE> sol(mesh->NEquations(),1);
 	tr->TransferSolution(fSolution,sol);

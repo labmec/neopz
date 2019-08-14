@@ -272,15 +272,15 @@ public:
 #endif
     }
 
-    virtual int ClassId() const {
+    int ClassId() const override  {
         return Hash("TPZTensor") ^ ClassIdOrHash<T>() << 1;
     }
 
     /// Method to write to a pzstream
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
 
     ///Method to read the object from a pzstream
-    void Read(TPZStream& buf, void* context);
+    void Read(TPZStream &buf, void *context) override;
 
     operator TPZFMatrix<T>() const {
         TPZFMatrix<T> result(3, 3);

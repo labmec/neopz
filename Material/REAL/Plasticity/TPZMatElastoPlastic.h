@@ -50,35 +50,35 @@ public:
     virtual void SetBulkDensity(REAL & RhoB);
 
     /** returns the name of the material*/
-    virtual std::string Name();
+    virtual std::string Name() override;
 
     /**returns the integrable dimension of the material*/
-    virtual int Dimension() const { return 3; }
+    virtual int Dimension() const override { return 3; }
 
     /** returns the number of state variables associated with the material*/
-    virtual int NStateVariables() { return 3; }
+    virtual int NStateVariables() const override{ return 3; }
 
     /** print out the data associated with the material*/
     virtual void Print(std::ostream &out, const int memory);
 
     /** print out the data associated with the material*/
-    virtual void Print(std::ostream &out);
+    virtual void Print(std::ostream &out) override;
 
     /**returns the variable index associated with the name*/
-    virtual int VariableIndex(const std::string &name);
+    virtual int VariableIndex(const std::string &name) override;
 
     /** returns the number of variables associated with the variable
     indexed by var.  var is obtained by calling VariableIndex*/
-    virtual int NSolutionVariables(int var);
+    virtual int NSolutionVariables(int var) override;
 
     /**returns the solution associated with the var index based on
     * the finite element approximation*/
-    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) override;
 
     /** Return the number of components which form the flux function
     * Method not implemented.
     */
-    virtual int NFluxes()
+    virtual int NFluxes() override
     {
          PZError << "TPZMatElastoPlastic::NFluxes() - Method not implemented\n";
          return 0;
@@ -87,7 +87,7 @@ public:
     /** Compute the value of the flux function to be used by ZZ error estimator.
     * Method not implemented.
     */
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
+    virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) override
     {
         PZError << "TPZMatElastoPlastic::Flux - Method not implemented\n";
     }
@@ -97,32 +97,32 @@ public:
     */
     virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
                       TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-                      TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+                      TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) override;
     /**
     * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
     * Method not implemented
     */
-    virtual int NEvalErrors() {return 3;}
+    virtual int NEvalErrors()  override {return 3;}
 
     /**
     * It computes a contribution to the stiffness matrix and load vector at one integration point.
     */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) override;
 
     /**
     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
     */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) override;
 
     /**
     * It computes a contribution to the residual vector at one integration point.
     */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef) override;
 
     /**
     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
     */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc) override;
 
     /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
     * @param data [in]
@@ -191,22 +191,22 @@ public:
     void EigenVectors(TPZFMatrix<REAL> &vectorTensor, TPZVec< REAL > &Solout, int direction);
 
     /**To create another material of the same type*/
-    virtual TPZMaterial * NewMaterial();
+    virtual TPZMaterial * NewMaterial() override;
 
     /**
     * Unique identifier for serialization purposes
     */
-    virtual int ClassId() const;
+    virtual int ClassId() const override;
 
     /**
     * Save the element data to a stream
     */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    virtual void Write(TPZStream &buf, int withclassid) const override;
 
     /**
     * Read the element data from a stream
     */
-    virtual void Read(TPZStream &buf, void *context);
+    virtual void Read(TPZStream &buf, void *context) override;
 
     /**
     * Sets the tolerance value for post-processing purposes
@@ -242,12 +242,12 @@ public:
     * Defining what parameters the material needs. In particular this material needs the
     * evaluation of normal vector for the sake of boundary conditions
     */
-    virtual void FillDataRequirements(TPZMaterialData &data);
+    virtual void FillDataRequirements(TPZMaterialData &data) override;
 
     /**
      * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
      */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override;
 
     enum ESolutionVar {
         ENone = -1,
@@ -271,6 +271,7 @@ public:
         EStressJ2           = 17,
         EStrainElasticJ2    = 18,
         EStrainPlasticJ2    = 19,
+        EFailureType    = 20,
     };
 
 protected:

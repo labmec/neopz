@@ -92,9 +92,9 @@ void TPZMatPoisson3d::GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convd
 TPZMatPoisson3d::~TPZMatPoisson3d() {
 }
 
-int TPZMatPoisson3d::NStateVariables() {
-	return 1;
-}
+//int TPZMatPoisson3d::NStateVariables() const {
+//    return 1;
+//}
 
 void TPZMatPoisson3d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
@@ -688,7 +688,9 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
             }
             break;
         default:
+           
             if (data.sol[0].size() == 4) {
+                
                 data.sol[0][0] = data.sol[0][2];
             }
 

@@ -83,18 +83,18 @@ public:
 	/** @brief Compare the current transformation with t transformation considering a given tolerance */
 	int CompareTransform(TPZTransform<T> &t,REAL tol = 1.e-6);
 	
-        int ClassId() const{
+        int ClassId() const override{
             return Hash("TPZTransform");
         }
         
-        void Read(TPZStream& buf, void* context){ //ok
+        void Read(TPZStream& buf, void* context) override { //ok
             buf.Read(&fRow);
             buf.Read(&fCol);
             fMult.Read(buf,context);
             fSum.Read(buf,context);
         }
         
-        void Write(TPZStream& buf, int withclassid) const{ //ok
+        void Write(TPZStream& buf, int withclassid) const override{ //ok
             buf.Write(&fRow);
             buf.Write(&fCol);
             fMult.Write(buf,withclassid);

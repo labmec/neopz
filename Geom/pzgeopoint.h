@@ -41,10 +41,10 @@ namespace pzgeom {
 	public:
 		enum {NNodes = 1};
                 
-                virtual int ClassId() const;
-                void Read(TPZStream& buf, void* context);
+                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
                 
-                void Write(TPZStream& buf, int withclassid) const;
+                void Write(TPZStream &buf, int withclassid) const override;
         
 		/** @brief Auxiliar structure to accellerate computations */
 		struct TMem {
@@ -116,7 +116,7 @@ namespace pzgeom {
         }
 		
         template<class T>
-        static void TShape(TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
+        static void TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
         {
             phi(0,0) = (T)1.;
         }

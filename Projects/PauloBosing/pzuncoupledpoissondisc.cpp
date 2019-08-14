@@ -51,9 +51,6 @@ TPZMatUncoupledPoissonDisc & TPZMatUncoupledPoissonDisc::operator=(const TPZMatU
 	return *this;
 }
 
-int TPZMatUncoupledPoissonDisc::NStateVariables() {
-	return 1;
-}
 
 void TPZMatUncoupledPoissonDisc::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";

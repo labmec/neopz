@@ -100,25 +100,22 @@ class TPZGmshReader{
     
     //////////// Members related to file format with version 4 ////////////
     
-    /// Data structure of both: physical entities dimension and names
-    TPZManVector<std::map<int,std::vector<int>>> m_dim_entity_tag_and_physical_tag;
+    /// Data structure of both: physical entities and names indexed by dimension
+    TPZManVector<std::map<int,std::vector<int>>,4> m_dim_entity_tag_and_physical_tag;
     
     //////////// Members related to file format with version 3 ////////////
     
-    /// Structure of both: physical entities dimension and names
-    TPZManVector<std::map<int,std::string>,5> m_dim_physical_tag_and_name;
+    /// Structure of both: physical entities and names indexed by dimension
+    TPZManVector<std::map<int,std::string>,4> m_dim_physical_tag_and_name;
     
-    /// Structure of both: names and physical id
-    TPZManVector<std::map<std::string,int>,5> m_dim_name_and_physical_tag;
+    /// Structure of both: names and physical id indexed by dimension
+    TPZManVector<std::map<std::string,int>,4> m_dim_name_and_physical_tag;
     
-    /// Structure of both: dimesion and physical id and "physical tag" @TODO:: Phil please state the need for this
-    /// from my point of view this is useless
-    TPZManVector<std::map<int,int>,5> m_dim_physical_tag_and_physical_tag;
+    /// Structure of both: physical id and user defined physical tag indexed by dimension
+    TPZManVector<std::map<int,int>,4> m_dim_physical_tag_and_physical_tag;
     
     /// Entity index to which the element belongs
-    TPZManVector<int64_t> m_entity_index;
-
-public:
+    TPZVec<int64_t> m_entity_index;
     
     /// Number of hexahedra
     int m_n_hexahedron_els = 0;
@@ -188,27 +185,28 @@ public:
     bool InsertElement(TPZGeoMesh * gmesh, std::ifstream & line);
     
     /// Get the structure dim -  physical tag - name
-    TPZManVector<std::map<int,std::string>,5> & GetDimPhysicalTagName(){
+    TPZManVector<std::map<int,std::string>,4> & GetDimPhysicalTagName(){
         return m_dim_physical_tag_and_name;
     }
     
     /// Set the structure dim -  physical tag - name
-    void SetDimPhysicalTagName(TPZManVector<std::map<int,std::string>,5> & dim_physical_tag_and_name){
+    void SetDimPhysicalTagName(TPZManVector<std::map<int,std::string>,4> & dim_physical_tag_and_name){
         m_dim_physical_tag_and_name = dim_physical_tag_and_name;
     }
     
     /// Get the structure dim - name - physical tag
-    void SetDimNamePhysical(TPZManVector<std::map<std::string,int>,5> & dim_name_and_physical_tag){
+    void SetDimNamePhysical(TPZManVector<std::map<std::string,int>,4> & dim_name_and_physical_tag){
         m_dim_name_and_physical_tag = dim_name_and_physical_tag;
     }
     
     /// Get the structure dim - name - physical tag
-    TPZManVector<std::map<std::string,int>,5> & GetDimNamePhysical(){
+    
+    TPZManVector<std::map<std::string,int>,4> & GetDimNamePhysical(){
         return m_dim_name_and_physical_tag;
     }
     
     /// Get the structure dim - name - physical tag
-    void GetDimNamePhysical(TPZManVector<std::map<std::string,int>,5> & dim_name_and_physical_tag){
+    void GetDimNamePhysical(TPZVec<std::map<std::string,int>> & dim_name_and_physical_tag){
         m_dim_name_and_physical_tag = dim_name_and_physical_tag;
     }
     
@@ -217,6 +215,50 @@ public:
         return m_entity_index;
     }
     
+    /// Return the number of hexahedra created
+    int NHexahedra(){
+        return m_n_hexahedron_els;
+    }
+    
+    /// Return the number of tetrahedra created
+    int NTetrahera(){
+        return m_n_tetrahedron_els;
+    }
+    
+    /// Return the number of prisms created
+    int NPrisms(){
+        return m_n_prism_els;
+    }
+    
+    /// Return the number of pyramids created
+    int NPyramids(){
+        return m_n_pyramid_els;
+    }
+    
+    /// Return the number of quadrilaterals created
+    int NQuadrilaterals(){
+        return m_n_quadrilateral_els;
+    }
+    
+    /// Return the number of triangles created
+    int NTriangles(){
+        return m_n_triangle_els;
+    }
+    
+    /// Return the number of line created
+    int NLines(){
+        return m_n_line_els;
+    }
+    
+    /// Return the number of line created
+    int NPoints(){
+        return m_n_point_els;
+    }
+
+    /// Return the dimension of the mesh
+    int Dimension() {
+        return m_dimension;
+    }
 };
 
 #endif /* TPZGmshReader_h */

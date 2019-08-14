@@ -424,7 +424,7 @@ void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
         if(fMesh->ElementSolution().Cols() > var-100) {
             sol[0] = fMesh->ElementSolution()(ind,var-100);
         } else {
-            sol[0] = 0.;
+            sol[0] = 0;
         }
     } else {
         sol.Resize(0);
@@ -965,11 +965,13 @@ TPZMaterial * TPZCompEl::Material() const
 }
 
 /** Verify if the material associated with the element is contained in the set */
-bool TPZCompEl::HasMaterial(const std::set<int> &materialids)
+bool TPZCompEl::HasMaterial(const std::set<int> &materialids) const
 {
-    TPZMaterial * mat = Material();
-    if(!mat) return false;
-    return materialids.find(mat->Id()) != materialids.end();
+    if(!Reference()){
+        return false;
+    }
+    int mat_id = Reference()->MaterialId();
+    return materialids.find(mat_id) != materialids.end();
 }
 
 /**

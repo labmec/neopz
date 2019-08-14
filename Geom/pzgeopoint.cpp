@@ -17,7 +17,6 @@ using namespace std;
 
 namespace pzgeom {
 	
-	
 	TPZGeoEl *TPZGeoPoint::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
 		if(side==0) {
 			TPZManVector<int64_t> nodeindexes(1);

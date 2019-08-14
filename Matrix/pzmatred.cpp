@@ -458,6 +458,7 @@ void TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,c
 		fF0.Print("F0 = ",out,form);
 		fF1.Print("F1 = ",out,form);
 		
+        out << "Matrix norms K00 " << Norm(*fK00.operator->()) << " K01 " << Norm(fK01) << " K10 " << Norm(fK10) << " K11 " << Norm(fK11);
 		out << "\n\n";
 	} else {
 		TPZMatrix<TVar>::Print(name,out,form);

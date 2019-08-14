@@ -50,16 +50,16 @@ public:
 	
 	/** @brief Returns the id of the class (used for writing reading the object) */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/** @brief Reads the object from disk */
-	virtual void Read(TPZStream &buf, void *context) {
+	void Read(TPZStream &buf, void *context) override{
 		buf.Read(&fId,1);
 		buf.Read(fCoord,3);
 	}
 	
 	/** @brief Writes the object to disk */
-	virtual void Write(TPZStream &buf, int withclassid) const {
+	void Write(TPZStream &buf, int withclassid) const override{
 		buf.Write(&fId,1);
 		buf.Write(fCoord,3);
 	}

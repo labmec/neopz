@@ -92,6 +92,10 @@ public:
     /** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZMaterial(const TPZMaterial &mat);
+    
+    /// operator =
+    TPZMaterial &operator=(const TPZMaterial &copy);
+    
     /** @brief Default destructor */
     virtual ~TPZMaterial();
     
@@ -173,7 +177,7 @@ public:
         fId = id; }
     
     /** @brief Returns the number of state variables associated with the material */
-    virtual int NStateVariables() = 0;
+    virtual int NStateVariables() const = 0;
     
     /** @brief Returns the number of components which form the flux function */
     virtual int NFluxes() {return 0;}
@@ -573,14 +577,14 @@ public:
     
     /** @brief Unique identifier for serialization purposes */
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     /** @} */
 	

@@ -37,7 +37,7 @@ TPZConsLawTest::TPZConsLawTest(int nummat, TPZVec<STATE> B,int artdiff,STATE del
 TPZConsLawTest::~TPZConsLawTest() {
 }
 
-int TPZConsLawTest::NStateVariables() {
+int TPZConsLawTest::NStateVariables() const {
 	return 1;
 }
 

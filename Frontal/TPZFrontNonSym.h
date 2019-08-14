@@ -75,7 +75,7 @@ public:
 	TPZFrontNonSym(const TPZFrontNonSym &cp);
     
     /// Set the decomposition type
-    virtual void SetDecomposeType(DecomposeType dectype)
+    virtual void SetDecomposeType(DecomposeType dectype) override
     {
         if (dectype == ELU) {
             this->fDecomposeType = dectype;
@@ -143,10 +143,10 @@ public:
     virtual void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
 	
 	/** @brief Extract the front matrix */
-	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
+	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front) override;
         
         public:
-virtual int ClassId() const;
+int ClassId() const override;
 	
 private:    
 	
@@ -171,7 +171,7 @@ private:
 	
 public:
     /** @brief Returns the number of free equations */
-	virtual int64_t NFree();
+	virtual int64_t NFree() override;
     /** 
 	 * @brief Resets data structure 
 	 * @param GlobalSize Initial global size to be used in reseting
@@ -195,7 +195,7 @@ private:
 	
 public:
 	
-	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data);
+	virtual void TensorProductIJ(int ithread, typename TPZFront<TVar>::STensorProductMTData *data) override;
 	
 };
 

@@ -26,7 +26,7 @@ namespace pzgeom {
 		enum {NNodes = 3};
                 
                 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
         
         //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
@@ -117,7 +117,7 @@ virtual int ClassId() const;
         
         /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
         template<class T>
-        static void TShape(TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         template<class T>
 		static void X(const TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZVec<T> &result);

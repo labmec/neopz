@@ -50,12 +50,12 @@ public :
 	virtual ~TPZSYsmpMatrix();
     
     /** @brief Checks if the current matrix is symmetric */
-    virtual int IsSimetric() const    { return 1; }
+    virtual int IsSimetric() const  override { return 1; }
     /** @brief Checks if current matrix is square */
     inline int IsSquare() const { return 1;}
     
     /** @brief Zeroes the matrix */
-    virtual int Zero(){
+    virtual int Zero() override {
         fA.Fill(0.);
         fDiag.Fill(0.);
 #ifndef USING_MKL
@@ -71,18 +71,18 @@ public :
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const int64_t row, const int64_t col ) const;
+	virtual const TVar &GetVal(const int64_t row, const int64_t col ) const override;
     
     /** @brief Put values without bounds checking \n
      *  This method is faster than "Put" if DEBUG is defined.
      */
-    virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val );
+    virtual int PutVal(const int64_t /*row*/,const int64_t /*col*/,const TVar & val ) override;
 
 	
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** @note z and x cannot overlap in memory */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const ;
+						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0) const override;
 	
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
@@ -92,8 +92,21 @@ public :
     {
         return fA;
     }
+    
+    /// Access function for nonzeros values
+    TPZVec<int64_t> &IA()
+    {
+        return fIA;
+    }
+    
+    /// Access function for column indexes
+    TPZVec<int64_t> &JA()
+    {
+        return fJA;
+    }
+    
 	/** @brief Print the matrix along with a identification title */
-	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const;
+	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const override;
     
 #ifdef USING_MKL
     /**
@@ -108,17 +121,17 @@ public :
      * The current matrix has to be symmetric.
      * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
      */
-    virtual int Decompose_LDLt(std::list<int64_t> &singular);
+    virtual int Decompose_LDLt(std::list<int64_t> &singular) override;
     /** @brief Decomposes the current matrix using LDLt. */
-    virtual int Decompose_LDLt();
+    virtual int Decompose_LDLt() override;
 
     /** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
-    virtual int Decompose_Cholesky() ;
+    virtual int Decompose_Cholesky() override;
     /**
      * @brief Decomposes the current matrix using Cholesky method.
      * @param singular
      */
-    virtual int Decompose_Cholesky(std::list<int64_t> &singular) ;
+    virtual int Decompose_Cholesky(std::list<int64_t> &singular)  override;
     
 
     /** @} */
@@ -133,31 +146,31 @@ public :
      * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
      * @param b right hand side and result after all
      */
-    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const;
+    virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
      * @param b right hand side and result after all
      */
-    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const;
+    virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
      * @param b right hand side and result after all
      */
-    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
+    virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
 
     /**
      * @brief Computes B = Y, where A*Y = B, A is lower triangular.
      * @param b right hand side and result after all
      */
-    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const;
+    virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
     
     /**
      * @brief Computes B = Y, where A*Y = B, A is upper triangular.
      * @param b right hand side and result after all
      */
-    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const;
+    virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
     
 
     /** @} */
@@ -165,7 +178,7 @@ public :
 
 #endif
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     void ComputeDiagonal();
 

@@ -1543,7 +1543,7 @@ void TPZSkylNSymMatrix<TVar>::Read(TPZStream &buf, void *context )
 }
 
 template <class TVar>
-void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
+void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 {
 	TPZMatrix<TVar>::Write(buf,withclassid);
 	buf.Write( fStorage);
