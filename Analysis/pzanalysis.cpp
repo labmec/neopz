@@ -893,14 +893,6 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
     for (int ieq = 0; ieq < neq; ieq++) {
         fSolution(equationindices[ieq],0) = 1.;
         LoadSolution();
-        
-#ifdef PZDEBUG
-        {
-            std::ofstream filecm("MalhaC_showshape.txt"); //Impressão da malha computacional multifísica (formato txt)
-            fCompMesh->Print(filecm);
-        }
-#endif
-        
         Mesh()->TransferMultiphysicsSolution();
         
         PostProcess(porder+1);
