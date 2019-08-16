@@ -11,7 +11,6 @@
 #include "pzeltype.h"
 #include "tpzquadrilateral.h"
 
-#include "pzcreateapproxspace.h"
 
 #ifdef _AUTODIFF
 #include "fad.h"

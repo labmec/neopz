@@ -7,7 +7,6 @@
 #include "pzquad.h"
 
 #include "pzshapetriang.h"
-#include "pzcreateapproxspace.h"
 
 #ifdef _AUTODIFF
 #include "fad.h"

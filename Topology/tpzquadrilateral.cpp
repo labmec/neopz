@@ -11,7 +11,6 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 
-#include "pzcreateapproxspace.h"
 #include "pzshapequad.h"
 
 #include "pznumeric.h"
