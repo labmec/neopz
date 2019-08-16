@@ -6,7 +6,7 @@
 #include "tpztriangle.h"
 #include "pzquad.h"
 
-#include "pzshapetriang.h"
+//#include "pzshapetriang.h"
 
 #ifdef _AUTODIFF
 #include "fad.h"
@@ -528,7 +528,27 @@ namespace pztopology {
 	 */
 	int TPZTriangle::GetTransformId(TPZVec<int64_t> &id)
 	{
-		return pzshape::TPZShapeTriang::GetTransformId2dT(id);
+		int id0, id1, minid;
+		id0 = (id[0] < id[1]) ? 0 : 1;
+		minid = (id[2] < id[id0]) ? 2 : id0;
+		id0 = (minid + 1) % 3;
+		id1 = (minid + 2) % 3;
+
+		if (id[id0] < id[id1]) {//antihorario
+
+			if (minid == 0) return 0;
+			if (minid == 1) return 2;
+			if (minid == 2) return 4;
+
+		}
+		else {//horario
+
+			if (minid == 0) return 1;
+			if (minid == 1) return 3;
+			if (minid == 2) return 5;
+		}
+		return 0;
+
 	}
 	/**
 	 * Method which identifies the transformation of a side based on the IDs
@@ -555,7 +575,7 @@ namespace pztopology {
 				break;
 			case 6:
 			{
-				return pzshape::TPZShapeTriang::GetTransformId2dT(id);
+				return GetTransformId(id);
 			}
 				break;
 			default:

@@ -11,7 +11,7 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 
-#include "pzshapequad.h"
+//#include "pzshapequad.h"
 
 #include "pznumeric.h"
 
@@ -517,7 +517,31 @@ namespace pztopology {
 	 */
 	int TPZQuadrilateral::GetTransformId(TPZVec<int64_t> &id)
 	{
-		return pzshape::TPZShapeQuad::GetTransformId2dQ(id);
+		int id0, id1, minid;
+		id0 = (id[0] < id[1]) ? 0 : 1;
+		id1 = (id[2] < id[3]) ? 2 : 3;
+		minid = (id[id0] < id[id1]) ? id0 : id1;//minid : menor id local
+		id0 = (minid + 1) % 4;//id anterior local (sentido antihorario)
+		id1 = (minid + 3) % 4;//id posterior local (sentido horario)
+		minid = id[minid];//minid : menor id global
+
+		if (id[id0] < id[id1]) {//antihorario
+
+			if (minid == id[0]) return 0;
+			if (minid == id[1]) return 2;
+			if (minid == id[2]) return 4;
+			if (minid == id[3]) return 6;
+
+		}
+		else {//horario
+
+			if (minid == id[0]) return 1;
+			if (minid == id[1]) return 3;
+			if (minid == id[2]) return 5;
+			if (minid == id[3]) return 7;
+		}
+		return 0;
+
 	}
     
     /**
@@ -579,7 +603,7 @@ namespace pztopology {
 				break;
 			case 8:
 			{
-				return pzshape::TPZShapeQuad::GetTransformId2dQ(id);
+				return GetTransformId(id);
 			}
 				break;
 			default:

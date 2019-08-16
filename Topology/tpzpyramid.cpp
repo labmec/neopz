@@ -10,9 +10,10 @@
 #include "pzeltype.h"
 
 #include "pzlog.h"
+#include "pzextractval.h"
 
 #ifdef _AUTODIFF
-#include "pzextractval.h"
+
 #include "fad.h"
 #endif
 
