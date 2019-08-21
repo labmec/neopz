@@ -210,7 +210,7 @@ bool TPZProjectEllipse::LeastSquaresToGetVerySimpleEllipse() {
         DeltaH.PutVal(i,1,1.);                           // fill 1.
     }
     
-	DeltaH.Print(std::cout);
+//    DeltaH.Print(std::cout);
     
     // Solving by least squares using product of matrix: DeltaH_t * DifSol = DeltaH_t * DeltaH * Coeffs(u)
     A.Zero();
