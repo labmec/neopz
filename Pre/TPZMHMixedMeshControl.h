@@ -104,6 +104,7 @@ public:
         return result;
     }
     
+
     /// print the data structure
     void Print(std::ostream &out);
 
@@ -114,6 +115,8 @@ public:
     }
     
 protected:
+    
+   
 
     /// Create the mesh of the flux approximation space
     void CreateHDivMHMMesh();

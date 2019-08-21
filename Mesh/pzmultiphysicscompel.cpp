@@ -1137,7 +1137,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
         }
         for (int ier=0; ier <NErrors; ier++) {
             elvals(index,ier) = errors[ier];
-            std::cout<<"erro["<<ier <<"]= "<<errors[ier]<<std::endl;
+        //    std::cout<<"erro["<<ier <<"]= "<<errors[ier]<<std::endl;
         }
     }
     

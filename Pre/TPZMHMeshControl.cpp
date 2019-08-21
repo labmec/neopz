@@ -335,6 +335,11 @@ void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
     BuildWrapMesh(fGMesh->Dimension());
     BuildWrapMesh(fGMesh->Dimension()-1);
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
+    
+    std::cout<<"WrapMatId created \n";
+    std::cout << "fSkeletonWrapMatId "<<fSkeletonWrapMatId<<std::endl;
+    std::cout << "fBoundaryWrapMatId "<<fBoundaryWrapMatId<<std::endl;
+    //std::cout << "fHdivWrapMatId "<<fHDivWrapMatid<<std::endl;
 }
 
 /// divide the skeleton elements
@@ -507,6 +512,12 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
         this->CreateLagrangeMultiplierMesh();
         this->TransferToMultiphysics();
     }
+    
+    
+
+    
+    
+    
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
