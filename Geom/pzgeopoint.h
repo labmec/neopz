@@ -109,17 +109,6 @@ namespace pzgeom {
         
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-		
-		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
-        {
-            phi(0,0) = 1.;
-        }
-		
-        template<class T>
-        static void TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
-        {
-            phi(0,0) = (T)1.;
-        }
         
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		

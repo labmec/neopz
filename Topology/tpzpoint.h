@@ -48,9 +48,28 @@ namespace pztopology {
 		virtual ~TPZPoint() {
 		}
 
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
+        }
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+
 		/** @name About sides of the topological element
 		 * @{ */
-		
+
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param correctionFactor influence (0 <= correctionFactor <= 1)
+         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
+         */
+        template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                      TPZVec<T> &corrFactorDxi);
+
 		/** @brief Returns the dimension of the side */
 		static int SideDimension(int side) {
 			return 0;

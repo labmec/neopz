@@ -227,6 +227,10 @@ atan(int __x)
 }
 #endif //VC
 
+namespace pztopology{
+    const REAL gTolerance = 1.E-12;
+}
+
 // fabs function adapted to complex numbers.
 inline float
 fabs(std::complex <float> __x)
