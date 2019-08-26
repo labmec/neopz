@@ -80,7 +80,26 @@ namespace pztopology {
 		static int NContainedSides(int side);
 		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
-		
+
+
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
+        }
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param correctionFactor influence (0 <= correctionFactor <= 1)
+         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
+         */
+        template<class T>
+        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                      TPZVec<T> &corrFactorDxi);
 		/** @} */
 
 		/** @name About points at the parametric spaces

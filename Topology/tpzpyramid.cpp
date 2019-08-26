@@ -284,6 +284,156 @@ namespace pztopology {
         0,0,0,0,0,0,1,0,1,0,
         1,0,1,0,1,0,1,2};
 
+
+    template<class T>
+    inline void TPZPyramid::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T xi = loc[0], eta = loc[1] , zeta  = loc[2];
+
+        if (zeta> 1.) {
+            DebugStop();
+        }
+
+        T T0xz = .5*(1.-zeta-xi) / (1.-zeta);
+        T T0yz = .5*(1.-zeta-eta) / (1.-zeta);
+        T T1xz = .5*(1.-zeta+xi) / (1.-zeta);
+        T T1yz = .5*(1.-zeta+eta) / (1.-zeta);
+        if (IsZero(xi)) {
+            T0xz = 0.5;
+            T1xz = 0.5;
+        }
+        if (IsZero(eta)) {
+            T0yz = 0.5;
+            T1yz = 0.5;
+        }
+        T lmez = (1.-zeta);
+
+        phi(0,0)  = T0xz*T0yz*lmez;
+        phi(1,0)  = T1xz*T0yz*lmez;
+        phi(2,0)  = T1xz*T1yz*lmez;
+        phi(3,0)  = T0xz*T1yz*lmez;
+        phi(4,0)  = zeta;
+
+        T lmexmez = 1.-xi-zeta;
+        T lmeymez = 1.-eta-zeta;
+        T lmaxmez = 1.+xi-zeta;
+        T lmaymez = 1.+eta-zeta;
+
+        if (IsZero(lmez) && !IsZero(lmexmez) && !IsZero(lmeymez) &&
+            !IsZero(lmaxmez) && !IsZero(lmaymez)) {
+            DebugStop();
+        }
+        if (IsZero(lmez)) {
+            lmexmez = 0.999;
+            lmeymez = 0.999;
+            lmaxmez = 0.999;
+            lmaymez = 0.999;
+            lmez = 0.001;
+        }
+
+        dphi(0,0) = -.25*lmeymez / lmez;
+        dphi(1,0) = -.25*lmexmez / lmez;
+        dphi(2,0) = -.25*(lmeymez+lmexmez-lmexmez*lmeymez/lmez) / lmez;
+        dphi(0,1) =  .25*lmeymez / lmez;
+        dphi(1,1) = -.25*lmaxmez / lmez;
+        dphi(2,1) = -.25*(lmeymez+lmaxmez-lmaxmez*lmeymez/lmez) / lmez;
+        dphi(0,2) =  .25*lmaymez / lmez;
+        dphi(1,2) =  .25*lmaxmez / lmez;
+        dphi(2,2) = -.25*(lmaymez+lmaxmez-lmaxmez*lmaymez/lmez) / lmez;
+        dphi(0,3) = -.25*lmaymez / lmez;
+        dphi(1,3) =  .25*lmexmez / lmez;
+        dphi(2,3) = -.25*(lmaymez+lmexmez-lmexmez*lmaymez/lmez) / lmez;
+        dphi(0,4) =  0.0;
+        dphi(1,4) =  0.0;
+        dphi(2,4) =  1.0;
+
+    }
+
+    template<class T>
+    void TPZPyramid::CalcSideInfluence(const int &side, const TPZVec<T> &xiVec, T &correctionFactor,
+                                          TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::gTolerance;
+
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(xiVec,tol)){
+            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        TPZFNMatrix<4,T> phi(NCornerNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
+        TPZPyramid::TShape(xiVec,phi,dphi);
+        correctionFactor = 0;
+        corrFactorDxi.Resize(TPZPyramid::Dimension,(T)0);
+        for(int i = 0; i < TPZPyramid::NSideNodes(side);i++){
+            const int currentNode = TPZPyramid::SideNodeLocId(side, i);
+            correctionFactor += phi(currentNode,0);
+            corrFactorDxi[0] +=  dphi(0,currentNode);
+            corrFactorDxi[1] +=  dphi(1,currentNode);
+            corrFactorDxi[2] +=  dphi(2,currentNode);
+        }
+
+        const T &zeta = xiVec[2];
+        switch(side){
+            case  0:
+            case  1:
+            case  2:
+            case  3:
+            case  4:
+                correctionFactor = 0;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                return;
+            case  5:
+            case  6:
+            case  7:
+            case  8:
+                corrFactorDxi[0] *= (1 - zeta);
+                corrFactorDxi[1] *= (1 - zeta);
+                corrFactorDxi[2] =  (1 - zeta) * corrFactorDxi[2] - correctionFactor;
+                correctionFactor *= 1.-zeta;
+                return;
+            case  9:
+            case 10:
+            case 11:
+            case 12:
+                corrFactorDxi[0] *=  2 * correctionFactor;
+                corrFactorDxi[1] *=  2 * correctionFactor;
+                corrFactorDxi[2] *=  2 * correctionFactor;
+                correctionFactor *= correctionFactor;
+                return;
+            case 13:
+                return;//correct
+            case 14:
+            case 15:
+            case 16:
+            case 17:
+                corrFactorDxi[0] *=  3 * correctionFactor * correctionFactor;
+                corrFactorDxi[1] *=  3 * correctionFactor * correctionFactor;
+                corrFactorDxi[2] *=  3 * correctionFactor * correctionFactor;
+                correctionFactor *= correctionFactor * correctionFactor;
+                return;
+            case 18:
+                correctionFactor = 1;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+        }
+    }
+
     int TPZPyramid:: NBilinearSides()
     {
         DebugStop();
@@ -1644,10 +1794,18 @@ namespace pztopology {
 
 }
 
-template
-bool pztopology::TPZPyramid::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template bool pztopology::TPZPyramid::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
+template void pztopology::TPZPyramid::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZPyramid::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZPyramid::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template<class T=REAL>
+class Fad;
+
+template bool pztopology::TPZPyramid::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZPyramid::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZPyramid::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

@@ -68,11 +68,6 @@ namespace pzgeom {
         /** @brief Returns the type name of the element */
         static std::string TypeName() { return "Hexahedron";}
         
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
-        
         /* @brief Compute x mapping from local parametric coordinates */
         template<class T>
         void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
@@ -101,18 +96,6 @@ namespace pzgeom {
             
             GradX(coord,loc,gradx);
         }
-        
-         /**
-         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
-         * interior point qsi. It is used by the TPZGeoBlend class.
-         * @param side the index of the side
-         * @param xi coordinates of the interior point
-         * @param correctionFactor influence (0 <= correctionFactor <= 1)
-         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
-         */
-        template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
-                                      TPZVec<T> &corrFactorDxi);
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodecoordinates,TPZVec<T> &loc,TPZVec<T> &x);
@@ -120,10 +103,6 @@ namespace pzgeom {
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodecoordinates,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-        
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        template<class T>
-        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
         static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
@@ -149,59 +128,7 @@ int ClassId() const override;
                                           int64_t& index);
         
     };
-    
-    template<class T>
-    inline void TPZGeoCube::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
-        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
-        
-        T x[2],dx[2],y[2],dy[2],z[2],dz[2];
-        x[0]    = (1.-qsi)/2.;
-        x[1]    = (1.+qsi)/2.;
-        dx[0]   = -0.5;
-        dx[1]   = +0.5;
-        y[0]    = (1.-eta)/2.;
-        y[1]    = (1.+eta)/2.;
-        dy[0]   = -0.5;
-        dy[1]   = +0.5;
-        z[0]    = (1.-zeta)/2.;
-        z[1]    = (1.+zeta)/2.;
-        dz[0]   = -0.5;
-        dz[1]   = +0.5;
-        
-        phi(0,0) = x[0]*y[0]*z[0];
-        phi(1,0) = x[1]*y[0]*z[0];
-        phi(2,0) = x[1]*y[1]*z[0];
-        phi(3,0) = x[0]*y[1]*z[0];
-        phi(4,0) = x[0]*y[0]*z[1];
-        phi(5,0) = x[1]*y[0]*z[1];
-        phi(6,0) = x[1]*y[1]*z[1];
-        phi(7,0) = x[0]*y[1]*z[1];
-        dphi(0,0) = dx[0]*y[0]*z[0];
-        dphi(1,0) = x[0]*dy[0]*z[0];
-        dphi(2,0) = x[0]*y[0]*dz[0];
-        dphi(0,1) = dx[1]*y[0]*z[0];
-        dphi(1,1) = x[1]*dy[0]*z[0];
-        dphi(2,1) = x[1]*y[0]*dz[0];
-        dphi(0,2) = dx[1]*y[1]*z[0];
-        dphi(1,2) = x[1]*dy[1]*z[0];
-        dphi(2,2) = x[1]*y[1]*dz[0];
-        dphi(0,3) = dx[0]*y[1]*z[0];
-        dphi(1,3) = x[0]*dy[1]*z[0];
-        dphi(2,3) = x[0]*y[1]*dz[0];
-        dphi(0,4) = dx[0]*y[0]*z[1];
-        dphi(1,4) = x[0]*dy[0]*z[1];
-        dphi(2,4) = x[0]*y[0]*dz[1];
-        dphi(0,5) = dx[1]*y[0]*z[1];
-        dphi(1,5) = x[1]*dy[0]*z[1];
-        dphi(2,5) = x[1]*y[0]*dz[1];
-        dphi(0,6) = dx[1]*y[1]*z[1];
-        dphi(1,6) = x[1]*dy[1]*z[1];
-        dphi(2,6) = x[1]*y[1]*dz[1];
-        dphi(0,7) = dx[0]*y[1]*z[1];
-        dphi(1,7) = x[0]*dy[1]*z[1];
-        dphi(2,7) = x[0]*y[1]*dz[1];
-        
-    }
+
     
     template<class T>
     inline void TPZGeoCube::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){

@@ -160,6 +160,86 @@ namespace pztopology {
         {3,2,1,0,6,5,4,7,8}  // id 7
     };
 
+    template<class T>
+    inline void TPZQuadrilateral::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1];
+
+        phi(0,0) = 0.25*(1.-qsi)*(1.-eta);
+        phi(1,0) = 0.25*(1.+qsi)*(1.-eta);
+        phi(2,0) = 0.25*(1.+qsi)*(1.+eta);
+        phi(3,0) = 0.25*(1.-qsi)*(1.+eta);
+
+        dphi(0,0) = 0.25*(eta-1.);
+        dphi(1,0) = 0.25*(qsi-1.);
+
+        dphi(0,1) = 0.25*(1.-eta);
+        dphi(1,1) =-0.25*(1.+qsi);
+
+        dphi(0,2) = 0.25*(1.+eta);
+        dphi(1,2) = 0.25*(1.+qsi);
+
+        dphi(0,3) =-0.25*(1.+eta);
+        dphi(1,3) = 0.25*(1.-qsi);
+
+
+    }
+
+    template<class T>
+    void TPZQuadrilateral::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                       TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::gTolerance;
+#ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(xi,tol)){
+            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+#endif
+        TPZFNMatrix<4,T> phi(NCornerNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
+        TPZQuadrilateral::TShape(xi,phi,dphi);
+        corrFactorDxi.Resize(TPZQuadrilateral::Dimension, (T) 0);
+        int i = -1;
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                correctionFactor = 0;
+                return;
+            case 4:
+                i = 0;
+                break;
+            case 5:
+                i = 1;
+                break;
+            case 6:
+                i = 2;
+                break;
+            case 7:
+                i = 3;
+                break;
+            case 8:
+                correctionFactor = 1;
+                return;
+        }
+        correctionFactor = phi(i,0) + phi((i+1)%NCornerNodes,0);
+        corrFactorDxi[0] = dphi(0,i) + dphi(0,(i+1)%NCornerNodes);
+        corrFactorDxi[1] = dphi(1,i) + dphi(1,(i+1)%NCornerNodes);
+    }
+
     int TPZQuadrilateral::NBilinearSides()
     {
         return 6;
@@ -1129,10 +1209,18 @@ namespace pztopology {
 
 }
 
-template
-bool pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template bool pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
+template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZQuadrilateral::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template<class T=REAL>
+class Fad;
+
+template bool pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZQuadrilateral::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZQuadrilateral::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

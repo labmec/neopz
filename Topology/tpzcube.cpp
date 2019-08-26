@@ -372,6 +372,101 @@ namespace pztopology {
         0,1,0,1,0,1,0,1,0,1,0,1,//0,1,0,2,1,2,0,2,1,2,0,1,
         0,1,2};
 
+    template<class T>
+    inline void TPZCube::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
+
+        T x[2],dx[2],y[2],dy[2],z[2],dz[2];
+        x[0]    = (1.-qsi)/2.;
+        x[1]    = (1.+qsi)/2.;
+        dx[0]   = -0.5;
+        dx[1]   = +0.5;
+        y[0]    = (1.-eta)/2.;
+        y[1]    = (1.+eta)/2.;
+        dy[0]   = -0.5;
+        dy[1]   = +0.5;
+        z[0]    = (1.-zeta)/2.;
+        z[1]    = (1.+zeta)/2.;
+        dz[0]   = -0.5;
+        dz[1]   = +0.5;
+
+        phi(0,0) = x[0]*y[0]*z[0];
+        phi(1,0) = x[1]*y[0]*z[0];
+        phi(2,0) = x[1]*y[1]*z[0];
+        phi(3,0) = x[0]*y[1]*z[0];
+        phi(4,0) = x[0]*y[0]*z[1];
+        phi(5,0) = x[1]*y[0]*z[1];
+        phi(6,0) = x[1]*y[1]*z[1];
+        phi(7,0) = x[0]*y[1]*z[1];
+        dphi(0,0) = dx[0]*y[0]*z[0];
+        dphi(1,0) = x[0]*dy[0]*z[0];
+        dphi(2,0) = x[0]*y[0]*dz[0];
+        dphi(0,1) = dx[1]*y[0]*z[0];
+        dphi(1,1) = x[1]*dy[0]*z[0];
+        dphi(2,1) = x[1]*y[0]*dz[0];
+        dphi(0,2) = dx[1]*y[1]*z[0];
+        dphi(1,2) = x[1]*dy[1]*z[0];
+        dphi(2,2) = x[1]*y[1]*dz[0];
+        dphi(0,3) = dx[0]*y[1]*z[0];
+        dphi(1,3) = x[0]*dy[1]*z[0];
+        dphi(2,3) = x[0]*y[1]*dz[0];
+        dphi(0,4) = dx[0]*y[0]*z[1];
+        dphi(1,4) = x[0]*dy[0]*z[1];
+        dphi(2,4) = x[0]*y[0]*dz[1];
+        dphi(0,5) = dx[1]*y[0]*z[1];
+        dphi(1,5) = x[1]*dy[0]*z[1];
+        dphi(2,5) = x[1]*y[0]*dz[1];
+        dphi(0,6) = dx[1]*y[1]*z[1];
+        dphi(1,6) = x[1]*dy[1]*z[1];
+        dphi(2,6) = x[1]*y[1]*dz[1];
+        dphi(0,7) = dx[0]*y[1]*z[1];
+        dphi(1,7) = x[0]*dy[1]*z[1];
+        dphi(2,7) = x[0]*y[1]*dz[1];
+
+    }
+
+    template<class T>
+    void TPZCube::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+                                       TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::gTolerance;
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+        #ifdef PZDEBUG
+
+        if(!IsInParametricDomain(xi,tol)){
+            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        corrFactorDxi.Resize(TPZCube::Dimension,(T)0);
+        if(side < NSides - 1){
+            TPZFNMatrix<4,T> phi(NCornerNodes,1);
+            TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
+            TPZCube::TShape(xi,phi,dphi);
+            correctionFactor = 0;
+            for(int i = 0; i < TPZCube::NSideNodes(side);i++){
+                const int currentNode = TPZCube::SideNodeLocId(side, i);
+                correctionFactor += phi(currentNode,0);
+                corrFactorDxi[0] +=  dphi(0,currentNode);
+                corrFactorDxi[1] +=  dphi(1,currentNode);
+                corrFactorDxi[2] +=  dphi(2,currentNode);
+            }
+
+        }else{
+            correctionFactor = 1;
+        }
+    }
+
     int TPZCube::NBilinearSides()
     {
         return 27;
@@ -1474,10 +1569,19 @@ namespace pztopology {
     }
 
 }
-template
-bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
+template bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZCube::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template<class T=REAL>
+class Fad;
+
+template bool pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZCube::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZCube::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

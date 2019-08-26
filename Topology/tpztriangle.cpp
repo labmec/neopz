@@ -36,7 +36,7 @@ namespace pztopology {
     template<class T>
     void TPZTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
                                            TPZVec<T> &correctionFactorDxi){
-
+    const REAL tol = pztopology::gTolerance;
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
@@ -45,7 +45,7 @@ namespace pztopology {
             DebugStop();
         }
 
-        if(!pztopology::TPZTriangle::IsInParametricDomain(xi,gTolerance)){
+        if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
             sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
