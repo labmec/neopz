@@ -34,9 +34,9 @@ namespace pztopology {
     }
 
     template<class T>
-    void TPZTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
-                                           TPZVec<T> &correctionFactorDxi){
-    const REAL tol = pztopology::gTolerance;
+    void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                           TPZVec<T> &blendFactorDxi){
+    const REAL tol = pztopology::GetTolerance();
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
@@ -46,7 +46,7 @@ namespace pztopology {
         }
 
         if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
-            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
             #ifdef LOG4CXX
@@ -58,13 +58,13 @@ namespace pztopology {
         TPZFNMatrix<4,T> phi(NCornerNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
         TPZTriangle::TShape(xi,phi,dphi);
-        correctionFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
+        blendFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
         int i = -1;
         switch(side){
             case 0:
             case 1:
             case 2:
-                correctionFactor = 0;
+                blendFactor = 0;
                 return;
             case 3:
                 i = 0;
@@ -76,13 +76,13 @@ namespace pztopology {
                 i = 2;
                 break;
             case 6:
-                correctionFactor = 1;
+                blendFactor = 1;
                 return;
         }
-        correctionFactor = phi(i,0) + phi((i+1)%NCornerNodes,0);
-        correctionFactor *= correctionFactor;
-        correctionFactorDxi[0] = 2 * ( phi(i,0) + phi((i+1)%NCornerNodes,0) ) * ( dphi(0,i) + dphi(0,(i+1)%NCornerNodes) );
-        correctionFactorDxi[1] = 2 * ( phi(i,0) + phi((i+1)%NCornerNodes,0) ) * ( dphi(1,i) + dphi(1,(i+1)%NCornerNodes) );
+        blendFactor = phi(i,0) + phi((i+1)%NCornerNodes,0);
+        blendFactor *= blendFactor;
+        blendFactorDxi[0] = 2 * ( phi(i,0) + phi((i+1)%NCornerNodes,0) ) * ( dphi(0,i) + dphi(0,(i+1)%NCornerNodes) );
+        blendFactorDxi[1] = 2 * ( phi(i,0) + phi((i+1)%NCornerNodes,0) ) * ( dphi(1,i) + dphi(1,(i+1)%NCornerNodes) );
 
     }
 
@@ -1112,14 +1112,14 @@ template bool pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &I
 
 template void pztopology::TPZTriangle::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZTriangle::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+template void pztopology::TPZTriangle::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
 template<class T=REAL>
 class Fad;
 
 template bool pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-template void pztopology::TPZTriangle::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+template void pztopology::TPZTriangle::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZTriangle::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

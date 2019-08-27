@@ -266,10 +266,10 @@ namespace pztopology {
 
     }
     template<class T>
-    void TPZTetrahedron::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+    void TPZTetrahedron::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                              TPZVec<T> &corrFactorDxi) {
 
-        const REAL tol = pztopology::gTolerance;
+        const REAL tol = pztopology::GetTolerance();
         #ifdef PZDEBUG
         std::ostringstream sout;
         if (side < NCornerNodes || side >= NSides) {
@@ -280,7 +280,7 @@ namespace pztopology {
         }
 
         if (!IsInParametricDomain(xi, tol)) {
-            sout << "The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout << "The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout << " inside the parametric domain. Aborting...";
             PZError << std::endl << sout.str() << std::endl;
             #ifdef LOG4CXX
@@ -293,10 +293,10 @@ namespace pztopology {
         TPZFNMatrix<8, T> dphi(Dimension, NCornerNodes);
         TPZTetrahedron::TShape(xi, phi, dphi);
         corrFactorDxi.Resize(TPZTetrahedron::Dimension, (T) 0);
-        correctionFactor = 0;
+        blendFactor = 0;
         for (int i = 0; i < TPZTetrahedron::NSideNodes(side); i++) {
             const int currentNode = TPZTetrahedron::SideNodeLocId(side, i);
-            correctionFactor += phi(currentNode, 0);
+            blendFactor += phi(currentNode, 0);
             corrFactorDxi[0] += dphi(0, currentNode);
             corrFactorDxi[1] += dphi(1, currentNode);
             corrFactorDxi[2] += dphi(2, currentNode);
@@ -309,7 +309,7 @@ namespace pztopology {
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = 0;
-                correctionFactor = 0;
+                blendFactor = 0;
                 return;
             case 4:
             case 5:
@@ -317,25 +317,25 @@ namespace pztopology {
             case 7:
             case 8:
             case 9:
-                corrFactorDxi[0] *= 2 * correctionFactor;
-                corrFactorDxi[1] *= 2 * correctionFactor;
-                corrFactorDxi[2] *= 2 * correctionFactor;
-                correctionFactor *= correctionFactor;
+                corrFactorDxi[0] *= 2 * blendFactor;
+                corrFactorDxi[1] *= 2 * blendFactor;
+                corrFactorDxi[2] *= 2 * blendFactor;
+                blendFactor *= blendFactor;
                 return;
             case 10:
             case 11:
             case 12:
             case 13:
-                corrFactorDxi[0] *= 3 * correctionFactor * correctionFactor;
-                corrFactorDxi[1] *= 3 * correctionFactor * correctionFactor;
-                corrFactorDxi[2] *= 3 * correctionFactor * correctionFactor;
-                correctionFactor *= correctionFactor * correctionFactor;
+                corrFactorDxi[0] *= 3 * blendFactor * blendFactor;
+                corrFactorDxi[1] *= 3 * blendFactor * blendFactor;
+                corrFactorDxi[2] *= 3 * blendFactor * blendFactor;
+                blendFactor *= blendFactor * blendFactor;
                 return;
             case 14:
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = 0;
-                correctionFactor = 1;
+                blendFactor = 1;
                 return;
         }
     }
@@ -1448,14 +1448,14 @@ template bool pztopology::TPZTetrahedron::MapToSide<REAL>(int side, TPZVec<REAL>
 
 template void pztopology::TPZTetrahedron::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZTetrahedron::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+template void pztopology::TPZTetrahedron::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
 template<class T=REAL>
 class Fad;
 
 template bool pztopology::TPZTetrahedron::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-template void pztopology::TPZTetrahedron::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+template void pztopology::TPZTetrahedron::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZTetrahedron::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

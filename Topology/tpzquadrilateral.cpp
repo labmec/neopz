@@ -185,9 +185,9 @@ namespace pztopology {
     }
 
     template<class T>
-    void TPZQuadrilateral::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+    void TPZQuadrilateral::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                        TPZVec<T> &corrFactorDxi){
-        const REAL tol = pztopology::gTolerance;
+        const REAL tol = pztopology::GetTolerance();
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
@@ -198,7 +198,7 @@ namespace pztopology {
         }
 
         if(!IsInParametricDomain(xi,tol)){
-            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
             #ifdef LOG4CXX
@@ -217,7 +217,7 @@ namespace pztopology {
             case 1:
             case 2:
             case 3:
-                correctionFactor = 0;
+                blendFactor = 0;
                 return;
             case 4:
                 i = 0;
@@ -232,10 +232,10 @@ namespace pztopology {
                 i = 3;
                 break;
             case 8:
-                correctionFactor = 1;
+                blendFactor = 1;
                 return;
         }
-        correctionFactor = phi(i,0) + phi((i+1)%NCornerNodes,0);
+        blendFactor = phi(i,0) + phi((i+1)%NCornerNodes,0);
         corrFactorDxi[0] = dphi(0,i) + dphi(0,(i+1)%NCornerNodes);
         corrFactorDxi[1] = dphi(1,i) + dphi(1,(i+1)%NCornerNodes);
     }
@@ -1213,14 +1213,14 @@ template bool pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REA
 
 template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZQuadrilateral::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+template void pztopology::TPZQuadrilateral::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
 template<class T=REAL>
 class Fad;
 
 template bool pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-template void pztopology::TPZQuadrilateral::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+template void pztopology::TPZQuadrilateral::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZQuadrilateral::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

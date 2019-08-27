@@ -20,7 +20,7 @@ namespace pztopology {
     }
 
     template<class T>
-    void TPZPoint::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+    void TPZPoint::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                        TPZVec<T> &corrFactorDxi){
         std::ostringstream sout;
         sout<<"This method should not be called for a point element. Aborting..."<<std::endl;
@@ -137,14 +137,14 @@ namespace pztopology {
 
 template bool pztopology::TPZPoint::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
-template void pztopology::TPZPoint::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+template void pztopology::TPZPoint::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
 template void pztopology::TPZPoint::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 #ifdef _AUTODIFF
 template bool pztopology::TPZPoint::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-template void pztopology::TPZPoint::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+template void pztopology::TPZPoint::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
 
 template void pztopology::TPZPoint::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);

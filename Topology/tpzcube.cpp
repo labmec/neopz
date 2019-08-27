@@ -426,9 +426,9 @@ namespace pztopology {
     }
 
     template<class T>
-    void TPZCube::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+    void TPZCube::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                        TPZVec<T> &corrFactorDxi){
-        const REAL tol = pztopology::gTolerance;
+        const REAL tol = pztopology::GetTolerance();
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
             sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
@@ -439,7 +439,7 @@ namespace pztopology {
         #ifdef PZDEBUG
 
         if(!IsInParametricDomain(xi,tol)){
-            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
             #ifdef LOG4CXX
@@ -453,17 +453,17 @@ namespace pztopology {
             TPZFNMatrix<4,T> phi(NCornerNodes,1);
             TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
             TPZCube::TShape(xi,phi,dphi);
-            correctionFactor = 0;
+            blendFactor = 0;
             for(int i = 0; i < TPZCube::NSideNodes(side);i++){
                 const int currentNode = TPZCube::SideNodeLocId(side, i);
-                correctionFactor += phi(currentNode,0);
+                blendFactor += phi(currentNode,0);
                 corrFactorDxi[0] +=  dphi(0,currentNode);
                 corrFactorDxi[1] +=  dphi(1,currentNode);
                 corrFactorDxi[2] +=  dphi(2,currentNode);
             }
 
         }else{
-            correctionFactor = 1;
+            blendFactor = 1;
         }
     }
 
@@ -1574,14 +1574,14 @@ template bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &Inter
 
 template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZCube::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+template void pztopology::TPZCube::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
 template<class T=REAL>
 class Fad;
 
 template bool pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-template void pztopology::TPZCube::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+template void pztopology::TPZCube::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZCube::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

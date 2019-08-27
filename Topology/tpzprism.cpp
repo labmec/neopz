@@ -361,9 +361,9 @@ namespace pztopology {
     }
 
     template<class T>
-    void TPZPrism::CalcSideInfluence(const int &side, const TPZVec<T> &xiVec, T &correctionFactor,
+    void TPZPrism::BlendFactorForSide(const int &side, const TPZVec<T> &xiVec, T &blendFactor,
                                         TPZVec<T> &corrFactorDxi){
-        const REAL tol = pztopology::gTolerance;
+        const REAL tol = pztopology::GetTolerance();
         #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
@@ -374,7 +374,7 @@ namespace pztopology {
         }
 
         if(!IsInParametricDomain(xiVec,tol)){
-            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
+            sout<<"The method BlendFactorForSide expects the point qsi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
             #ifdef LOG4CXX
@@ -394,88 +394,88 @@ namespace pztopology {
             case  3:
             case  4:
             case  5:
-                correctionFactor = 0;
+                blendFactor = 0;
                 return;
             case  6:
-                correctionFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
+                blendFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = -1.*(1 - eta)*(1 - zeta);
                 corrFactorDxi[2] = -0.5*((1 - eta)*(1 - eta));
                 return;
             case  7:
-                correctionFactor = 0.5*(1.-zeta)*(xi+eta)*(xi+eta);
+                blendFactor = 0.5*(1.-zeta)*(xi+eta)*(xi+eta);
                 corrFactorDxi[0] =1.*(eta + xi)*(1 - zeta);
                 corrFactorDxi[1] =1.*(eta + xi)*(1 - zeta);
                 corrFactorDxi[2] =-0.5*((eta + xi)*(eta + xi));
                 return;
             case  8:
-                correctionFactor = 0.5*(1.-zeta)*(1.-xi)*(1.-xi);
+                blendFactor = 0.5*(1.-zeta)*(1.-xi)*(1.-xi);
                 corrFactorDxi[0] =-1.*(1 - xi)*(1 - zeta);
                 corrFactorDxi[1] =0;
                 corrFactorDxi[2] =-0.5*((1 - xi)*(1 - xi));
                 return;
             case  9:
-                correctionFactor = 1. - xi - eta;
+                blendFactor = 1. - xi - eta;
                 corrFactorDxi[0] = -1;
                 corrFactorDxi[1] = -1;
                 corrFactorDxi[2] = 0;
                 return;
             case 10:
-                correctionFactor = xi;
+                blendFactor = xi;
                 corrFactorDxi[0] = 1;
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = 0;
                 return;
             case 11:
-                correctionFactor = eta;
+                blendFactor = eta;
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = 1;
                 corrFactorDxi[2] = 0;
                 return;
             case 12:
-                correctionFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
+                blendFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = -1.*(1 - eta)*(1 + zeta);
                 corrFactorDxi[2] = 0.5*((1 - eta)*(1 - eta));
                 return;
             case 13:
-                correctionFactor = 0.5*(1.+zeta)*(xi+eta)*(xi+eta);
+                blendFactor = 0.5*(1.+zeta)*(xi+eta)*(xi+eta);
                 corrFactorDxi[0] = 1.*(eta + xi)*(1 + zeta);
                 corrFactorDxi[1] = 1.*(eta + xi)*(1 + zeta);
                 corrFactorDxi[2] = 0.5*((eta + xi)*(eta + xi));
                 return;
             case 14:
-                correctionFactor = 0.5*(1.+zeta)*(1.-xi)*(1.-xi);
+                blendFactor = 0.5*(1.+zeta)*(1.-xi)*(1.-xi);
                 corrFactorDxi[0] = -1.*(1 - xi)*(1 + zeta);
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = 0.5*((1 - xi)*(1 - xi));
                 return;
             case 15:
-                correctionFactor = 0.5*(1.-zeta);
+                blendFactor = 0.5*(1.-zeta);
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = -0.5;
                 return;
             case 16:
-                correctionFactor = 1.-eta;
+                blendFactor = 1.-eta;
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = -1;
                 corrFactorDxi[2] = 0;
                 return;
             case 17:
-                correctionFactor = xi+eta;
+                blendFactor = xi+eta;
                 corrFactorDxi[0] = 1;
                 corrFactorDxi[1] = 1;
                 corrFactorDxi[2] = 0;
                 return;
             case 18:
-                correctionFactor = 1.-xi;
+                blendFactor = 1.-xi;
                 corrFactorDxi[0] = -1;
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = 0;
                 return;
             case 19:
-                correctionFactor = 0.5*(1.+zeta);
+                blendFactor = 0.5*(1.+zeta);
                 corrFactorDxi[0] = 0;
                 corrFactorDxi[1] = 0;
                 corrFactorDxi[2] = 0.5;
@@ -1675,14 +1675,14 @@ template bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &Inte
 
 template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZPrism::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 #ifdef _AUTODIFF
 template<class T=REAL>
 class Fad;
 
 template bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-template void pztopology::TPZPrism::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZPrism::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 #endif

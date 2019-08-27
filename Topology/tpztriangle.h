@@ -94,11 +94,11 @@ namespace pztopology {
          * interior point qsi. It is used by the TPZGeoBlend class.
          * @param side the index of the side
          * @param xi coordinates of the interior point
-         * @param correctionFactor influence (0 <= correctionFactor <= 1)
-         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
+         * @param blendFactor influence (0 <= blendFactor <= 1)
+         * * @param corrFactorDxi derivative of the blendFactor in respect to xi
          */
         template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
+        static void BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                       TPZVec<T> &corrFactorDxi);
 
 		/** @} */
