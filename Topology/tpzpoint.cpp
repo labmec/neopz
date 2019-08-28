@@ -11,8 +11,6 @@
 #include "fad.h"
 #endif
 
-#include "pzcreateapproxspace.h"
-
 namespace pztopology {
 	
 	TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)

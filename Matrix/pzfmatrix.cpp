@@ -1253,14 +1253,14 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 }
 
 
-#ifdef _AUTODIFF
-template <class TVar>
-int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B) {
-    std::cout << __PRETTY_FUNCTION__ << " bailing out\n";
-    DebugStop();
-    return 1;
-}
-#else
+//#ifdef _AUTODIFF
+//template <class TVar>
+//int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B) {
+//    std::cout << __PRETTY_FUNCTION__ << " bailing out\n";
+//    DebugStop();
+//    return 1;
+//}
+//#else
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B)
 {
@@ -1282,7 +1282,8 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVa
                 PUTVAL(B, rowb, i, col, GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, j) * GETVAL(B, rowb, j, col));
             if ( IsZero( SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/ ) ) {
                 if (fabs(SELECTEL(ptr, rows, i, i)/*GetVal(i, i)*/) > fabs((TVar)0.)) {
-                    if (fabs(GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i)/*B->GetVal(i, col) - GetVal(i, i)*/) > fabs(((TVar)1e-12))) {
+                    TVar tmp = GETVAL(B, rowb, i, col) - SELECTEL(ptr, rows, i, i);/*B->GetVal(i, col) - GetVal(i, i)*/
+                    if (fabs(tmp) > fabs(((TVar)1e-12))) {
                         Error( "static::BackSub(SubstitutionLU) <Matrix is singular even after Power Plus..." );
                     }
                 }else  Error( "static::BackSub(SubstitutionLU) <Matrix is singular" );
@@ -1293,7 +1294,7 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVa
     }
     return( 1 );
 }
-#endif
+//#endif
 
 #ifdef _AUTODIFF
 #include "fadType.h"

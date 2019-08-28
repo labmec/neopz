@@ -1,0 +1,37 @@
+// Together Model file
+package project.TESTE.Debug.Default;
+
+/** @shapeType Package
+@filters #Wed Jun 30 19:24:19 GMT-03:00 1999
+filter.extendsLink=1/show
+filter.privateAttribute=1/show
+filter.anyLink=1/show
+filter.allOperations=1/show
+filter.publicOperation=1/show
+filter.staticAttribute=1/show
+filter.implementsLink=1/show
+filter.privateOperation=1/show
+filter.getSetOperation=1/show
+filter.templateClass=1/show
+filter.abstractOperation=1/show
+filter.associationLink=1/show
+filter.dependencyLink=1/show
+filter.structClass=1/show
+filter.constructorOperation=1/show
+filter.publicAttribute=1/show
+filter.usageDependencyLink=1/hide
+filter.packageDependencyLink=1/show
+filter.destructorOperation=1/show
+filter.protectedAttribute=1/show
+filter.inlineOperation=1/show
+filter.virtualOperation=1/show
+filter.abstractClass=1/show
+filter.aggregationLink=1/show
+filter.staticOperation=1/show
+filter.unionClass=1/hide
+filter.protectedOperation=1/show
+filter.allAttributes=1/show
+filter.instantiationLink=1/show
+*/
+class Default {
+}

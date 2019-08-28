@@ -48,6 +48,16 @@ void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec
             maxMatId = std::max(maxMatId, mat.first);
         }
     }
+    if(meshvec_Hybrid.size())
+    {
+        TPZGeoMesh *gmesh = meshvec_Hybrid[0]->Reference();
+        int64_t nel = gmesh->NElements();
+        for(int64_t el=0; el<nel; el++)
+        {
+            TPZGeoEl *gel = gmesh->Element(el);
+            if(gel) maxMatId = std::max(maxMatId,gel->MaterialId());
+        }
+    }
     if (maxMatId == std::numeric_limits<int>::min()) {
         maxMatId = 0;
     }
@@ -215,6 +225,7 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
 /// split the connects between flux elements and create a dim-1 pressure element
 
 void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
+    InsertPeriferalMaterialObjects(meshvec_Hybrid);
     TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
     TPZGeoMesh *gmesh = fluxmesh->Reference();
     int dim = gmesh->Dimension();
@@ -368,6 +379,7 @@ TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZMultiphysicsCompMesh *
     for (int i = 0; i < cmesh_HDiv->MeshVector().size(); i++) {
         meshvec_Hybrid[i] = cmesh_HDiv->MeshVector()[i]->Clone();
     }
+    InsertPeriferalMaterialObjects(meshvec_Hybrid);
     HybridizeInternalSides(meshvec_Hybrid);
 
     TPZGeoMesh *gmesh = cmesh_HDiv->Reference();
@@ -380,33 +392,46 @@ TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZMultiphysicsCompMesh *
     return cmesh_Hybrid;
 }
 
-/// group and condense the elements
+/// create a multiphysics hybridized mesh based on and input mesh
+void TPZHybridizeHDiv::ReCreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_HDiv, double Lagrange_term_multiplier)
+{
+    TPZManVector<TPZCompMesh *, 3> meshvec_Hybrid = cmesh_HDiv->MeshVector();
+    InsertPeriferalMaterialObjects(cmesh_HDiv, Lagrange_term_multiplier);
+    InsertPeriferalMaterialObjects(meshvec_Hybrid);
+    TPZManVector<int> active = cmesh_HDiv->GetActiveApproximationSpaces();
+    HybridizeInternalSides(meshvec_Hybrid);
+    cmesh_HDiv->BuildMultiphysicsSpace(active, meshvec_Hybrid);
 
-void TPZHybridizeHDiv::GroupElements(TPZCompMesh *cmesh) {
+}
+
+/// Associate elements with a volumetric element
+// elementgroup[el] = index of the element with which the element should be grouped
+// this method only gives effective result for hybridized hdiv meshes
+void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &elementgroup)
+{
     int64_t nel = cmesh->NElements();
+    elementgroup.Resize(nel, -1);
+    elementgroup.Fill(-1);
     int64_t nconnects = cmesh->NConnects();
-    TPZVec<TPZElementGroup *> groupindex(nconnects, 0);
+    TPZVec<int64_t> groupindex(nconnects, -1);
     int dim = cmesh->Dimension();
     for (TPZCompEl *cel : cmesh->ElementVec()) {
         if (!cel || !cel->Reference() || cel->Reference()->Dimension() != dim) {
             continue;
         }
-        int64_t index;
-        TPZElementGroup *elgr = new TPZElementGroup(*cmesh, index);
-//        std::cout << "Created group " << index << std::endl;
+        elementgroup[cel->Index()] = cel->Index();
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
         for (auto cindex : connectlist) {
 #ifdef PZDEBUG
-            if (groupindex[cindex] != 0) {
+            if (groupindex[cindex] != -1) {
                 DebugStop();
             }
 #endif
-            groupindex[cindex] = elgr;
+            groupindex[cindex] = cel->Index();
         }
-        elgr->AddElement(cel);
     }
-//    std::cout << "Groups of connects " << groupindex << std::endl;
+    //    std::cout << "Groups of connects " << groupindex << std::endl;
     for (TPZCompEl *cel : cmesh->ElementVec()) {
         if (!cel || !cel->Reference()) {
             continue;
@@ -414,18 +439,59 @@ void TPZHybridizeHDiv::GroupElements(TPZCompMesh *cmesh) {
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
 //        std::cout << "Analysing element " << cel->Index();
+        int64_t groupfound = -1;
         for (auto cindex : connectlist) {
-            if (groupindex[cindex] != 0) {
-                groupindex[cindex]->AddElement(cel);
-//                std::cout << " added to " << groupindex[cindex]->Index() << " with size " << groupindex[cindex]->GetElGroup().size();
-                break;
+            if (groupindex[cindex] != -1) {
+                elementgroup[cel->Index()] = groupindex[cindex];
+                if(groupfound != -1 && groupfound != groupindex[cindex])
+                {
+                    DebugStop();
+                }
+//                if(groupfound == -1)
+//                {
+//                    std::cout << " added to " << groupindex[cindex];
+//                }
+
+                groupfound = groupindex[cindex];
             }
+        }
+//        std::cout << std::endl;
+    }
+
+}
+
+
+
+/// group and condense the elements
+
+void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
+
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> groupnumber(nel,-1);
+    /// compute a groupnumber associated with each element
+    AssociateElements(cmesh, groupnumber);
+    std::map<int64_t, TPZElementGroup *> groupmap;
+    //    std::cout << "Groups of connects " << groupindex << std::endl;
+    for (int64_t el = 0; el<nel; el++) {
+        int64_t groupnum = groupnumber[el];
+        if(groupnum == -1) continue;
+        auto iter = groupmap.find(groupnum);
+        if (groupmap.find(groupnum) == groupmap.end()) {
+            int64_t index;
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+            groupmap[groupnum] = elgr;
+            elgr->AddElement(cmesh->Element(el));
+        }
+        else
+        {
+            iter->second->AddElement(cmesh->Element(el));
         }
 //        std::cout << std::endl;
     }
     cmesh->ComputeNodElCon();
     nel = cmesh->NElements();
-    for (TPZCompEl *cel : cmesh->ElementVec()) {
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
         TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
         if (elgr) {
             TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
@@ -507,7 +573,7 @@ std::tuple<TPZCompMesh*, TPZVec<TPZCompMesh*> > TPZHybridizeHDiv::Hybridize(TPZC
     TPZCompMesh *cmesh_Hybrid = CreateMultiphysicsMesh(cmesh_HDiv, meshvec_Hybrid, Lagrange_term_multiplier);
     CreateInterfaceElements(cmesh_Hybrid, meshvec_Hybrid);
     if (group_elements){
-        GroupElements(cmesh_Hybrid);
+        GroupandCondenseElements(cmesh_Hybrid);
     }
     return std::make_tuple(cmesh_Hybrid, meshvec_Hybrid);
 }
@@ -517,15 +583,32 @@ TPZMultiphysicsCompMesh *TPZHybridizeHDiv::Hybridize(TPZMultiphysicsCompMesh *mu
 {
     ComputePeriferalMaterialIds(multiphysics->MeshVector());
     ComputeNState(multiphysics->MeshVector());
-    InsertPeriferalMaterialObjects(multiphysics->MeshVector());
-    HybridizeInternalSides(multiphysics->MeshVector());
+//    InsertPeriferalMaterialObjects(multiphysics->MeshVector());
+//    HybridizeInternalSides(multiphysics->MeshVector());
     TPZCompMesh *cmesh = CreateMultiphysicsMesh(multiphysics);
     TPZMultiphysicsCompMesh *result = dynamic_cast<TPZMultiphysicsCompMesh *>(cmesh);
     CreateInterfaceElements(result);
+    if(group_elements)
+    {
+        GroupandCondenseElements(result);
+    }
     if(!result) DebugStop();
     return result;
 
 }
+
+/// make a hybrid mesh from a H(div) multiphysics mesh
+void TPZHybridizeHDiv::HybridizeGivenMesh(TPZMultiphysicsCompMesh &multiphysics, bool group_elements, double Lagrange_term_multiplier)
+{
+    ComputePeriferalMaterialIds(multiphysics.MeshVector());
+    ComputeNState(multiphysics.MeshVector());
+    ReCreateMultiphysicsMesh(&multiphysics);
+    CreateInterfaceElements(&multiphysics);
+    if (group_elements) {
+        GroupandCondenseElements(&multiphysics);
+    }
+}
+
 
 
 static void CompareFluxes(TPZCompElSide &left, TPZCompElSide &right, std::ostream &out)

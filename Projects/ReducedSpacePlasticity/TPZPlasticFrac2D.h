@@ -128,13 +128,13 @@ public:
         
         int ClassId() const override;
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZPlasticFrac2D"; }
+	virtual std::string Name()  override { return "TPZPlasticFrac2D"; }
 	
 	//virtual int Dimension() const {return 2;}
 	
-	virtual int NStateVariables() const { return 1; }
+	virtual int NStateVariables() const  override { return 1; }
 	
 	/** @brief Set plane problem
 	 * planestress = 1 => Plain stress state
@@ -175,18 +175,18 @@ public:
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) override;
 
 	virtual void ContributePlastic(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) override;
 	
-	virtual int VariableIndex(const std::string &name);
+	virtual int VariableIndex(const std::string &name) override;
 	
-	virtual int NSolutionVariables(int var);
+	virtual int NSolutionVariables(int var) override;
 	
 	//public:
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) override;
 	
 	virtual void ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
 	virtual void ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef,TPZBndCond &bc);
@@ -232,7 +232,7 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) override
 	{
 		DebugStop();
 	}
@@ -247,14 +247,14 @@ public:
 	 * @param bc [in] is the boundary condition material
 	 * @since October 07, 2011
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) override
 	{
 		DebugStop();
 	}
 	
-	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
 	
-	virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec);
+	virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec) override;
 	
 	void ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
         

@@ -164,7 +164,7 @@ namespace pztopology {
 		 * @brief Method which identifies the transformation of a side based on the IDs
 		 * of the corner nodes
 		 * @param side Index of side
-		 * @param id Indexes of the corner nodes
+		 * @param id Ids of the corner nodes
 		 * @return Index of the transformation of the point corresponding to the topology
 		 */	
 		static int GetTransformId(int side, TPZVec<int64_t> &id);

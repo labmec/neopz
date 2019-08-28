@@ -31,7 +31,7 @@ protected:
     /// computational MHM mesh being built by this class
     TPZAutoPointer<TPZCompMesh> fCMesh;
     
-    /// computational mesh to represent the constant states
+    /// computational mesh to represent the distributed flux in each subdomain
     TPZAutoPointer<TPZCompMesh> fCMeshLagrange;
     
     /// computational mesh to represent the constant states
@@ -73,6 +73,10 @@ protected:
     
     /// interpolation order of the skeleton elements
     int fpOrderSkeleton = 1;
+    
+    //internal order for enrichement spaces
+    
+    int fHdivmaismais = 0;
     
     /// material index of the skeleton wrap
     int fSkeletonWrapMatId = 500;
@@ -216,6 +220,13 @@ public:
         fpOrderSkeleton = order;
     }
     
+    
+    void SetHdivmaismaisPOrder(int order)
+    {
+        fHdivmaismais = order;
+    }
+
+    
     /// Set the flag for creating Lagrange Dofs for the average pressure
     void SetLagrangeAveragePressure(bool flag)
     {
@@ -335,9 +346,6 @@ private:
     /// put the element side which face the boundary on the stack
     void AddElementBoundaries(int64_t elseed, int64_t compelindex, TPZStack<TPZCompElSide> &result);
     
-    /// create the lagrange multiplier mesh, one element for each subdomain
-    void CreateLagrangeMultiplierMesh();
-    
     /// transform the computational mesh into a multiphysics mesh
     void TransferToMultiphysics();
     
@@ -380,6 +388,9 @@ private:
     void DivideWrap(TPZGeoEl *wrapelement);
     
 protected:
+    /// create the lagrange multiplier mesh, one element for each subdomain
+    void CreateLagrangeMultiplierMesh();
+    
     /// associates the connects of an element with a subdomain
     void SetSubdomain(TPZCompEl *cel, int64_t subdomain);
     

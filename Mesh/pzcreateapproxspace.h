@@ -127,7 +127,10 @@ public:
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	void BuildMesh(TPZCompMesh &cmesh) const;
     
-    /** @brief Creates the interface elements */ 
+    /** @brief Creates the computational elements, and the degree of freedom nodes */
+    void BuildMesh(TPZCompMesh &cmesh, const TPZVec<int64_t> &gelindexes) const;
+    
+    /** @brief Creates the interface elements */
 	/** Only element of material id in the set<int> will be created */
 	static void CreateInterfaces(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs);
 	

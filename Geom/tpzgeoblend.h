@@ -53,13 +53,19 @@ namespace pzgeom {
         }
 
         /** @brief Copy constructor */
-        TPZGeoBlend(const TPZGeoBlend &cp) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
-                                             TGeo(cp) {
+        TPZGeoBlend(const TPZGeoBlend &cp) : TPZRegisterClassId(&TPZGeoBlend::ClassId), TGeo(cp) {
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is] =  cp.fNeighbours[is];
+                fTrans[is] =  cp.fTrans[is];
+            }
         }
 
         /** @brief Copy constructor */
-        TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
-                                                           TGeo(cp) {
+        TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TPZRegisterClassId(&TPZGeoBlend::ClassId), TGeo(cp) {
+            for (int is = 0; is < 1 + TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is] =  cp.fNeighbours[is];
+                fTrans[is] =  cp.fTrans[is];
+            }
         }
 
         void Read(TPZStream &buf, void *context) override{

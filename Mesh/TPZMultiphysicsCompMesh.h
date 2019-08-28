@@ -32,6 +32,9 @@ public:
     /// Constructor based on TPZGeoMesh pointer and vector of meshes
     TPZMultiphysicsCompMesh(TPZGeoMesh * gmesh);
     
+    /// Constructor based on TPZGeoMesh pointer and vector of meshes
+    TPZMultiphysicsCompMesh(TPZAutoPointer<TPZGeoMesh>  gmesh);
+    
     /// Copy constructor
     TPZMultiphysicsCompMesh(const TPZMultiphysicsCompMesh &other);
     
@@ -47,6 +50,12 @@ public:
     /// Set active approximation spaces
     void BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
+    /// Set active approximation spaces
+    void BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector);
+    
+    /// Set active approximation spaces
+    void BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector, const TPZVec<int64_t> &gelindexes);
+    
     void LoadSolutionFromMeshes();
     
     void LoadSolutionFromMultiPhysics();
@@ -58,10 +67,13 @@ public:
     TPZVec<int> & GetActiveApproximationSpaces();
     
 private:
-    
+    /// add the elements from the atomic meshes to the multiphysics elements
     void AddElements();
-    
+    /// add the connects from the atomic meshes
     void AddConnects();
+    
+    /// delete the elements and connects
+    void CleanElementsConnects();
 };
 
 #endif /* TPZMultiphysicsCompMesh_h */

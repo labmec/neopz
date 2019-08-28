@@ -24,10 +24,10 @@ public:
 	/** @brief Default constructor */
 	TPZMGSolver() : TPZRegisterClassId(&TPZMGSolver::ClassId),TPZMatrixSolver<TVar>() {}
 	/** @brief Constructor of the three steps solver with transfer matrix */
-	TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol,
+	TPZMGSolver(TPZAutoPointer<TPZMatrix<TVar> > trf, const TPZMatrixSolver<TVar> &sol,
 				int nvar, TPZAutoPointer<TPZMatrix<TVar> > refmat);
 	/** @brief Constructor of the three steps solver */
-	TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol,
+	TPZMGSolver(TPZAutoPointer<TPZMatrix<TVar> > trf, const TPZMatrixSolver<TVar> &sol,
 				int nvar);
 	
 	/** @brief Copy constructor */
@@ -36,15 +36,14 @@ public:
 	~TPZMGSolver();
 	
 	/** @brief Sets the transfer matrix */
-	void SetTransferMatrix(TPZAutoPointer<TPZTransfer<TVar
-                           > > Refmat);
+	void SetTransferMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat);
 	/** @brief Clean the transfer matrix */
 	void ResetTransferMatrix();
 	
 	/** @brief Gets the transfer matrix */
-	TPZAutoPointer<TPZTransfer<TVar> > TransferMatrix()
+	TPZAutoPointer<TPZMatrix<TVar> > TransferMatrix()
 	{
-		return this->fStep;
+		return this->fTransfer;
 	}
 	
 	TPZSolver<TVar> * Clone() const override;
@@ -62,7 +61,7 @@ private:
 	TPZMatrixSolver<TVar> * fCoarse;
 	int fNVar;
 	/** @brief Transfer matrix */
-	TPZAutoPointer<TPZTransfer<TVar> > fStep;
+	TPZAutoPointer<TPZMatrix<TVar> > fTransfer;
 	//    TPZMatrixSolver::TPZContainer *fTransfer;
 };
 

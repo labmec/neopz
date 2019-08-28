@@ -195,13 +195,13 @@ public:
   REAL Porosity() const {return this->fPhi;}
   
   /**
-   * @brief \f$ Rock porosity function. \f$ Phi = Phi( p ) \f$
+   * @brief Rock porosity function. \f$ Phi = Phi( p ) \f$
    * @param p pressure
    */
   void Porosity(REAL p, REAL &porosity, REAL &dPorosityDp) const;
   
   /**
-   * @brief \f$ Fluid density function. \f$ RhoFluid = RhoFluid( p ) \f$
+   * @brief Fluid density function. \f$ RhoFluid = RhoFluid( p ) \f$
    * @param p pressure
    */
   void Density(REAL p, REAL &RhoFluid, REAL &dRhoDp) const;

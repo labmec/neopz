@@ -1250,21 +1250,23 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             break;
             
             //----
-        case ESinMark://(r^(2/3)-r^3)sin(20/3)
+        case ESinMark://(r^(2/3)-r^2)sin(20/3) para homogeneo dirichlet e r^(2/3)sin(20/3) para f=0
         {
-    
-            TVar theta=atan2(xloc[1],xloc[0]);//theta=arctan(y/x)
-            
-             if( theta < TVar(0.)) theta += 2.*M_PI;
-        
-            
-   //         std::cout<< "theta "<<theta<<std::endl;
-            
-            TVar factor=pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (3.));
-            disp[0]= factor*((TVar)(2.)*sin((TVar)(2.)*theta/TVar(3.)));
-           
-            
-            
+
+            TVar theta = atan2(xloc[1], xloc[0]);//theta=arctan(y/x)
+
+            if (theta < TVar(0.)) theta += 2. * M_PI;
+
+            // Verification to avoid numerical errors when x > 0 and y = 0
+            if (xloc[0] > 0 && xloc[1] < 1e-15 && xloc[1] > -1e-15) {
+               disp[0] = 0.;
+            }
+            else {
+                TVar factor = TVar(2.)*pow(r,TVar (2.)/TVar (3.));////pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//pow(r, TVar(2.) / TVar(3.));//pow(r, TVar(2.) / TVar(3.)) - pow(r, TVar(3.));
+                disp[0] = factor * (sin((TVar) (2.) * theta / TVar(3.)))-pow(r,TVar (2.)/TVar (4.));
+            }
+
+
         }
             break;
             
@@ -1279,7 +1281,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             
             break;
             
-        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3, Omega2=Omega4=5
+        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.53544094560246 and permeability Omega1=Omega=3, Omega2=Omega4=5
         {
             TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
                 -0.7453559924999296, 0.5555555555555556,
@@ -1397,6 +1399,15 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
            // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
         }
             break;
+        case ESinCosCircle:{
+            
+            TVar coef = pow(r, TVar(4.));
+            TVar theta=atan2(xloc[1],xloc[0]);
+            disp[0] = coef*sin(TVar(2.)*theta)*cos(TVar(2.)*theta);
+            
+            
+        }
+            break;
             
         default:
             disp[0] = 0.;
@@ -1407,6 +1418,14 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
 template<>
 void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
 {
+#ifdef PZDEBUG
+    
+    if(fDimension == -1){
+        DebugStop();
+    }
+    
+#endif
+
     typedef FADFADREAL TVar;
     TPZManVector<TVar,3> xloc(x);
     for (int i = 0; i<xloc.size(); i++) {
@@ -1484,14 +1503,14 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         }
             
             break;
-        case ESinMark://(r^(2/3)-r^3)sin(20/3)
+        case ESinMark://(r^(2/3)-r^2)sin(20/3)
         {
             
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
             if( theta < TVar(0.)) theta += 2.*M_PI;
             
-            TVar factor=pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (3.));
-            disp[0]= factor*((TVar)(2.)*FADsin((TVar)(2.)*theta/TVar(3.)));
+            TVar factor = TVar(2.)*pow(r,TVar (2.)/TVar (3.));//TVar(2.)*pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//pow(r,TVar (2.)/TVar (3.));//
+            disp[0] = factor*(FADsin((TVar)(2.)*theta/TVar(3.)))- pow(r,TVar(2.))/4;// - pow(r,TVar(2.))/4;
             
         }
             break;
@@ -1609,6 +1628,16 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             
             disp[0] = xloc[0]*xloc[1]*xloc[2]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1])*(TVar(1.)-xloc[2]);
          //   std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
+            
+        }
+            break;
+            
+        case ESinCosCircle:{
+            
+            TVar coef = pow(r, TVar(4.));
+             TVar theta=FADatan2(xloc[1],xloc[0]);
+            disp[0] = coef*FADsin(TVar(2.)*theta)*FADcos(TVar(2.)*theta);
+           
             
         }
             break;
