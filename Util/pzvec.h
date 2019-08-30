@@ -61,6 +61,12 @@ public:
 	 * @param copy : original vector
 	 */
 	TPZVec(const TPZVec<T> &copy);
+
+	/**
+	 * @brief Creates a vector from a initializer list
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+	TPZVec(const std::initializer_list<T>& list);
 	
 	/** @brief destructor, will delete the storage allocated */
 	virtual ~TPZVec();
@@ -84,7 +90,15 @@ public:
 	 */
 	/** Will first delete the allocated storage before allocating storage for the copy */
 	TPZVec<T> &operator=(const TPZVec<T> &copy);
-	
+
+	/**
+	 * @brief create a new vector and stores in the current vector
+	 * @param list: initializer list, usually a list in curly brackets
+	 * @return reference to the current object
+	 */
+	/** Will first delete the allocated storage before allocating storage for the copy */
+	TPZVec<T> &operator=(const std::initializer_list<T> &list);
+
 	/**
 	 * @brief Operator attribution. Fills the vector with a value of type T.
 	 * @param a Element to fill the vector with.
@@ -291,6 +305,21 @@ TPZVec<T>::TPZVec(const TPZVec<T> &copy){
 	fNElements = copy.fNElements;
 }
 
+template< class T >
+TPZVec<T>::TPZVec(const std::initializer_list<T>& list) {
+	fStore = NULL;
+
+	if (list.size() > 0)
+		fStore = new T[list.size()];
+
+	auto it = list.begin();
+	auto it_end = list.end();
+	T* aux = fStore;
+	for (; it != it_end; it++, aux++)
+		*aux = *it;
+
+	fNElements = list.size();
+}
 
 template<class T>
 inline TPZVec<T>::~TPZVec() {
@@ -311,6 +340,20 @@ TPZVec<T> &TPZVec<T>::operator=(const TPZVec<T> &copy){
 	
 	fNElements = copy.fNElements;
 	
+	return *this;
+}
+
+template< class T >
+TPZVec<T> &TPZVec<T>::operator=(const std::initializer_list<T> &list) {
+	Resize(list.size());
+
+	auto it = list.begin();
+	auto it_end = list.end();
+	auto *aux = fStore;
+
+	for (; it != it_end; it++, aux++)
+		*aux = *it;
+
 	return *this;
 }
 
