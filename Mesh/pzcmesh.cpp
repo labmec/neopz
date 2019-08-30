@@ -451,11 +451,12 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
         for(i=0;i<nrow;i++)
         {
             val = (mat.GetVal(i,j));
-
             fSolution(i,j) =  val;
         }
         
     }
+    
+
 	int64_t nelem = NElements();
 	TPZCompEl *cel;
 	for(i=0; i<nelem; i++) {
@@ -463,6 +464,7 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
 		if(!cel) continue;
 		cel->LoadSolution();
 	}
+    
 }
 
 void TPZCompMesh::TransferMultiphysicsSolution()

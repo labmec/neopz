@@ -364,7 +364,8 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         if(!atomic_mesh) continue;
         TPZBlock<STATE> &block = atomic_mesh->Block();
-        TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
+        int64_t atomicindexconnect = indexes[connect].second;
+        TPZConnect &con = atomic_mesh->ConnectVec()[atomicindexconnect];
         int64_t seqnum = con.SequenceNumber();
         if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
         int blsize = block.Size(seqnum);
@@ -372,9 +373,13 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
+            STATE val = blockMF.Get(seqnumMF, idf, 0);
+            int64_t pos = block.Position(seqnum);
+            atomic_mesh->Solution()(pos+idf) = val;
+ 
         }
     }
+
     int64_t nel = MFMesh->NElements();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = MFMesh->Element(el);
