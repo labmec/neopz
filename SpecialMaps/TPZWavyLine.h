@@ -75,50 +75,50 @@ namespace pzgeom {
 		static std::string TypeName() { return "Wavy";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,result);
+//        }
         
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
-        {
-            gradx.Resize(3,1);
-            gradx.Zero();
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            T cosval = cos(fNumWaves*M_PI*par[0]);
-            for (int i=0; i<3; i++) {
-                gradx(i) = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
-            }
-        }
+//        template<class T>
+//        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+//        {
+//            gradx.Resize(3,1);
+//            gradx.Zero();
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            T cosval = cos(fNumWaves*M_PI*par[0]);
+//            for (int i=0; i<3; i++) {
+//                gradx(i) = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
+//            }
+//        }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            TPZManVector<REAL,3> gradx(3);
-            CornerCoordinates(gel, coord);
-            REAL cosval = cos(fNumWaves*M_PI*param[0]);
-            for (int i=0; i<3; i++) {
-                gradx[i] = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
-            }
-            REAL normv = 0.;
-            for (int i=0; i<3; i++) {
-                normv += gradx[i]*gradx[i];
-            }
-            normv = sqrt(normv);
-            jacobian(0,0) = normv;
-            detjac = normv;
-            jacinv(0,0) = 1./normv;
-            for (int i=0; i<3; i++) {
-                axes(0,i) = gradx[i]/normv;
-            }
-        }
+//        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+//        {
+//            jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            TPZManVector<REAL,3> gradx(3);
+//            CornerCoordinates(gel, coord);
+//            REAL cosval = cos(fNumWaves*M_PI*param[0]);
+//            for (int i=0; i<3; i++) {
+//                gradx[i] = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
+//            }
+//            REAL normv = 0.;
+//            for (int i=0; i<3; i++) {
+//                normv += gradx[i]*gradx[i];
+//            }
+//            normv = sqrt(normv);
+//            jacobian(0,0) = normv;
+//            detjac = normv;
+//            jacinv(0,0) = 1./normv;
+//            for (int i=0; i<3; i++) {
+//                axes(0,i) = gradx[i]/normv;
+//            }
+//        }
         
         template<class T>
         void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const

@@ -254,44 +254,44 @@ double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double 
 }
 
 
-void TPZArc3D::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const
-{
-	jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
-	jacobian(0,0) = fAngle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);
-	
-	/** Computing Axes */
-	TPZManVector< REAL > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
-	
-	TPZManVector< REAL > middle(1, 0.);
-	X(coord,middle,OUTv);
-	
-	/** Vector From MappedPoint to Ini */
-	Vpa[0] = coord(0,0) - OUTv[0]; Vpa[1] = coord(1,0) - OUTv[1]; Vpa[2] = coord(2,0) - OUTv[2];
-	
-	/** Vector From MappedPoint to Fin */
-	Vpb[0] = coord(0,1) - OUTv[0]; Vpb[1] = coord(1,1) - OUTv[1]; Vpb[2] = coord(2,1) - OUTv[2];
-	
-	X(coord,par,OUTv);
-	
-	/** Vector From MappedPoint to Center */
-	Vpc[0] = fCenter3D[0] - OUTv[0]; Vpc[1] = fCenter3D[1] - OUTv[1]; Vpc[2] = fCenter3D[2] - OUTv[2];
-	
-	/** Tangent Vector From Point in the Arc */
-	Vt[0] =  Vpa[1]*Vpb[0]*Vpc[1] - Vpa[0]*Vpb[1]*Vpc[1] + Vpa[2]*Vpb[0]*Vpc[2] - Vpa[0]*Vpb[2]*Vpc[2];
-	Vt[1] = -Vpa[1]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[1]*Vpc[0] + Vpa[2]*Vpb[1]*Vpc[2] - Vpa[1]*Vpb[2]*Vpc[2];
-	Vt[2] = -Vpa[2]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[2]*Vpc[0] - Vpa[2]*Vpb[1]*Vpc[1] + Vpa[1]*Vpb[2]*Vpc[1];
-	
-	double Vtnorm = 0.;
-	for(int i = 0; i < 3; i++)
-	{
-		if( fabs(Vt[i]) < 1.E-12 ) Vt[i] = 0.;
-		Vtnorm += Vt[i]*Vt[i];
-	}
-	if(Vtnorm < 0.) DebugStop();
-	if(sqrt(Vtnorm) < 1e-16) DebugStop();
-	for(int j = 0; j < 3; j++) axes(0,j) = Vt[j]/sqrt(Vtnorm);
-}
-
+//void TPZArc3D::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const
+//{
+//    jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
+//    jacobian(0,0) = fAngle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);
+//    
+//    /** Computing Axes */
+//    TPZManVector< REAL > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
+//    
+//    TPZManVector< REAL > middle(1, 0.);
+//    X(coord,middle,OUTv);
+//    
+//    /** Vector From MappedPoint to Ini */
+//    Vpa[0] = coord(0,0) - OUTv[0]; Vpa[1] = coord(1,0) - OUTv[1]; Vpa[2] = coord(2,0) - OUTv[2];
+//    
+//    /** Vector From MappedPoint to Fin */
+//    Vpb[0] = coord(0,1) - OUTv[0]; Vpb[1] = coord(1,1) - OUTv[1]; Vpb[2] = coord(2,1) - OUTv[2];
+//    
+//    X(coord,par,OUTv);
+//    
+//    /** Vector From MappedPoint to Center */
+//    Vpc[0] = fCenter3D[0] - OUTv[0]; Vpc[1] = fCenter3D[1] - OUTv[1]; Vpc[2] = fCenter3D[2] - OUTv[2];
+//    
+//    /** Tangent Vector From Point in the Arc */
+//    Vt[0] =  Vpa[1]*Vpb[0]*Vpc[1] - Vpa[0]*Vpb[1]*Vpc[1] + Vpa[2]*Vpb[0]*Vpc[2] - Vpa[0]*Vpb[2]*Vpc[2];
+//    Vt[1] = -Vpa[1]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[1]*Vpc[0] + Vpa[2]*Vpb[1]*Vpc[2] - Vpa[1]*Vpb[2]*Vpc[2];
+//    Vt[2] = -Vpa[2]*Vpb[0]*Vpc[0] + Vpa[0]*Vpb[2]*Vpc[0] - Vpa[2]*Vpb[1]*Vpc[1] + Vpa[1]*Vpb[2]*Vpc[1];
+//    
+//    double Vtnorm = 0.;
+//    for(int i = 0; i < 3; i++)
+//    {
+//        if( fabs(Vt[i]) < 1.E-12 ) Vt[i] = 0.;
+//        Vtnorm += Vt[i]*Vt[i];
+//    }
+//    if(Vtnorm < 0.) DebugStop();
+//    if(sqrt(Vtnorm) < 1e-16) DebugStop();
+//    for(int j = 0; j < 3; j++) axes(0,j) = Vt[j]/sqrt(Vtnorm);
+//}
+//
 
 TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {

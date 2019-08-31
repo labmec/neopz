@@ -89,13 +89,13 @@ namespace pzgeom {
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
         /* @brief Compute x mapping from local parametric coordinates */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,x);
-        }
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,x);
+//        }
 
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x) {
@@ -114,13 +114,13 @@ namespace pzgeom {
         }
 
         /** @brief Compute gradient of x mapping from local parametric coordinates */
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            GradX(coord,loc,gradx);
-        }
+//        template<class T>
+//        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            GradX(coord,loc,gradx);
+//        }
 
 
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
@@ -147,15 +147,15 @@ namespace pzgeom {
 
         static	void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
 
-        static void VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &sidevector);
+//        static void VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &sidevector);
 
         /* brief compute the vectors for defining an HDiv approximation space */
-        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            VecHdiv(coord,NormalVec,VectorSide);
-        }
+//        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            VecHdiv(coord,NormalVec,VectorSide);
+//        }
 
         public:
             int ClassId() const override;

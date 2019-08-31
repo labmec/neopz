@@ -91,16 +91,16 @@ int ClassId() const override;
 		void SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY, TPZGeoMesh &gmesh);
 		
 		/* brief compute the coordinate of a point given in parameter space */
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,result);
+//        }
+//
         template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
-        
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
+        void GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
     
         
 		/**

@@ -8,6 +8,7 @@
 
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
+#include "pzgeom_utility.h"
 
 class TPZGeoElSide;
 class TPZCompMesh;
@@ -115,13 +116,14 @@ virtual int ClassId() const override;
 	
 	virtual  int64_t NodeIndex(int node) const override;
 	
+    void CornerCoordinates(TPZFMatrix<REAL> &coord) const;
 	//HDiv
     
-    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
+//    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
     
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
     
-	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
+//	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
 	
 	/** @brief Compute the permutation for an HDiv side */
 	virtual void HDivPermutation(int side, TPZVec<int> &permutegather) override;
@@ -339,14 +341,14 @@ bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(const TPZVec<REAL> &pt, REAL to
 template<class TGeo>
 inline
 int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
-	const int side = fGeo.ProjectInParametricDomain(pt, ptInDomain);
+    const int side = ::ProjectInParametricDomain<TGeo>(pt, ptInDomain);
 	return side;
 }
 
 template<class TGeo>
 inline
 int TPZGeoElRefLess<TGeo>::ProjectBissectionInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
-	const int side = fGeo.ProjectBissectionInParametricDomain(pt, ptInDomain);
+    const int side = ::ProjectBissectionInParametricDomain<TGeo>(pt, ptInDomain);
 	return side;
 }
 

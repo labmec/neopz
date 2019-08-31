@@ -84,33 +84,22 @@ namespace pzgeom {
         static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
                                       TPZVec<T> &corrFactorDxi);
         /* @brief Compute x mapping from local parametric coordinates */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,x);
-        }
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,x);
+//        }
         
         /** @brief Compute gradient of x mapping from local parametric coordinates */
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-//            int nrow = coord.Rows();
-//            int ncol = coord.Cols();
-//            TPZFMatrix<T> nodes(nrow,ncol);
-//            for(int i = 0; i < nrow; i++)
-//            {
-//                for(int j = 0; j < ncol; j++)
-//                {
-//                    nodes(i,j) = coord(i,j);
-//                }
-//            }
-            
-            GradX(coord,loc,gradx);
-        }
+//        template<class T>
+//        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            GradX(coord,loc,gradx);
+//        }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
         template<class T>
@@ -137,19 +126,19 @@ namespace pzgeom {
 		/** 
 		 construct the normal vector for element Hdiv
 		 */
-		static void VecHdiv(TPZFMatrix<REAL> & coord,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide);
-		/** @brief Computes the vecorial product of the two vectors*/ 
+//        static void VecHdiv(TPZFMatrix<REAL> & coord,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide);
+		/** @brief Computes the vecorial product of the two vectors*/
 		static void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
 		/** @brief Computes normal vector to plane determinated by three points */
 		static void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
         
 		/* brief compute the coordinate of a point given in parameter space */
-        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            VecHdiv(coord,NormalVec,VectorSide);
-        }
+//        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            VecHdiv(coord,NormalVec,VectorSide);
+//        }
 
         /// create an example element based on the topology
         /* @param gmesh mesh in which the element should be inserted

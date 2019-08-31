@@ -99,7 +99,7 @@ int ClassId() const override;
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+        void X(TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result) const
         {
             TPZGeoTriangle::X(this->fPhiTheta,loc,result);
             TPZVec <T> toro(3,0.0);
@@ -111,7 +111,7 @@ int ClassId() const override;
         }
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
             TPZFNMatrix<6,T> DxDphi(3,2,0.), gradphi(2,2);
             TPZManVector<T,3> ft(3,0.);
@@ -130,12 +130,12 @@ int ClassId() const override;
         }
 		
         /* @brief Computes the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-            DebugStop();
-            //TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
-        }
+//        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+//        {
+//            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
+//            DebugStop();
+//            //TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
+//        }
         
         template<class T>
 		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const

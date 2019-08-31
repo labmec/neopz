@@ -9,6 +9,8 @@
 #include "pznoderep.h"
 #include "tpztriangle.h"
 
+class TPZGeoMesh;
+
 namespace pzgeom {
     
 	/**
@@ -73,33 +75,22 @@ int ClassId() const override;
         
 		
 		/* brief compute the coordinate of a point given in parameter space */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,result);
+//        }
         
         /** @brief Compute gradient of x mapping from local parametric coordinates */
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-//            int nrow = coord.Rows();
-//            int ncol = coord.Cols();
-//            TPZFMatrix<T> nodes(nrow,ncol);
-//            for(int i = 0; i < nrow; i++)
-//            {
-//                for(int j = 0; j < ncol; j++)
-//                {
-//                    nodes(i,j) = coord(i,j);
-//                }
-//            }
-            
-            GradX(coord,loc,gradx);
-        }
+//        template<class T>
+//        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            GradX(coord,loc,gradx);
+//        }
 		
         template<class T>
         static void TShape(const TPZVec<T> &param,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);

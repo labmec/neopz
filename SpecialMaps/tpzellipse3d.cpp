@@ -177,7 +177,7 @@ void TPZEllipse3D::X(TPZFMatrix<REAL> &nodeCoord,TPZVec<T> &qsi,TPZVec<T> &x) co
 }
 
 template<class T>
-void TPZEllipse3D::GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+void TPZEllipse3D::GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
 {
     REAL delangle = fAngleFinal - fAngleIni;
     T dangledqsi = 1./2.*delangle;

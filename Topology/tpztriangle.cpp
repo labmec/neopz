@@ -788,159 +788,159 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     
     
     
-    void computedirectionst(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
-                            TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-    void computedirectionst(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
-                            TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
-    {
-        REAL detgrad = 0.0;
-        TPZVec<REAL> u(3);
-        TPZVec<REAL> v(3);
-        TPZVec<REAL> uxv(3);// result
-        
-        for (int ilin=0; ilin<3; ilin++)
-        {
-            u[ilin] = gradx(ilin, 0);
-            v[ilin] = gradx(ilin, 1);
-        }
-        
-        //TPZNumeric::ProdVetorial(u,v,uxv);
-        uxv[0] = u[1]*v[2]-u[2]*v[1];
-        uxv[1] = -(u[0]*v[2]-v[0]*u[2]);
-        uxv[2] = u[0]*v[1]-v[0]*u[1];
-        
-        for (int pos=0; pos<3; pos++)
-        {
-            detgrad += uxv[pos]*uxv[pos];
-        }
-        detgrad = sqrt(fabs(detgrad));
-        
-        int cont = 0;
-        
-        for (int ivet=inicio; ivet<=fim; ivet++)
-        {
-            TPZFMatrix<REAL> Wvec(3,1);
-            TPZVec<REAL> uxvtmp(3);
-            REAL acumng = 0.0;
-            // calc do g gradx*t
-            TPZManVector<REAL,3> gvec(3,0.),Vvec(3,0.);
-            REAL gvecnorm;
-            for (int il=0; il<3; il++)
-            {
-                for (int i = 0 ; i<2; i++)
-                {
-                    gvec[il] += gradx(il,i) * t1vec(i,ivet);
-                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
-                }
-                u[il] = gvec[il];
-                acumng += gvec[il]*gvec[il];
-            }
-            gvecnorm = sqrt(acumng);
-            
-            for (int il=0; il<3; il++)
-            {
-                Wvec(il,0) = Vvec[il]*gvecnorm/detgrad;
-                directions(il,cont) = Wvec(il,0);
-            }
-            cont++;
-        }
-
-
-    }
+//    void computedirectionst(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+//                            TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+//    void computedirectionst(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
+//                            TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
+//    {
+//        REAL detgrad = 0.0;
+//        TPZVec<REAL> u(3);
+//        TPZVec<REAL> v(3);
+//        TPZVec<REAL> uxv(3);// result
+//        
+//        for (int ilin=0; ilin<3; ilin++)
+//        {
+//            u[ilin] = gradx(ilin, 0);
+//            v[ilin] = gradx(ilin, 1);
+//        }
+//        
+//        //TPZNumeric::ProdVetorial(u,v,uxv);
+//        uxv[0] = u[1]*v[2]-u[2]*v[1];
+//        uxv[1] = -(u[0]*v[2]-v[0]*u[2]);
+//        uxv[2] = u[0]*v[1]-v[0]*u[1];
+//        
+//        for (int pos=0; pos<3; pos++)
+//        {
+//            detgrad += uxv[pos]*uxv[pos];
+//        }
+//        detgrad = sqrt(fabs(detgrad));
+//        
+//        int cont = 0;
+//        
+//        for (int ivet=inicio; ivet<=fim; ivet++)
+//        {
+//            TPZFMatrix<REAL> Wvec(3,1);
+//            TPZVec<REAL> uxvtmp(3);
+//            REAL acumng = 0.0;
+//            // calc do g gradx*t
+//            TPZManVector<REAL,3> gvec(3,0.),Vvec(3,0.);
+//            REAL gvecnorm;
+//            for (int il=0; il<3; il++)
+//            {
+//                for (int i = 0 ; i<2; i++)
+//                {
+//                    gvec[il] += gradx(il,i) * t1vec(i,ivet);
+//                    Vvec[il] += gradx(il,i) * bvec(i,ivet);
+//                }
+//                u[il] = gvec[il];
+//                acumng += gvec[il]*gvec[il];
+//            }
+//            gvecnorm = sqrt(acumng);
+//            
+//            for (int il=0; il<3; il++)
+//            {
+//                Wvec(il,0) = Vvec[il]*gvecnorm/detgrad;
+//                directions(il,cont) = Wvec(il,0);
+//            }
+//            cont++;
+//        }
+//
+//
+//    }
     
-    void TPZTriangle::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
-    {
-    
-        if(gradx.Cols()!=2)
-        {
-            DebugStop();
-        }
-        
-        TPZFMatrix<REAL> bvec(2,14);
-        TPZFMatrix<REAL> t1vec(2,14);
-
-        bvec.Redim(2, 14);
-        t1vec.Redim(2, 14);
-        
-        for (int lin = 0; lin<14; lin++)
-        {
-            for(int col = 0;col<2;col++)
-            {
-                bvec.PutVal(col, lin, bTriang[lin][col]);
-                t1vec.PutVal(col, lin, tTriang[lin][col]);
-            }
-        }
-        // calcula os vetores
-        //int numvec = bvec.Cols();
-        
-        switch (side)
-        {
-            case 0:
-            {
-                
-            }
-                break;
-            case 1:
-            {
-                
-            }
-                break;
-            case 2:
-            {
-                
-            }
-                break;
-            case 3:
-            {
-                directions.Redim(3, 3);
-                sidevectors.Resize(3);
-                int inumvec = 0, fnumvec = 2;
-                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
-                }
-                
-            }
-                break;
-            case 4:
-            {
-                directions.Redim(3, 3);
-                sidevectors.Resize(3);
-                int inumvec = 3, fnumvec = 5;
-                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
-                }
-            }
-                break;
-            case 5:
-            {
-                directions.Redim(3, 3);
-                sidevectors.Resize(3);
-                int inumvec = 6, fnumvec = 8;
-                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
-                }
-            }
-                break;
-            case 6:
-            {
-                directions.Redim(3, 5);
-                sidevectors.Resize(5);
-                int inumvec = 9, fnumvec = 13;
-                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
-                for (int ip = 0; ip < 5; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
-                }
-            }
-                break;
-            default:
-                DebugStop();
-                break;
-        }
-        
-    }
+//    void TPZTriangle::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+//    {
+//
+//        if(gradx.Cols()!=2)
+//        {
+//            DebugStop();
+//        }
+//
+//        TPZFMatrix<REAL> bvec(2,14);
+//        TPZFMatrix<REAL> t1vec(2,14);
+//
+//        bvec.Redim(2, 14);
+//        t1vec.Redim(2, 14);
+//
+//        for (int lin = 0; lin<14; lin++)
+//        {
+//            for(int col = 0;col<2;col++)
+//            {
+//                bvec.PutVal(col, lin, bTriang[lin][col]);
+//                t1vec.PutVal(col, lin, tTriang[lin][col]);
+//            }
+//        }
+//        // calcula os vetores
+//        //int numvec = bvec.Cols();
+//
+//        switch (side)
+//        {
+//            case 0:
+//            {
+//
+//            }
+//                break;
+//            case 1:
+//            {
+//
+//            }
+//                break;
+//            case 2:
+//            {
+//
+//            }
+//                break;
+//            case 3:
+//            {
+//                directions.Redim(3, 3);
+//                sidevectors.Resize(3);
+//                int inumvec = 0, fnumvec = 2;
+//                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+//                for (int ip = 0; ip < 3; ip++) {
+//                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+//                }
+//
+//            }
+//                break;
+//            case 4:
+//            {
+//                directions.Redim(3, 3);
+//                sidevectors.Resize(3);
+//                int inumvec = 3, fnumvec = 5;
+//                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+//                for (int ip = 0; ip < 3; ip++) {
+//                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+//                }
+//            }
+//                break;
+//            case 5:
+//            {
+//                directions.Redim(3, 3);
+//                sidevectors.Resize(3);
+//                int inumvec = 6, fnumvec = 8;
+//                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+//                for (int ip = 0; ip < 3; ip++) {
+//                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+//                }
+//            }
+//                break;
+//            case 6:
+//            {
+//                directions.Redim(3, 5);
+//                sidevectors.Resize(5);
+//                int inumvec = 9, fnumvec = 13;
+//                computedirectionst(inumvec, fnumvec, bvec, t1vec, gradx, directions);
+//                for (int ip = 0; ip < 5; ip++) {
+//                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+//                }
+//            }
+//                break;
+//            default:
+//                DebugStop();
+//                break;
+//        }
+//
+//    }
     void TPZTriangle::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
     {
         TPZManVector<REAL, 3> v1(3),v2(3), vdiag(3);
@@ -962,7 +962,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
          */
         TPZManVector<REAL,3> NormalScales(3,1.);
         
-        if (HDivPiola == 1)
+        
         {
             NormalScales[0] = 2./Nv1;
             NormalScales[1] = 2./Nvdiag;

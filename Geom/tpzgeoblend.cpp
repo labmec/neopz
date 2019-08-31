@@ -81,9 +81,10 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 
 template <class TGeo>
 template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
+inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
 
-    #ifdef LOG4CXX
+    TPZGeoEl &gel = *fGeoEl;
+#ifdef LOG4CXX
     const auto VAL_WIDTH = 10;
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
@@ -94,7 +95,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiI
         for(int i = 0; i < xiInterior.size(); i++) soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<xiInterior[i]<<"\t";
         soutLogDebug<<std::endl;
     }
-    #endif
+#endif
     const REAL zero = 1e-14;
     gradx.Redim(3,TGeo::Dimension);
     /**
@@ -105,8 +106,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiI
     TPZFNMatrix<9, T> phi(TGeo::NNodes, 1), dPhiDxi(TGeo::Dimension, TGeo::NNodes);
     TGeo::TShape(xiInterior, phi, dPhiDxi);//gets the barycentric coordinates
 
-    TPZFNMatrix<45,REAL> coord(3, TGeo::NNodes);
-    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
+//    TPZFNMatrix<45,REAL> coord(3, TGeo::NNodes);
+//    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
 
     TPZFNMatrix<45,T> gradXLin(3, TGeo::Dimension,(T)0);
     for (int iNode = 0; iNode < TGeo::NNodes; iNode++) {//calculates the linear mapping
@@ -198,7 +199,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiI
         const int sideDim = TGeo::SideDimension(side);
         TPZFNMatrix<9, T> sidePhiVec(nSideNodes, 1),
                 dSidePhiDSideXiVec(sideDim, nSideNodes);
-        TGeo::GetSideShapeFunction(side, sideXi, sidePhiVec, dSidePhiDSideXiVec);
+        GetSideShapeFunction<TGeo>(side, sideXi, sidePhiVec, dSidePhiDSideXiVec);
 
         TPZFNMatrix<9, T> dXprojDxiSide(TGeo::Dimension,sideDim,(T)0),
                 dXiProjectedOverSideDxi(TGeo::Dimension,TGeo::Dimension,(T)0);
@@ -440,7 +441,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(const TPZGeoEl &gel, TPZVec<T> &xiI
 
 template<class TGeo>
 template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T> &xi, TPZVec<T> &result) const {
+inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
+    TPZGeoEl &gel = *fGeoEl;
     TPZManVector<T,3> notUsedHereVec(3,(T)0);
     TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
     // bigger than needed.
@@ -468,8 +470,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T> &xi, TPZ
     TPZFNMatrix<9, T> phi(TGeo::NNodes, 1);
     TGeo::TShape(xi, phi, notUsedHereMat);//gets the barycentric coordinates
 
-    TPZFNMatrix<45> coord(3, TGeo::NNodes);
-    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
 
     for (int iNode = 0; iNode < TGeo::NNodes; iNode++) {//calculates the linear mapping
         for (int x = 0; x < 3; x++) {
@@ -537,7 +537,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T> &xi, TPZ
         const int nSideNodes = MElementType_NNodes(sideType);
         TPZFNMatrix<9, T> sidePhi(nSideNodes, 1);
         notUsedHereMat.Resize(TGeo::Dimension,nSideNodes);
-        TGeo::GetSideShapeFunction(side, sideXi, sidePhi, notUsedHereMat);
+        GetSideShapeFunction<TGeo>(side, sideXi, sidePhi, notUsedHereMat);
 
         TPZManVector<REAL,3> nodeCoord;
         for (int iNode = 0; iNode < nSideNodes; iNode++) {
@@ -663,11 +663,10 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<T> &xi, TPZ
 }
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 {
-    TPZFNMatrix<45> coord(3,TGeo::NNodes);
-    this->CornerCoordinates(gel,coord);
 
+    TPZGeoEl &gel = *fGeoEl;
     TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.), XNode(3,0.);
     int majorSide = TGeo::NSides - 1;
 	
@@ -741,7 +740,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
                 TPZManVector<REAL> parChanged(par.NElements());
-                TGeo::FixSingularity(byside,par,parChanged);
+//                TGeo::FixSingularity(byside,par,parChanged);
                 TGeo::Shape(parChanged,blend,Dblend);
 				
                 blendTemp += blend(LowNodeSides[a],0);
@@ -872,6 +871,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Print(std::ostream &out) const
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 {
+    fGeoEl = refel;
     for(int byside = TGeo::NNodes; byside < (TGeo::NSides); byside++)
     {
         if (refel->SideIsUndefined(byside)) {
