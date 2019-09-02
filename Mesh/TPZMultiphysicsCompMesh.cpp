@@ -72,14 +72,16 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
 }
 
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
-    
+
     m_active_approx_spaces = active_approx_spaces;
     m_mesh_vector          = mesh_vector;
     if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
         DebugStop();
     }
+    
     int n_approx_spaces = m_mesh_vector.size();
+  
     SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
     SetAllCreateFunctionsMultiphysicElem();
@@ -122,6 +124,10 @@ void TPZMultiphysicsCompMesh::AddElements(){
     int n_approx_spaces = m_mesh_vector.size();
     for(int i_as = 0; i_as < n_approx_spaces; i_as++)
     {
+        TPZCompMesh * cmesh = m_mesh_vector[i_as];
+        
+        if(!cmesh) continue;
+        
         m_mesh_vector[i_as]->LoadReferences();
         int64_t icel;
         for(icel=0; icel < n_cels; icel++)

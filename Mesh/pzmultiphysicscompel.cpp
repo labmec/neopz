@@ -1091,13 +1091,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
         for (unsigned int i = 0; i < nref; ++i) {
             datavec[i].fNeedsSol = true;
         }
-	
+
+    
 	TPZManVector<TPZTransform<> > trvec;
 	AffineTransform(trvec);
 	 
 	int nintpoints = intrule->NPoints();
   TPZFNMatrix<9,REAL> jac, axe, jacInv;
 	REAL detJac;
+    TPZManVector<REAL,3> x(3,0);
   TPZGeoEl *ref = this->Reference();
 	
 	for(int nint = 0; nint < nintpoints; nint++) {
@@ -1105,14 +1107,15 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 		intrule->Point(nint,intpoint,weight);
     
         ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
+        ref->X(intpoint, x);
 		this->ComputeRequiredData(intpoint,trvec,datavec);
     
-		weight *= fabs(datavec[0].detjac);
+		weight *= fabs(detJac);
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		//this->ComputeSolution(intpoint, data);
 		//contribuicoes dos erros
 		if(fp) {
-			fp(datavec[0].x,u_exact,du_exact);
+			fp(x,u_exact,du_exact);
         }
         material->Errors(datavec,u_exact,du_exact,values);
       
