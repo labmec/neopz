@@ -968,7 +968,7 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
     }
     
     REAL detjac = 1.;
-    if (HDivPiola == 1) {
+    {
         TPZGeoElSide gelside = TPZGeoElSide(this->Reference(),side);
         int dim = gel->SideDimension(side);
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
@@ -1088,7 +1088,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             ivec    = data.fVecShapeIndex[jv].first;
             ishape  = data.fVecShapeIndex[jv].second;
             
-            if (HDivPiola) {
+            {
                 
                 // Using Contravariant Piola mapping preserves the divergence
                 
@@ -1130,35 +1130,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 }
                 
                 GradOfPhiHdiv *= (1.0/data.detjac);
-                
-            }
-            else{
-                // Using Normalized Piola
-                
-                //  Compute grad(PhiH1) on XYZ
-                TPZFNMatrix<3> GradOfPhiH1(dim,1);
-                GradOfPhiH1.Zero();
-                
-                for (int iaxes=0; iaxes<data.axes.Rows(); iaxes++)
-                {
-                    GradOfPhiH1(0,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,0);
-                    GradOfPhiH1(1,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,1);
-                    GradOfPhiH1(2,0) += data.dphix(iaxes,ishape)*data.axes(iaxes,2);
-                }
-                
-                
-                //  Compute grad(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: This construction needs constant vector basis V on deformed domain
-                GradOfPhiHdiv(0,0) = data.fNormalVec(0,ivec)*GradOfPhiH1(0,0);
-                GradOfPhiHdiv(0,1) = data.fNormalVec(0,ivec)*GradOfPhiH1(1,0);
-                GradOfPhiHdiv(0,2) = data.fNormalVec(0,ivec)*GradOfPhiH1(2,0);
-                
-                GradOfPhiHdiv(1,0) = data.fNormalVec(1,ivec)*GradOfPhiH1(0,0);
-                GradOfPhiHdiv(1,1) = data.fNormalVec(1,ivec)*GradOfPhiH1(1,0);
-                GradOfPhiHdiv(1,2) = data.fNormalVec(1,ivec)*GradOfPhiH1(2,0);
-                
-                GradOfPhiHdiv(2,0) = data.fNormalVec(2,ivec)*GradOfPhiH1(0,0);
-                GradOfPhiHdiv(2,1) = data.fNormalVec(2,ivec)*GradOfPhiH1(1,0);
-                GradOfPhiHdiv(2,2) = data.fNormalVec(2,ivec)*GradOfPhiH1(2,0);
                 
             }
             
@@ -1375,7 +1346,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
 
-    if (HDivPiola != 2)
+    
     {
         int restrainedface = this->RestrainedFace();
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
@@ -1441,35 +1412,6 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension+1> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
     TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
     
-    if(HDivPiola == 2)
-    {
-        TPZIntelGen<TSHAPE>::Reference()->ComputeNormals(data.fNormalVec, normalsides);
-        int internalorder=this->Connect(NConnects()-1).Order();
-        TPZVec<std::pair<int,int64_t> > IndexVecShape;
-        TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
-        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
-        
-        // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-        int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
-        int lastface = TSHAPE::NSides - 1;
-        int cont = 0;
-        for(int side = firstface; side < lastface; side++)
-        {
-            int nvec = TSHAPE::NContainedSides(side);
-            for (int ivet = 0; ivet<nvec; ivet++)
-            {
-                for (int il = 0; il<3; il++)
-                {
-                    data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
-                }
-                
-            }
-            cont += nvec;
-        }
-
-    }
-    else
     {
 		
         int internalorder = this->Connect(NConnects()-1).Order();

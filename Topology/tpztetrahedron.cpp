@@ -1143,7 +1143,7 @@ namespace pztopology {
         REAL Nv3v1 = 1.0;
         REAL Nvivdiagb = 1.0;
 
-        if (HDivPiola == 1) {
+        {
             // the above constants are wrong
             for (int i=0; i<3; i++) {
                 v1[i] /= detgrad;
@@ -1211,86 +1211,6 @@ namespace pztopology {
                 
             }        
 
-        }
-        else
-        {
-            TPZNumeric::ProdVetorial(v1,v2,v1v2);
-            TPZNumeric::ProdVetorial(v2,v3,v2v3);
-            TPZNumeric::ProdVetorial(v3,v1,v3v1);
-            TPZNumeric::ProdVetorial(vi,vdiagxy,vivdiagxy);
-            
-            Nv1v2 = TPZNumeric::Norma(v1v2);
-            Nv2v3 = TPZNumeric::Norma(v2v3);
-            Nv3v1 = TPZNumeric::Norma(v3v1);
-            Nvivdiagb = TPZNumeric::Norma(vivdiagxy);
-
-
-        
-            for (int i=0; i<3; i++) {
-                v1[i] /= detgrad;
-                v2[i] /= detgrad;
-                v3[i] /= detgrad;
-            }
-            for (int i=0; i<3; i++)
-            {
-                
-                //face 0
-                directions(i,0) = -v3[i]*Nv1v2;
-                directions(i,1) = (v1[i]-v3[i])*Nv1v2;                
-                directions(i,2) = (v2[i]-v3[i])*Nv1v2;                
-                directions(i,3) = (directions(i,0)+directions(i,1))/2.;
-                directions(i,4) = (directions(i,1)+directions(i,2))/2.;
-                directions(i,5) = (directions(i,0)+directions(i,2))/2.;
-                directions(i,6) = (directions(i,3)+directions(i,4)+directions(i,5))/3.;
-                //face 1
-                directions(i,7) = -v2[i]*Nv3v1;
-                directions(i,8) = (v1[i]-v2[i])*Nv3v1;                
-                directions(i,9) = (v3[i]-v2[i])*Nv3v1;                
-                directions(i,10) = (directions(i,7)+directions(i,8))/2.;
-                directions(i,11) = (directions(i,8)+directions(i,9))/2.;     
-                directions(i,12) = (directions(i,7)+directions(i,9))/2.;    
-                directions(i,13) = (directions(i,10)+directions(i,11)+directions(i,12))/3.;
-                //face 2
-                
-                directions(i,14) = v1[i]*Nvivdiagb; 
-                directions(i,15) = v2[i]*Nvivdiagb; 
-                directions(i,16) = v3[i]*Nvivdiagb; 
-                directions(i,17) = (directions(i,14)+directions(i,15))/2.;              
-                directions(i,18) = (directions(i,15)+directions(i,16))/2.;               
-                directions(i,19) = (directions(i,14)+directions(i,16))/2.;              
-                directions(i,20) = (directions(i,17)+directions(i,18)+directions(i,19))/3.; 
-                //face 3
-                directions(i,21) = -v1[i]*Nv2v3;
-                directions(i,22) = (v2[i]-v1[i])*Nv2v3;               
-                directions(i,23) = (v3[i]-v1[i])*Nv2v3;
-                directions(i,24) = (directions(i,21)+directions(i,22))/2.;
-                directions(i,25) = (directions(i,22)+directions(i,23))/2.;
-                directions(i,26) = (directions(i,21)+directions(i,23))/2.;
-                directions(i,27) = (directions(i,24)+directions(i,25)+directions(i,26))/3.;
-                
-                //arestas
-                directions(i,28) = v1[i];
-                directions(i,29) = (v2[i]-v1[i]);                           
-                directions(i,30) = -v2[i];
-                directions(i,31) = v3[i];
-                directions(i,32) = (v3[i]-v1[i]);               
-                directions(i,33) = (v3[i]-v2[i]);               
-                
-                //faces
-                directions(i,34) = v1[i];
-                directions(i,35) = v2[i];
-                directions(i,36) = v1[i];
-                directions(i,37) = v3[i];
-                directions(i,38) = (v2[i]-v1[i]);                
-                directions(i,39) = (v3[i]-v1[i]);//v3[i]-0.5*(v1[i]+v2[i]);//
-                directions(i,40) = v2[i];
-                directions(i,41) = v3[i];
-                
-                directions(i,42) = v1[i];
-                directions(i,43) = v2[i];
-                directions(i,44) = v3[i];
-                
-            }        
         }
     }
 

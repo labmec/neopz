@@ -1219,7 +1219,6 @@ void CheckShapeOrder(int order)
 template<class tshape>
 void VectorDirections()
 {
-    HDivPiola = 1;
     const int dimension = tshape::Dimension;
     int numvectors = dimension * tshape::NumSides();
     if(tshape::Type() == EPiramide) numvectors++;
@@ -1241,7 +1240,7 @@ void VectorDirections()
 //    tshape::ComputeDirections(numsides-1, gradx, directions, sidevectors);
 //    // Nao tem que usar esse metodo?
 //    tshape::ComputeDirections(gradx, detjac, directionsAll);
-    tshape::ComputeDirections(numsides-1, gradx, directions, sidevectors);
+//    tshape::ComputeDirections(numsides-1, gradx, directions, sidevectors);
     tshape::ComputeDirections(gradx, detjac, directionsAll);
 
     // copia dos vetroes internos por face

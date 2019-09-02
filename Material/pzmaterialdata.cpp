@@ -355,7 +355,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
     int i_vec = 0;
     int i_phi_s = 0;
 
-    if (HDivPiola == 1)
+    
     {
         for (int iq = 0; iq < n_phi_v; iq++)
         {
@@ -379,20 +379,6 @@ void TPZMaterialData::ComputeFunctionDivergence()
         
         divphi *= 1.0/det_jac;
 
-    }
-    else
-    {
-        for (int iq = 0; iq < n_phi_v; iq++)
-        {
-            i_vec = fVecShapeIndex[iq].first;
-            i_phi_s = fVecShapeIndex[iq].second;
-
-            /* Computing the divergence for constant jacobian elements */
-            int n_dir = grad_phi_s.Rows();
-            for (int k = 0; k < n_dir; k++) {
-                divphi(iq,0) +=  fNormalVec(k,i_vec)*grad_phi_s(k,i_phi_s);
-            }
-        }
     }
 }
 

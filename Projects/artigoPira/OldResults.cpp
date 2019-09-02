@@ -116,7 +116,6 @@ int mainOld(int argc, char *argv[])
     //string outputfile("Solution_mphysics");
     std::stringstream name;
     
-    HDivPiola = 1;//1- mapeamento piola, 0- sem piola
     
     //std::ofstream myerrorfile("MalhasHpQP.txt");
     

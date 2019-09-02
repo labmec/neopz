@@ -1228,7 +1228,7 @@ namespace pztopology {
          */
         TPZManVector<REAL,3> NormalScales(3,1.);
         
-        if (HDivPiola == 1)
+        
         {
             for (int i=0; i<3; i++) {
                 v1[i] *= 1./detgrad;
@@ -1236,14 +1236,6 @@ namespace pztopology {
                 v3[i] *= 1./detgrad;
             }
             
-        }
-        else
-        {
-            for (int i=0; i<3; i++) {
-            v1[i] *= Nv2v3/detgrad;
-            v2[i] *= Nv3v1/detgrad;
-            v3[i] *= Nv1v2/detgrad;
-            }
         }
         
         for (int i=0; i<3; i++) {

@@ -74,7 +74,7 @@ public:
     TPZGeoEl * EldestAncestor() const;
     
     /** Returns the directions of this geoel */
-    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
+//    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
     
     /** Returns the directions of this geoel */
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
@@ -307,7 +307,7 @@ public:
 	virtual int NSideSubElements(int side) const = 0;
 	
 	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
-	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
+//    virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
 	
 	/** @brief Returns a pointer to the father*/
 	TPZGeoEl *Father() const;
@@ -635,10 +635,10 @@ public:
 	 * and then permuted according to the node id's
 	 */
 	/** This method will accumulate the normals for all the sides */
-	void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
     
     /// Computation of NormalVectors for curvilinear elements
-    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
     
     
 	virtual REAL CharacteristicSize();
@@ -651,8 +651,8 @@ public:
 	 * the normal vectors are initially ordered \n according to the return of LowerDimensionSides
 	 * and then permuted according to the node id's
 	 */
-	void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
-	void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
 	/**
 	 * @brief Compute the permutation needed to order the normal vectors in a consistent way
 	 * \f$ normal(indexfrom[i]) = normal(i) \f$

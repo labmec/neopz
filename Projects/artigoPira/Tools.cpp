@@ -1703,7 +1703,6 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     
-    HDivPiola = 1;
     int p = 0;
     
     for(p=2; p<3; p++)
