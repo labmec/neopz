@@ -509,38 +509,48 @@ namespace pztopology {
 			case 6:
 			case 7:
 				return t;
+                
+                
+
 			case  8:
 			case 16:
 				t.Mult()(0,0) =  1.0;
 				return t;
+                
 			case  9:
 			case 17:
 				t.Mult()(0,1) =  1.0;
 				return t;
 			case 10:
 			case 18:
+                
 				t.Mult()(0,0) = -1.0;
 				return t;
 			case 11:
 			case 19:
+                
 				t.Mult()(0,1) = -1.0;
 				return t;
 			case 12:
 			case 13:
 			case 14:
 			case 15:
+                
 				t.Mult()(0,2) = 1.0;
 				return t;
+                
 			case 20:
 			case 25:
 				t.Mult()(0,0) =  1.0;
 				t.Mult()(1,1) =  1.0;
 				return t;
+                
 			case 21:
 			case 23:
 				t.Mult()(0,0) =  1.0;
 				t.Mult()(1,2) =  1.0;
 				return t;
+                
 			case 22:
 			case 24:
 				t.Mult()(0,1) =  1.0;

@@ -207,6 +207,11 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        
+        if (sideto == NSides -1) {
+            return TransformSideToElement(sidefrom);
+        }
+        
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {

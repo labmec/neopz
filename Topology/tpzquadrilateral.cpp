@@ -379,6 +379,11 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        
+        if (sideto == NSides -1) {
+            TransformSideToElement(sidefrom);
+        }
+        
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {
@@ -1113,6 +1118,12 @@ namespace pztopology {
         for (int i=0; i<Dimension*NumSides(); i++) {
             sidevectors[i] = vectorsideorder[i];
         }
+    }
+    
+    TPZTransform<> TPZQuadrilateral::GetSideTransform(int side, int transformId){
+        int locside = permutationsQ[transformId][side];
+        return TransformElementToSide(locside);
+        
     }
     
     int TPZQuadrilateral::ClassId() const{

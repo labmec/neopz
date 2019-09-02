@@ -375,40 +375,75 @@ namespace pztopology {
 				return t;
 			case 4:
 				t.Mult()(0,0) =  2.0;
+                t.Mult()(0,1) =  1.0;
+                t.Mult()(0,2) =  1.0;
+                
+
 				t.Sum()(0,0)  = -1.0;
 				return t;
 			case 5:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,1) =  1.0;
-				return t;
-			case 6:
-				t.Mult()(0,1) = -2.0;
-				t.Sum()(0,0)  =  1.0;
+                t.Mult()(0,0) =  -1.0;
+                t.Mult()(0,1) =  1.0;
+            	return t;
+			
+            case 6:
+                t.Mult()(0,0) =  -1.0;
+                t.Mult()(0,1) =  -2.0;
+                t.Mult()(0,2) =  -1.0;
+            
+                t.Sum()(0,0)  = 1.0;
 				return t;
 			case 7:
-				t.Mult()(0,2) =  2.0;
-				t.Sum()(0,0)  = -1.0;
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(0,1) =  1.0;
+                t.Mult()(0,2) =  2.0;
+            
+                t.Sum()(0,0)  = -1.0;
 				return t;
 			case 8:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,2) =  1.0;
+                t.Mult()(0,0) =  -1.0;
+                t.Mult()(0,2) =  1.0;
+            
 				return t;
+                
 			case 9:
-				t.Mult()(0,1) = -1.0;
-				t.Mult()(0,2) =  1.0;
+                t.Mult()(0,1) =  -1.0;
+                t.Mult()(0,2) =  1.0;
+
 				return t;
 			case 10:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
+				t.Mult()(0,0) =  2.0;
+				t.Mult()(1,1) =  2.0;
+                
+                t.Sum()(0,0) = -1.0;
+                t.Sum()(1,0)= -1.0;
+                
 				return t;
 			case 11:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,2) =  1.0;
+				t.Mult()(0,0) =  2.0;
+				t.Mult()(1,2) =  2.0;
+                
+                t.Sum()(0,0) = -1.0;
+                t.Sum()(1,0)= -1.0;
+                
 				return t;
 			case 12:
+                t.Mult()(0,0) =  -2.0/3.0;
+                t.Mult()(0,1) =  4.0/3.0;
+                t.Mult()(0,2) =  -2.0/3.0;
+                t.Mult()(1,0) =  -2.0/3.0;
+                t.Mult()(1,1) =  -2.0/3.0;
+                t.Mult()(1,2) =  4.0/3.0;
+                
+                t.Sum()(0,0) = -1.0/3.0;
+                t.Sum()(1,0)= -1.0/3.0;
+                return t;
 			case 13:
-				t.Mult()(0,1) =  1.0;
-				t.Mult()(1,2) =  1.0;
+				t.Mult()(0,1) =  2.0;
+				t.Mult()(1,2) =  2.0;
+                
+                t.Sum()(0,0) = -1.0;
+                t.Sum()(1,0)= -1.0;
 				return t;
 			case 14:
 				t.Mult()(0,0) =  1.0;

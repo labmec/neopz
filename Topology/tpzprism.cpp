@@ -475,9 +475,12 @@ namespace pztopology {
 			case 4:
 			case 5:
 				return t;
+   
 			case  6:
 			case 12:
 				t.Mult()(0,0) =  2.0;
+                t.Mult()(0,1) =  1.0;
+                
 				t.Sum()(0,0)  = -1.0;
 				return t;
 			case  7:
@@ -485,36 +488,61 @@ namespace pztopology {
 				t.Mult()(0,0) = -1.0;
 				t.Mult()(0,1) =  1.0;
 				return t;
+                
 			case  8:
 			case 14:
+                t.Mult()(0,1) = -1.0;
 				t.Mult()(0,1) = -2.0;
 				t.Sum()(0,0)  =  1.0;
 				return t;
-			case  9:
-			case 10:
-			case 11:
-				t.Mult()(0,2) =  1.0;
-				return t;
-			case 15:
-			case 19:
-				t.Mult()(0,0) = 1.0;
-				t.Mult()(1,1) = 1.0;
-				return t;
-			case 16:
-				t.Mult()(0,0) =  2.0;
-				t.Mult()(1,2) =  1.0;
-				t.Sum()(0,0)  = -1.0;
-				return t;
+    
+            case 9:
+            case 10:
+            case 11:
+                t.Mult()(0,2) = 1.0;
+                return t;
+                
+			case  15:
+                
+                t.Mult()(0,0) =  2.0;
+                t.Mult()(1,1) =  2.0;
+                
+                t.Sum()(0,0) = -1;
+                t.Sum()(1,0) = -1;
+                return t;
+               
+            case 16:
+                
+                t.Mult()(0,0) =  2.0;
+                t.Mult()(1,2) =  1.0;
+                
+                t.Sum()(0,0) = -1;
+                return t;
+              
 			case 17:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,1) =  1.0;
-				t.Mult()(1,2) =  1.0;
-				return t;
+                
+                t.Mult()(0,0) =  -1.0;
+                t.Mult()(0,1) =  1.0;
+                t.Mult()(1,2) =  1.0;
+               
+                return t;
+
 			case 18:
+                
 				t.Mult()(0,1) =  2.0;
 				t.Mult()(1,2) =  1.0;
+                
 				t.Sum()(0,0)  = -1.0;
 				return t;
+                
+            case 19:
+               
+                t.Mult()(0,0) =  2.0;
+                t.Mult()(1,1) =  2.0;
+                
+                t.Sum()(0,0)  = -1.0;
+                t.Sum()(1,0)  = -1.0;
+                
 			case 20:
 				t.Mult()(0,0) = 1.0;
 				t.Mult()(1,1) = 1.0;
@@ -566,6 +594,7 @@ namespace pztopology {
 				t.Sum()(2,0) =  1.0;
 				return t;
 			case 6:
+                
 				t.Mult()(0,0) =  0.5;
 				t.Sum() (0,0) =  0.5;
 				t.Sum() (2,0) = -1.0;

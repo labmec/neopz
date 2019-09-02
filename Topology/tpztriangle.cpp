@@ -22,6 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pztriangle"));
 using namespace std;
 
 namespace pztopology {
+    
 	
 	static int sidedimension[7] = {0,0,0,1,1,1,2};
 	
@@ -283,6 +284,10 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        if (sideto == NSides-1) {
+            return TransformSideToElement(sidefrom);
+        }
+        
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {
@@ -387,6 +392,7 @@ namespace pztopology {
 				return t;
 			case 3:
 				t.Mult()(0,0) =  2.0;//par. var.
+                t.Mult()(0,1) =  1.0;//par. var.
 				t.Sum()(0,0)  = -1.0;
 				return t;
 			case 4:
@@ -394,6 +400,7 @@ namespace pztopology {
 				t.Mult()(0,1) =  1.0;
 				return t;
 			case 5:
+                t.Mult()(0,0) = -1.0;
 				t.Mult()(0,1) = -2.0;
 				t.Sum()(0,0)  =  1.0;
 				return t;
@@ -404,7 +411,11 @@ namespace pztopology {
 		}
 		return TPZTransform<>(0,0);
 	}
-	
+    TPZTransform<> TPZTriangle::GetSideTransform(int side, int transformId){
+        int locside = permutationsT[transformId][side];
+        return TransformElementToSide(locside);
+        
+    }
 	TPZTransform<> TPZTriangle::TransformSideToElement(int side){
 		
 		if(side<0 || side>6){
@@ -414,7 +425,7 @@ namespace pztopology {
 		TPZTransform<> t(2,sidedimension[side]);
 		t.Mult().Zero();
 		t.Sum().Zero();
-		
+        
 		switch(side){
 			case 0:
 				return t;

@@ -147,6 +147,8 @@ namespace pztopology {
 		 * @return TPZTransform<> object
 		 */
 		static TPZTransform<> TransformElementToSide(int side);
+        
+        static TPZTransform<> GetSideTransform(int side, int transformId); 
 		
 		
 		/**
