@@ -49,7 +49,7 @@
 
 #include "pzlog.h"
 
-#include "pzhdivfull.h"
+//#include "pzhdivfull.h"
 #include "pzelchdiv.h"
 
 #include "pzgeopyramid.h"
@@ -1354,8 +1354,9 @@ void TestVec(TPZGeoEl *gel, ostream &out)
         TPZVec<REAL> ptx = center ;
         TPZFMatrix<REAL> directions;
         TPZVec<int> sidenormals;
-        gel->Directions(side, ptx, directions,sidenormals);
-        
+        // this signature has been discontinued
+//        gel->Directions(side, ptx, directions,sidenormals);
+        DebugStop();
 #ifdef LOG4CXX
         std::stringstream sout;
         sout << std::endl;

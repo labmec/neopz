@@ -445,8 +445,8 @@ TPZCompMesh *ComputationalMeshGravitationalflux(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * BCond7 = material1->CreateBC(mat1,7,0, val1, val2);
     //  TPZMaterial * BCond8 = material2->CreateBC(mat2,8,0, val1, val2);       
     
-    //cmesh->SetAllCreateFunctionsHDiv();
-    cmesh->SetAllCreateFunctionsHDivFull();
+    cmesh->SetAllCreateFunctionsHDivPressure();
+//    cmesh->SetAllCreateFunctionsHDivFull();
     cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);        
     cmesh->InsertMaterialObject(BCond4);

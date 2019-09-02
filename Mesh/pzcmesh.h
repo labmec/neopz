@@ -518,11 +518,6 @@ public:
         fCreate.SetAllCreateFunctionsHDiv(Dimension());
     }
 	
-	//space for full basis for quadrilateral element
-	void SetAllCreateFunctionsHDivFull()
-    {
-        fCreate.SetAllCreateFunctionsHDivFull(Dimension());
-    }
 	
 
 #ifndef STATE_COMPLEX

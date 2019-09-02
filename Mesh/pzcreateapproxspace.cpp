@@ -566,47 +566,47 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
 
 #endif
 
-#include "pzhdivfull.h"
-
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(int dimension){
-	
-    switch (dimension) {
-        case 1:
-            fp[EPoint] = CreateHDivBoundPointEl;
-            fp[EOned] = CreateHDivFullLinearEl;
-            fp[ETriangle] = CreateNoElement;
-            fp[EQuadrilateral] = CreateNoElement;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 2:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateHDivBoundLinearEl;
-            fp[ETriangle] = CreateHDivFullTriangleEl;
-            fp[EQuadrilateral] = CreateHDivFullQuadEl;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 3:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateNoElement;
-            fp[ETriangle] = CreateHDivBoundTriangleEl;
-            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
-            fp[ETetraedro] = CreateHDivFullTetraEl;
-            fp[EPiramide] = CreateHDivFullPyramEl;
-            fp[EPrisma] = CreateHDivFullPrismEl;
-            fp[ECube] = CreateHDivFullCubeEl;
-            break;
-        default:
-            DebugStop();
-            break;
-    }
-    
-}
+////#include "pzhdivfull.h"
+//
+//void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(int dimension){
+//    
+//    switch (dimension) {
+//        case 1:
+//            fp[EPoint] = CreateHDivBoundPointEl;
+//            fp[EOned] = CreateHDivFullLinearEl;
+//            fp[ETriangle] = CreateNoElement;
+//            fp[EQuadrilateral] = CreateNoElement;
+//            fp[ETetraedro] = CreateNoElement;
+//            fp[EPiramide] = CreateNoElement;
+//            fp[EPrisma] = CreateNoElement;
+//            fp[ECube] = CreateNoElement;
+//            break;
+//        case 2:
+//            fp[EPoint] = CreateNoElement;
+//            fp[EOned] = CreateHDivBoundLinearEl;
+//            fp[ETriangle] = CreateHDivFullTriangleEl;
+//            fp[EQuadrilateral] = CreateHDivFullQuadEl;
+//            fp[ETetraedro] = CreateNoElement;
+//            fp[EPiramide] = CreateNoElement;
+//            fp[EPrisma] = CreateNoElement;
+//            fp[ECube] = CreateNoElement;
+//            break;
+//        case 3:
+//            fp[EPoint] = CreateNoElement;
+//            fp[EOned] = CreateNoElement;
+//            fp[ETriangle] = CreateHDivBoundTriangleEl;
+//            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
+//            fp[ETetraedro] = CreateHDivFullTetraEl;
+//            fp[EPiramide] = CreateHDivFullPyramEl;
+//            fp[EPrisma] = CreateHDivFullPrismEl;
+//            fp[ECube] = CreateHDivFullCubeEl;
+//            break;
+//        default:
+//            DebugStop();
+//            break;
+//    }
+//    
+//}
 
 
 
