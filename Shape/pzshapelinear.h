@@ -104,7 +104,7 @@ namespace pzshape {
 		 * @param phi shapefunction values with derivatives
 		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
 		 */
-		static void (*FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &);
+		static void (*FADfOrthogonal)(FADREAL& x,int num,TPZVec<FADREAL> &phi);
 		/**
 		 * @brief Chebyshev orthogonal polynomial, computes num orthogonal functions at the point x
 		 * @param x coordinate of the point (with derivative already setup)
