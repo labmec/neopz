@@ -476,7 +476,7 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list)
 : TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(list.size(), 1)
 {
 	if (list.size() > 0) {
-		fElem = new TVar[list.size()];
+		this->fElem = new TVar[list.size()];
 	}
 
 	auto it = list.begin();
@@ -499,10 +499,10 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer
     bool col_n_found = false;
     for (auto it = row_it; it != row_it_end; it++) {
         if (!col_n_found) {
-            fCol = it->size();
+            this->fCol = it->size();
             col_n_found = true;
         } else {
-            if (fCol != it->size())
+            if (this->fCol != it->size())
                 Error("TPZFMatrix constructor: inconsistent number of columns in initializer list");
         }
     }
@@ -510,13 +510,13 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer
     this->fCol = row_it->size();
 #endif
 
-	fElem = new TVar[this->fRow * this->fCol];
+	this->fElem = new TVar[this->fRow * this->fCol];
     
     for (uint32_t row_n = 0; row_it != row_it_end; row_it++, row_n++) {
         auto col_it = row_it->begin();
         auto col_it_end = row_it->end();
         for (uint32_t col_n = 0; col_it != col_it_end; col_it++, col_n++) {
-            fElem[col_n * this->fRow + row_n] = *col_it;
+            this->fElem[col_n * this->fRow + row_n] = *col_it;
         }
     }
 }
