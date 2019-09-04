@@ -187,7 +187,7 @@ namespace pzshape {
 	} //end of method
 	
 	// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Expo;
+	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Chebyshev;
 	
 	/**
 	 * Computes the generating shape functions for a quadrilateral element
