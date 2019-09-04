@@ -205,6 +205,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
 void TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
+    cmeshHDiv->SetName("FluxMesh");
     InsertPeriferalHdivMaterialObjects();
     CreateInternalFluxElements();
     
@@ -216,7 +217,22 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
     }
 #endif
     CreateSkeleton();
-
+    
+    if (fHdivmaismais) {
+        int64_t nel = cmeshHDiv->ElementVec().NElements();
+        for (int64_t el = 0; el < nel; el++) {
+            TPZCompEl *cel = cmeshHDiv->ElementVec()[el];
+            TPZGeoEl *gel = cel->Reference();
+            if (gel->Dimension() == cmeshHDiv->Dimension()) {
+                int side = gel->NSides() - 1;
+                TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
+                intel->SetSideOrder(side, fpOrderInternal + fHdivmaismais);//seta ordem +hdivmais
+                intel->SetPreferredOrder(fpOrderInternal + fHdivmaismais);
+            }
+        }
+        cmeshHDiv->ExpandSolution();
+    }
+    
 
 #ifdef PZDEBUG
     if(0)
@@ -294,7 +310,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     cmeshPressure->SetDimModel(gmesh->Dimension());
     cmeshPressure->ApproxSpace().SetAllCreateFunctionsContinuous();
     cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
-    cmeshPressure->SetDefaultOrder(porder);
+    cmeshPressure->SetDefaultOrder(porder + fHdivmaismais);
     int meshdim = cmeshPressure->Dimension();
     // generate elements for all material ids of meshdim
     std::set<int> matids;
@@ -360,6 +376,11 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
 #endif
 
         SetSubdomain(cel, domain);
+    }
+    
+    {
+        std::ofstream out("PressureFineMesh2.txt");
+        fPressureFineMesh->Print(out);
     }
     
     return;
@@ -515,6 +536,16 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     TPZManVector<TPZCompMesh *,3 > cmeshes(2);
     cmeshes[0] = fFluxMesh.operator->();
     cmeshes[1] = fPressureFineMesh.operator->();
+    
+    {
+        std::ofstream out("PressureMesh_MultiPhis.txt");
+        cmeshes[1] ->Print(out);
+        
+        std::ofstream out2("FluxMesh_MultiPhis.txt");
+        cmeshes[0] ->Print(out2);
+    }
+    
+    
     if(fNState > 1) {
         cmeshes.Resize(3);
         cmeshes[2] = fRotationMesh.operator->();
@@ -920,6 +951,7 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements()
     cmeshHDiv->SetDimModel(meshdim);
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
+
     
     //Criar elementos computacionais malha MHM
     

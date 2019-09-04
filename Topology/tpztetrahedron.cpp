@@ -16,7 +16,6 @@
 #include "fad.h"
 #endif
 
-#include "pzcreateapproxspace.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX

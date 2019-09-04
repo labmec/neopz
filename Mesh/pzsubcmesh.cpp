@@ -854,7 +854,7 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
         right = multinterf->RightElement();
     }
     
-    if(!interf && !multinterf)
+//    if(!interf && !multinterf)
     {
         int ncon = cel->NConnects();
         for (int i=0; i<ncon; i++){
@@ -863,34 +863,35 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
             cel->SetConnectIndex(i,subindex);
         }
     }
-    else
-    {
-        int nleftcon = left->NConnects();
-        {
-            TPZCompMesh *comm = CommonMesh(left->Mesh());
-            int ncon = nleftcon;
-            for (int ic=0; ic<ncon ; ic++) {
-                int64_t superind = left->ConnectIndex(ic);
-                int64_t commind = left->Mesh()->PutinSuperMesh(superind, comm);
-                int64_t subindex = GetFromSuperMesh(commind, comm);
-                if (multinterf) {
-                    cel->SetConnectIndex(ic, subindex);
-                }
-            }
-        }
-        {
-            TPZCompMesh *comm = CommonMesh(right->Mesh());
-            int ncon = right->NConnects();
-            for (int ic=0; ic<ncon ; ic++) {
-                int64_t superind = right->ConnectIndex(ic);
-                int64_t commind = right->Mesh()->PutinSuperMesh(superind, comm);
-                int64_t subindex = GetFromSuperMesh(commind, comm);
-                if (multinterf) {
-                    cel->SetConnectIndex(ic+nleftcon, subindex);
-                }
-            }
-        }
-    }
+
+//    else
+//    {
+//        int nleftcon = left->NConnects();
+//        {
+//            TPZCompMesh *comm = CommonMesh(left->Mesh());
+//            int ncon = nleftcon;
+//            for (int ic=0; ic<ncon ; ic++) {
+//                int64_t superind = left->ConnectIndex(ic);
+//                int64_t commind = left->Mesh()->PutinSuperMesh(superind, comm);
+//                int64_t subindex = GetFromSuperMesh(commind, comm);
+//                if (multinterf) {
+//                    cel->SetConnectIndex(ic, subindex);
+//                }
+//            }
+//        }
+//        {
+//            TPZCompMesh *comm = CommonMesh(right->Mesh());
+//            int ncon = right->NConnects();
+//            for (int ic=0; ic<ncon ; ic++) {
+//                int64_t superind = right->ConnectIndex(ic);
+//                int64_t commind = right->Mesh()->PutinSuperMesh(superind, comm);
+//                int64_t subindex = GetFromSuperMesh(commind, comm);
+//                if (multinterf) {
+//                    cel->SetConnectIndex(ic+nleftcon, subindex);
+//                }
+//            }
+//        }
+//    }
     
     if(cel->Reference())
     {

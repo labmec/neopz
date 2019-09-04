@@ -58,6 +58,12 @@ public:
 
     TPZManVector(const TPZVec<T> & copy);
 
+	/**
+	 * @brief Creates a vector from a initializer list
+	 * @param list: the initializer list, usually enclosed in curly brackets
+	 */
+	TPZManVector(const std::initializer_list<T>& list);
+
     /**
      * @brief Assignment operator.
      * @param copy Vector which will be copied.
@@ -70,6 +76,13 @@ public:
      * the copied vector
      */
     TPZManVector< T, NumExtAlloc >& operator=(const TPZManVector< T, NumExtAlloc >& copy);
+
+	/**
+	 * @brief initializer list assignment operator
+	 * @param list: list which will be assigned, usually wrapped in curly brackets
+	 * @return Reference to the current object
+	 */
+	TPZManVector< T, NumExtAlloc >& operator=(const std::initializer_list<T>& list);
 
     /** @brief Destructor. */
     /** Deletes the storage allocated. */
@@ -241,6 +254,33 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(
     }
 }
 
+template< class T, int NumExtAlloc>
+inline TPZManVector< T, NumExtAlloc >::TPZManVector(const std::initializer_list<T>& list)
+{
+	int size = list.size();
+	std::cout << "init pzmanvec" << std::endl;
+	if (size <= (int64_t)(sizeof(fExtAlloc) / sizeof(T))) {
+		// Needed to make TPZVec::operator[] work properly.
+		this->fStore = fExtAlloc;
+		this->fNElements = size;
+		// No memory was allocated by the constructor.
+		fNAlloc = 0;
+	}
+	else // The size requested is bigger than the size already provided.
+	{
+		// Executes the allocation that would be done by TPZVec<T>(size).
+		this->fStore = new T[size];
+		this->fNElements = size;
+		fNAlloc = size;
+	}
+
+	auto it_end = list.end();
+	T* aux = this->fStore;
+	for (auto it = list.begin(); it != it_end; it++, aux++)
+		*aux = *it;
+}
+
+
 template< class T, int NumExtAlloc >
 TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(const TPZManVector< T, NumExtAlloc >& copy) {
     // Checking auto assignment.
@@ -276,6 +316,41 @@ TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(const 
     }
 
     return *this;
+}
+
+template< class T, int NumExtAlloc >
+TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(const std::initializer_list<T>& list) {
+	size_t size = list.size();
+
+	if (size > this->fNAlloc && this->fStore && this->fStore != this->fExtAlloc) {
+		delete[] this->fStore;
+		this->fStore = 0;
+		this->fNAlloc = 0;
+	}
+
+	if (size <= NumExtAlloc) {
+		if (this->fStore != fExtAlloc) {
+			delete[]this->fStore;
+		}
+		this->fNAlloc = 0;
+		this->fStore = fExtAlloc;
+		this->fNElements = size;
+	}
+	else if (fNAlloc >= size) {
+		this->fNElements = size;
+	}
+	else {
+		this->fStore = new T[size];
+		fNAlloc = size;
+		this->fNElements = size;
+	}
+
+	auto it_end = list.end();
+	T* aux = this->fStore;
+	for (auto it = list.begin(); it != it_end; it++, aux++)
+		*aux = *it;
+
+	return *this;
 }
 
 template< class T, int NumExtAlloc >

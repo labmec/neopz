@@ -74,6 +74,10 @@ protected:
     /// interpolation order of the skeleton elements
     int fpOrderSkeleton = 1;
     
+    //internal order for enrichement spaces
+    
+    int fHdivmaismais = 0;
+    
     /// material index of the skeleton wrap
     int fSkeletonWrapMatId = 500;
     
@@ -215,6 +219,13 @@ public:
     {
         fpOrderSkeleton = order;
     }
+    
+    
+    void SetHdivmaismaisPOrder(int order)
+    {
+        fHdivmaismais = order;
+    }
+
     
     /// Set the flag for creating Lagrange Dofs for the average pressure
     void SetLagrangeAveragePressure(bool flag)

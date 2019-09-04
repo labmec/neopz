@@ -678,9 +678,10 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 31){ //function (state variable Q)
-        for (int i=0; i<fDim; i++)
+        for (int i=0; i<3; i++)
         {
             Solout[i] = datavec[0].sol[0][i];
+            
         }
 		return;
 	}

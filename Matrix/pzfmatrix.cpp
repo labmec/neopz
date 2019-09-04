@@ -155,6 +155,56 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     return *this;
 }
 
+template< class TVar >
+TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list<TVar>& list) {
+	Resize(list.size(), 1);
+
+	auto it = list.begin();
+	auto it_end = list.end();
+	TVar* aux = fElem;
+	for (; it != it_end; it++, aux++)
+		*aux = *it;
+
+	return *this;
+}
+
+template< class TVar >
+TPZFMatrix<TVar>& TPZFMatrix<TVar>::operator= (const std::initializer_list< std::initializer_list<TVar> >& list) {
+	size_t n_row = list.size();
+	size_t n_col = 1;
+
+	auto row_it = list.begin();
+	auto row_it_end = list.end();
+
+#ifdef PZDEBUG
+	bool col_n_found = false;
+	for (auto it = row_it; it != row_it_end; it++) {
+		if (!col_n_found) {
+			n_col = it->size();
+			col_n_found = true;
+		}
+		else {
+			if (n_col != it->size())
+				Error("TPZFMatrix constructor: inconsistent number of columns in initializer list");
+		}
+	}
+#else
+	n_col = row_it->size();
+#endif
+	Resize(n_row, n_col);
+
+	for (uint32_t row_n = 0; row_it != row_it_end; row_it++, row_n++) {
+		auto col_it = row_it->begin();
+		auto col_it_end = row_it->end();
+		for (uint32_t col_n = 0; col_it != col_it_end; col_it++, col_n++) {
+			fElem[col_n * this->fRow + row_n] = *col_it;
+		}
+	}
+
+	return *this;
+}
+
+
 template <class TVar>
 void TPZFMatrix<TVar>::AddFel(TPZFMatrix<TVar> &rhs,TPZVec<int64_t> &destination) {
     if(rhs.Cols() != this->Cols()) {

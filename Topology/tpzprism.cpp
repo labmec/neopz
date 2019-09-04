@@ -5,17 +5,12 @@
 
 #include "tpzprism.h"
 
-#include "pzshapequad.h"
-#include "pzshapetriang.h"
-#include "pzshapelinear.h"
-#include "pzshapepoint.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"
 #include "pzeltype.h"
 
-#include "pzcreateapproxspace.h"
 #include "pzlog.h"
 
 #ifdef _AUTODIFF
