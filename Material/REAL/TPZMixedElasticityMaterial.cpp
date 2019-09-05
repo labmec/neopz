@@ -1316,7 +1316,7 @@ void TPZMixedElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFM
 }
 
 int TPZMixedElasticityMaterial::NEvalErrors() {
-    return 7;
+    return 8;
 }
 
 void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) {
@@ -1441,6 +1441,8 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
     if (errors[1] < 0.) {
         std::cout << "I should stop \n";
     }
+    //L2_Error: for the sigma_xx
+    errors[7] = (SigmaV[0] - sigma_exactV[0])*(SigmaV[0] - sigma_exactV[0]);
 
     TPZManVector<STATE,3> divSigmaExact(fDimension,0.);
     if(HasForcingFunction())
