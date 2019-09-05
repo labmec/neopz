@@ -211,7 +211,9 @@ public:
     void Write(const std::vector<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.size());
+        for (int c = 0; c < nel; c++){
+            this->Write(&vec[c]);
+        }
     }
 
     template <class T,
@@ -323,10 +325,9 @@ public:
     void Read(std::vector<T> &vec, void *context) {
         int nel;
         this->Read(&nel, 1);
+        vec.resize(nel);
         for (int i = 0; i < nel; i++) {
-            int val;
-            this->Read(&val);
-            vec.push_back(val);
+            this->Read(&vec[i]);
         }
     }
 
