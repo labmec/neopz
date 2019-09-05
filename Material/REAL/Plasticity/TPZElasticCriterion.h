@@ -22,10 +22,10 @@ public:
     
     typedef TPZElasticCriterion fNYields;
     
-    ///
+    /// Plastic state
     TPZPlasticState<STATE> fN;
     
-    ///
+    /// Elastic response
     TPZElasticResponse fER;
     
 public:
