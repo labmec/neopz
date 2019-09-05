@@ -99,6 +99,9 @@ public:
 
     /** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
     virtual void SetUpdateMem(bool update = 1);
+    
+    /** @brief Gets the internal memory data to be updated in the next assemble/contribute call */
+    virtual bool GetUpdateMem();
 
 protected:
 
@@ -233,6 +236,11 @@ void TPZMatWithMem<TMEM, TFather>::SetDefaultMem(TMEM & defaultMem) {
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM, TFather>::SetUpdateMem(bool update) {
     fUpdateMem = update;
+}
+
+template <class TMEM, class TFather>
+bool TPZMatWithMem<TMEM, TFather>::GetUpdateMem() {
+    return fUpdateMem;
 }
 
 #endif

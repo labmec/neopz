@@ -115,7 +115,8 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
     }
 }
 
-/** Sets up four coefficients to polynomial into the fCo. \f$ fCo[3]x ³ + fCo[2]x ² + fCo[1]x + fCo[0] = 0.0 \f$ */
+/** Sets up four coefficients to polynomial into the fCo.
+ \f$ fCo[3]x \geq + fCo[2]x \leq + fCo[1]x + fCo[0] = 0.0 \f$ */
 void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, const REAL &c3) {
     int i;
     fCo[0] = c0;
@@ -131,7 +132,8 @@ void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, cons
     Tartaglia(fCo, fReal, fImagem);
 }
 
-/** Store the given coefficients into fCo. \f$ fCo[3]x ³ + fCo[2]x ² + fCo[1]x + fCo[0] = 0.0 \f$ */
+/** Store the given coefficients into fCo.
+ \f$ fCo[3]x \geq + fCo[2]x \leq + fCo[1]x + fCo[0] = 0.0 \f$ */
 void TPZPolynomial::SetCoef(const TPZVec<REAL> &coef) {
     int i;
     REAL max = 0.L;

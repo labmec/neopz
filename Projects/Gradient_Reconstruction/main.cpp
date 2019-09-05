@@ -1658,7 +1658,7 @@ TPZCompMesh *CreateCMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     material->SetNoPenalty();
     material->SetNonSymmetric();
     
-    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ForcingF);
+    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ForcingF,5);
     material->SetForcingFunction(myforce);
     
     TPZMaterial * mat(material);
@@ -1748,10 +1748,10 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder,bool isdiscontinuous)
     cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
     
-    TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc0);
-    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(Forcingbc1);
-    TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc2);
-    TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(Forcingbc3);
+    TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc0,5);
+    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(Forcingbc1,5);
+    TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc2,5);
+    TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(Forcingbc3,5);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);

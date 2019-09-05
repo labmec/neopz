@@ -827,6 +827,8 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
     if(!strcmp("ShearStress",name.c_str()))        return 24;
     if(!strcmp("NormalStrain",name.c_str()))        return 25;
     if(!strcmp("ShearStrain",name.c_str()))        return 26;
+    if(!strcmp("Young_Modulus",name.c_str()))        return 28;
+    if(!strcmp("Poisson",name.c_str()))        return 29;
     
     
     
@@ -873,6 +875,9 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
         case 26:
         case 27:
             return 3;
+        case 28:
+        case 29:
+            return 1;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
 	}  
@@ -889,12 +894,24 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
     REAL E(fE_def), nu(fnu_def);
     
     if (fElasticity) {
-        TPZManVector<STATE,2> result(2);
-        TPZFNMatrix<4,STATE> Dres(0,0);
+        TPZManVector<STATE, 2> result(2);
+        TPZFNMatrix<4, STATE> Dres(0, 0);
         fElasticity->Execute(data.x, result, Dres);
         E = result[0];
         nu = result[1];
     }
+
+    if(var == 28)
+    {
+        Solout[0] = E;
+        return ;
+    }
+    if(var == 29)
+    {
+        Solout[0] = nu;
+        return;
+    }
+
     
     REAL Eover1MinNu2 = E/(1-nu*nu);
     REAL Eover21PlusNu = E/(2.*(1+nu));

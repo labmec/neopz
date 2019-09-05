@@ -123,9 +123,17 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::SetupMatrixData(TPZStack<int64_t> 
         int64_t iclast = nodegraphindex[i+1];
         int64_t j;
         //longhin
-        totalvar+=iblsize*iblsize;
+        totalvar+=(iblsize*(iblsize+1))/2;
         for(j=icfirst;j<iclast;j++) {
             int64_t col = nodegraph[j];
+            if (col < i) {
+                continue;
+            }
+            
+            if (col == i) {
+                DebugStop();
+            }
+            
             int64_t colsize = fMesh->Block().Size(col);
             int64_t colpos = fMesh->Block().Position(col);
             int64_t numactive = fEquationFilter.NumActive(colpos, colpos+colsize);

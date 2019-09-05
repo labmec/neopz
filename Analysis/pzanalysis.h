@@ -221,7 +221,7 @@ public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices);
     /** @brief Graphic of the solution as V3DGrap visualization */
-    void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const std::string &varname);
+    void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const TPZVec<std::string> &varname);
     /** @brief Make assembling and clean the load and solution vectors */
 	void LoadShape(double dx,double dy, int64_t numelem,TPZConnect* nod);
 	

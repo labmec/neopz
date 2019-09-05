@@ -9,6 +9,7 @@
 #include "TPZMHMeshControl.h"
 
 #include "pzl2projection.h"
+#include "TPZNullMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 #include "TPZCompElLagrange.h"
 #include "pzbndcond.h"
@@ -334,6 +335,11 @@ void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
     BuildWrapMesh(fGMesh->Dimension());
     BuildWrapMesh(fGMesh->Dimension()-1);
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
+    
+    std::cout<<"WrapMatId created \n";
+    std::cout << "fSkeletonWrapMatId "<<fSkeletonWrapMatId<<std::endl;
+    std::cout << "fBoundaryWrapMatId "<<fBoundaryWrapMatId<<std::endl;
+    //std::cout << "fHdivWrapMatId "<<fHDivWrapMatid<<std::endl;
 }
 
 /// divide the skeleton elements
@@ -506,6 +512,12 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
         this->CreateLagrangeMultiplierMesh();
         this->TransferToMultiphysics();
     }
+    
+    
+
+    
+    
+    
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
@@ -1074,7 +1086,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     int64_t nel = gmesh.NElements();
     // this code needs to be modified to create lagrange computational elements which share a connect
     // between each other
-    DebugStop();
+    //DebugStop();
     for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
@@ -1092,7 +1104,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     std::set<int>::iterator it = matids.begin();
     TPZMaterial *meshmat = 0;
     while (it != matids.end()) {
-        TPZL2Projection *material = new TPZL2Projection(*it,dim,nstate,sol);
+        TPZNullMaterial *material = new TPZNullMaterial(*it);
         fCMeshLagrange->InsertMaterialObject(material);
         if (!meshmat) {
             meshmat = material;
@@ -2275,7 +2287,7 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside, int wrapmaterial)
 #ifdef PZDEBUG
     if(gelside.Element()->Mesh()->Dimension() == 2)
     {
-        CheckDivisionConsistency(gelside);
+      //  CheckDivisionConsistency(gelside);
     }
 #endif
     int wrapmat = HasWrapNeighbour(gelside);

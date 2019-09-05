@@ -43,7 +43,7 @@ class TPZGeoMeshBluider {
     
 public:
     
-    static void InsertNodes(TPZGeoMesh * gmesh, std::vector<int> & node_identifiers, std::vector<double> & coord);
+    static void InsertNodes(TPZGeoMesh * gmesh, std::vector<std::size_t> & node_identifiers, std::vector<double> & coord);
     
     static void InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers);
     

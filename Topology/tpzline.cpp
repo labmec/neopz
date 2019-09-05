@@ -17,7 +17,6 @@
 
 
 #include "pzlog.h"
-#include "pzcreateapproxspace.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.topology.pzline"));
