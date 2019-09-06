@@ -97,6 +97,120 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             blendtest::CreateGeoMesh3D(nDiv);
         }
     }
+
+    BOOST_AUTO_TEST_CASE(quadrilateral_blend_semicircle) {
+    //defining the analytical solution against which the mapping will be compared. the quadrilateral will be mapped
+    //to a quarter of a ring. the inner and outer radii are, respectively, 0.5 and 1.0.
+        const REAL innerRadius = 0.5;
+        const REAL outerRadius = 1.0;
+        auto analyticX = [innerRadius, outerRadius ] (const REAL ptQsi, const REAL ptEta) {
+            TPZVec<REAL> map(3,-1);
+            map[0] = innerRadius * (1. - ptQsi) * cos((1. + ptEta) * M_PI_4) * 0.5 +
+                     outerRadius * (1. + ptQsi) * cos((1. + ptEta) * M_PI_4) * 0.5;
+            map[1] = innerRadius * (1. - ptQsi) * cos((1. + ptEta) * M_PI_4) * 0.5 +
+                     outerRadius * (1. + ptQsi) * cos((1. + ptEta) * M_PI_4) * 0.5;
+            map[2] = 0.0;
+            return map;
+        };
+
+        auto analyticGradX = [innerRadius, outerRadius ] (const REAL ptQsi, const REAL ptEta) {
+            TPZFMatrix<REAL> grad(3,2,-1);
+            grad(0,0) = -0.5 * innerRadius * cos((1. + ptEta) * M_PI_4)
+                        + 0.5 * outerRadius * cos((1. + ptEta) * M_PI_4);
+            grad(0,1) = -0.5 * M_PI_4 * innerRadius * (1. - ptQsi) * sin((1. + ptEta) * M_PI_4)
+                        + 0.5 * M_PI_4 * outerRadius * (1. + ptQsi) * sin((1. + ptEta) * M_PI_4);
+            grad(1,0) = -0.5 * innerRadius * sin((1. + ptEta) * M_PI_4)
+                        + 0.5 * outerRadius * sin((1. + ptEta) * M_PI_4);
+            grad(1,1) = -0.5 * M_PI_4 * innerRadius * (1. - ptQsi) * sin((1. + ptEta) * M_PI_4)
+                        + 0.5 * M_PI_4 * outerRadius * (1. + ptQsi) * sin((1. + ptEta) * M_PI_4);
+            grad(2,0) = 0.0;
+            grad(2,1) = 0.0;
+            return grad;
+        };
+
+        TPZGeoMesh *gmesh = new TPZGeoMesh();
+        const int matIdQuad = 1;
+        const int matIdArc = 2;
+        TPZManVector<REAL,3> coords(3);
+        int64_t newindex = -1;
+
+        coords={0.5,0.0,0.0};
+        newindex = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+        coords={1.0,0.0,0.0};
+        newindex = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+        coords={0.0,1.0,0.0};
+        newindex = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+        coords={0.0,0.5,0.0};
+        newindex = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+        coords = {0.5 * M_SQRT1_2,0.5 * M_SQRT1_2,0.};
+        newindex = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+        coords = {M_SQRT1_2,M_SQRT1_2,0.};
+        newindex = gmesh->NodeVec().AllocateNewElement();
+        gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+
+        TPZManVector<int64_t,3> nodesIdVec(4);
+        nodesIdVec={0,1,2,3};
+        auto *quad = new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>>(nodesIdVec,matIdQuad, *gmesh);
+        TPZGeoElRefPattern<pzgeom::TPZArc3D> *arc = nullptr;
+        nodesIdVec.Resize(3);
+        nodesIdVec = {0,3,4};
+        arc = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodesIdVec, matIdArc, *gmesh);
+        nodesIdVec = {1,2,5};
+        arc = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodesIdVec, matIdArc, *gmesh);
+        gmesh->BuildConnectivity();
+
+        const int64_t nPoints = 20;
+        const REAL tol = blendtest::tol;
+
+        TPZManVector<REAL,2> qsi(2);
+        TPZManVector<REAL,2> xBlend(3);
+        TPZManVector<REAL,2> xAnalytic(3);
+        TPZFMatrix<REAL> gradxBlend(3,3);
+        TPZFMatrix<REAL> gradxAnalytic(3,3);
+        bool hasAnErrorOccurred = false;
+        for (int iPt = 0; iPt < nPoints; ++iPt) {
+            qsi[0] = -1. + 2 * (((REAL) iPt)/(nPoints-1));
+            for(int jPt = 0; jPt < nPoints; ++jPt) {
+                qsi[1] = -1. + 2 * (((REAL) jPt) / (nPoints - 1));
+                quad->X(qsi, xBlend);
+                quad->GradX(qsi, gradxBlend);
+
+                std::ostringstream xBlendM, xQuadM;
+                xBlendM << "x_blend:" << std::endl;
+                xQuadM << "x_quad:" << std::endl;
+                const auto VAL_WIDTH = 15;
+                REAL diff = 0;
+                for (int i = 0; i < xBlend.size(); i++) {
+                    xBlendM << std::setw(VAL_WIDTH) << std::right << xBlend[i] << "\t";
+                    xQuadM << std::setw(VAL_WIDTH) << std::right << xAnalytic[i] << "\t";
+                    diff += (xBlend[i] - xAnalytic[i]) * (xBlend[i] - xAnalytic[i]);
+                }
+                if (diff > tol) {
+                    hasAnErrorOccurred = true;
+                }
+                BOOST_CHECK(!hasAnErrorOccurred);
+                if (hasAnErrorOccurred) {
+                    std::cout << std::flush;
+                    std::cout << xBlendM.str() << std::endl;
+                    std::cout << xQuadM.str() << std::endl;
+                    std::cout << "diff :" << diff << std::endl;
+                }
+                //TODO: wrap this error checking into a function. one for tpzvec one for tpzfmatrix
+                //TODO: compare x and gradx
+                //TODO: (maybe?) think of a fancy logic for generating nodes coordinates
+                //TODO: (IMPORTANT) deactivate the log after testing
+
+
+            }
+        }
+    }
+
+
     BOOST_AUTO_TEST_CASE(compare_blend_quad) {
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoQuad>();
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTriangle>();
