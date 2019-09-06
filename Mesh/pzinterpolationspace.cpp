@@ -173,10 +173,11 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
     Reference()->X(qsi, data.x);
     data.xParametric = qsi;
     TPZManVector<REAL,3> x_center(3,0.0);
-    TPZVec<REAL> center_qsi(3,0.0);
+    int dim = Reference()->Dimension();
+    TPZVec<REAL> center_qsi(dim,0.0);
     
     if (Reference()->Dimension() == 2){
-        if (Reference()->Type() == EQuadrilateral) {
+        if (dim == EQuadrilateral) {
             center_qsi[0] = 0.0;
             center_qsi[1] = 0.0;
         } else if (Reference()->Type() == ETriangle) {
@@ -205,7 +206,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	
 	int thisFace, neighbourFace, i, dim;
 	TPZGeoEl * thisGeoEl, * neighbourGeoEl;
-	TPZManVector<REAL,3> thisCenter(3,0.), neighbourCenter(3,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
+	TPZManVector<REAL,3> thisCenter(3,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
 	
 	thisGeoEl = this->Reference();
 	thisFace = thisGeoEl->NSides() - 1;
@@ -232,11 +233,12 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 		// normal evaluation makes no sense since the internal element side doesn't have a neighbour.
 		return; // place a breakpoint here if this is an issue
 	}
+    int neightdim = neighbourGeoEl->Dimension();
+    TPZManVector<REAL,3> neighbourCenter(neightdim,0.);
     
 	thisGeoEl->CenterPoint(thisFace, thisCenter);
 	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
     
-	
 	thisGeoEl->X(thisCenter,thisXVol);
 	neighbourGeoEl->X(neighbourCenter,neighbourXVol);
 	

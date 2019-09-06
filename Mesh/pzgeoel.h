@@ -78,6 +78,11 @@ public:
     
     /** Returns the directions of this geoel */
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
+
+#ifdef _AUTODIFF
+    /** Returns the directions of this geoel */
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
+#endif
     
     /** Returns the eldest ancestor of this geoel */
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<REAL> &trans) = 0;

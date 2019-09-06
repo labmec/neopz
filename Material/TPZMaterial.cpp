@@ -84,6 +84,9 @@ void TPZMaterial::FillDataRequirements(TPZMaterialData &data)
 	data.fNeedsNeighborSol = false;
 	data.fNeedsNeighborCenter = false;
 	data.fNeedsNormal = false;
+#ifdef _AUTODIFF
+    data.fNeedsFad = true;
+#endif
 }
 
 void TPZMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
@@ -95,6 +98,9 @@ void TPZMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 		datavec[i].fNeedsNeighborSol = false;
 		datavec[i].fNeedsNeighborCenter = false;
 		datavec[i].fNeedsNormal = false;
+#ifdef _AUTODIFF
+        datavec[i].fNeedsFad = true;
+#endif
 	}
 	
 }

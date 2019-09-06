@@ -1337,12 +1337,12 @@ namespace pztopology {
 
 	}
     
-    void TPZPyramid::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    template <class TVar>
+    void TPZPyramid::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
-        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-        detgrad = fabs(detgrad);
+        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
-        TPZManVector<REAL,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
         for (int i=0; i<3; i++) {
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
@@ -1354,7 +1354,7 @@ namespace pztopology {
          * @brief Computing mapped vector with scaling factor equal 1.0.
          * using contravariant piola mapping.
          */
-        TPZManVector<REAL,3> NormalScales(3,1.);
+        TPZManVector<TVar,3> NormalScales(3,1.);
         
         if (HDivPiola != 1)
         {
@@ -1363,9 +1363,9 @@ namespace pztopology {
         }
         
         for (int i=0; i<3; i++) {
-            v1[i] /= detgrad;
-            v2[i] /= detgrad;
-            v3[i] /= detgrad;
+            v1[i] /= detjac;
+            v2[i] /= detjac;
+            v3[i] /= detjac;
             ar9[i] = v3[i]-(-v1[i]-v2[i]);
             ar10[i] = v3[i]-(v1[i]-v2[i]);
             ar11[i] = v3[i]-(v1[i]+v2[i]);
@@ -1388,7 +1388,7 @@ namespace pztopology {
             directions(i,7) = ( directions(i,3)+directions(i,0) )/2.;
             directions(i,8) = ( directions(i,4)+directions(i,5)+directions(i,6)+directions(i,7) )/4.;
             //face 1 front face
-            static REAL scale = 1./(2);
+            static TVar scale = 1./(2);
             directions(i,9)  = -v2[i]*scale;
             directions(i,10) = -v2[i]*scale;
             // needs improvement
@@ -1458,7 +1458,8 @@ namespace pztopology {
     }
     
     /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
-    void TPZPyramid::AdjustTopDirections(int ConstrainedFace,TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    template <class TVar>
+    void TPZPyramid::AdjustTopDirections(int ConstrainedFace,TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
 #ifdef PZDEBUG
         if (directions.Cols() != 58 || ConstrainedFace < 1 || ConstrainedFace > 4) {
@@ -1466,10 +1467,9 @@ namespace pztopology {
         }
 #endif
         int vectors[] = {11,18,25,32};
-        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-        detgrad = fabs(detgrad);
+        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
-        TPZManVector<REAL,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
         for (int i=0; i<3; i++) {
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
@@ -1477,9 +1477,9 @@ namespace pztopology {
         }
         
         for (int i=0; i<3; i++) {
-            v1[i] /= detgrad;
-            v2[i] /= detgrad;
-            v3[i] /= detgrad;
+            v1[i] /= detjac;
+            v2[i] /= detjac;
+            v3[i] /= detjac;
             ar9[i] = v3[i]-(-v1[i]-v2[i]);
             ar10[i] = v3[i]-(v1[i]-v2[i]);
             ar11[i] = v3[i]-(v1[i]+v2[i]);
@@ -1645,9 +1645,29 @@ namespace pztopology {
 }
 
 template
+void pztopology::TPZPyramid::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+#ifdef _AUTODIFF
+template
+void pztopology::TPZPyramid::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+#endif
+
+template
 bool pztopology::TPZPyramid::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 #ifdef _AUTODIFF
 template
 bool pztopology::TPZPyramid::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 #endif
+
+template
+void pztopology::TPZPyramid::AdjustTopDirections<REAL>(int ConstrainedFace, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+#ifdef _AUTODIFF
+template
+void pztopology::TPZPyramid::AdjustTopDirections<Fad<REAL> >(int ConstrainedFace, TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+#endif
+
+
+
+

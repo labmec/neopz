@@ -120,6 +120,14 @@ namespace pztopology {
 }
 
 template
+void pztopology::TPZPoint::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+#ifdef _AUTODIFF
+template
+void pztopology::TPZPoint::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+#endif
+
+template
 bool pztopology::TPZPoint::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 #ifdef _AUTODIFF

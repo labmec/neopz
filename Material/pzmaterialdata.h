@@ -9,6 +9,10 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 
 /**
  * @ingroup material
@@ -39,7 +43,7 @@ public:
     MShapeFunctionType fShapeType;
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
-    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false;
+    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false, fNeedsFad = false;
     bool fNeedsNormal = false;
     bool fActiveApproxSpace = true;
     /** @} */
@@ -94,7 +98,11 @@ public:
     TPZFNMatrix<180> fNormalVec;
     /** @} */
     
-    
+#ifdef _AUTODIFF
+    /// list of normal vectors using Fad
+    TPZFNMatrix<180,Fad<REAL>> fNormalVecFad;
+    /** @} */
+#endif
     
     /** @brief Index of the current integration point being evaluated **/
     /** Needed for materials with memory **/

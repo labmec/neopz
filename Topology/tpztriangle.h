@@ -11,6 +11,7 @@
 #include "pztrnsform.h"
 #include "pzeltype.h"
 #include "pznumeric.h"
+#include "pzaxestools.h"
 
 class TPZIntPoints;
 class TPZGraphElTd;
@@ -207,7 +208,8 @@ namespace pztopology {
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        template <class TVar>
+        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
 //        {
 //            DebugStop();
 //        }

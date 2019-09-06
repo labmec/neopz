@@ -479,30 +479,48 @@ template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
-    REAL detjac;
-    
-    this->Jacobian(pt,jac,axes,detjac,jacinv);
+  
+    this->GradX(pt, gradx);
 
-    // ou eh isso?   grad =  (jac  * axes)ˆT
-    TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
-    for (int il=0; il<TGeo::Dimension; il++)
-    {
-        for (int jc=0; jc<3; jc++)
-        {
-            for (int i = 0 ; i<TGeo::Dimension; i++)
-            {
-                gradx(jc,il) += jac(i,il) * axes(i,jc);
-            }
-        }
-    }
-    //    gradxt.Transpose(&gradx);
-    TGeo::ComputeDirections(gradx, detjac, directions);
+    TGeo::ComputeDirections(gradx, directions);
     
     if (TGeo::Type() == EPiramide) {
-        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, detjac, directions);
+        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, directions);
     }
     
 }
+
+#ifdef _AUTODIFF
+template<class TGeo>
+void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions, int ConstrainedFace)
+{
+    TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.),gradxinv(TGeo::Dimension,TGeo::Dimension,0.);
+    
+    this->GradX(pt, gradx);
+    gradx.Resize(TGeo::Dimension,TGeo::Dimension);
+    gradx.Inverse(gradxinv, ENoDecompose);
+    
+    TPZManVector<Fad<REAL>> qsiFad(TGeo::Dimension,0.);
+    
+    for(int i=0;i<TGeo::Dimension;i++){
+        qsiFad[i] = Fad<REAL>(TGeo::Dimension,pt[i]);
+
+        for(int j=0;j<TGeo::Dimension;j++){
+            qsiFad[i].fastAccessDx(j)=gradxinv(i,j);
+        }
+    }
+  //  std::cout<<qsiFad<<std::endl;
+    TPZFMatrix<Fad<REAL> > gradxFad;
+    this->GradX(qsiFad, gradxFad);
+    gradxFad.Print(std::cout);
+    TGeo::ComputeDirections(gradxFad, directions);
+   
+    if (TGeo::Type() == EPiramide) {
+        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradxFad, directions);
+    }
+    
+}
+#endif
 
 
 #include "pzgeoquad.h"

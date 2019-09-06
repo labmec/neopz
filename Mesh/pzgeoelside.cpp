@@ -1092,8 +1092,10 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
     normal.Resize(3,0.);
 	normal.Fill(0.);
 	int faceleft,faceright;
-	
-	TPZManVector<REAL, 3> centleft(3),centright(3),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
+    int Leftdim = LeftEl->Dimension();
+    int Rightdim = RightEl->Dimension();
+    
+	TPZManVector<REAL, 3> centleft(Leftdim),centright(Rightdim),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
 	REAL normalize;
 	int i;
 	

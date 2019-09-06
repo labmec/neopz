@@ -1106,9 +1106,17 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 TPZFMatrix<REAL> VectorOnMaster;
                 TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
                 
-                VectorOnXYZ(0,0) = data.fNormalVec(0,ivec);
-                VectorOnXYZ(1,0) = data.fNormalVec(1,ivec);
-                VectorOnXYZ(2,0) = data.fNormalVec(2,ivec);
+//                VectorOnXYZ(0,0) = data.fNormalVec(0,ivec);
+//                VectorOnXYZ(1,0) = data.fNormalVec(1,ivec);
+//                VectorOnXYZ(2,0) = data.fNormalVec(2,ivec);
+                
+                for (int k = 0; k < 3; k++) {
+                    #ifdef _AUTODIFF
+                        VectorOnXYZ(k,0) = data.fNormalVecFad(k,ivec).val();
+                    #else
+                        VectorOnXYZ(k,0) = data.fNormalVec(k,ivec);
+                    #endif
+                }
                 
                 GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
                 VectorOnMaster *= data.detjac;
@@ -1173,7 +1181,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     for (int i=0; i<3; i++)
                     {
                         solval[i] = data.sol[is][i+dim*idf];
-                        normal[i] = data.fNormalVec(i,ivec);
+                        #ifdef _AUTODIFF
+                            normal[i] = data.fNormalVecFad(i,ivec).val();
+                        #else
+                            normal[i] = data.fNormalVec(i,ivec);
+                        #endif
                     }
                     for (int ilinha=0; ilinha<dim; ilinha++) {
                         data.sol[is][ilinha+dim*idf] = solval[ilinha]+ normal[ilinha]*phival*meshsol;
@@ -1375,17 +1387,34 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
 
-    if (HDivPiola != 2)
-    {
-        int restrainedface = this->RestrainedFace();
+    int restrainedface = this->RestrainedFace();
+    // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
+    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+    int lastface = TSHAPE::NSides - 1;
+    int cont = 0;
+   
+    #ifdef _AUTODIFF
+        
+        TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVecFad,restrainedface);
+        
+        for(int side = firstface; side < lastface; side++)
+        {
+            int nvec = TSHAPE::NContainedSides(side);
+            for (int ivet = 0; ivet<nvec; ivet++)
+            {
+                for (int il = 0; il<3; il++)
+                {
+                    data.fNormalVecFad(il,ivet+cont) *= fSideOrient[side-firstface];
+                }
+                
+            }
+            cont += nvec;
+        }
+    
+    #else
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
         
-        
-        // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1) 
-        int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
-        int lastface = TSHAPE::NSides - 1;
-        int cont = 0;
         for(int side = firstface; side < lastface; side++)
         {
             int nvec = TSHAPE::NContainedSides(side);
@@ -1399,7 +1428,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             }
             cont += nvec;
         }
-    }
+    
+    #endif
+    
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
     }
@@ -1483,6 +1514,9 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
             numvec++;
         }
         data.fNormalVec.Resize(3, numvec);
+#ifdef _AUTODIFF
+        data.fNormalVecFad.Resize(3, numvec);
+#endif
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
     }
     data.fShapeType = TPZMaterialData::EVecandShape;
