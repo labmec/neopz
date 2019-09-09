@@ -12,6 +12,7 @@
 #include "pztrnsform.h"
 #include "pzeltype.h"
 #include "pznumeric.h"
+#include "pzaxestools.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -203,7 +204,8 @@ namespace pztopology {
         static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        template <class TVar>
+        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
         

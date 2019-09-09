@@ -21,6 +21,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
+    this->fNeedsFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
@@ -31,7 +32,9 @@ TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassI
     this->detjac = 0.;
     this->numberdualfunctions = 0;
     this->gelElId = -1;
-
+#ifdef _AUTODIFF
+    this->fNormalVecFad = 0;
+#endif
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : 
@@ -47,6 +50,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
+    this->fNeedsFad = cp.fNeedsFad;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -68,6 +72,9 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->XCenter = cp.XCenter;
     this->fVecShapeIndex = cp.fVecShapeIndex;
     this->fNormalVec = cp.fNormalVec;
+#ifdef _AUTODIFF
+    this->fNormalVecFad = cp.fNormalVecFad;
+#endif
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
     
@@ -363,7 +370,11 @@ void TPZMaterialData::ComputeFunctionDivergence()
             i_phi_s = fVecShapeIndex[iq].second;
 
             for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = fNormalVec(k,i_vec);
+                #ifdef _AUTODIFF
+                    VectorOnXYZ(k,0) = fNormalVecFad(k,i_vec).val();
+                #else
+                    VectorOnXYZ(k,0) = fNormalVec(k,i_vec);
+                #endif
             }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
@@ -380,6 +391,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
         divphi *= 1.0/det_jac;
 
     }
+
 }
 
 

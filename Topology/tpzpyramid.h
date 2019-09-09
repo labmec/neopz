@@ -11,6 +11,7 @@
 #include "pztrnsform.h"
 #include "pzquad.h"
 #include "pzeltype.h"
+#include "pzaxestools.h"
 
 class TPZIntPoints;
 class TPZIntPyram3D;
@@ -201,10 +202,12 @@ namespace pztopology {
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        template <class TVar>
+        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
         /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
-        static void AdjustTopDirections(int ConstrainedFace,TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        template <class TVar>
+        static void AdjustTopDirections(int ConstrainedFace,TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
 
         /**

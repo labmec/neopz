@@ -13,6 +13,7 @@
 #include "pzquad.h"
 #include "tpzprinteg.h"
 #include "tpzpoint.h"
+#include "pzaxestools.h"
 
 namespace pztopology {
 	

@@ -1151,12 +1151,12 @@ namespace pztopology {
                 
 	}
     
-    void TPZTetrahedron::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    template <class TVar>
+    void TPZTetrahedron::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
-        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-        detgrad = fabs(detgrad);
+        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
-        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vdiagxy(3),vi(3),vivdiagxy(3);
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vdiagxy(3),vi(3),vivdiagxy(3);
         
         for (int i=0; i<3; i++) {
             v1[i] = gradx(i,0);
@@ -1173,17 +1173,17 @@ namespace pztopology {
          * using contravariant piola mapping.
          */
         
-        REAL Nv1v2 = 1.0;
-        REAL Nv2v3 = 1.0;
-        REAL Nv3v1 = 1.0;
-        REAL Nvivdiagb = 1.0;
+        TVar Nv1v2 = 1.0;
+        TVar Nv2v3 = 1.0;
+        TVar Nv3v1 = 1.0;
+        TVar Nvivdiagb = 1.0;
 
         {
             // the above constants are wrong
             for (int i=0; i<3; i++) {
-                v1[i] /= detgrad;
-                v2[i] /= detgrad;
-                v3[i] /= detgrad;
+                v1[i] /= detjac;
+                v2[i] /= detjac;
+                v3[i] /= detjac;
             }
             for (int i=0; i<3; i++)
             {
@@ -1247,6 +1247,7 @@ namespace pztopology {
             }        
 
         }
+
     }
 
     
@@ -1300,6 +1301,14 @@ namespace pztopology {
 
 
 }
+
+template
+void pztopology::TPZTetrahedron::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+#ifdef _AUTODIFF
+template
+void pztopology::TPZTetrahedron::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+#endif
 
 template
 bool pztopology::TPZTetrahedron::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);

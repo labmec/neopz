@@ -11,6 +11,7 @@
 #include "pztrnsform.h"
 #include "pzquad.h"
 #include "pzeltype.h"
+#include "pzaxestools.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -213,7 +214,8 @@ namespace pztopology {
         static TPZTransform<> GetSideTransform(int side, int transformId);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        template <class TVar>
+        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
