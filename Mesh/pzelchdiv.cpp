@@ -1106,16 +1106,16 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 TPZFMatrix<REAL> VectorOnMaster;
                 TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
                 
-//                VectorOnXYZ(0,0) = data.fNormalVec(0,ivec);
-//                VectorOnXYZ(1,0) = data.fNormalVec(1,ivec);
-//                VectorOnXYZ(2,0) = data.fNormalVec(2,ivec);
-                
                 for (int k = 0; k < 3; k++) {
+                    if (data.fNeedsNormalVecFad) {
                     #ifdef _AUTODIFF
                         VectorOnXYZ(k,0) = data.fNormalVecFad(k,ivec).val();
                     #else
-                        VectorOnXYZ(k,0) = data.fNormalVec(k,ivec);
+                        DebugStop();
                     #endif
+                    }else{
+                        VectorOnXYZ(k,0) = data.fNormalVec(k,ivec);
+                    }
                 }
                 
                 GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
@@ -1152,12 +1152,18 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     for (int i=0; i<3; i++)
                     {
                         solval[i] = data.sol[is][i+dim*idf];
+                        
+                        if (data.fNeedsNormalVecFad) {
                         #ifdef _AUTODIFF
                             normal[i] = data.fNormalVecFad(i,ivec).val();
                         #else
-                            normal[i] = data.fNormalVec(i,ivec);
+                            DebugStop();
                         #endif
+                        }else{
+                            normal[i] = data.fNormalVec(i,ivec);
+                        }
                     }
+                    
                     for (int ilinha=0; ilinha<dim; ilinha++) {
                         data.sol[is][ilinha+dim*idf] = solval[ilinha]+ normal[ilinha]*phival*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
@@ -1365,8 +1371,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     int lastface = TSHAPE::NSides - 1;
     int cont = 0;
    
+    if(data.fNeedsNormalVecFad){
     #ifdef _AUTODIFF
-        
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVecFad,restrainedface);
         
         for(int side = firstface; side < lastface; side++)
@@ -1382,8 +1388,10 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             }
             cont += nvec;
         }
-    
     #else
+        DebugStop();
+    #endif
+    }else{
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
     
         for(int side = firstface; side < lastface; side++)
@@ -1399,8 +1407,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             }
             cont += nvec;
         }
+    }
     
-    #endif
     
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
@@ -1455,10 +1463,17 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         if (TSHAPE::Type() == EPiramide) {
             numvec++;
         }
-        data.fNormalVec.Resize(3, numvec);
+
+        if (data.fNeedsNormalVecFad) {
 #ifdef _AUTODIFF
-        data.fNormalVecFad.Resize(3, numvec);
+            data.fNormalVecFad.Resize(3, numvec);
+#else
+            DebugStop();
 #endif
+        }
+        data.fNormalVec.Resize(3, numvec);
+        
+
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
     }
     data.fShapeType = TPZMaterialData::EVecandShape;

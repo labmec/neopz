@@ -21,7 +21,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
-    this->fNeedsFad = false;
+    this->fNeedsNormalVecFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
@@ -50,7 +50,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
-    this->fNeedsFad = cp.fNeedsFad;
+    this->fNeedsNormalVecFad = cp.fNeedsNormalVecFad;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -370,11 +370,15 @@ void TPZMaterialData::ComputeFunctionDivergence()
             i_phi_s = fVecShapeIndex[iq].second;
 
             for (int k = 0; k < dim; k++) {
-                #ifdef _AUTODIFF
+                if (fNeedsNormalVecFad) {
+#ifdef _AUTODIFF
                     VectorOnXYZ(k,0) = fNormalVecFad(k,i_vec).val();
-                #else
+#else
+                    DebugStop();
+#endif
+                }else{
                     VectorOnXYZ(k,0) = fNormalVec(k,i_vec);
-                #endif
+                }
             }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
