@@ -500,6 +500,17 @@ TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp, gl2lc
 //}
 
 template<class TGeo>
+void TPZGeoElRefLess<TGeo>::DirectionsMaster(TPZFMatrix<REAL> &directions)
+{
+    TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.);
+    for (int i = 0; i < TGeo::Dimension; i++) {
+        gradx(i,i) = 1.;
+    }
+    TGeo::ComputeDirections(gradx, directions);
+}
+
+
+template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);

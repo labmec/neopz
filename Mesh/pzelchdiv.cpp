@@ -1371,6 +1371,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     int lastface = TSHAPE::NSides - 1;
     int cont = 0;
    
+    TPZIntelGen<TSHAPE>::Reference()->DirectionsMaster(data.fDirectionsOnMaster);
+   
     if(data.fNeedsNormalVecFad){
     #ifdef _AUTODIFF
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVecFad,restrainedface);
@@ -1463,6 +1465,8 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         if (TSHAPE::Type() == EPiramide) {
             numvec++;
         }
+
+        data.fDirectionsOnMaster.Resize(3, numvec);
 
         if (data.fNeedsNormalVecFad) {
 #ifdef _AUTODIFF

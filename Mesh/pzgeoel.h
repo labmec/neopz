@@ -76,6 +76,9 @@ public:
     /** Returns the directions of this geoel */
 //    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
     
+    /** Returns the directions of master element */
+    virtual void DirectionsMaster(TPZFMatrix<REAL> &directions) = 0;
+    
     /** Returns the directions of this geoel */
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
 

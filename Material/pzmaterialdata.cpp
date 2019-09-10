@@ -21,7 +21,6 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
-    this->fNeedsNormalVecFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
@@ -32,6 +31,7 @@ TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassI
     this->detjac = 0.;
     this->numberdualfunctions = 0;
     this->gelElId = -1;
+    this->fDirectionsOnMaster = 0;
 #ifdef _AUTODIFF
     this->fNormalVecFad = 0;
 #endif
@@ -70,6 +70,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->intGlobPtIndex = cp.intGlobPtIndex;
     this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
+    this->fDirectionsOnMaster = cp.fDirectionsOnMaster;
     this->fVecShapeIndex = cp.fVecShapeIndex;
     this->fNormalVec = cp.fNormalVec;
 #ifdef _AUTODIFF
@@ -180,6 +181,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
+    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
     out << "intLocPtIndex " << intLocPtIndex << std::endl;
     out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
@@ -210,6 +212,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
+    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
     out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
     out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;

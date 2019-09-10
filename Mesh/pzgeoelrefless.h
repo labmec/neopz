@@ -120,6 +120,8 @@ virtual int ClassId() const override;
 	//HDiv
     
 //    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
+
+    virtual void DirectionsMaster(TPZFMatrix<REAL> &directions) override;
     
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
     
