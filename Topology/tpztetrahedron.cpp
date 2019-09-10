@@ -241,7 +241,105 @@ namespace pztopology {
 //    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; //Pk Pk-1
 
     static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
-    
+
+    template<class T>
+    inline void TPZTetrahedron::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
+
+        phi(0,0)  = 1.0-qsi-eta-zeta;
+        phi(1,0)  = qsi;
+        phi(2,0)  = eta;
+        phi(3,0)  = zeta;
+
+        dphi(0,0) = -1.0;
+        dphi(1,0) = -1.0;
+        dphi(2,0) = -1.0;
+        dphi(0,1) =  1.0;
+        dphi(1,1) =  0.0;
+        dphi(2,1) =  0.0;
+        dphi(0,2) =  0.0;
+        dphi(1,2) =  1.0;
+        dphi(2,2) =  0.0;
+        dphi(0,3) =  0.0;
+        dphi(1,3) =  0.0;
+        dphi(2,3) =  1.0;
+
+    }
+    template<class T>
+    void TPZTetrahedron::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                             TPZVec<T> &corrFactorDxi) {
+
+        const REAL tol = pztopology::GetTolerance();
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if (side < NCornerNodes || side >= NSides) {
+            sout << "The side\t" << side << "is invalid. Aborting..." << std::endl;
+
+            PZError << std::endl << sout.str() << std::endl;
+            DebugStop();
+        }
+
+        if (!IsInParametricDomain(xi, tol)) {
+            sout << "The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
+            sout << " inside the parametric domain. Aborting...";
+            PZError << std::endl << sout.str() << std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        TPZFNMatrix<4, T> phi(NCornerNodes, 1);
+        TPZFNMatrix<8, T> dphi(Dimension, NCornerNodes);
+        TPZTetrahedron::TShape(xi, phi, dphi);
+        corrFactorDxi.Resize(TPZTetrahedron::Dimension, (T) 0);
+        blendFactor = 0;
+        for (int i = 0; i < TPZTetrahedron::NSideNodes(side); i++) {
+            const int currentNode = TPZTetrahedron::SideNodeLocId(side, i);
+            blendFactor += phi(currentNode, 0);
+            corrFactorDxi[0] += dphi(0, currentNode);
+            corrFactorDxi[1] += dphi(1, currentNode);
+            corrFactorDxi[2] += dphi(2, currentNode);
+        }
+        switch (side) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                blendFactor = 0;
+                return;
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+                corrFactorDxi[0] *= 2 * blendFactor;
+                corrFactorDxi[1] *= 2 * blendFactor;
+                corrFactorDxi[2] *= 2 * blendFactor;
+                blendFactor *= blendFactor;
+                return;
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+                corrFactorDxi[0] *= 3 * blendFactor * blendFactor;
+                corrFactorDxi[1] *= 3 * blendFactor * blendFactor;
+                corrFactorDxi[2] *= 3 * blendFactor * blendFactor;
+                blendFactor *= blendFactor * blendFactor;
+                return;
+            case 14:
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                blendFactor = 1;
+                return;
+        }
+    }
+
 	int TPZTetrahedron::NBilinearSides()
     {
         DebugStop();
@@ -1302,18 +1400,26 @@ namespace pztopology {
 
 }
 
-template
-void pztopology::TPZTetrahedron::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
 
+template bool pztopology::TPZTetrahedron::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZTetrahedron::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZTetrahedron::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZTetrahedron::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
-template
-void pztopology::TPZTetrahedron::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-#endif
 
-template
-bool pztopology::TPZTetrahedron::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template bool pztopology::TPZTetrahedron::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-#ifdef _AUTODIFF
-template
-bool pztopology::TPZTetrahedron::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZTetrahedron::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZTetrahedron::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZTetrahedron::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

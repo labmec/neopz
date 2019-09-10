@@ -327,7 +327,162 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,1,0,1,0,1,0,1,0,1,
         0,1,2};
-    
+
+    template<class T>
+    inline void TPZPrism::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
+
+        phi(0,0)  = .5*(1.-qsi-eta)*(1.-zeta);
+        phi(1,0)  = .5*qsi*(1.-zeta);
+        phi(2,0)  = .5*eta*(1.-zeta);
+        phi(3,0)  = .5*(1.-qsi-eta)*(1.+zeta);
+        phi(4,0)  = .5*qsi*(1.+zeta);
+        phi(5,0)  = .5*eta*(1.+zeta);
+
+        dphi(0,0) = -.5*(1.-zeta);
+        dphi(1,0) = -.5*(1.-zeta);
+        dphi(2,0) = -.5*(1.-qsi-eta);
+        dphi(0,1) =  .5*(1.-zeta);
+        dphi(1,1) =  .0;
+        dphi(2,1) = -.5*qsi;
+        dphi(0,2) =  .0;
+        dphi(1,2) =  .5*(1.-zeta);
+        dphi(2,2) = -.5*eta;
+        dphi(0,3) = -.5*(1.+zeta);
+        dphi(1,3) = -.5*(1.+zeta);
+        dphi(2,3) =  .5*(1.-qsi-eta);
+        dphi(0,4) =  .5*(1.+zeta);
+        dphi(1,4) =  .0;
+        dphi(2,4) =  .5*qsi;
+        dphi(0,5) =  .0;
+        dphi(1,5) =  .5*(1.+zeta);
+        dphi(2,5) =  .5*eta;
+
+    }
+
+    template<class T>
+    void TPZPrism::BlendFactorForSide(const int &side, const TPZVec<T> &xiVec, T &blendFactor,
+                                        TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::GetTolerance();
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(xiVec,tol)){
+            sout<<"The method BlendFactorForSide expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        corrFactorDxi.Resize(TPZPrism::Dimension, (T) 0);
+        const T &xi = xiVec[0];
+        const T &eta = xiVec[1];
+        const T &zeta = xiVec[2];
+        switch(side){
+            case  0:
+            case  1:
+            case  2:
+            case  3:
+            case  4:
+            case  5:
+                blendFactor = 0;
+                return;
+            case  6:
+                blendFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1.*(1 - eta)*(1 - zeta);
+                corrFactorDxi[2] = -0.5*((1 - eta)*(1 - eta));
+                return;
+            case  7:
+                blendFactor = 0.5*(1.-zeta)*(xi+eta)*(xi+eta);
+                corrFactorDxi[0] =1.*(eta + xi)*(1 - zeta);
+                corrFactorDxi[1] =1.*(eta + xi)*(1 - zeta);
+                corrFactorDxi[2] =-0.5*((eta + xi)*(eta + xi));
+                return;
+            case  8:
+                blendFactor = 0.5*(1.-zeta)*(1.-xi)*(1.-xi);
+                corrFactorDxi[0] =-1.*(1 - xi)*(1 - zeta);
+                corrFactorDxi[1] =0;
+                corrFactorDxi[2] =-0.5*((1 - xi)*(1 - xi));
+                return;
+            case  9:
+                blendFactor = 1. - xi - eta;
+                corrFactorDxi[0] = -1;
+                corrFactorDxi[1] = -1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 10:
+                blendFactor = xi;
+                corrFactorDxi[0] = 1;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                return;
+            case 11:
+                blendFactor = eta;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 12:
+                blendFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1.*(1 - eta)*(1 + zeta);
+                corrFactorDxi[2] = 0.5*((1 - eta)*(1 - eta));
+                return;
+            case 13:
+                blendFactor = 0.5*(1.+zeta)*(xi+eta)*(xi+eta);
+                corrFactorDxi[0] = 1.*(eta + xi)*(1 + zeta);
+                corrFactorDxi[1] = 1.*(eta + xi)*(1 + zeta);
+                corrFactorDxi[2] = 0.5*((eta + xi)*(eta + xi));
+                return;
+            case 14:
+                blendFactor = 0.5*(1.+zeta)*(1.-xi)*(1.-xi);
+                corrFactorDxi[0] = -1.*(1 - xi)*(1 + zeta);
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0.5*((1 - xi)*(1 - xi));
+                return;
+            case 15:
+                blendFactor = 0.5*(1.-zeta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = -0.5;
+                return;
+            case 16:
+                blendFactor = 1.-eta;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 17:
+                blendFactor = xi+eta;
+                corrFactorDxi[0] = 1;
+                corrFactorDxi[1] = 1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 18:
+                blendFactor = 1.-xi;
+                corrFactorDxi[0] = -1;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                return;
+            case 19:
+                blendFactor = 0.5*(1.+zeta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0.5;
+                return;
+        }
+    }
+
     int TPZPrism:: NBilinearSides()
     {
         DebugStop();
@@ -1546,18 +1701,26 @@ namespace pztopology {
 
 }
 
-template
-void pztopology::TPZPrism::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
 
+template bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZPrism::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
-template
-void pztopology::TPZPrism::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-#endif
 
-template
-bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
-#ifdef _AUTODIFF
-template
-bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZPrism::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZPrism::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

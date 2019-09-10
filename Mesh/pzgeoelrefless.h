@@ -125,7 +125,7 @@ virtual int ClassId() const override;
     
 
 #ifdef _AUTODIFF
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int ConstrainedFace = -1);
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int ConstrainedFace = -1) override;
 #endif
     
 	//virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;

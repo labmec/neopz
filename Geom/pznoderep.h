@@ -41,17 +41,6 @@ namespace pzgeom {
     {
         
     public:
-        
-        template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsiInterior, T &sideInfluence,
-                TPZVec<T> &correctionFactorDxi){
-            std::ostringstream sout;
-            sout<<"The method CalcSideInfluence is not implemented for the desired element type."<<std::endl;
-            sout<<"The method is used in TPZGeoBlend elements. Check their usage. Aborting..."<<std::endl;
-
-            PZError<<sout.str()<<std::endl;
-            DebugStop();
-        }
 
         virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) {
             std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";

@@ -71,11 +71,6 @@ namespace pzgeom
         /** @brief Returns the type name of the element */
         static std::string TypeName() { return "Linear";}
         
-        /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
-        
         /* @brief Compute X mapping from local parametric coordinates */
 //        template<class T>
 //        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
@@ -101,10 +96,7 @@ namespace pzgeom
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-        
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        template<class T>
-        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+
         
         /** @brief Compute the jacoabina associated to the x mapping from local parametric coordinates  */
         static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
@@ -139,15 +131,7 @@ namespace pzgeom
                                           int64_t& index);
         
     };
-    
-    template<class T>
-    inline void TPZGeoLinear::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
-        T x = loc[0];
-        phi(0,0) = (1.0-x)/2.;
-        phi(1,0) = (1.0+x)/2.;
-        dphi(0,0) = -0.5;
-        dphi(0,1) = 0.5;
-    }
+
     
     template<class T>
     inline void TPZGeoLinear::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
