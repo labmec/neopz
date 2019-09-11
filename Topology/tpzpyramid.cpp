@@ -522,13 +522,13 @@ namespace pztopology {
 				int dfr = sidedimension[sidefrom];
 				int dto = sidedimension[sideto];
 				TPZTransform<> trans(dto,dfr);
-				int i,j;
-				for(i=0; i<dto; i++) {
-					for(j=0; j<dfr; j++) {
-						trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
-					}
-					trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
-				}
+                int i,j;
+                for(i=0; i<dto; i++) {
+                    for(j=0; j<dfr; j++) {
+                        trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
+                    }
+                    trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
+                }
 				return trans;
 			}
 		}
@@ -544,120 +544,178 @@ namespace pztopology {
 			return TPZTransform<>(0,0);
 		}
 		
-		TPZTransform<> t(sidedimension[side],3);
-		t.Mult().Zero();
-		t.Sum().Zero();
-		
-		switch(side){
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-				return t;
-                
-
-
-
-			case 5:
-				t.Mult()(0,0) = 1.0;
-				return t;
-			case 6:
-				t.Mult()(0,1) = 1.0;
-				return t;
-			case 7:
-               
-				t.Mult()(0,0) = -1.0;
-				return t;
-			case 8:
-				t.Mult()(0,1) = -1.0;
-				return t;
-			case 9:
-                
-                t.Mult()(0,0) = 0.5;
-                t.Mult()(0,1) = 0.5;
-                t.Mult()(0,2) = 1.0;
+        TPZTransform<> t(sidedimension[side],3);
+        t.Mult().Zero();
+        t.Sum().Zero();
+        
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                return t;
+            case 5:
+                t.Mult()(0,0) = 1.0;
+                return t;
+            case 6:
+                t.Mult()(0,1) = 1.0;
+                return t;
+            case 7:
+                t.Mult()(0,0) = -1.0;
+                return t;
+            case 8:
+                t.Mult()(0,1) = -1.0;
+                return t;
+            case 9:
+            case 12:
+                t.Mult()(0,0) = 2.0;
+                t.Sum()(0,0)  = 1.0;
                 return t;
             case 10:
-                
-                t.Mult()(0,0) = -0.5;
-                t.Mult()(0,1) = 0.5;
-                t.Mult()(0,2) = 1.0;
-                
-                return t;
             case 11:
-                
-                t.Mult()(0,0) = -0.5;
-                t.Mult()(0,1) = -0.5;
-                t.Mult()(0,2) = 1.0;
-                
+                t.Mult()(0,0) = -2.0;
+                t.Sum()(0,0)  =  1.0;
                 return t;
-                
-			case 12:
-                t.Mult()(0,0) = 0.5;
-                t.Mult()(0,1) = -0.5;
-                t.Mult()(0,2) = 1.0;
-				return t;
-                
-                
-                
-
-			case 13:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				return t;
-			case 14:
-                
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(0,1) = -0.5;
-				t.Mult()(0,2) = -0.5;
-                
-                t.Mult()(1,1) = 1.0;
-                t.Mult()(1,2) = 1.0;
-                
-                t.Sum()(0,0) = -0.5;
-				return t;
-			case 15:
-                
-                t.Mult()(0,0) =  0.5;
-                t.Mult()(0,1) = 1.0;
-                t.Mult()(0,2) = -0.5;
-                
-                t.Mult()(1,0) = -1.0;
-                t.Mult()(1,2) = 1.0;
-                
-                t.Sum()(0,0) = -0.5;
-                return t;
-                
-			case 16:
-                
+            case 13:
                 t.Mult()(0,0) =  1.0;
-                t.Mult()(0,1) = 0.5;
-                t.Mult()(0,2) = -0.5;
-                
-                t.Mult()(1,1) = -1.0;
-                t.Mult()(1,2) = 1.0;
-                
-                t.Sum()(0,0) = -0.5;
-				return t;
-			case 17:
-                
-                t.Mult()(0,0) =  -0.5;
-                t.Mult()(0,1) = 1.0;
-                t.Mult()(0,2) = -0.5;
-                
-                t.Mult()(1,0) = 1.0;
-                t.Mult()(1,2) = 1.0;
-                
-                t.Sum()(0,0) = -0.5;
-				return t;
-			case 18:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				t.Mult()(2,2) =  1.0;
-				return t;
-		}
-		return TPZTransform<>(0,0);
+                t.Mult()(1,1) =  1.0;
+                return t;
+            case 14:
+                t.Mult()(0,0) =  0.5;
+                t.Mult()(0,1) = -0.5;
+                t.Mult()(1,2) =  1.0;
+                return t;
+            case 15:
+            case 16:/** CONTEM ERRO AQUI */
+                t.Mult()(0,0) =  0.5;
+                t.Mult()(0,1) =  0.5;
+                t.Mult()(1,2) =  1.0;
+                return t;
+            case 17:
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(0,1) =  0.5;
+                t.Mult()(1,2) =  1.0;
+                return t;
+            case 18:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                t.Mult()(2,2) =  1.0;
+                return t;
+        }
+        return TPZTransform<>(0,0);
+
+		
+//        switch(side){
+//            case 0:
+//            case 1:
+//            case 2:
+//            case 3:
+//            case 4:
+//                return t;
+//
+//
+//
+//
+//            case 5:
+//                t.Mult()(0,0) = 1.0;
+//                return t;
+//            case 6:
+//                t.Mult()(0,1) = 1.0;
+//                return t;
+//            case 7:
+//
+//                t.Mult()(0,0) = -1.0;
+//                return t;
+//            case 8:
+//                t.Mult()(0,1) = -1.0;
+//                return t;
+//            case 9:
+//
+//                t.Mult()(0,0) = 0.5;
+//                t.Mult()(0,1) = 0.5;
+//                t.Mult()(0,2) = 1.0;
+//                return t;
+//            case 10:
+//
+//                t.Mult()(0,0) = -0.5;
+//                t.Mult()(0,1) = 0.5;
+//                t.Mult()(0,2) = 1.0;
+//
+//                return t;
+//            case 11:
+//
+//                t.Mult()(0,0) = -0.5;
+//                t.Mult()(0,1) = -0.5;
+//                t.Mult()(0,2) = 1.0;
+//
+//                return t;
+//
+//            case 12:
+//                t.Mult()(0,0) = 0.5;
+//                t.Mult()(0,1) = -0.5;
+//                t.Mult()(0,2) = 1.0;
+//                return t;
+//
+//
+//
+//
+//            case 13:
+//                t.Mult()(0,0) =  1.0;
+//                t.Mult()(1,1) =  1.0;
+//                return t;
+//            case 14:
+//
+//                t.Mult()(0,0) =  1.0;
+//                t.Mult()(0,1) = -0.5;
+//                t.Mult()(0,2) = -0.5;
+//
+//                t.Mult()(1,1) = 1.0;
+//                t.Mult()(1,2) = 1.0;
+//
+//                t.Sum()(0,0) = -0.5;
+//                return t;
+//            case 15:
+//
+//                t.Mult()(0,0) =  0.5;
+//                t.Mult()(0,1) = 1.0;
+//                t.Mult()(0,2) = -0.5;
+//
+//                t.Mult()(1,0) = -1.0;
+//                t.Mult()(1,2) = 1.0;
+//
+//                t.Sum()(0,0) = -0.5;
+//                return t;
+//
+//            case 16:
+//
+//                t.Mult()(0,0) =  1.0;
+//                t.Mult()(0,1) = 0.5;
+//                t.Mult()(0,2) = -0.5;
+//
+//                t.Mult()(1,1) = -1.0;
+//                t.Mult()(1,2) = 1.0;
+//
+//                t.Sum()(0,0) = -0.5;
+//                return t;
+//            case 17:
+//
+//                t.Mult()(0,0) =  -0.5;
+//                t.Mult()(0,1) = 1.0;
+//                t.Mult()(0,2) = -0.5;
+//
+//                t.Mult()(1,0) = 1.0;
+//                t.Mult()(1,2) = 1.0;
+//
+//                t.Sum()(0,0) = -0.5;
+//                return t;
+//            case 18:
+//                t.Mult()(0,0) =  1.0;
+//                t.Mult()(1,1) =  1.0;
+//                t.Mult()(2,2) =  1.0;
+//                return t;
+//        }
+//        return TPZTransform<>(0,0);
 	}
 	
 	TPZTransform<> TPZPyramid::TransformSideToElement(int side){

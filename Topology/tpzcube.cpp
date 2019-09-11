@@ -559,12 +559,12 @@ namespace pztopology {
 				int dto = sidedimension[sideto];
 				TPZTransform<> trans(dto,dfr);
 				int i,j;
-				for(i=0; i<dto; i++) {
-					for(j=0; j<dfr; j++) {
-						trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
-					}
-					trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
-				}
+                for(i=0; i<dto; i++) {
+                    for(j=0; j<dfr; j++) {
+                    //    trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
+                    }
+                    trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
+                }
 				return trans;
 			}
 		}

@@ -1188,8 +1188,9 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
                 
 #ifdef PZDEBUG
                 std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                sout << "Singular Jacobian, 1 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
@@ -1255,8 +1256,9 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
                 
 #ifdef PZDEBUG
                 std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                sout << "Singular Jacobian, 2 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
@@ -1294,8 +1296,9 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
                 
 #ifdef PZDEBUG
                 std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                sout << "Singular Jacobian, 3 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
@@ -1364,8 +1367,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 4 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1393,8 +1397,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 5 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1421,8 +1426,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 6 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1467,8 +1473,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 7 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1504,8 +1511,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 8 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1541,8 +1549,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 9 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1588,8 +1597,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                 
 #ifdef PZDEBUG
                 std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                sout << "Singular Jacobian, 10 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
