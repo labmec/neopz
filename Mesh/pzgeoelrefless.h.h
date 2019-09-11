@@ -631,7 +631,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 {
 	int dimension = TGeo::Dimension;
 	int sidedimension = TGeo::SideDimension(side);
-	
+
 	if(dimension != sidedimension+1)
 	{
 		std::stringstream sout;

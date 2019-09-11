@@ -1089,51 +1089,23 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             ishape  = data.fVecShapeIndex[jv].second;
             
             {
-                
-                // Using Contravariant Piola mapping preserves the divergence
-                
-                TPZFMatrix<REAL> GradOfX;
-                TPZFMatrix<REAL> GradOfXInverse;
-                TPZFMatrix<REAL> Qaxes = data.axes;
-                TPZFMatrix<REAL> QaxesT;
-                TPZFMatrix<REAL> Jacobian = data.jacobian;
-                TPZFMatrix<REAL> JacobianInverse = data.jacinv;
-                
-                Qaxes.Transpose(&QaxesT);
-                QaxesT.Multiply(data.jacobian, GradOfX);
-                JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-                
-                TPZFMatrix<REAL> VectorOnMaster;
-                TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
-                
-                for (int k = 0; k < 3; k++) {
-                    if (data.fNeedsNormalVecFad) {
-                    #ifdef _AUTODIFF
-                        VectorOnXYZ(k,0) = data.fNormalVecFad(k,ivec).val();
-                    #else
-                        DebugStop();
-                    #endif
-                    }else{
-                        VectorOnXYZ(k,0) = data.fNormalVec(k,ivec);
-                    }
-                }
-                
-                GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-                VectorOnMaster *= data.detjac;
+
                 
                 TPZFNMatrix<3> GradofPhi(dim,1);
                 GradofPhi.Zero();
                 
                 //  Compute grad_{hat}(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: On Master element a constant vector basis is defined.
                 
-                for (int ir = 0; ir < VectorOnMaster.Rows(); ir++) {
+                int n_dir = data.dphi.Rows();
+                
+                for (int ir = 0; ir < n_dir; ir++) {
                     
                     //  Compute grad_{hat}(PhiH1)
                     GradofPhi(ir,0) = data.dphi(ir,ishape);
                     
-                    GradOfPhiHdiv(ir,0) = VectorOnMaster(ir,0)*GradofPhi(0,0);
-                    GradOfPhiHdiv(ir,1) = VectorOnMaster(ir,0)*GradofPhi(1,0);
-                    GradOfPhiHdiv(ir,2) = VectorOnMaster(ir,0)*GradofPhi(2,0);
+                    GradOfPhiHdiv(ir,0) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(0,0);
+                    GradOfPhiHdiv(ir,1) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(1,0);
+                    GradOfPhiHdiv(ir,2) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(2,0);
                     
                 }
                 
@@ -1372,10 +1344,25 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     int cont = 0;
    
     TPZIntelGen<TSHAPE>::Reference()->DirectionsMaster(data.fDirectionsOnMaster);
-   
+
+    for(int side = firstface; side < lastface; side++)
+    {
+        int nvec = TSHAPE::NContainedSides(side);
+        for (int ivet = 0; ivet<nvec; ivet++)
+        {
+            for (int il = 0; il<3; il++)
+            {
+                data.fDirectionsOnMaster(il,ivet+cont) *= fSideOrient[side-firstface];
+            }
+
+        }
+        cont += nvec;
+    }
+    
     if(data.fNeedsNormalVecFad){
     #ifdef _AUTODIFF
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVecFad,restrainedface);
+        cont = 0;
         
         for(int side = firstface; side < lastface; side++)
         {
@@ -1395,6 +1382,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     #endif
     }else{
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
+        cont = 0;
     
         for(int side = firstface; side < lastface; side++)
         {
@@ -1410,7 +1398,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             cont += nvec;
         }
     }
-    
     
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
@@ -1468,13 +1455,10 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
         data.fDirectionsOnMaster.Resize(3, numvec);
 
-        if (data.fNeedsNormalVecFad) {
 #ifdef _AUTODIFF
             data.fNormalVecFad.Resize(3, numvec);
-#else
-            DebugStop();
 #endif
-        }
+
         data.fNormalVec.Resize(3, numvec);
         
 
