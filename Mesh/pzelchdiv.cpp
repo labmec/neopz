@@ -1089,6 +1089,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             ishape  = data.fVecShapeIndex[jv].second;
             
             {
+
                 
                 TPZFNMatrix<3> GradofPhi(dim,1);
                 GradofPhi.Zero();
@@ -1454,13 +1455,10 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
         data.fDirectionsOnMaster.Resize(3, numvec);
 
-        if (data.fNeedsNormalVecFad) {
 #ifdef _AUTODIFF
             data.fNormalVecFad.Resize(3, numvec);
-#else
-            DebugStop();
 #endif
-        }
+
         data.fNormalVec.Resize(3, numvec);
         
 

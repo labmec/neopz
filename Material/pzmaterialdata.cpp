@@ -21,6 +21,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
+    this->fNeedsNormalVecFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
