@@ -38,28 +38,39 @@ namespace pztopology {
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
     const REAL tol = pztopology::GetTolerance();
+        blendFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
             sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
-            PZError<<std::endl<<sout.str()<<std::endl;
-            DebugStop();
         }
 
         if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
             sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
+        }
+
+        if(!CheckProjectionForSingularity(side,xi)){
+            sout<<"The projection of xi "<<xi[0]<<" "<<xi[1]<<" to side "<<side<<" is singular."<<std::endl;
+            sout<<"This should have been caught by MapToSide method. Aborting..."<<std::endl;
+        }
+        if(!sout.str().empty()){
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
+#ifdef LOG4CXX
             LOGPZ_FATAL(logger,sout.str().c_str());
-            #endif
+#endif
             DebugStop();
         }
 #endif
+        //if the point is singular, the blend factor and its derivatives should be zero
+        if(!CheckProjectionForSingularity(side,xi)){
+            blendFactor = 0;
+            for(int i = 0; i < blendFactorDxi.size(); i++) blendFactorDxi[i] = 0;
+        }
+
         TPZFNMatrix<4,T> phi(NCornerNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
         TPZTriangle::TShape(xi,phi,dphi);
-        blendFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
         int i = -1;
         switch(side){
             case 0:
