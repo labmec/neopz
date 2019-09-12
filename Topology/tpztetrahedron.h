@@ -138,6 +138,7 @@ namespace pztopology {
          * i.e., if the interior point in the parametric domain is not too close to the projection's singularity.
          * @param side the index of the side upon which the interior point will be projected upon
          * @param xiInterior coordinates of the interior point
+         * @return true if the interior point is far from the singularity
          */
         template<class T>
         static bool CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior);

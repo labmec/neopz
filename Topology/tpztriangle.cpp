@@ -37,7 +37,7 @@ namespace pztopology {
     template<class T>
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
-    const REAL tol = pztopology::GetTolerance();
+        const REAL tol = pztopology::GetTolerance();
         blendFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
 #ifdef PZDEBUG
         std::ostringstream sout;
@@ -231,7 +231,7 @@ namespace pztopology {
     template<class T>
     bool TPZTriangle::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
 
-        double zero = pztopology::gTolerance;
+        double zero = pztopology::GetTolerance();
         T qsi = xiInterior[0]; T eta = xiInterior[1];
 
         switch(side)

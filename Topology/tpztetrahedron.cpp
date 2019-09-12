@@ -811,7 +811,7 @@ namespace pztopology {
     template<class T>
     bool TPZTetrahedron::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
 
-        T zero = pztopology::gTolerance;
+        T zero = pztopology::GetTolerance();
 
         T qsi = xiInterior[0], eta = xiInterior[1], zeta = xiInterior[2];
         bool regularmap = true;
@@ -872,8 +872,6 @@ namespace pztopology {
 
     template<class T>
     bool TPZTetrahedron::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
-
-		T zero = pztopology::gTolerance;
 		
 		T qsi = InternalPar[0], eta = InternalPar[1], zeta = InternalPar[2];
         if(!CheckProjectionForSingularity(side,InternalPar)) return false;
