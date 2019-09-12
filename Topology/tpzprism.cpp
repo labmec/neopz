@@ -389,6 +389,7 @@ namespace pztopology {
         if(!CheckProjectionForSingularity(side,xiVec)){
             blendFactor = 0;
             for(int i = 0; i < blendFactorDxi.size(); i++) blendFactorDxi[i] = 0;
+            return;
         }
         blendFactorDxi.Resize(TPZPrism::Dimension, (T) 0);
         const T &xi = xiVec[0];

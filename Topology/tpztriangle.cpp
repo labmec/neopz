@@ -66,6 +66,7 @@ namespace pztopology {
         if(!CheckProjectionForSingularity(side,xi)){
             blendFactor = 0;
             for(int i = 0; i < blendFactorDxi.size(); i++) blendFactorDxi[i] = 0;
+            return;
         }
 
         TPZFNMatrix<4,T> phi(NCornerNodes,1);
