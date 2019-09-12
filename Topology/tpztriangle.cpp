@@ -1147,7 +1147,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
  * in BOTH cases.    @orlandini
  **********************************************************************************************************************/
 
-template bool pztopology::TPZTriangle::CheckProjectionForSingularity<REAL>(int side, TPZVec<REAL> &xiInterior);
+template bool pztopology::TPZTriangle::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
 template bool pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
@@ -1158,7 +1158,7 @@ template void pztopology::TPZTriangle::TShape<REAL>(const TPZVec<REAL> &loc,TPZF
 template void pztopology::TPZTriangle::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
-template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &xiInterior);
+template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
 
 template bool pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
