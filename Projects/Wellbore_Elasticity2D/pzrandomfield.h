@@ -34,14 +34,19 @@ class TPZRandomField : public TPZFunction<TVar>
     int fstochasticInclined;
     REAL fdirection;
     REAL finclination;
-    REAL frw; // raio do poco
-    REAL frext; // raio externo da malha
-    REAL fH; // altura total do cilindro em metros
-    REAL fh; // altura de cada cubo (elemento) em metros (10%)
-    TPZGeoMesh* fgmesh;
-    TPZFMatrix<TVar> fK;
-    TPZFMatrix<TVar> fRand_U;
-    TPZFMatrix<TVar> fU;
+    REAL frw; // wellbore radius
+    REAL frext; // external radius
+    REAL fH; // cylinder total height
+    REAL fh; // elements height (square elements for now)
+    TPZGeoMesh* fgmesh; //geometric mesh
+    TPZFMatrix<TVar> fK; // correlation matrix
+    TPZFMatrix<TVar> fRand_U; //random distribution
+    TPZFMatrix<TVar> fU; // random correlated* distribution
+    TPZFMatrix<TVar> fM; //Decomposed matrix from Mathematica
+    bool fexponential; //exponential function
+    bool fspheric; //spheric function
+    bool fnormDistribution; // normal distribution
+    bool flognormDistribution; // lognormal distribution
     
 public:
 	
@@ -59,6 +64,8 @@ public:
         fstochasticInclined = stochasticInclined;
         fdirection = direction;
         finclination = inclination;
+        fnormDistribution = true;
+        flognormDistribution = false;
         
         frw = rw;
         frext = rext;
@@ -66,85 +73,121 @@ public:
         fH = 2 * frext; // altura total do cilindro em metros
         fh = fH / nLayers; // altura de cada cubo (elemento) em metros 
         fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
+        fM = M;
         
         
-        if (fstochasticInclined == 1) {
+        if (stochasticInclined == 1) {
             
-//            fK = calcCorrelationMatrixInclined();       // Correlation matrix K
-//            
-//            std::cout << "Print KCorr for Mathematica" << std::endl;
-//            PrintCorrelation();                 // Exporta KCoor .txt
+            int nLayers = 8;
+            fH = 2 * frext; // altura total do cilindro em metros
+            fh = fH / nLayers; // altura de cada cubo (elemento) em metros
+            fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
             
-            std::cout << "Create array" << std::endl;
-            // Random Vector U - Normal Distribution
-            TPZFMatrix<TVar> Rand_U (fmatsize, 1, 0.);
-            //std::default_random_engine generator;
+            fK = calcCorrelationMatrixInclined();  // Correlation matrix K
             
-            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-            std::default_random_engine generator (seed);
+            PrintCorrelation();                    // Exporta KCoor .txt
             
-            std::normal_distribution<double> distribution(0.,1.0);
+            // Create function to decompose fK using SVD decomposition
             
-            std::cout << "Randomic array" << std::endl;
-            for (int i = 0; i < fmatsize; i++) {
-                Rand_U(i,0) = distribution(generator);
-                distribution.reset();
-            }
-            
-            fRand_U = Rand_U;
+            GetDistribution(fmatsize);             // Get random distribution
             
             // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            std::cout << "Calculate Young Modulus Stochastic Field" << std::endl;
-            fU = M * fRand_U; // Obtem valores correlacionados
-            
+            fU = fM * fRand_U; // Get correlated random distribution
+            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
         }
-        
         else{
             
             fK = calcCorrelationMatrix();       // Correlation matrix K
             
             PrintCorrelation();                 // Exporta KCoor .txt
             
-            // Random Vector U - Normal Distribution
-            TPZFMatrix<TVar> Rand_U (fnSquareElements, 1, 0.);
-            //std::default_random_engine generator;
+            // Create function to decompose fK using SVD decomposition
             
-            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-            std::default_random_engine generator (seed);
-            
-            std::normal_distribution<double> distribution(0.,1.0);
-            
-            for (int i = 0; i < fnSquareElements; i++) {
-                Rand_U(i,0) = distribution(generator);
-                distribution.reset();
-            }
-            
-            fRand_U = Rand_U;
+            GetDistribution(fnSquareElements);  // Get random distribution
             
             // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            fU = M * fRand_U; // Obtem valores correlacionados
-            
-            
+            fU = fM * fRand_U; // Get correlated random distribution
+            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
         }
         
-        
-         /* // Exporta vetor randomico para validar no mathematica
-         std::ofstream out_VecRand_U("Rand_U.txt");
-         fRand_U.Print("ERand = ", out_VecRand_U, EMathematicaInput);
-         
-          //Exporta vetor correlacionado para validar no mathematica
-         std::ofstream out_M("/Users/batalha/Desktop/M.txt");
-         M.Print("M = ", out_M, EMathematicaInput);
-         
-         // Exporta vetor correlacionado para validar no mathematica
-         std::ofstream out_VecUCorr("/Users/batalha/Desktop/fUCorr.txt");
-         fU.Print("ECorr = ", out_VecUCorr, EMathematicaInput);
-         */
-        
-        
     }
-	
-	/** @brief Class destructor */
+    
+    
+    virtual void EvaluateCorrelation(int stochasticInclined)
+    {
+        if (stochasticInclined == 1) {
+            
+            int nLayers = 8;
+            fH = 2 * frext; // altura total do cilindro em metros
+            fh = fH / nLayers; // altura de cada cubo (elemento) em metros
+            fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
+            
+            fK = calcCorrelationMatrixInclined();  // Correlation matrix K
+            
+            PrintCorrelation();                    // Exporta KCoor .txt
+            
+            // Create function to decompose fK using SVD decomposition
+            
+            GetDistribution(fmatsize);             // Get random distribution
+            
+            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
+            fU = fM * fRand_U; // Get correlated random distribution
+            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
+        }
+        else{
+            
+            fK = calcCorrelationMatrix();       // Correlation matrix K
+            
+            PrintCorrelation();                 // Exporta KCoor .txt
+            
+            // Create function to decompose fK using SVD decomposition
+            
+            GetDistribution(fnSquareElements);  // Get random distribution
+            
+            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
+            fU = fM * fRand_U; // Get correlated random distribution
+            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
+        }
+    }
+    
+    TPZFMatrix<TVar> GetDistribution(int matrixSize)
+    {
+        //if(fnormDistribution==true) {
+        
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::default_random_engine generator (seed);
+        std::normal_distribution<double> distribution(0.,1.0);
+        
+        // Random Vector U
+        TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+        
+        for (int i = 0; i < matrixSize; i++) {
+            Rand_U(i,0) = distribution(generator);
+            distribution.reset();
+            fRand_U = Rand_U;
+        }
+        //}
+        
+//        else if(flognormDistribution==true){
+//
+//            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+//            std::default_random_engine generator (seed);
+//            std::lognormal_distribution<double> distribution(0.,1.0);
+//
+//            // Random Vector U
+//            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+//
+//            for (int i = 0; i < matrixSize; i++) {
+//                Rand_U(i,0) = distribution(generator);
+//                distribution.reset();
+//                fRand_U = Rand_U;
+//            }
+//        }
+        return fRand_U;
+    }
+    
+    
+ 	/** @brief Class destructor */
 	virtual ~TPZRandomField()
     {
         
@@ -287,6 +330,7 @@ public:
         fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
     }
     
+    
     // Calcula Correlation Matrix
     TPZFMatrix<REAL> calcCorrelationMatrix() {
         
@@ -339,7 +383,14 @@ public:
                     
                     REAL r = CenterNorm(i,j);
                     REAL r2 = pow(r, 2);
+                    
+                    // if (fexponetial==true){
                     KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
+                    //}
+                    
+                    //else if (fspherical==true){
+                    //insert function
+                    //}
                 }
                 
                 else {
@@ -351,7 +402,7 @@ public:
         return KCorr;
     }
     
-
+    
     // Calcula Correlation Matrix para Poços Inclinados
     TPZFMatrix<REAL> calcCorrelationMatrixInclined() {
         
@@ -468,19 +519,22 @@ public:
                 
                 REAL r = CenterNorm(i,j);
                 REAL r2 = pow(r, 2);
+                
+                // if (fexponetial==true){
                 KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
+                //}
+                
+                //else if (fspherical==true){
+                //insert function
+                //}
             }
-            
-//            std::cout << "Distancia entre elements centroids do elemento " << i << " calculada!"
-//            << std::endl;
-            
         }
         
-        std::cout << "Numero colunas: " << KCorr.Cols() << std::endl;
-        std::cout << "Numero linhas: " << KCorr.Rows() << std::endl;
-        std::cout << "Penultimo valor " << KCorr(fmatsize-1,fmatsize-2) << std::endl;
-        std::cout << "Ultimo valor " << KCorr(fmatsize-1,fmatsize-1) << std::endl;
-       
+        //        std::cout << "Numero colunas: " << KCorr.Cols() << std::endl;
+        //        std::cout << "Numero linhas: " << KCorr.Rows() << std::endl;
+        //        std::cout << "Penultimo valor " << KCorr(fmatsize-1,fmatsize-2) << std::endl;
+        //        std::cout << "Ultimo valor " << KCorr(fmatsize-1,fmatsize-1) << std::endl;
+        
         return KCorr;
     }
 
