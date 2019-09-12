@@ -177,33 +177,6 @@ int main(int argc, char *argv[])
         std::ofstream out_VecSigH_("Sig_H_.txt");
         Sig_H.Print("Sig_H = ", out_VecSigH_, EMathematicaInput);
         
-        //
-        //    // In-Situ Stresses varying
-        //    for(int i=0; i < ncases; i++){
-        //
-        //        std::cout << "SigV= " << Sig_V(i) << std::endl;
-        //        std::cout << "Sigh= " << Sig_h(i) << std::endl;
-        //        std::cout << "SigH= " << Sig_H(i) << std::endl;
-        //
-        //        TPZFMatrix<REAL> Sig_h_Sim (ncases, 1, 0.);
-        //        TPZFMatrix<REAL> Sig_H_Sim (ncases, 1, 0.);
-        //
-        //
-        //        if (fabs(Sig_h(i)) > fabs(Sig_H(i))) {
-        //            Sig_h_Sim(i) = Sig_H(i);
-        //            Sig_H_Sim(i) = Sig_h(i);
-        //        }
-        //
-        //        else{
-        //
-        //            Sig_h_Sim(i) = Sig_h(i);
-        //            Sig_H_Sim(i) = Sig_H(i);
-        //        }
-        //
-        //        std::cout << "SigV= " << Sig_V(i) << std::endl;
-        //        std::cout << "Sigh= " << Sig_h_Sim(i) << std::endl;
-        //        std::cout << "SigH= " << Sig_H_Sim(i) << std::endl;
-        
         
         // Stpchastic cases and In-Situ Stresses varying
         for(int i=0; i < ncases; i++){
