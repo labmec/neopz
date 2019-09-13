@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
     REAL drdcirc = 0.5;
     
     // Define Posicao do Poco
-    REAL direction   = 30.;//30.; // Azimuth em graus
-    REAL inclination = 45.;//45.; // Polar Inclination em graus / wellbore inclination
+    REAL direction   = 0.;//30.; // Azimuth em graus
+    REAL inclination = 0.;//45.; // Polar Inclination em graus / wellbore inclination
     
     // Tensoes in Situ, horizontais e vertical em MPa
     REAL SigmaV = -48.2; //-48.053;  // tensao vertical

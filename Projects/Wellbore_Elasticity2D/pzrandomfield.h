@@ -44,7 +44,7 @@ class TPZRandomField : public TPZFunction<TVar>
     TPZFMatrix<TVar> fU; // random correlated* distribution
     TPZFMatrix<TVar> fM; //Decomposed matrix from Mathematica
     bool fexponential; //exponential function
-    bool fspheric; //spheric function
+    bool fspherical; //spheric function
     bool fnormDistribution; // normal distribution
     bool flognormDistribution; // lognormal distribution
     
@@ -59,11 +59,16 @@ public:
         fFunc3 = 0;
         fFunc4 = 0;
         
+        //This should be given by the user
         fgmesh = geometricMesh;
+        
+        //Any way to get this information from the geometric mesh?
         fnSquareElements = numSquareElems;  // number of Square Elements
         fstochasticInclined = stochasticInclined;
         fdirection = direction;
         finclination = inclination;
+        
+        // This should be defined by the user
         fnormDistribution = true;
         flognormDistribution = false;
         
@@ -72,11 +77,20 @@ public:
         frext = rext;
         fM = M;
         
-        CalculateStochasticField(); //This should be called by the object
+        // this should be given by the user
+        fexponential = true; //exponential function
+        fspherical = false; //spheric function
+        
+        //This should be called by the object
+        SetFieldDistribution(fM, fnormDistribution, flognormDistribution);
+        SetFieldGeometry(fgmesh,fnSquareElements,frw, frext);
+        EvaluateCorrelation();
+        
+        //Write a function to get fU
         
     }
     
-       /** @brief Copy constructor */
+    /** @brief Copy constructor */
     TPZRandomField &operator=(const TPZRandomField &cp)
     {
         fFunc = cp.fFunc;
@@ -142,94 +156,49 @@ public:
         fH = 2 * frext; // altura total do cilindro em metros
         fh = fH / nLayers; // altura de cada cubo (elemento) em metros
         fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
-        
     }
-    
     
     /** @brief Get vector of distribution type */
     TPZFMatrix<TVar> GetDistribution(int matrixSize)
     {
-        //if(fnormDistribution==true) {
-        
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator (seed);
-        std::normal_distribution<double> distribution(0.,1.0);
-        
-        // Random Vector U
-        TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
-        
-        for (int i = 0; i < matrixSize; i++) {
-            Rand_U(i,0) = distribution(generator);
-            distribution.reset();
-            fRand_U = Rand_U;
+        if(fnormDistribution==true) {
+            
+            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::default_random_engine generator (seed);
+            std::normal_distribution<double> distribution(0.,1.0);
+            
+            // Random Vector U
+            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+            
+            for (int i = 0; i < matrixSize; i++) {
+                Rand_U(i,0) = distribution(generator);
+                distribution.reset();
+                fRand_U = Rand_U;
+            }
         }
-        //}
         
-        //        else if(flognormDistribution==true){
-        //
-        //            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        //            std::default_random_engine generator (seed);
-        //            std::lognormal_distribution<double> distribution(0.,1.0);
-        //
-        //            // Random Vector U
-        //            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
-        //
-        //            for (int i = 0; i < matrixSize; i++) {
-        //                Rand_U(i,0) = distribution(generator);
-        //                distribution.reset();
-        //                fRand_U = Rand_U;
-        //            }
-        //        }
+        else if(flognormDistribution==true){
+            
+            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+            std::default_random_engine generator (seed);
+            std::lognormal_distribution<double> distribution(0.,1.0);
+            
+            // Random Vector U
+            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+            
+            for (int i = 0; i < matrixSize; i++) {
+                Rand_U(i,0) = distribution(generator);
+                distribution.reset();
+                fRand_U = Rand_U;
+            }
+        }
         return fRand_U;
     }
     
-    /** @brief Calculate the method */
-    virtual void CalculateStochasticField(){
-        
-        SetFieldDistribution(fM, fnormDistribution, flognormDistribution); //This should be called by the object
-        
-        SetFieldGeometry(fgmesh,fnSquareElements,frw, frext); //This should be called by the object
-        
-        if (fstochasticInclined == 1) {
-            
-            fK = calcCorrelationMatrixInclined();  // Correlation matrix K
-            
-            PrintCorrelation();                    // Exporta KCoor .txt
-            
-            // Create function to decompose fK using SVD decomposition
-            
-            GetDistribution(fmatsize);             // Get random distribution
-            
-            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            fU = fM * fRand_U; // Get correlated random distribution
-            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
-        }
-        else{
-            
-            fK = calcCorrelationMatrix();       // Correlation matrix K
-            
-            PrintCorrelation();                 // Exporta KCoor .txt
-            
-            // Create function to decompose fK using SVD decomposition
-            
-            GetDistribution(fnSquareElements);  // Get random distribution
-            
-            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-            fU = fM * fRand_U; // Get correlated random distribution
-            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
-        }
-        
-    }
-    
     /** @brief Calculates Correlation either vertical or inclined */
-    virtual void EvaluateCorrelation(int stochasticInclined)
+    virtual void EvaluateCorrelation()
     {
-        if (stochasticInclined == 1) {
-            
-            int nLayers = 8;
-            fH = 2 * frext; // altura total do cilindro em metros
-            fh = fH / nLayers; // altura de cada cubo (elemento) em metros
-            fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
+        if (fstochasticInclined == 1) {
             
             fK = calcCorrelationMatrixInclined();  // Correlation matrix K
             
@@ -313,13 +282,13 @@ public:
                     REAL r = CenterNorm(i,j);
                     REAL r2 = pow(r, 2);
                     
-                    // if (fexponetial==true){
+                     if (fexponential==true){
                     KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
-                    //}
+                    }
                     
-                    //else if (fspherical==true){
+                    else if (fspherical==true){
                     //insert function
-                    //}
+                    }
                 }
                 
                 else {
@@ -475,7 +444,7 @@ public:
     }
     
     
-    /*////*/
+    /*////*/ /*////*/ /*////*/ /*////*/ /*////*/ /*////*/ /*////*/ /*////*/ /*////*/ /*////*//*////*/ /*////*/ /*////*/ /*////*/ /*////*/
     /*////*/
     /*////*/
     
