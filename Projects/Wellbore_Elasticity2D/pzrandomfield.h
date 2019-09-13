@@ -73,50 +73,7 @@ public:
         fM = M;
         
         CalculateStochasticField(); //This should be called by the object
-        
-//        frw = rw;
-//        frext = rext;
-//        int nLayers = 8;
-//        fH = 2 * frext; // altura total do cilindro em metros
-//        fh = fH / nLayers; // altura de cada cubo (elemento) em metros
-//        fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
-//        fM = M;
-//
-//
-//        if (fstochasticInclined == 1) {
-//
-//            int nLayers = 8;
-//            fH = 2 * frext; // altura total do cilindro em metros
-//            fh = fH / nLayers; // altura de cada cubo (elemento) em metros
-//            fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
-//
-//            fK = calcCorrelationMatrixInclined();  // Correlation matrix K
-//
-//            PrintCorrelation();                    // Exporta KCoor .txt
-//
-//            // Create function to decompose fK using SVD decomposition
-//
-//            GetDistribution(fmatsize);             // Get random distribution
-//
-//            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-//            fU = fM * fRand_U; // Get correlated random distribution
-//            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
-//        }
-//        else{
-//
-//            fK = calcCorrelationMatrix();       // Correlation matrix K
-//
-//            PrintCorrelation();                 // Exporta KCoor .txt
-//
-//            // Create function to decompose fK using SVD decomposition
-//
-//            GetDistribution(fnSquareElements);  // Get random distribution
-//
-//            // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-//            fU = fM * fRand_U; // Get correlated random distribution
-//            // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
-//        }
-        
+
     }
     
     virtual void CalculateStochasticField(){
