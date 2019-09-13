@@ -127,19 +127,20 @@ namespace pzgeom {
 										  TPZVec<int64_t>& nodeindexes,
 										  int matid, int64_t& index);
 	};
-	
+
     template<class T>
     inline void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result){
         for (int i=0;i<coord.Rows();i++){
             result[i] = coord.GetVal(i,0);
         }
     }
-    
+
     template<class T>
     inline void TPZGeoPoint::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
-        DebugStop();
+        gradx.Resize(1,1);
+        gradx(0,0) = 0;
     }
-    
+
 
 };
 

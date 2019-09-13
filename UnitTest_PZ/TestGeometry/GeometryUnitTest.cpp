@@ -64,7 +64,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
 //#define NOISY //outputs x and grad comparisons
-#define NOISYVTK //prints all elements in .vtk format
+//#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_SUITE(geometry_tests)
 
 #ifdef _AUTODIFF
 BOOST_AUTO_TEST_CASE(gradx_tests) {
-    
+    InitializePZLOG();
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
     
@@ -178,8 +178,8 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     for(int iel = 0; iel < nel; iel++){
         TPZGeoEl *gel = gmesh.Element(iel);
         int iel_dim = gel->Dimension();
-		TPZManVector< REAL, 3 > qsi_r(iel_dim);
-		TPZManVector<Fad<REAL>, 3 > qsi(iel_dim);
+		TPZManVector< REAL, 3 > qsi_r(iel_dim,0);
+		TPZManVector<Fad<REAL>, 3 > qsi(iel_dim,0);
 
         for(int ip = 0; ip < npoints; ip++){
             TPZManVector<REAL,3> pt(iel_dim);
@@ -192,11 +192,11 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
             }
             
             // FAD
-            TPZVec<Fad<REAL> > x(3);
+            TPZManVector<Fad<REAL> ,3> x(3,0);
             TPZFMatrix< Fad<REAL> > gradx;
 
             // REAL
-            TPZVec< REAL > x_r(3);
+            TPZManVector< REAL ,3> x_r(3,0);
             TPZFNMatrix< 9, REAL > gradx_r;
             gel->X(qsi, x);
             gel->GradX(qsi, gradx);
