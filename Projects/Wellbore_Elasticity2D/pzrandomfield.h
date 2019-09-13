@@ -76,6 +76,114 @@ public:
         
     }
     
+       /** @brief Copy constructor */
+    TPZRandomField &operator=(const TPZRandomField &cp)
+    {
+        fFunc = cp.fFunc;
+        fFunc2 = cp.fFunc2;
+        fFunc3 = cp.fFunc3;
+        fFunc4 = cp.fFunc4;
+        fPorder = cp.fPorder;
+        
+        fgmesh = cp.fgmesh;
+        fnSquareElements = cp.fnSquareElements;  // number of Square Elements
+        fstochasticInclined = cp.fstochasticInclined;
+        fdirection = cp.fdirection;
+        finclination = cp.finclination;
+        fnormDistribution = cp.fnormDistribution;
+        flognormDistribution = cp.flognormDistribution;
+        
+        // this should not be here, try to get from fgmesh
+        frw = cp.frw;
+        frext = cp.frext;
+        fM = cp.fM;
+        
+        return *this;
+    }
+    
+    /** @brief Class destructor */
+    virtual ~TPZRandomField()
+    {
+        
+    }
+    
+    /** @brief Set distribution type: normal or lognormal */
+    virtual void SetFieldDistribution(const TPZFMatrix<TVar> &M, bool normDistrib, bool lognormDistrib){
+        fnormDistribution = normDistrib;
+        flognormDistribution = lognormDistrib;
+        fM = M; //This should be removed later
+    }
+    
+    /** @brief Set geometric parameters  */
+    virtual void SetFieldGeometry(TPZGeoMesh* geometricMesh,int numSquareElems,REAL rw, REAL rext)
+    {
+        
+        fgmesh = geometricMesh;
+        fnSquareElements = numSquareElems;  // number of Square Elements
+        frw = rw;
+        frext = rext;
+        
+        if (fstochasticInclined==true){
+            InclinedFieldGeometry();
+        }
+    }
+    
+    /** @brief Set inclined parameters if wellbore is inclined */
+    virtual void SetInclinedField(int stochasticInclined,REAL direction, REAL inclination)
+    {
+        fstochasticInclined = stochasticInclined;
+        fdirection = direction;
+        finclination = inclination;
+    }
+    
+    /** @brief Set inclined geometry */
+    virtual void InclinedFieldGeometry(){
+        int nLayers = 8;
+        fH = 2 * frext; // altura total do cilindro em metros
+        fh = fH / nLayers; // altura de cada cubo (elemento) em metros
+        fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
+        
+    }
+    
+    
+    /** @brief Get vector of distribution type */
+    TPZFMatrix<TVar> GetDistribution(int matrixSize)
+    {
+        //if(fnormDistribution==true) {
+        
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::default_random_engine generator (seed);
+        std::normal_distribution<double> distribution(0.,1.0);
+        
+        // Random Vector U
+        TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+        
+        for (int i = 0; i < matrixSize; i++) {
+            Rand_U(i,0) = distribution(generator);
+            distribution.reset();
+            fRand_U = Rand_U;
+        }
+        //}
+        
+        //        else if(flognormDistribution==true){
+        //
+        //            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        //            std::default_random_engine generator (seed);
+        //            std::lognormal_distribution<double> distribution(0.,1.0);
+        //
+        //            // Random Vector U
+        //            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+        //
+        //            for (int i = 0; i < matrixSize; i++) {
+        //                Rand_U(i,0) = distribution(generator);
+        //                distribution.reset();
+        //                fRand_U = Rand_U;
+        //            }
+        //        }
+        return fRand_U;
+    }
+    
+    /** @brief Calculate the method */
     virtual void CalculateStochasticField(){
         
         SetFieldDistribution(fM, fnormDistribution, flognormDistribution); //This should be called by the object
@@ -113,41 +221,7 @@ public:
         
     }
     
-    virtual void SetInclinedField(int stochasticInclined,REAL direction, REAL inclination)
-    {
-        fstochasticInclined = stochasticInclined;
-        fdirection = direction;
-        finclination = inclination;
-    }
-    
-    virtual void SetFieldGeometry(TPZGeoMesh* geometricMesh,int numSquareElems,REAL rw, REAL rext)
-    {
-        
-        fgmesh = geometricMesh;
-        fnSquareElements = numSquareElems;  // number of Square Elements
-        frw = rw;
-        frext = rext;
-        
-        if (fstochasticInclined==true){
-            InclinedFieldGeometry();
-        }
-    }
-    
-    virtual void InclinedFieldGeometry(){
-        int nLayers = 8;
-        fH = 2 * frext; // altura total do cilindro em metros
-        fh = fH / nLayers; // altura de cada cubo (elemento) em metros
-        fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
-        
-    }
-    
-    virtual void SetFieldDistribution(const TPZFMatrix<TVar> &M, bool normDistrib, bool lognormDistrib){
-        fnormDistribution = normDistrib;
-        flognormDistribution = lognormDistrib;
-        fM = M; //This should be removed later
-    }
-    
-    
+    /** @brief Calculates Correlation either vertical or inclined */
     virtual void EvaluateCorrelation(int stochasticInclined)
     {
         if (stochasticInclined == 1) {
@@ -185,189 +259,8 @@ public:
         }
     }
     
-    TPZFMatrix<TVar> GetDistribution(int matrixSize)
-    {
-        //if(fnormDistribution==true) {
-        
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::default_random_engine generator (seed);
-        std::normal_distribution<double> distribution(0.,1.0);
-        
-        // Random Vector U
-        TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
-        
-        for (int i = 0; i < matrixSize; i++) {
-            Rand_U(i,0) = distribution(generator);
-            distribution.reset();
-            fRand_U = Rand_U;
-        }
-        //}
-        
-        //        else if(flognormDistribution==true){
-        //
-        //            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        //            std::default_random_engine generator (seed);
-        //            std::lognormal_distribution<double> distribution(0.,1.0);
-        //
-        //            // Random Vector U
-        //            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
-        //
-        //            for (int i = 0; i < matrixSize; i++) {
-        //                Rand_U(i,0) = distribution(generator);
-        //                distribution.reset();
-        //                fRand_U = Rand_U;
-        //            }
-        //        }
-        return fRand_U;
-    }
     
-    
-    
-    /** @brief Class destructor */
-    virtual ~TPZRandomField()
-    {
-        
-    }
-    
-    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val))
-    {
-        fFunc = FuncPtr;
-        fFunc2 = 0;
-        fFunc3 = 0;
-        fFunc4 = 0;
-        fPorder = -1;
-    }
-    
-    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
-    {
-        fFunc = 0;
-        fFunc2 = FuncPtr;
-        fFunc3 = 0;
-        fFunc4 = 0;
-        fPorder = -1;
-    }
-    
-    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
-    {
-        fFunc = 0;
-        fFunc2 = 0;
-        fFunc3 = FuncPtr;
-        fFunc4 = 0;
-        fPorder = -1;
-    }
-    
-    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &f, int id))
-    {
-        fFunc = 0;
-        fFunc2 = 0;
-        fFunc3 = 0;
-        fFunc4 = FuncPtr;
-        fPorder = -1;
-    }
-    
-    TPZRandomField(const TPZRandomField &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fFunc4(cp.fFunc4), fPorder(cp.fPorder)
-    {
-        
-    }
-    
-    
-    TPZRandomField &operator=(const TPZRandomField &cp)
-    {
-        fFunc = cp.fFunc;
-        fFunc2 = cp.fFunc2;
-        fFunc3 = cp.fFunc3;
-        fFunc4 = cp.fFunc4;
-        fPorder = cp.fPorder;
-        return *this;
-    }
-    
-    /**
-     * @brief Performs function computation
-     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-     * @param f function values
-     * @param df function derivatives
-     */
-    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
-    {
-        if (!fFunc2) {
-            DebugStop();
-        }
-        fFunc2(x, f, df);
-    }
-    
-    /**
-     * @brief Performs time dependent function computation
-     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-     * @param ftime  time to evaluate
-     * @param f function values
-     * @param gradf function derivatives
-     */
-    virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
-    {
-        if (!fFunc3) {
-            DebugStop();
-        }
-        fFunc3(x, ftime, f, gradf);
-    }
-    
-    /**
-     * @brief Execute method receiving axes. It is used in shape functions
-     * @note NOT IMPLEMENTED
-     */
-    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
-        DebugStop();
-    }
-    
-    /**
-     * @brief Simpler version of Execute method which does not compute function derivatives
-     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-     * @param f function values
-     */
-    // This method gives random values of Young Modulus from a specific range
-    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f) {
-        //REAL E = rand() % 3000 + 15300 + 1; // not uniform
-        //REAL E = arc4random_uniform(3001) + 15300; //uniform distribution
-        //f[0]   = E;
-        
-    }
-    
-    // Call this method in the PZMatElasticity 2D (Gaussian Field)
-    virtual void Execute(const TPZVec<TVar> &f, int id) {
-        f[0] = fU(id, 0); // gives to the TPZMaterial the correlated variable of the element
-    }
-    
-    // Call this method in the PZMatElasticity for Element Failure Area
-    virtual void ExecuteArea(const TPZVec<TVar> &f, int id) {
-        TPZGeoEl *gelFail;
-        gelFail = fgmesh->ElementVec()[id];
-        if (gelFail->Type() == 3) {
-            f[0] = gelFail->SideArea(8);
-        }
-        else {
-            f[0] = 0.0;
-        }
-        
-        //
-    }
-    
-    // Calc Correlation Matrix
-    TPZVec<TVar> calcStochasticField(){
-        
-        // Stochastic Field
-        TPZFMatrix<REAL> K = calcCorrelationMatrix();
-        
-        return NULL;
-    }
-    
-    
-    // Print Correlation Matrix to be decomposed at Mathematica
-    virtual void PrintCorrelation() {
-        std::ofstream out_kmatrix("KCorr.txt");
-        fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
-    }
-    
-    
-    // Calcula Correlation Matrix
+    /** @brief Calculates correlation matrix for vertical well */
     TPZFMatrix<REAL> calcCorrelationMatrix() {
         
         std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
@@ -408,7 +301,7 @@ public:
                 
                 CenterPoint2 = center2;
                 
-                //	/*3*/	EQuadrilateral
+                //    /*3*/    EQuadrilateral
                 if (gel1->Type() == 3 && gel2->Type() == 3) {
                     
                     REAL dx = pow((CenterPoint2[0]-CenterPoint1[0]), 2);
@@ -439,7 +332,7 @@ public:
     }
     
     
-    // Calcula Correlation Matrix para Poços Inclinados
+    /** @brief Calculates correlation matrix for inclined well */
     TPZFMatrix<REAL> calcCorrelationMatrixInclined() {
         
         std::cout << "\nCria matriz dos centroides dos elementos " << std::endl;
@@ -476,7 +369,7 @@ public:
             
             CenterPoint = center;
             
-            //	/*3*/	EQuadrilateral
+            //    /*3*/    EQuadrilateral
             if (gel->Type() == 3) {
                 //Coordinates
                 REAL xx = CenterPoint[0];
@@ -574,6 +467,142 @@ public:
         return KCorr;
     }
     
+    
+    /** @brief Print correlation matrix to be decomposed at Mathematica - This should be removed after SVD decomposition!!! */
+    virtual void PrintCorrelation() {
+        std::ofstream out_kmatrix("KCorr.txt");
+        fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
+    }
+    
+    
+    /*////*/
+    /*////*/
+    /*////*/
+    
+    
+    
+    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val))
+    {
+        fFunc = FuncPtr;
+        fFunc2 = 0;
+        fFunc3 = 0;
+        fFunc4 = 0;
+        fPorder = -1;
+    }
+    
+    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
+    {
+        fFunc = 0;
+        fFunc2 = FuncPtr;
+        fFunc3 = 0;
+        fFunc4 = 0;
+        fPorder = -1;
+    }
+    
+    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
+    {
+        fFunc = 0;
+        fFunc2 = 0;
+        fFunc3 = FuncPtr;
+        fFunc4 = 0;
+        fPorder = -1;
+    }
+    
+    TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &f, int id))
+    {
+        fFunc = 0;
+        fFunc2 = 0;
+        fFunc3 = 0;
+        fFunc4 = FuncPtr;
+        fPorder = -1;
+    }
+    
+    TPZRandomField(const TPZRandomField &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3), fFunc4(cp.fFunc4), fPorder(cp.fPorder)
+    {
+        
+    }
+    
+    
+    /**
+     * @brief Performs function computation
+     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+     * @param f function values
+     * @param df function derivatives
+     */
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
+    {
+        if (!fFunc2) {
+            DebugStop();
+        }
+        fFunc2(x, f, df);
+    }
+    
+    /**
+     * @brief Performs time dependent function computation
+     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+     * @param ftime  time to evaluate
+     * @param f function values
+     * @param gradf function derivatives
+     */
+    virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
+    {
+        if (!fFunc3) {
+            DebugStop();
+        }
+        fFunc3(x, ftime, f, gradf);
+    }
+    
+    /**
+     * @brief Execute method receiving axes. It is used in shape functions
+     * @note NOT IMPLEMENTED
+     */
+    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
+        DebugStop();
+    }
+    
+    /**
+     * @brief Simpler version of Execute method which does not compute function derivatives
+     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+     * @param f function values
+     */
+    // This method gives random values of Young Modulus from a specific range
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f) {
+        //REAL E = rand() % 3000 + 15300 + 1; // not uniform
+        //REAL E = arc4random_uniform(3001) + 15300; //uniform distribution
+        //f[0]   = E;
+        
+    }
+    
+    // Call this method in the PZMatElasticity 2D (Gaussian Field)
+    virtual void Execute(const TPZVec<TVar> &f, int id) {
+        f[0] = fU(id, 0); // gives to the TPZMaterial the correlated variable of the element
+    }
+    
+    // Call this method in the PZMatElasticity for Element Failure Area
+    virtual void ExecuteArea(const TPZVec<TVar> &f, int id) {
+        TPZGeoEl *gelFail;
+        gelFail = fgmesh->ElementVec()[id];
+        if (gelFail->Type() == 3) {
+            f[0] = gelFail->SideArea(8);
+        }
+        else {
+            f[0] = 0.0;
+        }
+        
+        //
+    }
+    
+    // Calc Correlation Matrix
+    TPZVec<TVar> calcStochasticField(){
+        
+        // Stochastic Field
+        TPZFMatrix<REAL> K = calcCorrelationMatrix();
+        
+        return NULL;
+    }
+    
+    
+   
     
     /** @brief Returns number of functions. */
     virtual int NFunctions()
