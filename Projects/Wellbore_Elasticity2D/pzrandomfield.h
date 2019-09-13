@@ -43,14 +43,22 @@ class TPZRandomField : public TPZFunction<TVar>
     TPZFMatrix<TVar> fRand_U; //random distribution
     TPZFMatrix<TVar> fU; // random correlated* distribution
     TPZFMatrix<TVar> fM; //Decomposed matrix from Mathematica
-    bool fexponential; //exponential function
-    bool fspherical; //spheric function
-    bool fnormDistribution_E; // normal distribution of E
-    bool flognormDistribution_E; // lognormal distribution of E
-    bool fnormDistribution_nu; // normal distribution of nu
-    bool flognormDistribution_nu; // lognormal distribution of nu
+
     TPZFMatrix<TVar> fU_E; // random correlated* distribution of E
     TPZFMatrix<TVar> fU_nu; // random correlated* distribution of nu
+   
+    // normal ==1;
+    // lognormal ==2;
+    int fE_dist;
+    int fnu_dist;
+    
+    // exponential ==1;
+    // spherical ==2;
+    int fE_funct;
+    int fnu_funct;
+    
+    TPZFMatrix<TVar> fKE; // correlation matrix of E
+    TPZFMatrix<TVar> fKnu; // correlation matrix of nu
     
     
 public:
@@ -72,32 +80,65 @@ public:
         fstochasticInclined = stochasticInclined;
         fdirection = direction;
         finclination = inclination;
-        
-        // This should be defined by the user
-        fnormDistribution_E = true;
-        fnormDistribution_nu = true;
-        flognormDistribution_E = false;
-        flognormDistribution_nu = false;
-        
-        // this should not be here, try to get from fgmesh
         frw = rw;
         frext = rext;
+        
+        // this should not be here, delete after SVD implementation
         fM = M;
         
         // this should be given by the user
-        fexponential = true; //exponential function
-        fspherical = false; //spheric function
+        fE_dist = 1;
+        fnu_dist = 1;
+       
+         // this should be given by the user
+        fE_funct = 1;
+        fnu_funct = 1;;
+        
+        
+        //** Calculation of stochastic field should start here!! *****/////
         
         //This should be called by the object
         SetFieldDistribution(fM);
-        SetFieldGeometry(fgmesh,fnSquareElements,frw, frext);
-        EvaluateCorrelation();
+        SetFieldGeometry();
+        
+        
+        //Get fK
+        if(fE_funct==fnu_funct){
+            fKE = EvaluateCorrelation(fE_funct);
+            fKE = fKnu;
+            
+            // Create function to decompose fK using SVD decomposition
+            // fK = U sqt(S) V'
+            // create glogal parameter for U and sqrt(S)
+        }
+        
+        else {
+        //Evaluate for E
+        fKE = EvaluateCorrelation(fE_funct);
+        //Evaluate for nu
+        fKnu = EvaluateCorrelation(fnu_funct);
+            
+            // Create function to decompose fK using SVD decomposition
+            // fKE = U sqt(S) V'
+            // fKnu = U sqt(S) V'
+            // create glogal parameter for U and sqrt(S)
+        }
+                
+        
+        //Write a function to get fU
+        fU_E = GetCorrelatedVector(fE_dist);
+        fU_nu = GetCorrelatedVector(fnu_dist);
+        
+        //GetStochasticField(fE, fnu); ***** Should use this one to get the random correlated and scaled field, in TPZMaterial use fE and fnu
+        
         
         //Overwrtie fU just to test - This should be deleted
         // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
         fU = fM * fU_E; // Get correlated random distribution
         // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
         
+        
+        //******* End
     }
     
     /** @brief Copy constructor */
@@ -114,10 +155,6 @@ public:
         fstochasticInclined = cp.fstochasticInclined;
         fdirection = cp.fdirection;
         finclination = cp.finclination;
-        fnormDistribution_E = cp.fnormDistribution_E;
-        fnormDistribution_nu = cp.fnormDistribution_nu;
-        flognormDistribution_E = cp.flognormDistribution_E;
-        flognormDistribution_nu = cp.flognormDistribution_nu;
         
         // this should not be here, try to get from fgmesh
         frw = cp.frw;
@@ -133,27 +170,21 @@ public:
         
     }
     
-    /** @brief Set distribution type: normal or lognormal */
-    virtual void SetFieldDistribution(const TPZFMatrix<TVar> &M){
-        // This should be defined by the user
-        fnormDistribution_E = true;
-        fnormDistribution_nu = true;
-        flognormDistribution_E = false;
-        flognormDistribution_nu = false;
-        fM = M; //This should be removed later
+    /** @brief Set distribution type and function of E */
+    void SetYoungField(int distribution, int function){
+        fE_dist = distribution;
+        fE_funct = function;
     }
     
-    /** @brief Set geometric parameters  */
-    virtual void SetFieldGeometry(TPZGeoMesh* geometricMesh,int numSquareElems,REAL rw, REAL rext)
-    {
-        fgmesh = geometricMesh;
-        fnSquareElements = numSquareElems;  // number of Square Elements
-        frw = rw;
-        frext = rext;
-        
-        if (fstochasticInclined==true){
-            InclinedFieldGeometry();
-        }
+    /** @brief Set distribution type and function of nu */
+    void SetPoissonField(int distribution, int function){
+        fnu_dist = distribution;
+        fnu_funct = function;
+    }
+    
+    /** @brief Set distribution type: normal or lognormal */
+    void SetFieldDistribution(const TPZFMatrix<TVar> &M){
+        fM = M; //This should be removed later
     }
     
     /** @brief Set inclined parameters if wellbore is inclined */
@@ -162,6 +193,14 @@ public:
         fstochasticInclined = stochasticInclined;
         fdirection = direction;
         finclination = inclination;
+    }
+    
+    /** @brief Set geometric parameters  */
+    virtual void SetFieldGeometry()
+    {
+        if (fstochasticInclined==true){
+            InclinedFieldGeometry();
+        }
     }
     
     /** @brief Set inclined geometry */
@@ -173,52 +212,42 @@ public:
     }
     
     /** @brief Calculates Correlation either vertical or inclined */
-    virtual void EvaluateCorrelation()
+     TPZFMatrix<TVar>  EvaluateCorrelation(int function)
     {
         if (fstochasticInclined == 1) {
             
-            fK = calcCorrelationMatrixInclined();  // Correlation matrix K
+            fK = calcCorrelationMatrixInclined(function);  // Correlation matrix K
             
             //PrintCorrelation();                    // Exporta KCoor .txt
-            
-            // Create function to decompose fK using SVD decomposition
-            // fK = U sqt(S) V'
-            // create glogal parameter for U and sqrt(S)
         }
         else{
             
-            fK = calcCorrelationMatrix();       // Correlation matrix K
+            fK = calcCorrelationMatrix(function);       // Correlation matrix K
             
             //PrintCorrelation();                 // Exporta KCoor .txt
-            
-            // Create function to decompose fK using SVD decomposition
-            // fK = U sqt(S) V'
-            // create glogal parameter for U and sqrt(S)
         }
-        
-        //Write a function to get fU
-        fU_E = GetCorrelatedVector(fnormDistribution_E, flognormDistribution_E);
-        fU_nu = GetCorrelatedVector(fnormDistribution_nu, flognormDistribution_nu);
-        
-        //GetStochasticField(fE, fnu);
+        return fK;
     }
     
+    
+    
     /** @brief Calculates Correlation either vertical or inclined */
-    TPZFMatrix<REAL> GetCorrelatedVector(bool normal, bool lognormal)
+    TPZFMatrix<REAL> GetCorrelatedVector(int distribution)
     {
         if (fstochasticInclined == 1) {
-            fU = GetDistribution(fmatsize, normal, lognormal); // Get random distribution for inclined surface
+            fU = GetDistribution(fmatsize, distribution); // Get random distribution for inclined surface
         }
         else {
-            fU = GetDistribution(fnSquareElements,  normal, lognormal);  // Get random distribution for vertical surfaces
+            fU = GetDistribution(fnSquareElements, distribution);  // Get random distribution for vertical surfaces
         }
         return fU;
     }
     
     /** @brief Get vector of distribution type */
-    TPZFMatrix<TVar> GetDistribution(int matrixSize, bool normal, bool lognormal)
+    TPZFMatrix<TVar> GetDistribution(int matrixSize, int distribution)
     {
-        if(normal==true) {
+        //normal distribution
+        if(distribution==1) {
             
             unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             std::default_random_engine generator (seed);
@@ -234,7 +263,8 @@ public:
             }
         }
         
-        else if(lognormal==true){
+        //lognormal distribution
+        else if(distribution==2){
             
             unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
             std::default_random_engine generator (seed);
@@ -261,7 +291,7 @@ public:
     }
     
     /** @brief Calculates correlation matrix for vertical well */
-    TPZFMatrix<REAL> calcCorrelationMatrix() {
+    TPZFMatrix<REAL> calcCorrelationMatrix(int function) {
         
         std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
         
@@ -313,11 +343,13 @@ public:
                     REAL r = CenterNorm(i,j);
                     REAL r2 = pow(r, 2);
                     
-                    if (fexponential==true){
+                    //exponential function
+                    if (function==1){
                         KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
                     }
                     
-                    else if (fspherical==true){
+                    //spherical function
+                    else if (function==2){
                         //insert function
                     }
                 }
@@ -333,7 +365,7 @@ public:
     
     
     /** @brief Calculates correlation matrix for inclined well */
-    TPZFMatrix<REAL> calcCorrelationMatrixInclined() {
+    TPZFMatrix<REAL> calcCorrelationMatrixInclined(int function) {
         
         std::cout << "\nCria matriz dos centroides dos elementos " << std::endl;
         
@@ -449,13 +481,15 @@ public:
                 REAL r = CenterNorm(i,j);
                 REAL r2 = pow(r, 2);
                 
-                // if (fexponetial==true){
+                //exponential function
+                if (function==1){
                 KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
-                //}
+                }
                 
-                //else if (fspherical==true){
+                //spherical function
+                else if (function==2){
                 //insert function
-                //}
+                }
             }
         }
         
@@ -601,8 +635,6 @@ public:
         return NULL;
     }
     
-    
-   
     
     /** @brief Returns number of functions. */
     virtual int NFunctions()
