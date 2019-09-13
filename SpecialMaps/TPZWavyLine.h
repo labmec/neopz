@@ -95,7 +95,21 @@ namespace pzgeom {
 //                gradx(i) = (coord(i,1)-coord(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
 //            }
 //        }
-		
+        template<class T>
+        void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx) const {
+
+            int nrow = nodes.Rows();
+            int ncol = nodes.Cols();
+
+            gradx.Resize(nrow,1);
+            gradx.Zero();
+
+            T cosval = cos(fNumWaves*M_PI*loc[0]);
+            for (int i=0; i<3; i++) {
+                gradx(i) = (nodes.GetVal(i,1)-nodes.GetVal(i,0))/2. + fNumWaves*M_PI*cosval*fWaveDir[i];
+            }
+
+        }
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 //        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 //        {
