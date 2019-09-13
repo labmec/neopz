@@ -683,7 +683,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZManVector<TPZMaterialData,4> datavec;
+	TPZManVector<TPZMaterialData,6> datavec;
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);

@@ -327,7 +327,162 @@ namespace pztopology {
         0,0,0,0,0,0,0,0,0,0,
         0,1,0,1,0,1,0,1,0,1,
         0,1,2};
-    
+
+    template<class T>
+    inline void TPZPrism::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
+
+        phi(0,0)  = .5*(1.-qsi-eta)*(1.-zeta);
+        phi(1,0)  = .5*qsi*(1.-zeta);
+        phi(2,0)  = .5*eta*(1.-zeta);
+        phi(3,0)  = .5*(1.-qsi-eta)*(1.+zeta);
+        phi(4,0)  = .5*qsi*(1.+zeta);
+        phi(5,0)  = .5*eta*(1.+zeta);
+
+        dphi(0,0) = -.5*(1.-zeta);
+        dphi(1,0) = -.5*(1.-zeta);
+        dphi(2,0) = -.5*(1.-qsi-eta);
+        dphi(0,1) =  .5*(1.-zeta);
+        dphi(1,1) =  .0;
+        dphi(2,1) = -.5*qsi;
+        dphi(0,2) =  .0;
+        dphi(1,2) =  .5*(1.-zeta);
+        dphi(2,2) = -.5*eta;
+        dphi(0,3) = -.5*(1.+zeta);
+        dphi(1,3) = -.5*(1.+zeta);
+        dphi(2,3) =  .5*(1.-qsi-eta);
+        dphi(0,4) =  .5*(1.+zeta);
+        dphi(1,4) =  .0;
+        dphi(2,4) =  .5*qsi;
+        dphi(0,5) =  .0;
+        dphi(1,5) =  .5*(1.+zeta);
+        dphi(2,5) =  .5*eta;
+
+    }
+
+    template<class T>
+    void TPZPrism::BlendFactorForSide(const int &side, const TPZVec<T> &xiVec, T &blendFactor,
+                                        TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::GetTolerance();
+        #ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(xiVec,tol)){
+            sout<<"The method BlendFactorForSide expects the point qsi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        corrFactorDxi.Resize(TPZPrism::Dimension, (T) 0);
+        const T &xi = xiVec[0];
+        const T &eta = xiVec[1];
+        const T &zeta = xiVec[2];
+        switch(side){
+            case  0:
+            case  1:
+            case  2:
+            case  3:
+            case  4:
+            case  5:
+                blendFactor = 0;
+                return;
+            case  6:
+                blendFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1.*(1 - eta)*(1 - zeta);
+                corrFactorDxi[2] = -0.5*((1 - eta)*(1 - eta));
+                return;
+            case  7:
+                blendFactor = 0.5*(1.-zeta)*(xi+eta)*(xi+eta);
+                corrFactorDxi[0] =1.*(eta + xi)*(1 - zeta);
+                corrFactorDxi[1] =1.*(eta + xi)*(1 - zeta);
+                corrFactorDxi[2] =-0.5*((eta + xi)*(eta + xi));
+                return;
+            case  8:
+                blendFactor = 0.5*(1.-zeta)*(1.-xi)*(1.-xi);
+                corrFactorDxi[0] =-1.*(1 - xi)*(1 - zeta);
+                corrFactorDxi[1] =0;
+                corrFactorDxi[2] =-0.5*((1 - xi)*(1 - xi));
+                return;
+            case  9:
+                blendFactor = 1. - xi - eta;
+                corrFactorDxi[0] = -1;
+                corrFactorDxi[1] = -1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 10:
+                blendFactor = xi;
+                corrFactorDxi[0] = 1;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                return;
+            case 11:
+                blendFactor = eta;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 12:
+                blendFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1.*(1 - eta)*(1 + zeta);
+                corrFactorDxi[2] = 0.5*((1 - eta)*(1 - eta));
+                return;
+            case 13:
+                blendFactor = 0.5*(1.+zeta)*(xi+eta)*(xi+eta);
+                corrFactorDxi[0] = 1.*(eta + xi)*(1 + zeta);
+                corrFactorDxi[1] = 1.*(eta + xi)*(1 + zeta);
+                corrFactorDxi[2] = 0.5*((eta + xi)*(eta + xi));
+                return;
+            case 14:
+                blendFactor = 0.5*(1.+zeta)*(1.-xi)*(1.-xi);
+                corrFactorDxi[0] = -1.*(1 - xi)*(1 + zeta);
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0.5*((1 - xi)*(1 - xi));
+                return;
+            case 15:
+                blendFactor = 0.5*(1.-zeta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = -0.5;
+                return;
+            case 16:
+                blendFactor = 1.-eta;
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = -1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 17:
+                blendFactor = xi+eta;
+                corrFactorDxi[0] = 1;
+                corrFactorDxi[1] = 1;
+                corrFactorDxi[2] = 0;
+                return;
+            case 18:
+                blendFactor = 1.-xi;
+                corrFactorDxi[0] = -1;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0;
+                return;
+            case 19:
+                blendFactor = 0.5*(1.+zeta);
+                corrFactorDxi[0] = 0;
+                corrFactorDxi[1] = 0;
+                corrFactorDxi[2] = 0.5;
+                return;
+        }
+    }
+
     int TPZPrism:: NBilinearSides()
     {
         DebugStop();
@@ -433,23 +588,26 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        if (sideto==NSides-1) {
+            return TransformSideToElement(sidefrom);
+        }
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
-		for(is=0; is<nhigh; is++) {
-			if(highsides[sidefrom][is] == sideto) {
-				int dfr = sidedimension[sidefrom];
-				int dto = sidedimension[sideto];
-				TPZTransform<> trans(dto,dfr);
-				int i,j;
-				for(i=0; i<dto; i++) {
-					for(j=0; j<dfr; j++) {
-						trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
-					}
-					trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
-				}
-				return trans;
-			}
-		}
+//        for(is=0; is<nhigh; is++) {
+//            if(highsides[sidefrom][is] == sideto) {
+//                int dfr = sidedimension[sidefrom];
+//                int dto = sidedimension[sideto];
+//                TPZTransform<> trans(dto,dfr);
+//                int i,j;
+//                for(i=0; i<dto; i++) {
+//                    for(j=0; j<dfr; j++) {
+//                        trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
+//                    }
+//                    trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
+//                }
+//                return trans;
+//            }
+//        }
 		PZError << "TPZPrism::SideToSideTransform highside not found sidefrom "
 		<< sidefrom << ' ' << sideto << endl;
 		return TPZTransform<>(0);
@@ -463,215 +621,275 @@ namespace pztopology {
 			return TPZTransform<>(0,0);
 		}
 		
-		TPZTransform<> t(sidedimension[side],3);
-		t.Mult().Zero();
-		t.Sum().Zero();
-		
-		switch(side){
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-				return t;
-   
-			case  6:
-			case 12:
-				t.Mult()(0,0) =  2.0;
+        if(side<0 || side>20){
+            PZError << "TPZPrism::TransformElementToSide called with side error\n";
+            return TPZTransform<>(0,0);
+        }
+        
+        TPZTransform<> t(sidedimension[side],3);
+        t.Mult().Zero();
+        t.Sum().Zero();
+        
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+                return t;
+            case  6:
+            case 12:
+                t.Mult()(0,0) =  2.0;
+                t.Sum()(0,0)  = -1.0;
+                return t;
+            case  7:
+            case 13:
+                t.Mult()(0,0) = -1.0;
                 t.Mult()(0,1) =  1.0;
-                
-				t.Sum()(0,0)  = -1.0;
-				return t;
-			case  7:
-			case 13:
-				t.Mult()(0,0) = -1.0;
-				t.Mult()(0,1) =  1.0;
-				return t;
-                
-			case  8:
-			case 14:
-                t.Mult()(0,1) = -1.0;
-				t.Mult()(0,1) = -2.0;
-				t.Sum()(0,0)  =  1.0;
-				return t;
-    
-            case 9:
+                return t;
+            case  8:
+            case 14:
+                t.Mult()(0,1) = -2.0;
+                t.Sum()(0,0)  =  1.0;
+                return t;
+            case  9:
             case 10:
             case 11:
-                t.Mult()(0,2) = 1.0;
+                t.Mult()(0,2) =  1.0;
                 return t;
-                
-			case  15:
-                
-                t.Mult()(0,0) =  2.0;
-                t.Mult()(1,1) =  2.0;
-                
-                t.Sum()(0,0) = -1;
-                t.Sum()(1,0) = -1;
+            case 15:
+            case 19:
+                t.Mult()(0,0) = 1.0;
+                t.Mult()(1,1) = 1.0;
                 return t;
-               
             case 16:
-                
                 t.Mult()(0,0) =  2.0;
                 t.Mult()(1,2) =  1.0;
-                
-                t.Sum()(0,0) = -1;
+                t.Sum()(0,0)  = -1.0;
                 return t;
-              
-			case 17:
-                
-                t.Mult()(0,0) =  -1.0;
+            case 17:
+                t.Mult()(0,0) = -1.0;
                 t.Mult()(0,1) =  1.0;
                 t.Mult()(1,2) =  1.0;
-               
                 return t;
-
-			case 18:
-                
-				t.Mult()(0,1) =  2.0;
-				t.Mult()(1,2) =  1.0;
-                
-				t.Sum()(0,0)  = -1.0;
-				return t;
-                
-            case 19:
-               
-                t.Mult()(0,0) =  2.0;
-                t.Mult()(1,1) =  2.0;
-                
+            case 18:
+                t.Mult()(0,1) =  2.0;
+                t.Mult()(1,2) =  1.0;
                 t.Sum()(0,0)  = -1.0;
-                t.Sum()(1,0)  = -1.0;
-                
-			case 20:
-				t.Mult()(0,0) = 1.0;
-				t.Mult()(1,1) = 1.0;
-				t.Mult()(2,2) = 1.0;
-				return t;
-		}
-		return TPZTransform<>(0,0);
+                return t;
+            case 20:
+                t.Mult()(0,0) = 1.0;
+                t.Mult()(1,1) = 1.0;
+                t.Mult()(2,2) = 1.0;
+                return t;
+        }
+        return TPZTransform<>(0,0);
+		
+//        switch(side){
+//            case 0:
+//            case 1:
+//            case 2:
+//            case 3:
+//            case 4:
+//            case 5:
+//                return t;
+//
+//            case  6:
+//            case 12:
+//                t.Mult()(0,0) =  2.0;
+//                t.Mult()(0,1) =  1.0;
+//
+//                t.Sum()(0,0)  = -1.0;
+//                return t;
+//            case  7:
+//            case 13:
+//                t.Mult()(0,0) = -1.0;
+//                t.Mult()(0,1) =  1.0;
+//                return t;
+//
+//            case  8:
+//            case 14:
+//                t.Mult()(0,1) = -1.0;
+//                t.Mult()(0,1) = -2.0;
+//                t.Sum()(0,0)  =  1.0;
+//                return t;
+//
+//            case 9:
+//            case 10:
+//            case 11:
+//                t.Mult()(0,2) = 1.0;
+//                return t;
+//
+//            case  15:
+//
+//                t.Mult()(0,0) =  2.0;
+//                t.Mult()(1,1) =  2.0;
+//
+//                t.Sum()(0,0) = -1;
+//                t.Sum()(1,0) = -1;
+//                return t;
+//
+//            case 16:
+//
+//                t.Mult()(0,0) =  2.0;
+//                t.Mult()(1,2) =  1.0;
+//
+//                t.Sum()(0,0) = -1;
+//                return t;
+//
+//            case 17:
+//
+//                t.Mult()(0,0) =  -1.0;
+//                t.Mult()(0,1) =  1.0;
+//                t.Mult()(1,2) =  1.0;
+//
+//                return t;
+//
+//            case 18:
+//
+//                t.Mult()(0,1) =  2.0;
+//                t.Mult()(1,2) =  1.0;
+//
+//                t.Sum()(0,0)  = -1.0;
+//                return t;
+//
+//            case 19:
+//
+//                t.Mult()(0,0) =  2.0;
+//                t.Mult()(1,1) =  2.0;
+//
+//                t.Sum()(0,0)  = -1.0;
+//                t.Sum()(1,0)  = -1.0;
+//
+//            case 20:
+//                t.Mult()(0,0) = 1.0;
+//                t.Mult()(1,1) = 1.0;
+//                t.Mult()(1,2) = 1.0; //revisar
+//                return t;
+//        }
+//        return TPZTransform<>(0,0);
 	}
 	
 	TPZTransform<> TPZPrism::TransformSideToElement(int side){
 		
-		if(side<0 || side>20){
-			PZError << "TPZPrism::TransformSideToElement side out range\n";
-			return TPZTransform<>(0,0);
-		}
-		TPZTransform<> t(3,sidedimension[side]);
-		t.Mult().Zero();
-		t.Sum().Zero();
-		
-		switch(side){
-			case 0:
-				t.Sum()(0,0) =  0.0;
-				t.Sum()(1,0) =  0.0;
-				t.Sum()(2,0) = -1.0;
-				return t;
-			case 1:
-				t.Sum()(0,0) =  1.0;
-				t.Sum()(1,0) =  0.0;
-				t.Sum()(2,0) = -1.0;
-				return t;
-			case 2:
-				t.Sum()(0,0) =  0.0;
-				t.Sum()(1,0) =  1.0;
-				t.Sum()(2,0) = -1.0;
-				return t;
-			case 3:
-				t.Sum()(0,0) =  0.0;
-				t.Sum()(1,0) =  0.0;
-				t.Sum()(2,0) =  1.0;
-				return t;
-			case 4:
-				t.Sum()(0,0) =  1.0;
-				t.Sum()(1,0) =  0.0;
-				t.Sum()(2,0) =  1.0;
-				return t;
-			case 5:
-				t.Sum()(0,0) =  0.0;
-				t.Sum()(1,0) =  1.0;
-				t.Sum()(2,0) =  1.0;
-				return t;
-			case 6:
-                
-				t.Mult()(0,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (2,0) = -1.0;
-				return t;
-			case 7:
-				t.Mult()(0,0) = -0.5;
-				t.Mult()(1,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (1,0) =  0.5;
-				t.Sum() (2,0) = -1.0;
-				return t;
-			case 8:
-				t.Mult()(1,0) = -0.5;
-				t.Sum() (1,0) =  0.5;
-				t.Sum() (2,0) = -1.0;
-				return t;
-			case 9:
-				t.Mult()(2,0) =  1.0;
-				return t;
-			case 10:
-				t.Mult()(2,0) =  1.0;
-				t.Sum() (0,0) =  1.0;
-				return t;
-			case 11:
-				t.Mult()(2,0) =  1.0;
-				t.Sum() (1,0) =  1.0;
-				return t;
-			case 12:
-				t.Mult()(0,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (2,0) =  1.0;
-				return t;
-			case 13:
-				t.Mult()(0,0) = -0.5;
-				t.Mult()(1,0) =  0.5;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (1,0) =  0.5;
-				t.Sum() (2,0) =  1.0;
-				return t;
-			case 14:
-				t.Mult()(1,0) = -0.5;
-				t.Sum() (1,0) =  0.5;
-				t.Sum() (2,0) =  1.0;
-				return t;
-			case 15:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				t.Sum() (2,0) = -1.0;
-				return t;
-			case 16:
-				t.Mult()(0,0) =  0.5;
-				t.Mult()(2,1) =  1.0;
-				t.Sum() (0,0) =  0.5;
-				return t;
-			case 17:
-				t.Mult()(0,0) = -0.5;
-				t.Mult()(1,0) =  0.5;
-				t.Mult()(2,1) =  1.0;
-				t.Sum() (0,0) =  0.5;
-				t.Sum() (1,0) =  0.5;
-				return t;
-			case 18:
-				t.Mult()(1,0) =  0.5;
-				t.Mult()(2,1) =  1.0;
-				t.Sum() (1,0) =  0.5;
-				return t;
-			case 19:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				t.Sum() (2,0) =  1.0;
-				return t;
-			case 20:
-				t.Mult()(0,0) =  1.0;
-				t.Mult()(1,1) =  1.0;
-				t.Mult()(2,2) =  1.0;
-				return t;
-		}
+        if(side<0 || side>20){
+            PZError << "TPZPrism::TransformSideToElement side out range\n";
+            return TPZTransform<>(0,0);
+        }
+        TPZTransform<> t(3,sidedimension[side]);
+        t.Mult().Zero();
+        t.Sum().Zero();
+        
+        switch(side){
+            case 0:
+                t.Sum()(0,0) =  0.0;
+                t.Sum()(1,0) =  0.0;
+                t.Sum()(2,0) = -1.0;
+                return t;
+            case 1:
+                t.Sum()(0,0) =  1.0;
+                t.Sum()(1,0) =  0.0;
+                t.Sum()(2,0) = -1.0;
+                return t;
+            case 2:
+                t.Sum()(0,0) =  0.0;
+                t.Sum()(1,0) =  1.0;
+                t.Sum()(2,0) = -1.0;
+                return t;
+            case 3:
+                t.Sum()(0,0) =  0.0;
+                t.Sum()(1,0) =  0.0;
+                t.Sum()(2,0) =  1.0;
+                return t;
+            case 4:
+                t.Sum()(0,0) =  1.0;
+                t.Sum()(1,0) =  0.0;
+                t.Sum()(2,0) =  1.0;
+                return t;
+            case 5:
+                t.Sum()(0,0) =  0.0;
+                t.Sum()(1,0) =  1.0;
+                t.Sum()(2,0) =  1.0;
+                return t;
+            case 6:
+                t.Mult()(0,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (2,0) = -1.0;
+                return t;
+            case 7:
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(1,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (1,0) =  0.5;
+                t.Sum() (2,0) = -1.0;
+                return t;
+            case 8:
+                t.Mult()(1,0) = -0.5;
+                t.Sum() (1,0) =  0.5;
+                t.Sum() (2,0) = -1.0;
+                return t;
+            case 9:
+                t.Mult()(2,0) =  1.0;
+                return t;
+            case 10:
+                t.Mult()(2,0) =  1.0;
+                t.Sum() (0,0) =  1.0;
+                return t;
+            case 11:
+                t.Mult()(2,0) =  1.0;
+                t.Sum() (1,0) =  1.0;
+                return t;
+            case 12:
+                t.Mult()(0,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (2,0) =  1.0;
+                return t;
+            case 13:
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(1,0) =  0.5;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (1,0) =  0.5;
+                t.Sum() (2,0) =  1.0;
+                return t;
+            case 14:
+                t.Mult()(1,0) = -0.5;
+                t.Sum() (1,0) =  0.5;
+                t.Sum() (2,0) =  1.0;
+                return t;
+            case 15:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                t.Sum() (2,0) = -1.0;
+                return t;
+            case 16:
+                t.Mult()(0,0) =  0.5;
+                t.Mult()(2,1) =  1.0;
+                t.Sum() (0,0) =  0.5;
+                return t;
+            case 17:
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(1,0) =  0.5;
+                t.Mult()(2,1) =  1.0;
+                t.Sum() (0,0) =  0.5;
+                t.Sum() (1,0) =  0.5;
+                return t;
+            case 18:
+                t.Mult()(1,0) =  0.5;
+                t.Mult()(2,1) =  1.0;
+                t.Sum() (1,0) =  0.5;
+                return t;
+            case 19:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                t.Sum() (2,0) =  1.0;
+                return t;
+            case 20:
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+                t.Mult()(2,2) =  1.0;
+                return t;
+        }
 		return TPZTransform<>(0,0);
 	}
 	
@@ -1380,11 +1598,12 @@ namespace pztopology {
                 
 	}
     
-    void TPZPrism::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    template <class TVar>
+    void TPZPrism::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
-        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-        detgrad = fabs(detgrad);
-        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3), vdiag(3), v3vdiag(3);
+        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
+        
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3), vdiag(3), v3vdiag(3);
         for (int i=0; i<3; i++) {
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
@@ -1398,17 +1617,17 @@ namespace pztopology {
         TPZNumeric::ProdVetorial(v3,v1,v3v1);
         TPZNumeric::ProdVetorial(v3,vdiag,v3vdiag);
         
-        REAL Nv1v2 = TPZNumeric::Norma(v1v2);
-        REAL Nv2v3 = TPZNumeric::Norma(v2v3);
-        REAL Nv3v1 = TPZNumeric::Norma(v3v1);
-        REAL Nv3vdiag = TPZNumeric::Norma(v3vdiag);
+        TVar Nv1v2 = TPZNumeric::Norma(v1v2);
+        TVar Nv2v3 = TPZNumeric::Norma(v2v3);
+        TVar Nv3v1 = TPZNumeric::Norma(v3v1);
+        TVar Nv3vdiag = TPZNumeric::Norma(v3vdiag);
         
         /**
          * @file
          * @brief Computing mapped vector with scaling factor equal 1.0.
          * using contravariant piola mapping.
          */
-        TPZManVector<REAL,3> NormalScales(4,1.);
+        TPZManVector<TVar,3> NormalScales(4,1.);
         
         
         {
@@ -1420,9 +1639,9 @@ namespace pztopology {
         
         
         for (int i=0; i<3; i++) {
-            v1[i] /= detgrad;
-            v2[i] /= detgrad;
-            v3[i] /= detgrad;
+            v1[i] /= detjac;
+            v2[i] /= detjac;
+            v3[i] /= detjac;
         }
         for (int i=0; i<3; i++)
         {
@@ -1545,10 +1764,26 @@ namespace pztopology {
 
 }
 
-template
-bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
 
+template bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZPrism::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZPrism::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZPrism::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

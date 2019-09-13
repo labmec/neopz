@@ -558,7 +558,8 @@ int TPZRefPattern::SizeOfSubsSides(int ison)
 	if(ison==nsubs) ison--;
 	if(ison < 0 || ison > nsubs-1){
 		PZError <<  "TPZRefPattern::SizeOfSubsSides filho nao existe, filho = " << ison << endl;
-	}
+        DebugStop();
+    }
 	int count = 0,isub;
 	for(isub=0;isub<nsubs;isub++){
 		count += Element(isub+1)->NSides();

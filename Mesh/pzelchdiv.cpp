@@ -1089,43 +1089,23 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             ishape  = data.fVecShapeIndex[jv].second;
             
             {
-                
-                // Using Contravariant Piola mapping preserves the divergence
-                
-                TPZFMatrix<REAL> GradOfX;
-                TPZFMatrix<REAL> GradOfXInverse;
-                TPZFMatrix<REAL> Qaxes = data.axes;
-                TPZFMatrix<REAL> QaxesT;
-                TPZFMatrix<REAL> Jacobian = data.jacobian;
-                TPZFMatrix<REAL> JacobianInverse = data.jacinv;
-                
-                Qaxes.Transpose(&QaxesT);
-                QaxesT.Multiply(data.jacobian, GradOfX);
-                JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-                
-                TPZFMatrix<REAL> VectorOnMaster;
-                TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
-                
-                VectorOnXYZ(0,0) = data.fNormalVec(0,ivec);
-                VectorOnXYZ(1,0) = data.fNormalVec(1,ivec);
-                VectorOnXYZ(2,0) = data.fNormalVec(2,ivec);
-                
-                GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-                VectorOnMaster *= data.detjac;
+
                 
                 TPZFNMatrix<3> GradofPhi(dim,1);
                 GradofPhi.Zero();
                 
                 //  Compute grad_{hat}(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: On Master element a constant vector basis is defined.
                 
-                for (int ir = 0; ir < VectorOnMaster.Rows(); ir++) {
+                int n_dir = data.dphi.Rows();
+                
+                for (int ir = 0; ir < n_dir; ir++) {
                     
                     //  Compute grad_{hat}(PhiH1)
                     GradofPhi(ir,0) = data.dphi(ir,ishape);
                     
-                    GradOfPhiHdiv(ir,0) = VectorOnMaster(ir,0)*GradofPhi(0,0);
-                    GradOfPhiHdiv(ir,1) = VectorOnMaster(ir,0)*GradofPhi(1,0);
-                    GradOfPhiHdiv(ir,2) = VectorOnMaster(ir,0)*GradofPhi(2,0);
+                    GradOfPhiHdiv(ir,0) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(0,0);
+                    GradOfPhiHdiv(ir,1) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(1,0);
+                    GradOfPhiHdiv(ir,2) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(2,0);
                     
                 }
                 
@@ -1144,8 +1124,18 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     for (int i=0; i<3; i++)
                     {
                         solval[i] = data.sol[is][i+dim*idf];
-                        normal[i] = data.fNormalVec(i,ivec);
+                        
+                        if (data.fNeedsNormalVecFad) {
+                        #ifdef _AUTODIFF
+                            normal[i] = data.fNormalVecFad(i,ivec).val();
+                        #else
+                            DebugStop();
+                        #endif
+                        }else{
+                            normal[i] = data.fNormalVec(i,ivec);
+                        }
                     }
+                    
                     for (int ilinha=0; ilinha<dim; ilinha++) {
                         data.sol[is][ilinha+dim*idf] = solval[ilinha]+ normal[ilinha]*phival*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
@@ -1346,17 +1336,54 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
 
-    
+    int restrainedface = this->RestrainedFace();
+    // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
+    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+    int lastface = TSHAPE::NSides - 1;
+    int cont = 0;
+   
+    TPZIntelGen<TSHAPE>::Reference()->DirectionsMaster(data.fDirectionsOnMaster);
+
+    for(int side = firstface; side < lastface; side++)
     {
-        int restrainedface = this->RestrainedFace();
+        int nvec = TSHAPE::NContainedSides(side);
+        for (int ivet = 0; ivet<nvec; ivet++)
+        {
+            for (int il = 0; il<3; il++)
+            {
+                data.fDirectionsOnMaster(il,ivet+cont) *= fSideOrient[side-firstface];
+            }
+
+        }
+        cont += nvec;
+    }
+    
+    if(data.fNeedsNormalVecFad){
+    #ifdef _AUTODIFF
+        TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVecFad,restrainedface);
+        cont = 0;
+        
+        for(int side = firstface; side < lastface; side++)
+        {
+            int nvec = TSHAPE::NContainedSides(side);
+            for (int ivet = 0; ivet<nvec; ivet++)
+            {
+                for (int il = 0; il<3; il++)
+                {
+                    data.fNormalVecFad(il,ivet+cont) *= fSideOrient[side-firstface];
+                }
+                
+            }
+            cont += nvec;
+        }
+    #else
+        DebugStop();
+    #endif
+    }else{
         TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
-        
-        
-        // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1) 
-        int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
-        int lastface = TSHAPE::NSides - 1;
-        int cont = 0;
+        cont = 0;
+    
         for(int side = firstface; side < lastface; side++)
         {
             int nvec = TSHAPE::NContainedSides(side);
@@ -1371,6 +1398,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             cont += nvec;
         }
     }
+    
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
     }
@@ -1424,7 +1452,16 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         if (TSHAPE::Type() == EPiramide) {
             numvec++;
         }
+
+        data.fDirectionsOnMaster.Resize(3, numvec);
+
+#ifdef _AUTODIFF
+            data.fNormalVecFad.Resize(3, numvec);
+#endif
+
         data.fNormalVec.Resize(3, numvec);
+        
+
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
     }
     data.fShapeType = TPZMaterialData::EVecandShape;

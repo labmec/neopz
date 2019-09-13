@@ -11,6 +11,7 @@
 #include "pztrnsform.h"
 #include "pzquad.h"
 #include "pzeltype.h"
+#include "pzaxestools.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -87,7 +88,26 @@ namespace pztopology {
 		
 		/** @brief returns the local side number of the side "c" contained in the closure of side "side" */
 		static int ContainedSideLocId(int side, int c);
-		
+
+
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
+        }
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param blendFactor influence (0 <= blendFactor <= 1)
+         * * @param corrFactorDxi derivative of the blendFactor in respect to xi
+         */
+        template<class T>
+        static void BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                      TPZVec<T> &corrFactorDxi);
 		/** @} */
 		
 		/** @name About points at the parametric spaces
@@ -97,7 +117,16 @@ namespace pztopology {
 		static void CenterPoint(int side, TPZVec<REAL> &center);
 		
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
-		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6);
+		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = pztopology::gTolerance);
+
+        #ifdef _AUTODIFF
+        /** @brief Verifies if the parametric point pt is in the element parametric domain (FAD version)*/
+		static bool IsInParametricDomain(const TPZVec<Fad<REAL>> &pt, REAL tol = pztopology::gTolerance){
+		    TPZVec<REAL> xi(pt.size());
+		    for(int i = 0; i < pt.size(); i++) xi[i]= pt[i].val();
+		    return IsInParametricDomain(xi,tol);
+		}
+        #endif
         #ifdef _AUTODIFF
         template<typename T,
                 typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
@@ -213,7 +242,8 @@ namespace pztopology {
         static TPZTransform<> GetSideTransform(int side, int transformId);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
+        template <class TVar>
+        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )

@@ -121,10 +121,18 @@ virtual int ClassId() const override;
 	//HDiv
     
 //    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
+
+    virtual void DirectionsMaster(TPZFMatrix<REAL> &directions) override;
     
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
     
-//	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
+
+#ifdef _AUTODIFF
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int ConstrainedFace = -1) override;
+#endif
+    
+	//virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
+
 	
 	/** @brief Compute the permutation for an HDiv side */
 	virtual void HDivPermutation(int side, TPZVec<int> &permutegather) override;

@@ -23,92 +23,9 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
-	
-	const double tol = pzgeom_TPZNodeRep_tol;
 
-    template<class T>
-    void TPZGeoPyramid::CalcSideInfluence(const int &side, const TPZVec<T> &xiVec, T &correctionFactor,
-                                          TPZVec<T> &corrFactorDxi){
-        #ifdef PZDEBUG
-        std::ostringstream sout;
-        if(side < NNodes || side >= NSides){
-            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+    const double tol = pzgeom_TPZNodeRep_tol;
 
-            PZError<<std::endl<<sout.str()<<std::endl;
-            DebugStop();
-        }
-
-        if(!IsInParametricDomain(xiVec,tol)){
-            sout<<"The method CalcSideInfluence expects the point qsi to correspond to coordinates of a point";
-            sout<<" inside the parametric domain. Aborting...";
-            PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
-            LOGPZ_FATAL(logger,sout.str().c_str());
-            #endif
-            DebugStop();
-        }
-        #endif
-        TPZFNMatrix<4,T> phi(NNodes,1);
-        TPZFNMatrix<8,T> dphi(Dimension,NNodes);
-        TPZGeoPyramid::TShape(xiVec,phi,dphi);
-        correctionFactor = 0;
-        corrFactorDxi.Resize(TPZGeoPyramid::Dimension,(T)0);
-        for(int i = 0; i < TPZGeoPyramid::NSideNodes(side);i++){
-            const int currentNode = TPZGeoPyramid::SideNodeLocId(side, i);
-            correctionFactor += phi(currentNode,0);
-            corrFactorDxi[0] +=  dphi(0,currentNode);
-            corrFactorDxi[1] +=  dphi(1,currentNode);
-            corrFactorDxi[2] +=  dphi(2,currentNode);
-        }
-
-        const T &zeta = xiVec[2];
-        switch(side){
-            case  0:
-            case  1:
-            case  2:
-            case  3:
-            case  4:
-                correctionFactor = 0;
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = 0;
-                return;
-            case  5:
-            case  6:
-            case  7:
-            case  8:
-                corrFactorDxi[0] *= (1 - zeta);
-                corrFactorDxi[1] *= (1 - zeta);
-                corrFactorDxi[2] =  (1 - zeta) * corrFactorDxi[2] - correctionFactor;
-                correctionFactor *= 1.-zeta;
-                return;
-            case  9:
-            case 10:
-            case 11:
-            case 12:
-                corrFactorDxi[0] *=  2 * correctionFactor;
-                corrFactorDxi[1] *=  2 * correctionFactor;
-                corrFactorDxi[2] *=  2 * correctionFactor;
-                correctionFactor *= correctionFactor;
-                return;
-            case 13:
-                return;//correct
-            case 14:
-            case 15:
-            case 16:
-            case 17:
-                corrFactorDxi[0] *=  3 * correctionFactor * correctionFactor;
-                corrFactorDxi[1] *=  3 * correctionFactor * correctionFactor;
-                corrFactorDxi[2] *=  3 * correctionFactor * correctionFactor;
-                correctionFactor *= correctionFactor * correctionFactor;
-                return;
-            case 18:
-                correctionFactor = 1;
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = 0;
-        }
-    }
 //    void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 //        if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
 //            //para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
@@ -173,288 +90,173 @@ namespace pzgeom {
 //        dphi(1,4) =  0.0;
 //        dphi(2,4) =  1.0;
 //    }
+
+
     
-	
-	// TPZGeoEl *TPZGeoPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
-	// 	if(side<0 || side>18) {
-	// 		cout << "TPZGeoPyramid::CreateBCGeoEl Bad parameter side = " 
-	// 		<< side << "not implemented\n";
-	// 		return 0;
-	// 	}
-		
-	// 	if(side==18) {
-	// 		cout << "TPZGeoPyramid::CreateBCCompEl with side = 18 not implemented\n";
-	// 		return 0;
-	// 	}
-		
-	// 	if(side<5) {
-	// 		TPZManVector<int64_t> nodeindexes(1);
-	// 		//		TPZGeoElPoint *gel;
-	// 		nodeindexes[0] = orig->NodeIndex(side);
-	// 		int64_t index;
-	// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-	// 		//		gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
-	// 		TPZGeoElSide origside(orig,side);
-	// 		TPZGeoElSide(gel,0).SetConnectivity(origside);
-	// 		return gel;
-	// 	} 
-	// 	else if (side > 4 && side < 13) {//side =5 a 12 : lados
-	// 		TPZManVector<int64_t> nodes(2);
-	// 		nodes[0] = orig->SideNodeIndex(side,0);
-	// 		nodes[1] = orig->SideNodeIndex(side,1);
-	// 		int64_t index;
-	// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-	// 		//		TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-	// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,0)));
-	// 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,1)));
-	// 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-	// 		return gel;
-	// 	}
-	// 	else if (side > 12) {//side = 13 a 17 : faces
-	// 		TPZManVector<int64_t> nodes(4);//4o = -1 para face triangular
-	// 		int iside;
-	// 		for (iside=0;iside<4;iside++){
-	// 			nodes[iside] = orig->SideNodeIndex(side,iside);
-	// 		}
-	// 		if(side==13) {
-	// 			int64_t index;
-	// 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
-	// 			//      		gelq = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
-	// 			for (iside=0; iside<8; iside++){
-	// 				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,iside)));
-	// 			}
-	// 			TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
-	// 			return gel;
-	// 		} 
-	// 		else {
-	// 			nodes.Resize(3);
-	// 			int64_t index;
-	// 			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
-	// 			//			gelt = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
-	// 			for (iside=0; iside<6; iside++){
-	// 				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapePiram::ContainedSideLocId(side,iside)));
-	// 			}
-	// 			TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
-	// 			return gel;
-	// 		}
-	// 	} 
-	// 	else 
-	// 		PZError << "TPZGeoPyramid::CreateBCGeoEl. Side = " << side << endl;
-	// 	return 0;
-	// }
-	
-	void TPZGeoPyramid::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
-	{
-		ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-		ChangedPoint = OriginalPoint;
-		
-		switch(side)
-		{
-			case 5:
-			{
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 6:
-			{
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 7:
-			{
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 8:
-			{
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 9:
-			{
-				if( ChangedPoint[0] == 1. && ChangedPoint[1] == -1. )
-				{
-					ChangedPoint[0] =  1. - tol;
-					ChangedPoint[1] = -1. + tol;
-				}
-				if( ChangedPoint[0] == 1. && ChangedPoint[1] == 1. )
-				{
-					ChangedPoint[0] = 1. - tol;
-					ChangedPoint[1] = 1. - tol;
-				}
-				if( ChangedPoint[0] == -1. && ChangedPoint[1] == 1. )
-				{
-					ChangedPoint[0] = -1. + tol;
-					ChangedPoint[1] =  1. - tol;
-				}
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 10:
-			{
-				if( ChangedPoint[0] == -1. && ChangedPoint[1] == -1. )
-				{
-					ChangedPoint[0] = -1. + tol;
-					ChangedPoint[1] = -1. + tol;
-				}
-				if( ChangedPoint[0] == -1. && ChangedPoint[1] == 1. )
-				{
-					ChangedPoint[0] = -1. + tol;
-					ChangedPoint[1] =  1. - tol;
-				}
-				if( ChangedPoint[0] ==  1. && ChangedPoint[1] == 1. )
-				{
-					ChangedPoint[0] = 1. - tol;
-					ChangedPoint[1] = 1. - tol;
-				}
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 11:
-			{
-				if( ChangedPoint[0] ==  1. && ChangedPoint[1] == -1. )
-				{
-					ChangedPoint[0] =  1. - tol;
-					ChangedPoint[1] = -1. + tol;
-				}
-				if( ChangedPoint[0] == -1. && ChangedPoint[1] == -1. )
-				{
-					ChangedPoint[0] = -1. + tol;
-					ChangedPoint[1] = -1. + tol;
-				}
-				if( ChangedPoint[0] == -1. && ChangedPoint[1] ==  1. )
-				{
-					ChangedPoint[0] = -1. + tol;
-					ChangedPoint[1] =  1. - tol;
-				}
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 12:
-			{
-				if( ChangedPoint[0] ==  1. && ChangedPoint[1] ==  1. )
-				{
-					ChangedPoint[0] = 1. - tol;
-					ChangedPoint[1] = 1. - tol;
-				}
-				if( ChangedPoint[0] ==  1. && ChangedPoint[1] == -1. )
-				{
-					ChangedPoint[0] =  1. - tol;
-					ChangedPoint[1] = -1. + tol;
-				}
-				if( ChangedPoint[0] == -1. && ChangedPoint[1] == -1. )
-				{
-					ChangedPoint[0] = -1. + tol;
-					ChangedPoint[1] = -1. + tol;
-				}
-				if(OriginalPoint[2] ==  1.)
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 13:
-			{
-				if( ChangedPoint[2] ==  1. )
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 14:
-			{
-				if( ChangedPoint[2] ==  1. )
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				if( (ChangedPoint[0] ==  1. && ChangedPoint[0] ==  1.) || (ChangedPoint[0] ==  -1. && ChangedPoint[0] ==  1.) )
-				{
-					ChangedPoint[1] = 1. - tol;
-				}
-				break;
-			}
-				
-			case 15:
-			{
-				if( ChangedPoint[2] ==  1. )
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				if( (ChangedPoint[0] ==  -1. && ChangedPoint[0] ==  1.) || (ChangedPoint[0] ==  -1. && ChangedPoint[0] ==  -1.) )
-				{
-					ChangedPoint[0] = -1. + tol;
-				}
-				break;
-			}
-				
-			case 16:
-			{
-				if( ChangedPoint[2] ==  1. )
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				if( (ChangedPoint[0] ==  1. && ChangedPoint[0] == -1.) || (ChangedPoint[0] ==  -1. && ChangedPoint[0] == -1.) )
-				{
-					ChangedPoint[1] = -1. + tol;
-				}
-				break;
-			}
-				
-			case 17:
-			{
-				if( ChangedPoint[2] ==  1. )
-				{
-					ChangedPoint[2] = 1. - tol;
-				}
-				if( (ChangedPoint[0] ==  1. && ChangedPoint[0] ==  1.) || (ChangedPoint[0] ==  1. && ChangedPoint[0] ==  -1.) )
-				{
-					ChangedPoint[0] = 1. - tol;
-				}
-				break;
-			}
-		}
-	}
-	
-	/**
-	 * Creates a geometric element according to the type of the father element
-	 */
-	// TPZGeoEl *TPZGeoPyramid::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-	// 										  TPZVec<int64_t>& nodeindexes,
-	// 										  int matid,
-	// 										  int64_t& index)
-	// {
-	// 	return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
-	// }
+
+    void TPZGeoPyramid::FixSingularity(int side, TPZVec<REAL> &OriginalPoint, TPZVec<REAL> &ChangedPoint) {
+        ChangedPoint.Resize(OriginalPoint.NElements(), 0.);
+        ChangedPoint = OriginalPoint;
+
+        switch (side) {
+            case 5: {
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 6: {
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 7: {
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 8: {
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 9: {
+                if (ChangedPoint[0] == 1. && ChangedPoint[1] == -1.) {
+                    ChangedPoint[0] = 1. - tol;
+                    ChangedPoint[1] = -1. + tol;
+                }
+                if (ChangedPoint[0] == 1. && ChangedPoint[1] == 1.) {
+                    ChangedPoint[0] = 1. - tol;
+                    ChangedPoint[1] = 1. - tol;
+                }
+                if (ChangedPoint[0] == -1. && ChangedPoint[1] == 1.) {
+                    ChangedPoint[0] = -1. + tol;
+                    ChangedPoint[1] = 1. - tol;
+                }
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 10: {
+                if (ChangedPoint[0] == -1. && ChangedPoint[1] == -1.) {
+                    ChangedPoint[0] = -1. + tol;
+                    ChangedPoint[1] = -1. + tol;
+                }
+                if (ChangedPoint[0] == -1. && ChangedPoint[1] == 1.) {
+                    ChangedPoint[0] = -1. + tol;
+                    ChangedPoint[1] = 1. - tol;
+                }
+                if (ChangedPoint[0] == 1. && ChangedPoint[1] == 1.) {
+                    ChangedPoint[0] = 1. - tol;
+                    ChangedPoint[1] = 1. - tol;
+                }
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 11: {
+                if (ChangedPoint[0] == 1. && ChangedPoint[1] == -1.) {
+                    ChangedPoint[0] = 1. - tol;
+                    ChangedPoint[1] = -1. + tol;
+                }
+                if (ChangedPoint[0] == -1. && ChangedPoint[1] == -1.) {
+                    ChangedPoint[0] = -1. + tol;
+                    ChangedPoint[1] = -1. + tol;
+                }
+                if (ChangedPoint[0] == -1. && ChangedPoint[1] == 1.) {
+                    ChangedPoint[0] = -1. + tol;
+                    ChangedPoint[1] = 1. - tol;
+                }
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 12: {
+                if (ChangedPoint[0] == 1. && ChangedPoint[1] == 1.) {
+                    ChangedPoint[0] = 1. - tol;
+                    ChangedPoint[1] = 1. - tol;
+                }
+                if (ChangedPoint[0] == 1. && ChangedPoint[1] == -1.) {
+                    ChangedPoint[0] = 1. - tol;
+                    ChangedPoint[1] = -1. + tol;
+                }
+                if (ChangedPoint[0] == -1. && ChangedPoint[1] == -1.) {
+                    ChangedPoint[0] = -1. + tol;
+                    ChangedPoint[1] = -1. + tol;
+                }
+                if (OriginalPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 13: {
+                if (ChangedPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                break;
+            }
+
+            case 14: {
+                if (ChangedPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                if ((ChangedPoint[0] == 1. && ChangedPoint[0] == 1.) ||
+                    (ChangedPoint[0] == -1. && ChangedPoint[0] == 1.)) {
+                    ChangedPoint[1] = 1. - tol;
+                }
+                break;
+            }
+
+            case 15: {
+                if (ChangedPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                if ((ChangedPoint[0] == -1. && ChangedPoint[0] == 1.) ||
+                    (ChangedPoint[0] == -1. && ChangedPoint[0] == -1.)) {
+                    ChangedPoint[0] = -1. + tol;
+                }
+                break;
+            }
+
+            case 16: {
+                if (ChangedPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                if ((ChangedPoint[0] == 1. && ChangedPoint[0] == -1.) ||
+                    (ChangedPoint[0] == -1. && ChangedPoint[0] == -1.)) {
+                    ChangedPoint[1] = -1. + tol;
+                }
+                break;
+            }
+
+            case 17: {
+                if (ChangedPoint[2] == 1.) {
+                    ChangedPoint[2] = 1. - tol;
+                }
+                if ((ChangedPoint[0] == 1. && ChangedPoint[0] == 1.) ||
+                    (ChangedPoint[0] == 1. && ChangedPoint[0] == -1.)) {
+                    ChangedPoint[0] = 1. - tol;
+                }
+                break;
+            }
+        }
+    }
+
+  
 
     /// create an example element based on the topology
     /* @param gmesh mesh in which the element should be inserted
@@ -462,19 +264,19 @@ namespace pzgeom {
      @param lowercorner (in/out) on input lower corner o the cube where the element should be created, on exit position of the next cube
      @param size (in) size of space where the element should be created
      */
-    void TPZGeoPyramid::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
-    {
-        TPZManVector<REAL,3> co(3),shift(3),scale(3);
-        TPZManVector<int64_t,3> nodeindexes(8);
-        for (int i=0; i<3; i++) {
-            scale[i] = size[i]/3.;
-            shift[i] = 1./2.+lowercorner[i];
+    void
+    TPZGeoPyramid::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size) {
+        TPZManVector<REAL, 3> co(3), shift(3), scale(3);
+        TPZManVector<int64_t, 3> nodeindexes(8);
+        for (int i = 0; i < 3; i++) {
+            scale[i] = size[i] / 3.;
+            shift[i] = 1. / 2. + lowercorner[i];
         }
-        
-        for (int i=0; i<NCornerNodes; i++) {
+
+        for (int i = 0; i < NCornerNodes; i++) {
             ParametricDomainNodeCoord(i, co);
-            for (int j=0; j<3; j++) {
-                co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
+            for (int j = 0; j < 3; j++) {
+                co[j] = shift[j] + scale[j] * co[j] + (rand() * 0.2 / RAND_MAX) - 0.1;
             }
             nodeindexes[i] = gmesh.NodeVec().AllocateNewElement();
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
@@ -482,27 +284,17 @@ namespace pzgeom {
         int64_t index;
         gmesh.CreateGeoElement(EPiramide, nodeindexes, matid, index);
     }
-    
-    int TPZGeoPyramid::ClassId() const{
+
+    int TPZGeoPyramid::ClassId() const {
         return Hash("TPZGeoPyramid") ^ TPZNodeRep<5, pztopology::TPZPyramid>::ClassId() << 1;
     }
-    
-    void TPZGeoPyramid::Read(TPZStream& buf, void* context) {
-        TPZNodeRep<5, pztopology::TPZPyramid>::Read(buf,context);
+
+    void TPZGeoPyramid::Read(TPZStream &buf, void *context) {
+        TPZNodeRep<5, pztopology::TPZPyramid>::Read(buf, context);
     }
 
-    void TPZGeoPyramid::Write(TPZStream& buf, int withclassid) const {
-        TPZNodeRep<5, pztopology::TPZPyramid>::Write(buf,withclassid);
+    void TPZGeoPyramid::Write(TPZStream &buf, int withclassid) const {
+        TPZNodeRep<5, pztopology::TPZPyramid>::Write(buf, withclassid);
     }
-
-    template void TPZGeoPyramid::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
 };
-
-#ifdef _AUTODIFF
-template<class T=REAL>
-class Fad;
-
-template void pzgeom::TPZGeoPyramid::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
-        TPZVec<Fad<REAL>> &);
-#endif

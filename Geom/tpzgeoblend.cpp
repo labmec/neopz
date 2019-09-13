@@ -89,7 +89,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
     {   soutLogDebug<<"======================_______REF_1"<<std::endl;
-        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX2"<<std::endl;
+        soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
         soutLogDebug << "xi: ";
         for(int i = 0; i < xiInterior.size(); i++) soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<xiInterior[i]<<"\t";
@@ -106,8 +106,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
     TPZFNMatrix<9, T> phi(TGeo::NNodes, 1), dPhiDxi(TGeo::Dimension, TGeo::NNodes);
     TGeo::TShape(xiInterior, phi, dPhiDxi);//gets the barycentric coordinates
 
-//    TPZFNMatrix<45,REAL> coord(3, TGeo::NNodes);
-//    this->CornerCoordinates(gel, coord);//gets nodes coordinates in the deformed element
 
     TPZFNMatrix<45,T> gradXLin(3, TGeo::Dimension,(T)0);
     for (int iNode = 0; iNode < TGeo::NNodes; iNode++) {//calculates the linear mapping
@@ -124,7 +122,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
     }
 
 #ifdef LOG4CXX
-    soutLogDebug<<"======================_______REF_2"<<std::endl;
+    soutLogDebug<<"FIRST TERM"<<std::endl;
     soutLogDebug << "gradient of linear mapping:\n";
     if (logger->isDebugEnabled()) {
         for (int i = 0; i < gradXLin.Rows(); i++) {
@@ -145,7 +143,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
                                              TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
     TPZVec<TPZFMatrix<T> > gradLinSideVec(TGeo::NSides - TGeo::NNodes,
                                           TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
-    TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, (T)0);
+    TPZManVector<T, 20> blendFactor(TGeo::NSides - TGeo::NNodes, (T)0);
     TPZFNMatrix<27,T> dCorrFactorDxi(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, (T) 0);
     TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
     TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
@@ -165,7 +163,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
         }
         #endif
         if (IsLinearMapping(side) || !gelside.Exists()) {
-            correctionFactor[sideIndex] = 0;
+            blendFactor[sideIndex] = 0;
             #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 if (IsLinearMapping(side)) soutLogDebug << "true" << std::endl;
@@ -239,7 +237,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
 
         #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
-            soutLogDebug<<"======================_______REF_3"<<std::endl;
             soutLogDebug << "xi projection over side: ";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug << xiProjectedOverSide[x] << "\t";
             soutLogDebug << "\nGrad of projected point to side:\n";
@@ -277,7 +274,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
          */
         {
             TPZManVector<T,3> dCorrFactor(TGeo::Dimension,(T)0);
-            TGeo::CalcSideInfluence(side, xiInterior, correctionFactor[sideIndex], dCorrFactor);
+            TGeo::BlendFactorForSide(side, xiInterior, blendFactor[sideIndex], dCorrFactor);
             for(int iXi = 0; iXi < TGeo::Dimension; iXi++){
                 dCorrFactorDxi(sideIndex,iXi) = dCorrFactor[iXi];
             }
@@ -324,62 +321,57 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
 #endif
             if (IsLinearMapping(subSide)) continue;
 
-            T correctionFactorSide = -1;
+            T blendFactorSide = -1;
             TPZManVector<T,3> dCorrFactorSideDxiProj(TGeo::Dimension,(T)0);
             TPZFNMatrix<3, T> dCorrFactorSideDxi(TGeo::Dimension,1,(T)0);
-            TGeo::CalcSideInfluence(subSide, xiProjectedOverSide, correctionFactorSide, dCorrFactorSideDxiProj);
+            TGeo::BlendFactorForSide(subSide, xiProjectedOverSide, blendFactorSide, dCorrFactorSideDxiProj);
 
-            bool shouldContributeToMapping = correctionFactorSide > zero;
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
-                if (!shouldContributeToMapping) soutLogDebug << "\tSubside influence :0" << std::endl;
-                else soutLogDebug << "\tSubside influence :" << correctionFactorSide << std::endl;
+                soutLogDebug << "\tSubside influence :" << blendFactorSide << std::endl;
             }
 #endif
-            if (shouldContributeToMapping) {
-                TPZFNMatrix<3, T> dCorrFactorSideDxiProjMat(1,TGeo::Dimension,(T)0);
-                for(int xi = 0; xi < TGeo::Dimension; xi++){
-                    dCorrFactorSideDxiProjMat(0,xi) = dCorrFactorSideDxiProj[xi];
-                }
+            TPZFNMatrix<3, T> dCorrFactorSideDxiProjMat(1,TGeo::Dimension,(T)0);
+            for(int xi = 0; xi < TGeo::Dimension; xi++){
+                dCorrFactorSideDxiProjMat(0,xi) = dCorrFactorSideDxiProj[xi];
+            }
 
 //                 dCorrFactorSideDxi = dXiProjectedOverSideDxi. dCorrFactorSideDxiProjMat
 //                dXiProjectedOverSideDxi.Multiply(dCorrFactorSideDxiProjMat,dCorrFactorSideDxi);//mostrarphil
 
 //                dCorrFactorSideDxi = dCorrFactorSideDxiProjMat . dXiProjectedOverSideDxi;
-                dCorrFactorSideDxiProjMat.Multiply(dXiProjectedOverSideDxi,dCorrFactorSideDxi);
-                #ifdef LOG4CXX
-                if (logger->isDebugEnabled()) {
-                    soutLogDebug << "\n\tGrad of correction factor of point projected to side:\n";
-                    for(int i = 0; i < dCorrFactorSideDxi.Rows(); i++){
-                        soutLogDebug<<"\t";
-                        for(int j = 0; j < dCorrFactorSideDxi.Cols(); j++){
-                            soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<dCorrFactorSideDxi(i,j);
-                            if(j != dCorrFactorSideDxi.Cols() - 1) soutLogDebug<<"\t";
-                        }
-                        soutLogDebug<<std::endl;
+            dCorrFactorSideDxiProjMat.Multiply(dXiProjectedOverSideDxi,dCorrFactorSideDxi);
+            #ifdef LOG4CXX
+            if (logger->isDebugEnabled()) {
+                soutLogDebug << "\n\tGrad of correction factor of point projected to side:\n";
+                for(int i = 0; i < dCorrFactorSideDxi.Rows(); i++){
+                    soutLogDebug<<"\t";
+                    for(int j = 0; j < dCorrFactorSideDxi.Cols(); j++){
+                        soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<dCorrFactorSideDxi(i,j);
+                        if(j != dCorrFactorSideDxi.Cols() - 1) soutLogDebug<<"\t";
                     }
+                    soutLogDebug<<std::endl;
                 }
-                #endif
-                TPZFMatrix<T> &gradNonLinSubSide = gradNonLinSideVec[subSide - TGeo::NNodes];
-                TPZFMatrix<T> &gradLinSubSide = gradLinSideVec[subSide - TGeo::NNodes];
-                for (int x = 0; x < 3; x++) {
-                    nonLinearSideMappings(sideIndex, x) -=
-                            correctionFactorSide *
-                            (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
-                             linearSideMappings(subSide - TGeo::NNodes, x));
-                    for (int j = 0; j < TGeo::Dimension; j++) {
-                        gradNonLinSide(x,j) -= correctionFactorSide *  (gradNonLinSubSide(x,j)-gradLinSubSide(x,j));
-                        gradNonLinSide(x,j) -= dCorrFactorSideDxi(0,j) *
-                                               (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
-                                                linearSideMappings(subSide - TGeo::NNodes, x));
-                    }
+            }
+            #endif
+            TPZFMatrix<T> &gradNonLinSubSide = gradNonLinSideVec[subSide - TGeo::NNodes];
+            TPZFMatrix<T> &gradLinSubSide = gradLinSideVec[subSide - TGeo::NNodes];
+            for (int x = 0; x < 3; x++) {
+                nonLinearSideMappings(sideIndex, x) -=
+                        blendFactorSide *
+                        (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
+                         linearSideMappings(subSide - TGeo::NNodes, x));
+                for (int j = 0; j < TGeo::Dimension; j++) {
+                    gradNonLinSide(x,j) -= blendFactorSide *  (gradNonLinSubSide(x,j)-gradLinSubSide(x,j));
+                    gradNonLinSide(x,j) -= dCorrFactorSideDxi(0,j) *
+                                           (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
+                                            linearSideMappings(subSide - TGeo::NNodes, x));
                 }
             }
         }
 //        }
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
-            soutLogDebug<<"======================_______REF_4"<<std::endl;
             soutLogDebug << "Non-linear mapping: ";
             for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\t";
             soutLogDebug << "\nGrad of non-linear mapping:\n";
@@ -392,15 +384,43 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
             }
             soutLogDebug << std::endl;
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
-            soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
+            soutLogDebug << "\t\tcorrection factor: " << blendFactor[sideIndex] << std::endl;
+            soutLogDebug << "\t\tdCorrFactorDxi: ";
             for(int i = 0; i < TGeo::Dimension; i++) soutLogDebug<<dCorrFactorDxi(sideIndex,i)<<"\t";
+            soutLogDebug << "\n";
+
+            soutLogDebug<<"SECOND TERM (SIDE "<<sideIndex<<") :"<<std::endl;
+            soutLogDebug << "\t\tblendFactor *  (gradNonLinSide-gradLinSide): " << std::endl;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < TGeo::Dimension; j++) {
+                    const T val = blendFactor[sideIndex] *  (gradNonLinSide(i,j)-gradLinSide(i,j));
+                    soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<val;
+                    if(j != TGeo::Dimension - 1) soutLogDebug<<"\t";
+                }
+                soutLogDebug << "\n";
+            }
+            soutLogDebug<<"THIRD TERM (SIDE "<<sideIndex<<") :"<<std::endl;
+            soutLogDebug << "\t\tdCorrFactorDxi *\n"
+                            "                              (nonLinearSideMappings -\n"
+                            "                               linearSideMappings): " << std::endl;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < TGeo::Dimension; j++) {
+                    const T val = dCorrFactorDxi(sideIndex,j) *
+                                  (nonLinearSideMappings(sideIndex, i) -
+                                   linearSideMappings(sideIndex,i));
+                    soutLogDebug<<std::setw(VAL_WIDTH) << std::right<<val;
+                    if(j != TGeo::Dimension - 1) soutLogDebug<<"\t";
+                }
+                soutLogDebug << "\n";
+            }
+
             soutLogDebug<<std::endl;
         }
 #endif
 
-        for (int i = 0; i < 3 && correctionFactor[sideIndex] > zero; i++) {
+        for (int i = 0; i < 3; i++) {
             for (int j = 0; j < TGeo::Dimension; j++) {
-                gradx(i,j) += correctionFactor[sideIndex] *  (gradNonLinSide(i,j)-gradLinSide(i,j));
+                gradx(i,j) += blendFactor[sideIndex] *  (gradNonLinSide(i,j)-gradLinSide(i,j));
                 gradx(i,j) += dCorrFactorDxi(sideIndex,j) *
                               (nonLinearSideMappings(sideIndex, i) -
                                linearSideMappings(sideIndex,i));
@@ -409,7 +429,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
     }
 #ifdef LOG4CXX
     if(logger->isDebugEnabled()){
-        soutLogDebug<<"======================_______REF_5"<<std::endl;
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;
@@ -451,7 +470,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     std::ostringstream soutLogDebug;
     if(logger->isDebugEnabled())
     {
-        soutLogDebug<<"======================_______REF_1"<<std::endl;
         soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
         soutLogDebug << "xi: ";
@@ -479,7 +497,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     #ifdef LOG4CXX
     if(logger->isDebugEnabled())
     {
-        soutLogDebug<<"======================_______REF_2"<<std::endl;
         soutLogDebug << "Linear mapping:\n"<<std::endl;
         for(int i = 0; i < result.size(); i++) soutLogDebug<<result[i]<<"\n";
         soutLogDebug<<std::endl;
@@ -490,7 +507,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
      * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
      */
     TPZGeoMesh *gmesh = gel.Mesh();
-    TPZManVector<T, 20> correctionFactor(TGeo::NSides - TGeo::NNodes, 0.);
+    TPZManVector<T, 20> blendFactor(TGeo::NSides - TGeo::NNodes, 0.);
     TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
     TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
     TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
@@ -505,7 +522,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
         }
         #endif
         if (IsLinearMapping(side) || !gelside.Exists()) {
-            correctionFactor[sideIndex] = 0;
+            blendFactor[sideIndex] = 0;
             #ifdef LOG4CXX
             if(logger->isDebugEnabled()){
                 if( IsLinearMapping(side) )  soutLogDebug <<"true"<<std::endl;
@@ -527,7 +544,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
         if(!regularMap) {
             #ifdef LOG4CXX
             if(logger->isDebugEnabled()){
-                soutLogDebug <<"mapping is not regular. skipping side... ";
+                soutLogDebug <<"mapping is not regular. skip ping side... ";
 
             }
             #endif
@@ -557,7 +574,6 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
          */
         #ifdef LOG4CXX
         if(logger->isDebugEnabled()){
-            soutLogDebug<<"======================_______REF_3"<<std::endl;
             soutLogDebug <<"xi projection over side:\n";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\n";
             soutLogDebug<<std::endl<<"xi projection in side domain:\n";
@@ -567,7 +583,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
         }
         #endif
 
-        TGeo::CalcSideInfluence(side, xi, correctionFactor[sideIndex], notUsedHereVec);
+        TGeo::BlendFactorForSide(side, xi, blendFactor[sideIndex], notUsedHereVec);
         int sidedim = gelside.Dimension();
         TPZManVector<T, 3> neighXi;
         if (!MapToNeighSide(side, sidedim, xi, neighXi, notUsedHereMat)) {
@@ -608,47 +624,42 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
                 projectedPoint[x] = projectedPointOverSide(sideIndex, x);
             }
 
-            T correctionFactorSide = -1;
-            TGeo::CalcSideInfluence(subSide, projectedPoint, correctionFactorSide,notUsedHereVec);
-            bool shouldContributeToMapping = correctionFactorSide > zero;
+            T blendFactorSide = -1;
+            TGeo::BlendFactorForSide(subSide, projectedPoint, blendFactorSide,notUsedHereVec);
+
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
-                if (!shouldContributeToMapping) soutLogDebug << "\tSubside influence :0" << std::endl;
-                else soutLogDebug << "\tSubside influence :" << correctionFactorSide << std::endl;
+                soutLogDebug << "\tSubside influence :" << blendFactorSide << std::endl;
             }
 #endif
-            if(shouldContributeToMapping){
-                for (int x = 0; x < 3; x++) {
-                    nonLinearSideMappings(sideIndex, x) -=
-                            correctionFactorSide *
-                            (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
-                             linearSideMappings(subSide - TGeo::NNodes, x));
-                }
+            for (int x = 0; x < 3; x++) {
+                nonLinearSideMappings(sideIndex, x) -=
+                        blendFactorSide *
+                        (nonLinearSideMappings(subSide - TGeo::NNodes, x) -
+                         linearSideMappings(subSide - TGeo::NNodes, x));
             }
 
         }
 //        }
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
-            soutLogDebug<<"======================_______REF_4"<<std::endl;
             soutLogDebug << "Non-linear mapping\n";
             for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\n";
             soutLogDebug << std::endl;
 
             soutLogDebug << "adding to result mapping of side: " << side << std::endl;
-            soutLogDebug << "\t\tcorrection factor: " << correctionFactor[sideIndex] << std::endl;
+            soutLogDebug << "\t\tblend factor: " << blendFactor[sideIndex] << std::endl;
 //            LOGPZ_DEBUG(logger,soutLogDebug.str())
 //            soutLogDebug.str("");
         }
 #endif
-        for (int x = 0; x < 3 && correctionFactor[sideIndex] > zero; x++) {
-            result[x] += correctionFactor[sideIndex] *
+        for (int x = 0; x < 3; x++) {
+            result[x] += blendFactor[sideIndex] *
                          (nonLinearSideMappings(sideIndex, x) - linearSideMappings(sideIndex, x));
         }
     }
 #ifdef LOG4CXX
     if(logger->isDebugEnabled()){
-        soutLogDebug<<"======================_______REF_5"<<std::endl;
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;
@@ -1049,7 +1060,11 @@ IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
 
 #undef IMPLEMENTBLEND
 
-#include "pznoderep.h.h"
-template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
-template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
+
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+
+//#include "pznoderep.h.h"
+//template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
+//template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
 
