@@ -22,7 +22,7 @@
 template<class TVar>
 class TPZRandomField : public TPZFunction<TVar>
 {
-	
+    
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
     void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
@@ -49,10 +49,10 @@ class TPZRandomField : public TPZFunction<TVar>
     bool flognormDistribution; // lognormal distribution
     
 public:
-	
+    
     /** @brief Class constructor */
     TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
-    REAL inclination, REAL rw, REAL rext, const TPZFMatrix<TVar> &M) : TPZFunction<TVar>(), fPorder(-1)
+                   REAL inclination, REAL rw, REAL rext, const TPZFMatrix<TVar> &M) : TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc  = 0;
         fFunc2 = 0;
@@ -73,7 +73,7 @@ public:
         fM = M;
         
         CalculateStochasticField(); //This should be called by the object
-
+        
     }
     
     virtual void CalculateStochasticField(){
@@ -127,7 +127,7 @@ public:
         fnSquareElements = numSquareElems;  // number of Square Elements
         frw = rw;
         frext = rext;
-
+        
         if (fstochasticInclined==true){
             InclinedFieldGeometry();
         }
@@ -203,28 +203,28 @@ public:
         }
         //}
         
-//        else if(flognormDistribution==true){
-//
-//            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-//            std::default_random_engine generator (seed);
-//            std::lognormal_distribution<double> distribution(0.,1.0);
-//
-//            // Random Vector U
-//            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
-//
-//            for (int i = 0; i < matrixSize; i++) {
-//                Rand_U(i,0) = distribution(generator);
-//                distribution.reset();
-//                fRand_U = Rand_U;
-//            }
-//        }
+        //        else if(flognormDistribution==true){
+        //
+        //            unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        //            std::default_random_engine generator (seed);
+        //            std::lognormal_distribution<double> distribution(0.,1.0);
+        //
+        //            // Random Vector U
+        //            TPZFMatrix<TVar> Rand_U (matrixSize, 1, 0.);
+        //
+        //            for (int i = 0; i < matrixSize; i++) {
+        //                Rand_U(i,0) = distribution(generator);
+        //                distribution.reset();
+        //                fRand_U = Rand_U;
+        //            }
+        //        }
         return fRand_U;
     }
     
     
- 
-	/** @brief Class destructor */
-	virtual ~TPZRandomField()
+    
+    /** @brief Class destructor */
+    virtual ~TPZRandomField()
     {
         
     }
@@ -232,28 +232,28 @@ public:
     TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val))
     {
         fFunc = FuncPtr;
-		fFunc2 = 0;
+        fFunc2 = 0;
         fFunc3 = 0;
         fFunc4 = 0;
-		fPorder = -1;
+        fPorder = -1;
     }
     
     TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
     {
-		fFunc = 0;
-        fFunc2 = FuncPtr;		
+        fFunc = 0;
+        fFunc2 = FuncPtr;
         fFunc3 = 0;
         fFunc4 = 0;
-		fPorder = -1;
+        fPorder = -1;
     }
-	
+    
     TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
     {
-		fFunc = 0;
-        fFunc2 = 0;		
+        fFunc = 0;
+        fFunc2 = 0;
         fFunc3 = FuncPtr;
         fFunc4 = 0;
-		fPorder = -1;
+        fPorder = -1;
     }
     
     TPZRandomField(void (*FuncPtr)(const TPZVec<REAL> &f, int id))
@@ -270,64 +270,64 @@ public:
         
     }
     
-
+    
     TPZRandomField &operator=(const TPZRandomField &cp)
     {
         fFunc = cp.fFunc;
-		fFunc2 = cp.fFunc2;
-		fFunc3 = cp.fFunc3;
+        fFunc2 = cp.fFunc2;
+        fFunc3 = cp.fFunc3;
         fFunc4 = cp.fFunc4;
         fPorder = cp.fPorder;
         return *this;
     }
     
-	/**
-	 * @brief Performs function computation
-	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-	 * @param f function values
-	 * @param df function derivatives
-	 */
-	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
+    /**
+     * @brief Performs function computation
+     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+     * @param f function values
+     * @param df function derivatives
+     */
+    virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
     {
         if (!fFunc2) {
-			DebugStop();
-		}
+            DebugStop();
+        }
         fFunc2(x, f, df);
     }
-	
-	/**
-	 * @brief Performs time dependent function computation
-	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-	 * @param ftime  time to evaluate	 
-	 * @param f function values
-	 * @param gradf function derivatives
-	 */	
-	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
+    
+    /**
+     * @brief Performs time dependent function computation
+     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+     * @param ftime  time to evaluate
+     * @param f function values
+     * @param gradf function derivatives
+     */
+    virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
     {
         if (!fFunc3) {
-			DebugStop();
-		}
+            DebugStop();
+        }
         fFunc3(x, ftime, f, gradf);
-    }	
+    }
     
-	/**
-	 * @brief Execute method receiving axes. It is used in shape functions
-	 * @note NOT IMPLEMENTED
-	 */
-	virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
+    /**
+     * @brief Execute method receiving axes. It is used in shape functions
+     * @note NOT IMPLEMENTED
+     */
+    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
         DebugStop();
     }
     
     /**
-	 * @brief Simpler version of Execute method which does not compute function derivatives 
-	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-	 * @param f function values
-	 */
+     * @brief Simpler version of Execute method which does not compute function derivatives
+     * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+     * @param f function values
+     */
     // This method gives random values of Young Modulus from a specific range
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f) {
         //REAL E = rand() % 3000 + 15300 + 1; // not uniform
         //REAL E = arc4random_uniform(3001) + 15300; //uniform distribution
-		//f[0]   = E;
+        //f[0]   = E;
         
     }
     
@@ -344,10 +344,10 @@ public:
             f[0] = gelFail->SideArea(8);
         }
         else {
-        f[0] = 0.0;
+            f[0] = 0.0;
         }
         
-         //
+        //
     }
     
     // Calc Correlation Matrix
@@ -360,7 +360,7 @@ public:
     }
     
     
-    // Print Correlation Matrix to be decomposed at Mathematica   
+    // Print Correlation Matrix to be decomposed at Mathematica
     virtual void PrintCorrelation() {
         std::ofstream out_kmatrix("KCorr.txt");
         fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
@@ -573,22 +573,22 @@ public:
         
         return KCorr;
     }
-
-   
+    
+    
     /** @brief Returns number of functions. */
-	virtual int NFunctions()
+    virtual int NFunctions()
     {
         return 1;
     }
-
+    
     void SetPolynomialOrder(int porder)
     {
         fPorder = porder;
     }
-	
-	/** @brief Polynomial order of this function. */
-	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() 
+    
+    /** @brief Polynomial order of this function. */
+    /** In case of non-polynomial function it can be a reasonable approximation order. */
+    virtual int PolynomialOrder()
     {
 #ifdef DEBUG
         if (fPorder == -1) {
@@ -597,22 +597,22 @@ public:
 #endif
         return fPorder;
     }
-	
-	/** @brief Unique identifier for serialization purposes */
-	virtual int ClassId() const
+    
+    /** @brief Unique identifier for serialization purposes */
+    virtual int ClassId() const
     {
         return -1;
     }
-	
-	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid)
+    
+    /** @brief Saves the element data to a stream */
+    virtual void Write(TPZStream &buf, int withclassid)
     {
-//        DebugStop();
+        //        DebugStop();
         TPZSaveable::Write(buf,withclassid);
     }
-	
-	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context)
+    
+    /** @brief Reads the element data from a stream */
+    virtual void Read(TPZStream &buf, void *context)
     {
         DebugStop();
     }
