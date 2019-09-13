@@ -12,6 +12,7 @@
 
 class TPZGeoElSide;
 class TPZCompMesh;
+class TPZGeoMesh;
 class TPZCompEl;
 template<class T,int N>
 class TPZStack;
@@ -219,6 +220,12 @@ virtual int ClassId() const override;
 	 */
 	virtual  TPZGeoEl *CreateBCGeoEl(int side, int bc) override;
 	
+	/**
+	 * @brief Method which creates a blend geometrical boundary condition element
+	 * based on the current geometric element, a side and a boundary condition index
+	 */
+	virtual TPZGeoEl *CreateBCGeoBlendEl(int side, int bc);
+
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
 									   TPZVec<int64_t>& nodeindexes,

@@ -1,7 +1,6 @@
-/**
- * @file
- * @brief Contains the implementation of the TPZGeoElRefLess methods.
- */
+
+/// @brief Contains the implementation of the TPZGeoElRefLess methods.
+
 
 #ifndef PZGEOELREFLESS_H_H
 #define PZGEOELREFLESS_H_H
@@ -10,6 +9,7 @@
 #include "tpzpyramid.h"
 #include "pzgnode.h"
 #include "pzgeom_utility.h"
+#include "pzgmesh.h"
 
 #include <sstream>
 
@@ -212,14 +212,98 @@ TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 }
 
 
+// template<class TGeo>
+// TPZGeoEl *
+// TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
+// 	TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
+// //    result->BuildBlendConnectivity();
+// 	result->Initialize();
+// 	return result;  
+// }
+
 template<class TGeo>
 TPZGeoEl *
 TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
-	TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
-//    result->BuildBlendConnectivity();
-	result->Initialize();
-	return result;  
+	// Consistency check
+	int nsides = TGeo::NSides;
+	if(side<0 || side >= nsides){
+		std::cout << "\n ("<<TGeo::Type()<<")::CreateBCGeoEl unexpected side = " << side << "\n";
+		return 0;
+	}
+	if(fGeo.Dimension == 3 && side == nsides){
+		std::cout <<"\nCreateBCGeoEl not implemented for tridimensional sides \n";
+		return 0;
+	}
+
+	// Is side straight?
+	TPZStack<int> LowAllSides;
+	TGeo::LowerDimensionSides(side,LowAllSides);
+    LowAllSides.Push(side);
+	bool straight = true;
+	for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
+	{
+		int lside = LowAllSides[lowside]; 
+		if(lside < TGeo::NNodes) continue;
+		if(fGeo.IsLinearMapping(lside) == false) straight = false;
+		if(straight == false) break;
+	}
+	if(straight == false)
+	{
+		TPZGeoEl *BCGeoEl = CreateBCGeoBlendEl(side,bc);
+		return BCGeoEl;
+	}
+	
+	// else
+
+	// Build vector with node indices of element to be created
+	int sidennodes = TGeo::NSideNodes(side);
+	TPZManVector<int64_t,4> nodeindices(sidennodes);
+	for(int inode = 0; inode < sidennodes; inode++){
+		nodeindices[inode] = this->SideNodeIndex(side,inode);
+	}
+
+	// Create GeoElement
+	int64_t index;
+	MElementType BCtype = TGeo::Type(side);
+	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index);
+
+	// Set Connectivity
+	int sidensides = TGeo::NContainedSides(side);
+	for(int iside=0; iside < sidensides-1; iside++){
+		TPZGeoElSide(BCGeoEl,iside).SetConnectivity(TPZGeoElSide(this,TGeo::ContainedSideLocId(side,iside)));
+	}
+	TPZGeoElSide(BCGeoEl, sidensides-1).SetConnectivity(TPZGeoElSide(this,side));
+
+	// Return pointer to new element
+	BCGeoEl->Initialize();
+	return BCGeoEl;  
 }
+
+
+template <class TGeo>
+TPZGeoEl *TPZGeoElRefLess<TGeo>::CreateBCGeoBlendEl(int side,int bc)
+{
+	int sidennodes = TGeo::NSideNodes(side);
+	TPZManVector<int64_t> nodeindices(sidennodes);
+	int inode;
+	for(inode=0; inode<sidennodes; inode++){
+		nodeindices[inode] = this->SideNodeIndex(side,inode);
+	}
+	int64_t index;
+	
+	TPZGeoMesh *mesh = this->Mesh();
+	MElementType BCtype = TGeo::Type(side);
+	
+	TPZGeoEl *newel = mesh->CreateGeoBlendElement(BCtype, nodeindices, bc, index);
+	TPZGeoElSide me(this,side);
+	TPZGeoElSide newelside(newel,newel->NSides()-1);
+	
+	newelside.InsertConnectivity(me);
+	newel->Initialize();
+	
+	return newel;
+}
+
 
 template<class TGeo>
 TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
@@ -227,7 +311,7 @@ TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
 												   int matid,
 												   int64_t& index)
 {
-	return fGeo.CreateGeoElement(*Mesh(),type,nodeindexes,matid,index);
+	return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index);
 }
 
 template<class TGeo>
@@ -329,7 +413,7 @@ template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
     result.Resize(3);
-    TPZFNMatrix<54,REAL> cornerco;
+    TPZFNMatrix<54,REAL> cornerco(3,TGeo::NNodes);
     CornerCoordinates(cornerco);
 	fGeo.X(cornerco,coordinate,result);
 }

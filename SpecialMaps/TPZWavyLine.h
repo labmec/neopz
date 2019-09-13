@@ -133,13 +133,13 @@ namespace pzgeom {
         }
 		
 		
-		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+		// static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
-		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// /** @brief Creates a geometric element according to the type of the father element */
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 		
         void Read(TPZStream& buf, void* context) override {
             pzgeom::TPZGeoLinear::Read(buf,0);

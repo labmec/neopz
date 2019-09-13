@@ -293,48 +293,48 @@ double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double 
 //}
 //
 
-TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-{
-	if(side==2)
-	{
-		TPZManVector<int64_t> nodes(3);
-		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2);
-		int64_t index;
-        // this is wrong : it should either create a blend element or an arc3d element
-        DebugStop();
-		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
-		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
+// TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
+// {
+// 	if(side==2)
+// 	{
+// 		TPZManVector<int64_t> nodes(3);
+// 		nodes[0] = orig->SideNodeIndex(side,0); nodes[1] = orig->SideNodeIndex(side,1); nodes[2] = orig->SideNodeIndex(side,2);
+// 		int64_t index;
+//         // this is wrong : it should either create a blend element or an arc3d element
+//         DebugStop();
+// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
+// 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
+// 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
+// 		return gel;
+// 	}
 	
-	else if(side==0 || side==1)
-	{
-		TPZManVector<int64_t> nodeindexes(1);
-		nodeindexes[0] = orig->SideNodeIndex(side,0); 
-		int64_t index;
-		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
+// 	else if(side==0 || side==1)
+// 	{
+// 		TPZManVector<int64_t> nodeindexes(1);
+// 		nodeindexes[0] = orig->SideNodeIndex(side,0); 
+// 		int64_t index;
+// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+// 		return gel;
+// 	}
 	
-	else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
-	return 0;
-}
+// 	else PZError << "\nTPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
+// 	return 0;
+// }
 
 
 /**
  * Creates a geometric element according to the type of the father element
  */
 
-TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									 TPZVec<int64_t>& nodeindexes,
-									 int matid,
-									 int64_t& index)
-{
-	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
+// TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+// 									 TPZVec<int64_t>& nodeindexes,
+// 									 int matid,
+// 									 int64_t& index)
+// {
+// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+// }
 
 void TPZArc3D::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size)
 {

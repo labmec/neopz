@@ -114,12 +114,12 @@ namespace pzgeom {
         static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
         
 		
-        /**
-         * @brief Method which creates a geometric boundary condition
-         * element based on the current geometric element, \n
-         * a side and a boundary condition number
-         */
-        static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+        // /**
+        //  * @brief Method which creates a geometric boundary condition
+        //  * element based on the current geometric element, \n
+        //  * a side and a boundary condition number
+        //  */
+        // static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
         
         
 		/** @brief Implementation of normal vector to Hdiv space*/
@@ -149,10 +149,10 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
                 int ClassId() const override;
                 void Read(TPZStream &buf, void *context) override;
                 void Write(TPZStream &buf, int withclassid) const override;
