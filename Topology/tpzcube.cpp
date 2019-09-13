@@ -950,7 +950,12 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
-    
+
+    template<class T>
+    bool TPZCube::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
+
     template<class T>
     bool TPZCube::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		TPZTransform<> TransfR = pztopology::TPZCube::SideToSideTransform(NSides - 1, side);
@@ -1577,6 +1582,7 @@ namespace pztopology {
  * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
  * in BOTH cases.    @orlandini
  **********************************************************************************************************************/
+template bool pztopology::TPZCube::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
 template bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
@@ -1586,6 +1592,8 @@ template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatr
 
 template void pztopology::TPZCube::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
+
+template bool pztopology::TPZCube::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
 template bool pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 

@@ -386,7 +386,11 @@ namespace pztopology {
             pt[i] = val;
         }
     }
-    
+
+    template<class T>
+    bool TPZQuadrilateral::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
 
     template<class T>
     bool TPZQuadrilateral::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
@@ -1254,6 +1258,7 @@ namespace pztopology {
  * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
  * in BOTH cases.    @orlandini
  **********************************************************************************************************************/
+template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
 template bool pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
@@ -1263,6 +1268,7 @@ template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc
 
 template void pztopology::TPZQuadrilateral::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
+template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
 template bool pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 

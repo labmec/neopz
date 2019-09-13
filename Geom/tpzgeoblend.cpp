@@ -506,6 +506,11 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     /**
      * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
      */
+    TPZManVector<bool, 20> isRegularMapping(TGeo::NSides - TGeo::NNodes, 0.);
+    for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
+        int side = TGeo::NNodes + sideIndex;
+        isRegularMapping[sideIndex] = TGeo::CheckProjectionForSingularity(side,xi);
+    }
     TPZGeoMesh *gmesh = gel.Mesh();
     TPZManVector<T, 20> blendFactor(TGeo::NSides - TGeo::NNodes, 0.);
     TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
@@ -513,6 +518,15 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
     for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
         int side = TGeo::NNodes + sideIndex;
+        if(!isRegularMapping[sideIndex]) {
+            #ifdef LOG4CXX
+            if(logger->isDebugEnabled()){
+                soutLogDebug <<"mapping is not regular. skipping side... ";
+
+            }
+            #endif
+            continue;
+        }
         TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
         #ifdef LOG4CXX
         if(logger->isDebugEnabled())
@@ -540,16 +554,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
      * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
      */
         TPZManVector<T, 3>  sideXi;
-        bool regularMap = this->MapToSide(side, xi, sideXi, notUsedHereMat);
-        if(!regularMap) {
-            #ifdef LOG4CXX
-            if(logger->isDebugEnabled()){
-                soutLogDebug <<"mapping is not regular. skip ping side... ";
+        this->MapToSide(side, xi, sideXi, notUsedHereMat);
 
-            }
-            #endif
-            continue;
-        }
         MElementType sideType = TGeo::Type(side);
         const int nSideNodes = MElementType_NNodes(sideType);
         TPZFNMatrix<9, T> sidePhi(nSideNodes, 1);
@@ -618,6 +624,15 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
                 else soutLogDebug << "false" << std::endl;
             }
 #endif
+            if(!isRegularMapping[subSide - TGeo::NNodes]) {
+                #ifdef LOG4CXX
+                if(logger->isDebugEnabled()){
+                    soutLogDebug <<"mapping of subside is not regular. skipping side... ";
+
+                }
+                #endif
+                continue;
+            }
             if (IsLinearMapping(subSide)) continue;
             TPZManVector<T, 3> projectedPoint(TGeo::Dimension, -1);
             for (int x = 0; x < TGeo::Dimension; x++) {

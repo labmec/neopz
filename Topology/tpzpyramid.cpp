@@ -375,6 +375,8 @@ namespace pztopology {
         #endif
         //if the point is singular, the blend factor and its derivatives should be zero
         if(!CheckProjectionForSingularity(side,xiVec)){
+            std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
+            DebugStop();
             blendFactor = 0;
             for(int i = 0; i < blendFactorDxi.size(); i++) blendFactorDxi[i] = 0;
             return;
@@ -1073,7 +1075,10 @@ namespace pztopology {
     template<class T>
     bool TPZPyramid::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 
-        if(!CheckProjectionForSingularity(side,InternalPar)) return false;
+        if(!CheckProjectionForSingularity(side,InternalPar)){
+            std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
+            DebugStop();
+        }
 
 		T qsi = InternalPar[0]; T eta = InternalPar[1]; T zeta = InternalPar[2];
 		switch(side)
