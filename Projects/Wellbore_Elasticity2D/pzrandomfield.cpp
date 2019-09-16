@@ -1,22 +1,17 @@
-#ifndef PZRANDOMFIELD_H
-#define PZRANDOMFIELD_H
+//
+//  Problem2D.cpp
+//  PZ
+//
+//  Created by Nathalia Batalha on 9/8/17.
+//
+//
 
-#include "pzfunction.h"
-#include <iostream>
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-#include "pzvec.h"
-#include "pzerror.h"
-#include "tpzverysparsematrix.h"
-#include "pzsfulmat.h"
-
-
-
-#include <math.h>
-#include <complex>
-#include <string>
-#include <random>
-#include <chrono>
+#include "pzrandomfield.hpp"
+//#include <__config>
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
 
 
 template<class TVar>
