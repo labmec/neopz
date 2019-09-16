@@ -86,27 +86,22 @@ public:
         // this should not be here, delete after SVD implementation
         fM = M;
         
+        // this should be given by the user
+        fE_dist = 1;
+        fnu_dist = 1;
+       
+         // this should be given by the user
+        fE_funct = 1;
+        fnu_funct = 1;;
+        
+        
         //** Calculation of stochastic field should start here!! *****/////
         
         //This should be called by the object
         SetFieldDistribution(fM);
-        
-        //Set inclined parameters
-        if(stochasticInclined==true) {
-            SetInclinedField(stochasticInclined,direction, inclination);
-        }
-        
-        //Chnage geometry in case it is an inclined well
         SetFieldGeometry();
         
-        // this should be given by the user
-        fE_dist = 1;
-        fnu_dist = 1;
-        fE_funct = 1;
-        fnu_funct = 1;
-        //SetYoungField(E_distribution, E_function)
-        //SetPoissonField(nudistribution, nu_function)
-            
+        
         //Get fK
         if(fE_funct==fnu_funct){
             fKE = EvaluateCorrelation(fE_funct);
@@ -128,7 +123,7 @@ public:
             // fKnu = U sqt(S) V'
             // create glogal parameter for U and sqrt(S)
         }
-        
+                
         
         //Write a function to get fU
         fU_E = GetCorrelatedVector(fE_dist);
