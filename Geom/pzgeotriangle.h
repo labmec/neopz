@@ -119,12 +119,12 @@ namespace pzgeom {
 //        static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
 //                             TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 
-		/**
-		 * @brief Method which creates a geometric boundary condition
-		 * element based on the current geometric element, \n
-		 * a side and a boundary condition number
-		 */
-		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+		// /**
+		//  * @brief Method which creates a geometric boundary condition
+		//  * element based on the current geometric element, \n
+		//  * a side and a boundary condition number
+		//  */
+		// static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 
         /** @brief Implementation of Hdiv space*/
         static	void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
@@ -166,8 +166,8 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
 
 	};
 

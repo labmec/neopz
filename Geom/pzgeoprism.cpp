@@ -23,81 +23,6 @@ namespace pzgeom {
     static const double tol = pzgeom_TPZNodeRep_tol;
 
 
-    TPZGeoEl *TPZGeoPrism::CreateBCGeoEl(TPZGeoEl *orig, int side, int bc) {
-        TPZGeoEl *result = 0;
-        if (side < 0 || side > 20) {
-            cout << "TPZGeoPrism::CreateBCCompEl bad side = " << side << " not implemented\n";
-            return result;
-        }
-
-        if (side == 20) {
-            cout << "TPZGeoPrism::CreateBCCompEl with side = 20 not implemented\n";
-            return result;
-        }
-
-        int64_t index;
-        if (side < 6) {
-            TPZManVector<int64_t> nodeindexes(1);
-            TPZGeoEl *gel;
-            //		int nodestore [4];
-            nodeindexes[0] = orig->NodeIndex(side);
-            gel = orig->Mesh()->CreateGeoElement(EPoint, nodeindexes, bc, index);
-            //gel = new TPZGeoElPoint(nodeindexes,bc,*orig->Mesh());
-            TPZGeoElSide(gel, 0).SetConnectivity(TPZGeoElSide(orig, side));
-            result = gel;
-        } else if (side > 5 && side < 15) {//side = 6 a 14 : arestas
-            TPZManVector<int64_t> nodes(2);
-            nodes[0] = orig->SideNodeIndex(side, 0);//(TPZCompElPr3d::SideNodes[s][0]);
-            nodes[1] = orig->SideNodeIndex(side, 1);//NodeIndex(TPZCompElPr3d::SideNodes[s][1]);
-            //TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-            TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned, nodes, bc, index);
-            TPZGeoElSide(gel, 0).SetConnectivity(TPZGeoElSide(orig, TPZShapePrism::ContainedSideLocId(side, 0)));
-            //(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][0]));
-            TPZGeoElSide(gel, 1).SetConnectivity(TPZGeoElSide(orig, TPZShapePrism::ContainedSideLocId(side, 1)));
-            //(TPZGeoElSide(this,TPZCompElPr3d::SideNodes[s][1]));
-            TPZGeoElSide(gel, 2).SetConnectivity(TPZGeoElSide(orig, side));//(TPZGeoElSide(this,side));
-            result = gel;//->CreateCompEl(cmesh,index);
-        } else if (side > 14) {//side = 15 a 19 : faces
-            TPZManVector<int64_t> nodes(4);//4o = -1 para face triangular
-            int iside;
-            for (iside = 0; iside < 4; iside++) {
-                nodes[iside] = orig->SideNodeIndex(side, iside);
-            }
-            TPZGeoEl *gelt;
-            TPZGeoEl *gelq;
-            if (side > 15 && side < 19) {
-                gelq = orig->Mesh()->CreateGeoElement(EQuadrilateral, nodes, bc, index);
-                //gelq = new TPZGeoElQ2d(nodes,bc,*orig->Mesh());
-
-                for (iside = 0; iside < 8; iside++) {
-                    TPZGeoElSide(gelq, iside).SetConnectivity(
-                            TPZGeoElSide(orig, TPZShapePrism::ContainedSideLocId(side, iside)));
-                }
-                TPZGeoElSide(gelq, 8).SetConnectivity(TPZGeoElSide(orig, side));
-                result = gelq;
-            } else {
-                nodes.Resize(3);
-                gelt = orig->Mesh()->CreateGeoElement(ETriangle, nodes, bc, index);
-                //			gelt = new TPZGeoElT2d(nodes,bc,*orig->Mesh());
-                int iside;
-                for (iside = 0; iside < 6; iside++) {
-                    TPZGeoElSide(gelt, iside).SetConnectivity(
-                            TPZGeoElSide(orig, TPZShapePrism::ContainedSideLocId(side, iside)));
-                }
-                TPZGeoElSide(gelt, 6).SetConnectivity(TPZGeoElSide(orig, side));
-                result = gelt;
-            }
-        } else {
-            PZError << "TPZGeoPrism::CreateBCGeoEl. Side = " << side << endl;
-            return 0;
-        }
-        //	cout << "\n\nBoundary element " << bc << "  created for prism side " << side << endl;
-        //	result->Print(cout);
-        //	cout << "\n\nPrism Element\n";
-
-
-        return result;
-    }
 
     void TPZGeoPrism::FixSingularity(int side, TPZVec<REAL> &OriginalPoint, TPZVec<REAL> &ChangedPoint) {
         ChangedPoint.Resize(OriginalPoint.NElements(), 0.);
@@ -178,15 +103,7 @@ namespace pzgeom {
         }
     }
 
-    /**
-     * Creates a geometric element according to the type of the father element
-     */
-    TPZGeoEl *TPZGeoPrism::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                            TPZVec<int64_t> &nodeindexes,
-                                            int matid,
-                                            int64_t &index) {
-        return CreateGeoElementPattern(mesh, type, nodeindexes, matid, index);
-    }
+   
 
     /// create an example element based on the topology
     /* @param gmesh mesh in which the element should be inserted
@@ -212,7 +129,7 @@ namespace pzgeom {
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
         int64_t index;
-        CreateGeoElement(gmesh, EPrisma, nodeindexes, matid, index);
+        gmesh.CreateGeoElement(EPrisma, nodeindexes, matid, index);
     }
 
     int TPZGeoPrism::ClassId() const {

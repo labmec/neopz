@@ -134,14 +134,14 @@ namespace pzgeom {
 
         //void Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh);
 
-        /**
-         * @brief Method which creates a geometric boundary condition
-         * element based on the current geometric element,
-         * a side and a boundary condition number
-         */
-        TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig, int side, int bc);
+        // /**
+        //  * @brief Method which creates a geometric boundary condition
+        //  * element based on the current geometric element,
+        //  * a side and a boundary condition number
+        //  */
+        // TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig, int side, int bc);
 
-        TPZGeoEl *CreateBCGeoBlendEl(TPZGeoEl *orig, int side, int bc);
+        // TPZGeoEl *CreateBCGeoBlendEl(TPZGeoEl *orig, int side, int bc);
 
 //		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
 
@@ -160,10 +160,10 @@ namespace pzgeom {
         /**
          * @brief Creates a geometric element according to the type of the father element
          */
-        static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                          TPZVec<int64_t> &nodeindexes,
-                                          int matid,
-                                          int64_t &index);
+        // static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+        //                                   TPZVec<int64_t> &nodeindexes,
+        //                                   int matid,
+        //                                   int64_t &index);
 
     protected:
 

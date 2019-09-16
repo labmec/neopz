@@ -94,7 +94,7 @@ namespace pzgeom {
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodecoordinates,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
         
-        static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+       
         
         
         /// create an example element based on the topology
@@ -112,10 +112,10 @@ int ClassId() const override;
 
     public:
         /** @brief Creates a geometric element according to the type of the father element */
-        static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                          TPZVec<int64_t>& nodeindexes,
-                                          int matid,
-                                          int64_t& index);
+        // static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+        //                                   TPZVec<int64_t>& nodeindexes,
+        //                                   int matid,
+        //                                   int64_t& index);
         
     };
 

@@ -228,14 +228,14 @@ namespace pzgeom
             return false;
         }
         
-		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
+		// static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 		void Print(std::ostream &out) const
 		{
 			pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);

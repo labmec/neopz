@@ -61,12 +61,12 @@ int ClassId() const override;
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Triangle";}
 		
-		/**
-		 * @brief Method which creates a geometric boundary condition 
-		 * element based on the current geometric element, 
-		 * a side and a boundary condition number
-		 */
-		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+		// /**
+		//  * @brief Method which creates a geometric boundary condition 
+		//  * element based on the current geometric element, 
+		//  * a side and a boundary condition number
+		//  */
+		// static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 		
         /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
@@ -103,10 +103,10 @@ int ClassId() const override;
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
 		
 	public:
-		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid, int64_t& index);
+		// /** @brief Creates a geometric element according to the type of the father element */
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid, int64_t& index);
 
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

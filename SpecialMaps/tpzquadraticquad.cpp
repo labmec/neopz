@@ -108,43 +108,43 @@ inline void TPZQuadraticQuad::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc
 }
 
 
-TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
+// TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	
-	int ns = orig->NSideNodes(side);
-	TPZManVector<int64_t> nodeindices(ns);
-	int in;
-	for(in=0; in<ns; in++)
-	{
-		nodeindices[in] = orig->SideNodeIndex(side,in);
-	}
-	int64_t index;
+// 	int ns = orig->NSideNodes(side);
+// 	TPZManVector<int64_t> nodeindices(ns);
+// 	int in;
+// 	for(in=0; in<ns; in++)
+// 	{
+// 		nodeindices[in] = orig->SideNodeIndex(side,in);
+// 	}
+// 	int64_t index;
 	
-	TPZGeoMesh *mesh = orig->Mesh();
-	MElementType type = orig->Type(side);
+// 	TPZGeoMesh *mesh = orig->Mesh();
+// 	MElementType type = orig->Type(side);
 	
-	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
-	TPZGeoElSide me(orig,side);
-	TPZGeoElSide newelside(newel,newel->NSides()-1);
+// 	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
+// 	TPZGeoElSide me(orig,side);
+// 	TPZGeoElSide newelside(newel,newel->NSides()-1);
 	
-	newelside.InsertConnectivity(me);
-//	newel->Initialize();
+// 	newelside.InsertConnectivity(me);
+// //	newel->Initialize();
 	
-	return newel;
+// 	return newel;
 	
-	}
+// 	}
 
 
 /**
  * Creates a geometric element according to the type of the father element
  */
 
-TPZGeoEl *TPZQuadraticQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											 TPZVec<int64_t>& nodeindexes,
-											 int matid,
-											 int64_t& index)
-{
-	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
+// TPZGeoEl *TPZQuadraticQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+// 											 TPZVec<int64_t>& nodeindexes,
+// 											 int matid,
+// 											 int64_t& index)
+// {
+// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+// }
 
 /// create an example element based on the topology
 /* @param gmesh mesh in which the element should be inserted
@@ -173,7 +173,7 @@ void TPZQuadraticQuad::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
     int64_t index;
-    CreateGeoElement(gmesh, EQuadrilateral, nodeindexes, matid, index);
+    gmesh.CreateGeoElement(EQuadrilateral, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();
     for (int is=0; is<nsides; is++) {

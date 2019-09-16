@@ -87,13 +87,13 @@ int ClassId() const override;
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
 
             /** @brief Creates a geometric element according to the type of the father element */
-            static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                              TPZVec<int64_t>& nodeindexes,
-                                              int matid, int64_t& index);
+            // static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+            //                                   TPZVec<int64_t>& nodeindexes,
+            //                                   int matid, int64_t& index);
             
             static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 
-            TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);	
+            // TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);	
     };
     
 };
