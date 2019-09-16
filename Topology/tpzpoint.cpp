@@ -58,9 +58,8 @@ namespace pztopology {
         return true;
     }
     template<class T>
-    bool TPZPoint::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    void TPZPoint::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		SidePar.Resize(0); JacToSide.Resize(0,0);
-		return true;
 	}
     
     void TPZPoint::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -146,7 +145,7 @@ namespace pztopology {
  **********************************************************************************************************************/
 template bool pztopology::TPZPoint::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
-template bool pztopology::TPZPoint::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template void pztopology::TPZPoint::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZPoint::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -157,7 +156,7 @@ template void pztopology::TPZPoint::ComputeDirections<REAL>(TPZFMatrix<REAL> &gr
 
 template bool pztopology::TPZPoint::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
-template bool pztopology::TPZPoint::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZPoint::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZPoint::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);

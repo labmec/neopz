@@ -260,7 +260,7 @@ namespace pztopology {
     }
 
     template<class T>
-    bool TPZTriangle::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    void TPZTriangle::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 
 		T qsi = InternalPar[0]; T eta = InternalPar[1];
 		SidePar.Resize(1); JacToSide.Resize(1,2);
@@ -296,7 +296,6 @@ namespace pztopology {
                 JacToSide.Resize(2, 2);
                 JacToSide.Identity();
 		}
-		return true;
 	}
     
     void TPZTriangle::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -1166,7 +1165,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
 template bool pztopology::TPZTriangle::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
-template bool pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template void pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZTriangle::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -1177,7 +1176,7 @@ template void pztopology::TPZTriangle::ComputeDirections<REAL>(TPZFMatrix<REAL> 
 
 template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
 
-template bool pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZTriangle::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);

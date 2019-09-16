@@ -182,7 +182,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
      */
         TPZManVector<T, 3> sideXi;
         TPZFNMatrix<9, T> transfXiToSideXi;
-        bool regularMap = this->MapToSide(side, xiInterior, sideXi, transfXiToSideXi);
+        bool regularMap = TGeo::CheckProjectionForSingularity(side, xiInterior);
         if (!regularMap) {
             #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
@@ -192,6 +192,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
             #endif
             continue;
         }
+
+        this->MapToSide(side, xiInterior, sideXi, transfXiToSideXi);
         MElementType sideType = TGeo::Type(side);
         const int nSideNodes = MElementType_NNodes(sideType);
         const int sideDim = TGeo::SideDimension(side);

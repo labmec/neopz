@@ -874,7 +874,7 @@ namespace pztopology {
     }
 
     template<class T>
-    bool TPZTetrahedron::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    void TPZTetrahedron::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		
 		T qsi = InternalPar[0], eta = InternalPar[1], zeta = InternalPar[2];
         if(!CheckProjectionForSingularity(side,InternalPar)){
@@ -1033,7 +1033,6 @@ namespace pztopology {
 			cout << "Check method TPZTetrahedron::CheckProjectionForSingularity<T>\n";
 			DebugStop();
 		}
-		return true;
 	}
     
     void TPZTetrahedron::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -1455,7 +1454,7 @@ namespace pztopology {
  **********************************************************************************************************************/
 template bool pztopology::TPZTetrahedron::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
-template bool pztopology::TPZTetrahedron::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template void pztopology::TPZTetrahedron::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZTetrahedron::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -1466,7 +1465,7 @@ template void pztopology::TPZTetrahedron::ComputeDirections<REAL>(TPZFMatrix<REA
 
 template bool pztopology::TPZTetrahedron::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
 
-template bool pztopology::TPZTetrahedron::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZTetrahedron::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZTetrahedron::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);

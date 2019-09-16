@@ -108,7 +108,7 @@ namespace pzgeom {
 		 * a side and a boundary condition number
 		 */
 		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
-		
+
 	protected:
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points

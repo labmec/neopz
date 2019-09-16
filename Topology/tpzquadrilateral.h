@@ -151,7 +151,7 @@ namespace pztopology {
         static bool CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior);
 
         template<class T>
-        static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
+        static void MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
         static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 

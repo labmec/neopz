@@ -1073,7 +1073,7 @@ namespace pztopology {
     }
 
     template<class T>
-    bool TPZPyramid::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    void TPZPyramid::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 
         if(!CheckProjectionForSingularity(side,InternalPar)){
             std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
@@ -1285,7 +1285,6 @@ namespace pztopology {
            }
         }
         #endif
-		return true;
 	}
     
     void TPZPyramid::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -1850,7 +1849,7 @@ namespace pztopology {
  **********************************************************************************************************************/
 template bool pztopology::TPZPyramid::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
-template bool pztopology::TPZPyramid::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template void pztopology::TPZPyramid::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZPyramid::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -1863,7 +1862,7 @@ template void pztopology::TPZPyramid::AdjustTopDirections<REAL>(int ConstrainedF
 
 template bool pztopology::TPZPyramid::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
-template bool pztopology::TPZPyramid::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZPyramid::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZPyramid::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);

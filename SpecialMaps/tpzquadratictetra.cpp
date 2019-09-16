@@ -237,7 +237,9 @@ int TPZQuadraticTetra::ClassId() const{
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>>;
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
-template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+//template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
 
 namespace pzgeom {
     template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);

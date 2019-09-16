@@ -187,8 +187,21 @@ namespace pzgeom {
         TPZFNMatrix<9, T> JacSide;
 
         TPZManVector<T, 3> SidePar(SideDim);
-        const bool check = this->MapToSide(side, InternalPar, SidePar, JacSide);
+        const bool check = TGeo::CheckProjectionForSingularity(side, InternalPar);
 
+        this->MapToSide(side, InternalPar, SidePar, JacSide);
+        if (!check) {
+            #ifdef LOG4CXX2
+            td::stringstream sout;
+            sout << "side " << side << std::endl;
+            sout << "InternalPar: ";
+            for(int i = 0; i < InternalPar.NElements(); i++) sout << InternalPar[i] << "\t";
+            sout << "\n";
+            sout << "\tmapping is not regular"<<std::endl;
+            LOGPZ_DEBUG(logger,sout.str())
+            #endif
+            return false;
+        }
 #ifdef LOG4CXX2
         if(logger->isDebugEnabled())
         {
@@ -197,19 +210,15 @@ namespace pzgeom {
             sout << "InternalPar: ";
             for(int i = 0; i < InternalPar.NElements(); i++) sout << InternalPar[i] << "\t";
             sout << "\n";
-            
+
             sout << "SidePar: ";
             for(int i = 0; i < SidePar.NElements(); i++) sout << SidePar[i] << "\t";
             sout << "\n";
-            
+
             JacSide.Print("JacSide = ",sout);
             LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
-
-        if (!check) {
-            return false;
-        }
 
         NeighPar.Resize(SideDim);
         TPZTransform<T> tr;
