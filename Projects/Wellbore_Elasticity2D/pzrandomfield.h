@@ -10,8 +10,6 @@
 #include "tpzverysparsematrix.h"
 #include "pzsfulmat.h"
 
-
-
 #include <math.h>
 #include <complex>
 #include <string>
@@ -38,6 +36,7 @@ class TPZRandomField : public TPZFunction<TVar>
     REAL frext; // external radius
     REAL fH; // cylinder total height
     REAL fh; // elements height (square elements for now)
+    REAL fscale;
     TPZGeoMesh* fgmesh; //geometric mesh
     TPZFMatrix<TVar> fK; // correlation matrix
     TPZFMatrix<TVar> fRand_U; //random distribution
@@ -65,7 +64,7 @@ public:
     
     /** @brief Class constructor */
     TPZRandomField(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
-                   REAL inclination, REAL rw, REAL rext, const TPZFMatrix<TVar> &M) : TPZFunction<TVar>(), fPorder(-1)
+                   REAL inclination, REAL rw, REAL rext, const TPZFMatrix<TVar> &M, REAL scale, int funcE, int funcnu, int distribE, int distribnu) : TPZFunction<TVar>(), fPorder(-1)
     {
         fFunc  = 0;
         fFunc2 = 0;
@@ -87,18 +86,21 @@ public:
         fM = M;
         
         // this should be given by the user
-        fE_dist = 1;
-        fnu_dist = 1;
+        fE_dist = distribE;
+        fnu_dist = distribnu;
        
          // this should be given by the user
-        fE_funct = 1;
-        fnu_funct = 1;;
+        fE_funct = funcE;
+        fnu_funct = funcnu;
+        
+        // exponential function scale
+        fscale = scale;
         
         
         //** Calculation of stochastic field should start here!! *****/////
         
         //This should be called by the object
-        SetFieldDistribution(fM);
+        SetReadMatrix(fM);
         SetFieldGeometry();
         
         
@@ -183,7 +185,7 @@ public:
     }
     
     /** @brief Set distribution type: normal or lognormal */
-    void SetFieldDistribution(const TPZFMatrix<TVar> &M){
+    void SetReadMatrix(const TPZFMatrix<TVar> &M){
         fM = M; //This should be removed later
     }
     
@@ -295,10 +297,6 @@ public:
         
         std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
         
-        // Refinamento de elementos selecionados
-        REAL e = M_E; // Numero de Euler
-        REAL scale = 0.5; //40.0 * frw; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
-        
         TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
         
         TPZManVector<REAL, 3> CenterPoint1, CenterPoint2;
@@ -345,7 +343,7 @@ public:
                     
                     //exponential function
                     if (function==1){
-                        KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
+                        KCorr(i,j) = pow(M_E, -((r2*r2)/(fscale*fscale)));
                     }
                     
                     //spherical function
@@ -368,11 +366,6 @@ public:
     TPZFMatrix<REAL> calcCorrelationMatrixInclined(int function) {
         
         std::cout << "\nCria matriz dos centroides dos elementos " << std::endl;
-        
-        // Refinamento de elementos selecionados
-        REAL e = M_E; // Numero de Euler
-        REAL scale = 0.5; //40.0 * frw; // Valor de alpha, escala normalizada // variar: 1/4; 1.0; 4.0
-        // scale simulado: 40* frext, errado corrigir
         
         TPZFMatrix<REAL> CenterNorm(fmatsize, fmatsize, 0.0);
         
@@ -483,7 +476,7 @@ public:
                 
                 //exponential function
                 if (function==1){
-                KCorr(i,j) = pow(e, -((r2*r2)/(scale*scale)));
+                KCorr(i,j) = pow(M_E, -((r2*r2)/(fscale*fscale)));
                 }
                 
                 //spherical function

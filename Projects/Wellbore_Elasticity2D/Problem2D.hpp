@@ -95,6 +95,6 @@ static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
 int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection,
               int inclinedwellbore, int analytic, REAL SigmaV, REAL Sigmah,
               REAL SigmaH, REAL Pwb, REAL drdcirc, REAL direction, REAL inclination,
-              bool isStochastic, std::ofstream &solutionfile,int &icase, TPZFMatrix<STATE> &M);
+              bool isStochastic, std::ofstream &solutionfile,int &icase, TPZFMatrix<STATE> &M, REAL scale, int funcE, int funcnu, int distribE, int distribnu);
 
 #endif /* Problem2D_hpp */

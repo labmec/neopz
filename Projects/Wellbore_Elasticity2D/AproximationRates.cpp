@@ -81,9 +81,16 @@ int ApproximationRates(TPZFMatrix<STATE> &M){
             int analytic = 0;
             REAL SigmaV = 0, Sigmah, SigmaH;
             bool isStochastic = false;
+            REAL scale = 0.5; // exponential scale
+            int funcE = 1;
+            int funcnu = 1;
+            int distribE = 1;
+            int distribnu = 1;
+            
             TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection, inclinedwellbore,
                                                analytic, SigmaV, Sigmah, SigmaH, Pwb, rw, rext,
-                                               direction, inclination, isStochastic, nSquareElements, M);
+                                               direction, inclination, isStochastic, nSquareElements, 
+                                               M,  scale, funcE, funcnu, distribE, distribnu);
             TPZAnalysis an (cmesh);
             TPZSkylineStructMatrix strskyl(cmesh);
             strskyl.SetNumThreads(numthreads);
