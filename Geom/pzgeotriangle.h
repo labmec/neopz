@@ -75,15 +75,6 @@ namespace pzgeom {
 		static std::string TypeName() { return "Triangle";}
 
 
-        /* @brief Compute x mapping from local parametric coordinates */
-//        template<class T>
-//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-//        {
-//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-//            CornerCoordinates(gel, coord);
-//            X(coord,loc,x);
-//        }
-
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x) {
 
@@ -99,15 +90,6 @@ namespace pzgeom {
                 }
             }
         }
-
-        /** @brief Compute gradient of x mapping from local parametric coordinates */
-//        template<class T>
-//        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-//        {
-//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-//            CornerCoordinates(gel, coord);
-//            GradX(coord,loc,gradx);
-//        }
 
 
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
@@ -146,14 +128,6 @@ namespace pzgeom {
             void Read(TPZStream &buf, void *context) override;
             void Write(TPZStream &buf, int withclassid) const override;
 
-
-	protected:
-		/**
-		 * @brief This method apply an infinitesimal displacement in some points
-		 * to fix singularity problems when using MapToSide() method! \n
-		 * This points are CornerNodes, when projected in the opposing side
-		 */
-		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
 
 	public:
 

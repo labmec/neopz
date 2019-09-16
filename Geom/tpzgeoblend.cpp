@@ -768,7 +768,6 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
                 TPZManVector<REAL> parChanged(par.NElements());
-//                TGeo::FixSingularity(byside,par,parChanged);
                 TGeo::Shape(parChanged,blend,Dblend);
 				
                 blendTemp += blend(LowNodeSides[a],0);

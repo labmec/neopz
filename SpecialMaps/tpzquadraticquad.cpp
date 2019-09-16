@@ -262,7 +262,9 @@ int TPZQuadraticQuad::ClassId() const{
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticQuad>>;
 
-template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+//template class pzgeom::TPZNodeRep<8,TPZQuadraticQuad>;
 
 namespace pzgeom {
     template void TPZQuadraticQuad::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);

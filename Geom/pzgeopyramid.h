@@ -71,24 +71,6 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pyramid";}
 
-        
-        /* @brief Compute x mapping from local parametric coordinates */
-//        template<class T>
-//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-//        {
-//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-//            CornerCoordinates(gel, coord);
-//            X(coord,loc,x);
-//        }
-        
-        /** @brief Compute gradient of x mapping from local parametric coordinates */
-//        template<class T>
-//        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-//        {
-//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-//            CornerCoordinates(gel, coord);
-//            GradX(coord,loc,gradx);
-//        }
 
 
         /** @brief Computes the jacobian*/
@@ -108,14 +90,6 @@ namespace pzgeom {
 		 * a side and a boundary condition number
 		 */
 		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
-		
-	protected:
-		/**
-		 * @brief This method apply an infinitesimal displacement in some points
-		 * to fix singularity problems when using MapToSide() method!
-		 */
-		/** This points are CornerNodes, when projected in the opposing side */
-		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
 		
 		
 	public:

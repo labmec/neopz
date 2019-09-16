@@ -386,4 +386,6 @@ void TPZEllipse3D::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REA
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZEllipse3D>>;
 template class TPZGeoElRefLess<TPZEllipse3D>;
-template class pzgeom::TPZNodeRep<2,TPZEllipse3D>;
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+//template class pzgeom::TPZNodeRep<2,TPZEllipse3D>;
