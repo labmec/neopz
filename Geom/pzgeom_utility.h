@@ -311,21 +311,5 @@ inline bool IsInSideParametricDomain(int side, const TPZVec<REAL> &pt, REAL tol)
     return false;
 }//method
 
-/**
- * @brief This method is redefined in TPZGeoTriangle, TPZGeoPrism, TPZGeoTetrahedra, TPZGeoPyramid \n
- * to fix singularity problems when using MapToSide() method!
- */
-//void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
-//{
-//    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-//    ChangedPoint = OriginalPoint;
-//}
-//template<class T>
-//void TFixSingularity(int side, TPZVec<T>& OriginalPoint, TPZVec<T>& ChangedPoint)
-//{
-//    ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-//    ChangedPoint = OriginalPoint;
-//}
-
 
 #endif /* pzgeom_utility_h */

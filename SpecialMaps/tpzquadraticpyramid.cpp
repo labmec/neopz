@@ -415,7 +415,9 @@ int TPZQuadraticPyramid::ClassId() const{
 }
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticPyramid>>;
-template class pzgeom::TPZNodeRep<13,TPZQuadraticPyramid>;
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+//template class pzgeom::TPZNodeRep<13,TPZQuadraticPyramid>;
 
 namespace pzgeom {
     template void TPZQuadraticPyramid::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);

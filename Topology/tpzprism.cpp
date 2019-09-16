@@ -362,28 +362,38 @@ namespace pztopology {
 
     template<class T>
     void TPZPrism::BlendFactorForSide(const int &side, const TPZVec<T> &xiVec, T &blendFactor,
-                                        TPZVec<T> &corrFactorDxi){
+                                        TPZVec<T> &blendFactorDxi){
+        blendFactorDxi.Resize(TPZPrism::Dimension, (T) 0);
+        blendFactor = 0;
         const REAL tol = pztopology::GetTolerance();
         #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
             sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
-
-            PZError<<std::endl<<sout.str()<<std::endl;
-            DebugStop();
         }
 
-        if(!IsInParametricDomain(xiVec,tol)){
-            sout<<"The method BlendFactorForSide expects the point qsi to correspond to coordinates of a point";
+        if(!pztopology::TPZPrism::IsInParametricDomain(xiVec,tol)){
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
+        }
+
+        if(!sout.str().empty()){
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
+#ifdef LOG4CXX
             LOGPZ_FATAL(logger,sout.str().c_str());
-            #endif
+#endif
             DebugStop();
         }
         #endif
-        corrFactorDxi.Resize(TPZPrism::Dimension, (T) 0);
+        //if the point is singular, the blend factor and its derivatives should be zero
+        if(!CheckProjectionForSingularity(side,xiVec)){
+            std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
+            DebugStop();
+            blendFactor = 0;
+            for(int i = 0; i < blendFactorDxi.size(); i++) blendFactorDxi[i] = 0;
+            return;
+        }
+        blendFactorDxi.Resize(TPZPrism::Dimension, (T) 0);
         const T &xi = xiVec[0];
         const T &eta = xiVec[1];
         const T &zeta = xiVec[2];
@@ -398,87 +408,87 @@ namespace pztopology {
                 return;
             case  6:
                 blendFactor = 0.5*(1.-zeta)*(1.-eta)*(1.-eta);
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = -1.*(1 - eta)*(1 - zeta);
-                corrFactorDxi[2] = -0.5*((1 - eta)*(1 - eta));
+                blendFactorDxi[0] = 0;
+                blendFactorDxi[1] = -1.*(1 - eta)*(1 - zeta);
+                blendFactorDxi[2] = -0.5*((1 - eta)*(1 - eta));
                 return;
             case  7:
                 blendFactor = 0.5*(1.-zeta)*(xi+eta)*(xi+eta);
-                corrFactorDxi[0] =1.*(eta + xi)*(1 - zeta);
-                corrFactorDxi[1] =1.*(eta + xi)*(1 - zeta);
-                corrFactorDxi[2] =-0.5*((eta + xi)*(eta + xi));
+                blendFactorDxi[0] =1.*(eta + xi)*(1 - zeta);
+                blendFactorDxi[1] =1.*(eta + xi)*(1 - zeta);
+                blendFactorDxi[2] =-0.5*((eta + xi)*(eta + xi));
                 return;
             case  8:
                 blendFactor = 0.5*(1.-zeta)*(1.-xi)*(1.-xi);
-                corrFactorDxi[0] =-1.*(1 - xi)*(1 - zeta);
-                corrFactorDxi[1] =0;
-                corrFactorDxi[2] =-0.5*((1 - xi)*(1 - xi));
+                blendFactorDxi[0] =-1.*(1 - xi)*(1 - zeta);
+                blendFactorDxi[1] =0;
+                blendFactorDxi[2] =-0.5*((1 - xi)*(1 - xi));
                 return;
             case  9:
                 blendFactor = 1. - xi - eta;
-                corrFactorDxi[0] = -1;
-                corrFactorDxi[1] = -1;
-                corrFactorDxi[2] = 0;
+                blendFactorDxi[0] = -1;
+                blendFactorDxi[1] = -1;
+                blendFactorDxi[2] = 0;
                 return;
             case 10:
                 blendFactor = xi;
-                corrFactorDxi[0] = 1;
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = 0;
+                blendFactorDxi[0] = 1;
+                blendFactorDxi[1] = 0;
+                blendFactorDxi[2] = 0;
                 return;
             case 11:
                 blendFactor = eta;
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = 1;
-                corrFactorDxi[2] = 0;
+                blendFactorDxi[0] = 0;
+                blendFactorDxi[1] = 1;
+                blendFactorDxi[2] = 0;
                 return;
             case 12:
                 blendFactor = 0.5*(1.+zeta)*(1.-eta)*(1.-eta);
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = -1.*(1 - eta)*(1 + zeta);
-                corrFactorDxi[2] = 0.5*((1 - eta)*(1 - eta));
+                blendFactorDxi[0] = 0;
+                blendFactorDxi[1] = -1.*(1 - eta)*(1 + zeta);
+                blendFactorDxi[2] = 0.5*((1 - eta)*(1 - eta));
                 return;
             case 13:
                 blendFactor = 0.5*(1.+zeta)*(xi+eta)*(xi+eta);
-                corrFactorDxi[0] = 1.*(eta + xi)*(1 + zeta);
-                corrFactorDxi[1] = 1.*(eta + xi)*(1 + zeta);
-                corrFactorDxi[2] = 0.5*((eta + xi)*(eta + xi));
+                blendFactorDxi[0] = 1.*(eta + xi)*(1 + zeta);
+                blendFactorDxi[1] = 1.*(eta + xi)*(1 + zeta);
+                blendFactorDxi[2] = 0.5*((eta + xi)*(eta + xi));
                 return;
             case 14:
                 blendFactor = 0.5*(1.+zeta)*(1.-xi)*(1.-xi);
-                corrFactorDxi[0] = -1.*(1 - xi)*(1 + zeta);
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = 0.5*((1 - xi)*(1 - xi));
+                blendFactorDxi[0] = -1.*(1 - xi)*(1 + zeta);
+                blendFactorDxi[1] = 0;
+                blendFactorDxi[2] = 0.5*((1 - xi)*(1 - xi));
                 return;
             case 15:
                 blendFactor = 0.5*(1.-zeta);
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = -0.5;
+                blendFactorDxi[0] = 0;
+                blendFactorDxi[1] = 0;
+                blendFactorDxi[2] = -0.5;
                 return;
             case 16:
                 blendFactor = 1.-eta;
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = -1;
-                corrFactorDxi[2] = 0;
+                blendFactorDxi[0] = 0;
+                blendFactorDxi[1] = -1;
+                blendFactorDxi[2] = 0;
                 return;
             case 17:
                 blendFactor = xi+eta;
-                corrFactorDxi[0] = 1;
-                corrFactorDxi[1] = 1;
-                corrFactorDxi[2] = 0;
+                blendFactorDxi[0] = 1;
+                blendFactorDxi[1] = 1;
+                blendFactorDxi[2] = 0;
                 return;
             case 18:
                 blendFactor = 1.-xi;
-                corrFactorDxi[0] = -1;
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = 0;
+                blendFactorDxi[0] = -1;
+                blendFactorDxi[1] = 0;
+                blendFactorDxi[2] = 0;
                 return;
             case 19:
                 blendFactor = 0.5*(1.+zeta);
-                corrFactorDxi[0] = 0;
-                corrFactorDxi[1] = 0;
-                corrFactorDxi[2] = 0.5;
+                blendFactorDxi[0] = 0;
+                blendFactorDxi[1] = 0;
+                blendFactorDxi[2] = 0.5;
                 return;
         }
     }
@@ -1034,16 +1044,84 @@ namespace pztopology {
         pt[2] = val;
     }
 
+    template<class T>
+    bool TPZPrism::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        double zero = pztopology::gTolerance;
+
+        T qsi = xiInterior[0];
+        T eta = xiInterior[1];
+        T zeta = xiInterior[2];
+
+        bool regularmap = true;
+        switch(side)
+        {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+                regularmap = true;
+                break;
+            case 6://1D
+                if(fabs((T)(eta-1.)) < zero) regularmap = false;
+                break;
+            case 7://1D
+                if(fabs((T)(qsi+eta)) < zero) regularmap = false;
+                break;
+            case 8://1D
+                if(fabs((T)(qsi-1.)) < zero) regularmap = false;
+                break;
+            case 9://1D
+            case 10://1D
+            case 11://1D
+                regularmap = true;
+                break;
+            case 12://1D
+                if(fabs((T)(eta-1.)) < zero) regularmap = false;
+                break;
+            case 13://1D
+                if(fabs((T)(qsi+eta)) < zero) regularmap = false;
+                break;
+            case 14://1D
+                if(fabs((T)(qsi-1.)) < zero) regularmap = false;
+                break;
+            case 15://2D - triangle
+                regularmap = true;
+                break;
+            case 16://2D - quadrilateral
+                if(fabs((T)(eta-1.)) < zero) regularmap = false;
+                break;
+            case 17://2D - quadrilateral
+                if(fabs((T)(qsi+eta)) < zero) regularmap = false;
+                break;
+            case 18://2D - quadrilateral
+                if(fabs((T)(qsi-1.)) < zero) regularmap = false;
+                break;
+            case 19:
+            case 20:
+                regularmap = true;
+        }
+        if(side > 20)
+        {
+            cout << "Cant compute CheckProjectionForSingularity method in TPZPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n";
+            DebugStop();
+        }
+        return regularmap;
+    }
 
     template<class T>
-    bool TPZPrism::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    void TPZPrism::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
         double zero = 1.E-5;
 
         T qsi = InternalPar[0];
         T eta = InternalPar[1];
         T zeta = InternalPar[2];
 
-        bool regularmap = true;
+        if(!CheckProjectionForSingularity(side,InternalPar)){
+            std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
+            DebugStop();
+        }
         switch(side)
         {
             case 0:
@@ -1057,17 +1135,7 @@ namespace pztopology {
                 break;
             }
             case 6://1D
-                SidePar.Resize(1);
-                JacToSide.Resize(1,3);
-                if(fabs((T)(eta-1.)) < zero)
-                {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.;
-                    JacToSide(0,1) = 1.;
-                    JacToSide(0,2) = 0.;
-                    regularmap = false;
-                }
-                else
+                SidePar.Resize(1); JacToSide.Resize(1,3);
                 {
                     T den = -1 + eta;
                     SidePar[0] = -1 - (2*qsi)/den;
@@ -1079,15 +1147,6 @@ namespace pztopology {
 
             case 7://1D
                 SidePar.Resize(1); JacToSide.Resize(1,3);
-                if(fabs((T)(qsi+eta)) < zero)
-                {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.;
-                    JacToSide(0,1) = 1.;
-                    JacToSide(0,2) = 0.;
-                    regularmap = false;
-                }
-                else
                 {
                     T den = eta + qsi;
                     SidePar[0] = -1 + (2*eta)/den;
@@ -1099,13 +1158,6 @@ namespace pztopology {
 
             case 8://1D
                 SidePar.Resize(1); JacToSide.Resize(1,3);
-                if(fabs((T)(qsi-1.)) < zero)
-                {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    regularmap = false;
-                }
-                else
                 {
                     T den = -1 + qsi;
                     SidePar[0] = 1 + (2*eta)/den;
@@ -1141,13 +1193,6 @@ namespace pztopology {
 
             case 12://1D
                 SidePar.Resize(1); JacToSide.Resize(1,3);
-                if(fabs((T)(eta-1.)) < zero)
-                {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    regularmap = false;
-                }
-                else
                 {
                     T den = 1 - eta;
                     SidePar[0] = -1 +(2*qsi)/den;
@@ -1159,13 +1204,6 @@ namespace pztopology {
 
             case 13://1D
                 SidePar.Resize(1); JacToSide.Resize(1,3);
-                if(fabs((T)(qsi+eta)) < zero)
-                {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    regularmap = false;
-                }
-                else
                 {
                     SidePar[0] = -1 + (2*eta)/(eta + qsi);
                     JacToSide(0,0) = (-2*eta)/((eta + qsi)*(eta + qsi));
@@ -1176,13 +1214,6 @@ namespace pztopology {
 
             case 14://1D
                 SidePar.Resize(1); JacToSide.Resize(1,3);
-                if(fabs((T)(qsi-1.)) < zero)
-                {
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    regularmap = false;
-                }
-                else
                 {
                     SidePar[0] = 1 + (2*eta)/(-1 + qsi);
                     JacToSide(0,0) = (-2*eta)/((-1 + qsi)*(-1 + qsi));
@@ -1205,14 +1236,6 @@ namespace pztopology {
 
             case 16://2D - quadrilateral
                 SidePar.Resize(2); JacToSide.Resize(2,3);
-                if(fabs((T)(eta-1.)) < zero)
-                {
-                    SidePar[0] = 0.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
-                    regularmap = false;
-                }
-                else
                 {
                     SidePar[0] = -1 - (2*qsi)/(-1 + eta);
                     SidePar[1] = zeta;
@@ -1227,14 +1250,6 @@ namespace pztopology {
 
             case 17://2D - quadrilateral
                 SidePar.Resize(2); JacToSide.Resize(2,3);
-                if(fabs((T)(qsi+eta)) < zero)
-                {
-                    SidePar[0] = 0.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
-                    regularmap = false;
-                }
-                else
                 {
                     SidePar[0] = -1 + (2*eta)/(eta + qsi);
                     SidePar[1] = zeta;
@@ -1249,14 +1264,6 @@ namespace pztopology {
 
             case 18://2D - quadrilateral
                 SidePar.Resize(2); JacToSide.Resize(2,3);
-                if(fabs((T)(qsi-1.)) < zero)
-                {
-                    SidePar[0] = 0.; SidePar[1] = zeta;
-                    JacToSide(0,0) = 1.; JacToSide(0,1) = 1.; JacToSide(0,2) = 0.;
-                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 1.;
-                    regularmap = false;
-                }
-                else
                 {
                     SidePar[0] = -1 - (2*eta)/(-1 + qsi);
                     SidePar[1] = zeta;
@@ -1288,10 +1295,11 @@ namespace pztopology {
         }
         if(side > 20)
         {
-            cout << "Cant compute MapToSide method in TPZGeoPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n";
+            cout << "Cant compute MapToSide method in TPZPrism class!\nParameter (SIDE) must be between 6 and 19!\nMethod Aborted!\n";
+            cout << "This should have been caught earlier in the execution, there is something wrong.\n";
+            cout << "Check method TPZTetrahedron::CheckProjectionForSingularity<T>\n";
             DebugStop();
         }
-        return regularmap;
     }
     
     void TPZPrism::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -1769,8 +1777,9 @@ namespace pztopology {
  * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
  * in BOTH cases.    @orlandini
  **********************************************************************************************************************/
+template bool pztopology::TPZPrism::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
-template bool pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template void pztopology::TPZPrism::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -1779,7 +1788,9 @@ template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMat
 template void pztopology::TPZPrism::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
-template bool pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template bool pztopology::TPZPrism::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
+
+template void pztopology::TPZPrism::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);

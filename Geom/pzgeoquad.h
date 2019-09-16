@@ -67,23 +67,6 @@ namespace pzgeom {
         
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Quad";}
-        /* @brief Compute x mapping from local parametric coordinates */
-//        template<class T>
-//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-//        {
-//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-//            CornerCoordinates(gel, coord);
-//            X(coord,loc,x);
-//        }
-        
-        /** @brief Compute gradient of x mapping from local parametric coordinates */
-//        template<class T>
-//        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-//        {
-//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-//            CornerCoordinates(gel, coord);
-//            GradX(coord,loc,gradx);
-//        }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
         template<class T>

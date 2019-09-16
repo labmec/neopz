@@ -433,7 +433,9 @@ void TPZQuadraticCube::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
 
 template class TPZRestoreClass< TPZGeoElRefPattern<pzgeom::TPZQuadraticCube>>;
 
-template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+//template class pzgeom::TPZNodeRep<20,pzgeom::TPZQuadraticCube>;
 
 namespace pzgeom {
     template void TPZQuadraticCube::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);

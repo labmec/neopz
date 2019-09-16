@@ -134,45 +134,6 @@ namespace pzgeom {
 	// 	return 0;
 	// }
 	
-	void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
-	{
-		ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-		ChangedPoint = OriginalPoint;
-		
-		switch(side)
-		{
-			case 3:
-			{
-				if(fabs(OriginalPoint[0]) <= tol && fabs(OriginalPoint[1]- 1.) <= tol)
-				{
-					ChangedPoint[0] = tol;
-					ChangedPoint[1] = 1. - 2.*tol;
-				}
-				break;
-			}
-				
-			case 4:
-			{
-				if(fabs(OriginalPoint[0]) <= tol && fabs(OriginalPoint[1]) <= tol)
-				{
-					ChangedPoint[0] = tol;
-					ChangedPoint[1] = tol;
-				}
-				break;
-			}
-				
-			case 5:
-			{
-				if(fabs(OriginalPoint[0] - 1.) <= tol && fabs(OriginalPoint[1]) <= tol)
-				{
-					ChangedPoint[0] = 1.-tol;
-					ChangedPoint[1] = tol/2.;
-				}
-				break;
-			}
-		}
-	}
-	
 	/** Creates a geometric element according to the type of the father element */
 	// TPZGeoEl *TPZGeoTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 	// 										   TPZVec<int64_t>& nodeindexes,
