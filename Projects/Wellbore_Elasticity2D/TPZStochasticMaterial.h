@@ -74,9 +74,6 @@ protected:
     /** @brief Random correlated* distribution */
     TPZFMatrix<STATE> fU;
     
-    /** @brief Decomposed matrix from Mathematica */
-    TPZFMatrix<STATE> fM;
-    
     /** @brief Random distribution of E */
     TPZFMatrix<STATE> fU_E;
     
@@ -121,7 +118,7 @@ protected:
     
 public:
     
-     TPZStochasticMaterial();
+    TPZStochasticMaterial();
     
     /**
      * @brief Creates an object with:
@@ -140,8 +137,7 @@ public:
      * @param distribnu nu distribution
      */
     TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
-                       REAL inclination, REAL rw, REAL rext, const TPZFMatrix<STATE> &M, REAL scale, int funcE,
-                          int funcnu, int distribE, int distribnu);
+                          REAL inclination, REAL rw, REAL rext, REAL scale, int funcE, int funcnu, int distribE, int distribnu);
     
     /** @brief Copy constructor */
     TPZStochasticMaterial(const TPZStochasticMaterial &cp);
@@ -160,9 +156,6 @@ public:
     /** @brief Set distribution type and function of nu */
     virtual void SetPoissonField(int distribution, int function);
     
-    /** @brief Set Matrix to be read - should be deleted after SVD decomposition implementation */
-    virtual void SetReadMatrix(const TPZFMatrix<STATE> &M);
-    
     /** @brief Set inclined parameters if wellbore is inclined */
     virtual void SetInclinedField(REAL rw, REAL rext, int stochasticInclined,REAL direction, REAL inclination);
     
@@ -177,7 +170,7 @@ public:
     
     /** @brief Get distribution for either vertical or inclined well */
     TPZFMatrix<STATE> GetDistribution(int matrixSize, int distribution);
-
+    
     /** @brief Gets stochastic field for Young's modulus and Poisson's ratio */
     virtual void GetStochasticField( TPZFMatrix<STATE> f_E, TPZFMatrix<STATE> f_nu);
     
@@ -189,7 +182,7 @@ public:
     
     /** @brief Print correlation matrix to be decomposed at Mathematica - This should be removed after SVD decomposition!!! */
     virtual void PrintCorrelation();
-
+    
 };
 
 #endif /* defined(TPZSTOCHASTICMATERIAL_H) */

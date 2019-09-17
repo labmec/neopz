@@ -1,18 +1,17 @@
 //
-//  TPZMatElasticity2D.cpp
+//  TPZStochasticMaterial.cpp
 //  PZ
 //
-//  Created by Omar on 10/27/14.
+//  Created by Nathalia on 09/16/19.
 //
 //
 
 #include <math.h>
-
 #include "TPZStochasticMaterial.h"
 
 
 TPZStochasticMaterial::TPZStochasticMaterial(){ 
-
+    
     fnSquareElements = 0.;
     fdirection = 0.;
     finclination = 0.;
@@ -22,8 +21,7 @@ TPZStochasticMaterial::TPZStochasticMaterial(){
 }
 
 TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
-                       REAL inclination, REAL rw, REAL rext, const TPZFMatrix<REAL> &M, REAL scale, int funcE,
-                                                 int funcnu, int distribE, int distribnu){
+                                             REAL inclination, REAL rw, REAL rext, REAL scale, int funcE, int funcnu, int distribE, int distribnu){
     //This should be given by the user
     fgmesh = geometricMesh;
     
@@ -35,9 +33,6 @@ TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numS
     frw = rw;
     frext = rext;
     
-    // this should not be here, delete after SVD implementation
-    fM = M;
-    
     // this should be given by the user
     fE_dist = distribE;
     fnu_dist = distribnu;
@@ -48,30 +43,28 @@ TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numS
     
     // exponential function scale
     fscale = scale;
-
+    
     //** Calculation of stochastic field - This should be defined in "main or computational mesh *****/////
     //This can be defined in "main" or computational mesh
     if (fstochasticInclined==1) {
         SetInclinedField(frw, frext, fstochasticInclined, fdirection, finclination);
     }
     calcStochasticField();
-    //******* End
     
 }
 
 
 TPZStochasticMaterial::TPZStochasticMaterial (const TPZStochasticMaterial &cp){
-
+    
     fgmesh = cp.fgmesh;
     fnSquareElements = cp.fnSquareElements;  // number of Square Elements
     fstochasticInclined = cp.fstochasticInclined;
     fdirection = cp.fdirection;
     finclination = cp.finclination;
-
+    
     // this should not be here, try to get from fgmesh
     frw = cp.frw;
     frext = cp.frext;
-    fM = cp.fM;
 }
 
 TPZStochasticMaterial::~TPZStochasticMaterial()
@@ -79,11 +72,6 @@ TPZStochasticMaterial::~TPZStochasticMaterial()
 }
 
 TPZFMatrix<STATE> TPZStochasticMaterial::calcStochasticField(){
-    
-    //This should be removed after using SVD decomposition
-    SetReadMatrix(fM);
-    
-    /* Start */
     
     //Get fK
     // if fE_func==nu_func, fK will be the same for both variables
@@ -119,13 +107,6 @@ TPZFMatrix<STATE> TPZStochasticMaterial::calcStochasticField(){
     //***** Should use this one to get the random correlated and scaled field, in TPZMaterial use fE and fnu
     //GetStochasticField(fE, fnu);
     
-    /* End */
-    
-    //Overwrtie fU just to test - This should be deleted
-    // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
-    fU = fM * fU_E; // Get correlated random distribution
-    // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
-    
     return NULL;
 }
 
@@ -137,10 +118,6 @@ void TPZStochasticMaterial::SetYoungField(int distribution, int function){
 void TPZStochasticMaterial::SetPoissonField(int distribution, int function){
     fnu_dist = distribution;
     fnu_funct = function;
-}
-
-void TPZStochasticMaterial::SetReadMatrix(const TPZFMatrix<STATE> &M){
-    fM = M;
 }
 
 void TPZStochasticMaterial::SetInclinedField(REAL rw, REAL rext,int stochasticInclined,REAL direction, REAL inclination)
