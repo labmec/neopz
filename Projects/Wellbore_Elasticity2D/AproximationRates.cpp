@@ -89,7 +89,7 @@ int ApproximationRates(TPZFMatrix<STATE> &M){
             
             TPZCompMesh *cmesh = CircularCMesh(gmesh, current_p, projection, inclinedwellbore,
                                                analytic, SigmaV, Sigmah, SigmaH, Pwb, rw, rext,
-                                               direction, inclination, isStochastic, nSquareElements, 
+                                               direction, inclination, isStochastic, nSquareElements,
                                                M,  scale, funcE, funcnu, distribE, distribnu);
             TPZAnalysis an (cmesh);
             TPZSkylineStructMatrix strskyl(cmesh);

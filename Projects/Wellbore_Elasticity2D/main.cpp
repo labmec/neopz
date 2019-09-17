@@ -9,42 +9,42 @@
 // Read Decomposed Matrix from File
 template<typename TVar>
 TPZFMatrix<TVar> readDecomposedMatrixFromFile(int nSquareElements, int matsize, int stochasticInclined) {
-
-	TPZFMatrix<TVar> M(nSquareElements, nSquareElements, 0.);
-
-	if (stochasticInclined == 1) {
-		M.Resize(matsize, matsize);
-
-		// Setar valores de M obtidos do Mathematica (Decomposed Matrix)
-		std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix_inclined.tbl");
-
-		if (!DecMatFile.good()) {
-			std::cout << "Decomposed Matrix (.tbl) file does not exist!\n" << std::endl;
-			DebugStop();
-		}
-
-		std::string line;
-
-		int i = 0;
-
-		while (std::getline(DecMatFile, line)) {
-			REAL value;
-			int j = 0;
-			std::stringstream ss(line);
-
-			while (ss >> value) {
-				M(i, j) = value;
-				j++;
-			}
-			i++;
-		}
-
-		M.Resize(nSquareElements, matsize);
-
-		return M;
-
-	}
-
+    
+    TPZFMatrix<TVar> M(nSquareElements, nSquareElements, 0.);
+    
+    if (stochasticInclined == 1) {
+        M.Resize(matsize, matsize);
+        
+        // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
+        std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix_inclined.tbl");
+        
+        if (!DecMatFile.good()) {
+            std::cout << "Decomposed Matrix (.tbl) file does not exist!\n" << std::endl;
+            DebugStop();
+        }
+        
+        std::string line;
+        
+        int i = 0;
+        
+        while (std::getline(DecMatFile, line)) {
+            REAL value;
+            int j = 0;
+            std::stringstream ss(line);
+            
+            while (ss >> value) {
+                M(i, j) = value;
+                j++;
+            }
+            i++;
+        }
+        
+        M.Resize(nSquareElements, matsize);
+        
+        return M;
+        
+    }
+    
     else {
         // Setar valores de M obtidos do Mathematica (Decomposed Matrix)
         std::ifstream DecMatFile("../decomposed_matrix/decomposed_matrix_vertical.tbl");
@@ -77,7 +77,7 @@ TPZFMatrix<TVar> readDecomposedMatrixFromFile(int nSquareElements, int matsize, 
 
 int main(int argc, char *argv[])
 {
-   
+    
     int ncircle = 30;
     int nradial = 25; //25; //NANANAN teste malha progressao
     
@@ -126,13 +126,13 @@ int main(int argc, char *argv[])
     solutionfile << "Case,Total plastified area" << std::endl;
     
     int ncases = 1;
-	
+    
     int nLayers = 8;
-	REAL fH = 2 * rext; // altura total do cilindro em metros
-	REAL fh = fH / nLayers; // altura de cada cubo (elemento) em metros 
-	int nSquareElements = nradial * ncircle;
-	int matsize = nSquareElements * (fH / fh) + nSquareElements;
-
+    REAL fH = 2 * rext; // altura total do cilindro em metros
+    REAL fh = fH / nLayers; // altura de cada cubo (elemento) em metros
+    int nSquareElements = nradial * ncircle;
+    int matsize = nSquareElements * (fH / fh) + nSquareElements;
+    
     std::cout << "Read decomposed Matrix" << std::endl;
     TPZFMatrix<STATE> M = readDecomposedMatrixFromFile<STATE>(nSquareElements, matsize, inclinedwellbore);
     
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                       Sig_H(i), Pwb, drdcirc, direction, inclination, isStochastic, solutionfile, i, M, scale, funcE, funcnu, distribE, distribnu);
             
         }
-
+        
     }
     
     else {

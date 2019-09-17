@@ -42,10 +42,10 @@ class TPZRandomField : public TPZFunction<TVar>
     TPZFMatrix<TVar> fRand_U; //random distribution
     TPZFMatrix<TVar> fU; // random correlated* distribution
     TPZFMatrix<TVar> fM; //Decomposed matrix from Mathematica
-
+    
     TPZFMatrix<TVar> fU_E; // random correlated* distribution of E
     TPZFMatrix<TVar> fU_nu; // random correlated* distribution of nu
-   
+    
     // normal ==1;
     // lognormal ==2;
     int fE_dist;
@@ -88,8 +88,8 @@ public:
         // this should be given by the user
         fE_dist = distribE;
         fnu_dist = distribnu;
-       
-         // this should be given by the user
+        
+        // this should be given by the user
         fE_funct = funcE;
         fnu_funct = funcnu;
         
@@ -115,17 +115,17 @@ public:
         }
         
         else {
-        //Evaluate for E
-        fKE = EvaluateCorrelation(fE_funct);
-        //Evaluate for nu
-        fKnu = EvaluateCorrelation(fnu_funct);
+            //Evaluate for E
+            fKE = EvaluateCorrelation(fE_funct);
+            //Evaluate for nu
+            fKnu = EvaluateCorrelation(fnu_funct);
             
             // Create function to decompose fK using SVD decomposition
             // fKE = U sqt(S) V'
             // fKnu = U sqt(S) V'
             // create glogal parameter for U and sqrt(S)
         }
-                
+        
         
         //Write a function to get fU
         fU_E = GetRandomDistribution(fE_dist);
@@ -214,7 +214,7 @@ public:
     }
     
     /** @brief Calculates Correlation either vertical or inclined */
-     TPZFMatrix<TVar>  EvaluateCorrelation(int function)
+    TPZFMatrix<TVar>  EvaluateCorrelation(int function)
     {
         if (fstochasticInclined == 1) {
             
@@ -476,12 +476,12 @@ public:
                 
                 //exponential function
                 if (function==1){
-                KCorr(i,j) = pow(M_E, -((r2*r2)/(fscale*fscale)));
+                    KCorr(i,j) = pow(M_E, -((r2*r2)/(fscale*fscale)));
                 }
                 
                 //spherical function
                 else if (function==2){
-                //insert function
+                    //insert function
                 }
             }
         }

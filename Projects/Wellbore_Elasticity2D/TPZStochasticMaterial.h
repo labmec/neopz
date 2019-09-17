@@ -56,7 +56,7 @@ protected:
     /** @brief If inclined, 3D field total height */
     REAL fH;
     
-    /** @brief If inclined, elements heigh in the 3D field (implemented for square elements so far) */
+    /** @brief If inclined, elements height in the 3D field (implemented for square elements so far) */
     REAL fh;
     
     /** @brief Correlation lenght, given by a scale of fluctuation */
@@ -68,11 +68,11 @@ protected:
     /** @brief Correlation Matrix */
     TPZFMatrix<STATE> fK;
     
-    /** @brief Random Distribution */
-    TPZFMatrix<STATE> fRand_U;
+    /** @brief Correlation Matrix of E */
+    TPZFMatrix<STATE> fKE;
     
-    /** @brief Random correlated* distribution */
-    TPZFMatrix<STATE> fU;
+    /** @brief Correlation Matrix of nu */
+    TPZFMatrix<STATE> fKnu;
     
     /** @brief Random distribution of E */
     TPZFMatrix<STATE> fU_E;
@@ -110,18 +110,12 @@ protected:
      */
     int fnu_funct;
     
-    /** @brief Correlation Matrix of E */
-    TPZFMatrix<STATE> fKE;
-    
-    /** @brief Correlation Matrix of nu */
-    TPZFMatrix<STATE> fKnu;
-    
 public:
     
     TPZStochasticMaterial();
     
     /**
-     * @brief Creates an object with:
+     * @brief Constructor with:
      * @param geometricMesh geometric mesh
      * @param numSquareElems number of square elements
      * @param stochasticInclined inclined field
@@ -129,7 +123,6 @@ public:
      * @param inclination wellbore inclination
      * @param rw wellbore radius
      * @param rext external radius
-     * @param M read correlation matrix decomposed
      * @param scale correlation length
      * @param funcE E function
      * @param funcnu nu function
@@ -138,6 +131,18 @@ public:
      */
     TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
                           REAL inclination, REAL rw, REAL rext, REAL scale, int funcE, int funcnu, int distribE, int distribnu);
+    
+    /**
+     * @brief Constructor with:
+     * @param geometricMesh geometric mesh
+     * @param stochasticInclined inclined field
+     * @param scale correlation length
+     * @param funcE E function
+     * @param funcnu nu function
+     * @param distribE E distribution
+     * @param distribnu nu distribution
+     */
+    TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int stochasticInclined, REAL scale, int funcE, int funcnu, int distribE, int distribnu);
     
     /** @brief Copy constructor */
     TPZStochasticMaterial(const TPZStochasticMaterial &cp);
@@ -180,7 +185,7 @@ public:
     /** @brief Calculates correlation matrix for inclined well */
     TPZFMatrix<STATE> calcCorrelationMatrixInclined(int function);
     
-    /** @brief Print correlation matrix to be decomposed at Mathematica - This should be removed after SVD decomposition!!! */
+    /** @brief Print correlation matrix fK */
     virtual void PrintCorrelation();
     
 };

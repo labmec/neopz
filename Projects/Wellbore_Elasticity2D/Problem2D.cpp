@@ -28,7 +28,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
               int analytic, REAL SigmaV, REAL Sigmah, REAL SigmaH, REAL Pwb, REAL drdcirc,
               REAL direction, REAL inclination, bool isStochastic,std::ofstream &solutionfile,
               int &icase, TPZFMatrix<STATE> &M, REAL scale, int funcE, int funcnu, int distribE, int distribnu) {
-
+    
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
@@ -40,7 +40,7 @@ int Problem2D(REAL rw, REAL rext, int ncircle, int nradial, int projection, int 
     REAL beta = inclination * (M_PI / 180);
     
     int nSquareElements = nradial * ncircle;
-        
+    
     // Cria a malha GEOMETRICA de todo o poco
     TPZGeoMesh *gmesh = CircularGeoMesh (rw, rext, ncircle, nradial, drdcirc, alpha, beta);
     
@@ -239,7 +239,7 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
         if(geoel->HasSubElement()) continue;
         if(geoel->MaterialId() != matid) continue;
         if(!geoel->Reference()) DebugStop(); //Why did this element lost its comp element?
-
+        
         weight = master_el_area*(1./ntotal);//same weight for each qsi-eta
         qsivalue = -1;
         counter  = 0;
@@ -286,13 +286,13 @@ void PrintSolution(std::ofstream &solutionfile,int &icase,TPZGeoMesh *gmesh) {
         totalplast_area += geoelplast_area;
         
         totalFailure    += tensileFail;
-
+        
     } //loop over elements
-       
+    
     if (totalFailure>0) {
         fail = 1;
     }
-
+    
     std::cout << "Case " << icase+1 << " total plastified area " << totalplast_area <<
     " Tensile Failure = " << fail << std::endl;
     

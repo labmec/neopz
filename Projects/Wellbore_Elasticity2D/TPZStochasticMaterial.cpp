@@ -2,7 +2,7 @@
 //  TPZStochasticMaterial.cpp
 //  PZ
 //
-//  Created by Nathalia on 09/16/19.
+//  Created by Nathalia Batalha on 09/16/19.
 //
 //
 
@@ -44,8 +44,11 @@ TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numS
     // exponential function scale
     fscale = scale;
     
-    //** Calculation of stochastic field - This should be defined in "main or computational mesh *****/////
-    //This can be defined in "main" or computational mesh
+    //* Needs E and nu mean values and coef of variation or standard deviation */
+    
+    /*
+     ** Calculation of stochastic field - This should be defined in "main or computational mesh *****/////
+    //This can be defined in "main" or computational mesh/*
     if (fstochasticInclined==1) {
         SetInclinedField(frw, frext, fstochasticInclined, fdirection, finclination);
     }
@@ -53,18 +56,28 @@ TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numS
     
 }
 
+TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int stochasticInclined, REAL scale, int funcE, int funcnu, int distribE, int distribnu){
+    
+    fgmesh = geometricMesh;
+    fstochasticInclined = stochasticInclined;
+    fE_dist = distribE;
+    fnu_dist = distribnu;
+    fE_funct = funcE;
+    fnu_funct = funcnu;
+    fscale = scale;
+    
+    //* Needs E and nu mean values and coef of variation or standard deviation */
+}
 
 TPZStochasticMaterial::TPZStochasticMaterial (const TPZStochasticMaterial &cp){
     
     fgmesh = cp.fgmesh;
-    fnSquareElements = cp.fnSquareElements;  // number of Square Elements
     fstochasticInclined = cp.fstochasticInclined;
-    fdirection = cp.fdirection;
-    finclination = cp.finclination;
-    
-    // this should not be here, try to get from fgmesh
-    frw = cp.frw;
-    frext = cp.frext;
+    fE_dist = cp.fE_dist;
+    fnu_dist = cp.fnu_dist;
+    fE_funct = cp.fE_funct;
+    fnu_funct = cp.fnu_funct;
+    fscale = cp.fscale;
 }
 
 TPZStochasticMaterial::~TPZStochasticMaterial()
@@ -140,16 +153,10 @@ void TPZStochasticMaterial::InclinedFieldGeometry(){
 TPZFMatrix<STATE>  TPZStochasticMaterial::EvaluateCorrelation(int function)
 {
     if (fstochasticInclined == 1) {
-        
         fK = calcCorrelationMatrixInclined(function);
-        
-        //PrintCorrelation();
     }
     else{
-        
         fK = calcCorrelationMatrix(function);
-        
-        //PrintCorrelation();
     }
     return fK;
 }
@@ -157,51 +164,47 @@ TPZFMatrix<STATE>  TPZStochasticMaterial::EvaluateCorrelation(int function)
 
 TPZFMatrix<STATE> TPZStochasticMaterial::GetRandomDistribution(int distribution)
 {
+    TPZFMatrix<STATE> Dist;
+    
     if (fstochasticInclined == 1) {
-        fU = GetDistribution(fmatsize, distribution);
+        Dist.Resize(fmatsize, 1);
+        Dist = GetDistribution(fmatsize, distribution);
     }
     else {
-        fU = GetDistribution(fnSquareElements, distribution);
+        Dist.Resize(fnSquareElements, 1);
+        Dist = GetDistribution(fnSquareElements, distribution);
     }
-    return fU;
+    return Dist;
 }
 
 TPZFMatrix<STATE> TPZStochasticMaterial::GetDistribution(int matrixSize, int distribution)
 {
+    // Random Vector U
+    TPZFMatrix<STATE> Rand_U (matrixSize, 1, 0.);
+    
     //normal distribution
     if(distribution==1) {
-        
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::default_random_engine generator (seed);
         std::normal_distribution<double> distribution(0.,1.0);
         
-        // Random Vector U
-        TPZFMatrix<STATE> Rand_U (matrixSize, 1, 0.);
-        
         for (int i = 0; i < matrixSize; i++) {
             Rand_U(i,0) = distribution(generator);
             distribution.reset();
-            fRand_U = Rand_U;
         }
     }
-    
     //lognormal distribution
     else if(distribution==2){
-        
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::default_random_engine generator (seed);
         std::lognormal_distribution<double> distribution(0.,1.0);
         
-        // Random Vector U
-        TPZFMatrix<STATE> Rand_U (matrixSize, 1, 0.);
-        
         for (int i = 0; i < matrixSize; i++) {
             Rand_U(i,0) = distribution(generator);
             distribution.reset();
-            fRand_U = Rand_U;
         }
     }
-    return fRand_U;
+    return Rand_U;
 }
 
 void TPZStochasticMaterial::GetStochasticField( TPZFMatrix<STATE> f_E, TPZFMatrix<STATE> f_nu)
@@ -368,7 +371,6 @@ TPZFMatrix<STATE> TPZStochasticMaterial::calcCorrelationMatrixInclined(int funct
         Coordinates(i, 2) = rotCoordinates(i, 2);
         Coordinates(i, 3) = rotCoordinates(i, 3);
     }
-    
     
     //std::cout << Coordinates << std::endl;
     std::ofstream out_Coordinates("Coordinates.txt");
