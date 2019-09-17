@@ -6,11 +6,12 @@
 //
 //
 
+#include <math.h>
 
 #include "TPZStochasticMaterial.h"
 
 
-TPZStochasticMaterial::TPZStochasticMaterial(){
+TPZStochasticMaterial::TPZStochasticMaterial(){ 
 
     fnSquareElements = 0.;
     fdirection = 0.;
@@ -48,7 +49,16 @@ TPZStochasticMaterial::TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numS
     // exponential function scale
     fscale = scale;
 
+    //** Calculation of stochastic field - This should be defined in "main or computational mesh *****/////
+    //This can be defined in "main" or computational mesh
+    if (fstochasticInclined==1) {
+        SetInclinedField(frw, frext, fstochasticInclined, fdirection, finclination);
+    }
+    calcStochasticField();
+    //******* End
+    
 }
+
 
 TPZStochasticMaterial::TPZStochasticMaterial (const TPZStochasticMaterial &cp){
 
@@ -62,12 +72,61 @@ TPZStochasticMaterial::TPZStochasticMaterial (const TPZStochasticMaterial &cp){
     frw = cp.frw;
     frext = cp.frext;
     fM = cp.fM;
-
-    return *this;
 }
 
 TPZStochasticMaterial::~TPZStochasticMaterial()
 {
+}
+
+TPZFMatrix<STATE> TPZStochasticMaterial::calcStochasticField(){
+    
+    //This should be removed after using SVD decomposition
+    SetReadMatrix(fM);
+    
+    /* Start */
+    
+    //Get fK
+    // if fE_func==nu_func, fK will be the same for both variables
+    if(fE_funct==fnu_funct){
+        fKE = EvaluateCorrelation(fE_funct);
+        fKnu = fKE;
+        
+        // Create function to decompose fK using SVD decomposition
+        // fK = U sqt(S) V'
+        // create glogal parameter for U and sqrt(S)
+    }
+    
+    else {
+        //Evaluate for E
+        fKE = EvaluateCorrelation(fE_funct);
+        //Evaluate for nu
+        fKnu = EvaluateCorrelation(fnu_funct);
+        
+        // Create function to decompose fK using SVD decomposition
+        // fKE = U sqt(S) V'
+        // fKnu = U sqt(S) V'
+        // create global parameter for U and sqrt(S)
+    }
+    
+    //Get a random and not correlated distribution for each variable, they might be different or the same
+    fU_E = GetRandomDistribution(fE_dist);
+    fU_nu = GetRandomDistribution(fnu_dist);
+    
+    //* Needs E and nu mean values and coef of variation or standard deviation */
+    // f_E = U*sqrt(S)*fU_E * std_E + mean_E
+    // f_nu = U*sqrt(S)*fU_nu * std_nu + mean_nu
+    
+    //***** Should use this one to get the random correlated and scaled field, in TPZMaterial use fE and fnu
+    //GetStochasticField(fE, fnu);
+    
+    /* End */
+    
+    //Overwrtie fU just to test - This should be deleted
+    // Multiplying decomposed Matrix M (U*Sqrt(S)) and random normal vector fRand_U
+    fU = fM * fU_E; // Get correlated random distribution
+    // In this function fM should be replaced by the left singular vetor U and the square root of the diagonal matrix S, then multiply by fRand_U
+    
+    return NULL;
 }
 
 void TPZStochasticMaterial::SetYoungField(int distribution, int function){
@@ -80,23 +139,18 @@ void TPZStochasticMaterial::SetPoissonField(int distribution, int function){
     fnu_funct = function;
 }
 
-void TPZStochasticMaterial::SetReadMatrix(const TPZFMatrix<REAL> &M){
+void TPZStochasticMaterial::SetReadMatrix(const TPZFMatrix<STATE> &M){
     fM = M;
 }
 
-
-void TPZStochasticMaterial::SetInclinedField(int stochasticInclined,REAL direction, REAL inclination)
+void TPZStochasticMaterial::SetInclinedField(REAL rw, REAL rext,int stochasticInclined,REAL direction, REAL inclination)
 {
     fstochasticInclined = stochasticInclined;
     fdirection = direction;
     finclination = inclination;
-}
-
-void TPZStochasticMaterial::SetFieldGeometry()
-{
-    if (fstochasticInclined==true){
-        InclinedFieldGeometry();
-    }
+    frw = rw;
+    frext = rext;
+    InclinedFieldGeometry();
 }
 
 void TPZStochasticMaterial::InclinedFieldGeometry(){
@@ -106,7 +160,7 @@ void TPZStochasticMaterial::InclinedFieldGeometry(){
     fmatsize = fnSquareElements * (fH/fh) + fnSquareElements;
 }
 
-TPZFMatrix<REAL>  TPZStochasticMaterial::EvaluateCorrelation(int function)
+TPZFMatrix<STATE>  TPZStochasticMaterial::EvaluateCorrelation(int function)
 {
     if (fstochasticInclined == 1) {
         
@@ -124,7 +178,7 @@ TPZFMatrix<REAL>  TPZStochasticMaterial::EvaluateCorrelation(int function)
 }
 
 
-TPZFMatrix<REAL> TPZStochasticMaterial::GetCorrelatedVector(int distribution)
+TPZFMatrix<STATE> TPZStochasticMaterial::GetRandomDistribution(int distribution)
 {
     if (fstochasticInclined == 1) {
         fU = GetDistribution(fmatsize, distribution);
@@ -135,7 +189,7 @@ TPZFMatrix<REAL> TPZStochasticMaterial::GetCorrelatedVector(int distribution)
     return fU;
 }
 
-TPZFMatrix<REAL> TPZStochasticMaterial::GetDistribution(int matrixSize, int distribution)
+TPZFMatrix<STATE> TPZStochasticMaterial::GetDistribution(int matrixSize, int distribution)
 {
     //normal distribution
     if(distribution==1) {
@@ -145,7 +199,7 @@ TPZFMatrix<REAL> TPZStochasticMaterial::GetDistribution(int matrixSize, int dist
         std::normal_distribution<double> distribution(0.,1.0);
         
         // Random Vector U
-        TPZFMatrix<REAL> Rand_U (matrixSize, 1, 0.);
+        TPZFMatrix<STATE> Rand_U (matrixSize, 1, 0.);
         
         for (int i = 0; i < matrixSize; i++) {
             Rand_U(i,0) = distribution(generator);
@@ -162,7 +216,7 @@ TPZFMatrix<REAL> TPZStochasticMaterial::GetDistribution(int matrixSize, int dist
         std::lognormal_distribution<double> distribution(0.,1.0);
         
         // Random Vector U
-        TPZFMatrix<REAL> Rand_U (matrixSize, 1, 0.);
+        TPZFMatrix<STATE> Rand_U (matrixSize, 1, 0.);
         
         for (int i = 0; i < matrixSize; i++) {
             Rand_U(i,0) = distribution(generator);
@@ -173,35 +227,36 @@ TPZFMatrix<REAL> TPZStochasticMaterial::GetDistribution(int matrixSize, int dist
     return fRand_U;
 }
 
-void TPZStochasticMaterial::GetStochasticField( TPZFMatrix<REAL> f_E, TPZFMatrix<REAL> f_nu)
+void TPZStochasticMaterial::GetStochasticField( TPZFMatrix<STATE> f_E, TPZFMatrix<STATE> f_nu)
 {
     // Use global parameter for U and sqrt(S) for the field
-    // fE = U*sqrt(S)*fU_E
-    // fnu = U*sqrt(S)*fU_nu
+    // This method needs the mean values of E and nu, as well as their coefficient of variatin or standard deviation
+    // f_E = U*sqrt(S)*fU_E * std_E + mean_E
+    // f_nu = U*sqrt(S)*fU_nu * std_nu + mean_nu
 }
 
-TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrix(int function) {
+TPZFMatrix<STATE> TPZStochasticMaterial::calcCorrelationMatrix(int function) {
     
     std::cout << "\nCria matriz da norma entre os centroides (para a matriz de correlacao)" << std::endl;
     
-    TPZFMatrix<REAL> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
+    TPZFMatrix<STATE> CenterNorm(fnSquareElements, fnSquareElements, 0.0);
     
     TPZManVector<REAL, 3> CenterPoint1, CenterPoint2;
     
-    // Elemento analizado
+    // Element of reference
     TPZGeoEl *gel1;
     TPZVec<TPZGeoEl *> sub1;
     TPZManVector<REAL> centerpsi1(3), center1(3);
     
-    // Outros elementos
+    // Other elements
     TPZGeoEl *gel2;
     TPZVec<TPZGeoEl *> sub2;
     TPZManVector<REAL> centerpsi2(3), center2(3);
     
-    // Matriz de correlacao
+    // Correlation Matrix
     TPZFMatrix<REAL> KCorr(fnSquareElements, fnSquareElements, 0.0);
     
-    // Matriz da distancia entre os centroides
+    // Matrix of distance between centroids
     for (int i = 0; i < fnSquareElements; i++) {
         for (int j = 0; j < fnSquareElements; j++) {
             gel1 = fgmesh->ElementVec()[i];
@@ -216,7 +271,7 @@ TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrix(int function) {
             
             CenterPoint2 = center2;
             
-            //    /*3*/    EQuadrilateral
+            //    /*3*/    EQuadrilateral (element type)
             if (gel1->Type() == 3 && gel2->Type() == 3) {
                 
                 REAL dx = pow((CenterPoint2[0]-CenterPoint1[0]), 2);
@@ -240,8 +295,9 @@ TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrix(int function) {
             }
             
             else {
-                // Verifica se el atual eh quadrilatero
+                // Error in element type (not quadrilateral)
                 std::cout<< "Element Type Error" << std::endl;
+                DebugStop();
             }
         }
     }
@@ -249,27 +305,27 @@ TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrix(int function) {
 }
 
 
-TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrixInclined(int function) {
+TPZFMatrix<STATE> TPZStochasticMaterial::calcCorrelationMatrixInclined(int function) {
     
     std::cout << "\nCria matriz dos centroides dos elementos " << std::endl;
     
     TPZFMatrix<REAL> CenterNorm(fmatsize, fmatsize, 0.0);
     
-    // Matriz de correlacao
-    TPZFMatrix<REAL> KCorr(fmatsize, fmatsize, 0.0);
+    // Correlation Matrix
+    TPZFMatrix<STATE> KCorr(fmatsize, fmatsize, 0.0);
     
     REAL Pi = M_PI;
     
-    //******* angulos COLOCADOS A MAO para fazer teste *********
+    //Wellbore inclination
     REAL alpha = 0.; // azimuth
     REAL beta = 0.; // inclination
-    alpha = (fdirection*(Pi/180)); // azimuth
-    beta = (finclination*(Pi/180)); // inclination
+    alpha = (fdirection*(Pi/180));
+    beta = (finclination*(Pi/180));
     
     //  Geeting all coordinates
     TPZGeoEl *gel;
-    TPZFMatrix<REAL> Coordinates(fmatsize, 4, 0.0); //nanana
-    TPZFMatrix<REAL> rotCoordinates(fnSquareElements, 4, 0.0);
+    TPZFMatrix<STATE> Coordinates(fmatsize, 4, 0.0);
+    TPZFMatrix<STATE> rotCoordinates(fnSquareElements, 4, 0.0);
     TPZManVector<REAL> centerpsi(3), center(3);
     TPZManVector<REAL, 3> CenterPoint;
     
@@ -280,7 +336,7 @@ TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrixInclined(int functi
         
         CenterPoint = center;
         
-        //    /*3*/    EQuadrilateral
+        //    /*3*/    EQuadrilateral (element type)
         if (gel->Type() == 3) {
             //Coordinates
             REAL xx = CenterPoint[0];
@@ -347,7 +403,7 @@ TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrixInclined(int functi
     
     std::cout << "\nCria matriz da norma entre os centroides e Matriz de Correlacao" << std::endl;
     
-    // Matriz da distancia entre os centroides
+    // Matrix of distance between centroids
     for (int i = 0; i < fmatsize; i++) {
         for (int j = 0; j < fmatsize; j++) {
             
@@ -384,14 +440,5 @@ TPZFMatrix<REAL> TPZStochasticMaterial::calcCorrelationMatrixInclined(int functi
 void TPZStochasticMaterial::PrintCorrelation() {
     std::ofstream out_kmatrix("KCorr.txt");
     fK.Print("KCorr = ",out_kmatrix,EMathematicaInput);
-}
-
-
-TPZVec<REAL> TPZStochasticMaterial::calcStochasticField(){
-    
-//    // Stochastic Field
-//    TPZFMatrix<REAL> K = calcCorrelationMatrix();
-//
-    return NULL;
 }
 

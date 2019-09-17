@@ -128,8 +128,8 @@ public:
                 
         
         //Write a function to get fU
-        fU_E = GetCorrelatedVector(fE_dist);
-        fU_nu = GetCorrelatedVector(fnu_dist);
+        fU_E = GetRandomDistribution(fE_dist);
+        fU_nu = GetRandomDistribution(fnu_dist);
         
         //GetStochasticField(fE, fnu); ***** Should use this one to get the random correlated and scaled field, in TPZMaterial use fE and fnu
         
@@ -234,7 +234,7 @@ public:
     
     
     /** @brief Calculates Correlation either vertical or inclined */
-    TPZFMatrix<REAL> GetCorrelatedVector(int distribution)
+    TPZFMatrix<REAL> GetRandomDistribution(int distribution)
     {
         if (fstochasticInclined == 1) {
             fU = GetDistribution(fmatsize, distribution); // Get random distribution for inclined surface

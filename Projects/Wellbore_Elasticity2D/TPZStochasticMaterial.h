@@ -14,6 +14,10 @@
 #include "pzvec.h"
 #include "GeometricMesh.hpp"
 #include "ComputationalMesh.hpp"
+#include "pzfunction.h"
+#include "pzerror.h"
+#include "tpzverysparsematrix.h"
+#include "pzsfulmat.h"
 
 #include <math.h>
 #include <complex>
@@ -21,8 +25,7 @@
 #include <random>
 #include <chrono>
 
-
-class TPZStochasticMaterial  {
+class TPZStochasticMaterial {
     
 protected:
     
@@ -63,22 +66,28 @@ protected:
     TPZGeoMesh* fgmesh;
     
     /** @brief Correlation Matrix */
-    TPZFMatrix<REAL> fK;
+    TPZFMatrix<STATE> fK;
     
     /** @brief Random Distribution */
-    TPZFMatrix<REAL> fRand_U;
+    TPZFMatrix<STATE> fRand_U;
     
     /** @brief Random correlated* distribution */
-    TPZFMatrix<REAL> fU;
+    TPZFMatrix<STATE> fU;
     
     /** @brief Decomposed matrix from Mathematica */
-    TPZFMatrix<REAL> fM;
+    TPZFMatrix<STATE> fM;
+    
+    /** @brief Random distribution of E */
+    TPZFMatrix<STATE> fU_E;
+    
+    /** @brief Random distribution of nu */
+    TPZFMatrix<STATE> fU_nu;
     
     /** @brief Random correlated* distribution of E */
-    TPZFMatrix<REAL> fU_E;
+    TPZFMatrix<STATE> f_E;
     
     /** @brief Random correlated* distribution of nu */
-    TPZFMatrix<REAL> fU_nu;
+    TPZFMatrix<STATE> f_nu;
     
     /** @brief Random distribution type of E
      * @note \f$fE_dist = 1\f$ => Normal distribution
@@ -105,10 +114,10 @@ protected:
     int fnu_funct;
     
     /** @brief Correlation Matrix of E */
-    TPZFMatrix<REAL> fKE;
+    TPZFMatrix<STATE> fKE;
     
     /** @brief Correlation Matrix of nu */
-    TPZFMatrix<REAL> fKnu;
+    TPZFMatrix<STATE> fKnu;
     
 public:
     
@@ -131,14 +140,19 @@ public:
      * @param distribnu nu distribution
      */
     TPZStochasticMaterial(TPZGeoMesh* geometricMesh, int numSquareElems, int stochasticInclined, REAL direction,
-                       REAL inclination, REAL rw, REAL rext, const TPZFMatrix<REAL> &M, REAL scale, int funcE,
+                       REAL inclination, REAL rw, REAL rext, const TPZFMatrix<STATE> &M, REAL scale, int funcE,
                           int funcnu, int distribE, int distribnu);
     
     /** @brief Copy constructor */
     TPZStochasticMaterial(const TPZStochasticMaterial &cp);
     
-    /** @brief Destructor  */
+    /** @brief Simple destructor  */
     virtual ~TPZStochasticMaterial();
+    
+    /** @brief Calculate Stochastic Field for both material properties: Young's modulsu and nu
+     * It returns f_E and f_nu, with size: 2D elements number
+     * These Matrices(Elnumber,1) should be acessed in TPZMaterial for each elements id */
+    TPZFMatrix<STATE> calcStochasticField();
     
     /** @brief Set distribution type and function of E */
     virtual void SetYoungField(int distribution, int function);
@@ -146,41 +160,35 @@ public:
     /** @brief Set distribution type and function of nu */
     virtual void SetPoissonField(int distribution, int function);
     
-    /** @brief Set distribution type: normal or lognormal */
-    virtual void SetReadMatrix(const TPZFMatrix<REAL> &M);
+    /** @brief Set Matrix to be read - should be deleted after SVD decomposition implementation */
+    virtual void SetReadMatrix(const TPZFMatrix<STATE> &M);
     
     /** @brief Set inclined parameters if wellbore is inclined */
-    virtual void SetInclinedField(int stochasticInclined,REAL direction, REAL inclination);
-    
-    /** @brief Set geometric parameters  */
-    virtual void SetFieldGeometry();
+    virtual void SetInclinedField(REAL rw, REAL rext, int stochasticInclined,REAL direction, REAL inclination);
     
     /** @brief Set inclined geometry */
     virtual void InclinedFieldGeometry();
     
-    /** @brief Calculates Correlation either vertical or inclined */
-    TPZFMatrix<REAL>  EvaluateCorrelation(int function);
+    /** @brief Calculates Correlation for either vertical or inclined well */
+    TPZFMatrix<STATE>  EvaluateCorrelation(int function);
     
-    /** @brief Calculates Correlation either vertical or inclined */
-    TPZFMatrix<REAL> GetCorrelatedVector(int distribution);
+    /** @brief Gets random distribution type */
+    TPZFMatrix<STATE> GetRandomDistribution(int distribution);
     
-    /** @brief Get vector of distribution type */
-    TPZFMatrix<REAL> GetDistribution(int matrixSize, int distribution);
+    /** @brief Get distribution for either vertical or inclined well */
+    TPZFMatrix<STATE> GetDistribution(int matrixSize, int distribution);
 
-    /** @brief Calculates Correlation either vertical or inclined */
-    virtual void GetStochasticField( TPZFMatrix<REAL> f_E, TPZFMatrix<REAL> f_nu);
+    /** @brief Gets stochastic field for Young's modulus and Poisson's ratio */
+    virtual void GetStochasticField( TPZFMatrix<STATE> f_E, TPZFMatrix<STATE> f_nu);
     
     /** @brief Calculates correlation matrix for vertical well */
-    TPZFMatrix<REAL> calcCorrelationMatrix(int function);
+    TPZFMatrix<STATE> calcCorrelationMatrix(int function);
     
     /** @brief Calculates correlation matrix for inclined well */
-    TPZFMatrix<REAL> calcCorrelationMatrixInclined(int function);
+    TPZFMatrix<STATE> calcCorrelationMatrixInclined(int function);
     
     /** @brief Print correlation matrix to be decomposed at Mathematica - This should be removed after SVD decomposition!!! */
     virtual void PrintCorrelation();
-    
-    // Calc Correlation Matrix
-    TPZVec<REAL> calcStochasticField();
 
 };
 

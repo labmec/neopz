@@ -7,6 +7,7 @@
 //
 
 #include "ComputationalMesh.hpp"
+#include "TPZStochasticMaterial.h"
 
 // Cria malha Computacional para malha 360 graus
 
@@ -17,6 +18,9 @@ TPZCompMesh *CircularCMesh(TPZGeoMesh *gmesh, int pOrder, int projection, int in
     
     //criando material que implementa a formulacao fraca do problema modelo
     TPZMatElasticity2D *material = new TPZMatElasticity2D(MATERIAL_ID);
+    
+    TPZStochasticMaterial *test = new TPZStochasticMaterial(gmesh, nSquareElements, inclinedwellbore, direction, inclination, rw, rext, M, scale, funcE,
+                                                            funcnu, distribE, distribnu);
     
     // http://ceae.colorado.edu/~amadei/CVEN5768/PDF/NOTES5.pdf
     REAL Eyoung = 29269.00, ni = 0.203, fbx = 0., fby = 0.;
