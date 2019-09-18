@@ -37,29 +37,43 @@ namespace pztopology {
     template<class T>
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
-    const REAL tol = pztopology::GetTolerance();
+        const REAL tol = pztopology::GetTolerance();
+        blendFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
 #ifdef PZDEBUG
         std::ostringstream sout;
         if(side < NCornerNodes || side >= NSides){
             sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
-            PZError<<std::endl<<sout.str()<<std::endl;
-            DebugStop();
         }
 
         if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
             sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
+        }
+
+        if(!CheckProjectionForSingularity(side,xi)){
+            sout<<"The projection of xi "<<xi[0]<<" "<<xi[1]<<" to side "<<side<<" is singular."<<std::endl;
+            sout<<"This should have been caught by MapToSide method. Aborting..."<<std::endl;
+        }
+        if(!sout.str().empty()){
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
+#ifdef LOG4CXX
             LOGPZ_FATAL(logger,sout.str().c_str());
-            #endif
+#endif
             DebugStop();
         }
 #endif
+        //if the point is singular, the blend factor and its derivatives should be zero
+        if(!CheckProjectionForSingularity(side,xi)){
+            std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
+            DebugStop();
+            blendFactor = 0;
+            for(int i = 0; i < blendFactorDxi.size(); i++) blendFactorDxi[i] = 0;
+            return;
+        }
+
         TPZFNMatrix<4,T> phi(NCornerNodes,1);
         TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
         TPZTriangle::TShape(xi,phi,dphi);
-        blendFactorDxi.Resize(TPZTriangle::Dimension, (T) 0);
         int i = -1;
         switch(side){
             case 0:
@@ -216,78 +230,72 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
-    
+
     template<class T>
-    bool TPZTriangle::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
-		
-		double zero = 1.E-5;
+    bool TPZTriangle::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+
+        double zero = pztopology::GetTolerance();
+        T qsi = xiInterior[0]; T eta = xiInterior[1];
+
+        switch(side)
+        {
+            case 0:
+            case 1:
+            case 2:
+            return true;
+            case 3:
+                if(fabs((T)(eta - 1.)) < zero)  return false;
+            case 4:
+                if((T)(qsi+eta) < (T)zero) return false;
+            case 5:
+                if(fabs((T)(qsi - 1.)) < zero) return false;
+            case 6: return true;
+        }
+        if(side > 6)
+        {
+            cout << "Cant compute CheckProjectionForSingularity method in TPZTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n";
+            DebugStop();
+        }
+        return true;
+    }
+
+    template<class T>
+    void TPZTriangle::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+
 		T qsi = InternalPar[0]; T eta = InternalPar[1];
 		SidePar.Resize(1); JacToSide.Resize(1,2);
 
-		bool regularmap = true;
+		if(!CheckProjectionForSingularity(side,InternalPar)){
+		    std::cout<<"Side projection is not regular and it should have been checked earlier. Aborting.."<<std::endl;
+		    DebugStop();
+		}
 		
 		switch(side)
 		{
             case 0:
             case 1:
             case 2:
-            {
                 SidePar.Resize(0); JacToSide.Resize(0,0);
                 break;
-            }
 			case 3:
-				if(fabs((T)(eta - 1.)) < zero)
-				{
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 2.*qsi/(1.-eta) - 1.;
-                    JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta));
-				}
+                SidePar[0] = 2.*qsi/(1.-eta) - 1.;
+                JacToSide(0,0) = 2./(1.-eta); JacToSide(0,1) = 2.*qsi/((1.-eta)*(1.-eta));
 				break;
 				
 			case 4:
-				if((T)(qsi+eta) < (T)zero)
-				{
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*qsi/(qsi + eta);
-                    JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta));
-				}
+                SidePar[0] = 1. - 2.*qsi/(qsi + eta);
+                JacToSide(0,0) = -2.*eta/((qsi+eta)*(qsi+eta)); JacToSide(0,1) = 2.*qsi/((qsi+eta)*(qsi+eta));
 				break;
 				
 			case 5:
-				if(fabs((T)(qsi - 1.)) < zero)
-				{
-                    SidePar[0] = 0.;
-                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.;
-					regularmap = false;
-				}
-				else
-				{
-                    SidePar[0] = 1. - 2.*eta/(1.-qsi);
-                    JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi);
-				}
+                SidePar[0] = 1. - 2.*eta/(1.-qsi);
+                JacToSide(0,0) = -2.*eta/((1.-qsi)*(1.-qsi)); JacToSide(0,1) = -2./(1.-qsi);
 				break;
             case 6:
                 SidePar = InternalPar;
                 JacToSide.Resize(2, 2);
                 JacToSide.Identity();
-                regularmap = true;
 		}
-		if(side > 6)
-		{
-			cout << "Cant compute MapToSide method in TPZGeoTriangle class!\nParameter (SIDE) must be 3, 4 or 5!\nMethod Aborted!\n";
-			DebugStop();
-		}
-		return regularmap;
 	}
     
     void TPZTriangle::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -1130,7 +1138,9 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
  * in BOTH cases.    @orlandini
  **********************************************************************************************************************/
 
-template bool pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template bool pztopology::TPZTriangle::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
+
+template void pztopology::TPZTriangle::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZTriangle::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -1139,7 +1149,9 @@ template void pztopology::TPZTriangle::TShape<REAL>(const TPZVec<REAL> &loc,TPZF
 template void pztopology::TPZTriangle::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
-template bool pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
+
+template void pztopology::TPZTriangle::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZTriangle::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);

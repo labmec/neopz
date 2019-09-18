@@ -182,7 +182,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
      */
         TPZManVector<T, 3> sideXi;
         TPZFNMatrix<9, T> transfXiToSideXi;
-        bool regularMap = this->MapToSide(side, xiInterior, sideXi, transfXiToSideXi);
+        bool regularMap = TGeo::CheckProjectionForSingularity(side, xiInterior);
         if (!regularMap) {
             #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
@@ -192,6 +192,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
             #endif
             continue;
         }
+
+        this->MapToSide(side, xiInterior, sideXi, transfXiToSideXi);
         MElementType sideType = TGeo::Type(side);
         const int nSideNodes = MElementType_NNodes(sideType);
         const int sideDim = TGeo::SideDimension(side);
@@ -506,6 +508,11 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     /**
      * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
      */
+    TPZManVector<bool, 20> isRegularMapping(TGeo::NSides - TGeo::NNodes, 0.);
+    for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
+        int side = TGeo::NNodes + sideIndex;
+        isRegularMapping[sideIndex] = TGeo::CheckProjectionForSingularity(side,xi);
+    }
     TPZGeoMesh *gmesh = gel.Mesh();
     TPZManVector<T, 20> blendFactor(TGeo::NSides - TGeo::NNodes, 0.);
     TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
@@ -513,6 +520,15 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     TPZFNMatrix<27, T> nonLinearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
     for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
         int side = TGeo::NNodes + sideIndex;
+        if(!isRegularMapping[sideIndex]) {
+            #ifdef LOG4CXX
+            if(logger->isDebugEnabled()){
+                soutLogDebug <<"mapping is not regular. skipping side... ";
+
+            }
+            #endif
+            continue;
+        }
         TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
         #ifdef LOG4CXX
         if(logger->isDebugEnabled())
@@ -540,16 +556,8 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
      * Calculates the linear mapping of the side sideIndex, and the projected point on sideIndex
      */
         TPZManVector<T, 3>  sideXi;
-        bool regularMap = this->MapToSide(side, xi, sideXi, notUsedHereMat);
-        if(!regularMap) {
-            #ifdef LOG4CXX
-            if(logger->isDebugEnabled()){
-                soutLogDebug <<"mapping is not regular. skip ping side... ";
+        this->MapToSide(side, xi, sideXi, notUsedHereMat);
 
-            }
-            #endif
-            continue;
-        }
         MElementType sideType = TGeo::Type(side);
         const int nSideNodes = MElementType_NNodes(sideType);
         TPZFNMatrix<9, T> sidePhi(nSideNodes, 1);
@@ -618,6 +626,15 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
                 else soutLogDebug << "false" << std::endl;
             }
 #endif
+            if(!isRegularMapping[subSide - TGeo::NNodes]) {
+                #ifdef LOG4CXX
+                if(logger->isDebugEnabled()){
+                    soutLogDebug <<"mapping of subside is not regular. skipping side... ";
+
+                }
+                #endif
+                continue;
+            }
             if (IsLinearMapping(subSide)) continue;
             TPZManVector<T, 3> projectedPoint(TGeo::Dimension, -1);
             for (int x = 0; x < TGeo::Dimension; x++) {
@@ -751,7 +768,6 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
             for(int a = 0; a < LowNodeSides.NElements(); a++)
             {
                 TPZManVector<REAL> parChanged(par.NElements());
-//                TGeo::FixSingularity(byside,par,parChanged);
                 TGeo::Shape(parChanged,blend,Dblend);
 				
                 blendTemp += blend(LowNodeSides[a],0);
@@ -928,75 +944,75 @@ void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 
 using namespace pzgeom;
 
-template <class TGeo>
-TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-{
-	TPZStack<int> LowAllSides;
-	TGeo::LowerDimensionSides(side,LowAllSides);
-    LowAllSides.Push(side);
-	if(side < 0 || side > TGeo::NSides-1)
-	{
-		DebugStop();
-		return 0;
-	}
-	bool straight = true;
-    TPZGeoMesh *gmesh = orig->Mesh();
-	for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
-	{
-		if(LowAllSides[lowside] >= TGeo::NNodes && Neighbour(LowAllSides[lowside],gmesh).Element())
-		{
-			straight = false;
-		}
-	}
-	if(straight)
-	{
-		return TGeo::CreateBCGeoEl(orig,side,bc);
-	}
-	else
-	{
-		TPZGeoEl *newel = CreateBCGeoBlendEl(orig,side,bc);
-		return newel;
-	}
+// template <class TGeo>
+// TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
+// {
+// 	TPZStack<int> LowAllSides;
+// 	TGeo::LowerDimensionSides(side,LowAllSides);
+//     LowAllSides.Push(side);
+// 	if(side < 0 || side > TGeo::NSides-1)
+// 	{
+// 		DebugStop();
+// 		return 0;
+// 	}
+// 	bool straight = true;
+//     TPZGeoMesh *gmesh = orig->Mesh();
+// 	for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
+// 	{
+// 		if(LowAllSides[lowside] >= TGeo::NNodes && Neighbour(LowAllSides[lowside],gmesh).Element())
+// 		{
+// 			straight = false;
+// 		}
+// 	}
+// 	if(straight)
+// 	{
+// 		return TGeo::CreateBCGeoEl(orig,side,bc);
+// 	}
+// 	else
+// 	{
+// 		TPZGeoEl *newel = CreateBCGeoBlendEl(orig,side,bc);
+// 		return newel;
+// 	}
 	
-}
+// }
 
-template <class TGeo>
-TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
-{
-	int ns = orig->NSideNodes(side);
-	TPZManVector<int64_t> nodeindices(ns);
-	int in;
-	for(in=0; in<ns; in++)
-	{
-		nodeindices[in] = orig->SideNodeIndex(side,in);
-	}
-	int64_t index;
+// template <class TGeo>
+// TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoBlendEl(TPZGeoEl *orig,int side,int bc)
+// {
+// 	int ns = orig->NSideNodes(side);
+// 	TPZManVector<int64_t> nodeindices(ns);
+// 	int in;
+// 	for(in=0; in<ns; in++)
+// 	{
+// 		nodeindices[in] = orig->SideNodeIndex(side,in);
+// 	}
+// 	int64_t index;
 	
-	TPZGeoMesh *mesh = orig->Mesh();
-	MElementType type = orig->Type(side);
+// 	TPZGeoMesh *mesh = orig->Mesh();
+// 	MElementType type = orig->Type(side);
 	
-	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
-	TPZGeoElSide me(orig,side);
-	TPZGeoElSide newelside(newel,newel->NSides()-1);
+// 	TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
+// 	TPZGeoElSide me(orig,side);
+// 	TPZGeoElSide newelside(newel,newel->NSides()-1);
 	
-	newelside.InsertConnectivity(me);
-	newel->Initialize();
+// 	newelside.InsertConnectivity(me);
+// 	newel->Initialize();
 	
-	return newel;
-}
+// 	return newel;
+// }
 
 
 /**
  * Creates a geometric element according to the type of the father element
  */
-template <class TGeo>
-TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-													  TPZVec<int64_t>& nodeindexes,
-													  int matid,
-													  int64_t& index)
-{
-	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
+// template <class TGeo>
+// TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+// 													  TPZVec<int64_t>& nodeindexes,
+// 													  int matid,
+// 													  int64_t& index)
+// {
+// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+// }
 
 /// create an example element based on the topology
 /* @param gmesh mesh in which the element should be inserted

@@ -75,7 +75,7 @@ int ClassId() const override;
 		 * element based on the current geometric element, 
 		 * a side and a boundary condition number
 		 */
-		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+		// static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 		
         /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
@@ -113,10 +113,10 @@ int ClassId() const override;
 		/**
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
         
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 

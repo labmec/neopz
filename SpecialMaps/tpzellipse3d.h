@@ -118,13 +118,13 @@ int ClassId() const override;
         }
         
 		static std::string TypeName() { return "Linear";}
-		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
+		// static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 		
 		void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);
         

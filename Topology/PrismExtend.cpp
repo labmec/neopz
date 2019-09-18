@@ -305,13 +305,12 @@ namespace pztopology {
 	}
 	
 	template<class TFather>
-	bool Pr<TFather>::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
+	void Pr<TFather>::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		TPZTransform<> Transf = SideToSideTransform(NSides - 1, side);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);
 		
 		JacToSide = Transf.Mult();
-		return true;
 	}
 	
 	/**

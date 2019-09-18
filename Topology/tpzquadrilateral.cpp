@@ -361,11 +361,14 @@ namespace pztopology {
             pt[i] = val;
         }
     }
-    
 
     template<class T>
-    bool TPZQuadrilateral::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
-		bool regularmap = true;
+    bool TPZQuadrilateral::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
+
+    template<class T>
+    void TPZQuadrilateral::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
         TPZTransform<T> Transf;
         Transf.CopyFrom(pztopology::TPZQuadrilateral::SideToSideTransform(NSides - 1, side));
 		SidePar.Resize(SideDimension(side));
@@ -379,7 +382,6 @@ namespace pztopology {
 		{
 			for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
 		}
-		return regularmap;
 	}
     
     void TPZQuadrilateral::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -1229,8 +1231,9 @@ namespace pztopology {
  * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
  * in BOTH cases.    @orlandini
  **********************************************************************************************************************/
+template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
-template bool pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+template void pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
 template void pztopology::TPZQuadrilateral::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
@@ -1238,8 +1241,9 @@ template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc
 
 template void pztopology::TPZQuadrilateral::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
+template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
-template bool pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template void pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
 
 template void pztopology::TPZQuadrilateral::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
                                                                    TPZVec<Fad<REAL>> &);
