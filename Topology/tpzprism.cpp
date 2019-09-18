@@ -677,11 +677,11 @@ namespace pztopology {
 
             case  15:
 
-                t.Mult()(0,0) =  2.0;
-                t.Mult()(1,1) =  2.0;
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
 
-                t.Sum()(0,0) = -1.0;
-                t.Sum()(1,0) = -1.0;
+//                t.Sum()(0,0) = -1.0;
+//                t.Sum()(1,0) = -1.0;
                 return t;
 
             case 16:
@@ -711,11 +711,11 @@ namespace pztopology {
             case 19:
                 
                 
-                t.Mult()(0,0) =  2.0;
-                t.Mult()(1,1) =  2.0;
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
                 
-                t.Sum()(0,0) = -1.0;
-                t.Sum()(1,0) = -1.0;
+//                t.Sum()(0,0) = -1.0;
+//                t.Sum()(1,0) = -1.0;
                 
 
                 return t;
@@ -815,10 +815,10 @@ namespace pztopology {
                 t.Sum() (2,0) =  1.0;
                 return t;
             case 15:
-                t.Mult()(0,0) =  0.5;
-                t.Mult()(1,1) =  0.5;
-                t.Sum() (0,0) =  0.5;
-                t.Sum() (1,0) =  0.5;
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+//                t.Sum() (0,0) =  0.5;
+//                t.Sum() (1,0) =  0.5;
                 
                 t.Sum() (2,0) = -1.0;
                 return t;
@@ -840,10 +840,10 @@ namespace pztopology {
                 t.Sum() (1,0) =  0.5;
                 return t;
             case 19:
-                t.Mult()(0,0) =  0.5;
-                t.Mult()(1,1) =  0.5;
-                t.Sum() (0,0) =  0.5;
-                t.Sum() (1,0) =  0.5;
+                t.Mult()(0,0) =  1.0;
+                t.Mult()(1,1) =  1.0;
+//                t.Sum() (0,0) =  0.5;
+//                t.Sum() (1,0) =  0.5;
                 
                 t.Sum() (2,0) =  1.0;
                 return t;
@@ -1065,7 +1065,7 @@ namespace pztopology {
 
     template<class T>
     void TPZPrism::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
-        double zero = 1.E-5;
+        double zero = pztopology::GetTolerance();
 
         T qsi = InternalPar[0];
         T eta = InternalPar[1];

@@ -61,7 +61,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
 //#define NOISY_BLEND //outputs x and grad comparisons
-#define NOISYVTK _BLEND//prints all elements in .vtk format
+//#define NOISYVTK_BLEND//prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 
@@ -1089,6 +1089,16 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 TPZVec<TPZGeoEl *> sons;
                 std::vector<std::string> loading = {"-","/","|","\\"};
                 for (int iDiv = 0; iDiv < nDiv; iDiv++) {
+#ifdef NOISY_BLEND
+                    {
+                        std::string meshFileName = "blendmesh3D_ref";
+                        meshFileName.append(std::to_string(iDiv));
+                        meshFileName.append(".txt");
+                        std::ofstream outTXT(meshFileName.c_str());
+                        gmesh->Print(outTXT);
+                        outTXT.close();
+                    }
+#endif
                     std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
                     const int nel = gmesh->NElements();
                     for (int iel = 0; iel < nel; iel++) {
