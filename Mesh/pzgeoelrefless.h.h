@@ -311,7 +311,8 @@ TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
 												   int matid,
 												   int64_t& index)
 {
-	return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index);
+	if(this->IsLinearMapping(NSides()-1)) return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index);
+	else    return this->Mesh()->CreateGeoElementMapped(type,nodeindexes,matid,index);
 }
 
 template<class TGeo>

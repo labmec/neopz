@@ -240,7 +240,7 @@ inline void GetSideShapeFunction(int side, TPZVec<REAL> &qsiSide, TPZFMatrix<REA
     MElementType  sideType = Topology::Type(side);
 #ifdef PZDEBUG
     std::stringstream sout;
-    REAL tol = 1e-12;
+    REAL tol = pztopology::GetTolerance();
     if(!IsInSideParametricDomain<Topology>(side,qsiSide,tol)){
         sout<<"The method expects the coordinates in the side's parametric domain. Exiting..."<<std::endl;
         DebugStop();

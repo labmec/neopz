@@ -607,15 +607,4 @@ template<class TBase>
 int TPZGeoElMapped<TBase>::ClassId() const{
     return Hash("TPZGeoElMapped") ^ TBase::ClassId() << 1;
 }
-
-/** 
- * @brief Creates geometric element of the specified type 
- * @ingroup geometry
- */
-TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
-								 MElementType type,
-								 TPZVec<int64_t>& nodeindexes,
-								 int matid,
-								 int64_t& index);
-
 #endif
