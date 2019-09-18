@@ -567,36 +567,116 @@ namespace pztopology {
             case 8:
                 t.Mult()(0,1) = -1.0;
                 return t;
+                
             case 9:
-            case 12:
-                t.Mult()(0,0) = 2.0;
-                t.Sum()(0,0)  = 1.0;
+                t.Mult()(0,0) = 0.5;
+                t.Mult()(0,1) = 0.5;
+                t.Mult()(0,2) = 1.0;
                 return t;
+
             case 10:
-            case 11:
-                t.Mult()(0,0) = -2.0;
-                t.Sum()(0,0)  =  1.0;
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(0,1) = 0.5;
+                t.Mult()(0,2) = 1.0;
                 return t;
+                
+            case 11:
+                
+                t.Mult()(0,0) = -0.5;
+                t.Mult()(0,1) = -0.5;
+                t.Mult()(0,2) = 1.0;
+                
+                return t;
+                
+            case 12:
+                t.Mult()(0,0) = 0.5;
+                t.Mult()(0,1) = -0.5;
+                t.Mult()(0,2) = 1.0;
+                return t;
+                
+        
             case 13:
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
                 return t;
+
+//ok hasta aqui
             case 14:
+//                t.Mult()(0,0) =  0.5;
+//                t.Mult()(0,1) = -0.5;
+//                t.Mult()(1,2) =  1.0;
+//
+//                t.Mult()(0,0) =  1.0;
+//                t.Mult()(0,1) = -0.5;
+//                t.Mult()(0,2) = -0.5;
+//
+//                t.Mult()(1,1) = 1.0;
+//                t.Mult()(1,2) = 1.0;
+//
+//                t.Sum()(0,0) = -0.5;
+//                return t;
+//
                 t.Mult()(0,0) =  0.5;
-                t.Mult()(0,1) = -0.5;
-                t.Mult()(1,2) =  1.0;
+                t.Mult()(0,1) = -0.25;
+                t.Mult()(0,2) = -0.25;
+
+                t.Mult()(1,1) = 0.5;
+                t.Mult()(1,2) = 0.5;
+
+                t.Sum()(0,0) =  0.25;
+                t.Sum()(1,0) =  0.5;
+                
                 return t;
+                //                 1  -0.5  -0.5
+                //                 0  1.0   1.0
+                //
+                //
+                //                ((x - 0.5y -0.5z -0.5)+1)/2
+                //                (0x  +y  +z +1)/2
+                
             case 15:
-            case 16:/** CONTEM ERRO AQUI */
+                
+                t.Mult()(0,0) =  0.25;
+                t.Mult()(0,1) = 0.5;
+                t.Mult()(0,2) = -0.25;
+                
+                t.Mult()(1,0) = -0.5;
+                t.Mult()(1,2) = 0.5;
+                
+                t.Sum()(0,0) = 0.25;
+                t.Sum()(1,0) = 0.5;
+                return t;
+
+                
+                
+                
+            case 16:
+                
                 t.Mult()(0,0) =  0.5;
-                t.Mult()(0,1) =  0.5;
-                t.Mult()(1,2) =  1.0;
+                t.Mult()(0,1) = 0.25;
+                t.Mult()(0,2) = -0.25;
+                
+                t.Mult()(1,1) = -0.5;
+                t.Mult()(1,2) = 0.5;
+                
+                t.Sum()(0,0) = 0.25;
+                t.Sum()(1,0) = 0.5;
                 return t;
+
             case 17:
-                t.Mult()(0,0) = -0.5;
-                t.Mult()(0,1) =  0.5;
-                t.Mult()(1,2) =  1.0;
+                
+                t.Mult()(0,0) =  -0.25;
+                t.Mult()(0,1) = 0.5;
+                t.Mult()(0,2) = -0.25;
+                
+                t.Mult()(1,0) = 0.50;
+                t.Mult()(1,2) = 0.50;
+                
+                t.Sum()(0,0) = 0.25;
+                t.Sum()(1,0) = 0.5;
                 return t;
+
+                
             case 18:
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
