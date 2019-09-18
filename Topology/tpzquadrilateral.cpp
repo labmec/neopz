@@ -321,7 +321,7 @@ namespace pztopology {
             case 3:
                 return t;
             case 4:
-                t.Mult()(0,0) = 1.0;
+                t.Mult()(0,0) = 1.0; // 1;
                 return t;
             case 5 :
                 t.Mult()(0,1) = 1.0;
@@ -339,31 +339,6 @@ namespace pztopology {
         }
         return TPZTransform<>(0,0);
         
-		
-//        switch(side){
-//            case 0:
-//            case 1:
-//            case 2:
-//            case 3:
-//                return t;
-//            case 4:
-//                t.Mult()(0,0) = 1.0;
-//                return t;
-//            case 5 :
-//                t.Mult()(0,1) = 1.0;
-//                return t;
-//            case 6:
-//                t.Mult()(0,0) = -1.0;
-//                return t;
-//            case 7:
-//                t.Mult()(0,1) = -1.0;
-//                return t;
-//            case 8:
-//                t.Mult()(0,0) = 1.0;
-//                t.Mult()(1,1) = 1.0;
-//                return t;
-//        }
-//        return TPZTransform<>(0,0);
 	}
 	
 	bool TPZQuadrilateral::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){

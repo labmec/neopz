@@ -551,6 +551,9 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        if (sideto== NSides -1) {
+            return TransformSideToElement(sidefrom);
+        }
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {
@@ -561,7 +564,7 @@ namespace pztopology {
 				int i,j;
                 for(i=0; i<dto; i++) {
                     for(j=0; j<dfr; j++) {
-                    //    trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
+                        trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
                     }
                     trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
                 }
