@@ -25,15 +25,13 @@ static LoggerPtr logger(Logger::getLogger("pz.material"));
 
 TPZNullMaterial::TPZNullMaterial() : TPZRegisterClassId(&TPZNullMaterial::ClassId),
 TPZMaterial() {
-    fDim=-1;
+    fDim    =-1;
     fNState = 1;
 }
 
-TPZNullMaterial::~TPZNullMaterial()
-{
+TPZNullMaterial::~TPZNullMaterial() {
+    
 }
-
-
 
 void TPZNullMaterial::Print(std::ostream & out) {
     out << __PRETTY_FUNCTION__ << std::endl;
@@ -42,19 +40,10 @@ void TPZNullMaterial::Print(std::ostream & out) {
 }
 
 int TPZNullMaterial::VariableIndex(const std::string &name) {
-	if(!strcmp(name.c_str(),"state")) return 0;
-	if(!strcmp(name.c_str(),"State")) return 0;
-	if(!strcmp(name.c_str(),"Solution")) return 0;
-	
     return TPZMaterial::VariableIndex(name );
 }
 
 int TPZNullMaterial::NSolutionVariables(int index) {
-//#ifdef STATE_COMPLEX
-//    if(index == 0) return NStateVariables()*2;
-//#else
-//    if(index == 0) return 3;
-//#endif
     return TPZMaterial::NSolutionVariables(index);
 }
 
@@ -72,12 +61,10 @@ void TPZNullMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 
 void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
 {
-	//	this->Solution(data,dataleftvec,datarightvec, var, Solout);
 }
 
 void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *right)
 {
-	//this->Solution(data,dataleftvec,datarightvec, var, Solout, left, right);
 }
 
 void TPZNullMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
@@ -112,7 +99,7 @@ void TPZNullMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 
 int TPZNullMaterial::ClassId() const{
-    return Hash("TPZVecL2") ^ TPZMaterial::ClassId() << 1;
+    return Hash("TPZNullMaterial") ^ TPZMaterial::ClassId() << 1;
 }
 
 /* Saves the element data to a stream */
