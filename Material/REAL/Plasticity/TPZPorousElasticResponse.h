@@ -44,43 +44,32 @@ private:
     
 public:
     
-    /// Unique class identifier
+    //@TODO:: Document the Class
+    
     int ClassId() const override;
     
-    /// Default constructor
     TPZPorousElasticResponse();
     
-    /// Copy constructor
     TPZPorousElasticResponse(const TPZPorousElasticResponse & other);
     
-    /// Assingment constructor
     TPZPorousElasticResponse & operator=(const TPZPorousElasticResponse & other);
     
-    /// Write class members
     void Write(TPZStream &buf, int withclassid) const override;
     
-    /// Read class members
     void Read(TPZStream &buf, void *context) override;
     
-    /// Set Porous elasticity data
     void SetPorousElasticity(STATE kappa, STATE pt_el, STATE e_0, STATE p_0);
     
-    /// Set initial volumetric stress
     void Setp_0(STATE p_0);
     
-    /// Set void ratio at initial volumetric stress
     void Sete_0(STATE e_0);
     
-    /// Set directive to keep constant the Shear modulus
     void SetShearModulusConstant(STATE G);
     
-    /// Set directive to keep constant Poisson ratio
     void SetPoissonRatioConstant(STATE nu);
     
-    /// Set directive for plain strain state
     void SetPlaneStrain();
     
-    /// set directive for plain stress state
     void SetPlaneStress();
     
     const char * Name() const ;

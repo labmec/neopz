@@ -17,35 +17,28 @@ class TPZPorousElasticCriterion : public TPZPlasticBase, public TPZPlasticCriter
 {
     
 public:
-    
     enum {NYield=3};
+    
+public:
     
     typedef TPZPorousElasticCriterion fNYields;
     
-    /// Elastoplastic state
     TPZPlasticState<STATE> fN;
     
-    /// Linearized elastic response
     TPZElasticResponse fER;
     
-    /// Porous elastic response
     TPZPorousElasticResponse fPER;
     
 public:
     
-    /// Default constructor
     TPZPorousElasticCriterion();
     
-    /// Copy constructor
     TPZPorousElasticCriterion(const TPZPorousElasticCriterion &cp);
     
-    /// Assignment constructor
     TPZPorousElasticCriterion & operator=(const TPZPorousElasticCriterion &cp);
     
-    /// Read members
     void Read(TPZStream& buf, void* context) override;
     
-    /// Write members
     void Write(TPZStream& buf, int withclassid) const override;
 
     virtual int IntegrationSteps()const override;
@@ -59,8 +52,6 @@ public:
     {
         out << "Classe: " << this->Name();
         fN.Print(out);
-        fER.Print(out);
-        fPER.Print(out);
     }
     
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;

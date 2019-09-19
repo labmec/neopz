@@ -1519,14 +1519,16 @@ void TPZGeoMesh::ResetConnectivities()
 	this->SetName("reset");
 }
 
-REAL TPZGeoMesh::Measure(int matid)
+/// Compute the area of the domain
+REAL TPZGeoMesh::Area(int matid)
 {
     std::set<int> matids;
     matids.insert(matid);
-    return Measure(matids);
+    return Area(matids);
 }
 
-REAL TPZGeoMesh::Measure()
+/// Compute the area of the domain
+REAL TPZGeoMesh::Area()
 {
     int64_t nel = NElements();
     int meshdim = Dimension();
@@ -1538,10 +1540,11 @@ REAL TPZGeoMesh::Measure()
         }
         matids.insert(gel->MaterialId());
     }
-    return Measure(matids);
+    return Area(matids);
 }
 
-REAL TPZGeoMesh::Measure(std::set<int> &matids)
+/// Compute the area of the domain
+REAL TPZGeoMesh::Area(std::set<int> &matids)
 {
     TPZVec<int> NeedsComputing(NElements(),1);
     int meshdim = Dimension();

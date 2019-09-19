@@ -212,8 +212,7 @@ void TPZPostProcMat::SetPostProcessVarIndexList(TPZVec<std::string> & varIndexNa
 	
 	for(i = 0; i < n; i++)
 	{
-        std::string var_name = varIndexNames[i];
-		varindex = pRefMat->VariableIndex(var_name);
+		varindex = pRefMat->VariableIndex(varIndexNames[i]);
 		if(varindex >= 0)
 		{
 			fVars[k].fIndex = varindex;
