@@ -12,6 +12,7 @@
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
 #include "pzshapepiram.h"
+#include "TPZInterfaceEl.h"
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
@@ -62,8 +63,6 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     //entries in the related pzmatwithmem for further use.
     
 }
-
-#include "TPZInterfaceEl.h"
 
 template <>
 inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
