@@ -481,17 +481,12 @@ void TPZCompMesh::TransferMultiphysicsSolution()
 
 void TPZCompMesh::LoadReferences() {
 	
-	//	Reference()->ResetReference();
 	Reference()->SetReference(this);
 	int64_t i, nelem = NElements();
 	for(i=0; i<nelem; i++) {
 		TPZCompEl *el = fElementVec[i];
 		if(!el) continue;
 		el->LoadElementReference();
-		/*  TPZGeoEl *gel = el->Reference();
-		 if(!gel) continue;
-		 gel->SetReference(el);
-		 */
 	}
 }
 
