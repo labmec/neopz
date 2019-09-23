@@ -17,14 +17,16 @@
 #include "TPZChunkTranslator.h"
 
 class TPZElasticResponseTranslator : public TPZChunkTranslator {
+    
 public:
+    
     TPZElasticResponseTranslator();
+    
     TPZElasticResponseTranslator(const TPZElasticResponseTranslator& orig);
     
     virtual void UpdateAttributes(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
     
     virtual ~TPZElasticResponseTranslator();
-private:
 
 };
 
