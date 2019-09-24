@@ -123,6 +123,7 @@ void TPZNullMaterial::Write(TPZStream &buf, int withclassid) const
         DebugStop();
     }
     buf.Write(&fDim);
+    buf.Write(&fNState);
 }
 
 /* Reads the element data from a stream */
@@ -135,6 +136,7 @@ void TPZNullMaterial::Read(TPZStream &buf, void *context)
         DebugStop();
     }
 #endif
+    buf.Read(&fNState);
 }
 
 template class TPZRestoreClass<TPZNullMaterial>;
