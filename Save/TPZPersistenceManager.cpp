@@ -11,7 +11,7 @@
 #include "TPZChunkTranslator.h"
 #include <algorithm>
 
-#define VerboseMode_Q
+//#define VerboseMode_Q
 
 using namespace TPZPersistenceManagerNS;
 
