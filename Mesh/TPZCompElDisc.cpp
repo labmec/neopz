@@ -925,9 +925,17 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid) const
 		int zero = 0;
 		buf.Write(&zero,1);
 	}
+// <<<<<<< HEAD
+//     TPZGeoEl * reference = Reference();
+//     TPZPersistenceManager::WritePointer(reference,&buf);
+// 	if( this->fIntRule ){
+// 		int HasIntRule = 1;
+// 		buf.Write(&HasIntRule,1);
+// =======
 	int hasIntRule = this->fIntRule ? 1 : 0;
     buf.Write(&hasIntRule,1);
 	if( this->fIntRule){
+// >>>>>>> IntegrationRulePersistencyCheck
 		TPZManVector<int> pOrder(3);
 		this->fIntRule->GetOrder(pOrder);
 		buf.Write(pOrder);
@@ -960,8 +968,7 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	if(hasExternalShape == 1){
 // #warning Como faz?
 // #warning    this->fExternalShape->
-	}
-	
+	}	
 	int hasIntRule;
 	buf.Read(&hasIntRule,1);
 	if( hasIntRule ){
