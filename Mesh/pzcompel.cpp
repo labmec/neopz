@@ -756,7 +756,6 @@ TPZGeoElSide TPZCompElSide::Reference() const {
 
 void TPZCompElSide::SetSide(int side) {
     fSide = side;
-    Reference().SetSide(side);
 }
 
 void TPZCompElSide::HigherLevelElementList(TPZStack<TPZCompElSide> &elvec,

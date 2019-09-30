@@ -925,6 +925,8 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid) const
 		int zero = 0;
 		buf.Write(&zero,1);
 	}
+    TPZGeoEl * reference = Reference();
+    TPZPersistenceManager::WritePointer(reference,&buf);
 	if( this->fIntRule ){
 		int HasIntRule = 1;
 		buf.Write(&HasIntRule,1);
@@ -959,14 +961,14 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 // #warning Como faz?
 // #warning    this->fExternalShape->
 	}
-	
+    TPZGeoEl * reference = dynamic_cast<TPZGeoEl *>(TPZPersistenceManager::GetInstance(&buf));
 	int HasIntRule;
 	buf.Read(&HasIntRule,1);
 	if( HasIntRule ){
 		TPZManVector<int> pOrder(3);
 		buf.Read(pOrder);
 		
-		TPZGeoEl* gel = this->Reference();
+		TPZGeoEl* gel = reference;
 		if(gel){
 			TPZAutoPointer<TPZIntPoints> result = gel->CreateSideIntegrationRule(gel->NSides()-1, 0);
 			result->SetOrder(pOrder);
