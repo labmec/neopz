@@ -825,8 +825,8 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 {
 	TPZCompEl::Read(buf,context);
-    dynamic_cast<TPZGeoEl *>(TPZPersistenceManager::GetInstance(&buf));
-    dynamic_cast<TPZGeoEl *>(TPZPersistenceManager::GetInstance(&buf));
+    TPZCompEl * leftEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    TPZCompEl * rightEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
 	int64_t leftelindex;
 	int64_t rightelindex;
 	int leftside, rightside;
@@ -835,8 +835,8 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 	buf.Read(&leftside,1);
 	buf.Read(&rightelindex,1);
 	buf.Read(&rightside,1);
-	this->fLeftElSide.SetElement ( Mesh()->ElementVec()[leftelindex]  );
-	this->fRightElSide.SetElement( Mesh()->ElementVec()[rightelindex] );
+	this->fLeftElSide.SetElement ( leftEl );
+	this->fRightElSide.SetElement( rightEl );
 	this->fLeftElSide.SetSide( leftside );
 	this->fRightElSide.SetSide( rightside );
 	

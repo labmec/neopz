@@ -941,7 +941,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid) const
 		buf.Write(pOrder);
 		TPZGeoEl *gel = this->Reference();
 		int hasAssociatedGel = gel ? 1 : 0;
-		buf.Write(&gel);
+		buf.Write(&hasAssociatedGel);
 		if(gel){
             TPZPersistenceManager::WritePointer(gel, &buf);
 		}
@@ -980,6 +980,7 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
             TPZGeoEl *gel = dynamic_cast<TPZGeoEl *>(TPZPersistenceManager::GetInstance(&buf));
 			TPZAutoPointer<TPZIntPoints> result = gel->CreateSideIntegrationRule(gel->NSides()-1, 0);
 			result->SetOrder(pOrder);
+			this->fIntRule = result;
 		}
 		else{
 			this->fIntRule = nullptr;
