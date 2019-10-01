@@ -798,6 +798,8 @@ TPZRestoreClass<TPZInterfaceElement>;
 void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
+    TPZPersistenceManager::WritePointer(fLeftElSide.Element(),&buf);
+    TPZPersistenceManager::WritePointer(fRightElSide.Element(),&buf);
 	int64_t leftelindex = fLeftElSide.Element()->Index();
 	int64_t rightelindex = fRightElSide.Element()->Index();
 	if ( (this->Index() < leftelindex) || (this->Index() < rightelindex) ){
@@ -823,13 +825,8 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 {
 	TPZCompEl::Read(buf,context);
-	if (this->Reference()){
-		this->Reference()->IncrementNumInterfaces();
-	}
-	else{
-		PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
-		DebugStop();
-	}
+    TPZCompEl * leftEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    TPZCompEl * rightEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
 	int64_t leftelindex;
 	int64_t rightelindex;
 	int leftside, rightside;
@@ -838,8 +835,8 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 	buf.Read(&leftside,1);
 	buf.Read(&rightelindex,1);
 	buf.Read(&rightside,1);
-	this->fLeftElSide.SetElement ( Mesh()->ElementVec()[leftelindex]  );
-	this->fRightElSide.SetElement( Mesh()->ElementVec()[rightelindex] );
+	this->fLeftElSide.SetElement ( leftEl );
+	this->fRightElSide.SetElement( rightEl );
 	this->fLeftElSide.SetSide( leftside );
 	this->fRightElSide.SetSide( rightside );
 	
