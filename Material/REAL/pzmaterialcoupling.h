@@ -25,7 +25,7 @@ public:
 
 	/** @brief Method to possibilite the coupling between H(div) and H1 */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright, 
-									 REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+									 REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override ;
 	
 	virtual void ContributeInterface2(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
     virtual void InitMaterialData(TPZMaterialData &data);		
@@ -33,7 +33,7 @@ public:
 	/** @brief Destructor */
     virtual ~TPZMaterialCoupling();
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 };
 
 #endif

@@ -9,6 +9,10 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 
 /**
  * @ingroup material
@@ -39,7 +43,7 @@ public:
     MShapeFunctionType fShapeType;
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
-    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false;
+    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false, fNeedsNormalVecFad = false;
     bool fNeedsNormal = false;
     bool fActiveApproxSpace = true;
     /** @} */
@@ -53,7 +57,7 @@ public:
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
-    /// values of the divergence of the shapefunctions (only applicable to H(div) spaces
+    /// values of the divergence of the shapefunctions (only applicable to H(div)) spaces
     TPZFNMatrix<220, REAL> divphi;
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;
@@ -81,6 +85,9 @@ public:
     REAL detjac;
     /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
+    /// Directions on the master element
+    TPZFNMatrix<180> fDirectionsOnMaster;
+    
     
     /// number of dual function (e.g. pressure in HDiv approximations)
     int numberdualfunctions;
@@ -94,7 +101,11 @@ public:
     TPZFNMatrix<180> fNormalVec;
     /** @} */
     
-    
+#ifdef _AUTODIFF
+    /// list of normal vectors using Fad
+    TPZFNMatrix<180,Fad<REAL>> fNormalVecFad;
+    /** @} */
+#endif
     
     /** @brief Index of the current integration point being evaluated **/
     /** Needed for materials with memory **/
@@ -127,24 +138,24 @@ public:
     /** @brief Prints the data in a format suitable for Mathematica */
     void PrintMathematica(std::ostream &out) const;
     /** @brief Saves the element data to a stream */
-    virtual void Write(TPZStream &buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Reads the element data from a stream */
-    virtual void Read(TPZStream &buf, void *context);
+    void Read(TPZStream &buf, void *context) override;
     
     /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
     /**
      * Compares both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSavable *copy, bool override = false);
+    virtual bool Compare(TPZSavable *copy, bool override = false) override;
     
     /** @brief Compares the object for identity with the object pointed to, eventually copy the object */
     /**
      * Compares both objects bitwise for identity. Put an entry in the log file if different
      * overwrite the calling object if the override flag is true
      */
-    virtual bool Compare(TPZSavable *copy, bool override = false) const;
+    virtual bool Compare(TPZSavable *copy, bool override = false) const override;
     
     /** @brief Computes the flux values based on a Material of Hdiv approx space */
     void ComputeFluxValues(TPZFMatrix<REAL> & fluxes);
@@ -153,7 +164,7 @@ public:
     void ComputeFunctionDivergence();
     
 public:
-    virtual int ClassId() const;
+    int ClassId() const override;
     
 };
 

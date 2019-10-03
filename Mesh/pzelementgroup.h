@@ -52,10 +52,17 @@ public:
     {
         out << __PRETTY_FUNCTION__ << std::endl;
         TPZCompEl::Print(out);
-//        int nel = fElGroup.size();
-//        for (int el=0; el<nel; el++) {
+        out << "comp and geom indexes :";
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            int64_t cindex = fElGroup[el]->Index();
+            TPZGeoEl *gel = fElGroup[el]->Reference();
+            int64_t gindex = -1;
+            if(gel) gindex = gel->Index();
+            out << " " << cindex << "|" << gindex;
 //            fElGroup[el]->Print(out);
-//        }
+        }
+        out << std::endl;
         out << "End of " << __PRETTY_FUNCTION__ << std::endl;
     }
 
@@ -134,6 +141,14 @@ public:
         }
     }
     
+    virtual void LoadElementReference() override
+    {
+        int nel = fElGroup.size();
+        for (int el=0; el<nel; el++) {
+            fElGroup[el]->LoadElementReference();
+        }
+
+    }
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */

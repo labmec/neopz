@@ -22,7 +22,7 @@ class TPZSolver: public TPZSavable
 public:
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/**
 	 * @brief Solves the system of linear equations
@@ -118,7 +118,7 @@ public:
     }
 	
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix) override
 	{
 		if (fReferenceMatrix == matrix && matrix)
 		{
@@ -126,7 +126,7 @@ public:
 		}
 	}
 	/** @brief Resets current object */
-	void ResetMatrix();
+	void ResetMatrix() override;
 	
 	/** @brief This method gives a preconditioner to share a matrix with the referring solver object */
 	virtual void SetReferenceMatrix(TPZAutoPointer<TPZMatrix<TVar> > matrix)
@@ -170,10 +170,10 @@ protected:
 public:
 	/** @brief Saveable specific methods */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-	virtual void Write(TPZStream &buf, int withclassid) const;
-	virtual void Read(TPZStream &buf, void *context);
+	void Write(TPZStream &buf, int withclassid) const override;
+	void Read(TPZStream &buf, void *context) override;
 };
 
 template<class TVar>

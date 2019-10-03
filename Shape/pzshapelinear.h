@@ -104,7 +104,7 @@ namespace pzshape {
 		 * @param phi shapefunction values with derivatives
 		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
 		 */
-		static void (*FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &);
+		static void (*FADfOrthogonal)(FADREAL& x,int num,TPZVec<FADREAL> &phi);
 		/**
 		 * @brief Chebyshev orthogonal polynomial, computes num orthogonal functions at the point x
 		 * @param x coordinate of the point (with derivative already setup)
@@ -164,6 +164,25 @@ public:
 		 * the other elements
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int transformation_index);
+        
+        /**
+         * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the
+         * corner shapefunctions
+         * @param x coordinate of the point
+         * @param ord order of the shape functions to be computed 0<= order
+         * @param phi shapefunction values
+         * @param dphi values of the derivatives of the shape functions
+         * @param transformation_index = 0;
+         * functions. \n This parameter is computed by the GetTransformId1d method
+         * @see GetTransformId1d
+         */
+        /**
+         * The shape1dInternal function is extensively used by the shapefunction computation of
+         * the other elements
+         */
+        static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            ShapeInternal(x, ord,phi,dphi,0);
+        }
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element

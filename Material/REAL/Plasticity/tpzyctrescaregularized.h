@@ -19,7 +19,7 @@ class TPZYCTrescaRegularized : public TPZYCTresca
 public:
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     const char * Name() const
@@ -27,7 +27,7 @@ virtual int ClassId() const;
 		return "TPZYCTrescaRegularized";	
     }
 	
-    void Print(std::ostream & out) const
+    void Print(std::ostream & out) const override
     {
 		out << Name();
     }
@@ -64,10 +64,10 @@ public:
 	template <class T> 
 	void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 	
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         
     }
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         
     }
 
@@ -131,7 +131,7 @@ public:
 		
 	}
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const  override {
         return as_integer(NYield);
     }
 };

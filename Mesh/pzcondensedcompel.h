@@ -221,6 +221,8 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
 								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
 
+    /// Assemble the stiffness matrix in locally kept datastructure
+    virtual void Assemble() override;
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix

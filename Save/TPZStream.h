@@ -326,12 +326,20 @@ public:
         for (int i = 0; i < nel; i++) {
             int val;
             this->Read(&val);
-            vec.insert(val);
+            vec.push_back(val);
         }
     }
 
     template <int N>
     void Read(TPZManVector<REAL, N> &vec) {
+        int64_t nc;
+        this->Read(&nc, 1);
+        vec.Resize(nc);
+        if (nc) this->Read(&vec[0], nc);
+    }
+
+    template <int N>
+    void Read(TPZManVector<int64_t, N> &vec) {
         int64_t nc;
         this->Read(&nc, 1);
         vec.Resize(nc);

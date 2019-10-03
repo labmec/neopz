@@ -36,18 +36,18 @@ public:
         return *this;
     }
 
-    int ClassId() const{
+    int ClassId() const override{
         return Hash("TPZEquationFilter");
     }
     
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fNumEq);
         buf.Read(fIsActive);
         buf.Read(fActiveEqs);
         buf.Read(fDestIndices);
     }
     
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         buf.Write(&fNumEq);
         buf.Write(fIsActive);
         buf.Write(fActiveEqs);

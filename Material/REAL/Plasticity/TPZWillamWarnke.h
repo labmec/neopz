@@ -54,7 +54,7 @@ public:
 		return *this;
     }
 	
-	virtual const char * Name() const
+	virtual const char * Name() const override
 	{
 		return "TPZWillamWarnke";	
 	}
@@ -82,7 +82,7 @@ public:
 	//		
 	//	}
 	
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
 		out << "\n" << this->Name();
 		out << "\n Base Class Data:\n";
@@ -94,14 +94,14 @@ public:
 	}
 	
     public:
-    virtual int ClassId() const;
+    int ClassId() const override;
 
-    void Write(TPZStream& buf, int withclassid) const {
+    void Write(TPZStream &buf, int withclassid) const override{
         buf. Write(&faPa, 1);
         fInitialEps.Write(buf, withclassid);
     }
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
         buf. Read(&faPa, 1);
         fInitialEps.Read(buf, context);
     }

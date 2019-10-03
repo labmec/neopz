@@ -683,7 +683,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZManVector<TPZMaterialData,4> datavec;
+	TPZManVector<TPZMaterialData,6> datavec;
 	const int64_t nref = fElementVec.size();
 	datavec.resize(nref);
 	InitMaterialData(datavec);
@@ -1126,6 +1126,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
 	for(int ier = 0; ier < NErrors; ier++){
 		errors[ier] = sqrt(errors[ier]);
 	}//for ier
+    
     if(store_errors)
     {
         int64_t index = Index();
@@ -1136,8 +1137,10 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
         }
         for (int ier=0; ier <NErrors; ier++) {
             elvals(index,ier) = errors[ier];
+        //    std::cout<<"erro["<<ier <<"]= "<<errors[ier]<<std::endl;
         }
     }
+    
 
 	intrule->SetOrder(prevorder);
 }

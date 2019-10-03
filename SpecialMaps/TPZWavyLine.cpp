@@ -13,43 +13,43 @@
 
 namespace pzgeom {
 
-TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-{
+// TPZGeoEl *TPZWavyLine::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
+// {
     
-        int ns = orig->NSideNodes(side);
-        TPZManVector<int64_t> nodeindices(ns);
-        int in;
-        for(in=0; in<ns; in++)
-        {
-            nodeindices[in] = orig->SideNodeIndex(side,in);
-        }
-        int64_t index;
+//         int ns = orig->NSideNodes(side);
+//         TPZManVector<int64_t> nodeindices(ns);
+//         int in;
+//         for(in=0; in<ns; in++)
+//         {
+//             nodeindices[in] = orig->SideNodeIndex(side,in);
+//         }
+//         int64_t index;
         
-        TPZGeoMesh *mesh = orig->Mesh();
-        MElementType type = orig->Type(side);
+//         TPZGeoMesh *mesh = orig->Mesh();
+//         MElementType type = orig->Type(side);
         
-        TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
-        TPZGeoElSide me(orig,side);
-        TPZGeoElSide newelside(newel,newel->NSides()-1);
+//         TPZGeoEl *newel = mesh->CreateGeoBlendElement(type, nodeindices, bc, index);
+//         TPZGeoElSide me(orig,side);
+//         TPZGeoElSide newelside(newel,newel->NSides()-1);
         
-        newelside.InsertConnectivity(me);
-        newel->Initialize();
+//         newelside.InsertConnectivity(me);
+//         newel->Initialize();
         
-        return newel;
-}
+//         return newel;
+// }
 
-    /**
-     * Creates a geometric element according to the type of the father element
-     */
-    /** @brief Creates a geometric element according to the type of the father element */
-    TPZGeoEl *TPZWavyLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-                                      TPZVec<int64_t>& nodeindexes,
-                                      int matid,
-                                      int64_t& index)
+//     /**
+//      * Creates a geometric element according to the type of the father element
+//      */
+//     /** @brief Creates a geometric element according to the type of the father element */
+//     TPZGeoEl *TPZWavyLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+//                                       TPZVec<int64_t>& nodeindexes,
+//                                       int matid,
+//                                       int64_t& index)
 
-    {
-        return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-    }
+//     {
+//         return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+//     }
 
 
     int TPZWavyLine::ClassId() const{

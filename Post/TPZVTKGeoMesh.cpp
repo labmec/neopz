@@ -104,6 +104,93 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZCompMesh * cmesh, std::ofstream &file, bool
     file.close();
 }
 
+/*
+* Generate an output of all geomesh to VTK
+*/
+void TPZVTKGeoMesh::PrintCMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor) {
+    
+    file.clear();
+    int64_t nelements = gmesh->NElements();
+    
+    std::stringstream node, connectivity, type, material, index, referenceIndex;
+    
+    //Header
+    file << "# vtk DataFile Version 3.0" << std::endl;
+    file << "TPZGeoMesh VTK Visualization" << std::endl;
+    file << "ASCII" << std::endl << std::endl;
+    
+    file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+    file << "POINTS ";
+    
+    int64_t actualNode = -1, size = 0, nVALIDelements = 0;
+    
+    for (int64_t el = 0; el < nelements; el++) {
+        TPZGeoEl * gel = gmesh->ElementVec()[el];
+        if (gel == NULL || gel->Reference() == NULL) {
+            continue;
+        }
+        TPZCompEl *cel = gel->Reference();
+        MElementType elt = gel->Type();
+        int elNnodes = MElementType_NNodes(elt);
+        
+        size += (1 + elNnodes);
+        connectivity << elNnodes;
+        
+        for (int t = 0; t < elNnodes; t++) {
+            for (int c = 0; c < 3; c++) {
+                double coord = gmesh->NodeVec()[gel->NodeIndex(t)].Coord(c);
+                node << coord << " ";
+            }
+            node << std::endl;
+            
+            actualNode++;
+            connectivity << " " << actualNode;
+        }
+        connectivity << std::endl;
+        
+        int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
+        type << elType << std::endl;
+        
+        if (matColor == true) {
+            material << gel->MaterialId() << std::endl;
+        } else {
+            material << elType << std::endl;
+        }
+        index << cel->Index() << std::endl;
+        referenceIndex << gel->Index() << std::endl;
+        
+        nVALIDelements++;
+    }
+    node << std::endl;
+    actualNode++;
+    file << actualNode << " float" << std::endl << node.str();
+    
+    file << "CELLS " << nVALIDelements << " ";
+    
+    file << size << std::endl;
+    file << connectivity.str() << std::endl;
+    
+    file << "CELL_TYPES " << nVALIDelements << std::endl;
+    file << type.str() << std::endl;
+    
+    file << "CELL_DATA " << " " << nVALIDelements << std::endl;
+    file << "FIELD FieldData 3 " << std::endl;
+    if (matColor == true) {
+        file << "material 1 " << nVALIDelements << " int " << std::endl;
+    } else {
+        file << "ElementType 1 " << nVALIDelements << " int " << std::endl;
+    }
+    file << material.str();
+    
+    file << "elIndex 1 " << nVALIDelements << " int" << std::endl;
+    file << index.str();
+    
+    file << "geoElIndex 1 " << nVALIDelements << " int" << std::endl;
+    file << referenceIndex.str();
+    
+    file.close();
+}
+
 /**
  * Generate an output of all geomesh to VTK
  */

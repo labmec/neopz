@@ -53,12 +53,12 @@ public:
 		return *this;
     }
 	
-	virtual const char * Name() const
+	virtual const char * Name() const override
 	{
 	   return "TPZSandlerDimaggio";	
 	}
 	
-	virtual void Print(std::ostream & out) const
+	virtual void Print(std::ostream & out) const override
 	{
 		out << "\n" << this->Name();
 		out << "\n Base Class Data:\n";
@@ -66,16 +66,16 @@ public:
 		out << "\nTPZSandlerDimaggio internal members: None";		
 	}
 	
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
 	   SANDLERDIMAGGIOPARENT::Write(buf, withclassid);
 	   // fPlasticMem does not need to be stored
 			
 	}
 
-    void Read(TPZStream& buf, void* context) {
+    void Read(TPZStream& buf, void* context) override {
 	   SANDLERDIMAGGIOPARENT::Read(buf, context);
 	   this->fPlasticMem.Resize(0);
 	}	
@@ -98,14 +98,14 @@ public:
         SANDLERDIMAGGIOPARENT::fN.m_hardening = this->fYC.InitialDamage();        
         SANDLERDIMAGGIOPARENT::fER.SetEngineeringData(E, poisson);
     }
-    virtual void SetUp(const TPZTensor<REAL> & epsTotal) {
+    virtual void SetUp(const TPZTensor<REAL> & epsTotal)  override {
         SANDLERDIMAGGIOPARENT::SetUp(epsTotal);
     }
 
     /**
     Retrieve the plastic state variables
     */
-    virtual TPZPlasticState<REAL> GetState() const
+    virtual TPZPlasticState<REAL> GetState() const override
     {
         return SANDLERDIMAGGIOPARENT::GetState();
     }
@@ -116,7 +116,7 @@ public:
     @param[in] sigma stress tensor
     @param[out] epsTotal deformation tensor
     */
-    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
+    virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) override
     {
        SANDLERDIMAGGIOPARENT::ApplyLoad_Internal(sigma, epsTotal);
     }
@@ -124,7 +124,7 @@ public:
     /**
     * Load the converged solution, updating the damage variables
     */
-    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal)
+    virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override
     {
         SANDLERDIMAGGIOPARENT::ApplyStrain_Internal(epsTotal);
     }
@@ -133,14 +133,14 @@ public:
     * Imposes the specified strain tensor and performs plastic integration when necessary.
 	*
     */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) override
 	{
 
 		SANDLERDIMAGGIOPARENT::ApplyStrainComputeDep_Internal(epsTotal, sigma, Dep);
 		
 	}
 	
-    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL)
+    virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent = NULL) override
 	{
         bool require_tangent_Q = true;
         if (!tangent) {
@@ -163,7 +163,7 @@ public:
      * @param[in] epsTotal deformation tensor (total deformation
      * @param[out] phi vector of yield functions
     */
-    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
+    virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const override
     {
         SANDLERDIMAGGIOPARENT::Phi_Internal(epsTotal, phi);
     }
@@ -180,7 +180,7 @@ protected:
 	* @param [out] sigma resultant stress tensor
 	* @param [out] Dep Incremental constitutive relation
     */
-    virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
+    virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep) override
 	{
 		const int nyield = this->fYC.NYield;
 		

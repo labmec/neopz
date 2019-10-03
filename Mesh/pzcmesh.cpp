@@ -1695,7 +1695,7 @@ TPZCompMesh &TPZCompMesh::operator=(const TPZCompMesh &copy)
     int64_t nel = copy.fElementVec.NElements();
     fElementVec.Resize(nel);
     int64_t iel;
-    for(iel = 0; iel<nel; iel++) fElementVec[iel] = 0;
+    for(iel = 0; iel<nel; iel++) fElementVec[iel] = nullptr;
     for(iel = 0; iel<nel; iel++) {
         TPZCompEl *cel = copy.fElementVec[iel];
         if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )

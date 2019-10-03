@@ -259,6 +259,31 @@ void TPZCondensedCompEl::Resequence()
     }
 }
 
+/// Assemble the stiffness matrix in locally kept datastructure
+void TPZCondensedCompEl::TPZCondensedCompEl::Assemble()
+{
+    fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
+    fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
+
+    fCondensed.Zero();
+    TPZElementMatrix ek,ef;
+    
+    fReferenceCompEl->CalcStiff(ek,ef);
+    ek.PermuteGather(fIndexes);
+    ef.PermuteGather(fIndexes);
+
+    int64_t dim = ek.fMat.Rows();
+    for (int64_t i=0; i<dim ; ++i) {
+        for (int64_t j=0; j<dim ; ++j) {
+            fCondensed(i,j) = ek.fMat(i,j);
+        }
+    }
+    
+    fCondensed.SetF(ef.fMat);
+    fCondensed.SetReduced();
+}
+
+
 /**
  * @brief Computes the element stifness matrix and right hand side
  * @param ek element stiffness matrix
@@ -564,15 +589,17 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
             out << eg->GetElGroup()[i]->Index() <<", ";
         }
         out << eg->GetElGroup()[nel-1]->Index() <<std::endl;
-        out << "Connect indexes of the contained elements\n";
+        out << "Connect indexes of the contained elements \n";
         for(int i=0; i<nel; i++){
             TPZCompEl *cel = eg->GetElGroup()[i];
             TPZGeoEl *gel = cel->Reference();
+            out << "cel index " << cel->Index() << " cindex ";
             int nc = cel->NConnects();
             for (int ic=0; ic<nc; ic++) {
                 out << cel->ConnectIndex(ic) << " ";
             }
             if (gel) {
+                out << "\ngelindex " << gel->Index() << " ";
                 out << "matid " << gel->MaterialId();
                 TPZManVector<REAL,3> xi(gel->Dimension()), xco(3);
                 gel->CenterPoint(gel->NSides()-1, xi);
@@ -593,7 +620,7 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
         }
     }
     out << "Internal index resequencing: " << fIndexes << std::endl;
-    fCondensed.Print("Condensed matrix",out,EMathematicaInput);
+//    fCondensed.Print("Condensed matrix",out,EMathematicaInput);
 }
 
 

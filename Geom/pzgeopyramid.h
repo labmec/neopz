@@ -27,9 +27,9 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		
-            virtual int ClassId() const;
-            void Read(TPZStream& buf, void* context);
-            void Write(TPZStream& buf, int withclassid) const;
+            int ClassId() const override;
+            void Read(TPZStream &buf, void *context) override;
+            void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Constructor with list of nodes */
@@ -67,61 +67,11 @@ namespace pzgeom {
         {
             return true;
         }
-        /**
-         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
-         * interior point qsi. It is used by the TPZGeoBlend class.
-         * @param side the index of the side
-         * @param xi coordinates of the interior point
-         * @param correctionFactor influence (0 <= correctionFactor <= 1)
-         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
-         */
-        template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
-                                      TPZVec<T> &corrFactorDxi);
 
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pyramid";}
-		
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
-        
-        /* @brief Compute x mapping from local parametric coordinates */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,x);
-        }
-        
-        /** @brief Compute gradient of x mapping from local parametric coordinates */
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-//            int nrow = coord.Rows();
-//            int ncol = coord.Cols();
-//            TPZFMatrix<T> nodes(nrow,ncol);
-//            for(int i = 0; i < nrow; i++)
-//            {
-//                for(int j = 0; j < ncol; j++)
-//                {
-//                    nodes(i,j) = coord(i,j);
-//                }
-//            }
-            
-            GradX(coord,loc,gradx);
-        }
 
-        /* @brief compute the jacobian of the map between the master element and deformed element */
-        void Jacobian(const TPZGeoEl &gel, TPZVec<REAL> &param, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const {
-            TPZFNMatrix<3 * NNodes> coord(3, NNodes);
-            CornerCoordinates(gel, coord);
-            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
-        }
+
 
         /** @brief Computes the jacobian*/
         static void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
@@ -133,25 +83,8 @@ namespace pzgeom {
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-        
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        template<class T>
-        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
-		
-		/**
-		 * @brief Method which creates a geometric boundary condition 
-		 * element based on the current geometric element, 
-		 * a side and a boundary condition number
-		 */
-		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
-		
-	protected:
-		/**
-		 * @brief This method apply an infinitesimal displacement in some points
-		 * to fix singularity problems when using MapToSide() method!
-		 */
-		/** This points are CornerNodes, when projected in the opposing side */
-		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
+
+
 		
 		
 	public:
@@ -165,74 +98,12 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 	};
-    
-    template<class T>
-    inline void TPZGeoPyramid::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
-        T xi = loc[0], eta = loc[1] , zeta  = loc[2];
-        
-        if (zeta> 1.) {
-            DebugStop();
-        }
-        
-        T T0xz = .5*(1.-zeta-xi) / (1.-zeta);
-        T T0yz = .5*(1.-zeta-eta) / (1.-zeta);
-        T T1xz = .5*(1.-zeta+xi) / (1.-zeta);
-        T T1yz = .5*(1.-zeta+eta) / (1.-zeta);
-        if (IsZero(xi)) {
-            T0xz = 0.5;
-            T1xz = 0.5;
-        }
-        if (IsZero(eta)) {
-            T0yz = 0.5;
-            T1yz = 0.5;
-        }
-        T lmez = (1.-zeta);
-        
-        phi(0,0)  = T0xz*T0yz*lmez;
-        phi(1,0)  = T1xz*T0yz*lmez;
-        phi(2,0)  = T1xz*T1yz*lmez;
-        phi(3,0)  = T0xz*T1yz*lmez;
-        phi(4,0)  = zeta;
-        
-        T lmexmez = 1.-xi-zeta;
-        T lmeymez = 1.-eta-zeta;
-        T lmaxmez = 1.+xi-zeta;
-        T lmaymez = 1.+eta-zeta;
-        
-        if (IsZero(lmez) && !IsZero(lmexmez) && !IsZero(lmeymez) &&
-            !IsZero(lmaxmez) && !IsZero(lmaymez)) {
-            DebugStop();
-        }
-        if (IsZero(lmez)) {
-            lmexmez = 0.999;
-            lmeymez = 0.999;
-            lmaxmez = 0.999;
-            lmaymez = 0.999;
-            lmez = 0.001;
-        }
-        
-        dphi(0,0) = -.25*lmeymez / lmez;
-        dphi(1,0) = -.25*lmexmez / lmez;
-        dphi(2,0) = -.25*(lmeymez+lmexmez-lmexmez*lmeymez/lmez) / lmez;
-        dphi(0,1) =  .25*lmeymez / lmez;
-        dphi(1,1) = -.25*lmaxmez / lmez;
-        dphi(2,1) = -.25*(lmeymez+lmaxmez-lmaxmez*lmeymez/lmez) / lmez;
-        dphi(0,2) =  .25*lmaymez / lmez;
-        dphi(1,2) =  .25*lmaxmez / lmez;
-        dphi(2,2) = -.25*(lmaymez+lmaxmez-lmaxmez*lmaymez/lmez) / lmez;
-        dphi(0,3) = -.25*lmaymez / lmez;
-        dphi(1,3) =  .25*lmexmez / lmez;
-        dphi(2,3) = -.25*(lmaymez+lmexmez-lmexmez*lmaymez/lmez) / lmez;
-        dphi(0,4) =  0.0;
-        dphi(1,4) =  0.0;
-        dphi(2,4) =  1.0;
-        
-    }
+
     
     template<class T>
     inline void TPZGeoPyramid::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){

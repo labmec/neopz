@@ -77,20 +77,20 @@ public:
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZElasticity3D::Contribute(data,weight,ef);
 	}
 	
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout);
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout) override;
 public:
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -101,7 +101,7 @@ public:
 	
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
  
 };
 

@@ -198,6 +198,9 @@ public:
 	/** @brief Returns a reference to the material pointers vector */
 	std::map<int ,TPZMaterial * >	&MaterialVec() { return fMaterialVec; }
 
+    /** @brief Returns a reference to the material pointers vector */
+    std::map<int ,TPZMaterial * >   MaterialVec() const { return fMaterialVec; }
+    
 	/** @brief Returns a pointer to the geometrical mesh associated */
 	TPZGeoMesh *Reference() const { return fReference; }
 	
@@ -471,6 +474,12 @@ public:
 #endif
 		fCreate.BuildMesh(*this);
 	}
+    
+    /// build the computational elements for the geometric element indexes
+    void AutoBuild(const TPZVec<int64_t> &gelindexes)
+    {
+        fCreate.BuildMesh(*this,gelindexes);
+    }
 		
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	/**
@@ -509,11 +518,6 @@ public:
         fCreate.SetAllCreateFunctionsHDiv(Dimension());
     }
 	
-	//space for full basis for quadrilateral element
-	void SetAllCreateFunctionsHDivFull()
-    {
-        fCreate.SetAllCreateFunctionsHDivFull(Dimension());
-    }
 	
 
 #ifndef STATE_COMPLEX
@@ -665,13 +669,13 @@ public:
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 
 };
 

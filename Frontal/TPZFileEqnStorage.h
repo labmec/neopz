@@ -102,7 +102,7 @@ public:
 	std::string GetStorage();
 	
         public:
-        virtual int ClassId() const;
+        int ClassId() const override;
 	
 private:
 	/** In blocks position */

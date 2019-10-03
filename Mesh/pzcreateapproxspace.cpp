@@ -180,8 +180,13 @@ TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) 
  * @brief Creates the computational elements, and the degree of freedom nodes
  */ 
 /** Only element of material id in the set<int> will be created */
-void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs) const {
-	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh.Reference()->ElementVec();
+void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int64_t> &gelindexes) const {
+    TPZVec<TPZGeoEl *> elvec(gelindexes.size());
+    TPZGeoMesh *gmesh = cmesh.Reference();
+    for(int64_t el = 0; el<gelindexes.size(); el++)
+    {
+        elvec[el] = gmesh->Element(gelindexes[el]);
+    }
 	int64_t i, nelem = elvec.NElements();
 	int64_t neltocreate = 0;
 	int64_t index;
@@ -191,9 +196,6 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
         if (gel->Reference()) {
             continue;
         }
-		if(!gel->HasSubElement()) {
-			neltocreate++;
-		}
 	}
 	std::set<int> matnotfound;
 	int64_t nbl = cmesh.Block().NBlocks();
@@ -206,36 +208,102 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel || gel->Reference()) continue;
-		if(!gel->HasSubElement()) {
-			int matid = gel->MaterialId();
-			TPZMaterial * mat = cmesh.FindMaterial(matid);
-			if(!mat)
-			{
-				matnotfound.insert(matid);
-				continue;
-			}
-			int printing = 0;
-			if (printing) {
-				gel->Print(std::cout);
-			}
-			
-			//checking material in MaterialIDs
+        int matid = gel->MaterialId();
+        TPZMaterial * mat = cmesh.FindMaterial(matid);
+        if(!mat)
+        {
+            matnotfound.insert(matid);
+            continue;
+        }
+        
+        if(!gel->Reference() && gel->NumInterfaces() == 0)
+        {
+            CreateCompEl(gel,cmesh,index);
+            if (fCreateHybridMesh) {
+                cmesh.ElementVec()[index]->Reference()->ResetReference();
+            }
+#ifdef LOG4CXX
+            if (logger->isDebugEnabled())
+            {
+
+                std::stringstream sout;
+                if (index < 0) {
+                    if(gel->Dimension() == 0){
+                        sout << "Zero dimensional element, is your approximation space Hdiv?. " << std::endl;
+                        gel->Print(sout);
+                        sout << "No computational element was created. " << std::endl;
+                    }
+                }else{
+                    cmesh.ElementVec()[index]->Print(sout);
+                }
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
+        }
+	}
+	cmesh.InitializeBlock();
+}
+
+/**
+ * @brief Creates the computational elements, and the degree of freedom nodes
+ */
+/** Only element of material id in the set<int> will be created */
+void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs) const {
+    TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh.Reference()->ElementVec();
+    int64_t i, nelem = elvec.NElements();
+    int64_t neltocreate = 0;
+    int64_t index;
+    for(i=0; i<nelem; i++) {
+        TPZGeoEl *gel = elvec[i];
+        if(!gel) continue;
+        if (gel->Reference()) {
+            continue;
+        }
+        if(!gel->HasSubElement()) {
+            neltocreate++;
+        }
+    }
+    std::set<int> matnotfound;
+    int64_t nbl = cmesh.Block().NBlocks();
+    if(neltocreate > nbl)
+    {
+        cmesh.Block().SetNBlocks(neltocreate);
+    }
+    cmesh.Block().SetNBlocks(nbl);
+    
+    for(i=0; i<nelem; i++) {
+        TPZGeoEl *gel = elvec[i];
+        if(!gel || gel->Reference()) continue;
+        if(!gel->HasSubElement()) {
+            int matid = gel->MaterialId();
+            TPZMaterial * mat = cmesh.FindMaterial(matid);
+            if(!mat)
+            {
+                matnotfound.insert(matid);
+                continue;
+            }
+            int printing = 0;
+            if (printing) {
+                gel->Print(std::cout);
+            }
+            
+            //checking material in MaterialIDs
             std::set<int>::const_iterator found = MaterialIDs.find(matid);
             if (found == MaterialIDs.end())
             {
                 continue;
             }
-			
-			if(!gel->Reference() && gel->NumInterfaces() == 0)
-			{
-				CreateCompEl(gel,cmesh,index);
+            
+            if(!gel->Reference() && gel->NumInterfaces() == 0)
+            {
+                CreateCompEl(gel,cmesh,index);
                 if (fCreateHybridMesh) {
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
 #ifdef LOG4CXX
                 if (logger->isDebugEnabled())
                 {
-
+                    
                     std::stringstream sout;
                     if (index < 0) {
                         if(gel->Dimension() == 0){
@@ -249,10 +317,10 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
                     LOGPZ_DEBUG(logger, sout.str())
                 }
 #endif
-			}
-		}
-	}
-	cmesh.InitializeBlock();
+            }
+        }
+    }
+    cmesh.InitializeBlock();
 }
 
 /** @brief Creates the computational elements, and the degree of freedom nodes */
@@ -498,47 +566,47 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
 
 #endif
 
-#include "pzhdivfull.h"
-
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(int dimension){
-	
-    switch (dimension) {
-        case 1:
-            fp[EPoint] = CreateHDivBoundPointEl;
-            fp[EOned] = CreateHDivFullLinearEl;
-            fp[ETriangle] = CreateNoElement;
-            fp[EQuadrilateral] = CreateNoElement;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 2:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateHDivBoundLinearEl;
-            fp[ETriangle] = CreateHDivFullTriangleEl;
-            fp[EQuadrilateral] = CreateHDivFullQuadEl;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 3:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateNoElement;
-            fp[ETriangle] = CreateHDivBoundTriangleEl;
-            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
-            fp[ETetraedro] = CreateHDivFullTetraEl;
-            fp[EPiramide] = CreateHDivFullPyramEl;
-            fp[EPrisma] = CreateHDivFullPrismEl;
-            fp[ECube] = CreateHDivFullCubeEl;
-            break;
-        default:
-            DebugStop();
-            break;
-    }
-    
-}
+////#include "pzhdivfull.h"
+//
+//void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivFull(int dimension){
+//    
+//    switch (dimension) {
+//        case 1:
+//            fp[EPoint] = CreateHDivBoundPointEl;
+//            fp[EOned] = CreateHDivFullLinearEl;
+//            fp[ETriangle] = CreateNoElement;
+//            fp[EQuadrilateral] = CreateNoElement;
+//            fp[ETetraedro] = CreateNoElement;
+//            fp[EPiramide] = CreateNoElement;
+//            fp[EPrisma] = CreateNoElement;
+//            fp[ECube] = CreateNoElement;
+//            break;
+//        case 2:
+//            fp[EPoint] = CreateNoElement;
+//            fp[EOned] = CreateHDivBoundLinearEl;
+//            fp[ETriangle] = CreateHDivFullTriangleEl;
+//            fp[EQuadrilateral] = CreateHDivFullQuadEl;
+//            fp[ETetraedro] = CreateNoElement;
+//            fp[EPiramide] = CreateNoElement;
+//            fp[EPrisma] = CreateNoElement;
+//            fp[ECube] = CreateNoElement;
+//            break;
+//        case 3:
+//            fp[EPoint] = CreateNoElement;
+//            fp[EOned] = CreateNoElement;
+//            fp[ETriangle] = CreateHDivBoundTriangleEl;
+//            fp[EQuadrilateral] = CreateHDivBoundQuadEl;
+//            fp[ETetraedro] = CreateHDivFullTetraEl;
+//            fp[EPiramide] = CreateHDivFullPyramEl;
+//            fp[EPrisma] = CreateHDivFullPrismEl;
+//            fp[ECube] = CreateHDivFullCubeEl;
+//            break;
+//        default:
+//            DebugStop();
+//            break;
+//    }
+//    
+//}
 
 
 

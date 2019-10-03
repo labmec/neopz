@@ -252,7 +252,7 @@ namespace pzshape {
 		int numshape = (ord1*(ord1+1))/2;
 		TPZManVector<REAL,2> out(2);
 		TransformPoint2dT(triangle_transformation_index,x,out);
-        
+    
         out[0] = 2.*out[0]-1.;
         out[1] = 2.*out[1]-1.;
 		
@@ -285,6 +285,7 @@ namespace pzshape {
 		
 		out = gRibTrans2dT1d[rib][0]*in[0]+gRibTrans2dT1d[rib][1]*in[1]+gVet1dT[rib];
 	}
+    
 	
 	void TPZShapeTriang::TransformDerivativeFromRibToTriang(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		

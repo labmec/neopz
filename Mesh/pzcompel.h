@@ -131,17 +131,18 @@ public:
 	/** @brief Returns the volume of the geometric element associated. */
 	virtual  REAL VolumeOfEl()
 	{
-		if(fReferenceIndex == 0) return 0.;
+		if(fReferenceIndex == -1) return 0.;
 		return Reference()->Volume();
 	}
 	
-	/** @brief Loads the geometric element referece */
+	/** @brief Loads the geometric element reference */
 	virtual void LoadElementReference();
 	
 	/**
-	 * @brief This method verifies if the element has the given data characteristics
+	 * @brief This method computes the norm of the difference of a post processed variable with
+     @ the same post processed variable of the element pointed to by the geometric element
 	 * @param var state variable number
-	 * @param matname pointer to material name
+	 * @param matname only contribute to the norm if the material name matches the name of the material of the element
 	 **/
 	virtual REAL CompareElement(int var, char *matname);
 	
@@ -291,6 +292,12 @@ public:
 	 */
 	static void SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,
 														 TPZFMatrix<REAL> & dphi));
+    /**
+     * @brief Computes the element stifness matrix and right hand side
+     * in an internal data structure. Used for initializing condensed element data structures
+     */
+    virtual void Assemble();
+    
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix
@@ -560,15 +567,17 @@ public:
 	 */
 	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block);
 	
+    /// Will return the maximum distance between the nodes of the reference element
 	REAL MaximumRadiusOfEl();
 	
+    /// Will return the smallest distance between two nodes of the reference element
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const override;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context) override;
+	void Read(TPZStream &buf, void *context) override;
 	 
 private:
     
@@ -776,6 +785,10 @@ public:
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
 	std::cout << "TPZCompEl::CreateGraphicalElement called\n";
 	this->Print(std::cout);
+}
+
+inline void TPZCompEl::Assemble(){
+    std::cout << "TPZCompEl::Assemble is called." << std::endl;
 }
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){

@@ -15,10 +15,8 @@
 #include "pzmanvector.h"
 #include "pztrnsform.h"
 
-class TPZGeoMesh;
 class TPZGeoElSide;
-#include "pzgeoel.h"
-#include "pzgnode.h"
+class TPZGeoEl;
 
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -42,35 +40,7 @@ namespace pzgeom {
     class TPZNodeRep : public Topology
     {
         
-    private:
-        
-        /** @brief Verifies if pt (in parametric domain of the side) is within boundaries */
-        static bool IsInSideParametricDomain(int side, const TPZVec<REAL> &pt, REAL tol);
-
-        #ifdef _AUTODIFF
-        template<typename T,
-                typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
-        static bool IsInSideParametricDomain(int side, const TPZVec<T> &pt, REAL tol){
-            TPZVec<REAL> qsiReal(pt.size(),-1);
-            for(int i = 0; i < qsiReal.size(); i++) qsiReal[i] = pt[i].val();
-            return IsInSideParametricDomain(side,qsiReal,tol);
-        }
-        #endif
-        
     public:
-        template<class T>
-        static void GetSideShapeFunction(int side, TPZVec<T> &qsiSide, TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi );
-
-        template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &qsiInterior, T &sideInfluence,
-                TPZVec<T> &correctionFactorDxi){
-            std::ostringstream sout;
-            sout<<"The method CalcSideInfluence is not implemented for the desired element type."<<std::endl;
-            sout<<"The method is used in TPZGeoBlend elements. Check their usage. Aborting..."<<std::endl;
-
-            PZError<<sout.str()<<std::endl;
-            DebugStop();
-        }
 
         virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<> &trans) {
             std::cout << "Element that is NOT TPZGeoBlend trying to Set Neighbour Information on Geometric Mesh!\n";
@@ -124,12 +94,12 @@ namespace pzgeom {
             memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int64_t));
         }
         
-        void Read(TPZStream &buf, void *context) {
+        void Read(TPZStream &buf, void *context) override{
             Topology::Read(buf, context);
             buf.Read(fNodeIndexes, NNodes);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const { 
+        void Write(TPZStream &buf, int withclassid) const override{
             Topology::Write(buf, withclassid);
             buf.Write(fNodeIndexes, NNodes);
         }
@@ -154,156 +124,11 @@ namespace pzgeom {
             for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
             
         }
-        void Initialize(TPZGeoEl *refel)
+        
+        void Initialize(TPZGeoEl *)
         {
+            
         }
-        
-        /** @brief Gets the corner node coordinates in coord */
-        void CornerCoordinates(const TPZGeoEl &gel, TPZFMatrix<REAL> &coord) const
-        {
-            TPZGeoNode *np;
-            int i,j;
-            for(i=0;i<NNodes;i++) {
-                np = gel.NodePtr(i);
-                for(j=0;j<3;j++) {
-                    coord(j,i) = np->Coord(j);
-                }
-            }
-        }
-        
-        /**
-         * @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
-         * @return Returns the side where the point was projected.
-         * @note Observe that if the point is already in the parametric domain, the method will return
-         * \f$ NSides() - 1 \f$
-         */
-        int ProjectInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain){
-            const int nsides = Topology::NSides;
-            if(this->IsInParametricDomain(qsi,0.)){///it is already in the domain
-                qsiInDomain = qsi;
-                return nsides-1;
-            }//if
-            
-            int winnerSide = -1;
-            REAL winnerDistance = 1e12;
-            TPZManVector<REAL,3> pt1(qsi.NElements()), pt2(qsi.NElements());
-            for(int is = 0; is < nsides-1; is++){
-                
-                ///Go from NSides-1 to side is
-                TPZTransform<> T1 = Topology::SideToSideTransform(nsides-1, is);
-                pt1.Resize(Topology::SideDimension(is));
-                T1.Apply(qsi,pt1);
-                
-                ///Check if the point is within side boundaries
-                bool IsInSideDomain = this->IsInSideParametricDomain(is,pt1,0.);
-                if(!IsInSideDomain) continue;
-                
-                ///Come back from side is to \f$ NSides-1 \f$
-                TPZTransform<> T2 = Topology::SideToSideTransform(is,nsides-1);
-                T2.Apply(pt1,pt2);
-                
-                ///Compare original to mapped point
-                REAL distance = 0.;
-                for(int i = 0; i < qsi.NElements(); i++){
-                    REAL val = qsi[i]-pt2[i];
-                    distance += val*val;
-                }//i
-                distance = sqrt(distance);
-                
-                ///The closest side point to the original is the projected point
-                if(distance < winnerDistance){
-                    winnerDistance = distance;
-                    winnerSide = is;
-                    qsiInDomain = pt2;
-                }
-            }//for is
-            
-            return winnerSide;
-            
-        }//method
-        
-        // project the point towards the center of the element
-        // find the intersecting side
-        int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain){
-            const int nsides = Topology::NSides;
-            const int dim = Topology::Dimension;
-            
-            qsiInDomain.Resize(dim);
-            
-            if(this->IsInParametricDomain(qsi,0.))///it is already in the domain
-            {
-                qsiInDomain = qsi;
-                return nsides-1;
-            }
-            
-            REAL tol = 1.e-10;
-            
-            ///first, will be made a project to center direction
-            TPZVec<REAL> OutPt(qsi), InnPt(dim);
-            Topology::CenterPoint(nsides-1,InnPt);
-            
-            REAL dist = 0.;
-            for(int c = 0; c < dim; c++)
-            {
-                dist += (InnPt[c] - OutPt[c])*(InnPt[c] - OutPt[c]);
-            }
-            dist = sqrt(dist);
-            
-            while(dist > tol)
-            {
-                for(int c = 0; c < dim; c++)
-                {
-                    qsiInDomain[c] = (InnPt[c] + OutPt[c])/2.;
-                }
-                if(this->IsInParametricDomain(qsiInDomain,0.))
-                {
-                    InnPt = qsiInDomain;
-                }
-                else
-                {
-                    OutPt = qsiInDomain;
-                }
-                dist = 0.;
-                for(int c = 0; c < dim; c++)
-                {
-                    dist += (InnPt[c] - OutPt[c])*(InnPt[c] - OutPt[c]);
-                }
-                dist = sqrt(dist);
-            }
-            
-            ///found in witch side the projection belongs
-            int winnerSide = -1;
-            TPZManVector<REAL,3> pt1(dim), pt2(dim);
-            for(int is = 0; is < nsides-1; is++)
-            {
-                ///Go orthogonally from \f$ NSides-1 \f$ to side is
-                TPZTransform<> T1 = Topology::SideToSideTransform(nsides-1, is);
-                T1.Apply(qsiInDomain,pt1);
-                
-                ///Come back from side is to \f$ NSides-1 \f$
-                TPZTransform<> T2 = Topology::SideToSideTransform(is,nsides-1);
-                T2.Apply(pt1,pt2);
-                
-                ///Compare ptInDomain to transformed point
-                dist = 0.;
-                for(int c = 0; c < dim; c++)
-                {
-                    dist += (qsiInDomain[c]-pt2[c]) * (qsiInDomain[c]-pt2[c]);
-                }//i
-                dist = sqrt(dist);
-                
-                ///Closest side
-                if(dist < tol)
-                {
-                    winnerSide = is;
-                    qsiInDomain = pt2;
-                    break;
-                }
-            }//for is
-            
-            return winnerSide;
-            
-        }//method
         
         void Print(std::ostream &out) const
         {
@@ -317,24 +142,9 @@ namespace pzgeom {
         }
         
     public:
-        virtual int ClassId() const;
+        int ClassId() const override;
         
     protected:
-        /**
-         * @brief This method is redefined in TPZGeoTriangle, TPZGeoPrism, TPZGeoTetrahedra, TPZGeoPyramid \n
-         * to fix singularity problems when using MapToSide() method!
-         */
-        static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
-        {
-            ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-            ChangedPoint = OriginalPoint;
-        }
-        template<class T>
-        static void TFixSingularity(int side, TPZVec<T>& OriginalPoint, TPZVec<T>& ChangedPoint)
-        {
-            ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-            ChangedPoint = OriginalPoint;
-        }
     };
     
     template<int N, class Topology>

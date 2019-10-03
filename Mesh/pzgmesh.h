@@ -97,12 +97,12 @@ public:
 	void ResetConnectivities();
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Indicates that a node with id was created */
 	void SetNodeIdUsed(int64_t id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
@@ -223,7 +223,17 @@ virtual int ClassId() const;
 	/** @brief Returns the index of the given node into the fNodeVec */
 	/** @since 2002-05-02 (Cesar) */
 	int64_t NodeIndex(TPZGeoNode * nod);
-	
+
+    /**
+     * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
+     * the modification of the element type all through the code
+     * @param type element topology
+     * @param nodeindexes indexes of the corner nodes of the element
+     * @param matid material id
+     * @param index index of the element in the vector of element pointers
+     */
+	virtual TPZGeoEl *CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
+
 	/**
 	 * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
 	 * the modification of the element type all through the code

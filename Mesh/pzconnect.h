@@ -79,10 +79,9 @@ public:
 		~TPZDepend();
 		TPZDepend *HasDepend(int64_t DepConnectIndex);
 		TPZDepend *RemoveDepend(TPZDepend *Ptr);
-                
-                int ClassId() const;
-                void Read(TPZStream& buf, void* context);
-                void Write(TPZStream& buf, int withclassid) const;
+                                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
+                void Write(TPZStream &buf, int withclassid) const override;
 		/**
 		 * @brief Copy a depend data structure to a clone depend in a clone mesh
 		 * @param orig original depend to be copied
@@ -105,13 +104,18 @@ public:
 	
 	TPZConnect &operator=(const TPZConnect &con);
         
-        virtual int ClassId() const {
+        virtual int ClassId() const override{
             return Hash("TPZConnect");
         }
 	
     /** @brief Reset the data of the connect */
     void Reset()
     {
+        if (fDependList) {
+            DebugStop();
+            delete fDependList;
+            fDependList = 0;
+        }
         SetSequenceNumber(-1);
         SetNState(0);
         SetOrder(0,-1);
@@ -119,11 +123,6 @@ public:
         ResetElConnected();
         SetCondensed(false);
         SetLagrangeMultiplier(0);
-        if (fDependList) {
-            DebugStop();
-            delete fDependList;
-            fDependList = 0;
-        }
     }
 	/**
 	 * @brief Number of degrees of freedom associated with the object
@@ -306,10 +305,10 @@ public:
 	void ExpandShape(int64_t cind, TPZVec<int64_t> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
 	/**
 	 * @brief Copy a connect data structure from an original connect to a new connect mapping their indexes

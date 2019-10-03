@@ -63,7 +63,10 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
 {
     
     if (Space == 1) {
-        HDivPiola = 1;
+    }
+    else
+    {
+        DebugStop();
     }
     
     //Gerando malha geométrica:

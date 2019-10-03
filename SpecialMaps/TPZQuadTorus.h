@@ -27,7 +27,7 @@ namespace pzgeom {
     public:
         
         public:
-virtual int ClassId() const;
+int ClassId() const override;
 
         
         /** @brief Constructor with list of nodes */
@@ -97,16 +97,9 @@ virtual int ClassId() const;
 		static std::string TypeName() { return "TorusQuad";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
             
             
@@ -126,7 +119,7 @@ virtual int ClassId() const;
             
         }
         /* @brief Computes the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
+//        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
 
         template<class T>
 		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
@@ -141,20 +134,20 @@ virtual int ClassId() const;
         }
 
 		
-		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+		// static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 
-		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// /** @brief Creates a geometric element according to the type of the father element */
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 		
-        void Read(TPZStream &buf,void *context)
+        void Read(TPZStream& buf, void* context) override
         {
             pzgeom::TPZGeoQuad::Read(buf,0);
         }
         
-        virtual void Write(TPZStream &buf, int withclassid) const
+        void Write(TPZStream &buf, int withclassid) const override
         {
             pzgeom::TPZGeoQuad::Write(buf, withclassid);
 		}

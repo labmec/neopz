@@ -12,6 +12,7 @@
 #include "pztrnsform.h"
 #include "pzeltype.h"
 #include "pzstack.h"
+#include "pzaxestools.h"
 
 class TPZIntPoints;
 class TPZInt1Point;
@@ -36,9 +37,9 @@ namespace pztopology {
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0};
 
-                virtual int ClassId() const;
-                void Read(TPZStream& buf, void* context);
-                void Write(TPZStream& buf, int withclassid) const;
+                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
+                void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Default constructor */
@@ -48,9 +49,28 @@ namespace pztopology {
 		virtual ~TPZPoint() {
 		}
 
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
+        }
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+
 		/** @name About sides of the topological element
 		 * @{ */
-		
+
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param blendFactor influence (0 <= blendFactor <= 1)
+         * * @param corrFactorDxi derivative of the blendFactor in respect to xi
+         */
+        template<class T>
+        static void BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                      TPZVec<T> &corrFactorDxi);
+
 		/** @brief Returns the dimension of the side */
 		static int SideDimension(int side) {
 			return 0;
@@ -112,9 +132,19 @@ namespace pztopology {
         {
             
         }
-        
+
+        /**
+         * This method will check if the projection to a certain side (MapToSide method) is regular,
+         * i.e., if the interior point in the parametric domain is not too close to the projection's singularity.
+         * @param side the index of the side upon which the interior point will be projected upon
+         * @param xiInterior coordinates of the interior point
+         * @return true if the interior point is far from the singularity
+         */
         template<class T>
-        static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
+        static bool CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior);
+
+        template<class T>
+        static void MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
         static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
@@ -227,7 +257,8 @@ namespace pztopology {
         }
 
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+        template <class TVar>
+        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
         {
         }
         

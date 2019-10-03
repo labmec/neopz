@@ -107,7 +107,7 @@ namespace pzgeom {
 		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian);
 		
 		
-		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+		// static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 		static void Diagnostic(TPZFMatrix<REAL> &coord);
 		

@@ -17,7 +17,7 @@
 class TPZPlasticBase : public TPZSavable {
 public:
 
-    virtual int ClassId() const;
+    int ClassId() const override;
 
     virtual ~TPZPlasticBase();
     virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0; //  Candidate to be deprecated.
@@ -39,8 +39,8 @@ public:
     virtual TPZElasticResponse GetElasticResponse() const = 0;
     virtual const char * Name()const = 0;
     virtual void Print(std::ostream & out)const = 0;
-    virtual void Write(TPZStream& buf, int withclassid) const = 0;
-    virtual void Read(TPZStream& buf, void* context) = 0;    
+    virtual void Write(TPZStream& buf, int withclassid) const override = 0;
+    virtual void Read(TPZStream& buf, void* context)  override = 0;
 
     
     virtual void ResetPlasticStrain();

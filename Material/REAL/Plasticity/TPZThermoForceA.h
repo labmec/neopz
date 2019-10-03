@@ -20,7 +20,7 @@ public:
     }
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 
     const char * Name() const
@@ -53,12 +53,12 @@ virtual int ClassId() const;
     template <class T>
     T ComputeTangent(const T & alpha) const;
 
-    void Write(TPZStream& buf, int withclassid) const{
+    void Write(TPZStream &buf, int withclassid) const override{
         buf.Write(&fSigmaYield0);
         buf.Write(&fK);
     }
 
-    void Read(TPZStream& buf, void* context){
+    void Read(TPZStream& buf, void* context) override {
         buf.Read(&fSigmaYield0);
         buf.Read(&fK);
     }

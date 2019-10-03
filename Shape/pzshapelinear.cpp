@@ -190,7 +190,7 @@ namespace pzshape {
 	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Expo;
 	
 	/**
-	 * Computes the generating shape functions for a quadrilateral element
+	 * Computes the generating shape functions for a linear element
 	 * @param pt (input) point where the shape function is computed
 	 * @param phi (input/output) value of the  shape functions
 	 * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column

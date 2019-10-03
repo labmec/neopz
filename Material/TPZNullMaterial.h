@@ -4,6 +4,8 @@
  * It implements the weak statement of the differential equation within the PZ environment.
  */
 
+#ifndef TPZNULLMATERIALH
+#define TPZNULLMATERIALH
 
 #include "TPZMaterial.h"
 
@@ -239,3 +241,4 @@ virtual int ClassId() const override;
 };
 
 
+#endif

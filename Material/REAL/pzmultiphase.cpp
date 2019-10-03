@@ -230,7 +230,7 @@ void TPZMultiphase::SWaterstar(REAL &Swstar, REAL &Po, REAL &Sw)
     
 }
 
-/** Rock porosity \f$ Phi = Phi( P )  */
+/** Rock porosity \f$ Phi = Phi( P ) \f$ */
 void TPZMultiphase::Porosity(REAL po, REAL &poros, REAL &dPorosDpo){
     const REAL comp = (0.0e-10)*(fPref);
     const REAL pref = (1.0e6)/(fPref);
@@ -240,7 +240,7 @@ void TPZMultiphase::Porosity(REAL po, REAL &poros, REAL &dPorosDpo){
 }
 
 
-/** Oil density  \f$ RhoOil = RhoOil( P )  */
+/** Oil density  \f$ RhoOil = RhoOil( P ) \f$ */
 void TPZMultiphase::RhoOil(REAL po, REAL &RhoOil, REAL &dRhoOilDpo){
     const REAL Oilcomp = (0.0e-8)*(fPref);
     const REAL pref = (1.0e6)/(fPref);
@@ -248,7 +248,7 @@ void TPZMultiphase::RhoOil(REAL po, REAL &RhoOil, REAL &dRhoOilDpo){
     dRhoOilDpo = Oilcomp*RhoOilSC()*exp(Oilcomp*(po-pref))/(fRhoref);
 }
 
-/** Water density  \f$ RhoWater = RhoWater( P )  */
+/** Water density  \f$ RhoWater = RhoWater( P ) \f$ */
 void TPZMultiphase::RhoWater(REAL po, REAL &RhoWater, REAL &dRhoWaterDpo){
     const REAL Watercomp = (0.0e-9)*(fPref);
     const REAL pref = (1.0e6)/(fPref);
@@ -257,14 +257,14 @@ void TPZMultiphase::RhoWater(REAL po, REAL &RhoWater, REAL &dRhoWaterDpo){
 }
 
 
-/** Oil viscosity  \f$ OilViscosity = OilViscosity( P )  */
+/** Oil viscosity  \f$ OilViscosity = OilViscosity( P ) \f$ */
 void TPZMultiphase::OilViscosity(REAL po, REAL &OilViscosity, REAL &dOilViscosityDpo){
     const REAL OilViscRef = (1.0e-3)/(fEtaref);
     OilViscosity = OilViscRef;
     dOilViscosityDpo = 0;
 }
 
-/** Water viscosity  \f$ WaterViscosity = WaterViscosity( P )  */
+/** Water viscosity  \f$ WaterViscosity = WaterViscosity( P ) \f$ */
 void TPZMultiphase::WaterViscosity(REAL po, REAL &WaterViscosity, REAL &dWaterViscosityDpo){
     const REAL WaterViscRef = (1.0e-3)/(fEtaref);
     WaterViscosity = WaterViscRef;
@@ -287,7 +287,7 @@ void TPZMultiphase::OilLabmda(REAL &OilLabmda, REAL Po, REAL Sw, REAL &dOilLabmd
 }
 
 
-/** Water mobility. \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$  */
+/** Water mobility. \f$ \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$  */
 void TPZMultiphase::WaterLabmda(REAL &WaterLabmda, REAL Pw, REAL Sw, REAL &dWaterLabmdaDPw, REAL &dWaterLabmdaDSw){
     
     REAL krWater,Waterviscosity,WaterDensity;
@@ -486,7 +486,7 @@ void TPZMultiphase::Krw(BFadREAL Sw, BFadREAL &Krw){
 }
 
 
-/** Rock porosity \f$ Phi = Phi( P )  */
+/** Rock porosity \f$ Phi = Phi( P ) \f$ */
 void TPZMultiphase::Porosity(BFadREAL po, BFadREAL &poros){
     const REAL comp = 1.0e-10;
     const REAL pref = 1.0e6;
@@ -495,14 +495,14 @@ void TPZMultiphase::Porosity(BFadREAL po, BFadREAL &poros){
 }
 
 
-/** Oil density  \f$ RhoOil = RhoOil( P )  */
+/** Oil density  \f$ RhoOil = RhoOil( P ) \f$ */
 void TPZMultiphase::RhoOil(BFadREAL po, BFadREAL &RhoOil){
     const REAL Oilcomp = 0.0e-8;
     const REAL pref = 1.0e6;
     RhoOil = RhoOilSC()*exp(Oilcomp*((po.val())-pref));
 }
 
-/** Water density  \f$ RhoWater = RhoWater( P )  */
+/** Water density  \f$ RhoWater = RhoWater( P )  \f$ */
 void TPZMultiphase::RhoWater(BFadREAL po, BFadREAL &RhoWater){
     const REAL Watercomp = 0.0e-9;
     const REAL pref = 1.0e6;
@@ -510,13 +510,13 @@ void TPZMultiphase::RhoWater(BFadREAL po, BFadREAL &RhoWater){
 }
 
 
-/** Oil viscosity  \f$ OilViscosity = OilViscosity( P )  */
+/** Oil viscosity  \f$ OilViscosity = OilViscosity( P ) \f$ */
 void TPZMultiphase::OilViscosity(BFadREAL po, BFadREAL &OilViscosity){
     const REAL OilViscRef = 1.0e-3;
     OilViscosity = OilViscRef;
 }
 
-/** Water viscosity  \f$ WaterViscosity = WaterViscosity( P )  */
+/** Water viscosity  \f$ WaterViscosity = WaterViscosity( P ) \f$ */
 void TPZMultiphase::WaterViscosity(BFadREAL po, BFadREAL &WaterViscosity){
     const REAL WaterViscRef = 1.0e-3;
     WaterViscosity = WaterViscRef;
@@ -536,7 +536,7 @@ void TPZMultiphase::OilLabmda(BFadREAL OilLabmda, BFadREAL Po, BFadREAL &Sw){
 }
 
 
-/** Water mobility. \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$  */
+/** Water mobility. \f$ \lambda_{Water} = \lambda_{Water}( pw , Sw ) \f$  */
 void TPZMultiphase::WaterLabmda(BFadREAL WaterLabmda, BFadREAL Pw, BFadREAL &Sw){
     
     BFadREAL krWater,Waterviscosity,WaterDensity;

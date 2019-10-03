@@ -41,7 +41,7 @@ public:
 	
 	virtual TPZFront<TVar> & GetFront() = 0;
 	
-virtual int ClassId() const;
+int ClassId() const override;
 };
 
 template<class TVar>
@@ -72,22 +72,22 @@ public:
 	void ReOpen();
 	
 	/** @brief Reinitialize the structure of the frontal matrix */
-	virtual int Zero();
+	virtual int Zero() override;
     /** @brief Allocates data for the FrontMatrix */
 	void AllocData();
 	
 	/** @brief returns a pointer to the front matrix */
-	TPZFront<TVar> &GetFront() { return fFront;}
+	TPZFront<TVar> &GetFront() override { return fFront;}
     /** @brief Checks if FrontMatrix needs a compression,
 	 if so calls Compress method */
 	void CheckCompress();
     /** Static main for testing */
 	static void main();
     /** @brief Prints a FrontMatrix object */
-	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
+	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const override;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
-virtual int ClassId() const;
+int ClassId() const override;
     /** @brief Simple Constructor */
     TPZFrontMatrix();
     /** 
@@ -102,7 +102,7 @@ virtual int ClassId() const;
     }
     
   //  CLONEDEF(TPZFrontMatrix)
-	virtual TPZMatrix<TVar>*Clone() const { return new TPZFrontMatrix(*this); }
+	virtual TPZMatrix<TVar>*Clone() const  override { return new TPZFrontMatrix(*this); }
     /** 
 	 * @brief Sends a message to decompose equations from lower_eq to upper_eq, according to destination index
 	 * @param destinationindex Contains destination indexes of equations
@@ -126,7 +126,7 @@ virtual int ClassId() const;
 	 * @param elmat Indicates number of elements connected to that equation
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & destinationindex) override;
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth. It does it symbolicaly
@@ -140,20 +140,20 @@ virtual int ClassId() const;
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex) override ;
 	
-    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular);
+    virtual int SolveDirect(TPZFMatrix<TVar> &B ,const DecomposeType dt, std::list<int64_t> &singular) override;
     /**
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
 	 */
-	int Subst_Forward(TPZFMatrix<TVar> *b) const;
+	int Subst_Forward(TPZFMatrix<TVar> *b) const override;
 	
     /** @brief Backward substitution and result is on b*/
-	int Subst_Backward(TPZFMatrix<TVar> *b) const;
+	int Subst_Backward(TPZFMatrix<TVar> *b) const override;
     /** @brief Executes a substitution on a TPZFMatrix<REAL> object
 	 applies both forward and backward substitution automaticaly */
-	int Substitution(TPZFMatrix<TVar> *) const;
+	int Substitution(TPZFMatrix<TVar> *) const override;
     /*
 	 void SetFileName(
 	 const char *name = SetTempFileName() //! Name of the file

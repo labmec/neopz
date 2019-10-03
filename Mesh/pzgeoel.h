@@ -74,10 +74,18 @@ public:
     TPZGeoEl * EldestAncestor() const;
     
     /** Returns the directions of this geoel */
-    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
+//    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
+    
+    /** Returns the directions of master element */
+    virtual void DirectionsMaster(TPZFMatrix<REAL> &directions) = 0;
     
     /** Returns the directions of this geoel */
     virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
+
+#ifdef _AUTODIFF
+    /** Returns the directions of this geoel */
+    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
+#endif
     
     /** Returns the eldest ancestor of this geoel */
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<REAL> &trans) = 0;
@@ -164,11 +172,11 @@ public:
 	
         static int StaticClassId();
         
-    int ClassId() const;
+    int ClassId() const override;
         
-	virtual void Read(TPZStream &str, void *context);
+	void Read(TPZStream &str, void *context) override;
 	
-	virtual void Write(TPZStream &str, int withclassid) const;
+	void Write(TPZStream &str, int withclassid) const override;
 	
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
 	
@@ -307,7 +315,7 @@ public:
 	virtual int NSideSubElements(int side) const = 0;
 	
 	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
-	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
+//    virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
 	
 	/** @brief Returns a pointer to the father*/
 	TPZGeoEl *Father() const;
@@ -490,7 +498,7 @@ public:
 	/** @brief Reset all subelements to NULL*/
 	virtual void ResetSubElements()=0;
 
-	/** @brief Returns the number of fathers that can be followed*/
+	/** @brief Returns the number of ancestors */
 	int Level();
 	
 	/** @brief Return the dimension of side*/
@@ -635,10 +643,10 @@ public:
 	 * and then permuted according to the node id's
 	 */
 	/** This method will accumulate the normals for all the sides */
-	void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
     
     /// Computation of NormalVectors for curvilinear elements
-    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
     
     
 	virtual REAL CharacteristicSize();
@@ -651,8 +659,8 @@ public:
 	 * the normal vectors are initially ordered \n according to the return of LowerDimensionSides
 	 * and then permuted according to the node id's
 	 */
-	void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
-	void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
 	/**
 	 * @brief Compute the permutation needed to order the normal vectors in a consistent way
 	 * \f$ normal(indexfrom[i]) = normal(i) \f$

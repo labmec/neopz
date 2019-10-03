@@ -101,7 +101,9 @@ int main(int argc, char *argv[])
 
         TPZVec<STATE> S0(13,0.);
         S0[0]=0.0000001,S0[1]=1.,S0[2]=3.,S0[3]=5.,S0[4]=10.,S0[5]=15.,S0[6]=20.,S0[7]=25.,S0[8]=30.,S0[9]=35.,S0[10]=40.,S0[11]=45.,S0[12]=50.;
-        HDivPiola = 0;
+//        HDivPiola = 0;
+        // this configuration has been discontinued
+        DebugStop();
         for (int it=0; it<=0.; it++) {
             h_level = 1;
             //Coeficiente estabilização (Stokes)
@@ -211,7 +213,6 @@ int main(int argc, char *argv[])
     //Dados do problema:
     
     int h_level = 16;
-    HDivPiola = 1;
     
     double hx=1.,hy=1.,r=0.25; //Dimensões em x e y do domínio
     int nelx=h_level, nely=h_level; //Número de elementos em x e y

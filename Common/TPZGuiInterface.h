@@ -58,10 +58,9 @@ public:
         DebugStop();
         return *this;
     }
-	
-    int ClassId() const;
-    void Read(TPZStream& buf, void* context);
-    void Write(TPZStream& buf, int withclassid) const;
+	    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
     
 	/** Updates the GUI with start messages \n
 	 * This method must be reimplemented in derived classes for better messages

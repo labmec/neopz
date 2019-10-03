@@ -32,7 +32,7 @@ public:
 
   enum {NYield = 2};
   
-virtual int ClassId() const;
+int ClassId() const override;
 
 	
     TPZYCSandlerDimaggioL():TPZYCSandlerDimaggio() { }
@@ -58,7 +58,7 @@ virtual int ClassId() const;
 	   return "TPZYCSandlerDimaggioL";	
     }
 	
-    void Print(std::ostream & out) const
+    void Print(std::ostream & out) const override
     {
 		out << "\n" << this->Name();
         TPZYCSandlerDimaggio::Print(out);
@@ -137,7 +137,7 @@ private:
     }
 public:
 
-    virtual int GetNYield() const {
+    virtual int GetNYield() const  override {
         return as_integer(NYield);
     }
 		

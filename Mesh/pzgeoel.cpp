@@ -1182,20 +1182,20 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             norm_v_1    = sqrt(norm_v_1);
             jac(0,0)    = norm_v_1;
             detjac      = norm_v_1;
-            jacinv(0,0) = 1.0/detjac;
-            
-            detjac = fabs(detjac);            
-            
+
             if(IsZero(detjac))
             {
                 
 #ifdef PZDEBUG
-            std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
-            LOGPZ_ERROR(logger, sout.str())
+                std::stringstream sout;
+                sout << "Singular Jacobian, 1 determinant of jacobian = " << detjac << std::endl;
+                LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
+            
+            jacinv(0,0) = 1.0/detjac;
             
             for(int i=0; i < 3; i++) {
                 axes(0,i) = v_1[i]/norm_v_1;
@@ -1251,15 +1251,14 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jacinv(0,1) = -jac(0,1)/detjac;
             jacinv(1,0) = -jac(1,0)/detjac;
             
-            detjac = fabs(detjac);
-            
             if(IsZero(detjac))
             {
                 
 #ifdef PZDEBUG
                 std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                sout << "Singular Jacobian, 2 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
@@ -1292,6 +1291,18 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             detjac -= jac(0,1)*jac(1,0)*jac(2,2);//- a01 a10 a22
             detjac += jac(0,0)*jac(1,1)*jac(2,2);//+ a00 a11 a22
             
+            if(IsZero(detjac))
+            {
+                
+#ifdef PZDEBUG
+                std::stringstream sout;
+                sout << "Singular Jacobian, 3 determinant of jacobian = " << detjac << std::endl;
+                LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
+#endif
+                detjac = ZeroTolerance();
+            }
+
             jacinv(0,0) = (-jac(1,2)*jac(2,1)+jac(1,1)*jac(2,2))/detjac;//-a12 a21 + a11 a22
             jacinv(0,1) = ( jac(0,2)*jac(2,1)-jac(0,1)*jac(2,2))/detjac;//a02 a21 - a01 a22
             jacinv(0,2) = (-jac(0,2)*jac(1,1)+jac(0,1)*jac(1,2))/detjac;//-a02 a11 + a01 a12
@@ -1301,19 +1312,7 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
             jacinv(2,0) = (-jac(1,1)*jac(2,0)+jac(1,0)*jac(2,1))/detjac;//-a11 a20 + a10 a21
             jacinv(2,1) = ( jac(0,1)*jac(2,0)-jac(0,0)*jac(2,1))/detjac;//a01 a20 - a00 a21
             jacinv(2,2) = (-jac(0,1)*jac(1,0)+jac(0,0)*jac(1,1))/detjac;//-a01 a10 + a00 a11
-            
-//            detjac = fabs(detjac);
-            
-            if(IsZero(detjac))
-            {
-                
-#ifdef PZDEBUG
-                std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
-                LOGPZ_ERROR(logger, sout.str())
-#endif
-                detjac = ZeroTolerance();
-            }
+
             
             axes.Zero();
             axes(0,0) = 1.0;
@@ -1368,8 +1367,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 4 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1397,8 +1397,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 5 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1425,8 +1426,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 6 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1471,8 +1473,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 7 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1508,8 +1511,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 8 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1545,8 +1549,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                     
 #ifdef PZDEBUG
                     std::stringstream sout;
-                    sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                    sout << "Singular Jacobian, 9 determinant of jacobian = " << detjac << std::endl;
                     LOGPZ_ERROR(logger, sout.str())
+                    DebugStop();
 #endif
                     detjac = ZeroTolerance();
                 }
@@ -1592,8 +1597,9 @@ void TPZGeoEl::JacobianXYZ(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,
                 
 #ifdef PZDEBUG
                 std::stringstream sout;
-                sout << "Singular Jacobian, determinant of jacobian = " << detjac << std::endl;
+                sout << "Singular Jacobian, 10 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
+                DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }
@@ -2097,246 +2103,246 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 	}
 }
 
-void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
-{
-	int numbernormals = 0;
-	int dimension = Dimension();
-	int sidedimension = SideDimension(side);
-	TPZStack<int> lowdim;
-	LowerDimensionSides(side,lowdim);
-	lowdim.Push(side);
-	// the normals corresponding to the internal shape functions
-	// Compute the number of normals we need to compute
-	int nsides = NSides();
-	if(sidedimension == dimension-1)
-	{
-		numbernormals = lowdim.NElements();
-	}
-	else if(sidedimension == dimension)
-	{
-		numbernormals = nsides*2;
-	}
-	else
-	{
-		numbernormals = 0;
-	}
-	normals.Redim(3, numbernormals);
-	vectorsides.Resize(numbernormals);
-	vectorsides.Fill(0);
-	if(!numbernormals)
-	{
-		return;
-	}
-	int is = side;
-	if(sidedimension == dimension-1)
-	{
-		int nlowdim = lowdim.NElements();
-		int lowis;
-		// work from lowest dimension sides upward
-		for(lowis=0; lowis < nlowdim; lowis++)
-		{
-			// find a side which is not contained in the currently analysed side
-			// whose dimension is one higher than the dimension of lowdim[lowis]
-			int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
-			// the normal vector is in the alignment of the conjugate side
-			TPZGeoElSide LC(this,conj_side);
-			TPZGeoElSide LS(this,lowdim[lowis]);
-			TPZManVector<REAL> normal(3,0.);
-			// the normal vector goes from the center of the conjugate side to
-			// the center of the LS side
-			NormalVector(LC,LS,normal);
-			int d;
-			for(d=0; d<3; d++) normals(d,lowis) = normal[d];
-			vectorsides[lowis] = lowdim[lowis];
-		}
-		// Why mormalize a vector which has just been computed?
-		TPZManVector<REAL> normal(3,0.);
-		int d;
-		for(d=0; d<3; d++) normal[d] = normals(d,nlowdim-1);
-		for(lowis = 0; lowis < nlowdim; lowis++)
-		{
-			TPZManVector<REAL,3> normlow(3,0.);
-			for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
-			Normalize(normlow,normal);
-			for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
-		}
-		TPZManVector<int,9> sidepermutationgather(nlowdim);
-//		HDivPermutation(is,sidepermutationgather);
-        for(int i=0; i< nlowdim; i++) sidepermutationgather[i] = i;
-		TPZFNMatrix<12> sidenormals(3,nlowdim);
-		TPZManVector<int> localvecsides(nlowdim);
-		// compute whether the side is from this element to the next or contrary
-        int sideorient = 1;//NormalOrientation(side);
-		int i;
-		for(i=0; i<nlowdim; i++)
-		{
-			for(d=0; d<3; d++)
-			{
-				sidenormals(d,i) = normals(d,sidepermutationgather[i]);
-			}
-			localvecsides[i] = vectorsides[sidepermutationgather[i]];
-		}
-		for(i=0; i<nlowdim; i++)
-		{
-			for(d=0; d<3; d++)
-			{
-				normals(d,i) = sidenormals(d,i)*sideorient;
-			}
-			vectorsides[i] = localvecsides[i];
-		}
-	}
-	else if(sidedimension == dimension)
-	{
-		int counter = 0;
-		for(is=0; is<nsides; is++)
-		{
-			if(SideDimension(is) > 0)
-			{
-				TPZManVector<REAL,3> Center(3,0.);
-				TPZManVector<REAL,3> X;
-				TPZFNMatrix<10> jacobian, jacinv, axes;
-				REAL detjac;
-				TPZGeoElSide gelside(this,is);
-				gelside.CenterPoint(Center);
-				gelside.Jacobian(Center,jacobian,axes,detjac,jacinv);
-				int d,s;
-				dimension = SideDimension(is);
-				for(d=0; d<dimension; d++)
-				{
-					for(s=0; s<3; s++)
-					{
-						normals(s,counter) = axes(d,s);
-					}
-					vectorsides[counter] = is;
-					counter++;
-				}
-			}
-		}
-		vectorsides.Resize(counter);
-		normals.Resize(3,counter);
-	}
-}
+//void TPZGeoEl::ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
+//{
+//    int numbernormals = 0;
+//    int dimension = Dimension();
+//    int sidedimension = SideDimension(side);
+//    TPZStack<int> lowdim;
+//    LowerDimensionSides(side,lowdim);
+//    lowdim.Push(side);
+//    // the normals corresponding to the internal shape functions
+//    // Compute the number of normals we need to compute
+//    int nsides = NSides();
+//    if(sidedimension == dimension-1)
+//    {
+//        numbernormals = lowdim.NElements();
+//    }
+//    else if(sidedimension == dimension)
+//    {
+//        numbernormals = nsides*2;
+//    }
+//    else
+//    {
+//        numbernormals = 0;
+//    }
+//    normals.Redim(3, numbernormals);
+//    vectorsides.Resize(numbernormals);
+//    vectorsides.Fill(0);
+//    if(!numbernormals)
+//    {
+//        return;
+//    }
+//    int is = side;
+//    if(sidedimension == dimension-1)
+//    {
+//        int nlowdim = lowdim.NElements();
+//        int lowis;
+//        // work from lowest dimension sides upward
+//        for(lowis=0; lowis < nlowdim; lowis++)
+//        {
+//            // find a side which is not contained in the currently analysed side
+//            // whose dimension is one higher than the dimension of lowdim[lowis]
+//            int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
+//            // the normal vector is in the alignment of the conjugate side
+//            TPZGeoElSide LC(this,conj_side);
+//            TPZGeoElSide LS(this,lowdim[lowis]);
+//            TPZManVector<REAL> normal(3,0.);
+//            // the normal vector goes from the center of the conjugate side to
+//            // the center of the LS side
+//            NormalVector(LC,LS,normal);
+//            int d;
+//            for(d=0; d<3; d++) normals(d,lowis) = normal[d];
+//            vectorsides[lowis] = lowdim[lowis];
+//        }
+//        // Why mormalize a vector which has just been computed?
+//        TPZManVector<REAL> normal(3,0.);
+//        int d;
+//        for(d=0; d<3; d++) normal[d] = normals(d,nlowdim-1);
+//        for(lowis = 0; lowis < nlowdim; lowis++)
+//        {
+//            TPZManVector<REAL,3> normlow(3,0.);
+//            for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
+//            Normalize(normlow,normal);
+//            for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
+//        }
+//        TPZManVector<int,9> sidepermutationgather(nlowdim);
+////        HDivPermutation(is,sidepermutationgather);
+//        for(int i=0; i< nlowdim; i++) sidepermutationgather[i] = i;
+//        TPZFNMatrix<12> sidenormals(3,nlowdim);
+//        TPZManVector<int> localvecsides(nlowdim);
+//        // compute whether the side is from this element to the next or contrary
+//        int sideorient = 1;//NormalOrientation(side);
+//        int i;
+//        for(i=0; i<nlowdim; i++)
+//        {
+//            for(d=0; d<3; d++)
+//            {
+//                sidenormals(d,i) = normals(d,sidepermutationgather[i]);
+//            }
+//            localvecsides[i] = vectorsides[sidepermutationgather[i]];
+//        }
+//        for(i=0; i<nlowdim; i++)
+//        {
+//            for(d=0; d<3; d++)
+//            {
+//                normals(d,i) = sidenormals(d,i)*sideorient;
+//            }
+//            vectorsides[i] = localvecsides[i];
+//        }
+//    }
+//    else if(sidedimension == dimension)
+//    {
+//        int counter = 0;
+//        for(is=0; is<nsides; is++)
+//        {
+//            if(SideDimension(is) > 0)
+//            {
+//                TPZManVector<REAL,3> Center(3,0.);
+//                TPZManVector<REAL,3> X;
+//                TPZFNMatrix<10> jacobian, jacinv, axes;
+//                REAL detjac;
+//                TPZGeoElSide gelside(this,is);
+//                gelside.CenterPoint(Center);
+//                gelside.Jacobian(Center,jacobian,axes,detjac,jacinv);
+//                int d,s;
+//                dimension = SideDimension(is);
+//                for(d=0; d<dimension; d++)
+//                {
+//                    for(s=0; s<3; s++)
+//                    {
+//                        normals(s,counter) = axes(d,s);
+//                    }
+//                    vectorsides[counter] = is;
+//                    counter++;
+//                }
+//            }
+//        }
+//        vectorsides.Resize(counter);
+//        normals.Resize(3,counter);
+//    }
+//}
 
 
-void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
-{
-    if (SideDimension(side) >= Dimension()-1) {
-        Directions(side, pt, normals, vectorsides);
-    }
-    if (SideDimension(side) == Dimension()-1)
-    {
-        // we need to permute the normals and associated sides
-        TPZGeoElSide thisside(this,side);
-        int nlowdim = thisside.NSides();
-        
-		TPZManVector<int,9> sidepermutationgather(nlowdim);
-		HDivPermutation(side,sidepermutationgather);
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled()){
-            std::stringstream sout;
-            sout << "Permutation for side " << side << " is " << sidepermutationgather;
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
-		TPZFNMatrix<12> sidenormals(3,nlowdim);
-		TPZManVector<int> localvecsides(nlowdim);
-		// compute whether the side is from this element to the next or contrary
-		int sideorient = NormalOrientation(side);
-		int i;
-		for(i=0; i<nlowdim; i++)
-		{
-			for(int d=0; d<3; d++)
-			{
-				sidenormals(d,i) = normals(d,sidepermutationgather[i]);
-			}
-			localvecsides[i] = vectorsides[sidepermutationgather[i]];
-		}
-		for(i=0; i<nlowdim; i++)
-		{
-			for(int d=0; d<3; d++)
-			{
-				normals(d,i) = sidenormals(d,i)*sideorient;
-			}
-			vectorsides[i] = localvecsides[i];
-		}
-        
-    }
+//void TPZGeoEl::ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
+//{
+//    if (SideDimension(side) >= Dimension()-1) {
+//        Directions(side, pt, normals, vectorsides);
+//    }
+//    if (SideDimension(side) == Dimension()-1)
+//    {
+//        // we need to permute the normals and associated sides
+//        TPZGeoElSide thisside(this,side);
+//        int nlowdim = thisside.NSides();
+//        
+//        TPZManVector<int,9> sidepermutationgather(nlowdim);
+//        HDivPermutation(side,sidepermutationgather);
+//#ifdef LOG4CXX
+//        if(logger->isDebugEnabled()){
+//            std::stringstream sout;
+//            sout << "Permutation for side " << side << " is " << sidepermutationgather;
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//#endif
+//        TPZFNMatrix<12> sidenormals(3,nlowdim);
+//        TPZManVector<int> localvecsides(nlowdim);
+//        // compute whether the side is from this element to the next or contrary
+//        int sideorient = NormalOrientation(side);
+//        int i;
+//        for(i=0; i<nlowdim; i++)
+//        {
+//            for(int d=0; d<3; d++)
+//            {
+//                sidenormals(d,i) = normals(d,sidepermutationgather[i]);
+//            }
+//            localvecsides[i] = vectorsides[sidepermutationgather[i]];
+//        }
+//        for(i=0; i<nlowdim; i++)
+//        {
+//            for(int d=0; d<3; d++)
+//            {
+//                normals(d,i) = sidenormals(d,i)*sideorient;
+//            }
+//            vectorsides[i] = localvecsides[i];
+//        }
+//        
+//    }
+//
+//}
 
-}
+//void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
+//{
+//    int numbernormals = 0;
+//    int dimension = Dimension();
+//    // the normals corresponding to the internal shape functions
+//    int is;
+//    // Compute the number of normals we need to compute
+//    int nsides = NSides();
+//    numbernormals = nsides*dimension; // @omar:: why two???
+//    normals.Redim(3, numbernormals);
+//    vectorsides.Resize(numbernormals);
+//    vectorsides.Fill(0);
+//    int counter = 0;
+//    // effectively compute the normals
+//    for(is=0; is<nsides; is++)
+//    {
+//        TPZFNMatrix<100> sidenormals;
+//        TPZManVector<int> sidevectors;
+//        ComputeNormals(is,sidenormals,sidevectors);
+//        int numnormals = sidevectors.NElements();
+//        int in;
+//        for(in=0; in<numnormals; in++)
+//        {
+//            int d;
+//            for(d=0; d<3; d++)
+//            {
+//                normals(d,counter) = sidenormals(d,in);
+//            }
+//            vectorsides[counter] = sidevectors[in];
+//            counter++;
+//        }
+//    }
+//#ifdef PZDEBUG
+//    if(counter != numbernormals)
+//    {
+//        DebugStop();
+//    }
+//#endif
+//}
 
-void TPZGeoEl::ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
-{
-	int numbernormals = 0;
-    int dimension = Dimension();
-	// the normals corresponding to the internal shape functions
-	int is;
-	// Compute the number of normals we need to compute
-	int nsides = NSides();
-	numbernormals = nsides*dimension; // @omar:: why two???
-	normals.Redim(3, numbernormals);
-	vectorsides.Resize(numbernormals);
-	vectorsides.Fill(0);
-	int counter = 0;
-	// effectively compute the normals
-	for(is=0; is<nsides; is++)
-	{
-		TPZFNMatrix<100> sidenormals;
-		TPZManVector<int> sidevectors;
-		ComputeNormals(is,sidenormals,sidevectors);
-		int numnormals = sidevectors.NElements();
-		int in;
-		for(in=0; in<numnormals; in++)
-		{
-			int d;
-			for(d=0; d<3; d++)
-			{
-				normals(d,counter) = sidenormals(d,in);
-			}
-			vectorsides[counter] = sidevectors[in];
-			counter++;
-		}
-	}
-#ifdef PZDEBUG
-    if(counter != numbernormals)
-    {
-        DebugStop();
-    }
-#endif
-}
-
-void TPZGeoEl::ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
-{
-	int numbernormals = 0;
-    //	int dimension = Dimension();
-	// the normals corresponding to the internal shape functions
-	int is;
-	// Compute the number of normals we need to compute
-	int nsides = NSides();
-	numbernormals = nsides*Dimension();
-	normals.Redim(3, numbernormals);
-	vectorsides.Resize(numbernormals);
-	vectorsides.Fill(0);
-	int counter = 0;
-	// effectively compute the normals
-	for(is=0; is<nsides; is++)
-	{
-		TPZFNMatrix<100> sidenormals;
-		TPZManVector<int> sidevectors;
-		ComputeNormalsDG(is,pt, sidenormals,sidevectors);
-		int numnormals = sidevectors.NElements();
-		int in;
-		for(in=0; in<numnormals; in++)
-		{
-			int d;
-			for(d=0; d<3; d++)
-			{
-				normals(d,counter) = sidenormals(d,in);
-			}
-			vectorsides[counter] = sidevectors[in];
-			counter++;
-		}
-	}
-}
+//void TPZGeoEl::ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides)
+//{
+//    int numbernormals = 0;
+//    //    int dimension = Dimension();
+//    // the normals corresponding to the internal shape functions
+//    int is;
+//    // Compute the number of normals we need to compute
+//    int nsides = NSides();
+//    numbernormals = nsides*Dimension();
+//    normals.Redim(3, numbernormals);
+//    vectorsides.Resize(numbernormals);
+//    vectorsides.Fill(0);
+//    int counter = 0;
+//    // effectively compute the normals
+//    for(is=0; is<nsides; is++)
+//    {
+//        TPZFNMatrix<100> sidenormals;
+//        TPZManVector<int> sidevectors;
+//        ComputeNormalsDG(is,pt, sidenormals,sidevectors);
+//        int numnormals = sidevectors.NElements();
+//        int in;
+//        for(in=0; in<numnormals; in++)
+//        {
+//            int d;
+//            for(d=0; d<3; d++)
+//            {
+//                normals(d,counter) = sidenormals(d,in);
+//            }
+//            vectorsides[counter] = sidevectors[in];
+//            counter++;
+//        }
+//    }
+//}
 
 
 // Determine the orientation of the normal vector comparing the ids of the neighbouring elements

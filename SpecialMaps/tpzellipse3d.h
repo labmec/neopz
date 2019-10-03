@@ -29,7 +29,7 @@ namespace pzgeom
 		/** @brief It is not linear mapping */
                 
                 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
         
         virtual void ParametricDomainNodeCoord(int64_t node, TPZVec<REAL> &nodeCoord);
@@ -91,16 +91,16 @@ virtual int ClassId() const;
 		void SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY, TPZGeoMesh &gmesh);
 		
 		/* brief compute the coordinate of a point given in parameter space */
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,result);
+//        }
+//
         template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
-        
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
+        void GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const;
     
         
 		/**
@@ -118,13 +118,13 @@ virtual int ClassId() const;
         }
         
 		static std::string TypeName() { return "Linear";}
-		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
+		// static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 		
 		void GetNodesCoords(TPZGeoMesh &mesh, TPZFMatrix<REAL> &nodes);
         

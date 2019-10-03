@@ -594,7 +594,7 @@ void TPZFYsmpMatrix<TVar>::Print(const char *title, ostream &out ,const MatrixOu
 		int64_t i;
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
-		for(i=0; i<=this->Rows(); i++) {
+		for(i=0; i<this->Rows(); i++) {
 			out << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'

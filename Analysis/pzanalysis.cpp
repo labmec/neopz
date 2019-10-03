@@ -235,6 +235,14 @@ void TPZAnalysis::OptimizeBandwidth() {
 	}
 	fRenumber->SetElementsNodes(nel,nindep);
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
+#ifdef LOG4CXX2
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        fRenumber->Print(elgraph, elgraphindex, "Elgraph of submesh", sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	fRenumber->Resequence(perm,iperm);
 	fCompMesh->Permute(perm);
     if (nel > 100000) {
@@ -734,6 +742,8 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   
 }
 
+#include "pzsubcmesh.h"
+
 void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
     int64_t neq = fCompMesh->NEquations();
@@ -757,6 +767,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             if(!mat || (!bc && mat->Dimension() == fCompMesh->Dimension()))
             {
                 errors.Fill(0.0);
+            
                 el->EvaluateError(fExact, errors, store_error);
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
@@ -773,6 +784,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             }
         }
     }
+    
     
     int nerrors = errors.NElements();
 	ervec.Resize(nerrors);
@@ -849,6 +861,49 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
     fSolution = solkeep;
     LoadSolution();
 }
+
+void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const TPZVec<std::string> &varname)
+{
+    TPZMaterial *mat = fCompMesh->FindMaterial(matid);
+    if(!mat) DebugStop();
+    
+    int n_varnames = varname.size();
+    TPZStack<std::string> scalnames,vecnames;
+    for(int i_var = 0 ; i_var<n_varnames ; i_var++){
+        int varindex = mat->VariableIndex(varname[i_var]);
+        if(varindex == -1) DebugStop();
+        SetStep(1);
+        
+        int nstate = mat->NSolutionVariables(varindex);
+        if (nstate == 1) {
+            scalnames.Push(varname[i_var]);
+        }
+        else
+        {
+            vecnames.Push(varname[i_var]);
+        }
+    }
+    
+    DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
+    int porder = fCompMesh->GetDefaultOrder();
+    
+    int neq = equationindices.size();
+    TPZFMatrix<STATE> solkeep(fSolution);
+    fSolution.Zero();
+    for (int ieq = 0; ieq < neq; ieq++) {
+        fSolution(equationindices[ieq],0) = 1.;
+        LoadSolution();
+        Mesh()->TransferMultiphysicsSolution();
+        
+        PostProcess(0);
+        fSolution.Zero();
+    }
+    fSolution = solkeep;
+    LoadSolution();
+    
+}
+
+
 
 void TPZAnalysis::LoadShape(double ,double , int64_t ,TPZConnect* start){
 	//void TPZAnalysis::LoadShape(double dx,double dy, int numelem,TPZConnect* start){

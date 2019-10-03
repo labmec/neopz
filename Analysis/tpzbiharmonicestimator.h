@@ -23,7 +23,7 @@ private:
 	void (*fDualExactSol)(TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv);
 	
     public:
-        virtual int ClassId() const;
+        int ClassId() const override;
 
 	/** @brief Constructor */
     TPZBiharmonicEstimator(int nummat, STATE f);
@@ -35,7 +35,7 @@ private:
                            void (*fd)(TPZVec<REAL> &locdual,TPZVec<STATE> &valdual,TPZFMatrix<STATE> &derivdual));
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
-	virtual int NEvalErrors() {return 4;}
+	virtual int NEvalErrors() override {return 4;}
 	
 	/** @brief Implements integration of the internal part of an error estimator. */
 	/** It performs nk[0] += weight * ( residuo(u) *(Z1-Z) ); \n
@@ -47,7 +47,7 @@ private:
 	virtual void ContributeErrors(TPZMaterialData &data,
 								  REAL weight,
 								  TPZVec<REAL> &nk,
-								  int &errorid)
+								  int &errorid) override
 	{
 		if (errorid == 0) this->ContributeErrorsDual(data,weight,nk);
 		if (errorid == 2) this->ContributeErrorsSimple(data,weight,nk);
@@ -58,7 +58,7 @@ private:
 	 * where u is the current solution and Z and Z1 are the dual solution. */
 	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
 										   TPZVec<STATE> &nkL, TPZVec<STATE> &nkR,
-										   int &errorid)
+										   int &errorid) override
 	{
 		if (errorid == 0) this->ContributeInterfaceErrorsDual(data,dataleft,dataright,weight,nkL,nkR);
 		if (errorid == 2) this->ContributeInterfaceErrorsSimple(data,dataleft,dataright,weight,nkL,nkR);
@@ -83,7 +83,7 @@ private:
 											 REAL weight,
 											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
-											 int &errorid)
+											 int &errorid) override
 	{
 		if (errorid == 0) this->ContributeInterfaceBCErrorsDual(data,dataleft,weight,nk,bc);
 		if (errorid == 2) this->ContributeInterfaceBCErrorsSimple(data,dataleft,weight,nk,bc);
@@ -112,7 +112,7 @@ private:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 				TPZFMatrix<REAL> &axes, TPZVec<STATE> & /*flux*/ ,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
-				TPZVec<REAL> &values);
+				TPZVec<REAL> &values) override;
 	
 	/** @brief Kernel of the functional */
 	void Psi(TPZVec<REAL> &x, TPZVec<STATE> &pisci);

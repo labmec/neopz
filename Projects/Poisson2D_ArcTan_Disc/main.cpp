@@ -8,7 +8,6 @@
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
 #include "pzvec_extras.h"
-#include "pzdebug.h"
 #include "pzcheckgeom.h"
 
 #include "pzgeoel.h"
@@ -721,7 +720,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int porder, int dim, bool isdiscontinu
     material->SetNoPenalty();
     material->SetNonSymmetric();
     
-    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(RightTermCircle);
+    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(RightTermCircle,5);
     material->SetForcingFunction(myforce);
     
     

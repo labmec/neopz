@@ -258,13 +258,11 @@ int TPZGeoElSide::NSides() const
 /// Area associated with the side
 REAL TPZGeoElSide::Area()
 {
-	TPZManVector<REAL,3> elparam(fGeoEl->Dimension(),0.), sideparam(Dimension(),0);
-    TPZTransform<> tr = fGeoEl->SideToSideTransform(fGeoEl->NSides()-1, fSide);
+	TPZManVector<REAL,3> sideparam(Dimension(),0);
 	REAL detjac;
 	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
     //supondo jacobiano constante: X linear
-	CenterPoint(elparam);
-    tr.Apply(elparam, sideparam);
+	CenterPoint(sideparam);
 	Jacobian(sideparam,jacobian,axes,detjac,jacinv);
     TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
     REAL RefElVolume = 0.;
@@ -1094,8 +1092,10 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
     normal.Resize(3,0.);
 	normal.Fill(0.);
 	int faceleft,faceright;
-	
-	TPZManVector<REAL, 3> centleft(3),centright(3),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
+    int Leftdim = LeftEl->Dimension();
+    int Rightdim = RightEl->Dimension();
+    
+	TPZManVector<REAL, 3> centleft(Leftdim),centright(Rightdim),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
 	REAL normalize;
 	int i;
 	
@@ -1277,6 +1277,10 @@ void TPZGeoElSide::Print(std::ostream &out) const
         out << SideNodeIndex(i) << " ";
     }
     out << "Center coordinate " << centerX << std::endl;
+}
+
+TPZIntPoints *TPZGeoElSide::CreateIntegrationRule(int order) {
+    return this->Element()->CreateSideIntegrationRule(this->Side(), order);
 }
 
 int TPZGeoElSide::GelLocIndex(int index) const

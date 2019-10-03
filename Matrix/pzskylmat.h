@@ -257,7 +257,7 @@ public:
     virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
 	
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
     /**
@@ -265,7 +265,7 @@ virtual int ClassId() const;
      * @param buf The buffer containing the object in a packed form
      * @param context 
      */
-    virtual void Read(TPZStream &buf, void *context );
+    void Read(TPZStream &buf, void *context) override;
     
     /**
      * @brief Packs the object structure in a stream of bytes
@@ -273,8 +273,8 @@ virtual int ClassId() const;
      * @param withclassid
      */
     
-    virtual void Write( TPZStream &buf, int withclassid );
-    virtual void Write( TPZStream &buf, int withclassid ) const;
+    void Write(TPZStream &buf, int withclassid) const override;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     virtual std::string ClassName() const { return( "TPZSkylMatrix"); }
     
@@ -405,7 +405,7 @@ public:
 	
 	CLONEDEF(TPZSkylMatrix)
     
-	virtual int64_t MemoryFootprint() const {
+	virtual int64_t MemoryFootprint() const  override {
         return (sizeof(TVar*)*fElem.size() +
                 sizeof(TVar)*fStorage.size());
 	}	
@@ -427,7 +427,7 @@ public:
 	void AddSameStruct(TPZSkylMatrix<TVar> &B, double k = 1.);
 	
 	/** @brief declare the object as simetric matrix*/
-	virtual int IsSimetric() const {return 1;}
+	virtual int IsSimetric() const  override {return 1;}
 	
     /** @brief destructor of the skyline matrix */
 	virtual ~TPZSkylMatrix() { Clear(); }
@@ -435,7 +435,7 @@ public:
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
 	 */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
     
     friend class TPZSkylMatrix<float>;
     friend class TPZSkylMatrix<double>;
@@ -461,18 +461,18 @@ public:
     }
     
     
-	int    PutVal(const int64_t row,const int64_t col,const TVar &element );
-	const TVar &GetVal(const int64_t row,const int64_t col ) const;
+	int    PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
+	const TVar &GetVal(const int64_t row,const int64_t col ) const override;
 	
 	
 	TVar &operator()(const int64_t row, const int64_t col);
-	virtual TVar &s(const int64_t row, const int64_t col);
+	virtual TVar &s(const int64_t row, const int64_t col) override;
 	
 	
 	TVar &operator()(const int64_t row);
 	
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						 const TVar alpha,const TVar beta ,const int opt = 0) const ;
+						 const TVar alpha,const TVar beta ,const int opt = 0) const  override;
 	// Operadores com matrizes SKY LINE.
 	TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
 	//TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
@@ -491,15 +491,15 @@ public:
 	
 	// Redimensiona a matriz, mas mantem seus elementos.
 	// o segundo parametro � o tamanho das colunas
-	int Resize(const int64_t newDim ,const int64_t );
+	int Resize(const int64_t newDim ,const int64_t ) override;
 	
 	// Redimensiona a matriz e ZERA seus elementos.
 	// o segundo parametro � o tamanho das colunas
-	int Redim(const int64_t newDim ,const int64_t );
+	int Redim(const int64_t newDim ,const int64_t ) override;
 	int Redim(const int64_t newDim) {return Redim(newDim,newDim);}
 	
 	// Zera os Elementos da matriz
-	int Zero();
+	int Zero() override;
     
     /**
      * @brief Add a contribution of a stiffness matrix
@@ -508,48 +508,48 @@ public:
      * @param destinationindex Contains destine indexes on current matrix
      */
 
-    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex);
+    void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int64_t> &sourceindex,  TPZVec<int64_t> &destinationindex) override;
 	
 	
 	/*** @brief To Solve Linear Equations ***/
 	// @{
 	virtual void SolveSOR(int64_t &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
-						  const int FromCurrent = 0,const int direction = 1) ;
+						  const int FromCurrent = 0,const int direction = 1)  override;
 	
 	
-	int Decompose_Cholesky();  // Faz A = GGt.
+	int Decompose_Cholesky() override;  // Faz A = GGt.
 	int Decompose_Cholesky_blk(int64_t blk_sz);
     
-	int Decompose_LDLt    ();  // Faz A = LDLt.
-	int Decompose_Cholesky(std::list<int64_t> &singular);  // Faz A = GGt.
-	int Decompose_LDLt    (std::list<int64_t> &singular);  // Faz A = LDLt.
+	int Decompose_LDLt    () override;  // Faz A = LDLt.
+	int Decompose_Cholesky(std::list<int64_t> &singular) override;  // Faz A = GGt.
+	int Decompose_LDLt    (std::list<int64_t> &singular) override;  // Faz A = LDLt.
 	
-	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
-	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
-	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
-	int Subst_LBackward( TPZFMatrix<TVar> *b ) const;
-	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
+	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const override;
+	int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
+	int Subst_LForward ( TPZFMatrix<TVar> *b ) const override;
+	int Subst_LBackward( TPZFMatrix<TVar> *b ) const override;
+	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const override;
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
 	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) ;
 	
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
 	 * @param context 
 	 */
-	virtual void  Read(TPZStream &buf, void *context );
+	void Read(TPZStream &buf, void *context) override;
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
 	 * @param withclassid
 	 */
-	virtual void Write( TPZStream &buf, int withclassid ) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
     
 	virtual std::string ClassName() const   { return( "TPZSkylMatrix"); }
@@ -585,7 +585,7 @@ private:
 	// Aloca uma nova coluna. 'fDiag[col].pElem' deve ser NULL.
 	
 	//static int  Error(const char *msg1,const char* msg2="" );
-	int  Clear();
+	int  Clear() override;
 	void Copy (const TPZSkylMatrix<TVar> & );
     
 	static int64_t NumElements(const TPZVec<int64_t> &skyline);

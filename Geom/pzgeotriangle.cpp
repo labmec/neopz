@@ -25,67 +25,7 @@ using namespace std;
 namespace pzgeom {
 	
 	const REAL tol = pzgeom_TPZNodeRep_tol;
-    template<class T>
-    void TPZGeoTriangle::CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
-            TPZVec<T> &correctionFactorDxi){
-#ifdef PZDEBUG
-        std::ostringstream sout;
-        if(side < NNodes || side >= NSides){
-            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
-            PZError<<std::endl<<sout.str()<<std::endl;
-            DebugStop();
-        }
 
-        if(!pztopology::TPZTriangle::IsInParametricDomain(xi,tol)){
-            sout<<"The method CalcSideInfluence expects the point xi to correspond to coordinates of a point";
-            sout<<" inside the parametric domain. Aborting...";
-            PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
-            LOGPZ_FATAL(logger,sout.str().c_str());
-            #endif
-            DebugStop();
-        }
-#endif
-        TPZFNMatrix<4,T> phi(NNodes,1);
-        TPZFNMatrix<8,T> dphi(Dimension,NNodes);
-        TPZGeoTriangle::TShape(xi,phi,dphi);
-        correctionFactorDxi.Resize(TPZGeoTriangle::Dimension, (T) 0);
-        int i = -1;
-        switch(side){
-            case 0:
-            case 1:
-            case 2:
-                correctionFactor = 0;
-                return;
-            case 3:
-                i = 0;
-                break;
-            case 4:
-                i = 1;
-                break;
-            case 5:
-                i = 2;
-                break;
-            case 6:
-                correctionFactor = 1;
-                return;
-        }
-        correctionFactor = phi(i,0) + phi((i+1)%NNodes,0);
-        correctionFactor *= correctionFactor;
-        correctionFactorDxi[0] = 2 * ( phi(i,0) + phi((i+1)%NNodes,0) ) * ( dphi(0,i) + dphi(0,(i+1)%NNodes) );
-        correctionFactorDxi[1] = 2 * ( phi(i,0) + phi((i+1)%NNodes,0) ) * ( dphi(1,i) + dphi(1,(i+1)%NNodes) );
-
-    }
-
-	void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-		REAL qsi = param[0], eta = param[1];
-		phi(0,0) = 1.-qsi-eta;
-		phi(1,0) = qsi;
-		phi(2,0) = eta;
-		dphi(0,0) = dphi(1,0) = -1.;
-		dphi(0,1) = dphi(1,2) =  1.;
-		dphi(1,1) = dphi(0,2) =  0.;
-	}
 	
 	void TPZGeoTriangle::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
@@ -127,154 +67,6 @@ namespace pzgeom {
         jacinv(1,0) = -jacobian(1,0)/detjac;
 	}
 
-	void TPZGeoTriangle::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &fVectorSide){
-		if(coord.Rows()!=3)
-		{
-			cout<< "Erro na dimensao das linhas de coord"<< endl;
-		}
-		if(coord.Cols()!=3)
-		{
-			cout<< "Erro na dimensao das colunas de coord"<< endl;
-		}
-		TPZVec<REAL> p1(3), p2(3), p3(3),result(3);
-		for(int j=0;j<3;j++)
-		{
-			p1[j]=coord.GetVal(j,0);
-			p2[j]=coord.GetVal(j,1);
-			p3[j]=coord.GetVal(j,2);
-		}
-		fNormalVec.Resize(14, 3);
-		fVectorSide.Resize(14);
-		int64_t count=0;
-		
-		//primeira face
-		for(int j=0;j<3;j++)//v0
-		{
-			fNormalVec(0,j) = coord.GetVal(j,0)- coord.GetVal(j,2);
-		}
-		fVectorSide[count]=0;
-		count++;
-		for(int j=0;j<3;j++)//v1
-		{
-			fNormalVec(1,j) = coord.GetVal(j,1)- coord.GetVal(j,2);
-		}
-		fVectorSide[count]=1;
-		count++;
-		//v2
-		ComputeNormal(p1,p2,p3,result);
-		fNormalVec(2,0) = -result[0];
-		fNormalVec(2,1) = -result[1];
-		fNormalVec(2,2) = -result[2];
-		fVectorSide[count]=3;
-		count++;
-		//segunda face
-		for(int j=0;j<3;j++)//v3
-		{
-			fNormalVec(3,j) = coord.GetVal(j,1)- coord.GetVal(j,0);
-		}
-		fVectorSide[count]=1;
-		count++;
-		for(int j=0;j<3;j++)//v4
-		{
-			fNormalVec(4,j) = coord.GetVal(j,2)- coord.GetVal(j,0);
-		}
-		fVectorSide[count]=2;
-		count++;
-		//v5
-		ComputeNormal(p2,p3,p1,result);
-		fNormalVec(5,0) = -result[0];
-		fNormalVec(5,1) = -result[1];
-		fNormalVec(5,2) = -result[2];
-		fVectorSide[count]=4;
-		count++;
-		//terceira face
-		for(int j=0;j<3;j++)//v6
-		{
-			fNormalVec(6,j) = coord.GetVal(j,2)- coord.GetVal(j,1);
-		}
-		fVectorSide[count]=2;
-		count++;
-		for(int j=0;j<3;j++)//v7
-		{
-			fNormalVec(7,j) = coord.GetVal(j,0)- coord.GetVal(j,1);
-		}
-		fVectorSide[count]=0;
-		count++;
-		//v8
-		ComputeNormal(p3,p1,p2,result);
-		fNormalVec(8,0) = -result[0];
-		fNormalVec(8,1) = -result[1];
-		fNormalVec(8,2) = -result[2];
-		fVectorSide[count]=5;
-		count++;
-		// internos tangentes
-		for(int j=0;j<3;j++)//v9
-		{
-			fNormalVec(9,j) = coord.GetVal(j,1)- coord.GetVal(j,0);
-		}  
-		fVectorSide[count]=3;
-		count++;
-		for(int j=0;j<3;j++)//v10
-		{
-			fNormalVec(10,j) = coord.GetVal(j,2)- coord.GetVal(j,1);
-		}	
-		fVectorSide[count]=4;
-		count++;
-		
-		for(int j=0;j<3;j++)//v11
-		{
-			fNormalVec(11,j) = coord.GetVal(j,0)- coord.GetVal(j,2);
-		}	
-		fVectorSide[count]=5;
-		count++;
-		//internos meio
-		TPZVec<REAL> midle(3,0.);
-		midle[0]=(1./3.)*(coord.GetVal(0,2)+coord.GetVal(0,0)+coord.GetVal(0,1));
-		midle[1]=(1./3.)*(coord.GetVal(1,2)+coord.GetVal(1,0)+coord.GetVal(1,1));		
-		midle[2]=(1./3.)*(coord.GetVal(2,2)+coord.GetVal(2,0)+coord.GetVal(2,1));
-		TPZFMatrix<REAL> jacobian;
-		TPZFMatrix<REAL> axes;
-		TPZFMatrix<REAL> jacinv;
-        DebugStop();
-		//Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
-		fNormalVec(12,0)=axes(0,0);
-		fNormalVec(12,1)=axes(0,1);
-		fNormalVec(12,2)=axes(0,2);
-		fNormalVec(13,0)=axes(1,0);
-		fNormalVec(13,1)=axes(1,1);
-		fNormalVec(13,2)=axes(1,2);
-		fVectorSide[count]=6;
-		fVectorSide[count+1]=6;
-		//normalizao
-		for(int k=0;k<14;k++)
-		{
-			REAL temp=0.;
-			temp=sqrt( fNormalVec(k,0)*fNormalVec(k,0) + fNormalVec(k,1)*fNormalVec(k,1) + fNormalVec(k,2)*fNormalVec(k,2));
-			fNormalVec(k,0) *=1./temp;	
-			fNormalVec(k,1) *=1./temp;	
-		}
-		// produto normal == 1
-		for(int kk=0;kk<3;kk++)
-		{
-			REAL temp1=0.;
-			REAL temp2=0.;
-			temp1 =  fNormalVec(kk*3,0)*fNormalVec(kk*3+2,0) + fNormalVec(kk*3,1)*fNormalVec(kk*3+2,1);
-			temp2 =  fNormalVec(kk*3+1,0)*fNormalVec(kk*3+2,0) + fNormalVec(kk*3+1,1)*fNormalVec(kk*3+2,1);
-			fNormalVec(kk*3,0) *=1./temp1;	
-			fNormalVec(kk*3,1) *=1./temp1;
-			fNormalVec(kk*3+1,0) *=1./temp2;
-			fNormalVec(kk*3+1,1) *=1./temp2;
-		}	
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-		{
-			std::stringstream sout;
-			fNormalVec.Print("fNormalVec", sout);		
-			LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif 
-		
-	}
 	
 	void TPZGeoTriangle::VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result){
 		if(v1.NElements()!=3||v2.NElements()!=3)
@@ -303,92 +95,53 @@ namespace pzgeom {
 		VectorialProduct(v1,normal,result);	
 	}
 	
-	TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
-        if(side==6) {
-			TPZManVector<int64_t> nodes(3);
-			int i;
-			for (i=0;i<3;i++){
-				nodes[i] = orig->SideNodeIndex(side,i);
-			}
-			int64_t index;
-			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
-			int iside;
-			for (iside = 0; iside <6; iside++){
-				TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,iside)));
-			}
-			TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
-			return gel;
-		}
-		else if(side>-1 && side<3) {
-			TPZManVector<int64_t> nodeindexes(1);
-			nodeindexes[0] = orig->SideNodeIndex(side,0);
-			int64_t index;
-			TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
-			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-			return gel;
-		}
-		else if(side > 2 && side < 6) {
-			TPZManVector<int64_t> nodes(2);
-			nodes[0] = orig->SideNodeIndex(side,0);
-			nodes[1] = orig->SideNodeIndex(side,1);
-			int64_t index;
-			TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
-			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,0)));
-			TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,1)));
-			TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-			return gel;
-		}
-		else PZError << "TPZGeoTriangle::CreateBCGeoEl has no bc.\n";
-		return 0;
-	}
-	
-	void TPZGeoTriangle::FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)
-	{
-		ChangedPoint.Resize(OriginalPoint.NElements(),0.);
-		ChangedPoint = OriginalPoint;
-		
-		switch(side)
-		{
-			case 3:
-			{
-				if(fabs(OriginalPoint[0]) <= tol && fabs(OriginalPoint[1]- 1.) <= tol)
-				{
-					ChangedPoint[0] = tol;
-					ChangedPoint[1] = 1. - 2.*tol;
-				}
-				break;
-			}
-				
-			case 4:
-			{
-				if(fabs(OriginalPoint[0]) <= tol && fabs(OriginalPoint[1]) <= tol)
-				{
-					ChangedPoint[0] = tol;
-					ChangedPoint[1] = tol;
-				}
-				break;
-			}
-				
-			case 5:
-			{
-				if(fabs(OriginalPoint[0] - 1.) <= tol && fabs(OriginalPoint[1]) <= tol)
-				{
-					ChangedPoint[0] = 1.-tol;
-					ChangedPoint[1] = tol/2.;
-				}
-				break;
-			}
-		}
-	}
+	// TPZGeoEl *TPZGeoTriangle::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
+    //     if(side==6) {
+	// 		TPZManVector<int64_t> nodes(3);
+	// 		int i;
+	// 		for (i=0;i<3;i++){
+	// 			nodes[i] = orig->SideNodeIndex(side,i);
+	// 		}
+	// 		int64_t index;
+	// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
+	// 		int iside;
+	// 		for (iside = 0; iside <6; iside++){
+	// 			TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,iside)));
+	// 		}
+	// 		TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
+	// 		return gel;
+	// 	}
+	// 	else if(side>-1 && side<3) {
+	// 		TPZManVector<int64_t> nodeindexes(1);
+	// 		nodeindexes[0] = orig->SideNodeIndex(side,0);
+	// 		int64_t index;
+	// 		TPZGeoEl *gel = orig->CreateGeoElement(EPoint,nodeindexes,bc,index);
+	// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+	// 		return gel;
+	// 	}
+	// 	else if(side > 2 && side < 6) {
+	// 		TPZManVector<int64_t> nodes(2);
+	// 		nodes[0] = orig->SideNodeIndex(side,0);
+	// 		nodes[1] = orig->SideNodeIndex(side,1);
+	// 		int64_t index;
+	// 		TPZGeoEl *gel = orig->CreateGeoElement(EOned,nodes,bc,index);
+	// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,0)));
+	// 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTriang::ContainedSideLocId(side,1)));
+	// 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
+	// 		return gel;
+	// 	}
+	// 	else PZError << "TPZGeoTriangle::CreateBCGeoEl has no bc.\n";
+	// 	return 0;
+	// }
 	
 	/** Creates a geometric element according to the type of the father element */
-	TPZGeoEl *TPZGeoTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											   TPZVec<int64_t>& nodeindexes,
-											   int matid,
-											   int64_t& index)
-	{
-		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
-	}
+	// TPZGeoEl *TPZGeoTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+	// 										   TPZVec<int64_t>& nodeindexes,
+	// 										   int matid,
+	// 										   int64_t& index)
+	// {
+	// 	return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
+	// }
     
     /// create an example element based on the topology
     /* @param gmesh mesh in which the element should be inserted
@@ -414,7 +167,7 @@ namespace pzgeom {
             gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
         }
         int64_t index;
-        CreateGeoElement(gmesh, ETriangle, nodeindexes, matid, index);
+        gmesh.CreateGeoElement(ETriangle, nodeindexes, matid, index);
     }
     
     int TPZGeoTriangle::ClassId() const{
@@ -431,14 +184,6 @@ namespace pzgeom {
 
 
 
-    template void TPZGeoTriangle::CalcSideInfluence<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
 
 };
 
-#ifdef _AUTODIFF
-template<class T=REAL>
-class Fad;
-
-template void pzgeom::TPZGeoTriangle::CalcSideInfluence<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
-        TPZVec<Fad<REAL>> &);
-#endif

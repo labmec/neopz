@@ -88,7 +88,7 @@ public:
 	 * @{ */
 	
 	/** @brief Returns the dimension of the problem */
-	int Dimension() const;
+	int Dimension() const override;
 	
 	/** @brief Returns the value of the time step */
 	REAL TimeStep();
@@ -133,7 +133,7 @@ public:
 	void SetResidualType(TPZResidualType type);
 	
 	/** @brief Number of state variables according to the dimension */
-	virtual int NStateVariables() const = 0;
+	virtual int NStateVariables() const override = 0;
 	
 	/**
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas
@@ -145,21 +145,21 @@ public:
 	 * @brief Prints the state of internal variables
 	 * @param out Output to print the information of the current object
 	 */
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
 	/** @brief Returns the material name */
-	virtual std::string Name() = 0;
+	virtual std::string Name() override = 0;
 	
 	/**
 	 * @brief Returns the relative index of a variable according to its name
 	 * @param[in] name Name of the variable wished.
 	 */
-	virtual int VariableIndex(const std::string &name)=0;
+	virtual int VariableIndex(const std::string &name) override = 0;
 	
-	virtual int NSolutionVariables(int var)=0;
+	virtual int NSolutionVariables(int var) override = 0;
 	
 	/** @brief Returns the number of fluxes associated to this material */
-	virtual int NFluxes();
+	virtual int NFluxes() override;
 	
 	/** @} */
 	
@@ -169,7 +169,7 @@ public:
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 						  TPZFMatrix<REAL> &axes,int var,
-						  TPZVec<STATE> &Solout)=0;
+						  TPZVec<STATE> &Solout) override = 0;
 public:
 	/** 
 	 * @brief Returns the solution associated with the var index based on
@@ -178,7 +178,7 @@ public:
 	 * @param[in] var Number of the variable wished
 	 * @param[out] Solout Vector with the computed solution values
 	 */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
 		TPZDiscontinuousGalerkin::Solution(data,var,Solout);
 	}
@@ -191,23 +191,23 @@ public:
 	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)=0;
+							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override = 0;
 	
 	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef)
+							TPZFMatrix<STATE> &ef) override
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)=0;
+									 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override = 0;
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<STATE> &ef)
+									 TPZFMatrix<STATE> &ef) override
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
@@ -215,27 +215,27 @@ public:
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)=0;
+							  TPZBndCond &bc) override = 0;
 	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc)
+							  TPZBndCond &bc) override
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
 	
 	/** @} */
 	
-        int ClassId() const{
+        int ClassId() const override{
             return Hash("TPZConservationLaw") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
         }
 	
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
 	
 protected:
 	

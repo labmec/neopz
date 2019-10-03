@@ -57,7 +57,7 @@
 
 #include "pzlog.h"
 
-#include "pzhdivfull.h"
+//#include "pzhdivfull.h"
 #include "pzelchdiv.h"
 
 #include "pzgeopyramid.h"
@@ -199,7 +199,6 @@ int main(int argc, char *argv[])
 
     int p = 1;
     int ndiv = 0;
-    HDivPiola = 1;
     ofstream saidaerros("ErroNormas.txt",ios::app);
     
     for(p=1;p<2;p++)

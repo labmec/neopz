@@ -24,7 +24,7 @@ class TPZDohrSubstructCondense : public TPZSavable
 	public:
             
             public:
-virtual int ClassId() const;
+int ClassId() const override;
 
             
 		TPZDohrSubstructCondense();
@@ -113,10 +113,10 @@ virtual int ClassId() const;
 		static void PermuteGather(const TPZVec<int> &permute, const TPZFMatrix<TVar> &input, TPZFMatrix<TVar> &output, int first, int last);
 
 		/** @brief method for streaming the object to a stream */
-		virtual void Write(TPZStream &buf, int withclassid) const;
+		void Write(TPZStream &buf, int withclassid) const override;
 
 		/** @brief method for reading the object for a stream */
-		void Read(TPZStream &input, void *context);
+		void Read(TPZStream &input, void *context) override;
 
 	public:
 		/** @brief It prepares the datas for solving systems for phi and zi */

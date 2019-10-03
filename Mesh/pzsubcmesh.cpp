@@ -854,7 +854,7 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
         right = multinterf->RightElement();
     }
     
-    if(!interf && !multinterf)
+//    if(!interf && !multinterf)
     {
         int ncon = cel->NConnects();
         for (int i=0; i<ncon; i++){
@@ -863,34 +863,35 @@ int64_t TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int64_t elindex){
             cel->SetConnectIndex(i,subindex);
         }
     }
-    else
-    {
-        int nleftcon = left->NConnects();
-        {
-            TPZCompMesh *comm = CommonMesh(left->Mesh());
-            int ncon = nleftcon;
-            for (int ic=0; ic<ncon ; ic++) {
-                int64_t superind = left->ConnectIndex(ic);
-                int64_t commind = left->Mesh()->PutinSuperMesh(superind, comm);
-                int64_t subindex = GetFromSuperMesh(commind, comm);
-                if (multinterf) {
-                    cel->SetConnectIndex(ic, subindex);
-                }
-            }
-        }
-        {
-            TPZCompMesh *comm = CommonMesh(right->Mesh());
-            int ncon = right->NConnects();
-            for (int ic=0; ic<ncon ; ic++) {
-                int64_t superind = right->ConnectIndex(ic);
-                int64_t commind = right->Mesh()->PutinSuperMesh(superind, comm);
-                int64_t subindex = GetFromSuperMesh(commind, comm);
-                if (multinterf) {
-                    cel->SetConnectIndex(ic+nleftcon, subindex);
-                }
-            }
-        }
-    }
+
+//    else
+//    {
+//        int nleftcon = left->NConnects();
+//        {
+//            TPZCompMesh *comm = CommonMesh(left->Mesh());
+//            int ncon = nleftcon;
+//            for (int ic=0; ic<ncon ; ic++) {
+//                int64_t superind = left->ConnectIndex(ic);
+//                int64_t commind = left->Mesh()->PutinSuperMesh(superind, comm);
+//                int64_t subindex = GetFromSuperMesh(commind, comm);
+//                if (multinterf) {
+//                    cel->SetConnectIndex(ic, subindex);
+//                }
+//            }
+//        }
+//        {
+//            TPZCompMesh *comm = CommonMesh(right->Mesh());
+//            int ncon = right->NConnects();
+//            for (int ic=0; ic<ncon ; ic++) {
+//                int64_t superind = right->ConnectIndex(ic);
+//                int64_t commind = right->Mesh()->PutinSuperMesh(superind, comm);
+//                int64_t subindex = GetFromSuperMesh(commind, comm);
+//                if (multinterf) {
+//                    cel->SetConnectIndex(ic+nleftcon, subindex);
+//                }
+//            }
+//        }
+//    }
     
     if(cel->Reference())
     {
@@ -1002,6 +1003,48 @@ int TPZSubCompMesh::IsAllowedElement(TPZCompMesh *mesh, int64_t elindex){
 	}
 	return 1;
 }
+
+/// Assemble the stiffness matrix in locally kept datastructure
+void TPZSubCompMesh::Assemble()
+{
+    if(fAnalysis)
+    {
+    }
+    else
+    {
+        std::cout << "The SubCompMesh needs a configured analysis\n";
+        DebugStop();//this->SetAnalysis();
+    }
+    std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
+    if(!NeedsComputing(matids))
+    {
+        return;
+    }
+    int i=0;
+    CleanUpUnconnectedNodes();
+    PermuteExternalConnects();
+    fAnalysis->Assemble();
+
+    //Trying to get a derived Analysis which is a SubMeshAnalysis.
+    //It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
+    TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
+    if(!castedAnal)
+    {
+        DebugStop();
+    }
+
+    TPZAutoPointer<TPZMatrix<STATE> > ReducableStiff = castedAnal->Matrix();
+    if (!ReducableStiff) {
+        DebugStop();
+    }
+    TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (ReducableStiff.operator->());
+    if(!matred) DebugStop();
+    
+    matred->SetF(fAnalysis->Rhs());
+
+}
+
+
 
 void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	if(fAnalysis)
@@ -2086,7 +2129,7 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
 
 void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                                           TPZVec<REAL> &errors, bool store_errors){
-
+    
   fAnalysis->SetExact(fp);
   fAnalysis->PostProcessError(errors,store_errors);
     int NErrors = errors.size();

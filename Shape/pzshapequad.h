@@ -95,6 +95,11 @@ namespace pzshape{
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,
 								  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int quad_transformation_index);
+        
+        static void ShapeInternal(TPZVec<REAL> &x, int order,
+                                  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            ShapeInternal(x,  order,phi,dphi,0);
+        }
 		
 #ifdef _AUTODIFF
 		/**

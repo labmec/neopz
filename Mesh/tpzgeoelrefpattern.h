@@ -54,59 +54,59 @@ public:
 	TPZGeoElRefPattern(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh,int64_t &index);
 	
 	/** @brief Returns 1 if the element has subelements along side */
-	int HasSubElement() const
+	int HasSubElement() const override
 	{
 		return fSubEl.NElements() && fSubEl[0]!=-1;
 	}
 	
-	void SetSubElement(int id, TPZGeoEl *el);
+	void SetSubElement(int id, TPZGeoEl *el) override;
 	
 	/** @brief Volume of the master element*/
-	REAL RefElVolume();
+	REAL RefElVolume() override;
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	void MidSideNodeIndex(int side,int64_t &index) const;
+	void MidSideNodeIndex(int side,int64_t &index) const override;
 	
 	/** @brief Returns the midside node indices along a side of the element*/
-	void MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const;
+	void MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const override;
 	
 	/**
 	 * @brief Returns the number of subelements of the element independent of the fact \n
 	 * whether the element has already been refined or not
 	 */
-	int NSubElements() const;
+	int NSubElements() const override;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements(side) */
-	int NSideSubElements(int side) const;
+	int NSideSubElements(int side) const override;
 	
 	/** @brief Returns a pointer to the subelement is*/
-	TPZGeoEl *SubElement(int is) const;
+	TPZGeoEl *SubElement(int is) const override;
 	
 	/** @brief Returns a pointer and a side of the subelement of the element at the side
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	TPZTransform<> GetTransform(int side,int son);
+	TPZTransform<> GetTransform(int side,int son) override;
 	
-	virtual int FatherSide(int side, int son);
+	virtual int FatherSide(int side, int son) override;
 	
 	/** @brief Divides the element and puts the resulting elements in the vector*/
-	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
+	virtual void Divide(TPZVec<TPZGeoEl *> &pv) override;
 	
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const override;
 	
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
-	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> refpat );
+	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> refpat ) override;
 	
 	/// Returns the refinement pattern associated with the element
-	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern() const
+	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern() const override
 	{
 		return fRefPattern;
 	}
 	
-	virtual void Print(std::ostream & out);
+	virtual void Print(std::ostream & out) override;
 	
-	virtual void ResetSubElements();
+	virtual void ResetSubElements() override;
 	
 	/**
 	 * @name Saveable methods
@@ -114,17 +114,17 @@ public:
 	 */
 
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
-	virtual void Read(TPZStream &str, void *context);
-	virtual void Write(TPZStream &str, int withclassid) const;
-	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
+	void Read(TPZStream &str, void *context) override;
+	void Write(TPZStream &str, int withclassid) const override;
+	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const override;
 
 	/** @} */
 	
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
 									std::map<int64_t,int64_t> &gl2lcNdIdx,
-									std::map<int64_t,int64_t> &gl2lcElIdx) const;
+									std::map<int64_t,int64_t> &gl2lcElIdx) const override;
 	
 	
 	TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp);

@@ -34,27 +34,27 @@ public:
 
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override ;
     
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+							TPZFMatrix<STATE> &ef) override;
 
     virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
-							  TPZBndCond &bc);
+							  TPZBndCond &bc) override;
     
     public:
-virtual int ClassId() const;
+int ClassId() const override;
 
     
-    virtual void FillDataRequirements(TPZMaterialData &data);
+    virtual void FillDataRequirements(TPZMaterialData &data) override;
     
     /** @brief Creates a new material from the current object */
-	virtual TPZMaterial * NewMaterial() { return new TPZElast3Dnlinear(*this);}
+	virtual TPZMaterial * NewMaterial()  override { return new TPZElast3Dnlinear(*this);}
     
 protected:
     

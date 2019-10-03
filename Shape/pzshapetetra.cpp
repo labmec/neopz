@@ -313,7 +313,14 @@ namespace pzshape {
 	
 	void TPZShapeTetra::ProjectPoint3dTetraToFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &outval) {
 		outval[0] = gFaceTrans3dTetra2d[face][0][0]*in[0]+gFaceTrans3dTetra2d[face][0][1]*in[1]+gFaceTrans3dTetra2d[face][0][2]*in[2]+gFaceSum3dTetra2d[face][0];
+        
 		outval[1] = gFaceTrans3dTetra2d[face][1][0]*in[0]+gFaceTrans3dTetra2d[face][1][1]*in[1]+gFaceTrans3dTetra2d[face][1][2]*in[2]+gFaceSum3dTetra2d[face][1];
+        
+        
+        
+        
+        
+        
 	}
 	
 	int TPZShapeTetra::NConnectShapeF(int side, int order) {

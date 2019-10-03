@@ -35,7 +35,7 @@ namespace pzrefine {
 		static int FatherSide(int side,int son);
 		static void MidCoordSide(int side,TPZVec<REAL> &coord);
                 public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	};
 	

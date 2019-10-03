@@ -29,11 +29,11 @@ namespace pzgeom {
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 
-                virtual int ClassId() const;
-                
-                void Read(TPZStream& buf, void* context);
-                
-                void Write(TPZStream& buf, int withclassid) const;
+        int ClassId() const override;
+        
+        void Read(TPZStream &buf, void *context) override;
+        
+        void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Constructor with list of nodes */
@@ -72,43 +72,8 @@ namespace pzgeom {
             return true;
         }
 
-        /**
-         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
-         * interior point qsi. It is used by the TPZGeoBlend class.
-         * @param side the index of the side
-         * @param xi coordinates of the interior point
-         * @param correctionFactor influence (0 <= correctionFactor <= 1)
-         * * @param corrFactorDxi derivative of the correctionFactor in respect to xi
-         */
-        template<class T>
-        static void CalcSideInfluence(const int &side, const TPZVec<T> &xi, T &correctionFactor,
-                                      TPZVec<T> &corrFactorDxi);
-
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Tetrahedron";}
-		
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
-		
-        /* @brief Compute x mapping from local parametric coordinates */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,x);
-        }
-        
-        /** @brief Compute gradient of x mapping from local parametric coordinates */
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            GradX(coord,loc,gradx);
-        }
         
         /** @brief Compute x mapping from element nodes and local parametric coordinates */
         template<class T>
@@ -117,26 +82,7 @@ namespace pzgeom {
         /** @brief Compute gradient of x mapping from element nodes and local parametric coordinates */
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-        
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        template<class T>
-        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
-        
-		/**
-		 * @brief Method which creates a geometric boundary condition 
-		 * element based on the current geometric element, 
-		 * a side and a boundary condition number
-		 */
-		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
-		
-	protected:
-		/**
-		 * @brief This method apply an infinitesimal displacement in some points
-		 * to fix singularity problems when using MapToSide() method!
-		 */
-		/** This points are CornerNodes, when projected in the opposing side */
-		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
-		
+
 	public:
         
         /// create an example element based on the topology
@@ -148,35 +94,13 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 	};
     
-    template<class T>
-    inline void TPZGeoTetrahedra::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
-        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
-        
-        phi(0,0)  = 1.0-qsi-eta-zeta;
-        phi(1,0)  = qsi;
-        phi(2,0)  = eta;
-        phi(3,0)  = zeta;
-        
-        dphi(0,0) = -1.0;
-        dphi(1,0) = -1.0;
-        dphi(2,0) = -1.0;
-        dphi(0,1) =  1.0;
-        dphi(1,1) =  0.0;
-        dphi(2,1) =  0.0;
-        dphi(0,2) =  0.0;
-        dphi(1,2) =  1.0;
-        dphi(2,2) =  0.0;
-        dphi(0,3) =  0.0;
-        dphi(1,3) =  0.0;
-        dphi(2,3) =  1.0;
-        
-    }
+
     
     template<class T>
     inline void TPZGeoTetrahedra::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){

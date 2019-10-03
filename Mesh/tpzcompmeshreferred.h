@@ -58,17 +58,17 @@ public:
 	 * @brief Prints mesh data
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void Print(std::ostream & out = std::cout) const override;
     
     /** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+int ClassId() const override;
 
 	/** @brief Save the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	void Read(TPZStream &buf, void *context) override;
     
 
 	

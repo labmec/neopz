@@ -63,12 +63,11 @@ public:
         fCreateWithMemory = copy.fCreateWithMemory;
         return *this;
     }
+        int ClassId() const override;
     
-    int ClassId() const;
+    void Read(TPZStream &buf, void *context) override;
     
-    void Read(TPZStream& buf, void* context);
-    
-    void Write(TPZStream& buf, int withclassid) const;
+    void Write(TPZStream &buf, int withclassid) const override;
     
     void SetCreateLagrange(bool flag)
     {
@@ -93,8 +92,8 @@ public:
     /** @brief Create an approximation space with HDiv elements */
     void SetAllCreateFunctionsHDivReferred(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
-	void SetAllCreateFunctionsHDivFull(int meshdim);
-        
+//    void SetAllCreateFunctionsHDivFull(int meshdim);
+    
 #if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
     /** @brief Create SBFem approximation space */
     void SetAllCreateFunctionsSBFem(int meshdim);
@@ -128,7 +127,10 @@ public:
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	void BuildMesh(TPZCompMesh &cmesh) const;
     
-    /** @brief Creates the interface elements */ 
+    /** @brief Creates the computational elements, and the degree of freedom nodes */
+    void BuildMesh(TPZCompMesh &cmesh, const TPZVec<int64_t> &gelindexes) const;
+    
+    /** @brief Creates the interface elements */
 	/** Only element of material id in the set<int> will be created */
 	static void CreateInterfaces(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs);
 	

@@ -59,9 +59,9 @@ protected:
 	
 private:
 	/** @brief Transfers one element from a submesh to another mesh. */
-	int64_t TransferElementTo(TPZCompMesh * mesh, int64_t elindex);
+	int64_t TransferElementTo(TPZCompMesh * mesh, int64_t elindex) override;
 	/** @brief Transfers one element from a specified mesh to the current submesh. */
-	int64_t TransferElementFrom(TPZCompMesh *mesh, int64_t elindex);
+	int64_t TransferElementFrom(TPZCompMesh *mesh, int64_t elindex) override;
 	
 	/** @brief Marks the connect to be local */
 	void MakeInternalFast(int64_t local);
@@ -90,14 +90,14 @@ public:
 		return 0;
 	}
 	
-	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 		std::cout << "TPZSubCompMesh::Clone should be implemented\n";
 		return 0;
 	}
 	
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int64_t,int64_t> & gl2lcConMap,
-									std::map<int64_t,int64_t> & gl2lcElMap) const
+									std::map<int64_t,int64_t> & gl2lcElMap) const  override
 	{
 		std::cout << "TPZSubCompMesh::Clone should be implemented\n";
 		return 0;
@@ -126,7 +126,7 @@ public:
 	}
 	
 	/** @brief This method will load the elements of the mesh in their corresponding geometric elements */
-	virtual void LoadElementReference();
+	virtual void LoadElementReference() override;
 	
 	/**
 	 * @brief This method will initiate the comparison between the current computational
@@ -134,7 +134,7 @@ public:
 	 * @param var state variable number
 	 * @param matname pointer to material name
 	 */
-	virtual REAL CompareElement(int var, char *matname);
+	virtual REAL CompareElement(int var, char *matname) override;
 	
 	/**
 	 * @brief Verifies the transfer possibility of the connection elindex from
@@ -168,26 +168,26 @@ public:
 	 * @{
 	 */
 
-	/** @brief Transfer one element form a submesh to another mesh. */
-	virtual int64_t TransferElement(TPZCompMesh *mesh, int64_t elindex);
+	/** @brief Transfer the element elindex belonging to mesh to the current mesh and returns its index */
+	virtual int64_t TransferElement(TPZCompMesh *mesh, int64_t elindex) override;
 	
 	/**
 	 * @brief Makes all mesh connections internal mesh connections.
 	 * @note This method is not working right!!! See comments in pzsubcmesh.cpp
 	 */
-	virtual void MakeAllInternal();
+	virtual void MakeAllInternal() override;
 	
 	/**
 	 * @brief Returns the rootmesh who have the specified connection.
 	 * @param local connection local index
 	 */
-	virtual TPZCompMesh * RootMesh(int64_t local);
+	virtual TPZCompMesh * RootMesh(int64_t local) override;
 	
 	/**
 	 * @brief Makes a specified connection a internal mesh connection.
 	 * @param local connection local number to be processed
 	 */
-	virtual void MakeInternal(int64_t local);
+	virtual void MakeInternal(int64_t local) override;
 	
 	/**
 	 * @brief Puts an local connection in the supermesh - Supermesh is one
@@ -195,7 +195,7 @@ public:
 	 * @param local local index of the element to be trasnfered
 	 * @param super pointer to the destination mesh
 	 */
-	virtual int64_t PutinSuperMesh(int64_t local, TPZCompMesh *super);
+	virtual int64_t PutinSuperMesh(int64_t local, TPZCompMesh *super) override;
 	
 	/**
 	 * @brief Gets an external connection from the supermesh - Supermesh is one
@@ -203,16 +203,16 @@ public:
 	 * @param superind index of the element to be trasnfered
 	 * @param super pointer to the destination mesh
 	 */
-	virtual int64_t GetFromSuperMesh(int64_t superind, TPZCompMesh *super);
+	virtual int64_t GetFromSuperMesh(int64_t superind, TPZCompMesh *super) override;
 	
 	/**
 	 * @brief Gives the commom father mesh of the specified mesh and the current submesh.
 	 * @param mesh pointer to other mesh whosw want to know the commom father mesh
 	 */
-	virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh);
+	virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh) override;
 	
 	/** @brief Returns the current submesh father mesh. */
-	virtual TPZCompMesh * FatherMesh() const;
+	virtual TPZCompMesh * FatherMesh() const override;
 
 	/** @} */
 	
@@ -236,16 +236,16 @@ public:
 	 * @param out indicates the device where the data will be printed
 	 */ 
 	/** This method use the virtual method from Computacional Mesh class. */
-	virtual void Print(std::ostream &out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const override;
 	
 	/** @brief Verifies if any element needs to be computed corresponding to the material ids */
-	bool NeedsComputing(const std::set<int> &matids);
+	bool NeedsComputing(const std::set<int> &matids) override;
     
 	/** @brief Virtual Method to allocate new connect */
-	virtual int64_t AllocateNewConnect(int nshape, int nstate, int order);
+	virtual int64_t AllocateNewConnect(int nshape, int nstate, int order) override;
 	
 	/** @brief Virtual Method to allocate new connect */
-	virtual int64_t AllocateNewConnect(const TPZConnect &connect);
+	virtual int64_t AllocateNewConnect(const TPZConnect &connect) override;
 	
 	/** @brief Gives the id node  of one local node in containing mesh. */
 	int64_t NodeIndex(int64_t nolocal, TPZCompMesh *super);
@@ -255,13 +255,13 @@ public:
     	
 	/** @brief Virtual Method! See declaration in TPZCompEl class. */ 
 	/** The use of this method in submesh class return -1 == Error! */
-	virtual int Dimension() const;
+	virtual int Dimension() const override;
 	
 	/** @brief Computes the number of elements connected to each connect object */
-	virtual void ComputeNodElCon();
+	virtual void ComputeNodElCon() override;
 	
 	/** @brief Computes the number of elements connected to each connect object */
-	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const;
+	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const override;
 
 	/**
 	 * @name Element
@@ -274,16 +274,19 @@ public:
 	 * @param inode node index to change
 	 * @param index new node index for connect
 	 */
-	virtual void SetConnectIndex(int inode, int64_t index);
+	virtual void SetConnectIndex(int inode, int64_t index) override;
 	
+    /// Assemble the stiffness matrix in locally kept datastructure
+    virtual void Assemble() override;
+    
   	/** @brief Calculates the submesh stiffness matrix */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
 	
     /**
      * @brief Computes the element right hand side
      * @param ef element load vector(s)
      */
-    virtual void CalcResidual(TPZElementMatrix &ef);
+    virtual void CalcResidual(TPZElementMatrix &ef) override;
     
 
 	/**
@@ -292,32 +295,32 @@ public:
 	 * @param graphmesh graphical mesh where the element will be created
 	 * @param dimension target dimension of the graphical element
 	 */
-	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
+	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override;
 
 	/** @brief Returns the connection index i. */
-	virtual int64_t ConnectIndex(int i) const;
+	virtual int64_t ConnectIndex(int i) const override;
 	
 	/** @brief Returns the number of connections. */
-	virtual int NConnects() const;
+	virtual int NConnects() const override;
 	
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
 
     /**
 	 * @brief Load the father mesh solution to all submesh connects -
   	 * (internal and external).
 	 */
-	virtual void LoadSolution();
+	virtual void LoadSolution() override;
     
     /**
      * @brief Transfer multiphysics solution
      */
-    virtual void TransferMultiphysicsElementSolution();
+    virtual void TransferMultiphysicsElementSolution() override;
     
     /**
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
-    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
+    virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids) override;
     
 
 	/**
@@ -328,7 +331,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -345,7 +348,7 @@ public:
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
 								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -357,22 +360,23 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
   
     virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                                     TPZVec<REAL> &errors, bool store_error);
+                                     TPZVec<REAL> &errors, bool store_error) override;
 	
 	/** @} */
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
-virtual int ClassId() const;
+
+virtual int ClassId() const override;
 
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const;
+	virtual void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context);
+	virtual void Read(TPZStream &buf, void *context) override;
 	
     /// Method to verify that the datastructures are consistent
 	bool VerifyDatastructureConsistency();

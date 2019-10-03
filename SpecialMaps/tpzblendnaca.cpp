@@ -287,13 +287,13 @@ template<> void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt);
  * Creates a geometric element according to the type of the father element
  */
 
-TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										 TPZVec<int64_t>& nodeindexes,
-										 int matid,
-										 int64_t& index)
-{
-	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
+// TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+// 										 TPZVec<int64_t>& nodeindexes,
+// 										 int matid,
+// 										 int64_t& index)
+// {
+// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+// }
 
 
 

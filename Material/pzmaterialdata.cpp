@@ -21,6 +21,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
+    this->fNeedsNormalVecFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
@@ -31,7 +32,10 @@ TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassI
     this->detjac = 0.;
     this->numberdualfunctions = 0;
     this->gelElId = -1;
-
+    this->fDirectionsOnMaster = 0;
+#ifdef _AUTODIFF
+    this->fNormalVecFad = 0;
+#endif
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : 
@@ -47,6 +51,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
+    this->fNeedsNormalVecFad = cp.fNeedsNormalVecFad;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -66,8 +71,12 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->intGlobPtIndex = cp.intGlobPtIndex;
     this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
+    this->fDirectionsOnMaster = cp.fDirectionsOnMaster;
     this->fVecShapeIndex = cp.fVecShapeIndex;
     this->fNormalVec = cp.fNormalVec;
+#ifdef _AUTODIFF
+    this->fNormalVecFad = cp.fNormalVecFad;
+#endif
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
     
@@ -173,6 +182,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
+    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
     out << "intLocPtIndex " << intLocPtIndex << std::endl;
     out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
@@ -203,6 +213,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
+    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
     out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
     out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;
@@ -318,82 +329,31 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
 /// Compute the divergence of the shape functions
 void TPZMaterialData::ComputeFunctionDivergence()
 {
-    int dim = 3; // Hdiv vectors are always in R3
     
     // Getting test and basis functions
-    TPZFMatrix<REAL> phi_s         = phi;   // For H1  test functions Q
     TPZFMatrix<REAL> dphi_s       = dphi; // Derivative For H1  test functions
-    TPZFMatrix<REAL> dphi_s_axes   = dphix; // Derivative For H1  test functions
-
-    TPZFNMatrix<660> grad_phi_s;
-    TPZAxesTools<REAL>::Axes2XYZ(dphi_s_axes, grad_phi_s, axes);
     
     int n_phi_v = fVecShapeIndex.NElements();
     divphi.Resize(n_phi_v,1);
     divphi.Zero(); // Initialization
     REAL det_jac = detjac;
 
-    TPZFMatrix<REAL> Qaxes = axes;
-    TPZFMatrix<REAL> QaxesT;
-    TPZFMatrix<REAL> Jacobian = jacobian;
-    TPZFMatrix<REAL> JacobianInverse = jacinv;
-
-    TPZFMatrix<REAL> GradOfX;
-    TPZFMatrix<REAL> GradOfXInverse;
-    TPZFMatrix<REAL> VectorOnMaster;
-    TPZFMatrix<REAL> VectorOnXYZ(3,1,0.0);
-    Qaxes.Transpose(&QaxesT);
-    QaxesT.Multiply(Jacobian, GradOfX);
-    JacobianInverse.Multiply(Qaxes, GradOfXInverse);
-    TPZFMatrix<STATE> GradOfXInverseSTATE(GradOfXInverse.Rows(), GradOfXInverse.Cols());
-    for (unsigned int i = 0; i < GradOfXInverse.Rows(); ++i) {
-        for (unsigned int j = 0; j < GradOfXInverse.Cols(); ++j) {
-            GradOfXInverseSTATE(i,j) = GradOfXInverse(i,j);
-        }
-    }
-
     int i_vec = 0;
     int i_phi_s = 0;
-
-    if (HDivPiola == 1)
+    
+    for (int iq = 0; iq < n_phi_v; iq++)
     {
-        for (int iq = 0; iq < n_phi_v; iq++)
-        {
-            i_vec = fVecShapeIndex[iq].first;
-            i_phi_s = fVecShapeIndex[iq].second;
-
-            for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = fNormalVec(k,i_vec);
-            }
-            
-            GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
-            VectorOnMaster *= det_jac;
-            
-            /* Contravariant Piola mapping preserves the divergence */
-
-            int n_dir = dphi_s.Rows();
-            for (int k = 0; k < n_dir; k++) {
-                divphi(iq,0) +=  dphi_s(k,i_phi_s)*VectorOnMaster(k,0);
-            }
-        }
+        i_vec = fVecShapeIndex[iq].first;
+        i_phi_s = fVecShapeIndex[iq].second;
         
-        divphi *= 1.0/det_jac;
-
-    }
-    else
-    {
-        for (int iq = 0; iq < n_phi_v; iq++)
-        {
-            i_vec = fVecShapeIndex[iq].first;
-            i_phi_s = fVecShapeIndex[iq].second;
-
-            /* Computing the divergence for constant jacobian elements */
-            int n_dir = grad_phi_s.Rows();
-            for (int k = 0; k < n_dir; k++) {
-                divphi(iq,0) +=  fNormalVec(k,i_vec)*grad_phi_s(k,i_phi_s);
-            }
+        int n_dir = dphi_s.Rows();
+        for (int k = 0; k < n_dir; k++) {
+            divphi(iq,0) +=  dphi_s(k,i_phi_s)*fDirectionsOnMaster(k,i_vec);
         }
     }
+        
+    divphi *= 1.0/det_jac;
+
 }
 
 

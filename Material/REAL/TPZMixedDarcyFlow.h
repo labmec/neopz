@@ -100,10 +100,10 @@ public:
         DebugStop();
     }
     
-    /** @brief Volumetric contribute without jacobian matrix */
+    /** @brief Volumetric contribute with jacobian matrix */
     void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
     
-    /** @brief Volumetric contribute */
+    /** @brief Volumetric contribute without jacobian matrix */
     void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef) override;
     
     /** @brief Boundary contribute without jacobian matrix */

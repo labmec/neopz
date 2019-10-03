@@ -119,10 +119,9 @@ public:
 	{
 		fName = name;
 	}
-	
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+	        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
 
 	
 	/**
@@ -419,10 +418,9 @@ private:
          * @brief It prints the properties of the structure
          */
         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);  
-		
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+		        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
     };
 	
     /**
@@ -456,10 +454,9 @@ private:
          * @brief It prints the properties of the structure
          */
         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);
-        
-        int ClassId() const;
-        void Read(TPZStream& buf, void* context);
-        void Write(TPZStream& buf, int withclassid) const;
+                int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
     };
 	
 	/**
@@ -517,10 +514,9 @@ public:
 			fTransform = copy.fTransform;
 			return *this;
 		}
-		
-                int ClassId() const;
-                void Read(TPZStream& buf, void* context);
-                void Write(TPZStream& buf, int withclassid) const;
+		                int ClassId() const override;
+                void Read(TPZStream &buf, void *context) override;
+                void Write(TPZStream &buf, int withclassid) const override;
 	};
 	
 protected:
