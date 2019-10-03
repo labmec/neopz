@@ -1,11 +1,14 @@
 /**
  * @file
- * @brief Contains the TPZRefPattern3 class which defines the topology of the current refinement pattern to a mesh.
+ * @brief Contains the TPZRefPattern class which defines the topology of the current refinement pattern to a mesh.
  */
-#ifndef PZREFPATTERNH
-#define PZREFPATTERNH
+#ifndef PZREFPATTERN3H //@TODOFran: remove the 3
+#define PZREFPATTERN3H
 
-// #include "pzvec.h"
+#include "pzvec.h"
+#include "pztrnsform.h"
+#include "pzgeoelside.h"
+#include "TPZRefPattern.h"//@TODOFran:remove this
 // #include "pzgmesh.h"
 // #include <iostream>
 // #include <string>
@@ -13,7 +16,6 @@
 // #include <list>
 // #include <set>
 // #include "tpzpermutation.h"
-// #include "pztrnsform.h"
 // #include "TPZRefPattern3DataBase.h"
 // #include "TPZRefPattern3Tools.h"
 
@@ -74,35 +76,55 @@
  */
 class TPZRefPattern3 : public TPZSavable {
 protected:
-
-//@TODO: See if the proposed data structure is ok:
-
-// 	Para cada filho/lado vetor(vetor)
-// 	lado do pai (int)
-// 	transformação paramétrica (TPZTransform)
 	/**
 	* @brief Data structure with sub element info
 	* @details fSubElSideInfo[i][j] contains a pair (int,TPZTransform) related to the j-th side of the i-th son.
-	* the pair consists of a) the side of the father in which the son is contained and b) the parametric
-	* transformation to the father's coordinates
+	* the pair consists of
+	 * a) the side of the father in which the son is contained
+	 * b) the parametric transformation to the father's coordinates
 	*/
-	TPZVec<TPZVec<std::pair<int,TPZTransform>>> fSubElSideInfo;
-// Para cada lado do pai
-// 	conjunto de filhos/lado que formam uma partição (vetor)
-// 	conjunto de nós contidos (vetor)
-// 	caso um nó fica no meio do lado midsidenodeindex (int)
+	TPZVec<TPZVec<std::pair<int,TPZTransform<REAL>>>> fSubElSideInfo;
 
+    /**
+    * @brief Data structure for storage of refinement information for a father's side
+    */
+	struct SPZFatherSideInfo{
+	     /// a vector of nodes contained in the i-th side
+        TPZVec<int> fSideNodes;
+        /// a vector of TPZGeoElSide relative to its sons
+        TPZVec<TPZGeoElSide> fSideSons;
+        ///if there is a midsidenode in the side, it's index. otherwise is -1
+        int64_t fMidSideIndex;
+        SPZFatherSideInfo(const TPZVec<int> &sideNodes,
+                const TPZVec<TPZGeoElSide> &sideSons,
+                const int64_t &midSideIndex) :
+        fSideNodes(sideNodes), fSideSons(sideSons), fMidSideIndex(midSideIndex) {}
+        SPZFatherSideInfo() = default;
+        ~SPZFatherSideInfo() = default;
+	};
 	/**
 	* @brief Data structure for storage of refinement information for each father's side
-	* @detail This structure, for a given side, will contain a tuple made of three entities, a) a vector of nodes contained 
-	* in this side, b) a vector of TPZGeoElSide relative to its sons and c) if there is a midsidenode in the side, it's index 
+	* @detail fFatherSideInfo[i] will contain a tuple made of three entities, stored in SPZFatherSideInfo.
 	*/
-	TPZVec<std::tuple<TPZVec<int>,TPZVec<TPZGeoElSide>,int>> fFatherSideInfo;
+	TPZVec<SPZFatherSideInfo> fFatherSideInfo;
 
 
-	//@TODO: Create constructor that has a TPZRefPattern as an argument and fills the data structure
-	//in an appropriate manner.
 
+	/////////////other stuff///////////////
+	/// name of the refinement pattern
+	std::string fName;
+
+	/// id of the refinement pattern
+	int fId;
+public:
+
+    TPZRefPattern3() = default;
+
+	explicit TPZRefPattern3(TPZRefPattern &oldRef);
+
+	virtual ~TPZRefPattern3() = default;
+
+    void PrintMore(std::ostream &out = std::cout) const;
 
 	// /**
  //     * @brief Geometric mesh which defines the topology of the current refinement pattern
@@ -189,7 +211,7 @@ protected:
 // 	{
 // 		fName = name;
 // 	}
-// 	        int ClassId() const override;
+ 	        int ClassId() const override;
 //         void Read(TPZStream &buf, void *context) override;
 //         void Write(TPZStream &buf, int withclassid) const override;
 

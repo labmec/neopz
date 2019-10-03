@@ -286,7 +286,7 @@ public:
 	/**
 	 * THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns \n
 	 * whereas the former is not
-	 */
+	 *///@TODOFran: this method should be removed, as it is misleading. there is only one midsidenode allowed
 	virtual void MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
