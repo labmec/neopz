@@ -230,7 +230,7 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 		std::cout << "\n ("<<TGeo::Type()<<")::CreateBCGeoEl unexpected side = " << side << "\n";
 		return 0;
 	}
-	if(fGeo.Dimension == 3 && side == nsides){
+	if(fGeo.Dimension == 3 && side == nsides-1){
 		std::cout <<"\nCreateBCGeoEl not implemented for tridimensional sides \n";
 		return 0;
 	}
@@ -240,6 +240,7 @@ TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
 	TGeo::LowerDimensionSides(side,LowAllSides);
     LowAllSides.Push(side);
 	bool straight = true;
+    if(fGeo.IsLinearMapping(side) == false) straight = false;
 	for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
 	{
 		int lside = LowAllSides[lowside]; 
@@ -630,7 +631,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &
         }
     }
     //std::cout<<qsiFad<<std::endl;
-    TPZFMatrix<Fad<REAL> > gradxFad;
+    TPZFNMatrix<9,Fad<REAL>> gradxFad;
     this->GradX(qsiFad, gradxFad);
     //gradxFad.Print(std::cout);
     TGeo::ComputeDirections(gradxFad, directions);

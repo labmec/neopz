@@ -1190,7 +1190,7 @@ void TPZGeoEl::Jacobian(const TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &jac,TPZ
                 std::stringstream sout;
                 sout << "Singular Jacobian, 1 determinant of jacobian = " << detjac << std::endl;
                 LOGPZ_ERROR(logger, sout.str())
-                DebugStop();
+                //DebugStop();
 #endif
                 detjac = ZeroTolerance();
             }

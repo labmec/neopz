@@ -117,10 +117,10 @@ public:
             detjac = gradx(0,0);
         }else if(dim==2){
             detjac = gradx(0,0)*gradx(1,1) - gradx(0,1)*gradx(1,0);
-            detjac = fabs(detjac);
+            
         }else if(dim==3){
             detjac = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-            detjac = fabs(detjac);
+            
         }else{
             DebugStop();
         }

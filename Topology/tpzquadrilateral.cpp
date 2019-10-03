@@ -1125,50 +1125,33 @@ namespace pztopology {
         
         TPZManVector<TVar, 3> v1(3),v2(3);
         for (int i=0; i<3; i++) {
-            v1[i] = gradx(i,0);
-            v2[i] = gradx(i,1);
+            v1[i] = gradx(i,0)/detjac;
+            v2[i] = gradx(i,1)/detjac;
         }
-
-        
-        TVar Nv1 = TPZNumeric::Norma(v1);
-        TVar Nv2 = TPZNumeric::Norma(v2);
         
         /**
          * @file
          * @brief Computing mapped vector with scaling factor equal 1.0.
          * using contravariant piola mapping.
          */
-        TPZManVector<TVar,3> NormalScales(2,1.);
-        
-        
-        {
-            NormalScales[0] = 1./Nv1;
-            NormalScales[1] = 1./Nv2;
-        }
-        
-        
-        for (int i=0; i<3; i++) {
-            v1[i] *= Nv2/detjac;
-            v2[i] *= Nv1/detjac;
-        }
         
         for (int i=0; i<3; i++)
         {
             for (int v=0; v<3; v++)
             {
-                directions(i,v)     = -v2[i]*NormalScales[0];
-                directions(i,v+3)   = v1[i]*NormalScales[1];
-                directions(i,v+6)   = v2[i]*NormalScales[0];
-                directions(i,v+9)   = -v1[i]*NormalScales[1];
+                directions(i,v)     = -v2[i];
+                directions(i,v+3)   = v1[i];
+                directions(i,v+6)   = v2[i];
+                directions(i,v+9)   = -v1[i];
             }
             
-            directions(i,12)        =  v1[i]*NormalScales[1];
-            directions(i,13)        =  v2[i]*NormalScales[0];
-            directions(i,14)        = -v1[i]*NormalScales[1];
-            directions(i,15)        = -v2[i]*NormalScales[0];
+            directions(i,12)        =  v1[i];
+            directions(i,13)        =  v2[i];
+            directions(i,14)        = -v1[i];
+            directions(i,15)        = -v2[i];
             
-            directions(i,16)        = v1[i]*NormalScales[1];
-            directions(i,17)        = v2[i]*NormalScales[0];
+            directions(i,16)        = v1[i];
+            directions(i,17)        = v2[i];
         }
     }
     
