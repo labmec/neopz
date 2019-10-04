@@ -284,7 +284,7 @@ namespace pztopology {
 	}
 	
 	void TPZQuadrilateral::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
+		center.Resize(Dimension);
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];

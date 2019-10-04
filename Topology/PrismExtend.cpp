@@ -91,7 +91,7 @@ namespace pztopology {
 	
 	template<class TFather>
 	void Pr<TFather>::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
+		center.Resize(Dimension);
 		int ftns = side/TFather::NSides;
 		int fatherside = side%TFather::NSides;
 		TFather::CenterPoint(fatherside,center);

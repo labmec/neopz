@@ -448,6 +448,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
+        material->FillDataRequirements(datavec[iref]);
         trvec[iref].Apply(qsi, myqsi);
         datavec[iref].p = msp->MaxOrder();
         
