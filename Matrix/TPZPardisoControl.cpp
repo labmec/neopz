@@ -150,13 +150,6 @@ long long TPZPardisoControl<TVar>::MatrixType()
         DebugStop();
     }
     
-//    for (long long i=0; i<64; i++) {
-//        long long val = fHandle[i];
-//        if (val) {
-//            DebugStop();
-//        }
-//    }
-    
     int param[64] = {0};
     int matrixtype = fMatrixType;
     pardisoinit(fHandle,&matrixtype,param);
