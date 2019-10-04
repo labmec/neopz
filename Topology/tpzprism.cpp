@@ -570,7 +570,9 @@ namespace pztopology {
 	}
 	
 	void TPZPrism::CenterPoint(int side, TPZVec<REAL> &center) {
-		center.Resize(Dimension);
+        if (center.size()!=Dimension) {
+            DebugStop();
+        }
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];

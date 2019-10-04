@@ -206,13 +206,15 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	
 	int thisFace, neighbourFace, i, dim;
 	TPZGeoEl * thisGeoEl, * neighbourGeoEl;
-	TPZManVector<REAL,3> thisCenter(3,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
-	
+
 	thisGeoEl = this->Reference();
-	thisFace = thisGeoEl->NSides() - 1;
+    int thiseldim = thisGeoEl->Dimension();
+    TPZManVector<REAL,3> thisCenter(thiseldim,0.), thisXVol(3,0.), neighbourXVol(3,0.), vec(3), axes1(3), axes2(3);
+
+    thisFace = thisGeoEl->NSides() - 1;
     TPZGeoElSide thisside(thisGeoEl,thisFace);
     TPZCompMesh *cmesh = this->Mesh();
-    int thiseldim = thisGeoEl->Dimension();
+
 	
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
     int matid = neighbourGeoElSide.Element()->MaterialId();

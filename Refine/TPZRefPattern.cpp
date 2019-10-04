@@ -1244,7 +1244,7 @@ void TPZRefPattern::ComputeTransforms()
 	REAL Tol;
 	ZeroTolerance(Tol);
 	
-	TPZManVector<REAL,3> masscent(3,0.), xpoint(3,0.), fathparam(fath->Dimension(),0.);
+	TPZManVector<REAL,3> masscent(fath->Dimension(),0.), xpoint(3,0.), fathparam(fath->Dimension(),0.);
 	
 	fTransforms.fInitSonSides.Resize(nsubs+1);/** +1 para incluir a posicoo final de fSideFather*/
 	int size = SizeOfSubsSides(nsubs);
