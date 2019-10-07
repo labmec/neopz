@@ -242,9 +242,9 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 
 	/** @brief Unique identifier for serialization purposes */
 	public:
-int ClassId() const override;
+    
+    int ClassId() const override;
 
-	
 	/** @brief Saves the element data to a stream */
 	void Write(TPZStream &buf, int withclassid) const override;
 	

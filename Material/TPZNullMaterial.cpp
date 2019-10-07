@@ -4,6 +4,7 @@
  */
 
 #include "TPZNullMaterial.h"
+#include "TPZNullMaterialTranslator.h"
 #include "pzmaterialdata.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -42,19 +43,10 @@ void TPZNullMaterial::Print(std::ostream & out) {
 }
 
 int TPZNullMaterial::VariableIndex(const std::string &name) {
-	if(!strcmp(name.c_str(),"state")) return 0;
-	if(!strcmp(name.c_str(),"State")) return 0;
-	if(!strcmp(name.c_str(),"Solution")) return 0;
-	
     return TPZMaterial::VariableIndex(name );
 }
 
 int TPZNullMaterial::NSolutionVariables(int index) {
-//#ifdef STATE_COMPLEX
-//    if(index == 0) return NStateVariables()*2;
-//#else
-//    if(index == 0) return 3;
-//#endif
     return TPZMaterial::NSolutionVariables(index);
 }
 
@@ -72,12 +64,11 @@ void TPZNullMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 
 void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
 {
-	//	this->Solution(data,dataleftvec,datarightvec, var, Solout);
 }
 
 void TPZNullMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *right)
 {
-	//this->Solution(data,dataleftvec,datarightvec, var, Solout, left, right);
+
 }
 
 void TPZNullMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
@@ -112,10 +103,9 @@ void TPZNullMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 
 int TPZNullMaterial::ClassId() const{
-    return Hash("TPZVecL2") ^ TPZMaterial::ClassId() << 1;
+    return Hash("TPZNullMaterial") ^ TPZMaterial::ClassId() << 1;
 }
 
-/* Saves the element data to a stream */
 void TPZNullMaterial::Write(TPZStream &buf, int withclassid) const
 {
 	TPZMaterial::Write(buf,withclassid);
@@ -123,9 +113,9 @@ void TPZNullMaterial::Write(TPZStream &buf, int withclassid) const
         DebugStop();
     }
     buf.Write(&fDim);
+    buf.Write(&fNState);
 }
 
-/* Reads the element data from a stream */
 void TPZNullMaterial::Read(TPZStream &buf, void *context)
 {
 	TPZMaterial::Read(buf,context);
@@ -135,16 +125,9 @@ void TPZNullMaterial::Read(TPZStream &buf, void *context)
         DebugStop();
     }
 #endif
+    buf.Read(&fNState);
 }
 
-template class TPZRestoreClass<TPZNullMaterial>;
-/**
- * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
- * @param datavec [in] stores all input data
- * @param weight [in] is the weight of the integration rule
- * @param ek [out] is the stiffness matrix
- * @param ef [out] is the load vector
- */
 void TPZNullMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
@@ -152,11 +135,9 @@ void TPZNullMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 
 void TPZNullMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 
-    
 }
-
 void TPZNullMaterial::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
     
 }
 
-
+template class TPZRestoreClassWithTranslator<TPZNullMaterial,TPZNullMaterialTranslator>;
