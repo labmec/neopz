@@ -25,7 +25,7 @@ class TPZIntPoints;
  * this makes the adaptive process extremely general\n
  */
 class TPZInterpolatedElement : public TPZInterpolationSpace {
-	
+
 protected:
 	
 	/**

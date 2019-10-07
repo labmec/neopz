@@ -54,7 +54,7 @@ public:
              * level n multipliers need to be numbered after the multipliers of level n-1
             */
             unsigned char fLagrangeMultiplier;
-            /** @brief Whether the equations associated with the connect should be condensed */
+            /** @brief Whether the equations associated with the connect should be/are condensed */
             bool fIsCondensed;
         } fCompose;
     };
@@ -91,6 +91,7 @@ public:
 	};
 	
 private:
+    /// Dependency list of the connect (NULL if the connect is not constrained)
 	TPZDepend *fDependList;
 	
 public:

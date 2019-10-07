@@ -292,6 +292,7 @@ virtual int ClassId() const override;
 	
 protected:
 	
+    /// Preferred polynomial order
 	int fPreferredOrder;
 	
 public:

@@ -334,8 +334,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
     TPZFMatrix<REAL> dphi_s       = dphi; // Derivative For H1  test functions
     
     int n_phi_v = fVecShapeIndex.NElements();
-    divphi.Resize(n_phi_v,1);
-    divphi.Zero(); // Initialization
+    divphi.Redim(n_phi_v,1);
     REAL det_jac = detjac;
 
     int i_vec = 0;
@@ -348,11 +347,10 @@ void TPZMaterialData::ComputeFunctionDivergence()
         
         int n_dir = dphi_s.Rows();
         for (int k = 0; k < n_dir; k++) {
-            divphi(iq,0) +=  dphi_s(k,i_phi_s)*fDirectionsOnMaster(k,i_vec);
+            divphi(iq,0) +=  dphi(k,i_phi_s)*fDirectionsOnMaster(k,i_vec)/detjac;
         }
     }
         
-    divphi *= 1.0/det_jac;
 
 }
 
