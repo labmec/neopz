@@ -1056,8 +1056,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     
-    //std::cout<<MeshSol<<std::endl;
-    
     int64_t numbersol = MeshSol.Cols();
     if(numbersol != 1)
     {
@@ -1100,12 +1098,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             }
         }
         
-        //        for(int i=0;i<data.fNormalVecFad.Cols();i++){
-        //            for(int j=0;j<data.fNormalVecFad.Rows();j++){
-        //                std::cout << "DirectionsFAD["<< j <<"]["<< i <<"] = " << data.fNormalVecFad(j,i).val() <<std::endl;
-        //            }
-        //        }
-        
         TPZFNMatrix<4,REAL> Grad0(3,3,0.);
         
         for (int s = 0; s < normvecCols; s++) {
@@ -1118,7 +1110,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             }
             
             GradNormalvec[s] = Grad0;
-            //            Grad0.Print(std::cout);
         }
         
 #else
@@ -1155,11 +1146,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                 }
             }
             
-            //            GradOfPhiHdiv.Print(std::cout);
-            //            dphix.Print(std::cout);
-            //            data.phi.Print(std::cout);
-            
-            
             for (int64_t is=0; is<numbersol; is++)
             {
                 for(int idf=0; idf<nstate; idf++)
@@ -1167,11 +1153,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     STATE meshsol = MeshSol(pos+ish*nstate+idf,is);
                     REAL phival = data.phi(ishape,0);
                     TPZManVector<REAL,3> normal(3);
-//                    TPZManVector<STATE,3> solval(3);
+
                     for (int i=0; i<3; i++)
                     {
-//                        solval[i] = data.sol[is][i+dim*idf];
-                        
                         if (data.fNeedsNormalVecFad) {
 #ifdef _AUTODIFF
                             normal[i] = data.fNormalVecFad(i,ivec).val();
@@ -1199,7 +1183,10 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     for (int ilinha=0; ilinha<dim; ilinha++) {
                         data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
-                            data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * (GradOfPhiHdiv(ilinha,kdim) +GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0));
+                            data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
+                            if(data.fNeedsNormalVecFad){
+                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
+                            }
                         }
                     }
                     
