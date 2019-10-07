@@ -33,24 +33,37 @@
 
 TPZRefPattern3::TPZRefPattern3(TPZRefPattern &oldRef){
     TPZGeoEl* geoEl = oldRef.Element(0);
+    MElementType type = geoEl->Type();
 
     const uint nSides = geoEl->NSides();
     //filling fFatherSideInfo
     fFatherSideInfo.Resize(nSides);
     for(uint iSide = 0; iSide < nSides; iSide++){
         //first member of the tuple to be stored in fFatherSideInfo[iSide]
-        TPZVec<int> sideNodes;
+        TPZManVector<int,4> sideNodes;
         oldRef.SideNodes(iSide, sideNodes);
 
         const uint nSideSubEls = oldRef.NSideSubElements(iSide);
         //second member of the tuple to be stored in fFatherSideInfo[iSide]
-        TPZVec<TPZGeoElSide> sideSons(nSideSubEls);
-        for(uint iSubEl = 0; iSubEl < nSideSubEls; iSubEl++){
-            int subEl, sideSubEl;
-            oldRef.SideSubElement(iSide,iSubEl,subEl,sideSubEl);
-            TPZGeoElSide subElGeoSide(oldRef.Element(subEl),sideSubEl);
-            sideSons[iSubEl] = subElGeoSide;
+        TPZStack<TPZGeoElSide> sideSonsStack;
+
+        //TPZGeoElement::GetSubElements2 if ref is uniform. Otherwise,
+        //TPZGeoElRefPattern<TGeo>::GetSubElements2
+        geoEl->GetSubElements2(iSide,sideSonsStack);
+//        oldRef.SideSubElement()
+        if(sideSonsStack.size() != nSideSubEls) {
+            DebugStop();
         }
+        TPZManVector<TPZGeoElSide,5> sideSons(nSideSubEls);//@TODOFran:is 5 a nice choice?
+        for(uint iSubEl = 0; iSubEl < nSideSubEls; iSubEl++){
+            sideSons[iSubEl] = sideSonsStack[iSubEl];
+        }
+//        for(uint iSubEl = 0; iSubEl < nSideSubEls; iSubEl++){
+//            int subEl, sideSubEl;
+//            oldRef.SideSubElement(iSide - geoEl->NNodes(),iSubEl + 1 ,subEl,sideSubEl);
+//            TPZGeoElSide subElGeoSide(oldRef.Element(subEl),sideSubEl);
+//            sideSons[iSubEl] = subElGeoSide;
+//        }
 
         //third member of the tuple to be stored in fFatherSideInfo[iSide]
         int64_t midSideIndex = -1;
@@ -87,7 +100,7 @@ TPZRefPattern3::TPZRefPattern3(TPZRefPattern &oldRef){
  		int nSides = fSubElSideInfo[iSubEl].size();
  		for(iSide=0;iSide<nSides;iSide++){
  		    auto transform = fSubElSideInfo[iSubEl][iSide].second;
- 		    out << "sub/side = " << iSubEl << "/" << iSide << "  FatherSide = " << fSubElSideInfo[iSubEl][iSide].first  << endl;
+ 		    out << "sub/side = " << iSubEl + 1 << "/" << iSide << "  FatherSide = " << fSubElSideInfo[iSubEl][iSide].first  << endl;
  		    out << "Transform = " << std::endl;
  		    transform.Mult().Print("Transformation T: ", out);
  		    transform.Sum().Print("Translation b: ", out);

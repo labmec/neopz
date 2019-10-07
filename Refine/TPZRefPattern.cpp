@@ -1015,6 +1015,7 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 		{
 			subel->SetFather(father);
 			subel->SetFather(father->Index());
+			father->SetSubElement(el-1,subel);
 		}
 	}
 	
