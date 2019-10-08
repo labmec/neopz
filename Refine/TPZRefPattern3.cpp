@@ -46,24 +46,35 @@ TPZRefPattern3::TPZRefPattern3(TPZRefPattern &oldRef){
         const uint nSideSubEls = oldRef.NSideSubElements(iSide);
         //second member of the tuple to be stored in fFatherSideInfo[iSide]
         TPZStack<TPZGeoElSide> sideSonsStack;
-
-        //TPZGeoElement::GetSubElements2 if ref is uniform. Otherwise,
-        //TPZGeoElRefPattern<TGeo>::GetSubElements2
-        geoEl->GetSubElements2(iSide,sideSonsStack);
-//        oldRef.SideSubElement()
+        for(uint iSubEl = 0; iSubEl < oldRef.NSubElements(); iSubEl++){
+            TPZGeoEl *subEl = oldRef.Element(iSubEl+1);
+            for(uint iSubElSide = 0; iSubElSide < subEl->NSides(); iSubElSide ++){
+                int fatherSide = oldRef.FatherSide(iSubElSide,iSubEl);
+                if(fatherSide == iSide){
+                    TPZGeoElSide geoElSideCandidate(subEl,iSubElSide);
+                    bool isInList = false;
+                    for(int iGelSide = 0; iGelSide < sideSonsStack.size(); iGelSide++){
+                        if(isInList == true) break;
+                        TPZGeoElSide neighbour = geoElSideCandidate.Neighbour();
+                        while(neighbour.Element() && neighbour.Element()->Id() != geoElSideCandidate.Element()->Id()){
+                            if(neighbour == sideSonsStack[iGelSide]){
+                                isInList = true;
+                                break;
+                            }
+                            neighbour = neighbour.Neighbour();
+                        }
+                    }
+                    if(!isInList)   sideSonsStack.push_back(geoElSideCandidate);
+                }
+            }
+        }
         if(sideSonsStack.size() != nSideSubEls) {
             DebugStop();
         }
-        TPZManVector<TPZGeoElSide,5> sideSons(nSideSubEls);//@TODOFran:is 5 a nice choice?
+        TPZManVector<TPZGeoElSide,27> sideSons(nSideSubEls);
         for(uint iSubEl = 0; iSubEl < nSideSubEls; iSubEl++){
             sideSons[iSubEl] = sideSonsStack[iSubEl];
         }
-//        for(uint iSubEl = 0; iSubEl < nSideSubEls; iSubEl++){
-//            int subEl, sideSubEl;
-//            oldRef.SideSubElement(iSide - geoEl->NNodes(),iSubEl + 1 ,subEl,sideSubEl);
-//            TPZGeoElSide subElGeoSide(oldRef.Element(subEl),sideSubEl);
-//            sideSons[iSubEl] = subElGeoSide;
-//        }
 
         //third member of the tuple to be stored in fFatherSideInfo[iSide]
         int64_t midSideIndex = -1;
