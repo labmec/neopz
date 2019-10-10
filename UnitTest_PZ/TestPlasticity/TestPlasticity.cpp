@@ -1434,20 +1434,20 @@ BOOST_AUTO_TEST_SUITE(plasticity_tests)
 BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     
     // Elastic response
-    LECompareStressStrainResponse();
+//    LECompareStressStrainResponse();
     PECompareStressStrainResponse();
 
-    LEDSCompareStressStrainAlphaMType();
+//    LEDSCompareStressStrainAlphaMType();
 //    LEDSCompareStressStrainResponse(); //  Improve this test with Ericks Data
 //    LEDSCompareStressStrainErickTest();
-    LEDSCompareStressStrainTangent();
+//    LEDSCompareStressStrainTangent();
     
     
     // Complete
 //    LEMCCompareStressStrainResponseAbaqus(); // Test projection //  Improve this test with Abaqus data
-    LEMCCompareStressStrainResponse(); // Test projection
-    LEMCCompareStressStrainResponse_PlasticLab_Test(); // Test projection for PlasticLab Simulated experiment
-    LEMCCompareStressStrainTangent(); //  Test Tangent
+//    LEMCCompareStressStrainResponse(); // Test projection
+//    LEMCCompareStressStrainResponse_PlasticLab_Test(); // Test projection for PlasticLab Simulated experiment
+//    LEMCCompareStressStrainTangent(); //  Test Tangent
     
 }
 

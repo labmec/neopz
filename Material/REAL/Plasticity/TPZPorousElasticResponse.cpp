@@ -130,47 +130,53 @@ void TPZPorousElasticResponse::Print(std::ostream & out) const {
 }
 
 void TPZPorousElasticResponse::G(const TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol) const{
-
-    STATE epsv = epsilon.I1();
-    G = (3*(1 + m_e_0)*(1 + epsv)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
-    (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*m_kappa*(1 + m_nu));
-    
-    dG_desp_vol = (-3*pow(1 + m_e_0,2)*(1 + epsv)*
-                  (1 - 2*m_nu)*(m_p_0 + m_pt_el))/
-    (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*
-     pow(m_kappa,2)*(1 + m_nu)) +
-    (3*(1 + m_e_0)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
-    (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*
-     m_kappa*(1 + m_nu));
-}
-
-void TPZPorousElasticResponse::Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol) const{
-    
-    if (m_is_G_constant_Q) {
-        STATE lambda, K, dK_desp_vol, dnu_dK;
-        this->K(epsilon, K, dK_desp_vol);
-        nu = -1 + (9*K)/(2.*(3*K + m_mu));
-        dnu_dK = (9*m_mu)/(2.*pow(3*K + m_mu,2));
-        dnu_desp_vol = dnu_dK * dK_desp_vol;
-    }else{
-        nu = m_nu;
-        dnu_desp_vol = 0.0;
-    }
-    
-}
-
-void TPZPorousElasticResponse::Poisson_linearized(const TPZTensor<STATE> &epsilon_ref,const TPZTensor<STATE> &epsilon, STATE & nu) const{
     
     STATE epsv = epsilon.I1();
-    STATE epsv_ref = epsilon_ref.I1();
-    nu = -1 + (9*(1 + m_e_0)*(m_p_0 + m_pt_el)*
-          (m_mu*exp((epsv_ref*(1 + m_e_0))/m_kappa)*
-           (-((epsv - epsv_ref)*(1 + epsv_ref)*
-              (1 + m_e_0)) + (1 + epsv)*m_kappa) +
-           3*pow(1 + epsv_ref,2)*(1 + m_e_0)*(m_p_0 + m_pt_el)))/
-    (2.*pow(m_mu*exp((epsv_ref*(1 + m_e_0))/m_kappa)*m_kappa +
-              3*(1 + epsv_ref)*(1 + m_e_0)*(m_p_0 + m_pt_el),2));
+    
+   STATE K, dK_desp_vol;
+    this->K(epsilon, K, dK_desp_vol);
+    STATE factor = (3.0/2.0)*(1-2.0*m_nu)/(1+m_nu);
+    G = factor*K;
+    dG_desp_vol = factor*dK_desp_vol;
+//    G = (3*(1 + m_e_0)*(1 + epsv)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
+//    (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*m_kappa*(1 + m_nu));
+//
+//    dG_desp_vol = (-3*pow(1 + m_e_0,2)*(1 + epsv)*
+//                  (1 - 2*m_nu)*(m_p_0 + m_pt_el))/
+//    (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*
+//     pow(m_kappa,2)*(1 + m_nu)) +
+//    (3*(1 + m_e_0)*(1 - 2*m_nu)*(m_p_0 + m_pt_el))/
+//    (2.*exp(((1 + m_e_0)*epsv)/m_kappa)*
+//     m_kappa*(1 + m_nu));
 }
+
+//void TPZPorousElasticResponse::Poisson(const TPZTensor<STATE> &epsilon, STATE & nu, STATE & dnu_desp_vol) const{
+//    DebugStop();
+//    if (m_is_G_constant_Q) {
+//        STATE lambda, K, dK_desp_vol, dnu_dK;
+//        this->K(epsilon, K, dK_desp_vol);
+//        nu = -1 + (9*K)/(2.*(3*K + m_mu));
+//        dnu_dK = (9*m_mu)/(2.*pow(3*K + m_mu,2));
+//        dnu_desp_vol = dnu_dK * dK_desp_vol;
+//    }else{
+//        nu = m_nu;
+//        dnu_desp_vol = 0.0;
+//    }
+//
+//}
+//
+//void TPZPorousElasticResponse::Poisson_linearized(const TPZTensor<STATE> &epsilon_ref,const TPZTensor<STATE> &epsilon, STATE & nu) const{
+//    DebugStop();
+//    STATE epsv = epsilon.I1();
+//    STATE epsv_ref = epsilon_ref.I1();
+//    nu = -1 + (9*(1 + m_e_0)*(m_p_0 + m_pt_el)*
+//          (m_mu*exp((epsv_ref*(1 + m_e_0))/m_kappa)*
+//           (-((epsv - epsv_ref)*(1 + epsv_ref)*
+//              (1 + m_e_0)) + (1 + epsv)*m_kappa) +
+//           3*pow(1 + epsv_ref,2)*(1 + m_e_0)*(m_p_0 + m_pt_el)))/
+//    (2.*pow(m_mu*exp((epsv_ref*(1 + m_e_0))/m_kappa)*m_kappa +
+//              3*(1 + epsv_ref)*(1 + m_e_0)*(m_p_0 + m_pt_el),2));
+//}
 
 void TPZPorousElasticResponse::K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol) const{
     
@@ -309,6 +315,7 @@ void TPZPorousElasticResponse::De_Poisson_constant(const TPZTensor<STATE> & epsi
 }
 
 void TPZPorousElasticResponse::De(const TPZTensor<STATE> & epsilon, TPZFMatrix<STATE> & De) const {
+
     if (m_is_G_constant_Q) {
         De_G_constant(epsilon, De);
     }else{
@@ -347,33 +354,33 @@ TPZElasticResponse TPZPorousElasticResponse::EvaluateElasticResponse(const TPZTe
     return LinearER;
 }
 
-TPZElasticResponse TPZPorousElasticResponse::LinearizedElasticResponse(const TPZTensor<STATE> & epsilon_ref, const TPZTensor<STATE> & epsilon) const{
-    
-    TPZElasticResponse LinearER;
-    REAL Eyoung;
-    /// The properties are computed as zero order approach, i.e. constant associated to epsilon
-    STATE G;
-    if (m_is_G_constant_Q) {
-        STATE nu;
-        this->Poisson_linearized(epsilon_ref,epsilon, nu);
-        Eyoung = 2*m_mu*(1.0+nu);
-        LinearER.SetEngineeringData(Eyoung, nu);
-    }else{
-        STATE dG_desp_vol;
-        this->G(epsilon, G, dG_desp_vol);
-        Eyoung = 2*G*(1.0+m_nu);
-        LinearER.SetEngineeringData(Eyoung, m_nu);
-        DebugStop(); // Implement linearization for G expression.
-    }
-    
-    /// Seeking for an equivalent residual strain
-    {
-        TPZTensor<REAL> linear_epsilon,sigma, eps_res;
-        this->ComputeStress(epsilon, sigma);
-        LinearER.ComputeStrain(sigma, linear_epsilon);
-        eps_res = epsilon - linear_epsilon;
-        LinearER.SetResidualStrainData(eps_res);
-    }
-    
-    return LinearER;
-}
+//TPZElasticResponse TPZPorousElasticResponse::LinearizedElasticResponse(const TPZTensor<STATE> & epsilon_ref, const TPZTensor<STATE> & epsilon) const{
+//    DebugStop();
+//    TPZElasticResponse LinearER;
+//    REAL Eyoung;
+//    /// The properties are computed as zero order approach, i.e. constant associated to epsilon
+//    STATE G;
+//    if (m_is_G_constant_Q) {
+//        STATE nu;
+//        this->Poisson_linearized(epsilon_ref,epsilon, nu);
+//        Eyoung = 2*m_mu*(1.0+nu);
+//        LinearER.SetEngineeringData(Eyoung, nu);
+//    }else{
+//        STATE dG_desp_vol;
+//        this->G(epsilon, G, dG_desp_vol);
+//        Eyoung = 2*G*(1.0+m_nu);
+//        LinearER.SetEngineeringData(Eyoung, m_nu);
+//        DebugStop(); // Implement linearization for G expression.
+//    }
+//
+//    /// Seeking for an equivalent residual strain
+//    {
+//        TPZTensor<REAL> linear_epsilon,sigma, eps_res;
+//        this->ComputeStress(epsilon, sigma);
+//        LinearER.ComputeStrain(sigma, linear_epsilon);
+//        eps_res = epsilon - linear_epsilon;
+//        LinearER.SetResidualStrainData(eps_res);
+//    }
+//
+//    return LinearER;
+//}
