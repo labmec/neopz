@@ -7,6 +7,7 @@
 
 #include "TPZPorousElasticResponse.h"
 
+#define SimplifiedVersion_Q
 
 int TPZPorousElasticResponse::ClassId() const {
     return Hash("TPZPorousElasticResponse");
@@ -20,6 +21,7 @@ TPZPorousElasticResponse::TPZPorousElasticResponse() {
     m_p_0   = 0.0;
     m_nu    = 0.0;
     m_mu    = 0.0;
+    m_esp_v_0 = 0.0;
     m_is_G_constant_Q   = false;
     m_plane_stress_Q    = false;
 }
@@ -32,6 +34,7 @@ TPZPorousElasticResponse::TPZPorousElasticResponse(const TPZPorousElasticRespons
     m_p_0   = other.m_p_0;
     m_nu    = other.m_nu;
     m_mu    = other.m_mu;
+    m_esp_v_0    = other.m_esp_v_0;
     m_is_G_constant_Q   = other.m_is_G_constant_Q;
     m_plane_stress_Q    = other.m_plane_stress_Q;
 }
@@ -49,6 +52,7 @@ TPZPorousElasticResponse & TPZPorousElasticResponse::operator=(const TPZPorousEl
     m_p_0   = other.m_p_0;
     m_nu    = other.m_nu;
     m_mu    = other.m_mu;
+    m_esp_v_0    = other.m_esp_v_0;
     m_is_G_constant_Q   = other.m_is_G_constant_Q;
     m_plane_stress_Q    = other.m_plane_stress_Q;
     return *this;
@@ -61,6 +65,7 @@ void TPZPorousElasticResponse::Write(TPZStream& buf, int withclassid) const { //
     buf.Write(&m_p_0);
     buf.Write(&m_nu);
     buf.Write(&m_mu);
+    buf.Write(&m_esp_v_0);
     buf.Write(m_is_G_constant_Q);
     buf.Write(m_plane_stress_Q);
 }
@@ -72,6 +77,7 @@ void TPZPorousElasticResponse::Read(TPZStream& buf, void* context) { //ok
     buf.Read(&m_p_0);
     buf.Read(&m_nu);
     buf.Read(&m_mu);
+    buf.Read(&m_esp_v_0);
     buf.Read(m_is_G_constant_Q);
     buf.Read(m_plane_stress_Q);
 }
@@ -90,6 +96,10 @@ void TPZPorousElasticResponse::Setp_0(STATE p_0){
 
 void TPZPorousElasticResponse::Sete_0(STATE e_0){
     m_e_0 = e_0;
+}
+
+void TPZPorousElasticResponse::Seteps_v_0(STATE eps_v_0){
+    m_esp_v_0 = eps_v_0;
 }
 
 void TPZPorousElasticResponse::SetShearModulusConstant(STATE G){
@@ -180,11 +190,23 @@ void TPZPorousElasticResponse::G(const TPZTensor<STATE> &epsilon, STATE & G, STA
 
 void TPZPorousElasticResponse::K(const TPZTensor<STATE> &epsilon, STATE & K, STATE & dK_desp_vol) const{
     
+#ifdef SimplifiedVersion_Q
+    
+    STATE epsv = epsilon.I1();
+    STATE factor = (1 + m_e_0)/m_kappa;
+    STATE exp_arg = factor*(epsv -m_esp_v_0);
+    K =(m_p_0 + m_pt_el)*exp(exp_arg)*factor;
+    dK_desp_vol=(m_p_0 + m_pt_el)*exp(exp_arg)*factor*factor;
+
+#else
+    
     STATE epsv = epsilon.I1();
     K = ((1 + epsv)*(1 + m_e_0)*(m_p_0 + m_pt_el))/(exp((epsv*(1 + m_e_0))/m_kappa)*m_kappa);
     
     dK_desp_vol = -(((1 + m_e_0)*(1 + epsv + m_e_0 + epsv*m_e_0 - m_kappa)*
                      (m_p_0 + m_pt_el))/(exp((epsv*(1 + m_e_0))/m_kappa)*pow(m_kappa,2)));
+    
+#endif
 }
 
 

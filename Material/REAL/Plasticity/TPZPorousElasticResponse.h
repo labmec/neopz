@@ -36,6 +36,9 @@ private:
     /// Second lamé parameter
     STATE m_mu;
     
+    /// Initial elastic strain
+    STATE m_esp_v_0;
+    
     /// Directive for define constant shear modulus calculations (false means constant Poisson ratio)
     bool m_is_G_constant_Q;
     
@@ -70,6 +73,9 @@ public:
     
     /// Set void ratio at initial volumetric stress
     void Sete_0(STATE e_0);
+    
+    /// Set initial elastic volumetric strain
+    void Seteps_v_0(STATE eps_v_0);
     
     /// Set directive to keep constant the Shear modulus
     void SetShearModulusConstant(STATE G);
