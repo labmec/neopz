@@ -146,11 +146,6 @@ protected:
      */
     int fNSubEl;//@TODOFran:: is it really necessary?
 
-    /**
-     * Given a certain geometric element corresponding to a sub-element, this method will return its index
-     * @return index of the sub-element
-     */
-    int FindSubEl(TPZGeoEl *) const;
 
     /** @brief Auxiliar structure to permute nodes */
     class TPZRefPattern3Permute : public TPZSavable {
@@ -190,6 +185,27 @@ protected:
 
     friend class
     TPZRefPatternTools;
+
+    /**
+     * Given a certain geometric element corresponding to a sub-element, this method will return its index
+     * @return index of the sub-element
+     */
+    int FindSubEl(TPZGeoEl *) const;
+
+    /**
+     * This simple method just checks if the side exists in the father element
+     * @param fatherSide side
+     * @return true if consistent
+     */
+    bool CheckSideConsistency(const int fatherSide) const;
+
+    /**
+     * This simple method checks both if the side is valid, and if the sub-element exists
+     * @param fatherSide side
+     * @param subEl sub-el
+     * @return true if consistent
+     */
+    bool CheckSideAndSubElConsistency(const int fatherSide, const int subEl) const;
 
 public:
 
@@ -288,10 +304,40 @@ public:
       */
      int NSideNodes(int fatherSide);
 	
-//     /**
-//      * @brief Returns the number of nodes of the mesh
-//      */
-//     int NNodes();
+     /**
+      * @brief Returns the number of nodes of the mesh
+      */
+     int NNodes() const;
+
+    /**
+    * @brief Verifies the neighbouring relationship between a son and a father's side
+    * @param fatherSide TPZGeoElSide corresponding to the father's side
+    * @param son the sub-element
+    */
+    bool IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) const;
+
+    /**
+    * @brief It returns the element number iel from the stack of elements of the
+    * geometric mesh
+    */
+    TPZGeoEl *Element(int iel);
+
+    /*
+    * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal
+    * subelements of zero dimension of a given side
+    * @param side - side of father element that will be searched for internal nodes (generated from subelements)
+    * @param nodeIndexes - vector of subelements index/Sides (stored as TPZGeoElSideIndex objects that have dimension = 0) that
+    * belongs to the interior of given side of father element.
+    */
+    void InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &nodeIndexes);
+
+    /**
+    * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal subelements of a given side
+    * @param side side of father element that will be searched for internal sides (generated from subelements)
+    * @param sideIndexes vector of subelement index/sides (stored as TPZGeoElSideIndex objects) that belongs to the interior of given side of father element.
+    */
+    void InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &sideIndexes);
+
 //     /**
 //      * @brief It prints the features of the standard of geometric refinement.
 //      */
@@ -314,18 +360,7 @@ public:
 //      */
 //     void DefinitionOfSizePartition();
 	
-//     /**
-//      * @brief It is verified the son is neighboring of the father.
-//      * 
-// 	 * The side that corresponds to the son is returned.
-//      */
-//     int IsFatherNeighbour(TPZGeoElSide fathside,TPZGeoEl *son);
-	
-//     /**
-//      * @brief It returns the element number iel from the stack of elements of the
-//      * geometric mesh
-//      */
-//     TPZGeoEl *Element(int iel);
+
 	
 //     /** 
 //      * @brief It compares two hashings: in case that are equal returns 0,
@@ -404,22 +439,6 @@ public:
 // 		int nSides = el->NSides();
 // 		fSideRefPattern[nSides-1] = id;
 // 	}
-	
-// 	*
-// 	 * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal
-// 	 * subelements of zero dimension of a given side
-// 	 * @param side - side of father element that will be searched for internal nodes (generated from subelements)
-// 	 * @param nodeIndexes - vector of subelements index/Sides (stored as TPZGeoElSideIndex objects that have dimension = 0) that
-// 	 * belongs to the interior of given side of father element.
-	 
-// 	void InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &nodeIndexes);
-	
-// 	/**
-// 	 * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal subelements of a given side
-// 	 * @param side side of father element that will be searched for internal sides (generated from subelements)
-// 	 * @param sideIndexes vector of subelement index/sides (stored as TPZGeoElSideIndex objects) that belongs to the interior of given side of father element.
-// 	 */
-// 	void InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &sideIndexes);
 	
 // 	TPZAutoPointer<TPZRefPattern3> GetPermutation(int pos);
 	

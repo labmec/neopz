@@ -151,26 +151,13 @@ int TPZRefPattern3::NSubElements() const
 int TPZRefPattern3::FatherSide(int side, int sub) const
 {
     #ifdef PZDEBUG
-    int nSidesSubEl = fRefPatternMesh.ElementVec()[sub+1]->NSides();
-    int nSubEls = NSubElements();
-    if(side < 0 || side >= nSidesSubEl ||  sub < 0 ||  sub >= nSubEls)
-    {
-        PZError << "TPZRefPattern3::FatherSide: wrong argument\n";
-        PZError << "side = " << side << " sub = " << sub;
-        DebugStop();
-    }
+    if(!CheckSideAndSubElConsistency(side,sub)) DebugStop();
     #endif
     return fSubElSideInfo[sub][side].first;
 }
 int TPZRefPattern3::NSideSubGeoElSides(int fatherSide) const{
     #ifdef PZDEBUG
-    int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
-    if(fatherSide < 0 || fatherSide >= nSides)
-    {
-        PZError << "TPZRefPattern3::NSideSubElements: wrong argument\n";
-        PZError << "father side = " << fatherSide << std::endl;
-        DebugStop();
-    }
+    if(!CheckSideConsistency(fatherSide)) DebugStop();
     #endif
 
     return fFatherSideInfo[fatherSide].fSideSons.size();
@@ -178,14 +165,7 @@ int TPZRefPattern3::NSideSubGeoElSides(int fatherSide) const{
 
 void TPZRefPattern3::SideSubGeoElSide(int fatherSide, int subElPos, TPZGeoElSide & subGeoEl) const{
     #ifdef PZDEBUG
-    int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
-    int nSubGeoElSides = NSideSubGeoElSides(fatherSide);
-    if(fatherSide < 0 || fatherSide >= nSides || subElPos < 0 || subElPos >= nSubGeoElSides)
-    {
-        PZError << "TPZRefPattern3::NSideSubElements: wrong argument\n";
-        PZError << "father side = " << fatherSide << std::endl;
-        DebugStop();
-    }
+    if(!CheckSideAndSubElConsistency(fatherSide,subElPos)) DebugStop();
     #endif
     subGeoEl = fFatherSideInfo[fatherSide].fSideSons[subElPos];
 }
@@ -193,14 +173,7 @@ void TPZRefPattern3::SideSubGeoElSide(int fatherSide, int subElPos, TPZGeoElSide
  TPZTransform<> TPZRefPattern3::Transform(int fatherSide, int sub)
  {
      #ifdef PZDEBUG
-     const int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
-     const int nSubGeoElSides = NSideSubGeoElSides(fatherSide);
-     if(fatherSide < 0 || fatherSide >= nSides || sub < 0 || sub >= nSubGeoElSides)
-     {
-         PZError << "TPZRefPattern3::NSideSubElements: wrong argument\n";
-         PZError << "father side = " << fatherSide << std::endl;
-         DebugStop();
-     }
+     if(CheckSideAndSubElConsistency(fatherSide,sub)) DebugStop();
      #endif
     auto subGeoElSide =  fFatherSideInfo[fatherSide].fSideSons[sub];
     const int subElIndex = FindSubEl(subGeoElSide.Element());
@@ -210,30 +183,68 @@ void TPZRefPattern3::SideSubGeoElSide(int fatherSide, int subElPos, TPZGeoElSide
 
 void TPZRefPattern3::SideNodes(int fatherSide, TPZVec<int> &vecNodes){
 #ifdef PZDEBUG
-    int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
-    if(fatherSide < 0 || fatherSide >= nSides)
-    {
-        PZError << "TPZRefPattern3::SideNodes: wrong argument\n";
-        PZError << "father side = " << fatherSide << std::endl;
-        DebugStop();
-    }
+    if(!CheckSideConsistency(fatherSide)) DebugStop();
 #endif
     vecNodes = fFatherSideInfo[fatherSide].fSideNodes;
 }
 
 int TPZRefPattern3::NSideNodes(int fatherSide){
     #ifdef PZDEBUG
-    int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
-    if(fatherSide < 0 || fatherSide >= nSides)
-    {
-        PZError << "TPZRefPattern3::SideNodes: wrong argument\n";
-        PZError << "father side = " << fatherSide << std::endl;
-        DebugStop();
-    }
+    if(!CheckSideConsistency(fatherSide)) DebugStop();
     #endif
     return fFatherSideInfo[fatherSide].fSideNodes.size();
 }
 
+int TPZRefPattern3::NNodes() const{
+    return fRefPatternMesh.NNodes();
+}
+
+bool TPZRefPattern3::IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) const{
+    const int side = fatherSide.Side();
+
+    for (auto &geoElSide : fFatherSideInfo[side].fSideSons ) {
+        if(geoElSide.Element() == son) return true;
+    }
+    return false;
+}
+
+TPZGeoEl *TPZRefPattern3::Element(int iel){
+    int nel = NSubElements()+1;/*sub-elements and father el*/
+    if(iel < 0 || iel >= nel){
+        PZError <<  "TPZRefPattern::Element the element with the following id does not exist: " << iel << endl;
+        DebugStop();
+    }
+    return ( fRefPatternMesh.ElementVec()[iel]  );
+}
+
+void TPZRefPattern3::InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &nodeIndexes){
+    #ifdef PZDEBUG
+    if(!CheckSideConsistency(side)) DebugStop();
+    #endif
+    nodeIndexes.Resize(0);
+    int count = 0;
+    for(auto &subElSide : fFatherSideInfo[side].fSideSons){
+        if(subElSide.Dimension() == 0){
+            nodeIndexes.Resize(count + 1);
+            nodeIndexes[count] = TPZGeoElSideIndex(subElSide);
+            count++;
+        }
+    }
+}
+
+void TPZRefPattern3::InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &sideIndexes){
+    #ifdef PZDEBUG
+    if(!CheckSideConsistency(side)) DebugStop();
+    #endif
+    const int nSubElSides = fFatherSideInfo[side].fSideSons.size();
+    sideIndexes.Resize(nSubElSides);
+    for(int iSub = 0; iSub < nSubElSides; iSub++){
+        sideIndexes[iSub] = TPZGeoElSideIndex(fFatherSideInfo[side].fSideSons[iSub]);
+    }
+}
+
+
+/****************************PROTECTED METHODS*************************************************************************/
  int TPZRefPattern3::FindSubEl(TPZGeoEl *geoEl) const{
     const int nSubEls = NSubElements();
     for(int i = 0; i < nSubEls; i++){
@@ -247,6 +258,29 @@ int TPZRefPattern3::NSideNodes(int fatherSide){
     PZError<<"Aborting..."<<std::endl;
     DebugStop();
     return -1;
+}
+
+bool TPZRefPattern3::CheckSideConsistency(const int fatherSide) const{
+    int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
+    if(fatherSide < 0 || fatherSide >= nSides)
+    {
+        PZError << "TPZRefPattern3::NSideSubElements: wrong argument\n";
+        PZError << "father side = " << fatherSide << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool TPZRefPattern3::CheckSideAndSubElConsistency(const int fatherSide, const int subEl) const{
+    const int nSides = fRefPatternMesh.ElementVec()[0]->NSides();
+    const int nSubGeoElSides = NSideSubGeoElSides(fatherSide);
+    if(fatherSide < 0 || fatherSide >= nSides || subEl < 0 || subEl >= nSubGeoElSides)
+    {
+        PZError << "TPZRefPattern3::NSideSubElements: wrong argument\n";
+        PZError << "father side = " << fatherSide << std::endl;
+        return false;
+    }
+    return true;
 }
 // std::map<MElementType, std::list<TPZRefPattern3::TPZRefPattern3Permute> > TPZRefPattern3::fPermutations;
 
