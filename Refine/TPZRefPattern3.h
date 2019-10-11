@@ -8,14 +8,15 @@
 #include "pzvec.h"
 #include "pztrnsform.h"
 #include "pzgeoelside.h"
-#include "TPZRefPattern.h"//@TODOFran:remove this
-// #include "pzgmesh.h"
+#include "pzgmesh.h"
+#include "tpzpermutation.h"
+
+class TPZRefPattern;
 // #include <iostream>
 // #include <string>
 // #include <map>
 // #include <list>
 // #include <set>
-// #include "tpzpermutation.h"
 // #include "TPZRefPattern3DataBase.h"
 // #include "TPZRefPattern3Tools.h"
 
@@ -76,6 +77,10 @@
  */
 class TPZRefPattern3 : public TPZSavable {
 protected:
+    /// Id for identifying a non initialized pattern
+    static const int fNonInitializedId;
+    /// Name for identifying a non initialized pattern
+    static const std::string fNonInitializedName;
 	/**
 	* @brief Data structure with sub element info
 	* @details fSubElSideInfo[i][j] contains a pair (int,TPZTransform) related to the j-th side of the i-th son.
@@ -100,6 +105,7 @@ protected:
                 const int64_t &midSideIndex) :
         fSideNodes(sideNodes), fSideSons(sideSons), fMidSideIndex(midSideIndex) {}
         SPZFatherSideInfo() = default;
+        SPZFatherSideInfo(const SPZFatherSideInfo &) = default;
         ~SPZFatherSideInfo() = default;
 	};
 	/**
@@ -116,160 +122,180 @@ protected:
 
 	/// id of the refinement pattern
 	int fId;
+
+    /**
+    * @brief Refinement for elements associated with a certain side of the current element.
+    * Usually, this is used for boundary/interface elements.
+    */
+    TPZVec<int> fSideRefPattern;
+
+    /**
+    * @brief Vector containing refinement patterns for each permutation of the master element.
+    *
+    * The vector stores the id correspondent to the refinement pattern vector in fRefPatternMesh
+    */
+    TPZVec<int> fPermutedRefPatterns;
+
+    /**
+    * @brief Geometric mesh which defines the topology of the current refinement pattern
+    */
+    TPZGeoMesh fRefPatternMesh;
+
+    /**
+     * @brief Number of subelements. Must be available before the mesh is generated.
+     */
+    int fNSubEl;//@TODOFran:: is it really necessary?
+
+    /**
+     * Given a certain geometric element corresponding to a sub-element, this method will return its index
+     * @return index of the sub-element
+     */
+    int FindSubEl(TPZGeoEl *) const;
+
+    /** @brief Auxiliar structure to permute nodes */
+    class TPZRefPattern3Permute : public TPZSavable {
+    public:
+        /** @brief permutation of the nodes */
+        TPZPermutation fPermute;
+
+        /** @brief Transformation to the nodes */
+        TPZTransform<> fTransform;
+        /** @brief Default constructor */
+        TPZRefPattern3Permute(): fPermute(0)
+        {}
+        /** @brief Copy constructor */
+        TPZRefPattern3Permute(const TPZRefPattern3Permute &copy) : fPermute(copy.fPermute), fTransform(copy.fTransform)
+        {
+        }
+        /** Assignment operator */
+        TPZRefPattern3Permute &operator=(const TPZRefPattern3Permute &copy)
+        {
+            fPermute = copy.fPermute;
+            fTransform = copy.fTransform;
+            return *this;
+        }
+        int ClassId() const override;
+        void Read(TPZStream &buf, void *context) override;
+        void Write(TPZStream &buf, int withclassid) const override;
+    };
+
+    /**
+     * @brief Map of all valid permutations
+     */
+    static std::map<MElementType, std::list<TPZRefPattern3Permute> > fPermutations;
+
+
+    friend class
+    TPZRefPatternDataBase;
+
+    friend class
+    TPZRefPatternTools;
+
 public:
 
-    TPZRefPattern3() = default;
+    TPZRefPattern3();
+//    /**
+//    * @brief Constructor whose argument is the name of the file with the definition
+//    * of the refinement pattern
+//    */
+//    TPZRefPattern3(std::istream &file);//@TODOFran: Implement me!
+//
+//    /**
+//    * @brief Constructor whose argument is a string containing the definition
+//    * of the refinement pattern
+//    */
+//    TPZRefPattern3(const std::string &file);//@TODOFran: Implement me!
+//
+//    /**
+//    * @brief Creates an TPZRefPattern3 from a given mesh
+//    */
+//    TPZRefPattern3(TPZGeoMesh &RefPatternMesh);//@TODOFran: Implement me!
+//
+//    /**
+//    * @brief Create a copy of the TPZRefPattern3 applying the permutation on the first element
+//    */
+//    TPZRefPattern3(const TPZRefPattern3 &copy, const TPZPermutation &permute);//@TODOFran: Implement me!
+
+// 	int operator==(const TPZAutoPointer<TPZRefPattern3> compare) const; //@TODOFran: Implement me!
+    /**
+ 	* @brief Copy constructor
+ 	*/
+    TPZRefPattern3(const TPZRefPattern3 &copy) = default;
 
 	explicit TPZRefPattern3(TPZRefPattern &oldRef);
 
 	virtual ~TPZRefPattern3() = default;
 
+    //@TODOFran: Document me!
     void PrintMore(std::ostream &out = std::cout) const;
 
-	// /**
- //     * @brief Geometric mesh which defines the topology of the current refinement pattern
- //     */
- //    TPZGeoMesh fRefPatternMesh;
-	
- //    /**
-	//  * @brief Refinamento para elementos de contorno associados ao refinamento atual
-	//  */
- //    TPZVec<int> fSideRefPattern;
-	
-	// /**
-	//  * @brief vector of refinement patterns for each permutation of the master element.
-	//  * 
-	//  * The vector stores the id correspondent to the refinement pattern vector in fOwnerMesh
-	//  */
-	// TPZVec<int> fPermutedRefPatterns;
-    
- //    /**
-	//  * @brief This should be available before the mesh initialization
-	//  */
- //    int fNSubEl;
-    
- //    /**
- //     * @brief Unique id given to the refpattern in order to read and write from disk
- //     */
-	// int fId;
+    /**
+     * @brief Sets the name associated with the refinement pattern
+     * @param name a string containing the name to be set
+     */
+ 	void SetName(std::string name)
+ 	{
+ 		fName = name;
+ 	}
+    int ClassId() const override;
 
-	// /**
-	//  * @brief Map of all valid permutations
-	//  */
-	// static std::map<MElementType, std::list<TPZRefPattern3Permute> > fPermutations;
-	
-	// std::string fName;
-	
-	// friend class 
-	// TPZRefPatternDataBase;
-	
-	// friend class
-	// TPZRefPatternTools;
-	
-// public:
-	
-// 	TPZRefPattern3();
-	
-//     /**
-//      * @brief Constructor whose argument is the name of the file with the definition
-//      * of the refinement standard
-//      */
-// 	TPZRefPattern3(std::istream &file);
-	
-// 	TPZRefPattern3(const std::string &file);
-	
-// 	/**
-//      * @brief Creates an TPZRefPattern3 from a given mesh
-//      */
-//     TPZRefPattern3(TPZGeoMesh &RefPatternMesh);
-    
-//     /**
-// 	 * @brief Copy constructor
-// 	 */
-//     TPZRefPattern3(const TPZRefPattern3 &copy);
-    
-//     /**
-//      * @brief Create a copy of the TPZRefPattern3 applying the permutation on the first element
-//      */
-//     TPZRefPattern3(const TPZRefPattern3 &copy, const TPZPermutation &permute);
-	
-//     /**
-//      * @brief Destructor of the object
-//      */
-//     ~TPZRefPattern3();
-	
-// 	int operator==(const TPZAutoPointer<TPZRefPattern3> compare) const;
-	
-// 	void BuildName();
-	
-// 	bool NameInitialized()
-// 	{
-// 		return (fName != nonInitializedName);
-// 	}
-	
-// 	void SetName(std::string name)
-// 	{
-// 		fName = name;
-// 	}
- 	        int ClassId() const override;
-//         void Read(TPZStream &buf, void *context) override;
-//         void Write(TPZStream &buf, int withclassid) const override;
+//    void Read(TPZStream &buf, void *context) override;//@TODOFran: Implement me!
+//
+//    void Write(TPZStream &buf, int withclassid) const override;//@TODOFran: Implement me!
 
+    /**
+    * Gives the number of sub elements of this refinement pattern
+    * @return number of sub elements
+    */
+    int NSubElements() const;
+    /**
+    * @brief Returns the father side associated with a given side of a certain sub element
+    * @param side side of the sub element
+    * @param sub index of the sub element
+    * @return father's side
+    */
+    int FatherSide(int side, int sub) const;
+
+
+    /**
+    * @brief Returns the number of TPZGeoElSides associated with a father's side.
+    */
+    int NSideSubGeoElSides(int fatherSide) const;
+    /**
+     * @brief Gives information about the ith subelement contained in a given father's side
+     * @param fatherSide father's side from which we want to know information about a sub element
+     * @param subElPos the information regards the subElPos-th sub element of the fatherSide
+     * @param subGeoEl TPZGeoElSide of the (sub-element,side) associated with the father's side
+     */
+    void SideSubGeoElSide(int fatherSide, int subElPos, TPZGeoElSide & subGeoEl) const;
 	
-// 	/**
-//      * @brief Sides associates to the element father
-//      */
-//     int FatherSide(int side, int sub);
+    /**
+    * @brief It returns the TPZTransform associated with a certain sub-element of a father's side
+    * @param fatherSide father's side from which we want to know information about a sub element
+    * @param sub the information regards the sub-th sub element of the fatherSide
+    */
+    TPZTransform<> Transform(int fatherSide, int sub);
 	
-//     /**
-//      * @brief It returns the sub-element and side from the
-// 	 * sub-element number position of side side 
-//      */
-//     void SideSubElement(int sidein, int position, int & sub, int & sideout);
+     /**
+      * @brief It returns a TPZVec containing the nodes contained in a given father's side
+      * @param fatherSide father's side from which we want to know information about a sub element
+      * @param vecNodes vector containing the nodes of side fatherSide
+      */
+     void SideNodes(int fatherSide, TPZVec<int> &vecNodes);
 	
-//     /**
-//      * @brief It returns the hashing enters the side of an sub-element and the side of
-//      * the father who contains it.
-//      */
-//     TPZTransform<> Transform(int side, int sub);
-	
-//     /**
-//      * @brief It returns the stack from referring indices
-// 	 * to the internal nodes to the side
-//      */
-//     void SideNodes(int side, TPZVec<int> &vecnodes);
-	
-//     /**
-//      * @brief Returns the number from internal nodes of side 
-//      */
-//     int NSideNodes(int side);
+     /**
+      * @brief Returns the number of internal nodes of side
+      */
+     int NSideNodes(int fatherSide);
 	
 //     /**
 //      * @brief Returns the number of nodes of the mesh
 //      */
 //     int NNodes();
-	
-//     /**
-//      * @brief Returns the number from sub-elements of the division.
-//      */
-//     int NSubElements();
-	
-//     /**
-//      * @brief It fills the structure of data that determines the number of elements
-//      *  associates to the side of the element father
-//      */
-//     void NSideSubElements();
-	
-//     /**
-//      * @brief Returns the number from sub-elements associates to side.
-//      */
-//     int NSideSubElements(int side);
-	
 //     /**
 //      * @brief It prints the features of the standard of geometric refinement.
 //      */
 //     void MeshPrint();
-//     void PrintMore(std::ostream &out = std::cout);
 	
 // 	/**
 // 	 * @brief Prints the useful information of a Refinement Pattern in a ostream file

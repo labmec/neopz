@@ -533,6 +533,9 @@ protected:
 	
 	friend class
 	TPZRefPatternTools;
+
+    friend class
+    TPZRefPattern3;
 };
 
 /** @} */
