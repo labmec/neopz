@@ -233,9 +233,9 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -0.54395711345815;
-        sigma_ref.YY() = 0.564215469327881;
-        sigma_ref.ZZ() = 0.00411244624155542;
+        sigma_ref.XX() = -0.545474592614579;
+        sigma_ref.YY() =  0.565789463294054;
+        sigma_ref.ZZ() =  0.00412391874793339;
 
         eps_e.Zero(); // The reference strain
         eps_e.XX() = -0.000113727;
@@ -296,7 +296,7 @@ void PECompareStressStrainResponse() {
         }
         for(int i = 0; i < n_data-1; i++){
             REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
-            REAL diff = n - 1.99;
+            REAL diff = n - 1.999;
             bool rate_check = fabs(diff) < 0.01;
             BOOST_CHECK(rate_check);
         }
@@ -307,13 +307,13 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -0.544354891592515;
-        sigma_ref.YY() = 0.564579745407486;
-        sigma_ref.ZZ() = -0.00671541759251463;
+        sigma_ref.XX() = -2.77908231685753;
+        sigma_ref.YY() =  2.81562551314247;
+        sigma_ref.ZZ() =  -0.0121044068575306;
 
         eps_e.Zero(); // The reference strain
-        eps_e.XX() = -2.20978e-5;
-        eps_e.YY() = 2.34811e-5;
+        eps_e.XX() = -0.000113727;
+        eps_e.YY() = 0.000116224;
 
         STATE mu = 12165.0;
         STATE kappa = 0.0024;
@@ -322,7 +322,7 @@ void PECompareStressStrainResponse() {
         STATE p_0 = 0.0;
         PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
         PER.SetShearModulusConstant(mu);
-
+        
         TPZTensor<STATE> sigma, epsilon_target;
         PER.ComputeStress(eps_e, sigma);
         REAL sigma_norm =(sigma-sigma_ref).Norm();
@@ -370,7 +370,7 @@ void PECompareStressStrainResponse() {
         }
         for(int i = 0; i < n_data-1; i++){
             REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
-            REAL diff = n - 1.99;
+            REAL diff = n - 1.999;
             bool rate_check = fabs(diff) < 0.01;
             BOOST_CHECK(rate_check);
         }
@@ -390,9 +390,9 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -0.54395711345815;
-        sigma_ref.YY() = 0.564215469327881;
-        sigma_ref.ZZ() = 0.00411244624155542;
+        sigma_ref.XX() = -0.545474592614579;
+        sigma_ref.YY() =  0.565789463294054;
+        sigma_ref.ZZ() =  0.00412391874793339;
         
         eps_e.Zero(); // The reference strain
         eps_e.XX() = -0.000113727;
@@ -419,13 +419,13 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -0.544354891592515;
-        sigma_ref.YY() = 0.564579745407486;
-        sigma_ref.ZZ() = -0.00671541759251463;
+        sigma_ref.XX() = -2.77908231685753;
+        sigma_ref.YY() =  2.81562551314247;
+        sigma_ref.ZZ() =  -0.0121044068575306;
         
         eps_e.Zero(); // The reference strain
-        eps_e.XX() = -2.20978e-5;
-        eps_e.YY() = 2.34811e-5;
+        eps_e.XX() = -0.000113727;
+        eps_e.YY() = 0.000116224;
         
         TPZElasticResponse LE_equivalent = PER.EvaluateElasticResponse(eps_e);
         LE_equivalent.ComputeStress(eps_e, sigma_linear);
