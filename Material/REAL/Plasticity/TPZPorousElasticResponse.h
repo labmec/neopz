@@ -148,13 +148,13 @@ public:
         REAL res_tol = 1.0e-5;
         REAL eps_v = 0.0;
         for(int i = 0; i < n_iterations; i++){
-            p_star = - m_pt_el  + exp(-eps_v*(1.0+m_e_0)/m_kappa)*(m_p_0 + m_pt_el);
-            r = p - p_star;
+            p_star = - m_pt_el  + exp(eps_v*(1.0+m_e_0)/m_kappa)*(m_p_0 + m_pt_el);
+            r = p_star - p;
             stop_criterion = fabs(r) < res_tol;
             if(stop_criterion){
                 break;
             }
-            j = -(exp(-eps_v*(1.0+m_e_0)/m_kappa)*(1.0+m_e_0)*(m_p_0 + m_pt_el))/(m_kappa);
+            j = -(exp(eps_v*(1.0+m_e_0)/m_kappa)*(1.0+m_e_0)*(m_p_0 + m_pt_el))/(m_kappa);
             REAL deps_v = r / j;
             eps_v += deps_v;
         }

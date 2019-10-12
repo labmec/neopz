@@ -296,7 +296,7 @@ void TPZPorousElasticResponse::De_Poisson_constant(const TPZTensor<STATE> & epsi
     TPZFMatrix<STATE> De_nl(6,6,0.0);
     REAL constant = (2.0/(-1.0+2.0*m_nu));
     
-    // Line 0
+    // Line 0 ok
     REAL l0_val = constant * ( epsilon.XX() * (m_nu - 1.0) - m_nu * (epsilon.YY() + epsilon.ZZ())) * dG_desp_vol;
     De_nl.PutVal(_XX_, _XX_, l0_val);
     De_nl.PutVal(_XX_, _YY_, l0_val);
