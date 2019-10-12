@@ -302,7 +302,7 @@ void TPZPorousElasticResponse::De_Poisson_constant(const TPZTensor<STATE> & epsi
     De_nl.PutVal(_XX_, _YY_, l0_val);
     De_nl.PutVal(_XX_, _ZZ_, l0_val);
     
-    // Line 1
+    // Line 1 ok
     REAL l1_val = 2.0 * dG_desp_vol * epsilon.XY();
     De_nl.PutVal(_XY_, _XX_, l1_val);
     De_nl.PutVal(_XY_, _YY_, l1_val);
