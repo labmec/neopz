@@ -233,9 +233,9 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -0.545474592614579;
-        sigma_ref.YY() =  0.565789463294054;
-        sigma_ref.ZZ() =  0.00412391874793339;
+        sigma_ref.XX() = -0.54395575520063;
+        sigma_ref.YY() =  0.564214060485372;
+        sigma_ref.ZZ() =  0.00411243597280279;
 
         eps_e.Zero(); // The reference strain
         eps_e.XX() = -0.000113727;
@@ -307,9 +307,9 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -2.77908231685753;
-        sigma_ref.YY() =  2.81562551314247;
-        sigma_ref.ZZ() =  -0.0121044068575306;
+        sigma_ref.XX() = -2.77910499958082;
+        sigma_ref.YY() =  2.81560283041918;
+        sigma_ref.ZZ() =  -0.0121270895808181;
 
         eps_e.Zero(); // The reference strain
         eps_e.XX() = -0.000113727;
@@ -390,9 +390,9 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -0.545474592614579;
-        sigma_ref.YY() =  0.565789463294054;
-        sigma_ref.ZZ() =  0.00412391874793339;
+        sigma_ref.XX() = -0.54395575520063;
+        sigma_ref.YY() =  0.564214060485372;
+        sigma_ref.ZZ() =  0.00411243597280279;
         
         eps_e.Zero(); // The reference strain
         eps_e.XX() = -0.000113727;
@@ -419,9 +419,9 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -2.77908231685753;
-        sigma_ref.YY() =  2.81562551314247;
-        sigma_ref.ZZ() =  -0.0121044068575306;
+        sigma_ref.XX() = -2.77910499958082;
+        sigma_ref.YY() =  2.81560283041918;
+        sigma_ref.ZZ() =  -0.0121270895808181;
         
         eps_e.Zero(); // The reference strain
         eps_e.XX() = -0.000113727;
