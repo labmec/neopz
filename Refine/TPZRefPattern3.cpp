@@ -44,7 +44,8 @@ fSideRefPattern(0), fPermutedRefPatterns(0), fNSubEl(0){
 }
 
 TPZRefPattern3::TPZRefPattern3(TPZRefPattern &oldRef){
-    TPZGeoEl* geoEl = oldRef.Element(0);
+    fRefPatternMesh = oldRef.fRefPatternMesh;
+    TPZGeoEl* geoEl = fRefPatternMesh.Element(0);
     MElementType type = geoEl->Type();
 
     const uint nSides = geoEl->NSides();
@@ -59,7 +60,7 @@ TPZRefPattern3::TPZRefPattern3(TPZRefPattern &oldRef){
         //second member of the tuple to be stored in fFatherSideInfo[iSide]
         TPZStack<TPZGeoElSide> sideSonsStack;
         for(uint iSubEl = 0; iSubEl < oldRef.NSubElements(); iSubEl++){
-            TPZGeoEl *subEl = oldRef.Element(iSubEl+1);
+            TPZGeoEl *subEl = fRefPatternMesh.Element(iSubEl+1);
             for(uint iSubElSide = 0; iSubElSide < subEl->NSides(); iSubElSide ++){
                 int fatherSide = oldRef.FatherSide(iSubElSide,iSubEl);
                 if(fatherSide == iSide){
@@ -151,13 +152,26 @@ int TPZRefPattern3::NSubElements() const
 int TPZRefPattern3::FatherSide(int side, int sub) const
 {
     #ifdef PZDEBUG
-    if(!CheckSideAndSubElConsistency(side,sub)) DebugStop();
+    if(sub < 0 || sub >= NSubElements()){
+        PZError << "TPZRefPattern3::FatherSide: wrong parameter 'sub'."<<std::endl;
+        PZError << "The current ref pattern has "<<NSubElements()<<" and the parameter 'sub' was "<<sub<<std::endl;
+        DebugStop();
+
+    }
+    if(side < 0 || side >= fRefPatternMesh.ElementVec()[sub+1]->NSides()){
+        PZError << "TPZRefPattern3::FatherSide: wrong parameter 'side'."<<std::endl;
+        PZError << "The current sub element has "<<fRefPatternMesh.ElementVec()[sub+1]->NSides()<<" sides ";
+        PZError << "and the parameter 'side' was "<<side<<std::endl;
+        DebugStop();
+    }
     #endif
     return fSubElSideInfo[sub][side].first;
 }
 int TPZRefPattern3::NSideSubGeoElSides(int fatherSide) const{
     #ifdef PZDEBUG
-    if(!CheckSideConsistency(fatherSide)) DebugStop();
+    if(!CheckSideConsistency(fatherSide)) {
+        DebugStop();
+    }
     #endif
 
     return fFatherSideInfo[fatherSide].fSideSons.size();
@@ -165,32 +179,50 @@ int TPZRefPattern3::NSideSubGeoElSides(int fatherSide) const{
 
 void TPZRefPattern3::SideSubGeoElSide(int fatherSide, int subElPos, TPZGeoElSide & subGeoEl) const{
     #ifdef PZDEBUG
-    if(!CheckSideAndSubElConsistency(fatherSide,subElPos)) DebugStop();
+    if(!CheckSideAndSubElConsistency(fatherSide,subElPos)) {
+        DebugStop();
+    }
     #endif
     subGeoEl = fFatherSideInfo[fatherSide].fSideSons[subElPos];
 }
 
- TPZTransform<> TPZRefPattern3::Transform(int fatherSide, int sub)
+ TPZTransform<> TPZRefPattern3::Transform(int subElSide, int sub)
  {
-     #ifdef PZDEBUG
-     if(CheckSideAndSubElConsistency(fatherSide,sub)) DebugStop();
-     #endif
-    auto subGeoElSide =  fFatherSideInfo[fatherSide].fSideSons[sub];
-    const int subElIndex = FindSubEl(subGeoElSide.Element());
-    const int subElNSides = fSubElSideInfo[subElIndex].size();
-    return fSubElSideInfo[subElIndex][subElNSides-1].second;
+//     #ifdef PZDEBUG
+//     if(!CheckSideAndSubElConsistency(fatherSide,sub)) {
+//         DebugStop();
+//     }
+//     #endif
+//    auto subGeoElSide =  fFatherSideInfo[fatherSide].fSideSons[sub];
+//    const int subElIndex = FindSubEl(subGeoElSide.Element());
+//    const int subElNSides = fSubElSideInfo[subElIndex].size();
+//    return fSubElSideInfo[subElIndex][subElNSides-1].second;
+    #ifdef PZDEBUG
+     if(sub<0 || sub >= NSubElements()) {
+         DebugStop();
+     }
+     TPZGeoEl *subEl = Element(sub+1);
+     if(subElSide<0 || subElSide >= subEl->NSides()){
+         DebugStop();
+     }
+    #endif
+    return fSubElSideInfo[sub][subElSide].second;
  }
 
 void TPZRefPattern3::SideNodes(int fatherSide, TPZVec<int> &vecNodes){
 #ifdef PZDEBUG
-    if(!CheckSideConsistency(fatherSide)) DebugStop();
+    if(!CheckSideConsistency(fatherSide)) {
+        DebugStop();
+    }
 #endif
     vecNodes = fFatherSideInfo[fatherSide].fSideNodes;
 }
 
 int TPZRefPattern3::NSideNodes(int fatherSide){
     #ifdef PZDEBUG
-    if(!CheckSideConsistency(fatherSide)) DebugStop();
+    if(!CheckSideConsistency(fatherSide)) {
+        DebugStop();
+    }
     #endif
     return fFatherSideInfo[fatherSide].fSideNodes.size();
 }
@@ -219,7 +251,9 @@ TPZGeoEl *TPZRefPattern3::Element(int iel){
 
 void TPZRefPattern3::InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &nodeIndexes){
     #ifdef PZDEBUG
-    if(!CheckSideConsistency(side)) DebugStop();
+    if(!CheckSideConsistency(side)) {
+        DebugStop();
+    }
     #endif
     nodeIndexes.Resize(0);
     int count = 0;
@@ -234,7 +268,9 @@ void TPZRefPattern3::InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &n
 
 void TPZRefPattern3::InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &sideIndexes){
     #ifdef PZDEBUG
-    if(!CheckSideConsistency(side)) DebugStop();
+    if(!CheckSideConsistency(side)) {
+        DebugStop();
+    }
     #endif
     const int nSubElSides = fFatherSideInfo[side].fSideSons.size();
     sideIndexes.Resize(nSubElSides);
@@ -276,8 +312,9 @@ bool TPZRefPattern3::CheckSideAndSubElConsistency(const int fatherSide, const in
     const int nSubGeoElSides = NSideSubGeoElSides(fatherSide);
     if(fatherSide < 0 || fatherSide >= nSides || subEl < 0 || subEl >= nSubGeoElSides)
     {
-        PZError << "TPZRefPattern3::NSideSubElements: wrong argument\n";
+        PZError << "TPZRefPattern3::CheckSideAndSubElConsistency: wrong argument\n";
         PZError << "father side = " << fatherSide << std::endl;
+        PZError << "subEl = " << subEl << std::endl;
         return false;
     }
     return true;

@@ -270,9 +270,10 @@ void TPZRefPattern::SideSubElement(int sidein, int position, int & sub, int & si
 	{
 		PZError << "TPZRefPattern::SideSubElement null side, side = " << sidein << endl;
 	}
-	
-	int insd = fFatherSides.fInitSide[sidein];
-	int insd2 = fFatherSides.fInitSide[sidein+1];
+    TPZGeoEl *father = Element(0);
+    int nnod = father->NNodes();
+	int insd = fFatherSides.fInitSide[sidein-nnod];
+	int insd2 = fFatherSides.fInitSide[sidein-nnod+1];
 	
 	if(position < 0 || position > (insd2-insd))//subs2-subsd com numero de sub's do lado
 	{
@@ -281,8 +282,8 @@ void TPZRefPattern::SideSubElement(int sidein, int position, int & sub, int & si
 		return;
 	}
 	//a ordem codeterminada pela particao dos lados do pai, couma ordem fixa
-	sub = fFatherSides.fPartitionSubSide[insd].Element(&fRefPatternMesh)->Id()-1;//id contemplado como filho
-	sideout = fFatherSides.fPartitionSubSide[insd].Side();
+	sub = fFatherSides.fPartitionSubSide[insd+position].Element(&fRefPatternMesh)->Id();
+	sideout = fFatherSides.fPartitionSubSide[insd+position].Side();
 }
 
 TPZTransform<> TPZRefPattern::Transform(int side, int sub)

@@ -286,11 +286,11 @@ public:
     void SideSubGeoElSide(int fatherSide, int subElPos, TPZGeoElSide & subGeoEl) const;
 	
     /**
-    * @brief It returns the TPZTransform associated with a certain sub-element of a father's side
-    * @param fatherSide father's side from which we want to know information about a sub element
+    * @brief It returns the TPZTransform associated with a certain sub-element's side to the father's coordinates
+    * @param subElSide subElement side
     * @param sub the information regards the sub-th sub element of the fatherSide
     */
-    TPZTransform<> Transform(int fatherSide, int sub);
+    TPZTransform<> Transform(int subElSide, int sub);
 	
      /**
       * @brief It returns a TPZVec containing the nodes contained in a given father's side
