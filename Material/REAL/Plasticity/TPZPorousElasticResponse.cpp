@@ -19,6 +19,7 @@ TPZPorousElasticResponse::TPZPorousElasticResponse() {
     m_pt_el = 0.0;
     m_e_0   = 0.0;
     m_p_0   = 0.0;
+    m_eps_v_0 = 0.0;
     m_nu    = 0.0;
     m_mu    = 0.0;
     m_is_G_constant_Q   = false;
@@ -31,6 +32,7 @@ TPZPorousElasticResponse::TPZPorousElasticResponse(const TPZPorousElasticRespons
     m_pt_el = other.m_pt_el;
     m_e_0   = other.m_e_0;
     m_p_0   = other.m_p_0;
+    m_eps_v_0 = other.m_eps_v_0;
     m_nu    = other.m_nu;
     m_mu    = other.m_mu;
     m_is_G_constant_Q   = other.m_is_G_constant_Q;
@@ -48,6 +50,7 @@ TPZPorousElasticResponse & TPZPorousElasticResponse::operator=(const TPZPorousEl
     m_pt_el = other.m_pt_el;
     m_e_0   = other.m_e_0;
     m_p_0   = other.m_p_0;
+    m_eps_v_0 = other.m_eps_v_0;
     m_nu    = other.m_nu;
     m_mu    = other.m_mu;
     m_is_G_constant_Q   = other.m_is_G_constant_Q;
@@ -60,6 +63,7 @@ void TPZPorousElasticResponse::Write(TPZStream& buf, int withclassid) const { //
     buf.Write(&m_pt_el);
     buf.Write(&m_e_0);
     buf.Write(&m_p_0);
+    buf.Write(&m_eps_v_0);
     buf.Write(&m_nu);
     buf.Write(&m_mu);
     buf.Write(m_is_G_constant_Q);
@@ -71,6 +75,7 @@ void TPZPorousElasticResponse::Read(TPZStream& buf, void* context) { //ok
     buf.Read(&m_pt_el);
     buf.Read(&m_e_0);
     buf.Read(&m_p_0);
+    buf.Read(&m_eps_v_0);
     buf.Read(&m_nu);
     buf.Read(&m_mu);
     buf.Read(m_is_G_constant_Q);
@@ -107,6 +112,10 @@ void TPZPorousElasticResponse::Sete_0(STATE e_0){
     m_e_0 = e_0;
 }
 
+void TPZPorousElasticResponse::Seteps_v_0(STATE eps_v_0){
+    m_eps_v_0 = eps_v_0;
+}
+
 void TPZPorousElasticResponse::SetShearModulusConstant(STATE G){
     m_is_G_constant_Q = true;
     m_mu = G;
@@ -135,6 +144,7 @@ void TPZPorousElasticResponse::Print(std::ostream & out) const {
     out << "\n Elastic tensile strength = " << m_pt_el;
     out << "\n Initial void ratio = " << m_e_0;
     out << "\n Initial hydrostatic stress = " << m_p_0;
+    out << "\n Initial volumetric strain = " << m_eps_v_0;
     out << "\n Constant Shear modulus directive = " << m_is_G_constant_Q;
     if (m_is_G_constant_Q) {
         out << "\n Second Lamé parameter (Shear modulus) = " << m_mu;
@@ -157,11 +167,11 @@ void TPZPorousElasticResponse::K(const TPZTensor<STATE> &delta_eps, STATE & K, S
     
 #ifdef SimplifiedVersion_Q
     
-    STATE delta_epsv = delta_eps.I1();
+    STATE delta_epsv = -1.0+exp(m_eps_v_0)*(1.0+delta_eps.I1()-m_eps_v_0);
     STATE factor = (1 + m_e_0)/m_kappa;
     STATE exp_arg = -factor*(delta_epsv);
     K =(m_p_0 + m_pt_el)*factor*exp(exp_arg);
-    dK_desp_vol=-(m_p_0 + m_pt_el)*exp(exp_arg)*factor*factor;
+    dK_desp_vol=-(m_p_0 + m_pt_el)*exp(exp_arg+m_eps_v_0)*factor*factor;
 
 #else
     
@@ -341,33 +351,3 @@ TPZElasticResponse TPZPorousElasticResponse::EvaluateElasticResponse(const TPZTe
     return LinearER;
 }
 
-//TPZElasticResponse TPZPorousElasticResponse::LinearizedElasticResponse(const TPZTensor<STATE> & epsilon_ref, const TPZTensor<STATE> & epsilon) const{
-//    DebugStop();
-//    TPZElasticResponse LinearER;
-//    REAL Eyoung;
-//    /// The properties are computed as zero order approach, i.e. constant associated to epsilon
-//    STATE G;
-//    if (m_is_G_constant_Q) {
-//        STATE nu;
-//        this->Poisson_linearized(epsilon_ref,epsilon, nu);
-//        Eyoung = 2*m_mu*(1.0+nu);
-//        LinearER.SetEngineeringData(Eyoung, nu);
-//    }else{
-//        STATE dG_desp_vol;
-//        this->G(epsilon, G, dG_desp_vol);
-//        Eyoung = 2*G*(1.0+m_nu);
-//        LinearER.SetEngineeringData(Eyoung, m_nu);
-//        DebugStop(); // Implement linearization for G expression.
-//    }
-//
-//    /// Seeking for an equivalent residual strain
-//    {
-//        TPZTensor<REAL> linear_epsilon,sigma, eps_res;
-//        this->ComputeStress(epsilon, sigma);
-//        LinearER.ComputeStrain(sigma, linear_epsilon);
-//        eps_res = epsilon - linear_epsilon;
-//        LinearER.SetResidualStrainData(eps_res);
-//    }
-//
-//    return LinearER;
-//}

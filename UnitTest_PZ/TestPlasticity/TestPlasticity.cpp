@@ -228,6 +228,25 @@ void PECompareStressStrainResponse() {
     
     TPZPorousElasticResponse PER;
     
+//    STATE mu = 12165.0;
+//    STATE kappa = 0.0024;
+//    STATE pt_el = 5.835;
+//    STATE e_0 = 0.34;
+//    STATE p_0 = 0.0;
+//    PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
+//    PER.SetShearModulusConstant(mu);
+//    
+//    TPZTensor<STATE> delta_eps;
+//    delta_eps.Zero();
+//    REAL eps_vol = -0.00475;
+//    delta_eps.XX() = eps_vol/3.0;
+//    delta_eps.YY() = eps_vol/3.0;
+//    delta_eps.ZZ() = eps_vol/3.0;
+//    STATE K;
+//    STATE dK_desp_vol;
+//    PER.Seteps_v_0(-0.0045);
+//    PER.K(delta_eps, K, dK_desp_vol);
+    
     //Testing TPZPorousElasticResponse for constan Poisson ratio
     {
         // The reference data

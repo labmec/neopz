@@ -30,6 +30,9 @@ private:
     /// Initial equivalent pressure stress
     STATE m_p_0;
     
+    /// Initial volumetric strain
+    STATE m_eps_v_0;
+    
     /// Poisson ratio
     STATE m_nu;
     
@@ -70,6 +73,9 @@ public:
     
     /// Set void ratio at initial volumetric stress
     void Sete_0(STATE e_0);
+
+    /// Set initial volumetric strain
+    void Seteps_v_0(STATE eps_v_0);
     
     /// Set directive to keep constant the Shear modulus
     void SetShearModulusConstant(STATE G);
