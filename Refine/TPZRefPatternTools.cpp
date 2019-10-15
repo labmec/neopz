@@ -10,6 +10,7 @@
 
 #include "TPZRefPatternTools.h"
 #include "TPZVTKGeoMesh.h"
+#include "TPZRefPattern3.h"//@TODOFran: remove this
 
 using namespace std;
 
@@ -852,6 +853,48 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZRefPattern &refp)
 	}
 	
 	return refpTypeName;
+}
+
+std::string TPZRefPatternTools::BuildRefPatternModelName(TPZRefPattern3 &refp)
+{
+    std::string refpTypeName;
+    std::stringstream rpName;
+    TPZRefPattern3 *prefp = &refp;
+
+    if(prefp == NULL)
+    {
+        std::cout << "Null refpattern parameter on " << __PRETTY_FUNCTION__ << std::endl;
+        return refpTypeName;
+    }
+
+    TPZGeoEl *gel = refp.Element(0);
+    int ncorners = gel->NCornerNodes();
+    int nsides = gel->NSides();
+
+    std::string perfix = gel->TypeName();
+    for(int i = 0; i < 3; i++)
+    {
+        rpName <<  perfix[i];
+    }
+    for(int s = 0; s < nsides; s++)
+    {
+        if(s < ncorners)
+        {
+            rpName << "0";
+        }
+        else
+        {
+            rpName << refp.NSideNodes(s);
+        }
+    }
+    rpName >> refpTypeName;
+
+    if(refpTypeName.length() == 0)
+    {
+        refpTypeName = nonInitializedName;
+    }
+
+    return refpTypeName;
 }
 
 std::string TPZRefPatternTools::BuildRefPatternModelName(TPZAutoPointer<TPZRefPattern> refp)

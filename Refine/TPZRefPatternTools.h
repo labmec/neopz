@@ -21,6 +21,7 @@
 #include "TPZRefPattern.h"
 #include "tpzintpoints.h"
 
+class TPZRefPattern3;
 /**
  * @ingroup refine
  * @brief Defines tools of pattern. \ref refine "Refine"
@@ -144,6 +145,7 @@ public:
 	 * followed by the quantity of midnodes for each side of element.
 	 */
 	static std::string BuildRefPatternModelName(TPZRefPattern &refp);
+    static std::string BuildRefPatternModelName(TPZRefPattern3 &refp);
 	static std::string BuildRefPatternModelName(TPZAutoPointer<TPZRefPattern> refp);
 	static std::string BuildRefPatternModelName(TPZGeoEl *gel);
 	

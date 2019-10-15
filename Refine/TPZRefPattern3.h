@@ -98,7 +98,7 @@ protected:
         TPZVec<int> fSideNodes;
         /// a vector of TPZGeoElSide relative to its sons
         TPZVec<TPZGeoElSide> fSideSons;
-        ///if there is a midsidenode in the side, it's index. otherwise is -1
+        ///if there is a midsidenode in the side, its index. otherwise is -1
         int64_t fMidSideIndex;
         SPZFatherSideInfo(const TPZVec<int> &sideNodes,
                 const TPZVec<TPZGeoElSide> &sideSons,
@@ -207,20 +207,84 @@ protected:
      */
     bool CheckSideAndSubElConsistency(const int fatherSide, const int subEl) const;
 
+    /**
+	 * @brief Sets the RefPatternMesh in (x,y,z)_coordinates to (qsi,eta,zeta)_coordinates, always respecting the R3 dimension.
+	 */
+    void SetRefPatternMeshToMasterDomain();
+
+    /**
+	 * @brief Automatically generate all permuted numberings for the father element of RefPatternMesh
+	 */
+    void GeneratePermutations(TPZGeoEl *gel);
+
+    /**
+     * @brief Calculates the transforms between the parametric coordinates of the sides of the son to the father's coords
+     */
+    void ComputeTransforms();
+
+    /**
+     * @brief It computers the partition of the sides of the father element using the sides of the children
+     */
+    void ComputePartition();
+
+    /**
+	 * @brief Generate the refinement patterns associated with the sides of the father element
+	 */
+    void GenerateSideRefPatterns();
+
+    /**
+	 * @brief Build a geometric mesh associated with the side of the refinement pattern
+	 */
+    void BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh);
+
+    /**
+     * @brief Generate all permuted partitions and insert them in the mesh
+     */
+    void InsertPermuted();
+
+    void BuildName();
+
+    /**
+     * @brief Copy the mesh structure applying the permutation on the nodenumbers of the first element
+     */
+    void PermuteMesh(const TPZPermutation &permute);
+
+    /**
+     * Reads the definition of a refinement pattern and creates it.
+     * @param pattern
+     */
+    void ReadAndCreateRefinementPattern(std::istream &file);
+
+    /**
+     * Creates a refinement pattern based on the data structure geometrical mesh
+     * @param gmesh
+     */
+    void CreateRefinementPattern();
+
+    /**
+     * This method computes the transformation between the parametric coordinates of one element to another's.
+     * In order to work properly, the elements should be related either by a father/son relationship or by a permutation
+     * @param geoElFrom element from which the transformation will be applied
+     * @param geoElTo element to which the transformation corresponds
+     * @param sideFrom side of the from element
+     * @param sideTo side of the to element
+     * @return transformation
+     */
+    TPZTransform<> ComputeParamTransform(TPZGeoEl *geoElFrom, TPZGeoEl *geoElTo, int sideFrom, int sideTo);
 public:
 
     TPZRefPattern3();
-//    /**
-//    * @brief Constructor whose argument is the name of the file with the definition
-//    * of the refinement pattern
-//    */
-//    TPZRefPattern3(std::istream &file);//@TODOFran: Implement me!
-//
-//    /**
-//    * @brief Constructor whose argument is a string containing the definition
-//    * of the refinement pattern
-//    */
-//    TPZRefPattern3(const std::string &file);//@TODOFran: Implement me!
+    /**
+    * @brief Constructor whose argument is the name of the file with the definition
+    * of the refinement pattern
+    */
+    TPZRefPattern3(std::istream &file);
+
+    /**
+    * @brief Constructor whose argument is a string containing the definition
+    * of the refinement pattern
+    */
+    TPZRefPattern3(const std::string &file);
 //
 //    /**
 //    * @brief Creates an TPZRefPattern3 from a given mesh
@@ -240,19 +304,25 @@ public:
 
 	explicit TPZRefPattern3(TPZRefPattern &oldRef);
 
+	/**
+	 * Create a refinement pattern based on a geometrical mesh.
+	 * The first element is expected to be the father element, and the remaining elements
+	 * should describe a partition of the father element.
+	 * @param gmesh
+	 */
+    explicit TPZRefPattern3(TPZGeoMesh &gmesh);
+
+    /**
+     * @brief Create a copy of the TPZRefPattern applying the permutation on the first element
+     */
+    TPZRefPattern3(const TPZRefPattern3 &copy, const TPZPermutation &permute);
+
 	virtual ~TPZRefPattern3() = default;
 
     //@TODOFran: Document me!
     void PrintMore(std::ostream &out = std::cout) const;
 
-    /**
-     * @brief Sets the name associated with the refinement pattern
-     * @param name a string containing the name to be set
-     */
- 	void SetName(std::string name)
- 	{
- 		fName = name;
- 	}
+
     int ClassId() const override;
 
 //    void Read(TPZStream &buf, void *context) override;//@TODOFran: Implement me!
@@ -314,7 +384,7 @@ public:
     * @param fatherSide TPZGeoElSide corresponding to the father's side
     * @param son the sub-element
     */
-    bool IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) const;
+    bool IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) const;//@TODOFran:is this necessary?
 
     /**
     * @brief It returns the element number iel from the stack of elements of the
@@ -337,6 +407,55 @@ public:
     * @param sideIndexes vector of subelement index/sides (stored as TPZGeoElSideIndex objects) that belongs to the interior of given side of father element.
     */
     void InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &sideIndexes);
+
+    /**
+    * @brief Return the id of the refinement pattern
+    */
+    int Id() const{
+        return fId;
+    }
+
+    /**
+     * Check if the refinement pattern has an initiatlized Id
+     * @return
+     */
+    bool IdInitialized(){
+        return (fId != fNonInitializedId);
+    }
+
+    /**
+    * @brief Set the id of the refinement pattern
+    */
+    void SetId(int id) {
+        fId = id;
+
+        TPZGeoEl *el = fRefPatternMesh.ElementVec()[0];
+        int nSides = el->NSides();
+        fSideRefPattern[nSides - 1] = id;
+    }
+
+    bool NameInitialized()
+    {
+        return (fName != fNonInitializedName);
+    }
+
+    /**
+     * @brief Sets the name associated with the refinement pattern
+     * @param name a string containing the name to be set
+     */
+    void SetName(std::string name)
+    {
+        fName = name;
+    }
+
+    /**
+     * @brief It returns a stack from sub-elements and its sides. This stack partitions side of the element father.
+	 *
+	 * It returns the number from elements of the partition of the side
+	 * @param side - side of father element that will be searched for internal sides (generated from subelements)
+	 * @param gelvec - vector of sides (stored as TPZGeoElSide objects) that belongs to given side of father element.
+     */
+    int SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side);
 
 //     /**
 //      * @brief It prints the features of the standard of geometric refinement.
@@ -414,31 +533,6 @@ public:
 //      * @brief Find the refinement pattern corresponding to the give transformation
 //      */
 // 	TPZAutoPointer<TPZRefPattern3> FindRefPattern(TPZTransform<> &trans);
-	
-// 	/**
-// 	 * @brief Return the id of the refinement pattern
-// 	 */
-// 	const int Id() const
-// 	{
-// 		return fId;
-// 	}
-	
-// 	bool IdInitialized()
-// 	{
-// 		return (fId != nonInitializedId);
-// 	}
-	
-// 	/**
-// 	 * @brief Set the id of the refinement pattern
-// 	 */
-// 	void SetId(int id)
-// 	{
-// 		fId = id;
-		
-// 		TPZGeoEl * el = fRefPatternMesh.ElementVec()[0];
-// 		int nSides = el->NSides();
-// 		fSideRefPattern[nSides-1] = id;
-// 	}
 	
 // 	TPZAutoPointer<TPZRefPattern3> GetPermutation(int pos);
 	

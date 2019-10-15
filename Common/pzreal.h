@@ -659,19 +659,22 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance() {
-	return ((REAL)1.e-10);
+    typedef std::numeric_limits< REAL > dbl;
+	return (REAL)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
-inline void ZeroTolerance(double &Tol) {
-	Tol = (double)1.e-9;
+
+template<typename T,
+        typename std::enable_if< is_arithmetic_pz<T>::value, int>::type* = nullptr>
+inline void ZeroTolerance(T &tol) {
+    typedef std::numeric_limits< T > dbl;
+    tol = (T)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
-inline void ZeroTolerance(long double &Tol) {
-	Tol = (long double)1.e-12;
-}
-inline void ZeroTolerance(float &Tol) {
-	Tol = (float)1.e-6;
-}
-inline void ZeroTolerance(TPZFlopCounter &Tol) {
-	Tol.fVal = (REAL)1.e-9;
+
+template<typename T,
+        typename std::enable_if<std::is_same<T,TPZFlopCounter>::value>::type* = nullptr>
+inline void ZeroTolerance(T &tol) {
+    typedef std::numeric_limits< REAL > dbl;
+    tol = (T)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
 
 #ifdef _AUTODIFF

@@ -98,7 +98,8 @@ BOOST_AUTO_TEST_SUITE(refpattern_tests)
         MElementType elType = TGeo::Type();
         gRefDBase.InitializeUniformRefPattern(elType);
         auto oldRefPattern = gRefDBase.GetUniformRefPattern(elType);
-        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(*(oldRefPattern.operator->()));
+        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(oldRefPattern->RefPatternMesh());
+//        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(*(oldRefPattern.operator->()));
 //        oldRefPattern->PrintMore(std::cout);
 //        newRefPattern->PrintMore(std::cout);
 
@@ -128,6 +129,10 @@ BOOST_AUTO_TEST_SUITE(refpattern_tests)
                 auto transformOld = oldRefPattern->Transform(iSubElSide,iSubEl);
                 auto transformNew = newRefPattern->Transform(iSubElSide,iSubEl);
                 bool checkTransform = !((bool)(transformOld.CompareTransform(transformNew)));
+                if(!checkTransform){
+                    int a = checkTransform;
+                    a++;
+                }
                 BOOST_CHECK(checkTransform);
             }
         }
@@ -137,6 +142,15 @@ BOOST_AUTO_TEST_SUITE(refpattern_tests)
             const int nSubElSideNew = newRefPattern->NSideSubGeoElSides(iFatherSide);
             const bool isSameNSubElSides = nSubElSideNew == nSubElSideOld;
             BOOST_CHECK(isSameNSubElSides);
+
+            const int nSideNodesOld = oldRefPattern->NSideNodes(iFatherSide);
+            const int nSideNodesNew = newRefPattern->NSideNodes(iFatherSide);
+            const bool isSameNSideNodes = nSideNodesNew == nSideNodesOld;
+            if(!isSameNSideNodes){
+                int a = isSameNSideNodes;
+                a++;
+            }
+            BOOST_CHECK(isSameNSideNodes);
             if(!isSameNSubElSides || iFatherSide < TGeo::NNodes) continue;
             for(int iSubEl = 0; iSubEl < nSubElSideNew; iSubEl ++){
                 TPZGeoElSide subGeoElSide;
