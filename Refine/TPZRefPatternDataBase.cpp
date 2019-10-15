@@ -44,7 +44,7 @@ TPZRefPatternDataBase::~TPZRefPatternDataBase()
 //.........................................................................................................................................
 int TPZRefPatternDataBase::ReturnUniqueId()
 {
-	int uniqueId = nonInitializedId;
+	int uniqueId = TPZRefPattern::fNonInitializedId;
 	std::set<int> Ids;
 	Ids.clear();
 	
@@ -91,7 +91,7 @@ void TPZRefPatternDataBase::ReadRefPatternDBase(std::ifstream &filename)
 	for(int i = 0; i < nRefpatterns; i++)
 	{
 		TPZAutoPointer<TPZRefPattern> refP = new TPZRefPattern;
-		refP->ReadPattern(filename);
+		refP->ReadAndCreateRefinementPattern(filename);
 		
         MElementType eltype = refP->Element(0)->Type();
         fElTypeRefPatterns[eltype].push_back(refP);

@@ -97,81 +97,81 @@ BOOST_AUTO_TEST_SUITE(refpattern_tests)
 #endif
         MElementType elType = TGeo::Type();
         gRefDBase.InitializeUniformRefPattern(elType);
-        auto oldRefPattern = gRefDBase.GetUniformRefPattern(elType);
-        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(oldRefPattern->RefPatternMesh());
-//        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(*(oldRefPattern.operator->()));
-//        oldRefPattern->PrintMore(std::cout);
-//        newRefPattern->PrintMore(std::cout);
-
-        const int nSubElOld = oldRefPattern->NSubElements();
-        const int nSubElNew = newRefPattern->NSubElements();
-        const bool isSameNSubEls = nSubElNew == nSubElOld;
-        BOOST_CHECK(isSameNSubEls);
-        for(int iSubEl = 0; (iSubEl < nSubElNew) && isSameNSubEls; iSubEl ++){
-            TPZGeoEl *geoSubElNew = newRefPattern->Element(iSubEl + 1);
-            TPZGeoEl *geoSubElOld = oldRefPattern->Element(iSubEl + 1);
-            const int nSubElSidesOld = geoSubElOld->NSides();
-            const int nSubElSidesNew = geoSubElNew->NSides();
-            const bool isSameNSubElSides = nSubElSidesNew == nSubElSidesOld;
-            BOOST_CHECK(isSameNSubEls);
-            for(int iSubElSide = 0; isSameNSubElSides && (iSubElSide < nSubElSidesNew); iSubElSide++){
-                const int fatherSideOld = oldRefPattern->FatherSide(iSubElSide,iSubEl);
-                const int fatherSideNew = newRefPattern->FatherSide(iSubElSide,iSubEl);
-                const bool isSameFatherSide = fatherSideNew == fatherSideOld;
-                #ifdef NOISY_REFPATTERN
-                std::cout<<"SUBEL: "<<iSubEl<<" SIDE: "<<iSubElSide<<std::endl;
-                std::cout<<"\t----old----"<<std::endl;
-                std::cout<<"\tfather side: "<<fatherSideOld<<std::endl;
-                std::cout<<"\t----new----"<<std::endl;
-                std::cout<<"\tfather side: "<<fatherSideNew<<std::endl;
-                #endif
-                BOOST_CHECK(isSameFatherSide);
-                auto transformOld = oldRefPattern->Transform(iSubElSide,iSubEl);
-                auto transformNew = newRefPattern->Transform(iSubElSide,iSubEl);
-                bool checkTransform = !((bool)(transformOld.CompareTransform(transformNew)));
-                if(!checkTransform){
-                    int a = checkTransform;
-                    a++;
-                }
-                BOOST_CHECK(checkTransform);
-            }
-        }
-
-        for(int iFatherSide = 0; iFatherSide < TGeo::NSides; iFatherSide++){
-            const int nSubElSideOld = oldRefPattern->NSideSubElements(iFatherSide);
-            const int nSubElSideNew = newRefPattern->NSideSubGeoElSides(iFatherSide);
-            const bool isSameNSubElSides = nSubElSideNew == nSubElSideOld;
-            BOOST_CHECK(isSameNSubElSides);
-
-            const int nSideNodesOld = oldRefPattern->NSideNodes(iFatherSide);
-            const int nSideNodesNew = newRefPattern->NSideNodes(iFatherSide);
-            const bool isSameNSideNodes = nSideNodesNew == nSideNodesOld;
-            if(!isSameNSideNodes){
-                int a = isSameNSideNodes;
-                a++;
-            }
-            BOOST_CHECK(isSameNSideNodes);
-            if(!isSameNSubElSides || iFatherSide < TGeo::NNodes) continue;
-            for(int iSubEl = 0; iSubEl < nSubElSideNew; iSubEl ++){
-                TPZGeoElSide subGeoElSide;
-                newRefPattern->SideSubGeoElSide(iFatherSide, iSubEl, subGeoElSide);
-                int subElIndexNew = subGeoElSide.Id();
-                int subElSideNew = subGeoElSide.Side();
-                int subElIndexOld = -1, subElSideOld = -1;
-                oldRefPattern->SideSubElement(iFatherSide,iSubEl,subElIndexOld,subElSideOld);
-                const bool isSameSubElIndex = subElIndexOld == subElIndexNew;
-                const bool isSameSubElSide = subElSideOld == subElSideNew;
-#ifdef NOISY_REFPATTERN
-                std::cout<<"SIDE: "<<iFatherSide<<" SUBEL: "<<iSubEl<<std::endl;
-                std::cout<<"\t----old----"<<std::endl;
-                std::cout<<"\tindex: "<<subElIndexOld<<" side: "<<subElSideOld<<std::endl;
-                std::cout<<"\t----new----"<<std::endl;
-                std::cout<<"\tindex: "<<subElIndexNew<<" side: "<<subElSideNew<<std::endl;
-#endif
-                BOOST_CHECK(isSameSubElIndex);
-                BOOST_CHECK(isSameSubElSide);
-            }
-        }
+        auto refPattern = gRefDBase.GetUniformRefPattern(elType);
+//        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(oldRefPattern->RefPatternMesh());
+////        TPZAutoPointer<TPZRefPattern3> newRefPattern = new TPZRefPattern3(*(oldRefPattern.operator->()));
+////        oldRefPattern->PrintMore(std::cout);
+////        newRefPattern->PrintMore(std::cout);
+//
+//        const int nSubElOld = oldRefPattern->NSubElements();
+//        const int nSubElNew = newRefPattern->NSubElements();
+//        const bool isSameNSubEls = nSubElNew == nSubElOld;
+//        BOOST_CHECK(isSameNSubEls);
+//        for(int iSubEl = 0; (iSubEl < nSubElNew) && isSameNSubEls; iSubEl ++){
+//            TPZGeoEl *geoSubElNew = newRefPattern->Element(iSubEl + 1);
+//            TPZGeoEl *geoSubElOld = oldRefPattern->Element(iSubEl + 1);
+//            const int nSubElSidesOld = geoSubElOld->NSides();
+//            const int nSubElSidesNew = geoSubElNew->NSides();
+//            const bool isSameNSubElSides = nSubElSidesNew == nSubElSidesOld;
+//            BOOST_CHECK(isSameNSubEls);
+//            for(int iSubElSide = 0; isSameNSubElSides && (iSubElSide < nSubElSidesNew); iSubElSide++){
+//                const int fatherSideOld = oldRefPattern->FatherSide(iSubElSide,iSubEl);
+//                const int fatherSideNew = newRefPattern->FatherSide(iSubElSide,iSubEl);
+//                const bool isSameFatherSide = fatherSideNew == fatherSideOld;
+//                #ifdef NOISY_REFPATTERN
+//                std::cout<<"SUBEL: "<<iSubEl<<" SIDE: "<<iSubElSide<<std::endl;
+//                std::cout<<"\t----old----"<<std::endl;
+//                std::cout<<"\tfather side: "<<fatherSideOld<<std::endl;
+//                std::cout<<"\t----new----"<<std::endl;
+//                std::cout<<"\tfather side: "<<fatherSideNew<<std::endl;
+//                #endif
+//                BOOST_CHECK(isSameFatherSide);
+//                auto transformOld = oldRefPattern->Transform(iSubElSide,iSubEl);
+//                auto transformNew = newRefPattern->Transform(iSubElSide,iSubEl);
+//                bool checkTransform = !((bool)(transformOld.CompareTransform(transformNew)));
+//                if(!checkTransform){
+//                    int a = checkTransform;
+//                    a++;
+//                }
+//                BOOST_CHECK(checkTransform);
+//            }
+//        }
+//
+//        for(int iFatherSide = 0; iFatherSide < TGeo::NSides; iFatherSide++){
+//            const int nSubElSideOld = oldRefPattern->NSideSubElements(iFatherSide);
+//            const int nSubElSideNew = newRefPattern->NSideSubGeoElSides(iFatherSide);
+//            const bool isSameNSubElSides = nSubElSideNew == nSubElSideOld;
+//            BOOST_CHECK(isSameNSubElSides);
+//
+//            const int nSideNodesOld = oldRefPattern->NSideNodes(iFatherSide);
+//            const int nSideNodesNew = newRefPattern->NSideNodes(iFatherSide);
+//            const bool isSameNSideNodes = nSideNodesNew == nSideNodesOld;
+//            if(!isSameNSideNodes){
+//                int a = isSameNSideNodes;
+//                a++;
+//            }
+//            BOOST_CHECK(isSameNSideNodes);
+//            if(!isSameNSubElSides || iFatherSide < TGeo::NNodes) continue;
+//            for(int iSubEl = 0; iSubEl < nSubElSideNew; iSubEl ++){
+//                TPZGeoElSide subGeoElSide;
+//                newRefPattern->SideSubGeoElSide(iFatherSide, iSubEl, subGeoElSide);
+//                int subElIndexNew = subGeoElSide.Id();
+//                int subElSideNew = subGeoElSide.Side();
+//                int subElIndexOld = -1, subElSideOld = -1;
+//                oldRefPattern->SideSubElement(iFatherSide,iSubEl,subElIndexOld,subElSideOld);
+//                const bool isSameSubElIndex = subElIndexOld == subElIndexNew;
+//                const bool isSameSubElSide = subElSideOld == subElSideNew;
+//#ifdef NOISY_REFPATTERN
+//                std::cout<<"SIDE: "<<iFatherSide<<" SUBEL: "<<iSubEl<<std::endl;
+//                std::cout<<"\t----old----"<<std::endl;
+//                std::cout<<"\tindex: "<<subElIndexOld<<" side: "<<subElSideOld<<std::endl;
+//                std::cout<<"\t----new----"<<std::endl;
+//                std::cout<<"\tindex: "<<subElIndexNew<<" side: "<<subElSideNew<<std::endl;
+//#endif
+//                BOOST_CHECK(isSameSubElIndex);
+//                BOOST_CHECK(isSameSubElSide);
+//            }
+//        }
 
 }
 

@@ -7,7 +7,7 @@
 //
 
 #include "TPZMHMeshControl.h"
-
+#include "TPZRefPattern.h"
 #include "pzl2projection.h"
 #include "TPZNullMaterial.h"
 #include "TPZLagrangeMultiplier.h"

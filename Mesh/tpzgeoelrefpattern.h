@@ -277,7 +277,7 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 template<class TGeo>
 int TPZGeoElRefPattern<TGeo>::NSideSubElements(int side) const{
 	if (!fRefPattern) return 0;
-	return this->GetRefPattern()->NSideSubElements(side);
+	return this->GetRefPattern()->NSideSubGeoElSides(side);
 }
 
 template<class TGeo>
@@ -295,14 +295,14 @@ template<class TGeo>
 TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
 	TPZGeoElSide tmp;
 	if(!fRefPattern) return tmp;
-	int sub, sideout;
-	this->GetRefPattern()->SideSubElement(side,position,sub,sideout);
-	if (fSubEl[sub] == -1) {
+	TPZGeoElSide subGeoEl;
+	this->GetRefPattern()->SideSubGeoElSide(side,position,subGeoEl);
+	if (fSubEl[subGeoEl.Id()] == -1) {
 		PZError << "TPZGeoElRefPattern<TGeo>::SideSubElement : Error subelement not found for side "
 		<< side << " position " << position << std::endl;
 		return TPZGeoElSide();
 	}
-	return TPZGeoElSide (SubElement(sub),sideout);
+	return TPZGeoElSide (SubElement(subGeoEl.Id()),subGeoEl.Side());
 }
 
 template<class TGeo>
