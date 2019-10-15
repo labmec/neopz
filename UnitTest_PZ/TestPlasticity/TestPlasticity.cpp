@@ -235,7 +235,7 @@ void PECompareStressStrainResponse() {
 //    STATE p_0 = 0.0;
 //    PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
 //    PER.SetShearModulusConstant(mu);
-//    
+//
 //    TPZTensor<STATE> delta_eps;
 //    delta_eps.Zero();
 //    REAL eps_vol = -0.00475;
@@ -451,6 +451,17 @@ void PECompareStressStrainResponse() {
         REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
         bool sigma_check = IsZero(sigma_norm);
         BOOST_CHECK(sigma_check);
+        
+        {
+            TPZElasticResponse LE_equivalent = PER.EvaluateElasticResponse(eps_e);
+            REAL delta_eps = -0.000001;
+            eps_e.XX() += delta_eps;
+            eps_e.YY() += delta_eps;
+            eps_e.ZZ() += delta_eps;
+            LE_equivalent.ComputeStress(eps_e, sigma_linear);
+            REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
+            bool sigma_check = IsZero(sigma_norm);
+        }
         
     }
     

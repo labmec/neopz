@@ -12,19 +12,21 @@ int TPZElasticResponse::ClassId() const{
 }
 
 TPZElasticResponse::TPZElasticResponse() : m_lambda(0.), m_mu(0.) {
-    m_eps_star.Zero();
+    m_epsilon_star.Zero();
+    m_sigma_star.Zero();
 }
 
 TPZElasticResponse::TPZElasticResponse(const TPZElasticResponse & other) {
     m_lambda        = other.m_lambda;
     m_mu            = other.m_mu;
-    m_eps_star      = other.m_eps_star;
+    m_epsilon_star      = other.m_epsilon_star;
+    m_sigma_star    = other.m_sigma_star;
 }
 
 TPZElasticResponse & TPZElasticResponse::operator=(const TPZElasticResponse & other) {
     m_lambda        = other.m_lambda;
     m_mu            = other.m_mu;
-    m_eps_star      = other.m_eps_star;
+    m_epsilon_star      = other.m_epsilon_star;
     return *this;
 }
 
@@ -32,13 +34,15 @@ TPZElasticResponse & TPZElasticResponse::operator=(const TPZElasticResponse & ot
 void TPZElasticResponse::Write(TPZStream& buf, int withclassid) const { //ok
     buf.Write(&m_lambda);
     buf.Write(&m_mu);
-    m_eps_star.Write(buf,withclassid);
+    m_epsilon_star.Write(buf,withclassid);
+    m_sigma_star.Write(buf,withclassid);
 }
 
 void TPZElasticResponse::Read(TPZStream& buf, void* context) { //ok
     buf.Read(&m_lambda);
     buf.Read(&m_mu);
-    m_eps_star.Read(buf, context);
+    m_epsilon_star.Read(buf, context);
+    m_sigma_star.Read(buf, context);
 }
 
 
@@ -52,6 +56,8 @@ void TPZElasticResponse::Print(std::ostream & out) const {
     out << "\n Poisson = " << Poisson();
     out << "\n m_lambda = " << m_lambda;
     out << "\n m_mu = " << m_mu;
+    m_epsilon_star.Print(out);
+    m_sigma_star.Print(out);
 }
 
 void TPZElasticResponse::De(TPZFMatrix<REAL> & De) {
@@ -111,10 +117,19 @@ REAL TPZElasticResponse::Poisson() const {
     return poisson;
 }
 
-void TPZElasticResponse::SetResidualStrainData(TPZTensor<REAL> & eps_star){
-    m_eps_star = eps_star;
+void TPZElasticResponse::SetReferenceStrainData(TPZTensor<REAL> & eps_star){
+    m_epsilon_star = eps_star;
 }
 
-TPZTensor<REAL> & TPZElasticResponse::ResidualStrainData(){
-    return m_eps_star;
+TPZTensor<REAL> & TPZElasticResponse::ReferenceStrainData(){
+    return m_epsilon_star;
 }
+
+void TPZElasticResponse::SetReferenceStressData(TPZTensor<REAL> & sigma_star){
+    m_sigma_star = sigma_star;
+}
+
+TPZTensor<REAL> & TPZElasticResponse::ReferenceStressData(){
+    return m_sigma_star;
+}
+

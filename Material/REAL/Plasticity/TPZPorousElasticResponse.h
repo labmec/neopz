@@ -93,6 +93,8 @@ public:
     
     void Print(std::ostream & out) const ;
     
+    void p(const TPZTensor<STATE> &epsilon, STATE & p, STATE & dp_desp_vol) const;
+    
     void G(const TPZTensor<STATE> &delta_eps, STATE & G, STATE & dG_desp_vol) const;
     
     void K(const TPZTensor<STATE> &delta_eps, STATE & K, STATE & dK_desp_vol) const;
@@ -110,24 +112,31 @@ public:
     TPZElasticResponse LEInitialState();
     
     template<class T>
-    void ComputeStress(const TPZTensor<T> & delta_eps, TPZTensor<T> & sigma) const {
+    void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {
         
         if (m_is_G_constant_Q) {
-            T trace = T(delta_eps.I1());
-            STATE lambda, K, dK_desp_vol;
-            this->K(delta_eps, K, dK_desp_vol);
-            lambda = K - (2.0/3.0)*m_mu;
-            sigma.Identity();
-            sigma.Multiply(trace, lambda);
-            sigma.Add(delta_eps, 2. * m_mu);
+            T trace = T(epsilon.I1());
+            TPZTensor<T> Se(epsilon);
+            Se.XX() -= trace/3.0;
+            Se.YY() -= trace/3.0;
+            Se.ZZ() -= trace/3.0;
+            sigma = Se;
+            sigma *= m_mu;
+        
+            STATE p, dp_desp_vol;
+            this->p(epsilon, p, dp_desp_vol);
+            sigma.XX() -= p;
+            sigma.YY() -= p;
+            sigma.ZZ() -= p;
         }else{
-            T trace = T(delta_eps.I1());
-            REAL lambda, G, dG_desp_vol;
-            this->G(delta_eps,G,dG_desp_vol);
-            lambda = T((2.0*G*m_nu)/(1.0-2.0*m_nu));
-            sigma.Identity();
-            sigma.Multiply(trace, lambda);
-            sigma.Add(delta_eps, 2. * G);
+            DebugStop();
+//            T trace = T(delta_eps.I1());
+//            REAL lambda, G, dG_desp_vol;
+//            this->G(delta_eps,G,dG_desp_vol);
+//            lambda = T((2.0*G*m_nu)/(1.0-2.0*m_nu));
+//            sigma.Identity();
+//            sigma.Multiply(trace, lambda);
+//            sigma.Add(delta_eps, 2. * G);
         }
 
     }

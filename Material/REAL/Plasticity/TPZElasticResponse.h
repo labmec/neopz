@@ -21,8 +21,11 @@ class TPZElasticResponse : public TPZSavable {
     /// Second Lamé parameter
     REAL m_mu;
     
-    /// Residual strain at zero stress state.
-    TPZTensor<REAL> m_eps_star;
+    /// Reference strain at zero stress state.
+    TPZTensor<REAL> m_epsilon_star;
+    
+    /// Reference stress at zero strain state.
+    TPZTensor<REAL> m_sigma_star;
     
 public:
     
@@ -88,18 +91,28 @@ public:
     template<class T>
     void ComputeStress(const TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const {
 
-        TPZTensor<T> delta_epsilon;
-        delta_epsilon.XX() = -m_eps_star.XX();
-        delta_epsilon.XY() = -m_eps_star.XY();
-        delta_epsilon.XZ() = -m_eps_star.XZ();
-        delta_epsilon.YY() = -m_eps_star.YY();
-        delta_epsilon.YZ() = -m_eps_star.YZ();
-        delta_epsilon.ZZ() = -m_eps_star.ZZ();
-        delta_epsilon += epsilon; // Substract residual strain
+        TPZTensor<T> delta_epsilon(epsilon);
+        
+        delta_epsilon.XX() -= m_epsilon_star.XX();
+        delta_epsilon.YY() -= m_epsilon_star.YY();
+        delta_epsilon.ZZ() -= m_epsilon_star.ZZ();
+        delta_epsilon.XY() -= m_epsilon_star.XY();
+        delta_epsilon.XZ() -= m_epsilon_star.XZ();
+        delta_epsilon.YZ() -= m_epsilon_star.YZ();
+        
+        
         T trace = delta_epsilon.I1();
         sigma.Identity();
         sigma.Multiply(trace, m_lambda);
         sigma.Add(delta_epsilon, 2. * m_mu);
+        
+        sigma.XX() += m_sigma_star.XX();
+        sigma.YY() += m_sigma_star.YY();
+        sigma.ZZ() += m_sigma_star.ZZ();
+        sigma.XY() += m_sigma_star.XY();
+        sigma.XZ() += m_sigma_star.XZ();
+        sigma.YZ() += m_sigma_star.YZ();
+
     }
     
     /**
@@ -111,11 +124,28 @@ public:
     template<class T>
     void ComputeStrain(const TPZTensor<T> & sigma, TPZTensor<T> & epsilon) const {
         const T fac = T((1 / 3.)*(1. / (3. * m_lambda + 2. * m_mu) - 1. / (2. * m_mu)));
-        REAL trace = sigma.I1();
+        TPZTensor<T> delta_sigma(sigma);
+        delta_sigma -= m_sigma_star;
+        
+        delta_sigma.XX() -= m_sigma_star.XX();
+        delta_sigma.YY() -= m_sigma_star.YY();
+        delta_sigma.ZZ() -= m_sigma_star.ZZ();
+        delta_sigma.XY() -= m_sigma_star.XY();
+        delta_sigma.XZ() -= m_sigma_star.XZ();
+        delta_sigma.YZ() -= m_sigma_star.YZ();
+        
+        REAL trace = delta_sigma.I1();
         epsilon.Identity();
         epsilon.Multiply(trace, fac);
-        epsilon.Add(sigma, 1. / (2. * m_mu));
-        epsilon += m_eps_star;// Adding residual strain
+        epsilon.Add(delta_sigma, 1. / (2. * m_mu));
+        
+        epsilon.XX() += m_epsilon_star.XX();
+        epsilon.YY() += m_epsilon_star.YY();
+        epsilon.ZZ() += m_epsilon_star.ZZ();
+        epsilon.XY() += m_epsilon_star.XY();
+        epsilon.XZ() += m_epsilon_star.XZ();
+        epsilon.YZ() += m_epsilon_star.YZ();
+        
     }
     
     
@@ -186,21 +216,17 @@ public:
      */
     REAL Poisson() const;
     
-    /**
-     Set the residual strain
-     
-     @param lambda First Lamé parameter
-     @param mu Second Lamé parameter (Shear modulus)
-     */
-    void SetResidualStrainData(TPZTensor<REAL> & eps_res);
+    /// Set the reference strain
+    void SetReferenceStrainData(TPZTensor<REAL> & eps_star);
     
-    /**
-     Get the residual strain
-     
-     @param lambda First Lamé parameter
-     @param mu Second Lamé parameter (Shear modulus)
-     */
-    TPZTensor<REAL> & ResidualStrainData();
+    /// Get the reference strain
+    TPZTensor<REAL> & ReferenceStrainData();
+    
+    /// Set the reference stress
+    void SetReferenceStressData(TPZTensor<REAL> & sigma_star);
+    
+    /// Get the reference strain
+    TPZTensor<REAL> & ReferenceStressData();
 };
 
 #endif /* TPZElasticResponse_h */
