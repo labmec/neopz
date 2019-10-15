@@ -483,7 +483,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
 
 template<class TGeo>
 template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
+void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
     TPZGeoEl &gel = *fGeoEl;
     TPZGeoMesh *gmesh = gel.Mesh();
     TPZManVector<T,3> notUsedHereVec(3,(T)0);
@@ -1098,6 +1098,8 @@ template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
 \
+template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result) const; \
+template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<Fad<REAL>> &par, TPZVec<Fad<REAL>> &result) const; \
 template class \
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
