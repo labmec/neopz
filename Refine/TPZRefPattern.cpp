@@ -211,7 +211,7 @@ TPZRefPattern::~TPZRefPattern()
 {
     int64_t nel = fRefPatternMesh.NElements();
     for (int64_t el=0; el<nel; el++) {
-        fRefPatternMesh.Element(el)->SetFather((int64_t)-1);
+        fRefPatternMesh.Element(el)->SetFatherIndex(-1);
     }
 }
 
@@ -1015,7 +1015,7 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 		if(el > 0)
 		{
 			subel->SetFather(father);
-			subel->SetFather(father->Index());
+			subel->SetFatherIndex(father->Index());
 			father->SetSubElement(el-1,subel);
 		}
 	}
@@ -1104,7 +1104,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 		if(el > 0)
 		{
 			subel->SetFather(father);
-			subel->SetFather(father->Index());
+			subel->SetFatherIndex(father->Index());
 		}
 	}
 	

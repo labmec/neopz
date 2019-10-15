@@ -464,11 +464,14 @@ public:
 	/** @brief Sets the father element*/
 	void SetFather(TPZGeoEl *father)
 	{
-		fFatherIndex = father->Index();
+	    if(!father) fFatherIndex = -1;
+		else  fFatherIndex = father->Index();
 	}
-	
-	/** @brief Sets the father element index*/
-	virtual void SetFather(int64_t fatherindex)
+
+	/** @brief Sets the father element index
+	 * This method is not called SetFather in order to avoid implicit conversions from nullptr to int
+	 * */
+	virtual void SetFatherIndex(int64_t fatherindex)
 	{
 		fFatherIndex = fatherindex;
 	}

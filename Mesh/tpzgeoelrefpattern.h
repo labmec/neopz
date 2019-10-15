@@ -263,7 +263,8 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 	{
         TPZGeoEl *gel = SubElement(is);
         if (gel) {
-            gel->SetFather(-1);
+            int64_t noFather = -1;
+            gel->SetFatherIndex(noFather);
         }
 		fSubEl[is] = -1;
 	}
@@ -427,7 +428,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	for(sub=0;sub<NSubEl;sub++) {
 		SubElVec[sub] = SubElement(sub);
 		SubElVec[sub]->SetFather(this);
-		SubElVec[sub]->SetFather(this->fIndex);		
+		SubElVec[sub]->SetFatherIndex(this->fIndex);
 	}
 
 	for(i=0;i<NSubEl;i++) {

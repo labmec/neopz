@@ -109,7 +109,7 @@ void TPZGeoMesh::CleanUp() {
         TPZGeoEl *el = fElementVec[i];
         if (el) {
             if(el->HasSubElement()) el->ResetSubElements();
-            if(el->FatherIndex() != -1) el->SetFather((int64_t) -1);
+            if(el->FatherIndex() != -1) el->SetFatherIndex(-1);
             delete el;
             fElementVec[i] = 0;
         }
