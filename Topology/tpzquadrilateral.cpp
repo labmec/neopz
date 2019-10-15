@@ -1197,16 +1197,6 @@ namespace pztopology {
         }
     }
     
-    TPZTransform<> TPZQuadrilateral::GetSideTransform(int transformId){
-      
-        TPZTransform<REAL> trans(2,2);
-//        trans.Mult()(0,0) = gTrans2dQ[transformId][0][0];
-//        trans.Mult()(1,0) = gTrans2dQ[transformId][1][0];
-//        trans.Mult()(0,1) = gTrans2dQ[transformId][0][1];
-//        trans.Mult()(1,1) = gTrans2dQ[transformId][1][1];
-        return trans;
-        
-    }
     
     int TPZQuadrilateral::ClassId() const{
         return Hash("TPZQuadrilateral");

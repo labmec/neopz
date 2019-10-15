@@ -192,7 +192,7 @@ namespace pzshape {
 		 * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
 		 * @param rib rib index along which the shapefunction is defined
 		 * @param num number of shapefunction derivatives which need to be transformed
-		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
+		 * @param dphe shapefunctions (modified in place)
 		 */
 		static void TransformDerivativeFromFaceToCube(int rib,int num,TPZFMatrix<REAL> &dphi);
 

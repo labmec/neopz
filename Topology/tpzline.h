@@ -187,7 +187,6 @@ namespace pztopology {
 		 */
 		static int GetTransformId(TPZVec<int64_t> &id);
         
-        static TPZTransform<> GetSideTransform( int transformId);
 
         
 		/**

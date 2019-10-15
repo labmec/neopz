@@ -437,20 +437,6 @@ namespace pztopology {
 	}
     
     
-     TPZTransform<> TPZLine::GetSideTransform(  int transformId){
-//         TPZTransform<REAL> transEltoSide = TransformElementToSide(side);
-//         TPZTransform<REAL> transParametric(1,1);
-//         TPZTransform<REAL> trans(1,1) ;
-//         trans.Mult()(0.0) = 1.0;
-//      //  int locside = permutationsQ[transformId][side];
-//         if (!transformId) {
-//             transParametric.Mult()(0,0) *= -1.0;
-//         }
-//         transParametric.Multiply(transEltoSide);
-//         
-        return ;
-    }
-	
 	/**
 	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
 	 * in terms of order of shape functions

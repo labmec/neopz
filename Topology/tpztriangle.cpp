@@ -501,14 +501,8 @@ namespace pztopology {
         }
         return TPZTransform<>(0,0);
     }
-    TPZTransform<> TPZTriangle::GetSideTransform( int transformId){
-        TPZTransform<REAL> trans(2,2);
-        trans.Mult()(0,0) = gTrans2dT[transformId][0][0];
-        trans.Mult()(1,0) = gTrans2dT[transformId][1][0];
-        trans.Mult()(0,1) = gTrans2dT[transformId][0][1];
-        trans.Mult()(1,1) = gTrans2dT[transformId][1][1];
-        return trans;
-    }
+
+
     TPZTransform<> TPZTriangle::TransformSideToElement(int side){
 
         if(side<0 || side>6){

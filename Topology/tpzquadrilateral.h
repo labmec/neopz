@@ -249,9 +249,6 @@ namespace pztopology {
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
-        static void ComputeTransforms(TPZVec<int64_t> &ids, TPZVec<TPZTransform<REAL>> &transvec);
-        
-        static TPZTransform<> GetSideTransform( int transformId);
         
         /// Compute the directions of the HDiv vectors
         template <class TVar>

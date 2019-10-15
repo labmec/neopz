@@ -185,8 +185,6 @@ namespace pztopology {
 		 */
 		static TPZTransform<> TransformElementToSide(int side);
         
-        static TPZTransform<> GetSideTransform(int transformId); 
-		
 		
 		/**
 		 * @brief Method which identifies the transformation based on the IDs of the corner nodes
