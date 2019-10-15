@@ -352,7 +352,7 @@ namespace pzshape {
                 break;
             default:
             LOGPZ_ERROR(logger,"Wrong side parameter")
-                return -1;
+                DebugStop();
                 break;
         }
       
