@@ -155,7 +155,9 @@ void TPZPorousElasticResponse::Print(std::ostream & out) const {
 void TPZPorousElasticResponse::p(const TPZTensor<STATE> &epsilon, STATE & p, STATE & dp_desp_vol) const{
     STATE eps_v = epsilon.I1();
     p = -m_pt_el + (m_p_0 + m_pt_el)*exp(-((1 + m_e_0)*eps_v)/m_kappa);
-    dp_desp_vol = -(((1 + m_e_0)*(m_p_0 + m_pt_el))*(exp(-((1 + m_e_0)*eps_v)/m_kappa)*m_kappa));
+    dp_desp_vol = -(exp(-((1 + m_e_0)*eps_v)/m_kappa))*((m_p_0 + m_pt_el)*(1 + m_e_0)/m_kappa);
+    
+    
 }
 
 void TPZPorousElasticResponse::G(const TPZTensor<STATE> &epsilon, STATE & G, STATE & dG_desp_vol) const{

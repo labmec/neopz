@@ -142,47 +142,54 @@ public:
     }
     
     template<class T>
-    void ComputeStrain(const TPZTensor<T> & sigma, TPZTensor<T> & delta_eps) const {
+    void ComputeStrain(const TPZTensor<T> & sigma, TPZTensor<T> & epsilon) const {
 
         // Initial guess is for the deviatoric is obtained from the given epsilon
         // Computing the initial guess for the volumetric part
-        REAL p, p_star, r, j;
-        p = -sigma.I1()/3;
+        REAL p_ref;
+        p_ref = -sigma.I1()/3;
         int n_iterations = 20;
         bool stop_criterion = false;
         REAL res_tol = 1.0e-5;
         REAL eps_v = 0.0;
+        
+        STATE p, dp_desp_vol, r, j;
+        TPZTensor<T> epsilon_tem;
+        epsilon_tem.Zero();
         for(int i = 0; i < n_iterations; i++){
-            p_star = - m_pt_el  + exp(-(eps_v)*(1.0+m_e_0)/m_kappa)*(m_p_0 + m_pt_el);
-            r = p_star - p;
+            this->p(epsilon_tem, p, dp_desp_vol);
+            r = p - p_ref;
             stop_criterion = fabs(r) < res_tol;
             if(stop_criterion){
                 break;
             }
-            j = (exp(-(eps_v)*(1.0+m_e_0)/m_kappa)*(1.0+m_e_0)*(m_p_0 + m_pt_el))/(m_kappa);
+            j = dp_desp_vol;
             REAL deps_v = r / j;
             eps_v += deps_v;
+            epsilon_tem.XX() = eps_v;
+            epsilon_tem.YY() = eps_v;
+            epsilon_tem.ZZ() = eps_v;
         }
         
-        delta_eps.XX() = eps_v/3.0;
-        delta_eps.YY() = eps_v/3.0;
-        delta_eps.ZZ() = eps_v/3.0;
+        epsilon.XX() = eps_v/3.0;
+        epsilon.YY() = eps_v/3.0;
+        epsilon.ZZ() = eps_v/3.0;
         
         
         n_iterations = 40;
         stop_criterion = false;
         res_tol = 1.0e-8;
         REAL corr_tol = 1.0e-8;
-        TPZFNMatrix<6,STATE> res_sigma(6,1), delta_delta_eps(6,1), eps_k(6,1);
+        TPZFNMatrix<6,STATE> res_sigma(6,1), delta_eps(6,1), eps_k(6,1);
         TPZTensor<T> delta_sigma, sigma_i;
-        delta_eps.CopyTo(eps_k);
+        epsilon.CopyTo(eps_k);
 
         REAL res_norm = 1.0;
         REAL corr_norm = 1.0;
         int i;
         for (i = 0; i < n_iterations; i++) {
             
-            ComputeStress(delta_eps, sigma_i);
+            ComputeStress(epsilon, sigma_i);
             delta_sigma = sigma - sigma_i;
             delta_sigma.CopyTo(res_sigma);
             res_norm = Norm(res_sigma);
@@ -192,7 +199,7 @@ public:
             }
             TPZFNMatrix<36,STATE> De(6,6,0.0),De_inv;
             STATE det;
-            this->De(delta_eps, De);
+            this->De(epsilon, De);
 
             De.DeterminantInverse(det, De_inv);
             if (IsZero(det)) {
@@ -200,10 +207,10 @@ public:
                 DebugStop();
             }
             
-            De_inv.Multiply(res_sigma, delta_delta_eps);
-            corr_norm = Norm(delta_delta_eps);
-            eps_k += delta_delta_eps;
-            delta_eps.CopyFrom(eps_k);
+            De_inv.Multiply(res_sigma, delta_eps);
+            corr_norm = Norm(delta_eps);
+            eps_k += delta_eps;
+            epsilon.CopyFrom(eps_k);
         }
         if ( i == n_iterations) {
             std::cout << "TPZPorousElasticResponse:: Inversion process does not converge." << std::endl;
