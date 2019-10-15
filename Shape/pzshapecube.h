@@ -101,15 +101,17 @@ namespace pzshape {
 		 */
 		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
+        /**
+         * @brief Computes the generating shape functions for a quadrilateral element
+         * @param pt (input) point where the shape function is computed
+         * @param phi (input) value of the (4) shape functions
+         * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+         */
+        static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        
 	private:
 		
-		/**
-		 * @brief Computes the generating shape functions for a quadrilateral element
-		 * @param pt (input) point where the shape function is computed
-		 * @param phi (input) value of the (4) shape functions
-		 * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
-		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	
 
 		/**
 		 * @brief Compute the internal functions of the hexahedral shape function at a point
@@ -215,6 +217,7 @@ namespace pzshape {
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order);
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 	};
 	

@@ -9,22 +9,23 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
+#include "pzgenericshape.h"
 
 using namespace std;
 
 namespace pzshape {
 	
-	/**Transformation of the point within a triangular face */
-	REAL TPZShapeTriang::gTrans2dT[6][2][2] = {//s* , t*
-		{ { 1., 0.},{ 0., 1.} },
-		{ { 0., 1.},{ 1., 0.} },
-		{ { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
-		{ {-1.,-1.},{ 0., 1.} },
-		{ {-1.,-1.},{ 1., 0.} },
-		{ { 1., 0.},{-1.,-1.} }
-	};
+    /**Transformation of the point within a triangular face */
+    REAL TPZShapeTriang::gTrans2dT[6][2][2] = {//s* , t*
+        { { 1., 0.},{ 0., 1.} },
+        { { 0., 1.},{ 1., 0.} },
+        { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
+        { {-1.,-1.},{ 0., 1.} },
+        { {-1.,-1.},{ 1., 0.} },
+        { { 1., 0.},{-1.,-1.} }
+    };
 	
-	REAL TPZShapeTriang::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
+    REAL TPZShapeTriang::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
 	
 	REAL TPZShapeTriang::gRibTrans2dT1d[3][2] = { {2.,1.},{-1.,1.},{-1.,-2.} };//Cedric : 06/03/99
 	
@@ -112,7 +113,8 @@ namespace pzshape {
             TPZFNMatrix<100,REAL>dphin(2,ord2);
 			TPZShapeLinear *shplin=0;
 			shplin->ShapeInternal(outvec,order[rib],phin,dphin,shplin->GetTransformId1d(ids));
-			TransformDerivativeFromRibToTriang(rib,ord2,dphin);
+            dphin.Print("dphin= ",std::cout,EMathematicaInput);
+			//TransformDerivativeFromRibToTriang(rib,ord2,dphin);
 			for (int i = 0; i < ord2; i++) {
 				phi(shape,0) = phiblend(rib+3,0)*phin(i,0);
 				for(int xj=0;xj<2;xj++) {
@@ -122,12 +124,15 @@ namespace pzshape {
 				shape++;
 			}
 		}
+        
 		if (order[3] < 3) return;//ordem na face
 		int ord =  order[3]-2;//num de shapes da face
 		int nsh = (ord*(ord+1))/2;
         TPZFNMatrix<50,REAL> phin(nsh,1);
         TPZFNMatrix<100,REAL> dphin(2,nsh);
-		ShapeInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
+		ShapeInternal(pt,order[3]-2, phin, dphin,GetTransformId2dT(id));
+         dphin.Print("dphin= ",std::cout,EMathematicaInput);
+        
 		for(int i=0;i<nsh;i++)	{//number of internal shape equal maximal order
 			phi(shape,0) = phiblend(6,0)*phin(i,0);
 			for(int d=0;d<2;d++) {
@@ -243,49 +248,127 @@ namespace pzshape {
         
     }
     
-    
-	void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
-									   TPZFMatrix<REAL> &dphi,int triangle_transformation_index) {
-		
-		if(order < 0) return;
-		int ord1 = order;
-		int numshape = (ord1*(ord1+1))/2;
-		TPZManVector<REAL,2> out(2);
-		TransformPoint2dT(triangle_transformation_index,x,out);
-    
-        out[0] = 2.*out[0]-1.;
-        out[1] = 2.*out[1]-1.;
-		
-		if (phi.Rows() < numshape || dphi.Cols() < numshape) {
-			PZError << "\nTPZCompEl::Shape2dTriangleInternal phi or dphi resized\n";
-			phi.Resize(numshape,1);
-			dphi.Resize(dphi.Rows(),numshape);
-		}
+    void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+                                       TPZFMatrix<REAL> &dphi) {
+        
+        if((order - 2 ) <= 0) return;
+        int numshape = ((order-2)*(order-1))/2;
+        
+        TPZManVector<REAL,2> out(2,0.0);
+        out[0] = 2.*x[0]-1.;
+        out[1] = 2.*x[1]-1.;
+        
+        if (phi.Rows() < numshape || dphi.Cols() < numshape) {
+            PZError << "\nTPZCompEl::Shape2dTriangleInternal phi or dphi resized\n";
+            phi.Resize(numshape,1);
+            dphi.Resize(dphi.Rows(),numshape);
+        }
         
         TPZFNMatrix<50,REAL> phi0(numshape,1),phi1(numshape,1);
         TPZFNMatrix<100,REAL> dphi0(1,numshape),dphi1(1,numshape);
-		
-		TPZShapeLinear::fOrthogonal(out[0],numshape,phi0,dphi0);
-		TPZShapeLinear::fOrthogonal(out[1],numshape,phi1,dphi1);
-		int index = 0;
-		int i;
-		for (int iplusj=0;iplusj<ord1;iplusj++) {
-			for (int j=0;j<=iplusj;j++) {
-				i = iplusj-j;
-				phi(index,0) = phi0(i,0)*phi1(j,0);
-				dphi(0,index) = 2.*dphi0(0,i)*phi1(j,0);
-				dphi(1,index) = 2.*phi0(i,0)*dphi1(0,j);
-				index++;
-			}
-		}
-		TransformDerivative2dT(triangle_transformation_index,numshape,dphi);
-	}
+        
+        TPZShapeLinear::fOrthogonal(out[0],numshape,phi0,dphi0);
+        TPZShapeLinear::fOrthogonal(out[1],numshape,phi1,dphi1);
+        int index = 0;
+        int i;
+       
+        for (int iplusj=0;iplusj<(order - 2);iplusj++) {
+            for (int j=0;j<=iplusj;j++) {
+                i = iplusj-j;
+                phi(index,0) = phi0(i,0)*phi1(j,0);
+                dphi(0,index) = 2.0*dphi0(0,i)*phi1(j,0);
+                dphi(1,index) = 2.0*phi0(i,0)*dphi1(0,j);
+                index++;
+            }
+        }
+    }
+    
+    void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+                                       TPZFMatrix<REAL> &dphi,int triangle_transformation_index) {
+        
+        if(order < 0) return;
+        int ord1 = order;
+        int numshape = (ord1*(ord1+1))/2;
+        TPZManVector<REAL,2> out(2);
+        TransformPoint2dT(triangle_transformation_index,x,out);
+        
+        out[0] = 2.*out[0]-1.;
+        out[1] = 2.*out[1]-1.;
+        
+        if (phi.Rows() < numshape || dphi.Cols() < numshape) {
+            PZError << "\nTPZCompEl::Shape2dTriangleInternal phi or dphi resized\n";
+            phi.Resize(numshape,1);
+            dphi.Resize(dphi.Rows(),numshape);
+        }
+        
+        TPZFNMatrix<50,REAL> phi0(numshape,1),phi1(numshape,1);
+        TPZFNMatrix<100,REAL> dphi0(1,numshape),dphi1(1,numshape);
+        
+        TPZShapeLinear::fOrthogonal(out[0],numshape,phi0,dphi0);
+        TPZShapeLinear::fOrthogonal(out[1],numshape,phi1,dphi1);
+        int index = 0;
+        int i;
+        for (int iplusj=0;iplusj<ord1;iplusj++) {
+            for (int j=0;j<=iplusj;j++) {
+                i = iplusj-j;
+                phi(index,0) = phi0(i,0)*phi1(j,0);
+                dphi(0,index) = 2.*dphi0(0,i)*phi1(j,0);
+                dphi(1,index) = 2.*phi0(i,0)*dphi1(0,j);
+                index++;
+            }
+        }
+        TransformDerivative2dT(triangle_transformation_index,numshape,dphi);
+    }
+    
+    
+    
+    void TPZShapeTriang::ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                     TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+        if (side < 3 or side > 6) {
+            DebugStop();
+        }
+        
+        switch (side) {
+                
+            case 3:
+            case 4:
+            case 5:
+            {
+                pzshape::TPZShapeLinear::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+            case 6:
+            {
+                
+                ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+            default:
+                LOGPZ_ERROR(logger,"Wrong side parameter")
+                return -1;
+                break;
+        }
+      
+        
+        
+    }
 	
 	void TPZShapeTriang::ProjectPoint2dTriangToRib(int rib, TPZVec<REAL> &in, REAL &out) {
 		
 		out = gRibTrans2dT1d[rib][0]*in[0]+gRibTrans2dT1d[rib][1]*in[1]+gVet1dT[rib];
 	}
     
+    TPZTransform<REAL>  TPZShapeTriang::ParametricTransform(int trans_id){
+        TPZTransform<REAL> trans(2,2);
+        trans.Mult()(0,0) = gTrans2dT[trans_id][0][0];
+        trans.Mult()(0,1) = gTrans2dT[trans_id][0][1];
+        trans.Mult()(1,0) = gTrans2dT[trans_id][1][0];
+        trans.Mult()(1,1) = gTrans2dT[trans_id][1][1];
+        trans.Sum()(0,0) =gVet2dT[trans_id][0];
+        trans.Sum()(1,0) =gVet2dT[trans_id][1];
+        return trans;
+        
+    }
 	
 	void TPZShapeTriang::TransformDerivativeFromRibToTriang(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		

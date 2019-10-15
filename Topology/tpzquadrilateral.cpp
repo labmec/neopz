@@ -31,6 +31,9 @@ namespace pztopology {
 
 	static int nsidenodes[9] = {
 		1,1,1,1,2,2,2,2,4};
+    
+    int TPZQuadrilateral::SideNodes[4][2]  = { {0,1},{1,2},{2,3},{3,0} };
+    int TPZQuadrilateral::FaceNodes[1][4]  = { {0,1,2,3} };
 	
 	int TPZQuadrilateral::NSideNodes(int side)
 	{
@@ -686,6 +689,7 @@ namespace pztopology {
 			case 6:
 			case 7:
 			{
+                
 				int in1 = ContainedSideLocId(side,0);
 				int in2 = ContainedSideLocId(side,1);
 				return id[in1]<id[in2] ? 0 : 1;
@@ -1157,6 +1161,8 @@ namespace pztopology {
         }
     }
     
+
+    
     void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*2;
@@ -1191,9 +1197,14 @@ namespace pztopology {
         }
     }
     
-    TPZTransform<> TPZQuadrilateral::GetSideTransform(int side, int transformId){
-        int locside = permutationsQ[transformId][side];
-        return TransformElementToSide(locside);
+    TPZTransform<> TPZQuadrilateral::GetSideTransform(int transformId){
+      
+        TPZTransform<REAL> trans(2,2);
+//        trans.Mult()(0,0) = gTrans2dQ[transformId][0][0];
+//        trans.Mult()(1,0) = gTrans2dQ[transformId][1][0];
+//        trans.Mult()(0,1) = gTrans2dQ[transformId][0][1];
+//        trans.Mult()(1,1) = gTrans2dQ[transformId][1][1];
+        return trans;
         
     }
     
@@ -1209,6 +1220,7 @@ namespace pztopology {
 
     }
 
+    
 }
 
 /**********************************************************************************************************************

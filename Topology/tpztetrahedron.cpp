@@ -1140,8 +1140,45 @@ namespace pztopology {
 	 */	
 	int TPZTetrahedron::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
-		LOGPZ_ERROR(logger,"Please implement me")
-		return -1;
+        switch (side) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+           
+                return 0;
+                break;
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+         
+            {
+                int in1 = ContainedSideLocId(side,0);
+                int in2 = ContainedSideLocId(side,1);
+                return id[in1]<id[in2] ? 0 : 1;
+            }
+                break;
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            {
+                TPZManVector<int64_t,3> locid(3);
+                int i;
+                for(i=0; i<3; i++) locid[i] = id[ContainedSideLocId(side,i)];
+                return pztopology::TPZTriangle::GetTransformId(locid);
+            }
+                break;
+            case 14:
+            {
+                return 0;
+            }
+            default:
+                break;
+        }
 	}
 	
 	/**

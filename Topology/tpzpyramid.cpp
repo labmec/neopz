@@ -8,7 +8,8 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzeltype.h"
-
+#include "tpzquadrilateral.h"
+#include "tpztriangle.h"
 #include "pzlog.h"
 #include "pzextractval.h"
 
@@ -609,7 +610,6 @@ namespace pztopology {
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
                 return t;
-
 //ok hasta aqui
             case 14:
 //                t.Mult()(0,0) =  0.5;
@@ -686,7 +686,6 @@ namespace pztopology {
                 t.Sum()(1,0) = 0.5;
                 return t;
 
-                
             case 18:
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
@@ -695,117 +694,6 @@ namespace pztopology {
         }
         return TPZTransform<>(0,0);
 
-		
-//        switch(side){
-//            case 0:
-//            case 1:
-//            case 2:
-//            case 3:
-//            case 4:
-//                return t;
-//
-//
-//
-//
-//            case 5:
-//                t.Mult()(0,0) = 1.0;
-//                return t;
-//            case 6:
-//                t.Mult()(0,1) = 1.0;
-//                return t;
-//            case 7:
-//
-//                t.Mult()(0,0) = -1.0;
-//                return t;
-//            case 8:
-//                t.Mult()(0,1) = -1.0;
-//                return t;
-//            case 9:
-//
-//                t.Mult()(0,0) = 0.5;
-//                t.Mult()(0,1) = 0.5;
-//                t.Mult()(0,2) = 1.0;
-//                return t;
-//            case 10:
-//
-//                t.Mult()(0,0) = -0.5;
-//                t.Mult()(0,1) = 0.5;
-//                t.Mult()(0,2) = 1.0;
-//
-//                return t;
-//            case 11:
-//
-//                t.Mult()(0,0) = -0.5;
-//                t.Mult()(0,1) = -0.5;
-//                t.Mult()(0,2) = 1.0;
-//
-//                return t;
-//
-//            case 12:
-//                t.Mult()(0,0) = 0.5;
-//                t.Mult()(0,1) = -0.5;
-//                t.Mult()(0,2) = 1.0;
-//                return t;
-//
-//
-//
-//
-//            case 13:
-//                t.Mult()(0,0) =  1.0;
-//                t.Mult()(1,1) =  1.0;
-//                return t;
-//            case 14:
-//
-//                t.Mult()(0,0) =  1.0;
-//                t.Mult()(0,1) = -0.5;
-//                t.Mult()(0,2) = -0.5;
-//
-//                t.Mult()(1,1) = 1.0;
-//                t.Mult()(1,2) = 1.0;
-//
-//                t.Sum()(0,0) = -0.5;
-//                return t;
-//            case 15:
-//
-//                t.Mult()(0,0) =  0.5;
-//                t.Mult()(0,1) = 1.0;
-//                t.Mult()(0,2) = -0.5;
-//
-//                t.Mult()(1,0) = -1.0;
-//                t.Mult()(1,2) = 1.0;
-//
-//                t.Sum()(0,0) = -0.5;
-//                return t;
-//
-//            case 16:
-//
-//                t.Mult()(0,0) =  1.0;
-//                t.Mult()(0,1) = 0.5;
-//                t.Mult()(0,2) = -0.5;
-//
-//                t.Mult()(1,1) = -1.0;
-//                t.Mult()(1,2) = 1.0;
-//
-//                t.Sum()(0,0) = -0.5;
-//                return t;
-//            case 17:
-//
-//                t.Mult()(0,0) =  -0.5;
-//                t.Mult()(0,1) = 1.0;
-//                t.Mult()(0,2) = -0.5;
-//
-//                t.Mult()(1,0) = 1.0;
-//                t.Mult()(1,2) = 1.0;
-//
-//                t.Sum()(0,0) = -0.5;
-//                return t;
-//            case 18:
-//                t.Mult()(0,0) =  1.0;
-//                t.Mult()(1,1) =  1.0;
-//                t.Mult()(2,2) =  1.0;
-//                return t;
-//        }
-//        return TPZTransform<>(0,0);
 	}
 	
 	TPZTransform<> TPZPyramid::TransformSideToElement(int side){
@@ -1433,6 +1321,61 @@ namespace pztopology {
 		std::cout << "Please implement me\n";
 		DebugStop();
 	}
+    
+    int TPZPyramid::GetTransformId(int side, TPZVec<int64_t> &id){
+        switch (side) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                return 0;
+                break;
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            {
+                int in1 = ContainedSideLocId(side,0);
+                int in2 = ContainedSideLocId(side,1);
+                return id[in1]<id[in2] ? 0 : 1;
+            }
+                break;
+            case 13:
+            {
+           
+                TPZManVector<int64_t,4> locid(4);
+                int i;
+                for(i=0; i<4; i++) locid[i] = id[ContainedSideLocId(side,i)];
+                return pztopology::TPZQuadrilateral::GetTransformId(locid);
+            }
+                break;
+            case 14:
+            case 15:
+            case 16:
+            case 17:
+            {
+                TPZManVector<int64_t,3> locid(3);
+                int i;
+                for(i=0; i<3; i++) locid[i] = id[ContainedSideLocId(side,i)];
+                return pztopology::TPZTriangle::GetTransformId(locid);
+            }
+                break;
+                
+           
+            case 18:
+            {
+                
+                return 0;
+            }
+            default:
+                break;
+        }
+    }
     
     void computedirectionsPy(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
                            TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);

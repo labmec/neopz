@@ -19,17 +19,17 @@ using namespace std;
 
 namespace pzshape {
 	
-	/**Transformation of the point within a quadrilateral face */
-	REAL TPZShapeQuad::gTrans2dQ[8][2][2] = {//s* , t*
-		{ { 1., 0.},{ 0., 1.} },
-		{ { 0., 1.},{ 1., 0.} },
-		{ { 0., 1.},{-1., 0.} },
-		{ {-1., 0.},{ 0., 1.} },
-		{ {-1., 0.},{ 0.,-1.} },//s* = -s   t* = -t  , etc
-		{ { 0.,-1.},{-1., 0.} },
-		{ { 0.,-1.},{ 1., 0.} },
-		{ { 1., 0.},{ 0.,-1.} }
-	};
+    /**Transformation of the point within a quadrilateral face */
+    REAL TPZShapeQuad::gTrans2dQ[8][2][2] = {//s* , t*
+        { { 1., 0.},{ 0., 1.} },
+        { { 0., 1.},{ 1., 0.} },
+        { { 0., 1.},{-1., 0.} },
+        { {-1., 0.},{ 0., 1.} },
+        { {-1., 0.},{ 0.,-1.} },//s* = -s   t* = -t  , etc
+        { { 0.,-1.},{-1., 0.} },
+        { { 0.,-1.},{ 1., 0.} },
+        { { 1., 0.},{ 0.,-1.} }
+    };
 	
 	REAL TPZShapeQuad::gRibTrans2dQ1d[4][2] = { {1.,0.},{0.,1.},{-1.,0.},{0.,-1.} };
 	
@@ -92,56 +92,56 @@ namespace pzshape {
 		dphi(1,8) *= 16.;
 	}
 	
-	void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
-							 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
-		ShapeCorner(pt,phi,dphi);
-		int is,d;
-		TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
-		for(is=0; is<NCornerNodes; is++)
-		{
-			phiblend(is,0) = phi(is,0);
-			for(d=0; d<Dimension; d++)
-			{
-				dphiblend(d,is) = dphi(d,is);
-			}
-		}
-		ShapeGenerating(pt,phiblend,dphiblend);
-		REAL out;
-		int shape = 4;
-		for (int rib = 0; rib < 4; rib++) {
-			
-			ProjectPoint2dQuadToRib(rib,pt,out);
-			TPZVec<int64_t> ids(2);
-			TPZManVector<REAL,1> outvec(1,out);
-			ids[0] = id[rib%4];
-			ids[1] = id[(rib+1)%4];
-			REAL store1[20],store2[40];
-			int ord2 = order[rib]-1;//two orders : order in x and order in y
-			TPZFMatrix<REAL> phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
-			TPZShapeLinear::ShapeInternal(outvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));
-			TransformDerivativeFromRibToQuad(rib,ord2,dphin);
-			for (int i = 0; i < ord2; i++) {
-				phi(shape,0) = phiblend(rib+4,0)*phin(i,0);
-				for(int xj=0;xj<2;xj++) {
-					dphi(xj,shape) = dphiblend(xj,rib+4)*phin(i,0)+
-					phiblend(rib+4,0)*dphin(xj,i);
-				}
-				shape++;
-			}
-		}
-		REAL store1[20],store2[40];
-		int ord = (order[4]-1)*(order[4]-1);
-		TPZFMatrix<REAL> phin(ord,1,store1,20),dphin(2,ord,store2,40);
-		ShapeInternal(pt,order[4]-2,phin,dphin,GetTransformId2dQ(id));
-		for(int i=0;i<ord;i++)	{//funcoes de interior s�o em numero ordem-1
-			phi(shape,0) = phiblend(8,0)*phin(i,0);
-			for(int xj=0;xj<2;xj++) {//x e y
-				dphi(xj,shape) = dphiblend(xj,8)*phin(i,0) +
-				phiblend(8,0)*dphin(xj,i);
-			}
-			shape++;
-		}
-	}
+    void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
+                             TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
+        ShapeCorner(pt,phi,dphi);
+        int is,d;
+        TPZFNMatrix<100> phiblend(NSides,1),dphiblend(Dimension,NSides);
+        for(is=0; is<NCornerNodes; is++)
+        {
+            phiblend(is,0) = phi(is,0);
+            for(d=0; d<Dimension; d++)
+            {
+                dphiblend(d,is) = dphi(d,is);
+            }
+        }
+        ShapeGenerating(pt,phiblend,dphiblend);
+        REAL out;
+        int shape = 4;
+        for (int rib = 0; rib < 4; rib++) {
+            
+            ProjectPoint2dQuadToRib(rib,pt,out);
+            TPZVec<int64_t> ids(2);
+            TPZManVector<REAL,1> outvec(1,out);
+            ids[0] = id[rib%4];
+            ids[1] = id[(rib+1)%4];
+            REAL store1[20],store2[40];
+            int ord2 = order[rib]-1;//two orders : order in x and order in y
+            TPZFMatrix<REAL> phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
+            TPZShapeLinear::ShapeInternal(outvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));
+            TransformDerivativeFromRibToQuad(rib,ord2,dphin);
+            for (int i = 0; i < ord2; i++) {
+                phi(shape,0) = phiblend(rib+4,0)*phin(i,0);
+                for(int xj=0;xj<2;xj++) {
+                    dphi(xj,shape) = dphiblend(xj,rib+4)*phin(i,0)+
+                    phiblend(rib+4,0)*dphin(xj,i);
+                }
+                shape++;
+            }
+        }
+        REAL store1[20],store2[40];
+        int ord = (order[4]-1)*(order[4]-1);
+        TPZFMatrix<REAL> phin(ord,1,store1,20),dphin(2,ord,store2,40);
+        ShapeInternal(pt,order[4]-2,phin,dphin,GetTransformId2dQ(id));
+        for(int i=0;i<ord;i++)    {//funcoes de interior s�o em numero ordem-1
+            phi(shape,0) = phiblend(8,0)*phin(i,0);
+            for(int xj=0;xj<2;xj++) {//x e y
+                dphi(xj,shape) = dphiblend(xj,8)*phin(i,0) +
+                phiblend(8,0)*dphin(xj,i);
+            }
+            shape++;
+        }
+    }
 	
 	void TPZShapeQuad::SideShape(int side,TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 								 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
@@ -278,34 +278,87 @@ namespace pzshape {
 
 
     }
+    void TPZShapeQuad::ShapeInternal(TPZVec<REAL> &x, int order,
+                                     TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+        
+        if((order-2) < 0) return;
+        int ord1 = order - 1;
+        int numshape = (order-1)*(order-1);
+        if(numshape > phi.Rows() || phi.Cols() < 1) phi.Resize(numshape,1);
+        if(dphi.Rows() < 2 || dphi.Cols() < numshape) dphi.Resize(2,numshape);
+        TPZFNMatrix<20, REAL> phi0(ord1,1),phi1(ord1,1),dphi0(1,ord1),dphi1(1,ord1);
+        TPZShapeLinear::fOrthogonal(x[0],ord1,phi0,dphi0);
+        TPZShapeLinear::fOrthogonal(x[1],ord1,phi1,dphi1);
+        for (int i=0;i<ord1;i++) {
+            for (int j=0;j<ord1;j++) {
+                int index = i*ord1+j;
+                phi(index,0) =  phi0(i,0)* phi1(j,0);
+                dphi(0,index) = dphi0(0,i)* phi1(j,0);
+                dphi(1,index) =  phi0(i,0)*dphi1(0,j);
+            }
+        }
+      
+    }
     
+    void TPZShapeQuad::ShapeInternal(TPZVec<REAL> &x, int order,
+                                     TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,int quad_transformation_index) {
+        
+        if(order < 0) return;
+        int ord1 = order+1;
+        int numshape = ord1*ord1;
+        TPZManVector<REAL> out(2);
+        TransformPoint2dQ(quad_transformation_index,x,out);
+        
+        if(numshape > phi.Rows() || phi.Cols() < 1) phi.Resize(numshape,1);
+        if(dphi.Rows() < 2 || dphi.Cols() < numshape) dphi.Resize(2,numshape);
+        REAL store1[20],store2[20],store3[20],store4[20];
+        TPZFMatrix<REAL> phi0(ord1,1,store1,20),phi1(ord1,1,store2,20),dphi0(1,ord1,store3,20),dphi1(1,ord1,store4,20);
+        
+        TPZShapeLinear::fOrthogonal(out[0],ord1,phi0,dphi0);
+        TPZShapeLinear::fOrthogonal(out[1],ord1,phi1,dphi1);
+        for (int i=0;i<ord1;i++) {
+            for (int j=0;j<ord1;j++) {
+                int index = i*ord1+j;
+                phi(index,0) =  phi0(i,0)* phi1(j,0);
+                dphi(0,index) = dphi0(0,i)* phi1(j,0);
+                dphi(1,index) =  phi0(i,0)*dphi1(0,j);
+            }
+        }
+        TransformDerivative2dQ(quad_transformation_index,numshape,dphi);
+    }
     
-	void TPZShapeQuad::ShapeInternal(TPZVec<REAL> &x, int order,
-									 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,int quad_transformation_index) {
-		
-		if(order < 0) return;
-		int ord1 = order+1;
-		int numshape = ord1*ord1;
-		TPZManVector<REAL> out(2);
-		TransformPoint2dQ(quad_transformation_index,x,out);
-		
-		if(numshape > phi.Rows() || phi.Cols() < 1) phi.Resize(numshape,1);
-		if(dphi.Rows() < 2 || dphi.Cols() < numshape) dphi.Resize(2,numshape);
-		REAL store1[20],store2[20],store3[20],store4[20];
-		TPZFMatrix<REAL> phi0(ord1,1,store1,20),phi1(ord1,1,store2,20),dphi0(1,ord1,store3,20),dphi1(1,ord1,store4,20);
-		
-		TPZShapeLinear::fOrthogonal(out[0],ord1,phi0,dphi0);
-		TPZShapeLinear::fOrthogonal(out[1],ord1,phi1,dphi1);
-		for (int i=0;i<ord1;i++) {
-			for (int j=0;j<ord1;j++) {
-				int index = i*ord1+j;
-				phi(index,0) =  phi0(i,0)* phi1(j,0);
-				dphi(0,index) = dphi0(0,i)* phi1(j,0);
-				dphi(1,index) =  phi0(i,0)*dphi1(0,j);
-			}
-		}
-		TransformDerivative2dQ(quad_transformation_index,numshape,dphi);
-	}
+
+    
+    void TPZShapeQuad::ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                     TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+        if (side < 4 or side > 8) {
+            DebugStop();
+        }
+        
+        switch (side) {
+
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            {
+                pzshape::TPZShapeLinear::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+            case 8:
+            {
+                ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+            default:
+            LOGPZ_ERROR(logger,"Wrong side parameter")
+                return -1;
+                break;
+        }
+      
+        
+      
+    }
 	
 	void TPZShapeQuad::TransformDerivative2dQ(int transid, int num, TPZFMatrix<REAL> &in) {
 		
@@ -323,8 +376,17 @@ namespace pzshape {
 		
 		out[0] = gTrans2dQ[transid][0][0]*in[0]+gTrans2dQ[transid][0][1]*in[1];//Cedric 23/02/99
 		out[1] = gTrans2dQ[transid][1][0]*in[0]+gTrans2dQ[transid][1][1]*in[1];//Cedric 23/02/99
+        
 	}
 	
+    TPZTransform<REAL> TPZShapeQuad::ParametricTransform(int trans_id){
+        TPZTransform<REAL> trans(2,2);
+        trans.Mult()(0,0) = gTrans2dQ[trans_id][0][0];
+        trans.Mult()(0,1) = gTrans2dQ[trans_id][0][1];
+        trans.Mult()(1,0) = gTrans2dQ[trans_id][1][0];
+        trans.Mult()(1,1) = gTrans2dQ[trans_id][1][1];
+        return trans;
+    }
 	void TPZShapeQuad::ProjectPoint2dQuadToRib(int rib, TPZVec<REAL> &in, REAL &out) {
 		
 		out = gRibTrans2dQ1d[rib][0]*in[0]+gRibTrans2dQ1d[rib][1]*in[1];
@@ -356,6 +418,8 @@ namespace pzshape {
 		}
 		return 0;
 	}
+    
+  
 	
 	void TPZShapeQuad::TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		

@@ -133,6 +133,8 @@ public:
 		 * if \f$ id[0] > id[1] \f$ the odd ordered shapefunctions are inverted
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        
+        static void ShapeCorner(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
@@ -180,9 +182,7 @@ public:
          * The shape1dInternal function is extensively used by the shapefunction computation of
          * the other elements
          */
-        static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            ShapeInternal(x, ord,phi,dphi,0);
-        }
+        static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -271,6 +271,9 @@ public:
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order);
+        static void TransformPoint1d(int transid,double &val) ;
+        static TPZTransform<REAL> ParametricTransform(int transid);
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 	};
 	

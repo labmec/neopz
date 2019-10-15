@@ -252,17 +252,19 @@ namespace pztopology {
          */
         static void CornerShape(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
         
-
+        
+        
+        /** @brief Nodes over quadrilateral sides (2d - faces). */
+        static int FaceNodes[5][4];
+        
+        /** @brief Nodes over lines sides (1d) */
+        static int SideNodes[8][2];
 
 	protected:
 		/** @name Data structure which defines the pyramid transformations */
 		/** @{ */
 
-		/** @brief Nodes over quadrilateral sides (2d - faces). */
-		static int FaceNodes[5][4];
 
-		/** @brief Nodes over lines sides (1d) */
-		static int SideNodes[8][2];
 
 		/** @brief Ids of the shape face */
 		static int ShapeFaceId[5][4];

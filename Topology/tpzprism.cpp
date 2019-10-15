@@ -10,7 +10,8 @@
 #include "pzreal.h"
 #include "pzquad.h"
 #include "pzeltype.h"
-
+#include "tpzquadrilateral.h"
+#include "tpztriangle.h"
 #include "pzlog.h"
 
 #ifdef _AUTODIFF
@@ -724,7 +725,7 @@ namespace pztopology {
             case 20:
                 t.Mult()(0,0) = 1.0;
                 t.Mult()(1,1) = 1.0;
-                t.Mult()(1,2) = 1.0; //rev
+                t.Mult()(2,2) = 1.0; //rev
                 return t;
         }
         return TPZTransform<>(0,0);
@@ -1335,8 +1336,63 @@ namespace pztopology {
 	 */	
 	int TPZPrism::GetTransformId(int side, TPZVec<int64_t> &id)
 	{
-		LOGPZ_ERROR(logger,"Please implement me")
-		return -1;
+        switch (side) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            
+                return 0;
+                break;
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            {
+                int in1 = ContainedSideLocId(side,0);
+                int in2 = ContainedSideLocId(side,1);
+                return id[in1]<id[in2] ? 0 : 1;
+            }
+                break;
+                
+            case 15:
+            case 19:
+            {
+                TPZManVector<int64_t,3> locid(3);
+                int i;
+                for(i=0; i<3; i++) locid[i] = id[ContainedSideLocId(side,i)];
+                return pztopology::TPZTriangle::GetTransformId(locid);
+            }
+                break;
+               
+            case 16:
+            case 17:
+            case 18:
+            {
+                TPZManVector<int64_t,4> locid(4);
+                int i;
+                for(i=0; i<4; i++) locid[i] = id[ContainedSideLocId(side,i)];
+                return pztopology::TPZQuadrilateral::GetTransformId(locid);
+               
+            }
+                break;
+                
+            case 20:
+                return 0;
+            default:
+                break;
+        }
+        return -1;
+        
+//        LOGPZ_ERROR(logger,"Please implement me")
+//        return -1;
 	}
 	
 	/**

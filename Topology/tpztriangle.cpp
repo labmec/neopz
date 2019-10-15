@@ -33,7 +33,21 @@ namespace pztopology {
         dphi(0,1) = dphi(1,2) =  1.0;
         dphi(1,1) = dphi(0,2) =  0.0;
     }
-
+    
+    int TPZTriangle::SideNodes[3][2]  = { {0,1},{1,2},{2,0} };
+    int TPZTriangle::FaceNodes[1][3]  = { {0,1,2} };
+    
+    
+    /**Transformation of the point within a triangular face */
+    REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
+        { { 1., 0.},{ 0., 1.} },
+        { { 0., 1.},{ 1., 0.} },
+        { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
+        { {-1.,-1.},{ 0., 1.} },
+        { {-1.,-1.},{ 1., 0.} },
+        { { 1., 0.},{-1.,-1.} }
+    };
+    
     template<class T>
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
@@ -481,14 +495,19 @@ namespace pztopology {
             case 6:
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
+//                t.Sum()(0,0) = -1;
+//                t.Sum()(1,0) = -1;
                 return t;
         }
         return TPZTransform<>(0,0);
     }
-    TPZTransform<> TPZTriangle::GetSideTransform(int side, int transformId){
-        int locside = permutationsT[transformId][side];
-        return TransformElementToSide(locside);
-
+    TPZTransform<> TPZTriangle::GetSideTransform( int transformId){
+        TPZTransform<REAL> trans(2,2);
+        trans.Mult()(0,0) = gTrans2dT[transformId][0][0];
+        trans.Mult()(1,0) = gTrans2dT[transformId][1][0];
+        trans.Mult()(0,1) = gTrans2dT[transformId][0][1];
+        trans.Mult()(1,1) = gTrans2dT[transformId][1][1];
+        return trans;
     }
     TPZTransform<> TPZTriangle::TransformSideToElement(int side){
 
@@ -523,7 +542,9 @@ namespace pztopology {
                 t.Mult()(1,0) = -0.5;
                 t.Sum() (1,0) =  0.5;
                 return t;
-            case 6:
+            case 6: //acertar
+                DebugStop();
+                std::cout<<"ALERTA"<<std::endl;
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
                 return t;

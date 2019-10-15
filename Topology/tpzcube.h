@@ -241,16 +241,20 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
+        
+        /** @brief Nodes over quadrilateral sides (2d - faces). */
+        static int FaceNodes[6][4]; //protected
+        
+        
+        /** @brief Nodes over lines sides (1d) */
+        static int SideNodes[12][2]; //PROTECTED
 	
 	protected:
 		/** @name Data structure which defines the hexahedral transformations */
 		/** @{ */
 		
-		/** @brief Nodes over quadrilateral sides (2d - faces). */
-		static int FaceNodes[6][4];
-		
-		/** @brief Nodes over lines sides (1d) */
-		static int SideNodes[12][2];
+	
+
 		
 		/** @brief Ids of the shape face */
 		static int ShapeFaceId[6][2];

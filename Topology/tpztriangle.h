@@ -185,7 +185,7 @@ namespace pztopology {
 		 */
 		static TPZTransform<> TransformElementToSide(int side);
         
-        static TPZTransform<> GetSideTransform(int side, int transformId); 
+        static TPZTransform<> GetSideTransform(int transformId); 
 		
 		
 		/**
@@ -257,6 +257,11 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
+        
+        static int SideNodes[3][2];
+        static int FaceNodes[1][3];
+        static REAL gTrans2dT[6][2][2] ;
+       
 
 	};
 	

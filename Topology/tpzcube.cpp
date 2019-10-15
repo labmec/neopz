@@ -1107,7 +1107,7 @@ namespace pztopology {
 			case 24:
 			case 25:
 			{
-				TPZManVector<int64_t,4> locid;
+				TPZManVector<int64_t,4> locid(4);
 				int i;
 				for(i=0; i<4; i++) locid[i] = id[ContainedSideLocId(side,i)];
 				return pztopology::TPZQuadrilateral::GetTransformId(locid);
