@@ -81,7 +81,7 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 
 template <class TGeo>
 template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
+void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
 
     TPZGeoEl &gel = *fGeoEl;
     TPZGeoMesh *gmesh = gel.Mesh();
@@ -1100,6 +1100,8 @@ template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 \
 template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result) const; \
 template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<Fad<REAL>> &par, TPZVec<Fad<REAL>> &result) const; \
+template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<REAL> &xiInterior, TPZFMatrix<REAL> &gradx) const;\
+template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<Fad<REAL>> &xiInterior, TPZFMatrix<Fad<REAL>> &gradx) const;\
 template class \
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
