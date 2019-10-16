@@ -29,9 +29,10 @@ namespace pztopology {
         phi(0,0) = 1.0-qsi-eta;
         phi(1,0) = qsi;
         phi(2,0) = eta;
-        dphi(0,0) = dphi(1,0) = -1.0;
-        dphi(0,1) = dphi(1,2) =  1.0;
-        dphi(1,1) = dphi(0,2) =  0.0;
+        qsi *= (T)0.; // Keep this for FAD calculation
+        dphi(0,0) = dphi(1,0) = -1.0 + qsi;
+        dphi(0,1) = dphi(1,2) =  1.0 + qsi;
+        dphi(1,1) = dphi(0,2) =  qsi;
     }
     
     int TPZTriangle::SideNodes[3][2]  = { {0,1},{1,2},{2,0} };
