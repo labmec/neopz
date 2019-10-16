@@ -1095,6 +1095,8 @@ template class pzgeom::TPZGeoBlend<TPZGeoQuad>;
 template class pzgeom::TPZGeoBlend<TPZGeoLinear>;
 template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 
+#ifdef _AUTODIFF
+
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
 \
@@ -1118,6 +1120,34 @@ IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
 
 #undef IMPLEMENTBLEND
+
+#else
+
+///CreateGeoElement -> TPZGeoBlend
+#define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
+\
+template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result) const; \
+template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<REAL> &xiInterior, TPZFMatrix<REAL> &gradx) const;\
+template class \
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
+\
+template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
+template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
+
+IMPLEMENTBLEND(pzgeom::TPZGeoPoint,CreatePointEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoLinear,CreateLinearEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoQuad,CreateQuadEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,CreateTriangleEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoCube,CreateCubeEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPrism,CreatePrismEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
+
+#undef IMPLEMENTBLEND
+
+
+#endif
+
 
 
 /*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
