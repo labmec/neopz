@@ -414,7 +414,7 @@ namespace pzshape {
 	
     void TPZShapeCube::ShapeInternal(int side, TPZVec<REAL> &x, int order,
                                        TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-        if (side < 8 or side > 26) {
+        if (side < 8 || side > 26) {
             DebugStop();
         }
         

@@ -324,7 +324,7 @@ namespace pzshape {
     
     void TPZShapeTriang::ShapeInternal(int side, TPZVec<REAL> &x, int order,
                                      TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-        if (side < 3 or side > 6) {
+        if (side < 3 || side > 6) {
             DebugStop();
         }
         

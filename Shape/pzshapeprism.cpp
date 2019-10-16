@@ -563,7 +563,7 @@ namespace pzshape {
     
     void TPZShapePrism::ShapeInternal(int side, TPZVec<REAL> &x, int order,
                                       TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
-        if (side < 6 or side > 20) {
+        if (side < 6 || side > 20) {
             DebugStop();
         }
         
