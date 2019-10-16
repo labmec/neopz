@@ -307,19 +307,19 @@ void PECompareStressStrainResponse() {
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -1.31176335512708;
-        sigma_ref.YY() =  0.213112095872918;
-        sigma_ref.ZZ() =  0.071725599872918;
-
+        sigma_ref.XX() = -78.1168956512538;
+        sigma_ref.YY() = -64.1406196052538;
+        sigma_ref.ZZ() = -64.2820061012538;
+        
         eps_e.Zero(); // The reference strain
-        eps_e.XX() = -0.000113727;
-        eps_e.YY() = 0.000116224;
+        eps_e.XX() = -0.00113727;
+        eps_e.YY() = 0.0000116224;
 
         STATE mu = 12165.0;
         STATE kappa = 0.0024;
         STATE pt_el = 5.835;
         STATE e_0 = 0.34;
-        STATE p_0 = 0.0;
+        STATE p_0 = 34.0;
         PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
         PER.SetShearModulusConstant(mu);
         
@@ -412,20 +412,20 @@ void PECompareStressStrainResponse() {
         STATE kappa = 0.0024;
         STATE pt_el = 5.835;
         STATE e_0 = 0.34;
-        STATE p_0 = 0.0;
+        STATE p_0 = 34.0;
         PER.SetPorousElasticity(kappa, pt_el, e_0, p_0);
         PER.SetShearModulusConstant(mu);
         
         // The reference data
         TPZTensor<REAL> eps_e,sigma_ref, sigma_linear;
         sigma_ref.Zero(); // The reference stress
-        sigma_ref.XX() = -2.77910499958082;
-        sigma_ref.YY() =  2.81560283041918;
-        sigma_ref.ZZ() =  -0.0121270895808181;
+        sigma_ref.XX() = -78.1168956512538;
+        sigma_ref.YY() = -64.1406196052538;
+        sigma_ref.ZZ() = -64.2820061012538;
         
         eps_e.Zero(); // The reference strain
-        eps_e.XX() = -0.000113727;
-        eps_e.YY() = 0.000116224;
+        eps_e.XX() = -0.00113727;
+        eps_e.YY() = 0.0000116224;
         
         TPZElasticResponse LE_equivalent = PER.EvaluateElasticResponse(eps_e);
         LE_equivalent.ComputeStress(eps_e, sigma_linear);
@@ -433,15 +433,45 @@ void PECompareStressStrainResponse() {
         bool sigma_check = IsZero(sigma_norm);
         BOOST_CHECK(sigma_check);
         
-        {
-            TPZElasticResponse LE_equivalent = PER.EvaluateElasticResponse(eps_e);
-            REAL delta_eps = -0.000001;
-            eps_e.XX() += delta_eps;
-            eps_e.YY() += delta_eps;
-            eps_e.ZZ() += delta_eps;
-            LE_equivalent.ComputeStress(eps_e, sigma_linear);
-            REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
-            bool sigma_check = IsZero(sigma_norm);
+        // Check for convergence
+        int n_data = 10;
+        TPZManVector<REAL,10> alpha(10), error(10);
+        REAL s = 0.00001;
+        for (int i = 0; i < n_data; i++) {
+            alpha[i] = s*(1.0/power(2,(i)));
+        }
+        
+        TPZFNMatrix<36,STATE> De(6,6);
+        TPZFNMatrix<6,STATE> epsilon_v(6,1), sigma_v(6,1), delta_sigma_v(6,1), delta_eps_v(6,1);
+        De.Zero();
+        TPZTensor<REAL> sigma;
+        
+        LE_equivalent.De(De);
+        for(int i = 0; i < n_data; i++){
+            
+            REAL alpha_val = alpha[i];
+            
+            TPZTensor<STATE> sigma_approx, epsilon, delta_sigma, delta_eps;
+            eps_e.CopyTo(epsilon_v);
+            epsilon_v += alpha_val;
+            epsilon.CopyFrom(epsilon_v);
+            PER.ComputeStress(epsilon, sigma);
+            
+            delta_eps_v.Zero();
+            delta_eps_v += alpha_val;
+            De.Multiply(delta_eps_v, delta_sigma_v);
+            delta_sigma.CopyFrom(delta_sigma_v);
+            sigma_approx = sigma_ref + delta_sigma;
+            delta_sigma = sigma_linear - sigma_approx;
+            REAL error_norm = delta_sigma.Norm();
+            error[i] = log(error_norm);
+            alpha[i] = log(alpha_val);
+        }
+        for(int i = 0; i < n_data-1; i++){
+            REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
+            REAL diff = n - 0.999;
+            bool rate_check = fabs(diff) < 0.01;
+            BOOST_CHECK(rate_check);
         }
         
     }

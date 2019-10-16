@@ -332,6 +332,7 @@ TPZElasticResponse TPZPorousElasticResponse::EvaluateElasticResponse(const TPZTe
         nu     = (3.0*K-2.0*m_mu)/(2.0*(3.0*K+m_mu));
         LinearER.SetEngineeringData(Eyoung, nu);
     }else{
+        DebugStop();
         STATE dG_desp_vol;
         this->G(epsilon, G, dG_desp_vol);
         Eyoung = 2*G*(1.0+m_nu);
@@ -340,9 +341,9 @@ TPZElasticResponse TPZPorousElasticResponse::EvaluateElasticResponse(const TPZTe
     
     /// Seeking for an equivalent residual strain
     {
-        TPZTensor<REAL> linear_epsilon,sigma, eps_res;
+        TPZTensor<REAL> linear_epsilon(epsilon),sigma, eps_res;
         this->ComputeStress(epsilon, sigma);
-        LinearER.ComputeStrain(sigma, linear_epsilon);
+//        LinearER.ComputeStrain(sigma, linear_epsilon);
         LinearER.SetReferenceStressData(sigma);
         LinearER.SetReferenceStrainData(linear_epsilon);
     }

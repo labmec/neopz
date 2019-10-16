@@ -146,35 +146,17 @@ public:
 
         // Initial guess is for the deviatoric is obtained from the given epsilon
         // Computing the initial guess for the volumetric part
-        REAL p_ref;
-        p_ref = -sigma.I1()/3;
+        REAL p_star;
+        p_star = -sigma.I1()/3;
         int n_iterations = 20;
         bool stop_criterion = false;
         REAL res_tol = 1.0e-5;
-        REAL eps_v = 0.0;
-        
-        STATE p, dp_desp_vol, r, j;
-        TPZTensor<T> epsilon_tem;
-        epsilon_tem.Zero();
-        for(int i = 0; i < n_iterations; i++){
-            this->p(epsilon_tem, p, dp_desp_vol);
-            r = p - p_ref;
-            stop_criterion = fabs(r) < res_tol;
-            if(stop_criterion){
-                break;
-            }
-            j = dp_desp_vol;
-            REAL deps_v = r / j;
-            eps_v += deps_v;
-            epsilon_tem.XX() = eps_v;
-            epsilon_tem.YY() = eps_v;
-            epsilon_tem.ZZ() = eps_v;
-        }
+        REAL eps_v = (m_kappa*log((m_p_0 + m_pt_el)/(p_star + m_pt_el)))/(1 + m_e_0);
         
         epsilon.XX() = eps_v/3.0;
         epsilon.YY() = eps_v/3.0;
         epsilon.ZZ() = eps_v/3.0;
-        
+
         
         n_iterations = 40;
         stop_criterion = false;
