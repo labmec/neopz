@@ -631,7 +631,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &
         }
     }
     //std::cout<<qsiFad<<std::endl;
-    TPZFNMatrix<9,Fad<REAL>> gradxFad;
+    TPZFNMatrix<9,Fad<REAL>> gradxFad(3,TGeo::Dimension);
     this->GradX(qsiFad, gradxFad);
     //gradxFad.Print(std::cout);
     TGeo::ComputeDirections(gradxFad, directions);

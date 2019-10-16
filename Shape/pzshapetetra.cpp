@@ -349,7 +349,7 @@ namespace pzshape {
                 break;
                 
             default:
-                LOGPZ_ERROR(logger,"Wrong side parameter")
+                std::cout << "Wrong side parameter side " << side << std::endl;
                 DebugStop();
                 break;
         }
