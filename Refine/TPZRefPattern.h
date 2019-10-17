@@ -227,11 +227,6 @@ protected:
     void ComputePartition();
 
     /**
-	 * @brief Generate the refinement patterns associated with the sides of the father element
-	 */
-    void GenerateSideRefPatterns();
-
-    /**
 	 * @brief Build a geometric mesh associated with the side of the refinement pattern
 	 */
     void BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh);
@@ -309,10 +304,7 @@ public:
      */
     TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &permute);
 
-    int operator==(const TPZAutoPointer<TPZRefPattern> compare) const{
-        DebugStop();//@TODOFran: Implement me!
-        return -1;
-    }
+    int operator==(const TPZAutoPointer<TPZRefPattern> compare) const;
 
 	virtual ~TPZRefPattern() = default;
 
@@ -325,7 +317,7 @@ public:
  	* @brief Prints the useful information of a Refinement Pattern in a ostream file
     */
     void Print(std::ostream &out = std::cout){
-        DebugStop();//@TODOFran: implement me!
+        PrintMore(out);
     }
 
     int ClassId() const override;
@@ -474,38 +466,32 @@ public:
 	 * @brief This method is used to create / identify the nodes of the refined elements.
 	 *
 	 * The method verify if the nodes are already created by the self element or by some neighbour.
-	 * @param gel - pointer to the element which are being divided
+	 * @param gel - pointer to the element which is being divided. It is ALWAYS assumed to be the father element.
 	 * @param newnodeindexes - return all midside node indexes for the element division.
 	 */
-    void CreateNewNodes(TPZGeoEl *gel, TPZVec<int64_t> &newnodeindexes){
-        DebugStop();//@TODOFran: IMPLEMENT ME!
-    }
+    void CreateNewNodes(TPZGeoEl *gel, TPZVec<int64_t> &newnodeindexes);
 
     /**
      * @brief This method is used to create / identify the midside nodes for element elindex in its division process.
-     * @param gel - pointer to the element which are being divided
+     * @param gel - pointer to the element which is being divided. It is ALWAYS assumed to be the father element.
      * @param side - Side along which the nodes will be identified/created
      * @param newnodeindexes - return all midside node indexes for the element division.
      */
     /**
      * The method verify if the nodes are already created by the self element or by some neighbour.
      */
-    void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<int64_t> &newnodeindexes){
-        DebugStop();//@TODOFran: IMPLEMENT ME!
-    }
+    void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<int64_t> &newnodeindexes);
 
-    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side){
-        DebugStop();//@TODOFran: IMPLEMENT ME!
-        return TPZAutoPointer<TPZRefPattern>(nullptr);
-    }
+    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side);
 
+    /**
+	 * @brief Generate the refinement patterns associated with the sides of the father element
+	 */
+    void GenerateSideRefPatterns();
     /**
     * @brief Find the side refinement pattern corresponding to the parameter transformation
     */
-    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform<> &trans){
-        DebugStop();//@TODOFran: IMPLEMENT ME!
-        return TPZAutoPointer<TPZRefPattern>(nullptr);
-    }
+    TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform<> &trans);
 
     TPZGeoMesh &RefPatternMesh(){
 		return fRefPatternMesh;
