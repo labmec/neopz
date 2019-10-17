@@ -41,7 +41,7 @@ void TPZPorousElasticCriterion::Write(TPZStream& buf, int withclassid) const {
     fPER.Write(buf, withclassid);
 }
 
-#define LE_Q
+//#define LE_Q
 
 void TPZPorousElasticCriterion::ApplyStrainComputeSigma(const TPZTensor<REAL> &eps, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> * tangent)
 {
