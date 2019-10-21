@@ -267,7 +267,9 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
-
+	protected:
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations [1][1];
 	};
 	
 }

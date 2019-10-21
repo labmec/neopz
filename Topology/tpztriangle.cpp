@@ -196,7 +196,7 @@ namespace pztopology {
     
     static int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
     
-    static int permutationsT [6][7] =
+    int TPZTriangle::fPermutations [6][7] =
     {
         {0,1,2,3,4,5,6}, // id 0
         {0,2,1,5,4,3,6}, // id 1
@@ -484,7 +484,7 @@ namespace pztopology {
         return TPZTransform<>(0,0);
     }
     TPZTransform<> TPZTriangle::GetSideTransform(int side, int transformId){
-        int locside = permutationsT[transformId][side];
+        int locside = fPermutations[transformId][side];
         return TransformElementToSide(locside);
 
     }
@@ -679,7 +679,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
     }
 #endif
     for (int i=0; i<7; i++) {
-        permute[i] = permutationsT[transformid][i];
+        permute[i] = fPermutations[transformid][i];
     }
     return;
     int dir = 1;
@@ -726,7 +726,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         
         for (int i=0; i<7; i++)
         {
-            permgather[i] = permutationsT[transformationid][i];
+            permgather[i] = fPermutations[transformationid][i];
         }
         
         /*
@@ -736,7 +736,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             {
                 for (int i=0; i<7; i++)
                 {
-                    permgather[i] = permutationsT[0][i];
+                    permgather[i] = fPermutations[0][i];
                 }
             }
                 break;
@@ -744,7 +744,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             {
                 for (int i=0; i<7; i++)
                 {
-                    permgather[i] = permutationsT[1][i];
+                    permgather[i] = fPermutations[1][i];
                 }
             }
                 break;
@@ -752,7 +752,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             {
                 for (int i=0; i<7; i++)
                 {
-                    permgather[i] = permutationsT[2][i];
+                    permgather[i] = fPermutations[2][i];
                 }
             }
                 break;
@@ -760,7 +760,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             {
                 for (int i=0; i<7; i++)
                 {
-                    permgather[i] = permutationsT[3][i];
+                    permgather[i] = fPermutations[3][i];
                 }
             }
                 break;
@@ -768,7 +768,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             {
                 for (int i=0; i<7; i++)
                 {
-                    permgather[i] = permutationsT[4][i];
+                    permgather[i] = fPermutations[4][i];
                 }
             }
                 break;
@@ -776,7 +776,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             {
                 for (int i=0; i<7; i++)
                 {
-                    permgather[i] = permutationsT[5][i];
+                    permgather[i] = fPermutations[5][i];
                 }
             }
                 break;

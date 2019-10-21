@@ -254,7 +254,10 @@ namespace pztopology {
 		
 		/** @brief Ids of the shape face */
 		static int ShapeFaceId[6][2];
-		
+
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations[24][15];
+
 		/** @} */
         
 		

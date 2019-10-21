@@ -258,7 +258,10 @@ namespace pztopology {
          */
         static int NBilinearSides();
 
-	};
+	protected:
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations [6][7];
+    };
 	
 }
 
