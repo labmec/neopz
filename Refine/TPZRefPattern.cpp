@@ -251,7 +251,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
   {
      out << "TPZRefPattern::PrintMore\n\n";
  	 int iSide,iSubEl;
- 	 out << "Refinement Pattern named " << fName << endl;
+ 	 out << "Refinement Pattern named " << fName << std::endl;
 
      out<<"SUB-ELEMENT INFO"<<std::endl;
      int nSubs = fSubElSideInfo.size();
@@ -262,7 +262,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
              out<<"\tside: "<<iSide<<std::endl;
              out<<"\tfather side: "<<fSubElSideInfo[iSubEl][iSide].first<<std::endl;
  		     auto transform = fSubElSideInfo[iSubEl][iSide].second;
- 		     out << "\tsub/side = " << iSubEl + 1 << "/" << iSide << "  FatherSide = " << fSubElSideInfo[iSubEl][iSide].first  << endl;
+ 		     out << "\tsub/side = " << iSubEl + 1 << "/" << iSide << "  FatherSide = " << fSubElSideInfo[iSubEl][iSide].first  << std::endl;
  		     out << "\tTransform = " << std::endl;
  		     transform.Mult().Print("Transformation T: ", out);
  		     transform.Sum().Print("Translation b: ", out);
@@ -408,7 +408,7 @@ bool TPZRefPattern::IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) con
 TPZGeoEl *TPZRefPattern::Element(int iel){
     int nel = NSubElements()+1;/*sub-elements and father el*/
     if(iel < 0 || iel >= nel){
-        PZError <<  "TPZRefPattern::Element the element with the following id does not exist: " << iel << endl;
+        PZError <<  "TPZRefPattern::Element the element with the following id does not exist: " << iel << std::endl;
         DebugStop();
     }
     return ( fRefPatternMesh.ElementVec()[iel]  );
@@ -704,15 +704,15 @@ void TPZRefPattern::GeneratePermutations(TPZGeoEl *fatherEl){
     TPZGeoMesh gmesh;
     gmesh.NodeVec().Resize(fatherEl->NNodes());
 
-    int in, nNodes = fatherEl->NNodes();
-    for(in = 0; in < nNodes; in++)
+    int iNode, nNodes = fatherEl->NNodes();
+    for(iNode = 0; iNode < nNodes; iNode++)
     {
-        gmesh.NodeVec()[in].Initialize(fatherElMesh->NodeVec()[fatherEl->NodeIndex(in)], gmesh);
+        gmesh.NodeVec()[iNode].Initialize(fatherElMesh->NodeVec()[fatherEl->NodeIndex(iNode)], gmesh);
     }
     TPZManVector<int64_t,8> nodes(nNodes), nodesPerm(nNodes);
-    for(in = 0; in < nNodes; in++)
+    for(iNode = 0; iNode < nNodes; iNode++)
     {
-        nodes[in]=in;
+        nodes[iNode]=iNode;
     }
     int matid = fatherEl->MaterialId();
     TPZPermutation permute(nNodes);
@@ -723,28 +723,23 @@ void TPZRefPattern::GeneratePermutations(TPZGeoEl *fatherEl){
     refpermute.fTransform = trans;
     fPermutations[fatherEl->Type()].push_back(refpermute);
     permute++;
-    TPZIntPoints *integ = fatherEl->CreateSideIntegrationRule(fatherEl->NSides()-1,3);
     TPZGeoEl *fatherElPermuted;
+    TPZVec<int> permutedSides;
     while(!permute.IsFirst())
     {
         permute.Permute(nodes,nodesPerm);
         int64_t index;
         fatherElPermuted = gmesh.CreateGeoElement(fatherEl->Type(),nodesPerm,matid,index,0);
-        int dim = fatherEl->Dimension();
-        TPZManVector<REAL,3> point(dim,0.);
-        REAL w;
-        int nPoints = integ->NPoints();
-        bool valid = true;
-        for(int intPoint = 0; intPoint < nPoints; intPoint++)
-        {
-            integ->Point(intPoint,point,w);
-            TPZFNMatrix<9> jac(dim,dim),jacinv(dim,dim),axes(3,3);
-            REAL detjac,detjac2;
-            fatherElPermuted->Jacobian(point,jac,axes,detjac,jacinv);
-            fatherEl->Jacobian(point,jac,axes,detjac2,jacinv);
-            if(fabs(fabs(detjac)-fabs(detjac2)) > 1.e-10)
-            {
-                valid = false;
+//        fatherEl->GetPermutation()
+        bool valid = false;
+        int nPermutes = fatherEl->NPermutations();
+        for(int iPermute = 1; iPermute < nPermutes; iPermute++){//its ok to skip the first (trivial) permutation
+            fatherEl->GetPermutation(iPermute,permutedSides);
+            for(iNode = 0; iNode < nNodes; iNode++) {
+                if ( permutedSides[iNode] != nodesPerm[iNode]) break;
+            }
+            if(iNode == nNodes){
+                valid = true;//found the correspondent permutation
                 break;
             }
         }
@@ -752,14 +747,11 @@ void TPZRefPattern::GeneratePermutations(TPZGeoEl *fatherEl){
         {
             TPZRefPatternPermute candidate;
             candidate.fPermute = permute;
-//            candidate.fTransform = fatherEl->ComputeParamTrans(fatherElPermuted,fatherEl->NSides()-1,fatherEl->NSides()-1);
             candidate.fTransform = ComputeParamTransform(fatherEl,fatherElPermuted,fatherEl->NSides()-1,fatherEl->NSides()-1);
             fPermutations[fatherEl->Type()].push_back(candidate);
         }
         permute++;
     }
-
-    delete integ;
 }
 
 void TPZRefPattern::ComputeTransforms(){

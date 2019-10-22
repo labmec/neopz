@@ -17,6 +17,8 @@
 #include "fadType.h"
 #endif
 
+#include "TPZTopologyUtils.h"
+
 class TPZIntPoints;
 class TPZInt1d;
 class TPZGraphEl1dd;
@@ -27,7 +29,6 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -36,9 +37,9 @@ namespace pztopology {
 	 */
 	class TPZLine : public TPZSavable {
 	public:
-		
+        friend void pztopology::GetPermutation<TPZLine>(const int& permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2};
+		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2, NPermutations = 2};
 		
                 public:
                 int ClassId() const override;

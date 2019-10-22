@@ -227,35 +227,6 @@ atan(int __x)
 }
 #endif //VC
 
-#include <limits>
-namespace pztopology{
-//    class Settings{
-//    private:
-//        Settings() = default;
-//        REAL gTolerance;
-//    public:
-//        static Settings &GetSettings(){static Settings fOnlyInstance;return fOnlyInstance;}
-//        Settings(Settings const&)   = delete;
-//        void operator=(Settings const&) = delete;
-//    };// if, in the future, there are more topology settings to be adjusted, this model of singleton can be used.
-
-    typedef std::numeric_limits< REAL > dbl;
-    static REAL gTolerance = pow(10,(-1 * (dbl::max_digits10- 5)));
-
-    static REAL GetTolerance(){return gTolerance;}
-
-    static void SetTolerance(const REAL &tol){
-        if(tol > 0) gTolerance = tol;
-        else {
-            typedef std::numeric_limits< REAL > dbl;
-
-            std::cout.precision(dbl::max_digits10);
-            std::cout<<"Invalid tolerance parameter for topologies. Trying to set: "<<tol<<std::endl;
-            std::cout<<"This value will be ignored. Tolerance is set at: "<<gTolerance<<std::endl;
-        }
-    }
-}
-
 // fabs function adapted to complex numbers.
 inline float
 fabs(std::complex <float> __x)

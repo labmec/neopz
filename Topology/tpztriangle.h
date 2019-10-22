@@ -13,6 +13,8 @@
 #include "pznumeric.h"
 #include "pzaxestools.h"
 
+#include "TPZTopologyUtils.h"
+
 class TPZIntPoints;
 class TPZGraphElTd;
 class TPZIntTriang;
@@ -24,7 +26,6 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @brief Defines the topology of a triangle element. \ref topology "Topology"
@@ -33,9 +34,9 @@ namespace pztopology {
 	 */
 	class TPZTriangle : public TPZSavable{
 	public:
-		
+        friend void pztopology::GetPermutation<TPZTriangle>(const int& permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3};
+		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3, NPermutations = 6};
 		
             int ClassId() const override;
             void Read(TPZStream &buf, void *context) override;

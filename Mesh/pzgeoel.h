@@ -106,7 +106,14 @@ public:
 		this->fNumInterfaces--;
 		return this->fNumInterfaces;
 	}
-	
+
+	/**
+	 * This method gets the ith valid permutation of its topology
+	 * @param i number of the permutation to get
+	 * @param permutation vector contained the permuted sides
+	 */
+	virtual void GetPermutation(const int& i, TPZVec<int> &permutation) const = 0;
+
 	/**
 	 * @brief Creates an integration rule for the topology of the corresponding side
 	 * and able to integrate a polynom of order exactly
@@ -220,6 +227,12 @@ public:
 	
 	/** @brief Returns the number of corner nodes of the element*/
 	virtual int NCornerNodes() const = 0;
+
+    /**
+     * Get the number of valid permutations among the element nodes
+     * @return
+     */
+    virtual int NPermutations() const = 0;
 	
 	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) const;

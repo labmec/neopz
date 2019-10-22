@@ -12,6 +12,7 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 #include "pzaxestools.h"
+#include "TPZTopologyUtils.h"
 
 class TPZIntPoints;
 class TPZIntPyram3D;
@@ -23,7 +24,7 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
+
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -33,9 +34,9 @@ namespace pztopology {
 	 */
 	class TPZPyramid : public TPZSavable{
 	public:
-		
+        friend void pztopology::GetPermutation<TPZPyramid>(const int& permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5};
+		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFaces = 5, NPermutations = 8};
 		
                 int ClassId() const override;
                 void Read(TPZStream &buf, void *context) override;
