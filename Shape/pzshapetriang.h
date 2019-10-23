@@ -89,9 +89,7 @@ namespace pzshape {
 		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int triangle_transformation_index);
         
         
-        static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            ShapeInternal(x,  order,phi,dphi,0);
-        }
+        static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         
 		/**
@@ -102,7 +100,7 @@ namespace pzshape {
 		 */
 		static void ProjectPoint2dTriangToRib(int rib, TPZVec<REAL> &in, REAL &out);
         
-        static TPZTransform<> TransformElementToSide(int side);
+      
 
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the rib into the two dimensional derivative \n
@@ -165,6 +163,9 @@ namespace pzshape {
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order);
+        static TPZTransform<REAL>  ParametricTransform(int trans_id);
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                           TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 	};
 	

@@ -92,7 +92,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	}
 	if(numvec)
 	{
-		TPZVec<int> vecind(0);
+		TPZManVector<int> vecind(0);
 		vecind.Resize(numvec);
 		vecind.Fill(-1,0,numvec);
 		for(n=0; n<numvec; n++) {

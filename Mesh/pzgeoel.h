@@ -514,7 +514,7 @@ public:
 	/** @brief Reset all subelements to NULL*/
 	virtual void ResetSubElements()=0;
 
-	/** @brief Returns the number of fathers that can be followed*/
+	/** @brief Returns the number of ancestors */
 	int Level();
 	
 	/** @brief Return the dimension of side*/

@@ -57,7 +57,7 @@ public:
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
-    /// values of the divergence of the shapefunctions (only applicable to H(div)) spaces
+    /// values of the divergence of the shapefunctions in the mapped element (only applicable to H(div)) spaces
     TPZFNMatrix<220, REAL> divphi;
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;

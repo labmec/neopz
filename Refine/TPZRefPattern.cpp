@@ -7,6 +7,7 @@
 #include "TPZRefPattern.h"
 #include "TPZRefPatternTools.h"
 #include "TPZRefPatternDataBase.h"
+#include "TPZVTKGeoMesh.h"
 // #include "pztrnsform.h"
 // #include "pzreal.h"
 // #include "pzgmesh.h"
@@ -16,7 +17,6 @@
 // #include "tpzpermutation.h"
 // #include "pzgeoel.h"
 // #include "pzlog.h"
-// #include "TPZVTKGeoMesh.h"
 
 // #include <set>
 
@@ -35,87 +35,35 @@ std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPa
  static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZRefPattern"));
  #endif
 
-int TPZRefPattern::ClassId() const {
-    return Hash("TPZRefPattern");
-}
 
 TPZRefPattern::TPZRefPattern() : fId(fNonInitializedId), fName(fNonInitializedName),
 fSideRefPattern(0), fPermutedRefPatterns(0), fNSubEl(0){
 
 }
 
-//TPZRefPattern::TPZRefPattern(TPZRefPattern &oldRef){
-//    fRefPatternMesh = oldRef.fRefPatternMesh;
-//    TPZGeoEl* geoEl = fRefPatternMesh.Element(0);
-//    MElementType type = geoEl->Type();
-//
-//    const uint nSides = geoEl->NSides();
-//    //filling fFatherSideInfo
-//    fFatherSideInfo.Resize(nSides);
-//    for(uint iSide = 0; iSide < nSides; iSide++){
-//        //first member of the tuple to be stored in fFatherSideInfo[iSide]
-//        TPZManVector<int,4> sideNodes;
-//        oldRef.SideNodes(iSide, sideNodes);
-//
-//        const uint nSideSubEls = oldRef.NSideSubElements(iSide);
-//        //second member of the tuple to be stored in fFatherSideInfo[iSide]
-//        TPZStack<TPZGeoElSide> sideSonsStack;
-//        for(uint iSubEl = 0; iSubEl < oldRef.NSubElements(); iSubEl++){
-//            TPZGeoEl *subEl = fRefPatternMesh.Element(iSubEl+1);
-//            for(uint iSubElSide = 0; iSubElSide < subEl->NSides(); iSubElSide ++){
-//                int fatherSide = oldRef.FatherSide(iSubElSide,iSubEl);
-//                if(fatherSide == iSide){
-//                    TPZGeoElSide geoElSideCandidate(subEl,iSubElSide);
-//                    bool isInList = false;
-//                    for(int iGelSide = 0; iGelSide < sideSonsStack.size(); iGelSide++){
-//                        if(isInList == true) break;
-//                        TPZGeoElSide neighbour = geoElSideCandidate.Neighbour();
-//                        while(neighbour.Element() && neighbour.Element()->Id() != geoElSideCandidate.Element()->Id()){
-//                            if(neighbour == sideSonsStack[iGelSide]){
-//                                isInList = true;
-//                                break;
-//                            }
-//                            neighbour = neighbour.Neighbour();
-//                        }
-//                    }
-//                    if(!isInList)   sideSonsStack.push_back(geoElSideCandidate);
-//                }
-//            }
-//        }
-//        if(sideSonsStack.size() != nSideSubEls) {
-//            DebugStop();
-//        }
-//        TPZManVector<TPZGeoElSide,27> sideSons(nSideSubEls);
-//        for(uint iSubEl = 0; iSubEl < nSideSubEls; iSubEl++){
-//            sideSons[iSubEl] = sideSonsStack[iSubEl];
-//        }
-//
-//        //third member of the tuple to be stored in fFatherSideInfo[iSide]
-//        int64_t midSideIndex = -1;
-//        geoEl->MidSideNodeIndex(iSide,midSideIndex);
-//        fFatherSideInfo[iSide] = SPZFatherSideInfo(sideNodes,sideSons,midSideIndex);
-//    }
-//
-//    const uint nSubEls = oldRef.NSubElements();
-//    //filling fSubElSideInfo
-//    fSubElSideInfo.Resize(nSubEls);
-//    for(uint iSubEl = 0; iSubEl < nSubEls; iSubEl++){
-//        TPZGeoEl *subEl = oldRef.Element(iSubEl + 1);//Element 0 is the father element
-//        const uint nSubElSides = subEl->NSides();
-//        fSubElSideInfo[iSubEl].Resize(nSubElSides);
-//        for(uint iSubElSides = 0; iSubElSides < nSubElSides; iSubElSides++){
-//            const int fatherSide = oldRef.FatherSide(iSubElSides, iSubEl);
-//            auto transform = oldRef.Transform(iSubElSides,iSubEl);
-//            fSubElSideInfo[iSubEl][iSubElSides] = std::make_pair(fatherSide, transform);
-//        }
-//    }
-//    //other attributes
-//    fName = oldRef.Name();
-//    fId = oldRef.Id();
-//    fSideRefPattern = oldRef.fSideRefPattern;
-//    fPermutedRefPatterns = oldRef.fPermutedRefPatterns;
-//    fNSubEl = oldRef.fNSubEl;
-//}
+TPZRefPattern::TPZRefPattern(const TPZRefPattern &cp){
+    fSubElSideInfo = cp.fSubElSideInfo;
+    fFatherSideInfo = cp.fFatherSideInfo;
+    fName = cp.fName;
+    fId = cp.fId;
+    fSideRefPattern = cp.fSideRefPattern;
+    fPermutedRefPatterns = cp.fPermutedRefPatterns;
+    fRefPatternMesh = cp.fRefPatternMesh;
+    fNSubEl = cp.fNSubEl;
+}
+
+TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &permute) :
+        fRefPatternMesh(copy.fRefPatternMesh), fId(fNonInitializedId), fName("noname")
+{
+    fNSubEl = copy.fNSubEl;
+    this->PermuteMesh(permute);
+
+    SetRefPatternMeshToMasterDomain();
+
+    ComputeTransforms();/**calcula as transformacoes entre filhos e pai*/
+    ComputePartition();/**efetua a particao do elemento pai de acordo com os lados dos sub-elementos*/
+    GenerateSideRefPatterns();
+}
 
 TPZRefPattern::TPZRefPattern(TPZGeoMesh &gmesh){
     fRefPatternMesh = gmesh;
@@ -247,7 +195,7 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
 }
 
 
-  void TPZRefPattern::PrintMore(std::ostream &out) const
+  void TPZRefPattern::Print(std::ostream &out) const
   {
      out << "TPZRefPattern::PrintMore\n\n";
  	 int iSide,iSubEl;
@@ -295,17 +243,181 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
      }
  }
 
-TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &permute) :
-fRefPatternMesh(copy.fRefPatternMesh), fId(fNonInitializedId), fName("noname")
+void TPZRefPattern::PrintMore(std::ostream &out) const{
+    Print(out);
+    fRefPatternMesh.PrintTopologicalInfo(out);
+}
+
+void TPZRefPattern::ShortPrint(std::ostream &out) const
 {
-    fNSubEl = copy.fNSubEl;
-    this->PermuteMesh(permute);
+    TPZGeoEl *fatherEl = fRefPatternMesh.ElementVec()[0];
+    int nsides = fatherEl->NSides();
+    TPZVec<int> indices;
+    //TPZVec<int> selected(nsides,0);
+    out << fatherEl->TypeName();
+    out << " Id " << fId << " Sides " ;
+    for (int p=0 ; p<nsides; p++){
+        if (fatherEl->SideDimension(p)==1 && NSideNodes(p))
+        {
+            out << p << " ";
+        }
+    }
 
-    SetRefPatternMeshToMasterDomain();
+    for(int n = 0; n < fRefPatternMesh.NodeVec().NElements(); n++)
+    {
+        out << " | ";
+        for(int c = 0; c < 3; c++)
+        {
+            out << fRefPatternMesh.NodeVec()[n].Coord(c) << "   ";
+        }
+        out << " | ";
+    }
+}
 
-    ComputeTransforms();/**calcula as transformacoes entre filhos e pai*/
-    ComputePartition();/**efetua a particao do elemento pai de acordo com os lados dos sub-elementos*/
-    GenerateSideRefPatterns();
+void TPZRefPattern::PrintVTK(std::ofstream &file, bool matColor) const
+{
+    //	TPZGeoMesh * gmesh = &(RefPatternMesh());
+    //	TPZRefPatternTools::PrintGMeshVTK(gmesh, file, matColor);
+
+    TPZGeoMesh const & rGmesh = fRefPatternMesh;
+    TPZGeoMesh * gmesh = new TPZGeoMesh;
+
+    int64_t nNodes = rGmesh.NNodes();
+    int64_t nElements = rGmesh.NElements();
+
+    TPZVec < TPZVec <REAL> > NodeCoord(nNodes);
+    for(int64_t i = 0; i < nNodes; i++) NodeCoord[i].Resize(3,0.);
+
+    //setting nodes coords
+    for(int64_t n = 0; n < nNodes; n++)
+    {
+        NodeCoord[n][0] = rGmesh.NodeVec()[n].Coord(0);
+        NodeCoord[n][1] = rGmesh.NodeVec()[n].Coord(1);
+        NodeCoord[n][2] = rGmesh.NodeVec()[n].Coord(2);
+    }
+
+    //initializing gmesh->NodeVec()
+    gmesh->NodeVec().Resize(nNodes);
+    TPZVec <TPZGeoNode> Node(nNodes);
+    for(int64_t n = 0; n < nNodes; n++)
+    {
+        Node[n].SetNodeId(n);
+        Node[n].SetCoord(NodeCoord[n]);
+        gmesh->NodeVec()[n] = Node[n];
+    }
+    for(int64_t el = 1; el < nElements; el++)
+    {
+        TPZGeoEl * Elem = rGmesh.ElementVec()[el];
+        TPZVec<int64_t> cornerindexes(Elem->NNodes());
+        int64_t id = Elem->Id();
+        for(int n = 0; n < Elem->NNodes(); n++)
+        {
+            cornerindexes[n] = Elem->NodeIndex(n);
+        }
+        gmesh->CreateGeoElement(Elem->Type(), cornerindexes, Elem->MaterialId(), id);
+    }
+    gmesh->BuildConnectivity();
+
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, matColor);
+}
+
+void TPZRefPattern::ExportPattern(std::ostream &out) const{
+    out << fRefPatternMesh.NNodes() << ' '  << fRefPatternMesh.NElements() << std::endl << std::endl;
+    out << fId << ' ' << fName << std::endl << std::endl ;
+
+    for (int i = 0; i < fRefPatternMesh.NNodes() ; i++)
+    {
+        for (int k=0; k<3; k++)
+        {
+            out << fRefPatternMesh.NodeVec()[i].Coord(k) << ' ';
+        }
+        out << std::endl;
+    }
+
+    out << std::endl ;
+
+    for (int i = 0; i < fRefPatternMesh.NElements(); i++)
+    {
+        out << fRefPatternMesh.ElementVec()[i]->Type() << " " << fRefPatternMesh.ElementVec()[i]->NCornerNodes() << " " ;
+        for (int k = 0; k < fRefPatternMesh.ElementVec()[i]->NCornerNodes(); k++)
+        {
+            out << fRefPatternMesh.ElementVec()[i]->NodeIndex(k) << "  " ;
+        }
+        out << std::endl;
+    }
+    out << std::endl;
+}
+
+void TPZRefPattern::WritePattern(std::ofstream &out) const{
+
+    ExportPattern(out);
+
+    int nperm = fPermutedRefPatterns.size();
+    out << nperm << ' ';
+    for(int el = 0; el < nperm; el++)
+    {
+        out << fPermutedRefPatterns[el] << ' ';
+    }
+    out << std::endl;
+
+    TPZGeoEl *father = fRefPatternMesh.ElementVec()[0];
+    int nsides = father->NSides();
+    int is;
+    for(is=0; is<nsides; is++)
+    {
+        out << fSideRefPattern[is] << ' ';
+    }
+    out << std::endl;
+}
+
+int TPZRefPattern::ClassId() const {
+    return Hash("TPZRefPattern");
+}
+
+void TPZRefPattern::Read(TPZStream &buf, void *context){
+    int nSubElSides = -1;
+    buf.Read(&nSubElSides);
+    fSubElSideInfo.Resize(nSubElSides);
+    for(int iSubElSide = 0; iSubElSide < nSubElSides; iSubElSide++){
+        int nSides = -1;
+        buf.Read(&nSides);
+        fSubElSideInfo[iSubElSide].Resize(nSides);
+        for(int iSide = 0; iSide < nSides; iSide++){
+            int first = -1;
+            buf.Read(&first);
+            TPZTransform<REAL> second;
+            second.Read(buf,context);
+            fSubElSideInfo[iSubElSide][iSide] = std::make_pair(first,second);
+        }
+    }
+    buf.Read(fFatherSideInfo);
+    buf.Read(&fName);
+    buf.Read(&fId);
+    buf.Read(fSideRefPattern);
+    buf.Read(fPermutedRefPatterns);
+    fRefPatternMesh.Read(buf,context);
+    buf.Read(&fNSubEl);
+}
+
+void TPZRefPattern::Write(TPZStream &buf, int withclassid) const{
+    const int nSubElSides = fSubElSideInfo.size();
+    buf.Write(&nSubElSides);
+    for(int iSubElSide = 0; iSubElSide < nSubElSides; iSubElSide++){
+        const int nSides = fSubElSideInfo[iSubElSide].size();
+        buf.Write(&nSides);
+        for(int iSide = 0; iSide < nSides; iSide++){
+            buf.Write(&fSubElSideInfo[iSubElSide][iSide].first);
+            fSubElSideInfo[iSubElSide][iSide].second.Write(buf,withclassid);
+        }
+    }
+    buf.Write(fFatherSideInfo);
+    buf.Write(&fName);
+    buf.Write(&fId);
+    buf.Write(fSideRefPattern);
+    buf.Write(fPermutedRefPatterns);
+    fRefPatternMesh.Write(buf,withclassid);
+    buf.Write(&fNSubEl);
+
 }
 
 
@@ -619,35 +731,61 @@ void TPZRefPattern::GenerateSideRefPatterns(){
         }
     }
 }
+
+void TPZRefPattern::InsertPermuted()
+{
+    if(!fRefPatternMesh.ElementVec().NElements() || !fRefPatternMesh.ElementVec()[0])
+    {
+        return;
+    }
+
+    GenerateSideRefPatterns();
+    TPZGeoEl * gel = fRefPatternMesh.ElementVec()[0];
+    GeneratePermutations(gel);
+    MElementType geltype = gel->Type();
+
+    std::list<TPZRefPatternPermute> &permlist = fPermutations[geltype];
+    std::list<TPZRefPatternPermute>::iterator it;
+    fPermutedRefPatterns.resize(permlist.size());
+
+    int64_t counter;
+    for(it=permlist.begin(), counter=0; it != permlist.end(); it++,counter++)
+    {
+        TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
+        TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refp);
+
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Permutation " << it->fPermute;
+            sout << "Created refpattenr refp ";
+            refp->Print(sout);
+            sout << "found refpattern ";
+            if(found) found->Print(sout);
+            else sout << "Pattern not found";
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+
+        if(found)
+        {
+            fPermutedRefPatterns[counter] = found->Id();
+        }
+        else
+        {
+            if(this->NameInitialized())
+            {
+                refp->BuildName();
+            }
+            gRefDBase.InsertRefPattern(refp);
+        }
+    }
+}
+
 TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side, TPZTransform<> &trans){
     const int id = this->fSideRefPattern[side];
     return gRefDBase.FindRefPattern(id);
-}
-
-void TPZRefPattern::ShortPrint(std::ostream &out) const
-{
-    TPZGeoEl *fatherEl = fRefPatternMesh.ElementVec()[0];
-    int nsides = fatherEl->NSides();
-    TPZVec<int> indices;
-    //TPZVec<int> selected(nsides,0);
-    out << fatherEl->TypeName();
-    out << " Id " << fId << " Sides " ;
-    for (int p=0 ; p<nsides; p++){
-        if (fatherEl->SideDimension(p)==1 && NSideNodes(p))
-        {
-            out << p << " ";
-        }
-    }
-
-    for(int n = 0; n < fRefPatternMesh.NodeVec().NElements(); n++)
-    {
-        out << " | ";
-        for(int c = 0; c < 3; c++)
-        {
-            out << fRefPatternMesh.NodeVec()[n].Coord(c) << "   ";
-        }
-        out << " | ";
-    }
 }
 
 /****************************PROTECTED METHODS*************************************************************************/
@@ -772,7 +910,7 @@ void TPZRefPattern::ComputeTransforms(){
     for(int iSubEl=0; iSubEl < nSubEls; iSubEl++)
     {
         TPZGeoEl *son = Element(iSubEl+1);
-
+        massCenter.Resize(son->Dimension());
         int nSides = son->NSides();
         fSubElSideInfo[iSubEl].Resize(nSides);
         for(int iSide = 0; iSide < nSides; iSide++)
@@ -967,56 +1105,6 @@ void TPZRefPattern::BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh)
     SideRefPatternMesh.BuildConnectivity();
 }
 
-void TPZRefPattern::InsertPermuted()
-{
-    if(!fRefPatternMesh.ElementVec().NElements() || !fRefPatternMesh.ElementVec()[0])
-    {
-        return;
-    }
-
-    GenerateSideRefPatterns();
-    TPZGeoEl * gel = fRefPatternMesh.ElementVec()[0];
-    GeneratePermutations(gel);
-    MElementType geltype = gel->Type();
-
-    std::list<TPZRefPatternPermute> &permlist = fPermutations[geltype];
-    std::list<TPZRefPatternPermute>::iterator it;
-    fPermutedRefPatterns.resize(permlist.size());
-
-    int64_t counter;
-    for(it=permlist.begin(), counter=0; it != permlist.end(); it++,counter++)
-    {
-        TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
-        TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refp);
-
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "Permutation " << it->fPermute;
-            sout << "Created refpattenr refp ";
-            refp->Print(sout);
-            sout << "found refpattern ";
-            if(found) found->Print(sout);
-            else sout << "Pattern not found";
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-
-        if(found)
-        {
-            fPermutedRefPatterns[counter] = found->Id();
-        }
-        else
-        {
-            if(this->NameInitialized())
-            {
-                refp->BuildName();
-            }
-            gRefDBase.InsertRefPattern(refp);
-        }
-    }
-}
 
 void TPZRefPattern::BuildName()
 {
@@ -1210,4 +1298,16 @@ void TPZRefPattern::TPZRefPatternPermute::Read(TPZStream& buf, void* context) { 
 void TPZRefPattern::TPZRefPatternPermute::Write(TPZStream& buf, int withclassid) const { //ok
  fPermute.Write(buf, withclassid);
  fTransform.Write(buf, withclassid);
+}
+
+void TPZRefPattern::SPZFatherSideInfo::Read(TPZStream& buf, void* context) { //ok
+    buf.Read(fSideNodes);
+    buf.Read(fSideSons);
+    buf.Read(&fMidSideIndex);
+}
+
+void TPZRefPattern::SPZFatherSideInfo::Write(TPZStream& buf, int withclassid) const { //ok
+    buf.Write(fSideNodes);
+    buf.Write(fSideSons);
+    buf.Write(&fMidSideIndex);
 }

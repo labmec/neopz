@@ -82,6 +82,9 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
         void CompareQuadraticAndBlendEls();
         void CreateGeoMesh2D(int nDiv);
         void CreateGeoMesh3D(int nDiv);
+
+        template <class TGeo>
+        void CompareSameDimensionNonLinNeighbour(int nDiv);
     }
 
     BOOST_AUTO_TEST_CASE(geoblend_tests) {
@@ -101,6 +104,12 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
         {
             const int nDiv = 3;
             blendtest::CreateGeoMesh3D(nDiv);
+        }
+        {
+            const int nDiv = 3;
+            blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoLinear>(nDiv);
+            blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoTriangle>(nDiv);
+            blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoQuad>(nDiv);
         }
     }
 
@@ -606,6 +615,236 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             }
             delete gmesh;
         }
+
+
+    template <class TGeo>
+    void CompareSameDimensionNonLinNeighbour(int nref) {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        auto elType = TGeo::Type();
+
+        const int64_t nCornerNodes = TGeo::NCornerNodes;
+        const int64_t nEdges = TGeo::NumSides(1);
+        const int64_t dim = TGeo::Dimension;
+        const REAL sphereRadius = 1;
+        TPZManVector<REAL,3> sphereCenter(3,0);
+        TPZVec<REAL> phiPts(nCornerNodes,-1),thetaPts(nCornerNodes,-1); //r is always equal to sphereRadius
+
+        switch(elType){
+            case EOned:
+                for(int i = 0; i < nCornerNodes; i++){
+                    thetaPts[i] = M_PI/2;
+                    phiPts[i] = i * M_PI/2;
+                }
+                break;
+            case ETriangle:
+                for(int i = 0; i < nCornerNodes; i++){
+                    thetaPts[i] = M_PI/2;
+                    phiPts[i] = i * M_PI/2;
+                }
+                break;
+            case EQuadrilateral:
+                for(int i = 0; i < nCornerNodes; i++){
+                    thetaPts[i] = M_PI/2;
+                    phiPts[i] = i * M_PI/2;
+                }
+                break;
+            default:
+                DebugStop();
+        }
+
+
+        TPZGeoMesh *gmesh = new TPZGeoMesh();
+
+        TPZManVector<int, 12> midSideNodesIndexVec(nEdges, -1);
+        const int nNodesOriginalMesh = nCornerNodes + nEdges;
+        {
+            TPZManVector<REAL, 3> coord(3, 0.);
+
+            ///CREATE NODES FOR LINEAR ELEMENT
+            for (int64_t i = 0; i < nCornerNodes; i++) {
+                const REAL theta = ((REAL) i / nCornerNodes) * 2 * M_PI;
+                coord[0] = sphereRadius * sin(thetaPts[i]) * cos(phiPts[i]);
+                coord[1] = sphereRadius * sin(thetaPts[i]) * sin(phiPts[i]);
+                coord[2] = sphereRadius * cos(thetaPts[i]);
+//                std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord, *gmesh);
+            }//
+
+
+            //CREATE MIDSIDE NODES
+            TPZStack<int,TGeo::NSides> edgeStack;
+            for(int iSide = 0; iSide < TGeo::NSides; iSide++){
+                if(TGeo::SideDimension(iSide) == 1) edgeStack.Push(iSide);
+            }
+//            TGeo::LowerDimensionSides(TGeo::NSides - 1, edgeStack, 1);
+            for (int64_t edgeIndex = 0;
+                 edgeIndex < edgeStack.NElements(); edgeIndex++) {
+                const int64_t edge = edgeStack[edgeIndex];
+                const int64_t nNodesSide = TGeo::NSideNodes(edge);
+                REAL sumPhiNodes = 0;
+                REAL sumThetaNodes = 0;
+                for (int64_t node = 0; node < nNodesSide; node++) {
+                    const int64_t nodeIndex = TGeo::SideNodeLocId(edge, node);
+                    sumPhiNodes += phiPts[nodeIndex];
+                    sumThetaNodes += thetaPts[nodeIndex];
+                }
+                sumPhiNodes /= nNodesSide;
+                sumThetaNodes /= nNodesSide;
+                coord[0] = sphereRadius * sin(sumThetaNodes) * cos(sumPhiNodes);
+                coord[1] = sphereRadius * sin(sumThetaNodes) * sin(sumPhiNodes);
+                coord[2] = sphereRadius * cos(sumThetaNodes);
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord, *gmesh);
+                midSideNodesIndexVec[edgeIndex] = newindex;
+            }
+        }
+
+        const int matIdVol = 1, matIdSphere = 2;
+        TPZManVector<int64_t,8> nodesIdVec(1);
+        int64_t elId = 0;
+
+        ///////CREATE MAX DIM ELEMENTS
+        nodesIdVec.Resize(nNodesOriginalMesh);
+        for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i;
+
+        TPZGeoEl *nonLinearEl = nullptr;
+        switch(elType){
+            case EOned:
+                nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(elId,nodesIdVec,matIdVol, *gmesh);
+                break;
+            case ETriangle:
+                nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>>(elId,nodesIdVec,matIdVol,*gmesh);
+                {
+                    auto sphere = dynamic_cast<TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>> *> (nonLinearEl);
+                    sphere->Geom().SetData(sphereRadius, sphereCenter);
+                }
+                break;
+            case EQuadrilateral:
+                nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>>(elId,nodesIdVec,matIdVol,*gmesh);
+                {
+                    auto sphere = dynamic_cast<TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>> *> (nonLinearEl);
+                    sphere->Geom().SetData(sphereRadius, sphereCenter);
+                }
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+        nodesIdVec.Resize(nCornerNodes);
+        for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i;
+        TPZGeoEl *blendEl = new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<TGeo>>(elId,nodesIdVec,matIdVol,*gmesh);
+
+        gmesh->BuildConnectivity();
+        {
+            TPZVec<TPZGeoEl *> sons;
+            for(int iDiv = 0; iDiv < nref; iDiv++){
+                const int nel = gmesh-> NElements();
+                for (int iel = 0; iel < nel; iel++) {
+                    TPZGeoEl *geo = gmesh-> Element(iel);
+                    if (geo->NSubElements() == 0) {
+                        geo->Divide(sons);
+                    }
+                }
+            }
+        }
+
+#ifdef NOISYVTK_BLEND
+    {
+        std::string meshFileName = "gmesh_nonlin_" + TGeo::TypeName();
+            const size_t strlen = meshFileName.length();
+            meshFileName.append(".vtk");
+            std::ofstream outVTK(meshFileName.c_str());
+            meshFileName.replace(strlen, 4, ".txt");
+            std::ofstream outTXT(meshFileName.c_str());
+
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+            gmesh->Print(outTXT);
+            outTXT.close();
+            outVTK.close();
+    }
+#endif
+
+        //X COMPARE
+        {
+            TPZManVector<REAL,3> xi;
+            REAL notUsedHere = -1;
+            uint64_t errorsInterior = 0;
+            TPZManVector<uint64_t,18> errorsSide(TGeo::NSides - TGeo::NNodes - 1,0);
+            uint64_t nPoints = 0;
+            for(int iSide = TGeo::NNodes; iSide < TGeo::NSides; iSide ++){
+                auto intRule = blendEl->CreateSideIntegrationRule(iSide, pOrder);
+                xi.Resize(dim,0);
+                for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                    bool hasAnErrorOccurred = false;
+                    nPoints++;
+                    TPZManVector<REAL,3> xiSide(TGeo::SideDimension(iSide),0);
+                    intRule->Point(iPt,xiSide,notUsedHere);
+                    auto transf = TGeo::TransformSideToElement(iSide);
+                    transf.Apply(xiSide,xi);
+                    TPZManVector<REAL,3> xBlend(3);
+                    blendEl->X(xi, xBlend);
+                    TPZManVector<REAL,3> xNonLin(3);
+                    nonLinearEl->X(xi, xNonLin);
+                    hasAnErrorOccurred = blendtest::CheckVectors(xBlend, "xBlend", xNonLin, "xNonLin", blendtest::tol);
+                    BOOST_CHECK(!hasAnErrorOccurred);
+                    if(hasAnErrorOccurred){
+                        if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
+                        if(iSide == TGeo::NSides - 1) errorsInterior++;
+                        const auto VAL_WIDTH = 15;
+                        if(iSide < TGeo::NSides - 1){
+                            auto neigh = blendEl->Neighbour(iSide);
+                            if(neigh.Id() != blendEl->Id()) {
+                                TPZGeoElSide thisside(blendEl, iSide);
+                                auto neighTransf = thisside.NeighbourSideTransform(neigh);
+                                TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
+                                neighTransf.Apply(xiSide, neighXi);
+                                TPZManVector<REAL, 3> xNeigh(3);
+                                neigh.X(neighXi, xNeigh);
+                                std::cout<<"x_neigh_blend:"<<std::endl;
+                                for (int i = 0; i < xNeigh.size(); i++) {
+                                    std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i]
+                                              << "\t";
+                                }
+                                std::cout<<std::endl;
+                            }
+                        }
+
+                        if(iSide < TGeo::NSides - 1){
+                            auto neigh = nonLinearEl->Neighbour(iSide);
+                            if(neigh.Id() != nonLinearEl->Id()) {
+                                TPZGeoElSide thisside(nonLinearEl, iSide);
+                                auto neighTransf = thisside.NeighbourSideTransform(neigh);
+                                TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
+                                neighTransf.Apply(xiSide, neighXi);
+                                TPZManVector<REAL, 3> xNeigh(3);
+                                neigh.X(neighXi, xNeigh);
+                                std::cout<<"x_neigh_quad:"<<std::endl;
+                                for (int i = 0; i < xNeigh.size(); i++) {
+                                    std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i]<< "\t";
+                                }
+                                std::cout<<std::endl;
+                            }
+                        }
+                    }
+                }
+#ifdef NOISY_BLEND
+                if(iSide == TGeo::NSides - 1){
+                    std::cout<<"\tNumber of interior points: "<<intRule->NPoints()<<"\tErrors: "<<errorsInterior<<std::endl;
+                }else{
+                    std::cout<<"\tNumber of side points for side "<<iSide<<": "<<intRule->NPoints()<<"\tErrors: "<<errorsSide[iSide - TGeo::NNodes]<<std::endl;
+                }
+#endif
+            }
+            uint64_t errorsTotal = errorsInterior;
+            for(int i = 0; i< errorsSide.size(); i++){
+                errorsTotal +=errorsSide[i];
+            }
+            std::cout<<"\tNumber of points: "<<nPoints<<"\tErrors: "<<errorsTotal<<std::endl;
+        }
+        delete gmesh;
+    }
+
 
         void CreateGeoMesh2D(int nDiv) {
             std::cout << __PRETTY_FUNCTION__ << std::endl;

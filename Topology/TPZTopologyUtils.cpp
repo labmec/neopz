@@ -92,10 +92,14 @@ IMPLEMENTPERMUTATION(pzgeom::TPZQuadraticPrism,pztopology::TPZPrism)
 IMPLEMENTPERMUTATION(pzgeom::TPZQuadraticPyramid,pztopology::TPZPyramid)
 
 #include "TPZWavyLine.h"
-#include "TPZQuadSphere.h"
 #include "tpzarc3d.h"
+#include "tpzellipse3d.h"
+#include "TPZTriangleSphere.h"
+#include "TPZQuadSphere.h"
 IMPLEMENTPERMUTATION(pzgeom::TPZWavyLine,pztopology::TPZLine)
 IMPLEMENTPERMUTATION(pzgeom::TPZArc3D,pztopology::TPZLine)
+IMPLEMENTPERMUTATION(pzgeom::TPZEllipse3D,pztopology::TPZLine)
+IMPLEMENTPERMUTATION(pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>,pztopology::TPZTriangle)
 IMPLEMENTPERMUTATION(pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>,pztopology::TPZQuadrilateral)
 #include "tpzgeoblend.h"
 
@@ -117,6 +121,7 @@ IMPLEMENTPERMUTATION(pzgeom::TPZGeoBlend<pzgeom::TPZQuadraticCube>,pztopology::T
 IMPLEMENTPERMUTATION(pzgeom::TPZGeoBlend<pzgeom::TPZQuadraticPrism>,pztopology::TPZPrism)
 IMPLEMENTPERMUTATION(pzgeom::TPZGeoBlend<pzgeom::TPZQuadraticPyramid>,pztopology::TPZPyramid)
 
+IMPLEMENTPERMUTATION(pzgeom::TPZTriangleSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoTriangle>>,pztopology::TPZTriangle)
 IMPLEMENTPERMUTATION(pzgeom::TPZQuadSphere<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>>,pztopology::TPZQuadrilateral)
 
 #undef IMPLEMENTPERMUTATION

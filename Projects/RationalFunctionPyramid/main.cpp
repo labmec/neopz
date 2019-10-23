@@ -25,6 +25,7 @@
 #include "CedricTest.h"
 
 #include "TPZRefPatternTools.h"
+#include "TPZRefPatternDataBase.h"
 
 #include "TPZParSkylineStructMatrix.h"
 

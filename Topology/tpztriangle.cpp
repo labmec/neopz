@@ -29,11 +29,26 @@ namespace pztopology {
         phi(0,0) = 1.0-qsi-eta;
         phi(1,0) = qsi;
         phi(2,0) = eta;
-        dphi(0,0) = dphi(1,0) = -1.0;
-        dphi(0,1) = dphi(1,2) =  1.0;
-        dphi(1,1) = dphi(0,2) =  0.0;
+        qsi *= (T)0.; // Keep this for FAD calculation
+        dphi(0,0) = dphi(1,0) = -1.0 + qsi;
+        dphi(0,1) = dphi(1,2) =  1.0 + qsi;
+        dphi(1,1) = dphi(0,2) =  qsi;
     }
-
+    
+    int TPZTriangle::SideNodes[3][2]  = { {0,1},{1,2},{2,0} };
+    int TPZTriangle::FaceNodes[1][3]  = { {0,1,2} };
+    
+    
+    /**Transformation of the point within a triangular face */
+    REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
+        { { 1., 0.},{ 0., 1.} },
+        { { 0., 1.},{ 1., 0.} },
+        { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
+        { {-1.,-1.},{ 0., 1.} },
+        { {-1.,-1.},{ 1., 0.} },
+        { { 1., 0.},{-1.,-1.} }
+    };
+    
     template<class T>
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
@@ -439,7 +454,9 @@ namespace pztopology {
 	}
 	
 	void TPZTriangle::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
+        if (center.size()!=Dimension) {
+            DebugStop();
+        }
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];
@@ -479,15 +496,14 @@ namespace pztopology {
             case 6:
                 t.Mult()(0,0) =  1.0;
                 t.Mult()(1,1) =  1.0;
+//                t.Sum()(0,0) = -1;
+//                t.Sum()(1,0) = -1;
                 return t;
         }
         return TPZTransform<>(0,0);
     }
-    TPZTransform<> TPZTriangle::GetSideTransform(int side, int transformId){
-        int locside = fPermutations[transformId][side];
-        return TransformElementToSide(locside);
 
-    }
+
     TPZTransform<> TPZTriangle::TransformSideToElement(int side){
 
         if(side<0 || side>6){

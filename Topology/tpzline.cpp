@@ -222,7 +222,9 @@ namespace pztopology {
 		return -1;
 	}
 	void TPZLine::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
+        if (center.size()!=Dimension) {
+            DebugStop();
+        }
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];
@@ -433,7 +435,8 @@ namespace pztopology {
 		LOGPZ_ERROR(logger,"Wrong input parameter")
 		return -1;
 	}
-	
+    
+    
 	/**
 	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
 	 * in terms of order of shape functions

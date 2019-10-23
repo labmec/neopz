@@ -81,9 +81,10 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 
 template <class TGeo>
 template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
+void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInterior, TPZFMatrix<T> &gradx) const {
 
     TPZGeoEl &gel = *fGeoEl;
+    TPZGeoMesh *gmesh = gel.Mesh();
 #ifdef LOG4CXX
     const auto VAL_WIDTH = 10;
     std::ostringstream soutLogDebug;
@@ -98,6 +99,26 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
 #endif
     const REAL zero = 1e-14;
     gradx.Redim(3,TGeo::Dimension);
+
+    if (fNeighbours[TGeo::NSides - 1 -TGeo::NNodes].ElementIndex() != -1){
+        TPZManVector<T, 3> neighXi;
+        TPZFNMatrix<9, T> dNeighXiDXi;
+        if (!MapToNeighSide(TGeo::NSides-1, TGeo::Dimension, xiInterior, neighXi, dNeighXiDXi)) {
+#ifdef LOG4CXX2
+            if(logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "MapToNeighSide is singular for par " << xi << " and side " << TGeo::NSides-1 << ". Aborting...";
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            DebugStop();
+        }
+        TPZFNMatrix<9, T> gradNeigh;
+        Neighbour(TGeo::NSides-1, gmesh).GradX(neighXi, gradNeigh);
+        gradNeigh.Multiply(dNeighXiDXi,gradx);//gradNonLinSide = gradNeigh.dNeighXiDXi
+        return;
+    }
+
     /**
      * The non-linear mapping is calculated from deviations of the linear mapping.
      * The linear mapping of an element (or of any of its side) can be calculated with the barycentric coordinates
@@ -138,7 +159,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
     /**
      * Now, the deviation for any non-linearity of the sides' mappings must be taken into account.
      */
-    TPZGeoMesh *gmesh = gel.Mesh();
+
     TPZVec<TPZFMatrix<T> > gradNonLinSideVec(TGeo::NSides - TGeo::NNodes,
                                              TPZFNMatrix<27,T>(3, TGeo::Dimension, 0));
     TPZVec<TPZFMatrix<T> > gradLinSideVec(TGeo::NSides - TGeo::NNodes,
@@ -462,8 +483,9 @@ inline void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> 
 
 template<class TGeo>
 template<class T>
-inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
+void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec<T> &result) const {
     TPZGeoEl &gel = *fGeoEl;
+    TPZGeoMesh *gmesh = gel.Mesh();
     TPZManVector<T,3> notUsedHereVec(3,(T)0);
     TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
     // bigger than needed.
@@ -482,6 +504,23 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
     const REAL zero = 1e-14;
     result.Resize(3);
     result.Fill(0);
+
+    if (fNeighbours[TGeo::NSides - 1 -TGeo::NNodes].ElementIndex() != -1){
+        TPZManVector<T, 3> neighXi;
+        if (!MapToNeighSide(TGeo::NSides-1, TGeo::Dimension, xi, neighXi, notUsedHereMat)) {
+#ifdef LOG4CXX2
+            if(logger->isDebugEnabled()) {
+                std::stringstream sout;
+                sout << "MapToNeighSide is singular for par " << xi << " and side " << TGeo::NSides-1 << ". Aborting...";
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+            DebugStop();
+        }
+        Neighbour(TGeo::NSides-1, gmesh).X(neighXi, result);
+        return;
+    }
+
     /**
      * The non-linear mapping is calculated from deviations of the linear mapping.
      * The linear mapping of an element (or of any of its side) can be calculated with the barycentric coordinates
@@ -513,7 +552,7 @@ inline void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi,
         int side = TGeo::NNodes + sideIndex;
         isRegularMapping[sideIndex] = TGeo::CheckProjectionForSingularity(side,xi);
     }
-    TPZGeoMesh *gmesh = gel.Mesh();
+
     TPZManVector<T, 20> blendFactor(TGeo::NSides - TGeo::NNodes, 0.);
     TPZFNMatrix<27, T> projectedPointOverSide(TGeo::NSides - TGeo::NNodes, TGeo::Dimension, 0.);
     TPZFNMatrix<27, T> linearSideMappings(TGeo::NSides - TGeo::NNodes, 3, 0.);
@@ -1056,9 +1095,15 @@ template class pzgeom::TPZGeoBlend<TPZGeoQuad>;
 template class pzgeom::TPZGeoBlend<TPZGeoLinear>;
 template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 
+#ifdef _AUTODIFF
+
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
 \
+template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result) const; \
+template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<Fad<REAL>> &par, TPZVec<Fad<REAL>> &result) const; \
+template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<REAL> &xiInterior, TPZFMatrix<REAL> &gradx) const;\
+template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<Fad<REAL>> &xiInterior, TPZFMatrix<Fad<REAL>> &gradx) const;\
 template class \
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
 \
@@ -1075,6 +1120,34 @@ IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
 
 #undef IMPLEMENTBLEND
+
+#else
+
+///CreateGeoElement -> TPZGeoBlend
+#define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
+\
+template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result) const; \
+template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<REAL> &xiInterior, TPZFMatrix<REAL> &gradx) const;\
+template class \
+TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
+\
+template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
+template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
+
+IMPLEMENTBLEND(pzgeom::TPZGeoPoint,CreatePointEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoLinear,CreateLinearEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoQuad,CreateQuadEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,CreateTriangleEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoCube,CreateCubeEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPrism,CreatePrismEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
+IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
+
+#undef IMPLEMENTBLEND
+
+
+#endif
+
 
 
 /*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.

@@ -116,7 +116,7 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
     REAL r = Norm(x_spatial);
     
     
-    TPZFNMatrix<40, REAL> div_phi = datavec[qb].divphi;
+    auto &div_phi = datavec[qb].divphi;
     REAL div_q = datavec[qb].divsol[0][0];
     
     int nphi_q       = datavec[qb].fVecShapeIndex.NElements();

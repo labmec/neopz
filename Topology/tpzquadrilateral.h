@@ -250,7 +250,6 @@ namespace pztopology {
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
         static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
-        static TPZTransform<> GetSideTransform(int side, int transformId);
         
         /// Compute the directions of the HDiv vectors
         template <class TVar>
@@ -260,9 +259,12 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
+
 	protected:
         /** @brief Valid permutations between nodes*/
         static int fPermutations [8][9];
+        static int FaceNodes[1][4]; // Denise e Jose: dim =2
+        static int SideNodes[4][2]; // Denise e Jose: dim = 1
 	};
 	
 }

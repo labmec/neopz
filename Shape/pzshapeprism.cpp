@@ -39,6 +39,39 @@ namespace pzshape {
 	
 	REAL TPZShapePrism::gFaceSum3dPrisma2d[5][2] = { {-1.,-1.},{-1.,0.},{0.,0.},{-1.,0.},{-1.,-1.} };
 	
+    void TPZShapePrism::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+        phi(0,0)  = .5*(1.-pt[0]-pt[1])*(1.-pt[2]);
+        phi(1,0)  = .5*pt[0]*(1.-pt[2]);
+        phi(2,0)  = .5*pt[1]*(1.-pt[2]);
+        phi(3,0)  = .5*(1.-pt[0]-pt[1])*(1.+pt[2]);
+        phi(4,0)  = .5*pt[0]*(1.+pt[2]);
+        phi(5,0)  = .5*pt[1]*(1.+pt[2]);
+        
+        dphi(0,0) = -.5*(1.-pt[2]);
+        dphi(1,0) = -.5*(1.-pt[2]);
+        dphi(2,0) = -.5*(1.-pt[0]-pt[1]);
+        
+        dphi(0,1) =  .5*(1.-pt[2]);
+        dphi(1,1) =  .0;
+        dphi(2,1) = -.5*pt[0];
+        
+        dphi(0,2) =  .0;
+        dphi(1,2) =  .5*(1.-pt[2]);
+        dphi(2,2) = -.5*pt[1];
+        
+        dphi(0,3) = -.5*(1.+pt[2]);
+        dphi(1,3) = -.5*(1.+pt[2]);
+        dphi(2,3) =  .5*(1.-pt[0]-pt[1]);
+        
+        dphi(0,4) =  .5*(1.+pt[2]);
+        dphi(1,4) =  .0;
+        dphi(2,4) =  .5*pt[0];
+        
+        dphi(0,5) =  .0;
+        dphi(1,5) =  .5*(1.+pt[2]);
+        dphi(2,5) =  .5*pt[1];
+    }
+    //esse metodo nao vai ser mais utilizado
 	void TPZShapePrism::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		phi(0,0)  = .5*(1.-pt[0]-pt[1])*(1.-pt[2]);
 		phi(1,0)  = .5*pt[0]*(1.-pt[2]);
@@ -205,13 +238,13 @@ namespace pzshape {
 			ids[0] = id[id0];
 			ids[1] = id[id1];
 			REAL store1[20],store2[60];
-			int ordin = order[rib]-1;//three orders : order in x , order in y and order in z
-			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
+			int nshape = order[rib]-1;//three orders : order in x , order in y and order in z
+			TPZFMatrix<REAL> phin(nshape,1,store1,20),dphin(3,nshape,store2,60);
 			phin.Zero();
 			dphin.Zero();
 			TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
-			TransformDerivativeFromRibToPrisma(rib,ordin,dphin);
-			for (int i = 0; i < ordin; i++) {
+			TransformDerivativeFromRibToPrisma(rib,nshape,dphin);
+			for (int i = 0; i < nshape; i++) {
 				phi(shape,0) = phiblend(rib+6,0)*phin(i,0);
 				for(int xj=0;xj<3;xj++) {
 					dphi(xj,shape) = dphiblend(xj ,rib+6)  * phin( i, 0) +
@@ -506,9 +539,9 @@ namespace pzshape {
 		if(order < 3) return;
 		int ord1 = order-2;
 		int ord2 = order-1;
-		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		TPZFMatrix<REAL> phi0(ord1,1,store1,20),phi1(ord1,1,store2,20),phi2(ord2,1,store3,20),
-		dphi0(1,ord1,store4,20),dphi1(1,ord1,store5,20),dphi2(1,ord2,store6,20);
+		
+		TPZFNMatrix<20,REAL> phi0(ord1,1),phi1(ord1,1),phi2(ord2,1),
+		dphi0(1,ord1),dphi1(1,ord1),dphi2(1,ord2);
 		TPZShapeLinear::fOrthogonal(2.*x[0]-1.,ord1,phi0,dphi0);//f e df       0<=x0<=1 -> -1<=2*x0-1<=1
 		TPZShapeLinear::fOrthogonal(2.*x[1]-1.,ord1,phi1,dphi1);//g e dg             0<=x1<=1 -> -1<=2*x1-1<=1
 		TPZShapeLinear::fOrthogonal(x[2],ord2,phi2,dphi2);//h e dh      -1<=x3<=1
@@ -527,6 +560,59 @@ namespace pzshape {
 			}
 		}
 	}
+    
+    void TPZShapePrism::ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                      TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
+        if (side < 6 || side > 20) {
+            DebugStop();
+        }
+        
+        switch (side) {
+                
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            {
+                pzshape::TPZShapeLinear::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+                
+            case 15:
+            case 19:
+                
+            {
+            
+                pzshape::TPZShapeTriang::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+                
+            case 16:
+            case 17:
+            case 18:
+            {
+                pzshape::TPZShapeQuad::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+
+            case 20:
+            {
+                ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+            default:
+                std::cout << "Wrong side parameter side " << side << std::endl;
+                DebugStop();
+                break;
+        }
+     
+        
+    }
 	
 	void TPZShapePrism::TransformDerivativeFromRibToPrisma(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {

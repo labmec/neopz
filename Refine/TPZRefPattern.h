@@ -105,6 +105,9 @@ protected:
         fSideNodes(sideNodes), fSideSons(sideSons), fMidSideIndex(midSideIndex) {}
         SPZFatherSideInfo() = default;
         SPZFatherSideInfo(const SPZFatherSideInfo &) = default;
+        void Read(TPZStream &buf, void *context);
+
+        void Write(TPZStream &buf, int withclassid) const;
         ~SPZFatherSideInfo() = default;
 	};
 	/**
@@ -143,7 +146,7 @@ protected:
     /**
      * @brief Number of subelements. Must be available before the mesh is generated.
      */
-    int fNSubEl;//@TODOFran:: is it really necessary?
+    int fNSubEl;
 
 
     /** @brief Auxiliar structure to permute nodes */
@@ -231,11 +234,6 @@ protected:
 	 */
     void BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh);
 
-    /**
-     * @brief Generate all permuted partitions and insert them in the mesh
-     */
-    void InsertPermuted();
-
     void BuildName();
 
     /**
@@ -265,10 +263,6 @@ protected:
      * @return transformation
      */
     TPZTransform<> ComputeParamTransform(TPZGeoEl *geoElFrom, TPZGeoEl *geoElTo, int sideFrom, int sideTo);
-
-    void WritePattern(std::ofstream &out){
-        DebugStop();//@TODOFran: IMPLEMENT ME!!!
-    }
 public:
 
     TPZRefPattern();
@@ -287,9 +281,7 @@ public:
     /**
  	* @brief Copy constructor
  	*/
-    TPZRefPattern(const TPZRefPattern &copy){
-        DebugStop();//@TODOFran: implement me!!!
-    }
+    TPZRefPattern(const TPZRefPattern &copy);
 
 	/**
 	 * Create a refinement pattern based on a geometrical mesh.
@@ -308,7 +300,10 @@ public:
 
 	virtual ~TPZRefPattern() = default;
 
-    //@TODOFran: Document me!
+    /**
+     * @briefPrints detailed information regarding the Refinement Pattern, including mesh information.
+     * @param out
+     */
     void PrintMore(std::ostream &out = std::cout) const;
 
     void ShortPrint(std::ostream &out = std::cout) const;
@@ -316,19 +311,23 @@ public:
     /**
  	* @brief Prints the useful information of a Refinement Pattern in a ostream file
     */
-    void Print(std::ostream &out = std::cout){
-        PrintMore(out);
-    }
+    void Print(std::ostream &out = std::cout) const;
+
+    void PrintVTK(std::ofstream &file, bool matColor = false) const;
+
+    /**
+     * Exports refpattern in the same format it is expected to be read in the future.
+     * @param out ostream in which the ref pattern will be written
+     */
+    void ExportPattern(std::ostream &out) const;
+
+    void WritePattern(std::ofstream &out) const;
 
     int ClassId() const override;
 
-    void Read(TPZStream &buf, void *context) override{
-        DebugStop();//@TODOFran: Implement me!
-    }
+    void Read(TPZStream &buf, void *context) override;
 
-    void Write(TPZStream &buf, int withclassid) const override{
-        DebugStop();//@TODOFran: Implement me!
-    }
+    void Write(TPZStream &buf, int withclassid) const override;
 
     /**
     * Gives the number of sub elements of this refinement pattern
@@ -385,7 +384,7 @@ public:
     * @param fatherSide TPZGeoElSide corresponding to the father's side
     * @param son the sub-element
     */
-    bool IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) const;//@TODOFran:is this necessary?
+    bool IsFatherNeighbour(TPZGeoElSide fatherSide,TPZGeoEl *son) const;
 
     /**
     * @brief It returns the element number iel from the stack of elements of the
@@ -488,6 +487,11 @@ public:
 	 * @brief Generate the refinement patterns associated with the sides of the father element
 	 */
     void GenerateSideRefPatterns();
+
+    /**
+     * @brief Generate all permuted partitions and insert them in the mesh
+     */
+    void InsertPermuted();
     /**
     * @brief Find the side refinement pattern corresponding to the parameter transformation
     */
@@ -500,261 +504,6 @@ public:
     MElementType Type(){
         return Element(0)->Type();
     }
-//     /**
-//      * @brief It prints the features of the standard of geometric refinement.
-//      */
-//     void MeshPrint();
-
-	
-//     /**
-//      * @brief It accumulates the number of sides of son 0 until son ison.
-//      */
-//     int SizeOfSubsSides(int ison);
-	
-//     /**
-//      * @brief It defines the size of the partition.
-//      */
-//     void DefinitionOfSizePartition();
-	
-
-	
-//     /** 
-//      * @brief It compares two hashings: in case that are equal returns 0,
-//      * case is distinct returns 1
-//      */
-//     int IsNotEqual(TPZTransform<> &Told, TPZTransform<> &Tnew);
-	
-// 	TPZAutoPointer<TPZRefPattern> SideRefPattern(int side);
-    
-//     /**
-//      * @brief Find the side refinement pattern corresponding to the parameter transformation
-//      */
-//     TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform<> &trans);
-	
-// 	/**
-// 	 * @brief This method is used to create / identify the nodes of the refined elements.
-// 	 * 
-// 	 * The method verify if the nodes are already created by the self element or by some neighbour.
-// 	 * @param gel - pointer to the element which are being divided
-// 	 * @param newnodeindexes - return all midside node indexes for the element division.
-// 	 */
-// 	void CreateNewNodes(TPZGeoEl *gel, TPZVec<int64_t> &newnodeindexes);
-	
-// 	/**
-// 	 * @brief This method is used to create / identify the midside nodes for element elindex in its division process.
-// 	 * @param gel - pointer to the element which are being divided
-// 	 * @param side - Side along which the nodes will be identified/created
-// 	 * @param newnodeindexes - return all midside node indexes for the element division.
-// 	 */
-// 	/**
-// 	 * The method verify if the nodes are already created by the self element or by some neighbour.
-// 	 */
-// 	void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<int64_t> &newnodeindexes);
-	
-//     /**
-//      * @brief Generate all permuted partitions and insert them in the mesh
-//      */
-// 	void InsertPermuted();
-    
-//     /**
-// 	 * @brief Generate the refinement patterns associated with the sides of the father element
-// 	 */
-//     void GenerateSideRefPatterns();
-	
-//     /**
-//      * @brief Find the refinement pattern corresponding to the give transformation
-//      */
-// 	TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZTransform<> &trans);
-	
-// 	TPZAutoPointer<TPZRefPattern> GetPermutation(int pos);
-	
-// 	TPZGeoMesh &RefPatternMesh()
-// 	{
-// 		return fRefPatternMesh;
-// 	}
-	
-// 	void PrintVTK(std::ofstream &file, bool matColor = false);
-	
-// private:
-	
-// 	/**
-//      * @brief This method import a refpattern from a given *.rpt file
-//      */
-//     void ImportPattern(std::istream &in);
-	
-// 	/**
-//      * @brief This method export a refpattern to a given *.rpt file
-//      */
-// 	void ExportPattern(std::ostream &out);
-	
-// 	void ReadPattern(std::istream &in);
-	
-// 	/**
-// 	 * @brief Write out the Refinement Pattern to a file with the necessary  
-//      * information to read it with ReadPattern.
-//      */
-//     void WritePattern(std::ofstream &out);
-	
-// 	/**
-//      * @brief It returns a stack from sub-elements and its sides. This stack partitions side of the element father.
-// 	 * 
-// 	 * It returns the number from elements of the partition of the side
-// 	 * @param side - side of father element that will be searched for internal sides (generated from subelements)
-// 	 * @param gelvec - vector of sides (stored as TPZGeoElSide objects) that belongs to given side of father element.
-//      */
-//     int SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side);
-	
-// 	/**
-// 	 * @brief Sets the RefPatternMesh in (x,y,z)_coordinates to (qsi,eta,zeta)_coordinates, always respecting the R3 dimension.
-// 	 */
-// 	void SetRefPatternMeshToMasterDomain();
-	
-//     /**
-//      * @brief Calculates the hashings between the sides of the son and the father 
-//      */
-//     void ComputeTransforms();
-	
-//     /**
-//      * @brief It effects the partition of the sides of the
-// 	 * element father using the sides of the children
-//      */
-//     void ComputePartition();
-	
-	
-// 	/**
-//      * @brief Each side of the element father is gotten as a partition enters the
-//      * sides of its sub-elements.
-// 	 */
-// 	/** 
-// 	 * The vector fTransformSides keeps
-//      * the respective hashing enters the side of the son and the side of \n
-//      * the father who contains it.
-//      */
-//     struct TPZPartitionFatherSides : public TPZSavable {
-//         /**
-//          * @brief Vector of position in fPartitionElSide of the side of the element to
-//          * be partitioned father
-//          */
-//         TPZManVector<int,27> fInitSide;
-		
-//         /**
-//          * @brief Vector that contains the partition of each side of the element 
-//          * 
-// 		 * fFatherSides  means of sub-elements and its sides. As extension 
-//          * the partition associated with a vertex corresponds to the on
-//          * elements to this node
-//          */
-//         TPZManVector<TPZGeoElSideIndex,10> fPartitionSubSide;
-		
-//         /**
-//          * @brief Number of asociados distinct sub-elements to the side of the father
-//          */
-//         TPZManVector<int,27> fNSubSideFather;
-		
-//         /**
-//          * @brief It prints the properties of the structure
-//          */
-//         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);  
-// 		        int ClassId() const override;
-//         void Read(TPZStream &buf, void *context) override;
-//         void Write(TPZStream &buf, int withclassid) const override;
-//     };
-	
-//     /**
-//      * @brief This structure is defined with the intention to know which is the side 
-//      * of the element father who contains the side of the sub-element.
-// 	 */
-// 	/** 
-// 	 * A filled time this information calculates it hashing enters the side of the sub-element \n
-// 	 * and the side of the respective element father
-//      */ 
-//     class TPZSideTransform : public TPZSavable {
-//     public:
-//         /**
-//          * @brief Vector of position of fSideFather
-//          */
-//         TPZManVector<int> fInitSonSides;
-		
-//         /**
-//          * @brief Side of the element father associated with the side of the
-//          * sub-element
-//          */
-//         TPZManVector<int> fFatherSide;
-		
-//         /**
-//          * @brief Hashing enters the side of the sub-element and the side of the
-//          * corresponding father
-//          */
-//         TPZManVector<TPZTransform<> > fSideTransform;
-		
-//         /**
-//          * @brief It prints the properties of the structure
-//          */
-//         void Print(TPZGeoMesh &gmesh,std::ostream &out = std::cout);
-//                 int ClassId() const override;
-//         void Read(TPZStream &buf, void *context) override;
-//         void Write(TPZStream &buf, int withclassid) const override;
-//     };
-	
-// 	/**
-//      * @brief Partition of the element for objects sub-element-sides 
-//      */
-// 	TPZPartitionFatherSides fFatherSides;
-	
-// 	/**
-//      * @brief Partition of the element father in sides of sub-elements and
-//      * the respective hashing between these.
-//      */    
-//     TPZSideTransform fTransforms;
-	
-// public:   
-	
-//     /**
-// 	 * @brief Automatically generate all permuted numberings for the father element of RefPatternMesh
-// 	 */
-//     static void GeneratePermutations(TPZGeoEl *gel);
-    
-// protected: 
-	
-//     /**
-//      * @brief Copy the mesh structure applying the permutation on the nodenumbers of the first element
-//      */
-// 	void PermuteMesh(const TPZPermutation &permute);
-	
-// 	/**
-// 	 * @brief Build a geometric mesh associated with the side of the refinement pattern
-// 	 */
-// 	void BuildSideMesh(int side, TPZGeoMesh &SideRefPatternMesh);
-	
-// 	MElementType Type();
-	
-// public:
-// 	/** @brief Auxiliar structure to permute nodes */
-// 	class TPZRefPatternPermute : public TPZSavable {
-//             public:
-// 		/** @brief permutation of the nodes */
-// 		TPZPermutation fPermute;
-		
-// 		/** @brief Transformation to the nodes */
-// 		TPZTransform<> fTransform;
-// 		/** @brief Default constructor */
-// 		TPZRefPatternPermute(): fPermute(0)
-// 		{}
-// 		/** @brief Copy constructor */
-// 		TPZRefPatternPermute(const TPZRefPatternPermute &copy) : fPermute(copy.fPermute), fTransform(copy.fTransform)
-// 		{
-// 		}
-// 		/** Assignment operator */
-// 		TPZRefPatternPermute &operator=(const TPZRefPatternPermute &copy)
-// 		{
-// 			fPermute = copy.fPermute;
-// 			fTransform = copy.fTransform;
-// 			return *this;
-// 		}
-// 		                int ClassId() const override;
-//                 void Read(TPZStream &buf, void *context) override;
-//                 void Write(TPZStream &buf, int withclassid) const override;
-// 	};
 };
 
 /** @} */

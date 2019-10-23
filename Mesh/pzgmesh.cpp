@@ -127,7 +127,7 @@ void TPZGeoMesh::SetName (const std::string &nm)
 	fName = nm;
 }
 
-void TPZGeoMesh::Print (std::ostream & out)
+void TPZGeoMesh::Print (std::ostream & out) const
 {
 	out << "\n\t\t GEOMETRIC TPZGeoMesh INFORMATIONS:\n\n";
 	out << "TITLE-> " << fName << "\n\n";
@@ -152,7 +152,7 @@ void TPZGeoMesh::Print (std::ostream & out)
 	}
 	
 	out << "\nInterface materials : \n\n";
-	InterfaceMaterialsMap::iterator w, e = this->fInterfaceMaterials.end();
+	InterfaceMaterialsMap::const_iterator w, e = this->fInterfaceMaterials.end();
 	
 	const int n = this->fInterfaceMaterials.size();
 	int l, r, m;
@@ -166,7 +166,7 @@ void TPZGeoMesh::Print (std::ostream & out)
 		out << l << " / " << r << " -> " << m << "\n";
 	}
 }
-void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out)
+void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out) const
 {
 	out << "TITLE-> " << fName << "\n";
 	out << "Number of nodes       = " << fNodeVec.NElements() << "\n";

@@ -1055,6 +1055,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     const int ncon = this->NConnects();
     
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
+    
     int64_t numbersol = MeshSol.Cols();
     if(numbersol != 1)
     {
@@ -1062,106 +1063,149 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     }
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
+    data.divsol.Resize(numbersol);
     
     for (int64_t is=0; is<numbersol; is++)
     {
         data.sol[is].Resize(dim*nstate);
         data.sol[is].Fill(0);
         data.dsol[is].Redim(dim*nstate, dim);
-        data.dsol[is].Zero();
+        data.divsol[is].Resize(nstate);
+        data.divsol[is].Fill(0.);
     }
+    TPZFNMatrix<220,REAL> dphix(3,data.dphix.Cols());
+    TPZFMatrix<REAL> &dphi = data.dphix;;
+    
+    TPZAxesTools<REAL>::Axes2XYZ(dphi, dphix, data.axes);
     
     TPZFMatrix<STATE> GradOfPhiHdiv(dim,dim);
     GradOfPhiHdiv.Zero();
     
+    
+    int normvecRows = data.fNormalVec.Rows();
+    int normvecCols = data.fNormalVec.Cols();
+    TPZFNMatrix<3,REAL> Normalvec(normvecRows,normvecCols,0.);
+    TPZManVector<TPZFNMatrix<9,REAL>,18> GradNormalvec(normvecCols);
+    for (int i=0; i<GradNormalvec.size(); i++) {
+        GradNormalvec[i].Redim(dim,dim);
+    }
+    
+    if (data.fNeedsNormalVecFad) {
+#ifdef _AUTODIFF
+        for (int e = 0; e < normvecRows; e++) {
+            for (int s = 0; s < normvecCols; s++) {
+                Normalvec(e,s)=data.fNormalVecFad(e,s).val();
+            }
+        }
+        
+        TPZFNMatrix<4,REAL> Grad0(3,3,0.);
+        
+        for (int s = 0; s < normvecCols; s++) {
+            
+            if (data.fNormalVecFad(0,s)>0||data.fNormalVecFad(1,s)>0) {
+                Grad0(0,0)=data.fNormalVecFad(0,s).fastAccessDx(0);
+                Grad0(0,1)=data.fNormalVecFad(0,s).fastAccessDx(1);
+                Grad0(1,0)=data.fNormalVecFad(1,s).fastAccessDx(0);
+                Grad0(1,1)=data.fNormalVecFad(1,s).fastAccessDx(1);
+            }
+            
+            GradNormalvec[s] = Grad0;
+        }
+        
+#else
+        DebugStop();
+#endif
+    }else{
+        Normalvec=data.fNormalVec;
+    }
+    
     TPZBlock<STATE> &block =this->Mesh()->Block();
-    int ishape=0,ivec=0,jv=0;
+    int ishape=0,ivec=0,counter=0;
+    
+    int nshapeV = data.fVecShapeIndex.NElements();
+    
     for(int in=0; in<ncon; in++)
     {
         TPZConnect *df = &this->Connect(in);
         int64_t dfseq = df->SequenceNumber();
         int dfvar = block.Size(dfseq);
+        // pos : position of the block in the solution matrix
         int64_t pos = block.Position(dfseq);
         
-        for(int jn=0; jn<dfvar/nstate; jn++)
+        /// ish loops of the number of shape functions associated with the block
+        for(int ish=0; ish<dfvar/nstate; ish++)
         {
-            ivec    = data.fVecShapeIndex[jv].first;
-            ishape  = data.fVecShapeIndex[jv].second;
+            ivec    = data.fVecShapeIndex[counter].first;
+            ishape  = data.fVecShapeIndex[counter].second;
             
-            {
-
-                
-                TPZFNMatrix<3> GradofPhi(dim,1);
-                GradofPhi.Zero();
-                
-                //  Compute grad_{hat}(PhiHdiv) = V (outerTimes) grad(PhiH1) Note: On Master element a constant vector basis is defined.
-                
-                int n_dir = data.dphi.Rows();
-                
-                for (int ir = 0; ir < n_dir; ir++) {
-                    
-                    //  Compute grad_{hat}(PhiH1)
-                    GradofPhi(ir,0) = data.dphi(ir,ishape);
-                    
-                    GradOfPhiHdiv(ir,0) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(0,0);
-                    GradOfPhiHdiv(ir,1) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(1,0);
-                    GradOfPhiHdiv(ir,2) = data.fDirectionsOnMaster(ir,ivec)*GradofPhi(2,0);
-                    
+            
+            // portion of the gradient coming from the gradient of the scalar function
+            for (int e = 0; e < dim; e++) {
+                for (int f = 0; f< dim; f++) {
+                    GradOfPhiHdiv(e,f) = Normalvec(e,ivec)*dphix(f,ishape);
                 }
-                
-                GradOfPhiHdiv *= (1.0/data.detjac);
-                
             }
             
             for (int64_t is=0; is<numbersol; is++)
             {
                 for(int idf=0; idf<nstate; idf++)
                 {
-                    STATE meshsol = MeshSol(pos+jn*nstate+idf,is);
+                    STATE meshsol = MeshSol(pos+ish*nstate+idf,is);
                     REAL phival = data.phi(ishape,0);
                     TPZManVector<REAL,3> normal(3);
-                    TPZManVector<STATE,3> solval(3);
+
                     for (int i=0; i<3; i++)
                     {
-                        solval[i] = data.sol[is][i+dim*idf];
-                        
                         if (data.fNeedsNormalVecFad) {
-                        #ifdef _AUTODIFF
+#ifdef _AUTODIFF
                             normal[i] = data.fNormalVecFad(i,ivec).val();
-                        #else
+#else
                             DebugStop();
-                        #endif
+#endif
                         }else{
                             normal[i] = data.fNormalVec(i,ivec);
                         }
                     }
                     
+#ifdef LOG4CXX
+                    if(logger->isDebugEnabled() && abs(meshsol) > 1.e-6)
+                    {
+                        std::stringstream sout;
+                        sout << "meshsol = " << meshsol << " ivec " << ivec << " ishape " << ishape << " x " << data.x << std::endl;
+                        sout << " phi = " << data.phi(ishape,0) << " dphix " << dphix(0,ishape) << " " << dphix(1,ishape) << std::endl;
+                        sout << "normal = " << normal << std::endl;
+                        sout << "GradOfPhiHdiv " << GradOfPhiHdiv << std::endl;
+                        sout << "GradNormalVec " << GradNormalvec[ivec] << std::endl;
+                        LOGPZ_DEBUG(logger,sout.str())
+                    }
+#endif
+                    data.divsol[is][idf] += data.divphi(counter,0)*meshsol;
                     for (int ilinha=0; ilinha<dim; ilinha++) {
-                        data.sol[is][ilinha+dim*idf] = solval[ilinha]+ normal[ilinha]*phival*meshsol;
+                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
                             data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
+                            if(data.fNeedsNormalVecFad){
+                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
+                            }
                         }
                     }
+                    
                 }
             }
-            jv++;
+            counter++;
         }
     }
     
-    data.divsol.Resize(nstate);
-    
-    for (int64_t is = 0; is < numbersol ; is++)
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
     {
-        data.divsol[is].Resize(nstate);
-        for (int64_t istate = 0; istate < nstate ; istate++)
-        {
-            STATE divu = 0;
-            for (int i = 0; i < dim; i++) {
-                divu += data.dsol[is](i,i);
-            }
-            data.divsol[is][istate] = divu;
-        }
+        std::stringstream sout;
+        sout << "x " << data.x << " sol " << data.sol[0] << std::endl;
+        data.dsol[0].Print("dsol",sout);
+        sout << "divsol" << data.divsol[0] << std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
     }
+#endif
 
 }
 
@@ -1334,8 +1378,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
+    bool needsol = data.fNeedsSol;
+    data.fNeedsSol = false;
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
-
+    data.fNeedsSol = needsol;
+    
     int restrainedface = this->RestrainedFace();
     // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
     // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
@@ -1399,11 +1446,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         }
     }
     
+    data.ComputeFunctionDivergence();
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
     }
 
-    data.ComputeFunctionDivergence();
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {

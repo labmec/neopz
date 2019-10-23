@@ -131,17 +131,18 @@ public:
 	/** @brief Returns the volume of the geometric element associated. */
 	virtual  REAL VolumeOfEl()
 	{
-		if(fReferenceIndex == 0) return 0.;
+		if(fReferenceIndex == -1) return 0.;
 		return Reference()->Volume();
 	}
 	
-	/** @brief Loads the geometric element referece */
+	/** @brief Loads the geometric element reference */
 	virtual void LoadElementReference();
 	
 	/**
-	 * @brief This method verifies if the element has the given data characteristics
+	 * @brief This method computes the norm of the difference of a post processed variable with
+     @ the same post processed variable of the element pointed to by the geometric element
 	 * @param var state variable number
-	 * @param matname pointer to material name
+	 * @param matname only contribute to the norm if the material name matches the name of the material of the element
 	 **/
 	virtual REAL CompareElement(int var, char *matname);
 	
@@ -293,8 +294,7 @@ public:
 														 TPZFMatrix<REAL> & dphi));
     /**
      * @brief Computes the element stifness matrix and right hand side
-     * @param ek element stiffness matrix
-     * @param ef element load vector
+     * in an internal data structure. Used for initializing condensed element data structures
      */
     virtual void Assemble();
     
@@ -567,8 +567,10 @@ public:
 	 */
 	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block);
 	
+    /// Will return the maximum distance between the nodes of the reference element
 	REAL MaximumRadiusOfEl();
 	
+    /// Will return the smallest distance between two nodes of the reference element
 	REAL LesserEdgeOfEl();
 	
 	/** @brief Save the element data to a stream */
