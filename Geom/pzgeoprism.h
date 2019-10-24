@@ -27,6 +27,7 @@ namespace pzgeom {
     class TPZGeoPrism : public TPZNodeRep<6, pztopology::TPZPrism>
     {
     public:
+        typedef pztopology::TPZPrism Top;
         /** @brief Number of corner nodes */
         enum {NNodes = 6};
         /** @brief Constructor with list of nodes */

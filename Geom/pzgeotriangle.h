@@ -28,7 +28,7 @@ namespace pzgeom {
 	class TPZGeoTriangle : public TPZNodeRep<3, pztopology::TPZTriangle> 
 	{
 	public:
-
+        typedef pztopology::TPZTriangle Top;
 		/** @brief Number of corner nodes */
 		enum {NNodes = 3};
 		

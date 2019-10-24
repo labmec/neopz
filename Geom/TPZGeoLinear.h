@@ -30,7 +30,7 @@ namespace pzgeom
     class TPZGeoLinear : public TPZNodeRep<2, pztopology::TPZLine> {
         
     public:
-        
+        typedef pztopology::TPZLine Top;
         /** @brief Number of corner nodes */
         enum {NNodes = 2};
         

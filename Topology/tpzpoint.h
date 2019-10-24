@@ -34,7 +34,7 @@ namespace pztopology {
 	class TPZPoint : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZPoint>(const int& permute, TPZVec<int> &permutation);
+        friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
 		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0, NPermutations = 1};
 

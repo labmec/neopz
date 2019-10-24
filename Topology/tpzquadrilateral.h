@@ -37,7 +37,7 @@ namespace pztopology {
 	class TPZQuadrilateral : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZQuadrilateral>(const int& permute, TPZVec<int> &permutation);
+        friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4, NPermutations = 8};
 

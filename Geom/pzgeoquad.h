@@ -26,6 +26,7 @@ namespace pzgeom {
 	class TPZGeoQuad  : public TPZNodeRep<4, pztopology::TPZQuadrilateral>
 	{
 	public:
+        typedef pztopology::TPZQuadrilateral Top;
 		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
 

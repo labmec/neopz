@@ -37,7 +37,7 @@ namespace pztopology {
 	 */
 	class TPZCube : public TPZSavable {
 	public:
-        friend void pztopology::GetPermutation<TPZCube>(const int& permute, TPZVec<int> &permutation);
+        friend void pztopology::GetPermutation<TPZCube>(const int permute, TPZVec<int> &permutation);
 		/** @brief enumerate for topological characteristics */
 		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6, NPermutations = 48};
 		

@@ -28,6 +28,7 @@ namespace pzgeom {
     class TPZGeoCube : public TPZNodeRep<8, pztopology::TPZCube> {
         
     public:
+        typedef pztopology::TPZCube Top;
         /** @brief Number of corner nodes */
         enum {NNodes = 8};
         

@@ -27,7 +27,7 @@ namespace pztopology{
     void SetTolerance(const REAL &tol);
 
     template<class Topology>
-    extern void GetPermutation(const int& permute, TPZVec<int> &permutation);
+    extern void GetPermutation(const int permutationIndex, TPZVec<int> &permutation);
 }
 
 #endif

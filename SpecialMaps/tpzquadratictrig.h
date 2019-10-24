@@ -22,6 +22,7 @@ namespace pzgeom {
     class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 		
 	public:
+        typedef pztopology::TPZTriangle Top;
 		/** @brief Number of nodes */
 		enum {NNodes = 6};
                 

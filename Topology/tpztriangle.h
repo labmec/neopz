@@ -34,7 +34,7 @@ namespace pztopology {
 	 */
 	class TPZTriangle : public TPZSavable{
 	public:
-        friend void pztopology::GetPermutation<TPZTriangle>(const int& permute, TPZVec<int> &permutation);
+        friend void pztopology::GetPermutation<TPZTriangle>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
 		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3, NPermutations = 6};
 		

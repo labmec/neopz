@@ -24,7 +24,7 @@ namespace pzgeom {
     class TPZQuadraticPyramid : public pzgeom::TPZNodeRep<13,pztopology::TPZPyramid> {
         
     public:
-        
+        typedef pztopology::TPZPyramid Top;
         enum {NNodes = 13};
         
         public:

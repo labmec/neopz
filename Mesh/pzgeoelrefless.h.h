@@ -782,14 +782,14 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 
 #include "TPZTopologyUtils.h"
 
-template <class Topology>
-int TPZGeoElRefLess<Topology>::NPermutations() const{
-    return Topology::NPermutations;
+template <class Geom>
+int TPZGeoElRefLess<Geom>::NPermutations() const{
+    return Geom::Top::NPermutations;
 }
 
-template <class Topology>
-void TPZGeoElRefLess<Topology>::GetPermutation(const int& i, TPZVec<int> &permutation) const{
-    return pztopology::GetPermutation<Topology>(i,permutation);
+template <class Geom>
+void TPZGeoElRefLess<Geom>::GetPermutation(const int& i, TPZVec<int> &permutation) const{
+    return pztopology::GetPermutation<typename Geom::Top>(i,permutation);
 }
 
 

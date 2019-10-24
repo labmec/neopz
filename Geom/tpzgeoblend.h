@@ -35,7 +35,7 @@ namespace pzgeom {
         bool IsGeoBlendEl() const {
             return true;
         }
-
+        typedef typename TGeo::Top Top;
         /** @brief Constructor with list of nodes */
         TPZGeoBlend(TPZVec<int64_t> &nodeindexes) : TPZRegisterClassId(&TPZGeoBlend::ClassId),
                                                     TGeo(nodeindexes) {

@@ -22,7 +22,7 @@ namespace pzgeom {
 		TPZVec<REAL> fxc;
 		
 	public:
-		
+        typedef pztopology::TPZQuadrilateral Top;
 		/** @brief Constructor with list of nodes */
 		TPZQuadSphere(TPZVec<int64_t> &nodeindexes) : GeomQuad(nodeindexes), fR(0.), fxc(3,0.)
 		{
