@@ -346,8 +346,7 @@ void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> 
 	//subel.Resize(size);
 	for(int64_t el = 0; el < size; el++)
 	{
-//		int64_t subelIndex = sideIndexes[el].ElementIndex() - 1;//@TODOFranPhil:here pt2
-        int64_t subelIndex = sideIndexes[el].ElementIndex();
+		int64_t subelIndex = sideIndexes[el].ElementIndex() - 1;
 		int subelSide = sideIndexes[el].Side();
 		TPZGeoEl *mysub = SubElement(subelIndex);
 		subel.Push(TPZGeoElSide(mysub, subelSide));
@@ -504,8 +503,7 @@ void TPZGeoElRefPattern<TGeo>::MidSideNodeIndices(int side,TPZVec<int64_t> &indi
 	int64_t counter = 0;
 	for(is=0; is<nsub; is++)
 	{
-//		TPZGeoEl *subel = SubElement(nodeIndices[is].ElementIndex() - 1);//@TODOFranPhil:here pt 3
-        TPZGeoEl *subel = SubElement(nodeIndexes[is].ElementIndex());
+		TPZGeoEl *subel = SubElement(nodeIndexes[is].ElementIndex() - 1);
 		indices[counter] = subel->NodeIndex(nodeIndexes[is].Side());
 		counter++;
 	}

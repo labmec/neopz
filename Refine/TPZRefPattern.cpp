@@ -537,7 +537,7 @@ void TPZRefPattern::InternalNodesIndexes(int side, TPZVec<TPZGeoElSideIndex> &no
     for(auto &subElSide : fFatherSideInfo[side].fSideSons){
         if(subElSide.Dimension() == 0){
             nodeIndexes[count] = TPZGeoElSideIndex(subElSide);
-            nodeIndexes[count].SetElementIndex(nodeIndexes[count].ElementIndex()-1);//@TODOFranPhil:here pt0
+            nodeIndexes[count].SetElementIndex(nodeIndexes[count].ElementIndex());
             count++;
         }
     }
@@ -553,7 +553,7 @@ void TPZRefPattern::InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &si
     sideIndexes.Resize(nSubElSides);
     for(int iSub = 0; iSub < nSubElSides; iSub++){
         sideIndexes[iSub] = TPZGeoElSideIndex(fFatherSideInfo[side].fSideSons[iSub]);
-        sideIndexes[iSub].SetElementIndex(sideIndexes[iSub].ElementIndex()-1);//@TODOFranPhil:here pt1
+        sideIndexes[iSub].SetElementIndex(sideIndexes[iSub].ElementIndex());
     }
 }
 
