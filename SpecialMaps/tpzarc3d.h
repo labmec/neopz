@@ -26,6 +26,7 @@ namespace pzgeom
 	class TPZArc3D : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 		
 	public:
+        typedef pztopology::TPZLine Top;
 		/** @brief Number of nodes (connects) */
 		enum {NNodes = 3};
 

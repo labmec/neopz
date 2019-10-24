@@ -84,7 +84,7 @@ public:
      * @brief Access method to return the number of free elements.
      * @return Number of free elements.
      */
-    inline int64_t NFreeElements() {
+    inline int64_t NFreeElements() const{
         return fFree.NElements();
     }
 

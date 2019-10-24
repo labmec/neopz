@@ -18,9 +18,9 @@
 #include <set>
 
 #include "pzgeoel.h"
-#include "TPZRefPattern.h"
 #include "tpzintpoints.h"
 
+class TPZRefPattern;
 /**
  * @ingroup refine
  * @brief Defines tools of pattern. \ref refine "Refine"

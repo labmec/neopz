@@ -24,7 +24,7 @@ namespace pzgeom {
 class TPZQuadraticPrism : public pzgeom::TPZNodeRep<15,pztopology::TPZPrism> {
 	
 public:
-	
+    typedef pztopology::TPZPrism Top;
 	enum {NNodes = 15};
         
 int ClassId() const override;

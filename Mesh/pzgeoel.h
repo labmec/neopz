@@ -106,7 +106,14 @@ public:
 		this->fNumInterfaces--;
 		return this->fNumInterfaces;
 	}
-	
+
+	/**
+	 * This method gets the ith valid permutation of its topology
+	 * @param i number of the permutation to get
+	 * @param permutation vector contained the permuted sides
+	 */
+	virtual void GetPermutation(const int& i, TPZVec<int> &permutation) const = 0;
+
 	/**
 	 * @brief Creates an integration rule for the topology of the corresponding side
 	 * and able to integrate a polynom of order exactly
@@ -220,6 +227,12 @@ public:
 	
 	/** @brief Returns the number of corner nodes of the element*/
 	virtual int NCornerNodes() const = 0;
+
+    /**
+     * Get the number of valid permutations among the element nodes
+     * @return
+     */
+    virtual int NPermutations() const = 0;
 	
 	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) const;
@@ -286,7 +299,7 @@ public:
 	/**
 	 * THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns \n
 	 * whereas the former is not
-	 */
+	 *///@TODOFran: this method should be removed, as it is misleading. there is only one midsidenode allowed
 	virtual void MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
@@ -464,11 +477,14 @@ public:
 	/** @brief Sets the father element*/
 	void SetFather(TPZGeoEl *father)
 	{
-		fFatherIndex = father->Index();
+	    if(!father) fFatherIndex = -1;
+		else  fFatherIndex = father->Index();
 	}
-	
-	/** @brief Sets the father element index*/
-	virtual void SetFather(int64_t fatherindex)
+
+	/** @brief Sets the father element index
+	 * This method is not called SetFather in order to avoid implicit conversions from nullptr to int
+	 * */
+	virtual void SetFatherIndex(int64_t fatherindex)
 	{
 		fFatherIndex = fatherindex;
 	}

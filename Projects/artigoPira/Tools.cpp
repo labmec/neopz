@@ -1712,7 +1712,7 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         for(long el=0; el < gmesh->NElements(); el++)
         {
             TPZGeoEl *gel = gmesh->Element(el);
-            gel->SetFather(-1);
+            gel->SetFather(nullptr);
         }
         
         //refinamento quarter point proximo do no de id=1

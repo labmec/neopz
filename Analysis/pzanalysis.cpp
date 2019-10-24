@@ -1484,7 +1484,7 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     buf.Write(fTensorNames[0]);
     buf.Write(fTensorNames[1]);
     buf.Write(fTensorNames[2]);
-    //@TODO: How to persist fExact?
+    //@TODOFran: How to persist fExact?
 }
 
 void TPZAnalysis::Read(TPZStream &buf, void *context){
@@ -1512,7 +1512,7 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     buf.Read(fTensorNames[0]);
     buf.Read(fTensorNames[1]);
     buf.Read(fTensorNames[2]);
-    //@TODO: How to persist fExact?
+    //@TODOFran: How to persist fExact?
 }
 
 TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f) : fNextElement(0), fvalues(0), fStoreError(store_error), fExact(f), ftid(0), fElvec(elvec){

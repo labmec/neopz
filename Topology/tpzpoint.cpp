@@ -12,7 +12,9 @@
 #endif
 
 namespace pztopology {
-
+    int TPZPoint::fPermutations[1][1]={
+            {0}
+    };
     template<class T>
     void TPZPoint::TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
     {

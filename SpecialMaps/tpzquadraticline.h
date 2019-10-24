@@ -22,7 +22,7 @@ namespace pzgeom {
 	class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> 
     {		
         public:
-		
+        typedef pztopology::TPZLine Top;
 		enum {NNodes = 3};
                 
                 public:

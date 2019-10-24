@@ -151,7 +151,7 @@ namespace pztopology {
     static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
     static int direcaoksioueta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
     
-    static int permutationsQ [8][9] =
+    int TPZQuadrilateral::fPermutations [8][9] =
     {
         {0,1,2,3,4,5,6,7,8}, // id 0
         {0,3,2,1,7,6,5,4,8}, // id 1
@@ -725,7 +725,7 @@ namespace pztopology {
         
          for (int i=0; i<9; i++)
          {
-             permgather[i] = permutationsQ[transformationid][i];
+             permgather[i] = fPermutations[transformationid][i];
          }
         return;
         int i;
@@ -797,7 +797,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[0][i];
+                    permgather[i] = fPermutations[0][i];
                 }
             }
                 break;
@@ -805,7 +805,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[1][i];
+                    permgather[i] = fPermutations[1][i];
                 }
             }
                 break;
@@ -813,7 +813,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[2][i];
+                    permgather[i] = fPermutations[2][i];
                 }
             }
                 break;
@@ -821,7 +821,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[3][i];
+                    permgather[i] = fPermutations[3][i];
                 }
             }
                 break;
@@ -829,7 +829,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[4][i];
+                    permgather[i] = fPermutations[4][i];
                 }
             }
                 break;
@@ -837,7 +837,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[5][i];
+                    permgather[i] = fPermutations[5][i];
                 }
             }
                 break;
@@ -845,7 +845,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[6][i];
+                    permgather[i] = fPermutations[6][i];
                 }
             }
                 break;
@@ -853,7 +853,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[7][i];
+                    permgather[i] = fPermutations[7][i];
                 }
             }
                 break;
@@ -1196,7 +1196,6 @@ namespace pztopology {
             sidevectors[i] = vectorsideorder[i];
         }
     }
-    
     
     int TPZQuadrilateral::ClassId() const{
         return Hash("TPZQuadrilateral");

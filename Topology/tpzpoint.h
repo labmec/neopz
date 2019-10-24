@@ -13,6 +13,7 @@
 #include "pzeltype.h"
 #include "pzstack.h"
 #include "pzaxestools.h"
+#include "TPZTopologyUtils.h"
 
 class TPZIntPoints;
 class TPZInt1Point;
@@ -24,7 +25,6 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -33,9 +33,10 @@ namespace pztopology {
 	 */
 	class TPZPoint : public TPZSavable {
 	public:
-		
+
+        friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0};
+		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFaces = 0, NPermutations = 1};
 
                 int ClassId() const override;
                 void Read(TPZStream &buf, void *context) override;
@@ -267,7 +268,9 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
-
+	protected:
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations [1][1];
 	};
 	
 }

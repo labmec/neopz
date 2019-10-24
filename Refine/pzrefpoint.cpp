@@ -50,7 +50,7 @@ namespace pzrefine {
 		for(sub=0;sub<NSubEl;sub++) {
 			SubElVec[sub] = geo->SubElement(sub);
 			SubElVec[sub]->SetFather(geo);
-			SubElVec[sub]->SetFather(geo->Index());
+			SubElVec[sub]->SetFatherIndex(geo->Index());
 		}
 		geo->SetSubElementConnectivities();
 	}

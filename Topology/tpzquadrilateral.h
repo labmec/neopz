@@ -12,6 +12,7 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 #include "pzaxestools.h"
+#include "TPZTopologyUtils.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -27,7 +28,6 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -37,8 +37,9 @@ namespace pztopology {
 	class TPZQuadrilateral : public TPZSavable {
 	public:
 
+        friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4};
+		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4, NPermutations = 8};
 
             int ClassId() const override;
             void Read(TPZStream &buf, void *context) override;
@@ -258,12 +259,12 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
-        
 
+	protected:
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations [8][9];
         static int FaceNodes[1][4]; // Denise e Jose: dim =2
         static int SideNodes[4][2]; // Denise e Jose: dim = 1
-       
-
 	};
 	
 }

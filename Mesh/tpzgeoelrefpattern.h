@@ -263,7 +263,8 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 	{
         TPZGeoEl *gel = SubElement(is);
         if (gel) {
-            gel->SetFather(-1);
+            int64_t noFather = -1;
+            gel->SetFatherIndex(noFather);
         }
 		fSubEl[is] = -1;
 	}
@@ -276,7 +277,7 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 template<class TGeo>
 int TPZGeoElRefPattern<TGeo>::NSideSubElements(int side) const{
 	if (!fRefPattern) return 0;
-	return this->GetRefPattern()->NSideSubElements(side);
+	return this->GetRefPattern()->NSideSubGeoElSides(side);
 }
 
 template<class TGeo>
@@ -294,14 +295,14 @@ template<class TGeo>
 TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
 	TPZGeoElSide tmp;
 	if(!fRefPattern) return tmp;
-	int sub, sideout;
-	this->GetRefPattern()->SideSubElement(side,position,sub,sideout);
-	if (fSubEl[sub] == -1) {
+	TPZGeoElSide subGeoEl;
+	this->GetRefPattern()->SideSubGeoElSide(side,position,subGeoEl);
+	if (fSubEl[subGeoEl.Id()] == -1) {
 		PZError << "TPZGeoElRefPattern<TGeo>::SideSubElement : Error subelement not found for side "
 		<< side << " position " << position << std::endl;
 		return TPZGeoElSide();
 	}
-	return TPZGeoElSide (SubElement(sub),sideout);
+	return TPZGeoElSide (SubElement(subGeoEl.Id()),subGeoEl.Side());
 }
 
 template<class TGeo>
@@ -345,7 +346,7 @@ void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> 
 	//subel.Resize(size);
 	for(int64_t el = 0; el < size; el++)
 	{
-		int64_t subelIndex = sideIndexes[el].ElementIndex();
+		int64_t subelIndex = sideIndexes[el].ElementIndex() - 1;
 		int subelSide = sideIndexes[el].Side();
 		TPZGeoEl *mysub = SubElement(subelIndex);
 		subel.Push(TPZGeoElSide(mysub, subelSide));
@@ -427,7 +428,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	for(sub=0;sub<NSubEl;sub++) {
 		SubElVec[sub] = SubElement(sub);
 		SubElVec[sub]->SetFather(this);
-		SubElVec[sub]->SetFather(this->fIndex);		
+		SubElVec[sub]->SetFatherIndex(this->fIndex);
 	}
 
 	for(i=0;i<NSubEl;i++) {
@@ -502,7 +503,7 @@ void TPZGeoElRefPattern<TGeo>::MidSideNodeIndices(int side,TPZVec<int64_t> &indi
 	int64_t counter = 0;
 	for(is=0; is<nsub; is++)
 	{
-		TPZGeoEl *subel = SubElement(nodeIndexes[is].ElementIndex());
+		TPZGeoEl *subel = SubElement(nodeIndexes[is].ElementIndex() - 1);
 		indices[counter] = subel->NodeIndex(nodeIndexes[is].Side());
 		counter++;
 	}

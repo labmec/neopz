@@ -12,6 +12,7 @@
 #include "pzeltype.h"
 #include "pznumeric.h"
 #include "pzaxestools.h"
+#include "TPZTopologyUtils.h"
 
 class TPZIntPoints;
 class TPZIntPrism3D;
@@ -23,7 +24,6 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -33,9 +33,9 @@ namespace pztopology {
 	 */
 	class TPZPrism : public TPZSavable {
 	public:
-					
+        friend void pztopology::GetPermutation<TPZPrism>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFaces = 5};
+		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFaces = 5, NPermutations = 12};
 		
                 virtual int ClassId() const override;
                 void Read(TPZStream& buf, void* context) override;
@@ -257,6 +257,8 @@ namespace pztopology {
 		/** @brief Ids of the shape face */
 		static int ShapeFaceId[5][4];
 
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations[12][21];
 		/** @} */
 		
 	};

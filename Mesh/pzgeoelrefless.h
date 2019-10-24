@@ -167,7 +167,14 @@ virtual int ClassId() const override;
 	virtual  void SetSideDefined(int side)  override { fNeighbours[side] = TPZGeoElSide(this,side); }
 	
 	virtual  void SetSubElement(int id, TPZGeoEl *el) override;
-	
+
+
+    /**
+     * This method gets the ith valid permutation of its topology
+     * @param i number of the permutation to get
+     * @param permutation vector contained the permuted sides
+     */
+    void GetPermutation(const int& i, TPZVec<int> &permutation) const override;
 	/**
 	 * @brief Creates an integration rule for the topology of the corresponding side
 	 * and able to integrate a polynom of order exactly
@@ -198,6 +205,12 @@ virtual int ClassId() const override;
 	
 	/** @brief Returns the number of connectivities of the element*/
 	virtual  int NSides() const override;
+
+    /**
+     * Get the number of valid permutations among the element nodes
+     * @return
+     */
+    virtual int NPermutations() const override;
 	
 	/** @brief Returns the local node number of the node "node" along side "side" */
 	virtual  int SideNodeLocId(int side, int node) const;

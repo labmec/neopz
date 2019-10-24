@@ -25,10 +25,9 @@ class TPZGraphElQ3dd;
 class TPZCompEl;
 class TPZGeoEl;
 class TPZCompMesh;
-
+#include "TPZTopologyUtils.h"
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -38,9 +37,9 @@ namespace pztopology {
 	 */
 	class TPZCube : public TPZSavable {
 	public:
-		
+        friend void pztopology::GetPermutation<TPZCube>(const int permute, TPZVec<int> &permutation);
 		/** @brief enumerate for topological characteristics */
-		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6};
+		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFaces = 6, NPermutations = 48};
 		
                 int ClassId() const override;
                 void Read(TPZStream &buf, void *context) override;
@@ -258,7 +257,10 @@ namespace pztopology {
 		
 		/** @brief Ids of the shape face */
 		static int ShapeFaceId[6][2];
-		
+
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations[48][27];
+
 		/** @} */
         
 		

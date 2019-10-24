@@ -24,6 +24,7 @@ namespace pzgeom {
 	class TPZGeoPyramid  : public TPZNodeRep<5, pztopology::TPZPyramid>
 	{
 	public:
+        typedef pztopology::TPZPyramid Top;
 		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		

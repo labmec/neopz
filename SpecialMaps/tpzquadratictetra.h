@@ -23,6 +23,7 @@ namespace pzgeom {
 	class TPZQuadraticTetra : public pzgeom::TPZNodeRep<10,pztopology::TPZTetrahedron> {
 		
 	public:
+        typedef pztopology::TPZTetrahedron Top;
 		/** @brief Number of nodes */
 		enum {NNodes = 10};
                 

@@ -47,6 +47,7 @@
 #include "pzcondensedcompel.h"
 
 #include "TPZRefPattern.h"
+#include "TPZRefPatternDataBase.h"
 
 #include "TPZMatDualHybridPoisson.h"
 

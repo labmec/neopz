@@ -23,6 +23,7 @@ namespace pzgeom {
 	class TPZQuadraticQuad : public pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral> {
 		
 	public:
+        typedef pztopology::TPZQuadrilateral Top;
 		/** @brief Number of nodes */
 		enum {NNodes = 8};
                 

@@ -25,6 +25,7 @@ namespace pzgeom {
     class TPZQuadraticCube : public pzgeom::TPZNodeRep<20,pztopology::TPZCube> {
             
     public:
+        typedef pztopology::TPZCube Top;
         /** @brief Number of nodes (3 by edge) */
         enum {NNodes = 20};
         

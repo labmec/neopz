@@ -51,7 +51,7 @@ namespace pztopology {
 	
 	static int nsidenodes[3] = {1,1,2};
     
-    static int permutationsL [2][3] =
+    int TPZLine::fPermutations [2][3] =
     {
         {0,1,2},
         {1,0,2}
@@ -449,7 +449,7 @@ namespace pztopology {
         permgather.Resize(3);
         for (int i=0; i<3; i++)
         {
-            permgather[i] = permutationsL[transformationid][i];
+            permgather[i] = fPermutations[transformationid][i];
         }
 		/*
          switch (side) {

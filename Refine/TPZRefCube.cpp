@@ -14,9 +14,9 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzrefine {
-	static int nsubeldata[27] = {1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,9,9,9,9,9,9,26};
+	static int nsubeldata[27] = {1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,3,3,3,3,9,9,9,9,9,9,27};
 	
-	static int subeldata[27][26][2] = {
+	static int subeldata[27][27][2] = {
 		/*00*/{{0,0}},
 		/*01*/{{1,1}},
 		/*02*/{{2,2}},
@@ -44,7 +44,7 @@ namespace pzrefine {
 		/*24*/{{0,7},{0,15},{0,19},{7,11},{7,12},{0,24},{3,24},{4,24},{7,24}},
 		/*25*/{{4,6},{4,17},{4,18},{6,16},{6,19},{4,25},{5,25},{6,25},{7,25}},
 		/*26*/{{0,14},{0,17},{0,18},{6,8},{6,11},{6,12},{0,26},{1,26},{2,26},{3,26},{4,26},{5,26},{6,26},
-			{7,26},{0,22},{0,23},{0,25},{1,25},{2,21},{2,24},{2,25},{3,25},{4,22},{4,23},{6,21},{6,24}}
+			{7,26},{0,22},{0,23},{0,25},{1,25},{2,21},{2,24},{2,25},{3,25},{4,22},{4,23},{6,21},{6,24},{0,6}}
 	};
 	
 	static int MidSideNodes[19][2]  = {
@@ -350,7 +350,7 @@ namespace pzrefine {
 		for(sub=0;sub<NSubEl;sub++) {
 			SubElVec[sub] = geo->SubElement(sub);
 			SubElVec[sub]->SetFather(geo);
-			SubElVec[sub]->SetFather(geo->Index());
+			SubElVec[sub]->SetFatherIndex(geo->Index());
 		}
 		for(i=0;i<NSubEl;i++) {//conectividades entre os filhos : viz interna
 			for(j=0;j<NumInNeigh;j++) {        //lado do subel                                          numero do filho viz.             lado do viz.

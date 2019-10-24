@@ -227,35 +227,6 @@ atan(int __x)
 }
 #endif //VC
 
-#include <limits>
-namespace pztopology{
-//    class Settings{
-//    private:
-//        Settings() = default;
-//        REAL gTolerance;
-//    public:
-//        static Settings &GetSettings(){static Settings fOnlyInstance;return fOnlyInstance;}
-//        Settings(Settings const&)   = delete;
-//        void operator=(Settings const&) = delete;
-//    };// if, in the future, there are more topology settings to be adjusted, this model of singleton can be used.
-
-    typedef std::numeric_limits< REAL > dbl;
-    static REAL gTolerance = pow(10,(-1 * (dbl::max_digits10- 5)));
-
-    static REAL GetTolerance(){return gTolerance;}
-
-    static void SetTolerance(const REAL &tol){
-        if(tol > 0) gTolerance = tol;
-        else {
-            typedef std::numeric_limits< REAL > dbl;
-
-            std::cout.precision(dbl::max_digits10);
-            std::cout<<"Invalid tolerance parameter for topologies. Trying to set: "<<tol<<std::endl;
-            std::cout<<"This value will be ignored. Tolerance is set at: "<<gTolerance<<std::endl;
-        }
-    }
-}
-
 // fabs function adapted to complex numbers.
 inline float
 fabs(std::complex <float> __x)
@@ -659,19 +630,22 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance() {
-	return ((REAL)1.e-10);
+    typedef std::numeric_limits< REAL > dbl;
+	return (REAL)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
-inline void ZeroTolerance(double &Tol) {
-	Tol = (double)1.e-9;
+
+template<typename T,
+        typename std::enable_if< is_arithmetic_pz<T>::value, int>::type* = nullptr>
+inline void ZeroTolerance(T &tol) {
+    typedef std::numeric_limits< T > dbl;
+    tol = (T)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
-inline void ZeroTolerance(long double &Tol) {
-	Tol = (long double)1.e-12;
-}
-inline void ZeroTolerance(float &Tol) {
-	Tol = (float)1.e-6;
-}
-inline void ZeroTolerance(TPZFlopCounter &Tol) {
-	Tol.fVal = (REAL)1.e-9;
+
+template<typename T,
+        typename std::enable_if<std::is_same<T,TPZFlopCounter>::value>::type* = nullptr>
+inline void ZeroTolerance(T &tol) {
+    typedef std::numeric_limits< REAL > dbl;
+    tol = (T)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
 
 #ifdef _AUTODIFF

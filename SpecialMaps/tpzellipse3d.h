@@ -24,6 +24,7 @@ namespace pzgeom
 	class TPZEllipse3D : public pzgeom::TPZNodeRep<2,pztopology::TPZLine> {
 		
 	public:
+        typedef pztopology::TPZLine Top;
 		/** @brief Number of nodes (connects) */
 		enum {NNodes = 2};
 		/** @brief It is not linear mapping */
