@@ -228,12 +228,12 @@ namespace pztopology {
         
         /* Given side and gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
         template <class TVar>
-        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
+        static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
         /// Adjust the directions associated with the tip of the pyramid, considering that one of the faces is constrained
         template <class TVar>

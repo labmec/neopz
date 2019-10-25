@@ -1404,7 +1404,7 @@ namespace pztopology {
 	}
     
     template <class TVar>
-    void TPZTetrahedron::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZTetrahedron::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
@@ -1503,7 +1503,7 @@ namespace pztopology {
     }
 
     
-    void TPZTetrahedron::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZTetrahedron::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*3;
         
@@ -1519,7 +1519,7 @@ namespace pztopology {
         }
     }
     
-    void TPZTetrahedron::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZTetrahedron::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides()*3;
         
@@ -1567,7 +1567,7 @@ template void pztopology::TPZTetrahedron::BlendFactorForSide<REAL>(const int &, 
 
 template void pztopology::TPZTetrahedron::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZTetrahedron::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZTetrahedron::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
 template bool pztopology::TPZTetrahedron::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
@@ -1578,5 +1578,5 @@ template void pztopology::TPZTetrahedron::BlendFactorForSide<Fad<REAL>>(const in
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZTetrahedron::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
-template void pztopology::TPZTetrahedron::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZTetrahedron::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

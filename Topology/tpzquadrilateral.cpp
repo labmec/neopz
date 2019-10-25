@@ -1125,7 +1125,7 @@ namespace pztopology {
 	}
     
     template <class TVar>
-    void TPZQuadrilateral::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZQuadrilateral::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
@@ -1163,7 +1163,7 @@ namespace pztopology {
     
 
     
-    void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZQuadrilateral::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*2;
         
@@ -1178,7 +1178,7 @@ namespace pztopology {
             bilounao[is] = bilinearounao[is];
         }
     }
-    void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZQuadrilateral::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides()*2;
         
@@ -1225,7 +1225,7 @@ template void pztopology::TPZQuadrilateral::BlendFactorForSide<REAL>(const int &
 
 template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZQuadrilateral::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZQuadrilateral::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -1235,5 +1235,5 @@ template void pztopology::TPZQuadrilateral::BlendFactorForSide<Fad<REAL>>(const 
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZQuadrilateral::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
-template void pztopology::TPZQuadrilateral::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZQuadrilateral::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

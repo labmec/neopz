@@ -586,24 +586,24 @@ TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp, gl2lc
 //}
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::DirectionsMaster(TPZFMatrix<REAL> &directions)
+void TPZGeoElRefLess<TGeo>::HDivDirectionsMaster(TPZFMatrix<REAL> &directions)
 {
     TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.);
     for (int i = 0; i < TGeo::Dimension; i++) {
         gradx(i,i) = 1.;
     }
-    TGeo::ComputeDirections(gradx, directions);
+    TGeo::ComputeHDivDirections(gradx, directions);
 }
 
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
+void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
   
     this->GradX(pt, gradx);
 
-    TGeo::ComputeDirections(gradx, directions);
+    TGeo::ComputeHDivDirections(gradx, directions);
     
     if (TGeo::Type() == EPiramide) {
         pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, directions);
@@ -613,7 +613,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &direc
 
 #ifdef _AUTODIFF
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions, int ConstrainedFace)
+void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions, int ConstrainedFace)
 {
     TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.),gradxinv(TGeo::Dimension,TGeo::Dimension,0.);
     
@@ -634,7 +634,7 @@ void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &
     TPZFNMatrix<9,Fad<REAL>> gradxFad(3,TGeo::Dimension);
     this->GradX(qsiFad, gradxFad);
     //gradxFad.Print(std::cout);
-    TGeo::ComputeDirections(gradxFad, directions);
+    TGeo::ComputeHDivDirections(gradxFad, directions);
    
     if (TGeo::Type() == EPiramide) {
         pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradxFad, directions);

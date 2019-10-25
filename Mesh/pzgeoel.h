@@ -77,14 +77,14 @@ public:
 //    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
     
     /** Returns the directions of master element */
-    virtual void DirectionsMaster(TPZFMatrix<REAL> &directions) = 0;
+    virtual void HDivDirectionsMaster(TPZFMatrix<REAL> &directions) = 0;
     
     /** Returns the directions of this geoel */
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
 
 #ifdef _AUTODIFF
     /** Returns the directions of this geoel */
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
 #endif
     
     /** Returns the eldest ancestor of this geoel */

@@ -1042,7 +1042,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 //    }
 
     template <class TVar>
-    void TPZTriangle::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZTriangle::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
@@ -1099,7 +1099,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
     }
     
-    void TPZTriangle::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZTriangle::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*2;
         
@@ -1115,7 +1115,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         }
     }
 
-    void TPZTriangle::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZTriangle::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides()*2;
         
@@ -1162,7 +1162,7 @@ template void pztopology::TPZTriangle::BlendFactorForSide<REAL>(const int &, con
 
 template void pztopology::TPZTriangle::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZTriangle::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZTriangle::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
 template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
@@ -1173,5 +1173,5 @@ template void pztopology::TPZTriangle::BlendFactorForSide<Fad<REAL>>(const int &
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZTriangle::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
-template void pztopology::TPZTriangle::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZTriangle::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

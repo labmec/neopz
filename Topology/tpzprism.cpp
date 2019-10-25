@@ -1633,7 +1633,7 @@ namespace pztopology {
 	}
     
     template <class TVar>
-    void TPZPrism::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZPrism::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
@@ -1749,7 +1749,7 @@ namespace pztopology {
         
     }
 
-    void TPZPrism::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZPrism::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*3;
         
@@ -1766,7 +1766,7 @@ namespace pztopology {
     }
 
 
-    void TPZPrism::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors) {
+    void TPZPrism::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors) {
         int nsides = NumSides()*3;
 
         sides.Resize(nsides);
@@ -1811,7 +1811,7 @@ template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const 
 
 template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZPrism::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZPrism::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
 template bool pztopology::TPZPrism::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
@@ -1822,5 +1822,5 @@ template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, c
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZPrism::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
-template void pztopology::TPZPrism::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZPrism::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif
