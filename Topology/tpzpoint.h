@@ -236,7 +236,7 @@ namespace pztopology {
 	}
 		
 		/** @brief Volume of the master element (measure of the element) */
-		static REAL RefElVolume() {
+		static constexpr REAL RefElVolume() {
 			return 0.;
 		}
         

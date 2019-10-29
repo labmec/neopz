@@ -236,7 +236,7 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
-		static REAL RefElVolume() { return 0.5L; }
+		static constexpr REAL RefElVolume() { return 0.5L; }
         
         /* Given side and gradx the method returns directions needed for Hdiv space */
 //        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
@@ -247,9 +247,10 @@ namespace pztopology {
         /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
-//        {
-//            DebugStop();
-//        }
+
+        /// Compute the directions of the HCurl vectors
+        template <class TVar>
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
 
         /**

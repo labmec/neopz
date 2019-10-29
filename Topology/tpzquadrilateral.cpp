@@ -1160,8 +1160,44 @@ namespace pztopology {
             directions(i,17)        = v2[i];
         }
     }
-    
 
+    template <class TVar>
+    void TPZQuadrilateral::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    {
+
+        TPZManVector<TVar, 3> v1(3),v2(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+        }
+        constexpr REAL faceArea{TPZQuadrilateral::RefElVolume()};
+
+        for (int i=0; i<3; i++)
+        {
+            for(int iSide = 0; iSide < 4; iSide ++){
+                int sign = iSide /2 ? -1 : 1;// sign will be : 1 1 -1 -1
+
+                //v^{e,a} constant vector fields associated with edge e and vertex a
+                //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
+                //adjacent to edge e by the vertex a. the tangential component is set to be 1 * 2/edgeLength[e] = 1
+                directions(i,iSide * 2) =
+                directions(i,iSide * 2 + 1) =
+                //v^{e,T} constant vector fields associated with edge e and aligned with it
+                directions(i,8 + iSide) =
+                                iSide % 2 ? sign * v2[i] : sign * v1[i];//vectors will be v1 v2 -v1 -v2
+
+                sign = ((iSide + 1) / 2) %2 ? -1 : 1;// sign will be : 1 -1 -1 1
+                //v^{F,e} constant vector fields associated with face F and edge e
+                //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
+                //adjacent to face F by edge e
+                directions(i,12 + iSide) = iSide % 2 ? sign * v1[i] : sign * v2[i];//vectors will be v2 -v1 -v2 v1
+                directions(i,12 + iSide) /= faceArea;
+            }
+            //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+            directions(i,16) = v1[i] / faceArea;
+            directions(i,17) = v2[i] / faceArea;
+        }
+    }
     
     void TPZQuadrilateral::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {

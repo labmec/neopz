@@ -229,7 +229,7 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
-		static REAL RefElVolume() {
+		static constexpr REAL RefElVolume() {
 			return (1.0L/6.0L);
 		}
         

@@ -243,7 +243,7 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int transformid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
-		static REAL RefElVolume() { return 4.0L; }
+		static constexpr REAL RefElVolume() { return 4.0L; }
         
         /* Given gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int is, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
@@ -254,6 +254,10 @@ namespace pztopology {
         /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
+
+        /// Compute the directions of the HCurl vectors
+        template <class TVar>
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
