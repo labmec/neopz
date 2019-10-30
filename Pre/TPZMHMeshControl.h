@@ -169,7 +169,7 @@ public:
     
     /// Define the MHM partition by the coarse element indices
     void DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseindices);
-    
+
     void DefineSkeleton(std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton)
     {
         fInterfaces = skeleton;
@@ -188,7 +188,11 @@ public:
     
     /// Define the partitioning information of the MHM mesh
     void DefinePartition(TPZVec<int64_t> &partitionindex, std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton);
-    
+
+    /// Define the partitioning information of the MHM mesh
+    // This method calculates the skeleton indexes
+    void DefinePartition(TPZVec<int64_t> &partitionindex);
+
     /// Set the problem type of the simulation
     void SetProblemType(MProblemType problem)
     {
@@ -302,7 +306,11 @@ public:
         }
         return result;
     }
-    
+
+    TPZManVector<int64_t> GetGeoToMHMDomain() {
+        return fGeoToMHMDomain;
+    }
+
     /// return the coarseindex to submesh index data structure
     std::map<int64_t,int64_t> &Coarse_to_Submesh()
     {
