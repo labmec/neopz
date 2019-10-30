@@ -1205,6 +1205,8 @@ template void pztopology::TPZTriangle::BlendFactorForSide<REAL>(const int &, con
 template void pztopology::TPZTriangle::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 template void pztopology::TPZTriangle::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+template void pztopology::TPZTriangle::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
 template bool pztopology::TPZTriangle::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
@@ -1216,4 +1218,6 @@ template void pztopology::TPZTriangle::BlendFactorForSide<Fad<REAL>>(const int &
 template void pztopology::TPZTriangle::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
 template void pztopology::TPZTriangle::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+
+template void pztopology::TPZTriangle::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

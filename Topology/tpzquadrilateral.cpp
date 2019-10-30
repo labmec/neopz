@@ -1262,6 +1262,8 @@ template void pztopology::TPZQuadrilateral::BlendFactorForSide<REAL>(const int &
 template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 template void pztopology::TPZQuadrilateral::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -1272,4 +1274,6 @@ template void pztopology::TPZQuadrilateral::BlendFactorForSide<Fad<REAL>>(const 
 template void pztopology::TPZQuadrilateral::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
 template void pztopology::TPZQuadrilateral::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

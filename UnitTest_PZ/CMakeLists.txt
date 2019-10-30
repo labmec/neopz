@@ -8,6 +8,7 @@ if(BUILD_UNITTESTING)
 	if(USING_BOOST)
 
 		add_subdirectory(TestFad)
+		add_subdirectory(TestHCurl)
 		add_subdirectory(TestTopology)
 		add_subdirectory(TestMatrix)
 		add_subdirectory(TestMesh)
