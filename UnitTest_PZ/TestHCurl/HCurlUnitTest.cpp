@@ -34,7 +34,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 
 #endif
 
-//#define NOISY_HCURL //outputs useful debug info
+#define NOISY_HCURL //outputs useful debug info
 //#define NOISYVTK_HCURL//outputs even more debug info, printing relevant info in .vtk format
 
 std::string dirname = PZSOURCEDIR;
@@ -119,13 +119,13 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 //in all valid permutations the gradX is constant therefore the xi point should not matter
                 permutedEl->JacobianXYZ(xiCenter,permutedJacobian,axes,detPermutedJac,permutedJacInv);
 
-                #ifdef NOISY_HCURL
+#ifdef NOISY_HCURL
                 std::cout<<"permutation "<<permute<<" out of "<<nPermutations<<". side ordering:"<<std::endl;
                 for(auto iSide = 0; iSide < nSides; iSide++) std::cout<<currentPermutation[iSide]<<"\t";
                 std::cout<<std::endl;
                 permutedJacobian.Print("\tJacobian:");
                 axes.Print("\tAxes:");
-                #endif
+#endif
                 for(auto iVec = 0; iVec <  nVec; iVec++){
                     //covariant piola transform: J^{-T}
                     TPZManVector<REAL,3> tempDirection(dim,0);
@@ -161,12 +161,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     for(auto x = 0; x < 3; x++) sideOrient += edgeTgVector[x]* permutedDirections(x,2*nEdges+permutedIEdge);
                     sideOrient /= std::abs(sideOrient);
 
-                    REAL diff = 0;
-                    for(auto x = 0; x < 3; x++) diff += directions(x,2*nEdges+iEdge) - sideOrient * permutedDirections(x,2*nEdges+permutedIEdge);
-                    bool areTangentialVectorsDifferent =
-                            std::abs(diff) < tol;
-                    BOOST_CHECK(areTangentialVectorsDifferent);
-                    #ifdef NOISY_HCURL
+#ifdef NOISY_HCURL
                     std::cout<<"\tedge "<<originalEdgeIndex<<std::endl;
                     std::cout<<"\tpermuted edge "<<permutedEdgeIndex<<std::endl;
                     std::cout<<"\tside orient "<<sideOrient<<std::endl;
@@ -180,15 +175,39 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     std::cout<<"\t\ttangent vector: ";
                     for(auto x = 0; x < 3; x++) std::cout<<edgeTgVector[x]<<"\t";
                     std::cout<<std::endl;
+#endif
+
+                    REAL diff = 0;
+                    //checks if the tangential component of both vectors are the same
+                    for(auto x = 0; x < 3; x++) {
+                        diff +=
+                                (directions(x,2*nEdges+iEdge) - sideOrient * permutedDirections(x,2*nEdges+permutedIEdge) ) *
+                                edgeTgVector[x];
+                    }
+
+                    bool areTangentialVectorsDifferent =
+                            std::abs(diff) < tol;
+                    if(!areTangentialVectorsDifferent){
+                        std::cout<<"\t\tDetected error in tangential vector associated with edge"<<std::endl;
+                        REAL trace = 0;
+                        for(auto x = 0; x < 3; x++) trace += directions(x,2*nEdges+iEdge) * edgeTgVector[x];
+                        std::cout<<"\t\t\toriginal trace = "<<trace<<std::endl;
+                        trace = 0;
+                        for(auto x = 0; x < 3; x++) trace += (sideOrient * permutedDirections(x,2*nEdges+permutedIEdge) ) *
+                                                            edgeTgVector[x];
+                        std::cout<<"\t\t\tpermuted trace = "<<trace<<std::endl;
+                    }
+                    BOOST_CHECK(areTangentialVectorsDifferent);
+#ifdef NOISY_HCURL
                     std::cout<<"\t\ttesting vea vectors"<<std::endl;
-                    #endif
+#endif
                     REAL originalTangentialTrace = 0, permutedTangentialTrace = 0;
                     for(auto iVec = 0; iVec <  2; iVec++) {// 2 v^{e,a}
                         originalTangentialTrace = 0;
                         for(auto x = 0; x < 3; x++) originalTangentialTrace += edgeTgVector[x] * directions(x,2*iEdge+iVec);
                         permutedTangentialTrace = 0;
                         for(auto x = 0; x < 3; x++) permutedTangentialTrace += edgeTgVector[x] * sideOrient * permutedDirections(x,2*permutedIEdge+iVec);
-                        #ifdef NOISY_HCURL
+#ifdef NOISY_HCURL
                         std::cout<<"\tdirection "<<iVec<<std::endl;
                         std::cout<<"\t\toriginal:"<<std::endl;
                         for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< directions(x,2*iEdge+iVec)<<"\t";
@@ -198,7 +217,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< sideOrient * permutedDirections(x,2*permutedIEdge+iVec)<<"\t";
                         std::cout<<std::endl;
                         std::cout<<"\t\ttangential trace over edge: "<<permutedTangentialTrace<<std::endl;
-                        #endif
+#endif
 
                         bool areTracesDifferent =
                                 std::abs(originalTangentialTrace - permutedTangentialTrace) < tol;
@@ -261,22 +280,12 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     for(auto x = 0; x < 3; x++) sideOrient += originalFaceNormalVector[x] * permutedFaceNormalVector[x];
                     sideOrient /= std::abs(sideOrient);
 
-//                    #ifdef NOISY_HCURL
-//                    std::cout<<"\tface "<<originalFaceIndex<<std::endl;
-//                    std::cout<<"\tpermuted face "<<permutedFaceIndex<<std::endl;
-//                    std::cout<<"\tside orient "<<sideOrient<<std::endl;
-//                    std::cout<<"\ttesting ve vectors"<<std::endl;
-//                    std::cout<<"\t\toriginal:"<<std::endl;
-//                    for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< directions(x,2*nEdges+iEdge)<<"\t";
-//                    std::cout<<"\n\t\tpermuted:"<<std::endl;
-//                    for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< sideOrient * permutedDirections(x,2*nEdges+permutedIEdge)<<"\t";
-//                    std::cout<<std::endl;
-//
-//                    std::cout<<"\t\ttangent vector: ";
-//                    for(auto x = 0; x < 3; x++) std::cout<<edgeTgVector[x]<<"\t";
-//                    std::cout<<std::endl;
-//                    std::cout<<"\t\ttesting vea vectors"<<std::endl;
-//                    #endif
+#ifdef NOISY_HCURL
+                    std::cout<<"\tface "<<originalFaceIndex<<std::endl;
+                    std::cout<<"\tpermuted face "<<permutedFaceIndex<<std::endl;
+                    std::cout<<"\tside orient "<<sideOrient<<std::endl;
+                    std::cout<<"\t\ttesting vfe vectors"<<std::endl;
+#endif
 //                    REAL originalTangentialTrace = 0, permutedTangentialTrace = 0;
 //                    for(auto iVec = 0; iVec <  2; iVec++) {// 2 v^{e,a}
 //                        originalTangentialTrace = 0;

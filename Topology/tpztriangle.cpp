@@ -1125,7 +1125,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
             directions(i,6) = (v1[i]) * 2/edgeLength[0];
-            directions(i,7) = ( (v2[i] - v1[i]) * M_SQRT2 ) * 2/edgeLength[1];
+            directions(i,7) = ( (v2[i] - v1[i]) / M_SQRT2 ) * 2/edgeLength[1];
             directions(i,8) = (-v2[i]) * 2/edgeLength[2];
 
             //v^{F,e} constant vector fields associated with face F and edge e
