@@ -1179,12 +1179,12 @@ namespace pztopology {
 
                 //v^{e,a} constant vector fields associated with edge e and vertex a
                 //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
-                //adjacent to edge e by the vertex a. the tangential component is set to be 1 * 2/edgeLength[e] = 1
+                //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e] = 0.5
                 directions(i,iSide * 2) =
                 directions(i,iSide * 2 + 1) =
                 //v^{e,T} constant vector fields associated with edge e and aligned with it
                 directions(i,8 + iSide) =
-                                iSide % 2 ? sign * v2[i] : sign * v1[i];//vectors will be v1 v2 -v1 -v2
+                                iSide % 2 ? sign * 0.5 * v2[i] : sign * 0.5 * v1[i];//vectors will be v1 v2 -v1 -v2
 
                 sign = ((iSide + 1) / 2) %2 ? -1 : 1;// sign will be : 1 -1 -1 1
                 //v^{F,e} constant vector fields associated with face F and edge e

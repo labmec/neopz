@@ -140,7 +140,21 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 }
                 //testing directions associated with edges
                 for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+
                     const int originalEdgeIndex = nNodes + iEdge;
+
+                    TPZManVector<int,2> edgeNodes(2,0);
+                    for(auto i = 0; i < 2; i++) edgeNodes[i] = originalEl->SideNodeIndex(originalEdgeIndex,i);
+
+                    REAL edgeLength = 0;
+                    {
+                        TPZVec<REAL> p0(3), p1(3);
+                        gmesh->NodeVec()[edgeNodes[0]].GetCoordinates(p0);
+                        gmesh->NodeVec()[edgeNodes[1]].GetCoordinates(p1);
+                        edgeLength =
+                                std::sqrt((p0[0]-p1[0])*(p0[0]-p1[0])+(p0[1]-p1[1])*(p0[1]-p1[1])+(p0[2]-p1[2])*(p0[2]-p1[2]));
+                    }
+
                     int permutedIEdge = -1;
                     for(auto pEdge = 0; pEdge < nEdges; pEdge++){
                         if(currentPermutation[pEdge+nNodes] == originalEdgeIndex){
@@ -212,11 +226,11 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         std::cout<<"\t\toriginal:"<<std::endl;
                         for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< directions(x,2*iEdge+iVec)<<"\t";
                         std::cout<<std::endl;
-                        std::cout<<"\t\ttangential trace over edge: "<<originalTangentialTrace<<std::endl;
+                        std::cout<<"\t\tintegral of tangential trace over edge: "<<originalTangentialTrace*edgeLength<<std::endl;
                         std::cout<<"\t\tpermuted:"<<std::endl;
                         for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< sideOrient * permutedDirections(x,2*permutedIEdge+iVec)<<"\t";
                         std::cout<<std::endl;
-                        std::cout<<"\t\ttangential trace over edge: "<<permutedTangentialTrace<<std::endl;
+                        std::cout<<"\t\tintegral of tangential trace over edge: "<<permutedTangentialTrace*edgeLength<<std::endl;
 #endif
 
                         bool areTracesDifferent =

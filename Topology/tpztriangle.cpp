@@ -1115,18 +1115,18 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         {
             //v^{e,a} constant vector fields associated with edge e and vertex a
             //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
-            //adjacent to edge e by the vertex a. the tangential component is set to be 1 * 2/edgeLength[e]
-            directions(i,0) = (v1[i]) * 2/edgeLength[0];
-            directions(i,1) = (v1[i]+v2[i]) * 2/edgeLength[0];
-            directions(i,2) = (v2[i]*M_SQRT2) * 2/edgeLength[1];
-            directions(i,3) = (-v1[i]*M_SQRT2) * 2/edgeLength[1];
-            directions(i,4) = (v1[i] + v2[i]) * -1 * 2 / edgeLength[2];
-            directions(i,5) = (-v2[i]) * 2/edgeLength[2];
+            //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e]
+            directions(i,0) = (v1[i]) / edgeLength[0];
+            directions(i,1) = (v1[i]+v2[i]) / edgeLength[0];
+            directions(i,2) = (v2[i]*M_SQRT2) / edgeLength[1];
+            directions(i,3) = (-v1[i]*M_SQRT2) / edgeLength[1];
+            directions(i,4) = (v1[i] + v2[i]) * -1 / edgeLength[2];
+            directions(i,5) = (-v2[i]) / edgeLength[2];
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
-            directions(i,6) = (v1[i]) * 2/edgeLength[0];
-            directions(i,7) = ( (v2[i] - v1[i]) / M_SQRT2 ) * 2/edgeLength[1];
-            directions(i,8) = (-v2[i]) * 2/edgeLength[2];
+            directions(i,6) = (v1[i]) / edgeLength[0];
+            directions(i,7) = ( (v2[i] - v1[i]) / M_SQRT2 ) / edgeLength[1];
+            directions(i,8) = (-v2[i]) / edgeLength[2];
 
             //v^{F,e} constant vector fields associated with face F and edge e
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
