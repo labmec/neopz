@@ -56,6 +56,9 @@ public:
     /// Set active approximation spaces
     void BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector, const TPZVec<int64_t> &gelindexes);
     
+    /// Set active approximation spaces
+    void BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
+    
     void LoadSolutionFromMeshes();
     
     void LoadSolutionFromMultiPhysics();

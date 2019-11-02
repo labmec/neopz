@@ -1,12 +1,12 @@
 //
-//  TPZGeoMeshBluider.h
+//  TPZGeoMeshBuilder.h
 //  pz
 //
 //  Created by Omar Durán on 2/12/19.
 //
 
-#ifndef TPZGeoMeshBluider_h
-#define TPZGeoMeshBluider_h
+#ifndef TPZGeoMeshBuilder_h
+#define TPZGeoMeshBuilder_h
 
 #include <stdio.h>
 #include "pzgmesh.h"
@@ -39,7 +39,7 @@
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoElement.h"
 
-class TPZGeoMeshBluider {
+class TPZGeoMeshBuilder {
     
 public:
     
@@ -53,4 +53,4 @@ public:
     
 };
 
-#endif /* TPZGeoMeshBluider_h */
+#endif /* TPZGeoMeshBuilder_h */

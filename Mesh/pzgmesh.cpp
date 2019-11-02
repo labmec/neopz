@@ -1441,6 +1441,11 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
     }
 #endif
     buf.Write(&fName);
+//    if (fReference) {
+//        std::cout << __PRETTY_FUNCTION__ << "TPZGeoMesh::Write Trying to write a gmesh with non-null reference. Call ResetReference() and try again." << std::endl;
+//        std::cout.flush();
+//        DebugStop();
+//    }
     TPZPersistenceManager::WritePointer(fReference, &buf);
     buf.WritePointers(fElementVec);
     fNodeVec.Write(buf, withclassid);

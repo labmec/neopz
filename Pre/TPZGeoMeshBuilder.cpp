@@ -1,13 +1,13 @@
 //
-//  TPZGeoMeshBluider.cpp
+//  TPZGeoMeshBuilder.cpp
 //  pz
 //
 //  Created by Omar Durán on 2/12/19.
 //
 
-#include "TPZGeoMeshBluider.h"
+#include "TPZGeoMeshBuilder.h"
 
-void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<std::size_t> & node_identifiers, std::vector<double> & coord) {
+void TPZGeoMeshBuilder::InsertNodes(TPZGeoMesh * gmesh, std::vector<std::size_t> & node_identifiers, std::vector<double> & coord) {
     
     int64_t n_nodes = node_identifiers.size();
     gmesh->NodeVec().Resize(n_nodes);
@@ -35,7 +35,7 @@ void TPZGeoMeshBluider::InsertNodes(TPZGeoMesh * gmesh, std::vector<std::size_t>
     }
 }
 
-void TPZGeoMeshBluider::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers){
+void TPZGeoMeshBuilder::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers){
     
     TPZManVector <int64_t,15> Topology;
     int n_nodes = node_identifiers.size();
@@ -142,7 +142,7 @@ void TPZGeoMeshBluider::InsertElement(TPZGeoMesh * gmesh, int & physical_identif
     
 }
 
-int TPZGeoMeshBluider::GetNumberofNodes(int & el_type){
+int TPZGeoMeshBuilder::GetNumberofNodes(int & el_type){
     
     int n_nodes;
     switch (el_type) {
@@ -241,7 +241,7 @@ int TPZGeoMeshBluider::GetNumberofNodes(int & el_type){
     return n_nodes;
 }
 
-void TPZGeoMeshBluider::PrintGeometry(TPZGeoMesh * gmesh, std::string  & name){
+void TPZGeoMeshBuilder::PrintGeometry(TPZGeoMesh * gmesh, std::string  & name){
     
     std::stringstream text_name;
     std::stringstream vtk_name;
