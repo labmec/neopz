@@ -34,7 +34,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 
 #endif
 
-#define NOISY_HCURL //outputs useful debug info
+//#define NOISY_HCURL //outputs useful debug info
 //#define NOISYVTK_HCURL//outputs even more debug info, printing relevant info in .vtk format
 
 std::string dirname = PZSOURCEDIR;
@@ -114,6 +114,8 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             TTopol::CenterPoint(nSides - 1, xiCenter);
             TPZFMatrix<REAL> permutedDirections(3,nVec,0);
             for(permute = 1; permute < nPermutations; permute++){
+                std::cout<<"\tpermutation "<<permute<<" out of "<<nPermutations<<". side ordering:"<<std::endl;
+                for(auto iSide = 0; iSide < nSides; iSide++) std::cout<<"\t"<<currentPermutation[iSide];
                 pztopology::GetPermutation<TTopol>(permute, currentPermutation);
                 permutedEl = CreatePermutedEl(currentPermutation);
                 //in all valid permutations the gradX is constant therefore the xi point should not matter
@@ -140,7 +142,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 }
                 //testing directions associated with edges
                 for(auto iEdge = 0; iEdge < nEdges; iEdge++){
-
+                    std::cout<<"\t\tedge "<<iEdge<<" out of "<<nEdges<<std::endl;
                     const int originalEdgeIndex = nNodes + iEdge;
 
                     TPZManVector<int,2> edgeNodes(2,0);
@@ -217,6 +219,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 #endif
                     REAL originalTangentialTrace = 0, permutedTangentialTrace = 0;
                     for(auto iVec = 0; iVec <  2; iVec++) {// 2 v^{e,a}
+                        std::cout<<"\t\t\tvector  "<<iVec<<" out of "<<2<<std::endl;
                         originalTangentialTrace = 0;
                         for(auto x = 0; x < 3; x++) originalTangentialTrace += edgeTgVector[x] * directions(x,2*iEdge+iVec);
                         permutedTangentialTrace = 0;
@@ -269,7 +272,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     for(auto x = 0; x < 3; x++) result[x] /= norm;
                 };
                 //testing directions associated with faces
-                TPZManVector<REAL> firstVfeVec(nFaces,-1);
+                TPZManVector<int> firstVfeVec(nFaces,-1);
                 TPZManVector<TPZStack<int>> faceEdges(nFaces,TPZStack<int>(0,0));
                 {
                     const int nEdgeVectors = nEdges * 3;
@@ -281,7 +284,9 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     }
                     TTopol::LowerDimensionSides(nFaces - 1 + nEdges + nNodes, faceEdges[nFaces-1], 1);
                 }
+                const int firstVftVec = firstVfeVec[nFaces-1] + faceEdges[nFaces-1].size();
                 for(auto iFace = 0; iFace < nFaces; iFace++){
+                    std::cout<<"\t\tface "<<iFace<<" out of "<<nFaces<<std::endl;
                     const int originalFaceIndex = nNodes + nEdges + iFace;
                     int permutedIFace = -1;
                     for(auto pFace = 0; pFace < nFaces; pFace++){
@@ -313,6 +318,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 #endif
                     const int nFaceEdges = faceEdges[iFace].size();
                     for(auto iVec = 0; iVec < nFaceEdges; iVec++) {
+                        std::cout<<"\t\t\tvec "<<iVec<<" out of "<<nFaceEdges<<std::endl;
                         const int originalEdgeIndex = faceEdges[iFace][iVec];
                         int permutedIEdge = -1;
                         for(auto pEdge = 0; pEdge < nEdges; pEdge++){
@@ -342,10 +348,6 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         VectorialProduct(originalFaceNormalVector,permutedVfe,temp);
                         VectorialProduct(originalFaceNormalVector,temp,permutedTangentialTrace);
 
-//                        originalTangentialTrace = 0;
-//                        for(auto x = 0; x < 3; x++) originalTangentialTrace += edgeTgVector[x] * directions(x,2*iEdge+iVec);
-//                        permutedTangentialTrace = 0;
-//                        for(auto x = 0; x < 3; x++) permutedTangentialTrace += edgeTgVector[x] * sideOrient * permutedDirections(x,2*permutedIEdge+iVec);
 #ifdef NOISY_HCURL
                         std::cout<<"\tdirection "<<iVec<<std::endl;
                         std::cout<<"\t\toriginal:"<<std::endl;
@@ -355,7 +357,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< originalTangentialTrace[x]<<"\t";
                         std::cout<<std::endl;
 
-                        std::cout<<"\tdirection "<<iVec<<std::endl;
+
                         std::cout<<"\t\tpermuted:"<<std::endl;
                         for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< permutedVfe[x]<<"\t";
                         std::cout<<std::endl;
@@ -366,10 +368,71 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         REAL diff = 0;
                         for(auto x = 0; x < 3; x++) diff +=
                                 (originalTangentialTrace[x]-permutedTangentialTrace[x]) * (originalTangentialTrace[x]-permutedTangentialTrace[x]);
-                        bool areTracesDifferent =
+                        bool areTracesEqual =
                                 std::sqrt(diff) < tol;
-                        BOOST_CHECK(areTracesDifferent);
+                        BOOST_CHECK(areTracesEqual);
                     }
+//#ifdef NOISY_HCURL
+//                    std::cout<<"\t\ttesting vft vectors"<<std::endl;
+//#endif
+//                    for(auto iVec = 0; iVec < 2; iVec++) {//there are two v^{F,T} vectors per face
+//                        const int permutedIVec = sideOrient > 0 ? iVec : 1 - iVec;
+//                        TPZManVector<REAL,3> originalVft(3,0);
+//                        for(auto x = 0; x < 3; x++) originalVft[x] = directions(x,firstVftVec + iFace * 2 + iVec);
+//                        TPZManVector<REAL,3> permutedVft(3,0);
+//                        TPZManVector<REAL,3> tempDirection(dim,0);
+//                        for(auto i = 0; i < dim; i++){
+//                            tempDirection[i] = 0;//not true yet
+//                            for(auto j = 0; j< dim; j++)    tempDirection[i] += permutedJacobian(j,i) * originalVft[j];
+//                        }
+//                        for(auto i = 0; i < 2; i++){
+//                            permutedVft[i] = 0;
+//                            for(auto j = 0; j< dim; j++)    permutedVft[i] += sideOrient * axes(j,i) * tempDirection[j];
+//                        }
+////                        for(auto x = 0; x < 3; x++) permutedVft[x] =
+////                                                            permutedDirections(x,firstVftVec + permutedIFace * 2 + permutedIVec);
+//                        TPZManVector<REAL,3> temp(3,0);
+//                        TPZManVector<REAL,3> originalTangentialTrace(3,0);
+//                        VectorialProduct(originalFaceNormalVector,originalVft,temp);
+//                        VectorialProduct(originalFaceNormalVector,temp,originalTangentialTrace);
+//                        TPZManVector<REAL,3> permutedTangentialTrace(3,0);
+//                        VectorialProduct(originalFaceNormalVector,permutedVft,temp);
+//                        VectorialProduct(originalFaceNormalVector,temp,permutedTangentialTrace);
+//
+//#ifdef NOISY_HCURL
+//                        std::cout<<"\tdirection "<<iVec<<std::endl;
+//                        std::cout<<"\t\toriginal:"<<std::endl;
+//                        for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< originalVft[x]<<"\t";
+//                        std::cout<<std::endl;
+//                        std::cout<<"\t\ttangential trace over edge:"<<std::endl;
+//                        for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< originalTangentialTrace[x]<<"\t";
+//                        std::cout<<std::endl;
+//
+//
+//                        std::cout<<"\t\tpermuted:"<<std::endl;
+//                        for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< permutedVft[x]<<"\t";
+//                        std::cout<<std::endl;
+//                        std::cout<<"\t\ttangential trace over edge:"<<std::endl;
+//                        for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< permutedTangentialTrace[x]<<"\t";
+//                        std::cout<<std::endl;
+//#endif
+//                        REAL diff = 0;
+//                        for(auto x = 0; x < 3; x++) diff +=
+//                                                            (originalTangentialTrace[x]-permutedTangentialTrace[x]) * (originalTangentialTrace[x]-permutedTangentialTrace[x]);
+//                        bool areTracesEqual =
+//                                std::sqrt(diff) < tol;
+//                        if(!areTracesEqual){
+//                            TPZFMatrix<REAL> permutedJacobianDebug(dim,dim,0),axesDebug(dim,3), permutedJacInvDebug(dim,dim,0);
+//                            REAL detPermutedJacDebug = 0;
+//                            permutedEl->Jacobian(xiCenter,permutedJacobianDebug,axesDebug,detPermutedJacDebug,permutedJacInvDebug);
+//                            permutedJacobianDebug.Print("\tJacobian:");
+//                            axesDebug.Print("\tAxes:");
+//                            permutedEl->JacobianXYZ(xiCenter,permutedJacobianDebug,axesDebug,detPermutedJacDebug,permutedJacInvDebug);
+//                            permutedJacobianDebug.Print("\tJacobian_XYZ:");
+//                            axesDebug.Print("\tAxes_XYZ:");
+//                        }
+//                        BOOST_CHECK(areTracesEqual);
+//                    }
                 }
             }
             delete gmesh;
