@@ -236,7 +236,7 @@ namespace pzshape {
 		TPZFNMatrix<20, REAL> phin(ord,1),dphin(3,ord);
 		phin.Zero();
 		dphin.Zero();
-		ShapeInternal(pt,ordmin1,phin,dphin);
+		ShapeInternal(pt,order[18],phin,dphin);
 		for(int i=0;i<ord;i++)	{
 			phi(shape,0) = phiblend(26,0)*phin(i,0);
 			for(int xj=0;xj<3;xj++) {
