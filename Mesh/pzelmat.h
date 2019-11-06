@@ -38,10 +38,8 @@ struct TPZElementMatrix {
 	/** @brief Vector of pointers to TPZConnect objects*/
 	TPZStack<int64_t> fConnect;
 	/** @brief Pointer to a blocked matrix object*/
-	//TPZFNMatrix<1000> fMat;
 	TPZFNMatrix<1000, STATE> fMat;
 	/** @brief Block structure associated with fMat*/
-	//TPZBlock<REAL> fBlock;
 	TPZBlock<STATE> fBlock;
 	/** @brief Vector of all nodes connected to the element*/
 	TPZStack<int64_t> fConstrConnect;

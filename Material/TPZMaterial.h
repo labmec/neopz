@@ -276,7 +276,16 @@ public:
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) = 0;
     
-	
+    /**
+     * @brief It computes a contribution to the residual vector at one integration point.
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ef [out] is the residual vector
+     * @since April 16, 2007
+     */
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+    
+
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
@@ -338,15 +347,6 @@ public:
      */
     virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
 
-    /**
-     * @brief It computes a contribution to the residual vector at one integration point.
-     * @param data [in] stores all input data
-     * @param weight [in] is the weight of the integration rule
-     * @param ef [out] is the residual vector
-     * @since April 16, 2007
-     */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
-    
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data [in] stores all input data
