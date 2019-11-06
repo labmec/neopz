@@ -93,7 +93,8 @@ protected:
     /// indices of the geometric elements which define the skeleton mesh and their corresponding subcmesh indices
     std::map<int64_t,int64_t> fMHMtoSubCMesh;
     
-    /// indices of the skeleton elements and their left/right geometric elements of the skeleton mesh
+    /// indices of the skeleton elements and their left/right partition indexes
+    // if fInterfaces[index].second == index, then the skeleton is boundary skeleton
     std::map<int64_t, std::pair<int64_t,int64_t> > fInterfaces;
     
     /// geometric index of the connects - subdomain where the connect will be internal

@@ -108,8 +108,18 @@ void TPZMHMeshControl::DefinePartition(TPZVec<int64_t> &partitionindex) {
 
         TPZGeoEl *gel = gmesh->Element(iel);
 
-        if (gel->Dimension() != dim) continue;
         if (gel->HasSubElement()) continue;
+        if (gel->Dimension() == dim-1)
+        {
+            TPZGeoElSide gelside(gel,gel->NSides()-1);
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            if(neighbour.Element()->Dimension() != dim) DebugStop();
+            int partition = partitionindex[neighbour.Element()->Index()];
+            int64_t neighindex = neighbour.Element()->Index();
+            auto val = std::pair<int64_t,int64_t>(partition,gel->Index());
+            skeleton[gel->Index()] = val;
+            continue;
+        }
 
         // Iterates through the sides of the element
         int nsides = gel->NSides();
@@ -149,6 +159,12 @@ void TPZMHMeshControl::DefinePartition(TPZVec<int64_t> &partitionindex) {
                 if (!hasSkeletonNeighbour()) {
                     TPZGeoElBC bc(gelside, fSkeletonMatId);
                     std::pair<int64_t, int64_t> adjacentGroupIndexes(thisGroup, neighGroup);
+                    int64_t bc_index = bc.CreatedElement()->Index();
+                    if(bc_index == neighGroup)
+                    {
+                        // you are unwillingly creating a boundary skeleton
+                        DebugStop();
+                    }
                     skeleton.insert({bc.CreatedElement()->Index(), adjacentGroupIndexes});
                 }
             }
