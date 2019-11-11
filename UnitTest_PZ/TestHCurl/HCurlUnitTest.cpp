@@ -11,6 +11,7 @@
 
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
+#include "tpztetrahedron.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
@@ -69,6 +70,16 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             nodeCoords(3,0) =  0;   nodeCoords(3,1) =  1;   nodeCoords(3,2) =  0;
             hcurltest::ComparePermutedVectors<pztopology::TPZQuadrilateral>(nodeCoords);
             hcurltest::CompareTraces<pztopology::TPZQuadrilateral>(nodeCoords);
+        }
+
+        {
+            TPZFMatrix<REAL> nodeCoords(4,3);
+            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
+            hcurltest::ComparePermutedVectors<pztopology::TPZTetrahedron>(nodeCoords);
+            hcurltest::CompareTraces<pztopology::TPZTetrahedron>(nodeCoords);
         }
     }
 
@@ -298,13 +309,13 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     edgeLength =
                             std::sqrt((p0[0] - p1[0]) * (p0[0] - p1[0]) + (p0[1] - p1[1]) * (p0[1] - p1[1]) +
                                       (p0[2] - p1[2]) * (p0[2] - p1[2]));
-                    for (auto x = 0; x < 2; x++) edgeTangentVecs(iEdge,x) = (p1[x] - p0[x]) / edgeLength;
+                    for (auto x = 0; x < 3; x++) edgeTangentVecs(iEdge,x) = (p1[x] - p0[x]) / edgeLength;
                     edgeLengthVec[iEdge] = edgeLength;
                 }
             }
             //testing directions associated with edges
             for (auto iEdge = 0; iEdge < nEdges; iEdge++) {
-                std::cout << "\tedge " << iEdge << " out of " << nEdges << std::endl;
+                std::cout << "\tedge " << iEdge+1<< " out of " << nEdges << std::endl;
                 const int edgeIndex = nNodes + iEdge;
 
 
@@ -368,6 +379,15 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     for(auto x = 0; x < 3; x++) neighTrace += neighEdgeTgVector[x] * deformedDirections(x,2*iEdge+iVec);
                     neighTrace *=neighEdgeLength;
                     bool testNeighTrace = std::abs(neighTrace) < tol;
+                    if(!testNeighTrace){
+                        #ifdef NOISY_HCURL
+                        std::cout<<"\t\t\tERROR"<<std::endl;
+                        std::cout<<"\t\t\tintegral of tangential trace over neighbour edge: "<<neighTrace<<std::endl;
+                        std::cout<<"\t\t\tneighbour tangent vector:"<<std::endl;
+                        for (auto x = 0; x < 3; x++) std::cout << "\t\t" << neighEdgeTgVector[x]<< "\t";
+                        std::cout<<std::endl;
+                        #endif
+                    }
                     BOOST_CHECK(testNeighTrace);
                 }//iVec
             }//iEdge
@@ -403,6 +423,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 for(auto x = 0; x < 3; x++) result[x] /= norm;
             };
             //now the testing for directions associated with faces
+            //@TODOFran: how to check the trace of face vectors?
             TPZManVector<int> firstVfeVec(nFaces,-1);
             TPZManVector<TPZStack<int>> faceEdges(nFaces,TPZStack<int>(0,0));
 
@@ -410,16 +431,16 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 const int nEdgeVectors = nEdges * 3;
                 firstVfeVec[0] = nEdgeVectors;
                 for(auto iFace = 1; iFace < nFaces; iFace++){
-                TTopol::LowerDimensionSides(iFace - 1 + nEdges + nNodes, faceEdges[iFace-1], 1);
-                const int nFaceEdges = faceEdges.size();
-                firstVfeVec[iFace] = firstVfeVec[iFace - 1] + nFaceEdges;
+                    TTopol::LowerDimensionSides(iFace - 1 + nEdges + nNodes, faceEdges[iFace-1], 1);
+                    const int nFaceEdges = faceEdges[iFace-1].size();
+                    firstVfeVec[iFace] = firstVfeVec[iFace - 1] + nFaceEdges;
                 }
                 TTopol::LowerDimensionSides(nFaces - 1 + nEdges + nNodes, faceEdges[nFaces-1], 1);
             }
             const int firstVftVec = firstVfeVec[nFaces-1] + faceEdges[nFaces-1].size();
 
             for(auto iFace = 0; iFace < nFaces; iFace++){
-                std::cout<<"\tface "<<iFace<<" out of "<<nFaces<<std::endl;
+                std::cout<<"\tface "<<iFace+1<<" out of "<<nFaces<<std::endl;
                 const int faceIndex = nNodes + nEdges + iFace;
                 TPZManVector<int,3> faceNodes(3,0);
                 for(auto i = 0; i < 3; i++) faceNodes[i] = gel->SideNodeIndex(faceIndex,i);
@@ -431,10 +452,10 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 const int nFaceEdges = faceEdges[iFace].size();
                 for(auto iVec = 0; iVec < nFaceEdges; iVec++) {
                     std::cout<<"\t\t\tvec "<<iVec<<" out of "<<nFaceEdges<<std::endl;
-                    const int edgeIndex = faceEdges[iFace][iVec];
 
                     TPZManVector<REAL,3> vfe(3,0);
-                    for(auto x = 0; x < 3; x++) vfe[x] = deformedDirections(x,firstVfeVec[iFace]+iVec);
+                    const int vfeIndex = firstVfeVec[iFace]+iVec;
+                    for(auto x = 0; x < 3; x++) vfe[x] = deformedDirections(x,vfeIndex);
                     TPZManVector<REAL,3> temp(3,0);
                     TPZManVector<REAL,3> tangentialTrace(3,0);
                     VectorialProduct(deformedFaceNormal,vfe,temp);
@@ -443,19 +464,62 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     std::cout<<"\t\t\tdeformed vfe:"<<std::endl;
                     for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< vfe[x]<<"\t";
                     std::cout<<std::endl;
-                    std::cout<<"\t\t\ttangential trace over edge:"<<std::endl;
-                    for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< tangentialTrace[x]<<"\t";
+                    std::cout<<"\t\t\ttangential trace over edge:"<<std::endl<<"\t\t";
+                    for(auto x = 0; x < 3; x++) std::cout<<tangentialTrace[x]<<"\t";
                     std::cout<<std::endl;
 #endif
-                    REAL traceNorm = 0;
-                    for(auto x = 0; x < 3; x++) traceNorm +=  tangentialTrace[x] * tangentialTrace[x];
-                    traceNorm = sqrt(traceNorm) * faceArea;
-                    bool checkTrace =
-                            (traceNorm - 1) < tol;
-                    BOOST_CHECK(checkTrace);
-                    //@TODO: Check that vFe is normal to the face adjacent to F by e
+//                    REAL traceNorm = 0;
+//                    for(auto x = 0; x < 3; x++) traceNorm +=  tangentialTrace[x] * tangentialTrace[x];
+//                    traceNorm = sqrt(traceNorm) * faceArea;
+//                    bool checkTrace =
+//                            std::abs(traceNorm - 1) < tol;
+//                    BOOST_CHECK(checkTrace);
+                    if(nFaces == 1) continue;
+                    //check that this vector is normal to the edge \hat{e} adjacent by a to e
+                    const int edgeIndex = faceEdges[iFace][iVec];
+                    int neighFaceIndex = -1;
+                    for(int iNeigh = 0; iNeigh < nFaces; iNeigh++){
+                        const int candidateFaceIndex = iNeigh + nNodes + nEdges;
+                        const int nNeighFaceEdges = faceEdges[iNeigh].size();
+                        for(int iEdge = 0; iEdge < nNeighFaceEdges; iEdge++){
+                            const bool cond1 = faceEdges[iNeigh][iEdge] == edgeIndex;
+                            const bool cond2 = candidateFaceIndex != faceIndex;
+                            if(cond1 && cond2){
+                                neighFaceIndex = candidateFaceIndex;
+                            }
+                        }
+                    }
+                    if(neighFaceIndex == -1){
+                        DebugStop();
+                    }
+                    else{
+                        TPZManVector<int,3> neighFaceNodes(3,0);
+                        for(auto i = 0; i < 3; i++) neighFaceNodes[i] = gel->SideNodeIndex(neighFaceIndex,i);
+                        TPZManVector<REAL,3> neighNormal(3,0);
+                        ComputeNormal(neighFaceNodes,neighNormal);
+                        TPZManVector<REAL,3> temp(3,0);
+                        TPZManVector<REAL,3> neighTangentialTrace(3,0);
+                        VectorialProduct(neighNormal,vfe,temp);
+                        VectorialProduct(neighNormal,temp,neighTangentialTrace);
+                        REAL neighTraceNorm = 0;
+                        for(auto x = 0; x < 3; x++) neighTraceNorm +=  neighTangentialTrace[x] * neighTangentialTrace[x];
+                        bool checkNeighTrace =
+                                std::abs(neighTraceNorm) < tol;
+
+                        if(!checkNeighTrace){
+                            std::cout<<"\t\t\tERROR on direction "<<vfeIndex<<std::endl;
+                            std::cout<<"\t\t\ttangential trace over neighbour face: "<<std::endl<<"\t\t";
+                            for (auto x = 0; x < 3; x++) std::cout << neighTangentialTrace[x]<< "\t";
+                            std::cout<<std::endl;
+                            std::cout<<"\t\t\tneighbour face: "<<neighFaceIndex<<std::endl;
+                            std::cout<<"\t\t\tneighbour face normal (deformed): "<<std::endl<<"\t\t";
+                            for (auto x = 0; x < 3; x++) std::cout << neighNormal[x]<< "\t";
+                            std::cout<<std::endl;
+                        }
+                        BOOST_CHECK(checkNeighTrace);
+                    }
+
                 }
-                //@TODO: how to check the trace of vft vectors?
 //                std::cout<<"\t\ttesting vft vectors"<<std::endl;
 //                for(auto iVec = 0; iVec < 2; iVec++) {//there are two v^{F,T} vectors per face
 //                    std::cout<<"\tdirection "<<iVec<<" out of 2"<<std::endl;
