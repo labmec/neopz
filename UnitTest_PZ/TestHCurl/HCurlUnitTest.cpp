@@ -12,6 +12,7 @@
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
 #include "tpztetrahedron.h"
+#include "tpzcube.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
@@ -80,6 +81,20 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             nodeCoords(3,0) =  0;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
             hcurltest::ComparePermutedVectors<pztopology::TPZTetrahedron>(nodeCoords);
             hcurltest::CompareTraces<pztopology::TPZTetrahedron>(nodeCoords);
+        }
+
+        {
+            TPZFMatrix<REAL> nodeCoords(8,3);
+            nodeCoords(0,0) =  0;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+            nodeCoords(2,0) =  1;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  1;   nodeCoords(3,2) =  0;
+            nodeCoords(4,0) =  0;   nodeCoords(4,1) =  0;   nodeCoords(4,2) =  1;
+            nodeCoords(5,0) =  1;   nodeCoords(5,1) =  0;   nodeCoords(5,2) =  1;
+            nodeCoords(6,0) =  1;   nodeCoords(6,1) =  1;   nodeCoords(6,2) =  1;
+            nodeCoords(7,0) =  0;   nodeCoords(7,1) =  1;   nodeCoords(7,2) =  1;
+            hcurltest::ComparePermutedVectors<pztopology::TPZCube>(nodeCoords);
+            hcurltest::CompareTraces<pztopology::TPZCube>(nodeCoords);
         }
     }
 
@@ -442,6 +457,9 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 
             for(auto iFace = 0; iFace < nFaces; iFace++){
                 std::cout<<"\tface "<<iFace+1<<" out of "<<nFaces<<std::endl;
+#ifdef NOISY_HCURL
+                std::cout<<"face: "<<nNodes+nEdges+iFace<<std::endl;
+#endif
                 const int faceIndex = nNodes + nEdges + iFace;
                 TPZManVector<int,3> faceNodes(3,0);
                 for(auto i = 0; i < 3; i++) faceNodes[i] = gel->SideNodeIndex(faceIndex,i);
@@ -453,7 +471,9 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 const int nFaceEdges = faceEdges[iFace].size();
                 for(auto iVec = 0; iVec < nFaceEdges; iVec++) {
                     std::cout<<"\t\t\tvec "<<iVec<<" out of "<<nFaceEdges<<std::endl;
-
+#ifdef NOISY_HCURL
+                    std::cout<<"edge: "<<faceEdges[iFace][iVec]<<" out of "<<nFaceEdges<<std::endl;
+#endif
                     TPZManVector<REAL,3> vfe(3,0);
                     const int vfeIndex = firstVfeVec[iFace]+iVec;
                     for(auto x = 0; x < 3; x++) vfe[x] = deformedDirections(x,vfeIndex);
@@ -566,7 +586,6 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 {
                     REAL traceNorm = 0;
                     for(auto x = 0; x < 3; x++) traceNorm +=  tangentialTrace[x] * tangentialTrace[x];
-                    traceNorm = sqrt(traceNorm) * faceArea;
                     bool checkTrace =
                             std::abs(traceNorm) < tol;
                     BOOST_CHECK(checkTrace);
