@@ -13,7 +13,7 @@
 using namespace std;
 
 template <class Tvar>
-Tvar TPZNumeric::Norma(const TPZVec<Tvar> &vetor){
+Tvar TPZNumeric::Norm(const TPZVec<Tvar> &vetor){
 	const int size = vetor.NElements();
     Tvar norma=0;
     for (int i=0; i<size; i++) {
@@ -25,7 +25,7 @@ Tvar TPZNumeric::Norma(const TPZVec<Tvar> &vetor){
 template <class Tvar>
 void TPZNumeric::NormalizeVetor3(TPZVec<Tvar> &vetor){
 	int i;
-	Tvar norma = TPZNumeric::Norma(vetor);
+	Tvar norma = TPZNumeric::Norm(vetor);
 	for(i=0; i<3; i++) vetor[i] = vetor[i]/norma;
 }
 
@@ -33,7 +33,7 @@ template <class Tvar>
 void TPZNumeric::NormalizeVetor(TPZVec<Tvar> &vetor){
     int i,n;
     n = vetor.NElements();
-    Tvar norma = TPZNumeric::Norma(vetor);
+    Tvar norma = TPZNumeric::Norm(vetor);
     for(i=0; i< n; i++) vetor[i] = vetor[i]/norma;
 }
 
@@ -115,7 +115,7 @@ void TPZNumeric::NormalizeVetor3<REAL>(TPZVec<REAL> &vetor);
 template
 void TPZNumeric::NormalizeVetor<REAL>(TPZVec<REAL> &vetor);
 template
-REAL TPZNumeric::Norma(const TPZVec<REAL> &vetor);
+REAL TPZNumeric::Norm(const TPZVec<REAL> &vetor);
 
 
 #ifdef _AUTODIFF
@@ -130,6 +130,6 @@ void TPZNumeric::NormalizeVetor3<Fad<REAL>>(TPZVec<Fad<REAL>> &vetor);
 template
 void TPZNumeric::NormalizeVetor<Fad<REAL>>(TPZVec<Fad<REAL>> &vetor);
 template
-Fad<REAL> TPZNumeric::Norma(const TPZVec<Fad<REAL>> &vetor);
+Fad<REAL> TPZNumeric::Norm(const TPZVec<Fad<REAL>> &vetor);
 #endif
 

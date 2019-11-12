@@ -1053,9 +1053,9 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             vdiag[i] = (gradx(i,0)-gradx(i,1));
        }
         
-        TVar Nv1 = TPZNumeric::Norma(v1);
-        TVar Nv2 = TPZNumeric::Norma(v2);
-        TVar Nvdiag = TPZNumeric::Norma(vdiag);
+        TVar Nv1 = TPZNumeric::Norm(v1);
+        TVar Nv2 = TPZNumeric::Norm(v2);
+        TVar Nvdiag = TPZNumeric::Norm(vdiag);
         
         
         /**

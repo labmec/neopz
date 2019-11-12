@@ -1384,9 +1384,9 @@ namespace pztopology {
         TPZNumeric::ProdVetorial(v2,v3,v2v3);
         TPZNumeric::ProdVetorial(v3,v1,v3v1);
         
-        TVar Nv1v2 = TPZNumeric::Norma(v1v2);
-        TVar Nv2v3 = TPZNumeric::Norma(v2v3);
-        TVar Nv3v1 = TPZNumeric::Norma(v3v1);
+        TVar Nv1v2 = TPZNumeric::Norm(v1v2);
+        TVar Nv2v3 = TPZNumeric::Norm(v2v3);
+        TVar Nv3v1 = TPZNumeric::Norm(v3v1);
         
         /**
          * @file
