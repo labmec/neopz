@@ -1664,7 +1664,7 @@ namespace pztopology {
             directions(i, 39) =  v1[i] / faceArea[0];//face 20 edge 11
 
             directions(i, 40) =  v3[i] / faceArea[1];//face 21 edge 8
-            directions(i, 42) = -v1[i] / faceArea[1];//face 21 edge 13
+            directions(i, 41) = -v1[i] / faceArea[1];//face 21 edge 13
             directions(i, 42) = -v3[i] / faceArea[1];//face 21 edge 16
             directions(i, 43) =  v1[i] / faceArea[1];//face 21 edge 12
 
