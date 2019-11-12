@@ -1599,20 +1599,20 @@ namespace pztopology {
             directions(i,29) = -v2[i] / faceArea[3];//face 13 edge 7
 
             //v^{F,T} orthonormal vectors associated with face F and tangent to it.
-            directions(i,30) = 1;
-            directions(i,31) = 1;
-            directions(i,32) = 1;
-            directions(i,33) = 1;
-            directions(i,34) = 1;
-            directions(i,35) = 1;
-            directions(i,36) = 1;
-            directions(i,37) = 1;
+            directions(i,30) = v1[i] / faceArea[0];//face 10
+            directions(i,31) = v2[i] / faceArea[0];//face 10
+            directions(i,32) = v1[i] / faceArea[1];//face 11
+            directions(i,33) = v3[i] / faceArea[1];//face 11
+            directions(i,34) = (-v1[i]+ 2*v2[i] - v3[i]) /(3 * faceArea[2]);//face 12
+            directions(i,35) = (-v1[i]- v2[i] + 2*v3[i]) /(3 * faceArea[2]);//face 12
+            directions(i,36) = v2[i]/faceArea[3];//face 13
+            directions(i,37) = v3[i]/faceArea[3];//face 13
 
             //v^{F,orth} vector associated with face F and normal to it
-            directions(i,38) = 1;
-            directions(i,39) = 1;
-            directions(i,40) = 1;
-            directions(i,41) = 1;
+            directions(i,38) = -v3[i];//face 10
+            directions(i,39) = -v2[i];//face 11
+            directions(i,40) = (v1[i]+v2[i]+v3[i])/sqrt3;//face 12
+            directions(i,41) = -v1[i];//face 13
 
             //v^{K,3}
             directions(i,42) = v1[i];

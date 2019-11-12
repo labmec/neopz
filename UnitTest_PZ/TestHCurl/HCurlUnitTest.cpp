@@ -438,6 +438,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 TTopol::LowerDimensionSides(nFaces - 1 + nEdges + nNodes, faceEdges[nFaces-1], 1);
             }
             const int firstVftVec = firstVfeVec[nFaces-1] + faceEdges[nFaces-1].size();
+            const int firstVfOrthVec = firstVftVec + 2 * nFaces;
 
             for(auto iFace = 0; iFace < nFaces; iFace++){
                 std::cout<<"\tface "<<iFace+1<<" out of "<<nFaces<<std::endl;
@@ -520,6 +521,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     }
 
                 }
+
 //                std::cout<<"\t\ttesting vft vectors"<<std::endl;
 //                for(auto iVec = 0; iVec < 2; iVec++) {//there are two v^{F,T} vectors per face
 //                    std::cout<<"\tdirection "<<iVec<<" out of 2"<<std::endl;
@@ -545,6 +547,30 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 //                            (traceNorm - 1) < tol;
 //                    BOOST_CHECK(checkTrace);
 //                }
+                if(nFaces == 1) continue;
+                std::cout<<"\t\ttesting vf-orth vector"<<std::endl;
+                TPZManVector<REAL,3> vft(3,0);
+                for(auto x = 0; x < 3; x++) vft[x] = deformedDirections(x,firstVfOrthVec + iFace);
+                TPZManVector<REAL,3> temp(3,0);
+                TPZManVector<REAL,3> tangentialTrace(3,0);
+                VectorialProduct(deformedFaceNormal,vft,temp);
+                VectorialProduct(deformedFaceNormal,temp,tangentialTrace);
+                #ifdef NOISY_HCURL
+                std::cout<<"\t\tdeformed vft-orth:"<<std::endl;
+                for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< vft[x]<<"\t";
+                std::cout<<std::endl;
+                std::cout<<"\t\ttangential trace over edge:"<<std::endl;
+                for(auto x = 0; x < 3; x++) std::cout<<"\t\t"<< tangentialTrace[x]<<"\t";
+                std::cout<<std::endl;
+                #endif
+                {
+                    REAL traceNorm = 0;
+                    for(auto x = 0; x < 3; x++) traceNorm +=  tangentialTrace[x] * tangentialTrace[x];
+                    traceNorm = sqrt(traceNorm) * faceArea;
+                    bool checkTrace =
+                            std::abs(traceNorm) < tol;
+                    BOOST_CHECK(checkTrace);
+                }
             }
         }//hcurltest::CompareTraces
 
