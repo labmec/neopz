@@ -1586,25 +1586,25 @@ namespace pztopology {
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
             //adjacent to face F by edge e
             directions(i,18)  = v2[i] / faceArea[0];//face 10 edge 4
-            directions(i,19) = (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[0];//face 10 edge 5
-            directions(i,20) = -v1[i] / faceArea[0];//face 10 edge 6
-            directions(i,21)  = -v3[i] / faceArea[1];//face 11 edge 4
-            directions(i,22) = (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[1];//face 11 edge 8
-            directions(i,23) = -v1[i] / faceArea[1];//face 11 edge 7
-            directions(i,24) = -v3[i]*M_SQRT1_2 * sqrt3 / faceArea[2];//face 12 edge 5
-            directions(i,25) = -v1[i]*M_SQRT1_2 * sqrt3 / faceArea[2];//face 12 edge 9
-            directions(i,26) = -v2[i]*M_SQRT1_2 * sqrt3 / faceArea[2];//face 12 edge 8
-            directions(i,27)  = -v3[i] / faceArea[3];//face 13 edge 6
-            directions(i,28) = (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[3];//face 13 edge 9
-            directions(i,29) = -v2[i] / faceArea[3];//face 13 edge 7
+            directions(i,19) = -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[0];//face 10 edge 5
+            directions(i,20) =  v1[i] / faceArea[0];//face 10 edge 6
+            directions(i,21)  = v3[i] / faceArea[1];//face 11 edge 4
+            directions(i,22) = -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[1];//face 11 edge 8
+            directions(i,23) =  v1[i] / faceArea[1];//face 11 edge 7
+            directions(i,24) =  v3[i] * sqrt3 / faceArea[2];//(-v1[i]- v2[i] + 2*v3[i]) * sqrt3 /(3 * faceArea[2]);//face 12 edge 5
+            directions(i,25) =  v1[i] * sqrt3 * M_SQRT1_2 /( faceArea[2]);//(2*v1[i]-v2[i]-v3[i]) *M_SQRT1_2 * sqrt3 /(3 * faceArea[2]);//face 12 edge 9
+            directions(i,26) =  v2[i] * sqrt3 / faceArea[2];//(-v1[i]+ 2*v2[i] - v3[i]) * sqrt3 /(3 * faceArea[2]);//face 12 edge 8
+            directions(i,27)  =  v3[i] / faceArea[3];//face 13 edge 6
+            directions(i,28) = -1* (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[3];//face 13 edge 9
+            directions(i,29) =  v2[i] / faceArea[3];//face 13 edge 7
 
             //v^{F,T} orthonormal vectors associated with face F and tangent to it.
             directions(i,30) = v1[i] / faceArea[0];//face 10
             directions(i,31) = v2[i] / faceArea[0];//face 10
             directions(i,32) = v1[i] / faceArea[1];//face 11
             directions(i,33) = v3[i] / faceArea[1];//face 11
-            directions(i,34) = (-v1[i]+ 2*v2[i] - v3[i]) /(3 * faceArea[2]);//face 12
-            directions(i,35) = (-v1[i]- v2[i] + 2*v3[i]) /(3 * faceArea[2]);//face 12
+            directions(i,34) = (-v1[i]+ 2*v2[i] - v3[i]) * sqrt3 /(3 * faceArea[2]);//face 12
+            directions(i,35) = (-v1[i]- v2[i] + 2*v3[i]) * sqrt3 /(3 * faceArea[2]);//face 12
             directions(i,36) = v2[i]/faceArea[3];//face 13
             directions(i,37) = v3[i]/faceArea[3];//face 13
 

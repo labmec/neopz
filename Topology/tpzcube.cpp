@@ -1689,18 +1689,18 @@ namespace pztopology {
             directions(i, 59) =  v1[i] / faceArea[5];//face 25 edge 19
 
             //v^{F,T} orthonormal vectors associated with face F and tangent to it.
-            directions(i, 60) = v1[i]/2;//face 20
-            directions(i, 61) = v2[i]/2;//face 20
-            directions(i, 62) = v1[i]/2;//face 21
-            directions(i, 63) = v3[i]/2;//face 21
-            directions(i, 64) = v2[i]/2;//face 22
-            directions(i, 65) = v3[i]/2;//face 22
-            directions(i, 66) = v1[i]/2;//face 23
-            directions(i, 67) = v3[i]/2;//face 23
-            directions(i, 68) = v2[i]/2;//face 24
-            directions(i, 69) = v3[i]/2;//face 24
-            directions(i, 70) = v1[i]/2;//face 25
-            directions(i, 71) = v2[i]/2;//face 25
+            directions(i, 60) = v1[i]/faceArea[0];//face 20
+            directions(i, 61) = v2[i]/faceArea[0];//face 20
+            directions(i, 62) = v1[i]/faceArea[1];//face 21
+            directions(i, 63) = v3[i]/faceArea[1];//face 21
+            directions(i, 64) = v2[i]/faceArea[2];//face 22
+            directions(i, 65) = v3[i]/faceArea[2];//face 22
+            directions(i, 66) = v1[i]/faceArea[3];//face 23
+            directions(i, 67) = v3[i]/faceArea[3];//face 23
+            directions(i, 68) = v2[i]/faceArea[4];//face 24
+            directions(i, 69) = v3[i]/faceArea[4];//face 24
+            directions(i, 70) = v1[i]/faceArea[5];//face 25
+            directions(i, 71) = v2[i]/faceArea[5];//face 25
 
             //v^{F,orth} vector associated with face F and normal to it
             directions(i, 72) = -v3[i];//face 20

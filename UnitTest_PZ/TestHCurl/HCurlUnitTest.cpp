@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
     }
 
 
-    BOOST_AUTO_TEST_CASE(hcurl_permutation_tests) {
+    BOOST_AUTO_TEST_CASE(hcurl_topology_tests) {
         InitializePZLOG();
         {
             TPZFMatrix<REAL> nodeCoords(3,3);
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 for(auto iVec = 0; iVec < nFaceEdges; iVec++) {
                     std::cout<<"\t\t\tvec "<<iVec<<" out of "<<nFaceEdges<<std::endl;
 #ifdef NOISY_HCURL
-                    std::cout<<"edge: "<<faceEdges[iFace][iVec]<<" out of "<<nFaceEdges<<std::endl;
+                    std::cout<<"edge index: "<<faceEdges[iFace][iVec]<<std::endl;
 #endif
                     TPZManVector<REAL,3> vfe(3,0);
                     const int vfeIndex = firstVfeVec[iFace]+iVec;
@@ -680,6 +680,55 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                     BOOST_CHECK(checkTraces);
                 }
                 std::cout<<"testing vft vectors"<<std::endl;
+                const int nVft = 2;
+                const int firstVftEl = firstVftVec + 2 * iFace;
+                const int firstVftFace = 3 * nVfe + nVfe;
+                for(int iVec = 0; iVec < nVft; iVec++){
+#ifdef NOISY_HCURL
+                    std::cout<<"\tvec "<<iVec+1<<" out of "<<nVfe<<std::endl;
+#endif
+                    TPZManVector<REAL,3> vftElement(3,-1), vftFace(3,-1);
+                    for(auto x = 0; x < 3; x++) vftElement[x] = deformedDirections(x,firstVftEl + iVec);
+                    for(auto x = 0; x < 3; x++) vftFace[x] = faceDeformedDirections(x,firstVftFace + iVec);
+
+
+                    TPZManVector<REAL,3> temp(3,0);
+                    TPZManVector<REAL,3> elTrace(3,0),faceTrace(3,0);
+                    auxiliaryfuncs::VectorProduct(faceNormal,vftElement,temp);
+                    auxiliaryfuncs::VectorProduct(faceNormal,temp,elTrace);
+
+                    auxiliaryfuncs::VectorProduct(faceNormal,vftFace,temp);
+                    auxiliaryfuncs::VectorProduct(faceNormal,temp,faceTrace);
+                    #ifdef NOISY_HCURL
+                    std::cout<<"\t\ttangential trace (3D elem) =";
+                    for(auto x = 0; x < 3; x++)std::cout<<"\t"<<elTrace[x];
+                    std::cout<<std::endl;
+                    std::cout<<"\t\ttangential trace (2D face) =";
+                    for(auto x = 0; x < 3; x++)std::cout<<"\t"<<faceTrace[x];
+                    std::cout<<std::endl;
+                    #endif
+                    REAL diff = 0;
+                    for(auto x = 0; x < 3; x++) diff += (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
+                    diff = sqrt(diff);
+                    bool checkTraces = diff < tol;
+
+                    if(!checkTraces){
+                        std::cout<<"****************************************"<<std::endl;
+                        std::cout<<"ERROR IN VFT VECTORS"<<std::endl;
+                        std::cout<<"EL TYPE "<< MElementType_Name(elType)<<std::endl;
+                        std::cout<<"FACE INDEX "<<faceIndex<<std::endl;
+                        std::cout<<"FACE TYPE "<<MElementType_Name(faceType)<<std::endl;
+                        std::cout<<"\t\tVECTOR (3D elem) =";
+                        for(auto x = 0; x < 3; x++)std::cout<<"\t"<<vftElement[x];
+                        std::cout<<std::endl;
+                        std::cout<<"\t\tVECTOR (2D face) =";
+                        for(auto x = 0; x < 3; x++)std::cout<<"\t"<<vftFace[x];
+                        std::cout<<std::endl;
+                        std::cout<<"****************************************"<<std::endl;
+                    }
+                    BOOST_CHECK(checkTraces);
+                }
+
             }
 
             delete gmesh;
@@ -722,7 +771,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 TPZVec<REAL> xiCenter(dim, 0);
                 TPZFMatrix<REAL> jacobian(dim, dim, 0), axes(dim, 3), jacInv(dim, dim, 0);
                 REAL detJac = 0;
-                gel->JacobianXYZ(xiCenter, jacobian, axes, detJac, jacInv);
+                gel->Jacobian(xiCenter, jacobian, axes, detJac, jacInv);
 
 #ifdef NOISY_HCURL
                 std::cout << std::endl;
