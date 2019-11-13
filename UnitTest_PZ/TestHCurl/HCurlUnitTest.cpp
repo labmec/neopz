@@ -36,8 +36,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 
 #endif
 
-#define NOISY_HCURL //outputs useful debug info
-//#define NOISYVTK_HCURL//outputs even more debug info, printing relevant info in .vtk format
+//#define NOISY_HCURL //outputs useful debug info
 
 std::string dirname = PZSOURCEDIR;
 
@@ -346,11 +345,11 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 BOOST_CHECK(testTrace);
                 std::cout << "\tedgeIndex " << edgeIndex <<"\ttesting vea vectors" << std::endl;
                 for(auto iVec = 0; iVec <  2; iVec++) {// 2 v^{e,a}
-                    std::cout<<"\t\tvector  "<<iVec<<" out of "<<2<<std::endl;
                     trace = 0;
                     for(auto x = 0; x < 3; x++) trace += edgeTgVector[x] * deformedDirections(x,2*iEdge+iVec);
                     trace *=edgeLength;
     #ifdef NOISY_HCURL
+                    std::cout<<"\t\tvector  "<<iVec<<" out of "<<2<<std::endl;
                     std::cout<<"\t\t\tdirection "<<iVec<<std::endl;
                     std::cout<<"\t\t\tintegral of tangential trace over edge: "<<trace<<std::endl;
     #endif
@@ -429,8 +428,8 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 std::cout<<"\t\ttesting vfe vectors"<<std::endl;
                 const int nFaceEdges = faceEdges[iFace].size();
                 for(auto iVec = 0; iVec < nFaceEdges; iVec++) {
-                    std::cout<<"\t\t\tvec "<<iVec<<" out of "<<nFaceEdges<<std::endl;
 #ifdef NOISY_HCURL
+                    std::cout<<"\t\t\tvec "<<iVec<<" out of "<<nFaceEdges<<std::endl;
                     std::cout<<"edge index: "<<faceEdges[iFace][iVec]<<std::endl;
 #endif
                     TPZManVector<REAL,3> vfe(3,0);
@@ -612,9 +611,9 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             for(auto iFace = 0; iFace < nFaces; iFace++){
                 const int faceIndex = iFace + nEdges + nNodes;
                 auto faceType = TTopol::Type(faceIndex);
-                std::cout<<"face "<<iFace+1<<" out of "<<nFaces<<std::endl;
-                std::cout<<"face index "<<faceIndex<<std::endl;
-                std::cout<<"face type "<<MElementType_Name(faceType)<<std::endl;
+                std::cout<<"\tface "<<iFace+1<<" out of "<<nFaces<<std::endl;
+                std::cout<<"\tface index "<<faceIndex<<std::endl;
+                std::cout<<"\tface type "<<MElementType_Name(faceType)<<std::endl;
 
                 TPZStack<int> faceNodesStack;
                 TTopol::LowerDimensionSides(faceIndex, faceNodesStack, 0);
@@ -630,13 +629,13 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 auxiliaryfuncs::ComputeNormal(gmesh,faceNodesStack,faceNormal);
 
 
-                std::cout<<"testing vfe vectors"<<std::endl;
+                std::cout<<"\ttesting vfe vectors"<<std::endl;
                 const int nVfe = faceEdges[iFace].size();
                 const int firstVfeEl = firstVfeVec[iFace];
                 const int firstVfeFace = 3 * nVfe;
                 for(int iVec = 0; iVec < nVfe; iVec++){
 #ifdef NOISY_HCURL
-                    std::cout<<"\tvec "<<iVec+1<<" out of "<<nVfe<<std::endl;
+                    std::cout<<"\t\tvec "<<iVec+1<<" out of "<<nVfe<<std::endl;
 #endif
                     TPZManVector<REAL,3> vfeElement(3,-1), vfeFace(3,-1);
                     for(auto x = 0; x < 3; x++) vfeElement[x] = deformedDirections(x,firstVfeEl + iVec);
@@ -650,14 +649,6 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 
                     auxiliaryfuncs::VectorProduct(faceNormal,vfeFace,temp);
                     auxiliaryfuncs::VectorProduct(faceNormal,temp,faceTrace);
-                    #ifdef NOISY_HCURL
-                    std::cout<<"\t\ttangential trace (3D elem) =";
-                    for(auto x = 0; x < 3; x++)std::cout<<"\t"<<elTrace[x];
-                    std::cout<<std::endl;
-                    std::cout<<"\t\ttangential trace (2D face) =";
-                    for(auto x = 0; x < 3; x++)std::cout<<"\t"<<faceTrace[x];
-                    std::cout<<std::endl;
-                    #endif
                     REAL diff = 0;
                     for(auto x = 0; x < 3; x++) diff += (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
                     diff = sqrt(diff);
@@ -675,17 +666,23 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         std::cout<<"\t\tVECTOR (2D face) =";
                         for(auto x = 0; x < 3; x++)std::cout<<"\t"<<vfeFace[x];
                         std::cout<<std::endl;
+                        std::cout<<"\t\tTRACE (3D elem) =";
+                        for(auto x = 0; x < 3; x++)std::cout<<"\t"<<elTrace[x];
+                        std::cout<<std::endl;
+                        std::cout<<"\t\tTRACE (2D face) =";
+                        for(auto x = 0; x < 3; x++)std::cout<<"\t"<<faceTrace[x];
+                        std::cout<<std::endl;
                         std::cout<<"****************************************"<<std::endl;
                     }
                     BOOST_CHECK(checkTraces);
                 }
-                std::cout<<"testing vft vectors"<<std::endl;
+                std::cout<<"\ttesting vft vectors"<<std::endl;
                 const int nVft = 2;
                 const int firstVftEl = firstVftVec + 2 * iFace;
                 const int firstVftFace = 3 * nVfe + nVfe;
                 for(int iVec = 0; iVec < nVft; iVec++){
 #ifdef NOISY_HCURL
-                    std::cout<<"\tvec "<<iVec+1<<" out of "<<nVfe<<std::endl;
+                    std::cout<<"\t\tvec "<<iVec+1<<" out of "<<nVfe<<std::endl;
 #endif
                     TPZManVector<REAL,3> vftElement(3,-1), vftFace(3,-1);
                     for(auto x = 0; x < 3; x++) vftElement[x] = deformedDirections(x,firstVftEl + iVec);
@@ -699,14 +696,6 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 
                     auxiliaryfuncs::VectorProduct(faceNormal,vftFace,temp);
                     auxiliaryfuncs::VectorProduct(faceNormal,temp,faceTrace);
-                    #ifdef NOISY_HCURL
-                    std::cout<<"\t\ttangential trace (3D elem) =";
-                    for(auto x = 0; x < 3; x++)std::cout<<"\t"<<elTrace[x];
-                    std::cout<<std::endl;
-                    std::cout<<"\t\ttangential trace (2D face) =";
-                    for(auto x = 0; x < 3; x++)std::cout<<"\t"<<faceTrace[x];
-                    std::cout<<std::endl;
-                    #endif
                     REAL diff = 0;
                     for(auto x = 0; x < 3; x++) diff += (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
                     diff = sqrt(diff);
@@ -723,6 +712,12 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         std::cout<<std::endl;
                         std::cout<<"\t\tVECTOR (2D face) =";
                         for(auto x = 0; x < 3; x++)std::cout<<"\t"<<vftFace[x];
+                        std::cout<<std::endl;
+                        std::cout<<"\t\tTRACE (3D elem) =";
+                        for(auto x = 0; x < 3; x++)std::cout<<"\t"<<elTrace[x];
+                        std::cout<<std::endl;
+                        std::cout<<"\t\tTRACE (2D face) =";
+                        for(auto x = 0; x < 3; x++)std::cout<<"\t"<<faceTrace[x];
                         std::cout<<std::endl;
                         std::cout<<"****************************************"<<std::endl;
                     }
