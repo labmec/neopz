@@ -1784,6 +1784,115 @@ namespace pztopology {
         }
     }
 
+    template <class TVar>
+    void TPZPrism::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    {
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3);
+
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            v3[i] = gradx(i,2);
+        }
+
+        //edges                      6,  7    ,8,9,10,11,12,   13,  14
+        constexpr REAL edgeLength[9]{1,M_SQRT2,1,2, 2, 2, 1,M_SQRT2,1};
+        //faces                    15,16,    17,   18,19
+        constexpr REAL faceArea[5]{0.5,2,2*M_SQRT2,2,0.5};
+
+        for (int i=0; i<3; i++) {
+            //v^{e,a} constant vector fields associated with edge e and vertex a
+            //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
+            //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e]
+
+            directions(i, 0) = (v1[i]) / edgeLength[0];//edge 6  vertex 0
+            directions(i, 1) = (v1[i] + v2[i]) / edgeLength[0];//edge 6 vertex 1
+            directions(i, 2) = (v2[i] * M_SQRT2) / edgeLength[1];//edge 7 vertex 1
+            directions(i, 3) = (-v1[i] * M_SQRT2) / edgeLength[1];//edge 7 vertex 2
+            directions(i, 4) = (v1[i] + v2[i]) * -1 / edgeLength[2]; //edge 8 vertex 2
+            directions(i, 5) = (-v2[i]) / edgeLength[2]; //edge 8 vertex 0
+
+            directions(i, 6) = v3[i] / edgeLength[3];//edge 9 vertex 0
+            directions(i, 7) = v3[i] / edgeLength[3];//edge 9 vertex 3
+            directions(i, 8) = v3[i] / edgeLength[4];//edge 10 vertex 1
+            directions(i, 9) = v3[i] / edgeLength[4];//edge 10 vertex 4
+            directions(i, 10) = v3[i] / edgeLength[5];//edge 11 vertex 2
+            directions(i, 11) = v3[i] / edgeLength[5];//edge 11 vertex 5
+
+            directions(i, 12) = directions(i, 0);//edge 12 vertex 3
+            directions(i, 13) = directions(i, 1);//edge 12 vertex 4
+            directions(i, 14) = directions(i, 2);//edge 13 vertex 4
+            directions(i, 15) = directions(i, 3);//edge 13 vertex 5
+            directions(i, 16) = directions(i, 4);//edge 14 vertex 5
+            directions(i, 17) = directions(i, 5);//edge 14 vertex 3
+
+            //v^{e,T} constant vector fields associated with edge e and aligned with it
+            directions(i, 18) = (v1[i]) / edgeLength[0];//edge 6
+            directions(i, 19) = ((v2[i] - v1[i]) * M_SQRT1_2) / edgeLength[1];//edge 7
+            directions(i, 20) = (-v2[i]) / edgeLength[2];//edge 8
+
+            directions(i, 21) = v3[i] / edgeLength[3];//edge 9
+            directions(i, 22) = v3[i] / edgeLength[4];//edge 10
+            directions(i, 23) = v3[i] / edgeLength[5];//edge 11
+
+            directions(i, 24) = directions(i, 18);//edge 12
+            directions(i, 25) = directions(i, 19);//edge 13
+            directions(i, 26) = directions(i, 20);//edge 14
+
+            //v^{F,e} constant vector fields associated with face F and edge e
+            //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
+            //adjacent to face F by edge e
+            directions(i, 27) = v2[i] / faceArea[0];//face 15 edge 6
+            directions(i, 28) = -1 * (v1[i] + v2[i]) * M_SQRT1_2 / faceArea[0];//face 15 edge 7
+            directions(i, 29) = v1[i] / faceArea[0];//face 15 edge 8
+
+            directions(i, 30) =  0.5 * v3[i]/faceArea[1];//face 16 edge 6
+            directions(i, 31) =  -1 * (v1[i]+v2[i])/faceArea[1];//face 16 edge 10
+            directions(i, 32) = -0.5 * v3[i]/faceArea[1];;//face 16 edge 12
+            directions(i, 33) =  v1[i]/faceArea[1];//face 16 edge 9
+
+            directions(i, 34) =  M_SQRT1_2 * v3[i]/faceArea[2];//face 17 edge 7
+            directions(i, 35) =  M_SQRT2 * v1[i]/faceArea[2];//face 17 edge 11
+            directions(i, 36) = -M_SQRT1_2 * v3[i]/faceArea[2];//face 17 edge 13
+            directions(i, 37) =  M_SQRT2 * v2[i]/faceArea[2];//face 17 edge 10
+
+            directions(i, 38) =  0.5 * v3[i]/faceArea[3];//face 18 edge 8
+            directions(i, 39) =  -1 * (v1[i] + v2[i])/faceArea[3];//face 18 edge 11
+            directions(i, 40) = -0.5 * v3[i]/faceArea[3];//face 18 edge 14
+            directions(i, 41) =  v2[i]/faceArea[3];//face 18 edge 9
+
+            directions(i, 42) = v2[i] / faceArea[4];//face 19 edge 12
+            directions(i, 43) = -1 * (v1[i] + v2[i] ) * M_SQRT1_2 / faceArea[4];//face 19 edge 13
+            directions(i, 44) = v1[i] / faceArea[4];//face 19 edge 14
+
+            //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+            directions(i, 45) = v1[i] / faceArea[0];//face 15
+            directions(i, 46) = v2[i] / faceArea[0];//face 15
+
+            directions(i, 47) = v1[i] / faceArea[1];//face 16
+            directions(i, 48) = 0.5 * v3[i] / faceArea[1];//face 16
+            directions(i, 49) = M_SQRT1_2 * (v2[i] - v1[i]) / faceArea[2];//face 17
+            directions(i, 50) = M_SQRT1_2 * v3[i] / faceArea[2];//face 17
+            directions(i, 51) = v2[i] / faceArea[3];//face 18
+            directions(i, 52) = 0.5 * v3[i] / faceArea[3];//face 18
+
+            directions(i, 53) = v1[i] / faceArea[4];//face 19
+            directions(i, 54) = v2[i] / faceArea[4];//face 19
+
+            //v^{F,orth} vector associated with face F and normal to it
+            directions(i, 55) = -v3[i];//face 15
+            directions(i, 56) = -v2[i];//face 16
+            directions(i, 57) = (v1[i] + v2[i]) * M_SQRT1_2;//face 17
+            directions(i, 58) = -v1[i];//face 18
+            directions(i, 59) = v3[i];//face 19
+
+            //v^{K,3}
+            directions(i, 60) = v1[i];
+            directions(i, 61) = v2[i];
+            directions(i, 62) = v3[i];
+        }
+    }
+
     int TPZPrism::ClassId() const{
         return Hash("TPZPrism");
     }
@@ -1812,6 +1921,8 @@ template void pztopology::TPZPrism::BlendFactorForSide<REAL>(const int &, const 
 template void pztopology::TPZPrism::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 template void pztopology::TPZPrism::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+template void pztopology::TPZPrism::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
 
 template bool pztopology::TPZPrism::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
@@ -1823,4 +1934,6 @@ template void pztopology::TPZPrism::BlendFactorForSide<Fad<REAL>>(const int &, c
 template void pztopology::TPZPrism::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
 template void pztopology::TPZPrism::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+
+template void pztopology::TPZPrism::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

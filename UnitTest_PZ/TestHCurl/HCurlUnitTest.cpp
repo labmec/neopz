@@ -13,6 +13,7 @@
 #include "tpzquadrilateral.h"
 #include "tpztetrahedron.h"
 #include "tpzcube.h"
+#include "tpzprism.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
@@ -107,6 +108,19 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             hcurltest::ComparePermutedVectors<pztopology::TPZCube>(nodeCoords);
             hcurltest::CompareTraces<pztopology::TPZCube>(nodeCoords);
             hcurltest::TestInterfaces<pztopology::TPZCube>(nodeCoords);
+        }
+
+        {
+            TPZFMatrix<REAL> nodeCoords(6,3);
+            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+            nodeCoords(3,0) = -1;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
+            nodeCoords(4,0) =  1;   nodeCoords(4,1) =  0;   nodeCoords(4,2) =  1;
+            nodeCoords(5,0) =  0;   nodeCoords(5,1) =  1;   nodeCoords(5,2) =  1;
+            hcurltest::ComparePermutedVectors<pztopology::TPZPrism>(nodeCoords);
+            hcurltest::CompareTraces<pztopology::TPZPrism>(nodeCoords);
+            hcurltest::TestInterfaces<pztopology::TPZPrism>(nodeCoords);
         }
     }
 
@@ -660,6 +674,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         std::cout<<"EL TYPE "<< MElementType_Name(elType)<<std::endl;
                         std::cout<<"FACE INDEX "<<faceIndex<<std::endl;
                         std::cout<<"FACE TYPE "<<MElementType_Name(faceType)<<std::endl;
+                        std::cout<<"EDGE INDEX "<<faceEdges[iFace][iVec]<<std::endl;
                         std::cout<<"\t\tVECTOR (3D elem) =";
                         for(auto x = 0; x < 3; x++)std::cout<<"\t"<<vfeElement[x];
                         std::cout<<std::endl;
@@ -682,7 +697,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                 const int firstVftFace = 3 * nVfe + nVfe;
                 for(int iVec = 0; iVec < nVft; iVec++){
 #ifdef NOISY_HCURL
-                    std::cout<<"\t\tvec "<<iVec+1<<" out of "<<nVfe<<std::endl;
+                    std::cout<<"\t\tvec "<<iVec+1<<" out of "<<nVft<<std::endl;
 #endif
                     TPZManVector<REAL,3> vftElement(3,-1), vftFace(3,-1);
                     for(auto x = 0; x < 3; x++) vftElement[x] = deformedDirections(x,firstVftEl + iVec);
@@ -754,7 +769,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
                         DebugStop();//pztopology::TPZPyramid::ComputeHCurlDirections(gradX, masterDirections);//these are the vectors on the master element
                         break;
                     case EPrisma:
-                        DebugStop();//pztopology::TPZPrism::ComputeHCurlDirections(gradX, masterDirections);//these are the vectors on the master element
+                        pztopology::TPZPrism::ComputeHCurlDirections(gradX, masterDirections);//these are the vectors on the master element
                         break;
                     case ECube:
                         pztopology::TPZCube::ComputeHCurlDirections(gradX,
