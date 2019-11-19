@@ -1200,7 +1200,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case ESinSin:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]);
+            for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*2.*xloc[i]);
         }
             break;
         case E10SinSin:
@@ -1218,7 +1218,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case ECosCos:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= cos((TVar)M_PI*xloc[i]/2.);
+            for(int i=0; i<fDimension; i++) disp[0] *= cos((TVar)M_PI*2.*xloc[i]);
         }
             break;
         case EArcTan://(1+0.3sin(10Pi x))*(1+0.5cos(10Pi r)*arctan(100*(r-0.5))
@@ -1275,7 +1275,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case ESinSinDirNonHom: //sin(pi x)sin(pi y)+1/(x+y+1)
         {
             
-            disp[0]=(sin((TVar)M_PI*xloc[0]))*sin((TVar)M_PI*xloc[1])+(TVar)(1.)/(xloc[0]+xloc[1]+(TVar)(1.));
+            disp[0]=(sin((TVar)M_PI*2.*xloc[0]))*sin((TVar)M_PI*2.*xloc[1])+(TVar)(xloc[0]*xloc[0]+xloc[1]+(TVar)(1.));
             
         }
             
@@ -1447,7 +1447,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         case ESinSin:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]);
+            for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*2.*xloc[i]);
         }
             break;
         case E10SinSin:
@@ -1465,7 +1465,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         case ECosCos:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= FADcos((TVar)M_PI*xloc[i]/2.);
+            for(int i=0; i<fDimension; i++) disp[0] *= FADcos((TVar)M_PI*2.*xloc[i]);
         }
             break;
         case EArcTan:
@@ -1498,7 +1498,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         case ESinSinDirNonHom: //sin(pi x)sin(pi y)+1/(x+y+1)
         {
             
-            disp[0]=(FADsin((TVar)M_PI*xloc[0]))*FADsin((TVar)M_PI*xloc[1])+(TVar)(1.)/(xloc[0]+xloc[1]+(TVar)(1.));
+            disp[0]=(FADsin((TVar)M_PI*2.*xloc[0]))*FADsin((TVar)M_PI*2.*xloc[1])+(TVar)(xloc[0]*xloc[0]+xloc[1]+(TVar)(1.));
             
         }
             
