@@ -54,7 +54,7 @@ fConnectIndexes(copy.fConnectIndexes),  fIntRule(copy.fIntRule)
         return;
     }
 #endif
-
+    
 }
 
 template <class TGeometry>
@@ -63,7 +63,7 @@ TPZMultiphysicsCompEl<TGeometry>::TPZMultiphysicsCompEl(TPZCompMesh &mesh,
                                                         std::map<int64_t,int64_t> & gl2lcConMap,
                                                         std::map<int64_t,int64_t> & gl2lcElMap) : TPZRegisterClassId(&TPZMultiphysicsCompEl::ClassId){
     
-  DebugStop(); // if this is called, withmem should not work
+    DebugStop(); // if this is called, withmem should not work
 }
 
 
@@ -83,20 +83,20 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZVec<TPZTransform<> > &trVec) const
 {
-	int64_t nel;
-	int side, dim, dimmf;
-	nel=fElementVec.size();
-	trVec.Resize(nel);
-	TPZGeoEl *gelmf = Reference();
+    int64_t nel;
+    int side, dim, dimmf;
+    nel=fElementVec.size();
+    trVec.Resize(nel);
+    TPZGeoEl *gelmf = Reference();
     dimmf = gelmf->Dimension();
-	side = gelmf->NSides()-1;
-	TPZGeoEl  *geoel;
-	for (int64_t i = 0; i<nel; i++) {
+    side = gelmf->NSides()-1;
+    TPZGeoEl  *geoel;
+    for (int64_t i = 0; i<nel; i++) {
         if (!fElementVec[i]) {
             continue;
         }
-		geoel = fElementVec[i].Element()->Reference();
-		dim =  geoel->Dimension();
+        geoel = fElementVec[i].Element()->Reference();
+        dim =  geoel->Dimension();
         if (dim == dimmf) {
             TPZTransform<> tr(dim);
             TPZGeoElSide gelside(geoel,geoel->NSides()-1);
@@ -119,66 +119,66 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZVec<TPZTransform<> > &
             thisgeoside.SideTransform3(neighgeoside, LocalTransf);
             TPZGeoElSide highdim(neighgeoside.Element(), neighgeoside.Element()->NSides()-1);
             trVec[i] = neighgeoside.SideToSideTransform(highdim).Multiply(LocalTransf);
-
+            
         }
-	}
+    }
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int64_t> &refIndexVec){
-	
-	if(cmeshVec.NElements() == 0) return;
-	TPZCompMesh *cmesh = cmeshVec[0];
-	TPZGeoMesh *gmesh = cmesh->Reference();
-	gmesh->ResetReference();
-	int64_t isub;
-	int64_t ncm = cmeshVec.NElements();
-	for (isub=0; isub<ncm; isub++) {
-		cmeshVec[isub]->LoadReferences();
-	}
-	int64_t ncel;
-	TPZStack<TPZCompElSide> sidevec;
-	for(int64_t i = 0; i< ncm; i++){
-		ncel = cmeshVec[i]->NElements();
-		for (int64_t j=0; j<ncel; j++) {
-			TPZCompEl * cel = cmeshVec[i]->ElementVec()[j];
-			if(cel){
-				TPZGeoEl *geoel = cel->Reference();
-				
+    
+    if(cmeshVec.NElements() == 0) return;
+    TPZCompMesh *cmesh = cmeshVec[0];
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    gmesh->ResetReference();
+    int64_t isub;
+    int64_t ncm = cmeshVec.NElements();
+    for (isub=0; isub<ncm; isub++) {
+        cmeshVec[isub]->LoadReferences();
+    }
+    int64_t ncel;
+    TPZStack<TPZCompElSide> sidevec;
+    for(int64_t i = 0; i< ncm; i++){
+        ncel = cmeshVec[i]->NElements();
+        for (int64_t j=0; j<ncel; j++) {
+            TPZCompEl * cel = cmeshVec[i]->ElementVec()[j];
+            if(cel){
+                TPZGeoEl *geoel = cel->Reference();
+                
 #ifdef PZDEBUG
-				if (!geoel){
-					PZError << "Error at " << __PRETTY_FUNCTION__ << " Geometry element null!\n";
-					DebugStop();
-				}
+                if (!geoel){
+                    PZError << "Error at " << __PRETTY_FUNCTION__ << " Geometry element null!\n";
+                    DebugStop();
+                }
 #endif
-				
-				int ns = geoel->NSides();
-				TPZGeoElSide *geoside = new TPZGeoElSide(geoel,ns-1);
-				sidevec.Resize(0);
-				geoside->HigherLevelCompElementList2(sidevec, 1,1);
-				int64_t nel = sidevec.NElements();
-				if (nel==0){
-					//std::cout << "Incluindo elemento " << geoel->Index() << std::endl;
-					refIndexVec.insert(geoel->Index());
-				}
-			}
-		}
-	}
-	
-	
+                
+                int ns = geoel->NSides();
+                TPZGeoElSide *geoside = new TPZGeoElSide(geoel,ns-1);
+                sidevec.Resize(0);
+                geoside->HigherLevelCompElementList2(sidevec, 1,1);
+                int64_t nel = sidevec.NElements();
+                if (nel==0){
+                    //std::cout << "Incluindo elemento " << geoel->Index() << std::endl;
+                    refIndexVec.insert(geoel->Index());
+                }
+            }
+        }
+    }
+    
+    
 #ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Number of elements : " << refIndexVec.size() << std::endl;
-		sout <<"Reference index of elements : "<< std::endl;
-		std::set<int64_t>::iterator it;
-		for (it=refIndexVec.begin() ; it != refIndexVec.end(); it++ )
-			sout << " " << *it;
-		sout << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
+    {
+        std::stringstream sout;
+        sout << "Number of elements : " << refIndexVec.size() << std::endl;
+        sout <<"Reference index of elements : "<< std::endl;
+        std::set<int64_t>::iterator it;
+        for (it=refIndexVec.begin() ; it != refIndexVec.end(); it++ )
+            sout << " " << *it;
+        sout << std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
 #endif
-	
+    
 }
 
 /*{
@@ -235,30 +235,30 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
     TPZCompEl::Print(out);
     out << "Integration rule ";
     GetIntegrationRule().Print(out);
-	if(this->Reference())
-	{
-		out << "\nCenter coordinate: ";
-		TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
-		TPZVec< REAL > centerEuclid( 3,0.);
-		this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
-		this->Reference()->X(centerMaster,centerEuclid);
-		out << centerEuclid << std::endl;
-	}
-	if(this->Material())
-	{
-		out << "Material id " << this->Material()->Id() << "\n";
-	}
-	else {
-		out << "No material\n";
-	}
-	
-	out << "Number of connects = " << NConnects();
+    if(this->Reference())
+    {
+        out << "\nCenter coordinate: ";
+        TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
+        TPZVec< REAL > centerEuclid( 3,0.);
+        this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
+        this->Reference()->X(centerMaster,centerEuclid);
+        out << centerEuclid << std::endl;
+    }
+    if(this->Material())
+    {
+        out << "Material id " << this->Material()->Id() << "\n";
+    }
+    else {
+        out << "No material\n";
+    }
+    
+    out << "Number of connects = " << NConnects();
     out << "Connect indexes : ";
-	int nod;
-	for(nod=0; nod< NConnects(); nod++)
-	{
-		out << ConnectIndex(nod) <<  ' ' ;
-	}
+    int nod;
+    for(nod=0; nod< NConnects(); nod++)
+    {
+        out << ConnectIndex(nod) <<  ' ' ;
+    }
     if(this->Reference())
     {
         out << "Reference Index = " << this->Reference()->Index() << std::endl;
@@ -284,31 +284,31 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
         }
         cel->Print(out);
         if(!cel->Reference()) continue;
-		out << "\tReference Index = " << cel->Reference()->Index();
+        out << "\tReference Index = " << cel->Reference()->Index();
         
         TPZManVector<TPZTransform<> > tr;
         AffineTransform(tr);
         out << "\n\tAffine transformation of the multiphysics element for this computational element:"<<"\n";
         out << std::endl;
-		out <<"\t" << tr[iel];
+        out <<"\t" << tr[iel];
     }
 }
 
 
 template <class TGeometry>
 TPZCompEl * TPZMultiphysicsCompEl<TGeometry>::Clone(TPZCompMesh &mesh) const {
-	
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
+    
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+    DebugStop();
     return 0;
 }
 
 template <class TGeometry>
 TPZCompEl* TPZMultiphysicsCompEl<TGeometry>::ClonePatchEl(TPZCompMesh &mesh,
-														  std::map<int64_t,int64_t> & gl2lcConMap,
-														  std::map<int64_t,int64_t> & gl2lcElMap) const {
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
+                                                          std::map<int64_t,int64_t> & gl2lcConMap,
+                                                          std::map<int64_t,int64_t> & gl2lcElMap) const {
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+    DebugStop();
     return 0;
 }
 
@@ -345,48 +345,48 @@ int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
             return fElementVec[el].Element()->Dimension();
         }
     }
-	return -1;
+    return -1;
 }
 
 
 
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & value){
-	TPZMaterial * material = this->Material();
-	if(!material){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
-		return;
-	}
-	if (!this->Reference()){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
-		return;
-	}
+    TPZMaterial * material = this->Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+        return;
+    }
+    if (!this->Reference()){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+        return;
+    }
     
-	int64_t nref = fElementVec.size();
-	TPZVec<TPZMaterialData> datavec;
-	datavec.resize(nref);
-	
+    int64_t nref = fElementVec.size();
+    TPZVec<TPZMaterialData> datavec;
+    datavec.resize(nref);
+    
 #ifdef PZDEBUG
-	if (nref != datavec.size()) {
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
-		DebugStop();
-	}
+    if (nref != datavec.size()) {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
+        DebugStop();
+    }
 #endif
-	
-	TPZVec<int> nshape(nref);
-	for (int64_t iref = 0; iref<nref; iref++)
-	{
-       
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+    
+    TPZVec<int> nshape(nref);
+    for (int64_t iref = 0; iref<nref; iref++)
+    {
+        
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
-	}
-	
-	
+    }
+    
+    
     //	TPZManVector<REAL, 3> intpoint(dim,0.);
     //	const int varsize = material->NSolutionVariables(variable);
     //	value.Resize(varsize);
-	value.Fill(0.);
+    value.Fill(0.);
     //
     //	const TPZIntPoints &intrule = this->GetIntegrationRule();
     //	int npoints = intrule.NPoints(), ip, iv;
@@ -413,39 +413,39 @@ void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<STATE> & v
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol)
 {
-	
+    
     if (var >= 99) {
         TPZCompEl::Solution(qsi, var, sol);
         return;
     }
     
-	TPZMaterial * material = this->Material();
-	if(!material){
-		sol.Resize(0);
-		return;
-	}
-	
-//    TPZManVector<REAL,3> xi(qsi.size());
-//    Reference()->CenterPoint(Reference()->NSides()-1,xi);
-//    for (int i=0; i<xi.size(); i++) {
-//        qsi[i] += 0.001*(xi[i]-qsi[i]);
-//    }
-
+    TPZMaterial * material = this->Material();
+    if(!material){
+        sol.Resize(0);
+        return;
+    }
     
-	TPZManVector<TPZTransform<> > trvec;
-	AffineTransform(trvec);
-	
-	TPZManVector<REAL,3> myqsi(qsi);
-	myqsi.resize(qsi.size());
-	
-	int64_t nref = fElementVec.size();
-	TPZManVector<TPZMaterialData,3> datavec;
-	datavec.resize(nref);
+    //    TPZManVector<REAL,3> xi(qsi.size());
+    //    Reference()->CenterPoint(Reference()->NSides()-1,xi);
+    //    for (int i=0; i<xi.size(); i++) {
+    //        qsi[i] += 0.001*(xi[i]-qsi[i]);
+    //    }
     
-	for (int64_t iref = 0; iref<nref; iref++)
-	{
+    
+    TPZManVector<TPZTransform<> > trvec;
+    AffineTransform(trvec);
+    
+    TPZManVector<REAL,3> myqsi(qsi);
+    myqsi.resize(qsi.size());
+    
+    int64_t nref = fElementVec.size();
+    TPZManVector<TPZMaterialData,3> datavec;
+    datavec.resize(nref);
+    
+    for (int64_t iref = 0; iref<nref; iref++)
+    {
         
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
         material->FillDataRequirements(datavec[iref]);
@@ -455,47 +455,47 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
         TPZMaterialData::MShapeFunctionType shapetype = datavec[iref].fShapeType;
         if(shapetype==datavec[iref].EVecandShape){
             msp->ComputeRequiredData(datavec[iref], myqsi);
-        
+            
         }
         else
         {
             msp->ComputeShape(myqsi,datavec[iref]);
         }
         msp->ComputeSolution(myqsi, datavec[iref]);
-
-		datavec[iref].x.Resize(3);
-		msp->Reference()->X(myqsi, datavec[iref].x);
-	}
-	
-	material->Solution(datavec, var, sol);
+        
+        datavec[iref].x.Resize(3);
+        msp->Reference()->X(myqsi, datavec[iref].x);
+    }
+    
+    material->Solution(datavec, var, sol);
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
-													   TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
+                                                       TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+    DebugStop();
 }//method
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
-													   TPZVec<REAL> &normal,
-													   TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-													   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
+                                                       TPZVec<REAL> &normal,
+                                                       TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+                                                       TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+    DebugStop();
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-													   const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
+                                                       const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
+    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+    DebugStop();
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, int64_t index){
-	fConnectIndexes[inode] = index;
+    fConnectIndexes[inode] = index;
 }
 
 template <class TGeometry>
@@ -505,40 +505,40 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     ef.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
     ef.fType = TPZElementMatrix::EF;
-	const int ncon = this->NConnects();
-	int numeq = 0;
-	int ic;
-	
-	for(ic=0; ic<ncon; ic++)
-	{
+    const int ncon = this->NConnects();
+    int numeq = 0;
+    int ic;
+    
+    for(ic=0; ic<ncon; ic++)
+    {
         int64_t neqThisConn = Connect(ic).NDof(*Mesh());
-		numeq += neqThisConn;
-	}
-	
-	int64_t nref = this->fElementVec.size();
-	int nstate = 0;
-	//nstate=1;
+        numeq += neqThisConn;
+    }
+    
+    int64_t nref = this->fElementVec.size();
+    int nstate = 0;
+    //nstate=1;
     int numloadcases = 1;
-	for (int64_t iref=0; iref<nref; iref++) {
+    for (int64_t iref=0; iref<nref; iref++) {
         
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         if (! msp) {
             continue;
         }
         TPZMaterial *mat = msp->Material();
-		nstate += mat->NStateVariables();
+        nstate += mat->NStateVariables();
         numloadcases = mat->NumLoadCases(); /// @TODO improve this logic by consulting the multiphysics material
         
-	}
-	
-	const int numstate = nstate;
-	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,numloadcases);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fBlock.SetNBlocks(ncon);
-	
-	int i;
-	for(i=0; i<ncon; i++){
+    }
+    
+    const int numstate = nstate;
+    ek.fMat.Redim(numeq,numeq);
+    ef.fMat.Redim(numeq,numloadcases);
+    ek.fBlock.SetNBlocks(ncon);
+    ef.fBlock.SetNBlocks(ncon);
+    
+    int i;
+    for(i=0; i<ncon; i++){
         unsigned int ndof = Connect(i).NDof(*Mesh());
 #ifdef PZDEBUG
         TPZConnect &c = Connect(i);
@@ -546,15 +546,15 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
             DebugStop();
         }
 #endif
-		ek.fBlock.Set(i,ndof);
-		ef.fBlock.Set(i,ndof);
-	}
-	ek.fConnect.Resize(ncon);
-	ef.fConnect.Resize(ncon);
-	for(i=0; i<ncon; i++){
-		(ek.fConnect)[i] = ConnectIndex(i);
-		(ef.fConnect)[i] = ConnectIndex(i);
-	}
+        ek.fBlock.Set(i,ndof);
+        ef.fBlock.Set(i,ndof);
+    }
+    ek.fConnect.Resize(ncon);
+    ef.fConnect.Resize(ncon);
+    for(i=0; i<ncon; i++){
+        (ek.fConnect)[i] = ConnectIndex(i);
+        (ef.fConnect)[i] = ConnectIndex(i);
+    }
     ek.fOneRestraints = GetShapeRestraints();
     ef.fOneRestraints = GetShapeRestraints();
 }//void
@@ -615,13 +615,13 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices)
 {
-	int64_t nref = this->fElementVec.size();
-	
+    int64_t nref = this->fElementVec.size();
+    
 #ifdef PZDEBUG
-	if (nref != dataVec.size()) {
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
-		DebugStop();
-	}
+    if (nref != dataVec.size()) {
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
+        DebugStop();
+    }
 #endif
     if(indices){
         int64_t nindices = indices->size();
@@ -666,43 +666,43 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
     }
     
     this->Material()->FillDataRequirements(dataVec);
-	
+    
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
-	TPZMaterial * material = Material();
-	if(!material){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-		ek.Reset();
-		ef.Reset();
-		return;
-	}
-	
-	InitializeElementMatrix(ek,ef);
-	
-	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
-	
-	TPZManVector<TPZMaterialData,6> datavec;
-	const int64_t nref = fElementVec.size();
-	datavec.resize(nref);
-	InitMaterialData(datavec);
-	
-	TPZManVector<TPZTransform<> > trvec;
-	AffineTransform(trvec);
-	
-	int dim = Dimension();
-	TPZAutoPointer<TPZIntPoints> intrule;
-	
+    TPZMaterial * material = Material();
+    if(!material){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        ek.Reset();
+        ef.Reset();
+        return;
+    }
+    
+    InitializeElementMatrix(ek,ef);
+    
+    if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+    
+    TPZManVector<TPZMaterialData,6> datavec;
+    const int64_t nref = fElementVec.size();
+    datavec.resize(nref);
+    InitMaterialData(datavec);
+    
+    TPZManVector<TPZTransform<> > trvec;
+    AffineTransform(trvec);
+    
+    int dim = Dimension();
+    TPZAutoPointer<TPZIntPoints> intrule;
+    
     TPZManVector<REAL,4> intpointtemp(TGeometry::Dimension,0.);
-	REAL weight = 0.;
-	
-	TPZManVector<int,4> ordervec;
-	//ordervec.resize(nref);
-	for (int64_t iref=0;  iref<nref; iref++)
-	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+    REAL weight = 0.;
+    
+    TPZManVector<int,4> ordervec;
+    //ordervec.resize(nref);
+    for (int64_t iref=0;  iref<nref; iref++)
+    {
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
         int svec;
         if(msp)
         {
@@ -713,28 +713,28 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         {
             continue;
         }
-		datavec[iref].p = msp->MaxOrder();
-		ordervec[svec-1] = datavec[iref].p;
-	}
+        datavec[iref].p = msp->MaxOrder();
+        ordervec[svec-1] = datavec[iref].p;
+    }
     int order = material->IntegrationRuleOrder(ordervec);
-	
-	TPZGeoEl *ref = this->Reference();
-	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
-	
-	TPZManVector<int,4> intorder(dim,order);
-	intrule->SetOrder(intorder);
-	int intrulepoints = intrule->NPoints();
+    
+    TPZGeoEl *ref = this->Reference();
+    intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+    
+    TPZManVector<int,4> intorder(dim,order);
+    intrule->SetOrder(intorder);
+    int intrulepoints = intrule->NPoints();
     if(intrulepoints > 1000) {
         DebugStop();
     }
-	
-	TPZFMatrix<REAL> jac, axe, jacInv;
-	REAL detJac;
-	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
-	{
-		intrule->Point(int_ind,intpointtemp,weight);
-		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
-		weight *= fabs(detJac);
+    
+    TPZFMatrix<REAL> jac, axe, jacInv;
+    REAL detJac;
+    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+    {
+        intrule->Point(int_ind,intpointtemp,weight);
+        ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
+        weight *= fabs(detJac);
         for (int i = 0; i < fElementVec.size(); i++) {
             TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[i].Element());
             if (!msp) {
@@ -743,12 +743,12 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
             datavec[i].intLocPtIndex = int_ind;
         }
         
-		this->ComputeRequiredData(intpointtemp,trvec,datavec);
+        this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
         
-		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
-	}//loop over integration points
-
+        material->Contribute(datavec,weight,ek.fMat,ef.fMat);
+    }//loop over integration points
+    
 }//CalcStiff
 
 template <class TGeometry>
@@ -820,7 +820,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
         for (int imesh = 0; imesh < nmeshes; imesh++) {
             datavec[imesh].intLocPtIndex = int_ind;
         }
-
+        
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
@@ -911,7 +911,7 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
         for (int iv=0; iv<nvar; iv++) {
             result[iv] += weight*solout[iv];
         }
-
+        
     }//loop over integratin points
     
     return result;
@@ -922,20 +922,20 @@ TPZVec<STATE> TPZMultiphysicsCompEl<TGeometry>::IntegrateSolution(int var) const
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
 {
-	int64_t ElemVecSize = fElementVec.size();
-	for (int64_t iref = 0; iref < ElemVecSize; iref++)
-	{        
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-		if (!msp) {
-			continue;
-		}
+    int64_t ElemVecSize = fElementVec.size();
+    for (int64_t iref = 0; iref < ElemVecSize; iref++)
+    {
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        if (!msp) {
+            continue;
+        }
         
         TPZManVector<REAL,3> intpoint(msp->Reference()->Dimension(),0.);
         
-		trvec[iref].Apply(intpointtemp, intpoint);
-		
-		msp->ComputeRequiredData(datavec[iref], intpoint);
-	}
+        trvec[iref].Apply(intpointtemp, intpoint);
+        
+        msp->ComputeRequiredData(datavec[iref], intpoint);
+    }
 }//ComputeRequiredData
 
 template <class TGeometry>
@@ -1002,7 +1002,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
     int order = material->IntegrationRuleOrder(ordervec);
     TPZManVector<int,3> orderdim(dim,order);
     fIntRule.SetOrder(orderdim);
-
+    
 }
 
 
@@ -1029,37 +1029,37 @@ const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule() cons
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                           TPZVec<REAL> &errors, bool store_errors )
+                                                     TPZVec<REAL> &errors, bool store_errors )
 {
-	errors.Fill(0.);
-	TPZMaterial * material = this->Material();
-	//TPZMaterial * matptr = material.operator->();
-	if(!material){
-		PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
-		Print(PZError);
-		return;
-	}
-	if(dynamic_cast<TPZBndCond *>(material)) {
-		LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
-		return;
-	}
-	int problemdimension = Mesh()->Dimension();
-	if(Reference()->Dimension() < problemdimension) return;
+    errors.Fill(0.);
+    TPZMaterial * material = this->Material();
+    //TPZMaterial * matptr = material.operator->();
+    if(!material){
+        PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
+        Print(PZError);
+        return;
+    }
+    if(dynamic_cast<TPZBndCond *>(material)) {
+        LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
+        return;
+    }
+    int problemdimension = Mesh()->Dimension();
+    if(Reference()->Dimension() < problemdimension) return;
     TPZMaterial *mat = this->Material();
-	int NErrors = mat->NEvalErrors();
-	errors.Resize(NErrors);
-	errors.Fill(0.);
-	
-	// Adjust the order of the integration rule
-	//Cesar 2007-06-27 ==>> Begin
-	//this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
-	//fp can be any function and max order of the integration rule could produce best results
-	int dim = Dimension();
-	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
-	int maxIntOrder = intrule->GetMaxOrder();
-	TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-	//end
-	intrule->GetOrder(prevorder);
+    int NErrors = mat->NEvalErrors();
+    errors.Resize(NErrors);
+    errors.Fill(0.);
+    
+    // Adjust the order of the integration rule
+    //Cesar 2007-06-27 ==>> Begin
+    //this->MaxOrder is usefull to evaluate polynomial function of the aproximation space.
+    //fp can be any function and max order of the integration rule could produce best results
+    int dim = Dimension();
+    TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
+    int maxIntOrder = intrule->GetMaxOrder();
+    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+    //end
+    intrule->GetOrder(prevorder);
     const int order_limit = 15;
     if(maxIntOrder > order_limit)
     {
@@ -1071,62 +1071,69 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
             maxIntOrder = order_limit;
         }
     }
-
-	intrule->SetOrder(maxorder);
-	
-	int ndof = material->NStateVariables();
-	int nflux = material->NFluxes();
-	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<3,STATE> du_exact(dim,ndof);
-	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
-	values.Fill(0.0);
-	REAL weight;
-	TPZManVector<STATE,9> flux_el(nflux,0.);
-	
-	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
-	
-	TPZManVector<TPZMaterialData,3> datavec;
-	const int64_t nref = fElementVec.size();
-	datavec.resize(nref);
-	InitMaterialData(datavec);
-        for (unsigned int i = 0; i < nref; ++i) {
+    
+    intrule->SetOrder(maxorder);
+    
+    int ndof = material->NStateVariables();
+    int nflux = material->NFluxes();
+    TPZManVector<STATE,10> u_exact(ndof);
+    TPZFNMatrix<3,STATE> du_exact(dim,ndof);
+    TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
+    values.Fill(0.0);
+    REAL weight;
+    TPZManVector<STATE,9> flux_el(nflux,0.);
+    
+    if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+    
+    TPZManVector<TPZMaterialData,5> datavec;
+    const int64_t nref = fElementVec.size();
+    datavec.resize(nref);
+    InitMaterialData(datavec);
+    int iactive = -1;
+    for (unsigned int i = 0; i < nref; ++i) {
+        if(datavec[i].fShapeType != TPZMaterialData::EEmpty)
+        {
             datavec[i].fNeedsSol = true;
+            iactive = i;
         }
-	
-	TPZManVector<TPZTransform<> > trvec;
-	AffineTransform(trvec);
-	 
-	int nintpoints = intrule->NPoints();
-  TPZFNMatrix<9,REAL> jac, axe, jacInv;
-	REAL detJac;
-  TPZGeoEl *ref = this->Reference();
-	
-	for(int nint = 0; nint < nintpoints; nint++) {
-		
-		intrule->Point(nint,intpoint,weight);
+    }
     
-        ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
-		this->ComputeRequiredData(intpoint,trvec,datavec);
+    if(iactive == -1) DebugStop();
     
-		weight *= fabs(datavec[0].detjac);
-		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		//this->ComputeSolution(intpoint, data);
-		//contribuicoes dos erros
-		if(fp) {
-			fp(datavec[0].x,u_exact,du_exact);
+    TPZManVector<TPZTransform<> > trvec;
+    AffineTransform(trvec);
+    
+    int nintpoints = intrule->NPoints();
+    TPZFNMatrix<9,REAL> jac, axe, jacInv;
+    REAL detJac;
+    TPZGeoEl *ref = this->Reference();
+    
+    for(int nint = 0; nint < nintpoints; nint++) {
+        
+        intrule->Point(nint,intpoint,weight);
+        
+//        ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
+        this->ComputeRequiredData(intpoint,trvec,datavec);
+        
+        weight *= fabs(datavec[iactive].detjac);
+        // this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+        //this->ComputeSolution(intpoint, data);
+        //contribuicoes dos erros
+        if(fp) {
+            fp(datavec[iactive].x,u_exact,du_exact);
         }
         material->Errors(datavec,u_exact,du_exact,values);
-      
+        
         for(int ier = 0; ier < NErrors; ier++)
         {
             errors[ier] += values[ier]*weight;
         }
-		
-	}//fim for : integration rule
-	//Norma sobre o elemento
-	for(int ier = 0; ier < NErrors; ier++){
-		errors[ier] = sqrt(errors[ier]);
-	}//for ier
+        
+    }//fim for : integration rule
+     //Norma sobre o elemento
+    for(int ier = 0; ier < NErrors; ier++){
+        errors[ier] = sqrt(errors[ier]);
+    }//for ier
     
     if(store_errors)
     {
@@ -1138,12 +1145,12 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
         }
         for (int ier=0; ier <NErrors; ier++) {
             elvals(index,ier) = errors[ier];
-        //    std::cout<<"erro["<<ier <<"]= "<<errors[ier]<<std::endl;
+            //    std::cout<<"erro["<<ier <<"]= "<<errors[ier]<<std::endl;
         }
     }
     
-
-	intrule->SetOrder(prevorder);
+    
+    intrule->SetOrder(prevorder);
 }
 
 template <class TGeometry>
@@ -1230,7 +1237,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
         //contribuicoes dos erros
         func.Execute(datavec[0].x,u_exact,du_exact);
         material->Errors(datavec,u_exact,du_exact,values);
-            
+        
         for(int ier = 0; ier < NErrors; ier++)
         {
             errors[ier] += values[ier]*weight;
@@ -1253,7 +1260,7 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
             elvals(index,ier) = errors[ier];
         }
     }
-
+    
     intrule->SetOrder(prevorder);
 }
 /** Returns the maximum interpolation order of all connected elements */
@@ -1267,15 +1274,15 @@ void TPZMultiphysicsCompEl<TGeometry>::PolynomialOrder(TPZVec<int> &order) const
         order[iref] = msp ? msp->MaxOrder() : 0;
     }
     
-//    TPZMaterial * material = Material();
-//    if(!material)
-//    {
-//        int matid = Reference()->MaterialId();
-//        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
-//        DebugStop();
-//    }
-//    int order = material->IntegrationRuleOrder(ordervec);
-//    return order;
+    //    TPZMaterial * material = Material();
+    //    if(!material)
+    //    {
+    //        int matid = Reference()->MaterialId();
+    //        std::cout << "Matid " << matid << " for multiphysics element index " << Index() << " does not exist\n";
+    //        DebugStop();
+    //    }
+    //    int order = material->IntegrationRuleOrder(ordervec);
+    //    return order;
 }
 
 template<class TGeometry>
@@ -1301,55 +1308,55 @@ int TPZMultiphysicsCompEl<TGeometry>::ClassId() const{
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
-	
-	
-	TPZGeoEl *ref = Reference();
-	if (ref->Dimension() != dimension) {
-		return;
-	}
-	TPZMaterial * material = Material();
-	
-	TPZBndCond * BDC = dynamic_cast<TPZBndCond * > (material);
-	
-	if (BDC) {
-		return;
-	}
-	int matid = material->Id();
-	int nsides = ref->NSides();
-	bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
-	if(dimension == 2 && to_postpro){
-		if(nsides == 9){
-			new TPZGraphElQ2dd(this,&grmesh);
-			return;
-		}
-		if(nsides == 7){
-			new TPZGraphElT2dMapped(this,&grmesh);
-			return;
-		}
-	}//2d
-	
-	if(dimension == 3 && to_postpro){
-		if(nsides == 27){
-			new TPZGraphElQ3dd(this,&grmesh);
-			return;
-		}//cube
-		if(nsides == 21){
-			new TPZGraphElPrismMapped(this,&grmesh);
-			return;
-		}//prism
-		if(nsides == 15){
-			new TPZGraphElT3d(this,&grmesh);
-			return;
-		}//tetra
-		if(nsides == 19){
-			new TPZGraphElPyramidMapped(this,&grmesh);
-			return;
-		}//pyram
-	}//3d
-	
-	if(dimension == 1  && to_postpro){
-		new TPZGraphEl1dd(this,&grmesh);
-	}//1d
+    
+    
+    TPZGeoEl *ref = Reference();
+    if (ref->Dimension() != dimension) {
+        return;
+    }
+    TPZMaterial * material = Material();
+    
+    TPZBndCond * BDC = dynamic_cast<TPZBndCond * > (material);
+    
+    if (BDC) {
+        return;
+    }
+    int matid = material->Id();
+    int nsides = ref->NSides();
+    bool to_postpro = grmesh.Material_Is_PostProcessed(matid);
+    if(dimension == 2 && to_postpro){
+        if(nsides == 9){
+            new TPZGraphElQ2dd(this,&grmesh);
+            return;
+        }
+        if(nsides == 7){
+            new TPZGraphElT2dMapped(this,&grmesh);
+            return;
+        }
+    }//2d
+    
+    if(dimension == 3 && to_postpro){
+        if(nsides == 27){
+            new TPZGraphElQ3dd(this,&grmesh);
+            return;
+        }//cube
+        if(nsides == 21){
+            new TPZGraphElPrismMapped(this,&grmesh);
+            return;
+        }//prism
+        if(nsides == 15){
+            new TPZGraphElT3d(this,&grmesh);
+            return;
+        }//tetra
+        if(nsides == 19){
+            new TPZGraphElPyramidMapped(this,&grmesh);
+            return;
+        }//pyram
+    }//3d
+    
+    if(dimension == 1  && to_postpro){
+        new TPZGraphEl1dd(this,&grmesh);
+    }//1d
 }
 
 //---------------------------------------------------------------	
@@ -1364,96 +1371,96 @@ template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid>;
 
 
 /*
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoCube> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >;
-template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >;
-*/
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoCube> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >;
+ template class TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >;
+ */
 
 
 TPZCompEl * CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>(mesh, gel, index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>(mesh, gel, index);
 }
 
 TPZCompEl * CreateMultiphysicsLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear>(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear>(mesh,gel,index);
 }
 
 TPZCompEl * CreateMultiphysicsTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle >(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle >(mesh,gel,index);
 }
 
 TPZCompEl * CreateMultiphysicsQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad>(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad>(mesh,gel,index);
 }
 
 TPZCompEl * CreateMultiphysicsCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoCube >(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoCube >(mesh,gel,index);
 }
 
 TPZCompEl * CreateMultiphysicsPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism>(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism>(mesh,gel,index);
 }
 
 TPZCompEl * CreateMultiphysicsTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra>(mesh,gel,index);
 }
 
 TPZCompEl * CreateMultiphysicsPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid >(mesh,gel,index);
+    return new TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid >(mesh,gel,index);
 }
 
 //--------------------- WITH MEMORY ----------------------
 
 TPZCompEl *CreateMultiphysicsPointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >(mesh,gel,index) ;
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint> >(mesh,gel,index) ;
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear> >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoQuad> >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle > >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle > >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoCube > >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoCube > >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsPrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPrism> >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsPyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid > >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid > >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
 TPZCompEl *CreateMultiphysicsTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-//	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >(mesh,gel,index);
-//	index = -1;
-//	return NULL;
+    //	if(!gel->Reference() && gel->NumInterfaces() == 0)
+    return new TPZCompElWithMem < TPZMultiphysicsCompEl<pzgeom::TPZGeoTetrahedra> >(mesh,gel,index);
+    //	index = -1;
+    //	return NULL;
 }
