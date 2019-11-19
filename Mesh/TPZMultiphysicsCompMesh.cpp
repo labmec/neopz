@@ -122,6 +122,7 @@ void TPZMultiphysicsCompMesh::AddElements(){
     int n_approx_spaces = m_mesh_vector.size();
     for(int i_as = 0; i_as < n_approx_spaces; i_as++)
     {
+        if(!m_mesh_vector[i_as]) continue;
         m_mesh_vector[i_as]->LoadReferences();
         int64_t icel;
         for(icel=0; icel < n_cels; icel++)
