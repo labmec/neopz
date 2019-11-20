@@ -1202,7 +1202,7 @@ namespace pztopology {
                 break;
             case 14:
             {
-                return 0;
+                return 0;//that is not really true
             }
             default:
                 DebugStop();
@@ -1554,48 +1554,52 @@ namespace pztopology {
         constexpr REAL sqrt3 = 1.73205080756887729352744634150587237;
                          //faces   10, 11,     12   , 13
         constexpr REAL faceArea[nFaces]{0.5,0.5,0.5*sqrt3,0.5};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
         for (int i=0; i<3; i++)
         {
             //v^{e,a} constant vector fields associated with edge e and vertex a
             //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
             //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e]
 
-            directions(i,0) = (v1[i]) / edgeLength[0];//edge 4  vertex 0
-            directions(i,1) = (v1[i]+v2[i]+v3[i]) / edgeLength[0];//edge 4 vertex 1
-            directions(i,2) = (v2[i]*M_SQRT2) / edgeLength[1];//edge 5 vertex 1
-            directions(i,3) = (-v1[i]*M_SQRT2) / edgeLength[1];//edge 5 vertex 2
-            directions(i,4) = (v1[i]+v2[i]+v3[i]) * -1 / edgeLength[2]; //edge 6 vertex 2
-            directions(i,5) = (-v2[i]) / edgeLength[2]; //edge 6 vertex 0
-            directions(i,6) = (v3[i]) / edgeLength[3]; //edge 7 vertex 0
-            directions(i,7) = (v1[i]+v2[i]+v3[i])/ edgeLength[3]; //edge 7 vertex 3
-            directions(i,8) = v3[i] * M_SQRT2 / edgeLength[4];//edge 8 vertex 1
-            directions(i,9) = -v1[i] * M_SQRT2 / edgeLength[4];//edge 8 vertex 3
-            directions(i,10) = v3[i] * M_SQRT2 / edgeLength[5];//edge 9 vertex 2
-            directions(i,11) = -v2[i] * M_SQRT2 / edgeLength[5];//edge 9 vertex 3
+            directions(i,0) = (v1[i]) * edgeSign[0] / edgeLength[0];//edge 4  vertex 0
+            directions(i,1) = (v1[i]+v2[i]+v3[i]) * edgeSign[0] / edgeLength[0];//edge 4 vertex 1
+            directions(i,2) = (v2[i]*M_SQRT2) * edgeSign[1] / edgeLength[1];//edge 5 vertex 1
+            directions(i,3) = (-v1[i]*M_SQRT2) * edgeSign[1] / edgeLength[1];//edge 5 vertex 2
+            directions(i,4) = (v1[i]+v2[i]+v3[i]) * -1 * edgeSign[2] / edgeLength[2]; //edge 6 vertex 2
+            directions(i,5) = (-v2[i]) * edgeSign[2] / edgeLength[2]; //edge 6 vertex 0
+            directions(i,6) = (v3[i]) * edgeSign[3] / edgeLength[3]; //edge 7 vertex 0
+            directions(i,7) = (v1[i]+v2[i]+v3[i]) * edgeSign[3] / edgeLength[3]; //edge 7 vertex 3
+            directions(i,8) = v3[i] * M_SQRT2 * edgeSign[4] / edgeLength[4];//edge 8 vertex 1
+            directions(i,9) = -v1[i] * M_SQRT2 * edgeSign[4] / edgeLength[4];//edge 8 vertex 3
+            directions(i,10) = v3[i] * M_SQRT2 * edgeSign[5] / edgeLength[5];//edge 9 vertex 2
+            directions(i,11) = -v2[i] * M_SQRT2 * edgeSign[5] / edgeLength[5];//edge 9 vertex 3
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
-            directions(i,12) = (v1[i]) / edgeLength[0];//edge 4
-            directions(i,13) = ( (v2[i] - v1[i]) * M_SQRT1_2) / edgeLength[1];//edge 5
-            directions(i,14) = (-v2[i]) / edgeLength[2];//edge 6
-            directions(i,15) = (v3[i]) / edgeLength[3];//edge 7
-            directions(i,16) = (v3[i]-v1[i]) * M_SQRT1_2 / edgeLength[4];//edge 8
-            directions(i,17) = (v3[i]-v2[i]) * M_SQRT1_2 / edgeLength[5];//edge 9
+            directions(i,12) = (v1[i]) * edgeSign[0] / edgeLength[0];//edge 4
+            directions(i,13) = ( (v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[1] / edgeLength[1];//edge 5
+            directions(i,14) = (-v2[i]) * edgeSign[2] / edgeLength[2];//edge 6
+            directions(i,15) = (v3[i]) * edgeSign[3] / edgeLength[3];//edge 7
+            directions(i,16) = (v3[i]-v1[i]) * M_SQRT1_2 * edgeSign[4] / edgeLength[4];//edge 8
+            directions(i,17) = (v3[i]-v2[i]) * M_SQRT1_2 * edgeSign[5] / edgeLength[5];//edge 9
 
             //v^{F,e} constant vector fields associated with face F and edge e
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
             //adjacent to face F by edge e
-            directions(i,18)  = v2[i] / faceArea[0];//face 10 edge 4
-            directions(i,19) = -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[0];//face 10 edge 5
-            directions(i,20) =  v1[i] / faceArea[0];//face 10 edge 6
-            directions(i,21)  = v3[i] / faceArea[1];//face 11 edge 4
-            directions(i,22) = -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[1];//face 11 edge 8
-            directions(i,23) =  v1[i] / faceArea[1];//face 11 edge 7
-            directions(i,24) =  v3[i] * sqrt3 / faceArea[2];//(-v1[i]- v2[i] + 2*v3[i]) * sqrt3 /(3 * faceArea[2]);//face 12 edge 5
-            directions(i,25) =  v1[i] * sqrt3 * M_SQRT1_2 /( faceArea[2]);//(2*v1[i]-v2[i]-v3[i]) *M_SQRT1_2 * sqrt3 /(3 * faceArea[2]);//face 12 edge 9
-            directions(i,26) =  v2[i] * sqrt3 / faceArea[2];//(-v1[i]+ 2*v2[i] - v3[i]) * sqrt3 /(3 * faceArea[2]);//face 12 edge 8
-            directions(i,27)  =  v3[i] / faceArea[3];//face 13 edge 6
-            directions(i,28) = -1* (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[3];//face 13 edge 9
-            directions(i,29) =  v2[i] / faceArea[3];//face 13 edge 7
+            directions(i,18)  = v2[i] * edgeSign[4 - NCornerNodes] / faceArea[0];//face 10 edge 4
+            directions(i,19) = -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 * edgeSign[5 - NCornerNodes] / faceArea[0];//face 10 edge 5
+            directions(i,20) =  v1[i] * edgeSign[6 - NCornerNodes] / faceArea[0];//face 10 edge 6
+            directions(i,21)  = v3[i] * edgeSign[4 - NCornerNodes] / faceArea[1];//face 11 edge 4
+            directions(i,22) = -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 * edgeSign[8 - NCornerNodes] / faceArea[1];//face 11 edge 8
+            directions(i,23) =  -1 *  v1[i] * edgeSign[7 - NCornerNodes] / faceArea[1];//face 11 edge 7
+            directions(i,24) =  v3[i] * sqrt3 * edgeSign[5 - NCornerNodes] / faceArea[2];//face 12 edge 5
+            directions(i,25) =  v1[i] * sqrt3 * M_SQRT1_2 * edgeSign[9 - NCornerNodes] / faceArea[2];//face 12 edge 9
+            directions(i,26) =  -1 * v2[i] * sqrt3 * edgeSign[8 - NCornerNodes] / faceArea[2];//face 12 edge 8
+            directions(i,27)  =  -1 * v3[i] * edgeSign[6 - NCornerNodes] / faceArea[3];//face 13 edge 6
+            directions(i,28) = -1* (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 * edgeSign[9 - NCornerNodes] / faceArea[3];//face 13 edge 9
+            directions(i,29) =  -1 * v2[i] * edgeSign[7 - NCornerNodes] / faceArea[3];//face 13 edge 7
 
             //v^(F,T} vectors are calculated afterwards
 

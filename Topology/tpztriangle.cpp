@@ -1128,29 +1128,33 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         constexpr REAL faceArea{TPZTriangle::RefElVolume()};
         constexpr REAL edgeLength[nEdges]{1,M_SQRT2,1};
         const int facePermute = transformationIds[nEdges];
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
         for (int i=0; i<dim; i++)
         {
             //v^{e,a} constant vector fields associated with edge e and vertex a
             //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
             //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e]
-            directions(i,0) = (v1[i]) / edgeLength[0];
-            directions(i,1) = (v1[i]+v2[i]) / edgeLength[0];
-            directions(i,2) = (v2[i]*M_SQRT2) / edgeLength[1];
-            directions(i,3) = (-v1[i]*M_SQRT2) / edgeLength[1];
-            directions(i,4) = (v1[i] + v2[i]) * -1 / edgeLength[2];
-            directions(i,5) = (-v2[i]) / edgeLength[2];
+            directions(i,0) = (v1[i]) * edgeSign[0] / edgeLength[0];
+            directions(i,1) = (v1[i]+v2[i]) * edgeSign[0] / edgeLength[0];
+            directions(i,2) = (v2[i]*M_SQRT2) * edgeSign[1] / edgeLength[1];
+            directions(i,3) = (-v1[i]*M_SQRT2) * edgeSign[1] / edgeLength[1];
+            directions(i,4) = (v1[i] + v2[i]) * -1 * edgeSign[2] / edgeLength[2];
+            directions(i,5) = (-v2[i]) * edgeSign[2] / edgeLength[2];
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
-            directions(i,6) = (v1[i]) / edgeLength[0];
-            directions(i,7) = ( (v2[i] - v1[i]) * M_SQRT1_2) / edgeLength[1];
-            directions(i,8) = (-v2[i]) / edgeLength[2];
+            directions(i,6) = (v1[i]) * edgeSign[0] / edgeLength[0];
+            directions(i,7) = ( (v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[1] / edgeLength[1];
+            directions(i,8) = (-v2[i]) * edgeSign[2] / edgeLength[2];
 
             //v^{F,e} constant vector fields associated with face F and edge e
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
             //adjacent to face F by edge e
-            directions(i,9)  = v2[i] /faceArea;//* edgeLength[0];
-            directions(i,10) = ((-v2[i]-v1[i]) * M_SQRT1_2) /faceArea;//* edgeLength[1];
-            directions(i,11) = v1[i] /faceArea;//* edgeLength[0];
+            directions(i,9)  = v2[i] * edgeSign[0] /faceArea;//* edgeLength[0];
+            directions(i,10) = ((-v2[i]-v1[i]) * M_SQRT1_2) * edgeSign[1] /faceArea;//* edgeLength[1];
+            directions(i,11) = v1[i] * edgeSign[2] /faceArea;//* edgeLength[0];
 
             //v^{F,T} orthonormal vectors associated with face F and tangent to it.
             directions(i,12) = fTangentVectors[2*facePermute][i];
