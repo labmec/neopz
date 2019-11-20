@@ -163,6 +163,26 @@ namespace pztopology {
         {3,2,1,0,6,5,4,7,8}  // id 7
     };
 
+    REAL TPZQuadrilateral::fTangentVectors [16][2] =
+            {
+                    {0.25,0.0}, //id 0
+                    {0.0,0.25}, //id 0
+                    {0.0,0.25}, //id 1
+                    {0.25,0.0}, //id 1
+                    {-0.25,0.0}, //id 3
+                    {0.0,0.25}, //id 3
+                    {0.0,0.25}, //id 2
+                    {-0.25,0.0}, //id 2
+                    {0.0,-0.25}, //id 5
+                    {-0.25,0.0}, //id 5
+                    {-0.25,0.0}, //id 4
+                    {0.0,-0.25}, //id 4
+                    {0.0,-0.25}, //id 6
+                    {0.25,0.0}, //id 6
+                    {0.25,0.0}, //id 7
+                    {0.0,-0.25} //id 7
+            };
+
     template<class T>
     inline void TPZQuadrilateral::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
         T qsi = loc[0], eta = loc[1];
@@ -1162,17 +1182,18 @@ namespace pztopology {
     }
 
     template <class TVar>
-    void TPZQuadrilateral::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZQuadrilateral::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions,const TPZVec<int> &transformationIds)
     {
-
-        TPZManVector<TVar, 3> v1(3),v2(3);
-        for (int i=0; i<3; i++) {
+        const auto dim = gradx.Rows();
+        TPZManVector<TVar, 3> v1(dim),v2(dim);
+        for (int i=0; i<dim; i++) {
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
         }
+        constexpr auto nEdges{4};
         constexpr REAL faceArea{TPZQuadrilateral::RefElVolume()};
-
-        for (int i=0; i<3; i++)
+        const int facePermute = transformationIds[nEdges];
+        for (int i=0; i<dim; i++)
         {
             for(int iSide = 0; iSide < 4; iSide ++){
                 int sign = iSide /2 ? -1 : 1;// sign will be : 1 1 -1 -1
@@ -1194,11 +1215,20 @@ namespace pztopology {
                 directions(i,12 + iSide) /= faceArea;
             }
             //v^{F,T} orthonormal vectors associated with face F and tangent to it.
-            directions(i,16) = v1[i] / faceArea;
-            directions(i,17) = v2[i] / faceArea;
+            directions(i,16) = fTangentVectors[2*facePermute][i];
+            directions(i,17) = fTangentVectors[2*facePermute + 1][i];
         }
     }
-    
+
+    template <class TVar>
+    void TPZQuadrilateral::ComputeHCurlFaceDirections(TPZVec<TVar> &v1, TPZVec<TVar> &v2, int transformationId)
+    {
+        for (auto i=0; i< Dimension; i++){
+            //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+            v1[i] = fTangentVectors[2*transformationId][i];
+            v2[i] = fTangentVectors[2*transformationId + 1][i];
+        }//for
+    }
     void TPZQuadrilateral::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*2;
@@ -1263,7 +1293,9 @@ template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc
 
 template void pztopology::TPZQuadrilateral::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 
-template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlFaceDirections<REAL>(TPZVec<REAL> &v1, TPZVec<REAL> &v2, int transformationId);
 #ifdef _AUTODIFF
 template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -1275,5 +1307,7 @@ template void pztopology::TPZQuadrilateral::TShape<Fad<REAL>>(const TPZVec<Fad<R
 
 template void pztopology::TPZQuadrilateral::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 
-template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlFaceDirections<Fad<REAL>>(TPZVec<Fad<REAL>> &v1, TPZVec<Fad<REAL>> &v2, int transformationId);
 #endif

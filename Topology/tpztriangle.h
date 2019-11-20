@@ -261,9 +261,20 @@ namespace pztopology {
          * @tparam TVar REAL or Fad<REAL>
          * @param gradx the gradient of the element mapping. if computing in normal element, gradx is the identity matrix.
          * @param directions computed directions
+         * @param transformationIds transformation Ids associated with each side of dim > 0
          */
         template <class TVar>
-        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds);
+
+        /**
+         * For a given transformation id, the method will return the two \f$v^{F,T}\f$ vectors associated with the face
+         * @tparam TVar REAL or Fad<REAL>
+         * @param v1 \f$v^{F,T}_1\f$
+         * @param v2 \f$v^{F,T}_2\f$
+         * @param transformationId The id of the transformation (node ordering)
+         */
+        template <class TVar>
+        static void ComputeHCurlFaceDirections(TPZVec<TVar> &v1, TPZVec<TVar> &v2, int transformationId);
         
 
         /**
@@ -279,6 +290,7 @@ namespace pztopology {
 	protected:
         /** @brief Valid permutations between nodes*/
         static int fPermutations [6][7];
+        static REAL fTangentVectors [12][2];
     };
 	
 }

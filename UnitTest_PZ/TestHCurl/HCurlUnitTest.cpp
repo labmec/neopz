@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
         void TestInterfaces(const TPZFMatrix<REAL> &);
 
         namespace auxiliaryfuncs{
-            void ComputeDirections (TPZGeoEl *, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &);
+            void ComputeDirections (TPZGeoEl *, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &,const TPZVec<int> &);
 
             void VectorProduct(TPZVec<REAL> &, TPZVec<REAL> &, TPZVec<REAL> &);
 
@@ -187,39 +187,10 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             pztopology::GetPermutation<TTopol>(permute, currentPermutation);
             TPZFMatrix<REAL> transMult(3, dim, 0);
             TPZGeoEl *originalEl = CreatePermutedEl(currentPermutation, transMult);
-//            TPZFMatrix<REAL> gradX(3, dim, 0);
-//            for (auto x = 0; x < dim; x++) gradX(x, x) = 1;
-//            const int nVec = dim * nSides;
-//            TPZFMatrix<REAL> masterDirections(3, nVec), originalDirections(3, nVec);
-//            TTopol::ComputeHCurlDirections(gradX, masterDirections);//these are the vectors on the master element
-//
-//
-//
-//            TPZVec<REAL> xiCenter(dim, 0);
-//            TPZFMatrix<REAL> originalJacobian(dim, dim, 0), originalAxes(dim, 3), originalJacInv(dim, dim, 0);
-//            REAL originalDetJac = 0;
-//            originalEl->JacobianXYZ(xiCenter, originalJacobian, originalAxes, originalDetJac, originalJacInv);
-//
-//#ifdef NOISY_HCURL
-//            std::cout << std::endl;
-//            originalJacobian.Print("Original Jacobian:");
-//            originalAxes.Print("Original Axes:");
-//#endif
-//            for (auto iVec = 0; iVec < nVec; iVec++) {
-//
-//                TPZManVector<REAL, 3> tempDirection(dim, 0);
-//                for (auto i = 0; i < dim; i++) {
-//                    //covariant piola transform: J^{-T}
-//                    tempDirection[i] = 0;
-//                    for (auto j = 0; j < dim; j++) tempDirection[i] += originalJacInv(j, i) * masterDirections(j, iVec);
-//                }
-//                for (auto i = 0; i < 3; i++) {
-//                    originalDirections(i, iVec) = 0;
-//                    for (auto j = 0; j < dim; j++) originalDirections(i, iVec) += originalAxes(j, i) * tempDirection[j];
-//                }
-//            }
+
             TPZFMatrix<REAL> masterDirections(0,0), originalDirections(0,0);
-            auxiliaryfuncs::ComputeDirections(originalEl,originalDirections,masterDirections);
+            TPZVec<int> transformationIds(nSides,0);
+            auxiliaryfuncs::ComputeDirections(originalEl,originalDirections,masterDirections, transformationIds);
 
             TPZGeoEl *permutedEl = nullptr;
             TPZFMatrix<REAL> permutedJacobian(dim, dim, 0), permutedAxes(dim, 3), permutedJacInv(dim, dim, 0);
@@ -307,7 +278,8 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 
             //computing directions
             TPZFMatrix<REAL> masterDirections(0,0), deformedDirections(0,0);
-            auxiliaryfuncs::ComputeDirections(gel,deformedDirections,masterDirections);
+            TPZVec<int> transformationIds(nSides,0);
+            auxiliaryfuncs::ComputeDirections(gel,deformedDirections,masterDirections,transformationIds);
             //calculating tangent vectors for all edges
             TPZFMatrix<REAL> edgeTangentVecs(nEdges,3);
             TPZVec<REAL> edgeLengthVec(nEdges,0);
@@ -602,7 +574,8 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
             TPZGeoEl *gel = gmesh->CreateGeoElement(elType, nodes, 1, index, 0);
 
             TPZFMatrix<REAL> deformedDirections(0,0),masterDirections;
-            auxiliaryfuncs::ComputeDirections(gel,deformedDirections,masterDirections);
+            TPZVec<int> transformationIds(nSides,0);
+            auxiliaryfuncs::ComputeDirections(gel,deformedDirections,masterDirections,transformationIds);
 
             //calculating indexes and stuff
             TPZManVector<int> firstVfeVec(nFaces,-1);
@@ -636,7 +609,8 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
 
                 TPZGeoEl *faceGel = gmesh->CreateGeoElement(faceType, faceNodes, 1, index, 0);
                 TPZFMatrix<REAL> faceDeformedDirections(0,0),faceMasterDirections(0,0);
-                auxiliaryfuncs::ComputeDirections(faceGel,faceDeformedDirections,faceMasterDirections);
+                TPZVec<int> transformationIds(nSides,0);
+                auxiliaryfuncs::ComputeDirections(faceGel,faceDeformedDirections,faceMasterDirections,transformationIds);
 
                 //compute normal
                 TPZManVector<REAL,3> faceNormal(3,0);
@@ -745,35 +719,36 @@ BOOST_AUTO_TEST_SUITE(hcurl_tests)
         }//hcurltest::TestInterfaces
 
         namespace auxiliaryfuncs{
-            void ComputeDirections (TPZGeoEl *gel, TPZFMatrix<REAL> &deformedDirections, TPZFMatrix<REAL> &masterDirections) {
+            void ComputeDirections (TPZGeoEl *gel, TPZFMatrix<REAL> &deformedDirections,
+                    TPZFMatrix<REAL> &masterDirections, const TPZVec<int> &transformationIds) {
                 int dim = gel->Dimension();
-                TPZFMatrix<REAL> gradX(3, dim, 0);
+                TPZFMatrix<REAL> gradX(dim, dim, 0);
                 for (auto x = 0; x < dim; x++) gradX(x, x) = 1;
                 const int nVec = dim * gel->NSides();
-                masterDirections.Resize(3, nVec);
+                masterDirections.Resize(dim, nVec);
                 deformedDirections.Resize(3, nVec);
                 switch (gel->Type()) {
                     case ETriangle:
                         pztopology::TPZTriangle::ComputeHCurlDirections(gradX,
-                                                                        masterDirections);//these are the vectors on the master element
+                                                                        masterDirections,transformationIds);//these are the vectors on the master element
                         break;
                     case EQuadrilateral:
                         pztopology::TPZQuadrilateral::ComputeHCurlDirections(gradX,
-                                                                             masterDirections);//these are the vectors on the master element
+                                                                             masterDirections,transformationIds);//these are the vectors on the master element
                         break;
                     case ETetraedro:
                         pztopology::TPZTetrahedron::ComputeHCurlDirections(gradX,
-                                                                           masterDirections);//these are the vectors on the master element
+                                                                           masterDirections,transformationIds);//these are the vectors on the master element
                         break;
                     case EPiramide:
-                        DebugStop();//pztopology::TPZPyramid::ComputeHCurlDirections(gradX, masterDirections);//these are the vectors on the master element
+                        DebugStop();//pztopology::TPZPyramid::ComputeHCurlDirections(gradX, masterDirections,transformationIds);//these are the vectors on the master element
                         break;
                     case EPrisma:
-                        pztopology::TPZPrism::ComputeHCurlDirections(gradX, masterDirections);//these are the vectors on the master element
+                        pztopology::TPZPrism::ComputeHCurlDirections(gradX, masterDirections,transformationIds);//these are the vectors on the master element
                         break;
                     case ECube:
                         pztopology::TPZCube::ComputeHCurlDirections(gradX,
-                                                                    masterDirections);//these are the vectors on the master element
+                                                                    masterDirections,transformationIds);//these are the vectors on the master element
                         break;
                     default:
                         DebugStop();

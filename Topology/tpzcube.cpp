@@ -1621,7 +1621,7 @@ namespace pztopology {
     }
 
     template <class TVar>
-    void TPZCube::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZCube::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds)
     {
         TPZManVector<TVar,3> v1(3),v2(3),v3(3);
 
@@ -1688,19 +1688,7 @@ namespace pztopology {
             directions(i, 58) = -v2[i] / faceArea[5];//face 25 edge 18
             directions(i, 59) =  v1[i] / faceArea[5];//face 25 edge 19
 
-            //v^{F,T} orthonormal vectors associated with face F and tangent to it.
-            directions(i, 60) = v1[i]/faceArea[0];//face 20
-            directions(i, 61) = v2[i]/faceArea[0];//face 20
-            directions(i, 62) = v1[i]/faceArea[1];//face 21
-            directions(i, 63) = v3[i]/faceArea[1];//face 21
-            directions(i, 64) = v2[i]/faceArea[2];//face 22
-            directions(i, 65) = v3[i]/faceArea[2];//face 22
-            directions(i, 66) = v1[i]/faceArea[3];//face 23
-            directions(i, 67) = v3[i]/faceArea[3];//face 23
-            directions(i, 68) = v2[i]/faceArea[4];//face 24
-            directions(i, 69) = v3[i]/faceArea[4];//face 24
-            directions(i, 70) = v1[i]/faceArea[5];//face 25
-            directions(i, 71) = v2[i]/faceArea[5];//face 25
+            //v^{F,T} are calculated afterwards
 
             //v^{F,orth} vector associated with face F and normal to it
             directions(i, 72) = -v3[i];//face 20
@@ -1714,6 +1702,22 @@ namespace pztopology {
             directions(i, 78) = v1[i];
             directions(i, 79) = v2[i];
             directions(i, 80) = v3[i];
+        }
+        TPZManVector<REAL,2> vft1(2,0), vft2(2,0);
+        constexpr auto firstVftVec = 60;
+        //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+        for(auto iFace = 0; iFace < nFaces; iFace ++){
+            TPZQuadrilateral::ComputeHCurlFaceDirections(vft1,vft2,transformationIds[nEdges + iFace]);
+            directions(0,firstVftVec+2*iFace) = 0;directions(1,firstVftVec+2*iFace) = 0;directions(2,firstVftVec+2*iFace) = 0;
+            directions(0,firstVftVec+2*iFace+1) = 0;directions(1,firstVftVec+2*iFace+1) = 0;directions(2,firstVftVec+2*iFace+1) = 0;
+            auto axes = TPZCube::TransformElementToSide(NCornerNodes+nEdges+iFace).Mult();
+            axes.Transpose();
+            for(auto x = 0; x < Dimension; x++){
+                for(auto i = 0; i < 2; i++) {
+                    directions(x, firstVftVec + 2 * iFace) += axes(x,i) * vft1[i];
+                    directions(x, firstVftVec + 2 * iFace + 1) += axes(x,i) * vft2[i];
+                }
+            }
         }
     }
 
@@ -1746,7 +1750,7 @@ template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatr
 
 template void pztopology::TPZCube::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 
-template void pztopology::TPZCube::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZCube::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
 #ifdef _AUTODIFF
 
 template bool pztopology::TPZCube::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
@@ -1759,5 +1763,5 @@ template void pztopology::TPZCube::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &lo
 
 template void pztopology::TPZCube::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 
-template void pztopology::TPZCube::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZCube::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
 #endif

@@ -248,9 +248,10 @@ namespace pztopology {
          * @tparam TVar REAL or Fad<REAL>
          * @param gradx the gradient of the element mapping. if computing in normal element, gradx is the identity matrix.
          * @param directions computed directions
+         * @param transformationIds transformation Ids associated with each side of dim > 0
          */
         template <class TVar>
-        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds);
         
 
         /**
