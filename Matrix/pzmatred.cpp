@@ -179,7 +179,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         sout << "fF0 input " << std::endl;
-        fF0.Print("fF0",sout);
+        fF0.Print("fF0 = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -194,7 +194,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
         sout << "After computing F0Invert" << std::endl;
-        fF0.Print("F0Invert",sout);
+        fF0.Print("F0Invert",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -233,6 +233,15 @@ void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<T
         {
             std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;
         }
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "K01 after reduction\n";
+            fK01.Print("fK01 = ",sout,EMathematicaInput);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		fK01IsComputed = true;
 	}
 	fK10.MultAdd(fK01,fK11,(K11),-1.,1.);
@@ -576,6 +585,17 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
     {
         return;
     }
+#ifdef PZDEBUG
+    {
+        REAL norm = Norm(*fK00);
+        
+        
+        if(norm < ZeroTolerance())
+        {
+            DebugStop();
+        }
+    }
+#endif
     TPZStepSolver<TVar> *stepsolve = dynamic_cast<TPZStepSolver<TVar> *>(fSolver.operator->());
     TPZStepSolver<TVar> *directsolve(0);
     if(!stepsolve)
