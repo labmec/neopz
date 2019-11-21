@@ -2819,9 +2819,25 @@ TPZCompMesh * TPZCompMesh::CommonMesh(TPZCompMesh *mesh){
 	return (pos1 >=0 ) ? (s1[pos1+1]) : s2[pos2+1];
 }
 
+/** update the solution at the previous state with fSolution and
+    set fSolution to the previous state */
+void TPZCompMesh::UpdatePreviousState(REAL mult)
+{
+    if(fSolN.Rows() != fSolution.Rows() || fSolN.Cols() != fSolution.Cols())
+    {
+        fSolN.Redim(fSolution.Rows(),fSolution.Cols());
+    }
+    fSolN += mult*fSolution;
+    fSolution = fSolN;
+    int64_t nel = NElements();
+    for(int64_t el = 0; el<nel; el++)
+    {
+        TPZCompEl *cel = Element(el);
+        TPZSubCompMesh *subc = dynamic_cast<TPZSubCompMesh *>(cel);
+        if(subc) subc->UpdatePreviousState(mult);
+    }
+}
 
 
-#ifndef BORLAND
 template class TPZRestoreClass<TPZCompMesh>;
-#endif
 
