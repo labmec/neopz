@@ -299,7 +299,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble,ESinCosCircle};
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble,ESinCosCircle,ESinSin2Pi};
     
     int fDimension = 2;
     
@@ -371,7 +371,7 @@ public:
     
     REAL fDelt = 0.1; // timestep
     
-    REAL fK = 1.; // permeability
+    REAL fK = 1.; // permeability flhfldshfldshfldshfl
     
     virtual ~TLaplaceExampleTimeDependent()
     {

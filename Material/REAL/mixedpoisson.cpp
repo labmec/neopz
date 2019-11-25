@@ -550,6 +550,8 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 		DebugStop();
 	}
 #endif
+    
+    
 	
 	TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
 	int phrq = phiQ.Rows();
@@ -557,6 +559,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	REAL v2;
     if(bc.HasForcingFunction())
     {
+        
 		TPZManVector<STATE> res(3);
         TPZFNMatrix<9,STATE> gradu(Dimension(),1);
         bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
