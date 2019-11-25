@@ -141,14 +141,14 @@ int ClassId() const override;
 	const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
 	const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }
 
-    /// Compute the computing standard measure (length, area, volume) of the domain
-    REAL Measure();
+    /// Compute the area of the domain
+    REAL Area();
     
-    /// Compute the computing standard measure (length, area, volume) of the domain
-    REAL Measure(int matid);
+    /// Compute the area of the domain
+    REAL Area(int matid);
     
-    /// Compute the computing standard measure (length, area, volume) of the domain
-    REAL Measure(std::set<int> &matids);
+    /// Compute the area of the domain
+    REAL Area(std::set<int> &matids);
     
 	/** @brief Resets all load references in elements and nodes */
 	void ResetReference();

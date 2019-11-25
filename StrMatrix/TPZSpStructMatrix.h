@@ -31,10 +31,8 @@ public:
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     virtual TPZStructMatrix * Clone() override;
-
-    TPZMatrix<STATE> *SetupMatrixData(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex);
-
-public:
+    
+    public:
 int ClassId() const override;
 
 	

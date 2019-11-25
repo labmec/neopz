@@ -187,21 +187,6 @@ public:
 	 * @param B right hand side and result after all
 	 */
 	virtual int Substitution( TPZFMatrix<TVar> * B ) const override;
-
-    TPZVec<TVar> &A()
-    {
-        return fA;
-    }
-
-    TPZVec<int64_t> &IA()
-    {
-        return fIA;
-    }
-
-    TPZVec<int64_t> &JA()
-    {
-        return fJA;
-    }
 	
 	//@}
 	
@@ -233,7 +218,7 @@ protected:
 	
 	/**
 	 * @brief Implements a initialization method for the sparse structure. It sets the initial value for the fIA and fJA.
-	 */
+	 */ 
 	/**
 	 * -fIA will contain the initial positions for all the equations
 	 * -fJA will contain (-1) on all its positions
