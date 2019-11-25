@@ -98,6 +98,32 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 	out << "\n";
 }
 
+/// return the permeability and compute it if there is permeability function
+void TPZMixedPoisson::GetPermeability(TPZVec<REAL> &x, TPZFMatrix<REAL> &PermTensor, TPZFMatrix<REAL> &InvPermTensor)
+{
+
+
+    PermTensor = this->fTensorK;
+    InvPermTensor = this->fInvK;
+    //int rtens = 2*fDim;
+    if(fPermeabilityFunction){
+        PermTensor.Zero();
+        InvPermTensor.Zero();
+        TPZFNMatrix<18,STATE> resultMat(2*3,3,0.);
+        TPZManVector<STATE> res;
+        fPermeabilityFunction->Execute(x,res,resultMat);
+        
+        for(int id=0; id<3; id++){
+            for(int jd=0; jd<3; jd++){
+                
+                PermTensor(id,jd) = resultMat(id,jd);
+                InvPermTensor(id,jd) = resultMat(id+fDim,jd);
+            }
+        }
+    }
+}
+
+
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
 //#ifdef PZDEBUG
@@ -116,24 +142,10 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 		force = res[0];
 	}
     
-    TPZFNMatrix<9,REAL> PermTensor = fTensorK;
-    TPZFNMatrix<9,REAL> InvPermTensor = fInvK;
-    //int rtens = 2*fDim;
-    if(fPermeabilityFunction){
-        PermTensor.Zero();
-        InvPermTensor.Zero();
-        TPZFNMatrix<18,STATE> resultMat(2*3,3,0.);
-        TPZManVector<STATE> res;
-        fPermeabilityFunction->Execute(datavec[1].x,res,resultMat);
-        
-        for(int id=0; id<3; id++){
-            for(int jd=0; jd<3; jd++){
-                
-                PermTensor(id,jd) = resultMat(id,jd);
-                InvPermTensor(id,jd) = resultMat(id+fDim,jd);
-            }
-        }
-    }
+    TPZFNMatrix<9,REAL> PermTensor;
+    TPZFNMatrix<9,REAL> InvPermTensor;
+    
+    GetPermeability(datavec[1].x, PermTensor, InvPermTensor);
     
     // Setting the phis
     TPZFMatrix<REAL> &phiQ = datavec[0].phi;
@@ -550,17 +562,45 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 		DebugStop();
 	}
 #endif
+    
+    int dim = Dimension();
 	
 	TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
 	int phrq = phiQ.Rows();
 
-	REAL v2;
+    REAL v2 = bc.Val2()(0,0);
+    REAL v1 = bc.Val1()(0,0);
     if(bc.HasForcingFunction())
     {
 		TPZManVector<STATE> res(3);
-        TPZFNMatrix<9,STATE> gradu(Dimension(),1);
+        TPZFNMatrix<9,STATE> gradu(dim,1);
         bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
-		v2 = res[0];
+        if(bc.Type() == 0)
+        {
+            v2 = res[0];
+        }
+        else if(bc.Type() == 1 || bc.Type() == 2)
+        {
+            TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
+            GetPermeability(datavec[0].x, PermTensor, InvPermTensor);
+            REAL normflux = 0.;
+            for(int i=0; i<3; i++)
+            {
+                for(int j=0; j<dim; j++)
+                {
+                    normflux -= datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
+                }
+            }
+            v2 = -normflux;
+            if(bc.Type() ==2)
+            {
+                v2 = -res[0]+v2/v1;
+            }
+        }
+        else
+        {
+            DebugStop();
+        }
 	}else
     {
         v2 = bc.Val2()(0,0);
@@ -593,10 +633,9 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
                 
 				ef(iq,0) += v2*phiQ(iq,0)*weight;
 				for (int jq = 0; jq < phrq; jq++) {
-					ek(iq,jq) += weight*bc.Val1()(0,0)*phiQ(iq,0)*phiQ(jq,0);
+					ek(iq,jq) += weight/v1*phiQ(iq,0)*phiQ(jq,0);
 				}
 			}
-            
             break;
 	}
     

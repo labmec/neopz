@@ -282,6 +282,9 @@ public:
   	/** @brief Calculates the submesh stiffness matrix */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
 	
+    /// Initialize the datastructure of ef
+    void InitializeEF(TPZElementMatrix &ef);
+    
     /**
      * @brief Computes the element right hand side
      * @param ef element load vector(s)

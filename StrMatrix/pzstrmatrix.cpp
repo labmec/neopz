@@ -428,7 +428,6 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
             } else {
                 sout << "Residual for computational element without associated geometric element index " << el->Index() << "\n";
             }
-            ef.Print(sout);
             LOGPZ_DEBUG(loggerel, sout.str())
         }
 #endif
@@ -445,6 +444,14 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
             fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat, ef.fSourceIndex, ef.fDestinationIndex);
         }
+#ifdef LOG4CXX
+        if(loggerel->isDebugEnabled())
+        {
+            std::stringstream sout;
+            ef.Print(sout);
+            LOGPZ_DEBUG(loggerel, sout.str())
+        }
+#endif
 
         assemble.stop();
 

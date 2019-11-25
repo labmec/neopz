@@ -70,6 +70,10 @@ protected:
 	/** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
 	TPZFMatrix<STATE>	fSolution;
+    
+    /** @brief Solution at previous state
+     */
+    TPZFMatrix<STATE>  fSolN;
 	
 	/** @brief Block structure to right construction of the stiffness matrix and load vector */
 	//TPZBlock<REAL>		fBlock;
@@ -561,6 +565,10 @@ public:
 	 * @param sol given solution matrix
 	 */
 	void LoadSolution(const TPZFMatrix<STATE> &sol);
+    
+    /** update the solution at the previous state with fSolution and
+        set fSolution to the previous state */
+    void UpdatePreviousState(REAL mult);
     
     /**
      * @brief Transfer multiphysics mesh solution

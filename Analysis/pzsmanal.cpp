@@ -92,6 +92,8 @@ void TPZSubMeshAnalysis::Assemble(){
 	//	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
 //	time_t before = time (NULL);
 	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
+    
+    matred->SetF(fRhs);
 //	time_t after = time(NULL);
 //	double diff = difftime(after, before);
 //	std::cout << __PRETTY_FUNCTION__ << " tempo " << diff << std::endl;
@@ -111,7 +113,10 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
         DebugStop();
     }
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
-	matred->SetF(fRhs);
+    if(!matred)
+    {
+        DebugStop();
+    }
 }
 void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 //	time_t tempo = time(NULL);

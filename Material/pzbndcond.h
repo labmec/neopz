@@ -433,6 +433,10 @@ virtual int ClassId() const override;
 	virtual void FillDataRequirements(TPZMaterialData &data) override;
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData> &datavec)  override;
+    
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) override;
+    
+
 	
 };
 

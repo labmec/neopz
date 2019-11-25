@@ -36,6 +36,7 @@ TPZMatrix<TVar>( 0, 0 ), fK11(0,0),fK01(0,0),fK10(0,0),fF0(0,0),fF1(0,0), fMaxRi
 	fDim1=0;
 	fK01IsComputed = 0;
 	fIsReduced = 0;
+    fF0IsComputed = false;
 }
 
 template<class TVar, class TSideMatrix>
@@ -48,6 +49,7 @@ fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyMode
 	fDim0=dim00;
 	fDim1=dim-dim00;
 	fK01IsComputed = 0;
+    fF0IsComputed = false;
 	fIsReduced = 0;
 }
 
@@ -142,6 +144,7 @@ void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 	
 	fF0.Redim(fDim0,FCols);
 	fF1.Redim(fDim1,FCols);
+    fF0IsComputed = false;
 	
 	for(c=0; c<FCols; c++){
 		r1=0;
@@ -483,6 +486,7 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int64_t dim, int64_t dim00){
 	this->fCol = dim;
     fIsReduced = false;
     fK01IsComputed = false;
+    fF0IsComputed = false;
 
 	return 0;
 }
@@ -493,6 +497,7 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	if(fK00) fK00->Zero();
     fIsReduced = false;
     fK01IsComputed = false;
+    fF0IsComputed = false;
 	fK01.Zero();
 	fK10.Zero();
 	fK11.Zero();
