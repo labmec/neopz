@@ -44,13 +44,18 @@ void TPZHybridizeHDiv::ComputeNState(TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
 void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec_Hybrid) {
     int maxMatId = std::numeric_limits<int>::min();
     for (auto &mesh : meshvec_Hybrid) {
+        
+        if(!mesh) continue;
+        
         for (auto &mat : mesh->MaterialVec()) {
             maxMatId = std::max(maxMatId, mat.first);
         }
     }
     if(meshvec_Hybrid.size())
     {
-        TPZGeoMesh *gmesh = meshvec_Hybrid[0]->Reference();
+        
+        
+        TPZGeoMesh *gmesh = meshvec_Hybrid[1]->Reference();
         int64_t nel = gmesh->NElements();
         for(int64_t el=0; el<nel; el++)
         {
@@ -226,34 +231,36 @@ TPZCompElSide TPZHybridizeHDiv::RightElement(TPZInterpolatedElement *intel, int 
 
 void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
     InsertPeriferalMaterialObjects(meshvec_Hybrid);
-    TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
-    TPZGeoMesh *gmesh = fluxmesh->Reference();
-    int dim = gmesh->Dimension();
-    gmesh->ResetReference();
-    fluxmesh->LoadReferences();
-    int64_t nel = fluxmesh->NElements();
-    std::list<std::tuple<int64_t, int> > pressures;
-    for (int64_t el = 0; el < nel; el++) {
-        TPZCompEl *cel = fluxmesh->Element(el);
-        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
-        if (!intel || intel->Reference()->Dimension() != dim) {
-            continue;
-        }
-        // loop over the side of dimension dim-1
-        TPZGeoEl *gel = intel->Reference();
-        for (int side = gel->NCornerNodes(); side < gel->NSides() - 1; side++) {
-            if (gel->SideDimension(side) != dim - 1) {
+    
+        TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
+        TPZGeoMesh *gmesh = fluxmesh->Reference();
+        int dim = gmesh->Dimension();
+        gmesh->ResetReference();
+        fluxmesh->LoadReferences();
+        int64_t nel = fluxmesh->NElements();
+        std::list<std::tuple<int64_t, int> > pressures;
+        for (int64_t el = 0; el < nel; el++) {
+            TPZCompEl *cel = fluxmesh->Element(el);
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cel);
+            if (!intel || intel->Reference()->Dimension() != dim) {
                 continue;
             }
-            TPZCompElSide celside(intel, side);
-            TPZCompElSide neighcomp = RightElement(intel, side);
-            if (neighcomp) {
-                pressures.push_back(SplitConnects(celside, neighcomp, meshvec_Hybrid));
+            // loop over the side of dimension dim-1
+            TPZGeoEl *gel = intel->Reference();
+            for (int side = gel->NCornerNodes(); side < gel->NSides() - 1; side++) {
+                if (gel->SideDimension(side) != dim - 1) {
+                    continue;
+                }
+                TPZCompElSide celside(intel, side);
+                TPZCompElSide neighcomp = RightElement(intel, side);
+                if (neighcomp) {
+                    pressures.push_back(SplitConnects(celside, neighcomp, meshvec_Hybrid));
+                }
             }
         }
-    }
-    fluxmesh->InitializeBlock();
-    fluxmesh->ComputeNodElCon();
+        fluxmesh->InitializeBlock();
+        fluxmesh->ComputeNodElCon();
+        
     TPZCompMesh *pressuremesh = meshvec_Hybrid[1];
     gmesh->ResetReference();
     pressuremesh->SetDimModel(gmesh->Dimension()-1);
@@ -518,12 +525,16 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &mes
         matPerif->SetNStateVariables(fNState);
         pressuremesh->InsertMaterialObject(matPerif);
     }
-    TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
-    if (!fluxmesh->FindMaterial(fHDivWrapMatid)) {
-        auto matPerif = new TPZNullMaterial(fHDivWrapMatid);
-        matPerif->SetDimension(dim-1);
-        matPerif->SetNStateVariables(fNState);
-        fluxmesh->InsertMaterialObject(matPerif);
+    
+    if(meshvec_Hybrid[0]!=NULL){
+    
+        TPZCompMesh *fluxmesh = meshvec_Hybrid[0];
+        if (!fluxmesh->FindMaterial(fHDivWrapMatid)) {
+            auto matPerif = new TPZNullMaterial(fHDivWrapMatid);
+            matPerif->SetDimension(dim-1);
+            matPerif->SetNStateVariables(fNState);
+            fluxmesh->InsertMaterialObject(matPerif);
+        }
     }
 }
 

@@ -1035,10 +1035,11 @@ void TPZAnalysis::PostProcess(int resolution) {
 	}
 }
 
-/** @brief Fill mat ids with materials with dimension dim wich are not boundary conditinos or interface  */
+/** @brief Fill mat ids with materials with dimension dim wich are not boundary conditions or interface  */
 void TPZAnalysis::IdentifyPostProcessingMatIds(int dimension, std::set<int> & matids){
     std::map<int, TPZMaterial * >::iterator matit;
     for (matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++) {
+        
         TPZMaterial *mat = matit->second;
         TPZBndCond *bc = dynamic_cast<TPZBndCond *> (mat);
         TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *> (mat);
