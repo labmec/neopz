@@ -372,7 +372,10 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
+            STATE val = blockMF.Get(seqnumMF, idf, 0);
+            int64_t pos = block.Position(seqnum);
+            atomic_mesh->Solution()(pos+idf) = val;
+            
         }
     }
     int64_t nel = MFMesh->NElements();
