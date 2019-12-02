@@ -32,7 +32,7 @@ namespace pztopology{
             DebugStop();
         }
         #endif
-        permutation.Resize(Topology::NSides,-1);
+        if(permutation.size() != Topology::NSides)  permutation.Resize(Topology::NSides,-1);
         for(int i = 0; i < Topology::NSides; i++) permutation[i] = Topology::fPermutations[permutationIndex][i];
     }
 

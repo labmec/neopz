@@ -1574,7 +1574,7 @@ namespace pztopology {
 	}
     
     template <class TVar>
-    void TPZPyramid::ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+    void TPZPyramid::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
@@ -1765,7 +1765,7 @@ namespace pztopology {
     }
     
 
-    void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZPyramid::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*3+1;
         
@@ -1781,7 +1781,7 @@ namespace pztopology {
         }
     }
 
-    void TPZPyramid::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZPyramid::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides()*3+1;
         
@@ -1893,7 +1893,7 @@ template void pztopology::TPZPyramid::BlendFactorForSide<REAL>(const int &, cons
 
 template void pztopology::TPZPyramid::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void pztopology::TPZPyramid::ComputeDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+template void pztopology::TPZPyramid::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 
 template void pztopology::TPZPyramid::AdjustTopDirections<REAL>(int ConstrainedFace, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
@@ -1906,7 +1906,7 @@ template void pztopology::TPZPyramid::BlendFactorForSide<Fad<REAL>>(const int &,
                                                                    TPZVec<Fad<REAL>> &);
 template void pztopology::TPZPyramid::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
-template void pztopology::TPZPyramid::ComputeDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+template void pztopology::TPZPyramid::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 
 template void pztopology::TPZPyramid::AdjustTopDirections<Fad<REAL> >(int ConstrainedFace, TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

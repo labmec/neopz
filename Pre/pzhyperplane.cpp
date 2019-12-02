@@ -286,8 +286,8 @@ void TPZHyperPlaneIntersect::Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<s
         for (int i=0; i<3; i++) {
             inner += vecpoint3[i]*normaledge3[i];
         }
-        REAL normvecpoint3 = TPZNumeric::Norma(vecpoint3);
-        REAL normvecedge1 = TPZNumeric::Norma(vecedge1);
+        REAL normvecpoint3 = TPZNumeric::Norm(vecpoint3);
+        REAL normvecedge1 = TPZNumeric::Norm(vecedge1);
         if (inner > 1.e-10 || normvecpoint3 < 1.e-8 || normvecedge1 < 1.e-8) {
             // FOUND the orientation!!!
 #ifdef LOG4CXX
@@ -398,7 +398,7 @@ int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<
             vecj = XNodes[jn]-center;
             TPZNumeric::NormalizeVetor3(vecj);
             TPZNumeric::ProdVetorial(veci, vecj, vecprod);
-            REAL vecprodnorm = TPZNumeric::Norma(vecprod);
+            REAL vecprodnorm = TPZNumeric::Norm(vecprod);
             normalnorm(in,jn) = vecprodnorm;
             if (vecprodnorm > maxnorm) {
                 maxnorm = vecprodnorm;

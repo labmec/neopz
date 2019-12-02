@@ -236,20 +236,20 @@ namespace pztopology {
 	}
 		
 		/** @brief Volume of the master element (measure of the element) */
-		static REAL RefElVolume() {
+		static constexpr REAL RefElVolume() {
 			return 0.;
 		}
         
         /* Given side and gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao)
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao)
         {
             sides[0] = 0;
             dir[0] = 0;
             bilinearounao[0] = 0;
         }
 
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors)
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors)
         {
             sides[0] = 0;
             dir[0] = 0;
@@ -259,7 +259,7 @@ namespace pztopology {
 
         /// Compute the directions of the HDiv vectors
         template <class TVar>
-        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+        static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
         {
         }
         
