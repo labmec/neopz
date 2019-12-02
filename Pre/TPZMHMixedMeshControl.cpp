@@ -232,7 +232,7 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
         
     }
     
-
+    cmeshHDiv->ExpandSolution();
 #ifdef PZDEBUG
    // if(0)
     {

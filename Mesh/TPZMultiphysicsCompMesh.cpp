@@ -363,6 +363,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
             int blsize = block.Size(seqnum);
             TPZConnect &conMF = ConnectVec()[FirstConnectIndex[i_as]+ic];
             int64_t seqnumMF = conMF.SequenceNumber();
+            if(seqnumMF < 0) continue;
             for (int idf=0; idf<blsize; idf++) {
                 blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
             }
