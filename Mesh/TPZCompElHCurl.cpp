@@ -18,7 +18,41 @@ TPZRegisterClassId(&TPZCompElHCurl::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1),
         fSidePermutation(TSHAPE::NSides - TSHAPE::NCornerNodes,1),
         fMasterDirections(TSHAPE::Dimension,TSHAPE::Dimension * TSHAPE::NSides,0){
-    const int nNodes = gel->NCornerNodes();
+    constexpr int nNodes = TSHAPE::NCornerNodes;
+    constexpr int nConnects = TSHAPE::NSides - nNodes;
+    gel->SetReference(this);
+    this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
+    this->fConnectIndexes.Resize(nConnects);
+    TPZStack<int> facesides;
+    TSHAPE::LowerDimensionSides(TSHAPE::NSides-1,facesides,TSHAPE::Dimension-1);
+    facesides.Push(TSHAPE::NSides-1);
+    for(int i=0;i< facesides.size(); i++) {
+        std::cout<<facesides[i]<<std::endl;
+        int sideaux= facesides[i];
+        this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
+        mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
+        this->IdentifySideOrder(sideaux);
+    }
+    for(auto i = 0; i < nConnects; i++)
+    {
+        const   int sideId= nNodes + i;
+        std::cout<<sideId<<std::endl;
+        this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "After creating last HCurl connect " << i << std::endl;
+            //	this->Print(sout);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+
+        mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
+        this->IdentifySideOrder(sideId);
+    }
+    this->AdjustIntegrationRule();
+    //compute transform ids for all sides
     TPZVec<int64_t> nodes(nNodes, 0);
     for (auto i = 0; i < nNodes; i++) nodes[i] = gel->NodeIndex(i);
     //computing transformation id for sides
@@ -182,6 +216,61 @@ int TPZCompElHCurl<TSHAPE>::NSideConnects(int side) const{
     else return 1;
 }
 
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
+#ifndef NODEBUG
+    if(i<0 || i>= this->NConnects()) {
+        std::cout << " TPZCompElHCurl<TSHAPE>::SetConnectIndex index " << i <<
+                  " out of range\n";
+        DebugStop();
+        return;
+    }
+#endif
+    this-> fConnectIndexes[i] = connectindex;
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
+}
+
+template<class TSHAPE>
+int TPZCompElHCurl<TSHAPE>::NConnectShapeF(int icon, int order) const {
+    //@TODOFran:change this depending on the family
+    const int side = icon + TSHAPE::NCornerNodes;
+#ifdef PZDEBUG
+    if (side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) {
+        DebugStop();
+    }
+#endif
+    constexpr auto nEdges = TSHAPE::NSides - 1 - TSHAPE::NFaces - TSHAPE::NCornerNodes;
+    const int sideOrder = EffectiveSideOrder(side);
+    if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
+        return 1 + sideOrder;
+    }
+    else if(side < TSHAPE::NSides - 1){//face connect, 3D element
+        const int factor = [&](){
+            switch(TSHAPE::NSideNodes(side)){
+                case 3://triangular face
+                    return 1;
+                case 4://quadrilateral face
+                    return 2;
+                default:
+                    PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
+                    DebugStop();
+                    return 0;
+            }
+        }();
+        return factor * (sideOrder - 1) * (sideOrder + 1);
+    }
+    else{//internal connect
+        return -1;
+    }
+    return -1;
+}
 
 #include "pzshapelinear.h"
 #include "pzshapetriang.h"

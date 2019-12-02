@@ -60,6 +60,19 @@ public:
     int SideConnectLocId(int node, int side) const override;
 
     int NSideConnects(int side) const override;
+
+    int NCornerConnects() const override {
+        return 0;
+    }
+
+    void SetConnectIndex(int i, int64_t connectindex) override;
+
+    /**
+    * @brief Number of shapefunctions of the connect associated
+    * @param connect connect number
+    * @return number of shape functions
+    */
+    int NConnectShapeF(int connect, int order) const override;
 //
 //	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 //		return new TPZCompElHCurl<TSHAPE> (mesh, *this);
@@ -85,7 +98,7 @@ public:
 //
 //	virtual MElementType Type() override;
 //
-//	virtual void SetConnectIndex(int i, int64_t connectindex) override;
+
 //
 //    /// return the first one dof restraint
 //    int RestrainedFace();
