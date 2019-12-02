@@ -23,6 +23,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include "fad.h"
 #endif
 
+#include <pzgengrid.h>
+#include <pzcmesh.h>
+#include <TPZMatHelmholtz2D.cpp>
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
 
@@ -53,6 +56,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         constexpr REAL tol = 1e-10;
         template <class TTopol>
         void CompareVectorTraces(const TPZFMatrix<REAL> &);
+        void TestExampleMesh2D(MElementType type);
 
         namespace auxiliaryfuncs{
             void ComputeDirections (TPZGeoEl *, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &,const TPZVec<int> &);
@@ -60,6 +64,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             void VectorProduct(TPZVec<REAL> &, TPZVec<REAL> &, TPZVec<REAL> &);
 
             void ComputeNormal(TPZGeoMesh *, TPZVec<int64_t>, TPZVec<REAL> &);
+
+            TPZGeoMesh *CreateGeoMesh(const int dim, int nelx, int nely, MElementType meshType, TPZVec<int> &matIds);
         }
     }
 
@@ -113,6 +119,11 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             nodeCoords(5,0) =  0;   nodeCoords(5,1) =  1;   nodeCoords(5,2) =  1;
             hcurltest::CompareVectorTraces<pztopology::TPZPrism>(nodeCoords);
         }
+    }
+
+    BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
+        hcurltest::TestExampleMesh2D(ETriangle);
+
     }
 
     namespace hcurltest{
@@ -408,6 +419,37 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             }//iPermute
         }//hcurltest::CompareVectorTraces
 
+        void TestExampleMesh2D(MElementType type){
+            std::cout << __PRETTY_FUNCTION__ << MElementType_Name(type)<<std::endl;
+            constexpr int dim{2};
+            constexpr int ndiv{4};
+            constexpr int pOrder{1};
+            TPZManVector<int,2> matIds(2,-1);
+            auto gmesh = auxiliaryfuncs::CreateGeoMesh(dim,ndiv,ndiv,type,matIds);
+            auto cmesh = new TPZCompMesh(gmesh);
+            cmesh->SetDefaultOrder(pOrder);
+            cmesh->SetDimModel(dim);
+
+            auto mat = new TPZMatHelmholtz2D(matIds[0],1,1);
+            cmesh->InsertMaterialObject(mat);
+            //Boundary conditions
+            constexpr int dirichlet = 0;
+            constexpr int neumann = 1;
+            TPZFMatrix<STATE> val1(1,1,0.0);
+            TPZFMatrix<STATE> val2(1,1,0.0);
+
+            const int &matIdBc1 = matIds[1];
+            val2(0,0)=0.0;
+            auto bc1 = mat->CreateBC(mat, matIdBc1, dirichlet, val1, val2);
+            cmesh->InsertMaterialObject(bc1);
+            cmesh->SetAllCreateFunctionsHCurl();
+            cmesh->AutoBuild();
+            cmesh->AdjustBoundaryElements();
+            cmesh->CleanUpUnconnectedNodes();
+            delete cmesh;
+            delete gmesh;
+        }//hcurltest::TestExampleMesh2D
+
 
         namespace auxiliaryfuncs{
             void ComputeDirections (TPZGeoEl *gel, TPZFMatrix<REAL> &deformedDirections,
@@ -498,6 +540,57 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 norm = std::sqrt(norm);
                 for(auto x = 0; x < 3; x++) result[x] /= norm;
             };//ComputeNormal
+
+            TPZGeoMesh *CreateGeoMesh(const int dim, int nelx, int nely, MElementType meshType, TPZVec<int> &matIds) {
+                //Creating geometric mesh, nodes and elements.
+                //Including nodes and elements in the mesh object:
+                TPZGeoMesh *gmesh = new TPZGeoMesh();
+                gmesh->SetDimension(dim);
+
+                //Auxiliary vector to store coordinates:
+                TPZVec<REAL> coord1(3, 0.);
+                TPZVec<REAL> coord2(3, 0.);
+                coord1[0] = 0;coord1[1] = 0;coord1[2] = 0;
+                coord2[0] = 1;coord2[1] = 1;coord2[2] = 0;
+
+                TPZManVector<int> nelem(2, 1);
+                nelem[0] = nelx;
+                nelem[1] = nely;
+
+                TPZGenGrid gengrid(nelem, coord1, coord2);
+
+                switch (meshType) {
+                    case EQuadrilateral:
+                        gengrid.SetElementType(EQuadrilateral);
+                        break;
+                    case ETriangle:
+                        gengrid.SetElementType(ETriangle);
+                        break;
+                    default:
+                        DebugStop();
+                }
+                constexpr int matIdDomain = 1, matIdBoundary = 2;
+                gengrid.Read(gmesh, matIdDomain);
+                gengrid.SetBC(gmesh, 4, matIdBoundary);
+                gengrid.SetBC(gmesh, 5, matIdBoundary);
+                gengrid.SetBC(gmesh, 6, matIdBoundary);
+                gengrid.SetBC(gmesh, 7, matIdBoundary);
+
+                gmesh->BuildConnectivity();
+
+                {
+                    TPZCheckGeom check(gmesh);
+                    check.CheckUniqueId();
+                }
+                matIds.Resize(2);
+                matIds[0] = matIdDomain;
+                matIds[1] = matIdBoundary;
+                //Printing geometric mesh:
+
+                //ofstream bf("before.vtk");
+                //TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bf);
+                return gmesh;
+            }//CreateGeoMesh
         }//namespace
     }//namespace
 
