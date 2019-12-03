@@ -205,6 +205,20 @@ int TPZCompElHCurl<TSHAPE>::NSideConnects(int side) const{
 }
 
 template<class TSHAPE>
+int64_t TPZCompElHCurl<TSHAPE>::ConnectIndex(int con) const{
+#ifndef NODEBUG
+    if(con <0 || con >= this->NConnects()) {
+        std::cout <<__PRETTY_FUNCTION__ <<" wrong parameter connect " << con <<
+                  " NConnects " << this-> NConnects() << std::endl;
+        DebugStop();
+        return -1;
+    }
+
+#endif
+    return this->fConnectIndexes[con];
+}
+
+template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 #ifndef NODEBUG
     if(i<0 || i>= this->NConnects()) {

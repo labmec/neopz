@@ -65,6 +65,8 @@ public:
         return 0;
     }
 
+    int64_t ConnectIndex(int con) const override;
+
     void SetConnectIndex(int i, int64_t connectindex) override;
 
     /**

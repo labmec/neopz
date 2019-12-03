@@ -26,6 +26,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include <pzgengrid.h>
 #include <pzcmesh.h>
 #include <TPZMatHelmholtz2D.cpp>
+#include <pzanalysis.h>
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
 
@@ -123,8 +124,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
     BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
 
-    for(auto k = 0; k < 5; k++) hcurltest::TestExampleMesh2D(ETriangle, k);
-    for(auto k = 0; k < 5; k++) hcurltest::TestExampleMesh2D(EQuadrilateral, k);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestExampleMesh2D(ETriangle, k);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestExampleMesh2D(EQuadrilateral, k);
 
     }
 
@@ -448,6 +449,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AutoBuild();
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
+
+            TPZAnalysis an(cmesh);
+            an.Assemble();
+            an.Solve();
             delete cmesh;
             delete gmesh;
         }//hcurltest::TestExampleMesh2D
