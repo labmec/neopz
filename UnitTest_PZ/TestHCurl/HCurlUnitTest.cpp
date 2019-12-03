@@ -450,9 +450,9 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
 
-            TPZAnalysis an(cmesh);
-            an.Assemble();
-            an.Solve();
+//            TPZAnalysis an(cmesh);
+//            an.Assemble();
+//            an.Solve();
             delete cmesh;
             delete gmesh;
         }//hcurltest::TestExampleMesh2D

@@ -8,6 +8,22 @@
 
 #include <pzelctemp.h>
 
+
+class TPZHCurlSettings{
+public:
+    enum EHCurlFamily{EFullOrder = 1};
+private:
+    static EHCurlFamily hCurlFamily;
+public:
+    static void SetHCurlFamily(EHCurlFamily fam){
+        hCurlFamily = fam;
+    }
+
+    static EHCurlFamily GetHCurlFamily(){
+        return hCurlFamily;
+    }
+};
+
 /**
  * @brief This class implements a "generic" computational HCurl-conforming element. \ref CompElement "Computational Element"
  * @addtogroup CompElement
@@ -18,7 +34,7 @@
  */
 template<class TSHAPE>
 class TPZCompElHCurl : public TPZIntelGen<TSHAPE> {
-
+protected:
     /// vector describing the permutation associated with each side
     TPZManVector<int, TSHAPE::NSides - TSHAPE::NCornerNodes> fSidePermutation;
 
@@ -29,7 +45,6 @@ class TPZCompElHCurl : public TPZIntelGen<TSHAPE> {
     TPZFNMatrix<TSHAPE::Dimension * TSHAPE::Dimension * TSHAPE::NSides,REAL> fMasterDirections;
 
 public:
-	    
 	TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
 	
 	TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy);
@@ -49,7 +64,8 @@ public:
 
     /** @brief Returns the unique identifier for reading/writing objects to streams */
     int ClassId() const override;
-
+    //since TPZCompElHCurl is an abstract class
+    static int StaticClassId();
     /** @brief Set create function in TPZCompMesh to create elements of this type */
 	void SetCreateFunctions(TPZCompMesh *mesh) override;
 
@@ -74,7 +90,7 @@ public:
     * @param connect connect number
     * @return number of shape functions
     */
-    int NConnectShapeF(int connect, int order) const override;
+    int NConnectShapeF(int connect, int order) const override = 0;
 
     /**
     * @brief return the interpolation order of the polynomial for connect
@@ -86,6 +102,8 @@ public:
 
     /** @brief Sets the interpolation order of side to order*/
     void SetSideOrder(int side, int order) override;
+protected:
+    void CreateHCurlConnects(TPZCompMesh &mesh);
 //
 //	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 //		return new TPZCompElHCurl<TSHAPE> (mesh, *this);

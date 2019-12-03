@@ -12,6 +12,9 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
 static LoggerPtr loggercurl(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
 #endif
 
+
+TPZHCurlSettings::EHCurlFamily TPZHCurlSettings::hCurlFamily = TPZHCurlSettings::EHCurlFamily::EFullOrder;
+
 template<class TSHAPE>
 TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
@@ -19,9 +22,28 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1),
         fSidePermutation(TSHAPE::NSides - TSHAPE::NCornerNodes,1),
         fMasterDirections(TSHAPE::Dimension,TSHAPE::Dimension * TSHAPE::NSides,0){
     constexpr int nNodes = TSHAPE::NCornerNodes;
-    constexpr int nConnects = TSHAPE::NSides - nNodes;
     gel->SetReference(this);
     this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
+    /*************************************************************************************
+     THE CONNECTS SHOULD BE CREATED IN THE DERIVED CLASS'S CONSTRUCTOR CALLING THE METHOD
+                    TPZCompElHCurl<TSHAPE>::CreateHCurlConnects
+     ************************************************************************************/
+    //compute transform ids for all sides
+    TPZVec<int64_t> nodes(nNodes, 0);
+    for (auto i = 0; i < nNodes; i++) nodes[i] = gel->NodeIndex(i);
+    //computing transformation id for sides
+    for(auto iSide = 0 ; iSide < TSHAPE::NSides - TSHAPE::NCornerNodes; iSide++){
+        fSidePermutation[iSide] = TSHAPE::GetTransformId(nNodes + iSide, nodes);
+    }
+    TPZFMatrix<REAL> gradX(TSHAPE::Dimension, TSHAPE::Dimension, 0);
+    for (auto x = 0; x < TSHAPE::Dimension; x++) gradX(x, x) = 1;
+    TSHAPE::ComputeHCurlDirections(gradX,fMasterDirections,fSidePermutation);
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
+    constexpr int nNodes = TSHAPE::NCornerNodes;
+    constexpr int nConnects = TSHAPE::NSides - nNodes;
     this->fConnectIndexes.Resize(nConnects);
     for(auto i = 0; i < nConnects; i++){
         const int sideId = nNodes + i;
@@ -39,16 +61,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1),
         this->IdentifySideOrder(sideId);
     }
     this->AdjustIntegrationRule();
-    //compute transform ids for all sides
-    TPZVec<int64_t> nodes(nNodes, 0);
-    for (auto i = 0; i < nNodes; i++) nodes[i] = gel->NodeIndex(i);
-    //computing transformation id for sides
-    for(auto iSide = 0 ; iSide < TSHAPE::NSides - TSHAPE::NCornerNodes; iSide++){
-        fSidePermutation[iSide] = TSHAPE::GetTransformId(nNodes + iSide, nodes);
-    }
-    TPZFMatrix<REAL> gradX(TSHAPE::Dimension, TSHAPE::Dimension, 0);
-    for (auto x = 0; x < TSHAPE::Dimension; x++) gradX(x, x) = 1;
-    TSHAPE::ComputeHCurlDirections(gradX,fMasterDirections,fSidePermutation);
 }
 
 template<class TSHAPE>
@@ -147,7 +159,12 @@ TPZCompElHCurl<TSHAPE>::~TPZCompElHCurl(){
 
 template<class TSHAPE>
 int TPZCompElHCurl<TSHAPE>::ClassId() const{
-    return Hash("TPZCompElHCurl") ^ TPZIntelGen<TSHAPE>::ClassId() << 1;
+    return TPZCompElHCurl<TSHAPE>::StaticClassId();
+}
+
+template<class TSHAPE>
+int TPZCompElHCurl<TSHAPE>::StaticClassId(){
+    return Hash("TPZCompElHCurl") ^ TPZIntelGen<TSHAPE>().ClassId() << 1;
 }
 
 
@@ -240,74 +257,6 @@ void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 }
 
 template<class TSHAPE>
-int TPZCompElHCurl<TSHAPE>::NConnectShapeF(int icon, int order) const {
-    //@TODOFran:change this depending on the family
-    const int side = icon + TSHAPE::NCornerNodes;
-#ifdef PZDEBUG
-    if (side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) {
-        DebugStop();
-    }
-#endif
-    if(order == 0) return 0;//given the choice of implementation, there are no shape functions for k=0
-    const auto nFaces = TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NSides - 2 + TSHAPE::Dimension - nFaces - TSHAPE::NCornerNodes;
-    const auto sideOrder = EffectiveSideOrder(side);
-    const int nShapeF = [&](){
-        if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
-            return 1 + sideOrder;
-        }
-        else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
-            const int factor = [&](){
-
-                switch(TSHAPE::Type(side)){
-                    case ETriangle://triangular face
-                        return 1;
-                    case EQuadrilateral://quadrilateral face
-                        return 2;
-                    default:
-                        PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
-                        DebugStop();
-                        return 0;
-                }
-            }();
-            return factor * (sideOrder - 1) * (sideOrder + 1);
-        }
-        else{//internal connect
-            int count = 0;
-            for(int iFace = 0; iFace < nFaces; iFace++){
-                const int faceOrder = EffectiveSideOrder(TSHAPE::NCornerNodes+nEdges + iFace);
-                switch(TSHAPE::Type(TSHAPE::NCornerNodes+nEdges + iFace)){
-                    case ETriangle://triangular face
-                        count += 0.5 * (faceOrder - 1) * ( faceOrder - 2);
-                        break;
-                    case EQuadrilateral://quadrilateral face
-                        count +=  (faceOrder - 1) * ( faceOrder - 1);
-                        break;
-                    default:
-                        PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
-                        DebugStop();
-                }
-            }
-            count += 3 * (TSHAPE::NConnectShapeF(side, sideOrder) );
-            return count;
-        }
-    }();
-
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << __PRETTY_FUNCTION__<<std::endl;
-        sout<<"\tside "<<side<<"\tcon "<<icon<<std::endl;
-        sout<<"\torder "<<order<<"\teffective order "<<sideOrder<<std::endl;
-        sout<<"\tn shape funcs "<<nShapeF;
-        LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    return nShapeF;
-}
-
-template<class TSHAPE>
 int TPZCompElHCurl<TSHAPE>::ConnectOrder(int connect) const {
     if (connect < 0 || connect >= this->NConnects()) {
         std::stringstream sout;
@@ -388,8 +337,6 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
 
 #define IMPLEMENTHCURL(TSHAPE) \
 \
-template class \
-TPZRestoreClass< TPZCompElHCurl<TSHAPE> >; \
 template class TPZCompElHCurl<TSHAPE>;
 
 IMPLEMENTHCURL(pzshape::TPZShapeLinear)
@@ -401,6 +348,7 @@ IMPLEMENTHCURL(pzshape::TPZShapePrism)
 
 #undef IMPLEMENTHCURL
 
+#include <TPZCompElHCurlFull.h>
 
 TPZCompEl * CreateHCurlBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	return nullptr;//return new TPZCompElHCurlBound2<TPZShapePoint>(mesh,gel,index);
@@ -410,41 +358,77 @@ TPZCompEl * CreateHCurlBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &in
 	return nullptr;//return new TPZCompElHCurlBound2< TPZShapeLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return nullptr;//return new TPZCompElHCurlBound2< TPZShapeQuad>(mesh,gel,index);
-}
-
 TPZCompEl * CreateHCurlBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
     return nullptr;//return new TPZCompElHCurlBound2< TPZShapeTriang >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZCompElHCurl< pzshape::TPZShapeLinear>(mesh,gel,index);
+TPZCompEl * CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    return nullptr;//return new TPZCompElHCurlBound2< TPZShapeQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHCurl< pzshape::TPZShapeQuad>(mesh,gel,index);
+TPZCompEl * CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    switch(TPZHCurlSettings::GetHCurlFamily()){
+        case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+            return new TPZCompElHCurlFull< pzshape::TPZShapeLinear>(mesh,gel,index);
+            break;
+        default:
+            DebugStop();
+    }
 }
 
 TPZCompEl * CreateHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHCurl< pzshape::TPZShapeTriang >(mesh,gel,index);
+    switch(TPZHCurlSettings::GetHCurlFamily()){
+        case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+            return new TPZCompElHCurlFull< pzshape::TPZShapeTriang >(mesh,gel,index);
+            break;
+        default:
+            DebugStop();
+    }
+}
+
+TPZCompEl * CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+	switch(TPZHCurlSettings::GetHCurlFamily()){
+	    case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+	        return new TPZCompElHCurlFull< pzshape::TPZShapeQuad>(mesh,gel,index);
+	        break;
+	    default:
+	        DebugStop();
+	}
+}
+
+TPZCompEl * CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    switch(TPZHCurlSettings::GetHCurlFamily()){
+        case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+            return new TPZCompElHCurlFull< pzshape::TPZShapeTetra >(mesh,gel,index);
+            break;
+        default:
+            DebugStop();
+    }
 }
 
 TPZCompEl * CreateHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHCurl< pzshape::TPZShapeCube >(mesh,gel,index);
+	switch(TPZHCurlSettings::GetHCurlFamily()){
+	    case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+	        return new TPZCompElHCurlFull< pzshape::TPZShapeCube >(mesh,gel,index);
+	        break;
+	    default:
+	        DebugStop();
+	}
 }
 
 TPZCompEl * CreateHCurlPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHCurl< pzshape::TPZShapePrism>(mesh,gel,index);
+	switch(TPZHCurlSettings::GetHCurlFamily()){
+	    case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+	        return new TPZCompElHCurlFull< pzshape::TPZShapePrism>(mesh,gel,index);
+	        break;
+	    default:
+	        DebugStop();
+	}
 }
 
 TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 	DebugStop();
     return nullptr;
-}
-
-TPZCompEl * CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return new TPZCompElHCurl< pzshape::TPZShapeTetra >(mesh,gel,index);
 }
 
 //
