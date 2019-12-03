@@ -56,7 +56,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         constexpr REAL tol = 1e-10;
         template <class TTopol>
         void CompareVectorTraces(const TPZFMatrix<REAL> &);
-        void TestExampleMesh2D(MElementType type);
+        void TestExampleMesh2D(MElementType type, const int pOrder);
 
         namespace auxiliaryfuncs{
             void ComputeDirections (TPZGeoEl *, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &,const TPZVec<int> &);
@@ -122,7 +122,9 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
     }
 
     BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
-        hcurltest::TestExampleMesh2D(ETriangle);
+
+    for(auto k = 0; k < 5; k++) hcurltest::TestExampleMesh2D(ETriangle, k);
+    for(auto k = 0; k < 5; k++) hcurltest::TestExampleMesh2D(EQuadrilateral, k);
 
     }
 
@@ -419,11 +421,11 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             }//iPermute
         }//hcurltest::CompareVectorTraces
 
-        void TestExampleMesh2D(MElementType type){
-            std::cout << __PRETTY_FUNCTION__ << MElementType_Name(type)<<std::endl;
+        void TestExampleMesh2D(MElementType type, const int pOrder){
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            std::cout<<"\t"<<MElementType_Name(type)<<" p = "<<pOrder<<std::endl;
             constexpr int dim{2};
             constexpr int ndiv{4};
-            constexpr int pOrder{1};
             TPZManVector<int,2> matIds(2,-1);
             auto gmesh = auxiliaryfuncs::CreateGeoMesh(dim,ndiv,ndiv,type,matIds);
             auto cmesh = new TPZCompMesh(gmesh);

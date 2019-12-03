@@ -23,20 +23,8 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1),
     gel->SetReference(this);
     this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
     this->fConnectIndexes.Resize(nConnects);
-    TPZStack<int> facesides;
-    TSHAPE::LowerDimensionSides(TSHAPE::NSides-1,facesides,TSHAPE::Dimension-1);
-    facesides.Push(TSHAPE::NSides-1);
-    for(int i=0;i< facesides.size(); i++) {
-        std::cout<<facesides[i]<<std::endl;
-        int sideaux= facesides[i];
-        this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
-        mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
-        this->IdentifySideOrder(sideaux);
-    }
-    for(auto i = 0; i < nConnects; i++)
-    {
-        const   int sideId= nNodes + i;
-        std::cout<<sideId<<std::endl;
+    for(auto i = 0; i < nConnects; i++){
+        const int sideId = nNodes + i;
         this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
@@ -47,7 +35,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1),
             LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
-
         mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
         this->IdentifySideOrder(sideId);
     }
@@ -193,6 +180,7 @@ int TPZCompElHCurl<TSHAPE>::SideConnectLocId(int node,int side) const {
 #ifdef LOG4CXX
         LOGPZ_ERROR(logger,sout.str())
 #endif
+        DebugStop();
         return -1;
     }
 #endif
@@ -208,7 +196,7 @@ int TPZCompElHCurl<TSHAPE>::NSideConnects(int side) const{
         sout << __PRETTY_FUNCTION__ << "Side: " << side <<"unhandled case\n";
         PZError<<sout.str();
 #ifdef LOG4CXX
-            LOGPZ_ERROR(logger,sout.str())
+        LOGPZ_ERROR(logger,sout.str())
 #endif
     }
 #endif
@@ -246,30 +234,135 @@ int TPZCompElHCurl<TSHAPE>::NConnectShapeF(int icon, int order) const {
         DebugStop();
     }
 #endif
-    constexpr auto nEdges = TSHAPE::NSides - 1 - TSHAPE::NFaces - TSHAPE::NCornerNodes;
-    const int sideOrder = EffectiveSideOrder(side);
-    if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
-        return 1 + sideOrder;
-    }
-    else if(side < TSHAPE::NSides - 1){//face connect, 3D element
-        const int factor = [&](){
-            switch(TSHAPE::NSideNodes(side)){
-                case 3://triangular face
-                    return 1;
-                case 4://quadrilateral face
-                    return 2;
-                default:
-                    PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
-                    DebugStop();
-                    return 0;
+    if(order == 0) return 0;//given the choice of implementation, there are no shape functions for k=0
+    const auto nFaces = TSHAPE::NumSides(2);
+    const auto nEdges = TSHAPE::NSides - 2 + TSHAPE::Dimension - nFaces - TSHAPE::NCornerNodes;
+    const auto sideOrder = EffectiveSideOrder(side);
+    const int nShapeF = [&](){
+        if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
+            return 1 + sideOrder;
+        }
+        else if(side < TSHAPE::NCornerNodes + nEdges + nFaces){//face connect
+            const int factor = [&](){
+
+                switch(TSHAPE::Type(side)){
+                    case ETriangle://triangular face
+                        return 1;
+                    case EQuadrilateral://quadrilateral face
+                        return 2;
+                    default:
+                        PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
+                        DebugStop();
+                        return 0;
+                }
+            }();
+            return factor * (sideOrder - 1) * (sideOrder + 1);
+        }
+        else{//internal connect
+            int count = 0;
+            for(int iFace = 0; iFace < nFaces; iFace++){
+                const int faceOrder = EffectiveSideOrder(TSHAPE::NCornerNodes+nEdges + iFace);
+                switch(TSHAPE::Type(TSHAPE::NCornerNodes+nEdges + iFace)){
+                    case ETriangle://triangular face
+                        count += 0.5 * (faceOrder - 1) * ( faceOrder - 2);
+                        break;
+                    case EQuadrilateral://quadrilateral face
+                        count +=  (faceOrder - 1) * ( faceOrder - 1);
+                        break;
+                    default:
+                        PZError<<__PRETTY_FUNCTION__<<" error."<<std::endl;
+                        DebugStop();
+                }
             }
-        }();
-        return factor * (sideOrder - 1) * (sideOrder + 1);
+            count += 3 * (TSHAPE::NConnectShapeF(side, sideOrder) );
+            return count;
+        }
+    }();
+
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << __PRETTY_FUNCTION__<<std::endl;
+        sout<<"\tside "<<side<<"\tcon "<<icon<<std::endl;
+        sout<<"\torder "<<order<<"\teffective order "<<sideOrder<<std::endl;
+        sout<<"\tn shape funcs "<<nShapeF;
+        LOGPZ_DEBUG(logger,sout.str())
     }
-    else{//internal connect
+#endif
+    return nShapeF;
+}
+
+template<class TSHAPE>
+int TPZCompElHCurl<TSHAPE>::ConnectOrder(int connect) const {
+    if (connect < 0 || connect >= this->NConnects()) {
+        std::stringstream sout;
+        sout << __PRETTY_FUNCTION__<<std::endl;
+        sout << "Connect index out of range connect " << connect << " nconnects " << NConnects();
+        PZError<<sout.str()<<std::endl;
+#ifdef LOG4CXX
+        LOGPZ_ERROR(logger, sout.str())
+#endif
+        DebugStop();
         return -1;
     }
-    return -1;
+    TPZConnect &c = this-> Connect(connect);
+    return c.Order();
+}
+
+template<class TSHAPE>
+int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const
+{
+	if(!NSideConnects(side)) return -1;
+	const auto connect = SideConnectLocId(0, side);
+	if(connect >= 0 || connect < NConnects()){
+        return ConnectOrder(connect);
+	}
+    else{
+        std::stringstream sout;
+        sout << __PRETTY_FUNCTION__<<std::endl;
+        sout << "Connect index out of range connect " << connect << " nconnects " << NConnects();
+        PZError<<sout.str()<<std::endl;
+#ifdef LOG4CXX
+        LOGPZ_ERROR(logger, sout.str())
+#endif
+        DebugStop();
+    }
+	return -1;
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
+    const int connect= SideConnectLocId(0,side);
+    if(connect<0 || connect > this-> NConnects()) {
+        std::stringstream sout;
+        sout << __PRETTY_FUNCTION__<<"Bad parameter side " << side << " order " << order;
+        PZError << sout.str()<<std::endl;
+#ifdef LOG4CXX
+        LOGPZ_ERROR(logger,sout.str())
+#endif
+        DebugStop();
+        return;
+    }
+    TPZConnect &c = this->Connect(connect);
+    c.SetOrder(order,this->fConnectIndexes[connect]);
+    int64_t seqnum = c.SequenceNumber();
+    const int nStateVars = [&](){
+        TPZMaterial * mat =this-> Material();
+        if(mat) return mat->NStateVariables();
+        else {
+#ifdef LOG4CXX
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__<<"\tAssuming only one state variable since no material has been set";
+            LOGPZ_DEBUG(logger,sout.str())
+#endif
+            return 1;
+        }
+    }();
+    c.SetNState(nStateVars);
+    const int nshape =this->NConnectShapeF(connect,order);
+    c.SetNShape(nshape);
+    this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
 }
 
 #include "pzshapelinear.h"

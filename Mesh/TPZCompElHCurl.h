@@ -20,7 +20,7 @@ template<class TSHAPE>
 class TPZCompElHCurl : public TPZIntelGen<TSHAPE> {
 
     /// vector describing the permutation associated with each side
-    TPZManVector<int, TSHAPE::NFaces> fSidePermutation;
+    TPZManVector<int, TSHAPE::NSides - TSHAPE::NCornerNodes> fSidePermutation;
 
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
@@ -73,6 +73,17 @@ public:
     * @return number of shape functions
     */
     int NConnectShapeF(int connect, int order) const override;
+
+    /**
+    * @brief return the interpolation order of the polynomial for connect
+    **/
+    int ConnectOrder(int connect) const override;
+
+    /** @brief Returns the actual interpolation order of the polynomial along the side*/
+    int EffectiveSideOrder(int side) const override;
+
+    /** @brief Sets the interpolation order of side to order*/
+    void SetSideOrder(int side, int order) override;
 //
 //	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 //		return new TPZCompElHCurl<TSHAPE> (mesh, *this);
@@ -180,16 +191,11 @@ public:
 //	 */
 //	virtual void SetPreferredOrder(int order) override;
 //
-//	/** @brief Sets the interpolation order of side to order*/
-//	virtual void SetSideOrder(int side, int order) override;
+
 //
-//	/** @brief Returns the actual interpolation order of the polynomial along the side*/
-//	virtual int EffectiveSideOrder(int side) const override;
+
 //
-//    /**
-//     * @brief return the interpolation order of the polynomial for connect
-//     **/
-//	virtual int ConnectOrder(int connect) const override;
+
 //	/**
 //     * @brief return the number of continuous functions
 //     **/
