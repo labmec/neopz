@@ -41,29 +41,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1),
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
-    constexpr int nNodes = TSHAPE::NCornerNodes;
-    constexpr int nConnects = TSHAPE::NSides - nNodes;
-    this->fConnectIndexes.Resize(nConnects);
-    for(auto i = 0; i < nConnects; i++){
-        const int sideId = nNodes + i;
-        this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout << "After creating last HCurl connect " << i << std::endl;
-            //	this->Print(sout);
-            LOGPZ_DEBUG(logger,sout.str())
-        }
-#endif
-        mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
-        this->IdentifySideOrder(sideId);
-    }
-    this->AdjustIntegrationRule();
-}
-
-template<class TSHAPE>
 TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, const TPZCompElHCurl<TSHAPE> &copy) :
 TPZRegisterClassId(&TPZCompElHCurl::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSidePermutation(copy.fSidePermutation), fMasterDirections(copy.fMasterDirections)
@@ -389,10 +366,13 @@ void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data, TPZVec<R
         }
     }
     /******************************************************************************************************************
-     * at this point, we already have the basis functions on the deformed element, since we have data.phi,
-     * data.fVecShapeIndex and data.fDeformedDirections. Now it is time to compute the curl, which will be stored in
-     * data.dphi.
-     ******************************************************************************************************************/
+    * at this point, we already have the basis functions on the deformed element, since we have data.phi,
+    * data.fVecShapeIndex and data.fDeformedDirections. Now it is time to compute the curl, which will be stored in
+    * data.curlphi.
+    *******************************************************************************************************************/
+
+    ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
+    //@TODOFran: Implement ComputeCurl method that will calculate det (J^{-1}) J(dphi x v)
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
     }
@@ -420,6 +400,96 @@ template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
     //@TODOFran::IMPLEMENT ME PLEASE
 }
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
+    constexpr int nNodes = TSHAPE::NCornerNodes;
+    constexpr int nConnects = TSHAPE::NSides - nNodes;
+    this->fConnectIndexes.Resize(nConnects);
+    for(auto i = 0; i < nConnects; i++){
+        const int sideId = nNodes + i;
+        this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "After creating last HCurl connect " << i << std::endl;
+            //	this->Print(sout);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+        mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
+        this->IdentifySideOrder(sideId);
+    }
+    this->AdjustIntegrationRule();
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+                                         const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+                                         REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+    curlPhi.Redim(2*TSHAPE::Dimension - 3, this->NShapeF());
+    const auto nShapeFuncs = vecShapeIndex.size();
+    constexpr auto dim = TSHAPE::Dimension;
+    const REAL jacInv = 1/detJac;
+    for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
+        const auto iVec = vecShapeIndex[iShapeFunc].first;
+        const auto iShape = vecShapeIndex[iShapeFunc].second;
+        TPZManVector<REAL, dim> gradPhiCrossDirections(dim, 0);
+        for(auto ix = 0; ix < dim; ix++) {
+            gradPhiCrossDirections[ix] =
+                    dphi.GetVal(iShape, (ix + 1) % dim) * masterDirections.GetVal(iVec, (ix + 2) % dim) -
+                    masterDirections.GetVal(iVec, (ix + 1) % dim) * dphi.GetVal(iShape, (ix + 2) % dim);
+        }
+        TPZManVector<REAL, dim> tempCurl(dim, 0);
+        for (auto i = 0; i < dim; i++) {
+            tempCurl[i] = 0;
+            for (auto j = 0; j < dim; j++) tempCurl[i] += jacobian.GetVal(i, j) * gradPhiCrossDirections[j];
+        }
+        for (auto i = 0; i < 3; i++) {
+            curlPhi(i, iShapeFunc) = 0;
+            for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * axes.GetVal(j, i) * tempCurl[j];
+        }
+    }
+}
+
+//template<class TSHAPE>
+//typename std::enable_if<TSHAPE::Dimension == 2, void>::type
+//TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+//                                    const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+//                                    REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+//    curlPhi.Redim(2*TSHAPE::Dimension - 3, this->NShapeF());
+//    const auto nShapeFuncs = vecShapeIndex.size();
+//    constexpr auto dim = TSHAPE::Dimension;
+//    const REAL jacInv = 1/detJac;
+//    for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
+//        const auto iVec = vecShapeIndex[iShapeFunc].first;
+//        const auto iShape = vecShapeIndex[iShapeFunc].second;
+//        TPZManVector<REAL, dim> gradPhiCrossDirections(dim, 0);
+//        for(auto ix = 0; ix < dim; ix++) {
+//            gradPhiCrossDirections[ix] =
+//                    dphi.GetVal(iShape, (ix + 1) % dim) * masterDirections.GetVal(iVec, (ix + 2) % dim) -
+//                    masterDirections.GetVal(iVec, (ix + 1) % dim) * dphi.GetVal(iShape, (ix + 2) % dim);
+//        }
+//        TPZManVector<REAL, dim> tempCurl(dim, 0);
+//        for (auto i = 0; i < dim; i++) {
+//            tempCurl[i] = 0;
+//            for (auto j = 0; j < dim; j++) tempCurl[i] += jacobian.GetVal(i, j) * gradPhiCrossDirections[j];
+//        }
+//        for (auto i = 0; i < 3; i++) {
+//            curlPhi(i, iShapeFunc) = 0;
+//            for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * axes.GetVal(j, i) * tempCurl[j];
+//        }
+//    }
+//}
+//
+//template<class TSHAPE>
+//typename std::enable_if<(TSHAPE::Dimension != 3) && (TSHAPE::Dimension != 2), void>::type
+//TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+//                                    const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+//                                    REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+//    curlPhi.Resize(0,0);
+//}
 
 #include "pzshapelinear.h"
 #include "pzshapetriang.h"

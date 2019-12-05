@@ -132,6 +132,11 @@ protected:
      */
     void CreateHCurlConnects(TPZCompMesh &mesh);
 
+
+    void ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+                     const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+                     REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi);
+
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
     * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
@@ -365,7 +370,6 @@ protected:
 //	void Read(TPZStream &buf, void *context) override;
 //    /** @brief Refinement along the element */
 //    virtual void PRefine(int order) override;
-	
 };
 
 

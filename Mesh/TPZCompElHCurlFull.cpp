@@ -113,12 +113,27 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
 
 template<class TSHAPE>
 void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const{
-    DebugStop();
+    /******************************************************************************************************************
+    * The directions are calculated based on the LOCAL side ids (and SideNodeLocId), such as the H1 shape functions.
+    * For instance, for the triangle, the vectors are:
+    * vea30 vea31 vea41 vea42 vea52 vea51 vet3 vet4 vet5 vfe63 vfe64 vfe65 vft1 vft2
+    * and the shapes will be organized as follows:
+    * phi0 phi1 phi2  phi31 phi32 ... phi3i   phi41 phi42 ... phi4j   phi51 phi52 ... phi5k   phi61 phi62 ... phi6n
+    *^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^
+    *  corner funcs       edge 3 funcs            edge 4 funcs            edge 5 funcs            internal funcs
+    ******************************************************************************************************************/
+    ////phi ea funcs
+    ////phi e funcs
+    ////phi Fe funcs
+    ////phi Fi funcs
+    ////phi KF funcs
+    ////phi Ki funcs
+
 }
 
 template<class TSHAPE>
 void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) const{
-    DebugStop();
+//    DebugStop();
 }
 
 #include "pzshapelinear.h"
