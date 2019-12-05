@@ -338,7 +338,6 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     //setting the type of shape functions as scalar functions + constant vector fields
     data.fShapeType = TPZMaterialData::EVecandShape;
 
-    constexpr auto nVectors = TSHAPE::Dimension*TSHAPE::NSides;
     data.fMasterDirections = this->fMasterDirections;
 
     //computes the index that will associate each scalar function to a constant vector field
@@ -373,35 +372,53 @@ void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data, TPZVec<R
         TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);//in this method, Shape will be called
         data.fNeedsSol = needsSol;
     }
-    //applies the piola transform
-//
-//    if (data.fNeedsSol) {
-//        ComputeSolution(qsi, data);
-//    }
-//
-//    int restrainedface = this->RestrainedFace();
-//    // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-//    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-//    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
-//    int lastface = TSHAPE::NSides - 1;
-//    int cont = 0;
-//
-//    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
-//
-//    for(int side = firstface; side < lastface; side++)
-//    {
-//        int nvec = TSHAPE::NContainedSides(side);
-//        for (int ivet = 0; ivet<nvec; ivet++)
-//        {
-//            for (int il = 0; il<3; il++)
-//            {
-//                data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
-//            }
-//
-//        }
-//        cont += nvec;
-//    }
+    constexpr auto nVec{TSHAPE::Dimension*TSHAPE::NSides};
+    data.fDeformedDirections.Resize(3,nVec);
+    constexpr auto dim{TSHAPE::Dimension};
+    //applies covariant piola transform and compute the deformed vectors
+    for (auto iVec = 0; iVec < nVec; iVec++) {
+        TPZManVector<REAL, 3> tempDirection(dim, 0);
+        for (auto i = 0; i < dim; i++) {
+            //covariant piola transform: J^{-T}
+            tempDirection[i] = 0;
+            for (auto j = 0; j < dim; j++) tempDirection[i] += data.jacinv(j, i) * data.fMasterDirections(j, iVec);
+        }
+        for (auto i = 0; i < 3; i++) {
+            data.fDeformedDirections(i, iVec) = 0;
+            for (auto j = 0; j < dim; j++) data.fDeformedDirections(i, iVec) += data.axes(j, i) * tempDirection[j];
+        }
+    }
+    /******************************************************************************************************************
+     * at this point, we already have the basis functions on the deformed element, since we have data.phi,
+     * data.fVecShapeIndex and data.fDeformedDirections. Now it is time to compute the curl, which will be stored in
+     * data.dphi.
+     ******************************************************************************************************************/
+    if (data.fNeedsSol) {
+        ComputeSolution(qsi, data);
+    }
+}
 
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+
+	TPZManVector<int64_t,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
+    TPZGeoEl *ref = this->Reference();
+    for(auto i=0; i<TSHAPE::NCornerNodes; i++) {
+        id[i] = ref->NodePtr(i)->Id();
+    }
+    constexpr auto nConnects{TSHAPE::NSides-TSHAPE::NCornerNodes};
+    TPZManVector<int, nConnects> ord(nConnects,0);
+    CalculateSideShapeOrders(ord);
+    const int nShape = TSHAPE::NShapeF(ord);
+
+    phi.Redim(nShape, 1);
+    dphi.Redim(TSHAPE::Dimension, nShape);
+    TSHAPE::Shape(pt,id,ord,phi,dphi);
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
+    //@TODOFran::IMPLEMENT ME PLEASE
 }
 
 #include "pzshapelinear.h"
@@ -1133,33 +1150,7 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //	this->Material()->Solution(data,var,sol);
 //}
 //
-//template<class TSHAPE>
-//void TPZCompElHCurl<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data)
-//{
-////	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
-//    this->ComputeShape(qsi,data);
-//    this->ComputeSolutionHDiv(data);
-//}
-//
-//template<class TSHAPE>
-//void TPZCompElHCurl<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-//                                            const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
-//    TPZMaterialData data;
-//    InitMaterialData(data);
-//    data.phi = phi;
-//    data.dphix = dphix;
-//    data.axes = axes;
-//    this->ComputeSolutionHDiv(data);
-//    sol = data.sol;
-//    dsol = data.dsol;
-//}
-//
-//template<class TSHAPE>
-//void TPZCompElHCurl<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
-//
-//    this->ComputeSolutionHDiv(data);
-//
-//}
+
 //
 //template<class TSHAPE>
 //void TPZCompElHCurl<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) {
@@ -1426,25 +1417,6 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //}
 //
 //
-//template<class TSHAPE>
-//void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-//	TPZManVector<int64_t,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
-//	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-//    int i;
-//    TPZGeoEl *ref = this->Reference();
-//    for(i=0; i<TSHAPE::NCornerNodes; i++) {
-//        id[i] = ref->NodePtr(i)->Id();
-//    }
-//
-//
-//    FillOrder(ord);
-//    int nshape= this->NShapeContinuous(ord);
-//
-//    phi.Redim(nshape, 1);
-//    dphi.Redim(TSHAPE::Dimension, nshape);
-//    TSHAPE::Shape(pt,id,ord,phi,dphi);
-//
-//}
 //
 //template<class TSHAPE>
 //int TPZCompElHCurl<TSHAPE>::NShapeContinuous(TPZVec<int> &order ){

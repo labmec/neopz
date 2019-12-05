@@ -52,6 +52,12 @@ protected:
     * @param[in] connectOrder Order of the connects
     */
     void IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const override;
+
+    /**
+     * @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.
+     * @param[out] ord Vector that will be filled with the corresponding order of each connect to compute the desired h1 functions
+     */
+    void CalculateSideShapeOrders(TPZVec<int> &ord) const override;
 };
 
 

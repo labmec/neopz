@@ -116,6 +116,11 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t> >
     DebugStop();
 }
 
+template<class TSHAPE>
+void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) const{
+    DebugStop();
+}
+
 #include "pzshapelinear.h"
 #include "pzshapetriang.h"
 #include "pzshapequad.h"

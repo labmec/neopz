@@ -107,9 +107,31 @@ public:
     * of state variables and material definitions */
     void InitMaterialData(TPZMaterialData &data) override;
 
-    	/** @brief Compute and fill data with requested attributes */
+    /** @brief Compute and fill data with requested attributes */
 	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
+
+    /**
+     * @brief Computes the shape functions at the point qsi corresponding to x.
+     * @param qsi point in master element coordinates
+     * @param phi vector of values of shapefunctions, dimension (numshape,1)
+     * @param dphi matrix of derivatives of shapefunctions in master element coordinates, dimension (dim,numshape)
+     */
+    void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+    /**
+    * @brief Compute solution functions based on master element in the classical FEM manner.
+    * @param[in] qsi point in master element coordinates
+    * @param[in] data stores all input data
+    */
+    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
 protected:
+
+    /**
+     * @brief Creates the connects for a generic HCurl-conforming element.
+     * This method must be called in the constructor of every child class of TPZCompElHCurl.
+     * @param mesh Computational mesh in which the connects will be inserted
+     */
+    void CreateHCurlConnects(TPZCompMesh &mesh);
+
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
     * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
@@ -118,11 +140,10 @@ protected:
     virtual void IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const = 0;
 
     /**
-     * @brief Creates the connects for a generic HCurl-conforming element.
-     * This method must be called in the constructor of every child class of TPZCompElHCurl.
-     * @param mesh Computational mesh in which the connects will be inserted
+     * @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.
+     * @param[out] ord Order of the side connects different from the corner connects to compute the desired h1 functions
      */
-    void CreateHCurlConnects(TPZCompMesh &mesh);
+    virtual void CalculateSideShapeOrders(TPZVec<int> &ord) const = 0;
 //
 //	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
 //		return new TPZCompElHCurl<TSHAPE> (mesh, *this);
@@ -287,7 +308,6 @@ protected:
 //	/** @brief Computes the values of the shape function of the side*/
 //	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 //
-//	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 //
 //    /** @brief Compute the solution for a given variable */
 //	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
@@ -297,12 +317,7 @@ protected:
 //
 //public:
 //
-//    /**
-//	 * @brief Compute shape functions based on master element in the classical FEM manne.
-//	 * @param[in] qsi point in master element coordinates
-//	 * @param[in] data stores all input data
-//	 */
-//    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
+
 //
 //    void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
 //    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
