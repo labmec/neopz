@@ -57,8 +57,10 @@ public:
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
-    /// values of the divergence of the shapefunctions in the mapped element (only applicable to H(div)) spaces
+    /// values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)
     TPZFNMatrix<220, REAL> divphi;
+    /// values of the curl of the shape functions in the mapped element (only applicable to H(curl) spaces)
+    TPZFNMatrix<220, REAL> curlphi;
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;
     /// value of the jacobian at the integration point

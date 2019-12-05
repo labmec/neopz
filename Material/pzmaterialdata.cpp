@@ -56,6 +56,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
     this->divphi = cp.divphi;
+    this->curlphi = cp.curlphi;
     this->axes = cp.axes;
     this->jacobian = cp.jacobian;
     this->jacinv = cp.jacinv;
@@ -124,7 +125,13 @@ bool TPZMaterialData::Compare(TPZSavable *copy, bool override)
     locres = divphi.Compare(&comp->divphi,override);
     if(!locres)
     {
-        LOGPZ_DEBUG(loggerCheck,"dphix different")
+        LOGPZ_DEBUG(loggerCheck,"divphi different")
+    }
+    result = result && locres;
+    locres = curlphi.Compare(&comp->curlphi,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"curlphi different")
     }
     result = result && locres;
     locres = axes.Compare(&comp->axes,override);
@@ -166,6 +173,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     dphi.Print("dphi",out);
     dphix.Print("dphix",out);
     divphi.Print("div phi",out);
+    curlphi.Print("curl phi",out);
     axes.Print("axes",out);
     jacobian.Print("jacobian",out);
     jacinv.Print("jacinv",out);
@@ -229,6 +237,7 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
     dphi.Write(buf,0);
     dphix.Write(buf,0);
     divphi.Write(buf, 0);
+    curlphi.Write(buf, 0);
     axes.Write(buf,0);
     jacobian.Write(buf,0);
     jacinv.Write(buf,0);
@@ -271,6 +280,7 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     dphi.Read(buf,0);
     dphix.Read(buf,0);
     divphi.Read(buf, 0);
+    curlphi.Read(buf, 0);
     axes.Read(buf,0);
     jacobian.Read(buf,0);
     jacinv.Read(buf,0);
