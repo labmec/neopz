@@ -43,7 +43,7 @@ public:
     MShapeFunctionType fShapeType;
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
-    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false, fNeedsNormalVecFad = false;
+    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false, fNeedsDeformedDirectionsFad = false;
     bool fNeedsNormal = false;
     bool fActiveApproxSpace = true;
     /** @} */
@@ -86,7 +86,7 @@ public:
     /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
     /// Directions on the master element
-    TPZFNMatrix<180> fDirectionsOnMaster;
+    TPZFNMatrix<180> fMasterDirections;
     
     
     /// number of dual function (e.g. pressure in HDiv approximations)
@@ -95,15 +95,15 @@ public:
     //Id of associated geo element
     int gelElId;
     
-    /// correspondence between normal vector index and index of the shape functions
+    /// correspondence between direction vector index and index of the shape functions
     TPZManVector<std::pair<int,int64_t> > fVecShapeIndex;
-    /// list of normal vectors
-    TPZFNMatrix<180> fNormalVec;
+    /// Directions on the deformed element
+    TPZFNMatrix<180> fDeformedDirections;
     /** @} */
     
 #ifdef _AUTODIFF
-    /// list of normal vectors using Fad
-    TPZFNMatrix<180,Fad<REAL>> fNormalVecFad;
+    /// Directions on the deformed element using Fad
+    TPZFNMatrix<180,Fad<REAL>> fDeformedDirectionsFad;
     /** @} */
 #endif
     

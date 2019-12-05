@@ -200,7 +200,7 @@ void TPZVecL2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> 
         int ishapeind = data.fVecShapeIndex[iq].second;
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<3; id++){
-            ivec(id,0) = data.fNormalVec(id,ivecind);
+            ivec(id,0) = data.fDeformedDirections(id,ivecind);
         }
         STATE ff = 0.;
         for (int i=0; i<3; i++) {
@@ -216,7 +216,7 @@ void TPZVecL2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> 
             int jshapeind = data.fVecShapeIndex[jq].second;
             
             for(int id=0; id<3; id++){
-                jvec(id,0) = data.fNormalVec(id,jvecind);
+                jvec(id,0) = data.fDeformedDirections(id,jvecind);
             }
             
             //jvecZ.Print("mat1 = ");

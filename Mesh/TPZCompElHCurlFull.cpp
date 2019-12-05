@@ -111,6 +111,11 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
     return nShapeF;
 }
 
+template<class TSHAPE>
+void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const{
+    DebugStop();
+}
+
 #include "pzshapelinear.h"
 #include "pzshapetriang.h"
 #include "pzshapequad.h"

@@ -116,9 +116,9 @@ void TPZMixedPoissonParabolic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<3; id++){
-            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
-            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+            ivec(id,0) = datavec[0].fDeformedDirections(id,ivecind);
+            //ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+            //ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
         }
         
         
@@ -131,7 +131,7 @@ void TPZMixedPoissonParabolic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
             
             for(int id=0; id<3; id++){
-                jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
+                jvec(id,0) = datavec[0].fDeformedDirections(id,jvecind);
             }
             
             //dot product between Kinv[u]v
@@ -156,7 +156,7 @@ void TPZMixedPoissonParabolic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
         
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<3; id++){
-            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+            ivec(id,0) = datavec[0].fDeformedDirections(id,ivecind);
         }
         TPZFNMatrix<3,REAL> axesvec(3,1,0.);
         datavec[0].axes.Multiply(ivec,axesvec);

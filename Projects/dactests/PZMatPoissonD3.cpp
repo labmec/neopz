@@ -176,9 +176,9 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        ivec(0,0) = datavec[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
         
         TPZFNMatrix<3,REAL> jvecZ(fDim,1,0.);
         
@@ -187,9 +187,9 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             TPZFNMatrix<3> jvec(3,1);
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
-            jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
-            jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-            jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+            jvec(0,0) = datavec[0].fDeformedDirections(0,jvecind);
+            jvec(1,0) = datavec[0].fDeformedDirections(1,jvecind);
+            jvec(2,0) = datavec[0].fDeformedDirections(2,jvecind);
             
             
             
@@ -225,9 +225,9 @@ void TPZMatPoissonD3::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        ivec(0,0) = datavec[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
         
         for (int jp=0; jp<phrp; jp++)
         {
@@ -283,9 +283,9 @@ void TPZMatPoissonD3::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMater
         int ivecind = dataleft[0].fVecShapeIndex[iq].first;
         int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
-        ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
-        ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+        ivec(0,0) = dataleft[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = dataleft[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = dataleft[0].fDeformedDirections(2,ivecind);
         ivec *= phiQL(ishapeind,0);
         
         
@@ -312,9 +312,9 @@ void TPZMatPoissonD3::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMater
         int ivecind = dataleft[0].fVecShapeIndex[iq].first;
         int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
-        ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
-        ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+        ivec(0,0) = dataleft[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = dataleft[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = dataleft[0].fDeformedDirections(2,ivecind);
         ivec *= phiQL(ishapeind,0);
         
         REAL NormalProjectionj = 0.;
@@ -407,9 +407,9 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
         int ivecind = dataleft[0].fVecShapeIndex[iq].first;
         int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
-        ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
-        ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+        ivec(0,0) = dataleft[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = dataleft[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = dataleft[0].fDeformedDirections(2,ivecind);
         ivec *= phiQ(ishapeind,0);
         
         
@@ -448,9 +448,9 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
                 int ivecind = dataleft[0].fVecShapeIndex[iq].first;
                 int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
                 TPZFNMatrix<3> ivec(3,1);
-                ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
-                ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
-                ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+                ivec(0,0) = dataleft[0].fDeformedDirections(0,ivecind);
+                ivec(1,0) = dataleft[0].fDeformedDirections(1,ivecind);
+                ivec(2,0) = dataleft[0].fDeformedDirections(2,ivecind);
                 ivec *= phiQ(ishapeind,0);
                 
                 
@@ -476,9 +476,9 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
                 int ivecind = dataleft[0].fVecShapeIndex[iq].first;
                 int ishapeind = dataleft[0].fVecShapeIndex[iq].second;
                 TPZFNMatrix<3> ivec(3,1);
-                ivec(0,0) = dataleft[0].fNormalVec(0,ivecind);
-                ivec(1,0) = dataleft[0].fNormalVec(1,ivecind);
-                ivec(2,0) = dataleft[0].fNormalVec(2,ivecind);
+                ivec(0,0) = dataleft[0].fDeformedDirections(0,ivecind);
+                ivec(1,0) = dataleft[0].fDeformedDirections(1,ivecind);
+                ivec(2,0) = dataleft[0].fDeformedDirections(2,ivecind);
                 ivec *= phiQ(ishapeind,0);
                 
                 
@@ -495,9 +495,9 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
                     TPZFNMatrix<3> jvec(3,1);
                     int jvecind = dataleft[0].fVecShapeIndex[jq].first;
                     int jshapeind = dataleft[0].fVecShapeIndex[jq].second;
-                    jvec(0,0) = dataleft[0].fNormalVec(0,jvecind);
-                    jvec(1,0) = dataleft[0].fNormalVec(1,jvecind);
-                    jvec(2,0) = dataleft[0].fNormalVec(2,jvecind);
+                    jvec(0,0) = dataleft[0].fDeformedDirections(0,jvecind);
+                    jvec(1,0) = dataleft[0].fDeformedDirections(1,jvecind);
+                    jvec(2,0) = dataleft[0].fDeformedDirections(2,jvecind);
                     
                     jvec *= phiQ(jshapeind,0);
 
@@ -517,9 +517,9 @@ void TPZMatPoissonD3::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMat
 //                TPZFNMatrix<3> jvec(3,1);
 //                int jvecind = dataleft[0].fVecShapeIndex[jp].first;
 //                int jshapeind = dataleft[0].fVecShapeIndex[jp].second;
-//                jvec(0,0) = dataleft[0].fNormalVec(0,jvecind);
-//                jvec(1,0) = dataleft[0].fNormalVec(1,jvecind);
-//                jvec(2,0) = dataleft[0].fNormalVec(2,jvecind);
+//                jvec(0,0) = dataleft[0].fDeformedDirections(0,jvecind);
+//                jvec(1,0) = dataleft[0].fDeformedDirections(1,jvecind);
+//                jvec(2,0) = dataleft[0].fDeformedDirections(2,jvecind);
 //                
 //                jvec *= phiQ(jshapeind,0);
 //                

@@ -241,9 +241,9 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            VectorOnXYZ(0,0) = datavec[ublock].fDeformedDirections(0,ivectorindex);
+            VectorOnXYZ(1,0) = datavec[ublock].fDeformedDirections(1,ivectorindex);
+            VectorOnXYZ(2,0) = datavec[ublock].fDeformedDirections(2,ivectorindex);
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
@@ -363,7 +363,7 @@ void TPZCouplingDSMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
         int ivec = datavec[vindex].fVecShapeIndex[i].first;
         TPZFNMatrix<4> phiVti(1,1,0.);
         for (int e=0; e<fDimension; e++) {
-            phiVi(e,0) = phiV(iphi,0)*datavec[vindex].fNormalVec(e,ivec);
+            phiVi(e,0) = phiV(iphi,0)*datavec[vindex].fDeformedDirections(e,ivec);
             
         }
 
@@ -373,7 +373,7 @@ void TPZCouplingDSMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
             
             TPZFNMatrix<4> phiVtj(1,1,0.);
             for (int e=0; e<fDimension; e++) {
-                phiVj(e,0) = phiV(jphi,0)*datavec[vindex].fNormalVec(e,jvec);
+                phiVj(e,0) = phiV(jphi,0)*datavec[vindex].fDeformedDirections(e,jvec);
             }
 
             STATE val = Inner(phiVi,phiVj);
@@ -490,7 +490,7 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
         int ivec2 = datavecright[vindex].fVecShapeIndex[i2].first;
         TPZFNMatrix<4> phiV2ti(1,1,0.);
         for (int e=0; e<fDimension; e++) {
-            phiV2i(e,0) = phiV2(iphi2,0)*datavecright[vindex].fNormalVec(e,ivec2);
+            phiV2i(e,0) = phiV2(iphi2,0)*datavecright[vindex].fDeformedDirections(e,ivec2);
             
         }
 
@@ -504,7 +504,7 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
             
             TPZFNMatrix<4> phiV2tj(1,1,0.);
             for (int e=0; e<fDimension; e++) {
-                phiV2j(e,0) = phiV2(jphi2,0)*datavecright[vindex].fNormalVec(e,jvec2);
+                phiV2j(e,0) = phiV2(jphi2,0)*datavecright[vindex].fDeformedDirections(e,jvec2);
             }
             phiV2tj(0,0) = phiV2j(0,0)*t[0]+phiV2j(1,0)*t[1];
             
@@ -610,8 +610,8 @@ STATE TPZCouplingDSMaterial::Tr( TPZFMatrix<REAL> &GradU ){
 /// transform a H1 data structure to a vector data structure
 void TPZCouplingDSMaterial::FillVecShapeIndex(TPZMaterialData &data)
 {
-    data.fNormalVec.Resize(fDimension,fDimension);
-    data.fNormalVec.Identity();
+    data.fDeformedDirections.Resize(fDimension,fDimension);
+    data.fDeformedDirections.Identity();
     data.fVecShapeIndex.Resize(fDimension*data.phi.Rows());
     for (int d=0; d<fDimension; d++) {
         for (int i=0; i<data.phi.Rows(); i++) {

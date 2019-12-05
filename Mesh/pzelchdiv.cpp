@@ -1082,19 +1082,19 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     GradOfPhiHdiv.Zero();
     
     
-    int normvecRows = data.fNormalVec.Rows();
-    int normvecCols = data.fNormalVec.Cols();
+    int normvecRows = data.fDeformedDirections.Rows();
+    int normvecCols = data.fDeformedDirections.Cols();
     TPZFNMatrix<3,REAL> Normalvec(normvecRows,normvecCols,0.);
     TPZManVector<TPZFNMatrix<9,REAL>,18> GradNormalvec(normvecCols);
     for (int i=0; i<GradNormalvec.size(); i++) {
         GradNormalvec[i].Redim(dim,dim);
     }
     
-    if (data.fNeedsNormalVecFad) {
+    if (data.fNeedsDeformedDirectionsFad) {
 #ifdef _AUTODIFF
         for (int e = 0; e < normvecRows; e++) {
             for (int s = 0; s < normvecCols; s++) {
-                Normalvec(e,s)=data.fNormalVecFad(e,s).val();
+                Normalvec(e,s)=data.fDeformedDirectionsFad(e,s).val();
             }
         }
         
@@ -1102,11 +1102,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         
         for (int s = 0; s < normvecCols; s++) {
             
-            if (data.fNormalVecFad(0,s)>0||data.fNormalVecFad(1,s)>0) {
-                Grad0(0,0)=data.fNormalVecFad(0,s).fastAccessDx(0);
-                Grad0(0,1)=data.fNormalVecFad(0,s).fastAccessDx(1);
-                Grad0(1,0)=data.fNormalVecFad(1,s).fastAccessDx(0);
-                Grad0(1,1)=data.fNormalVecFad(1,s).fastAccessDx(1);
+            if (data.fDeformedDirectionsFad(0,s)>0||data.fDeformedDirectionsFad(1,s)>0) {
+                Grad0(0,0)=data.fDeformedDirectionsFad(0,s).fastAccessDx(0);
+                Grad0(0,1)=data.fDeformedDirectionsFad(0,s).fastAccessDx(1);
+                Grad0(1,0)=data.fDeformedDirectionsFad(1,s).fastAccessDx(0);
+                Grad0(1,1)=data.fDeformedDirectionsFad(1,s).fastAccessDx(1);
             }
             
             GradNormalvec[s] = Grad0;
@@ -1116,7 +1116,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         DebugStop();
 #endif
     }else{
-        Normalvec=data.fNormalVec;
+        Normalvec=data.fDeformedDirections;
     }
     
     TPZBlock<STATE> &block =this->Mesh()->Block();
@@ -1156,14 +1156,14 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 
                     for (int i=0; i<3; i++)
                     {
-                        if (data.fNeedsNormalVecFad) {
+                        if (data.fNeedsDeformedDirectionsFad) {
 #ifdef _AUTODIFF
-                            normal[i] = data.fNormalVecFad(i,ivec).val();
+                            normal[i] = data.fDeformedDirectionsFad(i,ivec).val();
 #else
                             DebugStop();
 #endif
                         }else{
-                            normal[i] = data.fNormalVec(i,ivec);
+                            normal[i] = data.fDeformedDirections(i,ivec);
                         }
                     }
                     
@@ -1184,7 +1184,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                         data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
                         for (int kdim = 0 ; kdim < dim; kdim++) {
                             data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
-                            if(data.fNeedsNormalVecFad){
+                            if(data.fNeedsDeformedDirectionsFad){
                                 data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
                             }
                         }
@@ -1384,13 +1384,13 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     data.fNeedsSol = needsol;
     
     int restrainedface = this->RestrainedFace();
-    // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+    // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
     // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
     int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
     int lastface = TSHAPE::NSides - 1;
     int cont = 0;
    
-    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fDirectionsOnMaster);
+    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
 
     for(int side = firstface; side < lastface; side++)
     {
@@ -1399,16 +1399,16 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         {
             for (int il = 0; il<3; il++)
             {
-                data.fDirectionsOnMaster(il,ivet+cont) *= fSideOrient[side-firstface];
+                data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
             }
 
         }
         cont += nvec;
     }
     
-    if(data.fNeedsNormalVecFad){
+    if(data.fNeedsDeformedDirectionsFad){
     #ifdef _AUTODIFF
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fNormalVecFad,restrainedface);
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad,restrainedface);
         cont = 0;
         
         for(int side = firstface; side < lastface; side++)
@@ -1418,7 +1418,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             {
                 for (int il = 0; il<3; il++)
                 {
-                    data.fNormalVecFad(il,ivet+cont) *= fSideOrient[side-firstface];
+                    data.fDeformedDirectionsFad(il,ivet+cont) *= fSideOrient[side-firstface];
                 }
                 
             }
@@ -1428,7 +1428,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         DebugStop();
     #endif
     }else{
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fNormalVec,restrainedface);
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections,restrainedface);
         cont = 0;
     
         for(int side = firstface; side < lastface; side++)
@@ -1438,7 +1438,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             {
                 for (int il = 0; il<3; il++)
                 {
-                    data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
+                    data.fDeformedDirections(il,ivet+cont) *= fSideOrient[side-firstface];
                 }
                 
             }
@@ -1455,7 +1455,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
-        data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
+        data.fDeformedDirections.Print("Normal Vectors " , sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -1500,13 +1500,13 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
             numvec++;
         }
 
-        data.fDirectionsOnMaster.Resize(3, numvec);
+        data.fMasterDirections.Resize(3, numvec);
 
 #ifdef _AUTODIFF
-            data.fNormalVecFad.Resize(3, numvec);
+            data.fDeformedDirectionsFad.Resize(3, numvec);
 #endif
 
-        data.fNormalVec.Resize(3, numvec);
+        data.fDeformedDirections.Resize(3, numvec);
         
 
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
@@ -1521,7 +1521,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
-		data.fNormalVec.Print("Normal vector ", sout,EMathematicaInput);
+		data.fDeformedDirections.Print("Normal vector ", sout,EMathematicaInput);
         for (int i=0; i<TSHAPE::NCornerNodes; i++) {
             sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
         }

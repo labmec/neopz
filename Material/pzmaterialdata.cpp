@@ -21,7 +21,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
-    this->fNeedsNormalVecFad = false;
+    this->fNeedsDeformedDirectionsFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
@@ -32,9 +32,9 @@ TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassI
     this->detjac = 0.;
     this->numberdualfunctions = 0;
     this->gelElId = -1;
-    this->fDirectionsOnMaster = 0;
+    this->fMasterDirections = 0;
 #ifdef _AUTODIFF
-    this->fNormalVecFad = 0;
+    this->fDeformedDirectionsFad = 0;
 #endif
 }
 
@@ -51,7 +51,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
-    this->fNeedsNormalVecFad = cp.fNeedsNormalVecFad;
+    this->fNeedsDeformedDirectionsFad = cp.fNeedsDeformedDirectionsFad;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
@@ -71,11 +71,11 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->intGlobPtIndex = cp.intGlobPtIndex;
     this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
-    this->fDirectionsOnMaster = cp.fDirectionsOnMaster;
+    this->fMasterDirections = cp.fMasterDirections;
     this->fVecShapeIndex = cp.fVecShapeIndex;
-    this->fNormalVec = cp.fNormalVec;
+    this->fDeformedDirections = cp.fDeformedDirections;
 #ifdef _AUTODIFF
-    this->fNormalVecFad = cp.fNormalVecFad;
+    this->fDeformedDirectionsFad = cp.fDeformedDirectionsFad;
 #endif
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
@@ -182,7 +182,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
-    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
+    out << "fMasterDirections" << fMasterDirections << std::endl;
     out << "intLocPtIndex " << intLocPtIndex << std::endl;
     out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
@@ -213,7 +213,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
-    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
+    out << "fMasterDirections" << fMasterDirections << std::endl;
     out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
     out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;
@@ -320,7 +320,7 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
         int i_s = fVecShapeIndex[i].second;
         
         for (int j = 0; j < 3; j++) {
-            fluxes(j,i) = phi(i_s,0) * fNormalVec(j,i_v);
+            fluxes(j,i) = phi(i_s,0) * fDeformedDirections(j,i_v);
         }
     }
     
@@ -347,7 +347,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
         
         int n_dir = dphi_s.Rows();
         for (int k = 0; k < n_dir; k++) {
-            divphi(iq,0) +=  dphi(k,i_phi_s)*fDirectionsOnMaster(k,i_vec)/detjac;
+            divphi(iq,0) +=  dphi(k,i_phi_s)*fMasterDirections(k,i_vec)/detjac;
         }
     }
         

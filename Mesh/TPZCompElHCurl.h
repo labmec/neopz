@@ -102,7 +102,26 @@ public:
 
     /** @brief Sets the interpolation order of side to order*/
     void SetSideOrder(int side, int order) override;
+
+    /** @brief Initialize a material data and its attributes based on element dimension, number
+    * of state variables and material definitions */
+    void InitMaterialData(TPZMaterialData &data) override;
+
+    	/** @brief Compute and fill data with requested attributes */
+	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
 protected:
+    /**
+    * @brief Returns a matrix index of the shape and vector  associate to element
+    * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
+    * @param[in] connectOrder Order of the connects
+    */
+    virtual void IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const = 0;
+
+    /**
+     * @brief Creates the connects for a generic HCurl-conforming element.
+     * This method must be called in the constructor of every child class of TPZCompElHCurl.
+     * @param mesh Computational mesh in which the connects will be inserted
+     */
     void CreateHCurlConnects(TPZCompMesh &mesh);
 //
 //	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const  override {
@@ -238,13 +257,7 @@ protected:
 //        return fSideOrient[face];
 //    }
 //
-//	/** @brief Initialize a material data and its attributes based on element dimension, number
-//	 * of state variables and material definitions */
-//	virtual void InitMaterialData(TPZMaterialData &data) override;
 //
-//	/** @brief Compute and fill data with requested attributes */
-//	virtual void ComputeRequiredData(TPZMaterialData &data,
-//									 TPZVec<REAL> &qsi) override;
 //
 //	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 //	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);

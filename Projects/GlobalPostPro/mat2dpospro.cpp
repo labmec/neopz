@@ -118,9 +118,9 @@ void Mat2Dpospro::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STAT
 	int ishapeind = data.fVecShapeIndex[iq].second;
 	
 	TPZFMatrix<REAL> Vi(3,1);
-	Vi(0,0) = data.fNormalVec(0,ivecind);
-	Vi(1,0) = data.fNormalVec(1,ivecind);
-	Vi(2,0) = data.fNormalVec(2,ivecind);
+	Vi(0,0) = data.fDeformedDirections(0,ivecind);
+	Vi(1,0) = data.fDeformedDirections(1,ivecind);
+	Vi(2,0) = data.fDeformedDirections(2,ivecind);
 	TPZFMatrix<REAL> axesveci(3,1);
 	data.axes.Multiply(Vi,axesveci);
 	
@@ -143,9 +143,9 @@ void Mat2Dpospro::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STAT
 	    int jshapeind = data.fVecShapeIndex[jq].second;
 	    
 	    TPZFMatrix<REAL> Vj(3,1);
-	    Vj(0,0) = data.fNormalVec(0,jvecind);
-	    Vj(1,0) = data.fNormalVec(1,jvecind);
-	    Vj(2,0) = data.fNormalVec(2,jvecind);
+	    Vj(0,0) = data.fDeformedDirections(0,jvecind);
+	    Vj(1,0) = data.fDeformedDirections(1,jvecind);
+	    Vj(2,0) = data.fDeformedDirections(2,jvecind);
 	    TPZFMatrix<REAL> axesvecj(3,1);
 	    data.axes.Multiply(Vj,axesvecj);
 	    

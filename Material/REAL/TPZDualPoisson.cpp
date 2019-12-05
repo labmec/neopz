@@ -182,7 +182,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
         
         STATE u_dot_phi_u_i = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             u_dot_phi_u_i        += u[i]*phi_u_i(i,0);
         }
         
@@ -196,7 +196,7 @@ void TPZDualPoisson::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZ
             
             STATE phi_u_j_dot_phi_u_i = 0.0;
             for (int j = 0; j < u.size(); j++) {
-                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fNormalVec(j,v_j);
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fDeformedDirections(j,v_j);
                 phi_u_j_dot_phi_u_i += phi_u_j(j,0)*phi_u_i(j,0);
             }
             

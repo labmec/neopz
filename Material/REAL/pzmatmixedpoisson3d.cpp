@@ -210,9 +210,9 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        ivec(0,0) = datavec[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
         
         TPZFNMatrix<3,REAL> jvecZ(3,1,0.);
         
@@ -221,9 +221,9 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
             TPZFNMatrix<3> jvec(3,1);
             int jvecind = datavec[0].fVecShapeIndex[jq].first;
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
-            jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
-            jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-            jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+            jvec(0,0) = datavec[0].fDeformedDirections(0,jvecind);
+            jvec(1,0) = datavec[0].fDeformedDirections(1,jvecind);
+            jvec(2,0) = datavec[0].fDeformedDirections(2,jvecind);
             
             
             //dot product between Kinv[u]v
@@ -257,9 +257,9 @@ void TPZMatMixedPoisson3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL wei
         int ivecind = datavec[0].fVecShapeIndex[iq].first;
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3> ivec(3,1);
-        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+        ivec(0,0) = datavec[0].fDeformedDirections(0,ivecind);
+        ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+        ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
         
         for (int jp=0; jp<phrp; jp++)
         {
@@ -366,7 +366,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<fDim; id++){
-            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+            ivec(id,0) = datavec[0].fDeformedDirections(id,ivecind);
         }
         
         TPZFNMatrix<3,REAL> ivecZ(3,1,0.);
@@ -378,7 +378,7 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
             
             for(int id=0; id<fDim; id++){
-                jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
+                jvec(id,0) = datavec[0].fDeformedDirections(id,jvecind);
             }
             
             //dot product between Kinv[u]v

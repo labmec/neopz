@@ -45,6 +45,13 @@ public:
     * @return number of shape functions
     */
     int NConnectShapeF(int connect, int order) const override;
+protected:
+    /**
+    * @brief Returns a matrix index of the shape and vector  associate to element
+    * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
+    * @param[in] connectOrder Order of the connects
+    */
+    void IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const override;
 };
 
 

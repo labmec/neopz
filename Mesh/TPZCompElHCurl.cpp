@@ -274,8 +274,7 @@ int TPZCompElHCurl<TSHAPE>::ConnectOrder(int connect) const {
 }
 
 template<class TSHAPE>
-int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const
-{
+int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const{
 	if(!NSideConnects(side)) return -1;
 	const auto connect = SideConnectLocId(0, side);
 	if(connect >= 0 || connect < NConnects()){
@@ -326,6 +325,83 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
     const int nshape =this->NConnectShapeF(connect,order);
     c.SetNShape(nshape);
     this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
+	TPZIntelGen<TSHAPE>::InitMaterialData(data);
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled()){
+        LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
+    }
+#endif
+    //setting the type of shape functions as scalar functions + constant vector fields
+    data.fShapeType = TPZMaterialData::EVecandShape;
+
+    constexpr auto nVectors = TSHAPE::Dimension*TSHAPE::NSides;
+    data.fMasterDirections = this->fMasterDirections;
+
+    //computes the index that will associate each scalar function to a constant vector field
+    constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
+    TPZManVector<int,nConnects> connectOrders(nConnects,-1);
+    for(auto i = 0; i < nConnects; i++){
+        connectOrders[i] = this->EffectiveSideOrder(i + TSHAPE::NCornerNodes);
+    }
+    IndexShapeToVec(data.fVecShapeIndex, connectOrders);
+
+
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled()){
+		std::stringstream sout;
+		sout << "Vector/Shape indexes \n";
+        for (int i = 0; i < data.fVecShapeIndex.size(); i++) {
+            sout << i << '|' << data.fVecShapeIndex[i] << " ";
+        }
+        sout << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+
+}
+
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi){
+
+    {
+        const bool needsSol = data.fNeedsSol;
+        data.fNeedsSol = false;
+        TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);//in this method, Shape will be called
+        data.fNeedsSol = needsSol;
+    }
+    //applies the piola transform
+//
+//    if (data.fNeedsSol) {
+//        ComputeSolution(qsi, data);
+//    }
+//
+//    int restrainedface = this->RestrainedFace();
+//    // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+//    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
+//    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+//    int lastface = TSHAPE::NSides - 1;
+//    int cont = 0;
+//
+//    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
+//
+//    for(int side = firstface; side < lastface; side++)
+//    {
+//        int nvec = TSHAPE::NContainedSides(side);
+//        for (int ivet = 0; ivet<nvec; ivet++)
+//        {
+//            for (int il = 0; il<3; il++)
+//            {
+//                data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
+//            }
+//
+//        }
+//        cont += nvec;
+//    }
+
 }
 
 #include "pzshapelinear.h"
@@ -1136,19 +1212,19 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //    GradOfPhiHdiv.Zero();
 //
 //
-//    int normvecRows = data.fNormalVec.Rows();
-//    int normvecCols = data.fNormalVec.Cols();
+//    int normvecRows = data.fDeformedDirections.Rows();
+//    int normvecCols = data.fDeformedDirections.Cols();
 //    TPZFNMatrix<3,REAL> Normalvec(normvecRows,normvecCols,0.);
 //    TPZManVector<TPZFNMatrix<9,REAL>,18> GradNormalvec(normvecCols);
 //    for (int i=0; i<GradNormalvec.size(); i++) {
 //        GradNormalvec[i].Redim(dim,dim);
 //    }
 //
-//    if (data.fNeedsNormalVecFad) {
+//    if (data.fNeedsDeformedDirectionsFad) {
 //#ifdef _AUTODIFF
 //        for (int e = 0; e < normvecRows; e++) {
 //            for (int s = 0; s < normvecCols; s++) {
-//                Normalvec(e,s)=data.fNormalVecFad(e,s).val();
+//                Normalvec(e,s)=data.fDeformedDirectionsFad(e,s).val();
 //            }
 //        }
 //
@@ -1156,11 +1232,11 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //
 //        for (int s = 0; s < normvecCols; s++) {
 //
-//            if (data.fNormalVecFad(0,s)>0||data.fNormalVecFad(1,s)>0) {
-//                Grad0(0,0)=data.fNormalVecFad(0,s).fastAccessDx(0);
-//                Grad0(0,1)=data.fNormalVecFad(0,s).fastAccessDx(1);
-//                Grad0(1,0)=data.fNormalVecFad(1,s).fastAccessDx(0);
-//                Grad0(1,1)=data.fNormalVecFad(1,s).fastAccessDx(1);
+//            if (data.fDeformedDirectionsFad(0,s)>0||data.fDeformedDirectionsFad(1,s)>0) {
+//                Grad0(0,0)=data.fDeformedDirectionsFad(0,s).fastAccessDx(0);
+//                Grad0(0,1)=data.fDeformedDirectionsFad(0,s).fastAccessDx(1);
+//                Grad0(1,0)=data.fDeformedDirectionsFad(1,s).fastAccessDx(0);
+//                Grad0(1,1)=data.fDeformedDirectionsFad(1,s).fastAccessDx(1);
 //            }
 //
 //            GradNormalvec[s] = Grad0;
@@ -1170,7 +1246,7 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //        DebugStop();
 //#endif
 //    }else{
-//        Normalvec=data.fNormalVec;
+//        Normalvec=data.fDeformedDirections;
 //    }
 //
 //    TPZBlock<STATE> &block =this->Mesh()->Block();
@@ -1210,14 +1286,14 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //
 //                    for (int i=0; i<3; i++)
 //                    {
-//                        if (data.fNeedsNormalVecFad) {
+//                        if (data.fNeedsDeformedDirectionsFad) {
 //#ifdef _AUTODIFF
-//                            normal[i] = data.fNormalVecFad(i,ivec).val();
+//                            normal[i] = data.fDeformedDirectionsFad(i,ivec).val();
 //#else
 //                            DebugStop();
 //#endif
 //                        }else{
-//                            normal[i] = data.fNormalVec(i,ivec);
+//                            normal[i] = data.fDeformedDirections(i,ivec);
 //                        }
 //                    }
 //
@@ -1238,7 +1314,7 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //                        data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
 //                        for (int kdim = 0 ; kdim < dim; kdim++) {
 //                            data.dsol[is](ilinha+dim*idf,kdim)+= meshsol * GradOfPhiHdiv(ilinha,kdim);
-//                            if(data.fNeedsNormalVecFad){
+//                            if(data.fNeedsDeformedDirectionsFad){
 //                                data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
 //                            }
 //                        }
@@ -1426,176 +1502,12 @@ TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 //#endif
 //}
 //
-//template<class TSHAPE>
-//void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
-//                                                TPZVec<REAL> &qsi){
-//
-////    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
-//
-//    bool needsol = data.fNeedsSol;
-//    data.fNeedsSol = false;
-//    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
-//    data.fNeedsSol = needsol;
-//
-//    int restrainedface = this->RestrainedFace();
-//    // Acerta o vetor data.fNormalVec para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-//    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-//    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
-//    int lastface = TSHAPE::NSides - 1;
-//    int cont = 0;
-//
-//    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fDirectionsOnMaster);
-//
-//    for(int side = firstface; side < lastface; side++)
-//    {
-//        int nvec = TSHAPE::NContainedSides(side);
-//        for (int ivet = 0; ivet<nvec; ivet++)
-//        {
-//            for (int il = 0; il<3; il++)
-//            {
-//                data.fDirectionsOnMaster(il,ivet+cont) *= fSideOrient[side-firstface];
-//            }
-//
-//        }
-//        cont += nvec;
-//    }
-//
-//    if(data.fNeedsNormalVecFad){
-//    #ifdef _AUTODIFF
-//        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fNormalVecFad,restrainedface);
-//        cont = 0;
-//
-//        for(int side = firstface; side < lastface; side++)
-//        {
-//            int nvec = TSHAPE::NContainedSides(side);
-//            for (int ivet = 0; ivet<nvec; ivet++)
-//            {
-//                for (int il = 0; il<3; il++)
-//                {
-//                    data.fNormalVecFad(il,ivet+cont) *= fSideOrient[side-firstface];
-//                }
-//
-//            }
-//            cont += nvec;
-//        }
-//    #else
-//        DebugStop();
-//    #endif
-//    }else{
-//        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fNormalVec,restrainedface);
-//        cont = 0;
-//
-//        for(int side = firstface; side < lastface; side++)
-//        {
-//            int nvec = TSHAPE::NContainedSides(side);
-//            for (int ivet = 0; ivet<nvec; ivet++)
-//            {
-//                for (int il = 0; il<3; il++)
-//                {
-//                    data.fNormalVec(il,ivet+cont) *= fSideOrient[side-firstface];
-//                }
-//
-//            }
-//            cont += nvec;
-//        }
-//    }
-//
-//    data.ComputeFunctionDivergence();
-//    if (data.fNeedsSol) {
-//        ComputeSolution(qsi, data);
-//    }
-//
-//
-//#ifdef LOG4CXX
-//    if (logger->isDebugEnabled()) {
-//        std::stringstream sout;
-//        data.fNormalVec.Print("Normal Vectors " , sout,EMathematicaInput);
-//        LOGPZ_DEBUG(logger, sout.str())
-//    }
-//#endif
-//
-//
-//}//void
+
 //
 ///** Initialize a material data and its attributes based on element dimension, number
 // * of state variables and material definitions
 // */
 //
-//template<class TSHAPE>
-//void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data)
-//{
-//	TPZIntelGen<TSHAPE>::InitMaterialData(data);
-////	if (TSHAPE::Type()==EQuadrilateral) {
-////        int maxorder = this->MaxOrder();
-////        data.p = maxorder+1;
-////    }
-//#ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
-//		{
-//				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
-//		}
-//#endif
-//    TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
-//
-//    TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
-//	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension+1> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
-//    TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
-//
-//    {
-//
-//        int internalorder = this->Connect(NConnects()-1).Order();
-//        TPZVec<std::pair<int,int64_t> > IndexVecShape;
-//        if (TSHAPE::Type()==EPiramide) {
-//            normalsides.resize(3*TSHAPE::NSides+1);
-//        }
-//        TSHAPE::GetSideHDivDirections(vecside,directions,bilinear,normalsides);
-//        int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
-//        if (TSHAPE::Type() == EPiramide) {
-//            numvec++;
-//        }
-//
-//        data.fDirectionsOnMaster.Resize(3, numvec);
-//
-//#ifdef _AUTODIFF
-//            data.fNormalVecFad.Resize(3, numvec);
-//#endif
-//
-//        data.fNormalVec.Resize(3, numvec);
-//
-//
-//        IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
-//    }
-//    data.fShapeType = TPZMaterialData::EVecandShape;
-//
-////    cout << "vecShape " << endl;
-////    cout << data.fVecShapeIndex << endl;;
-//
-//
-//#ifdef LOG4CXX
-//    if(logger->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		data.fNormalVec.Print("Normal vector ", sout,EMathematicaInput);
-//        for (int i=0; i<TSHAPE::NCornerNodes; i++) {
-//            sout << "Id[" << i << "] = " << this->Reference()->NodePtr(i)->Id() << " ";
-//        }
-//        sout << "\n\nSides associated with the normals\n";
-//        for (int i=0; i<normalsides.size(); i++) {
-//            sout << i << '|' << normalsides[i] << " ";
-//        }
-//        sout << std::endl;
-//
-//        sout << std::endl;
-//		sout << "NormalVector/Shape indexes \n";
-//        for (int i=0; i<data.fVecShapeIndex.size(); i++) {
-//            sout << i << '|' << data.fVecShapeIndex[i] << " ";
-//        }
-//        sout << std::endl;
-//		LOGPZ_DEBUG(logger,sout.str())
-//	}
-//#endif
-//
-//}
 //
 //
 //// Save the element data to a stream
