@@ -30,7 +30,7 @@ TPZMatHelmholtz2D::~TPZMatHelmholtz2D() {}
 void TPZMatHelmholtz2D::Contribute(TPZMaterialData &data, REAL weight,
                                    TPZFMatrix<STATE> &ek,
                                    TPZFMatrix<STATE> &ef) {
-    DebugStop();
+   // DebugStop();
 //
 //    /*********************CREATE HCURL FUNCTIONS*****************************/
 //    TPZFNMatrix<36, REAL> phiHCurlAxes = data.phi;

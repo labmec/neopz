@@ -123,7 +123,6 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
     }
 
     BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
-
         for(auto k = 1; k <= 5; k++) hcurltest::TestExampleMesh2D(ETriangle, k);
         for(auto k = 1; k <= 5; k++) hcurltest::TestExampleMesh2D(EQuadrilateral, k);
 
@@ -450,8 +449,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
 
-//            TPZAnalysis an(cmesh);
-//            an.Assemble();
+            TPZAnalysis an(cmesh);
+            an.Assemble();
 //            an.Solve();
             delete cmesh;
             delete gmesh;

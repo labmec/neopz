@@ -150,7 +150,7 @@ protected:
      * @param mesh Computational mesh in which the connects will be inserted
      */
     void CreateHCurlConnects(TPZCompMesh &mesh);
-    
+
     /**
      * @brief This computes the curl of a vector shape function implemented as \$f \phi\mathbf{v} \$f
      * @tparam TDIM Dimension of the element curl will have dim=2*TDIM-3 for TDIM=2,3.
@@ -168,8 +168,19 @@ protected:
                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi){
         TPZHCurlAuxClass::ComputeCurl<TDIM>(vecShapeIndex,dphi,masterDirections,jacobian,detJac,axes,curlPhi);
     }
+
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
+    * The directions are calculated based on the LOCAL side ids (and SideNodeLocId), such as the H1 shape functions.
+    * For instance, for the triangle, the vectors are:
+    * vea30 vea31 vea41 vea42 vea52 vea51 vet3 vet4 vet5 vfe63 vfe64 vfe65 vft1 vft2
+    * and the shapes will be organized as follows:
+    * phi0 phi1 phi2  phi31 phi32 ... phi3i   phi41 phi42 ... phi4j   phi51 phi52 ... phi5k   phi61 phi62 ... phi6n
+    *^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^
+    *  corner funcs       edge 3 funcs            edge 4 funcs            edge 5 funcs            internal funcs
+    *
+    * In order to ensure that the functions will coincide in two neighbouring elements, they will be then sorted by
+    * their sides' GLOBAL ids instead of their LOCAL ids
     * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
     * @param[in] connectOrder Order of the connects
     */
