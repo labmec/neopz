@@ -13,7 +13,7 @@ static LoggerPtr loggercurl(Logger::getLogger("pz.mesh.tpzinterpolatedelement.di
 #endif
 
 
-TPZHCurlSettings::EHCurlFamily TPZHCurlSettings::hCurlFamily = TPZHCurlSettings::EHCurlFamily::EFullOrder;
+TPZHCurlAuxClass::EHCurlFamily TPZHCurlAuxClass::hCurlFamily = TPZHCurlAuxClass::EHCurlFamily::EFullOrder;
 
 template<class TSHAPE>
 TPZCompElHCurl<TSHAPE>::TPZCompElHCurl(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
@@ -370,9 +370,8 @@ void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data, TPZVec<R
     * data.fVecShapeIndex and data.fDeformedDirections. Now it is time to compute the curl, which will be stored in
     * data.curlphi.
     *******************************************************************************************************************/
-
+    data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
     ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
-    //@TODOFran: Implement ComputeCurl method that will calculate det (J^{-1}) J(dphi x v)
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data);
     }
@@ -424,13 +423,14 @@ void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
     this->AdjustIntegrationRule();
 }
 
-template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+
+
+template <>
+void TPZHCurlAuxClass::ComputeCurl<3>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
                                          const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
                                          REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
-    curlPhi.Redim(2*TSHAPE::Dimension - 3, this->NShapeF());
+    constexpr auto dim = 3;
     const auto nShapeFuncs = vecShapeIndex.size();
-    constexpr auto dim = TSHAPE::Dimension;
     const REAL jacInv = 1/detJac;
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
         const auto iVec = vecShapeIndex[iShapeFunc].first;
@@ -451,6 +451,39 @@ void TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &
             for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * axes.GetVal(j, i) * tempCurl[j];
         }
     }
+}
+
+template <>
+void TPZHCurlAuxClass::ComputeCurl<2>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+                                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+                                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+    constexpr auto dim = 3;
+    const auto nShapeFuncs = vecShapeIndex.size();
+    const REAL jacInv = 1/detJac;
+    for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
+        const auto iVec = vecShapeIndex[iShapeFunc].first;
+        const auto iShape = vecShapeIndex[iShapeFunc].second;
+        const REAL gradPhiCrossDirections = dphi.GetVal(iShape, 1) * masterDirections.GetVal(iVec, 0) -
+                                            masterDirections.GetVal(iVec, 0) * dphi.GetVal(iShape, 1);
+        curlPhi(0, iShapeFunc) += jacInv * gradPhiCrossDirections;
+    }
+}
+
+template <>
+void TPZHCurlAuxClass::ComputeCurl<1>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+                                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+                                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+    const auto nShapeFuncs = vecShapeIndex.size();
+    for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
+        curlPhi(0, iShapeFunc) += 0;
+    }
+}
+
+template <int TDIM>
+void TPZHCurlAuxClass::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+                                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+                                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+    DebugStop();
 }
 
 //template<class TSHAPE>
@@ -530,8 +563,8 @@ TPZCompEl * CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &inde
 }
 
 TPZCompEl * CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlSettings::GetHCurlFamily()){
-        case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+    switch(TPZHCurlAuxClass::GetHCurlFamily()){
+        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
             return new TPZCompElHCurlFull< pzshape::TPZShapeLinear>(mesh,gel,index);
             break;
         default:
@@ -540,8 +573,8 @@ TPZCompEl * CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) 
 }
 
 TPZCompEl * CreateHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlSettings::GetHCurlFamily()){
-        case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+    switch(TPZHCurlAuxClass::GetHCurlFamily()){
+        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
             return new TPZCompElHCurlFull< pzshape::TPZShapeTriang >(mesh,gel,index);
             break;
         default:
@@ -550,8 +583,8 @@ TPZCompEl * CreateHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index
 }
 
 TPZCompEl * CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	switch(TPZHCurlSettings::GetHCurlFamily()){
-	    case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+	switch(TPZHCurlAuxClass::GetHCurlFamily()){
+	    case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
 	        return new TPZCompElHCurlFull< pzshape::TPZShapeQuad>(mesh,gel,index);
 	        break;
 	    default:
@@ -560,8 +593,8 @@ TPZCompEl * CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 }
 
 TPZCompEl * CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlSettings::GetHCurlFamily()){
-        case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+    switch(TPZHCurlAuxClass::GetHCurlFamily()){
+        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
             return new TPZCompElHCurlFull< pzshape::TPZShapeTetra >(mesh,gel,index);
             break;
         default:
@@ -570,8 +603,8 @@ TPZCompEl * CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 }
 
 TPZCompEl * CreateHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	switch(TPZHCurlSettings::GetHCurlFamily()){
-	    case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+	switch(TPZHCurlAuxClass::GetHCurlFamily()){
+	    case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
 	        return new TPZCompElHCurlFull< pzshape::TPZShapeCube >(mesh,gel,index);
 	        break;
 	    default:
@@ -580,8 +613,8 @@ TPZCompEl * CreateHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 }
 
 TPZCompEl * CreateHCurlPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	switch(TPZHCurlSettings::GetHCurlFamily()){
-	    case TPZHCurlSettings::EHCurlFamily::EFullOrder:
+	switch(TPZHCurlAuxClass::GetHCurlFamily()){
+	    case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
 	        return new TPZCompElHCurlFull< pzshape::TPZShapePrism>(mesh,gel,index);
 	        break;
 	    default:

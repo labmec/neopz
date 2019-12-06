@@ -8,8 +8,11 @@
 
 #include <pzelctemp.h>
 
-
-class TPZHCurlSettings{
+/**
+ * @brief This class contains static methods pertinent to the implementation of different families of
+ * HCurl-conforming approximation spaces.
+ */
+class TPZHCurlAuxClass{
 public:
     enum EHCurlFamily{EFullOrder = 1};
 private:
@@ -22,6 +25,22 @@ public:
     static EHCurlFamily GetHCurlFamily(){
         return hCurlFamily;
     }
+
+    /**
+     * @brief This computes the curl of a vector shape function implemented as \$f \phi\mathbf{v} \$f
+     * @tparam TDIM Dimension of the element curl will have dim=2*TDIM-3 for TDIM=2,3.
+     * @param vecShapeIndex associated which scalar function multiplies which vector
+     * @param dphi derivatives of the scalar functions on the reference element
+     * @param masterDirections vectors that are combined with the scalar functions to create the vector shape functions
+     * @param jacobian jacobian of the element mapping
+     * @param detJac determinant of the jacobian
+     * @param axes relates the directions \$f (\xi,\eta,\zeta) \rightarrow (x,y,z) \$f
+     * @param curlPhi curl of the vector shape functions
+     */
+    template<int TDIM>
+    static void ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
+                            const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
+                            REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi);
 };
 
 /**
@@ -131,12 +150,24 @@ protected:
      * @param mesh Computational mesh in which the connects will be inserted
      */
     void CreateHCurlConnects(TPZCompMesh &mesh);
-
-
+    
+    /**
+     * @brief This computes the curl of a vector shape function implemented as \$f \phi\mathbf{v} \$f
+     * @tparam TDIM Dimension of the element curl will have dim=2*TDIM-3 for TDIM=2,3.
+     * @param vecShapeIndex associated which scalar function multiplies which vector
+     * @param dphi derivatives of the scalar functions on the reference element
+     * @param masterDirections vectors that are combined with the scalar functions to create the vector shape functions
+     * @param jacobian jacobian of the element mapping
+     * @param detJac determinant of the jacobian
+     * @param axes relates the directions \$f (\xi,\eta,\zeta) \rightarrow (x,y,z) \$f
+     * @param curlPhi curl of the vector shape functions
+     */
+    template<int TDIM=TSHAPE::Dimension>
     void ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                     REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi);
-
+                     REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi){
+        TPZHCurlAuxClass::ComputeCurl<TDIM>(vecShapeIndex,dphi,masterDirections,jacobian,detJac,axes,curlPhi);
+    }
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
     * @param[out] IndexVecShape Indicates the pair vector/shape function that will construct the approximation space
