@@ -230,9 +230,7 @@ void TPZMHMeshControl::CreateSkeletonElements()
     }
     
     if(fSkeletonMatId < 0) DebugStop();
-        
     TPZCompMesh *cmesh = CriaMalhaTemporaria();
-    
     int64_t nel = fGMesh->NElements();
     int dimension = fGMesh->Dimension();
     int ninterf;
@@ -355,10 +353,10 @@ void TPZMHMeshControl::DivideBoundarySkeletonElements()
         for (it=fInterfaces.begin(); it!=fInterfaces.end(); it++) {
             int64_t elindex = it->first;
             // if the following condition is not satisfied then the interface is not a boundary
-            if (elindex != it->second.second) {
-                mapdivided[it->first] = it->second;
-                continue;
-            }
+//            if (elindex != it->second.second) {
+//                mapdivided[it->first] = it->second;
+//                continue;
+//            }
             TPZGeoEl *gel = fGMesh->Element(elindex);
             // if the geometric element associated with the interface was not divided
             // then the interface will not be divided either
@@ -513,10 +511,7 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
         this->TransferToMultiphysics();
     }
     
-    
 
-    
-    
     
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -2053,6 +2048,7 @@ void TPZMHMeshControl::BuildWrapMesh(int dim)
 {
     // all the elements should be neighbour of a wrap element
     int64_t nel = fGMesh->NElements();
+  
 //    int meshdim = fGMesh->Dimension();
 // first create the neighbours of boundary elements (works for dim = fGMesh->Dimension()-2)
     for (int64_t el=0; el<nel; el++) {
@@ -2203,8 +2199,12 @@ int TPZMHMeshControl::WrapMaterialId(TPZGeoElSide gelside)
     {
         int hasDimNeighbour = 0;
         TPZGeoElSide neighbour = gelside.Neighbour();
+        bool isBoundary = false;
         while (neighbour != gelside) {
-            if (neighbour.Element()->Dimension() == meshdim) {
+            if (neighbour.Element()->MaterialId() <0) {
+                isBoundary = true;
+            }
+            if (neighbour.Element()->Dimension() == meshdim && !isBoundary) {
                 hasDimNeighbour = 1;
             }
             if (IsSkeletonMatid(neighbour.Element()->MaterialId())) {
@@ -2287,7 +2287,7 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside, int wrapmaterial)
 #ifdef PZDEBUG
     if(gelside.Element()->Mesh()->Dimension() == 2)
     {
-      //  CheckDivisionConsistency(gelside);
+        CheckDivisionConsistency(gelside);
     }
 #endif
     int wrapmat = HasWrapNeighbour(gelside);

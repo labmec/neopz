@@ -308,7 +308,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     gmesh->ResetReference();
     cmeshPressure->SetName("PressureMesh");
     cmeshPressure->SetDimModel(gmesh->Dimension());
-    cmeshPressure->ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmeshPressure->SetAllCreateFunctionsDiscontinuous(); //AQUI
     cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
     cmeshPressure->SetDefaultOrder(porder + fHdivmaismais);
     int meshdim = cmeshPressure->Dimension();
