@@ -41,6 +41,18 @@ public:
     static void ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
                             const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
                             REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi);
+
+    /**
+     * @brief This method multiplies the scalar shape function with the directions in order to compute the Hcurl basis.
+     * It should be called at the beginning of every TPZMaterial::Contribute, in order to obtain the functions at the
+     * integration point.
+     * @param vecShapeIndex associated which scalar function multiplies which vector
+     * @param phi scalar shape functions on the reference element
+     * @param deformedDirections directions on the deformed element obtained by covariant piola transform
+     * @param phiHCurl hcurl shape functions
+     */
+    static void ComputeShape(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &phi,
+                            const TPZMatrix<REAL> &deformedDirections, TPZMatrix<REAL> &phiHCurl);
 };
 
 /**
@@ -136,6 +148,9 @@ public:
      * @param dphi matrix of derivatives of shapefunctions in master element coordinates, dimension (dim,numshape)
      */
     void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+
+    /** @brief Computes the values of the shape function of the side*/
+    void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
     /**
     * @brief Compute solution functions based on master element in the classical FEM manner.
     * @param[in] qsi point in master element coordinates
@@ -168,6 +183,22 @@ protected:
                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi){
         TPZHCurlAuxClass::ComputeCurl<TDIM>(vecShapeIndex,dphi,masterDirections,jacobian,detJac,axes,curlPhi);
     }
+
+
+    /**
+     * This method computes the solution of an HCurl-conforming element and its derivatives in the local coordinate qsi
+     * @param qsi master element coordinate
+     * @param vecShapeIndex associates which scalar function multiplies which vector
+     * @param deformedDirections directions on the deformed element
+     * @param phi scalar shape function
+     * @param curlphi curl of the shape function
+     * @param sol finite element solution
+     * @param curlsol curl of the finite element solution
+     */
+    void ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
+                         const TPZFMatrix<REAL> &deformedDirections, TPZFMatrix<REAL> &phi,
+                         TPZFMatrix<REAL> &curlphi, TPZSolVec &sol, TPZSolVec &curlsol);
+
 
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element

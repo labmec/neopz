@@ -81,6 +81,8 @@ public:
     TPZGradSolVec dsol;
     /// vector of the divergence of the solution at the integration point (only of hdiv spaces)
     TPZSolVec divsol;
+    /// vector of the curl of the solution at the integration point (only of hcurl spaces)
+    TPZSolVec curlsol;
     /// measure of the size of the element
     REAL HSize;
     /// determinant of the jacobian

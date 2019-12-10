@@ -66,6 +66,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->sol = cp.sol;
     this->dsol = cp.dsol;
     this->divsol = cp.divsol;
+    this->curlsol = cp.curlsol;
     this->HSize = cp.HSize;
     this->detjac = cp.detjac;
     this->intLocPtIndex = cp.intLocPtIndex;
@@ -187,6 +188,7 @@ void TPZMaterialData::Print(std::ostream &out) const
         
     }
     out << "divsol " << divsol << std::endl;
+    out << "curlsol " << curlsol << std::endl;
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
@@ -217,6 +219,7 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
         dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
     }
     out << "divsol = { " << divsol << "};" << std::endl;
+    out << "curlsol = { " << curlsol << "};" << std::endl;
 
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
@@ -261,6 +264,12 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
         buf.Write(divsol[is].begin(),divsol[is].size());
     }
 
+    nsol = curlsol.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        buf.Write(curlsol[is].begin(),curlsol[is].size());
+    }
+
     buf.Write(&HSize,1);
     buf.Write(&detjac,1);
     buf.Write(XCenter.begin(),XCenter.size());
@@ -299,6 +308,11 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&nsol,1);
     for (int is=0; is<nsol; is++) {
         buf.Read(divsol[is]);
+    }
+
+    buf.Read(&nsol,1);
+    for (int is=0; is<nsol; is++) {
+        buf.Read(curlsol[is]);
     }
 
     buf.Read(&HSize,1);

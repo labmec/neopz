@@ -27,6 +27,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include <pzcmesh.h>
 #include <TPZMatHelmholtz2D.cpp>
 #include <pzanalysis.h>
+#include <pzintel.h>
+#include <TPZCompElHCurl.h>
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
 
@@ -38,18 +40,19 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include "boost/test/unit_test.hpp"
 #include "boost/test/floating_point_comparison.hpp"
 #include "boost/test/output_test_stream.hpp"
-
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
 #endif
 
-//#define NOISY_HCURL //outputs useful debug info
+#define NOISY_HCURL //outputs useful debug info
 
 //std::string dirname = PZSOURCEDIR;
 
 #ifdef USING_BOOST
-
 struct SuiteInitializer{
     SuiteInitializer(){
         InitializePZLOG();
+        boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_warnings );
     }
 };
 BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
@@ -422,12 +425,19 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         }//hcurltest::CompareVectorTraces
 
         void TestExampleMesh2D(MElementType type, const int pOrder){
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            static std::string testName = __PRETTY_FUNCTION__;
+            std::cout << testName << std::endl;
             std::cout<<"\t"<<MElementType_Name(type)<<" p = "<<pOrder<<std::endl;
             constexpr int dim{2};
-            constexpr int ndiv{4};
+            constexpr int ndiv{1};
             TPZManVector<int,2> matIds(2,-1);
             auto gmesh = auxiliaryfuncs::CreateGeoMesh(dim,ndiv,ndiv,type,matIds);
+
+#ifdef NOISY_HCURL
+            std::ofstream outTXT("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
+            gmesh->Print(outTXT);
+            outTXT.close();
+#endif
             auto cmesh = new TPZCompMesh(gmesh);
             cmesh->SetDefaultOrder(pOrder);
             cmesh->SetDimModel(dim);
@@ -448,9 +458,169 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AutoBuild();
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
+            for(auto dummyCel : cmesh->ElementVec()){
+                auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
+                if(!cel) continue;
+                int nState = cel->Material()->NStateVariables();
+                for (auto iCon = 0; iCon <cel->NConnects(); iCon++) {
+                    auto &con = cel->Connect(iCon);
+                    const int nShape = con.NShape();
+                    {
+                        const bool check = con.NDof( *cmesh) == nShape * nState;
+                        BOOST_CHECK_MESSAGE(check,"\n"+testName+" failed"+
+                                                  "\ntopology: "+MElementType_Name(type)+"\n"
+                        );
+                    }
+
+                    if(con.NElConnected() < 2) continue;
+
+                    const int iSide = iCon + MElementType_NNodes(type);
+                    const int polynomialOrder = [&](){
+                        auto dummy = dynamic_cast<TPZInterpolatedElement *>(cel);
+                        auto pOrder = dummy->EffectiveSideOrder(iSide)*2;
+                        return pOrder;
+                    }();
+                    TPZIntPoints *sideIntRule = cel->Reference()->CreateSideIntegrationRule(iSide, polynomialOrder);
+                    TPZTransform<> elTransform(cel->Reference()->SideToSideTransform(iSide, cel->Reference()->NSides() - 1));
+                    const int npts = sideIntRule->NPoints();
+                    TPZGeoElSide gelSide(cel->Reference(), iSide);
+                    TPZGeoElSide neighGelSide = gelSide.Neighbour();
+                    auto sideDim = gelSide.Dimension();
+                    auto gel = gelSide.Element();
+                    //the following vector will be the edge tg vector if 2D, the normal vector if 3D
+                    TPZManVector<REAL,3> vec(3,0);
+                    switch(sideDim){
+                        case 0: continue;
+                        case 1:{
+                            TPZManVector<int, 2> edgeNodes(2, 0);
+                            for (auto i = 0; i < 2; i++) edgeNodes[i] = gel->SideNodeIndex(iSide, i);
+                            const REAL sign = edgeNodes[0] < edgeNodes[1] ? 1 : -1;
+                            REAL edgeLength = 0;
+                            TPZVec<REAL> p0(3), p1(3);
+                            gmesh->NodeVec()[edgeNodes[0]].GetCoordinates(p0);
+                            gmesh->NodeVec()[edgeNodes[1]].GetCoordinates(p1);
+                            edgeLength =
+                                    std::sqrt((p0[0] - p1[0]) * (p0[0] - p1[0]) + (p0[1] - p1[1]) * (p0[1] - p1[1]) +
+                                              (p0[2] - p1[2]) * (p0[2] - p1[2]));
+                            for (auto x = 0; x < 3; x++) vec[x] = sign * (p1[x] - p0[x]) / edgeLength;
+                        }
+                            break;
+                        case 2:{
+                            TPZManVector<REAL,3> xCenter(2,0);
+                            gelSide.CenterX(xCenter);
+                            gelSide.Normal(xCenter,vec);
+                        }
+                            break;
+                        default:
+                            DebugStop();
+                    }
+                    int firstElShape = 0;
+                    for(auto jCon = 0; jCon < iCon; jCon++)   firstElShape += cel->NConnectShapeF(jCon,polynomialOrder);
+                    const int nShapes = cel->NConnectShapeF(iCon,polynomialOrder);
+
+                    while(neighGelSide != gelSide && sideDim != 0){
+                        auto neighCel = dynamic_cast<TPZInterpolatedElement *> (neighGelSide.Element()->Reference());
+                        auto neighSide = neighGelSide.Side();
+                        TPZTransform<> neighTransform(neighCel->Reference()->SideToSideTransform(neighSide,
+                                neighCel->Reference()->NSides() - 1));
+                        TPZMaterialData elData,neighData;
+                        cel->InitMaterialData(elData);
+                        neighCel->InitMaterialData(neighData);
+                        TPZManVector <REAL,3> pts(sideDim,0), ptEl(2,0),ptNeigh(2,0);
+                        TPZFNMatrix<30,STATE> elShape,neighShape;
+
+                        int firstNeighShape = 0;
+                        const int neighCon = neighSide - neighGelSide.Element()->NNodes();
+                        for(auto jCon = 0; jCon < neighCon; jCon++)   firstNeighShape += cel->NConnectShapeF(jCon,polynomialOrder);
+
+                        for (auto ipt = 0; ipt < npts; ipt++) {
+                            REAL w;
+
+                            sideIntRule->Point(ipt, pts, w);
+
+
+                            elTransform.Apply(pts,ptEl);
+                            cel->ComputeRequiredData(elData, ptEl);
+                            cel->ComputeShape(ptEl,elData);
+                            TPZHCurlAuxClass::ComputeShape(elData.fVecShapeIndex, elData.phi,
+                                                           elData.fDeformedDirections,elShape);
+                            neighTransform.Apply(pts,ptNeigh);
+                            neighCel->ComputeRequiredData(neighData, ptNeigh);
+                            neighCel->ComputeShape(ptNeigh,neighData);
+                            TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
+                                                           neighData.fDeformedDirections,neighShape);
+
+                            TPZManVector<REAL,3> elShapeFunc(3,0), neighShapeFunc(3,0);
+                            for(auto iShape = 0; iShape < nShapes; iShape ++){
+                                for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
+                                for (auto x = 0; x < 3; x++) neighShapeFunc[x] =  neighShape(firstNeighShape + iShape,x);
+                                const bool checkTraces = [&](){
+                                    switch(sideDim){
+                                        case 1:{
+                                            STATE elTrace{0}, neighTrace{0};
+                                            for (auto x = 0; x < 3; x++) elTrace += elShapeFunc[x]*vec[x];
+                                            for (auto x = 0; x < 3; x++) neighTrace += neighShapeFunc[x]*vec[x];
+                                            return std::abs(elTrace - neighTrace) < tol;
+                                        }
+                                            break;
+                                        case 2:{
+                                            TPZManVector<REAL,3> temp(3,0);
+                                            TPZManVector<REAL,3> elTrace(3,0),faceTrace(3,0);
+
+                                            auxiliaryfuncs::VectorProduct(vec,elShapeFunc,temp);
+                                            auxiliaryfuncs::VectorProduct(vec,temp,elTrace);
+
+                                            auxiliaryfuncs::VectorProduct(vec,neighShapeFunc,temp);
+                                            auxiliaryfuncs::VectorProduct(vec,temp,faceTrace);
+                                            REAL diff = 0;
+                                            for(auto x = 0; x < 3; x++) diff += (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
+                                            diff = sqrt(diff);
+                                            return diff < tol;
+                                        }
+                                            break;
+                                        default:
+                                            return false;
+                                    }
+                                }();
+                                BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
+                                                          "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                          "side: "+std::to_string(iSide)+"\n"+
+                                                          "p order: "+std::to_string(polynomialOrder)+"\n"
+                                );
+                            }
+                        }
+                        neighGelSide = neighGelSide.Neighbour();
+                    }
+                }
+            }
+
 
             TPZAnalysis an(cmesh);
-            an.Assemble();
+//            an.Assemble();
+            /***********************************************************************************************************
+             *              the following lines might be useful for analysing the basis functions
+            ***********************************************************************************************************/
+            const int postProcessResolution = 3;
+            const std::string executionInfo = [&](){
+                std::string name("");
+                name.append(MElementType_Name(type));
+                name.append(std::to_string(pOrder));
+                return name;
+            }();
+
+            const std::string plotfile = "solution"+executionInfo+".vtk";//where to print the vtk files
+            TPZStack<std::string> scalnames, vecnames;
+            vecnames.Push("E");//print the state variable
+            auto sol = an.Solution();
+            sol.Zero();
+            for(int i = 0; i < sol.Rows(); i++){
+                sol(i - 1 < 0 ? 0 : i - 1 , 0) = 0;
+                sol(i,0) = 1;
+                an.LoadSolution(sol);
+                an.DefineGraphMesh(dim, scalnames, vecnames, plotfile);
+                an.SetStep(i);
+                an.PostProcess(postProcessResolution);
+            }
 //            an.Solve();
             delete cmesh;
             delete gmesh;
