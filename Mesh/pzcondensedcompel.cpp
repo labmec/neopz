@@ -580,10 +580,10 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
     out << "Output for a condensed element\n";
     TPZCompEl::Print(out);
     
-    out << "Index of grouped elements: ";
     TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
     if(eg)
     {
+        out << "Index of grouped elements: ";
         int nel = eg->GetElGroup().size();
         for(int i=0; i<nel-1; i++){
             out << eg->GetElGroup()[i]->Index() <<", ";
