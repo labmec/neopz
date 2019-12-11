@@ -316,21 +316,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 		
 		out << " };\n";
 		
-	} else if( form == ECSV)
-    {
-        char number[256];
-        for ( int64_t row = 0; row < Rows(); row++) {
-            for ( int64_t col = 0; col < Cols(); col++ ) {
-                TVar val = Get (row, col);
-                sprintf(number, "%16.14Lf",(long double) TPZExtractVal::val(val) );
-                out << number;
-                if(col < Cols()-1)  out << " , ";
-            }
-            if(row < Rows()-1)
-                out << "\n";
-        }
-
-    } else if( form == EMatlabNonZeros)
+	}else if( form == EMatlabNonZeros)
 	{
 		out << name;
 		for ( int64_t row = 0; row < Rows(); row++) {

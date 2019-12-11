@@ -93,8 +93,7 @@ protected:
     /// indices of the geometric elements which define the skeleton mesh and their corresponding subcmesh indices
     std::map<int64_t,int64_t> fMHMtoSubCMesh;
     
-    /// indices of the skeleton elements and their left/right partition indexes
-    // if fInterfaces[index].second == index, then the skeleton is boundary skeleton
+    /// indices of the skeleton elements and their left/right geometric elements of the skeleton mesh
     std::map<int64_t, std::pair<int64_t,int64_t> > fInterfaces;
     
     /// geometric index of the connects - subdomain where the connect will be internal
@@ -170,7 +169,7 @@ public:
     
     /// Define the MHM partition by the coarse element indices
     void DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseindices);
-
+    
     void DefineSkeleton(std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton)
     {
         fInterfaces = skeleton;
@@ -189,11 +188,7 @@ public:
     
     /// Define the partitioning information of the MHM mesh
     void DefinePartition(TPZVec<int64_t> &partitionindex, std::map<int64_t,std::pair<int64_t,int64_t> > &skeleton);
-
-    /// Define the partitioning information of the MHM mesh
-    // This method calculates the skeleton indexes
-    void DefinePartition(TPZVec<int64_t> &partitionindex);
-
+    
     /// Set the problem type of the simulation
     void SetProblemType(MProblemType problem)
     {
@@ -307,11 +302,7 @@ public:
         }
         return result;
     }
-
-    TPZManVector<int64_t> GetGeoToMHMDomain() {
-        return fGeoToMHMDomain;
-    }
-
+    
     /// return the coarseindex to submesh index data structure
     std::map<int64_t,int64_t> &Coarse_to_Submesh()
     {
