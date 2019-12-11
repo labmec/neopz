@@ -181,7 +181,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
     }
     fNumeq = fCMesh->NEquations();
     
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     {
         int64_t nel = fCMesh->NElements();
         for(int64_t el = 0; el<nel; el++)
@@ -308,8 +308,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     gmesh->ResetReference();
     cmeshPressure->SetName("PressureMesh");
     cmeshPressure->SetDimModel(gmesh->Dimension());
-    // cmeshPressure->SetAllCreateFunctionsDiscontinuous(); //AQUI
-    cmeshPressure->ApproxSpace().SetAllCreateFunctionsDiscontinuous();//JV
+    cmeshPressure->SetAllCreateFunctionsDiscontinuous(); //AQUI
     cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
     cmeshPressure->SetDefaultOrder(porder + fHdivmaismais);
     int meshdim = cmeshPressure->Dimension();

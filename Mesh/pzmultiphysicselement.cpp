@@ -30,7 +30,6 @@ void TPZMultiphysicsElement::CreateInterfaces()
     //eh maior em tamanho que o interface associado
     //caso AdjustBoundaryElement nao for aplicado
     //a malha eh criada consistentemente
-   
     TPZGeoEl *ref = Reference();
     int nsides = ref->NSides();
     int InterfaceDimension = Mesh()->Dimension() - 1;
