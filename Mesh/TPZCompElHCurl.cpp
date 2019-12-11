@@ -205,7 +205,7 @@ int TPZCompElHCurl<TSHAPE>::SideConnectLocId(int node,int side) const {
     }
 #endif
 
-    return node+side-(TSHAPE::NSides-TSHAPE::NumSides(TSHAPE::Dimension-1)-1);
+    return side-TSHAPE::NCornerNodes;
 }
 
 template<class TSHAPE>

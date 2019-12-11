@@ -57,7 +57,7 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
 #endif
     if(order == 0) return 0;//given the choice of implementation, there are no shape functions for k=0
     const auto nFaces = TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NSides - 2 + TSHAPE::Dimension - nFaces - TSHAPE::NCornerNodes;
+    const auto nEdges = TSHAPE::NSides - TSHAPE::NCornerNodes - nFaces - (TSHAPE::Dimension - 2);
     const auto sideOrder = this->EffectiveSideOrder(side);
     const int nShapeF = [&](){
         if (side < TSHAPE::NCornerNodes + nEdges) {//edge connect
@@ -79,7 +79,7 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
             }();
             return factor * (sideOrder - 1) * (sideOrder + 1);
         }
-        else{//internal connect
+        else{//internal connect (3D element only)
             int count = 0;
             for(int iFace = 0; iFace < nFaces; iFace++){
                 const int faceOrder = this->EffectiveSideOrder(TSHAPE::NCornerNodes+nEdges + iFace);
@@ -129,7 +129,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     * their sides' GLOBAL ids instead of their LOCAL ids
     ******************************************************************************************************************/
     const auto nFaces = TSHAPE::NumSides(2);
-    const auto nEdges = TSHAPE::NSides - 2 + TSHAPE::Dimension - nFaces - TSHAPE::NCornerNodes;
+    const auto nEdges = TSHAPE::NSides - TSHAPE::NCornerNodes - nFaces - (TSHAPE::Dimension - 2);;
     const auto nNodes = TSHAPE::NCornerNodes;
 
 
@@ -246,6 +246,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     {
         const int nEdgeVectors = nEdges * 3;
         firstVfeVec[0] = nEdgeVectors;
+        nFaceInternalFunctions[0] = TSHAPE::NConnectShapeF(0 + nEdges + nNodes,connectOrder[nEdges + 0]);
         for(auto iFace = 1; iFace < nFaces; iFace++){
             TSHAPE::LowerDimensionSides(iFace - 1 + nEdges + nNodes, faceEdges[iFace-1], 1);
             const int nFaceEdges = faceEdges[iFace-1].size();
@@ -253,7 +254,6 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             nFaceInternalFunctions[iFace] = TSHAPE::NConnectShapeF(iFace + nEdges + nNodes,connectOrder[nEdges + iFace]);
         }
         TSHAPE::LowerDimensionSides(nFaces - 1 + nEdges + nNodes, faceEdges[nFaces-1], 1);
-        nFaceInternalFunctions[nFaces - 1] = TSHAPE::NConnectShapeF(nFaces - 1 + nEdges + nNodes,connectOrder[nEdges + nFaces - 1]);
     }
     const int firstVftVec = firstVfeVec[nFaces-1] + faceEdges[nFaces-1].size();
     const int firstVfOrthVec = firstVftVec + 2 * nFaces;
@@ -280,7 +280,8 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
         }();
         const int nFaceEdges = TSHAPE::NSideNodes(iSide);//this is not a mistake, since for faces nEdges = nNodes
         for(auto iEdge = 0; iEdge < nFaceEdges; iEdge++ ){
-            const auto currentEdge = permutedSideSides[iEdge + nFaceEdges];
+            const auto currentLocalEdge = permutedSideSides[iEdge + nFaceEdges];
+            const auto currentEdge = TSHAPE::ContainedSideLocId(iSide, currentLocalEdge);
             const auto vecIndex = firstVfeVec[iFace] + iEdge;
             for(auto iEdgeInternal = 0; iEdgeInternal < pOrder - 1; iEdgeInternal++){
                 const int shapeIndex = firstH1ShapeFunc[currentEdge - nNodes] + iEdgeInternal;
