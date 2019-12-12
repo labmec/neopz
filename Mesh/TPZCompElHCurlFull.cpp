@@ -11,7 +11,6 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
-static LoggerPtr loggercurl(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
 #endif
 
 template<class TSHAPE>
@@ -203,10 +202,13 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             shapeCountVec[iCon]++;
         }//phi^et funcs
     }
+
+    const int firstFaceShape = shapeCount;
+
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         sout << "vec shape index (edge connects):" << std::endl;
-        for (int iShape = 0; iShape < shapeCount; iShape++) {
+        for (int iShape = 0; iShape < firstFaceShape; iShape++) {
             auto pair = indexVecShape[iShape];
             sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
 
@@ -278,9 +280,10 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             }
             return perm;
         }();
-        const int nFaceEdges = TSHAPE::NSideNodes(iSide);//this is not a mistake, since for faces nEdges = nNodes
+        const int nFaceNodes = TSHAPE::NSideNodes(iSide);
+        const int &nFaceEdges = nFaceNodes;//this is not a mistake, since for faces nEdges = nNodes
         for(auto iEdge = 0; iEdge < nFaceEdges; iEdge++ ){
-            const auto currentLocalEdge = permutedSideSides[iEdge + nFaceEdges];
+            const auto currentLocalEdge = permutedSideSides[iEdge + nFaceNodes];
             const auto currentEdge = TSHAPE::ContainedSideLocId(iSide, currentLocalEdge);
             const auto vecIndex = firstVfeVec[iFace] + iEdge;
             for(auto iEdgeInternal = 0; iEdgeInternal < pOrder - 1; iEdgeInternal++){
@@ -300,6 +303,20 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             shapeCountVec[iCon]++;
         }
     }
+    const int firstInternalShape = shapeCount;
+
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        sout << "vec shape index (face connects):" << std::endl;
+        for (int iShape = firstFaceShape; iShape < firstInternalShape; iShape++) {
+            auto pair = indexVecShape[iShape];
+            sout << "\tvec: " << pair.first << "\tshape: " << pair.second << std::endl;
+
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+
 
     #ifdef PZDEBUG
     for (int iFace = 0; iFace < nFaces; iFace++){

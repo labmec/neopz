@@ -582,13 +582,15 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                             for(auto iShape = 0; iShape < nShapes; iShape ++){
                                 for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
                                 for (auto x = 0; x < 3; x++) neighShapeFunc[x] = neighShape(firstNeighShape + iShape,x);
-                                REAL elTrace{0}, neighTrace{0};
-                                const bool checkTraces = [&](REAL &elTrace, REAL &neighTrace){
+                                REAL diffTrace{0};
+                                const bool checkTraces = [&](REAL &diffTrace){
                                     switch(sideDim){
                                         case 1:{
+                                            REAL elTrace{0}, neighTrace{0};
                                             for (auto x = 0; x < 3; x++) elTrace += elShapeFunc[x]*vec[x];
                                             for (auto x = 0; x < 3; x++) neighTrace += neighShapeFunc[x]*vec[x];
-                                            return std::abs(elTrace - neighTrace) < tol;
+                                            diffTrace = std::abs(elTrace - neighTrace);
+                                            return  diffTrace < tol;
                                         }
                                             break;
                                         case 2:{
@@ -600,22 +602,20 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
                                             auxiliaryfuncs::VectorProduct(vec,neighShapeFunc,temp);
                                             auxiliaryfuncs::VectorProduct(vec,temp,faceTrace);
-                                            REAL diff = 0;
-                                            for(auto x = 0; x < 3; x++) diff += (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
-                                            diff = sqrt(diff);
-                                            return diff < tol;
+                                            for(auto x = 0; x < 3; x++) diffTrace+= (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
+                                            diffTrace= sqrt(diffTrace);
+                                            return diffTrace < tol;
                                         }
                                             break;
                                         default:
                                             return false;
                                     }
-                                }(elTrace,neighTrace);
+                                }(diffTrace);
                                 BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
                                                           "\ntopology: "+MElementType_Name(type)+"\n"+
                                                           "side: "+std::to_string(iSide)+"\n"+
                                                           "p order: "+std::to_string(pOrder)+"\n"
-                                                          "el trace: "+std::to_string(elTrace)+"\n"
-                                                          "neigh trace: "+std::to_string(neighTrace)+"\n"
+                                                          "diff traces: "+std::to_string(diffTrace)+"\n"
                                 );
                             }
                         }
