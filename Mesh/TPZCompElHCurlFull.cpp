@@ -150,7 +150,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     TPZVec<int64_t> nodes(nNodes, 0);
     for (auto iNode = 0; iNode < nNodes; iNode++) nodes[iNode] = this->Reference()->NodeIndex(iNode);
     //computing transformation id for sides
-    TPZManVector<int, 21> transformationIds(TSHAPE::NSides - nNodes, -1);
+    TPZManVector<int, TSHAPE::NSides - TSHAPE::NCornerNodes> transformationIds(TSHAPE::NSides - nNodes, -1);
     for (auto iSide = 0; iSide < nEdges + nFaces + TSHAPE::Dimension - 2; iSide++) {
         transformationIds[iSide] = TSHAPE::GetTransformId(nNodes + iSide, nodes);
     }
@@ -280,12 +280,30 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             }
             return perm;
         }();
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            sout << "face :"<< iSide <<" permutation:"<< std::endl;
+            for (auto i = 0; i < permutedSideSides.size(); i++) sout << permutedSideSides[i]<<"\t";
+            sout<<std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
+
         const int nFaceNodes = TSHAPE::NSideNodes(iSide);
         const int &nFaceEdges = nFaceNodes;//this is not a mistake, since for faces nEdges = nNodes
         for(auto iEdge = 0; iEdge < nFaceEdges; iEdge++ ){
-            const auto currentLocalEdge = permutedSideSides[iEdge + nFaceNodes];
+            const auto currentLocalEdge = [&](){
+                int localEdge = nFaceNodes;
+                const int desiredSide = nFaceNodes + iEdge;
+                for(auto i = nFaceNodes; i < TSHAPE::NContainedSides(iSide); i++) {
+                    if (nFaceNodes + iEdge != permutedSideSides[i]) localEdge++;
+                    else break;
+                }
+                return localEdge;
+            }();
             const auto currentEdge = TSHAPE::ContainedSideLocId(iSide, currentLocalEdge);
-            const auto vecIndex = firstVfeVec[iFace] + iEdge;
+            const auto vecIndex = firstVfeVec[iFace] + currentLocalEdge - nFaceNodes;
             for(auto iEdgeInternal = 0; iEdgeInternal < pOrder - 1; iEdgeInternal++){
                 const int shapeIndex = firstH1ShapeFunc[currentEdge - nNodes] + iEdgeInternal;
                 indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);

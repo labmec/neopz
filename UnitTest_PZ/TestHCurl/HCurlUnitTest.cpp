@@ -542,7 +542,6 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                     int firstElShape = 0;
                     for(auto jCon = 0; jCon < iCon; jCon++)   firstElShape += cel->NConnectShapeF(jCon,pOrder);
                     const int nShapes = cel->NConnectShapeF(iCon,pOrder);
-
                     while(neighGelSide != gelSide && sideDim != 0){
                         auto neighCel = dynamic_cast<TPZInterpolatedElement *> (neighGelSide.Element()->Reference());
                         auto neighSide = neighGelSide.Side();
@@ -577,7 +576,11 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                             neighCel->ComputeShape(ptNeigh,neighData);
                             TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
                                                            neighData.fDeformedDirections,neighShape);
-
+/*
+                     * The face orientation must be taken into account on computing the Vfe functions. Need to debug.
+                     * The signs are the complete opposite of what they should be on the tetrahedron
+                     * On element 1, face 13, element 4, face 13.
+                     * */
                             TPZManVector<REAL,3> elShapeFunc(3,0), neighShapeFunc(3,0);
                             for(auto iShape = 0; iShape < nShapes; iShape ++){
                                 for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);

@@ -253,7 +253,7 @@ void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-        sout << endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
+        sout << std::endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
         LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
