@@ -644,7 +644,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 43) return 1;
     if(var == 44) return 1;
     if(var == 45) return 1;
-    return TPZMaterial::NSolutionVariables(var);
+    return TPZMatPoisson3d::NSolutionVariables(var);
 }
 
 void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
@@ -820,7 +820,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         
     }
     
-    TPZMaterial::Solution(datavec,var,Solout);
+	TPZMatPoisson3d::Solution(datavec,var,Solout);
 }
 
 
