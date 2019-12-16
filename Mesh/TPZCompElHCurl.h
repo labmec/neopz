@@ -150,7 +150,7 @@ public:
     void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 
     /** @brief Computes the values of the shape function of the side*/
-    void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
+    void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override = 0;
     /**
     * @brief Compute solution functions based on master element in the classical FEM manner.
     * @param[in] qsi point in master element coordinates

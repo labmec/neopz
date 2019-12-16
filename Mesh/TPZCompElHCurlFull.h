@@ -45,6 +45,8 @@ public:
     * @return number of shape functions
     */
     int NConnectShapeF(int connect, int order) const override;
+
+    void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 protected:
     /**
     * @brief Returns a matrix index of the shape and vector  associate to element
@@ -52,6 +54,11 @@ protected:
     * @param[in] connectOrder Order of the connects
     */
     void IndexShapeToVec(TPZVec<std::pair<int,int64_t> > & indexVecShape, const TPZVec<int>& connectOrder) const override;
+
+    template<class TSIDESHAPE=TSHAPE>
+    static void StaticIndexShapeToVec(TPZVec<std::pair<int,int64_t>> & indexVecShape, const TPZVec<int>& connectOrder,
+                                      const TPZVec<int64_t>& firstH1ShapeFunc, TPZVec<uint>& shapeCountVec,
+                                      const TPZVec<int>& transformationIds);
 
     /**
      * @brief This method calculates the appropriate side orders for the correct calculation of the SCALAR shape functions.

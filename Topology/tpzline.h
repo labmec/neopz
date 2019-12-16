@@ -251,11 +251,9 @@ namespace pztopology {
         template <class TVar>
         static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds){
             const REAL sign = transformationIds[0] == 0 ? 1 : -1;
-            for (int i=0; i<3; i++) {
-                directions(i,0) = gradx(i,0) * sign;
-                directions(i,1) = gradx(i,0) * sign;
-                directions(i,2) = gradx(i,0) * sign;
-            }
+            directions(0,0) = 0.5 * sign;
+            directions(0,1) = 0.5 * sign;
+            directions(0,2) = 0.5 * sign;
         }
         
 

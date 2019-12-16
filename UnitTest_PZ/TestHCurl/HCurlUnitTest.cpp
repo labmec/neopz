@@ -70,7 +70,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         namespace auxiliaryfuncs{
             void ComputeDirections (TPZGeoEl *, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &,const TPZVec<int> &);
 
-            void VectorProduct(TPZVec<REAL> &, TPZVec<REAL> &, TPZVec<REAL> &);
+            void VectorProduct(const TPZVec<REAL> &, const TPZVec<REAL> &, TPZVec<REAL> &);
 
             void ComputeNormal(TPZGeoMesh *, TPZVec<int64_t>, TPZVec<REAL> &);
 
@@ -218,14 +218,14 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                     trace *= edgeLength;
 #ifdef NOISY_HCURL
                     std::cout << "\tedgeIndex " << edgeIndex <<"\ttesting ve vectors" << std::endl;
-                std::cout << "\t\ttangent vector: " << std::endl;
-                for (auto x = 0; x < 3; x++) std::cout << "\t\t" << edgeTgVector[x];
-                std::cout << std::endl;
-                std::cout << "\t\tve vector:" << std::endl;
-                for (auto x = 0; x < 3; x++) std::cout << "\t\t" << deformedDirections(x, 2 * nEdges + iEdge) << "\t";
-                std::cout << std::endl;
-                std::cout << "\t\ttrace:" << trace << std::endl;
-                std::cout << std::endl;
+                    std::cout << "\t\ttangent vector: " << std::endl;
+                    for (auto x = 0; x < 3; x++) std::cout << "\t\t" << edgeTgVector[x];
+                    std::cout << std::endl;
+                    std::cout << "\t\tve vector:" << std::endl;
+                    for (auto x = 0; x < 3; x++) std::cout << "\t\t" << deformedDirections(x, 2 * nEdges + iEdge) << "\t";
+                    std::cout << std::endl;
+                    std::cout << "\t\ttrace:" << trace << std::endl;
+                    std::cout << std::endl;
 #endif
                     bool testTrace = std::abs(trace - 1) < tol;
                     BOOST_CHECK(testTrace);
@@ -235,8 +235,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         trace *=edgeLength;
 #ifdef NOISY_HCURL
                         std::cout<<"\t\tvector  "<<iVec<<" out of "<<2<<std::endl;
-                    std::cout<<"\t\t\tdirection "<<iVec<<std::endl;
-                    std::cout<<"\t\t\tintegral of tangential trace over edge: "<<trace<<std::endl;
+                        std::cout<<"\t\t\tdirection "<<iVec<<std::endl;
+                        std::cout<<"\t\t\tintegral of tangential trace over edge: "<<trace<<std::endl;
 #endif
                         testTrace =
                                 std::abs(trace - 1) < tol;
@@ -270,10 +270,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         if(!testNeighTrace){
 #ifdef NOISY_HCURL
                             std::cout<<"\t\t\tERROR"<<std::endl;
-                        std::cout<<"\t\t\tintegral of tangential trace over neighbour edge: "<<neighTrace<<std::endl;
-                        std::cout<<"\t\t\tneighbour tangent vector:"<<std::endl;
-                        for (auto x = 0; x < 3; x++) std::cout << "\t\t" << neighEdgeTgVector[x]<< "\t";
-                        std::cout<<std::endl;
+                            std::cout<<"\t\t\tintegral of tangential trace over neighbour edge: "<<neighTrace<<std::endl;
+                            std::cout<<"\t\t\tneighbour tangent vector:"<<std::endl;
+                            for (auto x = 0; x < 3; x++) std::cout << "\t\t" << neighEdgeTgVector[x]<< "\t";
+                            std::cout<<std::endl;
 #endif
                         }
                         BOOST_CHECK(testNeighTrace);
@@ -474,6 +474,38 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AutoBuild();
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
+
+            ///this lambda expression will help calculating the tangential traces
+            auto CheckTracesFunc = [](REAL &diffTrace, const TPZVec<REAL> &elShapeFunc, const TPZVec<REAL>&neighShapeFunc, const TPZVec<REAL> &vec, const int sideDim){
+                switch(sideDim){
+                    case 1:{
+                        REAL elTrace{0}, neighTrace{0};
+                        for (auto x = 0; x < 3; x++) elTrace += elShapeFunc[x]*vec[x];
+                        for (auto x = 0; x < 3; x++) neighTrace += neighShapeFunc[x]*vec[x];
+                        diffTrace = std::abs(elTrace - neighTrace);
+                        return  diffTrace < tol;
+                    }
+                        break;
+                    case 2:{
+                        TPZManVector<REAL,3> temp(3,0);
+                        TPZManVector<REAL,3> elTrace(3,0),faceTrace(3,0);
+
+                        auxiliaryfuncs::VectorProduct(vec,elShapeFunc,temp);
+                        auxiliaryfuncs::VectorProduct(vec,temp,elTrace);
+
+                        auxiliaryfuncs::VectorProduct(vec,neighShapeFunc,temp);
+                        auxiliaryfuncs::VectorProduct(vec,temp,faceTrace);
+                        for(auto x = 0; x < 3; x++) diffTrace+= (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
+                        diffTrace= sqrt(diffTrace);
+                        return diffTrace < tol;
+                    }
+                        break;
+                    default:
+                        return false;
+                }
+            };
+
+
             for(auto dummyCel : cmesh->ElementVec()){
                 auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
                 if(!cel) continue;
@@ -553,7 +585,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         TPZTransform<> localTransf(sideDim);
                         neighGelSide.SideTransform3(gelSide,localTransf);
                         TPZManVector <REAL,3> pts(sideDim,0),ptsN(sideDim,0), ptEl(dim,0),ptNeigh(dim,0);
-                        TPZFNMatrix<30,STATE> elShape,neighShape;
+                        TPZFNMatrix<30,REAL> elShape,neighShape;
 
                         int firstNeighShape = 0;
                         const int neighCon = neighSide - neighGelSide.Element()->NNodes();
@@ -576,49 +608,33 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                             neighCel->ComputeShape(ptNeigh,neighData);
                             TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
                                                            neighData.fDeformedDirections,neighShape);
-/*
-                     * The face orientation must be taken into account on computing the Vfe functions. Need to debug.
-                     * The signs are the complete opposite of what they should be on the tetrahedron
-                     * On element 1, face 13, element 4, face 13.
-                     * */
+
                             TPZManVector<REAL,3> elShapeFunc(3,0), neighShapeFunc(3,0);
                             for(auto iShape = 0; iShape < nShapes; iShape ++){
                                 for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
                                 for (auto x = 0; x < 3; x++) neighShapeFunc[x] = neighShape(firstNeighShape + iShape,x);
                                 REAL diffTrace{0};
-                                const bool checkTraces = [&](REAL &diffTrace){
-                                    switch(sideDim){
-                                        case 1:{
-                                            REAL elTrace{0}, neighTrace{0};
-                                            for (auto x = 0; x < 3; x++) elTrace += elShapeFunc[x]*vec[x];
-                                            for (auto x = 0; x < 3; x++) neighTrace += neighShapeFunc[x]*vec[x];
-                                            diffTrace = std::abs(elTrace - neighTrace);
-                                            return  diffTrace < tol;
-                                        }
-                                            break;
-                                        case 2:{
-                                            TPZManVector<REAL,3> temp(3,0);
-                                            TPZManVector<REAL,3> elTrace(3,0),faceTrace(3,0);
-
-                                            auxiliaryfuncs::VectorProduct(vec,elShapeFunc,temp);
-                                            auxiliaryfuncs::VectorProduct(vec,temp,elTrace);
-
-                                            auxiliaryfuncs::VectorProduct(vec,neighShapeFunc,temp);
-                                            auxiliaryfuncs::VectorProduct(vec,temp,faceTrace);
-                                            for(auto x = 0; x < 3; x++) diffTrace+= (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
-                                            diffTrace= sqrt(diffTrace);
-                                            return diffTrace < tol;
-                                        }
-                                            break;
-                                        default:
-                                            return false;
-                                    }
-                                }(diffTrace);
+                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim);
                                 BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
                                                           "\ntopology: "+MElementType_Name(type)+"\n"+
                                                           "side: "+std::to_string(iSide)+"\n"+
                                                           "p order: "+std::to_string(pOrder)+"\n"
                                                           "diff traces: "+std::to_string(diffTrace)+"\n"
+                                );
+                            }
+                            TPZFNMatrix<30,REAL> sideShapeFuncs,sideShapeCurl;
+                            cel->SideShapeFunction(gelSide.Side(),pts,sideShapeFuncs,sideShapeCurl);
+                            TPZManVector<REAL,3> sideShapeFunc(3,0);
+                            for(auto iShape = 0; iShape < nShapes; iShape ++){
+                                for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
+                                for (auto x = 0; x < 3; x++) sideShapeFunc[x] = sideShapeFuncs(iShape,x);
+                                REAL diffTrace{0};
+                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim);
+                                BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
+                                                                "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                "side: "+std::to_string(iSide)+"\n"+
+                                                                "p order: "+std::to_string(pOrder)+"\n"
+                                                                "diff traces: "+std::to_string(diffTrace)+"\n"
                                 );
                             }
                         }
@@ -716,7 +732,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 }
             }//ComputeDirections
 
-            void VectorProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result){
+            void VectorProduct(const TPZVec<REAL> &v1, const TPZVec<REAL> &v2,TPZVec<REAL> &result){
                 REAL x1=v1[0], y1=v1[1],z1=v1[2];
                 REAL x2=v2[0], y2=v2[1],z2=v2[2];
                 result.Resize(v1.NElements());
