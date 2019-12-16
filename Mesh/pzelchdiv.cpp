@@ -255,7 +255,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 
      
      TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides+1> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
-     TSHAPE::GetSideDirections(vecside,directions,bilinear);
+     TSHAPE::GetSideHDivDirections(vecside,directions,bilinear);
 //     if (TSHAPE::Type()==ETriangle||TSHAPE::Type()==ETetraedro) {
 ////         pressureorder=this->fPreferredOrder-1;
 //     }
@@ -1249,7 +1249,7 @@ void TPZCompElHDiv<TSHAPE>::FillOrder(TPZVec<int> &order) const
 {
     int nvecs = TSHAPE::Dimension*TSHAPE::NSides;
     TPZManVector<int,3*27> associated_side(nvecs),bilinear(nvecs),direction(nvecs);
-    TSHAPE::GetSideDirections(associated_side,direction,bilinear);
+    TSHAPE::GetSideHDivDirections(associated_side,direction,bilinear);
     TPZManVector<int,27> sideinc(TSHAPE::NSides,0);
     for (int iv=0; iv<nvecs; iv++) {
         int side = associated_side[iv];
@@ -1390,7 +1390,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     int lastface = TSHAPE::NSides - 1;
     int cont = 0;
    
-    TPZIntelGen<TSHAPE>::Reference()->DirectionsMaster(data.fDirectionsOnMaster);
+    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fDirectionsOnMaster);
 
     for(int side = firstface; side < lastface; side++)
     {
@@ -1408,7 +1408,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
     if(data.fNeedsNormalVecFad){
     #ifdef _AUTODIFF
-        TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVecFad,restrainedface);
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fNormalVecFad,restrainedface);
         cont = 0;
         
         for(int side = firstface; side < lastface; side++)
@@ -1428,7 +1428,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         DebugStop();
     #endif
     }else{
-        TPZIntelGen<TSHAPE>::Reference()->Directions(qsi,data.fNormalVec,restrainedface);
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fNormalVec,restrainedface);
         cont = 0;
     
         for(int side = firstface; side < lastface; side++)
@@ -1494,7 +1494,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         if (TSHAPE::Type()==EPiramide) {
             normalsides.resize(3*TSHAPE::NSides+1);
         }
-        TSHAPE::GetSideDirections(vecside,directions,bilinear,normalsides);
+        TSHAPE::GetSideHDivDirections(vecside,directions,bilinear,normalsides);
         int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
         if (TSHAPE::Type() == EPiramide) {
             numvec++;

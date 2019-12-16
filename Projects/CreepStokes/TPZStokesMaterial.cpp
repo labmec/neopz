@@ -396,11 +396,6 @@ void TPZStokesMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             }
         }
         
-//        datavec[vindex].fNormalVec.Print("NormalVec = ",cout);
-//        dphiVx.Print("dphiVx = ",cout);
-//        GradVi.Print("GradVi = ",cout);
-//
-//        GradVit.Print("GradVit = ",cout);
         
         //Du = 0.5(GradU+GradU^T)
         for (int e=0; e<fDimension; e++) {

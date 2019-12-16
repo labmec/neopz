@@ -228,16 +228,16 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather);
 
 		/** @brief Volume of the master element (measure of the element) */
-		static REAL RefElVolume() { return 2.0; }
+		static constexpr REAL RefElVolume() { return 2.0; }
         
         /* Given side and gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
         template <class TVar>
-        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+        static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
         {
             TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
             

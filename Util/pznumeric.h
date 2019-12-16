@@ -48,7 +48,7 @@ public:
     static void NormalizeVetor(TPZVec<Tvar> &vetor);
 	/** @brief Returns the L2-norm of the vector */
     template <class Tvar>
-    static Tvar Norma(const TPZVec<Tvar> &vetor);
+    static Tvar Norm(const TPZVec<Tvar> &vetor);
 };
 
 #endif

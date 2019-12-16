@@ -243,18 +243,45 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int transformid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
-		static REAL RefElVolume() { return 4.0L; }
+		static constexpr REAL RefElVolume() { return 4.0L; }
         
         /* Given gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int is, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         
         /// Compute the directions of the HDiv vectors
         template <class TVar>
-        static void ComputeDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
-        
+        static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
+
+        /** Compute the directions of the HCurl vectors.
+         * These vectors are combined with H1 shape functions to create the HCurl shape functions.
+         * They *must be* computed in the following order:
+         * - \f$v^{e,a}\f$: vector associated with edge \f$e\f$. It is normal to the edge \f$\hat{e}\f$ adjacent to \f$e\f$e by the vertex \f$a\f$a.
+         * - \f$v^{e,T}\f$: vector associated with edge \f$e\f$. It is tangent to the edge \f$\hat{e}\f$.
+         * - \f$v^{F,e}\f$: vector associated with face \f$F\f$. It is normal to the face \f$\hat{F}\f$ adjacent to \f$F\f$e by the edge \f$e\f$a.
+         * - \f$v^{F,T}\f$: two orthornormal vectors associated with face \f$F\f$ and tangent to it.
+         * - \f$v^{F,\perp}\f$: outward normal vector associated with face \f$F\f$ (3D only)
+         * - \f$v^{K}\f$: set of orthonormal vectors associated with the volume of the element itself (3D only. In 2D \f$v^{F,T}\f$ does its job)
+         * The side ordering should be respected. In the definition of the \f$v^{e,a}\f$ and the \f$v^{F,e}\f$ vectors, the subsides are ordered as the return of LowerDimensionSides.
+         * @tparam TVar REAL or Fad<REAL>
+         * @param gradx the gradient of the element mapping. if computing in normal element, gradx is the identity matrix.
+         * @param directions computed directions
+         * @param transformationIds transformation Ids associated with each side of dim > 0
+         */
+        template <class TVar>
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds);
+
+        /**
+         * For a given transformation id, the method will return the two \f$v^{F,T}\f$ vectors associated with the face
+         * @tparam TVar REAL or Fad<REAL>
+         * @param v1 \f$v^{F,T}_1\f$
+         * @param v2 \f$v^{F,T}_2\f$
+         * @param transformationId The id of the transformation (node ordering)
+         */
+        template <class TVar>
+        static void ComputeHCurlFaceDirections(TPZVec<TVar> &v1, TPZVec<TVar> &v2, int transformationId);
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
@@ -263,6 +290,7 @@ namespace pztopology {
 	protected:
         /** @brief Valid permutations between nodes*/
         static int fPermutations [8][9];
+        static REAL fTangentVectors [16][2];
         static int FaceNodes[1][4]; // Denise e Jose: dim =2
         static int SideNodes[4][2]; // Denise e Jose: dim = 1
 	};
