@@ -1200,7 +1200,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case ESinSin:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*2.*xloc[i]);
+            for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]);
         }
             break;
         case E10SinSin:
@@ -1209,6 +1209,13 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]*10.);
         }
             break;
+            
+            case E2SinSin:
+            {
+                disp[0] += (TVar)(1.);
+                for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]*2.);
+            }
+                break;
         case ESinDist:
         {
             disp[0] += (TVar)(1.);
@@ -1447,7 +1454,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         case ESinSin:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*2.*xloc[i]);
+            for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]);
         }
             break;
         case E10SinSin:
@@ -1456,6 +1463,14 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]*10.);
         }
             break;
+        case E2SinSin:
+            {
+                disp[0] += (TVar)(1.);
+                for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]*2.);
+            }
+            break;
+            
+            
         case ESinDist:
         {
             disp[0] += (TVar)(1.);

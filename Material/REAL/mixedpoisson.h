@@ -182,7 +182,10 @@ public:
         int nref = datavec.size();
         for (int iref = 0; iref <nref; iref++) {
             datavec[iref].SetAllRequirements(false);
+            datavec[iref].fNeedsSol = true;
         }
+        
+        
         if(type == 50)
         {
             for(int iref = 0; iref<nref; iref++){
