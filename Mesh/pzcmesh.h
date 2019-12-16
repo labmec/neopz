@@ -217,6 +217,9 @@ public:
 	
 	/** @brief Access the solution vector */
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
+    
+    /** @brief Access the  previous solution vector */
+    TPZFMatrix<STATE> &SolutionN(){ return fSolN;}
 	
 	/** @brief Access method for the element solution vectors */
 	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
@@ -568,7 +571,7 @@ public:
     
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */
-    void UpdatePreviousState(REAL mult);
+    void UpdatePreviousState(REAL mult = 1.0);
     
     /**
      * @brief Transfer multiphysics mesh solution
