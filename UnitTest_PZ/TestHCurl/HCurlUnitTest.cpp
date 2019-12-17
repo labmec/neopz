@@ -476,26 +476,28 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->CleanUpUnconnectedNodes();
 
             ///this lambda expression will help calculating the tangential traces
-            auto CheckTracesFunc = [](REAL &diffTrace, const TPZVec<REAL> &elShapeFunc, const TPZVec<REAL>&neighShapeFunc, const TPZVec<REAL> &vec, const int sideDim){
+            auto CheckTracesFunc = [](REAL &diffTrace, const TPZVec<REAL> &elShapeFunc, const TPZVec<REAL>&neighShapeFunc,
+                                      const TPZVec<REAL> &vec, const int sideDim, TPZVec<REAL> &elTrace, TPZVec<REAL> &neighTrace){
                 switch(sideDim){
                     case 1:{
-                        REAL elTrace{0}, neighTrace{0};
-                        for (auto x = 0; x < 3; x++) elTrace += elShapeFunc[x]*vec[x];
-                        for (auto x = 0; x < 3; x++) neighTrace += neighShapeFunc[x]*vec[x];
-                        diffTrace = std::abs(elTrace - neighTrace);
+                        elTrace.Resize(1);
+                        neighTrace.Resize(1);
+                        for (auto x = 0; x < 3; x++) elTrace[0] += elShapeFunc[x]*vec[x];
+                        for (auto x = 0; x < 3; x++) neighTrace[0] += neighShapeFunc[x]*vec[x];
+                        diffTrace = std::abs(elTrace[0] - neighTrace[0]);
                         return  diffTrace < tol;
                     }
                         break;
                     case 2:{
                         TPZManVector<REAL,3> temp(3,0);
-                        TPZManVector<REAL,3> elTrace(3,0),faceTrace(3,0);
-
+                        elTrace.Resize(3);
+                        neighTrace.Resize(3);
                         auxiliaryfuncs::VectorProduct(vec,elShapeFunc,temp);
                         auxiliaryfuncs::VectorProduct(vec,temp,elTrace);
 
                         auxiliaryfuncs::VectorProduct(vec,neighShapeFunc,temp);
-                        auxiliaryfuncs::VectorProduct(vec,temp,faceTrace);
-                        for(auto x = 0; x < 3; x++) diffTrace+= (faceTrace[x]-elTrace[x])*(faceTrace[x]-elTrace[x]);
+                        auxiliaryfuncs::VectorProduct(vec,temp,neighTrace);
+                        for(auto x = 0; x < 3; x++) diffTrace+= (neighTrace[x]-elTrace[x])*(neighTrace[x]-elTrace[x]);
                         diffTrace= sqrt(diffTrace);
                         return diffTrace < tol;
                     }
@@ -614,28 +616,65 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
                                 for (auto x = 0; x < 3; x++) neighShapeFunc[x] = neighShape(firstNeighShape + iShape,x);
                                 REAL diffTrace{0};
-                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim);
-                                BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                          "\ntopology: "+MElementType_Name(type)+"\n"+
-                                                          "side: "+std::to_string(iSide)+"\n"+
-                                                          "p order: "+std::to_string(pOrder)+"\n"
-                                                          "diff traces: "+std::to_string(diffTrace)+"\n"
-                                );
+                                TPZManVector<REAL,3> elTrace,neighTrace;
+                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim,elTrace,neighTrace);
+                                {
+                                    std::ostringstream traceMsg;
+                                    traceMsg <<"el func: ";
+                                    for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
+                                    traceMsg<<"\nneigh func: ";
+                                    for (auto x = 0; x < 3; x++) traceMsg << neighShapeFunc[x]<<"\t";
+                                    traceMsg <<"\n";
+                                    traceMsg <<"el trace: ";
+                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
+                                    traceMsg<<"\nneigh trace: ";
+                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
+                                    traceMsg <<"\n";
+                                    BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
+                                                                    "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                    "side: "+std::to_string(iSide)+"\n"+
+                                                                    "p order: "+std::to_string(pOrder)+"\n"+
+                                                                    "diff traces: "+std::to_string(diffTrace)+"\n"+
+                                                                    traceMsg.str()
+                                    );
+                                }
                             }
                             TPZFNMatrix<30,REAL> sideShapeFuncs,sideShapeCurl;
                             cel->SideShapeFunction(gelSide.Side(),pts,sideShapeFuncs,sideShapeCurl);
+                            int firstSideShape = 0;
+                            TPZStack<int> subSides;
+                            gel->LowerDimensionSides(gelSide.Side(),subSides);
+                            for(auto iSubSide = gelSide.NSideNodes(); iSubSide < gelSide.NSides() - 1; iSubSide++){
+                                const auto subSide = subSides[iSubSide];
+                                firstSideShape += cel->NConnectShapeF(subSide - gel->NNodes(),pOrder);
+                            }
                             TPZManVector<REAL,3> sideShapeFunc(3,0);
                             for(auto iShape = 0; iShape < nShapes; iShape ++){
                                 for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
-                                for (auto x = 0; x < 3; x++) sideShapeFunc[x] = sideShapeFuncs(iShape,x);
+                                for (auto x = 0; x < 3; x++) sideShapeFunc[x] = sideShapeFuncs(firstSideShape + iShape,x);
                                 REAL diffTrace{0};
-                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim);
-                                BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                "\ntopology: "+MElementType_Name(type)+"\n"+
-                                                                "side: "+std::to_string(iSide)+"\n"+
-                                                                "p order: "+std::to_string(pOrder)+"\n"
-                                                                "diff traces: "+std::to_string(diffTrace)+"\n"
-                                );
+                                TPZManVector<REAL,3> elTrace, sideTrace;
+                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim,elTrace,sideTrace);
+                                {
+                                    std::ostringstream traceMsg;
+                                    traceMsg <<"el func: ";
+                                    for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
+                                    traceMsg<<"\nside func: ";
+                                    for (auto x = 0; x < 3; x++) traceMsg << sideShapeFunc[x]<<"\t";
+                                    traceMsg <<"\n";
+                                    traceMsg <<"el trace: ";
+                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
+                                    traceMsg<<"\nside trace: ";
+                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
+                                    traceMsg <<"\n";
+                                    BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
+                                                                    "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                    "side: "+std::to_string(iSide)+"\n"+
+                                                                    "p order: "+std::to_string(pOrder)+"\n"+
+                                                                    "diff traces: "+std::to_string(diffTrace)+"\n"+
+                                                                    traceMsg.str()
+                                    );
+                                }
                             }
                         }
                         neighGelSide = neighGelSide.Neighbour();

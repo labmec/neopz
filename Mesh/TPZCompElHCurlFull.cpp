@@ -333,6 +333,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
             sout << "face :"<< iSide <<" permutation:"<< std::endl;
             for (auto i = 0; i < permutedSideSides.size(); i++) sout << permutedSideSides[i]<<"\t";
             sout<<std::endl;
+            sout<<"transformation id:"<<transformationIds[iCon]<<std::endl;
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
@@ -466,11 +467,26 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         const int localId = TSHAPE::SideNodeLocId(side,ic);
         sideNodesId[ic] = gel->Node(localId).Id();
     }
-    TPZVec<int64_t> elNodes(TSHAPE::NCornerNodes, 0);
-    for (auto iNode = 0; iNode < TSHAPE::NCornerNodes; iNode++) elNodes[iNode] = this->Reference()->NodeIndex(iNode);
     for (auto iSide = nSideNodes; iSide < nContainedSides; iSide++) {
-        const int localId = TSHAPE::ContainedSideLocId(side,iSide);
-        transformationIds[iSide-nSideNodes] = TSHAPE::GetTransformId(localId, elNodes);
+        MElementType sidetype = TSHAPE::Type(side);
+        transformationIds[iSide-nSideNodes] = [&](){
+            switch(sidetype){
+                case EOned:
+                    return pztopology::TPZLine::GetTransformId(iSide, sideNodesId);
+                    break;
+                case ETriangle:
+                    return pztopology::TPZTriangle::GetTransformId(iSide, sideNodesId);
+                    break;
+                case EQuadrilateral:
+                    return pztopology::TPZQuadrilateral::GetTransformId(iSide, sideNodesId);
+                    break;
+                default:
+                    DebugStop();
+                    return -1;
+            }
+        }();
+//        const int localId = TSHAPE::ContainedSideLocId(side,iSide);
+//        transformationIds[iSide-nSideNodes] = TSHAPE::GetTransformId(localId, elNodes);
     }
 
 
@@ -490,11 +506,23 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         firstH1ShapeFunc[0] = nSideNodes;
         for (int iSide = nSideNodes + 1; iSide < nContainedSides; iSide++) {
             const int prevLocalId = TSHAPE::ContainedSideLocId(side,iSide-1);
-            const int prevCon = prevLocalId - TSHAPE::NCornerNodes;
-
-            firstH1ShapeFunc[iSide - nSideNodes] = firstH1ShapeFunc[iSide - nSideNodes - 1]
-                                                + TSHAPE::NConnectShapeF(prevCon, sidesH1Ord[iSide-nSideNodes-1]);
+            const int &lastFirstH1 = firstH1ShapeFunc[iSide - nSideNodes - 1];
+            const int nShapeF = TSHAPE::NConnectShapeF(prevLocalId, sidesH1Ord[iSide-nSideNodes-1]);
+            firstH1ShapeFunc[iSide - nSideNodes] = lastFirstH1 + nShapeF;
+//            firstH1ShapeFunc[iSide - nSideNodes] = firstH1ShapeFunc[iSide - nSideNodes - 1]
+//                                                + TSHAPE::NConnectShapeF(prevCon, sidesH1Ord[iSide-nSideNodes-1]);
         }
+
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled()) {
+            std::ostringstream sout;
+            sout << __PRETTY_FUNCTION__ << std::endl;
+            sout << "side :"<< side <<std::endl;
+            sout << "transformation id :"<< transformationIds[nContainedSides-nSideNodes - 1] <<std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+
         TPZFNMatrix<9,REAL> gradxSide(sideDim,sideDim,0);
         for(auto ix = 0; ix < sideDim; ix++) gradxSide(ix,ix) = 1;
         switch (sidetype) {
