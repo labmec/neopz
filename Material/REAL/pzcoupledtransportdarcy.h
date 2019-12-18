@@ -43,7 +43,7 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 	
 public:
 	
-	virtual TPZBndCond *CreateBC(TPZMaterial * mat, int id, int typ, TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) override {
+	TPZBndCond *CreateBC(TPZMaterial * mat, int id, int typ, const TPZFMatrix<STATE> &val1,const TPZFMatrix<STATE> &val2) override {
 		PZError << "Error! - This method should not be called - " << __PRETTY_FUNCTION__ << std::endl;
 		return 0;
 	}

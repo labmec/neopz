@@ -133,7 +133,7 @@ protected:
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
-	TPZBndCond(TPZMaterial * material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) :
+	TPZBndCond(TPZMaterial * material,int id,int type,const TPZFMatrix<STATE> &val1,const TPZFMatrix<STATE> &val2) :
     TPZRegisterClassId(&TPZBndCond::ClassId), TPZDiscontinuousGalerkin(id), fBCs(), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
