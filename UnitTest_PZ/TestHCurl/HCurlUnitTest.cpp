@@ -50,7 +50,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 
 
 //#define NOISY_HCURL //outputs useful debug info
-//#define NOISY_HCURL_VTK
+#define NOISY_HCURL_VTK
 //std::string dirname = PZSOURCEDIR;
 
 
@@ -82,60 +82,60 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
 
     BOOST_AUTO_TEST_CASE(hcurl_topology_tests) {
-        {
-            TPZFMatrix<REAL> nodeCoords(3,3);
-            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
-            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
-            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
-            hcurltest::CompareVectorTraces<pztopology::TPZTriangle>(nodeCoords);
-        }
-        {
-            TPZFMatrix<REAL> nodeCoords(4,3);
-            nodeCoords(0,0) =  0;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
-            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
-            nodeCoords(2,0) =  1;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
-            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  1;   nodeCoords(3,2) =  0;
-            hcurltest::CompareVectorTraces<pztopology::TPZQuadrilateral>(nodeCoords);
-        }
-
-        {
-            TPZFMatrix<REAL> nodeCoords(4,3);
-            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
-            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
-            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
-            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
-            hcurltest::CompareVectorTraces<pztopology::TPZTetrahedron>(nodeCoords);
-        }
-
-        {
-            TPZFMatrix<REAL> nodeCoords(8,3);
-            nodeCoords(0,0) =  0;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
-            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
-            nodeCoords(2,0) =  1;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
-            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  1;   nodeCoords(3,2) =  0;
-            nodeCoords(4,0) =  0;   nodeCoords(4,1) =  0;   nodeCoords(4,2) =  1;
-            nodeCoords(5,0) =  1;   nodeCoords(5,1) =  0;   nodeCoords(5,2) =  1;
-            nodeCoords(6,0) =  1;   nodeCoords(6,1) =  1;   nodeCoords(6,2) =  1;
-            nodeCoords(7,0) =  0;   nodeCoords(7,1) =  1;   nodeCoords(7,2) =  1;
-            hcurltest::CompareVectorTraces<pztopology::TPZCube>(nodeCoords);
-        }
-
-        {
-            TPZFMatrix<REAL> nodeCoords(6,3);
-            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
-            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
-            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
-            nodeCoords(3,0) = -1;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
-            nodeCoords(4,0) =  1;   nodeCoords(4,1) =  0;   nodeCoords(4,2) =  1;
-            nodeCoords(5,0) =  0;   nodeCoords(5,1) =  1;   nodeCoords(5,2) =  1;
-            hcurltest::CompareVectorTraces<pztopology::TPZPrism>(nodeCoords);
-        }
+//        {
+//            TPZFMatrix<REAL> nodeCoords(3,3);
+//            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+//            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+//            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+//            hcurltest::CompareVectorTraces<pztopology::TPZTriangle>(nodeCoords);
+//        }
+//        {
+//            TPZFMatrix<REAL> nodeCoords(4,3);
+//            nodeCoords(0,0) =  0;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+//            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+//            nodeCoords(2,0) =  1;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+//            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  1;   nodeCoords(3,2) =  0;
+//            hcurltest::CompareVectorTraces<pztopology::TPZQuadrilateral>(nodeCoords);
+//        }
+//
+//        {
+//            TPZFMatrix<REAL> nodeCoords(4,3);
+//            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+//            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+//            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+//            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
+//            hcurltest::CompareVectorTraces<pztopology::TPZTetrahedron>(nodeCoords);
+//        }
+//
+//        {
+//            TPZFMatrix<REAL> nodeCoords(8,3);
+//            nodeCoords(0,0) =  0;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+//            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+//            nodeCoords(2,0) =  1;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+//            nodeCoords(3,0) =  0;   nodeCoords(3,1) =  1;   nodeCoords(3,2) =  0;
+//            nodeCoords(4,0) =  0;   nodeCoords(4,1) =  0;   nodeCoords(4,2) =  1;
+//            nodeCoords(5,0) =  1;   nodeCoords(5,1) =  0;   nodeCoords(5,2) =  1;
+//            nodeCoords(6,0) =  1;   nodeCoords(6,1) =  1;   nodeCoords(6,2) =  1;
+//            nodeCoords(7,0) =  0;   nodeCoords(7,1) =  1;   nodeCoords(7,2) =  1;
+//            hcurltest::CompareVectorTraces<pztopology::TPZCube>(nodeCoords);
+//        }
+//
+//        {
+//            TPZFMatrix<REAL> nodeCoords(6,3);
+//            nodeCoords(0,0) = -1;   nodeCoords(0,1) =  0;   nodeCoords(0,2) =  0;
+//            nodeCoords(1,0) =  1;   nodeCoords(1,1) =  0;   nodeCoords(1,2) =  0;
+//            nodeCoords(2,0) =  0;   nodeCoords(2,1) =  1;   nodeCoords(2,2) =  0;
+//            nodeCoords(3,0) = -1;   nodeCoords(3,1) =  0;   nodeCoords(3,2) =  1;
+//            nodeCoords(4,0) =  1;   nodeCoords(4,1) =  0;   nodeCoords(4,2) =  1;
+//            nodeCoords(5,0) =  0;   nodeCoords(5,1) =  1;   nodeCoords(5,2) =  1;
+//            hcurltest::CompareVectorTraces<pztopology::TPZPrism>(nodeCoords);
+//        }
     }
 
     BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
         constexpr int dim2D{2},dim3D{3};
-        for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(ETriangle, k,dim2D);
-        for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(EQuadrilateral, k,dim2D);
+//        for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(ETriangle, k,dim2D);
+//        for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(EQuadrilateral, k,dim2D);
         for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(ETetraedro, k,dim3D);
         for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(ECube, k,dim3D);
         for(auto k = 1; k <= 5; k++) hcurltest::TestTracesUniformMesh(EPrisma, k,dim3D);
@@ -468,7 +468,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             static std::string testName = __PRETTY_FUNCTION__;
             std::cout << testName << std::endl;
             std::cout<<"\t"<<MElementType_Name(type)<<" p = "<<pOrder<<std::endl;
-            constexpr int ndiv{3};
+            constexpr int ndiv{2};
             TPZManVector<int,2> matIds(2,-1);
             TPZGeoMesh *gmesh = [&]() -> TPZGeoMesh* {
                 switch(dim){
@@ -509,25 +509,21 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             auto CheckTracesFunc = [](REAL &diffTrace, const TPZVec<REAL> &elShapeFunc, const TPZVec<REAL>&neighShapeFunc,
                                       const TPZVec<REAL> &vec, const int sideDim, TPZVec<REAL> &elTrace, TPZVec<REAL> &neighTrace){
                 REAL averageTrace{0};
+                diffTrace = 0;
                 switch(sideDim){
                     case 1:{
-                        elTrace.Resize(1);
-                        neighTrace.Resize(1);
+                        elTrace.Resize(1,0);
+                        neighTrace.Resize(1,0);
                         for (auto x = 0; x < 3; x++) elTrace[0] += elShapeFunc[x]*vec[x];
                         for (auto x = 0; x < 3; x++) neighTrace[0] += neighShapeFunc[x]*vec[x];
                         diffTrace = std::abs(elTrace[0] - neighTrace[0]);
                         averageTrace = (sqrt(elTrace[0]*elTrace[0])+sqrt(neighTrace[0]*neighTrace[0]))/2;
-                        if(averageTrace < tol) {
-                            DebugStop();
-                        }
-
-                        return  diffTrace/averageTrace < tol;
                     }
                         break;
                     case 2:{
                         TPZManVector<REAL,3> temp(3,0);
-                        elTrace.Resize(3);
-                        neighTrace.Resize(3);
+                        elTrace.Resize(3,0);
+                        neighTrace.Resize(3,0);
                         auxiliaryfuncs::VectorProduct(vec,elShapeFunc,temp);
                         auxiliaryfuncs::VectorProduct(vec,temp,elTrace);
 
@@ -541,16 +537,14 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         firstTrace = sqrt(firstTrace);
                         secondTrace = sqrt(secondTrace);
                         averageTrace =(firstTrace+secondTrace)/2;
-                        if(averageTrace < tol) {
-                            DebugStop();
-                        }
-
-                        return  diffTrace/averageTrace < tol;
                     }
                         break;
                     default:
                         return false;
                 }
+                if(averageTrace < tol)  averageTrace = 1;
+
+                return  diffTrace/averageTrace < tol;
             };
 
 
@@ -754,7 +748,9 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 }
                                 anyWrongCheck = !checkTraces || anyWrongCheck;
                             }
-                            if(anyWrongCheck) break;
+                            if(anyWrongCheck){
+                                break;
+                            }
                         }
                         neighGelSide = neighGelSide.Neighbour();
                     }

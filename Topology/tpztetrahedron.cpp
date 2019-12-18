@@ -1596,12 +1596,15 @@ namespace pztopology {
             directions(i,18) = edgeSign[4-NCornerNodes] * faceOrient[0] * v2[i] / faceArea[0];//face 10 edge 4
             directions(i,19) = edgeSign[5-NCornerNodes] * faceOrient[0] * -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2/ faceArea[0];//face 10 edge 5
             directions(i,20) = edgeSign[6-NCornerNodes] * faceOrient[0] * v1[i] / faceArea[0];//face 10 edge 6
+
             directions(i,21) = edgeSign[4-NCornerNodes] * faceOrient[1] * v3[i] / faceArea[1];//face 11 edge 4
             directions(i,22) = edgeSign[8-NCornerNodes] * faceOrient[1] * -1 * (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[1];//face 11 edge 8
             directions(i,23) = edgeSign[7-NCornerNodes] * faceOrient[1] * -1 *  v1[i] / faceArea[1];//face 11 edge 7
+
             directions(i,24) = edgeSign[5-NCornerNodes] * faceOrient[2] * v3[i] * sqrt3 / faceArea[2];//face 12 edge 5
             directions(i,25) = edgeSign[9-NCornerNodes] * faceOrient[2] * v1[i] * sqrt3 * M_SQRT1_2 / faceArea[2];//face 12 edge 9
             directions(i,26) = edgeSign[8-NCornerNodes] * faceOrient[2] * -1 * v2[i] * sqrt3 / faceArea[2];//face 12 edge 8
+
             directions(i,27) = edgeSign[6-NCornerNodes] * faceOrient[3] * -1 * v3[i] / faceArea[3];//face 13 edge 6
             directions(i,28) = edgeSign[9-NCornerNodes] * faceOrient[3] * -1* (v1[i]+v2[i]+v3[i]) * M_SQRT1_2 / faceArea[3];//face 13 edge 9
             directions(i,29) = edgeSign[7-NCornerNodes] * faceOrient[3] * -1 * v2[i] / faceArea[3];//face 13 edge 7
