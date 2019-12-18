@@ -149,13 +149,14 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     const auto nFaces = TSHAPE::Dimension < 2 ? 0 : TSHAPE::NumSides(2);
     const auto nEdges = TSHAPE::NumSides(1);
     const auto nNodes = TSHAPE::NCornerNodes;
+    constexpr auto nConnects = TSHAPE::NSides - TSHAPE::NCornerNodes;
     TPZManVector<int, TSHAPE::NSides - TSHAPE::NCornerNodes> transformationIds(TSHAPE::NSides - nNodes, -1);
     {
         TPZVec<int64_t> nodes(nNodes, 0);
         for (auto iNode = 0; iNode < nNodes; iNode++) nodes[iNode] = this->Reference()->NodeIndex(iNode);
-        //computing transformation id for sides
-        for (auto iSide = 0; iSide < nEdges + nFaces + TSHAPE::Dimension - 2; iSide++) {
-            transformationIds[iSide] = TSHAPE::GetTransformId(nNodes + iSide, nodes);
+        //computing transformation id for sides.
+        for (auto iCon = 0; iCon < nConnects; iCon++) {
+            transformationIds[iCon] = TSHAPE::GetTransformId(nNodes + iCon, nodes);
         }
     }
 

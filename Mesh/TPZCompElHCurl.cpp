@@ -621,19 +621,38 @@ IMPLEMENTHCURL(pzshape::TPZShapePrism)
 #include <TPZCompElHCurlFull.h>
 
 TPZCompEl * CreateHCurlBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+    DebugStop();
 	return nullptr;//return new TPZCompElHCurlBound2<TPZShapePoint>(mesh,gel,index);
 }
 
 TPZCompEl * CreateHCurlBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	return nullptr;//return new TPZCompElHCurlBound2< TPZShapeLinear>(mesh,gel,index);
+    switch(TPZHCurlAuxClass::GetHCurlFamily()){
+        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+            return new TPZCompElHCurlFull< pzshape::TPZShapeLinear>(mesh,gel,index);
+            break;
+        default:
+            DebugStop();
+    }
 }
 
 TPZCompEl * CreateHCurlBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return nullptr;//return new TPZCompElHCurlBound2< TPZShapeTriang >(mesh,gel,index);
+    switch(TPZHCurlAuxClass::GetHCurlFamily()){
+        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+            return new TPZCompElHCurlFull< pzshape::TPZShapeTriang>(mesh,gel,index);
+            break;
+        default:
+            DebugStop();
+    }
 }
 
 TPZCompEl * CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return nullptr;//return new TPZCompElHCurlBound2< TPZShapeQuad>(mesh,gel,index);
+    switch(TPZHCurlAuxClass::GetHCurlFamily()){
+        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+            return new TPZCompElHCurlFull< pzshape::TPZShapeQuad>(mesh,gel,index);
+            break;
+        default:
+            DebugStop();
+    }
 }
 
 TPZCompEl * CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {

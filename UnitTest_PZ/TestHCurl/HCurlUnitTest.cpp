@@ -47,13 +47,13 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include "boost/test/output_test_stream.hpp"
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
-#endif
 
-#define NOISY_HCURL //outputs useful debug info
-#define NOISY_HCURL_VTK
+
+//#define NOISY_HCURL //outputs useful debug info
+//#define NOISY_HCURL_VTK
 //std::string dirname = PZSOURCEDIR;
 
-#ifdef USING_BOOST
+
 struct SuiteInitializer{
     SuiteInitializer(){
         InitializePZLOG();
@@ -278,6 +278,35 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         }
                         BOOST_CHECK(testNeighTrace);
                     }//iVec
+
+                    //testing neighbour elements
+                    auto edgeType = TTopol::Type(edgeIndex);
+
+                    const auto nEdgeNodes = MElementType_NNodes(edgeType);
+                    TPZManVector<int64_t,4>edgeNodes(nEdgeNodes,-1);
+                    for(auto iNode = 0; iNode < nEdgeNodes; iNode++) edgeNodes[iNode] = gel->SideNodeIndex(edgeIndex,iNode);
+
+                    TPZGeoEl *edgeGel = gmesh->CreateGeoElement(edgeType, edgeNodes, 1, index, 0);
+                    TPZFMatrix<REAL> edgeDeformedDirections(0,0),edgeMasterDirections(0,0);
+                    TPZManVector<int,21> edgeTransformationIds(nSides - nNodes,pztopology::TPZLine::GetTransformId(nEdgeNodes, edgeNodes));
+                    edgeTransformationIds[0] = pztopology::TPZLine::GetTransformId(nEdgeNodes, edgeNodes);
+                    auxiliaryfuncs::ComputeDirections(edgeGel,edgeDeformedDirections,edgeMasterDirections,edgeTransformationIds);
+                    for(auto iVec = 0; iVec <  2; iVec++) {// 2 v^{e,a}
+                        REAL elTrace{0}, neighTrace{0};
+                        for (auto x = 0; x < 3; x++) elTrace += edgeTgVector[x] * deformedDirections(x, 2 * iEdge + iVec);
+                        for (auto x = 0; x < 3; x++) neighTrace += edgeTgVector[x] * edgeDeformedDirections(x, iVec);
+                        const auto diffTrace = elTrace - neighTrace;
+                        testTrace = std::abs(diffTrace) < tol;
+                        BOOST_CHECK(testTrace);
+                    }
+                    for(auto iVec = 0; iVec <  1; iVec++) {// 1 v^{e,T}
+                        REAL elTrace{0}, neighTrace{0};
+                        for (auto x = 0; x < 3; x++) elTrace += edgeTgVector[x] * deformedDirections(x, 2 * nEdges + iEdge);
+                        for (auto x = 0; x < 3; x++) neighTrace += edgeTgVector[x] * edgeDeformedDirections(x, 2);
+                        const auto diffTrace = elTrace - neighTrace;
+                        testTrace = std::abs(diffTrace) < tol;
+                        BOOST_CHECK(testTrace);
+                    }
                 }//iEdge
 
                 //calculating indexes and stuff
@@ -469,7 +498,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
             auto mat = new TPZMatHelmholtz2D(matIds[0],1,1);
             cmesh->InsertMaterialObject(mat);
-
+            auto bcond = mat->CreateBC(mat,matIds[1],0,TPZFNMatrix<1,STATE>(1,1,0),TPZFNMatrix<1,STATE>(1,1,0));
+            cmesh->InsertMaterialObject(bcond);
             cmesh->SetAllCreateFunctionsHCurl();
             cmesh->AutoBuild();
             cmesh->AdjustBoundaryElements();
@@ -510,7 +540,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
             for(auto dummyCel : cmesh->ElementVec()){
                 auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
-                if(!cel) continue;
+                //skips boundary els
+                if(!cel || cel->Reference()->Type() != type) continue;
                 int nState = cel->Material()->NStateVariables();
                 for (auto iCon = 0; iCon <cel->NConnects(); iCon++) {
                     auto &con = cel->Connect(iCon);
@@ -586,7 +617,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         neighCel->InitMaterialData(neighData);
                         TPZTransform<> localTransf(sideDim);
                         neighGelSide.SideTransform3(gelSide,localTransf);
-                        TPZManVector <REAL,3> pts(sideDim,0),ptsN(sideDim,0), ptEl(dim,0),ptNeigh(dim,0);
+                        const auto neighDim = neighGelSide.Element()->Dimension();
+                        TPZManVector <REAL,3> pts(sideDim,0),ptsN(sideDim,0), ptEl(dim,0),ptNeigh(neighDim,0);
                         TPZFNMatrix<30,REAL> elShape,neighShape;
 
                         int firstNeighShape = 0;
@@ -601,13 +633,11 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
                             elTransform.Apply(pts,ptEl);
                             cel->ComputeRequiredData(elData, ptEl);
-                            cel->ComputeShape(ptEl,elData);
                             TPZHCurlAuxClass::ComputeShape(elData.fVecShapeIndex, elData.phi,
                                                            elData.fDeformedDirections,elShape);
                             localTransf.Apply(pts,ptsN);
                             neighTransform.Apply(ptsN,ptNeigh);
                             neighCel->ComputeRequiredData(neighData, ptNeigh);
-                            neighCel->ComputeShape(ptNeigh,neighData);
                             TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
                                                            neighData.fDeformedDirections,neighShape);
 
@@ -721,6 +751,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 masterDirections.Resize(dim, nVec);
                 deformedDirections.Resize(3, nVec);
                 switch (gel->Type()) {
+                    case EOned:
+                        pztopology::TPZLine::ComputeHCurlDirections(gradX,
+                                                                        masterDirections,transformationIds);//these are the vectors on the master element
+                        break;
                     case ETriangle:
                         pztopology::TPZTriangle::ComputeHCurlDirections(gradX,
                                                                         masterDirections,transformationIds);//these are the vectors on the master element
@@ -883,7 +917,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
                 constexpr int matIdDomain = 1, matIdBoundary = 2;
 
-                //create elements
+                //create volumetric elements
                 [&](){
                     TPZGeoEl * gel = nullptr;
                     TPZManVector<int64_t,8> nodesIdVec(MElementType_NNodes(meshType),-1);
@@ -956,14 +990,160 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
                 }();
 
+                //create boundary elements
+                [&](){
+                    TPZGeoEl * gel = nullptr;
+                    TPZManVector<int64_t,8> nodesIdVec(MElementType_NNodes(meshType),-1);
+                    switch (meshType) {
+                        case ETetraedro:
+                            nodesIdVec.Resize(3);
+                            break;
+                        case ECube:
+                            nodesIdVec.Resize(4);
+                            break;
+                        case EPrisma:
+                            nodesIdVec.Resize(3);
+                            break;
+                        default:
+                            DebugStop();
+                    }
+                    //top/bottom
+                    for(auto iZ = 0; iZ < nelz + 1; iZ+=nelz){
+                        for(auto iY = 0; iY < nely; iY++){
+                            for(auto iX = 0; iX < nelx; iX++){
+                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
+                                switch (meshType) {
+                                    case ETetraedro:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + 1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        nodesIdVec[0] = firstNodeId + 1;
+                                        nodesIdVec[1] = firstNodeId + (nelx+1);
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    case ECube:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + 1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
+                                        nodesIdVec[3] = firstNodeId + (nelx+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    case EPrisma:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + 1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        nodesIdVec[0] = firstNodeId + 1;
+                                        nodesIdVec[1] = firstNodeId + (nelx+1);
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    default:
+                                        DebugStop();
+                                }
+                            }
+                        }
+                    }
+                    switch (meshType) {
+                        case ETetraedro:
+                            nodesIdVec.Resize(3);
+                            break;
+                        case ECube:
+                            nodesIdVec.Resize(4);
+                            break;
+                        case EPrisma:
+                            nodesIdVec.Resize(4);
+                            break;
+                        default:
+                            DebugStop();
+                    }
+                    //left/right
+                    for(auto iZ = 0; iZ < nelz; iZ++){
+                        for(auto iY = 0; iY < nely+1; iY+=nely){
+                            for(auto iX = 0; iX < nelx; iX++){
+                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
+                                switch (meshType) {
+                                    case ETetraedro:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + 1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        nodesIdVec[0] = firstNodeId + 1;
+                                        nodesIdVec[1] = firstNodeId + (nelx+1) * (nely+1)+1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    case ECube:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + 1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + 1 ;
+                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    case EPrisma:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + 1;
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + 1;
+                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    default:
+                                        DebugStop();
+                                }
+                            }
+                        }
+                    }
+                    //front/back
+                    for(auto iZ = 0; iZ < nelz; iZ++){
+                        for(auto iY = 0; iY < nely; iY++){
+                            for(auto iX = 0; iX < nelx+1; iX+=nelx){
+                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
+                                switch (meshType) {
+                                    case ETetraedro:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + (nelx+1);
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        nodesIdVec[0] = firstNodeId + (nelx+1);
+                                        nodesIdVec[1] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    case ECube:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + (nelx+1);
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
+                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    case EPrisma:
+                                        nodesIdVec[0] = firstNodeId;
+                                        nodesIdVec[1] = firstNodeId + (nelx+1);
+                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
+                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
+                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
+                                        break;
+                                    default:
+                                        DebugStop();
+                                }
+                            }
+                        }
+                    }
+
+
+                }();
+
                 gmesh->BuildConnectivity();
 
                 {
                     TPZCheckGeom check(gmesh);
                     check.CheckUniqueId();
                 }
-                matIds.Resize(1);
+                matIds.Resize(2);
                 matIds[0] = matIdDomain;
+                matIds[1] = matIdBoundary;
                 //Printing geometric mesh:
 
                 //ofstream bf("before.vtk");
