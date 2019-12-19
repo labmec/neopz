@@ -382,6 +382,9 @@ public:
 	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element*/
 	virtual TPZGeoElSide Neighbour(int side) = 0;
 	
+	/** @brief Returns the neighbour index for a given side*/
+	virtual int64_t NeighbourIndex(int side) const = 0;
+	
 	/** @brief Fill in the data structure for the neighbouring information*/
 	virtual void SetNeighbour(int side,const TPZGeoElSide &neighbour) = 0;
 	
