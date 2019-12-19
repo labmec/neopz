@@ -23,17 +23,17 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include "fad.h"
 #endif
 
-#include <pzgengrid.h>
-#include <pzcmesh.h>
-#include <TPZMatHelmholtz2D.cpp>
-#include <pzanalysis.h>
-#include <pzintel.h>
-#include <TPZCompElHCurl.h>
-#include <pzgeotetrahedra.h>
-#include <pzgeoprism.h>
-#include <TPZGeoCube.h>
-#include <pzgeoelrefless.h>
-#include <TPZVTKGeoMesh.h>
+#include "pzgengrid.h"
+#include "TPZGenGrid3D.h"
+#include "pzcmesh.h"
+#include "TPZMatHelmholtz2D.cpp"
+#include "pzanalysis.h"
+#include "pzintel.h"
+#include "TPZCompElHCurl.h"
+#include "pzgeotetrahedra.h"
+#include "pzgeoprism.h"
+#include "TPZGeoCube.h"
+#include "TPZVTKGeoMesh.h"
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
 
@@ -686,16 +686,18 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim,elTrace,neighTrace);
                                 {
                                     std::ostringstream traceMsg;
-                                    traceMsg <<"el func: ";
-                                    for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
-                                    traceMsg<<"\nneigh func: ";
-                                    for (auto x = 0; x < 3; x++) traceMsg << neighShapeFunc[x]<<"\t";
-                                    traceMsg <<"\n";
-                                    traceMsg <<"el trace: ";
-                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                    traceMsg<<"\nneigh trace: ";
-                                    for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
-                                    traceMsg <<"\n";
+                                    if(!checkTraces){
+                                        traceMsg <<"el func: ";
+                                        for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
+                                        traceMsg<<"\nneigh func: ";
+                                        for (auto x = 0; x < 3; x++) traceMsg << neighShapeFunc[x]<<"\t";
+                                        traceMsg <<"\n";
+                                        traceMsg <<"el trace: ";
+                                        for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
+                                        traceMsg<<"\nneigh trace: ";
+                                        for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
+                                        traceMsg <<"\n";
+                                    }
                                     BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
                                                                     "\ntopology: "+MElementType_Name(type)+"\n"+
                                                                     "side: "+std::to_string(iSide)+"\n"+
@@ -727,16 +729,18 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim,elTrace,sideTrace);
                                 {
                                     std::ostringstream traceMsg;
-                                    traceMsg <<"el func: ";
-                                    for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
-                                    traceMsg<<"\nside func: ";
-                                    for (auto x = 0; x < 3; x++) traceMsg << sideShapeFunc[x]<<"\t";
-                                    traceMsg <<"\n";
-                                    traceMsg <<"el trace: ";
-                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                    traceMsg<<"\nside trace: ";
-                                    for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
-                                    traceMsg <<"\n";
+                                    if(!checkTraces){
+                                        traceMsg <<"el func: ";
+                                        for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
+                                        traceMsg<<"\nside func: ";
+                                        for (auto x = 0; x < 3; x++) traceMsg << sideShapeFunc[x]<<"\t";
+                                        traceMsg <<"\n";
+                                        traceMsg <<"el trace: ";
+                                        for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
+                                        traceMsg<<"\nside trace: ";
+                                        for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
+                                        traceMsg <<"\n";
+                                    }
                                     BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
                                                                     "\ntopology: "+MElementType_Name(type)+"\n"+
                                                                     "side: "+std::to_string(iSide)+"\n"+
@@ -934,258 +938,14 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             TPZGeoMesh *CreateGeoMesh3D(int nelx, int nely, int nelz, MElementType meshType, TPZVec<int> &matIds) {
                 //Creating geometric mesh, nodes and elements.
                 //Including nodes and elements in the mesh object:
-                TPZGeoMesh *gmesh = new TPZGeoMesh();
-                constexpr int dim{3};
-                gmesh->SetDimension(dim);
-
-                //Auxiliary vector to store coordinates:
-                constexpr REAL maxX{1},maxY{1},maxZ{1};
-
-                //create nodes
-                [&](){
-                    TPZManVector<REAL,3> nodeCoords(3,0);
-                    int64_t newindex = -1;
-                    for(auto iZ = 0; iZ <= nelz; iZ++){
-                        for(auto iY = 0; iY <= nely; iY++){
-                            for(auto iX = 0; iX <= nelx; iX++){
-                                nodeCoords[0] = (REAL)iX/nelx;
-                                nodeCoords[1] = (REAL)iY/nely;
-                                nodeCoords[2] = (REAL)iZ/nelz;
-                                newindex = gmesh->NodeVec().AllocateNewElement();
-                                gmesh->NodeVec()[newindex].Initialize(nodeCoords, *gmesh);
-                            }
-                        }
-                    }
-                }();
-
-
-                constexpr int matIdDomain = 1, matIdBoundary = 2;
-
-                //create volumetric elements
-                [&](){
-                    TPZGeoEl * gel = nullptr;
-                    TPZManVector<int64_t,8> nodesIdVec(MElementType_NNodes(meshType),-1);
-                    for(auto iZ = 0; iZ < nelz; iZ++){
-                        for(auto iY = 0; iY < nely; iY++){
-                            for(auto iX = 0; iX < nelx; iX++){
-                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
-                                switch (meshType) {
-                                    case ETetraedro:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + (iX+iY+iZ) % 2;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1) + (iX+iY+iZ) % 2;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTetrahedra>(nodesIdVec,matIdDomain,*gmesh);
-                                        nodesIdVec[0] = firstNodeId + 1 - (iX+iY+iZ) % 2;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1) * (nely+1) + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1 -  (iX+iY+iZ) % 2;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTetrahedra>(nodesIdVec,matIdDomain,*gmesh);
-                                        nodesIdVec[0] = firstNodeId + 1 - (iX+iY+iZ) % 2;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1) + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1);
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1 - (iX+iY+iZ) % 2;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTetrahedra>(nodesIdVec,matIdDomain,*gmesh);
-                                        nodesIdVec[0] = firstNodeId + (nelx+1) + (iX+iY+iZ) % 2;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1) * (nely+1)+ (iX+iY+iZ) % 2;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTetrahedra>(nodesIdVec,matIdDomain,*gmesh);
-                                        nodesIdVec[0] = firstNodeId + 1 - (iX+iY+iZ) % 2;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1) + (iX+iY+iZ) % 2;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (iX+iY+iZ) % 2;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1 - (iX+iY+iZ) % 2;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTetrahedra>(nodesIdVec,matIdDomain,*gmesh);
-                                        break;
-                                    case ECube:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1);
-                                        nodesIdVec[4] = firstNodeId + (nelx+1) * (nely+1);
-                                        nodesIdVec[5] = firstNodeId + (nelx+1) * (nely+1) + 1;
-                                        nodesIdVec[6] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
-                                        nodesIdVec[7] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoCube>(nodesIdVec,matIdDomain,*gmesh);
-                                        break;
-                                    case EPrisma:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        nodesIdVec[4] = firstNodeId + (nelx+1) * (nely+1) + 1;
-                                        nodesIdVec[5] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoPrism>(nodesIdVec,matIdDomain,*gmesh);
-
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        nodesIdVec[4] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                                        nodesIdVec[5] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1) + 1;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoPrism>(nodesIdVec,matIdDomain,*gmesh);
-                                        break;
-                                    default:
-                                        DebugStop();
-                                }
-                            }
-                        }
-                    }
-
-                }();
-
                 //create boundary elements
-                [&](){
-                    TPZGeoEl * gel = nullptr;
-                    TPZManVector<int64_t,8> nodesIdVec(MElementType_NNodes(meshType),-1);
-                    switch (meshType) {
-                        case ETetraedro:
-                            nodesIdVec.Resize(3);
-                            break;
-                        case ECube:
-                            nodesIdVec.Resize(4);
-                            break;
-                        case EPrisma:
-                            nodesIdVec.Resize(3);
-                            break;
-                        default:
-                            DebugStop();
-                    }
-                    //top/bottom
-                    int aux = 0;
-                    for(auto iZ = 0; iZ < nelz + 1; iZ+=nelz){
-                        for(auto iY = 0; iY < nely; iY++){
-                            for(auto iX = 0; iX < nelx; iX++){
-                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
-                                switch (meshType) {
-                                    case ETetraedro:
-                                        aux = (iX+iY+iZ) % 2 ? 1 : 0;
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + aux;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        aux = (iX+iY+iZ) % 2 ? 0 : 1;
-                                        nodesIdVec[0] = firstNodeId + aux;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    case ECube:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    case EPrisma:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) + 1;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    default:
-                                        DebugStop();
-                                }
-                            }
-                        }
-                    }
-                    switch (meshType) {
-                        case ETetraedro:
-                            nodesIdVec.Resize(3);
-                            break;
-                        case ECube:
-                            nodesIdVec.Resize(4);
-                            break;
-                        case EPrisma:
-                            nodesIdVec.Resize(4);
-                            break;
-                        default:
-                            DebugStop();
-                    }
-                    //left/right
-                    for(auto iZ = 0; iZ < nelz; iZ++){
-                        for(auto iY = 0; iY < nely+1; iY+=nely){
-                            for(auto iX = 0; iX < nelx; iX++){
-                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
-                                switch (meshType) {
-                                    case ETetraedro:
-                                        aux = (iX+iY+iZ) % 2 ? 1 : 0;
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + aux;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        aux = (iX+iY+iZ) % 2 ? 0 : 1;
-                                        nodesIdVec[0] = firstNodeId + aux;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1) * (nely+1)+1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    case ECube:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + 1 ;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    case EPrisma:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + 1;
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + 1;
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    default:
-                                        DebugStop();
-                                }
-                            }
-                        }
-                    }
-                    //front/back
-                    for(auto iZ = 0; iZ < nelz; iZ++){
-                        for(auto iY = 0; iY < nely; iY++){
-                            for(auto iX = 0; iX < nelx+1; iX+=nelx){
-                                const auto firstNodeId = iZ * (nelx+1) * (nely+1) + iY * (nelx+1) + iX;/*lower left node*/
-                                switch (meshType) {
-                                    case ETetraedro:
-                                        aux = (iX+iY+iZ) % 2 ? nelx+1 : 0;
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + aux;
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        aux = (iX+iY+iZ) % 2 ? 0 : nelx+1;
-                                        nodesIdVec[0] = firstNodeId + aux;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoTriangle>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    case ECube:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    case EPrisma:
-                                        nodesIdVec[0] = firstNodeId;
-                                        nodesIdVec[1] = firstNodeId + (nelx+1);
-                                        nodesIdVec[2] = firstNodeId + (nelx+1) * (nely+1) + (nelx+1);
-                                        nodesIdVec[3] = firstNodeId + (nelx+1) * (nely+1);
-                                        gel = new TPZGeoElRefLess<pzgeom::TPZGeoQuad>(nodesIdVec,matIdBoundary,*gmesh);
-                                        break;
-                                    default:
-                                        DebugStop();
-                                }
-                            }
-                        }
-                    }
+                constexpr int maxX{1},maxY{1},maxZ{1};
+                constexpr int matIdDomain{1};
+                constexpr int matIdBoundary{2};
 
-
-                }();
-
+                TPZGenGrid3D genGrid3D(maxX,maxY,maxZ,nelx,nely,nelz,meshType);
+                genGrid3D.BuildVolumetricElements(matIdDomain);
+                TPZGeoMesh *gmesh = genGrid3D.BuildBoundaryElements(matIdBoundary,matIdBoundary,matIdBoundary,matIdBoundary,matIdBoundary,matIdBoundary);
                 gmesh->BuildConnectivity();
 
                 {

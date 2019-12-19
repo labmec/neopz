@@ -39,8 +39,8 @@ public:
      */
     template<int TDIM>
     static void ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-                            const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                            REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi);
+                            const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
+                            REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi);
 
     /**
      * @brief This method multiplies the scalar shape function with the directions in order to compute the Hcurl basis.
@@ -179,8 +179,8 @@ protected:
      */
     template<int TDIM=TSHAPE::Dimension>
     void ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-                     const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                     REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi){
+                     const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
+                     REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi){
         TPZHCurlAuxClass::ComputeCurl<TDIM>(vecShapeIndex,dphi,masterDirections,jacobian,detJac,axes,curlPhi);
     }
 

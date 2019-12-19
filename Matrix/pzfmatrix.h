@@ -130,7 +130,7 @@ public:
     
     friend class TPZFMatrix<float>;
     friend class TPZFMatrix<double>;
-
+    friend class TPZHCurlAuxClass;//for using the GETVAL macro.
     /// copy the values from a matrix with a different precision
     template<class TVar2>
     void CopyFrom(TPZFMatrix<TVar2> &orig)
@@ -646,12 +646,14 @@ inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
  * @brief Non abstract class which implements full matrices with preallocated storage with (N+1) entries. \ref matrix "Matrix"
  * @ingroup matrix
  */
+
 template<int N, class TVar=REAL>
 class TPZFNMatrix : public TPZFMatrix<TVar> {
     
     TVar fBuf[N+1];
     
 public:
+    friend class TPZHCurlAuxClass;
     /*
      * @brief Constructor which does not initialize the data. \n
      * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col

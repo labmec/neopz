@@ -508,36 +508,40 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
 
 template <>
 void TPZHCurlAuxClass::ComputeCurl<3>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-                                         const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                                         REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+                                         const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
+                                         REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi) {
     constexpr auto dim = 3;
     const auto nShapeFuncs = vecShapeIndex.size();
     const REAL jacInv = 1/detJac;
+    const TPZFMatrix<REAL> * dphiPtr = &dphi;
+    const TPZFMatrix<REAL> * masterDirectionsPtr = &masterDirections;
+    const TPZFMatrix<REAL> * jacobianPtr = &jacobian;
+    const TPZFMatrix<REAL> * axesPtr = &axes;
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
         const auto iVec = vecShapeIndex[iShapeFunc].first;
         const auto iShape = vecShapeIndex[iShapeFunc].second;
         TPZManVector<REAL, dim> gradPhiCrossDirections(dim, 0);
         for(auto ix = 0; ix < dim; ix++) {
             gradPhiCrossDirections[ix] =
-                    dphi.GetVal( (ix + 1) % dim,iShape) * masterDirections.GetVal( (ix + 2) % dim,iVec) -
-                    masterDirections.GetVal((ix + 1) % dim,iVec) * dphi.GetVal( (ix + 2) % dim,iShape);
+                    GETVAL(dphiPtr,dim,(ix+1)%dim,iShape) * GETVAL(masterDirectionsPtr,dim, (ix + 2) % dim,iVec) -
+                    GETVAL(masterDirectionsPtr,dim,(ix + 1) % dim,iVec) * GETVAL(dphiPtr,dim,(ix + 2) % dim,iShape);
         }
         TPZManVector<REAL, dim> tempCurl(dim, 0);
         for (auto i = 0; i < dim; i++) {
             tempCurl[i] = 0;
-            for (auto j = 0; j < dim; j++) tempCurl[i] += jacobian.GetVal(i, j) * gradPhiCrossDirections[j];
+            for (auto j = 0; j < dim; j++) tempCurl[i] += GETVAL(jacobianPtr,dim,i,j) * gradPhiCrossDirections[j];
         }
         for (auto i = 0; i < 3; i++) {
             curlPhi(i, iShapeFunc) = 0;
-            for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * axes.GetVal(j, i) * tempCurl[j];
+            for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * GETVAL(axesPtr,dim,j,i) * tempCurl[j];
         }
     }
 }
 
 template <>
 void TPZHCurlAuxClass::ComputeCurl<2>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-                                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+                                      const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
+                                      REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi) {
     constexpr auto dim = 3;
     const auto nShapeFuncs = vecShapeIndex.size();
     const REAL jacInv = 1/detJac;
@@ -552,8 +556,8 @@ void TPZHCurlAuxClass::ComputeCurl<2>(const TPZVec<std::pair<int, int64_t>> &vec
 
 template <>
 void TPZHCurlAuxClass::ComputeCurl<1>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-                                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+                                      const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
+                                      REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi) {
     const auto nShapeFuncs = vecShapeIndex.size();
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
         curlPhi(0, iShapeFunc) += 0;
@@ -562,8 +566,8 @@ void TPZHCurlAuxClass::ComputeCurl<1>(const TPZVec<std::pair<int, int64_t>> &vec
 
 template <int TDIM>
 void TPZHCurlAuxClass::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-                                      const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-                                      REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
+                                      const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
+                                      REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi) {
     DebugStop();
 }
 
