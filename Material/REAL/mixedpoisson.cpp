@@ -734,14 +734,17 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 
         }
         
-        
-    //    std::cout<<"derivada no analticsolution "<<gradu<<std::endl;
-        
-        PermTensor.Multiply(gradu, flux);
+		TPZFNMatrix<3, REAL> fluxtmp(fDim + 1, 1);
+		TPZFNMatrix<3, REAL> gradutmp(fDim + 1, 1);
+		for (int idi = 0; idi < gradu.Rows(); idi++)
+			for (int jdi = 0; jdi < gradu.Cols(); jdi++)
+				gradutmp(idi, jdi) = gradu(idi, jdi);
+
+        PermTensor.Multiply(gradutmp, fluxtmp);
         
         for (int i=0; i<fDim; i++)
         {
-            Solout[i] = flux(i,0);
+            Solout[i] = fluxtmp(i,0);
         }
 
 		return;
