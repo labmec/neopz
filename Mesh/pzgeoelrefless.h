@@ -114,7 +114,7 @@ virtual int ClassId() const override;
     }
 	
 	/** @brief Returns the neighbour index for a given side*/
-	virtual int64_t NeighbourIndex(int side) const{
+	virtual int64_t NeighbourIndex(int side) const override{
 #ifdef PZDEBUG
         	if (fNeighbours[side] < 0 || fNeighbours[side] >= this->Mesh()->NElements()) {
             		DebugStop();
