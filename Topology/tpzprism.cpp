@@ -1852,7 +1852,7 @@ namespace pztopology {
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
             //adjacent to face F by edge e
             directions(i, 27) = faceOrient[0] * edgeSign[6 - NCornerNodes] * v2[i]  / faceArea[0];//face 15 edge 6
-            directions(i, 28) = faceOrient[0] * edgeSign[7 - NCornerNodes] * -1 * (v1[i] + v2[i]) * M_SQRT1_2  / faceArea[0];//face 15 edge 7
+            directions(i, 28) = faceOrient[0] * edgeSign[7 - NCornerNodes] * -1 * (v1[i] + v2[i])  / faceArea[0];//face 15 edge 7
             directions(i, 29) = faceOrient[0] * edgeSign[8 - NCornerNodes] * v1[i]  / faceArea[0];//face 15 edge 8
 
             directions(i, 30) = faceOrient[1] * edgeSign[6 - NCornerNodes] *  0.5 * v3[i] / faceArea[1];//face 16 edge 6
@@ -1871,7 +1871,7 @@ namespace pztopology {
             directions(i, 41) = faceOrient[3] * edgeSign[9 - NCornerNodes] * -v2[i] / faceArea[3];//face 18 edge 9
 
             directions(i, 42) = faceOrient[4] * edgeSign[12 - NCornerNodes] * v2[i]  / faceArea[4];//face 19 edge 12
-            directions(i, 43) = faceOrient[4] * edgeSign[13 - NCornerNodes] * -1 * (v1[i] + v2[i] ) * M_SQRT1_2  / faceArea[4];//face 19 edge 13
+            directions(i, 43) = faceOrient[4] * edgeSign[13 - NCornerNodes] * -1 * (v1[i] + v2[i] )  / faceArea[4];//face 19 edge 13
             directions(i, 44) = faceOrient[4] * edgeSign[14 - NCornerNodes] * v1[i]  / faceArea[4];//face 19 edge 14
 
             //v^{F,T} are calculated afterwards

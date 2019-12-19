@@ -1155,7 +1155,7 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
             //adjacent to face F by edge e
             directions(i,9)  = faceOrient * edgeSign[0] *  v2[i] /faceArea;//* edgeLength[0];
-            directions(i,10) = faceOrient * edgeSign[1] *  ((-v2[i]-v1[i]) * M_SQRT1_2) /faceArea;//* edgeLength[1];
+            directions(i,10) = faceOrient * edgeSign[1] *  (-v2[i]-v1[i]) /faceArea;//* edgeLength[1];
             directions(i,11) = faceOrient * edgeSign[2] *  v1[i] /faceArea;//* edgeLength[0];
 
             //v^{F,T} orthonormal vectors associated with face F and tangent to it.
