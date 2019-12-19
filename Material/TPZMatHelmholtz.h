@@ -1,41 +1,28 @@
 /**
- * @file TPZMatHelmholtz2D.h
- * @brief Header file for class TPZMatHelmholtz2D.\n
+ * @file TPZMatHelmholtz.h
+ * @brief Header file for class TPZMatHelmholtz.\n
  */
 
-#ifndef TPZMATHELMHOLTZ2D_H
-#define TPZMATHELMHOLTZ2D_H
+#ifndef TPZMATHELMHOLTZ_H
+#define TPZMATHELMHOLTZ_H
 
 #include "TPZVecL2.h"
 /**
  * @ingroup material
  * @brief This class implements the inhomogeneous Helmholtz wave equation in 2D.
  */
-class TPZMatHelmholtz2D : public TPZVecL2 {
+class TPZMatHelmholtz : public TPZVecL2 {
   protected:
     const STATE fC;
     const REAL fScale;
   public:
-    TPZMatHelmholtz2D(int id, const STATE &, const REAL &scale = 1.);
-
-    explicit TPZMatHelmholtz2D(int id);
+    TPZMatHelmholtz(int dim, int id, const STATE &, const REAL &scale = 1.);
 
     /** @brief Default constructor */
-    TPZMatHelmholtz2D();
-
-    /** @brief Creates a material object based on the referred object and
-     * inserts it in the vector of material pointers of the mesh. */
-    /** Upon return vectorindex contains the index of the material object within
-     * the vector */
-    TPZMatHelmholtz2D(const TPZMatHelmholtz2D &mat);
-    /** @brief Default destructor */
-    virtual ~TPZMatHelmholtz2D();
+    TPZMatHelmholtz();
 
     /** @brief Returns the name of the material */
-    std::string Name() override { return "TPZMatHelmholtz2D"; }
-
-    /** @brief Returns the integrable dimension of the material */
-    int Dimension() const override { return 2; }
+    std::string Name() override { return "TPZMatHelmholtz"; }
 
     /** @brief Returns the number of state variables associated with the
      * material
@@ -83,7 +70,6 @@ class TPZMatHelmholtz2D : public TPZVecL2 {
     void FillBoundaryConditionDataRequirement(int type,
                                                       TPZMaterialData &data) override {
         data.SetAllRequirements(false);
-        data.fNeedsNormal = true;
     }
 
     /** @brief Gets the order of the integration rule necessary to integrate an

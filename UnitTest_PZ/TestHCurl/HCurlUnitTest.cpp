@@ -26,7 +26,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include "pzgengrid.h"
 #include "TPZGenGrid3D.h"
 #include "pzcmesh.h"
-#include "TPZMatHelmholtz2D.cpp"
+#include "TPZMatHelmholtz.cpp"
 #include "pzanalysis.h"
 #include "pzintel.h"
 #include "TPZCompElHCurl.h"
@@ -495,7 +495,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->SetDefaultOrder(pOrder);
             cmesh->SetDimModel(dim);
 
-            auto mat = new TPZMatHelmholtz2D(matIds[0],1,1);
+            auto mat = new TPZMatHelmholtz(dim,matIds[0],1,1);
             cmesh->InsertMaterialObject(mat);
             auto bcond = mat->CreateBC(mat,matIds[1],0,TPZFNMatrix<1,STATE>(1,1,0),TPZFNMatrix<1,STATE>(1,1,0));
             cmesh->InsertMaterialObject(bcond);
