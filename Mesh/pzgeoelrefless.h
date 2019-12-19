@@ -113,6 +113,16 @@ virtual int ClassId() const override;
         return TPZGeoElSide(fNeighbours[side],this->Mesh());
     }
 	
+	/** @brief Returns the neighbour index for a given side*/
+	virtual int64_t NeighbourIndex(int side) const{
+#ifdef PZDEBUG
+        	if (fNeighbours[side] < 0 || fNeighbours[side] >= this->Mesh()->NElements()) {
+            		DebugStop();
+        	}
+#endif
+        	return this->fNeighbours[side].ElementIndex();
+	}
+	
 	virtual  int64_t NodeIndex(int node) const override;
 	
 	//HDiv
