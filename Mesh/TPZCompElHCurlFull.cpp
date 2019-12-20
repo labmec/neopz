@@ -168,7 +168,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     firstH1ShapeFunc[0] = nNodes;
     for (int iSide = nNodes + 1; iSide < TSHAPE::NSides; iSide++) {
         const int iCon = iSide - nNodes;
-        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + TSHAPE::NConnectShapeF(iSide - 1, sidesH1Ord[iCon]);
+        firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + TSHAPE::NConnectShapeF(iSide - 1, sidesH1Ord[iCon-1]);
     }
 
 #ifdef LOG4CXX

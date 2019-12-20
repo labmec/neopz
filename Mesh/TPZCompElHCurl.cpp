@@ -466,7 +466,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
 
     long numberSol = meshSol.Cols();
 #ifdef PZDEBUG
-    if (numberSol != 1) {
+    if (numberSol != 1 || nVar != 1) {
         DebugStop();
     }
 #endif
@@ -475,10 +475,10 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
     curlSol.Resize(numberSol);
 
     for (long iSol = 0; iSol < numberSol; iSol++) {
-        sol[iSol].Resize(dim, nVar);
+        sol[iSol].Resize(dim);
         sol[iSol].Fill(0);
-        curlSol[iSol].Resize(dim, nVar);
-        curlSol[iSol].Fill(curlDim,nVar);
+        curlSol[iSol].Resize(curlDim);
+        curlSol[iSol].Fill(0);
     }
 
     TPZBlock<STATE> &block = this->Mesh()->Block();
@@ -496,12 +496,12 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
                     sol[iSol][coord] +=
                             (STATE)meshSol(pos + jShape, iSol) * phiHCurl(ishape, coord);
                 }
-                for (int coord = 0; coord < 2 * dim - 3; coord++) {
+                for (int coord = 0; coord < curlDim; coord++) {
                     curlSol[iSol][coord] +=
                             (STATE)meshSol(pos + jShape, iSol) * curlPhi(coord, ishape);
                 }
-                ishape++;
             }
+            ishape++;
         }
     }
 }

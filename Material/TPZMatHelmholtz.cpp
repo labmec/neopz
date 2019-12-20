@@ -103,8 +103,7 @@ int TPZMatHelmholtz::VariableIndex(const std::string &name) {
         return 0;
 	if (strcmp(name.c_str(), "curlE") == 0)
 		return 1;
-    DebugStop();
-    return 1;
+    return TPZMaterial::VariableIndex(name);
 }
 
 /**
@@ -121,11 +120,8 @@ int TPZMatHelmholtz::NSolutionVariables(int var) {
     case 1: // curlE
         return 2*fDim-3;
         break;
-    default:
-        DebugStop();
-        break;
     }
-    return 1;
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 /** @brief Returns the solution associated with the var index based on the
@@ -133,17 +129,17 @@ int TPZMatHelmholtz::NSolutionVariables(int var) {
 void TPZMatHelmholtz::Solution(TPZMaterialData &data, int var,
                                  TPZVec<STATE> &Solout) {
     switch (var) {
-    case 0: // E
-    {
-        Solout = data.sol[0];
-    } break;
-	case 1: // curlE
-	{
-        for(auto x = 0; x < 2*fDim-3; x++) Solout[x] = data.dsol[0](x,0);
-	} break;
-    default:
-        DebugStop();
-        break;
+        case 0: // E
+        {
+            for(auto x = 0; x < fDim; x++) Solout[x] = data.sol[0][x];
+        } break;
+        case 1: // curlE
+        {
+            for(auto x = 0; x < 2*fDim-3; x++) Solout[x] = data.curlsol[0][x];
+        } break;
+        default:
+            TPZMaterial::Solution(data,var,Solout);
+            break;
     }
 }
 
