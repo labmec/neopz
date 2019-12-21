@@ -15,11 +15,14 @@ class TPZMatHelmholtz : public TPZVecL2 {
   protected:
     const STATE fC;
     const REAL fScale;
+    int fCurlDim;
   public:
     TPZMatHelmholtz(int dim, int id, const STATE &, const REAL &scale = 1.);
 
     /** @brief Default constructor */
     TPZMatHelmholtz();
+
+    void SetDimension(const int dim) override{fDim = dim; fCurlDim = 2* dim - 3;}
 
     /** @brief Returns the name of the material */
     std::string Name() override { return "TPZMatHelmholtz"; }
@@ -29,7 +32,6 @@ class TPZMatHelmholtz : public TPZVecL2 {
      */
     int NStateVariables() const override { return 1; }
 
-  public:
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector
      * at one integration point.

@@ -55,7 +55,7 @@ public:
         return fDim;
     }
     
-    void SetDimension(int dim){
+    virtual void SetDimension(int dim){
         fDim = dim;
     }
     
