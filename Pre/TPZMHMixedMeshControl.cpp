@@ -322,7 +322,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     cmeshPressure->AutoBuild(matids);
     fPressureFineMesh->ExpandSolution();
     
-  //  if(0)
+    if(0)
     {
         std::ofstream out("PressureFineMesh.txt");
         fPressureFineMesh->Print(out);
@@ -377,7 +377,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
         SetSubdomain(cel, domain);
     }
     
-    {
+    if(0){
         std::ofstream out("PressureFineMesh2.txt");
         fPressureFineMesh->Print(out);
     }

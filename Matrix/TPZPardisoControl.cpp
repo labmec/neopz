@@ -333,8 +333,11 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         Error_check(int(Error));
         DebugStop();
     }
+    
+#ifdef PZDEBUG
     std::cout << "Pardiso:: linear solve complete. \n";
-
+#endif
+    
 #ifdef Release_Memory_Q
     phase = -1;
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm, &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
