@@ -861,7 +861,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
 //        fg[2] = -9.81;
 //    }
     
-    fGridName = "Meshes/Gmsh/reservoir_box.msh";
+    fGridName = "Meshes/Gmsh/reservoir.msh";
     
     int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;

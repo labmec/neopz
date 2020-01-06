@@ -33,7 +33,7 @@ well_i_v_regions = {};
 
 
 geomechanicQ = 0;
-dimension = 3;
+dimension = 2;
 nolinearQ = 0;
 CADReservoirQ = 0;
 

@@ -67,7 +67,7 @@ public:
     }
     
     /** @brief default destructor */
-    ~TRMPhaseProperties();
+    virtual ~TRMPhaseProperties();
     
     /**
      * @brief B  $B$. Formation volume factor
