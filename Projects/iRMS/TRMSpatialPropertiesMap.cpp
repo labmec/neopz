@@ -135,7 +135,7 @@ void TRMSpatialPropertiesMap::Kappa_c(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
 
     kappa.Resize(3,3);
     kappa.Zero();
-    STATE val = 1.0e-13;
+    STATE val = 1.0e-7;
     kappa(0,0) = val;
     kappa(1,1) = val;
     kappa(2,2) = val;
@@ -189,7 +189,7 @@ void TRMSpatialPropertiesMap::Kappa_f(TPZManVector<STATE,3> &x, TPZFMatrix<STATE
     
     kappa.Resize(3,3);
     kappa.Zero();
-    STATE val = 1.0e-14;
+    STATE val = 1.0e-8;
     REAL epsilon = 500.0;
     REAL kx = (2.0 + 1.8*sin(20.0*M_PI*x[0]*x[1]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*(x[1])/epsilon));
     REAL ky = (2.0 + 1.8*sin(20.0*M_PI*x[1]*x[0]/epsilon))/(2.0 + 1.8*sin(20.0*M_PI*(x[0])/epsilon));
@@ -631,9 +631,10 @@ bool TRMSpatialPropertiesMap::ComputePropertieSPE10Map(long & index, TPZVec<STAT
     TPZManVector<STATE,3> sol;
     cel->Solution(qsi, k_index, sol);
     
-    kappa(0,0) = sol[0];
-    kappa(1,1) = sol[1];
-    kappa(2,2) = sol[2];
+    REAL s = 1.0e+6;
+    kappa(0,0) = sol[0]*s;
+    kappa(1,1) = sol[1]*s;
+    kappa(2,2) = sol[2]*s;
 
     inv_kappa(0,0) = 1.0/kappa(0,0);
     inv_kappa(1,1) = 1.0/kappa(1,1);

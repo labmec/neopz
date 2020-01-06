@@ -956,13 +956,15 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fGammaIds.Push(bc_W);
     W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
     fIntial_bc_data.Push(W);
-    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_2p));
+    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+//    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_2p));
     fRecurrent_bc_data.Push(W);
     
     fGammaIds.Push(bc_E);
     E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
     fIntial_bc_data.Push(E);
-    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+//    E[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
     fRecurrent_bc_data.Push(E);
     
     fGammaIds.Push(bc_S);
@@ -1027,7 +1029,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
 
 void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 1.0e+7;// 1.0342e+7; // 1500 psi
+    REAL p = 1.0e+1;// 1.0342e+7; // 1500 psi
     REAL S = 0.0;
     f[0] = p;
     f[1] = S;
@@ -1037,7 +1039,7 @@ void TRMRawData::PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< 
 
 void TRMRawData::WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7;
+    REAL p = 2.5e+1;
     REAL S = 0.0;
     f[0] = p;
     f[1] = S;
@@ -1045,7 +1047,7 @@ void TRMRawData::WellBorePressure_2p(const TPZVec< REAL >& pt, REAL time, TPZVec
 
 void TRMRawData::PressureInlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf){
     
-    REAL p = 2.5e+7;
+    REAL p = 2.5e+1;
     REAL S = 1.0;
     f[0] = p;
     f[1] = S;

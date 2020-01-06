@@ -37,7 +37,7 @@
 
 TRMGmshReader::TRMGmshReader() {
     
-    m_format_version = "4.0";
+    m_format_version = "4.1";
     m_n_volumes = 0;
     m_n_surfaces = 0;
     m_n_curves = 0;
@@ -255,8 +255,12 @@ TPZGeoMesh * TRMGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 /// Entity bounding box data
                 REAL x_min, y_min, z_min;
                 REAL x_max, y_max, z_max;
-                std::vector<int> n_entities = {m_n_points,m_n_curves,m_n_surfaces,m_n_volumes};
-                std::vector<int> n_entities_with_physical_tag = {0,0,0,0};
+                std::vector<int> n_entities;
+                n_entities.push_back(m_n_points);
+                n_entities.push_back(m_n_curves);
+                n_entities.push_back(m_n_surfaces);
+                n_entities.push_back(m_n_volumes);
+                std::vector<int> n_entities_with_physical_tag(4,0);
                 
                 
                 for (int i_dim = 0; i_dim <4; i_dim++) {
@@ -416,10 +420,10 @@ TPZGeoMesh * TRMGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                             
                             
                             read.getline(buf, 1024);
-                            int el_identifier, n_el_nodes;
+                            long el_identifier, n_el_nodes;
                             n_el_nodes = GetNumberofNodes(entity_el_type);
                             read >> el_identifier;
-                            std::vector<int> node_identifiers(n_el_nodes);
+                            std::vector<long> node_identifiers(n_el_nodes);
                             for (int i_node = 0; i_node < n_el_nodes; i_node++) {
                                 read >> node_identifiers[i_node];
                             }
@@ -464,9 +468,9 @@ TPZGeoMesh * TRMGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
     
 }
 
-void TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, int & el_identifier, std::vector<int> & node_identifiers){
+void TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier, int & el_type, long & el_identifier, std::vector<long> & node_identifiers){
     
-    TPZManVector <int64_t,15> Topology;
+    TPZManVector <long,15> Topology;
     int n_nodes = node_identifiers.size();
     Topology.Resize(n_nodes, 0);
     for (int k_node = 0; k_node<n_nodes; k_node++) {
@@ -542,7 +546,7 @@ void TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
             break;
         case 10:
         {
-            TPZManVector <int64_t,15> Topology_c(n_nodes-1);
+            TPZManVector <long,15> Topology_c(n_nodes-1);
             for (int k_node = 0; k_node < n_nodes-1; k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by default Quadrangle9 is always generated. (?_?).
                 Topology_c[k_node] = Topology[k_node];
             }
@@ -869,25 +873,25 @@ void TRMGmshReader::SetFormatVersion(std::string format_version)
 bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
     
     // first implementation based on linear elements: http://gmsh.info/doc/texinfo/gmsh.html#File-formats
-    TPZManVector <int64_t,1> TopolPoint(1);
-    TPZManVector <int64_t,2> TopolLine(2);
-    TPZManVector <int64_t,3> TopolTriangle(3);
-    TPZManVector <int64_t,4> TopolQuad(4);
-    TPZManVector <int64_t,4> TopolTet(4);
-    TPZManVector <int64_t,5> TopolPyr(5);
-    TPZManVector <int64_t,6> TopolPrism(6);
-    TPZManVector <int64_t,8> TopolHex(8);
+    TPZManVector <long,1> TopolPoint(1);
+    TPZManVector <long,2> TopolLine(2);
+    TPZManVector <long,3> TopolTriangle(3);
+    TPZManVector <long,4> TopolQuad(4);
+    TPZManVector <long,4> TopolTet(4);
+    TPZManVector <long,5> TopolPyr(5);
+    TPZManVector <long,6> TopolPrism(6);
+    TPZManVector <long,8> TopolHex(8);
     
-    TPZManVector <int64_t,2> TopolLineQ(3);
-    TPZManVector <int64_t,6> TopolTriangleQ(6);
-    TPZManVector <int64_t,8> TopolQuadQ(8);
-    TPZManVector <int64_t,10> TopolTetQ(10);
-    TPZManVector <int64_t,5> TopolPyrQ(14);
-    TPZManVector <int64_t,15> TopolPrismQ(15);
-    TPZManVector <int64_t,8> TopolHexQ(20);
+    TPZManVector <long,2> TopolLineQ(3);
+    TPZManVector <long,6> TopolTriangleQ(6);
+    TPZManVector <long,8> TopolQuadQ(8);
+    TPZManVector <long,10> TopolTetQ(10);
+    TPZManVector <long,5> TopolPyrQ(14);
+    TPZManVector <long,15> TopolPrismQ(15);
+    TPZManVector <long,8> TopolHexQ(20);
     
     
-    int64_t element_id, type_id, div_id, physical_id, elementary_id;
+    long element_id, type_id, div_id, physical_id, elementary_id;
     
     int dimensions[] = {-1 , 1 , 2 , 2 , 3 , 3 , 3 , 3 , 1 , 2 , 2 , 3 , 3 , 3 , 3 , 0};
     

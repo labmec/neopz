@@ -3314,20 +3314,18 @@ void TRMSpaceOdissey::CreateGeometricGIDMesh(std::string &grid){
 void TRMSpaceOdissey::CreateGeometricGmshMesh(std::string &grid){
     
     TRMGmshReader Geometry;
-    REAL s = 1.0;//5.0;
-    Geometry.SetfDimensionlessL(s);
     fGeoMesh = Geometry.GeometricGmshMesh(grid);
     const std::string name("Reservoir with cylindrical wells");
     fGeoMesh->SetName(name);
     
     if (fGeoMesh->Dimension() == 3) {
-        if (Geometry.n_hexahedra() != 0 &&  Geometry.n_tetrahedral() == 0 && Geometry.n_prism() == 0) {
+        if (Geometry.NHexahedra() != 0 &&  Geometry.NTetrahera() == 0 && Geometry.NPrisms() == 0) {
             fIsHexaDominatedQ = true;
         }
-        if (Geometry.n_hexahedra() == 0 &&  Geometry.n_tetrahedral() != 0 && Geometry.n_prism() == 0) {
+        if (Geometry.NHexahedra() == 0 &&  Geometry.NTetrahera() != 0 && Geometry.NPrisms() == 0) {
             fIsTetraDominatedQ = true;
         }
-        if (Geometry.n_hexahedra() == 0 &&  Geometry.n_tetrahedral() == 0 && Geometry.n_prism() != 0) {
+        if (Geometry.NHexahedra() == 0 &&  Geometry.NTetrahera() == 0 && Geometry.NPrisms() != 0) {
             fIsPrismDominatedQ = true;
         }
     }
