@@ -122,7 +122,6 @@ void TRMFluxPressureAnalysis::QuasiNewtonIteration(){
     
     if (k_ietrarions() <= 1) {
         this->Assemble();
-        this->Solver().Matrix()->SetIsDecomposed(0);
     }
     else{
         this->AssembleResidual();

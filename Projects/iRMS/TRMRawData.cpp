@@ -847,19 +847,19 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fSystemType.Push("water");
     fSystemType.Push("oil");
     water->SetRhoModel(0);
-    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
     fPhases.Push(water);
-    fPhases.Push(water);
+    fPhases.Push(oil);
     int n_data = fSystemType.size();
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-//    if (!Is3DGeometryQ) {
-//        fg[1] = -9.81;
-//    }
-//    else{
-//        fg[2] = -9.81;
-//    }
+    if (!Is3DGeometryQ) {
+        fg[1] = -9.81*1.0e-6;
+    }
+    else{
+        fg[2] = -9.81*1.0e-6;
+    }
     
     fGridName = "Meshes/Gmsh/reservoir.msh";
     
@@ -881,22 +881,20 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fReportingTimes.Push(std::make_pair(900.0*day,true));
-    fReportingTimes.Push(std::make_pair(800.0*day,true));
-    fReportingTimes.Push(std::make_pair(700.0*day,true));
-    fReportingTimes.Push(std::make_pair(600.0*day,true));
     fReportingTimes.Push(std::make_pair(500.0*day,true));
+    fReportingTimes.Push(std::make_pair(450.0*day,true));
     fReportingTimes.Push(std::make_pair(400.0*day,true));
+    fReportingTimes.Push(std::make_pair(350.0*day,true));
     fReportingTimes.Push(std::make_pair(300.0*day,true));
+    fReportingTimes.Push(std::make_pair(250.0*day,true));
     fReportingTimes.Push(std::make_pair(200.0*day,true));
+    fReportingTimes.Push(std::make_pair(150.0*day,true));
     fReportingTimes.Push(std::make_pair(100.0*day,true));
-    fReportingTimes.Push(std::make_pair(75.0*day,true));
     fReportingTimes.Push(std::make_pair(50.0*day,true));
-    fReportingTimes.Push(std::make_pair(25.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 25.0*day;
+    fdt       = 10.0*day;
     fdt_max   = 50.0*day;
     fdt_min   = 0.01*day;
     fdt_up    = 1.5;
@@ -904,15 +902,15 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    fepsilon_res = 0.001;
-    fepsilon_cor = 0.01;
+    fepsilon_res = 0.00001;
+    fepsilon_cor = 0.001;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     

@@ -144,7 +144,6 @@ void TRMTransportAnalysis::QuasiNewtonIteration(){
     
     if (k_ietrarions() == 1) {
         this->Assemble();
-        this->Solver().Matrix()->SetIsDecomposed(0);
     }
     else{
         this->AssembleResidual();
@@ -191,7 +190,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     
     REAL epsilon_res = this->SimulationData()->epsilon_res();
     REAL epsilon_cor = this->SimulationData()->epsilon_cor();
-    int n  =   this->SimulationData()->n_corrections();
+    int n  =  2*this->SimulationData()->n_corrections();
     
     for (int k = 1; k <= n; k++) {
 
@@ -199,7 +198,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
 //        this->NewtonIteration();// @omar:: I prefer no linearize this matrix
         
         this->Set_k_ietrarions(k);
-        
+
         if (fSimulationData->IsQuasiNewtonQ()) {
             this->QuasiNewtonIteration();
         }
@@ -214,7 +213,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
 //        fX_n.Print("Xn = ", std::cout,EMathematicaInput);
 //        this->Solver().Matrix()->Print("K = ",std::cout,EMathematicaInput);
 //#endif
-        
+        std::cout << "Hyperbolic:: error: " << ferror << std::endl;
         if(ferror < epsilon_res || fdx_norm < epsilon_cor)
         {
             std::cout << "Hyperbolic:: Converged with iterations:  " << k << "; error: " << ferror <<  "; dx: " << fdx_norm << std::endl;

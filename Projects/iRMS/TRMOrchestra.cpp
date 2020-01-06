@@ -374,7 +374,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     if (fSimulationData->IsTwoPhaseQ() || fSimulationData->IsThreePhaseQ()) {
     
         // Analysis for hyperbolic part
-        int numofThreads_t = 0;
+        int numofThreads_t = n_threads;
         bool mustOptimizeBandwidth_hyperbolic = true;
         hyperbolic->SetCompMesh(fSpaceGenerator->TransportMesh(), mustOptimizeBandwidth_hyperbolic);
         TPZStepSolver<STATE> step_t;

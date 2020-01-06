@@ -340,10 +340,11 @@ void TRMSegregatedAnalysis::ExcecuteOneStep_Fixed_Stress(){
         fdx_norm_saturation     = fHyperbolic->dx_norm();
                 
         IsConverged_eQ = (ferror_flux_pressure < epsilon_res) &&  (ferror_saturation < epsilon_res);
-        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
+//        IsConverged_dQ = (fdx_norm_flux_pressure < epsilon_cor) &&  (fdx_norm_saturation < epsilon_cor);
+        IsConverged_dQ = (fdx_norm_saturation < epsilon_cor);
         
         if (!fSimulationData->IsOnePhaseQ()) {
-            IsConverged_iQ = (fParabolic->k_ietrarions() <= 10) &&  (fHyperbolic->k_ietrarions() <= 10);
+            IsConverged_iQ = (fParabolic->k_ietrarions() <= 2) &&  (fHyperbolic->k_ietrarions() <= 2);
         }
         
         MustRestartQ = MustRestartStep();
