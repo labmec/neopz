@@ -7,6 +7,8 @@
 #define TPZAUTOPOINTER_H
 
 #include "pz_pthread.h"
+#include "pzreal.h"
+#include <set>
 
 /**
  * \addtogroup util
@@ -22,7 +24,7 @@
 //#define PROFILE_AP_MUTEXES
 
 #ifdef PROFILE_AP_MUTEXES
-extern uint64_t ap_mutex_accesses[];
+extern unsigned long long ap_mutex_accesses[];
 #endif
 
 #define AP_MUTEX_HASH_1         \
@@ -41,7 +43,7 @@ extern pthread_mutex_t gAutoPointerMutexArray[];
 inline pthread_mutex_t* get_ap_mutex(void* obj)
 {
     unsigned i;
-    uint64_t addr = (uint64_t) obj;
+    unsigned long long addr = (unsigned long long) obj;
     //  AP_MUTEX_HASH_1;
     AP_MUTEX_HASH_2;
 #ifdef PROFILE_AP_MUTEXES
@@ -67,32 +69,24 @@ class TPZAutoPointer {
     {
         /** @brief Pointer to T2 object */
         T2 *fPointer;
-        int *fCounter;
+        int fCounter;
         
         TPZReference()
         {
-            fPointer = nullptr;
-            fCounter = new int;
-            (*fCounter) = 1;
+            fPointer = 0;
+            fCounter = 1;
         }
         
         TPZReference(T2 *pointer)
         {
             fPointer = pointer;
-            fCounter = new int;
-            (*fCounter) = 1;
+            fCounter = 1;
         }
         
         ~TPZReference()
         {
-            if(fPointer) {
-                delete fPointer;
-            }
-            fPointer = nullptr;
-            if(fCounter) {
-                delete fCounter;
-            }
-            fCounter = nullptr;
+            if(fPointer) delete fPointer;
+            fPointer = 0;
         }
         
         void ReallocForNuma(int node_id)
@@ -116,19 +110,23 @@ class TPZAutoPointer {
         {
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
-            (*fCounter)++;
+            fCounter++;
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             return true;
         }
         /** @brief Decrease the counter. If the counter is zero, delete myself */
         bool Decrease()
         {
-            bool should_delete = false;
+            int should_delete = 0;
             if(PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__))
                 return false;
-            (*fCounter)--;
+            fCounter--;
             
-            if((*fCounter) <= 0) should_delete = true;
+            if(fCounter < 0)
+            {
+                DebugStop();
+            }
+            if(fCounter <= 0) should_delete = 1;
             
             PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
             if(should_delete)
@@ -153,15 +151,27 @@ public:
     /** @brief The destructor will delete the administered pointer if its reference count is zero */
     ~TPZAutoPointer()
     {
-            if (fRef){
         fRef->Decrease();
-            }
+        //if(fRef->fCounter<1)
+        //    delete fRef;
     }
     
     /** @brief This method will create an object which will administer the area pointed to by obj */
     TPZAutoPointer(T *obj)
     {
         fRef = new TPZReference<T>(obj);
+        
+#ifdef AUTOPOINTERDEBUG
+        static std::set<void *> allpointers;
+        if (obj && allpointers.find(obj) != allpointers.end())
+        {
+            DebugStop();
+        }
+        else if (obj)
+        {
+            allpointers.insert(obj);
+        }
+#endif
     }
     
     /** @brief Share the pointer of the copy */
@@ -170,17 +180,6 @@ public:
         fRef = copy.fRef;
         fRef->Increment();
     }
-        
-    /** @brief Move assignment operator */
-    TPZAutoPointer &operator=(TPZAutoPointer<T> &&copy){
-            if (fRef) {
-                fRef->Decrease();
-            }
-            fRef = copy.fRef;
-            copy.fRef = nullptr;
-            return *this;
-        }
-        
     /** @brief Assignment operator */
     TPZAutoPointer &operator=(const TPZAutoPointer<T> &copy)
     {
@@ -196,15 +195,8 @@ public:
     {
         return *(fRef->fPointer);
     }
-        
-    /** @brief Returns the referenced object */
-    T& operator *() const
-    {
-        return *(fRef->fPointer);
-    }
-        
-    /** @brief Returns the referenced object */
-    T& operator *()
+    
+    operator const T&() const
     {
         return *(fRef->fPointer);
     }
@@ -226,37 +218,23 @@ public:
     
     /** @brief Returns if pointer was attributed */
     operator bool() const{
-        return (this->fRef->fPointer != nullptr);
+        return (this->fRef->fPointer != 0);
     }
     operator bool() {
-        return fRef->fPointer != nullptr;
+        return fRef->fPointer != 0;
     }
     
     /** @brief Returns the counter value */
     int Count() const
     {
-        return *(fRef->fCounter);
+        return fRef->fCounter;
     }
     int Count()
     {
-        return *(fRef->fCounter);
+        return fRef->fCounter;
     }
-    template<typename R, typename T2>
-    friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
+    
 };
-        
-template<typename R, typename T>
-TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
-    TPZAutoPointer<R> rv;
-    R* p;
-    if ( (p = dynamic_cast<R*> (in.operator->())) ) {
-        rv.fRef->fPointer = dynamic_cast<R*> (in.fRef->fPointer);
-        delete rv.fRef->fCounter;
-        rv.fRef->fCounter = in.fRef->fCounter;
-        rv.fRef->Increment();
-    }
-    return rv;
-}
 
 /** @} */
 

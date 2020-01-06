@@ -1,6 +1,6 @@
-/** 
- * @file 
- * @brief Initialize the pthread_mutex_t gAutoPointerMutex. 
+/**
+ * @file
+ * @brief Initialize the pthread_mutex_t gAutoPointerMutex.
  */
 
 #include "tpzautopointer.h"
@@ -15,7 +15,7 @@ pthread_mutex_t gAutoPointerMutexArray[AP_MUTEX_ARRAY_SZ];
 class AutoPointerMutexArrayInit
 {
 public:
-  AutoPointerMutexArrayInit() 
+  AutoPointerMutexArrayInit()
   {
     for (int i=0; i< AP_MUTEX_ARRAY_SZ; i++) {
       pthread_mutex_init(&(gAutoPointerMutexArray[i]),0);
@@ -25,14 +25,14 @@ public:
 #endif
     }
   }
-  ~AutoPointerMutexArrayInit() 
+  ~AutoPointerMutexArrayInit()
   {
     for (int i=0; i< AP_MUTEX_ARRAY_SZ; i++) {
       pthread_mutex_destroy(&(gAutoPointerMutexArray[i]));
 #ifdef PROFILE_AP_MUTEXES
     std:cout << "Destruindo autopointer mutex " << i << std:endl;
-    printf("AutoPointer Mutex 0x%p accessed %lld times\n", 
-	   &(gAutoPointerMutexArray[i]), ap_mutex_accesses[i]);
+    printf("AutoPointer Mutex 0x%p accessed %lld times\n",
+       &(gAutoPointerMutexArray[i]), ap_mutex_accesses[i]);
 #endif
     }
   }
