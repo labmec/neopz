@@ -144,6 +144,7 @@ void TRMTransportAnalysis::QuasiNewtonIteration(){
     
     if (k_ietrarions() == 1) {
         this->Assemble();
+        this->Solver().Matrix()->SetIsDecomposed(0);
     }
     else{
         this->AssembleResidual();
@@ -194,17 +195,17 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     
     for (int k = 1; k <= n; k++) {
 
-        this->Set_k_ietrarions(k);
-        this->NewtonIteration();// @omar:: I prefer no linearize this matrix
-        
 //        this->Set_k_ietrarions(k);
-//        
-//        if (fSimulationData->IsQuasiNewtonQ()) {
-//            this->QuasiNewtonIteration();
-//        }
-//        else{
-//            this->NewtonIteration();
-//        }
+//        this->NewtonIteration();// @omar:: I prefer no linearize this matrix
+        
+        this->Set_k_ietrarions(k);
+        
+        if (fSimulationData->IsQuasiNewtonQ()) {
+            this->QuasiNewtonIteration();
+        }
+        else{
+            this->NewtonIteration();
+        }
         
 //#ifdef PZDEBUG
 //        fR.Print("R = ", std::cout,EMathematicaInput);

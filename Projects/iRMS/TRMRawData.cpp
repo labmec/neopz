@@ -903,7 +903,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fdt_down  = 0.5;
     
     // Numeric controls
-    fn_corrections = 40;
+    fn_corrections = 50;
     fepsilon_res = 0.001;
     fepsilon_cor = 0.01;
     fUsePardisoQ  = true;
