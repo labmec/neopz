@@ -16,6 +16,7 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
+
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
 TPZPardisoControl<TVar>::TPZPardisoControl() : fSystemType(ENonSymmetric),
@@ -314,6 +315,54 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    
+    if(fParam[19]>150){
+        std::cout << "Pardiso:: Number of iterations " << fParam[19] << " > 150, calling numerical factorization... " << std::endl;
+        phase = 23;
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    }
+    
+    int rest = abs(fParam[19]%10); // CG/CGS error report
+    if(fParam[19] <= 0){
+        switch (rest) {
+            case 1:{
+                std::cout << "Pardiso:: fluctuations of the residuum are too large. " << std::endl;
+            }
+                break;
+                
+            case 2:{
+                std::cout << "Pardiso:: Slow convergence - Main matrix and matrix for preconditioner differ a lot. " << std::endl;
+            }
+                break;
+                
+            case 4:{
+                std::cout << "Pardiso:: perturbed pivots caused iterative refinement. " << std::endl;
+            }
+                break;
+                
+            case 5:{
+                std::cout << "Pardiso:: factorization is too fast for this matrix. It is better to use the factorization method with iparm[3] = 0 " << std::endl;
+                fParam[3] = 0;
+            }
+                break;
+            case 6:{
+                std::cout << "Pardiso:: There is not a diagnostig. " << std::endl;
+            }
+                break;
+            default:
+                break;
+        }
+        
+    }
+    
+    
+    if (Error<0) {
+        std::cout << "Pardiso:: Calling a numerical factorization. \n";
+        phase = 22;
+        pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
+                    &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    }
     
     if (Error) {
         DebugStop();
