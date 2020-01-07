@@ -144,6 +144,7 @@ void TRMTransportAnalysis::QuasiNewtonIteration(){
     
     if (k_ietrarions() == 1) {
         this->Assemble();
+        this->Solver().Matrix()->SetIsDecomposed(0);
     }
     else{
         this->AssembleResidual();
@@ -190,7 +191,7 @@ void TRMTransportAnalysis::ExcecuteOneStep(){
     
     REAL epsilon_res = this->SimulationData()->epsilon_res();
     REAL epsilon_cor = this->SimulationData()->epsilon_cor();
-    int n  =  2*this->SimulationData()->n_corrections();
+    int n  =  4*this->SimulationData()->n_corrections();
     
     for (int k = 1; k <= n; k++) {
 

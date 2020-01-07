@@ -1949,12 +1949,14 @@ void TRMBuildTransfers::spatial_props_To_parabolic(TPZCompMesh * parabolic){
             int map_model = fSimulationData->Map()->MapModel();
             fSimulationData->Map()->Kappa(x, kappa, kappa_inv, vars);
             fSimulationData->Map()->phi(x, porosity, vars);
-            fSimulationData->Map()->lambda(x, lambda, vars);
-            fSimulationData->Map()->mu(x, mu, vars);
-            fSimulationData->Map()->S_e(x, S_e, vars);
-            fSimulationData->Map()->alpha(x, alpha, vars);
+            if(fSimulationData->IsGeomechanicQ()){
+                fSimulationData->Map()->lambda(x, lambda, vars);
+                fSimulationData->Map()->mu(x, mu, vars);
+                fSimulationData->Map()->S_e(x, S_e, vars);
+                fSimulationData->Map()->alpha(x, alpha, vars);
+            }
             
-            if (map_model != 0) {
+            if (map_model != 0 && fSimulationData->IsGeomechanicQ()) {
                 lambda[0]   *= cos(porosity[0]);
                 mu[0]       *= cos(porosity[0]);
                 S_e[0]      *= sin(porosity[0]);
@@ -1964,10 +1966,12 @@ void TRMBuildTransfers::spatial_props_To_parabolic(TPZCompMesh * parabolic){
             associated_material->GetMemory()[indexes[ip]].Set_K_0(kappa);
             associated_material->GetMemory()[indexes[ip]].Set_Kinv_0(kappa_inv);
             associated_material->GetMemory()[indexes[ip]].Set_phi_0(porosity[0]);
-            associated_material->GetMemory()[indexes[ip]].Set_lambda(lambda[0]);
-            associated_material->GetMemory()[indexes[ip]].Set_mu(mu[0]);
-            associated_material->GetMemory()[indexes[ip]].Set_S_e(S_e[0]);
-            associated_material->GetMemory()[indexes[ip]].Set_alpha(alpha[0]);
+            if(fSimulationData->IsGeomechanicQ()){
+                associated_material->GetMemory()[indexes[ip]].Set_lambda(lambda[0]);
+                associated_material->GetMemory()[indexes[ip]].Set_mu(mu[0]);
+                associated_material->GetMemory()[indexes[ip]].Set_S_e(S_e[0]);
+                associated_material->GetMemory()[indexes[ip]].Set_alpha(alpha[0]);
+            }
         }
     }
     

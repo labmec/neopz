@@ -147,9 +147,9 @@ long long TPZPardisoControl<TVar>::MatrixType()
     
     for (long i=0; i<64; i++) {
         long long val = fHandle[i];
-        if (val) {
-            DebugStop();     
-        }
+//        if (val) {
+//            DebugStop();     
+//        }
     }
 //    void pardiso_64( _MKL_DSS_HANDLE_t,       const long long int *, const long long int *, const long long int *,
 //                    const long long int *, const long long int *, const void *,          const long long int *,
