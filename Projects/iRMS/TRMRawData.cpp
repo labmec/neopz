@@ -920,8 +920,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
-    fMHMResolutionQ.second.first = 0; // level
+    fMHMResolutionQ.first = true;
+    fMHMResolutionQ.second.first = 2; // level
     fMHMResolutionQ.second.second = 2; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;

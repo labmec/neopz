@@ -1862,7 +1862,9 @@ void TRMSpaceOdissey::BuildMacroElements()
         std::string file = "mhm_report";
         
         if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
-            file += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+            std::stringstream gstream;
+            gstream << fSimulationData->m_RB_functions();
+            file += "_RB_" + gstream.str();
         }
         
         if (fSimulationData->IsAdataptedQ()) {
@@ -1874,11 +1876,15 @@ void TRMSpaceOdissey::BuildMacroElements()
         }
         
         if (fSimulationData->MHMResolution().first) {
-            file +=  "_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            std::stringstream gstream;
+            gstream << fSimulationData->MHMResolution().second.first;
+            file +=  "_MHM_Hdiv_l_" + gstream.str();
         }
         
         if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
-            file += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+            std::stringstream gstream;
+            gstream << fSimulationData->TransporResolution().second;
+            file += "_T_res_" + gstream.str();
         }
         
         file += ".txt";

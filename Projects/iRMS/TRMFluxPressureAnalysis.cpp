@@ -265,10 +265,13 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     TPZStack<std::string> scalnames, vecnames;
     
     std::string plotfile;
+    std::stringstream gstream;
+    gstream << fSimulationData->MHMResolution().second.first;
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "parabolic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            
+            plotfile =  "parabolic_I_MHM_Hdiv_l_" + gstream.str();
         }
         else{
             plotfile =  "parabolic_I";
@@ -277,7 +280,7 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "parabolic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "parabolic_MHM_Hdiv_l_" + gstream.str();
         }
         else{
             plotfile =  "parabolic";
@@ -285,7 +288,9 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
-        plotfile += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+        std::stringstream gstream;
+        gstream << fSimulationData->m_RB_functions();
+        plotfile += "_RB_" + gstream.str();
     }
     
     if (fSimulationData->IsAdataptedQ()) {
@@ -297,7 +302,9 @@ void TRMFluxPressureAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
-        plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+        std::stringstream gstream;
+        gstream << fSimulationData->TransporResolution().second;
+        plotfile += "_T_res_" + gstream.str();
     }
     
     plotfile += ".vtk";

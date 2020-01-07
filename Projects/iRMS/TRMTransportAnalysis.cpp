@@ -289,10 +289,12 @@ void TRMTransportAnalysis::PostProcessStep(){
     int div = 0;
     
     std::string plotfile;
+    std::stringstream gstream;
+    gstream << fSimulationData->MHMResolution().second.first;
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "hyperbolic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "hyperbolic_I_MHM_Hdiv_l_" + gstream.str();
         }
         else{
             plotfile =  "hyperbolic_I";
@@ -301,7 +303,7 @@ void TRMTransportAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "hyperbolic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "hyperbolic_MHM_Hdiv_l_" + gstream.str();
         }
         else{
             plotfile =  "hyperbolic";
@@ -309,7 +311,9 @@ void TRMTransportAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
-        plotfile += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+        std::stringstream gstream;
+        gstream << fSimulationData->m_RB_functions();
+        plotfile += "_RB_" + gstream.str();
     }
     
     if (fSimulationData->IsAdataptedQ()) {
@@ -321,7 +325,9 @@ void TRMTransportAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->TransporResolution().first) {
-        plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+        std::stringstream gstream;
+        gstream << fSimulationData->TransporResolution().second;
+        plotfile += "_T_res_" + gstream.str();
     }
     
     plotfile += ".vtk";
