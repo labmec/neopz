@@ -854,12 +854,12 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-//    if (!Is3DGeometryQ) {
-//        fg[1] = -9.81*1.0e-6;
-//    }
-//    else{
-//        fg[2] = -9.81*1.0e-6;
-//    }
+    if (!Is3DGeometryQ) {
+        fg[1] = -9.81*1.0e-6;
+    }
+    else{
+        fg[2] = -9.81*1.0e-6;
+    }
     
     fGridName = "Meshes/Gmsh/reservoir_2d.msh";
     
@@ -909,7 +909,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
-    fMHMResolutionQ.second.first = 1; // level
+    fMHMResolutionQ.second.first = 2; // level
     fMHMResolutionQ.second.second = 2; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
