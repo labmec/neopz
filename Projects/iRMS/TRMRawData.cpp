@@ -881,22 +881,27 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
     
-    fReportingTimes.Push(std::make_pair(500.0*day,true));
-    fReportingTimes.Push(std::make_pair(450.0*day,true));
-    fReportingTimes.Push(std::make_pair(400.0*day,true));
-    fReportingTimes.Push(std::make_pair(350.0*day,true));
-    fReportingTimes.Push(std::make_pair(300.0*day,true));
-    fReportingTimes.Push(std::make_pair(250.0*day,true));
-    fReportingTimes.Push(std::make_pair(200.0*day,true));
-    fReportingTimes.Push(std::make_pair(150.0*day,true));
-    fReportingTimes.Push(std::make_pair(100.0*day,true));
-    fReportingTimes.Push(std::make_pair(50.0*day,true));
+    REAL s = 1.0;
+    if (Is3DGeometryQ) {
+        s = 2.0;
+    }
+
+    fReportingTimes.Push(std::make_pair(s*500.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*450.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*350.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*300.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*250.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*200.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*150.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*100.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*50.0*day,true));
     fReportingTimes.Push(std::make_pair(0.0*day,true));
     
     fn_steps  = 1000;
-    fdt       = 10.0*day;
-    fdt_max   = 50.0*day;
-    fdt_min   = 0.01*day;
+    fdt       = s*10.0*day;
+    fdt_max   = s*50.0*day;
+    fdt_min   = s*0.01*day;
     fdt_up    = 1.5;
     fdt_down  = 0.5;
     
@@ -904,7 +909,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fn_corrections = 50;
     if (Is3DGeometryQ) {
         fepsilon_res = 0.001;
-        fepsilon_cor = 0.01;
+        fepsilon_cor = 0.1;
     }
     else{
         fepsilon_res = 0.0001;

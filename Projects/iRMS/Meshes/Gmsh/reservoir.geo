@@ -69,7 +69,7 @@ cl5 = sf*5000.0;
 
 // reservoir box dimensions
 x_length = 1000.0;
-y_length = 1000.0;
+y_length = 200.0;
 z_length = 100.0;
 
 If(dimension == 2)
