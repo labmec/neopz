@@ -693,8 +693,10 @@ int Segregated_Geomechanic(){
 //    }
     
     if (IsRBQ) {
-        elliptic_file = "elliptic_rb_" + std::to_string(elliptic->Solution().Rows()) + ".vtk";
-        parabolic_file = "parabolic_rb_" + std::to_string(elliptic->Solution().Rows()) + ".vtk";
+        std::stringstream gstream;
+        gstream << elliptic->Solution().Rows();
+        elliptic_file = "elliptic_rb_" + gstream.str() + ".vtk";
+        parabolic_file = "parabolic_rb_" + gstream.str() + ".vtk";
     }
 
     

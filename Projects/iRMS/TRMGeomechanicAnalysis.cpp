@@ -222,10 +222,12 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     int div = 0;
     TPZStack<std::string> scalnames, vecnames;
     std::string plotfile;
+    std::stringstream gstream;
+    gstream << fSimulationData->MHMResolution().second.first;
     if (fSimulationData->IsInitialStateQ()) {
         
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "elliptic_I_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "elliptic_I_MHM_Hdiv_l_" + gstream.str();
         }
         else{
             plotfile =  "elliptic_I";
@@ -234,7 +236,7 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     }
     else{
         if (fSimulationData->MHMResolution().first) {
-            plotfile =  "elliptic_MHM_Hdiv_l_" + std::to_string(fSimulationData->MHMResolution().second.first);
+            plotfile =  "elliptic_MHM_Hdiv_l_" + gstream.str();
         }
         else{
             plotfile =  "elliptic";
@@ -242,7 +244,9 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->ReducedBasisResolution().first && !fSimulationData->ReducedBasisResolution().second.first) {
-        plotfile += "_RB_" + std::to_string(fSimulationData->m_RB_functions());
+        std::stringstream gstream;
+        gstream << fSimulationData->m_RB_functions();
+        plotfile += "_RB_" + gstream.str();
     }
     
     if (fSimulationData->IsAdataptedQ()) {
@@ -254,7 +258,9 @@ void TRMGeomechanicAnalysis::PostProcessStep(){
     }
     
     if (fSimulationData->TransporResolution().first && !fSimulationData->IsOnePhaseQ()) {
-        plotfile += "_T_res_" + std::to_string(fSimulationData->TransporResolution().second);
+        std::stringstream gstream;
+        gstream << fSimulationData->TransporResolution().second;
+        plotfile += "_T_res_" + gstream.str();
     }
     
     plotfile += ".vtk";
