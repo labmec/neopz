@@ -13,7 +13,7 @@ IsPrismQ = 1;
 
 xSize = 20;
 ySize = 20;
-zSize = 10;
+zSize = 20;
 esize = 0.5;
 deg = 2*Pi/360;
 alpha = 90*deg; // angle between hor plane and well
@@ -40,7 +40,7 @@ l3 = newl; Ellipse(l3) = {p5,p2,p3,p6};
 l4 = newl; Ellipse(l4) = {p6,p2,p3,p1};
 ll1 = newll; Line Loop(ll1) = {-l4,-l3,-l2,-l1};
 
-r = 2.0; // wellbore region radius
+r = 5.0; // wellbore region radius
 // parameters of the horizontal cross-section
 e = Cos(alpha);
 a = r/Sin(alpha);
@@ -60,7 +60,7 @@ ml3 = newl; Ellipse(ml3) = {mp5,mp2,mp3,mp6};
 ml4 = newl; Ellipse(ml4) = {mp6,mp2,mp3,mp1};
 mll1 = newll; Line Loop(mll1) = {-ml4,-ml3,-ml2,-ml1};
 
-r = 50.0; // reservoir radius
+r = 100.0; // reservoir radius
 // parameters of the horizontal cross-section
 e = Cos(alpha);
 a = r/Sin(alpha);
