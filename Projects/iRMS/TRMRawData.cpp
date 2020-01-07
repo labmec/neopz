@@ -854,12 +854,12 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Setting up gravity
     fg.Resize(3, 0.0);
-    if (!Is3DGeometryQ) {
-        fg[1] = -9.81*1.0e-6;
-    }
-    else{
-        fg[2] = -9.81*1.0e-6;
-    }
+//    if (!Is3DGeometryQ) {
+//        fg[1] = -9.81*1.0e-6;
+//    }
+//    else{
+//        fg[2] = -9.81*1.0e-6;
+//    }
     
     fGridName = "Meshes/Gmsh/reservoir_thiem.msh";
     
@@ -908,14 +908,14 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     // Numeric controls
     fn_corrections = 50;
-    if (Is3DGeometryQ) {
-        fepsilon_res = 0.001;
-        fepsilon_cor = 0.1;
-    }
-    else{
-        fepsilon_res = 0.0001;
-        fepsilon_cor = 0.01;
-    }
+//    if (Is3DGeometryQ) {
+//        fepsilon_res = 0.001;
+//        fepsilon_cor = 0.1;
+//    }
+//    else{
+//        fepsilon_res = 0.0001;
+//        fepsilon_cor = 0.01;
+//    }
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
     fIsAdataptedQ = false;
