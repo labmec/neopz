@@ -16,12 +16,12 @@
 #include "pzgeopyramid.h"
 
 
-#include "tpzquadraticline.h"
-#include "tpzquadratictrig.h"
-#include "tpzquadraticquad.h"
-#include "tpzquadraticcube.h"
-#include "tpzquadratictetra.h"
-#include "tpzquadraticprism.h"
+//#include "tpzquadraticline.h"
+//#include "tpzquadratictrig.h"
+//#include "tpzquadraticquad.h"
+//#include "tpzquadraticcube.h"
+//#include "tpzquadratictetra.h"
+//#include "tpzquadraticprism.h"
 #include "tpzgeoblend.h"
 #include "tpzpoint.h"
 #include "pzrefpoint.h"
@@ -532,49 +532,49 @@ void TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, int & physical_identifier,
             break;
         case 8:
         {
-            // Quadratic Line
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_line_els++;
+//            // Quadratic Line
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (el_identifier, Topology, physical_identifier, *gmesh);
+//            m_n_line_els++;
         }
             break;
         case 9:
         {
-            // Triangle
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_triangle_els++;
+//            // Triangle
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (el_identifier, Topology, physical_identifier, *gmesh);
+//            m_n_triangle_els++;
         }
             break;
         case 10:
         {
-            TPZManVector <long,15> Topology_c(n_nodes-1);
-            for (int k_node = 0; k_node < n_nodes-1; k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by default Quadrangle9 is always generated. (?_?).
-                Topology_c[k_node] = Topology[k_node];
-            }
-            // Quadrilateral
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology_c, physical_identifier, *gmesh);
-            m_n_quadrilateral_els++;
+//            TPZManVector <long,15> Topology_c(n_nodes-1);
+//            for (int k_node = 0; k_node < n_nodes-1; k_node++) { /// Gmsh representation Quadrangle8 and Quadrangle9, but by default Quadrangle9 is always generated. (?_?).
+//                Topology_c[k_node] = Topology[k_node];
+//            }
+//            // Quadrilateral
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (el_identifier, Topology_c, physical_identifier, *gmesh);
+//            m_n_quadrilateral_els++;
         }
             break;
         case 11:
         {
-            // Tetrahedron
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_tetrahedron_els++;
+//            // Tetrahedron
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (el_identifier, Topology, physical_identifier, *gmesh);
+//            m_n_tetrahedron_els++;
             
         }
             break;
         case 12:
         {
-            // Hexahedra
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_hexahedron_els++;
+//            // Hexahedra
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (el_identifier, Topology, physical_identifier, *gmesh);
+//            m_n_hexahedron_els++;
         }
             break;
         case 13:
         {
-            // Prism
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (el_identifier, Topology, physical_identifier, *gmesh);
-            m_n_pyramid_els++;
+//            // Prism
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (el_identifier, Topology, physical_identifier, *gmesh);
+//            m_n_pyramid_els++;
         }
             break;
         case 15:{
@@ -1080,7 +1080,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
                 dimension = 1;
                 gmesh->SetDimension(dimension);
             }
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (element_id, TopolLineQ, matid, *gmesh);
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticLine> (element_id, TopolLineQ, matid, *gmesh);
         }
             break;
         case 9:
@@ -1103,7 +1103,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
                 dimension = 2;
                 gmesh->SetDimension(dimension);
             }
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (element_id, TopolTriangleQ, matid, *gmesh);
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTrig> (element_id, TopolTriangleQ, matid, *gmesh);
         }
             break;
         case 10:
@@ -1130,7 +1130,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
                 dimension = 2;
                 gmesh->SetDimension(dimension);
             }
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (element_id, TopolQuadQ, matid, *gmesh);
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticQuad> (element_id, TopolQuadQ, matid, *gmesh);
         }
             break;
         case 11:
@@ -1164,7 +1164,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
                 dimension = 3;
                 gmesh->SetDimension(dimension);
             }
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (element_id, TopolTetQ, matid, *gmesh);
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticTetra> (element_id, TopolTetQ, matid, *gmesh);
             
         }
             break;
@@ -1219,7 +1219,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
                 dimension = 3;
                 gmesh->SetDimension(dimension);
             }
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (element_id, TopolHexQ, matid, *gmesh);
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticCube> (element_id, TopolHexQ, matid, *gmesh);
         }
             break;
         case 13:
@@ -1264,7 +1264,7 @@ bool TRMGmshReader::InsertElement(TPZGeoMesh * gmesh, std::ifstream & line){
                 gmesh->SetDimension(dimension);
             }
 
-            new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (element_id, TopolPrismQ, matid, *gmesh);
+//            new TPZGeoElRefPattern< pzgeom::TPZQuadraticPrism> (element_id, TopolPrismQ, matid, *gmesh);
         }
             break;
         case 15:{
