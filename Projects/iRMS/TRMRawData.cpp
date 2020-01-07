@@ -863,7 +863,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     
     fGridName = "Meshes/Gmsh/reservoir_thiem.msh";
     
-    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     fPermPorFields.first = "case_2/spe_perm.dat";
@@ -876,8 +876,8 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fBlocks_sizes.Push(sp*4.5454545455);
     fBlocks_sizes.Push(5);
     fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
-    fMap->LoadSPE10Map(true);
-    DebugStop();
+    fMap->LoadSPE10Map(false);
+    
     // Time control parameters
     REAL hour       = 3600.0;
     REAL day        = hour * 24.0;
@@ -922,7 +922,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = false;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 1; // fine
+    fMHMResolutionQ.second.second = 2; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
