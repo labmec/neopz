@@ -451,6 +451,9 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
         int nshape = c.NShape();
 #ifdef PZDEBUG
         if (nshape != NConnectShapeF(i,c.Order())) {
+            PZError<<__PRETTY_FUNCTION__ <<" ERROR"<<std::endl;
+            PZError<<"n shape (con.NShape): "<<nshape<<std::endl;
+            PZError<<"n shape (NConnectShapeF): "<<NConnectShapeF(i,c.Order())<<std::endl;
             DebugStop();
         }
 #endif
