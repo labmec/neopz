@@ -35,12 +35,12 @@ void TPZMatHelmholtz::Contribute(TPZMaterialData &data, REAL weight,
 
     //*****************ACTUAL COMPUTATION OF CONTRIBUTION****************//
 
-    const int nHCurlFunctions = phiHCurl.Rows();
-    for (int iVec = 0; iVec < nHCurlFunctions; iVec++) {
+    const auto nHCurlFunctions = phiHCurl.Rows();
+    for (auto iVec = 0; iVec < nHCurlFunctions; iVec++) {
         STATE load = 0.;
         for(auto x = 0; x < fDim; x++)   load += phiHCurl(iVec, x) * force[x];
-        ef(iVec) += load * weight;
-        for (int jVec = 0; jVec < nHCurlFunctions; jVec++) {
+        ef(iVec,0) += load * weight;
+        for (auto jVec = 0; jVec < nHCurlFunctions; jVec++) {
 
             STATE phiIdotPhiJ = 0.;
             for(auto x = 0; x < fDim; x++)   phiIdotPhiJ += phiHCurl(iVec, x) * phiHCurl(jVec, x);
@@ -60,11 +60,10 @@ void TPZMatHelmholtz::ContributeBC(TPZMaterialData &data, REAL weight,
     TPZFNMatrix<30,REAL> phiHCurl;
     TPZHCurlAuxClass::ComputeShape(data.fVecShapeIndex,data.phi,data.fDeformedDirections,phiHCurl);
     TPZFMatrix<REAL> &curlPhi = data.curlphi;
-    const int nHCurlFunctions = phiHCurl.Rows();
-    const int phiDim = phiHCurl.Cols();
-    const REAL BIG = TPZMaterial::gBigNumber;
+    const auto nHCurlFunctions = phiHCurl.Rows();
+    const auto phiDim = phiHCurl.Cols();
+    const auto &BIG = TPZMaterial::gBigNumber;
 
-    // const STATE v1 = bc.Val1()(0,0);
     const STATE v2 = bc.Val2()(0, 0);
     switch (bc.Type()) {
     case 0:
@@ -96,7 +95,7 @@ int TPZMatHelmholtz::VariableIndex(const std::string &name) {
         return 0;
 	if (strcmp(name.c_str(), "curlE") == 0)
 		return 1;
-    return TPZMaterial::VariableIndex(name);
+    return TPZVecL2::VariableIndex(name);
 }
 
 /**
@@ -114,7 +113,7 @@ int TPZMatHelmholtz::NSolutionVariables(int var) {
         return 2*fDim-3;
         break;
     }
-    return TPZMaterial::NSolutionVariables(var);
+    return TPZVecL2::NSolutionVariables(var);
 }
 
 /** @brief Returns the solution associated with the var index based on the
@@ -131,7 +130,7 @@ void TPZMatHelmholtz::Solution(TPZMaterialData &data, int var,
             for(auto x = 0; x < fCurlDim; x++) Solout[x] = data.curlsol[0][x];
         } break;
         default:
-            TPZMaterial::Solution(data,var,Solout);
+            TPZVecL2::Solution(data,var,Solout);
             break;
     }
 }

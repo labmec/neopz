@@ -11,9 +11,11 @@
 #include "tpzgeoelrefpattern.h"
 
 
-TPZGenGrid3D::TPZGenGrid3D(const REAL maxX, const REAL maxY, const REAL maxZ,
+TPZGenGrid3D::TPZGenGrid3D(const REAL minX, const REAL minY, const REAL minZ,
+                           const REAL maxX, const REAL maxY, const REAL maxZ,
                            const int nelx, const int nely, const int nelz, const MElementType elType)
-                           :fGmesh{nullptr}, fMaxX{maxX}, fMaxY{maxY}, fMaxZ{maxZ},
+                           :fGmesh{nullptr}, fMinX{minX}, fMinY{minY}, fMinZ{minZ},
+                           fMaxX{maxX}, fMaxY{maxY}, fMaxZ{maxZ},
                            fNelx{nelx},fNely{nely},fNelz{nelz},fEltype{elType}{
     const REAL tol{ZeroTolerance()};
     if(fEltype != ETetraedro && fEltype != ECube && fEltype != EPrisma){
@@ -29,6 +31,13 @@ TPZGenGrid3D::TPZGenGrid3D(const REAL maxX, const REAL maxY, const REAL maxZ,
     }else if(fMaxX < tol || fMaxY < tol || fMaxZ < tol){
         PZError<<__PRETTY_FUNCTION__<<" error\n";
         PZError<<"Dimensions of grid not allowed. The parameters are:\n";
+        PZError<<"max x: "<<fMaxX<<"\n"<<"max y: "<<fMaxY<<"\n"<<"max z: "<<fMaxZ<<"\n";
+        DebugStop();
+    }
+    else if(fMaxX < fMinX || fMaxY < fMinY || fMaxZ < fMinZ){
+        PZError<<__PRETTY_FUNCTION__<<" error\n";
+        PZError<<"Dimensions of grid not allowed. The parameters are:\n";
+        PZError<<"min x: "<<fMinX<<"\n"<<"min y: "<<fMinY<<"\n"<<"min z: "<<fMinZ<<"\n";
         PZError<<"max x: "<<fMaxX<<"\n"<<"max y: "<<fMaxY<<"\n"<<"max z: "<<fMaxZ<<"\n";
         DebugStop();
     }
@@ -52,9 +61,9 @@ TPZGeoMesh* TPZGenGrid3D::BuildVolumetricElements(const int matIdDomain){
         for(auto iZ = 0; iZ <= fNelz; iZ++){
             for(auto iY = 0; iY <= fNely; iY++){
                 for(auto iX = 0; iX <= fNelx; iX++){
-                    nodeCoords[0] = (fMaxX * iX)/fNelx;
-                    nodeCoords[1] = (fMaxY * iY)/fNely;
-                    nodeCoords[2] = (fMaxZ * iZ)/fNelz;
+                    nodeCoords[0] = fMinX + (fMaxX * iX)/fNelx;
+                    nodeCoords[1] = fMinY + (fMaxY * iY)/fNely;
+                    nodeCoords[2] = fMinZ + (fMaxZ * iZ)/fNelz;
                     newindex = fGmesh->NodeVec().AllocateNewElement();
                     fGmesh->NodeVec()[newindex].Initialize(nodeCoords, *fGmesh);
                 }

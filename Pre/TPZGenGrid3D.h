@@ -15,7 +15,7 @@ class TPZGeoMesh;
 class TPZGenGrid3D {
 public:
     TPZGenGrid3D() = delete;
-    TPZGenGrid3D(const REAL maxX, const REAL maxY, const REAL maxZ, const int nelx, const int nely, const int nelz, const MElementType elType);
+    TPZGenGrid3D(const REAL minX, const REAL minY, const REAL minZ,const REAL maxX, const REAL maxY, const REAL maxZ, const int nelx, const int nely, const int nelz, const MElementType elType);
 
     /**
      * This method builds the three-dimensional elements of the desired type and sets their material ids as matIdDomain.
@@ -41,6 +41,7 @@ private:
     TPZGeoMesh *fGmesh{nullptr};
     const MElementType fEltype{ENoType};
     const int fNelx{0},fNely{0},fNelz{0};
+    const REAL fMinX{0},fMinY{0},fMinZ{0};
     const REAL fMaxX{0},fMaxY{0},fMaxZ{0};
     static const int fDim{3};
 };
