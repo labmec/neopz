@@ -155,7 +155,7 @@ void TPZNullMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
     
     TPZFMatrix<REAL>  &phi = data.phi;
         TPZFMatrix<REAL> &axes = data.axes;
-        int phr = phi.Rows();
+        int phr = phi.Rows(); 
         short in,jn;
         STATE v2[1];
         v2[0] = bc.Val2()(0,0);
