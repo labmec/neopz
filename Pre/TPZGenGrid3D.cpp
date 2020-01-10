@@ -61,9 +61,9 @@ TPZGeoMesh* TPZGenGrid3D::BuildVolumetricElements(const int matIdDomain){
         for(auto iZ = 0; iZ <= fNelz; iZ++){
             for(auto iY = 0; iY <= fNely; iY++){
                 for(auto iX = 0; iX <= fNelx; iX++){
-                    nodeCoords[0] = fMinX + (fMaxX * iX)/fNelx;
-                    nodeCoords[1] = fMinY + (fMaxY * iY)/fNely;
-                    nodeCoords[2] = fMinZ + (fMaxZ * iZ)/fNelz;
+                    nodeCoords[0] = fMinX + ((fMaxX-fMinX) * iX)/fNelx;
+                    nodeCoords[1] = fMinY + ((fMaxY-fMinY) * iY)/fNely;
+                    nodeCoords[2] = fMinZ + ((fMaxZ-fMinZ) * iZ)/fNelz;
                     newindex = fGmesh->NodeVec().AllocateNewElement();
                     fGmesh->NodeVec()[newindex].Initialize(nodeCoords, *fGmesh);
                 }
