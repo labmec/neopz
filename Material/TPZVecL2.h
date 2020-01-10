@@ -64,8 +64,8 @@ public:
     {
         return fNState;
     }
-    
-    void SetNStateVariables(int nstate)
+
+    virtual void SetNStateVariables(int nstate)
     {
         fNState = nstate;
     }
