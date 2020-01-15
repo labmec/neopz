@@ -284,7 +284,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         const auto neighSide = neighGelSide.Side();
                         const auto neighDim = neighGelSide.Element()->Dimension();
                         TPZTransform<> neighTransform(neighCel->Reference()->SideToSideTransform(neighSide,
-                                                                                                 neighCel->Reference()->NSides() -1));
+                                                                                                 neighGel->NSides() -1));
                         TPZTransform<> localTransf(sideDim);
                         gelSide.SideTransform3(neighGelSide,localTransf);
                         TPZMaterialData neighData;
@@ -313,6 +313,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 }
                                 return neighGelSubSide.Side();
                             }();
+                            const int nShapes = cel->NConnectShapeF(subConnect,pOrder);
 
                             const int firstElShape = [&](){
                                 int firstElShapeTemp = 0;
@@ -321,7 +322,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 }
                                 return firstElShapeTemp;
                             }();
-                            const int nShapes = cel->NConnectShapeF(subConnect,pOrder);
+                    
 
                             const int firstNeighShape = [&](){
                                 int firstNeighShapeTemp = 0;
@@ -352,6 +353,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 {
                                     std::ostringstream traceMsg;
                                     if(!checkTraces){
+                                        traceMsg <<"el index: "<<gel->Index()<<std::endl;
+                                        traceMsg <<"neigh index: "<<neighGel->Index()<<std::endl;
                                         traceMsg <<"el vec index: "<<elVecIndex<<std::endl;
                                         traceMsg <<"neigh vec index: "<<neighVecIndex<<std::endl;
                                         traceMsg <<"el vec (master el): ";
