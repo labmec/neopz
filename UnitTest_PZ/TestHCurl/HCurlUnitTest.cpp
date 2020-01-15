@@ -562,9 +562,13 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
 
             for(auto dummyCel : cmesh->ElementVec()){
-                auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
+                const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
+                const auto gel = cel->Reference();
                 //skips boundary els
                 if(!cel || cel->Reference()->Type() != type) continue;
+
+                TPZMaterialData elData;
+                cel->InitMaterialData(elData);
                 const int nState = cel->Material()->NStateVariables();
                 const int elNNodes = MElementType_NNodes(type);
                 for (auto iCon = 0; iCon <cel->NConnects(); iCon++) {
@@ -581,14 +585,12 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
                     const int iSide = iCon + elNNodes;
                     const int pOrderIntRule = cel->EffectiveSideOrder(iSide)*2;
-                    const auto gel = cel->Reference();
                     TPZIntPoints *sideIntRule = gel->CreateSideIntegrationRule(iSide, pOrderIntRule);
                     const int npts = sideIntRule->NPoints();
 
                     TPZTransform<> elTransform(gel->SideToSideTransform(iSide, gel->NSides() - 1));
                     TPZGeoElSide gelSide(gel, iSide);
                     const auto sideDim = gelSide.Dimension();
-
 
                     TPZGeoElSide neighGelSide = gelSide.Neighbour();
                     //the following vector will be the edge tg vector if 2D, the normal vector if 3D
@@ -626,162 +628,127 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         default:
                             DebugStop();
                     }
-                    const int firstElShape = [&](){
-                        int firstElShapeTemp = 0;
-                        for(auto jCon = 0; jCon < iCon; jCon++){
-                            firstElShapeTemp += cel->NConnectShapeF(jCon,cel->EffectiveSideOrder(jCon+elNNodes));
-                        }
-                        return firstElShapeTemp;
-                    }();
-                    const int nShapes = cel->NConnectShapeF(iCon,pOrder);
                     bool firstNeighbour{true};
-//                    if(type == ETetraedro && gel->Id() == 0 && iSide == 5){
-//                        std::cout<<"oi"<<std::endl;
-//                    }
+
+
+                    //gather all the sides contained in the closure of iSide
+                    TPZStack<int> smallSides;
+                    gel->LowerDimensionSides(iSide,smallSides);
+                    smallSides.Push(iSide);//include the side itself
+
                     while(neighGelSide != gelSide) {
                         const auto neighCel = dynamic_cast<TPZInterpolatedElement *> (neighGelSide.Element()->Reference());
                         if (!neighCel) {
                             neighGelSide = neighGelSide.Neighbour();
                             continue;
                         }
-                        const int neighNNodes = MElementType_NNodes(neighCel->Reference()->Type());
+                        const auto neighGel = neighCel->Reference();
+                        const int neighNNodes = MElementType_NNodes(neighGel->Type());
                         const auto neighSide = neighGelSide.Side();
                         TPZTransform<> neighTransform(neighCel->Reference()->SideToSideTransform(neighSide,
-                                                                                                 neighCel->Reference()->NSides() -
-                                                                                                 1));
-
-                        {
-                            const auto elConIndex = cel->SideConnectIndex(0, iSide);
-                            const auto neighConIndex = neighCel->SideConnectIndex(0, neighSide);
-                            const bool check = elConIndex == neighConIndex;
-                            BOOST_CHECK_MESSAGE(check, "\n" + testName + " failed" +
-                                                       "\ntopology: " + MElementType_Name(type) + "\n"
-                            );
-                        }
-                        TPZMaterialData elData,neighData;
-                        cel->InitMaterialData(elData);
-                        neighCel->InitMaterialData(neighData);
+                                                                                                 neighCel->Reference()->NSides() -1));
                         TPZTransform<> localTransf(sideDim);
                         gelSide.SideTransform3(neighGelSide,localTransf);
-                        const int firstNeighShape = [&](){
-                            int firstNeighShapeTemp = 0;
-                            const int neighCon = neighSide - neighGelSide.Element()->NNodes();
-                            for(auto jCon = 0; jCon < neighCon; jCon++){
-                                firstNeighShapeTemp += neighCel->NConnectShapeF(jCon,neighCel->EffectiveSideOrder(jCon+neighNNodes));
-                            }
-                            return firstNeighShapeTemp;
-                        }();
+                        TPZMaterialData neighData;
+                        neighCel->InitMaterialData(neighData);
 
                         const auto neighDim = neighGelSide.Element()->Dimension();
                         TPZManVector <REAL,3> pts(sideDim,0),ptsN(sideDim,0), ptEl(dim,0),ptNeigh(neighDim,0);
                         REAL w;
                         TPZFNMatrix<60,REAL> elShape,neighShape;
-                        for (auto ipt = 0; ipt < npts; ipt++) {
-                            sideIntRule->Point(ipt, pts, w);
 
-                            elTransform.Apply(pts,ptEl);
-                            cel->ComputeRequiredData(elData, ptEl);
-                            TPZHCurlAuxClass::ComputeShape(elData.fVecShapeIndex, elData.phi,
-                                                           elData.fDeformedDirections,elShape);
-                            if(type == ETetraedro && pOrder ==4 && gel->Index()==4){
-                                elData.jacobian.Print(std::cout);
-                                elData.axes.Print(std::cout);
-                                TPZFMatrix<REAL>curlPhi;
-                                TPZHCurlAuxClass::ComputeCurl<3>(elData.fVecShapeIndex,elData.dphi,elData.fMasterDirections,elData.jacobian,elData.detjac,elData.axes,curlPhi);
-                            }
-                            localTransf.Apply(pts,ptsN);
-                            neighTransform.Apply(ptsN,ptNeigh);
-                            neighCel->ComputeRequiredData(neighData, ptNeigh);
-                            TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
-                                                           neighData.fDeformedDirections,neighShape);
+                        for(auto subSide : smallSides){
+                            TPZGeoElSide gelSubSide(gel, subSide);
+                            if(gel->SideDimension(subSide) < 1) continue;
+                            const int subConnect = subSide - elNNodes;
+                            const int neighSubSide = [&](){
+                                TPZGeoElSide neighGelSubSide = gelSubSide.Neighbour();
+                                while(neighGelSubSide.Element() != neighGelSide.Element()) {
+                                    neighGelSubSide = neighGelSubSide.Neighbour();
+                                    if(neighGelSubSide.Element() == gel){
+                                        DebugStop();
+                                    }
+                                }
+                                return neighGelSubSide.Side();
+                            }();
 
-                            TPZManVector<REAL,3> elShapeFunc(3,0), neighShapeFunc(3,0);
-                            bool anyWrongCheck = false;
-                            for(auto iShape = 0; iShape < nShapes; iShape ++){
-                                const int elPhiIndex = firstElShape+iShape;
-                                const int neighPhiIndex = firstNeighShape+iShape;
-                                const int elH1phiIndex = elData.fVecShapeIndex[elPhiIndex].second;
-                                const int neighH1phiIndex = neighData.fVecShapeIndex[neighPhiIndex].second;
-                                const bool checkPhis = std::abs(elData.phi(elH1phiIndex,0) - neighData.phi(neighH1phiIndex,0)) < tol;
+                            const int firstElShape = [&](){
+                                int firstElShapeTemp = 0;
+                                for(auto jCon = 0; jCon < subConnect; jCon++){
+                                    firstElShapeTemp += cel->NConnectShapeF(jCon,cel->EffectiveSideOrder(jCon+elNNodes));
+                                }
+                                return firstElShapeTemp;
+                            }();
+                            const int nShapes = cel->NConnectShapeF(subConnect,pOrder);
 
-                                BOOST_CHECK_MESSAGE(checkPhis,"\n"+testName+" failed: phis are different!"+
-                                                                "\ntopology: "+MElementType_Name(type)+"\n"+
-                                                                "side: "+std::to_string(iSide)+"\n"+
-                                                                "p order: "+std::to_string(pOrder)+"\n"+
-                                                                "elem phi index: "+std::to_string(elPhiIndex)+"\n"+
-                                                                "neig phi index: "+std::to_string(neighPhiIndex)+"\n"
+                            {
+                                const auto elConIndex = cel->SideConnectIndex(0, subSide);
+                                const auto neighConIndex = neighCel->SideConnectIndex(0, neighSubSide);
+                                const bool check = elConIndex == neighConIndex;
+                                BOOST_CHECK_MESSAGE(check, "\n" + testName + " failed" +
+                                                           "\ntopology: " + MElementType_Name(type) + "\n"
                                 );
-                                anyWrongCheck = !checkPhis || anyWrongCheck;
-                                if(anyWrongCheck) {
-                                    break;
-                                }
-                                for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(elPhiIndex,x);
-                                for (auto x = 0; x < 3; x++) neighShapeFunc[x] = neighShape(neighPhiIndex,x);
-                                REAL diffTrace{0};
-                                TPZManVector<REAL,3> elTrace,neighTrace;
-                                const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim,elTrace,neighTrace);
-
-                                {
-                                    std::ostringstream traceMsg;
-                                    if(!checkTraces){
-                                        traceMsg <<"el func: ";
-                                        for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
-                                        traceMsg<<"\nneigh func: ";
-                                        for (auto x = 0; x < 3; x++) traceMsg << neighShapeFunc[x]<<"\t";
-                                        traceMsg <<"\n";
-                                        traceMsg <<"el trace: ";
-                                        for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                        traceMsg<<"\nneigh trace: ";
-                                        for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
-                                        traceMsg <<"\n";
-                                    }
-                                    BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                    "\ntopology: "+MElementType_Name(type)+"\n"+
-                                                                    "side: "+std::to_string(iSide)+"\n"+
-                                                                    "p order: "+std::to_string(pOrder)+"\n"+
-                                                                    "diff traces: "+std::to_string(diffTrace)+"\n"+
-                                                                    traceMsg.str()
-                                    );
-                                }
-                                anyWrongCheck = !checkTraces || anyWrongCheck;
-                                if(anyWrongCheck) {
-                                    break;
-                                }
                             }
+                            const int firstNeighShape = [&](){
+                                int firstNeighShapeTemp = 0;
+                                const int neighCon = neighSubSide - neighGelSide.Element()->NNodes();
+                                for(auto jCon = 0; jCon < neighCon; jCon++){
+                                    firstNeighShapeTemp += neighCel->NConnectShapeF(jCon,neighCel->EffectiveSideOrder(jCon+neighNNodes));
+                                }
+                                return firstNeighShapeTemp;
+                            }();
 
-                            //now checking sideshapefunction. this needs to be checked only once
-                            if(firstNeighbour){
-                                TPZFNMatrix<30,REAL> sideShapeFuncs,sideShapeCurl;
-                                cel->SideShapeFunction(gelSide.Side(),pts,sideShapeFuncs,sideShapeCurl);
-                                const int firstSideShape = [&](){
-                                    int firstSideShapeTemp = 0;
-                                    TPZStack<int> subSides;
-                                    gel->LowerDimensionSides(gelSide.Side(),subSides);
-                                    for(auto iSubSide = gelSide.NSideNodes(); iSubSide < gelSide.NSides() - 1; iSubSide++){
-                                        const auto subSide = subSides[iSubSide];
-                                        firstSideShapeTemp += cel->NConnectShapeF(subSide - gel->NNodes(),pOrder);
-                                    }
-                                    return firstSideShapeTemp;
-                                }();
-                                TPZManVector<REAL,3> sideShapeFunc(3,0);
+                            for (auto ipt = 0; ipt < npts; ipt++) {
+                                sideIntRule->Point(ipt, pts, w);
+
+                                elTransform.Apply(pts,ptEl);
+                                cel->ComputeRequiredData(elData, ptEl);
+                                TPZHCurlAuxClass::ComputeShape(elData.fVecShapeIndex, elData.phi,
+                                                               elData.fDeformedDirections,elShape);
+                                localTransf.Apply(pts,ptsN);
+                                neighTransform.Apply(ptsN,ptNeigh);
+                                neighCel->ComputeRequiredData(neighData, ptNeigh);
+                                TPZHCurlAuxClass::ComputeShape(neighData.fVecShapeIndex, neighData.phi,
+                                                               neighData.fDeformedDirections,neighShape);
+
+                                TPZManVector<REAL,3> elShapeFunc(3,0), neighShapeFunc(3,0);
+                                bool anyWrongCheck = false;
                                 for(auto iShape = 0; iShape < nShapes; iShape ++){
-                                    for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
-                                    for (auto x = 0; x < 3; x++) sideShapeFunc[x] = sideShapeFuncs(firstSideShape + iShape,x);
+                                    const int elPhiIndex = firstElShape+iShape;
+                                    const int neighPhiIndex = firstNeighShape+iShape;
+                                    const int elH1phiIndex = elData.fVecShapeIndex[elPhiIndex].second;
+                                    const int neighH1phiIndex = neighData.fVecShapeIndex[neighPhiIndex].second;
+                                    const bool checkPhis = std::abs(elData.phi(elH1phiIndex,0) - neighData.phi(neighH1phiIndex,0)) < tol;
+
+                                    BOOST_CHECK_MESSAGE(checkPhis,"\n"+testName+" failed: phis are different!"+
+                                                                  "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                  "side: "+std::to_string(iSide)+"\n"+
+                                                                  "p order: "+std::to_string(pOrder)+"\n"+
+                                                                  "elem phi index: "+std::to_string(elPhiIndex)+"\n"+
+                                                                  "neig phi index: "+std::to_string(neighPhiIndex)+"\n"
+                                    );
+                                    anyWrongCheck = !checkPhis || anyWrongCheck;
+                                    if(anyWrongCheck) {
+                                        break;
+                                    }
+                                    for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(elPhiIndex,x);
+                                    for (auto x = 0; x < 3; x++) neighShapeFunc[x] = neighShape(neighPhiIndex,x);
                                     REAL diffTrace{0};
-                                    TPZManVector<REAL,3> elTrace, sideTrace;
-                                    const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim,elTrace,sideTrace);
+                                    TPZManVector<REAL,3> elTrace,neighTrace;
+                                    const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,neighShapeFunc,vec,sideDim,elTrace,neighTrace);
+
                                     {
                                         std::ostringstream traceMsg;
                                         if(!checkTraces){
                                             traceMsg <<"el func: ";
                                             for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
-                                            traceMsg<<"\nside func: ";
-                                            for (auto x = 0; x < 3; x++) traceMsg << sideShapeFunc[x]<<"\t";
+                                            traceMsg<<"\nneigh func: ";
+                                            for (auto x = 0; x < 3; x++) traceMsg << neighShapeFunc[x]<<"\t";
                                             traceMsg <<"\n";
                                             traceMsg <<"el trace: ";
                                             for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
-                                            traceMsg<<"\nside trace: ";
-                                            for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
+                                            traceMsg<<"\nneigh trace: ";
+                                            for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
                                             traceMsg <<"\n";
                                         }
                                         BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
@@ -793,9 +760,61 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                         );
                                     }
                                     anyWrongCheck = !checkTraces || anyWrongCheck;
+                                    if(anyWrongCheck) {
+                                        break;
+                                    }
                                 }
-                                if(anyWrongCheck){
-                                    break;
+
+                                //now checking sideshapefunction. this needs to be checked only once
+                                if(firstNeighbour){
+                                    TPZFNMatrix<30,REAL> sideShapeFuncs,sideShapeCurl;
+                                    cel->SideShapeFunction(gelSide.Side(),pts,sideShapeFuncs,sideShapeCurl);
+
+                                    const int firstSideShape = [&](){
+                                        int firstSideShapeTemp = 0;
+                                        TPZStack<int> subSubSides;
+                                        gel->LowerDimensionSides(gelSide.Side(),subSubSides);
+                                        for(auto subsubSide : subSubSides){
+                                            if(gel->SideDimension(subsubSide) < 1) continue;
+                                            if(subsubSide == subSide) break;
+                                            firstSideShapeTemp += cel->NConnectShapeF(subsubSide - elNNodes,pOrder);
+                                        }
+                                        return firstSideShapeTemp;
+                                    }();
+                                    TPZManVector<REAL,3> sideShapeFunc(3,0);
+                                    for(auto iShape = 0; iShape < nShapes; iShape ++){
+                                        for (auto x = 0; x < 3; x++) elShapeFunc[x] = elShape(firstElShape + iShape,x);
+                                        for (auto x = 0; x < 3; x++) sideShapeFunc[x] = sideShapeFuncs(firstSideShape + iShape,x);
+                                        REAL diffTrace{0};
+                                        TPZManVector<REAL,3> elTrace, sideTrace;
+                                        const bool checkTraces = CheckTracesFunc(diffTrace,elShapeFunc,sideShapeFunc,vec,sideDim,elTrace,sideTrace);
+                                        {
+                                            std::ostringstream traceMsg;
+                                            if(!checkTraces){
+                                                traceMsg <<"el func: ";
+                                                for (auto x = 0; x < 3; x++) traceMsg << elShapeFunc[x]<<"\t";
+                                                traceMsg<<"\nside func: ";
+                                                for (auto x = 0; x < 3; x++) traceMsg << sideShapeFunc[x]<<"\t";
+                                                traceMsg <<"\n";
+                                                traceMsg <<"el trace: ";
+                                                for (auto x = 0; x < elTrace.size(); x++) traceMsg << elTrace[x]<<"\t";
+                                                traceMsg<<"\nside trace: ";
+                                                for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
+                                                traceMsg <<"\n";
+                                            }
+                                            BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
+                                                                            "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                            "side: "+std::to_string(iSide)+"\n"+
+                                                                            "p order: "+std::to_string(pOrder)+"\n"+
+                                                                            "diff traces: "+std::to_string(diffTrace)+"\n"+
+                                                                            traceMsg.str()
+                                            );
+                                        }
+                                        anyWrongCheck = !checkTraces || anyWrongCheck;
+                                    }
+                                    if(anyWrongCheck){
+                                        break;
+                                    }
                                 }
                             }
                         }
