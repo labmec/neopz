@@ -1836,17 +1836,17 @@ namespace pztopology {
             directions(i, 17) = (-v2[i]) * edgeSign[8] / edgeLength[8];//edge 14 vertex 3
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
-            directions(i, 18) = (v1[i]) * edgeSign[0] / edgeLength[0];//edge 6
+            directions(i, 18) = (v1[i]+0.5*v2[i]) * edgeSign[0] / edgeLength[0];//edge 6
             directions(i, 19) = ((v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[1] / edgeLength[1];//edge 7
-            directions(i, 20) = (-v2[i]) * edgeSign[2] / edgeLength[2];//edge 8
+            directions(i, 20) = (-0.5*v1[i]-v2[i]) * edgeSign[2] / edgeLength[2];//edge 8
 
             directions(i, 21) = v3[i] * edgeSign[3] / edgeLength[3];//edge 9
             directions(i, 22) = v3[i] * edgeSign[4] / edgeLength[4];//edge 10
             directions(i, 23) = v3[i] * edgeSign[5] / edgeLength[5];//edge 11
 
-            directions(i, 24) = (v1[i]) * edgeSign[6] / edgeLength[6];//edge 12
+            directions(i, 24) = (v1[i]+0.5*v2[i]) * edgeSign[6] / edgeLength[6];//edge 12
             directions(i, 25) = ((v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[7] / edgeLength[7];//edge 13
-            directions(i, 26) = (-v2[i]) * edgeSign[8] / edgeLength[8];//edge 14
+            directions(i, 26) = (-0.5*v1[i]-v2[i]) * edgeSign[8] / edgeLength[8];//edge 14
 
             //v^{F,e} constant vector fields associated with face F and edge e
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}

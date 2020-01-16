@@ -1583,11 +1583,11 @@ namespace pztopology {
             directions(i,11) = -v2[i] * M_SQRT2 * edgeSign[5] / edgeLength[5];//edge 9 vertex 3
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
-            directions(i,12) = (v1[i]) * edgeSign[0] / edgeLength[0];//edge 4
-            directions(i,13) = ( (-v1[i]+v2[i] - v3[i]) * M_SQRT1_2) * edgeSign[1] / edgeLength[1];//edge 5
-            directions(i,14) = (-v2[i]) * edgeSign[2] / edgeLength[2];//edge 6
-            directions(i,15) = (v3[i]) * edgeSign[3] / edgeLength[3];//edge 7
-            directions(i,16) = (-v1[i]-v2[i]+v3[i]) * M_SQRT1_2 * edgeSign[4] / edgeLength[4];//edge 8
+            directions(i,12) = (v1[i]+0.5*v2[i]+0.5*v3[i]) * edgeSign[0] / edgeLength[0];//edge 4
+            directions(i,13) = ( (v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[1] / edgeLength[1];//edge 5
+            directions(i,14) = (-0.5*v1[i]-v2[i]-0.5*v3[i]) * edgeSign[2] / edgeLength[2];//edge 6
+            directions(i,15) = (0.5*v1[i]+0.5*v2[i]+v3[i]) * edgeSign[3] / edgeLength[3];//edge 7
+            directions(i,16) = (v3[i]-v1[i]) * M_SQRT1_2 * edgeSign[4] / edgeLength[4];//edge 8
             directions(i,17) = (v3[i]-v2[i]) * M_SQRT1_2 * edgeSign[5] / edgeLength[5];//edge 9
 
             //v^{F,e} constant vector fields associated with face F and edge e
