@@ -529,19 +529,11 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         for(auto iCon = 0; iCon < nSideConnects; iCon++){
             const auto iSide = iCon + TSHAPE::NCornerNodes;
             const auto sideDim = TSHAPE::SideDimension(iSide);
-            /*some H1 functions associated with the side iSide of dimension dim might be needed for computing
-            the shape functions of a side with dimension dim+1 that contains the side iSide*/
             TPZStack<int> highDimSides;
             TSHAPE::HigherDimensionSides(iSide, highDimSides);
-            auto maxOrder = this->EffectiveSideOrder(iSide);
-            for(auto &iHighSide : highDimSides){
-                if(TSHAPE::SideDimension(iHighSide) != sideDim+1) break;
-                else if(maxOrder < this->EffectiveSideOrder(iHighSide)){
-                    maxOrder = this->EffectiveSideOrder(iHighSide);
-                }
-            }
-            sidesH1Ord[iCon] = maxOrder;
-            connectOrders[iCon] = this->EffectiveSideOrder(iSide);
+            const auto ord = this->EffectiveSideOrder(iSide);
+            sidesH1Ord[iCon] = ord;
+            connectOrders[iCon] = ord;
 
         }
 
