@@ -461,7 +461,7 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
 	}
 #endif
 
-    const int connectLocalId = this->SideConnectLocId(0, side);
+    const int connectLocalId = this->MidSideConnectLocId(side);
     const int connectOrder = this->Connect(connectLocalId).Order();
     const int nContainedSides = TSHAPE::NContainedSides(side);
     const int nSideShapes = [&]{
@@ -471,7 +471,7 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
             const int subSide = TSHAPE::ContainedSideLocId(side,is);
             const int subSideDim = TSHAPE::SideDimension(subSide);
             if(subSideDim < 1) continue;
-            const int subConnectLocalId = this->SideConnectLocId(0, subSide);
+            const int subConnectLocalId = this->MidSideConnectLocId(subSide);
             const int subConnectOrder = this->Connect(subConnectLocalId).Order();
             nShapes += this->NConnectShapeF(subConnectLocalId,subConnectOrder);
         }

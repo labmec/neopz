@@ -104,7 +104,7 @@ public:
 
 	int NConnects() const override;
 	/** @brief return the local index for connect */
-    int SideConnectLocId(int node, int side) const override;
+    int SideConnectLocId(int con, int side) const override;
 
     int NSideConnects(int side) const override;
 
@@ -134,6 +134,7 @@ public:
     /** @brief Sets the interpolation order of side to order*/
     void SetSideOrder(int side, int order) override;
 
+    void RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) override;
     /** @brief Initialize a material data and its attributes based on element dimension, number
     * of state variables and material definitions */
     void InitMaterialData(TPZMaterialData &data) override;

@@ -51,7 +51,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 
 
 #define NOISY_HCURL //outputs useful debug info
-//#define NOISY_HCURL_VTK
+#define NOISY_HCURL_VTK
 
 
 struct SuiteInitializer{
@@ -420,7 +420,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 }
                 return nullptr;
             }();
-
+            {
+                TPZVec<TPZGeoEl*> sons;
+                gmesh->Element(0)->Divide(sons);
+            }
 #ifdef NOISY_HCURL
             std::ofstream outTXT("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
             gmesh->Print(outTXT);
@@ -497,6 +500,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
             for(auto dummyCel : cmesh->ElementVec()){
                 const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
+                if(!cel) continue;
                 const auto gel = cel->Reference();
                 //skips boundary els
                 if(!cel || cel->Reference()->Type() != type) continue;
@@ -616,8 +620,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                             const int nShapes = cel->NConnectShapeF(subConnect,pOrder);
 
                             {
-                                const auto elConIndex = cel->SideConnectIndex(0, subSide);
-                                const auto neighConIndex = neighCel->SideConnectIndex(0, neighSubSide);
+                                const auto elConIndex = cel->SideConnectIndex(cel->NSideConnects(subSide) - 1, subSide);
+                                const auto neighConIndex = neighCel->SideConnectIndex(neighCel->NSideConnects(neighSubSide) - 1, neighSubSide);
                                 const bool check = elConIndex == neighConIndex;
                                 BOOST_CHECK_MESSAGE(check, "\n" + testName + " failed" +
                                                            "\ntopology: " + MElementType_Name(type) + "\n"
