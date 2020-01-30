@@ -123,38 +123,50 @@ TPZCompElHCurl<TSHAPE>::~TPZCompElHCurl(){
     if (gel && gel->Reference() != this) {
         return;
     }
-    for (int side=TSHAPE::NCornerNodes; side < TSHAPE::NSides; side++) {
-        if (TSHAPE::SideDimension(side) != TSHAPE::Dimension-1) {
-            continue;
+    if (gel) {
+        TPZCompEl *cel = gel->Reference();
+        if (cel == this) {
+            this->RemoveSideRestraintsII(TPZInterpolatedElement::MInsertMode::EDelete);
         }
-        TPZGeoElSide gelside(this->Reference(),side);
-        TPZStack<TPZCompElSide> celstack;
-        TPZCompElSide largecel = gelside.LowerLevelCompElementList2(0);
-        if (largecel) {
-            int cindex = this->MidSideConnectLocId(side);
-            TPZConnect &c = this->Connect(cindex);
-            c.RemoveDepend();
-        }
-        if (gelside.Element()){
-            gelside.HigherLevelCompElementList3(celstack, 0, 1);
-        }
-        int64_t ncel = celstack.size();
-        for (int64_t el=0; el<ncel; el++) {
-            TPZCompElSide celside = celstack[el];
-            TPZCompEl *celsmall = celside.Element();
-            TPZGeoEl *gelsmall = celsmall->Reference();
-            if (gelsmall->SideDimension(celside.Side()) != gel->Dimension()-1) {
-                continue;
-            }
-            TPZInterpolatedElement *intelsmall = dynamic_cast<TPZInterpolatedElement *>(celsmall);
-            if (!intelsmall) {
-                DebugStop();
-            }
-            int cindex = intelsmall->MidSideConnectLocId(celside.Side());
-            TPZConnect &c = intelsmall->Connect(cindex);
-            c.RemoveDepend();
+        this->Reference()->ResetReference();
+    }
+    TPZStack<int64_t > connectlist;
+    this->BuildConnectList(connectlist);
+    int64_t nconnects = connectlist.size();
+    for (int ic = 0; ic < nconnects; ic++) {
+        if (connectlist[ic] != -1){
+            this->fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
         }
     }
+//    for (int side=TSHAPE::NCornerNodes; side < TSHAPE::NSides; side++) {
+//        TPZGeoElSide gelside(this->Reference(),side);
+//        TPZStack<TPZCompElSide> celstack;
+//        TPZCompElSide largecel = gelside.LowerLevelCompElementList2(0);
+//        if (largecel) {
+//            int cindex = this->MidSideConnectLocId(side);
+//            TPZConnect &c = this->Connect(cindex);
+//            c.RemoveDepend();
+//        }
+//        if (gelside.Element()){
+//            gelside.HigherLevelCompElementList3(celstack, 0, 1);
+//        }
+//        int64_t ncel = celstack.size();
+//        for (int64_t el=0; el<ncel; el++) {
+//            TPZCompElSide celside = celstack[el];
+//            TPZCompEl *celsmall = celside.Element();
+//            TPZGeoEl *gelsmall = celsmall->Reference();
+//            if (gelsmall->SideDimension(celside.Side()) != gel->Dimension()-1) {
+//                continue;
+//            }
+//            TPZInterpolatedElement *intelsmall = dynamic_cast<TPZInterpolatedElement *>(celsmall);
+//            if (!intelsmall) {
+//                DebugStop();
+//            }
+//            int cindex = intelsmall->MidSideConnectLocId(celside.Side());
+//            TPZConnect &c = intelsmall->Connect(cindex);
+//            c.RemoveDepend();
+//        }
+//    }
     if (gel){
         gel->ResetReference();
     }
@@ -550,7 +562,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         thisGeoSide.Jacobian(centerPoint, jac, axes, detjac, jacinv);
         REAL weight;
         TPZFNMatrix<100, REAL> phis(numshape, 3), dphis(3, numshape), phil(numshapel, 3), dphil(3, numshapel);
-        TPZFNMatrix<100, REAL> thisTrace(numshape, thisSideDimension), largeTrace(numshape, thisSideDimension);
+        TPZFNMatrix<100, REAL> thisTrace(numshape, thisSideDimension), largeTrace(numshapel, thisSideDimension);
         for (int it = 0; it < numint; it++) {
             intrule->Point(it, par, weight);
             SideShapeFunction(side, par, phis, dphis);
@@ -559,9 +571,16 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
             for(auto iphi = 0; iphi < numshape; iphi++){
                 for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
                     thisTrace(iphi,iaxes) = 0;
-                    largeTrace(iphi,iaxes) = 0;
                     for(auto jaxes = 0; jaxes < 3; jaxes ++){
                         thisTrace(iphi,iaxes) += axes(iaxes,jaxes) * phis(iphi,jaxes);
+                    }
+                }
+            }
+
+            for(auto iphi = 0; iphi < numshapel; iphi++){
+                for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
+                    largeTrace(iphi,iaxes) = 0;
+                    for(auto jaxes = 0; jaxes < 3; jaxes ++){
                         largeTrace(iphi,iaxes) += axes(iaxes,jaxes) * phil(iphi,jaxes);
                     }
                 }
@@ -570,7 +589,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
                 for (auto jn = 0; jn < numshape; jn++) {
                     REAL dotProduct = 0;
                     for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
-                        dotProduct += thisTrace(in,iaxes) * largeTrace(jn,iaxes);
+                        dotProduct += thisTrace(in,iaxes) * thisTrace(jn,iaxes);
                     }
                     (*M)(in, jn) += dotProduct * weight;
                 }

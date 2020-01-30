@@ -477,11 +477,11 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         }
         return nShapes;
     }();
-//#ifdef PZDEBUG
-//    if (nSideShapes != this->NSideShapeF(side)) {
-//        DebugStop();
-//    }
-//#endif
+#ifdef PZDEBUG
+    if (nSideShapes != this->NSideShapeF(side)) {
+        DebugStop();
+    }
+#endif
     //get the ids of the side nodes
     const int  nSideNodes = TSHAPE::NSideNodes(side);
     const int nSideConnects = nContainedSides - nSideNodes;
