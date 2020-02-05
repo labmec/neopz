@@ -251,10 +251,14 @@ public:
     TPZGeoElSide LowestFatherSide();
     
     /**
-     * @brief This method will return all siblings from the element. The siblings have no subelements
+     * @brief [deprecated] use YoungestChildren
      */
     virtual void GetAllSiblings(TPZStack<TPZGeoElSide> &unrefinedSons);
-		
+    /**
+     * @brief This method will return all children at the bottom of the refinement tree of the element. i.e. all children that have no subelements
+     */
+    virtual void YoungestChildren(TPZStack<TPZGeoElSide> &unrefinedSons);
+
 	/** @brief Returns a pointer to the elementside referenced by the geometric elementside*/
 	TPZCompElSide Reference() const;
 	/** @brief Return 1 if the element has subelements along side*/
