@@ -1763,6 +1763,12 @@ void TLaplaceExample1::SigmaLoc(const TPZVec<STATE> &x, TPZFMatrix<STATE> &sigma
 template
 void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma) const;
 
+template
+void TLaplaceExample1::graduxy<Fad<double>>(const TPZVec<Fad<double>> &x, TPZVec<Fad<double>> &grad) const;
+
+template
+void TLaplaceExample1::graduxy<double>(const TPZVec<double> &x, TPZVec<double> &grad) const;
+
 
 
 //ExactFunc *Exact();

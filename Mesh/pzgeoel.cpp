@@ -409,6 +409,10 @@ void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dime
 
 void TPZGeoEl::GetAllSiblings(TPZStack<TPZGeoEl*> &unrefinedSons)
 {
+#ifdef PZDEBUG
+	PZError << __PRETTY_FUNCTION__ << "is deprecated. Use TPZGeoEl::YoungestChildren instead \n";
+	DebugStop();
+#endif // PZDEBUG
     int nsons = this->NSubElements();
     for(int s = 0; s < nsons; s++)
     {
@@ -420,6 +424,23 @@ void TPZGeoEl::GetAllSiblings(TPZStack<TPZGeoEl*> &unrefinedSons)
         else
         {
             son->GetAllSiblings(unrefinedSons);
+        }
+    }
+}
+
+void TPZGeoEl::YoungestChildren(TPZStack<TPZGeoEl*> &unrefinedSons)
+{
+    int nsons = this->NSubElements();
+    for(int s = 0; s < nsons; s++)
+    {
+        TPZGeoEl * son = this->SubElement(s);
+        if(son->HasSubElement() == false)
+        {
+            unrefinedSons.Push(son);
+        }
+        else
+        {
+            son->YoungestChildren(unrefinedSons);
         }
     }
 }

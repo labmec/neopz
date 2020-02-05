@@ -774,6 +774,10 @@ TPZGeoElSide TPZGeoElSide::LowestFatherSide()
 
 void TPZGeoElSide::GetAllSiblings(TPZStack<TPZGeoElSide> &sonSides)
 {
+#ifdef PZDEBUG
+	PZError << __PRETTY_FUNCTION__ << "is deprecated. Use TPZGeoEl::YoungestChildren instead \n";
+	DebugStop();
+#endif // PZDEBUG
     if(this->Element()->HasSubElement() == false)
     {
         sonSides.Push(*this);
@@ -784,6 +788,21 @@ void TPZGeoElSide::GetAllSiblings(TPZStack<TPZGeoElSide> &sonSides)
     int nsub = lowerSubelements.size();
     for (int s=0; s<nsub; s++) {
         lowerSubelements[s].GetAllSiblings(sonSides);
+    }
+}
+
+void TPZGeoElSide::YoungestChildren(TPZStack<TPZGeoElSide> &sonSides)
+{
+    if(this->Element()->HasSubElement() == false)
+    {
+        sonSides.Push(*this);
+    }
+    int dim = Dimension();
+    TPZStack<TPZGeoElSide> lowerSubelements;
+    fGeoEl->GetSubElements2(fSide,lowerSubelements,dim);
+    int nsub = lowerSubelements.size();
+    for (int s=0; s<nsub; s++) {
+        lowerSubelements[s].YoungestChildren(sonSides);
     }
 }
 
