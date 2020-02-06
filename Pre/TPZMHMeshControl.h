@@ -325,7 +325,7 @@ public:
         
     }
     
-private:
+protected:
     /// will create a computational mesh using the coarse element indexes and its interface elements
     TPZCompMesh *CriaMalhaTemporaria();
     

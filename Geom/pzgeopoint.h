@@ -123,8 +123,7 @@ namespace pzgeom {
 
     template<class T>
     inline void TPZGeoPoint::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
-        gradx.Resize(1,1);
-        gradx(0,0) = 0;
+        gradx.Resize(3,0);
     }
 
 
