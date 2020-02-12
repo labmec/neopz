@@ -12,7 +12,25 @@
 #endif
 
 namespace pztopology {
-	
+    int TPZPoint::fPermutations[1][1]={
+            {0}
+    };
+    template<class T>
+    void TPZPoint::TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
+    {
+        phi(0,0) = (T)1.;
+    }
+
+    template<class T>
+    void TPZPoint::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                       TPZVec<T> &corrFactorDxi){
+        std::ostringstream sout;
+        sout<<"This method should not be called for a point element. Aborting..."<<std::endl;
+
+        PZError<<std::endl<<sout.str()<<std::endl;
+        DebugStop();
+    }
+
 	TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)
 	{
 		return new IntruleType(order);
@@ -36,11 +54,14 @@ namespace pztopology {
     
     int TPZPoint::NBilinearSides()
     {return 0;}
-    
+
     template<class T>
-    bool TPZPoint::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    bool TPZPoint::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
+    template<class T>
+    void TPZPoint::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		SidePar.Resize(0); JacToSide.Resize(0,0);
-		return true;
 	}
     
     void TPZPoint::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -119,10 +140,29 @@ namespace pztopology {
     
 }
 
-template
-bool pztopology::TPZPoint::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
+template bool pztopology::TPZPoint::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
+template void pztopology::TPZPoint::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZPoint::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZPoint::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZPoint::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZPoint::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template bool pztopology::TPZPoint::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
+
+template void pztopology::TPZPoint::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZPoint::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZPoint::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZPoint::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

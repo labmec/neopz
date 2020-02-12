@@ -51,7 +51,7 @@ namespace pztopology {
 	
 	static int nsidenodes[3] = {1,1,2};
     
-    static int permutationsL [2][3] =
+    int TPZLine::fPermutations [2][3] =
     {
         {0,1,2},
         {1,0,2}
@@ -64,9 +64,59 @@ namespace pztopology {
     
     static int bilinearounao [3] =   {0,0,1};
     static int direcaoksioueta [3] = {0,0,0};
-    
 
-    
+    template<class T>
+    inline void TPZLine::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T x = loc[0];
+        phi(0,0) = (1.0-x)/2.;
+        phi(1,0) = (1.0+x)/2.;
+        dphi(0,0) = -0.5;
+        dphi(0,1) = 0.5;
+    }
+
+    template<class T>
+    void TPZLine::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                        TPZVec<T> &blendFactorDxi){
+        const REAL tol = pztopology::GetTolerance();
+#ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!TPZLine::IsInParametricDomain(xi,tol)){
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+#endif
+        TPZFNMatrix<4,T> phi(NCornerNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
+        TPZLine::TShape(xi,phi,dphi);
+        blendFactorDxi.Resize(TPZLine::Dimension, (T) 0);
+        switch(side){
+            case 0:
+                blendFactor = phi(0,0);
+                blendFactorDxi[0] = dphi(0,0);
+                break;
+            case 1:
+                blendFactor = phi(1,0);
+                blendFactorDxi[0] = dphi(0,1);
+                break;
+            case 2:
+                blendFactor = 1;
+                blendFactorDxi[0] = 0;
+                break;
+        }
+        return;
+    }
+
 	int TPZLine::NSideNodes(int side)
 	{
 		return nsidenodes[side];
@@ -110,9 +160,14 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
-    
+
     template<class T>
-    bool TPZLine::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    bool TPZLine::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
+
+    template<class T>
+    void TPZLine::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		TPZTransform<> TransfR = SideToSideTransform(NSides - 1, side);
         TPZTransform<T> Transf;
         Transf.CopyFrom(TransfR);
@@ -120,7 +175,6 @@ namespace pztopology {
 		Transf.Apply(InternalPar,SidePar);
 		
 		JacToSide = Transf.Mult();
-		return true;
 	}
     
     void TPZLine::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -168,7 +222,9 @@ namespace pztopology {
 		return -1;
 	}
 	void TPZLine::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
+        if (center.size()!=Dimension) {
+            DebugStop();
+        }
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];
@@ -207,6 +263,11 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        
+        if (sideto == NSides -1) {
+            return TransformSideToElement(sidefrom);
+        }
+        
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {
@@ -374,7 +435,8 @@ namespace pztopology {
 		LOGPZ_ERROR(logger,"Wrong input parameter")
 		return -1;
 	}
-	
+    
+    
 	/**
 	 * Identifies the permutation of the nodes needed to make neighbouring elements compatible 
 	 * in terms of order of shape functions
@@ -387,7 +449,7 @@ namespace pztopology {
         permgather.Resize(3);
         for (int i=0; i<3; i++)
         {
-            permgather[i] = permutationsL[transformationid][i];
+            permgather[i] = fPermutations[transformationid][i];
         }
 		/*
          switch (side) {
@@ -441,7 +503,7 @@ namespace pztopology {
 
     }
     
-    void TPZLine::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZLine::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides();
         
@@ -458,7 +520,7 @@ namespace pztopology {
         }
     }
 
-    void TPZLine::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZLine::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides();
         
@@ -489,10 +551,29 @@ namespace pztopology {
     
 }
 
-template
-bool pztopology::TPZLine::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
+template bool pztopology::TPZLine::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
+template void pztopology::TPZLine::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZLine::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZLine::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZLine::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZLine::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template bool pztopology::TPZLine::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
+
+template void pztopology::TPZLine::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZLine::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZLine::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZLine::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 #endif

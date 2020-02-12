@@ -31,6 +31,9 @@ namespace pztopology {
 
 	static int nsidenodes[9] = {
 		1,1,1,1,2,2,2,2,4};
+    
+    int TPZQuadrilateral::SideNodes[4][2]  = { {0,1},{1,2},{2,3},{3,0} };
+    int TPZQuadrilateral::FaceNodes[1][4]  = { {0,1,2,3} };
 	
 	int TPZQuadrilateral::NSideNodes(int side)
 	{
@@ -145,10 +148,25 @@ namespace pztopology {
     
     static int vectorsideorder [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
     
-    static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
+  static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
+//static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//full hdiv
+void TPZQuadrilateral::SetHdivType(EHdivType val){
+    switch (val) {
+        case HdivFull:
+            for(int i=12; i< 18; i++) bilinearounao[i] = 0;
+            break;
+        case HdivConform:
+            for(int i=12; i< 18; i++) bilinearounao[i] = 1;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+}
+
     static int direcaoksioueta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
     
-    static int permutationsQ [8][9] =
+    int TPZQuadrilateral::fPermutations [8][9] =
     {
         {0,1,2,3,4,5,6,7,8}, // id 0
         {0,3,2,1,7,6,5,4,8}, // id 1
@@ -159,6 +177,106 @@ namespace pztopology {
         {3,0,1,2,7,4,5,6,8}, // id 6
         {3,2,1,0,6,5,4,7,8}  // id 7
     };
+
+    REAL TPZQuadrilateral::fTangentVectors [16][2] =
+            {
+                    {0.25,0.0}, //id 0
+                    {0.0,0.25}, //id 0
+                    {0.0,0.25}, //id 1
+                    {0.25,0.0}, //id 1
+                    {-0.25,0.0}, //id 3
+                    {0.0,0.25}, //id 3
+                    {0.0,0.25}, //id 2
+                    {-0.25,0.0}, //id 2
+                    {0.0,-0.25}, //id 5
+                    {-0.25,0.0}, //id 5
+                    {-0.25,0.0}, //id 4
+                    {0.0,-0.25}, //id 4
+                    {0.0,-0.25}, //id 6
+                    {0.25,0.0}, //id 6
+                    {0.25,0.0}, //id 7
+                    {0.0,-0.25} //id 7
+            };
+
+    template<class T>
+    inline void TPZQuadrilateral::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1];
+
+        phi(0,0) = 0.25*(1.-qsi)*(1.-eta);
+        phi(1,0) = 0.25*(1.+qsi)*(1.-eta);
+        phi(2,0) = 0.25*(1.+qsi)*(1.+eta);
+        phi(3,0) = 0.25*(1.-qsi)*(1.+eta);
+
+        dphi(0,0) = 0.25*(eta-1.);
+        dphi(1,0) = 0.25*(qsi-1.);
+
+        dphi(0,1) = 0.25*(1.-eta);
+        dphi(1,1) =-0.25*(1.+qsi);
+
+        dphi(0,2) = 0.25*(1.+eta);
+        dphi(1,2) = 0.25*(1.+qsi);
+
+        dphi(0,3) =-0.25*(1.+eta);
+        dphi(1,3) = 0.25*(1.-qsi);
+
+
+    }
+
+    template<class T>
+    void TPZQuadrilateral::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                       TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::GetTolerance();
+#ifdef PZDEBUG
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+
+        if(!IsInParametricDomain(xi,tol)){
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+#endif
+        TPZFNMatrix<4,T> phi(NCornerNodes,1);
+        TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
+        TPZQuadrilateral::TShape(xi,phi,dphi);
+        corrFactorDxi.Resize(TPZQuadrilateral::Dimension, (T) 0);
+        int i = -1;
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                blendFactor = 0;
+                return;
+            case 4:
+                i = 0;
+                break;
+            case 5:
+                i = 1;
+                break;
+            case 6:
+                i = 2;
+                break;
+            case 7:
+                i = 3;
+                break;
+            case 8:
+                blendFactor = 1;
+                return;
+        }
+        blendFactor = phi(i,0) + phi((i+1)%NCornerNodes,0);
+        corrFactorDxi[0] = dphi(0,i) + dphi(0,(i+1)%NCornerNodes);
+        corrFactorDxi[1] = dphi(1,i) + dphi(1,(i+1)%NCornerNodes);
+    }
 
     int TPZQuadrilateral::NBilinearSides()
     {
@@ -204,7 +322,9 @@ namespace pztopology {
 	}
 	
 	void TPZQuadrilateral::CenterPoint(int side, TPZVec<REAL> &center) {
-		//center.Resize(Dimension);
+        if (center.size()!=Dimension) {
+            DebugStop();
+        }
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];
@@ -233,31 +353,32 @@ namespace pztopology {
 		TPZTransform<> t(sidedimension[side],2);//t(dimto,2)
 		t.Mult().Zero();
 		t.Sum().Zero();
-		
-		switch(side){
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-				return t;
-			case 4:
-				t.Mult()(0,0) = 1.0;
-				return t;
-			case 5 :
-				t.Mult()(0,1) = 1.0;
-				return t;
-			case 6:
-				t.Mult()(0,0) = -1.0;
-				return t;
-			case 7:
-				t.Mult()(0,1) = -1.0;
-				return t;
-			case 8:
-				t.Mult()(0,0) = 1.0;
-				t.Mult()(1,1) = 1.0;
-				return t;
-		}
-		return TPZTransform<>(0,0);
+        
+        switch(side){
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                return t;
+            case 4:
+                t.Mult()(0,0) = 1.0; // 1;
+                return t;
+            case 5 :
+                t.Mult()(0,1) = 1.0;
+                return t;
+            case 6:
+                t.Mult()(0,0) = -1.0;
+                return t;
+            case 7:
+                t.Mult()(0,1) = -1.0;
+                return t;
+            case 8:
+                t.Mult()(0,0) = 1.0;
+                t.Mult()(1,1) = 1.0;
+                return t;
+        }
+        return TPZTransform<>(0,0);
+        
 	}
 	
 	bool TPZQuadrilateral::IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol){
@@ -280,11 +401,14 @@ namespace pztopology {
             pt[i] = val;
         }
     }
-    
 
     template<class T>
-    bool TPZQuadrilateral::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
-		bool regularmap = true;
+    bool TPZQuadrilateral::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
+
+    template<class T>
+    void TPZQuadrilateral::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
         TPZTransform<T> Transf;
         Transf.CopyFrom(pztopology::TPZQuadrilateral::SideToSideTransform(NSides - 1, side));
 		SidePar.Resize(SideDimension(side));
@@ -298,7 +422,6 @@ namespace pztopology {
 		{
 			for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
 		}
-		return regularmap;
 	}
     
     void TPZQuadrilateral::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -379,6 +502,11 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        
+        if (sideto == NSides -1) {
+            TransformSideToElement(sidefrom);
+        }
+        
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {
@@ -596,6 +724,7 @@ namespace pztopology {
 			case 6:
 			case 7:
 			{
+                
 				int in1 = ContainedSideLocId(side,0);
 				int in2 = ContainedSideLocId(side,1);
 				return id[in1]<id[in2] ? 0 : 1;
@@ -631,7 +760,7 @@ namespace pztopology {
         
          for (int i=0; i<9; i++)
          {
-             permgather[i] = permutationsQ[transformationid][i];
+             permgather[i] = fPermutations[transformationid][i];
          }
         return;
         int i;
@@ -703,7 +832,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[0][i];
+                    permgather[i] = fPermutations[0][i];
                 }
             }
                 break;
@@ -711,7 +840,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[1][i];
+                    permgather[i] = fPermutations[1][i];
                 }
             }
                 break;
@@ -719,7 +848,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[2][i];
+                    permgather[i] = fPermutations[2][i];
                 }
             }
                 break;
@@ -727,7 +856,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[3][i];
+                    permgather[i] = fPermutations[3][i];
                 }
             }
                 break;
@@ -735,7 +864,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[4][i];
+                    permgather[i] = fPermutations[4][i];
                 }
             }
                 break;
@@ -743,7 +872,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[5][i];
+                    permgather[i] = fPermutations[5][i];
                 }
             }
                 break;
@@ -751,7 +880,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[6][i];
+                    permgather[i] = fPermutations[6][i];
                 }
             }
                 break;
@@ -759,7 +888,7 @@ namespace pztopology {
             {
                 for (int i=0; i<9; i++)
                 {
-                    permgather[i] = permutationsQ[7][i];
+                    permgather[i] = fPermutations[7][i];
                 }
             }
                 break;
@@ -1030,58 +1159,99 @@ namespace pztopology {
         
 	}
     
-    void TPZQuadrilateral::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    template <class TVar>
+    void TPZQuadrilateral::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
-        TPZManVector<REAL, 3> v1(3),v2(3);
-        for (int i=0; i<3; i++) {
-            v1[i] = gradx(i,0);
-            v2[i] = gradx(i,1);
-        }
-
+        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
-        REAL Nv1 = TPZNumeric::Norma(v1);
-        REAL Nv2 = TPZNumeric::Norma(v2);
+        TPZManVector<TVar, 3> v1(3),v2(3);
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0)/detjac;
+            v2[i] = gradx(i,1)/detjac;
+        }
         
         /**
          * @file
          * @brief Computing mapped vector with scaling factor equal 1.0.
          * using contravariant piola mapping.
          */
-        TPZManVector<REAL,3> NormalScales(2,1.);
-        
-        if (HDivPiola == 1)
-        {
-            NormalScales[0] = 1./Nv1;
-            NormalScales[1] = 1./Nv2;
-        }
-        
-        
-        for (int i=0; i<3; i++) {
-            v1[i] *= Nv2/detjac;
-            v2[i] *= Nv1/detjac;
-        }
         
         for (int i=0; i<3; i++)
         {
             for (int v=0; v<3; v++)
             {
-                directions(i,v)     = -v2[i]*NormalScales[0];
-                directions(i,v+3)   = v1[i]*NormalScales[1];
-                directions(i,v+6)   = v2[i]*NormalScales[0];
-                directions(i,v+9)   = -v1[i]*NormalScales[1];
+                directions(i,v)     = -v2[i];
+                directions(i,v+3)   = v1[i];
+                directions(i,v+6)   = v2[i];
+                directions(i,v+9)   = -v1[i];
             }
             
-            directions(i,12)        =  v1[i]*NormalScales[1];
-            directions(i,13)        =  v2[i]*NormalScales[0];
-            directions(i,14)        = -v1[i]*NormalScales[1];
-            directions(i,15)        = -v2[i]*NormalScales[0];
+            directions(i,12)        =  v1[i];
+            directions(i,13)        =  v2[i];
+            directions(i,14)        = -v1[i];
+            directions(i,15)        = -v2[i];
             
-            directions(i,16)        = v1[i]*NormalScales[1];
-            directions(i,17)        = v2[i]*NormalScales[0];
+            directions(i,16)        = v1[i];
+            directions(i,17)        = v2[i];
         }
     }
-    
-    void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+
+    template <class TVar>
+    void TPZQuadrilateral::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions,const TPZVec<int> &transformationIds)
+    {
+        const auto dim = gradx.Rows();
+        TPZManVector<TVar, 3> v1(dim),v2(dim);
+        for (int i=0; i<dim; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+        }
+        constexpr auto nEdges{4};
+        constexpr REAL faceArea{TPZQuadrilateral::RefElVolume()};
+        const int facePermute = transformationIds[nEdges];
+
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+
+        for (int i=0; i<dim; i++)
+        {
+            for(int iSide = 0; iSide < 4; iSide ++){
+                int sign = iSide /2 ? -1 : 1;// sign will be : 1 1 -1 -1
+                sign *= edgeSign[iSide];
+                //v^{e,a} constant vector fields associated with edge e and vertex a
+                //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
+                //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e] = 0.5
+                directions(i,iSide * 2) =
+                directions(i,iSide * 2 + 1) =
+                //v^{e,T} constant vector fields associated with edge e and aligned with it
+                directions(i,8 + iSide) =
+                                iSide % 2 ? sign * 0.5 * v2[i] : sign * 0.5 * v1[i];//vectors will be v1 v2 -v1 -v2
+
+                sign = ((iSide + 1) / 2) %2 ? -1 : 1;// sign will be : 1 -1 -1 1
+                sign *= edgeSign[iSide];
+                //v^{F,e} constant vector fields associated with face F and edge e
+                //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
+                //adjacent to face F by edge e
+                directions(i,12 + iSide) = iSide % 2 ? sign * v1[i] : sign * v2[i];//vectors will be v2 -v1 -v2 v1
+                directions(i,12 + iSide) /= faceArea;
+            }
+            //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+            directions(i,16) = fTangentVectors[2*facePermute][i];
+            directions(i,17) = fTangentVectors[2*facePermute + 1][i];
+        }
+    }
+
+    template <class TVar>
+    void TPZQuadrilateral::ComputeHCurlFaceDirections(TPZVec<TVar> &v1, TPZVec<TVar> &v2, int transformationId)
+    {
+        for (auto i=0; i< Dimension; i++){
+            //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+            v1[i] = fTangentVectors[2*transformationId][i];
+            v2[i] = fTangentVectors[2*transformationId + 1][i];
+        }//for
+    }
+    void TPZQuadrilateral::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*2;
         
@@ -1096,7 +1266,7 @@ namespace pztopology {
             bilounao[is] = bilinearounao[is];
         }
     }
-    void TPZQuadrilateral::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZQuadrilateral::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides()*2;
         
@@ -1127,12 +1297,39 @@ namespace pztopology {
 
     }
 
+    
 }
 
-template
-bool pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
+template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
 
+template void pztopology::TPZQuadrilateral::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZQuadrilateral::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZQuadrilateral::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZQuadrilateral::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlFaceDirections<REAL>(TPZVec<REAL> &v1, TPZVec<REAL> &v2, int transformationId);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
+
+template void pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZQuadrilateral::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZQuadrilateral::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZQuadrilateral::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
+
+template void pztopology::TPZQuadrilateral::ComputeHCurlFaceDirections<Fad<REAL>>(TPZVec<Fad<REAL>> &v1, TPZVec<Fad<REAL>> &v2, int transformationId);
 #endif

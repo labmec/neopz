@@ -235,7 +235,6 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
     int ivectorindex = 0;
     int ishapeindex = 0;
     
-    if (HDivPiola == 1)
     {
         for (int iq = 0; iq < nphiuHdiv; iq++)
         {
@@ -253,19 +252,6 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
             DivergenceofPhi(iq,0) =  (1.0/JacobianDet) * ( dphiuH1(0,ishapeindex)*VectorOnMaster(0,0) +
                                                           dphiuH1(1,ishapeindex)*VectorOnMaster(1,0) +
                                                           dphiuH1(2,ishapeindex)*VectorOnMaster(2,0) );
-        }
-    }
-    else
-    {
-        for (int iq = 0; iq < nphiuHdiv; iq++)
-        {
-            ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
-            ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
-            
-            /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
-            datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
-            datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
         }
     }
     

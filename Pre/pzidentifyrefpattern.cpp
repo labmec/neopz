@@ -6,7 +6,7 @@
 #include "pzidentifyrefpattern.h"
 #include "pzgeoel.h"
 #include "pzeltype.h"
-#include "TPZRefPattern.h"
+#include "TPZRefPatternDataBase.h"
 
 #include "pzrefpoint.h"
 #include "TPZRefLinear.h"

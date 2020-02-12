@@ -2063,14 +2063,14 @@ TPZAutoPointer<TPZRefPattern> TPZPlaneFractureMesh::Generate1DRefPatt(std::set<R
     Topol[0] = 0; Topol[1] = 2;
     TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * son1 = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (Topol,globMaterialIdGen.Aux1DMatId(),internalMesh);
     son1->SetFather(father);
-    son1->SetFather(father->Index());
+    son1->SetFatherIndex(father->Index());
     //
     
     //last subelement
     Topol[0] = TrimCoord.size() + 1; Topol[1] = 1;
     TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * son2 = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (Topol,globMaterialIdGen.Aux1DMatId(),internalMesh);
     son2->SetFather(father);
-    son2->SetFather(father->Index());
+    son2->SetFatherIndex(father->Index());
     //
     
     for(int64_t el = 2; el < QsubElements; el++)
@@ -2078,7 +2078,7 @@ TPZAutoPointer<TPZRefPattern> TPZPlaneFractureMesh::Generate1DRefPatt(std::set<R
         Topol[0] = el; Topol[1] = el+1;
         TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * son = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (Topol,globMaterialIdGen.Aux1DMatId(),internalMesh);
         son->SetFather(father);
-        son->SetFather(father->Index());
+        son->SetFatherIndex(father->Index());
     }
     //.
     //.

@@ -895,7 +895,7 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
         LoadSolution();
         Mesh()->TransferMultiphysicsSolution();
         
-        PostProcess(porder+1);
+        PostProcess(0);
         fSolution.Zero();
     }
     fSolution = solkeep;
@@ -1035,10 +1035,11 @@ void TPZAnalysis::PostProcess(int resolution) {
 	}
 }
 
-/** @brief Fill mat ids with materials with dimension dim wich are not boundary conditinos or interface  */
+/** @brief Fill mat ids with materials with dimension dim wich are not boundary conditions or interface  */
 void TPZAnalysis::IdentifyPostProcessingMatIds(int dimension, std::set<int> & matids){
     std::map<int, TPZMaterial * >::iterator matit;
     for (matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++) {
+        
         TPZMaterial *mat = matit->second;
         TPZBndCond *bc = dynamic_cast<TPZBndCond *> (mat);
         TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *> (mat);
@@ -1484,7 +1485,7 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     buf.Write(fTensorNames[0]);
     buf.Write(fTensorNames[1]);
     buf.Write(fTensorNames[2]);
-    //@TODO: How to persist fExact?
+    //@TODOFran: How to persist fExact?
 }
 
 void TPZAnalysis::Read(TPZStream &buf, void *context){
@@ -1512,7 +1513,7 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     buf.Read(fTensorNames[0]);
     buf.Read(fTensorNames[1]);
     buf.Read(fTensorNames[2]);
-    //@TODO: How to persist fExact?
+    //@TODOFran: How to persist fExact?
 }
 
 TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f) : fNextElement(0), fvalues(0), fStoreError(store_error), fExact(f), ftid(0), fElvec(elvec){

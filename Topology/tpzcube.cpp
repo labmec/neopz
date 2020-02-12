@@ -42,7 +42,60 @@ namespace pztopology {
 	
 	/** @brief For each face was enumerated the vertice sides on its main diagonal */
 	int TPZCube::ShapeFaceId[6][2] = { {0,2},{0,5},{1,6},{3,6},{0,7},{4,6} };
-	
+
+
+    int TPZCube::fPermutations[48][27] =
+            {
+                    {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26},/*000*/
+                    {0,1,5,4,3,2,6,7,8,13,16,12,11,9,17,19,10,14,18,15,21,20,22,25,24,23,26},/*001*/
+                    {0,3,2,1,4,7,6,5,11,10,9,8,12,15,14,13,19,18,17,16,20,24,23,22,21,25,26},/*002*/
+                    {0,3,7,4,1,2,6,5,11,15,19,12,8,10,18,16,9,14,17,13,24,20,23,25,21,22,26},/*003*/
+                    {0,4,5,1,3,7,6,2,12,16,13,8,11,19,17,9,15,18,14,10,21,24,25,22,20,23,26},/*004*/
+                    {0,4,7,3,1,5,6,2,12,19,15,11,8,16,18,10,13,17,14,9,24,21,25,23,20,22,26},/*005*/
+                    {1,0,3,2,5,4,7,6,8,11,10,9,13,12,15,14,16,19,18,17,20,21,24,23,22,25,26},/*006*/
+                    {1,0,4,5,2,3,7,6,8,12,16,13,9,11,19,17,10,15,18,14,21,20,24,25,22,23,26},/*007*/
+                    {1,2,3,0,5,6,7,4,9,10,11,8,13,14,15,12,17,18,19,16,20,22,23,24,21,25,26},/*008*/
+                    {1,2,6,5,0,3,7,4,9,14,17,13,8,10,18,16,11,15,19,12,22,20,23,25,21,24,26},/*009*/
+                    {1,5,4,0,2,6,7,3,13,16,12,8,9,17,19,11,14,18,15,10,21,22,25,24,20,23,26},/*010*/
+                    {1,5,6,2,0,4,7,3,13,17,14,9,8,16,18,10,12,19,15,11,22,21,25,23,20,24,26},/*011*/
+                    {2,1,0,3,6,5,4,7,9,8,11,10,14,13,12,15,17,16,19,18,20,22,21,24,23,25,26},/*012*/
+                    {2,1,5,6,3,0,4,7,9,13,17,14,10,8,16,18,11,12,19,15,22,20,21,25,23,24,26},/*013*/
+                    {2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13,18,19,16,17,20,23,24,21,22,25,26},/*014*/
+                    {2,3,7,6,1,0,4,5,10,15,18,14,9,11,19,17,8,12,16,13,23,20,24,25,22,21,26},/*015*/
+                    {2,6,5,1,3,7,4,0,14,17,13,9,10,18,16,8,15,19,12,11,22,23,25,21,20,24,26},/*016*/
+                    {2,6,7,3,1,5,4,0,14,18,15,10,9,17,19,11,13,16,12,8,23,22,25,24,20,21,26},/*017*/
+                    {3,0,1,2,7,4,5,6,11,8,9,10,15,12,13,14,19,16,17,18,20,24,21,22,23,25,26},/*018*/
+                    {3,0,4,7,2,1,5,6,11,12,19,15,10,8,16,18,9,13,17,14,24,20,21,25,23,22,26},/*019*/
+                    {3,2,1,0,7,6,5,4,10,9,8,11,15,14,13,12,18,17,16,19,20,23,22,21,24,25,26},/*020*/
+                    {3,2,6,7,0,1,5,4,10,14,18,15,11,9,17,19,8,13,16,12,23,20,22,25,24,21,26},/*021*/
+                    {3,7,4,0,2,6,5,1,15,19,12,11,10,18,16,8,14,17,13,9,24,23,25,21,20,22,26},/*022*/
+                    {3,7,6,2,0,4,5,1,15,18,14,10,11,19,17,9,12,16,13,8,23,24,25,22,20,21,26},/*023*/
+                    {4,0,1,5,7,3,2,6,12,8,13,16,19,11,9,17,15,10,14,18,21,24,20,22,25,23,26},/*024*/
+                    {4,0,3,7,5,1,2,6,12,11,15,19,16,8,10,18,13,9,14,17,24,21,20,23,25,22,26},/*025*/
+                    {4,5,1,0,7,6,2,3,16,13,8,12,19,17,9,11,18,14,10,15,21,25,22,20,24,23,26},/*026*/
+                    {4,5,6,7,0,1,2,3,16,17,18,19,12,13,14,15,8,9,10,11,25,21,22,23,24,20,26},/*027*/
+                    {4,7,3,0,5,6,2,1,19,15,11,12,16,18,10,8,17,14,9,13,24,25,23,20,21,22,26},/*028*/
+                    {4,7,6,5,0,3,2,1,19,18,17,16,12,15,14,13,11,10,9,8,25,24,23,22,21,20,26},/*029*/
+                    {5,1,0,4,6,2,3,7,13,8,12,16,17,9,11,19,14,10,15,18,21,22,20,24,25,23,26},/*030*/
+                    {5,1,2,6,4,0,3,7,13,9,14,17,16,8,10,18,12,11,15,19,22,21,20,23,25,24,26},/*031*/
+                    {5,4,0,1,6,7,3,2,16,12,8,13,17,19,11,9,18,15,10,14,21,25,24,20,22,23,26},/*032*/
+                    {5,4,7,6,1,0,3,2,16,19,18,17,13,12,15,14,8,11,10,9,25,21,24,23,22,20,26},/*033*/
+                    {5,6,2,1,4,7,3,0,17,14,9,13,16,18,10,8,19,15,11,12,22,25,23,20,21,24,26},/*034*/
+                    {5,6,7,4,1,2,3,0,17,18,19,16,13,14,15,12,9,10,11,8,25,22,23,24,21,20,26},/*035*/
+                    {6,2,1,5,7,3,0,4,14,9,13,17,18,10,8,16,15,11,12,19,22,23,20,21,25,24,26},/*036*/
+                    {6,2,3,7,5,1,0,4,14,10,15,18,17,9,11,19,13,8,12,16,23,22,20,24,25,21,26},/*037*/
+                    {6,5,1,2,7,4,0,3,17,13,9,14,18,16,8,10,19,12,11,15,22,25,21,20,23,24,26},/*038*/
+                    {6,5,4,7,2,1,0,3,17,16,19,18,14,13,12,15,9,8,11,10,25,22,21,24,23,20,26},/*039*/
+                    {6,7,3,2,5,4,0,1,18,15,10,14,17,19,11,9,16,12,8,13,23,25,24,20,22,21,26},/*040*/
+                    {6,7,4,5,2,3,0,1,18,19,16,17,14,15,12,13,10,11,8,9,25,23,24,21,22,20,26},/*041*/
+                    {7,3,0,4,6,2,1,5,15,11,12,19,18,10,8,16,14,9,13,17,24,23,20,21,25,22,26},/*042*/
+                    {7,3,2,6,4,0,1,5,15,10,14,18,19,11,9,17,12,8,13,16,23,24,20,22,25,21,26},/*043*/
+                    {7,4,0,3,6,5,1,2,19,12,11,15,18,16,8,10,17,13,9,14,24,25,21,20,23,22,26},/*044*/
+                    {7,4,5,6,3,0,1,2,19,16,17,18,15,12,13,14,11,8,9,10,25,24,21,22,23,20,26},/*045*/
+                    {7,6,2,3,4,5,1,0,18,14,10,15,19,17,9,11,16,13,8,12,23,25,22,20,24,21,26},/*046*/
+                    {7,6,5,4,3,2,1,0,18,17,16,19,15,14,13,12,10,9,8,11,25,23,22,21,24,20,26} /*047*/
+            };
+
 	/** @brief Vector of the dimension for each side */
 	static int sidedimension[27] = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,3};
 	
@@ -372,6 +425,101 @@ namespace pztopology {
         0,1,0,1,0,1,0,1,0,1,0,1,//0,1,0,2,1,2,0,2,1,2,0,1,
         0,1,2};
 
+    template<class T>
+    inline void TPZCube::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
+        T qsi = loc[0], eta = loc[1] , zeta  = loc[2];
+
+        T x[2],dx[2],y[2],dy[2],z[2],dz[2];
+        x[0]    = (1.-qsi)/2.;
+        x[1]    = (1.+qsi)/2.;
+        dx[0]   = -0.5;
+        dx[1]   = +0.5;
+        y[0]    = (1.-eta)/2.;
+        y[1]    = (1.+eta)/2.;
+        dy[0]   = -0.5;
+        dy[1]   = +0.5;
+        z[0]    = (1.-zeta)/2.;
+        z[1]    = (1.+zeta)/2.;
+        dz[0]   = -0.5;
+        dz[1]   = +0.5;
+
+        phi(0,0) = x[0]*y[0]*z[0];
+        phi(1,0) = x[1]*y[0]*z[0];
+        phi(2,0) = x[1]*y[1]*z[0];
+        phi(3,0) = x[0]*y[1]*z[0];
+        phi(4,0) = x[0]*y[0]*z[1];
+        phi(5,0) = x[1]*y[0]*z[1];
+        phi(6,0) = x[1]*y[1]*z[1];
+        phi(7,0) = x[0]*y[1]*z[1];
+        dphi(0,0) = dx[0]*y[0]*z[0];
+        dphi(1,0) = x[0]*dy[0]*z[0];
+        dphi(2,0) = x[0]*y[0]*dz[0];
+        dphi(0,1) = dx[1]*y[0]*z[0];
+        dphi(1,1) = x[1]*dy[0]*z[0];
+        dphi(2,1) = x[1]*y[0]*dz[0];
+        dphi(0,2) = dx[1]*y[1]*z[0];
+        dphi(1,2) = x[1]*dy[1]*z[0];
+        dphi(2,2) = x[1]*y[1]*dz[0];
+        dphi(0,3) = dx[0]*y[1]*z[0];
+        dphi(1,3) = x[0]*dy[1]*z[0];
+        dphi(2,3) = x[0]*y[1]*dz[0];
+        dphi(0,4) = dx[0]*y[0]*z[1];
+        dphi(1,4) = x[0]*dy[0]*z[1];
+        dphi(2,4) = x[0]*y[0]*dz[1];
+        dphi(0,5) = dx[1]*y[0]*z[1];
+        dphi(1,5) = x[1]*dy[0]*z[1];
+        dphi(2,5) = x[1]*y[0]*dz[1];
+        dphi(0,6) = dx[1]*y[1]*z[1];
+        dphi(1,6) = x[1]*dy[1]*z[1];
+        dphi(2,6) = x[1]*y[1]*dz[1];
+        dphi(0,7) = dx[0]*y[1]*z[1];
+        dphi(1,7) = x[0]*dy[1]*z[1];
+        dphi(2,7) = x[0]*y[1]*dz[1];
+
+    }
+
+    template<class T>
+    void TPZCube::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                       TPZVec<T> &corrFactorDxi){
+        const REAL tol = pztopology::GetTolerance();
+        std::ostringstream sout;
+        if(side < NCornerNodes || side >= NSides){
+            sout<<"The side\t"<<side<<"is invalid. Aborting..."<<std::endl;
+
+            PZError<<std::endl<<sout.str()<<std::endl;
+            DebugStop();
+        }
+        #ifdef PZDEBUG
+
+        if(!IsInParametricDomain(xi,tol)){
+            sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
+            sout<<" inside the parametric domain. Aborting...";
+            PZError<<std::endl<<sout.str()<<std::endl;
+            #ifdef LOG4CXX
+            LOGPZ_FATAL(logger,sout.str().c_str());
+            #endif
+            DebugStop();
+        }
+        #endif
+        corrFactorDxi.Resize(TPZCube::Dimension,(T)0);
+        if(side < NSides - 1){
+            TPZFNMatrix<4,T> phi(NCornerNodes,1);
+            TPZFNMatrix<8,T> dphi(Dimension,NCornerNodes);
+            TPZCube::TShape(xi,phi,dphi);
+            blendFactor = 0;
+            for(int i = 0; i < TPZCube::NSideNodes(side);i++){
+                const int currentNode = TPZCube::SideNodeLocId(side, i);
+                blendFactor += phi(currentNode,0);
+                corrFactorDxi[0] +=  dphi(0,currentNode);
+                corrFactorDxi[1] +=  dphi(1,currentNode);
+                corrFactorDxi[2] +=  dphi(2,currentNode);
+            }
+
+        }else{
+            blendFactor = 1;
+        }
+    }
+
     int TPZCube::NBilinearSides()
     {
         return 27;
@@ -428,7 +576,9 @@ namespace pztopology {
 	}
 	
 	void TPZCube::CenterPoint(int side, TPZVec<REAL> &center) {
-		center.Resize(Dimension);
+        if (center.size()!=Dimension) {
+            DebugStop();
+        }
 		int i;
 		for(i=0; i<Dimension; i++) {
 			center[i] = MidSideNode[side][i];
@@ -456,6 +606,9 @@ namespace pztopology {
 		if(sidefrom == NSides-1) {
 			return TransformElementToSide(sideto);
 		}
+        if (sideto== NSides -1) {
+            return TransformSideToElement(sidefrom);
+        }
 		int nhigh = nhighdimsides[sidefrom];
 		int is;
 		for(is=0; is<nhigh; is++) {
@@ -464,12 +617,12 @@ namespace pztopology {
 				int dto = sidedimension[sideto];
 				TPZTransform<> trans(dto,dfr);
 				int i,j;
-				for(i=0; i<dto; i++) {
-					for(j=0; j<dfr; j++) {
-						trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
-					}
-					trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
-				}
+                for(i=0; i<dto; i++) {
+                    for(j=0; j<dfr; j++) {
+                        trans.Mult()(i,j) = sidetosidetransforms[sidefrom][is][j][i];
+                    }
+                    trans.Sum()(i,0) = sidetosidetransforms[sidefrom][is][3][i];
+                }
 				return trans;
 			}
 		}
@@ -509,38 +662,48 @@ namespace pztopology {
 			case 6:
 			case 7:
 				return t;
+                
+                
+
 			case  8:
 			case 16:
 				t.Mult()(0,0) =  1.0;
 				return t;
+                
 			case  9:
 			case 17:
 				t.Mult()(0,1) =  1.0;
 				return t;
 			case 10:
 			case 18:
+                
 				t.Mult()(0,0) = -1.0;
 				return t;
 			case 11:
 			case 19:
+                
 				t.Mult()(0,1) = -1.0;
 				return t;
 			case 12:
 			case 13:
 			case 14:
 			case 15:
+                
 				t.Mult()(0,2) = 1.0;
 				return t;
+                
 			case 20:
 			case 25:
 				t.Mult()(0,0) =  1.0;
 				t.Mult()(1,1) =  1.0;
 				return t;
+                
 			case 21:
 			case 23:
 				t.Mult()(0,0) =  1.0;
 				t.Mult()(1,2) =  1.0;
 				return t;
+                
 			case 22:
 			case 24:
 				t.Mult()(0,1) =  1.0;
@@ -845,9 +1008,14 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
-    
+
     template<class T>
-    bool TPZCube::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
+    bool TPZCube::CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior) {
+        return true;
+    }
+
+    template<class T>
+    void TPZCube::MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide) {
 		TPZTransform<> TransfR = pztopology::TPZCube::SideToSideTransform(NSides - 1, side);
         TPZTransform<T> Transf;
         Transf.CopyFrom(TransfR);
@@ -862,7 +1030,6 @@ namespace pztopology {
 		{
 			for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
 		}
-		return true;
 	}
     
     void TPZCube::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
@@ -993,7 +1160,7 @@ namespace pztopology {
 			case 24:
 			case 25:
 			{
-				TPZManVector<int64_t,4> locid;
+				TPZManVector<int64_t,4> locid(4);
 				int i;
 				for(i=0; i<4; i++) locid[i] = id[ContainedSideLocId(side,i)];
 				return pztopology::TPZQuadrilateral::GetTransformId(locid);
@@ -1001,8 +1168,7 @@ namespace pztopology {
 			}
 				break;			
 			case 26:
-				LOGPZ_ERROR(logger,"Please Implement me")
-				return -1;
+				return 0;//that is not really true
 			default:
 				break;
 		}
@@ -1201,49 +1367,41 @@ namespace pztopology {
 //        {0,0,1}  // volume
 //    };
 
-    void TPZCube::ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions)
+    template <class TVar>
+    void TPZCube::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
-        REAL detgrad = gradx(0,0)*gradx(1,1)*gradx(2,2) + gradx(0,1)*gradx(1,2)*gradx(2,0) + gradx(0,2)*gradx(1,0)*gradx(2,1) - gradx(0,2)*gradx(1,1)*gradx(2,0) - gradx(0,0)*gradx(1,2)*gradx(2,1) - gradx(0,1)*gradx(1,0)*gradx(2,2);
-        detgrad = fabs(detgrad);
-        TPZManVector<REAL,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3);
+        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
+        
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3);
         for (int i=0; i<3; i++) {
             v1[i] = gradx(i,0);
             v2[i] = gradx(i,1);
             v3[i] = gradx(i,2);
         }
-
         
         TPZNumeric::ProdVetorial(v1,v2,v1v2);
         TPZNumeric::ProdVetorial(v2,v3,v2v3);
         TPZNumeric::ProdVetorial(v3,v1,v3v1);
         
-        REAL Nv1v2 = TPZNumeric::Norma(v1v2);
-        REAL Nv2v3 = TPZNumeric::Norma(v2v3);
-        REAL Nv3v1 = TPZNumeric::Norma(v3v1);
+        TVar Nv1v2 = TPZNumeric::Norm(v1v2);
+        TVar Nv2v3 = TPZNumeric::Norm(v2v3);
+        TVar Nv3v1 = TPZNumeric::Norm(v3v1);
         
         /**
          * @file
          * @brief Computing mapped vector with scaling factor equal 1.0.
          * using contravariant piola mapping.
          */
-        TPZManVector<REAL,3> NormalScales(3,1.);
+        TPZManVector<TVar,3> NormalScales(3,1.);
         
-        if (HDivPiola == 1)
+        
         {
             for (int i=0; i<3; i++) {
-                v1[i] *= 1./detgrad;
-                v2[i] *= 1./detgrad;
-                v3[i] *= 1./detgrad;
+                v1[i] *= 1./detjac;
+                v2[i] *= 1./detjac;
+                v3[i] *= 1./detjac;
             }
             
-        }
-        else
-        {
-            for (int i=0; i<3; i++) {
-            v1[i] *= Nv2v3/detgrad;
-            v2[i] *= Nv3v1/detgrad;
-            v3[i] *= Nv1v2/detgrad;
-            }
         }
         
         for (int i=0; i<3; i++) {
@@ -1425,7 +1583,7 @@ namespace pztopology {
         
 	}
     
-    void TPZCube::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
+    void TPZCube::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*3;
         
@@ -1441,7 +1599,7 @@ namespace pztopology {
         }
     }
 
-    void TPZCube::GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
+    void TPZCube::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao, TPZVec<int> &sidevectors)
     {
         int nsides = NumSides()*3;
         
@@ -1461,6 +1619,111 @@ namespace pztopology {
         }
     }
 
+    template <class TVar>
+    void TPZCube::ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds)
+    {
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3);
+
+        for (int i=0; i<3; i++) {
+            v1[i] = gradx(i,0);
+            v2[i] = gradx(i,1);
+            v3[i] = gradx(i,2);
+        }
+        constexpr int nEdges = 12;
+        constexpr REAL edgeLength[nEdges]{2,2,2,2,2,2,2,2,2,2,2,2};
+        constexpr int nFaces = 6;
+        constexpr REAL faceArea[nFaces]{4,4,4,4,4,4};
+        TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        for(auto iEdge = 0; iEdge < nEdges; iEdge++){
+            edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+        for(int iSide = 0; iSide < nEdges; iSide ++){
+            int sign = (iSide < 4 || iSide > 7) ?
+                    ( (iSide%4) /2 ? -1 : 1)
+                    :
+                    1;// sign will be : 1 1 -1 -1     1 1 1 1     1 1 -1 -1
+            sign *= edgeSign[iSide];
+            TPZVec<TVar>& vec1 = (iSide < 4 || iSide > 7) ?
+                    ( (iSide%4) % 2 ? v2 : v1)
+                    :
+                    v3;// vec1 will be : v1 v2 v1 v2     v3 v3 v3 v3     v1 v2 v1 v2
+            for (int i=0; i<3; i++){
+                //v^{e,a} constant vector fields associated with edge e and vertex a
+                //they are defined in such a way that v^{e,a} is normal to the edge \hat{e}
+                //adjacent to edge e by the vertex a. the tangential component is set to be 1 /edgeLength[e] = 0.5
+                directions(i,iSide * 2) =
+                directions(i,iSide * 2 + 1) =
+                        //v^{e,T} constant vector fields associated with edge e and aligned with it
+                directions(i,nEdges*2 + iSide) = sign * vec1[i] / edgeLength[iSide];
+            }
+        }
+        for (int i=0; i<3; i++) {
+            //v^{F,e} constant vector fields associated with face F and edge e
+            //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
+            //adjacent to face F by edge e
+            directions(i, 36) =  v2[i] * edgeSign[ 8-NCornerNodes] / faceArea[0];//face 20 edge 8
+            directions(i, 37) = -v1[i] * edgeSign[ 9-NCornerNodes] / faceArea[0];//face 20 edge 9
+            directions(i, 38) = -v2[i] * edgeSign[10-NCornerNodes] / faceArea[0];//face 20 edge 10
+            directions(i, 39) =  v1[i] * edgeSign[11-NCornerNodes] / faceArea[0];//face 20 edge 11
+
+            directions(i, 40) =  v3[i] * edgeSign[ 8-NCornerNodes] / faceArea[1];//face 21 edge 8
+            directions(i, 41) = -v1[i] * edgeSign[13-NCornerNodes] / faceArea[1];//face 21 edge 13
+            directions(i, 42) =  v3[i] * edgeSign[16-NCornerNodes] / faceArea[1];//face 21 edge 16
+            directions(i, 43) = -v1[i] * edgeSign[12-NCornerNodes] / faceArea[1];//face 21 edge 12
+
+            directions(i, 44) =  v3[i] * edgeSign[ 9-NCornerNodes] / faceArea[2];//face 22 edge 9
+            directions(i, 45) = -v2[i] * edgeSign[14-NCornerNodes] / faceArea[2];//face 22 edge 14
+            directions(i, 46) =  v3[i] * edgeSign[17-NCornerNodes] / faceArea[2];//face 22 edge 17
+            directions(i, 47) = -v2[i] * edgeSign[13-NCornerNodes] / faceArea[2];//face 22 edge 13
+
+            directions(i, 48) = -v3[i] * edgeSign[10-NCornerNodes] / faceArea[3];//face 23 edge 10
+            directions(i, 49) = -v1[i] * edgeSign[14-NCornerNodes] / faceArea[3];//face 23 edge 14
+            directions(i, 50) = -v3[i] * edgeSign[18-NCornerNodes] / faceArea[3];//face 23 edge 18
+            directions(i, 51) = -v1[i] * edgeSign[15-NCornerNodes] / faceArea[3];//face 23 edge 15
+
+            directions(i, 52) = -v3[i] * edgeSign[11-NCornerNodes] / faceArea[4];//face 24 edge 11
+            directions(i, 53) = -v2[i] * edgeSign[15-NCornerNodes] / faceArea[4];//face 24 edge 15
+            directions(i, 54) = -v3[i] * edgeSign[19-NCornerNodes] / faceArea[4];//face 24 edge 19
+            directions(i, 55) = -v2[i] * edgeSign[12-NCornerNodes] / faceArea[4];//face 24 edge 12
+
+            directions(i, 56) =  v2[i] * edgeSign[16-NCornerNodes] / faceArea[5];//face 25 edge 16
+            directions(i, 57) = -v1[i] * edgeSign[17-NCornerNodes] / faceArea[5];//face 25 edge 17
+            directions(i, 58) = -v2[i] * edgeSign[18-NCornerNodes] / faceArea[5];//face 25 edge 18
+            directions(i, 59) =  v1[i] * edgeSign[19-NCornerNodes] / faceArea[5];//face 25 edge 19
+
+            //v^{F,T} are calculated afterwards
+
+            //v^{F,orth} vector associated with face F and normal to it
+            directions(i, 72) = -v3[i];//face 20
+            directions(i, 73) = -v2[i];//face 21
+            directions(i, 74) = v1[i];//face 22
+            directions(i, 75) = v2[i];//face 23
+            directions(i, 76) = -v1[i];//face 24
+            directions(i, 77) = v3[i];//face 25
+
+            //v^{K,3}
+            directions(i, 78) = v1[i];
+            directions(i, 79) = v2[i];
+            directions(i, 80) = v3[i];
+        }
+        TPZManVector<REAL,2> vft1(2,0), vft2(2,0);
+        constexpr auto firstVftVec = 60;
+        //v^{F,T} orthonormal vectors associated with face F and tangent to it.
+        for(auto iFace = 0; iFace < nFaces; iFace ++){
+            TPZQuadrilateral::ComputeHCurlFaceDirections(vft1,vft2,transformationIds[nEdges + iFace]);
+            directions(0,firstVftVec+2*iFace) = 0;directions(1,firstVftVec+2*iFace) = 0;directions(2,firstVftVec+2*iFace) = 0;
+            directions(0,firstVftVec+2*iFace+1) = 0;directions(1,firstVftVec+2*iFace+1) = 0;directions(2,firstVftVec+2*iFace+1) = 0;
+            auto axes = TPZCube::TransformElementToSide(NCornerNodes+nEdges+iFace).Mult();
+            axes.Transpose();
+            for(auto x = 0; x < Dimension; x++){
+                for(auto i = 0; i < 2; i++) {
+                    directions(x, firstVftVec + 2 * iFace) += axes(x,i) * vft1[i];
+                    directions(x, firstVftVec + 2 * iFace + 1) += axes(x,i) * vft2[i];
+                }
+            }
+        }
+    }
+
     int TPZCube::ClassId() const{
         return Hash("TPZCube");
     }
@@ -1474,10 +1737,34 @@ namespace pztopology {
     }
 
 }
-template
-bool pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 
+/**********************************************************************************************************************
+ * The following are explicit instantiation of member function template of this class, both with class T=REAL and its
+ * respective FAD<REAL> version. In other to avoid potential errors, always declare the instantiation in the same order
+ * in BOTH cases.    @orlandini
+ **********************************************************************************************************************/
+template bool pztopology::TPZCube::CheckProjectionForSingularity<REAL>(const int &side, const TPZVec<REAL> &xiInterior);
+
+template void pztopology::TPZCube::MapToSide<REAL>(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+
+template void pztopology::TPZCube::BlendFactorForSide<REAL>(const int &, const TPZVec<REAL> &, REAL &, TPZVec<REAL> &);
+
+template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+
+template void pztopology::TPZCube::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
+
+template void pztopology::TPZCube::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
 #ifdef _AUTODIFF
-template
-bool pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template bool pztopology::TPZCube::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
+
+template void pztopology::TPZCube::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
+
+template void pztopology::TPZCube::BlendFactorForSide<Fad<REAL>>(const int &, const TPZVec<Fad<REAL>> &, Fad<REAL> &,
+                                                                   TPZVec<Fad<REAL>> &);
+template void pztopology::TPZCube::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
+
+template void pztopology::TPZCube::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
+
+template void pztopology::TPZCube::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
 #endif

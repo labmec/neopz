@@ -1703,7 +1703,6 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     
-    HDivPiola = 1;
     int p = 0;
     
     for(p=2; p<3; p++)
@@ -1713,7 +1712,7 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         for(long el=0; el < gmesh->NElements(); el++)
         {
             TPZGeoEl *gel = gmesh->Element(el);
-            gel->SetFather(-1);
+            gel->SetFather(nullptr);
         }
         
         //refinamento quarter point proximo do no de id=1

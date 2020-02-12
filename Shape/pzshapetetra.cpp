@@ -50,6 +50,28 @@ namespace pzshape {
 		{1.,1.,2.} , {-1.,0.,1. } , {0.,-1.,1.}//{1.,1.,2.} , {-1.,0.,1. } , {0.,-1.,1.}
 	};
 	
+    void TPZShapeTetra::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+        phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
+        phi(1,0)  = pt[0];
+        phi(2,0)  = pt[1];
+        phi(3,0)  = pt[2];
+        
+        dphi(0,0) = -1.0;
+        dphi(1,0) = -1.0;
+        dphi(2,0) = -1.0;
+        dphi(0,1) =  1.0;
+        dphi(1,1) =  0.0;
+        dphi(2,1) =  0.0;
+        dphi(0,2) =  0.0;
+        dphi(1,2) =  1.0;
+        dphi(2,2) =  0.0;
+        dphi(0,3) =  0.0;
+        dphi(1,3) =  0.0;
+        dphi(2,3) =  1.0;
+    }
+    
+    
+    //troco para ShapeCorner
 	void TPZShapeTetra::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
 		phi(1,0)  = pt[0];
@@ -266,12 +288,13 @@ namespace pzshape {
 									  TPZFMatrix<REAL> &dphi) {
 		if(order < 4) return;
 		int ord = order-3;
-		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
-		dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
-		TPZShapeLinear::fOrthogonal(2.*x[0]-1.,ord,phi0,dphi0);
-		TPZShapeLinear::fOrthogonal(2.*x[1]-1.,ord,phi1,dphi1);
-		TPZShapeLinear::fOrthogonal(2.*x[2]-1.,ord,phi2,dphi2);
+		
+		TPZFNMatrix<100, REAL> phi0(ord,1),phi1(ord,1),phi2(ord,1),dphi0(1,ord),dphi1(1,ord),dphi2(1,ord);
+        TPZShapeLinear::fOrthogonal(2.*x[0]-1.,ord,phi0,dphi0);
+        TPZShapeLinear::fOrthogonal(2.*x[1]-1.,ord,phi1,dphi1);
+        TPZShapeLinear::fOrthogonal(2.*x[2]-1.,ord,phi2,dphi2);
+        
+        
 		int index = 0;
 		for (int i=0;i<ord;i++) {
 			for (int j=0;j<ord;j++) {
@@ -288,6 +311,50 @@ namespace pzshape {
 			}
 		}
 	}
+    
+    void TPZShapeTetra::ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                      TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
+        if (side < 4 || side > 14) {
+            DebugStop();
+        }
+        
+        switch (side) {
+                
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            {
+                pzshape::TPZShapeLinear::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+                
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+                
+            {
+                pzshape::TPZShapeTriang::ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+                
+            case 14:
+            {
+
+               ShapeInternal(x, order, phi, dphi);
+            }
+                break;
+                
+            default:
+                std::cout << "Wrong side parameter side " << side << std::endl;
+                DebugStop();
+                break;
+        }
+
+    }
 	
 	void TPZShapeTetra::TransformDerivativeFromRibToTetra(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {
@@ -313,7 +380,14 @@ namespace pzshape {
 	
 	void TPZShapeTetra::ProjectPoint3dTetraToFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &outval) {
 		outval[0] = gFaceTrans3dTetra2d[face][0][0]*in[0]+gFaceTrans3dTetra2d[face][0][1]*in[1]+gFaceTrans3dTetra2d[face][0][2]*in[2]+gFaceSum3dTetra2d[face][0];
+        
 		outval[1] = gFaceTrans3dTetra2d[face][1][0]*in[0]+gFaceTrans3dTetra2d[face][1][1]*in[1]+gFaceTrans3dTetra2d[face][1][2]*in[2]+gFaceSum3dTetra2d[face][1];
+        
+        
+        
+        
+        
+        
 	}
 	
 	int TPZShapeTetra::NConnectShapeF(int side, int order) {

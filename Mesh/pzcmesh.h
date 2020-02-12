@@ -70,6 +70,10 @@ protected:
 	/** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
 	TPZFMatrix<STATE>	fSolution;
+    
+    /** @brief Solution at previous state
+     */
+    TPZFMatrix<STATE>  fSolN;
 	
 	/** @brief Block structure to right construction of the stiffness matrix and load vector */
 	//TPZBlock<REAL>		fBlock;
@@ -213,6 +217,9 @@ public:
 	
 	/** @brief Access the solution vector */
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
+    
+    /** @brief Access the  previous solution vector */
+    TPZFMatrix<STATE> &SolutionN(){ return fSolN;}
 	
 	/** @brief Access method for the element solution vectors */
 	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
@@ -518,11 +525,6 @@ public:
         fCreate.SetAllCreateFunctionsHDiv(Dimension());
     }
 	
-	//space for full basis for quadrilateral element
-	void SetAllCreateFunctionsHDivFull()
-    {
-        fCreate.SetAllCreateFunctionsHDivFull(Dimension());
-    }
 	
 
 #ifndef STATE_COMPLEX
@@ -566,6 +568,10 @@ public:
 	 * @param sol given solution matrix
 	 */
 	void LoadSolution(const TPZFMatrix<STATE> &sol);
+    
+    /** update the solution at the previous state with fSolution and
+        set fSolution to the previous state */
+    void UpdatePreviousState(REAL mult = 1.0);
     
     /**
      * @brief Transfer multiphysics mesh solution

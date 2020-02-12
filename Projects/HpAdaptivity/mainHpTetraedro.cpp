@@ -62,7 +62,7 @@
 
 #include "pzlog.h"
 
-#include "pzhdivfull.h"
+//#include "pzhdivfull.h"
 #include "pzelchdiv.h"
 
 #include "pzgeopyramid.h"

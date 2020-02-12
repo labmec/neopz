@@ -1044,6 +1044,30 @@ void TPZSubCompMesh::Assemble()
 
 }
 
+/// Initialize the datastructure of ef
+void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
+{
+    TPZBlock<STATE> &block = Mesh()->Block();
+    TPZMaterial * mat = MaterialVec().begin()->second;
+    int nstate = mat->NStateVariables();
+    int numloadcases = mat->NumLoadCases();
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
+    
+    int nelemnodes = NConnects();
+    ef.fBlock.SetNBlocks(nelemnodes);
+    for (int i = 0; i < nelemnodes ; i++)    {
+        //int nodeindex = ConnectIndex(i);
+        int64_t seqnum = Connect(i).SequenceNumber();
+        ef.fBlock.Set(i,block.Size(seqnum));
+    }
+    ef.fConnect.Resize(nelemnodes);
+    
+    for(int i=0; i<nelemnodes; ++i){
+        (ef.fConnect)[i] = ConnectIndex(i);
+    }
+}
+
 
 
 void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
@@ -1290,6 +1314,7 @@ void TPZSubCompMesh::CalcResidual(TPZElementMatrix &ef)
     if (!castedAnal) {
         DebugStop();
     }
+    InitializeEF(ef);
     castedAnal->ReducedRightHandSide(ef.fMat);
 //    TPZCompMesh::CalcResidual(ef);
 //    ef.PermuteGather(fIndexes);

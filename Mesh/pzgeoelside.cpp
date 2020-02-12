@@ -774,6 +774,10 @@ TPZGeoElSide TPZGeoElSide::LowestFatherSide()
 
 void TPZGeoElSide::GetAllSiblings(TPZStack<TPZGeoElSide> &sonSides)
 {
+#ifdef PZDEBUG
+	PZError << __PRETTY_FUNCTION__ << "is deprecated. Use TPZGeoEl::YoungestChildren instead \n";
+	DebugStop();
+#endif // PZDEBUG
     if(this->Element()->HasSubElement() == false)
     {
         sonSides.Push(*this);
@@ -784,6 +788,21 @@ void TPZGeoElSide::GetAllSiblings(TPZStack<TPZGeoElSide> &sonSides)
     int nsub = lowerSubelements.size();
     for (int s=0; s<nsub; s++) {
         lowerSubelements[s].GetAllSiblings(sonSides);
+    }
+}
+
+void TPZGeoElSide::YoungestChildren(TPZStack<TPZGeoElSide> &sonSides)
+{
+    if(this->Element()->HasSubElement() == false)
+    {
+        sonSides.Push(*this);
+    }
+    int dim = Dimension();
+    TPZStack<TPZGeoElSide> lowerSubelements;
+    fGeoEl->GetSubElements2(fSide,lowerSubelements,dim);
+    int nsub = lowerSubelements.size();
+    for (int s=0; s<nsub; s++) {
+        lowerSubelements[s].YoungestChildren(sonSides);
     }
 }
 
@@ -1092,8 +1111,10 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
     normal.Resize(3,0.);
 	normal.Fill(0.);
 	int faceleft,faceright;
-	
-	TPZManVector<REAL, 3> centleft(3),centright(3),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
+    int Leftdim = LeftEl->Dimension();
+    int Rightdim = RightEl->Dimension();
+    
+	TPZManVector<REAL, 3> centleft(Leftdim),centright(Rightdim),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
 	REAL normalize;
 	int i;
 	

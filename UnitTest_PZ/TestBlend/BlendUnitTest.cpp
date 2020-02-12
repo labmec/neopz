@@ -61,7 +61,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
 //#define NOISY_BLEND //outputs x and grad comparisons
-#define NOISYVTK _BLEND//prints all elements in .vtk format
+//#define NOISYVTK_BLEND//prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 
@@ -72,10 +72,19 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
     namespace blendtest{
         const int pOrder = 10;
         const REAL tol = 1e-8;
+        //check the norm of the difference between two given vectors
+        bool CheckVectors(const TPZVec<REAL> &x1, std::string name1,
+                          const TPZVec<REAL> &x2, std::string name2, const REAL &tol);
+        //check the fobrenius norm of the difference between two given matrices
+        bool CheckMatrices(const TPZFMatrix<REAL> &gradx1, std::string name1,
+                           const TPZFMatrix<REAL> &gradx2, std::string name2, const REAL &tol);
         template <class TGeo>
         void CompareQuadraticAndBlendEls();
         void CreateGeoMesh2D(int nDiv);
         void CreateGeoMesh3D(int nDiv);
+
+        template <class TGeo>
+        void CompareSameDimensionNonLinNeighbour(int nDiv);
     }
 
     BOOST_AUTO_TEST_CASE(geoblend_tests) {
@@ -96,7 +105,15 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             const int nDiv = 3;
             blendtest::CreateGeoMesh3D(nDiv);
         }
+        {
+            const int nDiv = 3;
+            blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoLinear>(nDiv);
+            blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoTriangle>(nDiv);
+            blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoQuad>(nDiv);
+        }
     }
+
+
     BOOST_AUTO_TEST_CASE(compare_blend_quad) {
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoQuad>();
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTriangle>();
@@ -106,7 +123,189 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoPyramid>();
     }
 
+    BOOST_AUTO_TEST_CASE(quadrilateral_blend_semicircle) {
+        //defining the analytical solution against which the mapping will be compared. the quadrilateral will be mapped
+        //to a quarter of a ring. the inner and outer radii are, respectively, 0.5 and 1.0.
+        const REAL innerRadius = 0.5;
+        const REAL outerRadius = 1.0;
+        auto analyticX = [innerRadius, outerRadius ] (const TPZVec<REAL> &pt) {
+            TPZVec<REAL> map(3,-1);
+            map[0] = innerRadius * (1. - pt[0]) * cos((1. + pt[1]) * M_PI_4) * 0.5 +
+                     outerRadius * (1. + pt[0]) * cos((1. + pt[1]) * M_PI_4) * 0.5;
+            map[1] = innerRadius * (1. - pt[0]) * sin((1. + pt[1]) * M_PI_4) * 0.5 +
+                     outerRadius * (1. + pt[0]) * sin((1. + pt[1]) * M_PI_4) * 0.5;
+            map[2] = 0.0;
+            return map;
+        };
+
+        auto analyticGradX = [innerRadius, outerRadius ] (const TPZVec<REAL> &pt) {
+            TPZFMatrix<REAL> grad(3,2,-1);
+            grad(0,0) = -0.5 * innerRadius * cos((1. + pt[1]) * M_PI_4)
+                        + 0.5 * outerRadius * cos((1. + pt[1]) * M_PI_4);
+            grad(0,1) = -0.5 * M_PI_4 * innerRadius * (1. - pt[0]) * sin((1. + pt[1]) * M_PI_4)
+                        - 0.5 * M_PI_4 * outerRadius * (1. + pt[0]) * sin((1. + pt[1]) * M_PI_4);
+            grad(1,0) = -0.5 * innerRadius * sin((1. + pt[1]) * M_PI_4)
+                        + 0.5 * outerRadius * sin((1. + pt[1]) * M_PI_4);
+            grad(1,1) =  0.5 * M_PI_4 * innerRadius * (1. - pt[0]) * cos((1. + pt[1]) * M_PI_4)
+                        + 0.5 * M_PI_4 * outerRadius * (1. + pt[0]) * cos((1. + pt[1]) * M_PI_4);
+            grad(2,0) = 0.0;
+            grad(2,1) = 0.0;
+            return grad;
+        };
+
+        TPZGeoMesh *gmesh = new TPZGeoMesh();
+        const int matIdQuad = 1;
+        const int matIdArc = 2;
+        TPZManVector<REAL,3> coords(3);
+        int64_t newindex = -1;
+        const int64_t nNodes = 6;
+        for(int i = 0; i < nNodes; i++){
+            const REAL r = ((i+1)/2) % 2 ? outerRadius : innerRadius;
+            const REAL aux1 = i/2 ? 1.0 : 0.0;
+            const REAL aux2 = (i/2)/2 ? 1.0 : 0.0;
+            const REAL theta = M_PI_2 * aux1 - M_PI_4 * aux2;
+//            std::cout <<"aux1 = "<<aux1<<"aux2 = "<<aux2<<std::endl;
+            coords[0] = r * cos(theta);
+            coords[1] = r * sin(theta);
+            coords[2] = 0.0;
+            newindex = gmesh->NodeVec().AllocateNewElement();
+            gmesh->NodeVec()[newindex].Initialize(coords, *gmesh);
+        }
+
+        TPZManVector<int64_t,3> nodesIdVec(4);
+        //nodesIdVec={0,1,2,3};//TODO:use this assignment when merged with master branch
+        nodesIdVec[0]=0;
+        nodesIdVec[1]=1;
+        nodesIdVec[2]=2;
+        nodesIdVec[3]=3;
+        auto *quad = new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<pzgeom::TPZGeoQuad>>(nodesIdVec,matIdQuad, *gmesh);
+        TPZGeoElRefPattern<pzgeom::TPZArc3D> *arc = nullptr;
+        nodesIdVec.Resize(3);
+        //nodesIdVec = {0,3,4};//TODO:use this assignment when merged with master branch
+        nodesIdVec[0]=0;
+        nodesIdVec[1]=3;
+        nodesIdVec[2]=4;
+        arc = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodesIdVec, matIdArc, *gmesh);
+        //nodesIdVec = {1,2,5};//TODO:use this assignment when merged with master branch
+        nodesIdVec[0]=1;
+        nodesIdVec[1]=2;
+        nodesIdVec[2]=5;
+        arc = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodesIdVec, matIdArc, *gmesh);
+        gmesh->BuildConnectivity();
+#ifdef NOISYVTK_BLEND
+        {
+            std::string meshFileName = "gmesh_circle";
+            const size_t strlen = meshFileName.length();
+            meshFileName.append(".vtk");
+            std::ofstream outVTK(meshFileName.c_str());
+            meshFileName.replace(strlen, 4, ".txt");
+            std::ofstream outTXT(meshFileName.c_str());
+
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+            gmesh->Print(outTXT);
+            outTXT.close();
+            outVTK.close();
+        }
+#endif
+        const int64_t nPoints = 20;
+        const REAL tol = blendtest::tol;
+
+        TPZManVector<REAL,2> qsi(2);
+        TPZManVector<REAL,3> xBlend(3);
+        TPZManVector<REAL,3> xAnalytic(3);
+        TPZFNMatrix<9,REAL> gradxBlend(3,3);
+        TPZFNMatrix<9,REAL> gradxAnalytic(3,3);
+        bool hasAnErrorOccurred = false;
+        int nPointsTotal = 0, nErrorsX = 0, nErrorsGradX = 0;
+        for (int iPt = 0; iPt < nPoints; ++iPt) {
+            qsi[0] = -1. + 2 * (((REAL) iPt)/(nPoints-1));
+            for(int jPt = 0; jPt < nPoints; ++jPt) {
+                nPointsTotal++;
+                qsi[1] = -1. + 2 * (((REAL) jPt) / (nPoints - 1));
+                quad->X(qsi, xBlend);
+                xAnalytic = analyticX(qsi);
+                hasAnErrorOccurred =
+                        blendtest::CheckVectors(xBlend, "xBlend", xAnalytic, "xAnalytic", blendtest::tol);
+                BOOST_CHECK(!hasAnErrorOccurred);
+                if(hasAnErrorOccurred) nErrorsX++;
+                quad->GradX(qsi, gradxBlend);
+                gradxAnalytic = analyticGradX(qsi);
+                hasAnErrorOccurred =
+                        blendtest::CheckMatrices(gradxBlend, "gradxBlend", gradxAnalytic, "gradxAnalytic", blendtest::tol);
+                BOOST_CHECK(!hasAnErrorOccurred);
+                if(hasAnErrorOccurred) nErrorsGradX ++;
+                //TODO: (IMPORTANT) deactivate the log after testing
+            }
+        }
+        std::cout<<"quadrilateral_blend_semicircle:"<<std::endl;
+        std::cout<<"\tnPointsTotal = "<<nPointsTotal<<std::endl;
+        std::cout<<"\tnErrorsX = "<<nErrorsX<<std::endl;
+        std::cout<<"\tnErrorsGradX = "<<nErrorsGradX<<std::endl;
+    }
     namespace blendtest{
+
+        bool CheckVectors(const TPZVec<REAL> &x1, std::string name1,
+                const TPZVec<REAL> &x2, std::string name2, const REAL &tol){
+            std::ostringstream x1m, x2m;
+            x1m << name1 << std::endl;
+            x2m << name2 << std::endl;
+            const auto VAL_WIDTH = 15;
+            REAL diff = 0;
+            bool hasAnErrorOccurred = false;
+            if(x1.size() != x2.size()){
+                hasAnErrorOccurred = true;
+                return hasAnErrorOccurred;
+            }
+            for (int i = 0; i < x1.size(); i++) {
+                x1m << std::setw(VAL_WIDTH) << std::right << x1[i] << "\t";
+                x2m << std::setw(VAL_WIDTH) << std::right << x2[i] << "\t";
+                diff += (x1[i] - x2[i]) * (x1[i] - x2[i]);
+            }
+            if (diff > tol) {
+                hasAnErrorOccurred = true;
+            }
+            if (hasAnErrorOccurred) {
+                std::cout << std::flush;
+                std::cout << x1m.str() << std::endl;
+                std::cout << x2m.str() << std::endl;
+                std::cout << "diff :" << diff << std::endl;
+            }
+            return hasAnErrorOccurred;
+        }
+
+        bool CheckMatrices(const TPZFMatrix<REAL> &gradx1, std::string name1,
+                          const TPZFMatrix<REAL> &gradx2, std::string name2, const REAL &tol){
+            std::ostringstream x1m, x2m;
+            x1m << name1 << std::endl;
+            x2m << name2 << std::endl;
+            const auto VAL_WIDTH = 15;
+            REAL diff = 0;
+            bool hasAnErrorOccurred = false;
+            if((gradx1.Rows() != gradx2.Rows()) || (gradx1.Cols() != gradx2.Cols())){
+                hasAnErrorOccurred = true;
+                return hasAnErrorOccurred;
+            }
+            for (int i = 0; i < gradx1.Rows(); i++) {
+                for (int j = 0; j < gradx1.Cols(); j++) {
+                    x1m << std::setw(VAL_WIDTH) << std::right << gradx1.GetVal(i, j) << "\t";
+                    x2m << std::setw(VAL_WIDTH) << std::right << gradx2.GetVal(i, j) << "\t";
+                    diff += (gradx1.GetVal(i, j) - gradx2.GetVal(i, j)) * (gradx1.GetVal(i, j) - gradx2.GetVal(i, j));
+                }
+                x1m << std::endl;
+                x2m << std::endl;
+            }
+            if (diff > tol) {
+                hasAnErrorOccurred = true;
+            }
+            if (hasAnErrorOccurred) {
+                std::cout << std::flush;
+                std::cout << x1m.str() << std::endl;
+                std::cout << x2m.str() << std::endl;
+                std::cout << "diff :" << diff << std::endl;
+            }
+            return hasAnErrorOccurred;
+        }
+
         template <class TGeo>
         void CompareQuadraticAndBlendEls() {
             std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -355,27 +554,15 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                         transf.Apply(xiSide,xi);
                         TPZManVector<REAL,3> xBlend(3);
                         blendEl->X(xi, xBlend);
+                        for(int iX = 0; iX < xBlend.size(); iX++) xBlend[iX] -= coordsOffset[iX];
                         TPZManVector<REAL,3> xQuad(3);
                         quadraticEl->X(xi, xQuad);
-                        std::ostringstream xBlendM, xQuadM;
-                        xBlendM<<"x_blend:"<<std::endl;
-                        xQuadM<<"x_quad:"<<std::endl;
-                        const auto VAL_WIDTH = 15;
-                        REAL diff = 0;
-                        for(int i = 0; i < xBlend.size(); i++){
-                            xBlendM<<std::setw(VAL_WIDTH) << std::right<<xBlend[i] - coordsOffset[i]<<"\t";
-                            xQuadM <<std::setw(VAL_WIDTH) << std::right<<xQuad[i] <<"\t";
-                            diff += (xBlend[i] - coordsOffset[i] - xQuad[i])*(xBlend[i] - coordsOffset[i] - xQuad[i]);
-                        }
-                        if(diff > tol){
-                            if(!hasAnErrorOccurred && iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
-                            if(!hasAnErrorOccurred && iSide == TGeo::NSides - 1) errorsInterior++;
-                            hasAnErrorOccurred = true;
-                        }
+                        hasAnErrorOccurred = blendtest::CheckVectors(xBlend,"xBlend",xQuad,"xQuad",blendtest::tol);
                         BOOST_CHECK(!hasAnErrorOccurred);
                         if(hasAnErrorOccurred){
-                            std::cout<<std::flush;
-                            std::cout<<xBlendM.str()<<std::endl;
+                            if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
+                            if(iSide == TGeo::NSides - 1) errorsInterior++;
+                            const auto VAL_WIDTH = 15;
                             if(iSide < TGeo::NSides - 1){
                                 auto neigh = blendEl->Neighbour(iSide);
                                 if(neigh.Id() != blendEl->Id()) {
@@ -393,7 +580,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                     std::cout<<std::endl;
                                 }
                             }
-                            std::cout<<xQuadM.str()<<std::endl;
+
                             if(iSide < TGeo::NSides - 1){
                                 auto neigh = quadraticEl->Neighbour(iSide);
                                 if(neigh.Id() != quadraticEl->Id()) {
@@ -410,7 +597,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                     std::cout<<std::endl;
                                 }
                             }
-                            std::cout<<"diff :"<<diff<<std::endl;
                         }
                     }
 #ifdef NOISY_BLEND
@@ -429,6 +615,236 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             }
             delete gmesh;
         }
+
+
+    template <class TGeo>
+    void CompareSameDimensionNonLinNeighbour(int nref) {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        auto elType = TGeo::Type();
+
+        const int64_t nCornerNodes = TGeo::NCornerNodes;
+        const int64_t nEdges = TGeo::NumSides(1);
+        const int64_t dim = TGeo::Dimension;
+        const REAL sphereRadius = 1;
+        TPZManVector<REAL,3> sphereCenter(3,0);
+        TPZVec<REAL> phiPts(nCornerNodes,-1),thetaPts(nCornerNodes,-1); //r is always equal to sphereRadius
+
+        switch(elType){
+            case EOned:
+                for(int i = 0; i < nCornerNodes; i++){
+                    thetaPts[i] = M_PI/2;
+                    phiPts[i] = i * M_PI/2;
+                }
+                break;
+            case ETriangle:
+                for(int i = 0; i < nCornerNodes; i++){
+                    thetaPts[i] = M_PI/2;
+                    phiPts[i] = i * M_PI/2;
+                }
+                break;
+            case EQuadrilateral:
+                for(int i = 0; i < nCornerNodes; i++){
+                    thetaPts[i] = M_PI/2;
+                    phiPts[i] = i * M_PI/2;
+                }
+                break;
+            default:
+                DebugStop();
+        }
+
+
+        TPZGeoMesh *gmesh = new TPZGeoMesh();
+
+        TPZManVector<int, 12> midSideNodesIndexVec(nEdges, -1);
+        const int nNodesOriginalMesh = nCornerNodes + nEdges;
+        {
+            TPZManVector<REAL, 3> coord(3, 0.);
+
+            ///CREATE NODES FOR LINEAR ELEMENT
+            for (int64_t i = 0; i < nCornerNodes; i++) {
+                const REAL theta = ((REAL) i / nCornerNodes) * 2 * M_PI;
+                coord[0] = sphereRadius * sin(thetaPts[i]) * cos(phiPts[i]);
+                coord[1] = sphereRadius * sin(thetaPts[i]) * sin(phiPts[i]);
+                coord[2] = sphereRadius * cos(thetaPts[i]);
+//                std::cout<<coord[0]<<"\t"<<coord[1]<<std::endl;
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord, *gmesh);
+            }//
+
+
+            //CREATE MIDSIDE NODES
+            TPZStack<int,TGeo::NSides> edgeStack;
+            for(int iSide = 0; iSide < TGeo::NSides; iSide++){
+                if(TGeo::SideDimension(iSide) == 1) edgeStack.Push(iSide);
+            }
+//            TGeo::LowerDimensionSides(TGeo::NSides - 1, edgeStack, 1);
+            for (int64_t edgeIndex = 0;
+                 edgeIndex < edgeStack.NElements(); edgeIndex++) {
+                const int64_t edge = edgeStack[edgeIndex];
+                const int64_t nNodesSide = TGeo::NSideNodes(edge);
+                REAL sumPhiNodes = 0;
+                REAL sumThetaNodes = 0;
+                for (int64_t node = 0; node < nNodesSide; node++) {
+                    const int64_t nodeIndex = TGeo::SideNodeLocId(edge, node);
+                    sumPhiNodes += phiPts[nodeIndex];
+                    sumThetaNodes += thetaPts[nodeIndex];
+                }
+                sumPhiNodes /= nNodesSide;
+                sumThetaNodes /= nNodesSide;
+                coord[0] = sphereRadius * sin(sumThetaNodes) * cos(sumPhiNodes);
+                coord[1] = sphereRadius * sin(sumThetaNodes) * sin(sumPhiNodes);
+                coord[2] = sphereRadius * cos(sumThetaNodes);
+                const int64_t newindex = gmesh->NodeVec().AllocateNewElement();
+                gmesh->NodeVec()[newindex].Initialize(coord, *gmesh);
+                midSideNodesIndexVec[edgeIndex] = newindex;
+            }
+        }
+
+        const int matIdVol = 1, matIdSphere = 2;
+        TPZManVector<int64_t,8> nodesIdVec(1);
+        int64_t elId = 0;
+
+        ///////CREATE MAX DIM ELEMENTS
+        nodesIdVec.Resize(nNodesOriginalMesh);
+        for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i;
+
+        TPZGeoEl *nonLinearEl = nullptr;
+        switch(elType){
+            case EOned:
+                nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(elId,nodesIdVec,matIdVol, *gmesh);
+                break;
+            case ETriangle:
+                nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>>(elId,nodesIdVec,matIdVol,*gmesh);
+                {
+                    auto sphere = dynamic_cast<TPZGeoElRefPattern<pzgeom::TPZTriangleSphere<pzgeom::TPZGeoTriangle>> *> (nonLinearEl);
+                    sphere->Geom().SetData(sphereRadius, sphereCenter);
+                }
+                break;
+            case EQuadrilateral:
+                nonLinearEl = new TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>>(elId,nodesIdVec,matIdVol,*gmesh);
+                {
+                    auto sphere = dynamic_cast<TPZGeoElRefPattern<pzgeom::TPZQuadSphere<pzgeom::TPZGeoQuad>> *> (nonLinearEl);
+                    sphere->Geom().SetData(sphereRadius, sphereCenter);
+                }
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+        nodesIdVec.Resize(nCornerNodes);
+        for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i;
+        TPZGeoEl *blendEl = new TPZGeoElRefPattern<pzgeom::TPZGeoBlend<TGeo>>(elId,nodesIdVec,matIdVol,*gmesh);
+
+        gmesh->BuildConnectivity();
+        {
+            TPZVec<TPZGeoEl *> sons;
+            for(int iDiv = 0; iDiv < nref; iDiv++){
+                const int nel = gmesh-> NElements();
+                for (int iel = 0; iel < nel; iel++) {
+                    TPZGeoEl *geo = gmesh-> Element(iel);
+                    if (geo->NSubElements() == 0) {
+                        geo->Divide(sons);
+                    }
+                }
+            }
+        }
+
+#ifdef NOISYVTK_BLEND
+    {
+        std::string meshFileName = "gmesh_nonlin_" + TGeo::TypeName();
+            const size_t strlen = meshFileName.length();
+            meshFileName.append(".vtk");
+            std::ofstream outVTK(meshFileName.c_str());
+            meshFileName.replace(strlen, 4, ".txt");
+            std::ofstream outTXT(meshFileName.c_str());
+
+            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+            gmesh->Print(outTXT);
+            outTXT.close();
+            outVTK.close();
+    }
+#endif
+
+        //X COMPARE
+        {
+            TPZManVector<REAL,3> xi;
+            REAL notUsedHere = -1;
+            uint64_t errorsInterior = 0;
+            TPZManVector<uint64_t,18> errorsSide(TGeo::NSides - TGeo::NNodes - 1,0);
+            uint64_t nPoints = 0;
+            for(int iSide = TGeo::NNodes; iSide < TGeo::NSides; iSide ++){
+                auto intRule = blendEl->CreateSideIntegrationRule(iSide, pOrder);
+                xi.Resize(dim,0);
+                for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                    bool hasAnErrorOccurred = false;
+                    nPoints++;
+                    TPZManVector<REAL,3> xiSide(TGeo::SideDimension(iSide),0);
+                    intRule->Point(iPt,xiSide,notUsedHere);
+                    auto transf = TGeo::TransformSideToElement(iSide);
+                    transf.Apply(xiSide,xi);
+                    TPZManVector<REAL,3> xBlend(3);
+                    blendEl->X(xi, xBlend);
+                    TPZManVector<REAL,3> xNonLin(3);
+                    nonLinearEl->X(xi, xNonLin);
+                    hasAnErrorOccurred = blendtest::CheckVectors(xBlend, "xBlend", xNonLin, "xNonLin", blendtest::tol);
+                    BOOST_CHECK(!hasAnErrorOccurred);
+                    if(hasAnErrorOccurred){
+                        if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
+                        if(iSide == TGeo::NSides - 1) errorsInterior++;
+                        const auto VAL_WIDTH = 15;
+                        if(iSide < TGeo::NSides - 1){
+                            auto neigh = blendEl->Neighbour(iSide);
+                            if(neigh.Id() != blendEl->Id()) {
+                                TPZGeoElSide thisside(blendEl, iSide);
+                                auto neighTransf = thisside.NeighbourSideTransform(neigh);
+                                TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
+                                neighTransf.Apply(xiSide, neighXi);
+                                TPZManVector<REAL, 3> xNeigh(3);
+                                neigh.X(neighXi, xNeigh);
+                                std::cout<<"x_neigh_blend:"<<std::endl;
+                                for (int i = 0; i < xNeigh.size(); i++) {
+                                    std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i]
+                                              << "\t";
+                                }
+                                std::cout<<std::endl;
+                            }
+                        }
+
+                        if(iSide < TGeo::NSides - 1){
+                            auto neigh = nonLinearEl->Neighbour(iSide);
+                            if(neigh.Id() != nonLinearEl->Id()) {
+                                TPZGeoElSide thisside(nonLinearEl, iSide);
+                                auto neighTransf = thisside.NeighbourSideTransform(neigh);
+                                TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
+                                neighTransf.Apply(xiSide, neighXi);
+                                TPZManVector<REAL, 3> xNeigh(3);
+                                neigh.X(neighXi, xNeigh);
+                                std::cout<<"x_neigh_quad:"<<std::endl;
+                                for (int i = 0; i < xNeigh.size(); i++) {
+                                    std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i]<< "\t";
+                                }
+                                std::cout<<std::endl;
+                            }
+                        }
+                    }
+                }
+#ifdef NOISY_BLEND
+                if(iSide == TGeo::NSides - 1){
+                    std::cout<<"\tNumber of interior points: "<<intRule->NPoints()<<"\tErrors: "<<errorsInterior<<std::endl;
+                }else{
+                    std::cout<<"\tNumber of side points for side "<<iSide<<": "<<intRule->NPoints()<<"\tErrors: "<<errorsSide[iSide - TGeo::NNodes]<<std::endl;
+                }
+#endif
+            }
+            uint64_t errorsTotal = errorsInterior;
+            for(int i = 0; i< errorsSide.size(); i++){
+                errorsTotal +=errorsSide[i];
+            }
+            std::cout<<"\tNumber of points: "<<nPoints<<"\tErrors: "<<errorsTotal<<std::endl;
+        }
+        delete gmesh;
+    }
+
 
         void CreateGeoMesh2D(int nDiv) {
             std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -615,28 +1031,16 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                             geo->X(xiFad, xFad);
                             TPZFNMatrix<9,REAL> gradXreal(3,3,0);
                             geo->GradX(xiReal, gradXreal);
-                            std::ostringstream xFadM, gradXM;
-                            xFadM<<"xFad:"<<std::endl;
-                            gradXM<<"grad x:"<<std::endl;
-                            const auto VAL_WIDTH = 10;
+                            TPZFNMatrix<9,REAL> gradXfad(gradXreal.Rows(),gradXreal.Cols(),0.0);
                             for(int i = 0; i < gradXreal.Rows(); i++){
                                 for(int j = 0; j < gradXreal.Cols(); j++){
-                                    xFadM<<std::setw(VAL_WIDTH) << std::right<<xFad[i].dx(j)<<"\t";
-                                    gradXM<<std::setw(VAL_WIDTH) << std::right<<gradXreal(i,j)<<"\t";
-                                    const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*(xFad[i].dx(j)-gradXreal(i,j));
-                                    if(diff > tol){
-                                        if(!hasAnErrorOccurred) errors++;
-                                        hasAnErrorOccurred = true;
-                                    }
+                                    gradXfad(i,j) = xFad[i].dx(j);
                                 }
-                                xFadM<<std::endl;
-                                gradXM<<std::endl;
                             }
+                            hasAnErrorOccurred = blendtest::CheckMatrices(gradXreal,"gradXreal",gradXfad,"gradXfad",blendtest::tol);
                             BOOST_CHECK(!hasAnErrorOccurred);
                             if(hasAnErrorOccurred){
-                                std::cout<<std::flush;
-                                std::cout<<xFadM.str()<<std::endl;
-                                std::cout<<gradXM.str()<<std::endl;
+                                errors++;
                             }
                         }
                         if(errors > 0){
@@ -879,39 +1283,28 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                         auto intRule = geo->CreateSideIntegrationRule(geo->NSides()-1, pOrder);
                         xiReal.Resize(geo->Dimension(),0);
                         xiFad.Resize(geo->Dimension(),0);
-                        for(int iPt = 0; iPt < intRule->NPoints(); iPt++){
+                        for(int iPt = 0; iPt < intRule->NPoints(); iPt++) {
                             bool hasAnErrorOccurred = false;
-                            intRule->Point(iPt,xiReal,weight);
-                            for(int x = 0; x < geo->Dimension(); x++){
-                                xiFad[x] = Fad<REAL>(geo->Dimension(),x,xiReal[x]);
+                            intRule->Point(iPt, xiReal, weight);
+                            for (int x = 0; x < geo->Dimension(); x++) {
+                                xiFad[x] = Fad<REAL>(geo->Dimension(), x, xiReal[x]);
                             }
 
-                            TPZManVector<Fad<REAL>,3> xFad(3);
+                            TPZManVector<Fad<REAL>, 3> xFad(3);
                             geo->X(xiFad, xFad);
-                            TPZFNMatrix<9,REAL> gradXreal(3,3,0);
+                            TPZFNMatrix<9, REAL> gradXreal(3, 3, 0);
                             geo->GradX(xiReal, gradXreal);
-                            std::ostringstream xFadM, gradXM;
-                            xFadM<<"xFad:"<<std::endl;
-                            gradXM<<"grad x:"<<std::endl;
-                            const auto VAL_WIDTH = 10;
-                            for(int i = 0; i < gradXreal.Rows(); i++){
-                                for(int j = 0; j < gradXreal.Cols(); j++){
-                                    xFadM<<std::setw(VAL_WIDTH) << std::right<<xFad[i].dx(j)<<"\t";
-                                    gradXM<<std::setw(VAL_WIDTH) << std::right<<gradXreal(i,j)<<"\t";
-                                    const REAL diff = (xFad[i].dx(j)-gradXreal(i,j))*(xFad[i].dx(j)-gradXreal(i,j));
-                                    if(diff > tol){
-                                        if(!hasAnErrorOccurred) errors++;
-                                        hasAnErrorOccurred = true;
-                                    }
+                            TPZFNMatrix<9,REAL> gradXfad(gradXreal.Rows(),gradXreal.Cols(),0.0);
+                            for (int i = 0; i < gradXreal.Rows(); i++) {
+                                for (int j = 0; j < gradXreal.Cols(); j++) {
+                                    gradXfad(i, j) = xFad[i].dx(j);
                                 }
-                                xFadM<<std::endl;
-                                gradXM<<std::endl;
                             }
+                            hasAnErrorOccurred = blendtest::CheckMatrices(gradXreal, "gradXreal", gradXfad, "gradXfad",
+                                                                          blendtest::tol);
                             BOOST_CHECK(!hasAnErrorOccurred);
-                            if(hasAnErrorOccurred){
-                                std::cout<<std::flush;
-                                std::cout<<xFadM.str()<<std::endl;
-                                std::cout<<gradXM.str()<<std::endl;
+                            if (hasAnErrorOccurred) {
+                                errors++;
                             }
                         }
                         if(errors > 0){
@@ -935,6 +1328,16 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 TPZVec<TPZGeoEl *> sons;
                 std::vector<std::string> loading = {"-","/","|","\\"};
                 for (int iDiv = 0; iDiv < nDiv; iDiv++) {
+#ifdef NOISY_BLEND
+                    {
+                        std::string meshFileName = "blendmesh3D_ref";
+                        meshFileName.append(std::to_string(iDiv));
+                        meshFileName.append(".txt");
+                        std::ofstream outTXT(meshFileName.c_str());
+                        gmesh->Print(outTXT);
+                        outTXT.close();
+                    }
+#endif
                     std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
                     const int nel = gmesh->NElements();
                     for (int iel = 0; iel < nel; iel++) {

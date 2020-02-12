@@ -11,7 +11,8 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "pzeltype.h"
-
+#include "pzaxestools.h"
+#include "TPZTopologyUtils.h"
 class TPZIntPoints;
 class TPZIntTetra3D;
 class TPZGraphElT3d;
@@ -22,7 +23,6 @@ class TPZCompMesh;
 
 /// Groups all classes defining the structure of the master element
 namespace pztopology {
-	
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
@@ -32,9 +32,10 @@ namespace pztopology {
 	 */
 	class TPZTetrahedron : public TPZSavable {
 	public:
-		
+
+        friend void pztopology::GetPermutation<TPZTetrahedron>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 15, NCornerNodes = 4, Dimension = 3, NFaces = 4};
+		enum {NSides = 15, NCornerNodes = 4, Dimension = 3, NFaces = 4, NPermutations = 24};
 		
             int ClassId() const override;
             void Read(TPZStream &buf, void *context) override;
@@ -81,6 +82,25 @@ namespace pztopology {
 		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
 
+
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+            TShape(loc, phi, dphi);
+        }
+        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
+        template<class T>
+        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+        /**
+         * This method calculates the influence (a.k.a. the blend function) of the side side regarding an
+         * interior point qsi. It is used by the TPZGeoBlend class.
+         * @param side the index of the side
+         * @param xi coordinates of the interior point
+         * @param blendFactor influence (0 <= blendFactor <= 1)
+         * * @param corrFactorDxi derivative of the blendFactor in respect to xi
+         */
+        template<class T>
+        static void BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
+                                      TPZVec<T> &corrFactorDxi);
 		/** @} */
 		
 		/** @name About points at the parametric spaces
@@ -90,7 +110,16 @@ namespace pztopology {
 		static void CenterPoint(int side, TPZVec<REAL> &center);
 		
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
-		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = 1e-6);
+		static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = pztopology::gTolerance);
+
+        #ifdef _AUTODIFF
+        /** @brief Verifies if the parametric point pt is in the element parametric domain (FAD version)*/
+		static bool IsInParametricDomain(const TPZVec<Fad<REAL>> &pt, REAL tol = pztopology::gTolerance){
+		    TPZVec<REAL> xi(pt.size());
+		    for(int i = 0; i < pt.size(); i++) xi[i]= pt[i].val();
+		    return IsInParametricDomain(xi,tol);
+		}
+        #endif
         #ifdef _AUTODIFF
         template<typename T,
                 typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
@@ -103,9 +132,19 @@ namespace pztopology {
         
         /** @brief Generates a random point in the master domain */
         static void RandomPoint(TPZVec<REAL> &pt);
-        
+
+        /**
+         * This method will check if the projection to a certain side (MapToSide method) is regular,
+         * i.e., if the interior point in the parametric domain is not too close to the projection's singularity.
+         * @param side the index of the side upon which the interior point will be projected upon
+         * @param xiInterior coordinates of the interior point
+         * @return true if the interior point is far from the singularity
+         */
         template<class T>
-        static bool MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
+        static bool CheckProjectionForSingularity(const int &side, const TPZVec<T> &xiInterior);
+
+        template<class T>
+        static void MapToSide(int side, TPZVec<T> &InternalPar, TPZVec<T> &SidePar, TPZFMatrix<T> &JacToSide);
         
         static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
@@ -190,18 +229,36 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int transformationid, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
-		static REAL RefElVolume() {
+		static constexpr REAL RefElVolume() {
 			return (1.0L/6.0L);
 		}
         
         /* Given side and gradx the method returns directions needed for Hdiv space */
         static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
-        static void GetSideDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
-        static void ComputeDirections(TPZFMatrix<REAL> &gradx, REAL detjac, TPZFMatrix<REAL> &directions);
-        
+        template <class TVar>
+        static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
+
+        /** Compute the directions of the HCurl vectors.
+         * These vectors are combined with H1 shape functions to create the HCurl shape functions.
+         * They *must be* computed in the following order:
+         * - \f$v^{e,a}\f$: vector associated with edge \f$e\f$. It is normal to the edge \f$\hat{e}\f$ adjacent to \f$e\f$e by the vertex \f$a\f$a.
+         * - \f$v^{e,T}\f$: vector associated with edge \f$e\f$. It is tangent to the edge \f$\hat{e}\f$.
+         * - \f$v^{F,e}\f$: vector associated with face \f$F\f$. It is normal to the face \f$\hat{F}\f$ adjacent to \f$F\f$e by the edge \f$e\f$a.
+         * - \f$v^{F,T}\f$: two orthornormal vectors associated with face \f$F\f$ and tangent to it.
+         * - \f$v^{F,\perp}\f$: outward normal vector associated with face \f$F\f$ (3D only)
+         * - \f$v^{K}\f$: set of orthonormal vectors associated with the volume of the element itself (3D only. In 2D \f$v^{F,T}\f$ does its job)
+         * The side ordering should be respected. In the definition of the \f$v^{e,a}\f$ and the \f$v^{F,e}\f$ vectors, the subsides are ordered as the return of LowerDimensionSides.
+         * @tparam TVar REAL or Fad<REAL>
+         * @param gradx the gradient of the element mapping. if computing in normal element, gradx is the identity matrix.
+         * @param directions computed directions
+         * @param transformationIds transformation Ids associated with each side of dim > 0
+         */
+        template <class TVar>
+        static void ComputeHCurlDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions, const TPZVec<int> &transformationIds);
         /**
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
@@ -219,7 +276,9 @@ namespace pztopology {
 
 		/** @brief Ids of the shape face */
 		static int ShapeFaceId[4][3];
-		
+
+        /** @brief Valid permutations between nodes*/
+        static int fPermutations[24][15];
 		/** @} */
         
 	};

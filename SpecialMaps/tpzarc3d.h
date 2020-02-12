@@ -26,6 +26,7 @@ namespace pzgeom
 	class TPZArc3D : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 		
 	public:
+        typedef pztopology::TPZLine Top;
 		/** @brief Number of nodes (connects) */
 		enum {NNodes = 3};
 
@@ -164,21 +165,19 @@ namespace pzgeom
             }
 
         }
-		void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
+//        void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
+//        template<class T>
+//        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            X(coord,loc,result);
+//        }
         
         template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
+        void GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
             
             /** Computing Axes */
             TPZManVector< T > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
@@ -215,12 +214,12 @@ namespace pzgeom
 
         }
 		
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
-        }
+//        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
+//        {
+//            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+//            CornerCoordinates(gel, coord);
+//            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+//        }
 
 		
         static std::string TypeName() { return "Linear";}
@@ -230,14 +229,14 @@ namespace pzgeom
             return false;
         }
         
-		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
+		// static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 	public:
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid,
-										  int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid,
+		// 								  int64_t& index);
 		void Print(std::ostream &out) const
 		{
 			pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Print(out);

@@ -143,6 +143,40 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
     LoadSolutionFromMeshes();
 }
 
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector)
+{
+    m_active_approx_spaces = active_approx_spaces;
+    m_mesh_vector          = mesh_vector;
+    if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
+        std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
+        DebugStop();
+    }
+    
+    int n_approx_spaces = m_mesh_vector.size();
+    
+    SetNMeshes(n_approx_spaces);
+    Reference()->ResetReference();
+    SetAllCreateFunctionsMultiphysicElemWithMem();
+    ApproxSpace().CreateWithMemory(true);
+    // delete all elements and connects in the mesh
+    CleanElementsConnects();
+    TPZCompMesh::AutoBuild();
+    AddElements();
+    AddConnects();
+    LoadSolutionFromMeshes();
+    
+    int nel_res = NElements();
+    for (long el = 0; el < nel_res; el++) {
+        TPZCompEl *cel = Element(el);
+        TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+        if (!mfcel) {
+            continue;
+        }
+        mfcel->PrepareIntPtIndices();
+    }
+    
+}
+
 void TPZMultiphysicsCompMesh::AutoBuild(){
     
     std::cout << __PRETTY_FUNCTION__ << " has not been implemented. Use BuildMultiphysicsSpace instead\n";
@@ -157,11 +191,12 @@ void TPZMultiphysicsCompMesh::AddElements(){
     int n_approx_spaces = m_mesh_vector.size();
     for(int i_as = 0; i_as < n_approx_spaces; i_as++)
     {
-        TPZCompMesh * cmesh = m_mesh_vector[i_as];
-        
-        if(!cmesh) continue;
-        
+        if(!m_mesh_vector[i_as]) continue;
         m_mesh_vector[i_as]->LoadReferences();
+        {
+            std::ofstream out("gmesh.txt");
+            geometry->Print(out);
+        }
         int64_t icel;
         for(icel=0; icel < n_cels; icel++)
         {
@@ -363,6 +398,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
             int blsize = block.Size(seqnum);
             TPZConnect &conMF = ConnectVec()[FirstConnectIndex[i_as]+ic];
             int64_t seqnumMF = conMF.SequenceNumber();
+            if(seqnumMF < 0) continue;
             for (int idf=0; idf<blsize; idf++) {
                 blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
             }

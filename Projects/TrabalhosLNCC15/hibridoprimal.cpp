@@ -469,7 +469,6 @@ int mainH1()
 //Rodar Metodo Misto
 int mainMixed()
 {
-    HDivPiola = 1;
     bool SecondIntegration = false;//Rodar false
     
     //InitializePZLOG();

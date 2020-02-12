@@ -92,8 +92,8 @@ public:
     /** @brief Create an approximation space with HDiv elements */
     void SetAllCreateFunctionsHDivReferred(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
-	void SetAllCreateFunctionsHDivFull(int meshdim);
-        
+//    void SetAllCreateFunctionsHDivFull(int meshdim);
+    
 #if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
     /** @brief Create SBFem approximation space */
     void SetAllCreateFunctionsSBFem(int meshdim);

@@ -181,7 +181,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int64_t &index) :
-TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
+TPZRegisterClassId(&TPZCompElDisc::ClassId),TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(this->Dimension(),0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);
@@ -366,7 +366,7 @@ void TPZCompElDisc::Print(std::ostream &out) const{
     {
         TPZGeoEl *Ref = Reference();
         if (Ref) {
-            TPZManVector<REAL,3> xcenter(3),loccenter(fCenterPoint);
+            TPZManVector<REAL,3> xcenter(Ref->Dimension()),loccenter(fCenterPoint);
             Ref->X(loccenter, xcenter);
             out << xcenter << std::endl;
         }

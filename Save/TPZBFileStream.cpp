@@ -88,3 +88,10 @@ template <class T> void TPZBFileStream::WriteData(const T *p, int howMany) {
     }
 #endif
 }
+
+template
+void TPZBFileStream::ReadData<double>(double *p, int howMany);
+
+template
+void TPZBFileStream::WriteData<double>(const double *p, int howMany);
+

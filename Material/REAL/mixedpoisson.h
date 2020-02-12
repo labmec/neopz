@@ -105,15 +105,24 @@ public:
        }
        fTensorK = K;
        fInvK = invK;
+       fK = 0.;
    }
 	
+    /// return the permeability and compute it if there is permeability function
+    void GetPermeability(TPZVec<REAL> &x, TPZFMatrix<REAL> &K, TPZFMatrix<REAL> &invK);
+
     void SetViscosity(REAL visc) {
 		fvisc = visc;
 	}
     
-	void GetPermeability(REAL &perm) {
-		perm = fK;
-	}
+    void GetMaxPermeability(REAL &perm)
+    {
+        perm = 0;
+        for(int i=0; i<3; i++) perm = perm < fTensorK(i,i) ? fTensorK(i,i) : perm;
+    }
+//	void GetPermeability(REAL &perm) {
+//		perm = fK;
+//	}
 	
 	void SetInternalFlux(REAL flux) {
 		ff = flux;
@@ -173,7 +182,9 @@ public:
         int nref = datavec.size();
         for (int iref = 0; iref <nref; iref++) {
             datavec[iref].SetAllRequirements(false);
+            datavec[iref].fNeedsSol = true;
         }
+        datavec[0].fNeedsNormal = true;
         if(type == 50)
         {
             for(int iref = 0; iref<nref; iref++){

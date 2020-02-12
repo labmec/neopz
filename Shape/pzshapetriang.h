@@ -87,7 +87,11 @@ namespace pzshape {
 		 * determined by the transformation index
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int triangle_transformation_index);
-
+        
+        
+        static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+        
+        
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
 		 * @param rib rib index to which the point should be projected
@@ -95,6 +99,8 @@ namespace pzshape {
 		 * @param out coordinate of the point on the rib
 		 */
 		static void ProjectPoint2dTriangToRib(int rib, TPZVec<REAL> &in, REAL &out);
+        
+      
 
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the rib into the two dimensional derivative \n
@@ -157,6 +163,9 @@ namespace pzshape {
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order);
+        static TPZTransform<REAL>  ParametricTransform(int trans_id);
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                           TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 	};
 	

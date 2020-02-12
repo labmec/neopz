@@ -341,6 +341,51 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
             blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
         }
 	}
+    
+    
+    
+    // copy the solution of the submesh to father mesh
+    TPZSubCompMesh *msub = dynamic_cast<TPZSubCompMesh*>(MFMesh);
+    if(msub){
+        TPZCompMesh * fathermesh = msub->FatherMesh();
+        
+        TPZCompEl *compel = dynamic_cast<TPZCompEl*>(msub);
+        int nconnect = compel->NConnects();
+        
+        for(int ic=0; ic<nconnect ; ic++){
+            
+            int64_t fatherconIndex = compel->ConnectIndex(ic);
+            int64_t submeshIndex = msub->InternalIndex(fatherconIndex);
+            if(fatherconIndex == -1) DebugStop();
+            //acessing the block on father mesh
+            TPZBlock<STATE> &blockfather = fathermesh->Block();
+            
+            TPZConnect &confather = fathermesh->ConnectVec()[fatherconIndex];
+            int64_t seqnumfather = confather.SequenceNumber();
+            int nblock = blockfather.Size(seqnumfather);
+            //acessing the block on submesh
+            TPZBlock<STATE> &blocksub = msub->Block();
+            TPZConnect &consub = msub->ConnectVec()[submeshIndex];
+            int64_t seqnumsub = consub.SequenceNumber();
+            
+            if(seqnumfather < 0) DebugStop();
+            for(int idf=0 ; idf<nblock; idf++){
+                int posfather = blockfather.Position(seqnumfather);
+                STATE valsub = blocksub.Get(seqnumsub, idf,0);
+                fathermesh->Solution()(posfather + idf) = valsub;
+            }
+            
+            
+        }
+        
+    }
+    
+    
+    
+    
+    
+    
+    
     int64_t nel = MFMesh->NElements();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = MFMesh->Element(el);
@@ -375,11 +420,10 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         for (int idf=0; idf<blsize; idf++) {
             STATE val = blockMF.Get(seqnumMF, idf, 0);
             int64_t pos = block.Position(seqnum);
-            atomic_mesh->Solution()(pos+idf) = val;
- 
+            atomic_mesh->Solution()(pos+idf) = val;          
         }
     }
-
+    
     int64_t nel = MFMesh->NElements();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = MFMesh->Element(el);

@@ -233,7 +233,7 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
         cmeshHDiv->ExpandSolution();
     }
     
-
+    cmeshHDiv->ExpandSolution();
 #ifdef PZDEBUG
     if(0)
     {
@@ -378,7 +378,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
         SetSubdomain(cel, domain);
     }
     
-    {
+    if(0){
         std::ofstream out("PressureFineMesh2.txt");
         fPressureFineMesh->Print(out);
     }

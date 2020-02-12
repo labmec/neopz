@@ -1,13 +1,15 @@
-/**
- * @file
- * @brief Contains the implementation of the TPZGeoElRefLess methods.
- */
+
+/// @brief Contains the implementation of the TPZGeoElRefLess methods.
+
 
 #ifndef PZGEOELREFLESS_H_H
 #define PZGEOELREFLESS_H_H
 
 #include "pzgeoelrefless.h"
 #include "tpzpyramid.h"
+#include "pzgnode.h"
+#include "pzgeom_utility.h"
+#include "pzgmesh.h"
 
 #include <sstream>
 
@@ -84,6 +86,20 @@ int64_t
 TPZGeoElRefLess<TGeo>::NodeIndex(int node) const {
 	if(node<0 || node>=fGeo.NNodes) return -1;
 	return fGeo.fNodeIndexes[node];
+}
+
+/** @brief Gets the corner node coordinates in coord */
+template<class TGeo>
+void TPZGeoElRefLess<TGeo>::CornerCoordinates(TPZFMatrix<REAL> &coord) const
+{
+    TPZGeoNode *np;
+    int i,j;
+    for(i=0;i<TGeo::NNodes;i++) {
+        np = NodePtr(i);
+        for(j=0;j<3;j++) {
+            coord(j,i) = np->Coord(j);
+        }
+    }
 }
 
 template<class TGeo>
@@ -196,14 +212,99 @@ TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 }
 
 
+// template<class TGeo>
+// TPZGeoEl *
+// TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
+// 	TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
+// //    result->BuildBlendConnectivity();
+// 	result->Initialize();
+// 	return result;  
+// }
+
 template<class TGeo>
 TPZGeoEl *
 TPZGeoElRefLess<TGeo>::CreateBCGeoEl(int side, int bc){
-	TPZGeoEl * result = fGeo.CreateBCGeoEl(this,side,bc);
-//    result->BuildBlendConnectivity();
-	result->Initialize();
-	return result;  
+	// Consistency check
+	int nsides = TGeo::NSides;
+	if(side<0 || side >= nsides){
+		std::cout << "\n ("<<TGeo::Type()<<")::CreateBCGeoEl unexpected side = " << side << "\n";
+		return 0;
+	}
+	if(fGeo.Dimension == 3 && side == nsides-1){
+		std::cout <<"\nCreateBCGeoEl not implemented for tridimensional sides \n";
+		return 0;
+	}
+
+	// Is side straight?
+	TPZStack<int> LowAllSides;
+	TGeo::LowerDimensionSides(side,LowAllSides);
+    LowAllSides.Push(side);
+	bool straight = true;
+    if(fGeo.IsLinearMapping(side) == false) straight = false;
+	for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
+	{
+		int lside = LowAllSides[lowside]; 
+		if(lside < TGeo::NNodes) continue;
+		if(fGeo.IsLinearMapping(lside) == false) straight = false;
+		if(straight == false) break;
+	}
+	if(straight == false)
+	{
+		TPZGeoEl *BCGeoEl = CreateBCGeoBlendEl(side,bc);
+		return BCGeoEl;
+	}
+	
+	// else
+
+	// Build vector with node indices of element to be created
+	int sidennodes = TGeo::NSideNodes(side);
+	TPZManVector<int64_t,4> nodeindices(sidennodes);
+	for(int inode = 0; inode < sidennodes; inode++){
+		nodeindices[inode] = this->SideNodeIndex(side,inode);
+	}
+
+	// Create GeoElement
+	int64_t index;
+	MElementType BCtype = TGeo::Type(side);
+	TPZGeoEl *BCGeoEl = this->Mesh()->CreateGeoElement(BCtype, nodeindices, bc, index);
+
+	// Set Connectivity
+	int sidensides = TGeo::NContainedSides(side);
+	for(int iside=0; iside < sidensides-1; iside++){
+		TPZGeoElSide(BCGeoEl,iside).SetConnectivity(TPZGeoElSide(this,TGeo::ContainedSideLocId(side,iside)));
+	}
+	TPZGeoElSide(BCGeoEl, sidensides-1).SetConnectivity(TPZGeoElSide(this,side));
+
+	// Return pointer to new element
+	BCGeoEl->Initialize();
+	return BCGeoEl;  
 }
+
+
+template <class TGeo>
+TPZGeoEl *TPZGeoElRefLess<TGeo>::CreateBCGeoBlendEl(int side,int bc)
+{
+	int sidennodes = TGeo::NSideNodes(side);
+	TPZManVector<int64_t> nodeindices(sidennodes);
+	int inode;
+	for(inode=0; inode<sidennodes; inode++){
+		nodeindices[inode] = this->SideNodeIndex(side,inode);
+	}
+	int64_t index;
+	
+	TPZGeoMesh *mesh = this->Mesh();
+	MElementType BCtype = TGeo::Type(side);
+	
+	TPZGeoEl *newel = mesh->CreateGeoBlendElement(BCtype, nodeindices, bc, index);
+	TPZGeoElSide me(this,side);
+	TPZGeoElSide newelside(newel,newel->NSides()-1);
+	
+	newelside.InsertConnectivity(me);
+	newel->Initialize();
+	
+	return newel;
+}
+
 
 template<class TGeo>
 TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
@@ -211,7 +312,8 @@ TPZGeoEl * TPZGeoElRefLess<TGeo>::CreateGeoElement(MElementType type,
 												   int matid,
 												   int64_t& index)
 {
-	return fGeo.CreateGeoElement(*Mesh(),type,nodeindexes,matid,index);
+	if(this->IsLinearMapping(NSides()-1)) return this->Mesh()->CreateGeoElement(type,nodeindexes,matid,index);
+	else    return this->Mesh()->CreateGeoElementMapped(type,nodeindexes,matid,index);
 }
 
 template<class TGeo>
@@ -291,7 +393,9 @@ void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gradx) const
 {
     gradx.Resize(3,fGeo.Dimension);
-    fGeo.GradX(*this,par,gradx);
+    TPZFNMatrix<54,REAL> cornerco(3,fGeo.NNodes);
+    CornerCoordinates(cornerco);
+    fGeo.GradX(cornerco,par,gradx);
 }
 #endif
 
@@ -301,7 +405,9 @@ void
 TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 {
     gradx.Resize(3,fGeo.Dimension);
-    fGeo.GradX(*this,par,gradx);
+    TPZFNMatrix<54,REAL> cornerco(3,fGeo.NNodes);
+    CornerCoordinates(cornerco);
+    fGeo.GradX(cornerco,par,gradx);
 }
 
 /** @brief Return the gradient of the transformation at the point */
@@ -309,7 +415,9 @@ template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
     result.Resize(3);
-	fGeo.X(*this,coordinate,result);
+    TPZFNMatrix<54,REAL> cornerco(3,fGeo.NNodes);
+    CornerCoordinates(cornerco);
+	fGeo.X(cornerco,coordinate,result);
 }
 
 #ifdef _AUTODIFF
@@ -317,8 +425,10 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &result) const {
-    result.Resize(3);    
-    fGeo.X(*this,coordinate,result);
+    result.Resize(3);
+    TPZFNMatrix<54,REAL> cornerco(3,fGeo.NNodes);
+    CornerCoordinates(cornerco);
+    fGeo.X(cornerco,coordinate,result);
 }
 #endif
 
@@ -444,65 +554,94 @@ TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),TPZGeoEl(DestMesh, cp, gl2lc
 	}
 }
 
-template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
-{
-    TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
-    REAL detjac;
-
-    this->Jacobian(pt,jac,axes,detjac,jacinv);
-    
-    //  gradX =  ( AxesˆT * jac )
-    TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
-    for (int il=0; il<TGeo::Dimension; il++)
-    {
-        for (int jc=0; jc<3; jc++)
-        {
-            for (int i = 0 ; i<TGeo::Dimension; i++)
-            {
-                gradx(jc,il) +=  axes(i,jc) * jac(i,il);    //  gradX =  ( AxesˆT * jac )
-            }
-        }
-    }
-//    gradxt.Transpose(&gradx);
-    TGeo::ComputeDirections(side, gradx, directions, sidevectors);
-    
-//    TPZStack<int> lowdim;
-//	LowerDimensionSides(side,lowdim);
-//	lowdim.Push(side);
+//template<class TGeo>
+//void TPZGeoElRefLess<TGeo>::Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+//{
+//    TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
+//    REAL detjac;
 //
-//    TGeo::GetSideHDivPermutation(side);
-    
+//    this->Jacobian(pt,jac,axes,detjac,jacinv);
+//
+//    //  gradX =  ( AxesˆT * jac )
+//    TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
+//    for (int il=0; il<TGeo::Dimension; il++)
+//    {
+//        for (int jc=0; jc<3; jc++)
+//        {
+//            for (int i = 0 ; i<TGeo::Dimension; i++)
+//            {
+//                gradx(jc,il) +=  axes(i,jc) * jac(i,il);    //  gradX =  ( AxesˆT * jac )
+//            }
+//        }
+//    }
+////    gradxt.Transpose(&gradx);
+//    TGeo::ComputeDirections(side, gradx, directions, sidevectors);
+//
+////    TPZStack<int> lowdim;
+////    LowerDimensionSides(side,lowdim);
+////    lowdim.Push(side);
+////
+////    TGeo::GetSideHDivPermutation(side);
+//
+//}
+
+template<class TGeo>
+void TPZGeoElRefLess<TGeo>::HDivDirectionsMaster(TPZFMatrix<REAL> &directions)
+{
+    TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.);
+    for (int i = 0; i < TGeo::Dimension; i++) {
+        gradx(i,i) = 1.;
+    }
+    TGeo::ComputeHDivDirections(gradx, directions);
 }
 
+
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
+void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
-    REAL detjac;
-    
-    this->Jacobian(pt,jac,axes,detjac,jacinv);
+  
+    this->GradX(pt, gradx);
 
-    // ou eh isso?   grad =  (jac  * axes)ˆT
-    TPZFNMatrix<9> gradxt(TGeo::Dimension,3,0.);
-    for (int il=0; il<TGeo::Dimension; il++)
-    {
-        for (int jc=0; jc<3; jc++)
-        {
-            for (int i = 0 ; i<TGeo::Dimension; i++)
-            {
-                gradx(jc,il) += jac(i,il) * axes(i,jc);
-            }
-        }
-    }
-    //    gradxt.Transpose(&gradx);
-    TGeo::ComputeDirections(gradx, detjac, directions);
+    TGeo::ComputeHDivDirections(gradx, directions);
     
     if (TGeo::Type() == EPiramide) {
-        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, detjac, directions);
+        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, directions);
     }
     
 }
+
+#ifdef _AUTODIFF
+template<class TGeo>
+void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions, int ConstrainedFace)
+{
+    TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.),gradxinv(TGeo::Dimension,TGeo::Dimension,0.);
+    
+    this->GradX(pt, gradx);
+    gradx.Resize(TGeo::Dimension,TGeo::Dimension);
+    gradx.Inverse(gradxinv, ENoDecompose);
+    
+    TPZManVector<Fad<REAL>> qsiFad(TGeo::Dimension,0.);
+    
+    for(int i=0;i<TGeo::Dimension;i++){
+        qsiFad[i] = Fad<REAL>(TGeo::Dimension,pt[i]);
+
+        for(int j=0;j<TGeo::Dimension;j++){
+            qsiFad[i].fastAccessDx(j)=gradxinv(i,j);
+        }
+    }
+    //std::cout<<qsiFad<<std::endl;
+    TPZFNMatrix<9,Fad<REAL>> gradxFad(3,TGeo::Dimension);
+    this->GradX(qsiFad, gradxFad);
+    //gradxFad.Print(std::cout);
+    TGeo::ComputeHDivDirections(gradxFad, directions);
+   
+    if (TGeo::Type() == EPiramide) {
+        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradxFad, directions);
+    }
+    
+}
+#endif
 
 
 #include "pzgeoquad.h"
@@ -578,7 +717,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 {
 	int dimension = TGeo::Dimension;
 	int sidedimension = TGeo::SideDimension(side);
-	
+
 	if(dimension != sidedimension+1)
 	{
 		std::stringstream sout;
@@ -641,24 +780,17 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 #endif
 }
 
-//HDiv
-template<>
-inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )
-{
-    fGeo.VecHdiv(*this,normalvec,sidevector);
+#include "TPZTopologyUtils.h"
+
+template <class Geom>
+int TPZGeoElRefLess<Geom>::NPermutations() const{
+    return Geom::Top::NPermutations;
 }
 
-template<>
-inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )
-{
-	fGeo.VecHdiv(*this,normalvec,sidevector);
+template <class Geom>
+void TPZGeoElRefLess<Geom>::GetPermutation(const int& i, TPZVec<int> &permutation) const{
+    return pztopology::GetPermutation<typename Geom::Top>(i,permutation);
 }
 
-
-template<class TGeo>
-inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )
-{
-    PZError << __PRETTY_FUNCTION__ << " nao esta implementado\n";
-}
 
 #endif

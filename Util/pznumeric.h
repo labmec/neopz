@@ -7,6 +7,9 @@
 #define TPZNUMERIC_H
 
 #include "pzvec.h"
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
 
 /** 
  * @ingroup util
@@ -27,19 +30,25 @@ public:
   	static REAL MatrixDet(REAL matrix[3][3]);
   	/** Dada a array[3] armazena sua ordem decrescente, em valor absoluto, em ordem[3]. */
 	/** @brief Sorts in descending order, in absolute value and stores the indexes in ordem. */
-  	static void SortArray3(const TPZVec<REAL> &array, int ordem[3]);
+    template <class Tvar>
+  	static void SortArray3(const TPZVec<Tvar> &array, int ordem[3]);
   	/** Dada a array[3], retorna-a em ordem decrescente, em valor absoluto. */
 	/** @brief Sorts in descending order, in absolute value on self storage vector */
-  	static void SortArray3(TPZVec<REAL> &array);
+    template <class Tvar>
+  	static void SortArray3(TPZVec<Tvar> &array);
   	/** dados dois vetores calcula o produto vetorial. */
 	/** @brief Computes the vectorial product u x v */
-  	static void ProdVetorial(TPZVec<REAL> &u, TPZVec<REAL> &v, TPZVec<REAL> &result);
+    template <class Tvar>
+  	static void ProdVetorial(TPZVec<Tvar> &u, TPZVec<Tvar> &v, TPZVec<Tvar> &result);
 	/** @brief Normalizes the vector with 3 elements */
-	static void NormalizeVetor3(TPZVec<REAL> &vetor);
+    template <class Tvar>
+	static void NormalizeVetor3(TPZVec<Tvar> &vetor);
     /** @brief Normalizes the vector */
-    static void NormalizeVetor(TPZVec<REAL> &vetor);
+    template <class Tvar>
+    static void NormalizeVetor(TPZVec<Tvar> &vetor);
 	/** @brief Returns the L2-norm of the vector */
-    static REAL Norma(const TPZVec<REAL> &vetor);
+    template <class Tvar>
+    static Tvar Norm(const TPZVec<Tvar> &vetor);
 };
 
 #endif

@@ -1209,6 +1209,13 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]*10.);
         }
             break;
+            
+            case E2SinSin:
+            {
+                disp[0] += (TVar)(1.);
+                for(int i=0; i<fDimension; i++) disp[0] *= sin((TVar)M_PI*xloc[i]*2.);
+            }
+                break;
         case ESinDist:
         {
             disp[0] += (TVar)(1.);
@@ -1218,7 +1225,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case ECosCos:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= cos((TVar)M_PI*xloc[i]/2.);
+            for(int i=0; i<fDimension; i++) disp[0] *= cos((TVar)M_PI*2.*xloc[i]);
         }
             break;
         case EArcTan://(1+0.3sin(10Pi x))*(1+0.5cos(10Pi r)*arctan(100*(r-0.5))
@@ -1262,8 +1269,8 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                disp[0] = 0.;
             }
             else {
-                TVar factor = pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//TVar(2.)*pow(r,TVar (2.)/TVar (3.));////pow(r, TVar(2.) / TVar(3.));//pow(r, TVar(2.) / TVar(3.)) - pow(r, TVar(3.));
-                disp[0] = factor*sin((TVar) (2.) * theta / TVar(3.));//factor * (sin((TVar) (2.) * theta / TVar(3.)))-pow(r,TVar (2.)/TVar (4.));
+                TVar factor = pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
+                disp[0] = factor * (sin((TVar) (2.) * theta / TVar(3.)));
             }
 
 
@@ -1272,10 +1279,10 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             
             //--
      
-        case ESinSinDirNonHom: //sin(pi x)sin(pi y)+1/(x+y+1)
+        case ESinSinDirNonHom: //sin(2 pi x)sin(2pi y)+1/(x+y+1)
         {
             
-            disp[0]=(sin((TVar)M_PI*xloc[0]))*sin((TVar)M_PI*xloc[1])+(TVar)(1.)/(xloc[0]+xloc[1]+(TVar)(1.));
+            disp[0]=(sin((TVar)M_PI*2.*xloc[0]))*sin((TVar)M_PI*2.*xloc[1])+(TVar)1./(xloc[0]+xloc[1]+(TVar)(1.));
             
         }
             
@@ -1456,6 +1463,14 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]*10.);
         }
             break;
+        case E2SinSin:
+            {
+                disp[0] += (TVar)(1.);
+                for(int i=0; i<fDimension; i++) disp[0] *= FADsin((TVar)M_PI*xloc[i]*2.);
+            }
+            break;
+            
+            
         case ESinDist:
         {
             disp[0] += (TVar)(1.);
@@ -1465,7 +1480,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         case ECosCos:
         {
             disp[0] += (TVar)(1.);
-            for(int i=0; i<fDimension; i++) disp[0] *= FADcos((TVar)M_PI*xloc[i]/2.);
+            for(int i=0; i<fDimension; i++) disp[0] *= FADcos((TVar)M_PI*2.*xloc[i]);
         }
             break;
         case EArcTan:
@@ -1495,10 +1510,10 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             disp[0] = B*temp;
         }
             break;
-        case ESinSinDirNonHom: //sin(pi x)sin(pi y)+1/(x+y+1)
+        case ESinSinDirNonHom: //sin(2pi x)sin(2pi y)+1/(x+y+1)
         {
             
-            disp[0]=(FADsin((TVar)M_PI*xloc[0]))*FADsin((TVar)M_PI*xloc[1])+(TVar)(1.)/(xloc[0]+xloc[1]+(TVar)(1.));
+            disp[0]=(FADsin((TVar)M_PI*2.*xloc[0]))*FADsin((TVar)M_PI*2.*xloc[1])+(TVar)1./(xloc[0]+xloc[1]+(TVar)(1.));
             
         }
             
@@ -1509,8 +1524,8 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
             if( theta < TVar(0.)) theta += 2.*M_PI;
             
-            TVar factor = pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//TVar(2.)*pow(r,TVar (2.)/TVar (3.));//TVar(2.)*pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//pow(r,TVar (2.)/TVar (3.));//
-            disp[0] = factor*(FADsin((TVar)(2.)*theta/TVar(3.)));//- pow(r,TVar(2.))/4;// - pow(r,TVar(2.))/4;
+            TVar factor = pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
+            disp[0] = factor*(FADsin((TVar)(2.)*theta/TVar(3.)));
             
         }
             break;
@@ -1747,6 +1762,12 @@ void TLaplaceExample1::SigmaLoc(const TPZVec<STATE> &x, TPZFMatrix<STATE> &sigma
 
 template
 void TLaplaceExample1::DivSigma<REAL>(const TPZVec<REAL> &x, REAL &divsigma) const;
+
+template
+void TLaplaceExample1::graduxy<Fad<double>>(const TPZVec<Fad<double>> &x, TPZVec<Fad<double>> &grad) const;
+
+template
+void TLaplaceExample1::graduxy<double>(const TPZVec<double> &x, TPZVec<double> &grad) const;
 
 
 

@@ -145,7 +145,15 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    UpdateBCValues(datavec[0].x);
+
+    int nx = datavec[0].x.NElements();
+    if(nx==0){
+       UpdateBCValues(datavec[1].x);
+    }
+    else{
+        UpdateBCValues(datavec[0].x);
+    }
+    
 	this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
 }
 //----
@@ -283,7 +291,7 @@ void TPZBndCond::FillDataRequirements(TPZMaterialData &data){
 		PZError << "\nUnable to call TPZBndCond::fMaterial::FillDataRequirements - fMaterial pointer is null!\n";
 		return;
 	}
-	fMaterial->FillBoundaryConditionDataRequirement(fType,data);
+ 	fMaterial->FillBoundaryConditionDataRequirement(fType,data);
 	if(fLinearContext == false || fType == 50){
 		data.fNeedsSol = true;
 	}

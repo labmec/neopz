@@ -46,6 +46,8 @@ namespace pzshape{
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
+      
+        
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 							  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
@@ -95,6 +97,9 @@ namespace pzshape{
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,
 								  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int quad_transformation_index);
+        
+        static void ShapeInternal(TPZVec<REAL> &x, int order,
+                                  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 #ifdef _AUTODIFF
 		/**
@@ -172,7 +177,7 @@ namespace pzshape{
 		static void TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix<REAL> &dphi);
 
 		/** @brief Data structure which defines the quadrilateral transformations */
-		static REAL gTrans2dQ[8][2][2];
+	 	static REAL gTrans2dQ[8][2][2];
 		/** @brief Data structure which defines the quadrilateral transformations */
 		static REAL gFaceTr2dQ[6][2][3];
 		/** @brief Data structure which defines the quadrilateral transformations */
@@ -194,6 +199,9 @@ namespace pzshape{
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order);
+        static TPZTransform<REAL> ParametricTransform(int trans_id);
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        
 		
 	};
 	

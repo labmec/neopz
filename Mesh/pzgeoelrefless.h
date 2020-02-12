@@ -8,9 +8,11 @@
 
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
+#include "pzgeom_utility.h"
 
 class TPZGeoElSide;
 class TPZCompMesh;
+class TPZGeoMesh;
 class TPZCompEl;
 template<class T,int N>
 class TPZStack;
@@ -125,13 +127,22 @@ virtual int ClassId() const override;
 	
 	virtual  int64_t NodeIndex(int node) const override;
 	
+    void CornerCoordinates(TPZFMatrix<REAL> &coord) const;
 	//HDiv
     
-    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
+//    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
+
+    virtual void HDivDirectionsMaster(TPZFMatrix<REAL> &directions) override;
     
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
     
-	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
+
+#ifdef _AUTODIFF
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int ConstrainedFace = -1) override;
+#endif
+    
+	//virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;
+
 	
 	/** @brief Compute the permutation for an HDiv side */
 	virtual void HDivPermutation(int side, TPZVec<int> &permutegather) override;
@@ -166,7 +177,14 @@ virtual int ClassId() const override;
 	virtual  void SetSideDefined(int side)  override { fNeighbours[side] = TPZGeoElSide(this,side); }
 	
 	virtual  void SetSubElement(int id, TPZGeoEl *el) override;
-	
+
+
+    /**
+     * This method gets the ith valid permutation of its topology
+     * @param i number of the permutation to get
+     * @param permutation vector contained the permuted sides
+     */
+    void GetPermutation(const int& i, TPZVec<int> &permutation) const override;
 	/**
 	 * @brief Creates an integration rule for the topology of the corresponding side
 	 * and able to integrate a polynom of order exactly
@@ -197,6 +215,12 @@ virtual int ClassId() const override;
 	
 	/** @brief Returns the number of connectivities of the element*/
 	virtual  int NSides() const override;
+
+    /**
+     * Get the number of valid permutations among the element nodes
+     * @return
+     */
+    virtual int NPermutations() const override;
 	
 	/** @brief Returns the local node number of the node "node" along side "side" */
 	virtual  int SideNodeLocId(int side, int node) const;
@@ -227,6 +251,12 @@ virtual int ClassId() const override;
 	 */
 	virtual  TPZGeoEl *CreateBCGeoEl(int side, int bc) override;
 	
+	/**
+	 * @brief Method which creates a blend geometrical boundary condition element
+	 * based on the current geometric element, a side and a boundary condition index
+	 */
+	virtual TPZGeoEl *CreateBCGeoBlendEl(int side, int bc);
+
 	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
 									   TPZVec<int64_t>& nodeindexes,
@@ -349,14 +379,14 @@ bool TPZGeoElRefLess<TGeo>::IsInParametricDomain(const TPZVec<REAL> &pt, REAL to
 template<class TGeo>
 inline
 int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
-	const int side = fGeo.ProjectInParametricDomain(pt, ptInDomain);
+    const int side = ::ProjectInParametricDomain<TGeo>(pt, ptInDomain);
 	return side;
 }
 
 template<class TGeo>
 inline
 int TPZGeoElRefLess<TGeo>::ProjectBissectionInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
-	const int side = fGeo.ProjectBissectionInParametricDomain(pt, ptInDomain);
+    const int side = ::ProjectBissectionInParametricDomain<TGeo>(pt, ptInDomain);
 	return side;
 }
 

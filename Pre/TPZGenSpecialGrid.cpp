@@ -83,7 +83,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 			gmesh->DeleteElement(gel);
 		}
 		else
-			gel->SetFather(-1);
+			gel->SetFatherIndex(-1);
 	}
 	// The connectivity are updated
 	gmesh->ResetConnectivities();
@@ -180,7 +180,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 			gmesh->DeleteElement(gel);
 		}
 		else
-			gel->SetFather(-1);
+			gel->SetFatherIndex(-1);
 	}
 	// The connectivity are updated
 	gmesh->ResetConnectivities();

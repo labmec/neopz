@@ -115,9 +115,9 @@ int ClassId() const override;
 									   int64_t& index) override;
 
 	/** @brief Sets the father element index*/
-	virtual void SetFather(int64_t fatherindex) override
+	virtual void SetFatherIndex(int64_t fatherindex) override
 	{
-		TBase::SetFather(fatherindex);
+		TBase::SetFatherIndex(fatherindex);
 		TPZGeoEl *father = TBase::Father();
 		if(!father) return;
 		TPZGeoEl *nextfather = 0;
@@ -607,15 +607,4 @@ template<class TBase>
 int TPZGeoElMapped<TBase>::ClassId() const{
     return Hash("TPZGeoElMapped") ^ TBase::ClassId() << 1;
 }
-
-/** 
- * @brief Creates geometric element of the specified type 
- * @ingroup geometry
- */
-TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
-								 MElementType type,
-								 TPZVec<int64_t>& nodeindexes,
-								 int matid,
-								 int64_t& index);
-
 #endif

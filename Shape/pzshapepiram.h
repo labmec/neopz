@@ -156,8 +156,9 @@ namespace pzshape {
 		 */
 		static int NShapeF(TPZVec<int> &order);
 		
-                int ClassId() const override;
-                
+        int ClassId() const override;
+        static void ShapeInternal(int side, TPZVec<REAL> &x, int order,  TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        static void ShapeCorner(const TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	};
 	
 };

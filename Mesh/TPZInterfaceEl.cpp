@@ -609,7 +609,7 @@ int TPZInterfaceElement::FreeInterface(TPZCompMesh &cmesh){
 }
 
 void TPZInterfaceElement::ComputeCenterNormal(TPZVec<REAL> &normal){
-	TPZManVector<REAL> qsi(3);
+	TPZManVector<REAL> qsi(Reference()->Dimension());
 	int side = this->Reference()->NSides() - 1;
 	this->Reference()->CenterPoint(side,qsi);
 	this->ComputeNormal(qsi,normal);
@@ -651,10 +651,14 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 	normal.Fill(0.);
 	int faceleft,faceright;
 	
-	TPZManVector<REAL, 3> centleft(3),centright(3),point(3,0.),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
 	REAL normalize;
 	int i;
 	
+    TPZGeoEl *gLeftEl = LeftEl->Reference();
+    TPZGeoEl *gRightEl = RightEl->Reference();
+    int leftdim = gLeftEl->Dimension();
+    int rightdim = gRightEl->Dimension();
+    TPZManVector<REAL, 3> centleft(leftdim),centright(rightdim),point(3,0.),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
 	faceleft = LeftEl->Reference()->NSides()-1;//lado interior do elemento esquerdo
 	faceright = RightEl->Reference()->NSides()-1; // lado interior do element direito
 	LeftEl->Reference()->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume

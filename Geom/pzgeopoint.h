@@ -91,37 +91,12 @@ namespace pzgeom {
 		static std::string TypeName() { return "Point";}
         
         template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &result) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,result);
-        }
-		
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            gradx.Resize(3,0);
-        }
-        
-        template<class T>
 		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result);
         
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-		
-		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
-        {
-            phi(0,0) = 1.;
-        }
-		
-        template<class T>
-        static void TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
-        {
-            phi(0,0) = (T)1.;
-        }
         
-		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+		// static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
         
@@ -134,23 +109,23 @@ namespace pzgeom {
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
 
 		/** @brief Creates a geometric element according to the type of the father element */
-		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-										  TPZVec<int64_t>& nodeindexes,
-										  int matid, int64_t& index);
+		// static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+		// 								  TPZVec<int64_t>& nodeindexes,
+		// 								  int matid, int64_t& index);
 	};
-	
+
     template<class T>
     inline void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<T> &loc,TPZVec<T> &result){
         for (int i=0;i<coord.Rows();i++){
             result[i] = coord.GetVal(i,0);
         }
     }
-    
+
     template<class T>
     inline void TPZGeoPoint::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx){
-        DebugStop();
+        gradx.Resize(3,0);
     }
-    
+
 
 };
 

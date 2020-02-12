@@ -109,7 +109,7 @@ void TPZGeoMesh::CleanUp() {
         TPZGeoEl *el = fElementVec[i];
         if (el) {
             if(el->HasSubElement()) el->ResetSubElements();
-            if(el->FatherIndex() != -1) el->SetFather((int64_t) -1);
+            if(el->FatherIndex() != -1) el->SetFatherIndex(-1);
             delete el;
             fElementVec[i] = 0;
         }
@@ -127,7 +127,7 @@ void TPZGeoMesh::SetName (const std::string &nm)
 	fName = nm;
 }
 
-void TPZGeoMesh::Print (std::ostream & out)
+void TPZGeoMesh::Print (std::ostream & out) const
 {
 	out << "\n\t\t GEOMETRIC TPZGeoMesh INFORMATIONS:\n\n";
 	out << "TITLE-> " << fName << "\n\n";
@@ -152,7 +152,7 @@ void TPZGeoMesh::Print (std::ostream & out)
 	}
 	
 	out << "\nInterface materials : \n\n";
-	InterfaceMaterialsMap::iterator w, e = this->fInterfaceMaterials.end();
+	InterfaceMaterialsMap::const_iterator w, e = this->fInterfaceMaterials.end();
 	
 	const int n = this->fInterfaceMaterials.size();
 	int l, r, m;
@@ -166,7 +166,7 @@ void TPZGeoMesh::Print (std::ostream & out)
 		out << l << " / " << r << " -> " << m << "\n";
 	}
 }
-void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out)
+void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out) const
 {
 	out << "TITLE-> " << fName << "\n";
 	out << "Number of nodes       = " << fNodeVec.NElements() << "\n";
@@ -1220,10 +1220,78 @@ int64_t TPZGeoMesh::NodeIndex(TPZGeoNode *nod)
 #include "pzrefpoint.h"
 #include "pzshapepoint.h"
 #include "Hash/TPZHash.h"
+#include "tpzgeoelmapped.h"
 
 using namespace pzgeom;
 using namespace pzrefine;
 using namespace pzshape;
+
+TPZGeoEl *TPZGeoMesh::CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index)
+{
+    switch( type ){
+        case 0://point
+        {
+            TPZGeoEl * gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern<TPZGeoPoint> > (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 1://line
+        {
+            TPZGeoEl *gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoLinear > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 2://triangle
+        {
+            TPZGeoEl *gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoTriangle > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 3://quadrilatera
+        {
+            TPZGeoEl* gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoQuad > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 4://tetraedra
+        {
+            TPZGeoEl*gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoTetrahedra > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 5://pyramid
+        {
+            TPZGeoEl *gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoPyramid > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 6://prism
+        {
+            TPZGeoEl*gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoPrism > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        case 7://cube
+        {
+            TPZGeoEl*gel =
+                    new TPZGeoElMapped<TPZGeoElRefPattern < TPZGeoCube > >
+                            (nodeindexes, matid, *this, index);
+            return gel;
+        }
+        default:
+        {
+            PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
+                    << " type = " << type << std::endl;
+            return NULL;
+        }
+    }
+}
 
 TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
                                        TPZVec<int64_t>& nodeindexes,

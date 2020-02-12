@@ -126,61 +126,61 @@ void TPZQuadraticTetra::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZF
 }
 
 
-TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
-{
-	if(side < 0 || side > 14) { cout << "TPZGeoTetrahedra::CreateBCCompEl with bad side = " << side << "not implemented\n"; return 0; }
-	if(side == 14) { cout << "TPZGeoTetrahedra::CreateBCCompEl with side = 14 not implemented\n"; return 0; }
-	if(side < 4)
-	{
-		TPZManVector<int64_t> nodeindexes(1);
-		nodeindexes[0] = orig->NodeIndex(side);
-		int64_t index;
-		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
+// TPZGeoEl *TPZQuadraticTetra::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
+// {
+// 	if(side < 0 || side > 14) { cout << "TPZGeoTetrahedra::CreateBCCompEl with bad side = " << side << "not implemented\n"; return 0; }
+// 	if(side == 14) { cout << "TPZGeoTetrahedra::CreateBCCompEl with side = 14 not implemented\n"; return 0; }
+// 	if(side < 4)
+// 	{
+// 		TPZManVector<int64_t> nodeindexes(1);
+// 		nodeindexes[0] = orig->NodeIndex(side);
+// 		int64_t index;
+// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+// 		return gel;
+// 	}
 	
-	else if (side > 3 && side < 10)
-	{// side = 4 a 9 : lados
-		TPZManVector<int64_t> nodes(2);
-		nodes[0] = orig->SideNodeIndex(side,0);
-		nodes[1] = orig->SideNodeIndex(side,1); 
-		int64_t index;
-		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,0)));
-		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,1)));
-		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	}
+// 	else if (side > 3 && side < 10)
+// 	{// side = 4 a 9 : lados
+// 		TPZManVector<int64_t> nodes(2);
+// 		nodes[0] = orig->SideNodeIndex(side,0);
+// 		nodes[1] = orig->SideNodeIndex(side,1); 
+// 		int64_t index;
+// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+// 		TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,0)));
+// 		TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,1)));
+// 		TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
+// 		return gel;
+// 	}
 	
-	else if (side > 9)
-	{//side = 10 a 13 : faces
-		TPZManVector<int64_t> nodes(3); int in;
+// 	else if (side > 9)
+// 	{//side = 10 a 13 : faces
+// 		TPZManVector<int64_t> nodes(3); int in;
 		
-		for (in=0;in<3;in++) nodes[in] = orig->SideNodeIndex(side,in);
-		int64_t index;
-		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
+// 		for (in=0;in<3;in++) nodes[in] = orig->SideNodeIndex(side,in);
+// 		int64_t index;
+// 		TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(ETriangle,nodes,bc,index);
 		
-		for (in=0;in<6;in++) TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,in)));
-		TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
-		return gel;
-	} 
-	else PZError << "TPZGeoTetrahedra::CreateBCGeoEl. Side = " << side << endl;
-	return 0;
-}
+// 		for (in=0;in<6;in++) TPZGeoElSide(gel,in).SetConnectivity(TPZGeoElSide(orig,TPZShapeTetra::ContainedSideLocId(side,in)));
+// 		TPZGeoElSide(gel,6).SetConnectivity(TPZGeoElSide(orig,side));
+// 		return gel;
+// 	} 
+// 	else PZError << "TPZGeoTetrahedra::CreateBCGeoEl. Side = " << side << endl;
+// 	return 0;
+// }
 
 
-/**
- * Creates a geometric element according to the type of the father element
- */
+// /**
+//  * Creates a geometric element according to the type of the father element
+//  */
 
-TPZGeoEl *TPZQuadraticTetra::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											  TPZVec<int64_t>& nodeindexes,
-											  int matid,
-											  int64_t& index)
-{
-	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
-}
+// TPZGeoEl *TPZQuadraticTetra::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+// 											  TPZVec<int64_t>& nodeindexes,
+// 											  int matid,
+// 											  int64_t& index)
+// {
+// 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
+// }
 
 /// create an example element based on the topology
 /* @param gmesh mesh in which the element should be inserted
@@ -209,7 +209,7 @@ void TPZQuadraticTetra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVe
         gmesh.NodeVec()[nodeindexes[i]].Initialize(co, gmesh);
     }
     int64_t index;
-    CreateGeoElement(gmesh, ETetraedro, nodeindexes, matid, index);
+    gmesh.CreateGeoElement(ETetraedro, nodeindexes, matid, index);
     TPZGeoEl *gel = gmesh.Element(index);
     int nsides = gel->NSides();
     for (int is=0; is<nsides; is++) {
@@ -237,7 +237,9 @@ int TPZQuadraticTetra::ClassId() const{
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>>;
 
 template class TPZGeoElRefPattern<TPZQuadraticTetra>;
-template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
+/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
+If it breaks something, I am sorry.*/
+//template class pzgeom::TPZNodeRep<10,TPZQuadraticTetra>;
 
 namespace pzgeom {
     template void TPZQuadraticTetra::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);

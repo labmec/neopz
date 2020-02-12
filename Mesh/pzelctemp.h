@@ -21,8 +21,10 @@ class TPZIntelGen : public TPZInterpolatedElement {
 	
 protected:
 	
-		TPZManVector<int64_t,TSHAPE::NSides> fConnectIndexes;//fazer resize qdo usar
+    /// Indexes of the connects associated with the elements
+    TPZManVector<int64_t,TSHAPE::NSides> fConnectIndexes;
 	
+    /// Integration rule associated with the topology of the element
 	typename TSHAPE::IntruleType fIntRule;
 	
 public:

@@ -104,7 +104,7 @@ void TPZGeoElement<TGeo, TRef>::ResetSubElements() {
     for (unsigned int i = 0; i < NSubElements(); ++i) {
         TPZGeoEl *gel = SubElement(i);
         if (gel) {
-            gel->SetFather(-1);
+            gel->SetFatherIndex(-1);
         }
         fSubEl[i] = -1;
     }

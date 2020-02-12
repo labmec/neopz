@@ -1219,7 +1219,6 @@ void CheckShapeOrder(int order)
 template<class tshape>
 void VectorDirections()
 {
-    HDivPiola = 1;
     const int dimension = tshape::Dimension;
     int numvectors = dimension * tshape::NumSides();
     if(tshape::Type() == EPiramide) numvectors++;
@@ -1237,12 +1236,14 @@ void VectorDirections()
     TPZFNMatrix<3*3*27> directions(3,numvectors-numnormalvectors,0.);
     TPZFNMatrix<3*3*27> directionsAll(3,numvectors,0.);
     TPZManVector<int> sidevectors(numvectors-numnormalvectors);
-    REAL detjac = 1.0;
+   
 //    tshape::ComputeDirections(numsides-1, gradx, directions, sidevectors);
 //    // Nao tem que usar esse metodo?
 //    tshape::ComputeDirections(gradx, detjac, directionsAll);
-    tshape::ComputeDirections(numsides-1, gradx, directions, sidevectors);
-    tshape::ComputeDirections(gradx, detjac, directionsAll);
+
+//    tshape::ComputeDirections(numsides-1, gradx, directions, sidevectors);
+    tshape::ComputeHDivDirections(gradx, directionsAll);
+
 
     // copia dos vetroes internos por face
     int numintvec = numvectors-numnormalvectors;

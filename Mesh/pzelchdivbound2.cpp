@@ -566,14 +566,10 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     FirstShapeIndex(FirstIndex);
    
     REAL detjac;
-    if (HDivPiola == 1) {
+    {
         int dim = gel->SideDimension(side);
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gel->Jacobian(point, jac, axes, detjac, jacinv);
-    }
-    else
-    {
-        detjac = 1.;
     }
 
 

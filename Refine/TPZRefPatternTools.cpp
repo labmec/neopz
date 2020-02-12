@@ -10,6 +10,8 @@
 
 #include "TPZRefPatternTools.h"
 #include "TPZVTKGeoMesh.h"
+#include "TPZRefPattern.h"
+#include "TPZRefPatternDataBase.h"
 
 using namespace std;
 
@@ -848,7 +850,7 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZRefPattern &refp)
 	
 	if(refpTypeName.length() == 0)
 	{
-		refpTypeName = nonInitializedName;
+		refpTypeName = TPZRefPattern::fNonInitializedName;
 	}
 	
 	return refpTypeName;
@@ -889,7 +891,7 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZAutoPointer<TPZRefPa
 	
 	if(refpTypeName.length() == 0)
 	{
-		refpTypeName = nonInitializedName;
+		refpTypeName = TPZRefPattern::fNonInitializedName;
 	}
 	
 	return refpTypeName;
@@ -928,7 +930,7 @@ std::string TPZRefPatternTools::BuildRefPatternModelName(TPZGeoEl *gel)
 	
 	if(refpTypeName.length() == 0)
 	{
-		refpTypeName = nonInitializedName;
+		refpTypeName = TPZRefPattern::fNonInitializedName;
 	}
 	
 	return refpTypeName;

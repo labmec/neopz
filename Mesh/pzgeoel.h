@@ -74,10 +74,18 @@ public:
     TPZGeoEl * EldestAncestor() const;
     
     /** Returns the directions of this geoel */
-    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
+//    virtual void Directions(int side,TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides)  = 0;
+    
+    /** Returns the directions of master element */
+    virtual void HDivDirectionsMaster(TPZFMatrix<REAL> &directions) = 0;
     
     /** Returns the directions of this geoel */
-    virtual void Directions(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
+
+#ifdef _AUTODIFF
+    /** Returns the directions of this geoel */
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
+#endif
     
     /** Returns the eldest ancestor of this geoel */
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<REAL> &trans) = 0;
@@ -98,7 +106,14 @@ public:
 		this->fNumInterfaces--;
 		return this->fNumInterfaces;
 	}
-	
+
+	/**
+	 * This method gets the ith valid permutation of its topology
+	 * @param i number of the permutation to get
+	 * @param permutation vector contained the permuted sides
+	 */
+	virtual void GetPermutation(const int& i, TPZVec<int> &permutation) const = 0;
+
 	/**
 	 * @brief Creates an integration rule for the topology of the corresponding side
 	 * and able to integrate a polynom of order exactly
@@ -212,6 +227,12 @@ public:
 	
 	/** @brief Returns the number of corner nodes of the element*/
 	virtual int NCornerNodes() const = 0;
+
+    /**
+     * Get the number of valid permutations among the element nodes
+     * @return
+     */
+    virtual int NPermutations() const = 0;
 	
 	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) const;
@@ -278,7 +299,7 @@ public:
 	/**
 	 * THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns \n
 	 * whereas the former is not
-	 */
+	 *///@TODOFran: this method should be removed, as it is misleading. there is only one midsidenode allowed
 	virtual void MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
@@ -307,7 +328,7 @@ public:
 	virtual int NSideSubElements(int side) const = 0;
 	
 	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
-	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
+//    virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
 	
 	/** @brief Returns a pointer to the father*/
 	TPZGeoEl *Father() const;
@@ -459,11 +480,14 @@ public:
 	/** @brief Sets the father element*/
 	void SetFather(TPZGeoEl *father)
 	{
-		fFatherIndex = father->Index();
+	    if(!father) fFatherIndex = -1;
+		else  fFatherIndex = father->Index();
 	}
-	
-	/** @brief Sets the father element index*/
-	virtual void SetFather(int64_t fatherindex)
+
+	/** @brief Sets the father element index
+	 * This method is not called SetFather in order to avoid implicit conversions from nullptr to int
+	 * */
+	virtual void SetFatherIndex(int64_t fatherindex)
 	{
 		fFatherIndex = fatherindex;
 	}
@@ -493,7 +517,7 @@ public:
 	/** @brief Reset all subelements to NULL*/
 	virtual void ResetSubElements()=0;
 
-	/** @brief Returns the number of fathers that can be followed*/
+	/** @brief Returns the number of ancestors */
 	int Level();
 	
 	/** @brief Return the dimension of side*/
@@ -572,9 +596,13 @@ public:
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
     
     /**
-     * @brief This method will return all siblings from the element. The siblings have no subelements
+     * @brief [deprecated] use YoungestChildren
      */
     virtual void GetAllSiblings(TPZStack<TPZGeoEl*> &unrefinedSons);
+    /**
+     * @brief This method will return all children at the bottom of the refinement tree of the element. i.e. all children that have no subelements
+     */
+    virtual void YoungestChildren(TPZStack<TPZGeoEl*> &unrefinedSons);
 	
 	/**
 	 * @brief This method will return a partition of the side of the current element \n
@@ -638,10 +666,10 @@ public:
 	 * and then permuted according to the node id's
 	 */
 	/** This method will accumulate the normals for all the sides */
-	void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
     
     /// Computation of NormalVectors for curvilinear elements
-    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormalsDG(TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
     
     
 	virtual REAL CharacteristicSize();
@@ -654,8 +682,8 @@ public:
 	 * the normal vectors are initially ordered \n according to the return of LowerDimensionSides
 	 * and then permuted according to the node id's
 	 */
-	void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
-	void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormals(int side, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
+//    void ComputeNormalsDG(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
 	/**
 	 * @brief Compute the permutation needed to order the normal vectors in a consistent way
 	 * \f$ normal(indexfrom[i]) = normal(i) \f$

@@ -231,7 +231,7 @@ namespace pzrefine {
 			TPZGeoEl *t3sub = geo->CreateGeoElement(ETetraedro,cornerindexes,matid,index);
 			geo->SetSubElement(i,t3sub);
 			t3sub->SetFather(geo);
-			t3sub->SetFather(geo->Index());
+			t3sub->SetFatherIndex(geo->Index());
 			SubElVec[i] = t3sub;
 		}
 		for (;i<6;i++){
@@ -241,7 +241,7 @@ namespace pzrefine {
 			TPZGeoEl *pi3sub = geo->CreateGeoElement(EPiramide,cornerindexes,matid,index);
 			geo->SetSubElement(i,pi3sub);
 			pi3sub->SetFather(geo);
-			pi3sub->SetFather(geo->Index());
+			pi3sub->SetFatherIndex(geo->Index());
 			SubElVec[i] = pi3sub;
 		}
 		for(i=0;i<NSubEl;i++) {//conectividades entre os filhos : viz interna

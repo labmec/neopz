@@ -167,8 +167,8 @@ int ClassId() const override;
 	TPZCompMesh *Reference() const {return fReference;}
 	
 	/** @brief Print the information of the grid to an ostream */
-	virtual void Print(std::ostream & out = std::cout);
-	virtual void PrintTopologicalInfo(std::ostream & out = std::cout);
+	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void PrintTopologicalInfo(std::ostream & out = std::cout) const;
 	
     /** @brief Returns the nearest node to the coordinate. This method is VERY INEFFICIENT */
 	TPZGeoNode* FindNode(TPZVec<REAL> &co);
@@ -223,7 +223,17 @@ int ClassId() const override;
 	/** @brief Returns the index of the given node into the fNodeVec */
 	/** @since 2002-05-02 (Cesar) */
 	int64_t NodeIndex(TPZGeoNode * nod);
-	
+
+    /**
+     * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
+     * the modification of the element type all through the code
+     * @param type element topology
+     * @param nodeindexes indexes of the corner nodes of the element
+     * @param matid material id
+     * @param index index of the element in the vector of element pointers
+     */
+	virtual TPZGeoEl *CreateGeoElementMapped(MElementType type, TPZVec<int64_t>& nodeindexes, int matid, int64_t& index);
+
 	/**
 	 * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
 	 * the modification of the element type all through the code

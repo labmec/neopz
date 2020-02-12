@@ -201,7 +201,7 @@ int64_t  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
             TPZGeoEl *gelson = orgel->SubElement(j);
             CloneElement(gelson);
             fMapElements[gelson]->SetFather(el);
-            fMapElements[gelson]->SetFather(el->Index());
+            fMapElements[gelson]->SetFatherIndex(el->Index());
             el->SetSubElement(j,fMapElements[gelson]);
         }
     }

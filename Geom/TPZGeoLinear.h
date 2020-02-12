@@ -30,7 +30,7 @@ namespace pzgeom
     class TPZGeoLinear : public TPZNodeRep<2, pztopology::TPZLine> {
         
     public:
-        
+        typedef pztopology::TPZLine Top;
         /** @brief Number of corner nodes */
         enum {NNodes = 2};
         
@@ -71,40 +71,6 @@ namespace pzgeom
         /** @brief Returns the type name of the element */
         static std::string TypeName() { return "Linear";}
         
-        /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
-        static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-            TShape(loc, phi, dphi);
-        }
-        
-        /* @brief Compute X mapping from local parametric coordinates */
-        template<class T>
-        void X(const TPZGeoEl &gel,TPZVec<T> &loc,TPZVec<T> &x) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-            X(coord,loc,x);
-        }
-        
-        /** @brief Compute gradient of X mapping from local parametric coordinates */
-        template<class T>
-        void GradX(const TPZGeoEl &gel, TPZVec<T> &loc, TPZFMatrix<T> &gradx) const
-        {
-            TPZFNMatrix<3*NNodes> coord(3,NNodes);
-            CornerCoordinates(gel, coord);
-//            int nrow = coord.Rows();
-//            int ncol = coord.Cols();
-//            TPZFMatrix<T> nodes(nrow,ncol);
-//            for(int i = 0; i < nrow; i++)
-//            {
-//                for(int j = 0; j < ncol; j++)
-//                {
-//                    nodes(i,j) = coord(i,j);
-//                }
-//            }
-            
-            GradX(coord,loc,gradx);
-        }
-        
         /** @brief Compute X mapping from element nodes and local parametric coordinates */
         template<class T>
         static void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x);
@@ -112,21 +78,18 @@ namespace pzgeom
         /** @brief Compute gradient of X mapping from element nodes and local parametric coordinates */
         template<class T>
         static void GradX(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc, TPZFMatrix<T> &gradx);
-        
-        /** @brief Compute the shape being used to construct the x mapping from local parametric coordinates  */
-        template<class T>
-        static void TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi);
+
         
         /** @brief Compute the jacoabina associated to the x mapping from local parametric coordinates  */
         static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
                              TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
         
-        /**
-         * @brief Method which creates a geometric boundary condition
-         * element based on the current geometric element, \n
-         * a side and a boundary condition number
-         */
-        static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
+        // /**
+        //  * @brief Method which creates a geometric boundary condition
+        //  * element based on the current geometric element, \n
+        //  * a side and a boundary condition number
+        //  */
+        // static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
         
         public:
         int ClassId() const override;
@@ -143,22 +106,14 @@ namespace pzgeom
         static void InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner, TPZVec<REAL> &size);
         
         /** @brief Creates a geometric element according to the type of the father element */
-        static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh,
-                                          MElementType type,
-                                          TPZVec<int64_t>& nodeindexes,
-                                          int matid,
-                                          int64_t& index);
+        // static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh,
+        //                                   MElementType type,
+        //                                   TPZVec<int64_t>& nodeindexes,
+        //                                   int matid,
+        //                                   int64_t& index);
         
     };
-    
-    template<class T>
-    inline void TPZGeoLinear::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
-        T x = loc[0];
-        phi(0,0) = (1.0-x)/2.;
-        phi(1,0) = (1.0+x)/2.;
-        dphi(0,0) = -0.5;
-        dphi(0,1) = 0.5;
-    }
+
     
     template<class T>
     inline void TPZGeoLinear::X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &x){
