@@ -145,7 +145,15 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    UpdateBCValues(datavec[0].x);
+
+    int nx = datavec[0].x.NElements();
+    if(nx==0){
+       UpdateBCValues(datavec[1].x);
+    }
+    else{
+        UpdateBCValues(datavec[0].x);
+    }
+    
 	this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
 }
 //----

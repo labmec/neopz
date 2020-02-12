@@ -11,6 +11,7 @@
 #include "pzreal.h"
 #include "pzadmchunk.h"
 #include "tpzintpoints.h"
+#include "pzpoisson3d.h"
 
 #include "pzlog.h"
 
@@ -151,6 +152,38 @@ void TPZNullMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 }
 
 void TPZNullMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    
+    TPZFMatrix<REAL>  &phi = data.phi;
+        TPZFMatrix<REAL> &axes = data.axes;
+        int phr = phi.Rows(); 
+        short in,jn;
+        STATE v2[1];
+        v2[0] = bc.Val2()(0,0);
+        
+        if(bc.HasForcingFunction()) {
+            TPZManVector<STATE,1> res(1);
+            bc.ForcingFunction()->Execute(data.x,res);
+            v2[0] = res[0];
+        }
+
+        switch (bc.Type()) {
+            case 0 :            // Dirichlet condition
+                for(in = 0 ; in < phr; in++) {
+                    ef(in,0) += (STATE)(gBigNumber* phi(in,0) * weight) * v2[0];
+                    for (jn = 0 ; jn < phr; jn++) {
+                        ek(in,jn) += gBigNumber * phi(in,0) * phi(jn,0) * weight;
+                    }
+                }
+                break;
+            case 1 :            // Neumann condition
+                std::cout<< "Not implemented yet!"<<std::endl;
+                break;
+            case 2 :        // mixed condition
+                std::cout<< "Not implemented yet!"<<std::endl;
+                break;
+            
+        }
+        
 
     
 }

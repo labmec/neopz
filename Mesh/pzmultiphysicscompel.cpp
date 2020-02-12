@@ -745,7 +745,6 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
         
-        
         material->Contribute(datavec,weight,ek.fMat,ef.fMat);
     }//loop over integration points
     

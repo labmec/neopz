@@ -135,6 +135,8 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //    }
 //#endif
     
+    
+    
     STATE force = ff;
     if(fForcingFunction) {
 		TPZManVector<STATE> res(1);
@@ -563,6 +565,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	}
 #endif
     
+    
     int dim = Dimension();
 	
 	TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
@@ -871,7 +874,7 @@ void TPZMixedPoisson::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 		datavec[i].SetAllRequirements(false);
 		datavec[i].fNeedsNeighborSol = false;
 		datavec[i].fNeedsNeighborCenter = false;
-		datavec[i].fNeedsNormal = false;
+		datavec[i].fNeedsNormal = true;
         datavec[i].fNeedsHSize = true;
 	}
 }
