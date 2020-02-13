@@ -945,9 +945,9 @@ void TPZRefPattern::ComputePartition(){
             const int nodeIndex = fatherEl->SideNodeIndex(iSide,iNode);
             cornerNodeStack.push_back(nodeIndex);
         }
-        for(uint iSubEl = 0; iSubEl < NSubElements(); iSubEl++){
+        for(auto iSubEl = 0; iSubEl < NSubElements(); iSubEl++){
             TPZGeoEl *subEl = Element(iSubEl+1);
-            for(uint iSubElSide = 0; iSubElSide < subEl->NSides(); iSubElSide ++){
+            for(auto iSubElSide = 0; iSubElSide < subEl->NSides(); iSubElSide ++){
                 int fatherSide = FatherSide(iSubElSide,iSubEl);
                 if(fatherSide == iSide){
                     TPZGeoElSide geoElSideCandidate(subEl,iSubElSide);
@@ -990,11 +990,11 @@ void TPZRefPattern::ComputePartition(){
             }
         }
         fFatherSideInfo[iSide].fSideNodes.Resize(internalNodesStack.size());
-        for(uint iNode = 0; iNode < internalNodesStack.size(); iNode++){
+        for(auto iNode = 0; iNode < internalNodesStack.size(); iNode++){
             fFatherSideInfo[iSide].fSideNodes[iNode] = internalNodesStack[iNode];
         }
         fFatherSideInfo[iSide].fSideSons.Resize(sideSonsStack.size());
-        for(uint iSubEl = 0; iSubEl < sideSonsStack.size(); iSubEl++){
+        for(auto iSubEl = 0; iSubEl < sideSonsStack.size(); iSubEl++){
             fFatherSideInfo[iSide].fSideSons[iSubEl] = sideSonsStack[iSubEl];
         }
     }
