@@ -326,7 +326,7 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             ishapeindex = datavec[qb].fVecShapeIndex[iq].second;
             
             for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = datavec[qb].fNormalVec(k,ivectorindex);
+                VectorOnXYZ(k,0) = datavec[qb].fDeformedDirections(k,ivectorindex);
             }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
@@ -354,7 +354,7 @@ void TRMMultiphase::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             
             /* Computing the divergence for constant jacobian elements */
             for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  datavec[qb].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+                DivergenceofPhi(iq,0) +=  datavec[qb].fDeformedDirections(k,ivectorindex)*GradphiuH1(k,ishapeindex);
             }
         }
     }
@@ -590,7 +590,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         REAL Kl_inv_dot_q = 0.0, Kl_dp_inv_dot_q = 0.0, rho_g_dot_phi_q = 0.0, rho_dp_g_dot_phi_q = 0.0;
         for (int i = 0; i < q.size(); i++) {
-            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             Kl_inv_dot_q        += lambda_K_inv_q(i,0)*phi_q_i(i,0);
             Kl_dp_inv_dot_q     += lambda_dp_K_inv_q(i,0)*phi_q_i(i,0);
             rho_g_dot_phi_q     += rho[0]*Gravity[i]*phi_q_i(i,0);
@@ -607,7 +607,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             REAL Kl_inv_phi_q_j_dot_phi_q_j = 0.0;
             for (int j = 0; j < q.size(); j++) {
-                phi_q_j(j,0) = phi_qs(s_j,0) * datavec[qb].fNormalVec(j,v_j);
+                phi_q_j(j,0) = phi_qs(s_j,0) * datavec[qb].fDeformedDirections(j,v_j);
                 STATE dot = 0.0;
                 for (int k = 0; k < q.size(); k++) {
                     dot += (1.0/l[0]) * Kinv(j,k)*phi_q_j(k,0);
@@ -806,7 +806,7 @@ void TRMMultiphase::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         STATE Kl_inv_dot_q = 0.0, rho_g_dot_phi_q = 0.0;
         for (int i = 0; i < q.size(); i++) {
-            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             Kl_inv_dot_q += lambda_K_inv_q(i,0)*phi_q_i(i,0);
             rho_g_dot_phi_q += rho[0]*Gravity[i]*phi_q_i(i,0);
         }
@@ -1146,7 +1146,7 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         REAL Kl_inv_dot_u = 0.0, Kl_dp_inv_dot_u = 0.0, Kl_ds_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0, rho_dp_g_dot_phi_u = 0.0, rho_ds_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_ds_inv_dot_u     += lambda_ds_K_inv_u(i,0)*phi_u_i(i,0);
@@ -1165,7 +1165,7 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
             
             REAL Kl_inv_phi_u_j_dot_phi_u_i = 0.0;
             for (int j = 0; j < u.size(); j++) {
-                phi_u_j(j,0) = phi_us(s_j,0) * datavec[qb].fNormalVec(j,v_j);
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[qb].fDeformedDirections(j,v_j);
                 REAL dot = 0.0;
                 for (int k = 0; k < u.size(); k++) {
                     dot += (1.0/l[0]) * Kinv(j,k)*phi_u_j(k,0);
@@ -1348,7 +1348,7 @@ void TRMMultiphase::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             rho_g_dot_phi_u += (s*rho_a[0]+(1.0-s)*rho_b[0])*Gravity[i]*phi_u_i(i,0);
         }
@@ -1600,7 +1600,7 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
 //                    s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //                    
 //                    for (int j = 0; j < u_l.size(); j++) {
-//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                        phi_un_l += phi_u_i_l(j,0)*n[j];
 //                    }
 //                    
@@ -1677,7 +1677,7 @@ void TRMMultiphase::ContributeBCInterface_ab(TPZMaterialData &data, TPZVec<TPZMa
 //                    s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //                    
 //                    for (int j = 0; j < u_l.size(); j++) {
-//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                        phi_un_l += phi_u_i_l(j,0)*n[j];
 //                    }
 //                    
@@ -1856,7 +1856,7 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
 //            s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //            
 //            for (int j = 0; j < u_l.size(); j++) {
-//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                phi_un_l += phi_u_i_l(j,0)*n[j];
 //            }
 //            
@@ -1891,7 +1891,7 @@ void TRMMultiphase::ContributeInterface_ab(TPZMaterialData &data, TPZVec<TPZMate
 //            s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //            
 //            for (int j = 0; j < u_l.size(); j++) {
-//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                phi_un_l += phi_u_i_l(j,0)*n[j];
 //            }
 //
@@ -2181,7 +2181,7 @@ void TRMMultiphase::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         
         STATE Kl_inv_dot_u = 0.0, Kl_dp_inv_dot_u = 0.0, Kl_dsa_inv_dot_u = 0.0, Kl_dsb_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0, rho_dp_g_dot_phi_u = 0.0, rho_dsa_g_dot_phi_u = 0.0, rho_dsb_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dsa_inv_dot_u    += lambda_dsa_K_inv_u(i,0)*phi_u_i(i,0);
@@ -2202,7 +2202,7 @@ void TRMMultiphase::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
             
             STATE Kl_inv_phi_u_j_dot_phi_u_i = 0.0;
             for (int j = 0; j < u.size(); j++) {
-                phi_u_j(j,0) = phi_us(s_j,0) * datavec[qb].fNormalVec(j,v_j);
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[qb].fDeformedDirections(j,v_j);
                 STATE dot = 0.0;
                 for (int k = 0; k < u.size(); k++) {
                     dot += (1.0/l[0]) * Kinv(j,k)*phi_u_j(k,0);
@@ -2543,7 +2543,7 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
 //                    s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //                    
 //                    for (int j = 0; j < u_l.size(); j++) {
-//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                        phi_un_l += phi_u_i_l(j,0)*n[j];
 //                    }
 //                    
@@ -2567,7 +2567,7 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
 //                    s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //                    
 //                    for (int j = 0; j < u_l.size(); j++) {
-//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                        phi_un_l += phi_u_i_l(j,0)*n[j];
 //                    }
 //                    
@@ -2666,7 +2666,7 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
 //                    s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //                    
 //                    for (int j = 0; j < u_l.size(); j++) {
-//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                        phi_un_l += phi_u_i_l(j,0)*n[j];
 //                    }
 //                    
@@ -2686,7 +2686,7 @@ void TRMMultiphase::ContributeBCInterface_abc(TPZMaterialData &data, TPZVec<TPZM
 //                    s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //                    
 //                    for (int j = 0; j < u_l.size(); j++) {
-//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                        phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                        phi_un_l += phi_u_i_l(j,0)*n[j];
 //                    }
 //                    
@@ -2907,7 +2907,7 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 //            s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //            
 //            for (int j = 0; j < u_l.size(); j++) {
-//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                phi_un_l += phi_u_i_l(j,0)*n[j];
 //            }
 //            
@@ -2950,7 +2950,7 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 //            s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //            
 //            for (int j = 0; j < u_l.size(); j++) {
-//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                phi_un_l += phi_u_i_l(j,0)*n[j];
 //            }
 //            
@@ -2993,7 +2993,7 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 //            s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //            
 //            for (int j = 0; j < u_l.size(); j++) {
-//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                phi_un_l += phi_u_i_l(j,0)*n[j];
 //            }
 //            
@@ -3036,7 +3036,7 @@ void TRMMultiphase::ContributeInterface_abc(TPZMaterialData &data, TPZVec<TPZMat
 //            s_j = datavecleft[qb].fVecShapeIndex[ju].second;
 //            
 //            for (int j = 0; j < u_l.size(); j++) {
-//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fNormalVec(j,v_j);
+//                phi_u_i_l(j,0) = phi_us_l(s_j,0) * datavecleft[qb].fDeformedDirections(j,v_j);
 //                phi_un_l += phi_u_i_l(j,0)*n[j];
 //            }
 //            

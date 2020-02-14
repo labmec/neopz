@@ -180,9 +180,9 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 {
                     int jvecind = datavec[1].fVecShapeIndex[jq].first;
                     int jshapeind = datavec[1].fVecShapeIndex[jq].second;
-                    REAL prod = datavec[1].fNormalVec(0,ivecind)*datavec[1].fNormalVec(0,jvecind)+
-                    datavec[1].fNormalVec(1,ivecind)*datavec[1].fNormalVec(1,jvecind)+
-                    datavec[1].fNormalVec(2,ivecind)*datavec[1].fNormalVec(2,jvecind);//dot product between u and v
+                    REAL prod = datavec[1].fDeformedDirections(0,ivecind)*datavec[1].fDeformedDirections(0,jvecind)+
+                    datavec[1].fDeformedDirections(1,ivecind)*datavec[1].fDeformedDirections(1,jvecind)+
+                    datavec[1].fDeformedDirections(2,ivecind)*datavec[1].fDeformedDirections(2,jvecind);//dot product between u and v
                     ek(iq+phrS,jq+phrS) += ratiok*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
                 }
             }
@@ -194,9 +194,9 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
                 int ishapeind = datavec[1].fVecShapeIndex[iq].second;
                 
                 TPZFNMatrix<3> ivec(3,1);
-                ivec(0,0) = datavec[1].fNormalVec(0,ivecind);
-                ivec(1,0) = datavec[1].fNormalVec(1,ivecind);
-                ivec(2,0) = datavec[1].fNormalVec(2,ivecind);
+                ivec(0,0) = datavec[1].fDeformedDirections(0,ivecind);
+                ivec(1,0) = datavec[1].fDeformedDirections(1,ivecind);
+                ivec(2,0) = datavec[1].fDeformedDirections(2,ivecind);
                 TPZFNMatrix<3> axesvec(3,1);
                 datavec[1].axes.Multiply(ivec,axesvec);
                 

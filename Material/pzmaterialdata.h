@@ -43,7 +43,7 @@ public:
     MShapeFunctionType fShapeType;
     /** @name Flags indicating whether some attributes shall be computed or not */
     /** @{ */
-    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false, fNeedsNormalVecFad = false;
+    bool fNeedsSol = false, fNeedsNeighborSol = false, fNeedsHSize = false, fNeedsNeighborCenter = false, fNeedsDeformedDirectionsFad = false;
     bool fNeedsNormal = false;
     bool fActiveApproxSpace = true;
     /** @} */
@@ -57,8 +57,10 @@ public:
     TPZFNMatrix<660, REAL> dphi;
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
-    /// values of the divergence of the shapefunctions in the mapped element (only applicable to H(div)) spaces
+    /// values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)
     TPZFNMatrix<220, REAL> divphi;
+    /// values of the curl of the shape functions in the mapped element (only applicable to H(curl) spaces)
+    TPZFNMatrix<220, REAL> curlphi;
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;
     /// value of the jacobian at the integration point
@@ -79,6 +81,8 @@ public:
     TPZGradSolVec dsol;
     /// vector of the divergence of the solution at the integration point (only of hdiv spaces)
     TPZSolVec divsol;
+    /// vector of the curl of the solution at the integration point (only of hcurl spaces)
+    TPZSolVec curlsol;
     /// measure of the size of the element
     REAL HSize;
     /// determinant of the jacobian
@@ -86,7 +90,7 @@ public:
     /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
     /// Directions on the master element
-    TPZFNMatrix<180> fDirectionsOnMaster;
+    TPZFNMatrix<180> fMasterDirections;
     
     
     /// number of dual function (e.g. pressure in HDiv approximations)
@@ -95,15 +99,15 @@ public:
     //Id of associated geo element
     int gelElId;
     
-    /// correspondence between normal vector index and index of the shape functions
+    /// correspondence between direction vector index and index of the shape functions
     TPZManVector<std::pair<int,int64_t> > fVecShapeIndex;
-    /// list of normal vectors
-    TPZFNMatrix<180> fNormalVec;
+    /// Directions on the deformed element
+    TPZFNMatrix<180> fDeformedDirections;
     /** @} */
     
 #ifdef _AUTODIFF
-    /// list of normal vectors using Fad
-    TPZFNMatrix<180,Fad<REAL>> fNormalVecFad;
+    /// Directions on the deformed element using Fad
+    TPZFNMatrix<180,Fad<REAL>> fDeformedDirectionsFad;
     /** @} */
 #endif
     

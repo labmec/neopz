@@ -1801,8 +1801,13 @@ namespace pztopology {
         //faces                    15,16,    17,   18,19
         constexpr REAL faceArea[nFaces]{0.5,2,2*M_SQRT2,2,0.5};
         TPZManVector<REAL,nEdges> edgeSign(nEdges,0);
+        TPZManVector<REAL,nFaces>  faceOrient(nFaces,0);
+
         for(auto iEdge = 0; iEdge < nEdges; iEdge++){
             edgeSign[iEdge] = transformationIds[iEdge] == 0 ? 1 : -1;
+        }
+        for(auto iFace = 0; iFace < nFaces; iFace++){
+            faceOrient[iFace] = transformationIds[nEdges + iFace] % 2 == 0 ? 1 : -1;
         }
         for (int i=0; i<3; i++) {
             //v^{e,a} constant vector fields associated with edge e and vertex a
@@ -1831,43 +1836,43 @@ namespace pztopology {
             directions(i, 17) = (-v2[i]) * edgeSign[8] / edgeLength[8];//edge 14 vertex 3
 
             //v^{e,T} constant vector fields associated with edge e and aligned with it
-            directions(i, 18) = (v1[i]) * edgeSign[0] / edgeLength[0];//edge 6
+            directions(i, 18) = (v1[i]+0.5*v2[i]) * edgeSign[0] / edgeLength[0];//edge 6
             directions(i, 19) = ((v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[1] / edgeLength[1];//edge 7
-            directions(i, 20) = (-v2[i]) * edgeSign[2] / edgeLength[2];//edge 8
+            directions(i, 20) = (-0.5*v1[i]-v2[i]) * edgeSign[2] / edgeLength[2];//edge 8
 
             directions(i, 21) = v3[i] * edgeSign[3] / edgeLength[3];//edge 9
             directions(i, 22) = v3[i] * edgeSign[4] / edgeLength[4];//edge 10
             directions(i, 23) = v3[i] * edgeSign[5] / edgeLength[5];//edge 11
 
-            directions(i, 24) = (v1[i]) * edgeSign[6] / edgeLength[6];//edge 12
+            directions(i, 24) = (v1[i]+0.5*v2[i]) * edgeSign[6] / edgeLength[6];//edge 12
             directions(i, 25) = ((v2[i] - v1[i]) * M_SQRT1_2) * edgeSign[7] / edgeLength[7];//edge 13
-            directions(i, 26) = (-v2[i]) * edgeSign[8] / edgeLength[8];//edge 14
+            directions(i, 26) = (-0.5*v1[i]-v2[i]) * edgeSign[8] / edgeLength[8];//edge 14
 
             //v^{F,e} constant vector fields associated with face F and edge e
             //they are defined in such a way that v^{F,e} is normal to the face \hat{F}
             //adjacent to face F by edge e
-            directions(i, 27) = v2[i] * edgeSign[6 - NCornerNodes] / faceArea[0];//face 15 edge 6
-            directions(i, 28) = -1 * (v1[i] + v2[i]) * M_SQRT1_2 * edgeSign[7 - NCornerNodes] / faceArea[0];//face 15 edge 7
-            directions(i, 29) = v1[i] * edgeSign[8 - NCornerNodes] / faceArea[0];//face 15 edge 8
+            directions(i, 27) = faceOrient[0] * edgeSign[6 - NCornerNodes] * v2[i]  / faceArea[0];//face 15 edge 6
+            directions(i, 28) = faceOrient[0] * edgeSign[7 - NCornerNodes] * -1 * (v1[i] + v2[i])  / faceArea[0];//face 15 edge 7
+            directions(i, 29) = faceOrient[0] * edgeSign[8 - NCornerNodes] * v1[i]  / faceArea[0];//face 15 edge 8
 
-            directions(i, 30) =  0.5 * v3[i]* edgeSign[6 - NCornerNodes] / faceArea[1];//face 16 edge 6
-            directions(i, 31) =  -1 * (v1[i]+v2[i])* edgeSign[10 - NCornerNodes] / faceArea[1];//face 16 edge 10
-            directions(i, 32) =  0.5 * v3[i]* edgeSign[12 - NCornerNodes] / faceArea[1];;//face 16 edge 12
-            directions(i, 33) =  -v1[i]* edgeSign[9 - NCornerNodes] / faceArea[1];//face 16 edge 9
+            directions(i, 30) = faceOrient[1] * edgeSign[6 - NCornerNodes] *  0.5 * v3[i] / faceArea[1];//face 16 edge 6
+            directions(i, 31) = faceOrient[1] * edgeSign[10 - NCornerNodes] *  -1 * (v1[i]+v2[i]) / faceArea[1];//face 16 edge 10
+            directions(i, 32) = faceOrient[1] * edgeSign[12 - NCornerNodes] *  0.5 * v3[i] / faceArea[1];;//face 16 edge 12
+            directions(i, 33) = faceOrient[1] * edgeSign[9 - NCornerNodes] *  -v1[i] / faceArea[1];//face 16 edge 9
 
-            directions(i, 34) =  M_SQRT1_2 * v3[i]* edgeSign[7 - NCornerNodes] / faceArea[2];//face 17 edge 7
-            directions(i, 35) =  M_SQRT2 * v1[i]* edgeSign[11 - NCornerNodes] / faceArea[2];//face 17 edge 11
-            directions(i, 36) =  M_SQRT1_2 * v3[i]* edgeSign[13 - NCornerNodes] / faceArea[2];//face 17 edge 13
-            directions(i, 37) =  -M_SQRT2 * v2[i]* edgeSign[10 - NCornerNodes] / faceArea[2];//face 17 edge 10
+            directions(i, 34) = faceOrient[2] * edgeSign[7 - NCornerNodes] *  M_SQRT1_2 * v3[i] / faceArea[2];//face 17 edge 7
+            directions(i, 35) = faceOrient[2] * edgeSign[11 - NCornerNodes] *  M_SQRT2 * v1[i] / faceArea[2];//face 17 edge 11
+            directions(i, 36) = faceOrient[2] * edgeSign[13 - NCornerNodes] *  M_SQRT1_2 * v3[i] / faceArea[2];//face 17 edge 13
+            directions(i, 37) = faceOrient[2] * edgeSign[10 - NCornerNodes] *  -M_SQRT2 * v2[i] / faceArea[2];//face 17 edge 10
 
-            directions(i, 38) = -0.5 * v3[i]* edgeSign[8 - NCornerNodes] / faceArea[3];//face 18 edge 8
-            directions(i, 39) =  -1 * (v1[i] + v2[i])* edgeSign[11 - NCornerNodes] / faceArea[3];//face 18 edge 11
-            directions(i, 40) = -0.5 * v3[i]* edgeSign[14 - NCornerNodes] / faceArea[3];//face 18 edge 14
-            directions(i, 41) = -v2[i]* edgeSign[9 - NCornerNodes] / faceArea[3];//face 18 edge 9
+            directions(i, 38) = faceOrient[3] * edgeSign[8 - NCornerNodes] * -0.5 * v3[i] / faceArea[3];//face 18 edge 8
+            directions(i, 39) = faceOrient[3] * edgeSign[11 - NCornerNodes] *  -1 * (v1[i] + v2[i]) / faceArea[3];//face 18 edge 11
+            directions(i, 40) = faceOrient[3] * edgeSign[14 - NCornerNodes] * -0.5 * v3[i] / faceArea[3];//face 18 edge 14
+            directions(i, 41) = faceOrient[3] * edgeSign[9 - NCornerNodes] * -v2[i] / faceArea[3];//face 18 edge 9
 
-            directions(i, 42) = v2[i] * edgeSign[12 - NCornerNodes] / faceArea[4];//face 19 edge 12
-            directions(i, 43) = -1 * (v1[i] + v2[i] ) * M_SQRT1_2 * edgeSign[13 - NCornerNodes] / faceArea[4];//face 19 edge 13
-            directions(i, 44) = v1[i] * edgeSign[14 - NCornerNodes] / faceArea[4];//face 19 edge 14
+            directions(i, 42) = faceOrient[4] * edgeSign[12 - NCornerNodes] * v2[i]  / faceArea[4];//face 19 edge 12
+            directions(i, 43) = faceOrient[4] * edgeSign[13 - NCornerNodes] * -1 * (v1[i] + v2[i] )  / faceArea[4];//face 19 edge 13
+            directions(i, 44) = faceOrient[4] * edgeSign[14 - NCornerNodes] * v1[i]  / faceArea[4];//face 19 edge 14
 
             //v^{F,T} are calculated afterwards
 

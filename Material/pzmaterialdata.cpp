@@ -21,7 +21,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
     this->SetAllRequirements(false);
-    this->fNeedsNormalVecFad = false;
+    this->fNeedsDeformedDirectionsFad = false;
     this->intLocPtIndex = -1;
     this->intGlobPtIndex = -1;
     this->NintPts = -1;
@@ -32,9 +32,9 @@ TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassI
     this->detjac = 0.;
     this->numberdualfunctions = 0;
     this->gelElId = -1;
-    this->fDirectionsOnMaster = 0;
+    this->fMasterDirections = 0;
 #ifdef _AUTODIFF
-    this->fNormalVecFad = 0;
+    this->fDeformedDirectionsFad = 0;
 #endif
 }
 
@@ -51,11 +51,12 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fNeedsHSize = cp.fNeedsHSize;
     this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter;
     this->fNeedsNormal = cp.fNeedsNormal;
-    this->fNeedsNormalVecFad = cp.fNeedsNormalVecFad;
+    this->fNeedsDeformedDirectionsFad = cp.fNeedsDeformedDirectionsFad;
     this->phi = cp.phi;
     this->dphi = cp.dphi;
     this->dphix = cp.dphix;
     this->divphi = cp.divphi;
+    this->curlphi = cp.curlphi;
     this->axes = cp.axes;
     this->jacobian = cp.jacobian;
     this->jacinv = cp.jacinv;
@@ -65,17 +66,18 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->sol = cp.sol;
     this->dsol = cp.dsol;
     this->divsol = cp.divsol;
+    this->curlsol = cp.curlsol;
     this->HSize = cp.HSize;
     this->detjac = cp.detjac;
     this->intLocPtIndex = cp.intLocPtIndex;
     this->intGlobPtIndex = cp.intGlobPtIndex;
     this->NintPts = cp.NintPts;
     this->XCenter = cp.XCenter;
-    this->fDirectionsOnMaster = cp.fDirectionsOnMaster;
+    this->fMasterDirections = cp.fMasterDirections;
     this->fVecShapeIndex = cp.fVecShapeIndex;
-    this->fNormalVec = cp.fNormalVec;
+    this->fDeformedDirections = cp.fDeformedDirections;
 #ifdef _AUTODIFF
-    this->fNormalVecFad = cp.fNormalVecFad;
+    this->fDeformedDirectionsFad = cp.fDeformedDirectionsFad;
 #endif
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
@@ -124,7 +126,13 @@ bool TPZMaterialData::Compare(TPZSavable *copy, bool override)
     locres = divphi.Compare(&comp->divphi,override);
     if(!locres)
     {
-        LOGPZ_DEBUG(loggerCheck,"dphix different")
+        LOGPZ_DEBUG(loggerCheck,"divphi different")
+    }
+    result = result && locres;
+    locres = curlphi.Compare(&comp->curlphi,override);
+    if(!locres)
+    {
+        LOGPZ_DEBUG(loggerCheck,"curlphi different")
     }
     result = result && locres;
     locres = axes.Compare(&comp->axes,override);
@@ -166,6 +174,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     dphi.Print("dphi",out);
     dphix.Print("dphix",out);
     divphi.Print("div phi",out);
+    curlphi.Print("curl phi",out);
     axes.Print("axes",out);
     jacobian.Print("jacobian",out);
     jacinv.Print("jacinv",out);
@@ -179,10 +188,11 @@ void TPZMaterialData::Print(std::ostream &out) const
         
     }
     out << "divsol " << divsol << std::endl;
+    out << "curlsol " << curlsol << std::endl;
     out << "HSize " << HSize << std::endl;
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
-    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
+    out << "fMasterDirections" << fMasterDirections << std::endl;
     out << "intLocPtIndex " << intLocPtIndex << std::endl;
     out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
@@ -209,11 +219,12 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
         dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
     }
     out << "divsol = { " << divsol << "};" << std::endl;
+    out << "curlsol = { " << curlsol << "};" << std::endl;
 
     out << "HSize = " << HSize << ";" << std::endl;
     out << "detjac = " << detjac << ";" << std::endl;
     out << "XCenter = {" << XCenter << "};" << std::endl;
-    out << "fDirectionsOnMaster" << fDirectionsOnMaster << std::endl;
+    out << "fMasterDirections" << fMasterDirections << std::endl;
     out << "intLocPtIndex = " << intLocPtIndex << ";" <<std::endl;
     out << "intGlobPtIndex = " << intGlobPtIndex << ";" <<std::endl;
     out << "NintPts = " << NintPts << ";" <<std::endl;
@@ -229,6 +240,7 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
     dphi.Write(buf,0);
     dphix.Write(buf,0);
     divphi.Write(buf, 0);
+    curlphi.Write(buf, 0);
     axes.Write(buf,0);
     jacobian.Write(buf,0);
     jacinv.Write(buf,0);
@@ -252,6 +264,12 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid) const
         buf.Write(divsol[is].begin(),divsol[is].size());
     }
 
+    nsol = curlsol.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        buf.Write(curlsol[is].begin(),curlsol[is].size());
+    }
+
     buf.Write(&HSize,1);
     buf.Write(&detjac,1);
     buf.Write(XCenter.begin(),XCenter.size());
@@ -271,6 +289,7 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     dphi.Read(buf,0);
     dphix.Read(buf,0);
     divphi.Read(buf, 0);
+    curlphi.Read(buf, 0);
     axes.Read(buf,0);
     jacobian.Read(buf,0);
     jacinv.Read(buf,0);
@@ -289,6 +308,11 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
     buf.Read(&nsol,1);
     for (int is=0; is<nsol; is++) {
         buf.Read(divsol[is]);
+    }
+
+    buf.Read(&nsol,1);
+    for (int is=0; is<nsol; is++) {
+        buf.Read(curlsol[is]);
     }
 
     buf.Read(&HSize,1);
@@ -320,7 +344,7 @@ void TPZMaterialData::ComputeFluxValues(TPZFMatrix<REAL> & fluxes){
         int i_s = fVecShapeIndex[i].second;
         
         for (int j = 0; j < 3; j++) {
-            fluxes(j,i) = phi(i_s,0) * fNormalVec(j,i_v);
+            fluxes(j,i) = phi(i_s,0) * fDeformedDirections(j,i_v);
         }
     }
     
@@ -347,7 +371,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
         
         int n_dir = dphi_s.Rows();
         for (int k = 0; k < n_dir; k++) {
-            divphi(iq,0) +=  dphi(k,i_phi_s)*fDirectionsOnMaster(k,i_vec)/detjac;
+            divphi(iq,0) +=  dphi(k,i_phi_s)*fMasterDirections(k,i_vec)/detjac;
         }
     }
         

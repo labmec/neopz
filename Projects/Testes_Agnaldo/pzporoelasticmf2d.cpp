@@ -203,9 +203,9 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
             {
                 int jvecind = datavec[1].fVecShapeIndex[jq].first;
                 int jshapeind = datavec[1].fVecShapeIndex[jq].second;
-                REAL prod = datavec[1].fNormalVec(0,ivecind)*datavec[1].fNormalVec(0,jvecind)+
-                datavec[1].fNormalVec(1,ivecind)*datavec[1].fNormalVec(1,jvecind)+
-                datavec[1].fNormalVec(2,ivecind)*datavec[1].fNormalVec(2,jvecind);//dot product between u and v
+                REAL prod = datavec[1].fDeformedDirections(0,ivecind)*datavec[1].fDeformedDirections(0,jvecind)+
+                datavec[1].fDeformedDirections(1,ivecind)*datavec[1].fDeformedDirections(1,jvecind)+
+                datavec[1].fDeformedDirections(2,ivecind)*datavec[1].fDeformedDirections(2,jvecind);//dot product between u and v
                 ek(2*phru+iq,2*phru+jq) += fTimeStep*ratiomuk*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
             }
         }
@@ -251,9 +251,9 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
             int ishapeind = datavec[1].fVecShapeIndex[i].second;
             
             TPZFNMatrix<3> ivec(3,1);
-            ivec(0,0) = datavec[1].fNormalVec(0,ivecind);
-            ivec(1,0) = datavec[1].fNormalVec(1,ivecind);
-            ivec(2,0) = datavec[1].fNormalVec(2,ivecind);
+            ivec(0,0) = datavec[1].fDeformedDirections(0,ivecind);
+            ivec(1,0) = datavec[1].fDeformedDirections(1,ivecind);
+            ivec(2,0) = datavec[1].fDeformedDirections(2,ivecind);
             TPZFNMatrix<3> axesvec(3,1);
             datavec[1].axes.Multiply(ivec,axesvec);
             

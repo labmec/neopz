@@ -106,8 +106,8 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
                 // vefify that the normal component of the normal vector corresponds
                 Avecind = dataA.fVecShapeIndex[i].first;
                 Bvecind = dataB.fVecShapeIndex[j].first;
-                REAL vecnormalA = dataA.fNormalVec(0,Avecind)*normal[0]+dataA.fNormalVec(1,Avecind)*normal[1];
-                REAL vecnormalB = dataB.fNormalVec(0,Bvecind)*normal[0]+dataB.fNormalVec(1,Bvecind)*normal[1];
+                REAL vecnormalA = dataA.fDeformedDirections(0,Avecind)*normal[0]+dataA.fDeformedDirections(1,Avecind)*normal[1];
+                REAL vecnormalB = dataB.fDeformedDirections(0,Bvecind)*normal[0]+dataB.fDeformedDirections(1,Bvecind)*normal[1];
                 if(fabs(vecnormalA-vecnormalB) > 1.e-6)
                 {
                     nwrong++;

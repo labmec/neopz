@@ -432,7 +432,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	TPZGeoEl *neighel = neighbour.Element();
 	TPZManVector<int,9> normalsides;
 //    TPZFNMatrix<100,REAL> normalvec;
-	neighel->ComputeNormals(neighbour.Side(),data.fNormalVec, normalsides);
+	neighel->ComputeNormals(neighbour.Side(),data.fDeformedDirections, normalsides);
 //#ifdef LOG4CXX
 //	{
 //		std::stringstream sout;
@@ -467,7 +467,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		data.fNormalVec.Print("Normal vectors", sout);
+		data.fDeformedDirections.Print("Normal vectors", sout);
 		sout << "Vector/Shape indexes " << data.fVecShapeIndex << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}

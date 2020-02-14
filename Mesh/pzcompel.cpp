@@ -305,7 +305,8 @@ TPZConnect &TPZCompEl::Connect(int i) const{
             LOGPZ_ERROR(logger, "TPZCompEl::Connect called for noninitialized connect\n");
             Reference()->Print(cout);
             const TPZCompEl *cel = (const TPZCompEl *) this;
-            cel->Print(cout);
+            cout<<"Comp Element Index: "<<cel->Index()<<std::endl;
+            cout<<"Connect Index: "<<connectindex<<std::endl;
             DebugStop();
         }
     } else {

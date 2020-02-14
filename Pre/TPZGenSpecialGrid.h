@@ -18,9 +18,6 @@
 class TPZGenSpecialGrid {
 
 public:
-	/** Simple destructor */
-	~TPZGenSpecialGrid() {
-	}
 	
 	/** 
 	 * @brief Static function to generate a polygonal mesh approximating a sphere from a octahedron mesh (polygonal) 

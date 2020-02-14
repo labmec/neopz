@@ -382,9 +382,9 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
 						ishape=data.fVecShapeIndex[jv].second;
 						
 						TPZFNMatrix<3> ivecDiv(3,1);
-						ivecDiv(0,0) = data.fNormalVec(0,ivec);
-						ivecDiv(1,0) = data.fNormalVec(1,ivec);
-						ivecDiv(2,0) = data.fNormalVec(2,ivec);
+						ivecDiv(0,0) = data.fDeformedDirections(0,ivec);
+						ivecDiv(1,0) = data.fDeformedDirections(1,ivec);
+						ivecDiv(2,0) = data.fDeformedDirections(2,ivec);
 						TPZFNMatrix<3> axesvec(3,1);
 						data.axes.Multiply(ivecDiv,axesvec);
 						
@@ -397,7 +397,7 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
 								//	 LOGPZ_DEBUG(logger,sout.str())
 								//	 #endif
 								for (int64_t is=0; is<numbersol; is++) {
-                    data.sol[is][ilinha] += data.fNormalVec(ilinha,ivec)* data.phi(ishape,0)*MeshSol(pos+jn,is);
+                    data.sol[is][ilinha] += data.fDeformedDirections(ilinha,ivec)* data.phi(ishape,0)*MeshSol(pos+jn,is);
                     data.sol[is][nsol-1] +=  axesvec(ilinha,0)*data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
                     
                 }

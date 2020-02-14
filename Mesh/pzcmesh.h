@@ -524,6 +524,11 @@ public:
     {
         fCreate.SetAllCreateFunctionsHDiv(Dimension());
     }
+
+    void SetAllCreateFunctionsHCurl()
+    {
+        fCreate.SetAllCreateFunctionsHCurl(Dimension());
+    }
 	
 	
 
