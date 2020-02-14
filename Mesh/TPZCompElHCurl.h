@@ -147,7 +147,13 @@ public:
      */
     void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
 
-    /** @brief Computes the values of the shape function of the side*/
+    /**
+     * @brief Computes the trace of the shape functions associated with a given side.
+     * @param side side in which the traces will be calculated
+     * @param point point in side's parametric coordinates in which the shape functions will be evaluated
+     * @param phi trace of the shape functions
+     * @param dphi trace of the curl of the shape functions
+     */
     void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override = 0;
     /**
     * @brief Compute solution functions based on master element in the classical FEM manner.
@@ -221,6 +227,12 @@ protected:
      */
     virtual void CalculateSideShapeOrders(TPZVec<int> &ord) const = 0;
 
+
+    void CalcShapeSideTraces(const int side, const TPZFMatrix<REAL> &phi,
+//                             const TPZFMatrix<REAL> &curlPhi,
+                             TPZFMatrix<REAL> &phiTrace
+//                             ,TPZFMatrix<REAL> &curlTrace
+                             ) const;
 };
 
 

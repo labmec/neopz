@@ -420,10 +420,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 }
                 return nullptr;
             }();
-            {
-                TPZVec<TPZGeoEl*> sons;
-                gmesh->Element(0)->Divide(sons);
-            }
+//            {
+//                TPZVec<TPZGeoEl*> sons;
+//                gmesh->Element(0)->Divide(sons);
+//            }
 #ifdef NOISY_HCURL
             std::ofstream outTXT("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
             gmesh->Print(outTXT);
@@ -475,10 +475,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                         elTrace.Resize(3,0);
                         neighTrace.Resize(3,0);
                         auxiliaryfuncs::VectorProduct(vec,elShapeFunc,temp);
-                        auxiliaryfuncs::VectorProduct(vec,temp,elTrace);
+                        auxiliaryfuncs::VectorProduct(temp,vec,elTrace);
 
                         auxiliaryfuncs::VectorProduct(vec,neighShapeFunc,temp);
-                        auxiliaryfuncs::VectorProduct(vec,temp,neighTrace);
+                        auxiliaryfuncs::VectorProduct(temp,vec,neighTrace);
                         for(auto x = 0; x < 3; x++) diffTrace+= (neighTrace[x]-elTrace[x])*(neighTrace[x]-elTrace[x]);
                         diffTrace= sqrt(diffTrace);
                         REAL firstTrace = 0, secondTrace = 0;

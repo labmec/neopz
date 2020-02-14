@@ -13,6 +13,7 @@
 #include "tpzline.h"
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
+#include "pzgenericshape.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
@@ -448,6 +449,7 @@ void TPZCompElHCurlFull<TSHAPE>::CalculateSideShapeOrders(TPZVec<int> &ord) cons
 template<class TSHAPE>
 void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
     const int sideDim = TSHAPE::SideDimension(side);
+    const int dim = TSHAPE::Dimension;
 #ifdef PZDEBUG
     if(side >= TSHAPE::NSides || side < TSHAPE::NCornerNodes){
         PZError<<__PRETTY_FUNCTION__<<"\n";
@@ -597,7 +599,6 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
                 return -1;
         }
     }();
-    phi.Redim(nSideShapes,phiDim);
 
     TPZFMatrix<REAL> sideDeformedDirections(3,sideDim * nContainedSides,0);
     const int nVec = sideMasterDirections.Cols();
@@ -613,17 +614,45 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
             for (auto j = 0; j < sideDim; j++) sideDeformedDirections(i, iVec) += axes(j, i) * tempDirection[j];
         }
     }
-    const int curlDim = sideDim == 1 ? 1 : 2*sideDim - 3;
+    phi.Redim(nSideShapes,3);
+    TPZHCurlAuxClass::ComputeShape(indexVecShape, phiSide, sideDeformedDirections,phi);
+
+    /*
+     * The curl of a function express two different things in 2D/3D. In 2D, $curl\phi: \mathbb{R}^2 \rightarrow \mathbb{R}$,
+     * while in 3D $curl\phi: \mathbb{R}^3 \rightarrow \mathbb{R}^3$. Therefore, they are computed in different ways
+     * in this function. For 3D elements, the curl follows basically the same procedure as the shape functions:
+     * It's 3D expression is computed and then its trace is evaluated (in the XYZ space as well).
+     * For 2D elements, however, the curl is but a scalar value.
+     * */
+    const auto transfSide = TSHAPE::TransformElementToSide(side).Mult();
+    TPZFMatrix<REAL> sideMasterDirectionsOnElement(dim,sideDim * nContainedSides,0);
+    for (auto iVec = 0; iVec < nVec; iVec++) {
+        TPZManVector<REAL, 3> tempDirection(sideDim, 0);
+        for (auto i = 0; i < dim; i++) {
+            sideMasterDirectionsOnElement(i, iVec) = 0;
+            for (auto j = 0; j < sideDim; j++) sideMasterDirectionsOnElement(i, iVec) += transfSide.GetVal(j, i) * sideMasterDirections(j,iVec);
+        }
+    }
+    TPZFMatrix<REAL>dPhiSideOnElement(dim,nSideShapes);
+    {
+        TPZManVector<int64_t,8> elNodesIds(TSHAPE::NCornerNodes);
+        for (int ic=0; ic< TSHAPE::NCornerNodes; ic++) {
+            elNodesIds[ic] = gel->Node(ic).Id();
+        }
+        const REAL alpha = 1.0, beta =0.0;
+        const int transpose = 1;
+        GetSideTransform<TSHAPE>(side,TSHAPE::GetTransformId(side,elNodesIds))
+                .Mult().MultAdd(dPhiSide,dPhiSide,dPhiSideOnElement,1,0,1);
+    }
+    const int curlDim = 2*dim - 3;
     dphi.Resize(curlDim,nSideShapes);
-    switch(sideDim){
-        case 1: TPZHCurlAuxClass::ComputeCurl<1>(indexVecShape,dPhiSide,sideMasterDirections,jac,detjac,axes,dphi);
+    switch(dim){
+        case 2: TPZHCurlAuxClass::ComputeCurl<2>(indexVecShape,dPhiSideOnElement,sideMasterDirectionsOnElement,jac,detjac,axes,dphi);
         break;
-        case 2: TPZHCurlAuxClass::ComputeCurl<2>(indexVecShape,dPhiSide,sideMasterDirections,jac,detjac,axes,dphi);
+        case 3: TPZHCurlAuxClass::ComputeCurl<3>(indexVecShape,dPhiSideOnElement,sideMasterDirectionsOnElement,jac,detjac,axes,dphi);
         break;
         default: DebugStop();
     }
-
-    TPZHCurlAuxClass::ComputeShape(indexVecShape, phiSide, sideDeformedDirections,phi);
 }
 
 #include "pzshapelinear.h"

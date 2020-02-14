@@ -13,6 +13,7 @@
 #include "pzshapecube.h"
 #include "pzshapeprism.h"
 #include "pzstepsolver.h"
+#include "pzcheckrestraint.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
@@ -366,6 +367,8 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
     const int nshape =this->NConnectShapeF(connect,order);
     c.SetNShape(nshape);
     this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
+    //for the hcurl and hdiv spaces to be compatible, the approximation order of a face must be max(k,ke), where
+    //k is the (attempted) order of the face, and ke the maximum order of the edges contained in it.
 }
 
 template<class TSHAPE>
@@ -562,29 +565,12 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         thisGeoSide.Jacobian(centerPoint, jac, axes, detjac, jacinv);
         REAL weight;
         TPZFNMatrix<100, REAL> phis(numshape, 3), dphis(3, numshape), phil(numshapel, 3), dphil(3, numshapel);
-        TPZFNMatrix<100, REAL> thisTrace(numshape, thisSideDimension), largeTrace(numshapel, thisSideDimension);
+        TPZFNMatrix<100, REAL> thisTrace(numshape, 3), largeTrace(numshapel, 3);
         for (int it = 0; it < numint; it++) {
             intrule->Point(it, par, weight);
-            SideShapeFunction(side, par, phis, dphis);
+            SideShapeFunction(side, par, thisTrace, dphis);
             t.Apply(par, pointl);
-            large->SideShapeFunction(neighbourside, pointl, phil, dphil);
-            for(auto iphi = 0; iphi < numshape; iphi++){
-                for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
-                    thisTrace(iphi,iaxes) = 0;
-                    for(auto jaxes = 0; jaxes < 3; jaxes ++){
-                        thisTrace(iphi,iaxes) += axes(iaxes,jaxes) * phis(iphi,jaxes);
-                    }
-                }
-            }
-
-            for(auto iphi = 0; iphi < numshapel; iphi++){
-                for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
-                    largeTrace(iphi,iaxes) = 0;
-                    for(auto jaxes = 0; jaxes < 3; jaxes ++){
-                        largeTrace(iphi,iaxes) += axes(iaxes,jaxes) * phil(iphi,jaxes);
-                    }
-                }
-            }
+            large->SideShapeFunction(neighbourside, pointl, largeTrace, dphil);
             for (auto in = 0; in < numshape; in++) {
                 for (auto jn = 0; jn < numshape; jn++) {
                     REAL dotProduct = 0;
@@ -698,63 +684,53 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
 
 #ifdef HUGE_DEBUG
     // restraint matrix should be equal to MSL
-    TPZCheckRestraint test(thisside, largecompside);
-    //test.Print(cout);
-    int64_t imsl, jmsl;
-    int64_t rmsl = MSL.Rows();
-    int64_t cmsl = MSL.Cols();
-    int64_t rtest = test.RestraintMatrix().Rows();
-    int64_t ctest = test.RestraintMatrix().Cols();
+    {
+        TPZCheckRestraint test(thisCompSide, largeCompSide);
+        int64_t imsl, jmsl;
+        const int64_t rmsl = MSL.Rows();
+        const int64_t cmsl = MSL.Cols();
+        const int64_t rtest = test.RestraintMatrix().Rows();
+        const int64_t ctest = test.RestraintMatrix().Cols();
 
-    if (rtest != rmsl || ctest != cmsl) {
-        stringstream sout;
-        sout << "Exiting - Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl
-                << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , " << ctest << " )\n"
-                << "press any key to continue";
-        LOGPZ_ERROR(logger, sout.str());
-        int a;
-        cin >> a;
-        return;
-    }
-
-    TPZFMatrix<REAL> mslc(MSL);
-    mslc -= test.RestraintMatrix();
-
-    REAL normmsl = 0.;
-    for (imsl = 0; imsl < rmsl; imsl++) {
-        for (jmsl = 0; jmsl < cmsl; jmsl++) {
-            normmsl += sqrt(mslc(imsl, jmsl) * mslc(imsl, jmsl));
+        if (rtest != rmsl || ctest != cmsl) {
+            std::stringstream sout;
+            sout << "Exiting - Restraint matrix side incompatibility: MSL (rows,cols): ( " << rmsl
+                 << " , " << cmsl << " )" << " RestraintMatrix (rows,cols): (" << rtest << " , " << ctest << " )\n";
+            LOGPZ_ERROR(logger, sout.str())
+            return;
         }
-    }
-    if (normmsl > 1.E-6) {
-        stringstream sout;
-        sout << "TPZInterpolatedElement::Error::MSL matrix has non zero norm " << normmsl << "\n";
-        mslc.Print("Difference Matrix ", sout);
+
+        TPZFMatrix<REAL> mslc(MSL);
+        mslc -= test.RestraintMatrix();
+
+        REAL normmsl = 0.;
         for (imsl = 0; imsl < rmsl; imsl++) {
             for (jmsl = 0; jmsl < cmsl; jmsl++) {
-                if (fabs(MSL(imsl, jmsl) - test.RestraintMatrix()(imsl, jmsl)) > 1.E-6) {
-                    sout << "msl[ " << imsl << " , " << jmsl << " ] = " << MSL(imsl, jmsl) << "\t "
-                            << test.RestraintMatrix()(imsl, jmsl) << endl;
-                }
+                normmsl += sqrt(mslc(imsl, jmsl) * mslc(imsl, jmsl));
             }
         }
-        LOGPZ_ERROR(logger, sout.str());
-        //     int a;
-        //     gDebug = 1;
-        //     cin >> a;
-    }
+        if (normmsl > 1.E-6) {
+            std::stringstream sout;
+            sout << "TPZInterpolatedElement::Error::MSL matrix has non zero norm " << normmsl << "\n";
+            mslc.Print("Difference Matrix ", sout);
+            for (imsl = 0; imsl < rmsl; imsl++) {
+                for (jmsl = 0; jmsl < cmsl; jmsl++) {
+                    if (fabs(MSL(imsl, jmsl) - test.RestraintMatrix()(imsl, jmsl)) > 1.E-6) {
+                        sout << "msl[ " << imsl << " , " << jmsl << " ] = " << MSL(imsl, jmsl) << "\t "
+                             << test.RestraintMatrix()(imsl, jmsl) << std::endl;
+                    }
+                }
+            }
+            LOGPZ_ERROR(logger, sout.str())
+        }
 
-    // verificar a norma de MSL
-    if (test.CheckRestraint()) {
-        stringstream sout
-        sout << "TPZInterpolatedElement::Error::Bad restraints detected\n"; // recado de erro.
-        test.Print(sout);
-        //     int a;
-        //     gDebug = 1;
-        //     cin >> a;
-        test.Diagnose();
-        LOGPZ_ERROR(logger, sout.str());
-        TPZCheckRestraint test2(thisside, largecompside);
+        if (test.CheckRestraint()) {
+            std::stringstream sout;
+            sout << "TPZInterpolatedElement::Error::Bad restraints detected\n";
+            test.Print(sout);
+            test.Diagnose();
+            LOGPZ_ERROR(logger, sout.str())
+        }
     }
 #endif
 }
@@ -814,6 +790,57 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
     }
 }
 
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::CalcShapeSideTraces(const int side, const TPZFMatrix<REAL> &phi,
+//        const TPZFMatrix<REAL> &curlPhi,
+        TPZFMatrix<REAL> &phiTrace
+//        , TPZFMatrix<REAL> &curlTrace
+        ) const {
+    const TPZGeoElSide geoSide(this->Reference(), side);
+    const auto sideDim = geoSide.Dimension();
+
+    //calculate the axes associated with the side side
+    TPZFNMatrix<9,REAL> axes(sideDim,3);
+    {
+        REAL detjac;
+        TPZVec<REAL> centerPoint(sideDim,0);
+        geoSide.CenterPoint(centerPoint);
+        TPZFNMatrix<9,REAL> jac(sideDim,sideDim),jacinv(sideDim,sideDim);
+        geoSide.Jacobian(centerPoint, jac, axes, detjac, jacinv);
+    }
+
+    const auto numshape = phi.Rows();
+    TPZFMatrix<REAL> phiTraceAxes(numshape,sideDim,0);
+    for(auto iphi = 0; iphi < numshape; iphi++){
+        for(auto iaxes = 0; iaxes < sideDim; iaxes ++){
+            phiTrace(iphi,iaxes) = 0;
+            for(auto jaxes = 0; jaxes < 3; jaxes ++){
+                phiTrace(iphi,iaxes) += axes(iaxes,jaxes) * phi.GetVal(iphi,jaxes);
+            }
+        }
+    }
+    phiTrace.Resize(numshape,3);
+    //converting back to XYZ
+    TPZAxesTools<REAL>::Axes2XYZ(phiTraceAxes, phiTrace, axes, false);
+//    //if the functions are being calculated over a face, the curl of the shape funcs are 3d as well. otherwise, no transformation
+//    //should be performed
+//    if(sideDim == 2){
+//        TPZFMatrix<REAL> curlTraceAxes(numshape,sideDim,0);
+//        for(auto iphi = 0; iphi < numshape; iphi++){
+//            for(auto iaxes = 0; iaxes < sideDim; iaxes ++){
+//                curlTraceAxes(iphi,iaxes) = 0;
+//                for(auto jaxes = 0; jaxes < 3; jaxes ++){
+//                    curlTraceAxes(iphi,iaxes) += axes(iaxes,jaxes) * curlPhi.GetVal(jaxes,iphi);
+//                }
+//            }
+//        }
+//        TPZAxesTools<REAL>::Axes2XYZ(curlTraceAxes, curlTrace, axes, true);
+//    }
+//    else{
+//        curlTrace = curlPhi;
+//    }
+}
+
 template <>
 void TPZHCurlAuxClass::ComputeCurl<3>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
                                          const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
@@ -850,7 +877,6 @@ template <>
 void TPZHCurlAuxClass::ComputeCurl<2>(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
                                       const TPZFMatrix<REAL> &masterDirections, const TPZFMatrix<REAL> &jacobian,
                                       REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi) {
-    constexpr auto dim = 3;
     const auto nShapeFuncs = vecShapeIndex.size();
     const REAL jacInv = 1/detJac;
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
@@ -868,7 +894,9 @@ void TPZHCurlAuxClass::ComputeCurl<1>(const TPZVec<std::pair<int, int64_t>> &vec
                                       REAL detJac, const TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &curlPhi) {
     const auto nShapeFuncs = vecShapeIndex.size();
     for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
-        curlPhi(0, iShapeFunc) += 0;
+        const auto iVec = vecShapeIndex[iShapeFunc].first;
+        const auto iShape = vecShapeIndex[iShapeFunc].second;
+        curlPhi(0, iShapeFunc) = dphi.GetVal( 0,iShape) * masterDirections.GetVal(0,iVec);
     }
 }
 
@@ -879,43 +907,6 @@ void TPZHCurlAuxClass::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecSha
     DebugStop();
 }
 
-//template<class TSHAPE>
-//typename std::enable_if<TSHAPE::Dimension == 2, void>::type
-//TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-//                                    const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-//                                    REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
-//    curlPhi.Redim(2*TSHAPE::Dimension - 3, this->NShapeF());
-//    const auto nShapeFuncs = vecShapeIndex.size();
-//    constexpr auto dim = TSHAPE::Dimension;
-//    const REAL jacInv = 1/detJac;
-//    for(auto iShapeFunc = 0; iShapeFunc < nShapeFuncs; iShapeFunc++) {
-//        const auto iVec = vecShapeIndex[iShapeFunc].first;
-//        const auto iShape = vecShapeIndex[iShapeFunc].second;
-//        TPZManVector<REAL, dim> gradPhiCrossDirections(dim, 0);
-//        for(auto ix = 0; ix < dim; ix++) {
-//            gradPhiCrossDirections[ix] =
-//                    dphi.GetVal(iShape, (ix + 1) % dim) * masterDirections.GetVal(iVec, (ix + 2) % dim) -
-//                    masterDirections.GetVal(iVec, (ix + 1) % dim) * dphi.GetVal(iShape, (ix + 2) % dim);
-//        }
-//        TPZManVector<REAL, dim> tempCurl(dim, 0);
-//        for (auto i = 0; i < dim; i++) {
-//            tempCurl[i] = 0;
-//            for (auto j = 0; j < dim; j++) tempCurl[i] += jacobian.GetVal(i, j) * gradPhiCrossDirections[j];
-//        }
-//        for (auto i = 0; i < 3; i++) {
-//            curlPhi(i, iShapeFunc) = 0;
-//            for (auto j = 0; j < dim; j++) curlPhi(i, iShapeFunc) += jacInv * axes.GetVal(j, i) * tempCurl[j];
-//        }
-//    }
-//}
-//
-//template<class TSHAPE>
-//typename std::enable_if<(TSHAPE::Dimension != 3) && (TSHAPE::Dimension != 2), void>::type
-//TPZCompElHCurl<TSHAPE>::ComputeCurl(const TPZVec<std::pair<int, int64_t>> &vecShapeIndex, const TPZFMatrix<REAL> &dphi,
-//                                    const TPZMatrix<REAL> &masterDirections, const TPZMatrix<REAL> &jacobian,
-//                                    REAL detJac, const TPZMatrix<REAL> &axes, TPZMatrix<REAL> &curlPhi) {
-//    curlPhi.Resize(0,0);
-//}
 
 #define IMPLEMENTHCURL(TSHAPE) \
 \
