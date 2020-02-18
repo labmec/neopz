@@ -8,6 +8,19 @@
 #include "pzeltype.h"
 
 class TPZGeoMesh;
+
+enum class MMeshType
+{
+    ETetrahedral,/*each cube is divided into five tetrahedra*/
+    EPyramidal,/*each cube is divided into six pyramids*/
+    EPrismatic,/*each cube is divided into two prisms*/
+    EHexahedral,
+    EHexaPyrMixed,/*alternating cubes are divided into six pyramids*/
+    ENoType
+};
+
+std::ostream &operator<<(std::ostream &out, const MMeshType meshType);
+
 /**
  * This class generates a uniform three-dimensional mesh with tetrahedral, hexahedral or prismatic
  * elements. It could be extended with little effort for generating pyramidal elements as well.
@@ -15,7 +28,8 @@ class TPZGeoMesh;
 class TPZGenGrid3D {
 public:
     TPZGenGrid3D() = delete;
-    TPZGenGrid3D(const REAL minX, const REAL minY, const REAL minZ,const REAL maxX, const REAL maxY, const REAL maxZ, const int nelx, const int nely, const int nelz, const MElementType elType);
+    TPZGenGrid3D(const REAL minX, const REAL minY, const REAL minZ,const REAL maxX, const REAL maxY, const REAL maxZ,
+            const int nelx, const int nely, const int nelz, const MMeshType elType);
 
     /**
      * This method builds the three-dimensional elements of the desired type and sets their material ids as matIdDomain.
@@ -39,7 +53,7 @@ public:
                                       const int matIdZmin, const int matIdZmax);
 private:
     TPZGeoMesh *fGmesh{nullptr};
-    const MElementType fEltype{ENoType};
+    const MMeshType fMeshType{MMeshType::ENoType};
     const int fNelx{0},fNely{0},fNelz{0};
     const REAL fMinX{0},fMinY{0},fMinZ{0};
     const REAL fMaxX{0},fMaxY{0},fMaxZ{0};
