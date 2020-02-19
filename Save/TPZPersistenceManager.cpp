@@ -107,6 +107,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         unsigned int size = mCurrentObjectStream.Size();
         mObjectsStream.Write(&size, 1);
         mObjectsStream << mCurrentObjectStream;
+#ifdef PZDEBUG
 #ifdef VerboseMode_Q
         std::cout << " ObjId: " << mNextPointerToSave
                 << " Class name: " << typeid(*pointer).name()
@@ -116,6 +117,7 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
                 << "(0x" << std::hex << written + sizeof (int64_t) + 2 * sizeof (int) +size << ")" << std::dec
                 << " size: " << size << std::endl;
         written += sizeof (int64_t) + 2 * sizeof (int) +size;
+#endif
 #endif
     }
 }
@@ -226,14 +228,7 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
             TPZSavable::RegisterClassId(classid, restoreClass);
             auto objHistory = savable->VersionHistory();
             for (auto versionMap : objHistory) {
-//                for (auto item : versionMap) {
-//                    std::cout << "Package = " << item.first << " and version = " << item.second << std::endl;
-//                }
                 if (std::find(mVersionHistory.begin(), mVersionHistory.end(), versionMap) == mVersionHistory.end()) {
-//                    for (auto item : versionMap) {
-//                        std::cout << "Package being inserted = " << item.first << " and version = " << item.second << std::endl;
-//                    }
-                    //@TODO ensure thread-safety
                     mVersionHistory.push_back(versionMap);
                 }
             }

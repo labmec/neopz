@@ -119,9 +119,9 @@ void TPZMixedElasticityMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialD
             ivectorindex = datavec[sigmaBlock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[sigmaBlock].fVecShapeIndex[iq].second;
 
-            VectorOnXYZ(0, 0) = datavec[sigmaBlock].fNormalVec(0, ivectorindex);
-            VectorOnXYZ(1, 0) = datavec[sigmaBlock].fNormalVec(1, ivectorindex);
-            VectorOnXYZ(2, 0) = datavec[sigmaBlock].fNormalVec(2, ivectorindex);
+            VectorOnXYZ(0, 0) = datavec[sigmaBlock].fDeformedDirections(0, ivectorindex);
+            VectorOnXYZ(1, 0) = datavec[sigmaBlock].fDeformedDirections(1, ivectorindex);
+            VectorOnXYZ(2, 0) = datavec[sigmaBlock].fDeformedDirections(2, ivectorindex);
 
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
@@ -283,7 +283,7 @@ void TPZMixedElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, RE
 
         for (int e = 0; e < 3; e++) {
 
-            ivecS(e, 0) = datavec[0].fNormalVec(e, ivec);
+            ivecS(e, 0) = datavec[0].fDeformedDirections(e, ivec);
             phiSi(e, 0) = phiS(iphi, 0) * ivecS(e, 0);
 
         }
@@ -314,7 +314,7 @@ void TPZMixedElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, RE
             int jvec = datavec[0].fVecShapeIndex[j].first;
 
             for (int e = 0; e < fDimension; e++) {
-                phiSj(e, 0) = phiS(jphi, 0) * datavec[0].fNormalVec(e, jvec);
+                phiSj(e, 0) = phiS(jphi, 0) * datavec[0].fDeformedDirections(e, jvec);
             }
 
             TPZFNMatrix<4, STATE> phjTensx(2, 2, 0.), phjTensy(2, 2, 0.);
@@ -1320,8 +1320,8 @@ STATE TPZMixedElasticityMaterial::Tr(TPZFMatrix<REAL> &GradU) {
 /// transform a H1 data structure to a vector data structure
 
 void TPZMixedElasticityMaterial::FillVecShapeIndex(TPZMaterialData &data) {
-    data.fNormalVec.Resize(fDimension, fDimension);
-    data.fNormalVec.Identity();
+    data.fDeformedDirections.Resize(fDimension, fDimension);
+    data.fDeformedDirections.Identity();
     data.fVecShapeIndex.Resize(fDimension * data.phi.Rows());
     for (int d = 0; d < fDimension; d++) {
         for (int i = 0; i < data.phi.Rows(); i++) {
@@ -1339,7 +1339,7 @@ void TPZMixedElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFM
 }
 
 int TPZMixedElasticityMaterial::NEvalErrors() {
-    return 7;
+    return 8;
 }
 
 void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) {
@@ -1464,6 +1464,8 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
     if (errors[1] < 0.) {
         std::cout << "I should stop \n";
     }
+    //L2_Error: for the sigma_xx
+    errors[7] = (SigmaV[0] - sigma_exactV[0])*(SigmaV[0] - sigma_exactV[0]);
 
     TPZManVector<STATE,3> divSigmaExact(fDimension,0.);
     if(HasForcingFunction())

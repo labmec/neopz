@@ -49,7 +49,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	for(int ilinha=0; ilinha<numvec; ilinha++) {
 		int ivecind = dataleft.fVecShapeIndex[ilinha].first;
 		int ishapeind = dataleft.fVecShapeIndex[ilinha].second;
-		REAL prod=dataleft.fNormalVec(0,ivecind)*leftX0+dataleft.fNormalVec(1,ivecind)*leftX1+dataleft.fNormalVec(2,ivecind)*leftX2;
+		REAL prod=dataleft.fDeformedDirections(0,ivecind)*leftX0+dataleft.fDeformedDirections(1,ivecind)*leftX1+dataleft.fDeformedDirections(2,ivecind)*leftX2;
 		
 		
 				for(int jcol=0; jcol<nrowH1; jcol++) {

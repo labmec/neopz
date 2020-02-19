@@ -57,7 +57,7 @@ namespace pzshape {
 		static void Chebyshev(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
         /**
-         * @brief Chebyshev orthogonal polynomial, computes num orthogonal functions at the point x
+         * @brief Exponential polynomial, computes num orthogonal functions at the point x
          * @param x coordinate of the point
          * @param num number of shape functions to be computed
          * @param phi shapefunction values

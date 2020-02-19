@@ -768,20 +768,20 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
             if (dimensionA != sidedim) {
                 Ashapeind = dataA.fVecShapeIndex[i].second;
                 Avecind = dataA.fVecShapeIndex[i].first;
-                vecnormalA = dataA.fNormalVec(0,Avecind)*normal[0]+dataA.fNormalVec(1,Avecind)*normal[1]+dataA.fNormalVec(2,Avecind)*normal[2];
+                vecnormalA = dataA.fDeformedDirections(0,Avecind)*normal[0]+dataA.fDeformedDirections(1,Avecind)*normal[1]+dataA.fDeformedDirections(2,Avecind)*normal[2];
             }
             if (dimensionB != sidedim) {
                 Bshapeind = dataB.fVecShapeIndex[j].second;
                 Bvecind = dataB.fVecShapeIndex[j].first;
-                vecnormalB = dataB.fNormalVec(0,Bvecind)*normal[0]+dataB.fNormalVec(1,Bvecind)*normal[1]+dataB.fNormalVec(2,Bvecind)*normal[2];
+                vecnormalB = dataB.fDeformedDirections(0,Bvecind)*normal[0]+dataB.fDeformedDirections(1,Bvecind)*normal[1]+dataB.fDeformedDirections(2,Bvecind)*normal[2];
                 
             }
             if (dimensionA != sidedim && dimensionB != sidedim) {
                 // vefify that the normal component of the normal vector corresponds
                 Avecind = dataA.fVecShapeIndex[i].first;
                 Bvecind = dataB.fVecShapeIndex[j].first;
-                vecnormalA = dataA.fNormalVec(0,Avecind)*normal[0]+dataA.fNormalVec(1,Avecind)*normal[1]+dataA.fNormalVec(2,Avecind)*normal[2];
-                vecnormalB = dataB.fNormalVec(0,Bvecind)*normal[0]+dataB.fNormalVec(1,Bvecind)*normal[1]+dataB.fNormalVec(2,Bvecind)*normal[2];
+                vecnormalA = dataA.fDeformedDirections(0,Avecind)*normal[0]+dataA.fDeformedDirections(1,Avecind)*normal[1]+dataA.fDeformedDirections(2,Avecind)*normal[2];
+                vecnormalB = dataB.fDeformedDirections(0,Bvecind)*normal[0]+dataB.fDeformedDirections(1,Bvecind)*normal[1]+dataB.fDeformedDirections(2,Bvecind)*normal[2];
                 if(fabs(vecnormalA-vecnormalB) > 1.e-6)
                 {
                     nwrong++;
@@ -919,7 +919,7 @@ static void GenerateProjectionMatrix(TPZCompEl *cel, TPZAutoPointer<TPZMatrix<ST
                 for (d=0; d<dim; d++) {
                     vecinner[d]=0;
                     for (j=0; j<3; j++) {
-                        vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                        vecinner[d] += dataA.fDeformedDirections(j,vecindex)*dataA.axes(d,j);
                     }
                 }
                 REAL divphi = 0.;
@@ -987,7 +987,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             for (d=0; d<dim; d++) {
                 vecinner[d]=0;
                 for (j=0; j<3; j++) {
-                    vecinner[d] += dataA.fNormalVec(j,vecindex)*dataA.axes(d,j);
+                    vecinner[d] += dataA.fDeformedDirections(j,vecindex)*dataA.axes(d,j);
                 }
             }
             REAL divphi = 0.;

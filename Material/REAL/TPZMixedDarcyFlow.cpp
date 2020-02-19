@@ -157,7 +157,7 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
         
         STATE kappa_inv_q_dot_phi_q_i = 0.0;
         for (int i = 0; i < 3; i++) {
-            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fNormalVec(i,v_i);
+            phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             kappa_inv_q_dot_phi_q_i        += kappa_inv_q(i,0)*phi_q_i(i,0);
         }
         
@@ -172,7 +172,7 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
             kappa_inv_phi_q_j.Zero();
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
-                    kappa_inv_phi_q_j(i,0) += m_kappa_inv(i,j) * phi_qs(s_j,0) * datavec[qb].fNormalVec(j,v_j);
+                    kappa_inv_phi_q_j(i,0) += m_kappa_inv(i,j) * phi_qs(s_j,0) * datavec[qb].fDeformedDirections(j,v_j);
                 }
             }
             

@@ -141,6 +141,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
             (fOutFile) << std::endl;
         }
     }
+	fOutFile.close();
 	fNumSteps++;
 }
 

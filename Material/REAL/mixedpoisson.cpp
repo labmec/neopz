@@ -198,7 +198,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         int ishapeind = datavec[0].fVecShapeIndex[iq].second;
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<3; id++){
-            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
+            ivec(id,0) = datavec[0].fDeformedDirections(id,ivecind);
         }
         
         //Inserindo termo de estabilizacao no termo de fonte
@@ -224,7 +224,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             int jshapeind = datavec[0].fVecShapeIndex[jq].second;
             
             for(int id=0; id<3; id++){
-                jvec(id,0) = datavec[0].fNormalVec(id,jvecind);
+                jvec(id,0) = datavec[0].fDeformedDirections(id,jvecind);
             }
             
             //dot product between Kinv[u]v
@@ -279,9 +279,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         TPZFNMatrix<3,REAL> ivec(3,1,0.);
         for(int id=0; id<3; id++){
-            ivec(id,0) = datavec[0].fNormalVec(id,ivecind);
-            //ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-            //ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+            ivec(id,0) = datavec[0].fDeformedDirections(id,ivecind);
+            //ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+            //ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
         }
         TPZFNMatrix<3,REAL> axesvec(3,1,0.);
         datavec[0].axes.Multiply(ivec,axesvec);
@@ -413,9 +413,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //        int ivecind = datavec[0].fVecShapeIndex[iq].first;
 //        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
 //        TPZFNMatrix<3> ivec(3,1);
-//        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-//        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-//        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+//        ivec(0,0) = datavec[0].fDeformedDirections(0,ivecind);
+//        ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+//        ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
 //        
 //        //Inserindo termo de estabilizacao no termo de fonte
 //        REAL divqi = 0.;
@@ -436,9 +436,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //            TPZFNMatrix<3> jvec(3,1);
 //            int jvecind = datavec[0].fVecShapeIndex[jq].first;
 //            int jshapeind = datavec[0].fVecShapeIndex[jq].second;
-//            jvec(0,0) = datavec[0].fNormalVec(0,jvecind);
-//            jvec(1,0) = datavec[0].fNormalVec(1,jvecind);
-//            jvec(2,0) = datavec[0].fNormalVec(2,jvecind);
+//            jvec(0,0) = datavec[0].fDeformedDirections(0,jvecind);
+//            jvec(1,0) = datavec[0].fDeformedDirections(1,jvecind);
+//            jvec(2,0) = datavec[0].fDeformedDirections(2,jvecind);
 //            
 //            //dot product between u and v
 //            REAL prod = ivec(0,0)*jvec(0,0) + ivec(1,0)*jvec(1,0) + ivec(2,0)*jvec(2,0);          
@@ -475,9 +475,9 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //        int ishapeind = datavec[0].fVecShapeIndex[iq].second;
 //        
 //        TPZFNMatrix<3> ivec(3,1);
-//        ivec(0,0) = datavec[0].fNormalVec(0,ivecind);
-//        ivec(1,0) = datavec[0].fNormalVec(1,ivecind);
-//        ivec(2,0) = datavec[0].fNormalVec(2,ivecind);
+//        ivec(0,0) = datavec[0].fDeformedDirections(0,ivecind);
+//        ivec(1,0) = datavec[0].fDeformedDirections(1,ivecind);
+//        ivec(2,0) = datavec[0].fDeformedDirections(2,ivecind);
 //        TPZFNMatrix<3> axesvec(3,1);
 //        datavec[0].axes.Multiply(ivec,axesvec);
 //        
@@ -686,7 +686,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 43) return 1;
     if(var == 44) return 1;
     if(var == 45) return 1;
-    return TPZMaterial::NSolutionVariables(var);
+    return TPZMatPoisson3d::NSolutionVariables(var);
 }
 
 void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
@@ -720,7 +720,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     SolP = datavec[1].sol[0];
     
     if(var == 31){ //function (state variable Q)
-        for (int i=0; i<fDim; i++)
+        for (int i=0; i<3; i++)
         {
             Solout[i] = datavec[0].sol[0][i];
             
@@ -776,14 +776,17 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 
         }
         
-        
-    //    std::cout<<"derivada no analticsolution "<<gradu<<std::endl;
-        
-        PermTensor.Multiply(gradu, flux);
+		TPZFNMatrix<3, REAL> fluxtmp(fDim + 1, 1);
+		TPZFNMatrix<3, REAL> gradutmp(fDim + 1, 1);
+		for (int idi = 0; idi < gradu.Rows(); idi++)
+			for (int jdi = 0; jdi < gradu.Cols(); jdi++)
+				gradutmp(idi, jdi) = gradu(idi, jdi);
+
+        PermTensor.Multiply(gradutmp, fluxtmp);
         
         for (int i=0; i<fDim; i++)
         {
-            Solout[i] = flux(i,0);
+            Solout[i] = fluxtmp(i,0);
         }
 
 		return;
@@ -862,7 +865,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         
     }
     
-    TPZMaterial::Solution(datavec,var,Solout);
+	TPZMatPoisson3d::Solution(datavec,var,Solout);
 }
 
 

@@ -2091,10 +2091,13 @@ bool TPZInterpolatedElement::VerifyConstraintConsistency(int side, TPZCompElSide
     if (cnumdepend != nonzerosides && c.NShape() != 0) {
         return false;
     }
-    if (cnumdepend == 0 && c.NShape() != 0) {
+    int nshapeconnect = c.NShape();
+    if (cnumdepend == 0 && nshapeconnect != 0) {
+        PZError<<"Error at: "<<__PRETTY_FUNCTION__<<std::endl;
+        PZError<<"cnumdepend: "<<cnumdepend<<std::endl;
+        PZError<<"nshapeconnect: "<<nshapeconnect<<std::endl;
         DebugStop();
     }
-    int nshapeconnect = c.NShape();
     std::map<int64_t, int> largenshapeconnect;
     for (int ic = 0; ic < nsideconnectslarge; ic++) {
         TPZConnect &clarge = largel->SideConnect(ic, large.Side());

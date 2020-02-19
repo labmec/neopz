@@ -259,8 +259,8 @@ public:
     /** @} */
 
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
-    virtual TPZBndCond *CreateBC(TPZMaterial *reference, int id, int typ, TPZFMatrix<STATE> &val1,
-                                 TPZFMatrix<STATE> &val2);
+    virtual TPZBndCond *CreateBC(TPZMaterial *reference, int id, int typ, const TPZFMatrix<STATE> &val1,
+                                 const TPZFMatrix<STATE> &val2);
     
     /** @name Contribute methods
 	 * @{

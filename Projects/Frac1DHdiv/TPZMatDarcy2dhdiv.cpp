@@ -167,8 +167,8 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             int ishapeindex         = datavec[0].fVecShapeIndex[iq].second;
                 
             REAL Kqdotv =
-            (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex)) +
-            (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex)) ;
+            (Kinverse(0,0)*sol_q[0]+Kinverse(0,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fDeformedDirections(0,ivectorindex)) +
+            (Kinverse(1,0)*sol_q[0]+Kinverse(1,1)*sol_q[1]) * (phiQ(ishapeindex,0)*datavec[0].fDeformedDirections(1,ivectorindex)) ;
 
             ef(iq + FirstQ) +=  OneOverLambda * weight * Kqdotv;    //  dot(K q,v)
 
@@ -178,12 +178,12 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 int jvectorindex    = datavec[0].fVecShapeIndex[jq].first;
                 int jshapeindex     = datavec[0].fVecShapeIndex[jq].second;
 
-                REAL vec1 = (Kinverse(0,0)*datavec[0].fNormalVec(0,ivectorindex)+Kinverse(0,1)*datavec[0].fNormalVec(1,ivectorindex));
-                REAL vec2 = (Kinverse(1,0)*datavec[0].fNormalVec(0,ivectorindex)+Kinverse(1,1)*datavec[0].fNormalVec(1,ivectorindex));
+                REAL vec1 = (Kinverse(0,0)*datavec[0].fDeformedDirections(0,ivectorindex)+Kinverse(0,1)*datavec[0].fDeformedDirections(1,ivectorindex));
+                REAL vec2 = (Kinverse(1,0)*datavec[0].fDeformedDirections(0,ivectorindex)+Kinverse(1,1)*datavec[0].fDeformedDirections(1,ivectorindex));
 
                 REAL Kvdotv =
-                (phiQ(ishapeindex,0) * vec1) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                (phiQ(ishapeindex,0) * vec2) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;    //  dot(K vj,vi)
+                (phiQ(ishapeindex,0) * vec1) * (phiQ(jshapeindex,0)*datavec[0].fDeformedDirections(0,jvectorindex)) +
+                (phiQ(ishapeindex,0) * vec2) * (phiQ(jshapeindex,0)*datavec[0].fDeformedDirections(1,jvectorindex)) ;    //  dot(K vj,vi)
 
                 ek(iq + FirstQ,jq + FirstQ) += weight * OneOverLambda * Kvdotv;
             }
@@ -203,8 +203,8 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
             dsolp[0] = dsol_p(0,0)*datavec[1].axes(0,0)+dsol_p(1,0)*datavec[1].axes(1,0);
             dsolp[1] = dsol_p(0,0)*datavec[1].axes(0,1)+dsol_p(1,0)*datavec[1].axes(1,1);
 
-            REAL gradPdotv   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex))*(dsolp[0]) +
-                                 (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex))*(dsolp[1]);
+            REAL gradPdotv   =   (phiQ(ishapeindex,0)*datavec[0].fDeformedDirections(0,ivectorindex))*(dsolp[0]) +
+                                 (phiQ(ishapeindex,0)*datavec[0].fDeformedDirections(1,ivectorindex))*(dsolp[1]);
             
             ef(iq + FirstQ) += weight * (gradPdotv);
             
@@ -217,8 +217,8 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 dphip[0] = dphiP(0,jp)*datavec[1].axes(0,0)+dphiP(1,jp)*datavec[1].axes(1,0);
                 dphip[1] = dphiP(0,jp)*datavec[1].axes(0,1)+dphiP(1,jp)*datavec[1].axes(1,1);
                 
-                REAL gradPhiPdotv   =   (phiQ(ishapeindex,0)*datavec[0].fNormalVec(0,ivectorindex))*(dphip[0]) +
-                                        (phiQ(ishapeindex,0)*datavec[0].fNormalVec(1,ivectorindex))*(dphip[1]);
+                REAL gradPhiPdotv   =   (phiQ(ishapeindex,0)*datavec[0].fDeformedDirections(0,ivectorindex))*(dphip[0]) +
+                                        (phiQ(ishapeindex,0)*datavec[0].fDeformedDirections(1,ivectorindex))*(dphip[1]);
                 
                 ek(iq + FirstQ,jp + FirstP) += weight * gradPhiPdotv;
                 
@@ -264,8 +264,8 @@ void TPZMatDarcy2dhdiv::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight
                 int jshapeindex     = datavec[0].fVecShapeIndex[jq].second;
                 
                 REAL gradwdotv =
-                (dphip[0]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(0,jvectorindex)) +
-                (dphip[1]) * (phiQ(jshapeindex,0)*datavec[0].fNormalVec(1,jvectorindex)) ;
+                (dphip[0]) * (phiQ(jshapeindex,0)*datavec[0].fDeformedDirections(0,jvectorindex)) +
+                (dphip[1]) * (phiQ(jshapeindex,0)*datavec[0].fDeformedDirections(1,jvectorindex)) ;
                 
                 ek(ip + FirstP,jq + FirstQ) += (Theta) * (TimeStep) * weight * gradwdotv;
             }
@@ -400,8 +400,8 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
             int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
             
-            REAL vnL   = (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1) +
-                         (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+            REAL vnL   = (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(0,iLvectorindex))*(n1) +
+                         (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(1,iLvectorindex))*(n2);
             
             ef(iq + FirstQL) += (-1.0) * weight * PressureL * vnL;
             
@@ -417,8 +417,8 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
             int iRvectorindex       = dataright[0].fVecShapeIndex[iq].first;
             int iRshapeindex        = dataright[0].fVecShapeIndex[iq].second;
             
-            REAL vnR   = (phiQR(iRshapeindex,0)*dataright[0].fNormalVec(0,iRvectorindex))*(n1) +
-                         (phiQR(iRshapeindex,0)*dataright[0].fNormalVec(1,iRvectorindex))*(n2);
+            REAL vnR   = (phiQR(iRshapeindex,0)*dataright[0].fDeformedDirections(0,iRvectorindex))*(n1) +
+                         (phiQR(iRshapeindex,0)*dataright[0].fDeformedDirections(1,iRvectorindex))*(n2);
             
             ef(iq + iRightInterfaceBlock + FirstQR) += (1.0) * weight * PressureR * vnR;
             
@@ -445,8 +445,8 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
                 int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
                 
                 REAL vnL =
-                (n1) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(0,jvectorindex)) +
-                (n2) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(1,jvectorindex)) ;
+                (n1) * (phiQL(jshapeindex,0)*dataleft[0].fDeformedDirections(0,jvectorindex)) +
+                (n2) * (phiQL(jshapeindex,0)*dataleft[0].fDeformedDirections(1,jvectorindex)) ;
                 
                 ek(ip + FirstPL,jq + FirstQL) += (-1.0) * (Theta) * (TimeStep) * weight * phiPL(ip,0) * vnL;
                 
@@ -469,8 +469,8 @@ void TPZMatDarcy2dhdiv::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
                 int jshapeindex     = dataright[0].fVecShapeIndex[jq].second;
                 
                 REAL vnR =
-                (n1) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(0,jvectorindex)) +
-                (n2) * (phiQR(jshapeindex,0)*dataright[0].fNormalVec(1,jvectorindex)) ;
+                (n1) * (phiQR(jshapeindex,0)*dataright[0].fDeformedDirections(0,jvectorindex)) +
+                (n2) * (phiQR(jshapeindex,0)*dataright[0].fDeformedDirections(1,jvectorindex)) ;
                 
                 ek(ip + FirstPR + iRightInterfaceBlock,jq + FirstQR + jRightInterfaceBlock) += (1.0) * (Theta) * (TimeStep) * weight * phiPR(ip,0) * vnR;
                 
@@ -618,8 +618,8 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
 //        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
 //        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
 //        
-//        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1) +
-//                       (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+//        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(0,iLvectorindex))*(n1) +
+//                       (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(1,iLvectorindex))*(n2);
 //        
 //        ef(iq + FirstQL) += (-1.0) * weight * vnL * PressureL;
 //        
@@ -645,8 +645,8 @@ void TPZMatDarcy2dhdiv::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZM
             int jshapeindex     = dataleft[0].fVecShapeIndex[jq].second;
             
             REAL vnL =
-            (n1) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(0,jvectorindex)) +
-            (n2) * (phiQL(jshapeindex,0)*dataleft[0].fNormalVec(1,jvectorindex)) ;
+            (n1) * (phiQL(jshapeindex,0)*dataleft[0].fDeformedDirections(0,jvectorindex)) +
+            (n2) * (phiQL(jshapeindex,0)*dataleft[0].fDeformedDirections(1,jvectorindex)) ;
             
             ek(ip + FirstPL,jq + FirstQL) += (-1.0) * (Theta) * (TimeStep) * weight * phiPL(ip,0) * vnL;
             
@@ -726,8 +726,8 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
 //        int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
 //        int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
 //        
-//        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1) +
-//        (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+//        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(0,iLvectorindex))*(n1) +
+//        (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(1,iLvectorindex))*(n2);
 //        
 //        ef(iq + FirstQL) += (-1.0) * weight * vnL * PressureL;
 //        
@@ -743,7 +743,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
         int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
         int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
         
-        REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex)*n2);
+        REAL vni    =   (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(0,iLvectorindex)*n1)+(phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(1,iLvectorindex)*n2);
         ef(iq + FirstQL) += weight * ( (gBigNumber * ( qnL - qN ) * vni ) );
         
         for (int jq=0; jq < QRowsleft; jq++)
@@ -751,7 +751,7 @@ void TPZMatDarcy2dhdiv::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMateria
             int jLvectorindex       = dataleft[0].fVecShapeIndex[jq].first;
             int jLshapeindex        = dataleft[0].fVecShapeIndex[jq].second;
             
-            REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fNormalVec(1,jLvectorindex)*n2);
+            REAL vnj    =   (phiQL(jLshapeindex,0)*dataleft[0].fDeformedDirections(0,jLvectorindex)*n1)+(phiQL(jLshapeindex,0)*dataleft[0].fDeformedDirections(1,jLvectorindex)*n2);
             ek(iq + FirstQL,jq + FirstQL) += weight * ( (gBigNumber * ( vnj ) * vni ) );
         }
     }
@@ -799,8 +799,8 @@ void TPZMatDarcy2dhdiv::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMateria
         int iLvectorindex       = dataleft[0].fVecShapeIndex[iq].first;
         int iLshapeindex        = dataleft[0].fVecShapeIndex[iq].second;
 
-        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(0,iLvectorindex))*(n1) +
-                       (phiQL(iLshapeindex,0)*dataleft[0].fNormalVec(1,iLvectorindex))*(n2);
+        REAL vnL   =   (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(0,iLvectorindex))*(n1) +
+                       (phiQL(iLshapeindex,0)*dataleft[0].fDeformedDirections(1,iLvectorindex))*(n2);
         
         ef(iq + FirstQL) += (1.0) * weight * vnL * (v2[2]-PressureL);
         

@@ -373,7 +373,7 @@ void TRMBuildTransfers::Fill_u_To_Mixed(TPZCompMesh * cmesh_multiphysics, int me
                 for (int jp = 0; jp < block_dim.second; jp++) {
                     int vector_index = data.fVecShapeIndex[jp].first;
                     int shape_index = data.fVecShapeIndex[jp].second;
-                    block(ip*n_var_dim+id,jp) = phi(shape_index,0)*data.fNormalVec(id,vector_index);
+                    block(ip*n_var_dim+id,jp) = phi(shape_index,0)*data.fDeformedDirections(id,vector_index);
                 }
             }
             

@@ -188,9 +188,9 @@ void TPZStokesMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &dat
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            VectorOnXYZ(0,0) = datavec[ublock].fDeformedDirections(0,ivectorindex);
+            VectorOnXYZ(1,0) = datavec[ublock].fDeformedDirections(1,ivectorindex);
+            VectorOnXYZ(2,0) = datavec[ublock].fDeformedDirections(2,ivectorindex);
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
@@ -209,9 +209,9 @@ void TPZStokesMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &dat
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
-            datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
-            datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
+            DivergenceofPhi(iq,0) =  datavec[ublock].fDeformedDirections(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
+            datavec[ublock].fDeformedDirections(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
+            datavec[ublock].fDeformedDirections(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
         }
     }
     

@@ -230,18 +230,18 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 		for (j=0; j<numvec; j++) {
 			int jvecind = data.fVecShapeIndex[j].first;
 			int jshapeind = data.fVecShapeIndex[j].second;
-			REAL prod = data.fNormalVec(0,ivecind)*data.fNormalVec(0,jvecind)+
-			data.fNormalVec(1,ivecind)*data.fNormalVec(1,jvecind)+
-			data.fNormalVec(2,ivecind)*data.fNormalVec(2,jvecind);//faz o produto escalar entre u e v--> Matriz A
+			REAL prod = data.fDeformedDirections(0,ivecind)*data.fDeformedDirections(0,jvecind)+
+			data.fDeformedDirections(1,ivecind)*data.fDeformedDirections(1,jvecind)+
+			data.fDeformedDirections(2,ivecind)*data.fDeformedDirections(2,jvecind);//faz o produto escalar entre u e v--> Matriz A
 			ek(i,j) += weight*ratiok*data.phi(ishapeind,0)*data.phi(jshapeind,0)*prod;
 			
 			
 			
 		}
 		TPZFNMatrix<3> ivec(3,1);
-		ivec(0,0) = data.fNormalVec(0,ivecind);
-		ivec(1,0) = data.fNormalVec(1,ivecind);
-		ivec(2,0) = data.fNormalVec(2,ivecind);
+		ivec(0,0) = data.fDeformedDirections(0,ivecind);
+		ivec(1,0) = data.fDeformedDirections(1,ivecind);
+		ivec(2,0) = data.fDeformedDirections(2,ivecind);
 		TPZFNMatrix<3> axesvec(3,1);
 		data.axes.Multiply(ivec,axesvec);
 		int iloc;
@@ -500,6 +500,7 @@ int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("Flux",name.c_str()))            return  10;
 	if(!strcmp("Pressure",name.c_str()))        return  11;
 	
+	if (!strcmp("ExactPressure", name.c_str()))   return  12;
 	if(!strcmp("ExactSolution",name.c_str()))   return  12;
 	if(!strcmp("ExactFlux",name.c_str()))       return  13;
 	if(!strcmp("Divergence",name.c_str()))      return  14;

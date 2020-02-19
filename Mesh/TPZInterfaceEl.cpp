@@ -332,7 +332,6 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
     this->InitMaterialData(datar, right);
 	this->InitializeElementMatrix(ef);
 	
-	//LOOKING FOR MAX INTERPOLATION ORDER
 	datal.p = left->MaxOrder();
 	datar.p = right->MaxOrder();
 	//Max interpolation order
@@ -348,7 +347,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
         TPZManVector<int,3> order(ref->Dimension(),intorder);
         intrule->SetOrder(order);
     }
-	//   mat->SetIntegrationRule(intrule, p, dim);
+    
 	const int npoints = intrule->NPoints();
 	
 	//integration points in left and right elements: making transformations to neighbour elements
@@ -358,7 +357,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	
 	TPZManVector<REAL,3> intpoint(dim), LeftIntPoint(diml), RightIntPoint(dimr);
 	REAL weight;
-	//LOOP OVER INTEGRATION POINTS
+	
 	for(int ip = 0; ip < npoints; ip++){
 		
 		intrule->Point(ip,intpoint,weight);
@@ -374,9 +373,6 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
-		
-		//left->ComputeShape(LeftIntPoint, data.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
-		//right->ComputeShape(RightIntPoint, data.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
 		
 		this->ComputeRequiredData(datal, left, LeftIntPoint);
 		this->ComputeRequiredData(datar, right, RightIntPoint);
@@ -806,6 +802,8 @@ TPZRestoreClass<TPZInterfaceElement>;
 void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 {
 	TPZCompEl::Write(buf,withclassid);
+    TPZPersistenceManager::WritePointer(fLeftElSide.Element(),&buf);
+    TPZPersistenceManager::WritePointer(fRightElSide.Element(),&buf);
 	int64_t leftelindex = fLeftElSide.Element()->Index();
 	int64_t rightelindex = fRightElSide.Element()->Index();
 	if ( (this->Index() < leftelindex) || (this->Index() < rightelindex) ){
@@ -831,13 +829,8 @@ void TPZInterfaceElement::Write(TPZStream &buf, int withclassid) const
 void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 {
 	TPZCompEl::Read(buf,context);
-	if (this->Reference()){
-		this->Reference()->IncrementNumInterfaces();
-	}
-	else{
-		PZError << "ERROR at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " - this->Reference() is NULL\n";
-		DebugStop();
-	}
+    TPZCompEl * leftEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
+    TPZCompEl * rightEl = dynamic_cast<TPZCompEl *>(TPZPersistenceManager::GetInstance(&buf));
 	int64_t leftelindex;
 	int64_t rightelindex;
 	int leftside, rightside;
@@ -846,8 +839,8 @@ void TPZInterfaceElement::Read(TPZStream &buf, void *context)
 	buf.Read(&leftside,1);
 	buf.Read(&rightelindex,1);
 	buf.Read(&rightside,1);
-	this->fLeftElSide.SetElement ( Mesh()->ElementVec()[leftelindex]  );
-	this->fRightElSide.SetElement( Mesh()->ElementVec()[rightelindex] );
+	this->fLeftElSide.SetElement ( leftEl );
+	this->fRightElSide.SetElement( rightEl );
 	this->fLeftElSide.SetSide( leftside );
 	this->fRightElSide.SetSide( rightside );
 	
@@ -1095,10 +1088,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
 	const int dimr = right->Dimension();
-//	int nshapel = left ->NShapeF();
-//	int nshaper = right->NShapeF();
-//	const int nstatel = left->Material()->NStateVariables();
-//	const int nstater = right->Material()->NStateVariables();
 	
 	TPZMaterialData dataright;
 	TPZMaterialData dataleft;
@@ -1121,51 +1110,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 #endif
 	
     InitializeElementMatrix(ek, ef);
-    /*
-	TPZManVector<TPZConnect*> ConnectL, ConnectR;
-	TPZManVector<int64_t> ConnectIndexL, ConnectIndexR;
-	
-	this->GetConnects( this->LeftElementSide(),  ConnectL, ConnectIndexL );
-	this->GetConnects( this->RightElementSide(), ConnectR, ConnectIndexR );
-	const int64_t ncon = ConnectL.NElements() + ConnectR.NElements();
-	const int neql = nshapel * nstatel;
-	const int neqr = nshaper * nstater;
-	const int neq = neql + neqr;
-    const int numloadcases = mat->NumLoadCases();
-	ek.fMat.Redim(neq,neq);
-	ef.fMat.Redim(neq,numloadcases);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fBlock.SetNBlocks(ncon);
-	ek.fConnect.Resize(ncon);
-	ef.fConnect.Resize(ncon);
-	
-	int64_t ic = 0;
-	int64_t n = ConnectL.NElements();
-	for(int64_t i = 0; i < n; i++) {
-		const int nshape = left->NConnectShapeF(i);
-		const int con_neq = nstatel * nshape;
-		ek.fBlock.Set(ic,con_neq );
-		ef.fBlock.Set(ic,con_neq);
-		(ef.fConnect)[ic] = ConnectIndexL[i];
-		(ek.fConnect)[ic] = ConnectIndexL[i];
-		ic++;
-	}
-	n = ConnectR.NElements();
-	for(int64_t i = 0; i < n; i++) {
-		const int nshape = right->NConnectShapeF(i);
-		const int con_neq = nstater * nshape;
-		ek.fBlock.Set(ic,con_neq );
-		ef.fBlock.Set(ic,con_neq);
-		(ef.fConnect)[ic] = ConnectIndexR[i];
-		(ek.fConnect)[ic] = ConnectIndexR[i];
-		ic++;
-	}
-	ek.fBlock.Resequence();
-	ef.fBlock.Resequence();
-	
-    */
     
-    //LOOKING FOR MAX INTERPOLATION ORDER
 	int leftmaxp = left->MaxOrder();
 	int rightmaxp = right->MaxOrder();
 	

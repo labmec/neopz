@@ -664,8 +664,6 @@ void TPZMatElastoPlastic2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
     
 }
 
-//#define SGPS_Q
-
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T, TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain) {
     TPZFNMatrix<9> DSolXYZ(3, 3, 0.);
@@ -679,14 +677,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::ComputeDeltaStrainVector(TPZMaterialData & 
     DeltaStrain(_XY_, 0) = 0.5 * (DSolXYZ(1, 0) + DSolXYZ(0, 1));
     DeltaStrain(_XZ_, 0) = 0.;
     DeltaStrain(_YZ_, 0) = 0.;
-    
-#ifndef SGPS_Q
     DeltaStrain(_ZZ_, 0) = 0.;
-#else
-    int intPt = data.intGlobPtIndex;
-    REAL nu = this->MemItem(intPt).m_ER.Poisson();
-    DeltaStrain(_ZZ_, 0) = -(nu/(1-nu))*(DSolXYZ(0, 0) + DSolXYZ(1, 1));
-#endif
     
 }
 

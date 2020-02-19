@@ -98,12 +98,12 @@ public:
 	/** @brief Returns the number of shape functions on a side*/
 	int NSideShapeF(int side) const;
 	
-	/** @brief Returns the number of dof nodes along side iside*/
+	/** @brief Returns the number of dof along the CLOSURE of the side iside*/
 	virtual int NSideConnects(int iside) const override = 0;
 	
 	/**
 	 * @brief Returns the local node number of icon along is
-	 * @param icon connect number along side is
+	 * @param icon connect number along side is (see NSideConnects)
 	 * @param is side which is being queried
 	 */
 	virtual int SideConnectLocId(int icon,int is) const override = 0;

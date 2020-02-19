@@ -113,7 +113,7 @@ namespace pzgeom {
 
         static	void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
 
-//        static void VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &sidevector);
+//        static void VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fDeformedDirections,TPZVec<int> &sidevector);
 
         /* brief compute the vectors for defining an HDiv approximation space */
 //        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix<REAL> &NormalVec,TPZVec<int> & VectorSide) const

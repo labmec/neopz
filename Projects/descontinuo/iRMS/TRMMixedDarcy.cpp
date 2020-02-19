@@ -312,7 +312,7 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             for (int k = 0; k < dim; k++) {
-                VectorOnXYZ(k,0) = datavec[ublock].fNormalVec(k,ivectorindex);
+                VectorOnXYZ(k,0) = datavec[ublock].fDeformedDirections(k,ivectorindex);
             }
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
@@ -340,7 +340,7 @@ void TRMMixedDarcy::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datavec, 
             
             /* Computing the divergence for constant jacobian elements */
             for (int k = 0; k < dim; k++) {
-                DivergenceofPhi(iq,0) +=  datavec[ublock].fNormalVec(k,ivectorindex)*GradphiuH1(k,ishapeindex);
+                DivergenceofPhi(iq,0) +=  datavec[ublock].fDeformedDirections(k,ivectorindex)*GradphiuH1(k,ishapeindex);
             }
         }
     }
@@ -459,7 +459,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         STATE Kl_inv_dot_u = 0.0, Kl_dp_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0, rho_dp_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             rho_g_dot_phi_u     += rho[0]*Gravity[i]*phi_u_i(i,0);
@@ -476,7 +476,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             
             STATE Kl_inv_phi_u_j_dot_phi_u_j = 0.0;
             for (int j = 0; j < u.size(); j++) {
-                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fNormalVec(j,v_j);
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fDeformedDirections(j,v_j);
                 STATE dot = 0.0;
                 for (int k = 0; k < u.size(); k++) {
                     dot += (1.0/l[0]) * Kinv(j,k)*phi_u_j(k,0);
@@ -634,7 +634,7 @@ void TRMMixedDarcy::Contribute_a(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         
         STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             rho_g_dot_phi_u += rho[0]*Gravity[i]*phi_u_i(i,0);
         }
@@ -951,7 +951,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         STATE Kl_inv_dot_u = 0.0, Kl_dp_inv_dot_u = 0.0, Kl_ds_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0, rho_dp_g_dot_phi_u = 0.0, rho_ds_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_ds_inv_dot_u     += lambda_ds_K_inv_u(i,0)*phi_u_i(i,0);
@@ -970,7 +970,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
             
             STATE Kl_inv_phi_u_j_dot_phi_u_i = 0.0;
             for (int j = 0; j < u.size(); j++) {
-                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fNormalVec(j,v_j);
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fDeformedDirections(j,v_j);
                 STATE dot = 0.0;
                 for (int k = 0; k < u.size(); k++) {
                     dot += (1.0/l[0]) * Kinv(j,k)*phi_u_j(k,0);
@@ -1133,7 +1133,7 @@ void TRMMixedDarcy::Contribute_ab(TPZVec<TPZMaterialData> &datavec, REAL weight,
         
         STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             rho_g_dot_phi_u += (s*rho_a[0]+(1.0-s)*rho_b[0])*Gravity[i]*phi_u_i(i,0);
         }
@@ -1517,7 +1517,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         
         for (int i = 0; i < u.size(); i++) {
             
-            phi_u_i(i,0)         = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0)         = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             Kl_inv_dot_u        += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dp_inv_dot_u     += lambda_dp_K_inv_u(i,0)*phi_u_i(i,0);
             Kl_dsa_inv_dot_u    += lambda_dsa_K_inv_u(i,0)*phi_u_i(i,0);
@@ -1540,7 +1540,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
             
             for (int j = 0; j < u.size(); j++) {
                 
-                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fNormalVec(j,v_j);
+                phi_u_j(j,0) = phi_us(s_j,0) * datavec[ub].fDeformedDirections(j,v_j);
                 STATE dot = 0.0;
             
                 for (int k = 0; k < u.size(); k++) {
@@ -1707,7 +1707,7 @@ void TRMMixedDarcy::Contribute_abc(TPZVec<TPZMaterialData> &datavec, REAL weight
         
         STATE Kl_inv_dot_u = 0.0, rho_g_dot_phi_u = 0.0;
         for (int i = 0; i < u.size(); i++) {
-            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fNormalVec(i,v_i);
+            phi_u_i(i,0) = phi_us(s_i,0) * datavec[ub].fDeformedDirections(i,v_i);
             Kl_inv_dot_u += lambda_K_inv_u(i,0)*phi_u_i(i,0);
             rho_g_dot_phi_u += (sa_n*rho_a[0]+sb_n*rho_b[0]+(1.0-sa_n-sb_n)*rho_c[0])*Gravity[i]*phi_u_i(i,0);
         }

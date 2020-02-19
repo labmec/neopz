@@ -357,9 +357,9 @@ void TPZDarcyFlow3D::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datave
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            VectorOnXYZ(0,0) = datavec[ublock].fDeformedDirections(0,ivectorindex);
+            VectorOnXYZ(1,0) = datavec[ublock].fDeformedDirections(1,ivectorindex);
+            VectorOnXYZ(2,0) = datavec[ublock].fDeformedDirections(2,ivectorindex);
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
@@ -378,9 +378,9 @@ void TPZDarcyFlow3D::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> &datave
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
-                                     datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
-                                     datavec[ublock].fNormalVec(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
+            DivergenceofPhi(iq,0) =  datavec[ublock].fDeformedDirections(0,ivectorindex)*GradphiuH1(0,ishapeindex) +
+                                     datavec[ublock].fDeformedDirections(1,ivectorindex)*GradphiuH1(1,ishapeindex) +
+                                     datavec[ublock].fDeformedDirections(2,ivectorindex)*GradphiuH1(2,ishapeindex) ;
         }
     }
     
@@ -480,9 +480,9 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
         ivectorindex    = datavec[ublock].fVecShapeIndex[iq].first;
         ishapeindex     = datavec[ublock].fVecShapeIndex[iq].second;
         
-        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
-        iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(2,ivectorindex);
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(1,ivectorindex);
+        iphiuHdiv(2,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(2,ivectorindex);
         
         // du/dalphau terms
         for (int jq = 0; jq < nphiuHdiv; jq++)
@@ -490,9 +490,9 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TP
             jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
             jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
             
-            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
-            jphiuHdiv(2,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(2,jvectorindex);
+            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(1,jvectorindex);
+            jphiuHdiv(2,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(2,jvectorindex);
             
             oneoverlambda_Kinv_jphiuHdiv(0,0) = (1.0/1.0) * (KInverse(0,0)*jphiuHdiv(0,0) + KInverse(0,1)*jphiuHdiv(1,0) + KInverse(0,2)*jphiuHdiv(2,0));
             oneoverlambda_Kinv_jphiuHdiv(1,0) = (1.0/1.0) * (KInverse(1,0)*jphiuHdiv(0,0) + KInverse(1,1)*jphiuHdiv(1,0) + KInverse(1,2)*jphiuHdiv(2,0));
@@ -662,8 +662,8 @@ void TPZDarcyFlow3D::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, T
         ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
         
-        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(1,ivectorindex);
         
         ef(iq + iniu) += weight * ((oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0) + oneoverlambda_Kinv_u(2,0)*iphiuHdiv(2,0)) - P * DivergenceOnDeformed(iq,0)  );
         
@@ -862,9 +862,9 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
         {
             int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
             int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
             
             REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
             
@@ -897,9 +897,9 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
         {
             int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
             int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
             
             REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
             
@@ -936,9 +936,9 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
         {
             int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
             int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
             
             REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
             
@@ -971,9 +971,9 @@ void TPZDarcyFlow3D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateri
         {
             int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
             int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+            jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+            jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
             
             REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
             
@@ -1199,9 +1199,9 @@ void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMate
                 {
                     int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
                     int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
                     
                     REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
                     
@@ -1219,9 +1219,9 @@ void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMate
                 {
                     int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
                     int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
                     
                     REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
                     
@@ -1326,9 +1326,9 @@ void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMate
                 {
                     int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
                     int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
                     
                     REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
                     
@@ -1358,9 +1358,9 @@ void TPZDarcyFlow3D::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMate
                 {
                     int jvectorindex    = datavecleft[ublock].fVecShapeIndex[jq].first;
                     int jshapeindex     = datavecleft[ublock].fVecShapeIndex[jq].second;
-                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(0,jvectorindex);
-                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(1,jvectorindex);
-                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fNormalVec(2,jvectorindex);
+                    jphiuHdiv(0,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(0,jvectorindex);
+                    jphiuHdiv(1,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(1,jvectorindex);
+                    jphiuHdiv(2,0) = phiuH1L(jshapeindex,0)*datavecleft[ublock].fDeformedDirections(2,jvectorindex);
                     
                     REAL jphiuHdivn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1] + jphiuHdiv(2,0)*n[2];
                     

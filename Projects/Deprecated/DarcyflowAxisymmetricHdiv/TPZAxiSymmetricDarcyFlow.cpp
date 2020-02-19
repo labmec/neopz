@@ -598,9 +598,9 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
             ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
-            VectorOnXYZ(0,0) = datavec[ublock].fNormalVec(0,ivectorindex);
-            VectorOnXYZ(1,0) = datavec[ublock].fNormalVec(1,ivectorindex);
-            VectorOnXYZ(2,0) = datavec[ublock].fNormalVec(2,ivectorindex);
+            VectorOnXYZ(0,0) = datavec[ublock].fDeformedDirections(0,ivectorindex);
+            VectorOnXYZ(1,0) = datavec[ublock].fDeformedDirections(1,ivectorindex);
+            VectorOnXYZ(2,0) = datavec[ublock].fDeformedDirections(2,ivectorindex);
             
             GradOfXInverse.Multiply(VectorOnXYZ, VectorOnMaster);
             VectorOnMaster *= JacobianDet;
@@ -617,7 +617,7 @@ void TPZAxiSymmetricDarcyFlow::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialDat
             ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
             
             /* Computing the divergence for constant jacobian elements */
-            DivergenceofPhi(iq,0) =  (datavec[ublock].fNormalVec(0,ivectorindex)*GradphiuH1(0,ishapeindex) + datavec[ublock].fNormalVec(1,ivectorindex)*GradphiuH1(1,ishapeindex));
+            DivergenceofPhi(iq,0) =  (datavec[ublock].fDeformedDirections(0,ivectorindex)*GradphiuH1(0,ishapeindex) + datavec[ublock].fDeformedDirections(1,ivectorindex)*GradphiuH1(1,ishapeindex));
         }
     }
     
@@ -963,8 +963,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
         ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
         
-        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(1,ivectorindex);
         
         ef(iq + iniu) += weight * ((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
                                    - P * DivergenceOnDeformed(iq,0)
@@ -976,8 +976,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
             jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
             jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
             
-            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(0,jvectorindex);
+            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(1,jvectorindex);
             
             Oneoverlambda_Kinv_Phiu(0,0) = (1.0/lambda[0]) * (KInverse(0,0)*jphiuHdiv(0,0) + KInverse(0,1)*jphiuHdiv(1,0));
             Oneoverlambda_Kinv_Phiu(1,0) = (1.0/lambda[0]) * (KInverse(1,0)*jphiuHdiv(0,0) + KInverse(1,1)*jphiuHdiv(1,0));
@@ -1127,8 +1127,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeDarcy(TPZVec<TPZMaterialData> &datavec,
         ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
         
-        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        iphiuHdiv(0,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(0,ivectorindex);
+        iphiuHdiv(1,0) = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(1,ivectorindex);
         
         ef(iq + iniu) += weight * ((Oneoverlambda_Kinv_u(0,0)*iphiuHdiv(0,0) + Oneoverlambda_Kinv_u(1,0)*iphiuHdiv(1,0))
                                    - P * DivergenceOnDeformed(iq,0)
@@ -1221,8 +1221,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceDarcy(TPZMaterialData &data, T
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
         REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
         ef(iq + iniuL) += weight * (P_R - P_L) * vin;
@@ -1308,8 +1308,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceDarcy(TPZMaterialData &data, T
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
         REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
         ef(iq + iniuL) += weight * (P_R - P_L) * vin;
@@ -1648,8 +1648,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
         
-        vi[0] = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(1,ivectorindex);
         
         ef(iq + iniu) += weight * (-1.0 * (S_alpha * Pc_beta_alpha[0]) * DivergenceOnDeformed(iq,0) - f_alpha[0] * (Grad_Pc[0]*vi[0] + Grad_Pc[1]*vi[1]));
         
@@ -1716,8 +1716,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
 //            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
 //            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
 //            
-//            vi[0] = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-//            vi[1] = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+//            vi[0] = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(0,jvectorindex);
+//            vi[1] = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(1,jvectorindex);
 //            
 //            ek(isw  + iniSa, jq  + iniu ) = -1.0 * weight * (f_alpha[0]*(vi[0]*Gradphis[0] + vi[1]*Gradphis[1]));
 //            
@@ -1889,8 +1889,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeAlpha(TPZVec<TPZMaterialData> &datavec,
         ivectorindex = datavec[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavec[ublock].fVecShapeIndex[iq].second;
         
-        vi[0] = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1(ishapeindex,0) * datavec[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1(ishapeindex,0) * datavec[ublock].fDeformedDirections(1,ivectorindex);
             
         ef(iq + iniu) += weight * (-1.0 * (S_alpha * Pc_beta_alpha[0]) * DivergenceOnDeformed(iq,0) - f_alpha[0] * (Grad_Pc[0]*vi[0] + Grad_Pc[1]*vi[1]));
         
@@ -2003,8 +2003,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
         REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
         ef(iq + iniuL) += -1.0*weight * (Salpha_L * Pc_beta_alphaL[0] ) * vin;
@@ -2049,8 +2049,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                     {
                         ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
                         ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
                         REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
                         
                         ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2119,8 +2119,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                     {
                         ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
                         ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
                         REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
                         
                         ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2156,8 +2156,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
 //                    {
 //                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
 //                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-//                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-//                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+//                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+//                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
 //                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
 //                        
 //                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2202,8 +2202,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
 //                    {
 //                        ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
 //                        ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-//                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-//                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+//                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+//                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
 //                        REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
 //                        ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
 //                    }
@@ -2234,8 +2234,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                     {
                         ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
                         ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
                         REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
                         
                         ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2289,8 +2289,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                     {
                         ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
                         ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
                         REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
                         
                         ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2322,8 +2322,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
                     {
                         ivectorindex = datavecleft[ublock].fVecShapeIndex[jq].first;
                         ishapeindex = datavecleft[ublock].fVecShapeIndex[jq].second;
-                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+                        iphiuHdivL(0,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+                        iphiuHdivL(1,0) = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
                         REAL vn = iphiuHdivL(0,0)*n[0] + iphiuHdivL(1,0)*n[1];
                         
                         ek(isw + iniSaL, jq + iniuL) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2456,8 +2456,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeBCInterfaceAlpha(TPZMaterialData &data,
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
         REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
         ef(iq + iniuL) += -1.0*weight * (Salpha_L * Pc_beta_alphaL[0]) * vin;
@@ -2833,8 +2833,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //        {
 //            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
 //            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
-//            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-//            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+//            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(0,jvectorindex);
+//            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(1,jvectorindex);
 //            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
 //            
 //            ek(isw + iniSaL,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2860,8 +2860,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
 //        {
 //            jvectorindex = datavec[ublock].fVecShapeIndex[jq].first;
 //            jshapeindex = datavec[ublock].fVecShapeIndex[jq].second;
-//            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(0,jvectorindex);
-//            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fNormalVec(1,jvectorindex);
+//            jphiuHdiv(0,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(0,jvectorindex);
+//            jphiuHdiv(1,0) = phiuH1(jshapeindex,0) * datavec[ublock].fDeformedDirections(1,jvectorindex);
 //            REAL vn = jphiuHdiv(0,0)*n[0] + jphiuHdiv(1,0)*n[1];
 //            
 //            ek(iblock + isw + iniSaR,iblockt + jq + iniu) += 1.0 * weight * f_alpha[0] * phiSaL2L(isw,0) * vn;
@@ -2979,8 +2979,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
         REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
         ef(iq + iniuL) += weight * (Salpha_R * Pc_beta_alphaR[0] - Salpha_L * Pc_beta_alphaL[0]) * vin;
@@ -3219,8 +3219,8 @@ void TPZAxiSymmetricDarcyFlow::ContributeInterfaceAlpha(TPZMaterialData &data, T
     {
         ivectorindex = datavecleft[ublock].fVecShapeIndex[iq].first;
         ishapeindex = datavecleft[ublock].fVecShapeIndex[iq].second;
-        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(0,ivectorindex);
-        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fNormalVec(1,ivectorindex);
+        vi[0] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(0,ivectorindex);
+        vi[1] = phiuH1L(ishapeindex,0) * datavecleft[ublock].fDeformedDirections(1,ivectorindex);
         REAL vin = vi[0]*n[0] + vi[1]*n[1];
         
         ef(iq + iniuL) += weight * (Salpha_R * Pc_beta_alphaR[0] - Salpha_L * Pc_beta_alphaL[0]) * vin;

@@ -19,6 +19,7 @@
 #include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
 #include "pzvec.h"           // for TPZVec
 #include "tpzautopointer.h"  // for TPZAutoPointer
+#include <cstdlib>
 
 #ifdef _AUTODIFF
 #include "tfad.h"
@@ -114,6 +115,19 @@ public:
     
     CLONEDEF(TPZFMatrix<TVar>)
     TPZFMatrix(const TPZMatrix<TVar> & refmat);
+
+	/**
+	 * @brief Creates a matrix from initializer list (one column matrix)
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+	inline TPZFMatrix(const std::initializer_list<TVar>& list);
+
+	/**
+	 * @brief Creates a matrix from initializer list
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+    inline TPZFMatrix(const std::initializer_list< std::initializer_list<TVar> > &list);
+
     
     /** @brief Simple destructor */
     virtual  ~TPZFMatrix();
@@ -130,7 +144,7 @@ public:
     
     friend class TPZFMatrix<float>;
     friend class TPZFMatrix<double>;
-
+    friend class TPZHCurlAuxClass;//for using the GETVAL macro.
     /// copy the values from a matrix with a different precision
     template<class TVar2>
     void CopyFrom(TPZFMatrix<TVar2> &orig)
@@ -210,6 +224,8 @@ public:
     
     /** @brief Generic operator with FULL matrices */
     virtual TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
+	TPZFMatrix<TVar>& operator= (const std::initializer_list<TVar>& list);
+	TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
     TPZFMatrix<TVar> operator+  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator-  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator*  ( TPZFMatrix<TVar> A ) const ;
@@ -456,6 +472,56 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const int64_t rows,const int64_t cols,const 
 }
 
 template<class TVar>
+inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list) 
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId), TPZMatrix<TVar>(list.size(), 1)
+{
+	if (list.size() > 0) {
+		this->fElem = new TVar[list.size()];
+	}
+
+	auto it = list.begin();
+	auto it_end = list.end();
+	TVar* aux = fElem;
+	for (; it != it_end; it++, aux++)
+		*aux = *it;
+}
+
+template< class TVar >
+inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<TVar>> &list)
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId)
+{
+    this->fRow = list.size();
+
+    auto row_it = list.begin();
+    auto row_it_end = list.end();
+
+#ifdef PZDEBUG    
+    bool col_n_found = false;
+    for (auto it = row_it; it != row_it_end; it++) {
+        if (!col_n_found) {
+            this->fCol = it->size();
+            col_n_found = true;
+        } else {
+            if (this->fCol != it->size())
+                Error("TPZFMatrix constructor: inconsistent number of columns in initializer list");
+        }
+    }
+#else
+    this->fCol = row_it->size();
+#endif
+
+	this->fElem = new TVar[this->fRow * this->fCol];
+    
+    for (uint32_t row_n = 0; row_it != row_it_end; row_it++, row_n++) {
+        auto col_it = row_it->begin();
+        auto col_it_end = row_it->end();
+        for (uint32_t col_n = 0; col_it != col_it_end; col_it++, col_n++) {
+            this->fElem[col_n * this->fRow + row_n] = *col_it;
+        }
+    }
+}
+
+template<class TVar>
 /** @brief Implements a scalar product val*A */
 inline TPZFMatrix<TVar> operator*(TVar val, const TPZFMatrix<TVar> &A)
 {
@@ -646,12 +712,14 @@ inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
  * @brief Non abstract class which implements full matrices with preallocated storage with (N+1) entries. \ref matrix "Matrix"
  * @ingroup matrix
  */
+
 template<int N, class TVar=REAL>
 class TPZFNMatrix : public TPZFMatrix<TVar> {
     
     TVar fBuf[N+1];
     
 public:
+    friend class TPZHCurlAuxClass;
     /*
      * @brief Constructor which does not initialize the data. \n
      * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col

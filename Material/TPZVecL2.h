@@ -55,7 +55,7 @@ public:
         return fDim;
     }
     
-    void SetDimension(int dim){
+    virtual void SetDimension(int dim){
         fDim = dim;
     }
     
@@ -64,8 +64,8 @@ public:
     {
         return fNState;
     }
-    
-    void SetNStateVariables(int nstate)
+
+    virtual void SetNStateVariables(int nstate)
     {
         fNState = nstate;
     }

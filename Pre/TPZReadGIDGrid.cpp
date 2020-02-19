@@ -63,6 +63,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 		
 		// reading a general mesh information by filter
 		std::ifstream read (FileName.c_str());
+		if (!read.is_open()) return 0;
 		std::string FlagString;
 		int flag = -1;		
 		while(read)

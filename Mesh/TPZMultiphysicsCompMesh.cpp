@@ -72,14 +72,16 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & me
 }
 
 void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
-    
+
     m_active_approx_spaces = active_approx_spaces;
     m_mesh_vector          = mesh_vector;
     if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
         std::cout<< "TPZMultiphysicsCompMesh:: The vector provided should have the same size." << std::endl;
         DebugStop();
     }
+    
     int n_approx_spaces = m_mesh_vector.size();
+  
     SetNMeshes(n_approx_spaces);
     Reference()->ResetReference();
     SetAllCreateFunctionsMultiphysicElem();
@@ -91,25 +93,7 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<int> & active_approx
     LoadSolutionFromMeshes();
 }
 
-void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector, const TPZVec<int64_t> &gelindexes){
-    
-    m_mesh_vector          = mesh_vector;
-    m_active_approx_spaces.Resize(m_mesh_vector.size());
-    for(int64_t i = 0; i< m_active_approx_spaces.size(); i++) m_active_approx_spaces[i] = 1;
-    int n_approx_spaces = m_mesh_vector.size();
-    SetNMeshes(n_approx_spaces);
-    Reference()->ResetReference();
-    SetAllCreateFunctionsMultiphysicElem();
-    // delete all elements and connects in the mesh
-    CleanElementsConnects();
-    TPZCompMesh::AutoBuild(gelindexes);
-    AddElements();
-    AddConnects();
-    LoadSolutionFromMeshes();
-}
-
-void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector)
-{
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector){
     m_active_approx_spaces = active_approx_spaces;
     m_mesh_vector          = mesh_vector;
     if (m_mesh_vector.size() != m_active_approx_spaces.size()) {
@@ -141,6 +125,24 @@ void TPZMultiphysicsCompMesh::BuildMultiphysicsSpaceWithMemory(TPZVec<int> & act
     }
     
 }
+
+void TPZMultiphysicsCompMesh::BuildMultiphysicsSpace(TPZVec<TPZCompMesh * > & mesh_vector, const TPZVec<int64_t> &gelindexes){
+    
+    m_mesh_vector          = mesh_vector;
+    m_active_approx_spaces.Resize(m_mesh_vector.size());
+    for(int64_t i = 0; i< m_active_approx_spaces.size(); i++) m_active_approx_spaces[i] = 1;
+    int n_approx_spaces = m_mesh_vector.size();
+    SetNMeshes(n_approx_spaces);
+    Reference()->ResetReference();
+    SetAllCreateFunctionsMultiphysicElem();
+    // delete all elements and connects in the mesh
+    CleanElementsConnects();
+    TPZCompMesh::AutoBuild(gelindexes);
+    AddElements();
+    AddConnects();
+    LoadSolutionFromMeshes();
+}
+
 
 void TPZMultiphysicsCompMesh::AutoBuild(){
     

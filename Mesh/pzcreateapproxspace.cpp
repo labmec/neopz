@@ -487,6 +487,47 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
      */
 }
 
+#include <TPZCompElHCurl.h>
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
+
+    switch (dimension) {
+        case 1:
+            fp[EPoint] = CreateHCurlBoundPointEl;
+            fp[EOned] = CreateHCurlLinearEl;
+            fp[ETriangle] = CreateNoElement;
+            fp[EQuadrilateral] = CreateNoElement;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 2:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateHCurlBoundLinearEl;
+            fp[ETriangle] = CreateHCurlTriangleEl;
+            fp[EQuadrilateral] = CreateHCurlQuadEl;
+            fp[ETetraedro] = CreateNoElement;
+            fp[EPiramide] = CreateNoElement;
+            fp[EPrisma] = CreateNoElement;
+            fp[ECube] = CreateNoElement;
+            break;
+        case 3:
+            fp[EPoint] = CreateNoElement;
+            fp[EOned] = CreateNoElement;
+            fp[ETriangle] = CreateHCurlBoundTriangleEl;
+            fp[EQuadrilateral] = CreateHCurlBoundQuadEl;
+            fp[ETetraedro] = CreateHCurlTetraEl;
+            fp[EPiramide] = CreateHCurlPyramEl;
+            fp[EPrisma] = CreateHCurlPrismEl;
+            fp[ECube] = CreateHCurlCubeEl;
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+}
+
 /** @brief Create an approximation space with HDiv elements */
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivReferred(int dimension)
 {

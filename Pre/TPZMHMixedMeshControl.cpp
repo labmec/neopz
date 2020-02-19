@@ -205,6 +205,7 @@ void TPZMHMixedMeshControl::BuildComputationalMesh(bool usersubstructure)
 void TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
+    cmeshHDiv->SetName("FluxMesh");
     InsertPeriferalHdivMaterialObjects();
     CreateInternalFluxElements();
     
@@ -229,12 +230,12 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
                 intel->SetPreferredOrder(fpOrderInternal + fHdivmaismais);
             }
         }
-        
+        cmeshHDiv->ExpandSolution();
     }
     
     cmeshHDiv->ExpandSolution();
 #ifdef PZDEBUG
-   // if(0)
+    if(0)
     {
         fFluxMesh->ComputeNodElCon();
         std::ofstream outmesh("MixedMeshControl_HDivMesh.txt");
@@ -307,7 +308,7 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     gmesh->ResetReference();
     cmeshPressure->SetName("PressureMesh");
     cmeshPressure->SetDimModel(gmesh->Dimension());
-    cmeshPressure->ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmeshPressure->SetAllCreateFunctionsDiscontinuous(); //AQUI
     cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
     cmeshPressure->SetDefaultOrder(porder + fHdivmaismais);
     int meshdim = cmeshPressure->Dimension();

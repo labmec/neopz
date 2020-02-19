@@ -796,7 +796,7 @@ void TPZRefPattern::SetRefPatternMeshToMasterDomain(){
 
     const int dim = fatherEl->Dimension();
     const int nNodes = fRefPatternMesh.NodeVec().NElements();
-    TPZManVector< TPZManVector<REAL,3> ,20> nodecoords_inQSI(nNodes,TPZManVector<REAL,3>(dim));
+    TPZManVector< TPZManVector<REAL,3> ,20> nodecoords_inQSI(nNodes,TPZManVector<REAL,3>(dim,0));
     TPZManVector<REAL,3> nodecoords_inX(3,0);
     TPZManVector<REAL,3> temp(3,0.);
     REAL Tol;
@@ -1133,7 +1133,7 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
     pattern >> nNodes >> nElems;
     pattern >> fId >> fName;
 
-    TPZVec<REAL> coord(3);
+    TPZManVector<REAL,3> coord(3);
     fRefPatternMesh.NodeVec().Resize(nNodes);
 
     //criacao dos nohs
@@ -1144,7 +1144,6 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
         pattern >> coord[2];
         fRefPatternMesh.NodeVec()[iNode].Initialize(iNode,coord,fRefPatternMesh);
     }
-
     TPZGeoEl *father = 0;
     //criacao dos elementos geometricos que definem a particao
     int ntype, nummat, naorners, incid, el;
