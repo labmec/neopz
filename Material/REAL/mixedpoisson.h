@@ -196,7 +196,7 @@ public:
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
 	
     
-    virtual int NEvalErrors() override {return 3;}
+    virtual int NEvalErrors() override {return 5;}
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
     
