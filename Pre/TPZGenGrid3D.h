@@ -39,18 +39,19 @@ public:
     TPZGeoMesh *BuildVolumetricElements(const int matIdDomain);
 
     /**
-     * This method creates the boundary elements and associates them with their respective material ids
-     * @param matIdXmin Material identifier for the boundary elements on the min x coordinate face
-     * @param matIdXmax Material identifier for the boundary elements on the max x coordinate face
-     * @param matIdYmin Material identifier for the boundary elements on the min y coordinate face
-     * @param matIdYmax Material identifier for the boundary elements on the max y coordinate face
+     * This method creates the boundary elements and associates them with their respective material ids.
+     * Their order follows the enumeration of the sides of a hexahedral element.
      * @param matIdZmin Material identifier for the boundary elements on the min z coordinate face
+     * @param matIdXmin Material identifier for the boundary elements on the min x coordinate face
+     * @param matIdYmin Material identifier for the boundary elements on the min y coordinate face
+     * @param matIdXmax Material identifier for the boundary elements on the max x coordinate face
+     * @param matIdYmax Material identifier for the boundary elements on the max y coordinate face
      * @param matIdZmax Material identifier for the boundary elements on the max z coordinate face
      * @return
      */
-    TPZGeoMesh *BuildBoundaryElements(const int matIdXmin, const int matIdXmax,
-                                      const int matIdYmin, const int matIdYmax,
-                                      const int matIdZmin, const int matIdZmax);
+    TPZGeoMesh *BuildBoundaryElements(const int matIdZmin, const int matIdXmin,
+                                      const int matIdYmin, const int matIdXmax,
+                                      const int matIdYmax, const int matIdZmax);
 private:
     TPZGeoMesh *fGmesh{nullptr};
     const MMeshType fMeshType;

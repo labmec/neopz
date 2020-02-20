@@ -39,7 +39,7 @@ public:
      * @param rot rotation applied to the grid for the next layer
 	 * @note All the layers has a common interval \f$ [(x0[0],0,0);(x1[0],0,0)] \f$
      */
-    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+    TPZGenGrid2D(const TPZVec<int> &nx, const TPZVec<REAL> &x0, const TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 	
 	/** @brief Default destructor */
     virtual ~TPZGenGrid2D();

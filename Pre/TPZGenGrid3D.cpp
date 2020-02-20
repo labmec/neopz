@@ -18,8 +18,8 @@ TPZGenGrid3D::TPZGenGrid3D(const TPZVec<REAL> &minX, const TPZVec<REAL> &maxX, c
     if(fMinX.NElements() != 3 || fMaxX.NElements() != 3 || fNelDiv.NElements() != 3){
         PZError<<__PRETTY_FUNCTION__<<" error\n";
         PZError<<"minX, maxX and nelDiv must have size = 3!\n";
-        PZError<<"size(minX) = "<<fMinX.NElements()
-               <<"size(maxX) = "<<fMaxX.NElements()
+        PZError<<"size(minX) = "<<fMinX.NElements()<<"\n"
+               <<"size(maxX) = "<<fMaxX.NElements()<<"\n"
                <<"size(nelDiv) = "<<fNelDiv.NElements()<<"\n";
         DebugStop();
     }
@@ -220,9 +220,9 @@ TPZGeoMesh* TPZGenGrid3D::BuildVolumetricElements(const int matIdDomain){
     return fGmesh;
 }
 
-TPZGeoMesh *TPZGenGrid3D::BuildBoundaryElements(const int matIdXmin, const int matIdXmax,
-                                                const int matIdYmin, const int matIdYmax,
-                                                const int matIdZmin, const int matIdZmax) {
+TPZGeoMesh *TPZGenGrid3D::BuildBoundaryElements(const int matIdZmin, const int matIdXmin,
+                                                const int matIdYmin, const int matIdXmax,
+                                                const int matIdYmax, const int matIdZmax) {
     if(!fGmesh){
         PZError<<__PRETTY_FUNCTION__<<" error.\n";
         PZError<<"The geometric mesh is empty (nullptr). Currently this class only supports building";
