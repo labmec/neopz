@@ -102,10 +102,10 @@ TPZTransform<REAL> GetSideTransform(int side, int trans_id) {
         return TransElToSide;
     }
     else{
-        TPZFMatrix<double> resul_mult;
+        TPZFMatrix<REAL> resul_mult;
         TransParametric.Mult().Multiply(TransElToSide.Mult(), resul_mult);
         TransElToSide.Mult() = resul_mult;
-        TPZFMatrix<double> res1;
+        TPZFMatrix<REAL> res1;
         TransParametric.Mult().Multiply( TransElToSide.Sum(), res1);
         TransElToSide.Sum() =res1;
         TransElToSide.Sum() += TransParametric.Sum();
