@@ -24,6 +24,13 @@ enum class MMeshType
 std::string MMeshType_Name(const MMeshType meshType);
 
 /**
+ * Returns the dimension of the mesh associated with a given mesh type
+ * @param meshType mesh type
+ * @return dimension
+ */
+int MMeshType_Dimension(const MMeshType meshType);
+
+/**
  * Stream operator for getting the mesh type name
  * @param out
  * @param meshType

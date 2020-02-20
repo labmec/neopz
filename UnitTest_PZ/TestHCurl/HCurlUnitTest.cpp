@@ -986,12 +986,16 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 //Creating geometric mesh, nodes and elements.
                 //Including nodes and elements in the mesh object:
                 //create boundary elements
-                constexpr int minX{0},minY{0},minZ{0};
-                constexpr int maxX{1},maxY{1},maxZ{1};
+                TPZManVector<REAL,3>minX(3,0);
+                TPZManVector<REAL,3>maxX(3,1);
+                TPZManVector<int,3> nelDiv(3,-1);
+                nelDiv[0] = nelx;
+                nelDiv[1] = nely;
+                nelDiv[2] = nelz;
                 constexpr int matIdDomain{1};
                 constexpr int matIdBoundary{2};
 
-                TPZGenGrid3D genGrid3D(minX,minY,minZ,maxX,maxY,maxZ,nelx,nely,nelz,meshType);
+                TPZGenGrid3D genGrid3D(minX,maxX,nelDiv,meshType);
                 genGrid3D.BuildVolumetricElements(matIdDomain);
                 TPZGeoMesh *gmesh = genGrid3D.BuildBoundaryElements(matIdBoundary,matIdBoundary,matIdBoundary,matIdBoundary,matIdBoundary,matIdBoundary);
                 gmesh->BuildConnectivity();

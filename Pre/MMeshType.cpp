@@ -30,3 +30,20 @@ std::string MMeshType_Name(const MMeshType meshType){
     }
 
 }
+
+int MMeshType_Dimension(const MMeshType meshType){
+    switch(meshType){
+        case MMeshType::ETriangular:
+        case MMeshType::EQuadrilateral:
+            return 2;
+        case MMeshType::ETetrahedral:
+        case MMeshType::EPyramidal:
+        case MMeshType::EPrismatic:
+        case MMeshType::EHexahedral:
+        case MMeshType::EHexaPyrMixed:
+            return 3;
+        case MMeshType::ENoType:
+            return -1;
+    }
+
+}

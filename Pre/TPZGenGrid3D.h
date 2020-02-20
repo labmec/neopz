@@ -7,6 +7,7 @@
 #include "pzreal.h"
 #include "pzeltype.h"
 #include "MMeshType.h"
+#include "pzmanvector.h"
 class TPZGeoMesh;
 
 
@@ -17,8 +18,18 @@ class TPZGeoMesh;
 class TPZGenGrid3D {
 public:
     TPZGenGrid3D() = delete;
-    TPZGenGrid3D(const REAL minX, const REAL minY, const REAL minZ,const REAL maxX, const REAL maxY, const REAL maxZ,
-            const int nelx, const int nely, const int nelz, const MMeshType elType);
+
+    /**
+     * Initializes the structure for creating a mesh that forms a partition of a cuboid.
+     * minX and maxX are spatial coordinates of the endpoints of one spatial diagonal of the cuboid.
+     * The cuboid faces are aligned with the x,y and z planes.
+     * The mesh is structured and its divisions are given by nelDiv.
+     * @param minX The smallest (or most negative) values of x,y and z for a point inside the cuboid.
+     * @param maxX The biggest (or least negative) values of x,y and z for a point inside the cuboid.
+     * @param nelDiv Number of elements in each direction (x,y and z)
+     * @param elType How to divide each cuboid of the mesh.
+     */
+    TPZGenGrid3D(const TPZVec<REAL> &minX, const TPZVec<REAL> &maxX, const TPZVec<int> &nelDiv, const MMeshType elType);
 
     /**
      * This method builds the three-dimensional elements of the desired type and sets their material ids as matIdDomain.
@@ -43,9 +54,9 @@ public:
 private:
     TPZGeoMesh *fGmesh{nullptr};
     const MMeshType fMeshType;
-    const int fNelx{0},fNely{0},fNelz{0};
-    const REAL fMinX{0},fMinY{0},fMinZ{0};
-    const REAL fMaxX{0},fMaxY{0},fMaxZ{0};
+    const TPZManVector<int,3>fNelDiv{0};
+    const TPZManVector<REAL,3> fMinX{0};
+    const TPZManVector<REAL,3> fMaxX{0};
     static const int fDim{3};
 };
 
