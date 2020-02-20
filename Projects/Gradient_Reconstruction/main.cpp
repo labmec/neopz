@@ -16,7 +16,7 @@
 #include "pzpoisson3d.h"
 #include "pzmat1dlin.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgradient.h"
 #include "pzl2projection.h"
 
@@ -776,8 +776,8 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 		{
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
-			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
-			gen.SetElementType(ETriangle);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
+			gen.SetElementType(MMeshType::ETriangular);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmesh,matId);             // generating grid in gmesh
 			gmesh->BuildConnectivity();
 			TPZGeoElBC gbc10(gmesh->ElementVec()[0],3,bc0);
@@ -791,8 +791,8 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 		{
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
-			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1 
-			if(typeel==ETriangle) gen.SetElementType(ETriangle);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
+			if(typeel==ETriangle) gen.SetElementType(MMeshType::ETriangular);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			else gen.SetElementType(EQuadrilateral);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmesh,matId);             // generating grid in gmesh
 			gmesh->BuildConnectivity();
@@ -809,7 +809,7 @@ TPZGeoMesh *CreateGeoMesh(MElementType typeel) {
 			TPZGeoMesh *gmeshtemp = NULL;
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and in Y. 
-			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+			TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
 			gen.SetElementType(EQuadrilateral);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmeshtemp,matId);             // generating grid in gmesh
 			

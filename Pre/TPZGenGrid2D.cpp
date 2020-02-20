@@ -1,9 +1,9 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZGenGrid methods. 
+ * @brief Contains the implementation of the TPZGenGrid2D methods.
  */
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzcmesh.h"
 #include "pzgmesh.h"
 
@@ -25,23 +25,23 @@
 #include "tpzgeoelrefpattern.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid"));
+static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid2d"));
 #endif
 
 using namespace std;
 
-TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
+TPZGenGrid2D::TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
 fDelx(2), fGeometricProgression(2, 1.), fNumLayers(numl), fRotAngle(rot), fZigZag(false), fTrapeze(false), fDistortion(0.), fRefPattern(false) {
     fDelx[0] = (x1[0] - x0[0]) / (nx[0]); // Delta x
     fDelx[1] = (x1[1] - x0[1]) / (nx[1]); // Delta y
     fNumNodes = (nx[0] + 1)*(nx[1] + 1)+(fNumLayers - 1)*(nx[0])*(nx[1] + 1);
-    fElementType = EQuadrilateral;
+    fMeshType = MMeshType::EQuadrilateral;
 }
 
-TPZGenGrid::~TPZGenGrid() {
+TPZGenGrid2D::~TPZGenGrid2D() {
 }
 
-void TPZGenGrid::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MElementType eltype, int numl, REAL rot) {
+void TPZGenGrid2D::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MMeshType meshtype, int numl, REAL rot) {
     int i;
     fNx.Resize(nx.NElements());
     for (i = 0; i < fNx.NElements(); i++)
@@ -56,12 +56,12 @@ void TPZGenGrid::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, ME
     fDelx[0] = (x1[0] - x0[0]) / (nx[0]); // Delta x
     fDelx[1] = (x1[1] - x0[1]) / (nx[1]); // Delta y
     fNumNodes = (nx[0] + 1)*(nx[1] + 1)+(fNumLayers - 1)*(nx[0])*(nx[1] + 1);
-    fElementType = eltype;
+    fMeshType = meshtype;
     fNumLayers = numl;
     fRotAngle = rot;
 }
 
-short TPZGenGrid::Read(TPZGeoMesh *grid, int matid) {
+short TPZGenGrid2D::Read(TPZGeoMesh *grid, int matid) {
     if (!grid) return 1;
     grid->SetDimension(2);
     if (!GenerateNodes(grid))
@@ -74,7 +74,7 @@ short TPZGenGrid::Read(TPZGeoMesh *grid, int matid) {
     return 0;
 }
 
-short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid, int matid) {
+short TPZGenGrid2D::Read(TPZAutoPointer<TPZGeoMesh> &grid, int matid) {
     if (!grid) {
         DebugStop();
     }
@@ -96,8 +96,8 @@ short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid, int matid) {
  * 3. For each element in meshtomerge is constructed a new element copy in meshinitial.
  * 4. Constructed the connectivity again to meshinitial.
  */
-bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh * gridinitial, TPZGeoMesh * tomerge) {
-    // gridinitial is created by TPZGenGrid current
+bool TPZGenGrid2D::ReadAndMergeGeoMesh(TPZGeoMesh * gridinitial, TPZGeoMesh * tomerge) {
+    // gridinitial is created by TPZGenGrid2D current
     if (Read(gridinitial))
         return false;
     if (!tomerge->NNodes() && !tomerge->NElements())
@@ -187,8 +187,8 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh * gridinitial, TPZGeoMesh * tome
     return true;
 }
 
-bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int matid) {
-    // gridinitial is created by TPZGenGrid current
+bool TPZGenGrid2D::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int matid) {
+    // gridinitial is created by TPZGenGrid2D current
     if (Read(gridinitial, matid))
         return false;
     if (!tomerge->NNodes() && !tomerge->NElements())
@@ -279,7 +279,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerg
     return true;
 }
 
-bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int matid) {
+bool TPZGenGrid2D::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int matid) {
     if (!tomerge->NNodes() && !tomerge->NElements())
         return true;
 
@@ -431,7 +431,7 @@ bool TPZGenGrid::MergeGeoMesh(TPZGeoMesh* gridinitial, TPZGeoMesh* tomerge, int 
     return true;
 }
 
-bool TPZGenGrid::GenerateNodes(TPZGeoMesh *grid) {
+bool TPZGenGrid2D::GenerateNodes(TPZGeoMesh *grid) {
     if (!grid) return false;
     // create the geometric nodes
 	TPZManVector<REAL, 3> coor(3,0.);
@@ -447,14 +447,14 @@ bool TPZGenGrid::GenerateNodes(TPZGeoMesh *grid) {
     // resizing the vector of the nodes
     grid->NodeVec().Resize(fNumNodes);
     for (i = 0; i < fNumNodes; i++) {
-        // computes the coordinates of the ith-node, depends on fElementType, layer and fRotAngle.
+        // computes the coordinates of the ith-node, depends on fMeshType, layer and fRotAngle.
         Coord(i, coor);
         grid->NodeVec()[i].Initialize(coor, (*grid));
     }
     return true;
 }
 
-bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid, int matid) {
+bool TPZGenGrid2D::GenerateElements(TPZGeoMesh *grid, int matid) {
     if (!grid) return false;
     if (fZigZag) {
         bool res;
@@ -464,7 +464,7 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid, int matid) {
     // create the geometric elements (retangular)    
     int num_rectangles = fNx[0] * fNx[1] * fNumLayers;
     TPZVec<int64_t> nos(9);
-    if (fElementType == EQuadrilateral) nos.Resize(4);
+    if (fMeshType == MMeshType::EQuadrilateral) nos.Resize(4);
     int64_t i, index;
 
     // grid can not to contain other elements
@@ -480,9 +480,9 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid, int matid) {
     }
     for (i = 0; i < num_rectangles; i++) {
         ElementConnectivity(i, nos);
-        if (fElementType == EQuadrilateral) {
+        if (fMeshType == MMeshType::EQuadrilateral) {
             grid->CreateGeoElement(EQuadrilateral, nos, matid, index, eltype);
-        } else if (fElementType == ETriangle) {
+        } else if (fMeshType == MMeshType::ETriangular) {
             TPZManVector<int64_t> nodloc(3);
             nodloc[0] = nos[0];
             nodloc[1] = nos[1];
@@ -492,7 +492,7 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid, int matid) {
             nodloc[1] = nos[2];
             nodloc[2] = nos[3];
             grid->CreateGeoElement(ETriangle, nodloc, matid, index, eltype);
-        } else if (fElementType == ENoType) {
+        } else if (fMeshType == MMeshType::ENoType) {
             std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
             DebugStop();
             grid->CreateGeoElement(EQuadrilateral, nos, matid, index, eltype);
@@ -502,15 +502,15 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid, int matid) {
     return true;
 }
 
-bool TPZGenGrid::GenerateElementsZigZag(TPZGeoMesh *grid, int matid) {
+bool TPZGenGrid2D::GenerateElementsZigZag(TPZGeoMesh *grid, int matid) {
     if (!grid) return false;
-    if (fNumLayers != 1 || fElementType != EQuadrilateral) {
+    if (fNumLayers != 1 || fMeshType != MMeshType::EQuadrilateral) {
         DebugStop();
     }
     // create the geometric elements (retangular)
     int num_rectangles = (fNx[0] + 1) * fNx[1] * fNumLayers;
     TPZManVector<int64_t, 9> nos(9);
-    if (fElementType == EQuadrilateral) nos.Resize(4);
+    if (fMeshType == MMeshType::EQuadrilateral) nos.Resize(4);
     int64_t i, index;
 
     // grid can not to contain other elements
@@ -527,7 +527,7 @@ bool TPZGenGrid::GenerateElementsZigZag(TPZGeoMesh *grid, int matid) {
     }
     for (i = 0; i < num_rectangles; i++) {
         ElementConnectivityZigZag(i, nos);
-        if (fElementType == EQuadrilateral && nos.size() == 4) {
+        if (fMeshType == MMeshType::EQuadrilateral && nos.size() == 4) {
             grid->CreateGeoElement(EQuadrilateral, nos, matid, index, eltype);
         } else {
             TPZManVector<int64_t> nodloc(3);
@@ -542,17 +542,17 @@ bool TPZGenGrid::GenerateElementsZigZag(TPZGeoMesh *grid, int matid) {
 
 }
 
-void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
+void TPZGenGrid2D::Coord(int i, TPZVec<REAL> &coor) {
     int ix = 0;
     int iy = 0;
     int ilayer = 0;
-    if (fElementType == EQuadrilateral || fElementType == ETriangle) {
+    if (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular) {
         if (i < (fNx[0] + 1)*(fNx[1] + 1)) {
             ilayer = 0;
         } else {
             ilayer = (i - (fNx[0] + 1)*(fNx[1] + 1)) / ((fNx[0])*(fNx[1] + 1)) + 1;
         }
-    } else if (fElementType == ENoType) {
+    } else if (fMeshType == MMeshType::ENoType) {
         if (i < (2 * fNx[0] + 1)*(2 * fNx[1] + 1)) {
             ilayer = 0;
         } else {
@@ -560,24 +560,24 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
         }
     }
     REAL Rot = fRotAngle*ilayer;
-    if (ilayer != 0 && (fElementType == EQuadrilateral || fElementType == ETriangle)) {
+    if (ilayer != 0 && (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular)) {
         i -= ((fNx[0] + 1)*(fNx[1] + 1))+(ilayer - 1)*((fNx[0])*(fNx[1] + 1));
-    } else if (ilayer != 0 && fElementType == ENoType) {
+    } else if (ilayer != 0 && fMeshType == MMeshType::ENoType) {
         i -= ((2 * fNx[0] + 1)*(2 * fNx[1] + 1))+(ilayer - 1)*((2 * fNx[0])*(2 * fNx[1] + 1));
     }
     if (ilayer == 0) {
-        if (fElementType == EQuadrilateral || fElementType == ETriangle) {
+        if (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular) {
             ix = i % (fNx[0] + 1);
             iy = i / (fNx[0] + 1);
-        } else if (fElementType == ENoType) {
+        } else if (fMeshType == MMeshType::ENoType) {
             ix = i % (2 * fNx[0] + 1);
             iy = i / (2 * fNx[0] + 1);
         }
     } else {
-        if (fElementType == EQuadrilateral || fElementType == ETriangle) {
+        if (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular) {
             ix = i % (fNx[0]) + 1;
             iy = i / (fNx[0]);
-        } else if (fElementType == ENoType) {
+        } else if (fMeshType == MMeshType::ENoType) {
             ix = i % (2 * fNx[0]) + 1;
             iy = i / (2 * fNx[0]);
         }
@@ -622,20 +622,20 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
     }
 }
 
-void TPZGenGrid::ElementConnectivity(int64_t i, TPZVec<int64_t> &rectangle_nodes) {
+void TPZGenGrid2D::ElementConnectivity(int64_t i, TPZVec<int64_t> &rectangle_nodes) {
     int xel = i % (fNx[0]);
     int yel = (i / (fNx[0])) % (fNx[1]);
     int layer = i / (fNx[0] * fNx[1]);
     //cout << "ElConnectivity : xel = " << xel << " yel = " << yel << " layer = " << layer << endl;
     //cout.flush();
-    if (fElementType == EQuadrilateral || fElementType == ETriangle) {
+    if (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular) {
         rectangle_nodes[0] = GlobalI(xel, yel, layer);
         rectangle_nodes[1] = GlobalI(xel + 1, yel, layer);
         rectangle_nodes[2] = GlobalI(xel + 1, yel + 1, layer);
         rectangle_nodes[3] = GlobalI(xel, yel + 1, layer);
         //cout << "ElConnectivity : " << rectangle_nodes[0] << ' '<< rectangle_nodes[1] << ' '<<rectangle_nodes[2] << ' '<<rectangle_nodes[3] << endl;
         //cout.flush();
-    } else if (fElementType == ENoType) {
+    } else if (fMeshType == MMeshType::ENoType) {
         rectangle_nodes[0] = GlobalI(2 * xel, 2 * yel, layer);
         rectangle_nodes[1] = GlobalI(2 * xel + 2, 2 * yel, layer);
         rectangle_nodes[2] = GlobalI(2 * xel + 2, 2 * yel + 2, layer);
@@ -648,7 +648,7 @@ void TPZGenGrid::ElementConnectivity(int64_t i, TPZVec<int64_t> &rectangle_nodes
     }
 }
 
-void TPZGenGrid::ElementConnectivityZigZag(int64_t i, TPZVec<int64_t> &rectangle_nodes) {
+void TPZGenGrid2D::ElementConnectivityZigZag(int64_t i, TPZVec<int64_t> &rectangle_nodes) {
     int yel = i / (fNx[0] + 1);
     //    int firstnode = yel*(fNx[0]+2);
     int xel = i % (fNx[0] + 1);
@@ -695,15 +695,15 @@ void TPZGenGrid::ElementConnectivityZigZag(int64_t i, TPZVec<int64_t> &rectangle
     }
 }
 
-void TPZGenGrid::Print(char *name, ostream &out) {
+void TPZGenGrid2D::Print(char *name, ostream &out) {
     out << "\n" << name << "\n";
-    out << "element type = " << fElementType << endl;
+    out << "element type = " << fMeshType << endl;
     out << "Number of divisions " << fNx[0] << ' ' << fNx[1] << endl;
     out << "Corner Coordinates " << endl << fX0[0] << ' ' << fX0[1] << endl;
     out << fX1[0] << ' ' << fX1[1] << endl;
 }
 
-void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
+void TPZGenGrid2D::SetBC(TPZGeoMesh*g, int side, int bc) {
     if (fZigZag) {
         DebugStop();
     }
@@ -741,7 +741,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
                 DebugStop();
                 return;
         }
-        if (fElementType == ETriangle) {
+        if (fMeshType == MMeshType::ETriangular) {
             elementside -= 1;
             ielfirst *= 2;
             iellast *= 2;
@@ -764,7 +764,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
     }
 }
 
-void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc) {
+void TPZGenGrid2D::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc) {
     TPZGeoNode *gn1 = g->FindNode(start);
     TPZGeoNode *gn2 = g->FindNode(end);
 
@@ -780,28 +780,28 @@ void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, in
     }
 }
 
-int TPZGenGrid::GlobalI(int ix, int iy, int layer) {
+int TPZGenGrid2D::GlobalI(int ix, int iy, int layer) {
     if (layer == 0 || ix == 0) {
-        if (fElementType == EQuadrilateral || fElementType == ETriangle) {
+        if (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular) {
             return ix + iy * (fNx[0] + 1);
-        } else if (fElementType == ENoType) {
+        } else if (fMeshType == MMeshType::ENoType) {
             return ix + iy * (2 * fNx[0] + 1);
         }
     } else {
-        if (fElementType == EQuadrilateral || fElementType == ETriangle) {
+        if (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ETriangular) {
             return (fNx[0] + 1)*(fNx[1] + 1)+(fNx[0])*(fNx[1] + 1)*(layer - 1) + ix - 1 + iy * (fNx[0]);
-        } else if (fElementType == ENoType) {
+        } else if (fMeshType == MMeshType::ENoType) {
             return (2 * fNx[0] + 1)*(2 * fNx[1] + 1)+(2 * fNx[0])*(2 * fNx[1] + 1)*(layer - 1) + ix - 1 + iy * (2 * fNx[0]);
         }
     }
     return 0;
 }
 
-int64_t TPZGenGrid::ElemId(int64_t iel, int64_t jel, int layer) {
-    return (fElementType == EQuadrilateral || fElementType == ENoType) ? (iel * fNx[0] + jel + fNx[0] * fNx[1] * layer) : (iel * 2 * fNx[0] + jel + layer * 2 * fNx[0] * fNx[1]);
+int64_t TPZGenGrid2D::ElemId(int64_t iel, int64_t jel, int layer) {
+    return (fMeshType == MMeshType::EQuadrilateral || fMeshType == MMeshType::ENoType) ? (iel * fNx[0] + jel + fNx[0] * fNx[1] * layer) : (iel * 2 * fNx[0] + jel + layer * 2 * fNx[0] * fNx[1]);
 }
 
-REAL TPZGenGrid::Distance(TPZVec<REAL> &x1, TPZVec<REAL> &x2) {
+REAL TPZGenGrid2D::Distance(TPZVec<REAL> &x1, TPZVec<REAL> &x2) {
     REAL l1, l2, l3;
     l1 = x1[0] - x2[0];
     l2 = x1[1] - x2[1];
@@ -809,26 +809,20 @@ REAL TPZGenGrid::Distance(TPZVec<REAL> &x1, TPZVec<REAL> &x2) {
     return ( sqrt(l1 * l1 + l2 * l2 + l3 * l3));
 }
 
-void TPZGenGrid::SetElementType(MElementType type) {
+void TPZGenGrid2D::SetElementType(MMeshType type) {
 
-    if (type != EQuadrilateral && type != ETriangle) {
+    if (type != MMeshType::EQuadrilateral && type != MMeshType::ETriangular) {
         DebugStop();
     }
-    fElementType = type;
-    if (fElementType == EQuadrilateral || fElementType == ETriangle) {
-        fNumNodes = (fNx[0] + 1)*(fNx[1] + 1)+(fNumLayers - 1)*(fNx[0])*(fNx[1] + 1);
-        fDelx[0] = (fX1[0] - fX0[0]) / (fNx[0]);
-        fDelx[1] = (fX1[1] - fX0[1]) / (fNx[1]);
-    } else if (fElementType == ENoType) {
-        fNumNodes = (2 * fNx[0] + 1)*(2 * fNx[1] + 1)+(fNumLayers - 1)*(2 * fNx[0])*(2 * fNx[1] + 1);
-        fDelx[0] = (fX1[0] - fX0[0]) / (2 * fNx[0]);
-        fDelx[1] = (fX1[1] - fX0[1]) / (2 * fNx[1]);
-    }
+    fMeshType = type;
+    fNumNodes = (fNx[0] + 1)*(fNx[1] + 1)+(fNumLayers - 1)*(fNx[0])*(fNx[1] + 1);
+    fDelx[0] = (fX1[0] - fX0[0]) / (fNx[0]);
+    fDelx[1] = (fX1[1] - fX0[1]) / (fNx[1]);
 }
 
 /// compute the geometric progression such that the first elements have this size
 
-REAL TPZGenGrid::GeometricProgression(REAL minsize, REAL domainsize, int numdiv) {
+REAL TPZGenGrid2D::GeometricProgression(REAL minsize, REAL domainsize, int numdiv) {
     REAL progression = 1.;
     REAL factor = domainsize / minsize;
     REAL func = 0.; //pow(progression[idim],fNx[idim])-1.+factor[idim]*(1.-progression[idim]);
@@ -875,7 +869,7 @@ REAL TPZGenGrid::GeometricProgression(REAL minsize, REAL domainsize, int numdiv)
 
 /// compute the geometric progression such that the first elements have this size
 
-void TPZGenGrid::ComputeGeometricProgression(TPZVec<REAL> &minsizes, TPZVec<REAL> &progression) {
+void TPZGenGrid2D::ComputeGeometricProgression(TPZVec<REAL> &minsizes, TPZVec<REAL> &progression) {
     int idim;
     progression.Resize(2, 1.);
     progression[0] = 1.;
@@ -924,7 +918,7 @@ void TPZGenGrid::ComputeGeometricProgression(TPZVec<REAL> &minsizes, TPZVec<REAL
 
 /// set the geometric progression of the mesh to be generated
 
-void TPZGenGrid::SetGeometricProgression(TPZVec<REAL> &progression) {
+void TPZGenGrid2D::SetGeometricProgression(TPZVec<REAL> &progression) {
     for (int idim = 0; idim < 2; idim++) {
         REAL totalsize = 0;
         REAL nextsize = 1.;
@@ -939,7 +933,7 @@ void TPZGenGrid::SetGeometricProgression(TPZVec<REAL> &progression) {
 
 /// Generate a boundary geometric element at the indicated node
 
-void TPZGenGrid::SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc) {
+void TPZGenGrid2D::SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc) {
     // look for an element/corner node whose distance is close to start
     TPZGeoNode *gn1 = gr->FindNode(x);
     int64_t iel;

@@ -9,27 +9,8 @@
 #include "pzgeoprism.h"
 #include "TPZGeoCube.h"
 #include "tpzgeoelrefpattern.h"
+#include "TPZGenGrid2D.h"//MMeshType
 
-std::ostream &operator<<(std::ostream &out, const MMeshType meshType)
-{
-    out << [&](){
-        switch(meshType){
-            case MMeshType::ETetrahedral:
-                return "Tetrahedral";
-            case MMeshType::EPyramidal:
-                return "Pyramidal";
-            case MMeshType::EPrismatic:
-                return "Prismatic";
-            case MMeshType::EHexahedral:
-                return "Hexahedral";
-            case MMeshType::EHexaPyrMixed:
-                return "Hex/Pyr";
-            case MMeshType::ENoType:
-                return "No Type";
-        }
-    }();
-    return out;
-}
 
 TPZGenGrid3D::TPZGenGrid3D(const REAL minX, const REAL minY, const REAL minZ,
                            const REAL maxX, const REAL maxY, const REAL maxZ,

@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZGenGrid class which implements the generation of a multilayered geometric grid (two-dimensional).
+ * @brief Contains the TPZGenGrid2D class which implements the generation of a multilayered geometric grid (two-dimensional).
  */
 
 #ifndef _TPZGENGRIDHH_
@@ -17,7 +17,7 @@ class TPZGeoMesh;
 #include "pzreal.h"
 #include "tpzautopointer.h"
 
-#include "pzeltype.h"
+#include "MMeshType.h"
 
 #include <fstream>
 
@@ -26,7 +26,7 @@ class TPZGeoMesh;
  * @brief Implements the generation of a multilayered bi-dimensional geometric grid. \ref pre "Getting Data"
  */
 /** This class uses DEPRECATED objects, but can be easily updated */
-class TPZGenGrid {
+class TPZGenGrid2D {
 	
 public:
 	
@@ -39,15 +39,15 @@ public:
      * @param rot rotation applied to the grid for the next layer
 	 * @note All the layers has a common interval \f$ [(x0[0],0,0);(x1[0],0,0)] \f$
      */
-    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 	
 	/** @brief Default destructor */
-    virtual ~TPZGenGrid();
+    virtual ~TPZGenGrid2D();
 
 	/**
 	 * @brief Change points and all data to generate geometric mesh
 	 */
-    void SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MElementType eltype = EQuadrilateral, int numl = 1, REAL rot = 0.5);
+    void SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MMeshType eltype = MMeshType::EQuadrilateral, int numl = 1, REAL rot = 0.5);
     
     /** @brief Indicate whether the elements are generated in a zigzag pattern */
     void SetZigZagPattern()
@@ -160,9 +160,9 @@ public:
     /**
 	 * @brief Set the element type
 	 * @param type Bi-dimensional element type
-	 * @note Values: \f$ type = 0 \f$ (quadrilateral); \f$ type = 1 \f$ (triangle); \f$ type = 2 \f$ (quadratic quadrilaterals)
+	 * @note Values: \f$ type = \\text{EQuadrilateral} \f$; \f$ type = \\text{ETriangular} \f$;
      */
-    virtual void SetElementType(MElementType type);
+    virtual void SetElementType(MMeshType type);
     
     /**
 	 * @brief Returns the element id for the element addressed by the parameters
@@ -180,19 +180,19 @@ public:
 	static REAL Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2);
 	
 	/**
-	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated
+	 * @brief Merges two geometrical mesh created for TPZGenGrid2D as separated
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
 	bool ReadAndMergeGeoMesh(TPZGeoMesh * grid,TPZGeoMesh * grid2);
 	/**
-	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated, creating the first mesh and the second mesh must to exist
+	 * @brief Merges two geometrical mesh created for TPZGenGrid2D as separated, creating the first mesh and the second mesh must to exist
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
 	bool ReadAndMergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid);
 	/**
-	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated, both meshes must to exist
+	 * @brief Merges two geometrical mesh created for TPZGenGrid2D as separated, both meshes must to exist
 	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
@@ -260,9 +260,9 @@ protected:
 	int64_t fNumNodes;
     /** 
 	 * @brief Variable which indicates the type of element that should be generated
-     * Only EQuadrilateral or ETriangle is supported
+     * Only EQuadrilateral or ETriangular is supported
      */
-	MElementType fElementType;
+	MMeshType fMeshType;
     
     /** @brief Number of meshes which will be generated hinging along an axis */
     int fNumLayers;

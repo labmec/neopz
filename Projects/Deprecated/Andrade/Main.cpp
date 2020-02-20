@@ -16,7 +16,7 @@
 #include "pzgeopoint.h"
 #include "tpzgeoblend.h"
 
-#include <pzgengrid.h>
+#include <TPZGenGrid2D.h>
 #include "TPZMatElasticity2D.h"
 #include "TPZInterfaceEl.h"
 #include "pzdiscgal.h"
@@ -869,7 +869,7 @@ TPZAutoPointer<TPZGeoMesh> TransverseGrid(REAL halfplatewidth, REAL width, REAL 
     TPZManVector<REAL> x0(3,0.), x1(3,0.);
     x1[0] = width;
     x1[1] = -depth;
-    TPZGenGrid gen(nx, x0, x1);
+    TPZGenGrid2D gen(nx, x0, x1);
     TPZManVector<REAL,2> geometric_prog(2);
     geometric_prog[0] = gen.GeometricProgression(dx[0], width, nx[0]);
     geometric_prog[1] = gen.GeometricProgression(dx[1], width, nx[1]);

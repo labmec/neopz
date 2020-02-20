@@ -4,7 +4,7 @@
 #include "pzstepsolver.h"
 #include "pztransfer.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzpoisson3d.h"
 #include "pzbndcond.h"
 
@@ -84,7 +84,7 @@ TPZCompMesh *CreateMesh()
 	TPZManVector<int> nx(2,2);
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);
 	x1[2]=0.;
-	TPZGenGrid gen(nx,x0,x1);
+	TPZGenGrid2D gen(nx,x0,x1);
 	gen.Read(*gmesh);
 	gen.SetBC(gmesh, 1, -1);
 	TPZVec<int> corner(1,0);

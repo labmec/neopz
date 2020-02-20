@@ -11,7 +11,7 @@
 #include <sstream>
 #include "substructeigen.h"
 #include "pzfmatrix.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzvec.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -362,7 +362,7 @@ TPZGeoMesh *LShape(TPZGeoMesh &model, TConfig &cf)
 {
 	TPZVec<REAL> x0(2,0.),x1(2,1.);
 	TPZVec<int> nx(2,2);
-	TPZGenGrid gen(nx,x0,x1,1,0.);
+	TPZGenGrid2D gen(nx,x0,x1,1,0.);
 	TPZGeoMesh *geo = new TPZGeoMesh(model);
 	gen.Read(*geo);
 	gen.SetBC(geo,0,cf.materialborder1);

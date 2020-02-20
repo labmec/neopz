@@ -59,7 +59,7 @@
 
 #include "pzfunction.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZExtendGridDimension.h"
 #include "TPZReadGIDGrid.h"
 #include "TPZVTKGeoMesh.h"
@@ -2105,7 +2105,7 @@ int main_LDomain() {
 	TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 	x0[1] = -1.; x1[0] = 1.;
 	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
-	TPZGenGrid gen1(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	TPZGenGrid2D gen1(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
 	gen1.SetElementType(EQuadrilateral);       // type = 0 means rectangular elements
 	gen1.Read(gmesh1,materialId);             // generating grid in gmesh
 	
@@ -2130,7 +2130,7 @@ int main_LDomain() {
 		x0[0] = -1.; x0[1] = 0.;
 		x1[0] = 1.; x1[1] = 1.;
 		nx[0] = 4; //nx[1] *= 2;
-		TPZGenGrid gen(nx,x0,x1);
+		TPZGenGrid2D gen(nx,x0,x1);
 		gen.SetElementType(EQuadrilateral);
 		gen.ReadAndMergeGeoMesh(gmesh,gmesh1,materialId);
 		// Inserting boundary elements with associated material
@@ -2450,7 +2450,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 		TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 		x1[2] = 0.;
 		TPZManVector<int> nx(3,3);   // subdivisions in X and in Y. 
-		TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+		TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
 		gen.SetElementType(EQuadrilateral);       // type = 0 means rectangular elements
 		gen.Read(gmesh);             // generating grid in gmesh
 		
@@ -2676,7 +2676,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
     TPZGeoMesh* gmesh = new TPZGeoMesh;
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
 	gen.SetElementType(EQuadrilateral);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
 	
@@ -2822,7 +2822,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 		x0[1] = 0.2;                 // left and right extremes of the new geo mesh. Coordinates: (0.,0.2,0.0) (3.,1.,0.) 
 		x1[0] = 3.; x1[1] = 1.;
 		nx[0] = 15; nx[1] = 8;       // subdivision in X and Y. hx = 0.2 and hy = 0.1
-		TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
+		TPZGenGrid2D gen2(nx,x0,x1);   // second mesh generator
 		gen2.SetElementType(EQuadrilateral);      // type = 0 means rectangular elements, type = 1 means triangular elements
 		
 		// Generating gmesh2 with last data and after this the gmesh is merged into the gmesh2. But gmesh is unmodified
@@ -3832,7 +3832,7 @@ TPZGeoMesh *CreateGeoMeshWithClassesPre(MElementType typeel) {
 			TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and Y. 
-			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+			TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
 			gen.SetElementType(EQuadrilateral);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmesh,materialId);  // generating grid in gmesh
 			gmesh->BuildConnectivity();
@@ -3851,8 +3851,8 @@ TPZGeoMesh *CreateGeoMeshWithClassesPre(MElementType typeel) {
 			TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 			x1[2] = 0.;
 			TPZManVector<int> nx(2,1);   // subdivisions in X and Y. 
-			TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-			gen.SetElementType(ETriangle);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
+			TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1
+			gen.SetElementType(MMeshType::ETriangular);       // typeel = 0 means rectangular elements, typeel = 1 means triangular elements
 			gen.Read(gmesh,materialId);             // generating grid in gmesh
 			gmesh->BuildConnectivity();
 			TPZGeoElBC gbc10(gmesh->ElementVec()[0],3,id_bc0);

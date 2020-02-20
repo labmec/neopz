@@ -8,7 +8,7 @@
 
 #include "LaplaceInCube.h"
 #include "tools.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZExtendGridDimension.h"
 
 
@@ -637,7 +637,7 @@ TPZGeoMesh *LaplaceInCube::CreateOneCubo(int nref)
     x1[2] = 0.;
     int nel = 1 << nref;
     TPZManVector<int,2> nx(2,nel);
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     gengrid.SetZigZagPattern();
     gengrid.Read(gmesh2d);
     REAL Lx = 1.;

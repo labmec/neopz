@@ -24,7 +24,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #include "fad.h"
 #endif
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZGenGrid3D.h"
 #include "pzcmesh.h"
 #include "TPZMatHCurlProjection.cpp"
@@ -69,13 +69,13 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
          * @param type element type (triangle, quadrilateral, etc.
          * @param dim dimension of the element
          */
-        void TestVectorTracesUniformMesh(MElementType type, const int dim);
+        void TestVectorTracesUniformMesh(MMeshType type, const int dim);
         /**
          * This unit test aims to verify the trace compatibility of the HCurl approximation space in a UNIFORM mesh.
          * @param type element type (triangle, quadrilateral, etc.
          * @param dim dimension of the element
          */
-        void TestFunctionTracesUniformMesh(MElementType type, const int pOrder, const int dim);
+        void TestFunctionTracesUniformMesh(MMeshType type, const int pOrder, const int dim);
 
         template <class TGEOM>
         void PrintShapeFunctions(const int pOrder);
@@ -83,39 +83,39 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         namespace auxiliaryfuncs{
             void VectorProduct(const TPZVec<REAL> &, const TPZVec<REAL> &, TPZVec<REAL> &);
 
-            TPZGeoMesh *CreateGeoMesh2D(int nelx, int nely, MElementType meshType, TPZVec<int> &matIds);
+            TPZGeoMesh *CreateGeoMesh2D(int nelx, int nely, MMeshType meshType, TPZVec<int> &matIds);
 
-            TPZGeoMesh *CreateGeoMesh3D(int nelx, int nely, int nelz, MElementType meshType, TPZVec<int> &matIds);
+            TPZGeoMesh *CreateGeoMesh3D(int nelx, int nely, int nelz, MMeshType meshType, TPZVec<int> &matIds);
         }
     }
 
 
     BOOST_AUTO_TEST_CASE(hcurl_topology_tests) {
         constexpr int dim2D{2},dim3D{3};
-        hcurltest::TestVectorTracesUniformMesh(ETriangle,dim2D);
-        hcurltest::TestVectorTracesUniformMesh(EQuadrilateral,dim2D);
-        hcurltest::TestVectorTracesUniformMesh(ETetraedro,dim3D);
-        hcurltest::TestVectorTracesUniformMesh(ECube,dim3D);
-        hcurltest::TestVectorTracesUniformMesh(EPrisma,dim3D);
+        hcurltest::TestVectorTracesUniformMesh(MMeshType::ETriangular,dim2D);
+        hcurltest::TestVectorTracesUniformMesh(MMeshType::EQuadrilateral,dim2D);
+        hcurltest::TestVectorTracesUniformMesh(MMeshType::ETetrahedral,dim3D);
+        hcurltest::TestVectorTracesUniformMesh(MMeshType::EHexahedral,dim3D);
+        hcurltest::TestVectorTracesUniformMesh(MMeshType::EPrismatic,dim3D);
     }
 
     BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
 //        hcurltest::PrintShapeFunctions<pzgeom::TPZGeoTetrahedra>(4);
         constexpr int dim2D{2},dim3D{3};
-        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(ETriangle, k,dim2D);
-        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(EQuadrilateral, k,dim2D);
-        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(ETetraedro, k,dim3D);
-        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(ECube, k,dim3D);
-        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(EPrisma, k,dim3D);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(MMeshType::ETriangular, k,dim2D);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(MMeshType::EQuadrilateral, k,dim2D);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(MMeshType::ETetrahedral, k,dim3D);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(MMeshType::EHexahedral, k,dim3D);
+        for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(MMeshType::EPrismatic, k,dim3D);
 
     }
 
     namespace hcurltest{
 
-        void TestVectorTracesUniformMesh(MElementType type, const int dim){
+        void TestVectorTracesUniformMesh(MMeshType type, const int dim){
             static std::string testName = __PRETTY_FUNCTION__;
             std::cout << testName << std::endl;
-            std::cout<<"\t"<<MElementType_Name(type)<<std::endl;
+            std::cout<<"\t"<<type<<std::endl;
             constexpr int pOrder{4};//testing all vectors
             constexpr int ndiv{1};
             TPZManVector<int,2> matIds(2,-1);
@@ -132,12 +132,12 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             }();
 
 #ifdef NOISY_HCURL
-            std::ofstream outTXT("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
+            std::ofstream outTXT("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
             gmesh->Print(outTXT);
             outTXT.close();
 #endif
 #ifdef NOISY_HCURL_VTK
-            std::ofstream outVTK("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".vtk");
+            std::ofstream outVTK("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".vtk");
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK);
             outVTK.close();
 #endif
@@ -156,7 +156,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
 #ifdef NOISY_HCURL
             {
-                std::ofstream outTXT("cmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
+                std::ofstream outTXT("cmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
                 cmesh->Print(outTXT);
                 outTXT.close();
             }
@@ -204,16 +204,26 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 return  diffTrace/averageTrace < tol;
             };
 
-
+            MElementType elType = [&](){
+               switch(type){
+                   case MMeshType::ETriangular: return ETriangle;
+                   case MMeshType::EQuadrilateral: return EQuadrilateral;
+                   case MMeshType::ETetrahedral: return ETetraedro;
+                   case MMeshType::EHexahedral: return ECube;
+                   case MMeshType::EPrismatic: return EPrisma;
+                   case MMeshType::EPyramidal: return EPiramide;
+                   default: return ENoType;
+               }
+            }();
             for(auto dummyCel : cmesh->ElementVec()){
                 const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
                 const auto gel = cel->Reference();
                 //skips boundary els
-                if(!cel || cel->Reference()->Type() != type) continue;
+                if(!cel || cel->Reference()->Type() != elType) continue;
 
                 TPZMaterialData elData;
                 cel->InitMaterialData(elData);
-                const int elNNodes = MElementType_NNodes(type);
+                const int elNNodes = MElementType_NNodes(elType);
                 for (auto iCon = 0; iCon <cel->NConnects(); iCon++) {
                     auto &con = cel->Connect(iCon);
 
@@ -387,7 +397,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                         neighData.axes.Print(traceMsg);
                                     }
                                     BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                    "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                    "\ntopology: "+MMeshType_Name(type)+"\n"+
                                                                     "side: "+std::to_string(iSide)+"\n"+
                                                                     "diff traces: "+std::to_string(diffTrace)+"\n"+
                                                                     traceMsg.str()
@@ -403,10 +413,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             delete gmesh;
         }//hcurltest::TestVectorTracesUniformMesh
 
-        void TestFunctionTracesUniformMesh(MElementType type, const int pOrder, const int dim){
+        void TestFunctionTracesUniformMesh(MMeshType type, const int pOrder, const int dim){
             static std::string testName = __PRETTY_FUNCTION__;
             std::cout << testName << std::endl;
-            std::cout<<"\t"<<MElementType_Name(type)<<" p = "<<pOrder<<std::endl;
+            std::cout<<"\t"<<MMeshType_Name(type)<<" p = "<<pOrder<<std::endl;
             constexpr int ndiv{1};
             TPZManVector<int,2> matIds(2,-1);
             TPZGeoMesh *gmesh = [&]() -> TPZGeoMesh* {
@@ -425,12 +435,12 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 //                gmesh->Element(0)->Divide(sons);
 //            }
 #ifdef NOISY_HCURL
-            std::ofstream outTXT("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
+            std::ofstream outTXT("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
             gmesh->Print(outTXT);
             outTXT.close();
 #endif
 #ifdef NOISY_HCURL_VTK
-            std::ofstream outVTK("gmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".vtk");
+            std::ofstream outVTK("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".vtk");
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK);
             outVTK.close();
 #endif
@@ -449,7 +459,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
 #ifdef NOISY_HCURL
             {
-                std::ofstream outTXT("cmesh_"+MElementType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
+                std::ofstream outTXT("cmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
                 cmesh->Print(outTXT);
                 outTXT.close();
             }
@@ -497,25 +507,35 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 return  diffTrace/averageTrace < tol;
             };
 
-
+            MElementType elType = [&](){
+                switch(type){
+                    case MMeshType::ETriangular: return ETriangle;
+                    case MMeshType::EQuadrilateral: return EQuadrilateral;
+                    case MMeshType::ETetrahedral: return ETetraedro;
+                    case MMeshType::EHexahedral: return ECube;
+                    case MMeshType::EPrismatic: return EPrisma;
+                    case MMeshType::EPyramidal: return EPiramide;
+                    default: return ENoType;
+                }
+            }();
             for(auto dummyCel : cmesh->ElementVec()){
                 const auto cel = dynamic_cast<TPZInterpolatedElement *>(dummyCel);
                 if(!cel) continue;
                 const auto gel = cel->Reference();
                 //skips boundary els
-                if(!cel || cel->Reference()->Type() != type) continue;
+                if(!cel || cel->Reference()->Type() != elType) continue;
 
                 TPZMaterialData elData;
                 cel->InitMaterialData(elData);
                 const int nState = cel->Material()->NStateVariables();
-                const int elNNodes = MElementType_NNodes(type);
+                const int elNNodes = MElementType_NNodes(elType);
                 for (auto iCon = 0; iCon <cel->NConnects(); iCon++) {
                     auto &con = cel->Connect(iCon);
                     const int nShape = con.NShape();
                     {
                         const bool check = con.NDof( *cmesh) == nShape * nState;
                         BOOST_CHECK_MESSAGE(check,"\n"+testName+" failed"+
-                                                  "\ntopology: "+MElementType_Name(type)+"\n"
+                                                  "\ntopology: "+MMeshType_Name(type)+"\n"
                         );
                     }
 
@@ -624,7 +644,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 const auto neighConIndex = neighCel->SideConnectIndex(neighCel->NSideConnects(neighSubSide) - 1, neighSubSide);
                                 const bool check = elConIndex == neighConIndex;
                                 BOOST_CHECK_MESSAGE(check, "\n" + testName + " failed" +
-                                                           "\ntopology: " + MElementType_Name(type) + "\n"
+                                                           "\ntopology: " + MMeshType_Name(type) + "\n"
                                 );
                             }
                             const int firstNeighShape = [&](){
@@ -659,7 +679,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                     const bool checkPhis = std::abs(elData.phi(elH1phiIndex,0) - neighData.phi(neighH1phiIndex,0)) < tol;
 
                                     BOOST_CHECK_MESSAGE(checkPhis,"\n"+testName+" failed: phis are different!"+
-                                                                  "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                  "\ntopology: "+MMeshType_Name(type)+"\n"+
                                                                   "side: "+std::to_string(iSide)+"\n"+
                                                                   "p order: "+std::to_string(pOrder)+"\n"+
                                                                   "elem phi index: "+std::to_string(elPhiIndex)+"\n"+
@@ -690,7 +710,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                             traceMsg <<"\n";
                                         }
                                         BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                        "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                        "\ntopology: "+MMeshType_Name(type)+"\n"+
                                                                         "side: "+std::to_string(iSide)+"\n"+
                                                                         "p order: "+std::to_string(pOrder)+"\n"+
                                                                         "diff traces: "+std::to_string(diffTrace)+"\n"+
@@ -741,7 +761,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                                 traceMsg <<"\n";
                                             }
                                             BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                            "\ntopology: "+MElementType_Name(type)+"\n"+
+                                                                            "\ntopology: "+MMeshType_Name(type)+"\n"+
                                                                             "side: "+std::to_string(iSide)+"\n"+
                                                                             "p order: "+std::to_string(pOrder)+"\n"+
                                                                             "diff traces: "+std::to_string(diffTrace)+"\n"+
@@ -768,7 +788,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 //            const int postProcessResolution = 3;
 //            const std::string executionInfo = [&](){
 //                std::string name("");
-//                name.append(MElementType_Name(type));
+//                name.append(MMeshType_Name(type));
 //                name.append(std::to_string(pOrder));
 //                return name;
 //            }();
@@ -920,7 +940,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 result[2]=x1*y2-y1*x2;
             };//VectorProduct
 
-            TPZGeoMesh *CreateGeoMesh2D(int nelx, int nely, MElementType meshType, TPZVec<int> &matIds) {
+            TPZGeoMesh *CreateGeoMesh2D(int nelx, int nely, MMeshType meshType, TPZVec<int> &matIds) {
                 //Creating geometric mesh, nodes and elements.
                 //Including nodes and elements in the mesh object:
                 TPZGeoMesh *gmesh = new TPZGeoMesh();
@@ -937,18 +957,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 nelem[0] = nelx;
                 nelem[1] = nely;
 
-                TPZGenGrid gengrid(nelem, coord1, coord2);
-
-                switch (meshType) {
-                    case EQuadrilateral:
-                        gengrid.SetElementType(EQuadrilateral);
-                        break;
-                    case ETriangle:
-                        gengrid.SetElementType(ETriangle);
-                        break;
-                    default:
-                        DebugStop();
-                }
+                TPZGenGrid2D gengrid(nelem, coord1, coord2);
+                gengrid.SetElementType(meshType);
                 constexpr int matIdDomain = 1, matIdBoundary = 2;
                 gengrid.Read(gmesh, matIdDomain);
                 gengrid.SetBC(gmesh, 4, matIdBoundary);
@@ -972,7 +982,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 return gmesh;
             }//CreateGeoMesh2D
 
-            TPZGeoMesh *CreateGeoMesh3D(int nelx, int nely, int nelz, MElementType meshType, TPZVec<int> &matIds) {
+            TPZGeoMesh *CreateGeoMesh3D(int nelx, int nely, int nelz, MMeshType meshType, TPZVec<int> &matIds) {
                 //Creating geometric mesh, nodes and elements.
                 //Including nodes and elements in the mesh object:
                 //create boundary elements

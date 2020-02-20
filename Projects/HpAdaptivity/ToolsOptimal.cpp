@@ -13,7 +13,7 @@
 #include "TPZGeoLinear.h"
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZSkylineNSymStructMatrix.h"
 #include "PZMatPoissonControl.h"
 

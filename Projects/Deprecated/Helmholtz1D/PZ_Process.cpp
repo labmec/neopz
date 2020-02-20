@@ -182,7 +182,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh) {
 
 // CASE 2D
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0,TPZVec<REAL> &x1) {
 	if(!matId.NElements() || bc.NElements() < 2)
@@ -190,7 +190,7 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
     TPZGeoMesh *gmesh = new TPZGeoMesh;
 	
 	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.5 and hy = 0.5  
+	TPZGenGrid2D gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.5 and hy = 0.5
 	gen.SetElementType(0);       // type = 0 means rectangular elements  --> type = 1 means triangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
 	

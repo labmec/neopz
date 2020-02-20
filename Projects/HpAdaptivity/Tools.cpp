@@ -14,7 +14,7 @@
 #include "TPZGeoLinear.h"
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZSkylineNSymStructMatrix.h"
 
 #include <cmath>
@@ -1412,7 +1412,7 @@ void ChangeP(TPZCompMesh * cmesh, TPZCompEl * cel, int newP)
 }
 
 TPZGeoMesh * GeoMeshGrid( int h){
-    // Rectangular geometric mesh using TPZGenGrid
+    // Rectangular geometric mesh using TPZGenGrid2D
     
     TPZVec < int > refin(2);
     TPZVec < REAL > corx0(3);
@@ -1431,7 +1431,7 @@ TPZGeoMesh * GeoMeshGrid( int h){
     corx1[0] =1.0;// 2.0;//1.0;
     corx1[1] = 1.0;//2.0;//1.0;
     corx1[2] = 0.0;
-    TPZGenGrid geomesh(refin,corx0,corx1,numlayer);
+    TPZGenGrid2D geomesh(refin,corx0,corx1,numlayer);
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     geomesh.Read(gmesh);
     

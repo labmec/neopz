@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <cstdlib>
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgmesh.h"
 #include "pzgeoelbc.h"
 #include "pzcmesh.h"
@@ -30,7 +30,7 @@
 #include "pzgeoquad.h"
 #include "pzgeotriangle.h"
 #include "pzfstrmatrix.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzbndcond.h"
 #include "TPZMaterial.h"
 #include "pzelmat.h"

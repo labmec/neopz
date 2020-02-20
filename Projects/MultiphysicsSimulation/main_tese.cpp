@@ -374,7 +374,7 @@ int main22(int argc, char *argv[])
 //    return EXIT_SUCCESS;
 //}
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
 {
     ///Criando malha geometrica
@@ -389,10 +389,10 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
     x1[0] = Lx;
     x1[1] = Ly;
     
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     if(fTriang)
     {
-        gengrid.SetElementType(ETriangle);
+        gengrid.SetElementType(MMeshType::ETriangular);
     }
     gengrid.Read(gmesh);
     

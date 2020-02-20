@@ -54,7 +54,7 @@
 #include "pzlog.h"
 
 #include "TPZVTKGeoMesh.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZExtendGridDimension.h"
 #include "pzcheckgeom.h"
 
@@ -178,7 +178,7 @@ TPZAutoPointer<TPZGeoMesh> MalhaGeom(int dim, TPZVec<int> &nblocks, int nref)
     x1[1] = ly;
     x1[2] = 0.;
     TPZManVector<int,3> nx(nblocks);
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> meshresult2d = new TPZGeoMesh;
     gengrid.SetRefpatternElements(false);
     gengrid.Read(meshresult2d);

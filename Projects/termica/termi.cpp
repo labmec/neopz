@@ -50,7 +50,7 @@
 #include <math.h>
 #include "fast.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -71,11 +71,11 @@ void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
 int main()
 {
-//    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+//    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
     TPZVec<int> nx(2,64);
     TPZVec<REAL> x0(3,0.),x1(3,1.);
     x1[2] = 0.;
-    TPZGenGrid grid(nx,x0,x1);
+    TPZGenGrid2D grid(nx,x0,x1);
     TPZGeoMesh gmesh;
     grid.Read(&gmesh);
     grid.SetBC(&gmesh,4,-1);

@@ -2,7 +2,7 @@
 #include "TPZAnalyticSolution.h"
 
 #include "pzgmesh.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgeoel.h"
 #include "TPZRefPatternTools.h"
 #include "pzcheckgeom.h"

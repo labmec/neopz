@@ -37,7 +37,7 @@
 #include "TPBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbstrmatrix.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #include "pzpoisson3d.h"
 
@@ -506,7 +506,7 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
 //    x0[0]=0.; x0[1]=0.;
 //    x1[0]=Lx; x1[1]=Ly;
 //    
-//    TPZGenGrid gengrid(nx,x0,x1);
+//    TPZGenGrid2D gengrid(nx,x0,x1);
 //    TPZGeoMesh *gmesh = new TPZGeoMesh;
 //    if(triang_elements)
 //    {
@@ -1243,12 +1243,12 @@ void CleanGradientSolution(TPZFMatrix<STATE> &Solution, TPZManVector<int64_t> &G
 }
 
 //----------------------------------------------------------------------------
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
 //    TPZManVector<int,2> nx(2,1);
 //
 //    TPZManVector<REAL,3> x0(3,0.),x1(3,2.0);
-//    TPZGenGrid gengrid(nx,x0,x1);
+//    TPZGenGrid2D gengrid(nx,x0,x1);
 //    TPZGeoMesh *gmesh = new TPZGeoMesh;
 //    if(triang_elements)
 //    {

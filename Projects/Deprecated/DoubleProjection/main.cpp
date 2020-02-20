@@ -59,7 +59,7 @@
 #include "pzlog.h"
 
 #include "TPZVTKGeoMesh.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #include "TPZMHMeshControl.h"
 
@@ -656,7 +656,7 @@ TPZGeoMesh *MalhaGeom(REAL Lx, REAL Ly, bool triang_elements)
     TPZManVector<REAL,3> x0(3,0.),x1(3,0);
     x1[0] = Lx;
     x1[1] = Ly;
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {
@@ -692,7 +692,7 @@ TPZGeoMesh *GMeshSteklov(bool triang_elements)
     nx[1] =1;
     TPZManVector<REAL,3> x0(3,0.),x1(3,extent);
     x0[0] = -extent;
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {

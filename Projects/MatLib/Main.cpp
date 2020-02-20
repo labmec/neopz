@@ -16,7 +16,7 @@
 #include "pzgeopoint.h"
 #include "tpzgeoblend.h"
 
-#include <pzgengrid.h>
+#include <TPZGenGrid2D.h>
 #include "TPZMatElasticity2D.h"
 #include "TPZInterfaceEl.h"
 #include "pzdiscgal.h"

@@ -27,7 +27,7 @@
 #include "pzstrmatrix.h"
 #include "pzstepsolver.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #include "pzlog.h"
 
@@ -444,11 +444,11 @@ TPZGeoMesh *GMesh2(bool triang_elements)
     nx[1] =1;
     TPZManVector<REAL,3> x0(3,0.),x1(3,0.5);
     x0[0] = -0.5;
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     if(triang_elements)
     {
-      gengrid.SetElementType(ETriangle);
+      gengrid.SetElementType(MMeshType::ETriangular);
     }
     gengrid.Read(gmesh);
     

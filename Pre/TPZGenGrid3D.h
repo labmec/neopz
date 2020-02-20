@@ -6,20 +6,9 @@
 #define PZ_TPZGENGRID3D_H
 #include "pzreal.h"
 #include "pzeltype.h"
-
+#include "MMeshType.h"
 class TPZGeoMesh;
 
-enum class MMeshType
-{
-    ETetrahedral,/*each cube is divided into five tetrahedra*/
-    EPyramidal,/*each cube is divided into six pyramids*/
-    EPrismatic,/*each cube is divided into two prisms*/
-    EHexahedral,
-    EHexaPyrMixed,/*alternating cubes are divided into six pyramids*/
-    ENoType
-};
-
-std::ostream &operator<<(std::ostream &out, const MMeshType meshType);
 
 /**
  * This class generates a uniform three-dimensional mesh with tetrahedral, hexahedral or prismatic
@@ -53,7 +42,7 @@ public:
                                       const int matIdZmin, const int matIdZmax);
 private:
     TPZGeoMesh *fGmesh{nullptr};
-    const MMeshType fMeshType{MMeshType::ENoType};
+    const MMeshType fMeshType;
     const int fNelx{0},fNely{0},fNelz{0};
     const REAL fMinX{0},fMinY{0},fMinZ{0};
     const REAL fMaxX{0},fMaxY{0},fMaxZ{0};

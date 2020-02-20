@@ -30,7 +30,7 @@
 #include "pzgeopoint.h"
 
 #include "TPZRefPatternDataBase.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZExtendGridDimension.h"
 #include "TPZVTKGeoMesh.h"
 
@@ -63,7 +63,7 @@ int main() {
 	x1[1] = 0.2;
 	x1[2] = 0.;
 
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator 
+	TPZGenGrid2D gen(nx,x0,x1);    // mesh generator
 	gen.SetElementType(EQuadrilateral);       // type = 0 means rectangular elements
 	gen.Read(gmesh);            // generating mesh in gmesh
 
@@ -79,7 +79,7 @@ int main() {
 	x1[0] = 3.;
 	x1[1] = 1.;
 
-	TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
+	TPZGenGrid2D gen2(nx,x0,x1);   // second mesh generator
 	gen2.SetElementType(EQuadrilateral);      // type = 0 means rectangular elements, type = 1 means triangular elements
 	// generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
 	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);

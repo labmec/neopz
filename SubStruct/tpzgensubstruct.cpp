@@ -4,7 +4,7 @@
  */
 
 #include "tpzgensubstruct.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
@@ -75,7 +75,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 		TPZVec<int> nx(2,1);
 		TPZVec<REAL> x0(3,0.),x1(3,1.);
         x1[2] = 0.;
-		TPZGenGrid gen(nx,x0,x1,1,0.);
+		TPZGenGrid2D gen(nx,x0,x1,1,0.);
 		gen.Read(gmesh);
 	} else if(fDimension == 3)
 	{

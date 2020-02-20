@@ -9,7 +9,7 @@
 #include "pzmanvector.h"
 #include "pzvec_extras.h"
 #include "pztrnsform.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "tpzautopointer.h"
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
@@ -260,9 +260,9 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     TPZManVector<int,3> nx(2,nelem);
     TPZManVector<REAL,3> x0(3,0.),x1(3,1.);
     x1[2] = -1.;
-    TPZGenGrid grid(nx,x0,x1);
+    TPZGenGrid2D grid(nx,x0,x1);
     if (eltype == ETriangle|| eltype == EPrisma ) {
-        grid.SetElementType(ETriangle);
+        grid.SetElementType(MMeshType::ETriangular);
     }
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     grid.Read(gmesh.operator->());
@@ -566,7 +566,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     TPZManVector<int,3> nx(2,nelem);
     TPZManVector<REAL,3> x0(3,0.),x1(3,3.);
     x1[2] = 0.;
-    TPZGenGrid grid(nx,x0,x1);
+    TPZGenGrid2D grid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     grid.Read(gmesh);
     grid.SetBC(gmesh, 4, -1);
