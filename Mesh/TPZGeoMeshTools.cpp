@@ -123,7 +123,7 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
     return [&](){
         switch(dim){
             case 2:{
-                TPZGeoMesh *gmesh;
+                TPZGeoMesh *gmesh = new TPZGeoMesh();
                 TPZGenGrid2D gengrid(nDivs, minX, maxX);
                 gengrid.SetElementType(meshType);
                 gengrid.Read(gmesh, matids[0]);
@@ -137,7 +137,7 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
                 return gmesh;
             }
             case 3:{
-                TPZGeoMesh *gmesh;
+                TPZGeoMesh *gmesh = nullptr;
                 TPZGenGrid3D genGrid3D(minX,maxX,nDivs,meshType);
                 gmesh = genGrid3D.BuildVolumetricElements(matids[0]);
                 if(createBoundEls){
