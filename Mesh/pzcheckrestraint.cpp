@@ -238,7 +238,7 @@ int TPZCheckRestraint::CheckRestraint() {
 	int numshapel = fRestraint.Cols();
 	TPZFMatrix<REAL> phis(numshapes,1),dphis(dims,numshapes),phil(numshapel,1),dphil(diml,numshapel);
 	TPZFMatrix<REAL> philcheck(numshapel,1);
-	TPZVec<REAL> points(3),pointl(3),point(3);
+	TPZVec<REAL> points(dims),pointl(diml),point(3);
 	int in,check = 0;
 	REAL weight,error;
 	for(int it=0; it<numint; it++) {
@@ -249,11 +249,43 @@ int TPZCheckRestraint::CheckRestraint() {
 		fRestraint.Multiply(phis,philcheck,1);
 		error = 0.;
 		for(in=0; in<numshapel; in++) {
-			error += (philcheck(in,0)-phil(in,0))*(philcheck(in,0)-phil(in,0));
+			for(auto x = 0; x < philcheck.Cols(); x++){
+				error += (philcheck(in,x)-phil(in,x))*(philcheck(in,x)-phil(in,x));
+			}
 		}
 		error = sqrt(error/numshapel);
 		if(error > 1.e-6) {
+		    if(check == 0){
+                std::cout<<std::setw(10)<<"fRestraint:"<<std::endl;
+                for(auto x = 0; x < fRestraint.Rows(); x++) {
+                    for (auto y = 0; y < fRestraint.Cols(); y++) {
+                        std::cout << std::setw(10) << fRestraint(x, y) << "\t";
+                    }
+                    std::cout<<std::endl;
+                }
+                std::cout<<std::endl;
+		    }
 			check = 1;
+            for(in=0; in<numshapel; in++) {
+                std::cout<<std::setw(10)<<"philcheck:";
+                for(auto x = 0; x < philcheck.Cols(); x++){
+                    std::cout<<std::setw(10)<<philcheck(in,x)<<"\t";
+                }
+                std::cout<<std::endl;
+                std::cout<<std::setw(10)<<"phil:";
+                for(auto x = 0; x < phil.Cols(); x++){
+                    std::cout<<std::setw(10)<<phil(in,x)<<"\t";
+                }
+                std::cout<<std::endl;
+            }
+
+            for(in=0; in<numshapes; in++) {
+                std::cout<<std::setw(10)<<"phis:";
+                for(auto x = 0; x < phis.Cols(); x++){
+                    std::cout<<std::setw(10)<<phis(in,x)<<"\t";
+                }
+                std::cout<<std::endl;
+            }
 			cout << "TPZCheckRestraint failed error = " << error << endl;
 		}
 	}
