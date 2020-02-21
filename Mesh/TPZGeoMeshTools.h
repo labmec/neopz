@@ -4,18 +4,16 @@
 #include "pzgmesh.h"
 #include "MMeshType.h"
 /**
- * This class provides general purpose auxiliary methods for geometric meshes
+ * This namespace concentrates general purpose auxiliary methods for geometric meshes
  */
-class TPZGeoMeshTools{
-public:
-
+namespace TPZGeoMeshTools{
     /**
      * This method divides any pyramids (without subelements) in the geometric mesh into two tetrahedra.
      * This method is specially useful in the context of defining composite shape functions in the pyramid
      * based on two tetrahedra and constraints over their sides over the quadrilateral face.
      * @param gmesh
      */
-    static void DividePyramidsIntoTetra(TPZGeoMesh *gmesh);
+    void DividePyramidsIntoTetra(TPZGeoMesh *gmesh);
 
     /**
      * This method creates a TPZGeoMesh of dim 3(2) based on a cuboid(rectangle) aligned with the x,y and z axis (x and y).
@@ -29,8 +27,8 @@ public:
      * @param createBoundEls Whether to create the boundary elements
      * @return Pointer to the TPZGeoMesh that has been created
      */
-    static TPZGeoMesh * CreateGeoMeshOnGrid(int dim, const TPZVec<REAL>& minX, const TPZVec<REAL>& maxX,
+    TPZGeoMesh * CreateGeoMeshOnGrid(int dim, const TPZVec<REAL>& minX, const TPZVec<REAL>& maxX,
             const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls);
-};
+}
 
 #endif
