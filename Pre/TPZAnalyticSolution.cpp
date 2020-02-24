@@ -1269,7 +1269,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                disp[0] = 0.;
             }
             else {
-                TVar factor = pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
+                TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
                 disp[0] = factor * (sin((TVar) (2.) * theta / TVar(3.)));
             }
 
