@@ -46,7 +46,7 @@
 #include <math.h>
 
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.conductivity"));
@@ -114,7 +114,7 @@ int main()
 
 TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
 {
-//    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+//    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
     int nelem = 32;
     int nrefine = 5;
     int defaultporder = 2;
@@ -122,7 +122,7 @@ TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
     TPZVec<REAL> x0(3,0.),x1(3,L);
     x1[1] = height;
     x1[2] = 0.;
-    TPZGenGrid grid(nx,x0,x1);
+    TPZGenGrid2D grid(nx,x0,x1);
     TPZManVector<REAL> minsizes(2,delta);
     TPZManVector<REAL,2> progression(2,1.);
     grid.ComputeGeometricProgression(minsizes, progression);

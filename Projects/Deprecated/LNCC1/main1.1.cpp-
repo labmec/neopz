@@ -22,7 +22,7 @@
 #include <pz_config.h>
 #endif
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"

@@ -31,7 +31,7 @@
 #include "tpzquadraticprism.h"
 #include "tpzquadraticcube.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 using namespace std;
 

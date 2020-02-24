@@ -29,7 +29,7 @@
 #include "pzelasmat.h"
 #include "pzlog.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -60,8 +60,8 @@ int main()
     x1[2] = 0.;
     TPZManVector<int,2> nelx(2,4);
     nelx[0] = 8;
-    TPZGenGrid gengrid(nelx,x0,x1);
-    gengrid.SetElementType(ETriangle);
+    TPZGenGrid2D gengrid(nelx,x0,x1);
+    gengrid.SetElementType(MMeshType::ETriangular);
     TPZGeoMesh *gmesh = new TPZGeoMesh;
     gmesh->SetDimension(2);
     gengrid.Read(gmesh);

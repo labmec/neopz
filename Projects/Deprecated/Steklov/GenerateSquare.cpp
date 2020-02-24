@@ -8,7 +8,7 @@
  */
 
 #include "GenerateSquare.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "tpzquadraticquad.h"
 #include "tpzgeoblend.h"
 #include "tpzarc3d.h"
@@ -23,7 +23,7 @@ TPZGeoMesh *Square(TPZGeoMesh &model, TConfig &cf)
 	TPZVec<int> nx(2,2);
 	nx[0]=2;
 	nx[1]=1;
-	TPZGenGrid gen(nx,x0,x1,1,0.);
+	TPZGenGrid2D gen(nx,x0,x1,1,0.);
 	TPZGeoMesh *geo = new TPZGeoMesh(model);
 	gen.Read(*geo);
 	gen.SetBC(geo,0,cf.materialcondense);
@@ -47,7 +47,7 @@ TPZGeoMesh *SquareSingular(TPZGeoMesh &model, TConfig &cf)
 	TPZVec<int> nx(2,1);
 	nx[0] = 2;
 	nx[1] = 1;
-	TPZGenGrid gen(nx,x0,x1,1,0.);
+	TPZGenGrid2D gen(nx,x0,x1,1,0.);
 	TPZGeoMesh *geo = new TPZGeoMesh(model);
 	gen.Read(*geo);
 	gen.SetBC(geo,1,cf.materialborder1);

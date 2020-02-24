@@ -76,7 +76,7 @@
 #include <set>
 
 #include "pzelast3d.h"
-#include <pzgengrid.h>
+#include <TPZGenGrid2D.h>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.elasticity"));

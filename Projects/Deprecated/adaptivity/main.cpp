@@ -39,7 +39,7 @@
 #include "pzmatplaca2.h"
 #include "pzpoisson3d.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZGenSpecialGrid.h"
 
 #include "TPZRefPatternDataBase.h"

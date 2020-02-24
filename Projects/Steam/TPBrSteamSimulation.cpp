@@ -10,7 +10,7 @@
 #include "TPBrSteamSimulation.h"
 #include "tpbrsteammesh.h"
 #include "ThermalMethodsTables.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -44,7 +44,7 @@ int main()
     mesh.SetWaterInjection(0.7*reservoirheight, reservoirtemperature);
     if(ncells > 1)
     {
-        REAL progression = TPZGenGrid::GeometricProgression(0.04, ReservoirRadius-0.15, ncells);
+        REAL progression = TPZGenGrid2D::GeometricProgression(0.04, ReservoirRadius-0.15, ncells);
         mesh.SetGeometricProgression(progression);        
     }
     std::cout << "First cell size = " << mesh.CellSize(0) << std::endl;

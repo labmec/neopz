@@ -31,7 +31,7 @@
 #include "pzlog.h"
 #include "pzelctemp.h"
 #include "pzfstrmatrix.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzbndcond.h"
 #include "TPZMaterial.h"
 #include "tpzquadrilateral.h"

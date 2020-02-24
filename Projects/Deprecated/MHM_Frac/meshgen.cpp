@@ -2,7 +2,7 @@
 #include "meshgen.h"
 
 #include "pzgmesh.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgeoel.h"
 #include "TPZRefPatternTools.h"
 #include "pzcheckgeom.h"
@@ -617,7 +617,7 @@ TPZGeoMesh *MalhaGeomFredQuadrada(int nelx, int nely, TPZVec<REAL> &x0, TPZVec<R
     TPZManVector<int,2> nx(2,3);
     nx[0] = nelx;
     nx[1] = nely;
-    TPZGenGrid gengrid(nx, x0, x1);
+    TPZGenGrid2D gengrid(nx, x0, x1);
     gengrid.SetRefpatternElements(true);
     gengrid.Read(gmesh, 1);
     gengrid.SetBC(gmesh, 4, -1);

@@ -8,7 +8,7 @@
 
 #include "PerkinsGonzalez.h"
 #include "tpzautopointer.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzelasAXImat.h"
@@ -45,7 +45,7 @@ void TemperatureFunction(const TPZVec<REAL> &rz, REAL &temp)
 int main()
 {
     InitializePZLOG();
-//    TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+//    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 
     const int nel=2;
     TPZVec<int> nx(2,nel);
@@ -53,7 +53,7 @@ int main()
     TPZVec<REAL> x0(3,0.),x1(3,2.);
     x0[0] = 1.;
     x1[1] = 1.;
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     gengrid.Read(gmesh);
     gengrid.SetBC(gmesh,4,-1);

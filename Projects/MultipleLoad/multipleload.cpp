@@ -17,7 +17,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzelasmat.h"
 #include "pzbndcond.h"
 #include "TPZVTKGeoMesh.h"
@@ -134,7 +134,7 @@ TPZAutoPointer<TPZGeoMesh> GenerateGMesh()
     x1[1] = dy;
     nx[0] = nelx;
     nx[1] = nely;
-    TPZGenGrid gengrid(nx,x0,x1);
+    TPZGenGrid2D gengrid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     gengrid.Read(gmesh);
     x1[1] = 0.;

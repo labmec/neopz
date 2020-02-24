@@ -24,7 +24,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzmaterialdata.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 using namespace std;
 using namespace pzgeom;

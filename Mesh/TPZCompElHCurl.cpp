@@ -367,6 +367,7 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
     const int nshape =this->NConnectShapeF(connect,order);
     c.SetNShape(nshape);
     this-> Mesh()->Block().Set(seqnum,nshape*nStateVars);
+    this->AdjustIntegrationRule();
     //for the hcurl and hdiv spaces to be compatible, the approximation order of a face must be max(k,ke), where
     //k is the (attempted) order of the face, and ke the maximum order of the edges contained in it.
 }
@@ -574,14 +575,14 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
             for (auto in = 0; in < numshape; in++) {
                 for (auto jn = 0; jn < numshape; jn++) {
                     REAL dotProduct = 0;
-                    for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
+                    for(auto iaxes = 0; iaxes < 3; iaxes ++){
                         dotProduct += thisTrace(in,iaxes) * thisTrace(jn,iaxes);
                     }
                     (*M)(in, jn) += dotProduct * weight;
                 }
                 for (auto jn = 0; jn < numshapel; jn++) {
                     REAL dotProduct = 0;
-                    for(auto iaxes = 0; iaxes < thisSideDimension; iaxes ++){
+                    for(auto iaxes = 0; iaxes < 3; iaxes ++){
                         dotProduct += thisTrace(in,iaxes) * largeTrace(jn,iaxes);
                     }
                     MSL(in, jn) += dotProduct * weight;

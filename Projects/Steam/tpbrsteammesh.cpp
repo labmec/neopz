@@ -13,7 +13,7 @@
 #include "tpbrcellconservation.h"
 #include "PropertiesTable.h"
 #include "pzbndmat.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -36,7 +36,7 @@ TPBrSteamMesh::TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL
 	fReservoirRadius = ReservoirRadius;
     if(fNumCells > 1)
     {
-        REAL progression = TPZGenGrid::GeometricProgression(fWellRadius, ReservoirRadius-fWellRadius, fNumCells);
+        REAL progression = TPZGenGrid2D::GeometricProgression(fWellRadius, ReservoirRadius-fWellRadius, fNumCells);
         SetGeometricProgression(progression);        
     }
     else

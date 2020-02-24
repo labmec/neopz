@@ -5,7 +5,7 @@
 
 #include "pzshapelinear.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZExtendGridDimension.h"
 #include "TPZVTKGeoMesh.h"
 

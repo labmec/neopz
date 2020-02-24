@@ -10,7 +10,7 @@
 
 #include "pzmanvector.h"
 #include "pztrnsform.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "tpzautopointer.h"
 #include "pzpoisson3d.h"
 #include "pzbndcond.h"
@@ -97,7 +97,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZManVector<int,3> nx(2,3);
     TPZManVector<REAL,3> x0(3,0.),x1(3,3.);
     x1[2] = 0.;
-    TPZGenGrid grid(nx,x0,x1);
+    TPZGenGrid2D grid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     grid.Read(gmesh.operator->());
     grid.SetBC(gmesh, 0, -1);

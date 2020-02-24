@@ -7,7 +7,7 @@
 //
 
 #include "TPZConductivityProblem.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "pzvoidflux.h"
 #include "pzbndcond.h"
 #include "pzgeoel.h"
@@ -123,7 +123,7 @@ TPZAutoPointer<TPZCompMesh> TPZConductivityProblem::GenerateCompMesh()
     REAL conductivity = fConductivity;
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     TPZVec<REAL> x0(2,0.);
-    TPZGenGrid gengrid(fNx,x0,fDelx);
+    TPZGenGrid2D gengrid(fNx,x0,fDelx);
     gengrid.Read(gmesh);
     gengrid.SetBC(gmesh, 3, -1);
     gengrid.SetBC(gmesh, 1, -2);

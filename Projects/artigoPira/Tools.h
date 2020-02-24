@@ -37,7 +37,7 @@
 #include "pzstrmatrix.h"
 #include "pzstepsolver.h"
 
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 
 #include "pzlog.h"
 

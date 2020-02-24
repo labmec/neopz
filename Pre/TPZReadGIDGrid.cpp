@@ -21,7 +21,7 @@
 #include "tpzgeoelrefpattern.h"
 
 #include "TPZVTKGeoMesh.h"
-#include <pzgengrid.h>
+#include <TPZGenGrid2D.h>
 
 #include <iostream>
 #include <fstream>

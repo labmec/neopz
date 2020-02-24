@@ -6,7 +6,7 @@
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzgengrid.h"
+#include "TPZGenGrid2D.h"
 #include "TPZExtendGridDimension.h"
 #include "pzintel.h"
 
@@ -261,7 +261,7 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,MElementType type) {
         X0[i] = -3.;
         X1[i] = 3.;
     }
-    TPZGenGrid gen(nx,X0,X1,1);
+    TPZGenGrid2D gen(nx,X0,X1,1);
     if(type==ETriangle) gen.SetElementType(type);  // type = 1 para elementos triangulares
     else gen.SetElementType(EQuadrilateral);  // type = 0 para elementos quadrilateros
     gen.Read(g);
