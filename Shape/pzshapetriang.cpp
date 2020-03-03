@@ -114,7 +114,7 @@ namespace pzshape {
 			TPZShapeLinear *shplin=0;
 			shplin->ShapeInternal(outvec,order[rib],phin,dphin,shplin->GetTransformId1d(ids));
 //            dphin.Print("dphin= ",std::cout,EMathematicaInput);
-			//TransformDerivativeFromRibToTriang(rib,ord2,dphin);
+			TransformDerivativeFromRibToTriang(rib,ord2,dphin);
 			for (int i = 0; i < ord2; i++) {
 				phi(shape,0) = phiblend(rib+3,0)*phin(i,0);
 				for(int xj=0;xj<2;xj++) {
