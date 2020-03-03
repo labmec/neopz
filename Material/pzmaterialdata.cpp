@@ -185,7 +185,6 @@ void TPZMaterialData::Print(std::ostream &out) const
     int nsol = dsol.size();
     for (int is=0; is<nsol; is++) {
         dsol[is].Print("dsol",out);
-        
     }
     out << "divsol " << divsol << std::endl;
     out << "curlsol " << curlsol << std::endl;
@@ -197,6 +196,13 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
     out << "NintPts " << NintPts << std::endl;
     out << "gelElId " << gelElId << std::endl;
+    if (fVecShapeIndex.size()) {
+        out << "VecShapeIndex: ";
+        for (int64_t i = 0; i < fVecShapeIndex.size(); i++) {
+            out << fVecShapeIndex[i].first << '/' << fVecShapeIndex[i].second << ' ';
+        }
+        out << '\n';
+    }
 }
 
 /** Print the data in a format suitable for Mathematica */
