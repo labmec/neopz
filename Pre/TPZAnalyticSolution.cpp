@@ -1269,7 +1269,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                disp[0] = 0.;
             }
             else {
-                TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
+                TVar factor = pow(r,TVar (1.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
                 disp[0] = factor * (sin((TVar) (2.) * theta / TVar(3.)));
             }
 
@@ -1518,13 +1518,13 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
         }
             
             break;
-        case ESinMark://(r^(2/3)-r^2)sin(20/3)
+        case ESinMark://(r^(2/3)-r^2)sin(20/3) para f=0 usar r^(2/3)sin(20/3)
         {
             
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
             if( theta < TVar(0.)) theta += 2.*M_PI;
             
-            TVar factor = pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
+            TVar factor = pow(r,TVar (1.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
             disp[0] = factor*(FADsin((TVar)(2.)*theta/TVar(3.)));
             
         }
