@@ -350,6 +350,11 @@ void TPZCompEl::Print(std::ostream & out) const {
     out << endl;
 }
 
+void TPZCompEl::ShortPrint(std::ostream &out) const{
+    std::cout << "void TPZCompEl::ShortPrint(std::ostream &out = std::cout) const: PLEASE IMPLEMENT ME";
+    DebugStop();
+}
+
 std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
     el.Print(s);
     return s;
