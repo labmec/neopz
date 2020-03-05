@@ -31,13 +31,31 @@ REAL TPZMaterial::gBigNumber = 1.e12;
 TPZMaterial::TPZMaterial() : fNumLoadCases(1), fPostProcIndex(0) {
 	this->fId = -666;
 	this->fForcingFunction = NULL;
+    this->fForcingFunctionExact = NULL;
 	this->fLinearContext = true;
+    this->fTimeDependentForcingFunction = NULL;
+    this->fTimedependentFunctionExact = NULL;
+    this->fBCForcingFunction = NULL;
+    this->fTimedependentBCForcingFunction = NULL;
+    this->fLinearContext = NULL;
+    this->fNumLoadCases = NULL;
+    this->fPostProcIndex = NULL;
+    
 }
 
 TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1), fPostProcIndex(0) {
 	this->SetId(id);
 	fForcingFunction = 0;
+    fForcingFunctionExact = 0;
 	this->fLinearContext = true;
+    fTimeDependentForcingFunction = 0;
+    fTimedependentFunctionExact = 0;
+    fBCForcingFunction = 0;
+    fTimedependentBCForcingFunction = 0;
+    fLinearContext = 0;
+    fNumLoadCases = 0;
+    fPostProcIndex = 0;
+    
 }
 
 TPZMaterial::~TPZMaterial()

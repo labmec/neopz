@@ -1,6 +1,8 @@
 #ifndef MMESHTYPE_H
 #define MMESHTYPE_H
 
+#include "pzeltype.h"
+
 /**
  * @brief This class defined mesh types for usage of mesh generating classes TPZGenGrid2D and TPZGenGrid3D.
  */

@@ -18,6 +18,14 @@ struct TPZAnalyticSolution
     /// integer to correct for the sign convention of the forcing term
     int fSignConvention = 1;
     
+    TPZAnalyticSolution(){
+
+    }
+
+    TPZAnalyticSolution(const TPZAnalyticSolution &cp);
+    
+    TPZAnalyticSolution &operator=(const TPZAnalyticSolution &copy);
+
     class TForce : public TPZFunction<STATE>
     {
         const TPZAnalyticSolution *fAnalytic;
@@ -136,7 +144,7 @@ struct TPZAnalyticSolution
     TPZAutoPointer<TPZFunction<STATE> > Exact() const
     {
         return new TExactState(this);
-    }
+    };
     
     std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution() const
     {
@@ -407,25 +415,37 @@ public:
 
 };
 
-struct TStokes2DAnalytic : public TPZAnalyticSolution
+struct TStokesAnalytic : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EStokes0, EStokesLimit1, EBrinkman1, EDarcyLimit1};
+    enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
+    
+    enum EExactSol {ENone, ERetangular, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
     
     int fDimension = 2;
     
-    EExactSol fProblemType = ENone;
+    MProblemType fProblemType = EStokes;
+
+    EExactSol fExactSol = ERetangular;
     
-    REAL fvisco = 1.;
+    REAL fvisco = 1.; //Viscosity
+    
+    REAL Pi = M_PI;
+    
+    REAL Re = 1./fvisco; //Reynolds number
+    
+    REAL lambda = Re/2.- pow(Re*Re/4.+4.*Pi*Pi,0.5); // Parameter for Navier-Stokes solution
+    
+    REAL falphaBrinkman = 1.;
         
     TPZManVector<REAL,3> fCenter;
     
-    TStokes2DAnalytic() : fCenter(3,0.)
+    TStokesAnalytic() : fCenter(3,0.), TPZAnalyticSolution()
     {
         
     }
     
-    virtual ~TStokes2DAnalytic()
+    virtual ~TStokesAnalytic()
     {
         
     }
@@ -450,14 +470,7 @@ struct TStokes2DAnalytic : public TPZAnalyticSolution
     template<typename TVar1, typename TVar2>
     void DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma) const;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
-    {
-        TPZManVector<REAL,3> locforce(3);
-        DivSigma(x, locforce);
-        force[0] = -locforce[0];
-        force[1] = -locforce[1];
-        force[2] = -locforce[2];
-    }
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const;
     
     template<typename TVar1, typename TVar2>
     void Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const;

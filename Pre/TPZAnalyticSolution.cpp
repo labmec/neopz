@@ -1909,26 +1909,23 @@ void TLaplaceExampleTimeDependent::DivSigma(const TPZVec<REAL> &x, REAL &divsigm
 
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &flux) const
+void TStokesAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &flux) const
 {
     TVar1 x1 = x[0];
     TVar1 x2 = x[1];
     
     switch(fProblemType)
     {
-        case EStokes0:
-            flux[0] = -0.1*x2*x2+0.2*x2;
-            flux[1] = 0.;
-            break;
-        case EStokesLimit1:
-            flux[0] = -1.*sin(x1)*sin(x2);;
+        case EStokes:
+            flux[0] = -1.*sin(x1)*sin(x2);
             flux[1] = -1.*cos(x1)*cos(x2);
             break;
-        case EBrinkman1:
-            flux[0] = 0.;
-              break;
-        case EDarcyLimit1:
-            flux[0] = 0.;
+            
+        case ENavierStokes:
+        case EOseen:
+            flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
+            flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
+            
             break;
         default:
             DebugStop();
@@ -1937,26 +1934,23 @@ void TStokes2DAnalytic::uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &flux) const
 
 
 template<>
-void TStokes2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &flux) const
+void TStokesAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &flux) const
 {
     FADFADREAL x1 = x[0];
     FADFADREAL x2 = x[1];
 
     switch(fProblemType)
     {
-        case EStokes0:
-            flux[0] = -0.1*x2*x2+0.2*x2;
-            flux[1] = 0.;
-            break;
-        case EStokesLimit1:
-            flux[0] = -1.*FADsin(x1)*FADsin(x2);;
+        case EStokes:
+            flux[0] = -1.*FADsin(x1)*FADsin(x2);
             flux[1] = -1.*FADcos(x1)*FADcos(x2);
             break;
-        case EBrinkman1:
-            flux[0] = 0.;
-            break;
-        case EDarcyLimit1:
-            flux[0] = 0.;
+            
+        case ENavierStokes:
+        case EOseen:
+            flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
+            flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
+            
             break;
         default:
             DebugStop();
@@ -1965,24 +1959,19 @@ void TStokes2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &f
 }
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::pressure(const TPZVec<TVar1> &x, TVar2 &p) const
+void TStokesAnalytic::pressure(const TPZVec<TVar1> &x, TVar2 &p) const
 {
     TVar1 x1 = x[0];
     TVar1 x2 = x[1];
     
     switch(fProblemType)
     {
-        case EStokes0:
-            p = 1.-0.2*x1;
-            break;
-        case EStokesLimit1:
+        case EStokes:
             p = cos(x1)*sin(x2);
             break;
-        case EBrinkman1:
-            p = 0.;
-            break;
-        case EDarcyLimit1:
-            p = 0.;
+        case ENavierStokes:
+        case EOseen:
+            p = -(1./2.)*exp(2.*lambda*x1);
             break;
         default:
             DebugStop();
@@ -1990,7 +1979,7 @@ void TStokes2DAnalytic::pressure(const TPZVec<TVar1> &x, TVar2 &p) const
 }
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &gradu) const
+void TStokesAnalytic::graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &gradu) const
 {
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -2011,7 +2000,7 @@ void TStokes2DAnalytic::graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &gradu
 }
 
 template<>
-void TStokes2DAnalytic::graduxy(const TPZVec<std::complex<double> > &x, TPZFMatrix<std::complex<double> > &gradu) const
+void TStokesAnalytic::graduxy(const TPZVec<std::complex<double> > &x, TPZFMatrix<std::complex<double> > &gradu) const
 {
     TPZManVector<Fad<std::complex<double> >,3> xfad(x.size());
     for(int i=0; i<2; i++)
@@ -2032,7 +2021,7 @@ void TStokes2DAnalytic::graduxy(const TPZVec<std::complex<double> > &x, TPZFMatr
 }
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) const
+void TStokesAnalytic::Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) const
 {
     TPZFMatrix<TVar2> grad(3,3,0.), gradT(3,3,0.);
     graduxy(x,grad);
@@ -2041,14 +2030,14 @@ void TStokes2DAnalytic::Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) cons
 }
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
+void TStokesAnalytic::Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
 {
     SigmaLoc(x, sigma);
 }
 
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
+void TStokesAnalytic::SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const
 {
     TPZFMatrix<TVar2> Du, pIdentity(sigma.Rows(),sigma.Cols());
     TVar2 p=0.;
@@ -2068,7 +2057,7 @@ void TStokes2DAnalytic::SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigm
 }
 
 template<typename TVar1, typename TVar2>
-void TStokes2DAnalytic::DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma) const
+void TStokesAnalytic::DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma) const
 {
     int sz = x.size();
     TPZManVector<Fad<TVar2>,3> xfad(sz);
@@ -2083,24 +2072,64 @@ void TStokes2DAnalytic::DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma
     }
 }
 
-void TStokes2DAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const
+void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
 {
+
+    TPZManVector<REAL,3> locforce(3);
+    DivSigma(x, locforce);
+    
+    switch(fProblemType)
+    {
+        case EStokes:
+            force[0] = -locforce[0];
+            force[1] = -locforce[1];
+            force[2] = -locforce[2];
+            break;
+            
+        case ENavierStokes:
+        case EOseen:
+
+            force[0] = -locforce[0];
+            force[1] = -locforce[1];
+            force[2] = -locforce[2];
+            
+            break;
+        default:
+            DebugStop();
+    }
+
+
+
+}
+
+void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &gradsol) const
+{
+//    TPZManVector<STATE> xst(3);
+//    for(int i=0; i<3; i++) xst[i] = x[i];
+//    uxy(xst,u);
+//    graduxy(xst,gradu);
+    
     TPZManVector<Fad<REAL>,3> xfad(x.size());
     for(int i=0; i<3; i++)
     {
         Fad<REAL> temp = Fad<REAL>(3,i,x[i]);
         xfad[i] = temp;
     }
-    TPZManVector<Fad<REAL>,3> result(1);
-    uxy(xfad,result);
-    gradu.Redim(3,1);
-    u[0] = result[0].val();
-    for (int i=0; i<3; i++) {
-        for (int j=0; j<1; j++)
-        {
-            gradu(i,j) = result[j].d(i);
-        }
+    TPZManVector<Fad<REAL>,3> u_result(3);
+    uxy(xfad,u_result);
+    gradsol.Redim(3,3);
+    sol.resize(4);
+    for (int i = 0; i < 3; i++) {
+        sol[i] = u_result[i].val();
     }
+    Fad<REAL> p_result = 0.;
+    pressure(xfad, p_result);
+    sol[3] = p_result.val();
+    
+    graduxy(xfad, gradsol);
+    
+    
+    
     
 }
 
