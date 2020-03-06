@@ -432,7 +432,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     REAL Pi = M_PI;
     
-    REAL Re = 1./fvisco; //Reynolds number
+    REAL Re = 10.; //Reynolds number
     
     REAL lambda = Re/2.- pow(Re*Re/4.+4.*Pi*Pi,0.5); // Parameter for Navier-Stokes solution
     
@@ -452,37 +452,30 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) const;
     
-    template<typename TVar1, typename TVar2>
-    void uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &flux) const;
+    template<class TVar>
+    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const;
 
-    template<typename TVar1, typename TVar2>
-    void pressure(const TPZVec<TVar1> &x, TVar2 &p) const;
+    template<class TVar>
+    void pressure(const TPZVec<TVar> &x, TVar &p) const;
     
-    template<typename TVar1, typename TVar2>
-    void graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &grad) const;
+    template<class TVar>
+    void graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad) const;
 
-    template<typename TVar1, typename TVar2>
-    void Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) const;
+    template<class TVar>
+    void Duxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &Du) const;
     
-    template<typename TVar1, typename TVar2>
-    void SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const;
+    template<class TVar>
+    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    template<typename TVar1, typename TVar2>
-    void DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma) const;
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
+    
+    template<class TVar>
+    void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
+    
+    template<class TVar>
+    void DivSigma(const TPZVec<TVar> &x, TPZVec<TVar> &divsigma) const;
     
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const;
-    
-    template<typename TVar1, typename TVar2>
-    void Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const;
-    
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const{
-        TPZManVector<STATE,3> xco(3);
-        for (int i=0; i<3; i++) {
-            xco[i] = x[i];
-        }
-        SigmaLoc<STATE>(xco,tensor);
-    }
-    
     
     
 };
