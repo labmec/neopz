@@ -2017,7 +2017,7 @@ void TStokesAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &gradu) co
     for (int i=0; i<2; i++) {
         for (int j=0; j<2; j++)
         {
-            gradu(i,j) = result[j].d(i);
+            gradu(i,j) = result[i].d(j);
         }
     }
 }
@@ -2137,7 +2137,7 @@ void TStokesAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma) co
 void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
 {
 
-    TPZManVector<REAL,3> locforce(3),beta(3),gradU_beta(3);
+    TPZManVector<REAL,3> locforce(3,0.),beta(3,0.),gradU_beta(3,0.);
     TPZFMatrix<REAL> grad(3,3,0.);
     DivSigma(x, locforce);
 
@@ -2154,12 +2154,13 @@ void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
 
             graduxy(x,grad);
             uxy(x,beta);
-
+            
             for (int e=0; e<3; e++) {
                 for (int f=0; f<3; f++) {
                     gradU_beta[e] += grad(e,f)*beta[f];
                 }
             }
+            
             force[0] = -locforce[0]+gradU_beta[0];
             force[1] = -locforce[1]+gradU_beta[1];
             force[2] = -locforce[2]+gradU_beta[2];
