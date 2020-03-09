@@ -420,7 +420,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ERetangular, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
+    enum EExactSol {ENone, ERetangular, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
     
     int fDimension = 2;
     
@@ -428,7 +428,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 
     EExactSol fExactSol = ERetangular;
     
-    REAL fvisco = 0.1; //Viscosity
+    REAL fvisco = 1.0; //Viscosity
     
     REAL Pi = M_PI;
     

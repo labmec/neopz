@@ -1917,8 +1917,20 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
     switch(fProblemType)
     {
         case EStokes:
-            flux[0] = -1.*sin(x1)*sin(x2);
-            flux[1] = -1.*cos(x1)*cos(x2);
+            
+            switch(fExactSol)
+        {
+            case ERetangular:
+                flux[0] = -1.*sin(x1)*sin(x2);
+                flux[1] = -1.*cos(x1)*cos(x2);
+                break;
+            case EPconst:
+                flux[0] = x1;
+                flux[1] = -x2;
+                break;
+            default:
+                DebugStop();
+        }
             break;
             
         case ENavierStokes:
@@ -1942,8 +1954,20 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &flu
     switch(fProblemType)
     {
         case EStokes:
-            flux[0] = -1.*FADsin(x1)*FADsin(x2);
-            flux[1] = -1.*FADcos(x1)*FADcos(x2);
+            
+            switch(fExactSol)
+        {
+            case ERetangular:
+                flux[0] = -1.*FADsin(x1)*FADsin(x2);
+                flux[1] = -1.*FADcos(x1)*FADcos(x2);
+                break;
+            case EPconst:
+                flux[0] = x1;
+                flux[1] = -x2;
+                break;
+            default:
+                DebugStop();
+        }
             break;
             
         case ENavierStokes:
@@ -1967,7 +1991,17 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
     switch(fProblemType)
     {
         case EStokes:
-            p = cos(x1)*sin(x2);
+            switch(fExactSol)
+            {
+                case ERetangular:
+                    p = cos(x1)*sin(x2);
+                    break;
+                case EPconst:
+                    p = 0;
+                break;
+                default:
+                DebugStop();
+            }
             break;
         case ENavierStokes:
         case EOseen:
@@ -1987,7 +2021,17 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADREAL > &x, FADFADREAL &p) cons
     switch(fProblemType)
     {
         case EStokes:
-            p = FADcos(x1)*FADsin(x2);
+            switch(fExactSol)
+            {
+                case ERetangular:
+                    p = FADcos(x1)*FADsin(x2);
+                    break;
+                case EPconst:
+                    p = 0;
+                    break;
+                default:
+                    DebugStop();
+            }
             break;
             
         case ENavierStokes:
