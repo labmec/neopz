@@ -28,8 +28,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testshape"));
 #include <boost/test/unit_test.hpp>
 
 
-struct SuiteInitializer{
-    SuiteInitializer(){
+struct SuiteInitializer {
+    SuiteInitializer() {
         InitializePZLOG();
     }
 };
@@ -41,7 +41,7 @@ template<class TGeo>
 void CheckDivergenceOnInternalConnect();
 
 BOOST_FIXTURE_TEST_SUITE(shape_test, SuiteInitializer)
-    
+
     BOOST_AUTO_TEST_CASE(internal_connect_divergence_test) {
         CheckDivergenceOnInternalConnect<pzgeom::TPZGeoTriangle>();
         CheckDivergenceOnInternalConnect<pzgeom::TPZGeoQuad>();
@@ -56,10 +56,8 @@ BOOST_AUTO_TEST_SUITE_END()
 
 template<class TGeo>
 void AddSampleElement(TPZGeoMesh& gmesh) {
-    std::string elName = TGeo::TypeName();
-    
     std::cout << "Creating example mesh.\n";
-    
+
     const int matId = 1;
     TPZManVector<REAL, 3> lowerCorner(3, 0);
     TPZManVector<REAL, 3> size(3, 1);
@@ -131,7 +129,8 @@ void CheckDivergenceOnInternalConnect() {
     // Test if obtained results are equal (numerically) to zero
     for (int64_t i = 0; i < integrationResult.Rows(); i++) {
         BOOST_CHECK_MESSAGE(IsZero(integrationResult(i, 0)), "Divergence test failed for shape function " +
-            std::to_string(i + firstInternalPhi) + " on " + TGeo::TypeName() + " element");
+                                                             std::to_string(i + firstInternalPhi) + " on " +
+                                                             TGeo::TypeName() + " element");
     }
     std::cout << "Divergence test passed!\n\n";
 }
