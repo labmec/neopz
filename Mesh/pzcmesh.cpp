@@ -283,55 +283,6 @@ void TPZCompMesh::Print (std::ostream & out) const {
 	}
 }
 
-void TPZCompMesh::ShortPrint(std::ostream &out) const {
-    //ComputeNodElCon();
-    out << "\n\t\tCOMPUTABLE GRID INFORMATIONS:\n\n";
-    out << "TITLE-> " << fName << "\n\n";
-
-    out << "number of connects            = " << NConnects() << std::endl;
-    out << "number of elements            = " << NElements() << std::endl;
-    out << "number of materials           = " << NMaterials() << std::endl;
-    out << "dimension of the mesh         = " << this->Dimension() << std::endl;
-
-    out << "\n\t Connect Information:\n\n";
-    int64_t i, nelem = NConnects();
-    for(i=0; i<nelem; i++) {
-        if(fConnectVec[i].SequenceNumber() == -1) {
-            if(fConnectVec[i].HasDependency()) {
-                cout << " TPZCompMesh::Print inconsistency of connect\n";
-                cout << " Index " << i << ' ';
-                fConnectVec[i].Print(*this,std::cout);
-            }
-            continue;
-        }
-        out << " Index " << i << ' ';
-        fConnectVec[i].Print(*this,out);
-    }
-    out << "\n\t Computable Element Information:\n\n";
-    nelem = NElements();
-    for(i=0; i<nelem; i++) {
-        if(!fElementVec[i]) continue;
-        TPZCompEl *el = fElementVec[i];
-        out << "\n Index " << i << ' ';
-        el->ShortPrint(out);
-        TPZMultiphysicsElement *mpel = dynamic_cast<TPZMultiphysicsElement *>(el);
-        if(!mpel){
-            if(!el->Reference()) continue;
-            out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
-        }
-    }
-    out << "\n\t Material Information:\n\n";
-    std::map<int, TPZMaterial * >::const_iterator mit;
-    nelem = NMaterials();
-    for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
-        TPZMaterial *mat = mit->second;
-        if (!mat) {
-            DebugStop();
-        }
-        mat->Print(out);
-    }
-}
-
 /**Insert a material object in the datastructure*/
 int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
