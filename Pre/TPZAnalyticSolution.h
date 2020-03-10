@@ -420,19 +420,19 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ERetangular, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
+    enum EExactSol {ENone, EKovasznay, ESinCos, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
     
     int fDimension = 2;
     
     MProblemType fProblemType = EStokes;
 
-    EExactSol fExactSol = ERetangular;
+    EExactSol fExactSol = ESinCos;
     
     REAL fvisco = 1.0; //Viscosity
     
     REAL Pi = M_PI;
     
-    REAL Re = 10.; //Reynolds number
+    REAL Re = 1./fvisco; //Reynolds number
     
     REAL lambda = Re/2.- pow(Re*Re/4.+4.*Pi*Pi,0.5); // Parameter for Navier-Stokes solution
     
