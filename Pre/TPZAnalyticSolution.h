@@ -17,14 +17,6 @@ struct TPZAnalyticSolution
     
     /// integer to correct for the sign convention of the forcing term
     int fSignConvention = 1;
-    
-    TPZAnalyticSolution(){
-
-    }
-
-    TPZAnalyticSolution(const TPZAnalyticSolution &cp);
-    
-    TPZAnalyticSolution &operator=(const TPZAnalyticSolution &copy);
 
     class TForce : public TPZFunction<STATE>
     {
