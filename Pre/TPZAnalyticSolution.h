@@ -420,13 +420,13 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 
     EExactSol fExactSol = ESinCos;
     
-    REAL fvisco = 1.0; //Viscosity
+    REAL fvisco = 0.1; //Viscosity
     
     REAL Pi = M_PI;
     
     REAL Re = 1./fvisco; //Reynolds number
     
-    REAL lambda = Re/2.- pow(Re*Re/4.+4.*Pi*Pi,0.5); // Parameter for Navier-Stokes solution
+    REAL lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
     
     REAL falphaBrinkman = 1.;
         
