@@ -377,6 +377,7 @@ if(USING_MKL)
         else()
                 #include_directories(${MKL_INCLUDE})
         endif()
+
         if(MKL_LIB-NOTFOUND)
                 set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
         else()
