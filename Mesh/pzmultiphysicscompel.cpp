@@ -272,14 +272,14 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
         }
     }
     
-    out << "\nComputational elements this multi-physics element: \n";
+    out << "\nComputational elements within multi-physics element: \n";
     int64_t nmesh  = fElementVec.size();
     for(int64_t iel = 0; iel< nmesh; iel++ ){
         
-        out << "\nComputational element belonging to the mesh " << iel+1 <<":\n";
+        out << "\nComputational element belonging to the mesh " << iel <<":\n";
         TPZCompEl *cel = fElementVec[iel].Element();
         if(!cel){
-            out << "\n There is not element to computational mesh " << iel+1 <<"\n";
+            out << "\n There is not element to computational mesh " << iel <<"\n";
             continue;
         }
         cel->Print(out);
@@ -292,6 +292,46 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
         out << std::endl;
         out <<"\t" << tr[iel];
     }
+}
+
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::ShortPrint(std::ostream & out) const {
+
+    out << "\n";
+    out << __PRETTY_FUNCTION__ << std::endl;
+    out << "\n\tMulti-physics element:: \n";
+    TPZCompEl::Print(out);
+
+    std::list<TPZOneShapeRestraint> restraints = this->GetShapeRestraints();
+    if(restraints.size())
+    {
+        out << "One shape restraints\n";
+        for (std::list<TPZOneShapeRestraint>::const_iterator it = restraints.begin(); it != restraints.end(); it++) {
+            it->Print(out);
+        }
+    }
+
+    out << "\n\tComputational elements within this multi-physics element: \n\n";
+    int64_t nmesh  = fElementVec.size();
+    for(int64_t iel = 0; iel< nmesh; iel++ ){
+
+        out << "Computational element belonging to the mesh " << iel <<":\n";
+        TPZCompEl *cel = fElementVec[iel].Element();
+        if(!cel){
+            out << "There is not element to computational mesh " << iel <<"\n";
+            continue;
+        }
+        cel->ShortPrint(out);
+        if(!cel->Reference()) continue;
+        out << "\tReference Index = " << cel->Reference()->Index();
+
+        TPZManVector<TPZTransform<> > tr;
+        AffineTransform(tr);
+        out << "\n\tAffine transformation of the multiphysics element for this computational element:"<<"\n";
+        out << std::endl;
+        out <<"\t" << tr[iel];
+    }
+    out << "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
 }
 
 

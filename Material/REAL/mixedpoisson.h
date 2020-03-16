@@ -38,10 +38,10 @@ protected:
 	REAL ff;
 	
     /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
-	TPZFNMatrix<9,REAL> fTensorK;
+	//TPZFNMatrix<9,REAL> fTensorK;
     
     /** @brief inverse of the permeability tensor.*/
-	TPZFNMatrix<9,REAL> fInvK;
+	//TPZFNMatrix<9,REAL> fInvK;
     
     /** @brief fluid viscosity*/
 	REAL fvisc;
@@ -83,33 +83,6 @@ public:
 	virtual std::string Name() override{ return "TPZMixedPoisson"; }
     
     virtual int NStateVariables() const override;
-	
-	void SetPermeability(REAL perm) {
-		fK = perm;
-        fTensorK.Zero();
-        fInvK.Zero();
-        for (int i=0; i<3; i++) {
-            fTensorK(i,i) = perm;
-            fInvK(i,i) = 1./perm;
-        }
-	}
-    
-    //Set the permeability tensor and inverser tensor
-   void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
-   
-//       if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
-//       if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-       if(K.Rows() < fDim || invK.Rows() < fDim)
-       {
-           DebugStop();
-       }
-       fTensorK = K;
-       fInvK = invK;
-       fK = 0.;
-   }
-	
-    /// return the permeability and compute it if there is permeability function
-    void GetPermeability(TPZVec<REAL> &x, TPZFMatrix<REAL> &K, TPZFMatrix<REAL> &invK);
 
     void SetViscosity(REAL visc) {
 		fvisc = visc;
@@ -117,8 +90,10 @@ public:
     
     void GetMaxPermeability(REAL &perm)
     {
+        TPZFNMatrix<9,STATE> TensorK(3,3);
+        this->GetPermeability(TensorK);
         perm = 0;
-        for(int i=0; i<3; i++) perm = perm < fTensorK(i,i) ? fTensorK(i,i) : perm;
+        for(int i=0; i<3; i++) perm = perm < TensorK(i,i) ? TensorK(i,i) : perm;
     }
 //	void GetPermeability(REAL &perm) {
 //		perm = fK;
