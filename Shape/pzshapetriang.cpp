@@ -81,6 +81,35 @@ namespace pzshape {
 		
 	}
 	
+    /**
+     * Computes the generating shape functions for a quadrilateral element
+     * @param pt (input) point where the shape function is computed
+     * @param phi (input/output) value of the (4) shape functions
+     * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+     */
+    void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    {
+        // Make the generating shape functions linear and unitary
+        REAL mult[] = {1.,1.,1.,4.,4.,4.,27.};
+        int is;
+        for(is=3; is<6; is++)
+        {
+            if(nshape[is-NCornerNodes] < 1) continue;
+            int is1 = is%3;
+            int is2 = (is+1)%3;
+            phi(is,0) = mult[is]*phi(is1,0)*phi(is2,0);
+            dphi(0,is) = mult[is]*(dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2));
+            dphi(1,is) = mult[is]*(dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2));
+        }
+        int is1 = 0;
+        int is2 = 1;
+        int is3 = 2;
+        phi(is,0) = mult[6]*phi(is1,0)*phi(is2,0)*phi(is3,0);
+        dphi(0,is) = mult[6]*( dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3));
+        dphi(1,is) = mult[6]*( dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3));
+        
+    }
+    
 	void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
 							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
