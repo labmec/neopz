@@ -258,7 +258,7 @@ template< class T, int NumExtAlloc>
 inline TPZManVector< T, NumExtAlloc >::TPZManVector(const std::initializer_list<T>& list)
 {
 	int size = list.size();
-	std::cout << "init pzmanvec" << std::endl;
+//	std::cout << "init pzmanvec" << std::endl;
 	if (size <= (int64_t)(sizeof(fExtAlloc) / sizeof(T))) {
 		// Needed to make TPZVec::operator[] work properly.
 		this->fStore = fExtAlloc;

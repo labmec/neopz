@@ -1976,18 +1976,19 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
     TVar x1 = x[0];
     TVar x2 = x[1];
     
-    switch(fProblemType)
+    switch(fExactSol)
     {
-        case EStokes:
+        case ESinCos:
             flux[0] = -1.*sin(x1)*sin(x2);
             flux[1] = -1.*cos(x1)*cos(x2);
             break;
-            
-        case ENavierStokes:
-        case EOseen:
+        case EKovasznay:
             flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
-            
+            break;
+        case EPconst:
+            flux[0] = x1;
+            flux[1] = -x2;
             break;
         default:
             DebugStop();
@@ -2001,18 +2002,19 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &flu
     FADFADREAL x1 = x[0];
     FADFADREAL x2 = x[1];
 
-    switch(fProblemType)
+    switch(fExactSol)
     {
-        case EStokes:
+        case ESinCos:
             flux[0] = -1.*FADsin(x1)*FADsin(x2);
             flux[1] = -1.*FADcos(x1)*FADcos(x2);
             break;
-            
-        case ENavierStokes:
-        case EOseen:
+        case EKovasznay:
             flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
-            
+            break;
+        case EPconst:
+            flux[0] = x1;
+            flux[1] = -x2;
             break;
         default:
             DebugStop();
@@ -2026,14 +2028,16 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
     TVar x1 = x[0];
     TVar x2 = x[1];
     
-    switch(fProblemType)
+    switch(fExactSol)
     {
-        case EStokes:
+        case ESinCos:
             p = cos(x1)*sin(x2);
             break;
-        case ENavierStokes:
-        case EOseen:
+        case EKovasznay:
             p = -(1./2.)*exp(2.*lambda*x1);
+            break;
+        case EPconst:
+            p = 0;
             break;
         default:
             DebugStop();
@@ -2046,16 +2050,16 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADREAL > &x, FADFADREAL &p) cons
     FADFADREAL x1 = x[0];
     FADFADREAL x2 = x[1];
     
-    switch(fProblemType)
+    switch(fExactSol)
     {
-        case EStokes:
-            p = FADcos(x1)*FADsin(x2);
+        case ESinCos:
+        p = FADcos(x1)*FADsin(x2);
             break;
-            
-        case ENavierStokes:
-        case EOseen:
+        case EKovasznay:
             p = -(1./2.)*FADexp(2.*lambda*x1);
-            
+            break;
+        case EPconst:
+            p = 0;
             break;
         default:
             DebugStop();
@@ -2106,6 +2110,7 @@ void TStokesAnalytic::SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) c
     TPZFMatrix<TVar> Du, pIdentity(sigma.Rows(),sigma.Cols());
     TVar p=0.;
     Duxy(x,Du);
+    
     for(int i=0; i<Du.Rows(); i++)
     {
         for(int j=0; j<Du.Cols(); j++)

@@ -267,7 +267,10 @@ namespace pzshape {
 		}
 	}
     void TPZShapeLinear::ShapeCorner(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-        
+        phi(0,0) = (1-pt[0])/2.;
+        phi(1,0) = (1+pt[0])/2.;
+        dphi(0,0) = -0.5;
+        dphi(0,1)= 0.5;
     }
 	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		switch(side) {

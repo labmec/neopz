@@ -210,7 +210,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     TElasticity2DAnalytic(const TElasticity2DAnalytic &cp);
 
     TElasticity2DAnalytic &operator=(const TElasticity2DAnalytic &copy);
-    
+
     static TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction()
     {
         TPZAutoPointer<TPZFunction<STATE> > result;
@@ -289,7 +289,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     TElasticity3DAnalytic (const TElasticity3DAnalytic  &cp);
 
     TElasticity3DAnalytic  &operator=(const TElasticity3DAnalytic  &copy);
-    
+
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
@@ -326,7 +326,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     TPZFNMatrix<9,REAL> fTensorPerm;
 
     TPZFNMatrix<9,REAL> fInvPerm;
-    
+
     TLaplaceExample1() : fCenter(3,0.), TPZAnalyticSolution()
     {
         fTensorPerm = fInvPerm = {{1,0,0},{0,1,0},{0,0,1}};
@@ -443,19 +443,19 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ERetangular, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
+    enum EExactSol {ENone, EKovasznay, ESinCos, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
     
     int fDimension = 2;
     
     MProblemType fProblemType = EStokes;
 
-    EExactSol fExactSol = ERetangular;
-
+    EExactSol fExactSol = ESinCos;
+    
     REAL fvisco = 0.1; //Viscosity
     
     REAL Pi = M_PI;
     
-    REAL Re = 10.; //Reynolds number
+    REAL Re = 1./fvisco; //Reynolds number
 
     REAL lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
     

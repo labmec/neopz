@@ -184,7 +184,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
 
 
     indexVecShape.Resize(this->NShapeF());
-    TPZVec<uint> shapeCountVec(TSHAPE::NSides - nNodes, 0);
+    TPZVec<unsigned int> shapeCountVec(TSHAPE::NSides - nNodes, 0);
 
     StaticIndexShapeToVec(indexVecShape, connectOrder, firstH1ShapeFunc,sidesH1Ord, shapeCountVec, transformationIds);
 
@@ -244,7 +244,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
                                                        const TPZVec<int>& connectOrder,
                                                        const TPZVec<int64_t>& firstH1ShapeFunc,
                                                        const TPZVec<int>& sidesH1Ord,
-                                                       TPZVec<uint>& shapeCountVec,
+                                                       TPZVec<unsigned int>& shapeCountVec,
                                                        const TPZVec<int>& transformationIds) {
     /******************************************************************************************************************
     * The directions are calculated based on the LOCAL side ids (and SideNodeLocId), such as the H1 shape functions.
@@ -261,7 +261,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
     const auto nFaces = TSIDESHAPE::Dimension < 2 ? 0 : TSIDESHAPE::NumSides(2);
     const auto nEdges = TSIDESHAPE::NumSides(1);
     const auto nNodes = TSIDESHAPE::NCornerNodes;
-    uint shapeCount = 0;
+	unsigned int shapeCount = 0;
 
 
     //calculates edge functions
@@ -523,7 +523,7 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
     TPZManVector<std::pair<int,int64_t>> indexVecShape(nSideShapes);
     {
         MElementType sidetype = TSHAPE::Type(side);
-        TPZManVector<uint,5> shapeCountVec(nSideConnects,-1);
+        TPZManVector<unsigned int,5> shapeCountVec(nSideConnects,-1);
         TPZManVector<int64_t,5> firstH1ShapeFunc(nSideConnects,-1);
         //calculates the first SCALAR shape function associated with each side of dim > 0
         TPZVec<int> sidesH1Ord(nSideConnects,-1);
@@ -669,15 +669,15 @@ TPZRestoreClass< TPZCompElHCurlFull<TSHAPE> >; \
 template class TPZCompElHCurlFull<TSHAPE>; \
 template void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeLinear>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\
 const TPZVec<int>& connectOrder,\
-const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<uint>& shapeCountVec,\
+const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,\
 const TPZVec<int>& transformationIds);\
 template void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeTriang>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\
 const TPZVec<int>& connectOrder,\
-const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<uint>& shapeCountVec,\
+const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,\
 const TPZVec<int>& transformationIds);\
 template void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec<pzshape::TPZShapeQuad>(TPZVec<std::pair<int,int64_t>> & indexVecShape,\
 const TPZVec<int>& connectOrder,\
-const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<uint>& shapeCountVec,\
+const TPZVec<int64_t>& firstH1ShapeFunc,const TPZVec<int>& sidesH1Ord, TPZVec<unsigned int>& shapeCountVec,\
 const TPZVec<int>& transformationIds);
 
 
