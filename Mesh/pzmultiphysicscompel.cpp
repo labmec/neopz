@@ -297,7 +297,6 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ShortPrint(std::ostream & out) const {
 
-    out << "\n";
     out << __PRETTY_FUNCTION__ << std::endl;
     out << "\n\tMulti-physics element:: \n";
     TPZCompEl::Print(out);

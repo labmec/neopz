@@ -36,12 +36,6 @@ class TPZMixedPoisson : public TPZMatPoisson3d {
 protected:
 	/** @brief Forcing function value */
 	REAL ff;
-	
-    /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
-	//TPZFNMatrix<9,REAL> fTensorK;
-    
-    /** @brief inverse of the permeability tensor.*/
-	//TPZFNMatrix<9,REAL> fInvK;
     
     /** @brief fluid viscosity*/
 	REAL fvisc;

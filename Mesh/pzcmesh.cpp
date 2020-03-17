@@ -313,7 +313,6 @@ void TPZCompMesh::ShortPrint(std::ostream &out) const {
     for(i=0; i<nelem; i++) {
         if(!fElementVec[i]) continue;
         TPZCompEl *el = fElementVec[i];
-        out << "\n Index " << i << ' ';
         el->ShortPrint(out);
         TPZMultiphysicsElement *mpel = dynamic_cast<TPZMultiphysicsElement *>(el);
         if(!mpel){
