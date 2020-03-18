@@ -91,6 +91,9 @@ public:
 	
 	/** @brief Prints the relevant data of the element to the output stream */
 	virtual void Print(std::ostream &out = std::cout) const override;
+
+    /** @brief Prints the relevant data of the element to the output stream */
+    virtual void ShortPrint(std::ostream &out = std::cout) const override;
 	
 	/** @brief Returns the total number of shapefunctions*/
 	int NShapeF() const override;

@@ -29,7 +29,8 @@ TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
     {
         DebugStop();
     }
-	fK = 1.;
+    fTensorPerm ={{1,0,0},{0,1,0},{0,0,1}};
+    fInvPerm ={{1,0,0},{0,1,0},{0,0,1}};
 	fC = 0.;
 	fConvDir[0] = 0.;
 	fConvDir[1] = 0.;
@@ -43,8 +44,9 @@ TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
 
 TPZMatPoisson3d::TPZMatPoisson3d():TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
 TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
-	fK = 1.;
 	fC = 0.;
+    fTensorPerm ={{1,0,0},{0,1,0},{0,0,1}};
+    fInvPerm ={{1,0,0},{0,1,0},{0,0,1}};
 	fConvDir[0] = 0.;
 	fConvDir[1] = 0.;
 	fConvDir[2] = 0.;
@@ -64,7 +66,8 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
 	TPZDiscontinuousGalerkin::operator = (copy);
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
-	fK   = copy.fK;
+	fTensorPerm = copy.fTensorPerm;
+	fInvPerm = copy.fInvPerm;
 	fC   = copy.fC;
     fShapeHdiv= copy.fShapeHdiv;
 	for (int i = 0; i < 3; i++) fConvDir[i] = copy.fConvDir[i];
@@ -76,17 +79,80 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
 }
 
 void TPZMatPoisson3d::SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir) {
-	fK = diff;
+	fTensorPerm.Resize(3,3);
+	fTensorPerm.Zero();
+    fTensorPerm(0,0) = fTensorPerm(1,1) = fTensorPerm(2,2) = diff;
 	fC = conv;
 	int d;
 	for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
 }
 
-void TPZMatPoisson3d::GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir) {
-	diff = fK;
+void TPZMatPoisson3d::SetParameters(TPZFNMatrix<9,STATE> tensorPerm,TPZFNMatrix<9,STATE> invPerm,REAL conv, TPZVec<REAL> &convdir){
+    if(tensorPerm.Rows() != 3 || tensorPerm.Cols() != 3 || invPerm.Rows() != 3 || invPerm.Cols() != 3) {
+        std::cout << "ERROR\nvoid SetParameters(TPZFMatrix<STATE> tensorDiff,TPZFMatrix<STATE> invPerm,REAL conv, TPZVec<REAL> &convdir): Invalid matrix dimension\n";
+    }
+    fTensorPerm = tensorPerm;
+    fInvPerm = invPerm;
+    fC = conv;
+    int d;
+    for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
+}
+
+void TPZMatPoisson3d::GetParameters(TPZFNMatrix<9,STATE> &tensorPerm, TPZFNMatrix<9,STATE> &invPerm, REAL &conv, TPZVec<REAL> &convdir) {
+	tensorPerm = fTensorPerm;
+	invPerm = fInvPerm;
 	conv = fC;
 	int d;
 	for(d=0; d<fDim; d++) convdir[d] = fConvDir[d];
+}
+
+void TPZMatPoisson3d::SetPermeability(STATE perm){
+#ifdef PZDEBUG
+    std::cout <<"WARNING: TPZMatPoisson3d::SetPermeability: Permeability is a tensor. This method only works if one is working with an identity permeability tensor. If that is not one's case, the result is wrong.";
+#endif
+    fTensorPerm.Resize(3,3); fTensorPerm.Zero();
+    fInvPerm.Resize(3,3); fInvPerm.Zero();
+    for (int i=0; i<3; i++) {
+        fTensorPerm(i,i) = perm;
+        fInvPerm(i,i) = 1./perm;
+    }
+}
+
+void TPZMatPoisson3d::SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const TPZFNMatrix<9,STATE> invK){
+
+    if(K.Rows() != 3 || invK.Rows() != 3)
+    {
+        std::cout << "ERROR: Insert a 3x3 permeability tensor";
+        DebugStop();
+    }
+    fTensorPerm = K;
+    fInvPerm = invK;
+}
+
+void TPZMatPoisson3d::GetPermeability(TPZFNMatrix<9,STATE> &K){
+    K = fTensorPerm;
+}
+
+void TPZMatPoisson3d::GetInvPermeability(TPZFNMatrix<9,STATE> &invK){
+    invK = fInvPerm;
+}
+
+/// return the permeability and compute it if there is permeability function
+void TPZMatPoisson3d::GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor)
+{
+
+    this->GetPermeability(PermTensor);
+    this->GetInvPermeability(InvPermTensor);
+}
+
+void TPZMatPoisson3d::GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir) {
+#ifdef PZDEBUG
+    std::cout <<"WARNING: TPZMatPoisson3d::GetParameters: Permeability is a tensor. This method only works if one is working with an identity permeability tensor. If that is not one's case, the result is wrong.";
+#endif
+    diff = AVGK();
+    conv = fC;
+    int d;
+    for(d=0; d<fDim; d++) convdir[d] = fConvDir[d];
 }
 
 TPZMatPoisson3d::~TPZMatPoisson3d() {
@@ -98,7 +164,7 @@ TPZMatPoisson3d::~TPZMatPoisson3d() {
 
 void TPZMatPoisson3d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
-	out << "Laplace operator multiplier fK "<< fK << endl;
+    out << "Permeability Tensor "; fTensorPerm.Print(out);
 	out << "Convection coeficient fC " << fC << endl;
 	out << "Convection direction " << fConvDir[0] << ' ' << fConvDir[1] << ' ' <<  fConvDir[2] << endl;
 	out << "Forcing vector fXf " << fXf << endl;
@@ -170,7 +236,11 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         }
     }
 
-//    std::cout << " fxfloc " << fXfLoc << " weight " << weight << " prod " << fXfLoc*weight << std::endl;
+    //Kdphi = K*dphi
+    TPZFMatrix<STATE> Kdphi(3,3,0);
+    for(int in = 0 ; in < 3 ; in++) for(int jn = 0; jn < 3; jn++) for(int kn =0; kn <3; kn++)
+        Kdphi(in,jn) += fTensorPerm.GetVal(in,kn)*dphi(kn,jn);
+
     //Equacao de Poisson
     for( int in = 0; in < phr; in++ ) {
         int kd;
@@ -178,9 +248,10 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*(STATE)dphi(kd,in);
         ef(in, 0) += - (STATE)weight * fXfLoc * ( (STATE)phi(in,0) + (STATE)(0.5*delx*fC)*fSD*dphiic );
         for( int jn = 0; jn < phr; jn++ ) {
+
             for(kd=0; kd<fDim; kd++) {
                 ek(in,jn) += (STATE)weight * (
-                                       +fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ) 
+                                       + (STATE)( dphi(kd,in) * Kdphi(kd,jn) )
                                        - (STATE)(fC* dphi(kd,in) * phi(jn)) * ConvDirAx[kd]
                                        + (STATE)(0.5 * delx * fC * dphi(kd,jn)) * fSD * dphiic * ConvDirAx[kd]
                                        );
@@ -216,13 +287,25 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	int numprimalshape = data.phi.Rows()-numdual;
 	
 	int i,j;
-    REAL kreal = 0.;
+	TPZFNMatrix<9,REAL> Kreal,invKreal;
+
 #ifdef STATE_COMPLEX
-    kreal = fK.real();
+    STATE k,ik;
+    for(int in = 0; in < fTensorPerm.Rows(); in++) for(int jn = 0; jn < fTensorPerm.Cols(); jn++){
+        k = fTensorPerm.GetVal(in,jn);
+        ik = fInvPerm.GetVal(in,jn);
+        Kreal(in,jn) = k.real();
+        invKreal(in,jn) = ik.real();
+    }
 #else
-    kreal = fK;
+    Kreal = fTensorPerm;
+    invKreal = fInvPerm;
 #endif
-    REAL ratiok = 1./kreal;
+    //Kphi = K*phi
+    TPZFMatrix<STATE> invKphi(3,0,0);
+    for(int in = 0 ; in < 3 ; in++) for(int kn =0; kn <3; kn++)
+        invKphi(in,0) += invKreal.GetVal(in,kn)*data.phi(kn,0);
+
 	for(i=0; i<numvec; i++)
 	{
 		int ivecind = data.fVecShapeIndex[i].first;
@@ -233,7 +316,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 			REAL prod = data.fDeformedDirections(0,ivecind)*data.fDeformedDirections(0,jvecind)+
 			data.fDeformedDirections(1,ivecind)*data.fDeformedDirections(1,jvecind)+
 			data.fDeformedDirections(2,ivecind)*data.fDeformedDirections(2,jvecind);//faz o produto escalar entre u e v--> Matriz A
-			ek(i,j) += weight*ratiok*data.phi(ishapeind,0)*data.phi(jshapeind,0)*prod;
+			ek(i,j) += weight*data.phi(ishapeind,0)*invKphi(jshapeind,0)*prod;
 			
 			
 			
@@ -307,36 +390,29 @@ void TPZMatPoisson3d::LocalNeumanContribute(TPZMaterialData &data,REAL weight,TP
     int phr = phi.Rows();
     int nlinhaek=ek.Rows();
     int ncolek=ek.Cols();
-    
+
+    //Kdphi = K*dphi
+    TPZFMatrix<STATE> Kdphi(3,3,0);
+    for(int in = 0 ; in < 3 ; in++) for(int jn = 0; jn < 3; jn++) for(int kn =0; kn <3; kn++)
+                Kdphi(in,jn) += fTensorPerm.GetVal(in,kn)*dphi(kn,jn);
     
     int i,j;
-    REAL kreal = 0.;
-#ifdef STATE_COMPLEX
-    kreal = fK.real();
-#else
-    kreal = fK;
-#endif
-    REAL ratiok = 1./kreal;
-    //--
     for( int in = 0; in < phr; in++ ){
         for( int jn = 0; jn < phr; jn++ ) {
             for(int kd=0; kd<fDim; kd++) {
-            ek(in,jn) += (STATE)weight * (fK * (STATE)( dphi(kd,in) * dphi(kd,jn) ));//gradphi_i.gradphi_j
-        }
-           
+            ek(in,jn) += (STATE)weight * ((STATE)( dphi(kd,in) * Kdphi(kd,jn) ));//gradphi_i.gradphi_j
+            }
         }
         ek(in,ncolek-1) += (STATE)weight * phi(in);
         ek(nlinhaek-1,in) += (STATE)weight * phi(in);
-        
     }
     
     for( int in = 0; in < phr; in++ ) {
         for( int jn = 0; jn < phr; jn++ ) {
-        for(int kd=0; kd<fDim; kd++) {
-            ef(in,0) += (STATE)weight * ( dphi(kd,in) * dsol[0](kd,jn) );
+            for(int kd=0; kd<fDim; kd++) {
+                ef(in,0) += (STATE)weight * ( dphi(kd,in) * dsol[0](kd,jn) );
+            }
         }
-        
-    }
     }
  ef(phr,0)+=(STATE)weight * (sol[0]);
     
@@ -723,26 +799,37 @@ void TPZMatPoisson3d::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if (var == 3){ //KDuDx
 		TPZFNMatrix<9,STATE> dsoldx;
 		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		Solout[0] = dsoldx(0,0) * this->fK;
+		Solout[0] = 0;
+		for(int index = 0; index < this->fTensorPerm.Cols(); index++)
+		    Solout[0] += (this->fTensorPerm.GetVal(0,index))*dsoldx(index,0);
 		return;
 	}//var ==3
 	if (var == 4){ //KDuDy
 		TPZFNMatrix<9,STATE> dsoldx;
 		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		Solout[0] = dsoldx(1,0) * this->fK;
+        Solout[0] = 0;
+        for(int index = 0; index < this->fTensorPerm.Cols(); index++)
+            Solout[0] += (this->fTensorPerm.GetVal(1,index))*dsoldx(index,0);
 		return;
 	}//var == 4 
 	if (var == 5){ //KDuDz
 		TPZFNMatrix<9,STATE> dsoldx;
 		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
-		Solout[0] = dsoldx(2,0) * this->fK;
+        Solout[0] = 0;
+        for(int index = 0; index < this->fTensorPerm.Cols(); index++)
+            Solout[0] += (this->fTensorPerm.GetVal(2,index))*dsoldx(index,0);
 		return;
 	}//var == 5
 	if (var == 6){ //NormKDu
 		int id;
-		REAL val = 0.;
+        TPZFNMatrix<9,STATE> dsoldx;
+        TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+		STATE val = 0., dsoldxx;
 		for(id=0 ; id<fDim; id++){
-			val += (DSol(id,0) * this->fK) * (DSol(id,0) * this->fK);
+		    dsoldxx = 0.;
+            for(int index = 0; index < fDim; index++)
+                dsoldxx += (this->fTensorPerm.GetVal(id,index))*dsoldx(index);
+            val += dsoldxx*dsoldxx;
 		}
 		Solout[0] = sqrt(val);
 		return;
@@ -752,8 +839,10 @@ void TPZMatPoisson3d::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		//REAL val = 0.;
 		TPZFNMatrix<9,STATE> dsoldx;
 		TPZAxesTools<STATE>::Axes2XYZ(DSol, dsoldx, axes);
+        for(id=0 ; id<fDim; id++) Solout[id] =0.;
 		for(id=0 ; id<fDim; id++) {
-			Solout[id] = -1. * this->fK * dsoldx(id,0);
+            for(int index = 0; index < this->fTensorPerm.Cols(); index++)
+                Solout[id] -= (this->fTensorPerm.GetVal(id,index))*dsoldx(index,0);
 		}
 		return;
 	}//var == 7  
@@ -822,21 +911,34 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	
 	values.Resize(NEvalErrors());
     values.Fill(0.0);
+    TPZVec<STATE> dudX(3,0);
 	TPZManVector<STATE> dudxEF(1,0.), dudyEF(1,0.),dudzEF(1,0.);
-	this->Solution(u,dudx,axes,VariableIndex("KDuDx"), dudxEF);
-    STATE fraq = dudxEF[0]/fK;
+	this->Solution(u,dudx,axes, this->VariableIndex("KDuDx"), dudxEF);
+    this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
+    this->Solution(u,dudx,axes, this->VariableIndex("KDuDz"), dudzEF);
+    dudX[0] = dudxEF[0]; dudX[1] = dudyEF[0]; dudX[2] = dudzEF[0];
+
+    //dudX = K*grad[u] => fraq = (invK*dudX)[0] = (invK*K*grad[u])[0];
+    STATE fraq = 0;
+    for(int index = 0; index < this->fInvPerm.Cols(); index++)
+        fraq += (this->fInvPerm.GetVal(0,index))*dudX[index];
+
     fraq = fraq - du_exact(0,0);
     REAL diff = fabs(fraq);
 	values[3] = diff*diff;
 	if(fDim > 1) {
-		this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
-        fraq = dudyEF[0]/fK;
+        fraq = 0;
+        for(int index = 0; index < this->fInvPerm.Cols(); index++)
+            fraq += (this->fInvPerm.GetVal(1,index))*dudX[index];
+
         fraq = fraq - du_exact(1,0);
 		diff = fabs(fraq);
 		values[4] = diff*diff;
 		if(fDim > 2) {
-			this->Solution(u,dudx,axes, this->VariableIndex("KDuDz"), dudzEF);
-			fraq = dudzEF[0]/fK;
+            fraq = 0;
+            for(int index = 0; index < this->fInvPerm.Cols(); index++)
+                fraq += (this->fInvPerm.GetVal(1,index))*dudX[index];
+
             fraq = fraq - du_exact(2,0);
             diff = fabs(fraq);
 			values[5] = diff*diff;
@@ -850,11 +952,17 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	//values[1] : eror em norma L2
     diff = fabs(sol[0] - u_exact[0]);
 	values[1]  = diff*diff;
-	//values[2] : erro em semi norma H1
+
+	//values[2] : erro em semi norma H1 : |H1| = K*grad[u] - K*grad[u_exact] = K*(grad[u]-grad[u_exact])
 	values[2] = 0.;
+	TPZVec<REAL> graduDiff(fDim,0);
+    for(id=0; id<fDim; id++)  graduDiff[id] += fabs(dsol[id]-du_exact(id,0));
 	for(id=0; id<fDim; id++) {
-        diff = fabs(dsol[id] - du_exact(id,0));
-		values[2]  += abs(fK)*diff*diff;
+	    diff =0;
+        for(int jd = 0; jd <fDim; jd ++){
+            diff += fTensorPerm.GetVal(id,jd)*graduDiff[jd];
+        }
+		values[2]  += abs(diff*diff);
 	}
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
@@ -893,10 +1001,11 @@ void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
 #endif
 	U+= sol[0] * FADREAL(weight * vartocast);
 
+	STATE avgK = AVGK();
 #ifdef STATE_COMPLEX
-    vartocast = fK.real();
+    vartocast = avgK.real();
 #else
-    vartocast = fK;
+    vartocast = avgK;
 #endif
 	switch(dim)
 	{
@@ -960,6 +1069,43 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                           REAL weight,
                                           TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+
+    /* This contribute is designed to solve the following  equation:
+     *
+     *             FIRST_TERM + SECOND_TERM + THIRD_TERM + VOLUME_L-TERM = RIGHT_TERM + VOLUME_R-TERM
+     *
+     *     FIRST_TERM = CONVECTION TERM : PLEASE DESCRIBE THIS EQUATION HERE!
+     *
+     *     SECOND_TERM =  -${< K*G[phi_j].n > [[phi_i]] dr} -sym*${< K*G[phi_i].n > [[phi_j]] dr}
+     *
+     *     IF (PENALTY_CONSTANT == 0.)
+     *          THIRD_TERM = 0.
+     *
+     *     IF (F_PENALTY_TYPE == E_SOLUTION_PENALTY)
+     *          THIRD_TERM =  + ${pen*[[phi_j]]*[[phi_i]] dr}
+     *
+     *     IF (F_PENALTY_TYPE == E_FLUX_PENALTY)
+     *          THIRD_TERM = + ${(1/pen)*[[ K*G[phi_j] ]]*[[ phi_i ]] dr}
+     *
+     *     IF (F_PENALTY_TYPE == BOTH)
+     *          THIRD_TERM = + ${(1/pen)*[[ K*G[phi_j] ]]*[[ phi_i ]] dr} + ${pen*[[phi_j]]*[[phi_i]] dr}
+     *
+     *     RIGHT_TERM = -sym*${<K*G[pd].n> [[phi_j]] dr}
+     *
+     *     VOLUME_L-TERM && VOLUME_R-TERM: LOOK AT THE VOLUME CONTRIBUTE.
+     *
+     *     WHERE:
+     *
+     *    r    : Gamma;
+     *  ${.}   : Integral
+     *  [[.]]  : Jump operator
+     *   <.>   : average operator
+     *    .    : dot multiplication (scalar product)
+     *  G[.]   : Gradient of
+     *   sym   : Symmetry coeficient: -1 or +1
+     * pen,pd,n: Penalty term, dirichlet potential and normal vector, respectively.
+     *   V_C   : Convection vector
+     */
 	
 	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
@@ -1007,72 +1153,83 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 			}
 		}
 	}
-	
-	if(IsZero(fK)) return;
-	//diffusion term
-	STATE leftK, rightK;
-	leftK  = this->fK;
-	rightK = this->fK;
-	
+
+	// K ?= {{0,0,0}{0,0,0}{0,0,0}}?
+	bool isZero = true;
+	for(int in = 0; in <fDim; in++) for(int jn =0; jn < fDim; jn++)
+	    if(fTensorPerm.GetVal(in,jn) !=0.) isZero = false;
+    if(isZero) return;
+
+    TPZFNMatrix<9,STATE> tensorLeftK, tensorRightK;
+    tensorLeftK = fTensorPerm;
+    tensorRightK = fTensorPerm;
+
+	//KdphiL = K*dphiL ; KdphiR = K*dphiR
+    TPZFNMatrix<660> KdphiL(3,3,0), KdphiR(3,3,0);
+	for(int in = 0; in < dphiL.Rows(); in++) for(int jn = 0; jn < dphiL.Cols(); jn++) for(int kn = 0; kn < dphiL.Rows() ; kn++){
+	    KdphiL(in,jn) +=  tensorLeftK.GetVal(in,kn)*dphiL(kn,jn);
+	    KdphiR(in,jn) +=  tensorRightK.GetVal(in,kn)*dphiR(kn,jn);
+	}
+
+	// SECOND_TERM
+
 	// 1) phi_I_left, phi_J_left
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		REAL KdphiLinormal = 0.;
 		for(id=0; id<fDim; id++) {
-			dphiLinormal += dphiL(id,il)*normal[id];
+			KdphiLinormal += KdphiL(id,il)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			REAL KdphiLjnormal = 0.;
 			for(id=0; id<fDim; id++) {
-				dphiLjnormal += dphiL(id,jl)*normal[id];
+				KdphiLjnormal += KdphiL(id,jl)*normal[id];
 			}
-			ek(il,jl) += (STATE)(weight * ( this->fSymmetry * (0.5)*dphiLinormal*phiL(jl,0)-(0.5)*dphiLjnormal*phiL(il,0))) * leftK;
+			ek(il,jl) += (STATE)(weight * ( this->fSymmetry * (0.5)*KdphiLinormal*phiL(jl,0)-(0.5)*KdphiLjnormal*phiL(il,0)));
 		}
 	}
 	
 	// 2) phi_I_right, phi_J_right
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		REAL KdphiRinormal = 0.;
 		for(id=0; id<fDim; id++) {
-			dphiRinormal += dphiR(id,ir)*normal[id];
+			KdphiRinormal += KdphiR(id,ir)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			REAL KdphiRjnormal = 0.;
 			for(id=0; id<fDim; id++) {
-				dphiRjnormal += dphiR(id,jr)*normal[id];
+				KdphiRjnormal += KdphiR(id,jr)*normal[id];
 			}
-			ek(ir+nrowl,jr+nrowl) += (STATE)(weight * (this->fSymmetry * ((-0.5) * dphiRinormal * phiR(jr) ) + (0.5) * dphiRjnormal * phiR(ir))) * rightK;
+			ek(ir+nrowl,jr+nrowl) += (STATE)(weight * (this->fSymmetry * ((-0.5) * KdphiRinormal * phiR(jr)) + (0.5) * KdphiRjnormal * phiR(ir)));
 		}
 	}
 	
 	// 3) phi_I_left, phi_J_right
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		REAL KdphiLinormal = 0.;
 		for(id=0; id<fDim; id++) {
-			dphiLinormal += dphiL(id,il)*normal[id];
+			KdphiLinormal += KdphiL(id,il)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			REAL KdphiRjnormal = 0.;
 			for(id=0; id<fDim; id++) {
-				dphiRjnormal += dphiR(id,jr)*normal[id];
+				KdphiRjnormal += KdphiR(id,jr)*normal[id];
 			}
-			ek(il,jr+nrowl) += (STATE)weight * ((STATE)fSymmetry * ((STATE)((-0.5) * dphiLinormal * phiR(jr)) * leftK ) - (STATE)((0.5) * dphiRjnormal * phiL(il))* rightK );
+			ek(il,jr+nrowl) += (STATE)(weight * (STATE)fSymmetry * (STATE)((-0.5) * KdphiLinormal * phiR(jr)) - (STATE)((0.5) * KdphiRjnormal * phiL(il)));
 		}
 	}
 	
 	// 4) phi_I_right, phi_J_left
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		REAL KdphiRinormal = 0.;
 		for(id=0; id<fDim; id++) {
-			dphiRinormal += dphiR(id,ir)*normal[id];
+			KdphiRinormal += KdphiR(id,ir)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			REAL KdphiLjnormal = 0.;
 			for(id=0; id<fDim; id++) {
-				dphiLjnormal += dphiL(id,jl)*normal[id];
+				KdphiLjnormal += KdphiL(id,jl)*normal[id];
 			}
-			ek(ir+nrowl,jl) += (STATE)weight * (
-										 (STATE)(fSymmetry * (0.5) * dphiRinormal * phiL(jl)) * rightK + (STATE)((0.5) * dphiLjnormal * phiR(ir)) * leftK
-										 );
+			ek(ir+nrowl,jl) += (STATE)weight * ((STATE)(fSymmetry * (STATE)((0.5) * KdphiRinormal * phiL(jl))  + (STATE)((0.5) * KdphiLjnormal * phiR(ir))));
 		}
 	}
 	
@@ -1081,14 +1238,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	}
 	
 	if (this->fPenaltyConstant == 0.) return;
-	
-	leftK  = this->fK;
-	rightK = this->fK;
-	
-	
-	
-	//penalty = <A p^2>/h 
-	REAL penalty = fPenaltyConstant * (0.5 * (abs(leftK)*LeftPOrder*LeftPOrder + abs(rightK)*RightPOrder*RightPOrder)) / faceSize;
+
+    // THIRD_TERM
+
+	//penalty = <A p^2>/h
+	STATE averageTraceK = AVGK();
+	REAL penalty = fPenaltyConstant * (0.5 * averageTraceK*(LeftPOrder*LeftPOrder + RightPOrder*RightPOrder)) / faceSize;
 	
 	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
 		
@@ -1119,7 +1274,6 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				ek(ir+nrowl,jl) += -1.0 * weight *  penalty * phiL(jl,0) * phiR(ir,0);
 			}
 		}
-		
 	}
 	
 	if (this->fPenaltyType == EFluxPenalty || this->fPenaltyType == EBoth){
@@ -1138,7 +1292,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiL(id,jl)*normal[id];
 				}
-				ek(il,jl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
+				ek(il,jl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j)*averageTraceK;
 			}
 		}
 		
@@ -1153,7 +1307,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiR(id,jr)*normal[id];
 				}      
-				ek(ir+nrowl,jr+nrowl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
+				ek(ir+nrowl,jr+nrowl) += (STATE)(weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j)*averageTraceK;
 			}
 		}
 		
@@ -1168,7 +1322,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiR(id,jr)*normal[id];
 				}      
-				ek(il,jr+nrowl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * rightK;
+				ek(il,jr+nrowl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j)*averageTraceK;
 			}
 		}
 		
@@ -1183,12 +1337,10 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 				for(id=0; id<fDim; id++) {
 					NormalFlux_j += dphiL(id,jl)*normal[id];
 				}
-				ek(ir+nrowl,jl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j) * leftK;
+				ek(ir+nrowl,jl) += (STATE)((-1.) * weight * ((1.)/penalty) * NormalFlux_i * NormalFlux_j)*averageTraceK;
 			}
 		}
-		
-	}  
-	
+	}
 }
 
 /** Termos de penalidade. */
@@ -1201,6 +1353,12 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	TPZManVector<REAL,3> &normal = data.normal;
 	int POrder= dataleft.p;
 	REAL faceSize=data.HSize;
+
+    //KdphiL = K*dphiL ; KdphiR = K*dphiR
+    TPZFNMatrix<660> KdphiL(3,3,0);
+    for(int in = 0; in < dphiL.Rows(); in++) for(int jn = 0; jn < dphiL.Cols(); jn++) for(int kn = 0; kn < dphiL.Rows() ; kn++){
+        KdphiL(in,jn) +=  fTensorPerm.GetVal(in,kn)*dphiL(kn,jn);
+    }
 	
 	//  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
 	int il,jl,nrowl,id;
@@ -1212,17 +1370,17 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 			
 			//Diffusion
 			for(il=0; il<nrowl; il++) {
-				REAL dphiLinormal = 0.;
+				REAL KdphiLinormal = 0.;
 				for(id=0; id<fDim; id++) {
-					dphiLinormal += dphiL(id,il)*normal[id];
+					KdphiLinormal += KdphiL(id,il)*normal[id];
 				}
-				ef(il,0) += (STATE)(weight*dphiLinormal*fSymmetry)*fK*bc.Val2()(0,0);
+				ef(il,0) += (STATE)(weight*KdphiLinormal*fSymmetry)*bc.Val2()(0,0);
 				for(jl=0; jl<nrowl; jl++) {
-					REAL dphiLjnormal = 0.;
+					REAL KdphiLjnormal = 0.;
 					for(id=0; id<fDim; id++) {
-						dphiLjnormal += dphiL(id,jl)*normal[id];
+						KdphiLjnormal += KdphiL(id,jl)*normal[id];
 					}
-					ek(il,jl) += (STATE)(weight*(fSymmetry * dphiLinormal * phiL(jl,0) - dphiLjnormal * phiL(il,0)))*fK;
+					ek(il,jl) += (STATE)(weight*(fSymmetry * KdphiLinormal * phiL(jl,0) - KdphiLjnormal * phiL(il,0)));
 				}
 			}
 			
@@ -1270,9 +1428,11 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	
 	if (this->fPenaltyConstant == 0.) return;
 	
-	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){  
+	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
+
+        STATE averageTraceK = AVGK();
 		nrowl = phiL.Rows(); 
-		const REAL penalty = fPenaltyConstant * abs(fK) * POrder * POrder / faceSize; //Ap^2/h
+		const REAL penalty = fPenaltyConstant * averageTraceK * POrder * POrder / faceSize; //Ap^2/h
 		REAL outflow = 0.;
 		for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
 		
@@ -1392,16 +1552,34 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 		laplacU = dsol(2,0);
 		divBetaU = (STATE)fC * ( (STATE)fConvDir[0] * dsol(0,0) + (STATE)fConvDir[1] * dsol(1,0) );
 	} 
-	
-	REAL result = abs(-this->fK * laplacU + divBetaU - (-fXfLoc));
+
+	STATE averageTraceK = AVGK();
+
+	REAL result = abs(-averageTraceK * laplacU + divBetaU - (-fXfLoc));
 	return (result*result);
+}
+
+STATE TPZMatPoisson3d::AVGK(){
+    STATE averageTraceK = 0.;
+    for(int in =0; in < fTensorPerm.Rows() ; in ++) averageTraceK += fTensorPerm.GetVal(in,in);
+    return abs(averageTraceK)/3;
 }
 
 void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid) const{
 	TPZDiscontinuousGalerkin::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
-	buf.Write(&fK, 1);
+
+	STATE vec1[3], vec2[3], vec3[3];
+	for(int in =0 ; in <3 ; in++){
+	    vec1[in] = fTensorPerm.Get(0,in);
+        vec2[in] = fTensorPerm.Get(1,in);
+        vec3[in] = fTensorPerm.Get(2,in);
+    }
+
+	buf.Write(vec1, 3);
+    buf.Write(vec2, 3);
+    buf.Write(vec3, 3);
 	buf.Write(&fC, 1);
 	buf.Write(fConvDir, 3);
 	buf.Write(&fSymmetry, 1);
@@ -1414,7 +1592,17 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
 	TPZDiscontinuousGalerkin::Read(buf, context);
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);
-	buf.Read(&fK, 1);
+
+    STATE vec1[3], vec2[3], vec3[3];
+    for(int in =0 ; in <3 ; in++){
+        vec1[in] = fTensorPerm.Get(0,in);
+        vec2[in] = fTensorPerm.Get(1,in);
+        vec3[in] = fTensorPerm.Get(2,in);
+    }
+
+    buf.Write(vec1, 3);
+    buf.Write(vec2, 3);
+    buf.Write(vec3, 3);
 	buf.Read(&fC, 1);
 	buf.Read(fConvDir, 3);
 	buf.Read(&fSymmetry, 1);

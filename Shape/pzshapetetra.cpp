@@ -157,6 +157,64 @@ namespace pzshape {
 		 
 	}
 	
+/**
+ * @brief Computes the generating shape functions for a quadrilateral element
+ * @param pt (input) point where the shape function is computed
+ * @param phi (input/output) value of the (4) shape functions
+ * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+ */
+void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+{
+    REAL mult[] = {1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,27.,27.,27.,27.,54.};
+
+    // 6 ribs
+    for(int is=4; is<NSides; is++)
+    {
+        if(nshape[is-4] < 1) continue;
+        int nsnodes = NSideNodes(is);
+        switch(nsnodes)
+        {
+            case 2:
+            {
+                int is1 = SideNodeLocId(is,0);
+                int is2 = SideNodeLocId(is,1);
+                phi(is,0) = mult[is]*phi(is1,0)*phi(is2,0);
+                dphi(0,is) = mult[is]*(dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2));
+                dphi(1,is) = mult[is]*(dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2));
+                dphi(2,is) = mult[is]*(dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2));
+            }
+                break;
+            case 3:
+            {
+                //int face = is-10;
+                int is1 = SideNodeLocId(is,0); //ShapeFaceId[face][0];
+                int is2 = SideNodeLocId(is,1); //ShapeFaceId[face][1];
+                int is3 = SideNodeLocId(is,2); //ShapeFaceId[face][2];
+                phi(is,0) = mult[is]*phi(is1,0)*phi(is2,0)*phi(is3,0);
+                dphi(0,is) = mult[is]*(dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3));
+                dphi(1,is) = mult[is]*(dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3));
+                dphi(2,is) = mult[is]*(dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3));
+            }
+                break;
+            case 4:
+            {
+                phi(is,0) = mult[is]*phi(0,0)*phi(1,0)*phi(2,0)*phi(3,0);
+                for(int xj=0;xj<3;xj++) {
+                    dphi(xj,is) = mult[is]*(dphi(xj,0)* phi(1 ,0)* phi(2 ,0)* phi(3 ,0) +
+                    phi(0, 0)*dphi(xj,1)* phi(2 ,0)* phi(3 ,0) +
+                    phi(0, 0)* phi(1 ,0)*dphi(xj,2)* phi(3 ,0) +
+                    phi(0, 0)* phi(1 ,0)* phi(2 ,0)*dphi(xj,3));
+                }
+            }
+                break;
+                
+            default:
+                DebugStop();
+        }
+    }     
+}
+
+
 	
 	//ifstream inn("mats.dt");
 	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {

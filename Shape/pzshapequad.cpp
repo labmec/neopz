@@ -92,6 +92,42 @@ namespace pzshape {
 		dphi(1,8) *= 16.;
 	}
 	
+    /*
+     * Computes the generating shape functions for a quadrilateral element
+     * @param pt (input) point where the shape function is computed
+     * @param phi (input) value of the (4) shape functions
+     * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+     */
+    void TPZShapeQuad::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    {
+        int is;
+        for(is=4; is<8; is++)
+        {
+            if(nshape[is-NCornerNodes] < 1) continue;
+            phi(is,0) = phi(is%4,0)*phi((is+1)%4,0);
+            dphi(0,is) = dphi(0,is%4)*phi((is+1)%4,0)+phi(is%4,0)*dphi(0,(is+1)%4);
+            dphi(1,is) = dphi(1,is%4)*phi((is+1)%4,0)+phi(is%4,0)*dphi(1,(is+1)%4);
+        }
+        phi(8,0) = phi(0,0)*phi(2,0);
+        dphi(0,8) = dphi(0,0)*phi(2,0)+phi(0,0)*dphi(0,2);
+        dphi(1,8) = dphi(1,0)*phi(2,0)+phi(0,0)*dphi(1,2);
+
+        // Make the generating shape functions linear and unitary
+        for(is=4; is<8; is++)
+        {
+            if(nshape[is-NCornerNodes] < 1) continue;
+            phi(is,0) += phi(8,0);
+            dphi(0,is) += dphi(0,8);
+            dphi(1,is) += dphi(1,8);
+            phi(is,0) *= 4.;
+            dphi(0,is) *= 4.;
+            dphi(1,is) *= 4.;
+        }
+        phi(8,0) *= 16.;
+        dphi(0,8) *= 16.;
+        dphi(1,8) *= 16.;
+    }
+    
     void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order,
                              TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
         ShapeCorner(pt,phi,dphi);
