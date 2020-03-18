@@ -587,7 +587,27 @@ public:
         }
         return -1;
     }
-	/** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
+
+    /** @brief decompose the system of equations acording to the decomposition scheme */
+    virtual int Decompose(const DecomposeType dt)
+    {
+        switch (dt) {
+            case ELU:
+                return Decompose_LU();
+                break;
+            case ELDLt:
+                return Decompose_LDLt();
+                break;
+            case ECholesky:
+                return Decompose_Cholesky();
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+        return -1;
+    }
+/** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
 	static TVar ReturnNearestValue(TVar val, TPZVec<TVar> &Vec, TVar tol);
 	
 	/**
