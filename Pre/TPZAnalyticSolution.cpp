@@ -1269,7 +1269,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                disp[0] = 0.;
             }
             else {
-                TVar factor = pow(r,TVar (1.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
+                TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
                 disp[0] = factor * (sin((TVar) (2.) * theta / TVar(3.)));
             }
 
@@ -1524,8 +1524,15 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
             if( theta < TVar(0.)) theta += 2.*M_PI;
             
-            TVar factor = pow(r,TVar (1.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
+            // Verification to avoid numerical errors when x > 0 and y = 0
+            if ((xloc[0] > TVar(0.)) && (xloc[1] < TVar (1e-15)) && (xloc[1] > TVar(-1e-15))) {
+               disp[0] = TVar(0.);
+            }
+            else{
+                
+            TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
             disp[0] = factor*(FADsin((TVar)(2.)*theta/TVar(3.)));
+        }
             
         }
             break;
