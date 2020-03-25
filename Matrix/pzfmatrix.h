@@ -122,7 +122,15 @@ public:
 	 */
 	inline TPZFMatrix(const std::initializer_list<TVar>& list);
 
-	/**
+    /**
+     * @brief Initialize a matrix from a list
+     * @param list : initializer list, usually a list of elements in curly brackets
+     * @note The constructor from list routine is called multiple times.
+     * @note Therefore this method is design to avoid code repetition.
+     */
+    void Initialize(const  std::initializer_list<std::initializer_list<TVar>> &list);
+
+    /**
 	 * @brief Creates a matrix from initializer list
 	 * @param list : initializer list, usually a list of elements in curly brackets
 	 */
@@ -146,6 +154,7 @@ public:
     friend class TPZFMatrix<double>;
     friend class TPZHCurlAuxClass;//for using the GETVAL macro.
     /// copy the values from a matrix with a different precision
+
     template<class TVar2>
     void CopyFrom(TPZFMatrix<TVar2> &orig)
     {
@@ -224,14 +233,22 @@ public:
     
     /** @brief Generic operator with FULL matrices */
     virtual TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
-	TPZFMatrix<TVar>& operator= (const std::initializer_list<TVar>& list);
+
+    virtual TPZFMatrix<TVar>& operator= (const std::initializer_list<TVar>& list);
 	TPZFMatrix<TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list);
     TPZFMatrix<TVar> operator+  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator-  (const TPZFMatrix<TVar> &A ) const;
     TPZFMatrix<TVar> operator*  ( TPZFMatrix<TVar> A ) const ;
     TPZFMatrix<TVar> &operator+=(const TPZFMatrix<TVar> &A );
     TPZFMatrix<TVar> &operator-=(const TPZFMatrix<TVar> &A );
-    
+
+    /**
+     * @brief Procedure to generate &operator= from list
+     * @param list is the list of values
+     * @brief This function is designed to avoid repetition of code
+     */
+    void InitializeEqualFromList (const std::initializer_list< std::initializer_list<TVar> >& list);
+
     /** @} */
     
     /**
@@ -486,16 +503,15 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<TVar>& list)
 		*aux = *it;
 }
 
+
 template< class TVar >
-inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<TVar>> &list)
-: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId)
-{
+void TPZFMatrix<TVar>::Initialize(const  std::initializer_list<std::initializer_list<TVar>> &list) {
     this->fRow = list.size();
 
     auto row_it = list.begin();
     auto row_it_end = list.end();
 
-#ifdef PZDEBUG    
+#ifdef PZDEBUG
     bool col_n_found = false;
     for (auto it = row_it; it != row_it_end; it++) {
         if (!col_n_found) {
@@ -510,8 +526,8 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer
     this->fCol = row_it->size();
 #endif
 
-	this->fElem = new TVar[this->fRow * this->fCol];
-    
+    this->fElem = new TVar[this->fRow * this->fCol];
+
     for (uint32_t row_n = 0; row_it != row_it_end; row_it++, row_n++) {
         auto col_it = row_it->begin();
         auto col_it_end = row_it->end();
@@ -519,6 +535,13 @@ inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer
             this->fElem[col_n * this->fRow + row_n] = *col_it;
         }
     }
+}
+
+template< class TVar >
+inline TPZFMatrix<TVar>::TPZFMatrix(const std::initializer_list<std::initializer_list<TVar>> &list)
+: TPZRegisterClassId(&TPZFMatrix<TVar>::ClassId)
+{
+    this->Initialize(list);
 }
 
 template<class TVar>
@@ -767,6 +790,20 @@ public:
     }
     inline  TPZFNMatrix<N, TVar> &operator=(const TPZFNMatrix<N, TVar> &copy) {
         TPZFMatrix<TVar>::operator=(copy);
+        return *this;
+    }
+
+    /**
+	 * @brief Creates a matrix from initializer list
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+    inline TPZFNMatrix<N,TVar>(const std::initializer_list< std::initializer_list<TVar> > &list): TPZRegisterClassId(&TPZFNMatrix<N,TVar>::ClassId), TPZFMatrix<TVar>(0,0,fBuf,N) {
+        this->Initialize(list);
+    }
+
+    TPZFNMatrix<N,TVar>& operator= (const std::initializer_list< std::initializer_list<TVar> >& list){
+        this->InitializeEqualFromList(list);
+
         return *this;
     }
     

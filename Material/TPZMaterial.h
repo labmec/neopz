@@ -49,9 +49,10 @@ protected:
 	/** @brief Pointer to exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
 	
+public:
 	/** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
     TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
-	
+protected:
 	/** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
     

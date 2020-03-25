@@ -45,7 +45,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
                                        REAL weight,
                                        TPZFMatrix<STATE> &ek,
                                        TPZFMatrix<STATE> &ef){
-	
+	STATE fK = AVGK();
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -187,7 +187,8 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 }
 
 void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) {
-	TPZFMatrix<REAL> &dphi = data.dphix;
+	STATE fK = AVGK();
+    TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
     int numbersol = data.sol.size();
@@ -391,7 +392,8 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMateri
                                                 REAL weight,
                                                 TPZFMatrix<STATE> &ek,
                                                 TPZFMatrix<STATE> &ef){
-	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	STATE fK = AVGK();
+    TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
@@ -447,8 +449,8 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMateri
 	
 	//diffusion term
 	STATE leftK, rightK;
-	leftK  = this->fK;
-	rightK = this->fK;
+	leftK  = fK;
+	rightK = fK;
 	
 	//Compute GradSol . normal
 	STATE DSolLNormal = 0.;
@@ -552,7 +554,8 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMate
                                                   TPZFMatrix<STATE> &ek,
                                                   TPZFMatrix<STATE> &ef,
                                                   TPZBndCond &bc) {
-	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	STATE fK = AVGK();
+    TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
     int numbersol = dataleft.sol.size();

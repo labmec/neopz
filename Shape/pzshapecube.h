@@ -99,15 +99,74 @@ namespace pzshape {
 		 * @param phi (output) value of the (8) shape functions
 		 * @param dphi (output) value of the derivatives of the (8) shape functions holding the derivatives in a column
 		 */
-		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-		
+        static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        /*
+        {
+            
+            REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
+            x[0]  = (1.-pt[0])/2.;
+            x[1]  = (1.+pt[0])/2.;
+            dx[0] = -0.5;
+            dx[1] =  0.5;
+            y[0]  = (1.-pt[1])/2.;
+            y[1]  = (1.+pt[1])/2.;
+            dy[0] = -0.5;
+            dy[1] =  0.5;
+            z[0]  = (1.-pt[2])/2.;
+            z[1]  = (1.+pt[2])/2.;
+            dz[0] = -0.5;
+            dz[1] =  0.5;
+            
+            phi(0,0)  = x[0]*y[0]*z[0];
+            phi(1,0)  = x[1]*y[0]*z[0];
+            phi(2,0)  = x[1]*y[1]*z[0];
+            phi(3,0)  = x[0]*y[1]*z[0];
+            phi(4,0)  = x[0]*y[0]*z[1];
+            phi(5,0)  = x[1]*y[0]*z[1];
+            phi(6,0)  = x[1]*y[1]*z[1];
+            phi(7,0)  = x[0]*y[1]*z[1];
+            dphi(0,0) = dx[0]*y[0]*z[0];
+            dphi(1,0) = x[0]*dy[0]*z[0];
+            dphi(2,0) = x[0]*y[0]*dz[0];
+            dphi(0,1) = dx[1]*y[0]*z[0];
+            dphi(1,1) = x[1]*dy[0]*z[0];
+            dphi(2,1) = x[1]*y[0]*dz[0];
+            dphi(0,2) = dx[1]*y[1]*z[0];
+            dphi(1,2) = x[1]*dy[1]*z[0];
+            dphi(2,2) = x[1]*y[1]*dz[0];
+            dphi(0,3) = dx[0]*y[1]*z[0];
+            dphi(1,3) = x[0]*dy[1]*z[0];
+            dphi(2,3) = x[0]*y[1]*dz[0];
+            dphi(0,4) = dx[0]*y[0]*z[1];
+            dphi(1,4) = x[0]*dy[0]*z[1];
+            dphi(2,4) = x[0]*y[0]*dz[1];
+            dphi(0,5) = dx[1]*y[0]*z[1];
+            dphi(1,5) = x[1]*dy[0]*z[1];
+            dphi(2,5) = x[1]*y[0]*dz[1];
+            dphi(0,6) = dx[1]*y[1]*z[1];
+            dphi(1,6) = x[1]*dy[1]*z[1];
+            dphi(2,6) = x[1]*y[1]*dz[1];
+            dphi(0,7) = dx[0]*y[1]*z[1];
+            dphi(1,7) = x[0]*dy[1]*z[1];
+            dphi(2,7) = x[0]*y[1]*dz[1];
+        }
+         */
+
         /**
-         * @brief Computes the generating shape functions for a quadrilateral element
+         * @brief Computes the generating shape functions for a hexahedral element
          * @param pt (input) point where the shape function is computed
-         * @param phi (input) value of the (4) shape functions
+         * @param phi (input) value of the (8) corner shape functions
          * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
          */
         static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        
+        /**
+         * @brief Computes the generating shape functions for a hexahedral element
+         * @param pt (input) point where the shape function is computed
+         * @param phi (input) value of the (8) corner shape functions
+         * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+         */
+        static void ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
         
 	private:
 		
@@ -206,7 +265,7 @@ namespace pzshape {
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
 		 * of interpolation of the element
 		 * @param side associated side
-		 * @param order vector of integers indicating the interpolation order of the element
+		 * @param order  interpolation order associated with the side
 		 * @return number of shape functions
 		 */
 		static int NConnectShapeF(int side, int order);

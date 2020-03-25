@@ -34,7 +34,13 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	int fDim;
 	
 	/** @brief Coeficient which multiplies the Laplacian operator. */
-	STATE fK;
+	//STATE fK;
+
+    /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
+    TPZFNMatrix<9,STATE> fTensorPerm;
+
+    /** @brief inverse of the permeability tensor.*/
+    TPZFNMatrix<9,STATE> fInvPerm;
 		
 	/** @brief Variable which multiplies the convection term of the equation */
 	REAL fC;
@@ -86,7 +92,7 @@ public:
 	TPZMatPoisson3d(int nummat, int dim);
     
     TPZMatPoisson3d(int matid) : TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
-    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.), fC(0.), fSymmetry(0.), fSD(0.)
+    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fC(0.), fSymmetry(0.), fSD(0.)
         ,fPenaltyType(ENoPenalty)
     {
     
@@ -164,8 +170,22 @@ public:
     }
 	
 	virtual void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
+
+    virtual void SetParameters(TPZFNMatrix<9,STATE> tensorPerm,TPZFNMatrix<9,STATE> invPerm, REAL conv, TPZVec<REAL> &convdir);
 	
+	void GetParameters(TPZFNMatrix<9,STATE> &tensorPerm, TPZFNMatrix<9,STATE> &invPerm, REAL &conv, TPZVec<REAL> &convdir);
+
 	void GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir);
+
+    void SetPermeability(STATE perm);
+
+    void SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const TPZFNMatrix<9,STATE> invK);
+
+    void GetPermeability(TPZFNMatrix<9,STATE> &K);
+
+    void GetInvPermeability(TPZFNMatrix<9,STATE> &invK);
+
+    void GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor);
     
     void SetDimension(int dim)
     {
@@ -253,7 +273,8 @@ public:
 
 	/** @} */
     
-	
+	STATE AVGK();
+
 	virtual int VariableIndex(const std::string &name) override;
 	
 	virtual int NSolutionVariables(int var) override;

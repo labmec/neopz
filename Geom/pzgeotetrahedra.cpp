@@ -33,7 +33,7 @@ namespace pzgeom {
     void TPZGeoTetrahedra::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec<REAL> &lowercorner,
                                                 TPZVec<REAL> &size) {
         TPZManVector<REAL, 3> co(3), shift(3), scale(3);
-        TPZManVector<int64_t, 3> nodeindexes(8);
+        TPZManVector<int64_t, 4> nodeindexes(4);
         for (int i = 0; i < 3; i++) {
             scale[i] = size[i] / 3.;
             shift[i] = 1. / 2. + lowercorner[i];

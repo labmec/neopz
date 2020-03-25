@@ -261,9 +261,13 @@ public:
 	//void PrintMath(const char *name, std::ostream &out);
 	
 	/** @brief Returns number of rows */
-	int64_t Rows() const;
+    inline int64_t Rows() const {
+        return fRow;
+    }
 	/** @brief Returns number of cols */
-	int64_t Cols() const;
+    int64_t Cols() const {
+        return fCol;
+    }
 	
 	/** @brief Returns the dimension of the matrix if the matrix is square.*/
 	/** If the matrix is not square, returns an error */
@@ -587,7 +591,27 @@ public:
         }
         return -1;
     }
-	/** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
+
+    /** @brief decompose the system of equations acording to the decomposition scheme */
+    virtual int Decompose(const DecomposeType dt)
+    {
+        switch (dt) {
+            case ELU:
+                return Decompose_LU();
+                break;
+            case ELDLt:
+                return Decompose_LDLt();
+                break;
+            case ECholesky:
+                return Decompose_Cholesky();
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+        return -1;
+    }
+/** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
 	static TVar ReturnNearestValue(TVar val, TPZVec<TVar> &Vec, TVar tol);
 	
 	/**
@@ -798,17 +822,6 @@ std::ostream & operator<<(std::ostream& out, const TPZMatrix<TVar> & A);
 
 /******** Inline ********/
 
-
-template<class TVar>
-inline int64_t TPZMatrix<TVar>::Rows() const {
-	return fRow;
-}
-
-
-template<class TVar>
-inline int64_t TPZMatrix<TVar>::Cols() const {
-	return fCol;
-}
 
 #ifdef _AUTODIFF
 template<class TVar>

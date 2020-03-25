@@ -30,7 +30,9 @@ TPZBurger::~TPZBurger(){
 void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,REAL weight,
 								   TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
-	if (this->IsReferred()){
+	STATE fK = AVGK();
+
+    if (this->IsReferred()){
 		this->SetConvectionTerm(dsol, axes);
 	}
 	
@@ -108,7 +110,8 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<S
 	if (this->IsReferred()){
 		this->SetConvectionTerm(dsol, axes);
 	}
-	
+
+    STATE fK = AVGK();
 	int phr = phi.Rows();
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
@@ -267,6 +270,8 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
                                     REAL weight,
                                     TPZFMatrix<STATE> &ek,
                                     TPZFMatrix<STATE> &ef){
+    STATE fK = AVGK();
+
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -323,8 +328,8 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
 	
 	//diffusion term
 	REAL leftK, rightK;
-	leftK  = this->fK;
-	rightK = this->fK;
+	leftK  = fK;
+	rightK = fK;
 	
 	//Compute GradSol . normal
 	REAL DSolLNormal = 0.;
@@ -427,6 +432,8 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &da
                                       TPZFMatrix<STATE> &ek,
                                       TPZFMatrix<STATE> &ef,
                                       TPZBndCond &bc) {
+    STATE fK = AVGK();
+
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();

@@ -31,7 +31,10 @@ namespace pzshape {
 		{ { 1.,0.,0.},{0.,1.,0.} }
 	};
 		
-	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+
+
+	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+{
 		
 		REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
 		x[0]  = (1.-pt[0])/2.;
@@ -80,7 +83,7 @@ namespace pzshape {
 		dphi(1,7) = x[0]*dy[1]*z[1];
 		dphi(2,7) = x[0]*y[1]*dz[1];
 	}
-	
+
 	/**
 	 * @brief Computes the generating shape functions for a quadrilateral element
 	 * @param pt (input) point where the shape function is computed
@@ -148,7 +151,76 @@ namespace pzshape {
 
 	}
 	
-	
+    /**
+     * @brief Computes the generating shape functions for a hexahedral element
+     * @param pt (input) point where the shape function is computed
+     * @param phi (input) value of the (8) corner shape functions
+     * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+     */
+void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+{
+    int is;
+    // contribute the ribs
+    for(is=8; is<20; is++)
+    {
+        if(nshape[is-8] == 0) continue;
+        int is1,is2;
+        is1 = ContainedSideLocId(is,0);
+        is2 = ContainedSideLocId(is,1);
+        phi(is,0) = phi(is1,0)*phi(is2,0);
+        dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+        dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+        dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+    }
+    // contribution of the faces
+    for(is=20; is<26; is++)
+    {
+
+        int is1,is2;
+        is1 = ContainedSideLocId(is,0);
+        is2 = ContainedSideLocId(is,2);
+        phi(is,0) = phi(is1,0)*phi(is2,0);
+        dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+        dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+        dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+    }
+    // contribution of the volume
+    for(is=26; is<27; is++)
+    {
+
+        int is1,is2;
+        is1 = 0;
+        is2 = 6;
+        phi(is,0) = phi(is1,0)*phi(is2,0);
+        dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+        dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+        dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+    }
+
+    // Make the generating shape functions linear and unitary
+    for(is=8; is<27; is++)
+    {
+        TPZStack<int> highsides;
+        HigherDimensionSides(is,highsides);
+        int h, nh = highsides.NElements();
+        for(h=0; h<nh; h++)
+        {
+            int hs = highsides[h];
+            phi(is,0) += phi(hs,0);
+            dphi(0,is) += dphi(0,hs);
+            dphi(1,is) += dphi(1,hs);
+            dphi(2,is) += dphi(2,hs);
+        }
+        int dim = SideDimension(is);
+        int mult = (dim == 1) ? 4 : (dim == 2) ? 16 : (dim ==3) ? 64 : 0;
+        phi(is,0) *= mult;
+        dphi(0,is) *= mult;
+        dphi(1,is) *= mult;
+        dphi(2,is) *= mult;
+    }
+
+}
+
 	void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		bool linear = true;

@@ -20,6 +20,7 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestTensor)
 		add_subdirectory(TestRandom)
 		add_subdirectory(TestBlend)
+		add_subdirectory(TestShape)
 
 		source_group(UnitTestFad FILES ${pztestfad})
 		source_group(UnitTestTopology FILES ${pztesttopology})
@@ -31,10 +32,12 @@ if(BUILD_UNITTESTING)
 		source_group(UnitTestPlasticity FILES ${pztestplasticity})
 		source_group(UnitTestTensor FILES ${pztesttensor})
 		source_group(UnitTestRandom FILES ${pztestrandom})
+		source_group(UnitTestRandom FILES ${pztestshape})
 
 	else()
 
-		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum} ${pztestiterator} ${pztestrandom})
+		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum}
+				${pztestiterator} ${pztestrandom} ${pztestshape})
 
 	endif()
 endif()

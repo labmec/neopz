@@ -206,6 +206,110 @@ namespace pzshape {
 		
 	}
 	
+    /**
+     * Computes the generating shape functions for a quadrilateral element
+     * @param pt (input) point where the shape function is computed
+     * @param phi (input) value of the (4) shape functions
+     * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
+     */
+    void TPZShapePrism::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    {
+        int is;
+        // 9 ribs
+        for(is=6; is<NSides; is++)
+        {
+            int nsnodes = NSideNodes(is);
+            switch(nsnodes)
+            {
+                case 2:
+                {
+                    if(nshape[is-6] < 1) continue;
+                    int is1 = SideNodeLocId(is,0);
+                    int is2 = SideNodeLocId(is,1);
+                    phi(is,0) = phi(is1,0)*phi(is2,0);
+                    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+                    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+                    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+                }
+                    break;
+                case 3:
+                {
+                    if(nshape[is-6] < 1) continue;
+                    int is0 = 0;
+                    int is1 = 1;
+                    int is2 = 2;
+                    int is3 = 3;
+                    int is4 = 4;
+                    if(is == 19)
+                    {
+                        is2 = 5;
+                    }
+                    phi(is,0) = (phi(is0,0)+phi(is3,0))*(phi(is1,0)+phi(is4,0))*phi(is2,0);
+                    int d;
+                    for(d=0; d<3; d++)
+                    {
+                        dphi(d,is) =
+                        (dphi(d,is0)+dphi(d,is3))*(phi(is1,0)+phi(is4,0))*phi(is2,0) +
+                        (phi(is0,0)+phi(is3,0))*(dphi(d,is1)+dphi(d,is4))*phi(is2,0) +
+                        (phi(is0,0)+phi(is3,0))*(phi(is1,0)+phi(is4,0))*dphi(d,is2);
+                    }
+                }
+                    break;
+                case 4:
+                {
+                    int is1 = SideNodeLocId(is,0);
+                    int is2 = SideNodeLocId(is,2);
+                    phi(is,0) = phi(is1,0)*phi(is2,0);
+                    dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+                    dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+                    dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+                }
+                    break;
+                case 6:
+                {
+                    if(nshape[is-6] < 1) continue;
+                    int is1 = 0;
+                    int is2 = 4;
+                    int is3 = 2;
+                    int is4 = 5;
+                    phi(is,0) = phi(is1,0)*phi(is2,0)*(phi(is3,0)+phi(is4,0));
+                    dphi(0,is) = dphi(0,is1)*phi(is2,0)*(phi(is3,0)+phi(is4,0))+phi(is1,0)*dphi(0,is2)*(phi(is3,0)+phi(is4,0))+phi(is1,0)*phi(is2,0)*(dphi(0,is3)+dphi(0,is4));
+                    dphi(1,is) = dphi(1,is1)*phi(is2,0)*(phi(is3,0)+phi(is4,0))+phi(is1,0)*dphi(1,is2)*(phi(is3,0)+phi(is4,0))+phi(is1,0)*phi(is2,0)*(dphi(1,is3)+dphi(1,is4));
+                    dphi(2,is) = dphi(2,is1)*phi(is2,0)*(phi(is3,0)+phi(is4,0))+phi(is1,0)*dphi(2,is2)*(phi(is3,0)+phi(is4,0))+phi(is1,0)*phi(is2,0)*(dphi(2,is3)+dphi(2,is4));
+                }
+                    break;
+                default:
+                    ;
+            }
+        }
+        // Make the generating shape functions linear and unitary
+        for(is=6; is<NSides; is++)
+        {
+            if(nshape[is-6] < 1) continue;
+            TPZStack<int> highsides;
+            HigherDimensionSides(is,highsides);
+            int h, nh = highsides.NElements();
+            for(h=0; h<nh; h++)
+            {
+                int hs = highsides[h];
+                if(NSideNodes(hs) != 4) continue;
+                phi(is,0) += phi(hs,0);
+                dphi(0,is) += dphi(0,hs);
+                dphi(1,is) += dphi(1,hs);
+                dphi(2,is) += dphi(2,hs);
+            }
+        }
+        REAL mult[] = {1.,1.,1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,4.,4.,4.,27.,16.,16.,16.,27.,8.};
+        for(is=6;is<NSides; is++)
+        {
+            if(nshape[is-6] < 1) continue;
+            phi(is,0) *= mult[is];
+            dphi(0,is) *= mult[is];
+            dphi(1,is) *= mult[is];
+            dphi(2,is) *= mult[is];
+        }
+        
+    }
 	void TPZShapePrism::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);

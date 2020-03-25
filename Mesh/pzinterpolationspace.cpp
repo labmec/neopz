@@ -93,6 +93,11 @@ void TPZInterpolationSpace::Print(std::ostream &out) const {
     out << "PreferredSideOrder " << fPreferredOrder << std::endl;
 }
 
+void TPZInterpolationSpace::ShortPrint(std::ostream &out) const {
+    out << __PRETTY_FUNCTION__ << std::endl;
+    out << "PreferredSideOrder " << fPreferredOrder << std::endl;
+}
+
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                          TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                          REAL &detjac, TPZFMatrix<REAL> &jacinv,
