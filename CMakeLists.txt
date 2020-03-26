@@ -93,7 +93,6 @@ if(USING_BOOST)
                 set(CMAKE_PREFIX_PATH "C:/local/boost_1_69_0" ${CMAKE_PREFIX_PATH})
 	ENDIF()
 	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
-        message("Boost_LIBRARIES: ${Boost_LIBRARIES} - Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
 endif(USING_BOOST)
 
 if(BUILD_UNITTESTING)
@@ -571,8 +570,11 @@ IF (NOT WIN32)
 ENDIF()
 
 if (USING_BOOST)
-   #target_link_libraries(pz ${Boost_LIBRARIES})
-   target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
+   if(APPLE)
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
+   elsif(UNIX)
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
+   endif
    target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif()
 
