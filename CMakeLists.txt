@@ -571,7 +571,7 @@ ENDIF()
 
 if (USING_BOOST)
    if(APPLE)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
    elseif(UNIX)
           target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
    endif()
