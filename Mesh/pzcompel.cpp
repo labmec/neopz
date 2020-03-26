@@ -351,6 +351,38 @@ void TPZCompEl::Print(std::ostream & out) const {
     out << endl;
 }
 
+void TPZCompEl::ShortPrint(std::ostream &out) const{
+    out << "\nOutput for a computable element index: " << fIndex;
+    out << "\nfReferenceIndex " << fReferenceIndex;
+    if(this->Reference())
+    {
+        out << "\nCenter coordinate: ";
+        TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
+        TPZVec< REAL > centerEuclid( 3,0.);
+        this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
+        this->Reference()->X(centerMaster,centerEuclid);
+        out << centerEuclid;
+    }
+    if(this->Material())
+    {
+        out << "\nMaterial id " << this->Material()->Id() << "\n";
+    }
+    else {
+        out << "\nNo material\n";
+    }
+
+    out << "Number of connects = " << NConnects();
+    out<< "\nConnect indexes : ";
+    int nod;
+    for(nod=0; nod< NConnects(); nod++)
+    {
+        out << ConnectIndex(nod) <<  ' ' ;
+    }
+    out << endl;
+}
+
+
+
 std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
     el.Print(s);
     return s;

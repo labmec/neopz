@@ -134,11 +134,36 @@ static const REAL FI = 1.;
 static const REAL a = 0.5;
 static const REAL b = 0.5;
 
+TPZAnalyticSolution::TPZAnalyticSolution(const TPZAnalyticSolution &cp) :fSignConvention(cp.fSignConvention) {
+    std::cout << "TPZAnalyticSolution::TPZAnalyticSolution(const TPZAnalyticSolution &cp): One should not invoke this copy constructor";
+    DebugStop();
+}
+
+TPZAnalyticSolution & TPZAnalyticSolution::operator=(const TPZAnalyticSolution &copy) {
+    std::cout << "TPZAnalyticSolution & TPZAnalyticSolution::operator=(const TPZAnalyticSolution &copy): One should not invoke this copy constructor";
+    DebugStop();
+    fSignConvention = copy.fSignConvention;
+    return *this;
+}
+
 REAL TElasticity2DAnalytic::gE = 1.;
 
 REAL TElasticity2DAnalytic::gPoisson = 0.3;
 
 int TElasticity2DAnalytic::gOscilatoryElasticity = 0;
+
+TElasticity2DAnalytic::TElasticity2DAnalytic(const TElasticity2DAnalytic &cp) : TPZAnalyticSolution(cp),fProblemType(cp.fProblemType) {
+    std::cout << "TElasticity2DAnalytic::TElasticity2DAnalytic(const TElasticity2DAnalytic &cp): One should not invoke this copy constructor";
+    DebugStop();
+}
+
+TElasticity2DAnalytic & TElasticity2DAnalytic::operator=(const TElasticity2DAnalytic &copy){
+    std::cout << "TElasticity2DAnalytic & TElasticity2DAnalytic::operator=(const TElasticity2DAnalytic &copy): One should not invoke this copy constructor";
+    DebugStop();
+    TPZAnalyticSolution::operator=(copy);
+    fProblemType = copy.fProblemType;
+    return *this;
+}
 
 template<>
 void TElasticity2DAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &disp) const
@@ -709,6 +734,20 @@ template
 void TElasticity2DAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma) const;
 
 
+TElasticity3DAnalytic::TElasticity3DAnalytic(const TElasticity3DAnalytic &cp) : TPZAnalyticSolution(cp),fProblemType(cp.fProblemType),fE(cp.fE),fPoisson(cp.fPoisson) {
+    std::cout << "TElasticity3DAnalytic::TElasticity3DAnalytic(const TElasticity3DAnalytic &cp): One should not invoke this copy constructor";
+    DebugStop();
+}
+
+TElasticity3DAnalytic & TElasticity3DAnalytic::operator=(const TElasticity3DAnalytic &copy){
+    std::cout << "TElasticity3DAnalytic & TElasticity3DAnalytic::operator=(const TElasticity3DAnalytic &copy): One should not invoke this copy constructor";
+    DebugStop();
+    TPZAnalyticSolution::operator=(copy);
+    fProblemType = copy.fProblemType;
+    fE = copy.fE;
+    fPoisson = copy.fPoisson;
+    return *this;
+}
 
 template<class TVar>
 void TElasticity3DAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
@@ -1175,6 +1214,18 @@ void TElasticity3DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &
 template
 void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
 
+TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp) : TPZAnalyticSolution(cp),fExact(cp.fExact) {
+    std::cout << "TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp): One should not invoke this copy constructor";
+    DebugStop();
+}
+
+TLaplaceExample1 & TLaplaceExample1::operator=(const TLaplaceExample1 &copy){
+    std::cout << "TLaplaceExample1 & TLaplaceExample1::operator=(const TLaplaceExample1 &copy): One should not invoke this copy constructor";
+    DebugStop();
+    TPZAnalyticSolution::operator=(copy);
+    fExact = copy.fExact;
+    return *this;
+}
 
 template<class TVar>
 void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
@@ -1269,7 +1320,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                disp[0] = 0.;
             }
             else {
-                TVar factor = pow(r,TVar (1.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
+                TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));//
                 disp[0] = factor * (sin((TVar) (2.) * theta / TVar(3.)));
             }
 
@@ -1524,8 +1575,15 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
             if( theta < TVar(0.)) theta += 2.*M_PI;
             
-            TVar factor = pow(r,TVar (1.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
+            // Verification to avoid numerical errors when x > 0 and y = 0
+            if ((xloc[0] > TVar(0.)) && (xloc[1] < TVar (1e-15)) && (xloc[1] > TVar(-1e-15))) {
+               disp[0] = TVar(0.);
+            }
+            else{
+                
+            TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
             disp[0] = factor*(FADsin((TVar)(2.)*theta/TVar(3.)));
+        }
             
         }
             break;
@@ -1664,6 +1722,12 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
 
 }
 
+void TLaplaceExample1::setPermeabilyTensor(TPZFNMatrix<9,REAL> K, TPZFNMatrix<9,REAL> invK)
+{
+    fTensorPerm = K;
+    fInvPerm = invK;
+}
+
 template<class TVar>
 void TLaplaceExample1::Permeability(const TPZVec<TVar> &x, TVar &Perm)
 {
@@ -1733,14 +1797,19 @@ template<class TVar>
 void TLaplaceExample1::SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const
 {
     TPZManVector<TVar,3> grad;
-    TVar Perm;
-    Permeability(x, Perm);
     graduxy(x,grad);
     sigma.Resize(3,1);
-    sigma(0) = -Perm*grad[0];
-    sigma(1) = -Perm*grad[1];
-    sigma(2) = -Perm*grad[2];
 
+    //Sigma_i = 1
+    for(int rowIndex =0; rowIndex < 3 ; rowIndex++) sigma(rowIndex) =0;
+
+    //Sigma = -K*grad[u]
+    TVar Perm;
+    for(int rowIndex =0; rowIndex < 3 ; rowIndex++) for(int colIndex=0; colIndex < 3; colIndex++)
+    {
+        Perm = (TVar) fTensorPerm.GetVal(rowIndex,colIndex);
+        sigma(rowIndex) -= Perm*grad[colIndex];
+    }
 }
 
 template<class TVar>

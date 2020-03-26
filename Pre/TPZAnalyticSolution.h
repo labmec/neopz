@@ -17,6 +17,14 @@ struct TPZAnalyticSolution
     
     /// integer to correct for the sign convention of the forcing term
     int fSignConvention = 1;
+    
+    TPZAnalyticSolution(){
+
+    }
+
+    TPZAnalyticSolution(const TPZAnalyticSolution &cp);
+    
+    TPZAnalyticSolution &operator=(const TPZAnalyticSolution &copy);
 
     class TForce : public TPZFunction<STATE>
     {
@@ -198,7 +206,11 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     {
         
     }
-    
+
+    TElasticity2DAnalytic(const TElasticity2DAnalytic &cp);
+
+    TElasticity2DAnalytic &operator=(const TElasticity2DAnalytic &copy);
+
     static TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction()
     {
         TPZAutoPointer<TPZFunction<STATE> > result;
@@ -273,7 +285,11 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     {
         
     }
-    
+
+    TElasticity3DAnalytic (const TElasticity3DAnalytic  &cp);
+
+    TElasticity3DAnalytic  &operator=(const TElasticity3DAnalytic  &copy);
+
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
@@ -306,18 +322,33 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     EExactSol fExact = EArcTan;
     
     TPZManVector<REAL,3> fCenter;
-    
-    TLaplaceExample1() : fCenter(3,0.)
+
+    TPZFNMatrix<9,REAL> fTensorPerm;
+
+    TPZFNMatrix<9,REAL> fInvPerm;
+
+    TLaplaceExample1() : fCenter(3,0.), TPZAnalyticSolution()
     {
-        
+        fTensorPerm = fInvPerm = {{1,0,0},{0,1,0},{0,0,1}};
     }
-    
+
+    TLaplaceExample1(TPZFNMatrix<9,REAL> K, TPZFNMatrix<9,REAL> invK): fCenter(3,0.), TPZAnalyticSolution()
+    {
+        fTensorPerm = K;
+        fInvPerm =invK;
+    }
+
+    void setPermeabilyTensor(TPZFNMatrix<9,REAL> K, TPZFNMatrix<9,REAL> invK);
+
     virtual ~TLaplaceExample1()
     {
         fExact = ENone;
         fDimension = -1;
-        
     }
+
+    TLaplaceExample1(const TLaplaceExample1 &cp);
+
+    TLaplaceExample1 &operator=(const TLaplaceExample1 &copy);
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
 
@@ -327,7 +358,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     
     template<class TVar>
     void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const;
-    
+
     template<class TVar>
     static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
 
@@ -420,13 +451,13 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 
     EExactSol fExactSol = ESinCos;
     
-    REAL fvisco = 1.0; //Viscosity
+    REAL fvisco = 0.1; //Viscosity
     
     REAL Pi = M_PI;
     
     REAL Re = 1./fvisco; //Reynolds number
-    
-    REAL lambda = Re/2.- pow(Re*Re/4.+4.*Pi*Pi,0.5); // Parameter for Navier-Stokes solution
+
+    REAL lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
     
     REAL falphaBrinkman = 1.;
         

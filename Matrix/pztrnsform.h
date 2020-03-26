@@ -107,7 +107,7 @@ public:
 template<class T>
 inline std::ostream &operator<<(std::ostream &out, const TPZTransform<T> &tr)
 {
-	out << "mult = " << tr.Mult() << " sum = " << tr.Sum();
+	out << "mult = " << tr.Mult() << "\tsum = " << tr.Sum();
 	return out;
 }
 

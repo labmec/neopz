@@ -54,6 +54,8 @@ virtual int ClassId() const override;
 	
 	/** @brief Prints the relevant data of the element to the output stream */
 	virtual void Print(std::ostream &out = std::cout) const override;
+
+    virtual void ShortPrint(std::ostream &out = std::cout) const override;
 	
 	/** @brief Returns the number of shape functions on a side*/
 	int NSideShapeF(int side) const

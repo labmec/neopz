@@ -1589,6 +1589,31 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
     out << endl;
 }
 
+void TPZInterpolatedElement::ShortPrint(std::ostream &out) const {
+    out << __PRETTY_FUNCTION__ << std::endl;
+    out << std::endl;
+    out << "Index = " << fIndex;
+    out << " - Center coordinate: ";
+    for (int i = 0; i < Reference()->NCornerNodes(); i++) {
+        TPZVec< REAL > center(3, 0.);
+        for (int j = 0; j < 3; j++) center[j] = Reference()->NodePtr(i)->Coord(j);
+        out << "[" << i << "]" << center << " ";
+    }
+    int nconects = this->NConnects();
+    out << "Number of connects = " << this->NConnects() << " Connect indexes/NShape : ";
+    int nod;
+    for (nod = 0; nod < nconects/*NConnects()*/; nod++) {
+        TPZConnect &c = Connect(nod);
+#ifdef PZDEBUG
+        if (c.NShape() != NConnectShapeF(nod, c.Order())) {
+            DebugStop();
+        }
+#endif
+        out << ConnectIndex(nod) << '/' << c.NShape() << ' ';
+    }
+    out << endl;
+}
+
 void TPZInterpolatedElement::PRefine(int order) {
 #ifdef PZDEBUG
     auto elementGMesh = this->fMesh->Reference();

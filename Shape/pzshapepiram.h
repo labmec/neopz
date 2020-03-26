@@ -74,6 +74,14 @@ namespace pzshape {
 		 */
 		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
+        /**
+         * @brief Computes the generating shape functions for a quadrilateral element
+         * @param pt (input) point where the shape function is computed
+         * @param phi (input/output) value of the (4) shape functions
+         * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+         */
+        static void ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
 		 * @param rib rib index to which the point should be projected

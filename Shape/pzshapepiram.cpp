@@ -119,6 +119,91 @@ namespace pzshape {
 		
 	}
 	
+    /**
+     * Computes the generating shape functions for a quadrilateral element
+     * @param pt (input) point where the shape function is computed
+     * @param phi (input/output) value of the (4) shape functions
+     * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
+     */
+    void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+    {
+        int is;
+        // contribute the ribs
+        for(is=NCornerNodes; is<NCornerNodes+8; is++)
+        {
+            if(nshape[is-NCornerNodes] < 1) continue;
+            int is1,is2;
+            is1 = ContainedSideLocId(is,0);
+            is2 = ContainedSideLocId(is,1);
+            phi(is,0) = phi(is1,0)*phi(is2,0);
+            dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+            dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+            dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+        }
+        // contribution of the faces
+        // quadrilateral face
+        is = 13;
+        {
+            int is1,is2;
+            is1 = ShapeFaceId[0][0];// SideConnectLocId(is,0);
+            is2 = ShapeFaceId[0][2];// SideConnectLocId(is,2);
+            phi(is,0) = phi(is1,0)*phi(is2,0);
+            dphi(0,is) = dphi(0,is1)*phi(is2,0)+phi(is1,0)*dphi(0,is2);
+            dphi(1,is) = dphi(1,is1)*phi(is2,0)+phi(is1,0)*dphi(1,is2);
+            dphi(2,is) = dphi(2,is1)*phi(is2,0)+phi(is1,0)*dphi(2,is2);
+        }
+        is++;
+        // triangular faces
+        for(;is<18; is++)
+        {
+            if(nshape[is-NCornerNodes] < 1) continue;
+            int is1,is2,is3;
+            is1 = ContainedSideLocId(is,0);
+            is2 = ContainedSideLocId(is,1);
+            is3 = ContainedSideLocId(is,2);
+            phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
+            dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
+            dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
+            dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
+            
+        }
+        if(nshape[NSides-NCornerNodes-1] > 0)
+        {
+            int is1 = 0;
+            int is2 = 2;
+            int is3 = 4;
+            phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
+            dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
+            dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
+            dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
+        }
+        
+        // Make the generating shape functions linear and unitary
+        // contribute the ribs
+        for(is=NCornerNodes; is<NCornerNodes+4; is++)
+        {
+            int isface = 13;
+            phi(is,0) += phi(isface,0);
+            dphi(0,is) += dphi(0,isface);
+            dphi(1,is) += dphi(1,isface);
+            dphi(2,is) += dphi(2,isface);
+        }
+        // scaling the shapefunctions
+        {
+            REAL sidescale[] = {1.,1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,4.,4.,16.,27.,27.,27.,27.,64.};
+            for(is=5; is<NSides; is++)
+            {
+                if(nshape[is-NCornerNodes] < 1) continue;
+                phi(is,0) *= sidescale[is];
+                dphi(0,is) *= sidescale[is];
+                dphi(1,is) *= sidescale[is];
+                dphi(2,is) *= sidescale[is];
+            }
+        }
+        
+        
+    }
+    
 	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int64_t> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
