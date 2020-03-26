@@ -574,7 +574,7 @@ if (USING_BOOST)
           target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
    elsif(UNIX)
           target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
-   endif
+   endif()
    target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif()
 
