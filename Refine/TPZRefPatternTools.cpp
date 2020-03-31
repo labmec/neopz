@@ -1129,7 +1129,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		arquivo << std::endl;
 		
 		arquivo << "Element information : " << gel->Index() << std::endl;
-		arquivo << "Vizinhos dos lados maraados para refinamento:" << std::endl;
+		arquivo << "Neighbours of the sides selected for refinement:" << std::endl;
 		for (i=0 ; i<gel->NSides() ; i++)
 		{
 			if(cornerstorefine[i] == 1 || sidestorefine[i] == 1)
@@ -1272,32 +1272,9 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 		gel->Print(arquivo);
 		int in;
 		arquivo << std::endl;
-		arquivo << "Neighbouring information \n";
-		for(in=0; in<gel->NSides(); in++)
-		{
-			arquivo << "Side : " << in << " ";
-			TPZGeoElSide gels(gel,in);
-			arquivo << "Dim " << gels.Dimension() << " ";
-			TPZGeoElSide neigh(gels.Neighbour());
-			while(gels != neigh)
-			{
-				if(matids.count(neigh.Element()->MaterialId()))
-				{
-					arquivo << neigh.Element()->Id() << "-l-" << neigh.Side() << " ";
-					if (neigh.Side() == 9 && gel->Type() == ETetraedro)
-					{
-						arquivo << "Teje pego meliante..." << std::endl;
-						neigh.Element()->Print(arquivo);
-					}
-				}
-				neigh = neigh.Neighbour();
-			}
-			arquivo << std::endl;
-		}
-		arquivo << std::endl;
 		
 		arquivo << "Element information : " << gel->Index() << std::endl;
-		arquivo << "Vizinhos dos lados maraados para refinamento:" << std::endl;
+		arquivo << "Neighbours of the sides selected for refinement:" << std::endl;
 		for (i=0 ; i<gel->NSides() ; i++)
 		{
 			if(cornerstorefine[i] == 1 || sidestorefine[i] == 1)

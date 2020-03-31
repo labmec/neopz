@@ -779,11 +779,34 @@ void TPZRefPattern::InsertPermuted()
 }
 
 TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side, TPZTransform<> &trans){
-    const int id = this->fSideRefPattern[side];
-    return gRefDBase.FindRefPattern(id);
+    TPZAutoPointer<TPZRefPattern> sideref = this->SideRefPattern(side);
+    if(!sideref) return nullptr;
+    return sideref->FindRefPattern(trans);
 }
 
 /****************************PROTECTED METHODS*************************************************************************/
+
+TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform<> &trans)
+{
+    REAL tol = 1.e-6;
+    if(!fRefPatternMesh.ElementVec().NElements() || ! fRefPatternMesh.ElementVec()[0]) return 0;
+    MElementType type = fRefPatternMesh.ElementVec()[0]->Type();
+
+    std::list<TPZRefPatternPermute> &permlist = fPermutations[type];
+    std::list<TPZRefPatternPermute>::iterator it;
+    for(it = permlist.begin(); it != permlist.end(); it++)
+    {
+        TPZRefPatternPermute &tmp = (*it);
+        if(!tmp.fTransform.CompareTransform(trans, tol))
+        {
+            TPZAutoPointer<TPZRefPattern> refpPerm = new TPZRefPattern(*this, tmp.fPermute);
+            TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refpPerm);
+
+            return found;
+        }
+    }
+    return 0;
+}
 
 void TPZRefPattern::SetRefPatternMeshToMasterDomain(){
     TPZGeoEl * fatherEl = fRefPatternMesh.ElementVec()[0];

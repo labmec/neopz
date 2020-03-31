@@ -495,6 +495,8 @@ public:
     */
     TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform<> &trans);
 
+    TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZTransform<> &trans);
+
     TPZGeoMesh &RefPatternMesh(){
 		return fRefPatternMesh;
 	}
