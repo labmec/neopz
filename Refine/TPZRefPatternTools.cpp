@@ -205,7 +205,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 		{
 			nsides--;
 		}
-		
+
 		int is;
 		for(is = ncorners; is < nsides; is++)
 		{
@@ -1203,7 +1203,6 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 			neigh = neigh.Neighbour();
 		}
 	}
-	
 	// look for ribs which touch the boundary but which do not lay on the boundary
 	for(int is = gel->NCornerNodes(); is < gel->NSides(); is++)
 	{
@@ -1250,7 +1249,9 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 	else
 	{		
 		std::cout << "|"; std::cout.flush();
-		std::ofstream arquivo ("NotListedPatterns.txt",std::ios::app);
+		static int nTimes {-1};
+		nTimes++;
+		std::ofstream arquivo ("NotListedPatterns"+std::to_string(nTimes)+".txt",std::ios::trunc);
 		std::list<TPZAutoPointer<TPZRefPattern> >::iterator it;
 		arquivo << "Compatible refinement patterns\n";
 		
@@ -1312,7 +1313,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids,
 			}
 		}
 		arquivo << std::endl << std::endl << std::endl << std::endl;
-	}	
+    }
 	
 	return;
 }

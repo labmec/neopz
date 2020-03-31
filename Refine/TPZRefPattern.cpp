@@ -222,17 +222,12 @@ int TPZRefPattern::operator==(const TPZAutoPointer<TPZRefPattern> compare) const
      for(iSide=0;iSide<nSidesFather;iSide++){
          out<<"side :"<<iSide<<std::endl;
          SPZFatherSideInfo &fatherInfo = fFatherSideInfo[iSide];
-//         TPZVec<int> fSideNodes;
-//         /// a vector of TPZGeoElSide relative to its sons
-//         TPZVec<TPZGeoElSide> fSideSons;
-//         ///if there is a midsidenode in the side, its index. otherwise is -1
-//         int64_t fMidSideIndex;
+
          out<<"\tInternal nodes:"<<std::endl;
          int nNodes = fatherInfo.fSideNodes.size();
          for(int iNode = 0; iNode < nNodes; iNode++){
              out<<"\t\tnode "<<iNode<<" index: "<<fatherInfo.fSideNodes[iNode]<<std::endl;
          }
-         out<<"\tmid-side node: "<<fatherInfo.fMidSideIndex<<std::endl;
 
          out<<"\tSubGeoElSides:"<<std::endl;
          int nSideSons = fatherInfo.fSideSons.size();
@@ -939,7 +934,6 @@ void TPZRefPattern::ComputePartition(){
         TPZStack<TPZGeoElSide> sideSonsStack;
         TPZStack<int> cornerNodeStack;
         TPZStack<int> internalNodesStack;
-        fFatherSideInfo[iSide].fMidSideIndex = -1;
         const int nSideNodes = fatherEl->NSideNodes(iSide);
         for(int iNode = 0; iNode < nSideNodes; iNode++){
             const int nodeIndex = fatherEl->SideNodeIndex(iSide,iNode);
@@ -979,10 +973,6 @@ void TPZRefPattern::ComputePartition(){
                             }
                             if(!isNodeInList){
                                 internalNodesStack.push_back(nodeIndex);
-                                if(fFatherSideInfo[iSide].fMidSideIndex != -1){
-                                    DebugStop();
-                                }
-                                fFatherSideInfo[iSide].fMidSideIndex = nodeIndex;
                             }
                         }
                     }
@@ -1168,7 +1158,6 @@ void TPZRefPattern::ReadAndCreateRefinementPattern(std::istream &pattern){
         {
             subel->SetFather(father);
             subel->SetFatherIndex(father->Index());
-            father->SetSubElement(el-1,subel);
         }
     }
     CreateRefinementPattern();
@@ -1185,7 +1174,6 @@ void TPZRefPattern::CreateRefinementPattern(){
         TPZGeoEl* subEl = fRefPatternMesh.Element(iSubEl + 1);
         subEl->SetFather(fatherEl);
         subEl->SetFatherIndex(0);
-        fatherEl->SetSubElement(iSubEl, subEl);
     }
 
     SetRefPatternMeshToMasterDomain();
@@ -1302,11 +1290,9 @@ void TPZRefPattern::TPZRefPatternPermute::Write(TPZStream& buf, int withclassid)
 void TPZRefPattern::SPZFatherSideInfo::Read(TPZStream& buf, void* context) { //ok
     buf.Read(fSideNodes);
     buf.Read(fSideSons);
-    buf.Read(&fMidSideIndex);
 }
 
 void TPZRefPattern::SPZFatherSideInfo::Write(TPZStream& buf, int withclassid) const { //ok
     buf.Write(fSideNodes);
     buf.Write(fSideSons);
-    buf.Write(&fMidSideIndex);
 }
