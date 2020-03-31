@@ -121,13 +121,8 @@ void ReadF17(TPZGeoMesh *geomesh)
 // // Beggining of the work with the F17's mesh.
 //
 //   // First step: nodes reading and initialization.
-  std::string path;
-#ifdef HAVE_CONFIG_H
-  path = PZSOURCEDIR;
+  std::string path = PZSOURCEDIR;
   path += "/Projects/Heman/Files/Meshes/";
-#else
-  path = "/Users/Cesar/Documents/Projects/NeoPZ/Projects/Heman/Files/Meshes/";
-#endif
 
   std::cout << "===============================================================\n"
             << "Reading F17 mesh\n";
@@ -138,7 +133,11 @@ void ReadF17(TPZGeoMesh *geomesh)
   std::cout << "\t\tInput file for nodes = " << nodFile.c_str()
             << "\n\t\t\tprocessing nodes...\n";
   std::ifstream malha_nos (nodFile.c_str());
-
+  if(!malha_nos.is_open()){
+      std::cout<<"Could not find nodes at file "<<nodFile.c_str()<<std::endl;
+      std::cout<<"Aborting..."<<std::endl;
+      DebugStop();
+  }
 //  double  x,y,z ;
 
   TPZVec< REAL > nodes(3);
@@ -160,6 +159,11 @@ void ReadF17(TPZGeoMesh *geomesh)
   std::cout << "\t\tInput file for faces = " << triFile.c_str()
             << "\n\t\t\tprocessing faces...\n";
   std::ifstream malha_triangulos (triFile.c_str());
+  if(!malha_triangulos.is_open()){
+      std::cout<<"Could not find triangles at file "<<triFile.c_str()<<std::endl;
+      std::cout<<"Aborting..."<<std::endl;
+      DebugStop();
+  }
   TPZVec<int64_t> indices(3);
   TPZGeoEl *gel;
 
@@ -184,7 +188,11 @@ void ReadF17(TPZGeoMesh *geomesh)
             << "\n\t\t\tprocessing volumes...\n";
   std::ifstream malha_tetraedros (tetraFile.c_str());
   TPZVec<int64_t> indices2(4);
-
+  if(!malha_tetraedros.is_open()){
+      std::cout<<"Could not find volumes at file "<<tetraFile.c_str()<<std::endl;
+      std::cout<<"Aborting..."<<std::endl;
+      DebugStop();
+  }
 //  int p;
   while (malha_tetraedros){
     malha_tetraedros >> indices2[0] ;
