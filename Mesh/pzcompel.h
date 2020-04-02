@@ -251,14 +251,6 @@ public:
 	 * @param out Indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream &out = std::cout) const;
-
-    /**
-     * @brief ShortPrint element data
-     * @param out Indicates the device where the data will be printed
-     * @note currently (04/03/20) this method is being implemented only for pzmultiphysicscompel::ShortPrint
-     * @note If a short print is useful for your application, please implement as you see fit and modify these notes.
-     */
-    virtual void ShortPrint(std::ostream &out = std::cout) const;
 	
 	/**
 	 * @brief Output device operator
