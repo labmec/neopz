@@ -279,6 +279,12 @@ public:
 	 * @param out Indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream &out = std::cout) const override;
+
+    /**
+     * @brief Similar to Print but whithout printing the integration points
+     * @param out Indicates the device where the data will be printed
+     */
+    virtual void ShortPrint(std::ostream &out = std::cout) const override;
 	
 	/**
 	 * @brief Computes the element stiffness matrix and right hand side
