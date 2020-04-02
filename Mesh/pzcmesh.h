@@ -282,12 +282,6 @@ public:
 	 * @param out indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream & out = std::cout) const;
-
-    /**
-     * @brief ShortPrint element data
-     * @param out Indicates the device where the data will be printed
-     */
-    virtual void ShortPrint(std::ostream &out = std::cout) const;
 	
 	/**
 	 * @brief Print the solution by connect index
