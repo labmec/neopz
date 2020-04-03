@@ -575,8 +575,14 @@ if (USING_BOOST)
           target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
    elseif(UNIX)
           target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
-   elseif(WIN32)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib)
+   elseif(WIN32)                        
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-gd-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-gd-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-gd-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib
+                               )
    endif()
    target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif()
