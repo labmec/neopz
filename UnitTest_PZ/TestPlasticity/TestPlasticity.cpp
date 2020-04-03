@@ -27,7 +27,7 @@
 #define BOOST_TEST_MAIN pz material tests
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
 
