@@ -55,7 +55,7 @@ public:
     
     virtual void FillDataRequirementsInterface(TPZMaterialData &data) override;
     
-    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) ;
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) override;
     
     /** @brief Returns the name of the material */
     virtual std::string Name() override{
@@ -63,13 +63,13 @@ public:
     }
     
     /** @brief Returns the integrable dimension of the material */
-    int Dimension() const {return m_dimension;}
+    int Dimension() const override {return m_dimension;}
     
     /** @brief Sets material dimension */
     void SetDimension(int dim) { m_dimension = dim; }
     
     /** @brief Returns the number of state variables associated with the material */
-    int NStateVariables() const {return 1;} // Deprecated, must to be removed
+    int NStateVariables() const override {return 1;} // Deprecated, must to be removed
     
     /** @brief Returns material copied form this object */
     virtual TPZMaterial *NewMaterial() override
@@ -116,7 +116,7 @@ public:
     /**
      * Unique identifier for serialization purposes
      */
-    int ClassId() const;
+    int ClassId() const override;
     
     /**
      * Save the element data to a stream
