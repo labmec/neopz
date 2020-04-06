@@ -24,7 +24,10 @@
 TPZGeoMesh * CreateF17Mesh();
 
 /**
- * This function
+ * This function will identify which bc elements are actually part of a reentrant portion of the mesh(F17 shell)
+ * and which ones belong to the bounding box. It will assign, respectively, the material identifiers -1 and -4.
+ * This method will only work if the bounding box is in the form $[a,b] \times [c,d] \times [e,f$, i.e., if
+ * all it's faces are aligned with one of the directions of our coordinate system
  * @param geomesh
  */
 void  FilterBoundingBox(TPZGeoMesh *geomesh);
@@ -260,18 +263,30 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
         // So, they are skipped. Elements close to the boundary must be analysed
         if(mindif < geoTol)
         {
-            TPZFNMatrix<9> axes(3,3),jac(2,2),jacinv(2,2);
-            REAL detjac;
-            TPZManVector<REAL,3> coor(2,0.3333);
-            gel->Jacobian(coor,jac,axes,detjac,jacinv);
-
-            TPZManVector<REAL,3> vectorialProd(3,0.);
-            vectorialProd[0] = -axes(0,2)*axes(1,1) + axes(0,1)*axes(1,2);
-            vectorialProd[1] = axes(0,2)*axes(1,0) - axes(0,0)*axes(1,2);
-            vectorialProd[2] = -axes(0,1)*axes(1,0) + axes(0,0)*axes(1,1);
-            //if they are really close to the boundary and their axes are aligned with a cartesian plane,
-            //they are not part of the F17 mesh
-            if( fabs(fabs(vectorialProd[0]) -1.) < geoTol || fabs (fabs(vectorialProd[1])-1.) < geoTol || fabs (fabs(vectorialProd[2])-1.) < geoTol )
+            //now we will find in which plane the element is contained to determine if it belongs to the
+            //bounding box.
+            TPZManVector<bool,3> dirMinDif(3,false);
+            for(auto no=0; no<2; no++)
+                for(auto idf=0; idf<3; idf++)
+                    if(fabs(xminmaxloc(idf,no)) < geoTol) dirMinDif[idf] = true;
+            bool isInFace{false};
+            for(auto idf=0; idf<3; idf++)
+            {
+                if(!dirMinDif[idf]) continue;
+                bool isInFaceIdf{true};
+                REAL avgCoord = 0;
+                for(auto no=0; no<gel->NNodes(); no++)
+                {
+                    if(!dirMinDif[idf]) continue;
+                    TPZGeoNode *gno = gel->NodePtr(no);
+                    const auto coord = gno->Coord(idf);
+                    avgCoord = (avgCoord*no + coord )/(no+1);
+                    isInFaceIdf = fabs(avgCoord-coord) < geoTol;
+                    if(!isInFaceIdf) break;
+                }
+                isInFace = isInFace || isInFaceIdf;
+            }
+            if(isInFace)
             {
                 gel->SetMaterialId(-4);
                 num4++;
@@ -280,6 +295,37 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
             {
                 num1++;
             }
+
+            //old way: using the element axes for the same purpose
+//            TPZFNMatrix<9> axes(3,3),jac(2,2),jacinv(2,2);
+//            REAL detjac;
+//            TPZManVector<REAL,3> coor(2,0.3333);
+//            gel->Jacobian(coor,jac,axes,detjac,jacinv);
+//
+//            TPZManVector<REAL,3> vectorialProd(3,0.);
+//            vectorialProd[0] = -axes(0,2)*axes(1,1) + axes(0,1)*axes(1,2);
+//            vectorialProd[1] = axes(0,2)*axes(1,0) - axes(0,0)*axes(1,2);
+//            vectorialProd[2] = -axes(0,1)*axes(1,0) + axes(0,0)*axes(1,1);
+//
+//
+//            TPZManVector<bool,3> dirMinDif(3,false);
+//            for(auto no=0; no<2; no++)
+//                for(auto idf=0; idf<3; idf++)
+//                    if(fabs(xminmaxloc(idf,no)) < geoTol) dirMinDif[idf] = true;
+//            //if they are really close to the boundary and their axes are aligned with a cartesian plane,
+//            //they are not part of the F17 mesh
+//            if(
+//                    ((fabs (fabs(vectorialProd[0])-1.) < geoTol) && dirMinDif[0]) ||
+//                    ((fabs (fabs(vectorialProd[1])-1.) < geoTol) && dirMinDif[1]) ||
+//                    ((fabs (fabs(vectorialProd[2])-1.) < geoTol) && dirMinDif[2]) )
+//            {
+//                gel->SetMaterialId(-4);
+//                num4++;
+//            }
+//            else
+//            {
+//                num1++;
+//            }
         }
     }
 	std::cout << "Number of elements with -4 condition " << num4 << " with -1 condition " << num1 << std::endl;
