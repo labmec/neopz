@@ -241,12 +241,12 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
                 patlist.push_back(*it);
             }
         }
-        if (patlist.size() != 1) {
-            for (auto it2=patlist.begin(); it2 != patlist.end(); it2++) {
-                (*it2)->fRefPatternMesh.Print();
-            }
-            DebugStop();
-        }
+//        if (patlist.size() != 1) {
+//            for (auto it2=patlist.begin(); it2 != patlist.end(); it2++) {
+//                (*it2)->fRefPatternMesh.Print();
+//            }
+//            DebugStop();
+//        }
         return *patlist.begin();
     }
     else
