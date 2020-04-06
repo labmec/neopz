@@ -122,11 +122,19 @@ void TPZMatPoisson3d::SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const 
 
     if(K.Rows() != 3 || invK.Rows() != 3)
     {
-        std::cout << "ERROR: Insert a 3x3 permeability tensor";
-        DebugStop();
+        if(K.Rows() != 2 || invK.Rows() != 2) {
+            std::cout << "ERROR: Insert a 3x3 or a 2x2 permeability tensor";
+            DebugStop();
+        }
+        for(int iind =0; iind < 2 ; iind++) for(int jind = 0; jind <2 ; jind++){
+            fTensorPerm(iind,jind) = K.GetVal(iind,jind);
+            fInvPerm(iind,jind) = invK.GetVal(iind,jind);
+        }
     }
-    fTensorPerm = K;
-    fInvPerm = invK;
+    else {
+        fTensorPerm = K;
+        fInvPerm = invK;
+    }
 }
 
 void TPZMatPoisson3d::GetPermeability(TPZFNMatrix<9,STATE> &K){

@@ -32,9 +32,6 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Problem dimension */
 	int fDim;
-	
-	/** @brief Coeficient which multiplies the Laplacian operator. */
-	//STATE fK;
 
     /** @brief permeability tensor. Coeficient which multiplies the gradient operator*/
     TPZFNMatrix<9,STATE> fTensorPerm;
