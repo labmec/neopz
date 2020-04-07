@@ -56,8 +56,7 @@ int main()
     matids.insert(-1);//material id associated with the F17 shell
 
     TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outt, 1);
-
-
+    
     ///seting up functions for timing the refinement
     auto WallTime = [] () noexcept
     {
@@ -113,7 +112,7 @@ TPZGeoMesh * CreateF17Mesh()
 {
     TPZGeoMesh *gmesh = new TPZGeoMesh();
     std::string path = PZSOURCEDIR;
-    path += "/Projects/F17DirectionalRefinement/Files/Meshes/";
+    path += "/Projects/F17DirectionalRefinement/Files/";
 
     std::cout << "===============================================================\n"
               << "Reading F17 mesh\n";
@@ -130,7 +129,7 @@ TPZGeoMesh * CreateF17Mesh()
         DebugStop();
     }
 
-    TPZVec< REAL > nodes(3);
+    TPZManVector< REAL,3 > nodes(3);
     int i;
     while(nodesFile) {
         nodesFile >> nodes[0];
@@ -153,7 +152,7 @@ TPZGeoMesh * CreateF17Mesh()
         std::cout<<"Aborting..."<<std::endl;
         DebugStop();
     }
-    TPZVec<int64_t> indices(3);
+    TPZManVector<int64_t,3> indices(3);
 
     while (facesFile){
         facesFile >> indices[0] ;
@@ -173,7 +172,7 @@ TPZGeoMesh * CreateF17Mesh()
     std::cout << "\t\tInput file for volumes = " << tetraFileName.c_str()
               << "\n\t\t\tprocessing volumes...\n";
     std::ifstream tetraFile (tetraFileName.c_str());
-    TPZVec<int64_t> indices2(4);
+    TPZManVector<int64_t,4> indices2(4);
     if(!tetraFile.is_open()){
         std::cout<<"Could not find volumes at file "<<tetraFileName.c_str()<<std::endl;
         std::cout<<"Aborting..."<<std::endl;
