@@ -254,7 +254,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
     int firsts_s_r    = n_phi_s_l;
     
     TPZManVector<REAL,3> n = data.normal;
-    TPZManVector<REAL,3> q_l =  datavecleft[q_b].sol[0];
+    TPZManVector<STATE,3> q_l =  datavecleft[q_b].sol[0];
     REAL qn = 0.0;
     for (int i = 0; i < 3; i++) {
         qn += q_l[i]*n[i];
@@ -321,7 +321,7 @@ void TPZTracerFlow::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     
     
     TPZManVector<REAL,3> n = data.normal;
-    TPZManVector<REAL,3> q_l =  datavecleft[q_b].sol[0];
+    TPZManVector<STATE,3> q_l =  datavecleft[q_b].sol[0];
     REAL qn = 0.0;
     for (int i = 0; i < 3; i++) {
         qn += q_l[i]*n[i];

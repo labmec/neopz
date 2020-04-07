@@ -2823,7 +2823,7 @@ TPZCompMesh * TPZCompMesh::CommonMesh(TPZCompMesh *mesh){
 
 /** update the solution at the previous state with fSolution and
     set fSolution to the previous state */
-void TPZCompMesh::UpdatePreviousState(REAL mult)
+void TPZCompMesh::UpdatePreviousState(STATE mult)
 {
     if(fSolN.Rows() != fSolution.Rows() || fSolN.Cols() != fSolution.Cols())
     {
