@@ -1629,7 +1629,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 //
 //	//this values needs to be computed only once
 	if(data.fNeedsNeighborCenter){
-		TPZManVector<REAL,3> qsi(3);
+        TPZManVector<REAL,3> qsi(elem->Dimension(),0.);
 		data.XCenter.Resize(3);
 		TPZGeoEl * gel = elem->Reference();
 		gel->CenterPoint(gel->NSides()-1,qsi);
