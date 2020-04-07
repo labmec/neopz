@@ -672,8 +672,11 @@ public:
 	
 	/** @brief Copies the materials of this mesh to the given mesh */
 	void CopyMaterials(TPZCompMesh &mesh) const ;
-	
-	REAL DeltaX();
+
+        // @brief Delete material and erase it from material vector
+        void DeleteMaterial(const int matId);
+
+        REAL DeltaX();
 	
 	REAL MaximumRadiusOfMesh();
 	

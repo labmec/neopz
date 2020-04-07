@@ -1856,6 +1856,11 @@ void TPZCompMesh::CopyMaterials(TPZCompMesh &mesh) const {
 	
 }
 
+void TPZCompMesh::DeleteMaterial(const int matId) {
+    delete this->MaterialVec()[matId];
+    this->MaterialVec().erase(matId);
+}
+
 REAL TPZCompMesh::DeltaX(){
 	
 	int64_t nel = ElementVec().NElements(),i,j;
