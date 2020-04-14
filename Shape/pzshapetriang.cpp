@@ -15,15 +15,6 @@ using namespace std;
 
 namespace pzshape {
 	
-    /**Transformation of the point within a triangular face */
-    REAL TPZShapeTriang::gTrans2dT[6][2][2] = {//s* , t*
-        { { 1., 0.},{ 0., 1.} },
-        { { 0., 1.},{ 1., 0.} },
-        { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
-        { {-1.,-1.},{ 0., 1.} },
-        { {-1.,-1.},{ 1., 0.} },
-        { { 1., 0.},{-1.,-1.} }
-    };
 	
     REAL TPZShapeTriang::gVet2dT[6][2] = {  {0.,0.},{0.,0.},{0.,1.},{1.,0.},{1.,0.},{0.,1.} };
 	

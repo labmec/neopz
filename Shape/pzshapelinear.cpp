@@ -9,6 +9,8 @@
 #include "pzreal.h"
 using namespace std;
 
+int64_t counter = 0;
+
 namespace pzshape {
 	
 	
@@ -29,6 +31,7 @@ namespace pzshape {
 			phi.Put(ord,0, 2.0*x*phi(ord-1,0) - phi(ord-2,0));
 			dphi.Put(0,ord, 2.0*x*dphi(0,ord-1) + 2.0*phi(ord-1,0) - dphi(0,ord-2));
 		}
+        counter++;
        // dphi.Print("DphisDepois = ",std::cout,EMathematicaInput);
 	}
 	
@@ -390,6 +393,7 @@ namespace pzshape {
 		else          out = -in;
 	}
 	
+
 	void TPZShapeLinear::Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi){
 		// Quadratic or higher shape functions
 		if(num <= 0) return;
@@ -409,6 +413,7 @@ namespace pzshape {
 			//dphi.Put(0,ord, 2.0*x*dphi(0,ord-1) + 2.0*phi(ord-1,0) - dphi(0,ord-2));
 			phi[ord] = x * phi[ord-1] * 2.0 - phi[ord-2];
 		}
+        counter++;
 	}
 	
 	void (*TPZShapeLinear::FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &) =  TPZShapeLinear::Chebyshev/*(FADREAL&, int, TPZVec<FADREAL>&)*/;//Chebyshev;

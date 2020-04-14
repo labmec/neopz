@@ -87,9 +87,18 @@ public:
      * @brief Number of shapefunctions of the connect associated
      * @param connect connect number
      * @return number of shape functions
+     * This method will compute the number of shape functions!
      */
 	virtual int NConnectShapeF(int connect, int order) const override;
 	
+    /**
+     * @brief Number of shapefunctions of the connect associated
+     * @param connect connect number
+     * @return number of shape functions
+     * This method will compute the number of shape functions!
+     */
+    virtual int NConnectShapeFNew(int connect, int order) const;
+    
 	virtual int Dimension() const  override {
 		return TSHAPE::Dimension;
 	}
@@ -181,7 +190,9 @@ public:
     
     /// Fill the polynomial order needed from the continuous shape functions
     void FillOrder(TPZVec<int> &order) const ;
-	
+    /// Fill the polynomial order needed from the continuous shape functions
+    void FillOrderNew(TPZVec<int> &order) const ;
+
     /// Return the maximum order??
     virtual int MaxOrder() override;
     
@@ -195,6 +206,12 @@ public:
 #endif
         return fSideOrient[face];
     }
+    
+    /// return the side orientation vector
+    TPZVec<int> &AllSideOrient() 
+    {
+        return fSideOrient;
+    }
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
@@ -204,6 +221,14 @@ public:
 	virtual void ComputeRequiredData(TPZMaterialData &data,
 									 TPZVec<REAL> &qsi) override;
 
+    /** @brief Initialize a material data and its attributes based on element dimension, number
+     * of state variables and material definitions */
+    virtual void InitMaterialDataNew(TPZMaterialData &data);
+    
+    /** @brief Compute and fill data with requested attributes */
+    virtual void ComputeRequiredDataNew(TPZMaterialData &data,
+                                     TPZVec<REAL> &qsi);
+
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
 	
@@ -212,6 +237,13 @@ public:
 	 * Special implementation to Hdiv
 	 */
 	void FirstShapeIndex(TPZVec<int64_t> &Index) const;
+    
+    /**
+     * @brief Returns the vector index  of the first index shape associate to to each side
+     * @param order : order of the scalar functions that will multiply the vectors
+     * Special implementation to Hdiv
+     */
+    void FirstShapeIndex(int order, TPZVec<int64_t> &Index) const;
     
 	/**
      * @brief Returns a matrix index of the shape and vector  associate to element
@@ -229,6 +261,10 @@ public:
 	 */
 	void IndexShapeToVec(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
     void IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int> &bilinear, TPZVec<int> &direction, TPZVec<std::pair<int,int64_t> > & IndexVecShape, int pressureorder);
+    
+    /// this method will compute the IndexVecShape data structure
+    // @param vecindices : for each H(div) vector, its position in the fMasterDirections and fDeformedDirections datastructure
+    void IndexShapeToVec(TPZVec<int> &vecindices, TPZVec<std::pair<int,int64_t> > & IndexVecShape);
 
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
@@ -326,7 +362,7 @@ TPZCompEl *CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational prismal element for HDiv approximate space */
 TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational pyramidal element for HDiv approximate space */
-TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+//TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational tetrahedral element for HDiv approximate space */
 TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational point element for HDiv approximate space */
@@ -343,7 +379,7 @@ TPZCompEl * CreateRefHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 TPZCompEl * CreateRefHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 TPZCompEl * CreateRefHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 TPZCompEl * CreateRefHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
-TPZCompEl * CreateRefHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+//TPZCompEl * CreateRefHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 TPZCompEl * CreateRefHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 
 

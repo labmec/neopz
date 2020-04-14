@@ -60,10 +60,12 @@ namespace pztopology {
     int TPZLine::NBilinearSides()
     {return 0;}
 	
-    static int vectorsideorder [3] = {0,1,2};
-    
+//    static int vectorsideorder [3] = {0,1,2};
+//
     static int bilinearounao [3] =   {0,0,1};
-    static int direcaoksioueta [3] = {0,0,0};
+//    static int direcaoksioueta [3] = {0,0,0};
+const int TPZLine::gVectorSides [3];
+const int TPZLine::gDirecaoKsiEta [3];
 
     template<class T>
     inline void TPZLine::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
@@ -514,8 +516,8 @@ namespace pztopology {
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorder[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
     }
@@ -530,12 +532,36 @@ namespace pztopology {
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorder[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
             sidevectors[is] = is;
         }
     }
+
+/// Compute the directions of the HDiv vectors
+// @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+// @param directions : direction of vectors that define the vector fields
+// @param vecindices : for each vector, the index in the directions data that defines the vector
+void TPZLine::ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices)
+{
+    int numdir = 1;
+    if(face_orientation[0]*face_orientation[1] > 0) numdir++;
+    directions.Redim(1,numdir);
+    directions(0,0) = -face_orientation[0];
+    vecindices[0] = 0;
+    if(numdir == 1)
+    {
+        vecindices[1] = 0;
+    }
+    else
+    {
+        directions(0,1) = face_orientation[1];
+        vecindices[1] = 1;
+    }
+    vecindices[2] = numdir-1;
+}
+
     
     int TPZLine::ClassId() const{
         return Hash("TPZLine");

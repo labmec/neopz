@@ -29,6 +29,19 @@ namespace TPZGeoMeshTools{
      */
     TPZGeoMesh * CreateGeoMeshOnGrid(int dim, const TPZVec<REAL>& minX, const TPZVec<REAL>& maxX,
             const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls);
+
+    /**
+     * This method creates a TPZGeoMesh of dim 3(2) based on a cuboid(rectangle) aligned with the x,y and z axis (x and y).
+     * @param meshsize : size of the domain
+     * @param matids Material identifiers. If creating boundaries, it must have size dim*2 + 1.
+     * Their order follows the side numbering of the hexahedral element (quadrilateral element)
+     * @param nDivs Number of elements in each direction
+     * @param meshType What type of elements to create
+     * @param createBoundEls Whether to create the boundary elements
+     * @return Pointer to the TPZGeoMesh that has been created
+     */
+    TPZGeoMesh * CreateGeoMeshOnGrid(REAL meshsize,
+            const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls);
 }
 
 #endif

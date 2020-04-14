@@ -146,10 +146,12 @@ namespace pztopology {
         {1,0}
     };
     
-    static int vectorsideorder [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
-    
   static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
 //static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//full hdiv
+
+const int TPZQuadrilateral::gVectorSides [18];
+const int TPZQuadrilateral::gDirecaoKsiEta [18];
+
 void TPZQuadrilateral::SetHdivType(EHdivType val){
     switch (val) {
         case HdivFull:
@@ -164,7 +166,6 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
     }
 }
 
-    static int direcaoksioueta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
     
     int TPZQuadrilateral::fPermutations [8][9] =
     {
@@ -1101,7 +1102,7 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
                 int inumvec = 0, fnumvec = 2;
                 computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
                 for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip];
+                    sidevectors[ip] = gVectorSides[ip];
                 }
                 
             }
@@ -1113,7 +1114,7 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
                 int inumvec = 3, fnumvec = 5;
                 computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
                 for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                    sidevectors[ip] = gVectorSides[ip+inumvec];
                 }
             }
                 break;
@@ -1124,7 +1125,7 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
                 int inumvec = 6, fnumvec = 8;
                 computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
                 for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                    sidevectors[ip] = gVectorSides[ip+inumvec];
                 }
             }
                 break;
@@ -1135,7 +1136,7 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
                 int inumvec = 9, fnumvec = 11;
                 computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
                 for (int ip = 0; ip < 3; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                    sidevectors[ip] = gVectorSides[ip+inumvec];
                 }
             }
                 break;
@@ -1146,7 +1147,7 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
                 int inumvec = 12, fnumvec = 17;
                 computedirectionsq(inumvec, fnumvec, bvec, t1vec, gradx, directions);
                 for (int ip = 0; ip < 6; ip++) {
-                    sidevectors[ip] = vectorsideorder[ip+inumvec];
+                    sidevectors[ip] = gVectorSides[ip+inumvec];
                 }
             }
                 break;
@@ -1159,6 +1160,58 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
         
 	}
     
+/// Compute the directions of the HDiv vectors
+// @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+// @param directions : direction of vectors that define the vector fields
+// @param vecindices : for each vector, the index in the directions data that defines the vector
+void TPZQuadrilateral::ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices)
+{
+    // number of vectors needed in each direction
+    int numvec[2] = {1,1};
+    if(face_orientation[0]*face_orientation[2] > 0)
+    {
+        numvec[1]+=1;
+    }
+    if(face_orientation[1]*face_orientation[3] > 0) numvec[0]+=1;
+    // total number of distinct vectors
+    int total_numvec = numvec[0]+numvec[1];
+    int vecind[4]={-1,-1,-1,-1};
+    int nextind = 0;
+    directions.Redim(2, total_numvec);
+    int count = 0;
+    // bottom face
+    directions(1,nextind) = -1.*face_orientation[0];
+    for(int i=0; i<3; i++) vecindices[count++] = nextind;
+    nextind++;
+    directions(0,nextind) = 1.*face_orientation[1];
+    for(int i=0; i<3; i++) vecindices[count++] = nextind;
+    nextind++;
+    if(face_orientation[0]*face_orientation[2] < 0)
+    {
+        for(int i=0; i<3; i++) vecindices[count++] = 0;
+    }
+    else
+    {
+        directions(1,nextind) = 1.*face_orientation[2];
+        for(int i=0; i<3; i++) vecindices[count++] = nextind;
+        nextind++;
+    }
+    if(face_orientation[1]*face_orientation[3] < 0)
+    {
+        for(int i=0; i<3; i++) vecindices[count++] = 1;
+    }
+    else
+    {
+        directions(0,nextind) = -1.*face_orientation[3];
+        for(int i=0; i<3; i++) vecindices[count++] = nextind;
+        nextind++;
+    }
+    int vecdir[] = {1,0,1,0,1,0};
+    for(int i=12; i<18; i++) vecindices[i] = vecdir[i-12];
+
+}
+
+
     template <class TVar>
     void TPZQuadrilateral::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
@@ -1262,8 +1315,8 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorder[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
     }
@@ -1277,12 +1330,12 @@ void TPZQuadrilateral::SetHdivType(EHdivType val){
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorder[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
         for (int i=0; i<Dimension*NumSides(); i++) {
-            sidevectors[i] = vectorsideorder[i];
+            sidevectors[i] = gVectorSides[i];
         }
     }
     

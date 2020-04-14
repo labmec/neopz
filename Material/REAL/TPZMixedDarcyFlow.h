@@ -32,6 +32,9 @@ private:
     
 public:
     
+    /// Temporary flag allowing to switch between different implementations of Contribute
+    int m_fast = 2;
+    
     /** @brief default constructor  */
     TPZMixedDarcyFlow();
     
@@ -103,7 +106,13 @@ public:
     /** @brief Volumetric contribute with jacobian matrix */
     void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
     
-    /** @brief Volumetric contribute without jacobian matrix */
+    /** @brief Volumetric contribute with jacobian matrix */
+    void ContributeBlas(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    
+/** @brief Volumetric contribute with jacobian matrix */
+void ContributeBlas2(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+
+/** @brief Volumetric contribute without jacobian matrix */
     void Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ef) override;
     
     /** @brief Boundary contribute without jacobian matrix */

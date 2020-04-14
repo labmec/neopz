@@ -90,7 +90,7 @@ public:
     /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
     /// Directions on the master element
-    TPZFNMatrix<180> fMasterDirections;
+    TPZFNMatrix<190> fMasterDirections;
     
     
     /// number of dual function (e.g. pressure in HDiv approximations)
@@ -100,14 +100,14 @@ public:
     int gelElId;
     
     /// correspondence between direction vector index and index of the shape functions
-    TPZManVector<std::pair<int,int64_t> > fVecShapeIndex;
+    TPZManVector<std::pair<int,int64_t>, 15> fVecShapeIndex;
     /// Directions on the deformed element
-    TPZFNMatrix<180> fDeformedDirections;
+    TPZFNMatrix<190> fDeformedDirections;
     /** @} */
     
 #ifdef _AUTODIFF
     /// Directions on the deformed element using Fad
-    TPZFNMatrix<180,Fad<REAL>> fDeformedDirectionsFad;
+    TPZFNMatrix<190,Fad<REAL>> fDeformedDirectionsFad;
     /** @} */
 #endif
     

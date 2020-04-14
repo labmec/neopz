@@ -484,12 +484,14 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
     }
 
 	
-    void TPZShapeCube::ShapeInternal(int side, TPZVec<REAL> &x, int order,
+/*
+void TPZShapeCube::ShapeInternal(int side, TPZVec<REAL> &x, int order,
                                        TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+#ifdef PZDEBUG
         if (side < 8 || side > 26) {
             DebugStop();
         }
-        
+#endif
         switch (side) {
                 
             case 8:
@@ -532,6 +534,7 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
         
         
     }
+ */
 	void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gRibTrans3dCube1d[rib][2]*dphi(0,j);

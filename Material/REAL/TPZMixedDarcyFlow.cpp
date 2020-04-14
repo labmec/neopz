@@ -99,15 +99,126 @@ void TPZMixedDarcyFlow::Read(TPZStream &buf, void *context){
     DebugStop();
 }
 
+#include "TPZLapack.h"
+
+void TPZMixedDarcyFlow::ContributeBlas(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+// nonparallel version - verify if blas can be used
+    int qb = 0;
+    int pb = 1;
+    int nphi_q       = datavec[qb].fVecShapeIndex.NElements();
+    int nphi_p       = datavec[pb].phi.Rows();
+    int nvec_flux = datavec[qb].fDeformedDirections.Cols();
+    int nphi_flux = datavec[qb].phi.Rows();
+    int first_q      = 0;
+    int first_p      = nphi_q + first_q;
+    static TPZFMatrix<REAL> vec_prod(nvec_flux,nvec_flux);
+    static TPZFMatrix<REAL> phi_prod(nphi_flux,nphi_flux);
+    TPZFMatrix<REAL> phi_flux_row(1,nphi_flux,&datavec[qb].phi(0,0),nphi_flux);
+    /**
+     * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+     * @param x Is x on the above operation
+     * @param y Is y on the above operation
+     * @param z Is z on the above operation
+     * @param alpha Is alpha on the above operation
+     * @param beta Is beta on the above operation
+     * @param opt Indicates if is Transpose or not
+     */
+    REAL alpha = weight;
+    int transpose = 1;
+    datavec[qb].fDeformedDirections.MultAdd(datavec[qb].fDeformedDirections, vec_prod, vec_prod,alpha,0.,transpose);
+    phi_flux_row.MultAdd(phi_flux_row, phi_prod, phi_prod,1.,0.,transpose);
+//    vec_prod.Print("Vec prod", std::cout);
+//    datavec[qb].phi.Print("phi =",std::cout);
+//    phi_prod.Print("phi prod", std::cout);
+    for (int iq = 0; iq<nphi_q; iq++)
+    {
+        auto vecscal = datavec[qb].fVecShapeIndex[iq];
+        int ivec = vecscal.first;
+        int iscal = vecscal.second;
+        for (int jq = 0; jq<nphi_q; jq++)
+        {
+            auto vecscal = datavec[qb].fVecShapeIndex[jq];
+            int jvec = vecscal.first;
+            int jscal = vecscal.second;
+            ek(iq,jq) += phi_prod(iscal,jscal)*vec_prod(ivec,jvec);
+        }
+    }
+    if(nphi_p == 0) return;
+    REAL *divptr = &datavec[qb].divphi(0,0);
+    REAL *phi_press_ptr = &datavec[pb].phi(0,0);
+    int ekr = ek.Rows();
+    REAL *firstek = &ek(0,nphi_q);
+    REAL beta = 1.;
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, nphi_q, nphi_p, 1,
+                alpha, divptr, nphi_q, phi_press_ptr, 1, beta, firstek, ekr);
+    firstek = &ek(nphi_q,0);
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, nphi_p, nphi_q, 1,
+                alpha, phi_press_ptr , nphi_p, divptr, 1, beta, firstek, ekr);
+
+}
+
+void TPZMixedDarcyFlow::ContributeBlas2(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+// nonparallel version - verify if blas can be used
+    int qb = 0;
+    int pb = 1;
+    int nphi_q       = datavec[qb].fVecShapeIndex.NElements();
+    int nphi_p       = datavec[pb].phi.Rows();
+    int nvec_flux = datavec[qb].fDeformedDirections.Cols();
+    int nphi_flux = datavec[qb].phi.Rows();
+    int first_q      = 0;
+    int first_p      = nphi_q + first_q;
+    
+    TPZFMatrix<REAL> &vecflux = datavec[qb].fDeformedDirections;
+    TPZFMatrix<REAL> &phiflux = datavec[qb].phi;
+    static TPZFMatrix<REAL> vec_phi;
+    vec_phi.Resize(3,nphi_q);
+    for (int iq = 0; iq<nphi_q; iq++)
+    {
+        auto vecscal = datavec[qb].fVecShapeIndex[iq];
+        int ivec = vecscal.first;
+        int iscal = vecscal.second;
+        REAL val = phiflux(iscal,0);
+        vec_phi(0,iq) = vecflux(0,ivec);
+        vec_phi(1,iq) = vecflux(1,ivec);
+        vec_phi(2,iq) = vecflux(2,ivec);
+    }
+    REAL alpha = weight;
+    vec_phi.MultAdd(vec_phi, ek, ek,alpha,1.,1);
+    /**
+     * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+     * @param x Is x on the above operation
+     * @param y Is y on the above operation
+     * @param z Is z on the above operation
+     * @param alpha Is alpha on the above operation
+     * @param beta Is beta on the above operation
+     * @param opt Indicates if is Transpose or not
+     */
+    int transpose = 1;
+    if(nphi_p == 0) return;
+    REAL *divptr = &datavec[qb].divphi(0,0);
+    REAL *phi_press_ptr = &datavec[pb].phi(0,0);
+    int ekr = ek.Rows();
+    REAL *firstek = &ek(0,nphi_q);
+    REAL beta = 1.;
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, nphi_q, nphi_p, 1,
+                alpha, divptr, nphi_q, phi_press_ptr, 1, beta, firstek, ekr);
+    firstek = &ek(nphi_q,0);
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, nphi_p, nphi_q, 1,
+                alpha, phi_press_ptr , nphi_p, divptr, 1, beta, firstek, ekr);
+
+}
+
 void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
     
+    if(m_fast == 1) return ContributeBlas(datavec, weight, ek, ef);
+    if(m_fast == 2) return ContributeBlas2(datavec, weight, ek, ef);
     int qb = 0;
     int pb = 1;
     
-    TPZFNMatrix<100,REAL> phi_qs       = datavec[qb].phi;
-    TPZFNMatrix<100,REAL> phi_ps       = datavec[pb].phi;
-    TPZFNMatrix<300,REAL> dphi_qs      = datavec[qb].dphix;
-    TPZFNMatrix<100,REAL> dphi_ps      = datavec[pb].dphix;
+    TPZFMatrix<REAL> &phi_qs       = datavec[qb].phi;
+    TPZFMatrix<REAL> &phi_ps       = datavec[pb].phi;
+    TPZFMatrix<REAL> &dphi_qs      = datavec[qb].dphix;
+    TPZFMatrix<REAL> &dphi_ps      = datavec[pb].dphix;
     
     // Computing the radius
     TPZFMatrix<REAL> x_spatial(3,1,0.0);
@@ -124,18 +235,18 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
     int first_q      = 0;
     int first_p      = nphi_q + first_q;
     
-    TPZManVector<STATE,3> q  = datavec[qb].sol[0];
-    STATE p                  = datavec[pb].sol[0][0];
+//    TPZManVector<STATE,3> q  = datavec[qb].sol[0];
+//    STATE p                  = datavec[pb].sol[0][0];
     
     //axisimetria
-    REAL s = 1.0;
-    if (1) {
-        s *= 2.0*M_PI*r;
-        q[0] *= (1.0/s);
-        q[1] *= (1.0/s);
-   //     q[2] *= (1.0/s);
-        dphi_qs *= (1.0/s);
-    }
+//    REAL s = 1.0;
+//    if (0) {
+//        s *= 2.0*M_PI*r;
+//        q[0] *= (1.0/s);
+//        q[1] *= (1.0/s);
+//   //     q[2] *= (1.0/s);
+//        dphi_qs *= (1.0/s);
+//    }
      //axisimetria
     
     TPZFNMatrix<3,STATE> phi_q_i(3,1,0.0), kappa_inv_phi_q_j(3,1,0.0), kappa_inv_q(3,1,0.0);
@@ -143,11 +254,11 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
     int s_i, s_j;
     int v_i, v_j;
     
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            kappa_inv_q(i,0) += m_kappa_inv(i,j)*q[j];
-        }
-    }
+//    for (int i = 0; i < 3; i++) {
+//        for (int j = 0; j < 3; j++) {
+//            kappa_inv_q(i,0) += m_kappa_inv(i,j)*q[j];
+//        }
+//    }
     
     for (int iq = 0; iq < nphi_q; iq++)
     {
@@ -161,7 +272,8 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
             kappa_inv_q_dot_phi_q_i        += kappa_inv_q(i,0)*phi_q_i(i,0);
         }
         
-        ef(iq + first_q) += -1.0 * weight * ( kappa_inv_q_dot_phi_q_i - p * div_phi(iq,0));
+        // nonlinear implementation
+//        ef(iq + first_q) += -1.0 * weight * ( kappa_inv_q_dot_phi_q_i - p * div_phi(iq,0));
         
         for (int jq = 0; jq < nphi_q; jq++)
         {

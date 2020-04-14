@@ -23,7 +23,7 @@ public:
     
     TPZGeoMesh fDeformed;
     
-    enum MMeshType {ENone, EHexa, EPrism, ETetrahedra, EPyramid };
+    enum MMeshType {ENone, EHexa, EPrism, ETetrahedra, EPyramid, EOned };
 
 protected:
     
@@ -80,6 +80,26 @@ public:
         fMeshType = meshtype;
     }
     
+    void SetElementType(MElementType eltype)
+    {
+        switch (eltype) {
+            case ECube:
+                fMeshType = EHexa;
+                break;
+            case EPrisma:
+                fMeshType = EPrism;
+            case ETetraedro:
+                fMeshType = ETetrahedra;
+                break;
+            case ::EOned:
+                fMeshType = EOned;
+                break;
+            default:
+                DebugStop();
+                break;
+        }
+    }
+    
     /// set the boundary numbers on the sides of the cube
     void SetBoundaryIndices(TPZVec<int> &BCNumbers);
     
@@ -109,6 +129,12 @@ public:
         fMaterialId = id;
     }
     
+    /// set the material id to be used
+    int MaterialId() const
+    {
+        return fMaterialId;
+    }
+        
     /// create a geometric mesh acording to the parameters of the object
     TPZGeoMesh *CreateGeoMesh()
     {
@@ -122,6 +148,8 @@ public:
             case EPyramid:
                 return PyramidalAndTetrahedralMesh();
                 break;
+            case EOned:
+                return OneDMesh();
             case EPrism:
                 std::cout << "Not implemented\n";
 
@@ -137,6 +165,8 @@ public:
     TPZGeoMesh *RedBlackPyramidalAndHexagonalMesh();
 
     TPZGeoMesh *TetrahedralMesh();
+    
+    TPZGeoMesh *OneDMesh();
   
     /**
     *  Sets the bc id vector for the hexaedral mesh

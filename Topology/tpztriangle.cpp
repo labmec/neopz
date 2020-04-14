@@ -38,7 +38,9 @@ namespace pztopology {
     int TPZTriangle::SideNodes[3][2]  = { {0,1},{1,2},{2,0} };
     int TPZTriangle::FaceNodes[1][3]  = { {0,1,2} };
     
-    
+    const int TPZTriangle::gVectorSides [14];            
+    const int TPZTriangle::gDirecaoKsiEta [14];
+
     /**Transformation of the point within a triangular face */
     REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
         { { 1., 0.},{ 0., 1.} },
@@ -204,12 +206,8 @@ namespace pztopology {
         {1,0}
     };
 
-    static int vectorsideorder [14] = {0,1,3,1,2,4,2,0,5,3,4,5,6,6};
-    
     //static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};//Pk Pk-1
     static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1};//P*k Pk
-    
-    static int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
     
     int TPZTriangle::fPermutations [6][7] =
     {
@@ -1057,6 +1055,42 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
 //
 //    }
 
+/// Compute the directions of the HDiv vectors in master element coordinates
+// @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+// @param directions : direction of vectors that define the vector fields
+// @param vecindices : for each vector, the index in the directions data that defines the vector
+void TPZTriangle::ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices)
+{
+    TPZManVector<REAL, 3> v1(2,0.),v2(2,0.);
+    v1[0] = 2.;
+    v2[1] = 2.;
+    directions.Redim(2,14);
+
+     for (int i=0; i<2; i++)
+     {
+         directions(i,0) = -v2[i]*face_orientation[0];
+         directions(i,1) = (v1[i]-v2[i])*face_orientation[0];
+         directions(i,2) = (directions(i,0)+directions(i,1))/2.;
+         directions(i,3) = v1[i]*face_orientation[1];
+         directions(i,4) = v2[i]*face_orientation[1];
+         directions(i,5) = (directions(i,3)+directions(i,4))/2.;
+         directions(i,6) = (v2[i]-v1[i])*face_orientation[2];
+         directions(i,7) = -v1[i]*face_orientation[2];
+         directions(i,8) = (directions(i,6)+directions(i,7))/2.;
+
+         directions(i,9) = v1[i];
+         directions(i,10) = (v2[i]-v1[i]);
+         directions(i,11) = -v2[i];
+
+         directions(i,12) = v1[i];
+         directions(i,13) = v2[i];
+     }
+    for (int i=0; i<14; i++) {
+        vecindices[i] = i;
+    }
+
+}
+    
     template <class TVar>
     void TPZTriangle::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
@@ -1110,8 +1144,8 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
             directions(i,10) = (v2[i]-v1[i])*Nvdiag*NormalScales[1];
             directions(i,11) = -v2[i]*Nv2*NormalScales[2];
 
-            directions(i,12) = v1[i]*Nv2*NormalScales[0];
-            directions(i,13) = v2[i]*Nv1*NormalScales[1];
+            directions(i,12) = v1[i]*Nv1*NormalScales[0];
+            directions(i,13) = v2[i]*Nv2*NormalScales[2];
         }
     }
 
@@ -1184,8 +1218,8 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorder[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
     }
@@ -1200,13 +1234,13 @@ void TPZTriangle::GetHDivGatherPermute(int transformid, TPZVec<int> &permute)
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorder[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
         
         for (int i=0; i<Dimension*NumSides(); i++) {
-            sidevectors[i] = vectorsideorder[i];
+            sidevectors[i] = gVectorSides[i];
         }
     }
 

@@ -79,14 +79,106 @@ struct TParDefs
 
 #include "TPZLapack.h"
 
+template<int dim, int sidedim> void inline ExtendDerivative(TPZFMatrix<REAL> &dphin, TPZFMatrix<REAL> &dphivol, TPZFMatrix<REAL> &mult)
+{
+    REAL alpha = 1.;
+    REAL beta = 0.;
+    bool transpose = true;
+    mult.MultAdd(dphin, dphin, dphivol, alpha, beta, transpose);
+}
+
+template<> void inline ExtendDerivative<1,1>(TPZFMatrix<REAL> &dphin, TPZFMatrix<REAL> &dphivol, TPZFMatrix<REAL> &mult)
+{
+    REAL val = mult(0,0);
+    int64_t cols = dphin.Cols();
+    for(int i = 0; i<cols; i++) dphivol(0,i) = val*dphin(0,i);
+}
+
+template<> void inline ExtendDerivative<2,1>(TPZFMatrix<REAL> &dphin, TPZFMatrix<REAL> &dphivol, TPZFMatrix<REAL> &mult)
+{
+    REAL val[2] = {mult(0,0),mult(0,1)};
+    int64_t cols = dphin.Cols();
+    for(int i = 0; i<cols; i++)
+    {
+        dphivol(0,i) = val[0]*dphin(0,i);
+        dphivol(1,i) = val[1]*dphin(0,i);
+    }
+}
+
+template<> void inline ExtendDerivative<2,2>(TPZFMatrix<REAL> &dphin, TPZFMatrix<REAL> &dphivol, TPZFMatrix<REAL> &mult)
+{
+    REAL val1[3] = {mult(0,0),mult(0,1)};
+    REAL val2[3] = {mult(1,0),mult(1,1)};
+    int64_t cols = dphin.Cols();
+    for(int i = 0; i<cols; i++)
+    {
+        dphivol(0,i) = val1[0]*dphin(0,i)+val2[0]*dphin(1,i);
+        dphivol(1,i) = val1[1]*dphin(0,i)+val2[1]*dphin(1,i);
+    }
+}
+
+
+template<> void inline ExtendDerivative<3,1>(TPZFMatrix<REAL> &dphin, TPZFMatrix<REAL> &dphivol, TPZFMatrix<REAL> &mult)
+{
+    REAL val[3] = {mult(0,0),mult(0,1),mult(0,2)};
+    int64_t cols = dphin.Cols();
+    for(int i = 0; i<cols; i++)
+    {
+        dphivol(0,i) = val[0]*dphin(0,i);
+        dphivol(1,i) = val[1]*dphin(0,i);
+        dphivol(2,i) = val[2]*dphin(0,i);
+    }
+}
+
+template<> void inline ExtendDerivative<3,2>(TPZFMatrix<REAL> &dphin, TPZFMatrix<REAL> &dphivol, TPZFMatrix<REAL> &mult)
+{
+    REAL val1[3] = {mult(0,0),mult(0,1),mult(0,2)};
+    REAL val2[3] = {mult(1,0),mult(1,1),mult(1,2)};
+    int64_t cols = dphin.Cols();
+    for(int i = 0; i<cols; i++)
+    {
+        dphivol(0,i) = val1[0]*dphin(0,i)+val2[0]*dphin(1,i);
+        dphivol(1,i) = val1[1]*dphin(0,i)+val2[1]*dphin(1,i);
+        dphivol(2,i) = val1[2]*dphin(0,i)+val2[2]*dphin(1,i);
+    }
+}
+
+template<int dim, int sidedim> void inline Apply(TPZVec<REAL> &pt, TPZVec<REAL> &project, TPZFMatrix<REAL> &mult)
+{
+    for(int is = 0; is<sidedim; is++) for(int d = 0; d<dim; d++)
+        project[is] += mult(is,d)*pt[d];
+}
+
+template<> void inline Apply<1,1>(TPZVec<REAL> &pt, TPZVec<REAL> &project, TPZFMatrix<REAL> &mult)
+{
+    project[0] += mult(0,0)*pt[0];
+}
+
+template<> void inline Apply<2,1>(TPZVec<REAL> &pt, TPZVec<REAL> &project, TPZFMatrix<REAL> &mult)
+{
+    project[0] += mult(0,0)*pt[0]+mult(0,1)*pt[1];
+}
+
+template<> void inline Apply<2,2>(TPZVec<REAL> &pt, TPZVec<REAL> &project, TPZFMatrix<REAL> &mult)
+{
+    project[0] += mult(0,0)*pt[0]+mult(0,1)*pt[1];
+    project[1] += mult(1,0)*pt[0]+mult(1,1)*pt[1];
+}
+
+template<> void inline Apply<3,1>(TPZVec<REAL> &pt, TPZVec<REAL> &project, TPZFMatrix<REAL> &mult)
+{
+    project[0] += mult(0,0)*pt[0]+mult(0,1)*pt[1]+mult(0,2)*pt[2];
+}
+template<> void inline Apply<3,2>(TPZVec<REAL> &pt, TPZVec<REAL> &project, TPZFMatrix<REAL> &mult)
+{
+    project[0] += mult(0,0)*pt[0]+mult(0,1)*pt[1]+mult(0,2)*pt[2];
+    project[1] += mult(1,0)*pt[0]+mult(1,1)*pt[1]+mult(1,2)*pt[2];
+}
+
 template <class TSHAPE>
 void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi
 ) {
 
-    
-//    TPZVec<REAL> &pt = par.pt;
-//    TPZFMatrix<REAL> &phi = par.phi;
-//    TPZFMatrix<REAL> &dphi = par.dphi;
     
     TSHAPE::ShapeCorner(pt,phi,dphi);
     
@@ -124,25 +216,38 @@ void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMa
         TPZFNMatrix<100,REAL> phin(numshape,1), dphin(sidedim,numshape), dphiaux(TSHAPE::Dimension,numshape),
             dphiaux2(TSHAPE::Dimension,numshape);
         TPZManVector<REAL,3> outvec(sidedim);
-        transform.Apply(pt, outvec);
+        switch(sidedim)
+        {
+            case 1:
+                outvec[0] = transform.Sum()(0,0);
+                Apply<TSHAPE::Dimension,1>(pt,outvec,transform.Mult());
+                break;
+            case 2:
+                outvec[0] = transform.Sum()(0,0);
+                outvec[1] = transform.Sum()(1,0);
+                Apply<TSHAPE::Dimension,2>(pt,outvec,transform.Mult());
+                break;
+            case 3:
+                outvec = pt;
+                break;
+            default:
+                break;
+        }
 //        dphin.Zero();
         TSHAPE::ShapeInternal(side, outvec,par.orders[side - NCorners], phin, dphin);
         if(sidedim < 3)
         {
-//            TPZFNMatrix<9,REAL> mult_tr;
-//            transform.Mult().Transpose(&mult_tr);
-//            mult_tr.Multiply(dphin, dphiaux);
-            REAL alpha = 1.;
-            REAL beta = 0.;
-            TPZFMatrix<REAL> &mult = transform.Mult();
-            cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, mult.Cols(), dphin.Cols(), mult.Rows(),
-                        alpha, &mult(0,0), mult.Rows(), &dphin(0,0), dphin.Rows(), beta, &dphiaux(0,0), dphiaux.Rows());
-
-//            bool transpose = true;
-//            transform.Mult().MultAdd(dphin, dphin, dphiaux, alpha, beta, transpose);
-//
-//            dphiaux2 -= dphiaux;
-//            std::cout << "dphiaux diff " << Norm(dphiaux2) << std::endl;
+            switch(sidedim)
+            {
+                case 1:
+                    ExtendDerivative<TSHAPE::Dimension,1>(dphin,dphiaux,transform.Mult());
+                    break;
+                case 2:
+                    ExtendDerivative<TSHAPE::Dimension,2>(dphin,dphiaux,transform.Mult());
+                    break;
+                default:
+                    DebugStop();
+            }
             
             for (int i = 1; i < numshape; i++) {
                 phi(shape,0) = phiblend(side,0)*phin(i,0);
@@ -162,8 +267,7 @@ void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMa
             }
 
         }
-    }
-    
+    }    
 }
 
 

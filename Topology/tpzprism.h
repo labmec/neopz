@@ -231,6 +231,12 @@ namespace pztopology {
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
+        /// Compute the directions of the HDiv vectors in master element coordinates
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices);
+        
         /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
@@ -259,6 +265,32 @@ namespace pztopology {
          */
         static int NBilinearSides();
 		
+        constexpr static int gVectorSides[63] =
+        {
+            0,1,2,6,7,8,15,
+            0,1,4,3,6,10,12,9,16,
+            1,2,5,4,7,11,13,10,17,
+            0,2,5,3,8,11,14,9,18,
+            3,4,5,12,13,14,19,
+            6,7,8,9,10,11,12,13,14,
+            15,15,
+            16,16,
+            17,17,
+            18,18,
+            19,19,
+            20,20,20
+        };
+        
+        
+        constexpr static int gDirecaoKsiEta [63] = {
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,1,0,1,0,1,0,1,0,1,
+            0,1,2};
+
 	protected:
 		/** @name Data structure which defines the prism transformations and topology */
 		/** @{ */

@@ -245,6 +245,12 @@ namespace pztopology {
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices);
+        
+        /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
 
@@ -282,10 +288,18 @@ namespace pztopology {
          */
         static int NBilinearSides();
         
+        // vertices associated with a one dimensional side
         static int SideNodes[3][2];
+        // vertices associated with the face
         static int FaceNodes[1][3];
-        static REAL gTrans2dT[6][2][2] ;
+        
+        /** @brief Data structure which defines the parameter transformation between neighbouring triangles
+          the first index is the transformation id*/
+        static REAL gTrans2dT[6][2][2];
        
+        constexpr static int gVectorSides [14] = {0,1,3,1,2,4,2,0,5,3,4,5,6,6};
+                
+        constexpr static int gDirecaoKsiEta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 
 	protected:
         /** @brief Valid permutations between nodes*/

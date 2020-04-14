@@ -39,7 +39,7 @@ static LoggerPtr logger(Logger::getLogger("pz.academicmesh"));
 
 
 
-TPZAcademicGeoMesh::TPZAcademicGeoMesh() : fMeshType(EHexa), fBCNumbers(6,-1), fShouldDeform(false), fNumberElements(1)
+TPZAcademicGeoMesh::TPZAcademicGeoMesh() : fMeshType(EHexa), fBCNumbers(6,-1), fShouldDeform(false), fNumberElements(1), fMaterialId(1)
 {
     REAL coord[8][3] = {
         //        {0,0,0},
@@ -68,7 +68,7 @@ TPZAcademicGeoMesh::TPZAcademicGeoMesh() : fMeshType(EHexa), fBCNumbers(6,-1), f
         }
     }
     int64_t index;
-    fDeformed.CreateGeoElement(ECube, indices, 1, index);
+    fDeformed.CreateGeoElement(ECube, indices, fMaterialId, index);
 }
 
 /// Deform the geometric mesh according to the coordinates of fDeformed
@@ -112,14 +112,33 @@ static int prism[2][6] =
     {0,2,3,4,6,7}
 };
 
+static int oned[1][2] =
+{
+    {0,1}
+};
+
 
 void TPZAcademicGeoMesh::GenerateNodes(TPZGeoMesh *gmesh)
 {
     int64_t nelem = fNumberElements;
-    gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
-    for (int64_t i=0; i<=nelem; i++) {
-        for (int64_t j=0; j<=nelem; j++) {
-            for (int64_t k=0; k<=nelem; k++) {
+    int dim = gmesh->Dimension();
+    if(dim == 3)
+    {
+        gmesh->NodeVec().Resize((nelem+1)*(nelem+1)*(nelem+1));
+    }
+    else if(dim == 1)
+    {
+        gmesh->NodeVec().Resize((nelem+1));
+    }
+    int nelemvec[3] = {nelem,nelem,nelem};
+    if(dim == 1)
+    {
+        nelemvec[1] = 0;
+        nelemvec[2] = 0;
+    }
+    for (int64_t i=0; i<=nelemvec[2]; i++) {
+        for (int64_t j=0; j<=nelemvec[1]; j++) {
+            for (int64_t k=0; k<=nelemvec[0]; k++) {
                 TPZManVector<REAL,3> x(3);
                 x[0] = k*1./nelem;
                 x[1] = j*1./nelem;
@@ -400,6 +419,29 @@ TPZGeoMesh *TPZAcademicGeoMesh::HexahedralMesh()
     return gmesh;
 }
 
+TPZGeoMesh *TPZAcademicGeoMesh::OneDMesh()
+{
+    int64_t nelem = fNumberElements;
+    int MaterialId = fMaterialId;
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    gmesh->SetDimension(1);
+    GenerateNodes(gmesh);
+    for (int64_t k=0; k<nelem; k++) {
+        TPZManVector<int64_t,8> nodes(2,0);
+        nodes[0] = k;
+        nodes[1] = k+1;
+        int64_t index;
+        gmesh->CreateGeoElement(::EOned, nodes, MaterialId, index);
+    }
+    gmesh->BuildConnectivity();
+    AddBoundaryElements(gmesh);
+    if (fShouldDeform) {
+        DeformGMesh(*gmesh);
+    }
+    return gmesh;
+
+}
+
 /// verify if the faces without neighbour should be orthogonal to the main planes
 void TPZAcademicGeoMesh::CheckConsistency(TPZGeoMesh *mesh)
 {
@@ -453,71 +495,92 @@ void TPZAcademicGeoMesh::CheckConsistency(TPZGeoMesh *mesh)
 int TPZAcademicGeoMesh::AddBoundaryElements(TPZGeoMesh *gmesh)
 {
     int64_t nel = gmesh->NElements();
+    int dim = gmesh->Dimension();
     for(int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];
         int nsides = gel->NSides();
         for(int is=0; is<nsides; is++) {
             TPZGeoElSide gelside(gel,is);
-            if(gelside.Dimension() != 2) {
+            if(gelside.Dimension() != dim-1) {
                 continue;
             }
             if(gelside.Neighbour() != gelside) {
                 continue;
             }
-            TPZManVector<REAL,2> xi(2,0.);
-            //gelside.CenterPoint(xi);
-            TPZFNMatrix<6,REAL> axes(2,3);
-            TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
-            REAL detjac;
-            gelside.Jacobian(xi, jac, axes, detjac, jacinv);
-            TPZManVector<REAL,3> x(3,0.);
-            //gelside.X(xi, x);
-            TPZManVector<REAL,3> normal(3);
-            normal[0] = axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1);
-            normal[1] = -axes(0,0)*axes(1,2)+axes(0,2)*axes(1,0);
-            normal[2] = axes(0,0)*axes(1,1)-axes(0,1)*axes(1,0);
-            REAL tol = 1.e-6;
-            REAL xmin = 1., xmax = 0.;
-            int numfound = 0;
-            int dir = -5;
-            for (int i=0; i<3; i++) {
-                if (fabs(normal[i] - 1.) < tol) {
-                    dir = 1+i;
-                    numfound++;
+            if(dim == 3)
+            {
+                TPZManVector<REAL,2> xi(2,0.);
+                //gelside.CenterPoint(xi);
+                TPZFNMatrix<6,REAL> axes(2,3);
+                TPZFNMatrix<4,REAL> jac(2,2),jacinv(2,2);
+                REAL detjac;
+                gelside.Jacobian(xi, jac, axes, detjac, jacinv);
+                TPZManVector<REAL,3> x(3,0.);
+                //gelside.X(xi, x);
+                TPZManVector<REAL,3> normal(3);
+                normal[0] = axes(0,1)*axes(1,2)-axes(0,2)*axes(1,1);
+                normal[1] = -axes(0,0)*axes(1,2)+axes(0,2)*axes(1,0);
+                normal[2] = axes(0,0)*axes(1,1)-axes(0,1)*axes(1,0);
+                REAL tol = 1.e-6;
+                REAL xmin = 1., xmax = 0.;
+                int numfound = 0;
+                int dir = -5;
+                for (int i=0; i<3; i++) {
+                    if (fabs(normal[i] - 1.) < tol) {
+                        dir = 1+i;
+                        numfound++;
+                    }
+                    if (fabs(normal[i] + 1.) < tol) {
+                        dir = -1-i;
+                        numfound++;
+                    }
                 }
-                if (fabs(normal[i] + 1.) < tol) {
-                    dir = -1-i;
-                    numfound++;
-                }
-            }
-            if (dir == -5) {
-                DebugStop();
-            }
-            if(numfound != 1) {
-                DebugStop();
-            }
-            switch (dir) {
-                case -3:
-                    TPZGeoElBC(gelside,fBCNumbers[0]);
-                    break;
-                case 1:
-                    TPZGeoElBC(gelside,fBCNumbers[1]);
-                    break;
-                case 2:
-                    TPZGeoElBC(gelside,fBCNumbers[2]);
-                    break;
-                case -1:
-                    TPZGeoElBC(gelside,fBCNumbers[3]);
-                    break;
-                case -2:
-                    TPZGeoElBC(gelside,fBCNumbers[4]);
-                    break;
-                case 3:
-                    TPZGeoElBC(gelside,fBCNumbers[5]);
-                    break;
-                default:
+                if (dir == -5) {
                     DebugStop();
-                    break;
+                }
+                if(numfound != 1) {
+                    DebugStop();
+                }
+                switch (dir) {
+                    case -3:
+                        TPZGeoElBC(gelside,fBCNumbers[0]);
+                        break;
+                    case 1:
+                        TPZGeoElBC(gelside,fBCNumbers[1]);
+                        break;
+                    case 2:
+                        TPZGeoElBC(gelside,fBCNumbers[2]);
+                        break;
+                    case -1:
+                        TPZGeoElBC(gelside,fBCNumbers[3]);
+                        break;
+                    case -2:
+                        TPZGeoElBC(gelside,fBCNumbers[4]);
+                        break;
+                    case 3:
+                        TPZGeoElBC(gelside,fBCNumbers[5]);
+                        break;
+                    default:
+                        DebugStop();
+                        break;
+                }
+            } else if(dim == 1)
+            {
+                switch (is) {
+                    case 0:
+                        TPZGeoElBC(gelside,fBCNumbers[0]);
+                        break;
+                    case 1:
+                        TPZGeoElBC(gelside,fBCNumbers[1]);
+                        break;
+                    default:
+                        DebugStop();
+                        break;
+                }
+            }
+            else
+            {
+                DebugStop();
             }
         }
     }

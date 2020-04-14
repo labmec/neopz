@@ -8,6 +8,7 @@
  */
 enum class MMeshType
 {
+    EOneDimensional,/*For 1D meshes*/
     EQuadrilateral,/*For 2D meshes consisting of quadrilaterals*/
     ETriangular,/*For 2D meshes where each quadrilateral is split into two triangles*/
     EHexahedral,/*For 3D meshes consisting of hexahedra*/

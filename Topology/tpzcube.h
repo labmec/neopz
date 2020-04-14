@@ -226,14 +226,20 @@ namespace pztopology {
 		static constexpr REAL RefElVolume(){return 8.0;}
         
         /* Given side and gradx the method returns directions needed for Hdiv space */
-        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
+//        static void ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
         
-        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+        /// Compute the directions of the HDiv vectors
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices);
         
+        static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
+//        
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
 
         /** Compute the directions of the HCurl vectors.
@@ -265,6 +271,40 @@ namespace pztopology {
         /** @brief Nodes over lines sides (1d) */
         static int SideNodes[12][2]; //PROTECTED
 	
+        constexpr static int gVectorSides[81] =
+        {
+            0,1,2,3,8,9,10,11,20, //face 0
+            0,1,5,4,8,13,16,12,21,//face 1
+            1,2,6,5,9,14,17,13,22,//face 2
+            3,2,6,7,10,14,18,15,23,//face 3
+            //2,3,7,6,10,15,18,14,23,//face 3
+            0,3,7,4,11,15,19,12,24,//face 4
+            4,5,6,7,16,17,18,19,25,//face 5
+            8,9,10,11,
+            12,13,14,15,
+            16,17,18,19,
+            20,20,//tg face 0
+            21,21,//tg face 1
+            22,22,//tg face 2
+            23,23,//tg face 3
+            24,24,//tg face 4
+            25,25,//tg face 5
+            26,26,26
+        };
+
+
+        constexpr static int gDirecaoKsiEta [81] = {
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0,0,
+            0,0,0,0,0,0,
+            0,1,0,1,0,1,0,1,0,1,0,1,//0,1,0,2,1,2,0,2,1,2,0,1,
+            0,1,2};
+
+        
 	protected:
 		/** @name Data structure which defines the hexahedral transformations */
 		/** @{ */

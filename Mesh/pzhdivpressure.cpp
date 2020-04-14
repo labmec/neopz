@@ -659,7 +659,7 @@ template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeQuad>>;
 template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeCube>>;
 template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTetra>>;
 template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapePrism>>;
-template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>>;
+//template class TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>>;
 #endif
 
 
@@ -669,7 +669,7 @@ template class TPZCompElHDivPressure<TPZShapeLinear>;
 template class TPZCompElHDivPressure<TPZShapeQuad>;
 template class TPZCompElHDivPressure<TPZShapeTetra>;
 template class TPZCompElHDivPressure<TPZShapePrism>;
-template class TPZCompElHDivPressure<TPZShapePiram>;
+//template class TPZCompElHDivPressure<TPZShapePiram>;
 template class TPZCompElHDivPressure<TPZShapeCube>;
 
 
@@ -698,9 +698,9 @@ TPZCompEl * CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &i
 		return new TPZCompElHDivPressure< TPZShapePrism>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-		return new TPZCompElHDivPressure< TPZShapePiram >(mesh,gel,index);
-}
+//TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
+//		return new TPZCompElHDivPressure< TPZShapePiram >(mesh,gel,index);
+//}
 
 TPZCompEl * CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 		return new TPZCompElHDivPressure< TPZShapeTetra >(mesh,gel,index);

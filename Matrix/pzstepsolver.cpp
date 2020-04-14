@@ -158,7 +158,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			break;
 		case TPZStepSolver::EDirect:
 			result = F;
-			mat->SolveDirect(result,fDecompose,fSingular);
+			mat->SolveDirect(result,fDecompose);
 			if(residual) residual->Redim(F.Rows(),F.Cols());
 			break;
 		case TPZStepSolver::EMultiply:

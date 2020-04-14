@@ -121,7 +121,14 @@ void TPZStructMatrixTBB::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE
     }
     else
     {
-        this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+        if(fNumThreads == 0)
+        {
+            this->Serial_Assemble(stiffness,rhs,guiInterface);
+        }
+        else
+        {
+            this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+        }
         
     }
     ass_stiff.stop();
@@ -286,7 +293,11 @@ void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
             TPZCompEl *cel = fCMesh->ElementVec()[elindex];
             
             
-            if(!cel) continue;
+            if(!cel)
+            {
+                std::cout << "elindex = " << elindex << " is not in the datastructure\n";
+                continue;
+            }
             TPZStack<int64_t> connectlist;
             cel->BuildConnectList(connectlist);
 //                 std::cout << "elcontribute " << elContribute << std::endl;
@@ -326,7 +337,11 @@ void TPZStructMatrixTBB::TPZFlowGraph::ElementColoring()
             currentPassIndex++;
         }
     }
-    
+    if(nelProcessed < nel)
+    {
+        felSequenceColor.Resize(nelProcessed, 0);
+    }
+
 #ifdef PZDEBUG
     std::ofstream toto("../ColorMeshDebug.txt");
     toto << "elSequence\n" << fElementOrder << std::endl;
@@ -360,21 +375,24 @@ TPZStructMatrixTBB::TPZFlowGraph::~TPZFlowGraph()
 
 void TPZStructMatrixTBB::TPZFlowGraph::OrderElements()
 {
-    int numelconnected = 0;
-    int nconnect = fCMesh->ConnectVec().NElements();
-    int ic;
+    fCMesh->ComputeNodElCon();
+    int64_t numelconnected = 0;
+    int64_t nconnect = fCMesh->ConnectVec().NElements();
+    int64_t ic;
 //    firstelconnect contains the first element index in the elconnect vector
-    TPZVec<int> firstelconnect(nconnect+1);
+    TPZVec<int64_t> firstelconnect(nconnect+1);
     firstelconnect[0] = 0;
     for(ic=0; ic<nconnect; ic++) {
         numelconnected += fCMesh->ConnectVec()[ic].NElConnected();
         firstelconnect[ic+1] = firstelconnect[ic]+fCMesh->ConnectVec()[ic].NElConnected();
     }
+    if(numelconnected != firstelconnect[nconnect]) DebugStop();
+    TPZVec<int64_t> firstelkeep(firstelconnect);
 //    cout << "numelconnected " << numelconnected << endl;
 //    cout << "firstelconnect ";
 //     for(ic=0; ic<nconnect; ic++) cout << firstelconnect[ic] << ' ';
     TPZVec<int> elconnect(numelconnected,-1);
-    int el;
+    int64_t el;
     TPZCompEl *cel;
     for(el=0; el<fCMesh->ElementVec().NElements(); el++) {
         cel = fCMesh->ElementVec()[el];
@@ -385,6 +403,15 @@ void TPZStructMatrixTBB::TPZFlowGraph::OrderElements()
         int ic;
         for(ic=0; ic<nc; ic++) {
             int cindex = connectlist[ic];
+            if(firstelconnect[cindex] >= firstelkeep[cindex+1])
+            {
+                std::cout << "NumelConnected of cindex = " << cindex << " is wrong\n";
+                std::cout << "firstelconnect[cindex] = " << firstelconnect[cindex] << std::endl;
+                std::cout << "firstelkeep[cindex] = " << firstelkeep[cindex] << std::endl;
+                std::cout << "firstelkeep[cindex+1] = " << firstelkeep[cindex+1] << std::endl;
+                std::cout << "NumElConnected[cindex] = " << fCMesh->ConnectVec()[cindex].NElConnected() << std::endl;
+                DebugStop();
+            }
             elconnect[firstelconnect[cindex]] = el;
             firstelconnect[cindex]++;
         }
@@ -398,7 +425,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::OrderElements()
     
     fElementOrder.Resize(fCMesh->ElementVec().NElements(),-1);
     fElementOrder.Fill(-1);
-    TPZVec<int> nodeorder(fCMesh->ConnectVec().NElements(),-1);
+    TPZVec<int64_t> nodeorder(fCMesh->ConnectVec().NElements(),-1);
     firstelconnect[0] = 0;
     for(ic=0; ic<nconnect; ic++) {
         int seqnum = fCMesh->ConnectVec()[ic].SequenceNumber();
@@ -409,15 +436,15 @@ void TPZStructMatrixTBB::TPZFlowGraph::OrderElements()
      cout << endl;
      cout.flush();*/
     
-    int seq;
-    int elsequence = 0;
-    TPZVec<int> elorderinv(fCMesh->ElementVec().NElements(),-1);
+    int64_t seq;
+    int64_t elsequence = 0;
+    TPZVec<int64_t> elorderinv(fCMesh->ElementVec().NElements(),-1);
     for(seq=0; seq<nconnect; seq++) {
         ic = nodeorder[seq];
         if(ic == -1) continue;
-        int firstind = firstelconnect[ic];
-        int lastind = firstelconnect[ic+1];
-        int ind;
+        int64_t firstind = firstelconnect[ic];
+        int64_t lastind = firstelconnect[ic+1];
+        int64_t ind;
         for(ind=firstind; ind<lastind; ind++) {
             el = elconnect[ind];
             if(el == -1) {
@@ -489,6 +516,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::CreateGraphRhs()
         numcolors = halfnumcolors;
     }
     numcolors = fFirstElColor.size()-1;
+    int64_t nodesize = sumcolors.size();
     fNodes.resize(sumcolors.size());
     // create the nodes and the links between them
     // the first nodes that mentions an index receives the rhs
@@ -522,17 +550,22 @@ void TPZStructMatrixTBB::TPZFlowGraph::CreateGraph()
     
     fNodes.resize(numberOfElements);
     fElMatPointers.Resize(numberOfElements);
-    for (int64_t iel=0; iel<numberOfElements; iel++) {
-        TPZAssembleTask body(iel,this);
-        fNodes[iel] = new tbb::flow::continue_node<tbb::flow::continue_msg>(fGraph,1,body);
+    for (int64_t iel_seq=0; iel_seq<numberOfElements; iel_seq++) {
+        int64_t iel = felSequenceColor[iel_seq];
+        TPZAssembleTask body(iel_seq,this);
+        fNodes[iel_seq] = new tbb::flow::continue_node<tbb::flow::continue_msg>(fGraph,1,body);
     }
     
     
     for (int64_t graphindex = 0; graphindex<numberOfElements; graphindex++) {
         int64_t el = felSequenceColor[graphindex];
+        if(el < 0)
+        {
+            DebugStop();
+        }
         TPZCompEl *cel = fCMesh->Element(el);
         if (!cel) {
-            continue;
+            DebugStop();
         }
         TPZStack<int64_t> connects;
         cel->BuildConnectList(connects);
@@ -737,8 +770,9 @@ void TPZStructMatrixTBB::TPZFlowGraph::TPZCalcTask::operator()(const tbb::blocke
             DebugStop();
         }
         
-        TPZAssembleTask Assemble = tbb::flow::copy_body<TPZAssembleTask,tbb::flow::continue_node<tbb::flow::continue_msg> >(*fFlowGraph->fNodes[element]);
-        if (Assemble.fIel != element) {
+            if(iel >= fFlowGraph->fNodes.size()) DebugStop();
+        TPZAssembleTask Assemble = tbb::flow::copy_body<TPZAssembleTask,tbb::flow::continue_node<tbb::flow::continue_msg> >(*fFlowGraph->fNodes[iel]);
+        if (Assemble.fIel != iel) {
             DebugStop();
         }
         if (fFlowGraph->fGlobMatrix)
@@ -752,7 +786,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::TPZCalcTask::operator()(const tbb::blocke
         
         TPZCompEl *el = cMesh->ElementVec()[element];
         
-        if(!el) continue;
+        if(!el) DebugStop();
         
         if (fFlowGraph->fGlobMatrix)
             el->CalcStiff(*ek,*ef);
@@ -791,7 +825,7 @@ void TPZStructMatrixTBB::TPZFlowGraph::TPZCalcTask::operator()(const tbb::blocke
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        (fFlowGraph->fNodes)[element]->try_put(tbb::flow::continue_msg());
+        (fFlowGraph->fNodes)[iel]->try_put(tbb::flow::continue_msg());
         
     }
 } // operator()

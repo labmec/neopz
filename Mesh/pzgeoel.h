@@ -87,6 +87,14 @@ public:
     virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
 #endif
     
+    /** Returns the directions of this geoel */
+    void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directionMaster, TPZFMatrix<REAL> &directionDeformed);
+
+#ifdef _AUTODIFF
+    /** Returns the directions of this geoel */
+    void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directionMaster, TPZFMatrix<Fad<REAL> > &directionDeformed);
+#endif
+        
     /** Returns the eldest ancestor of this geoel */
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<REAL> &trans) = 0;
 	

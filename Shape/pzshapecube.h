@@ -11,6 +11,8 @@
 #include "pztrnsform.h"
 #include "tpzcube.h"
 #include "pzshtmat.h"
+#include "pzshapelinear.h"
+#include "pzshapequad.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -276,7 +278,57 @@ namespace pzshape {
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order);
-        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+        static void inline ShapeInternal(int side, TPZVec<REAL> &x, int order,
+                                               TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
+        #ifdef PZDEBUG
+                if (side < 8 || side > 26) {
+                    DebugStop();
+                }
+        #endif
+                switch (side) {
+                        
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17:
+                    case 18:
+                    case 19:
+                    {
+                        TPZShapeLinear::ShapeInternal(x, order, phi, dphi);
+                    }
+                        break;
+                    case 20:
+                    case 21:
+                    case 22:
+                    case 23:
+                    case 24:
+                    case 25:
+                    {
+                        TPZShapeQuad::ShapeInternal(x, order, phi, dphi);
+                    }
+                        break;
+                    case 26:
+                    {
+                        ShapeInternal(x, order, phi, dphi);
+                    }
+                        break;
+                    default:
+                        std::cout << "Wrong side parameter side " << side << std::endl;
+                        DebugStop();
+                        break;
+                }
+                
+                
+                
+            }
+
+//        static void ShapeInternal(int side, TPZVec<REAL> &x, int order, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 	};
 	

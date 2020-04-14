@@ -235,6 +235,18 @@ namespace pztopology {
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao);
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
+        /// Compute the directions of the HDiv vectors in master element coordinates
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        template <class TVar>
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<TVar> &directions, TPZVec<int> &vecindices);
+        
+        /// Compute the directions of the HDiv vectors
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices);
         /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
@@ -262,6 +274,16 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
+
+        /**
+            @brief Side of the scalar shape functions associated with each vector
+         */
+        constexpr static const int gVectorSides [3] = {0,1,2};
+        /**
+            @brief parameter index associated with each vector
+         */
+        constexpr static const int gDirecaoKsiEta [3] = {0,0,0};
+
 	protected:
         /** @brief Valid permutations between nodes*/
         static int fPermutations [2][3];

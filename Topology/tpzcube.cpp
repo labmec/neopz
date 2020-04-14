@@ -381,27 +381,6 @@ namespace pztopology {
         {0,1,0}   // volume
     };
     
-	static int vectorsideorderC [81] =
-    {
-        0,1,2,3,8,9,10,11,20, //face 0
-        0,1,5,4,8,13,16,12,21,//face 1
-        1,2,6,5,9,14,17,13,22,//face 2
-        3,2,6,7,10,14,18,15,23,//face 3
-        //2,3,7,6,10,15,18,14,23,//face 3
-        0,3,7,4,11,15,19,12,24,//face 4
-        4,5,6,7,16,17,18,19,25,//face 5
-        8,9,10,11,
-        12,13,14,15,
-        16,17,18,19,
-        20,20,//tg face 0
-        21,21,//tg face 1
-        22,22,//tg face 2
-        23,23,//tg face 3
-        24,24,//tg face 4
-        25,25,//tg face 5
-        26,26,26
-    };
-
     static int bilinearounao [81] =   {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -414,16 +393,8 @@ namespace pztopology {
         1
     };
     
-    static int direcaoksioueta [81] = {
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,
-        0,1,0,1,0,1,0,1,0,1,0,1,//0,1,0,2,1,2,0,2,1,2,0,1,
-        0,1,2};
+const int TPZCube::gVectorSides [81];
+const int TPZCube::gDirecaoKsiEta [81];
 
     template<class T>
     inline void TPZCube::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
@@ -1367,92 +1338,157 @@ namespace pztopology {
 //        {0,0,1}  // volume
 //    };
 
-    template <class TVar>
-    void TPZCube::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+/// Compute the directions of the HDiv vectors
+// @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+// @param directions : direction of vectors that define the vector fields
+// @param vecindices : for each vector, the index in the directions data that defines the vector
+void TPZCube::ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices)
+{
+    // number of vectors needed in each direction
+    int numvec[3] = {1,1,1};
+    
+    if(face_orientation[0]*face_orientation[5] > 0)
     {
-        TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
-        
-        TPZManVector<TVar,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vec1(3),vec2(3),vec3(3);
-        for (int i=0; i<3; i++) {
-            v1[i] = gradx(i,0);
-            v2[i] = gradx(i,1);
-            v3[i] = gradx(i,2);
-        }
-        
-        TPZNumeric::ProdVetorial(v1,v2,v1v2);
-        TPZNumeric::ProdVetorial(v2,v3,v2v3);
-        TPZNumeric::ProdVetorial(v3,v1,v3v1);
-        
-        TVar Nv1v2 = TPZNumeric::Norm(v1v2);
-        TVar Nv2v3 = TPZNumeric::Norm(v2v3);
-        TVar Nv3v1 = TPZNumeric::Norm(v3v1);
-        
-        /**
-         * @file
-         * @brief Computing mapped vector with scaling factor equal 1.0.
-         * using contravariant piola mapping.
-         */
-        TPZManVector<TVar,3> NormalScales(3,1.);
-        
-        
-        {
-            for (int i=0; i<3; i++) {
-                v1[i] *= 1./detjac;
-                v2[i] *= 1./detjac;
-                v3[i] *= 1./detjac;
-            }
-            
-        }
-        
-        for (int i=0; i<3; i++) {
-            for (int iv=0; iv<9; iv++) {
-                directions(i,iv)        = -v3[i]*NormalScales[1];
-                directions(i,iv+9)      = -v2[i]*NormalScales[2];
-                directions(i,iv+18)     = v1[i]*NormalScales[1];
-                directions(i,iv+27)     = v2[i]*NormalScales[2];
-                directions(i,iv+36)     = -v1[i]*NormalScales[1];
-                directions(i,iv+45)     = v3[i]*NormalScales[1];
-            }
-            directions(i,54)    = v1[i]*NormalScales[1];
-            directions(i,55)    = v2[i]*NormalScales[2];
-            directions(i,56)    = -v1[i]*NormalScales[1];
-            directions(i,57)    = -v2[i]*NormalScales[2];
-
-            directions(i,58)    = v3[i]*NormalScales[1];
-            directions(i,59)    = v3[i]*NormalScales[1];
-            directions(i,60)    = v3[i]*NormalScales[1];
-            directions(i,61)    = v3[i]*NormalScales[1];
-
-            directions(i,62)    = v1[i]*NormalScales[1];
-            directions(i,63)    = v2[i]*NormalScales[2];
-            directions(i,64)    = -v1[i]*NormalScales[1];
-            directions(i,65)    = -v2[i]*NormalScales[2];
-            
-            directions(i,66)    = v1[i]*NormalScales[1];
-            directions(i,67)    = v2[i]*NormalScales[2];
-            
-            directions(i,68)    = v1[i]*NormalScales[1];
-            directions(i,69)    = v3[i]*NormalScales[1];
-            directions(i,70)    = v2[i]*NormalScales[2];
-            directions(i,71)    = v3[i]*NormalScales[1];
-            directions(i,72)    = v1[i]*NormalScales[1];
-            directions(i,73)    = v3[i]*NormalScales[1];
-            directions(i,74)    = v2[i]*NormalScales[2];
-            directions(i,75)    = v3[i]*NormalScales[1];
-            
-            directions(i,76)    = v1[i]*NormalScales[1];
-            directions(i,77)    = v2[i]*NormalScales[2];
-
-            directions(i,78)    = v1[i]*NormalScales[1];
-            directions(i,79)    = v2[i]*NormalScales[2];
-            directions(i,80)    = v3[i]*NormalScales[1];
-            
-        }
-        
-
+        numvec[2] += 1;
+    }
+    if(face_orientation[1]*face_orientation[3] > 0)
+    {
+        numvec[1] += 1;
+    }
+    if(face_orientation[2]*face_orientation[4] > 0)
+    {
+        numvec[0] += 1;
+    }
+    // total number of distinct vectors
+    int total_numvec = numvec[0]+numvec[1]+numvec[2];
+    int vecind[6]={-1,-1,-1,-1,-1,-1};
+    int nextind = 0;
+    directions.Redim(3, total_numvec);
+    directions(0,0) = 1.*face_orientation[2];
+    directions(1,1) = 1.*face_orientation[3];
+    directions(2,2) = 1.*face_orientation[5];
+    nextind = 3;
+    // face 4
+    if(face_orientation[2]*face_orientation[4] < 0)
+    {
+        int face = 4;
+        for(int i=0; i<9; i++) vecindices[face*9+i] = 0;
+    }
+    else
+    {
+        int face = 4;
+        directions(0,nextind) = -1.*face_orientation[4];
+        for(int i=0; i<9; i++) vecindices[face*9+i] = nextind;
+        nextind++;
     }
 
-    void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
+    // face 1
+    if(face_orientation[1]*face_orientation[3] > 0)
+    {
+        int face = 1;
+        directions(1,nextind) = -1.*face_orientation[1];
+        for(int i=0; i<9; i++) vecindices[face*9+i] = nextind;
+        nextind++;
+    } else
+    {
+        int face = 1;
+        for(int i=0; i<9; i++) vecindices[face*9+i] = 1;
+    }
+    // face 0
+    if(face_orientation[0]*face_orientation[5] > 0)
+    {
+        int face = 0;
+        directions(2,nextind) = -1.*face_orientation[0];
+        for(int i=0; i<9; i++) vecindices[face*9+i] = nextind;
+        nextind++;
+    } else
+    {
+        int face = 0;
+        for(int i=0; i<9; i++) vecindices[face*9+i] = 2;
+    }
+//    directions(0,nextind) = 1.*face_orientation[2];
+    {
+        // face 2
+        int face = 2;
+        for(int i=0; i<9; i++) vecindices[face*9+i] = 0;
+    }
+    {
+        // face 3
+        int face = 3;
+        for(int i=0; i<9; i++) vecindices[face*9+i] = 1;
+    }
+    {
+        // face 5
+        int face = 5;
+        for(int i=0; i<9; i++) vecindices[face*9+i] = 2;
+    }
+    int vecdir[] = {0,1,0,1, 2,2,2,2, 0,1,0,1, 0,1, 0,2, 1,2, 0,2, 1,2, 0,1, 0,1,2};
+    for(int i=54; i<81; i++) vecindices[i] = vecdir[i-54];
+    
+//    std::cout << vecindices << std::endl;
+}
+
+
+template <class TVar>
+void TPZCube::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
+{
+    TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
+    
+    TPZManVector<TVar,3> v1(3),v2(3),v3(3);
+    for (int i=0; i<3; i++) {
+        v1[i] = gradx(i,0)/detjac;
+        v2[i] = gradx(i,1)/detjac;
+        v3[i] = gradx(i,2)/detjac;
+    }
+    
+    
+    for (int i=0; i<3; i++) {
+        for (int iv=0; iv<9; iv++) {
+            directions(i,iv)        = -v3[i];
+            directions(i,iv+9)      = -v2[i];
+            directions(i,iv+18)     = v1[i];
+            directions(i,iv+27)     = v2[i];
+            directions(i,iv+36)     = -v1[i];
+            directions(i,iv+45)     = v3[i];
+        }
+        directions(i,54)    = v1[i];
+        directions(i,55)    = v2[i];
+        directions(i,56)    = v1[i];
+        directions(i,57)    = v2[i];
+        
+        directions(i,58)    = v3[i];
+        directions(i,59)    = v3[i];
+        directions(i,60)    = v3[i];
+        directions(i,61)    = v3[i];
+        
+        directions(i,62)    = v1[i];
+        directions(i,63)    = v2[i];
+        directions(i,64)    = v1[i];
+        directions(i,65)    = v2[i];
+        
+        directions(i,66)    = v1[i];
+        directions(i,67)    = v2[i];
+        
+        directions(i,68)    = v1[i];
+        directions(i,69)    = v3[i];
+        directions(i,70)    = v2[i];
+        directions(i,71)    = v3[i];
+        directions(i,72)    = v1[i];
+        directions(i,73)    = v3[i];
+        directions(i,74)    = v2[i];
+        directions(i,75)    = v3[i];
+        
+        directions(i,76)    = v1[i];
+        directions(i,77)    = v2[i];
+        
+        directions(i,78)    = v1[i];
+        directions(i,79)    = v2[i];
+        directions(i,80)    = v3[i];
+        
+    }
+}
+
+/*    void TPZCube::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {
         if(gradx.Cols()!=3)
         { std::cout << "Gradient dimensions are not compatible with this topology" << std::endl;
@@ -1582,7 +1618,7 @@ namespace pztopology {
 #endif
         
 	}
-    
+*/
     void TPZCube::GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilounao)
     {
         int nsides = NumSides()*3;
@@ -1593,8 +1629,8 @@ namespace pztopology {
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorderC[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
     }
@@ -1609,13 +1645,13 @@ namespace pztopology {
         
         for (int is = 0; is<nsides; is++)
         {
-            sides[is] = vectorsideorderC[is];
-            dir[is] = direcaoksioueta[is];
+            sides[is] = gVectorSides[is];
+            dir[is] = gDirecaoKsiEta[is];
             bilounao[is] = bilinearounao[is];
         }
         
         for (int i=0; i<Dimension*NumSides(); i++) {
-            sidevectors[i] = vectorsideorderC[i];
+            sidevectors[i] = gVectorSides[i];
         }
     }
 

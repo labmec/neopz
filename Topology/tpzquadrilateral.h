@@ -250,6 +250,12 @@ namespace pztopology {
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         
+        /// Compute the directions of the HDiv vectors in master element coordinates
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices);
+        
         /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
@@ -290,8 +296,13 @@ namespace pztopology {
         enum EHdivType {HdivConform = 0, HdivFull=1};
 
         static void SetHdivType(EHdivType val);
+        
+        constexpr static int gVectorSides [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
+        
+        constexpr static int gDirecaoKsiEta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+
 	protected:
-        /** @brief Valid permutations between nodes*/
+        /** @brief Valid permutations between sides*/
         static int fPermutations [8][9];
         static REAL fTangentVectors [16][2];
         static int FaceNodes[1][4]; // Denise e Jose: dim =2

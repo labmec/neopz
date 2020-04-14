@@ -16,16 +16,21 @@
 #include <Accelerate/Accelerate.h>
 #endif
 
+//#define COMPUTE_CRC
+
 #ifdef COMPUTE_CRC
 #ifdef USING_BOOST
 #include "boost/crc.hpp"
-extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, matEcrc, matEInvcrc;
+extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, matEcrc, matEInvcrc,
+    matPhicrc, matindices;
+extern TPZVec<REAL> globnorm,eigvecnorm,eigvalnorm;
 #endif
 #endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemelementgroup"));
 static LoggerPtr loggerMT(Logger::getLogger("pz.mesh.sbfemelementgroupMT"));
+static LoggerPtr loggerTHREAD(Logger::getLogger("pz.mesh.sbfemmultithread"));
 #endif
 
 
@@ -55,11 +60,14 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
             DebugStop();
         }
 #endif
+        
+
         TPZElementMatrix E0Loc(Mesh(),TPZElementMatrix::EK);
         TPZElementMatrix E1Loc(Mesh(),TPZElementMatrix::EK);
         TPZElementMatrix E2Loc(Mesh(),TPZElementMatrix::EK);
         TPZElementMatrix M0Loc(Mesh(),TPZElementMatrix::EK);
         sbfem->ComputeKMatrices(E0Loc, E1Loc, E2Loc,M0Loc);
+        
         
 //        boost::crc_32_type crc;
 //        crc.process_bytes(&E0Loc.fMat(0,0),E0Loc.fMat.Rows()*E0Loc.fMat.Rows()*sizeof(STATE));
@@ -95,7 +103,7 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-#ifdef COMPUTE_CRC
+#ifdef COMPUTE_CRC2
         {
             boost::crc_32_type crc;
             int64_t n = E0Loc.fMat.Rows();
@@ -135,7 +143,10 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
  */
 void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
+    
+
     InitializeElementMatrix(ek, ef);
+
 
     if (fComputationMode == EOnlyMass) {
         ek.fMat = fMassMatrix;
@@ -164,6 +175,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     int dim = Mesh()->Dimension();
     
+
     TPZFMatrix<STATE> E0Inv(E0.fMat);
     if(0)
     {
@@ -195,6 +207,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         sgetrf_(&n, &n, &E0Inv(0,0), &n, &pivot[0], &info);
 #endif
         if (info != 0) {
+            std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
             DebugStop();
         }
 #ifdef STATEdouble
@@ -204,6 +217,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         sgetri_(&n, &E0Inv(0,0), &n, &pivot[0], &work[0], &nwork, &info);
 #endif
         if (info != 0) {
+            std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
             DebugStop();
         }
     }
@@ -220,9 +234,11 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans, n, n, n, 1., &E0Inv(0,0), n, &E1.fMat(0,0), n, 0., &globmat(0,0), 2*n);
 #else
     std::cout << "SBFem does not execute for this configuration\n";
+    std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
     DebugStop();
 #endif
     
+
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
             globmat(i,j+n) = -E0Inv(i,j);
@@ -257,40 +273,60 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         globmat(i+n,i+n) += (dim-2)*0.5;
     }
     
+    static pthread_mutex_t mutex_serial =PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_lock(&mutex_serial);
 
     TPZFMatrix<STATE> globmatkeep(globmat);
     TPZFMatrix< std::complex<double> > eigenVectors;
     TPZManVector<std::complex<double> > eigenvalues;
     
-    
+
 //    usleep((1284-Index())*50000);
-    {
+ 
         globmatkeep.SolveEigenProblem(eigenvalues, eigenVectors);
+    
+    pthread_mutex_unlock(&mutex_serial);
+
+    REAL locglobnorm,loceigvalnorm,loceigvecnorm;
+    locglobnorm = Norm(globmatkeep);
+    loceigvalnorm = 0.;
+    for(int i=0; i<n; i++) loceigvalnorm += (eigenvalues[i]*conj(eigenvalues[i])).real();
+    loceigvalnorm = sqrt(loceigvalnorm);
+    loceigvecnorm = Norm(eigenVectors);
+    
 #ifdef COMPUTE_CRC
         static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
         pthread_mutex_lock(&mutex);
         extern int gnumthreads;
-        std::stringstream sout;
-        sout << "eigval" << gnumthreads << ".nb";
-        static int count = 0;
+        static int print_count = 0;
+        bool diff = false;
+        int64_t ind = Index();
+        if(globnorm[ind] != 0. && globnorm[ind] != locglobnorm) diff=true;
+        if(eigvalnorm[ind] != 0. && eigvalnorm[ind] != loceigvalnorm) diff=true;
+        if(eigvecnorm[ind] != 0. && eigvecnorm[ind] != loceigvecnorm) diff=true;
+    globnorm[ind] = locglobnorm;
+    eigvalnorm[ind] = loceigvalnorm;
+    eigvecnorm[ind] = loceigvecnorm;
         std::ofstream file;
-        if (count == 0) {
+        if (print_count == 0 && (diff || std::isnan(locglobnorm) || std::isnan(loceigvalnorm) || std::isnan(loceigvecnorm))) {
+            std::cout << "*** GOT ONE ***\n";
+            std::stringstream sout;
+            sout << "eigval" << gnumthreads << ".nb";
             file.open(sout.str());
-        }
-        else
-        {
-            file.open(sout.str(),std::ios::app);
-        }
-        std::stringstream eigv;
-        eigv << "EigVec" << Index() << " = ";
-        if(count < 1)
-        {
+            file << "Index = " << Index() << std::endl;
+            file << "globnorm  = " << globnorm << "\neigvalnorm = " << eigvalnorm << "\neigvecnorm = "
+            << eigvecnorm << std::endl;
+            std::stringstream matg;
+            matg << "MatGlob" << Index() << " = ";
+            globmatkeep.Print(matg.str().c_str(),file,EMathematicaInput);
+            std::stringstream eigv;
+            eigv << "EigVec" << Index() << " = ";
             eigenVectors.Print(eigv.str().c_str(),file,EMathematicaInput);
         }
-        count++;
+        print_count++;
         pthread_mutex_unlock(&mutex);
 #endif
-    }
+
 
     if(0)
     {
@@ -309,9 +345,11 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     fPhi.Resize(n, n);
     TPZManVector<std::complex<double> > eigvalsel(n,0);
     TPZFMatrix<std::complex<double> > eigvecsel(2*n,n,0.),eigvalmat(1,n,0.);
+    TPZVec<int> selectindices(n,0);
     int count = 0;
     for (int i=0; i<2*n; i++) {
         if (eigenvalues[i].real() < -1.e-6) {
+            selectindices[count] = i;
             double maxvaleigenvec = 0;
             for (int j=0; j<n; j++) {
                 QVectors(j,count) = eigenVectors(j+n,i);
@@ -336,7 +374,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
     }
     
-#ifdef PZDEBUG
+#ifdef PZDEBUG2
     std::cout << "eigval = {" << eigvalsel << "};\n";
 #endif
 
@@ -344,9 +382,11 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     {
         int nstate = Connect(0).NState();
         if (nstate != 2 && nstate != 1) {
+            std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
             DebugStop();
         }
         if(count != n-nstate) {
+            std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
             DebugStop();
         }
         int ncon = fConnectIndexes.size();
@@ -370,6 +410,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     if(dim==3 && count != n)
     {
+        std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
         DebugStop();
     }
     fEigenvalues = eigvalsel;
@@ -403,6 +444,20 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     {
         exit(-1);
     }
+    
+#ifdef PZDEBUG
+    {
+        TPZFMatrix<std::complex<double>> identity(n,n);
+        identity = fPhi*fPhiInverse;
+        for (int i=0; i<n; i++) {
+            identity(i,i) = identity(i,i)-1.;
+            for (int j=0; j<n; j++) {
+                if(std::norm(identity(i,j)) > 1.e-6) std::cout << "i " << i <<
+                    " j " << j << " val " << identity(i,j) << std::endl;
+            }
+        }
+    }
+#endif
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -441,44 +496,121 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
         if (!sbfem) {
+            std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
             DebugStop();
         }
 #endif
         sbfem->SetPhiEigVal(fPhi, fEigenvalues);
     }
+    
 #ifdef COMPUTE_CRC
+//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_lock(&mutex);
+    int64_t index = Index();
+#ifdef LOG4CXX
+    if(loggerTHREAD->isDebugEnabled())
+    {
+        std::stringstream sout;
+        REAL normEK = Norm(ekloc);
+        REAL phiinv = Norm(fPhiInverse);
+        REAL qvecnorm = Norm(QVectors);
+        sout << "index = " << Index() << " normEK " << normEK << " normphiInv " << phiinv
+        << " qvecnorm " << qvecnorm << " normphi " << Norm(fPhi) << std::endl;
+        LOGPZ_DEBUG(loggerTHREAD, sout.str())
+        if(std::isnan(phiinv))
+        {
+            phiinv = Norm(fPhiInverse);
+            
+            std::ofstream out("EigenProblem.nb");
+            globmatkeep.Print("matrix = ",out,EMathematicaInput);
+            eigvecsel.Print("eigvec =",out,EMathematicaInput);
+            eigvalmat.Print("lambda =",out,EMathematicaInput);
+            fPhi.Print("phi = ",out,EMathematicaInput);
+            fPhiInverse.Print("phiinv = ",out,EMathematicaInput);
+            QVectors.Print("qvec = ",out,EMathematicaInput);
+        }
+    }
+    else
+        DebugStop();
+#endif
+    
     {
         boost::crc_32_type crc;
         int64_t n = E0.fMat.Rows();
         crc.process_bytes(&E0.fMat(0,0), n*n*sizeof(STATE));
         crc.process_bytes(&E1.fMat(0,0), n*n*sizeof(STATE));
         crc.process_bytes(&E2.fMat(0,0), n*n*sizeof(STATE));
-        matEcrc[Index()] = crc.checksum();
+        auto checksum = crc.checksum();
+        auto prevcheck = matEcrc[index];
+        if(prevcheck && prevcheck != checksum)
+        {
+            std::cout << "Element " << index << " E0E1E2 are different\n";
+        }
+        matEcrc[Index()] = checksum;
         
     }
     {
         boost::crc_32_type crc;
         int64_t n = E0Inv.Rows();
         crc.process_bytes(&E0Inv(0,0), n*n*sizeof(STATE));
-        matEInvcrc[Index()] = crc.checksum();
+        auto checksum = crc.checksum();
+        if(matEInvcrc[index] && matEInvcrc[index] != checksum)
+        {
+            std::cout << "Element " << index << " E0Inv are different\n";
+        }
+        matEInvcrc[Index()] = checksum;
         
     }
     {
         boost::crc_32_type crc;
         crc.process_bytes(&globmat(0,0), 4*n*n*sizeof(STATE));
-        matglobcrc[Index()] = crc.checksum();
+        auto checksum = crc.checksum();
+        if(matglobcrc[index] && matglobcrc[index] != checksum)
+        {
+            std::cout << "Element " << index << " matglob is different\n";
+        }
+        matglobcrc[Index()] = checksum;
     }
     {
         boost::crc_32_type crc;
-        crc.process_bytes(&eigenVectors(0,0), n*n*sizeof(std::complex<double>));
-        eigveccrc[Index()] = crc.checksum();
+        crc.process_bytes(&eigenVectors(0,0), 4*n*n*sizeof(std::complex<double>));
+        auto checksum = crc.checksum();
+        if(eigveccrc[index] && eigveccrc[index] != checksum)
+        {
+            std::cout << "Element " << index << " eigvec is different\n";
+        }
+        eigveccrc[Index()] = checksum;
+    }
+    {
+        boost::crc_32_type crc;
+        crc.process_bytes(&fPhi(0,0), n*n*sizeof(std::complex<double>));
+        auto checksum = crc.checksum();
+        if(matPhicrc[index] && matPhicrc[index] != checksum)
+        {
+            std::cout << "Element " << index << " fPhi is different\n";
+        }
+        matPhicrc[Index()] = checksum;
+    }
+    {
+        boost::crc_32_type crc;
+        crc.process_bytes(&selectindices[0], n*sizeof(int));
+        auto checksum = crc.checksum();
+        if(matindices[index] && matindices[index] != checksum)
+        {
+            std::cout << "Element " << index << " selectedindices is different\n";
+        }
+        matindices[Index()] = checksum;
     }
     {
         boost::crc_32_type crc;
         int n = ekloc.Rows();
-        crc.process_bytes(&ekloc(0,0), n*n*sizeof(STATE));
-        stiffcrc[Index()] = crc.checksum();
+        crc.process_bytes(&ekloc(0,0), n*n*sizeof(std::complex<double>));
+        auto checksum = crc.checksum();
+        if(stiffcrc[index] && stiffcrc[index] != checksum)
+        {
+            std::cout << "Element " << index << " EK is different\n";
+        }
+        stiffcrc[Index()] = checksum;
     }
     pthread_mutex_unlock(&mutex);
 #endif
@@ -536,6 +668,7 @@ void TPZSBFemElementGroup::LoadSolution()
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
         if (!sbfem) {
+            std::cout << __PRETTY_FUNCTION__ << __LINE__ << std::endl;
             DebugStop();
         }
 #endif

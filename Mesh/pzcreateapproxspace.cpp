@@ -466,7 +466,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
             fp[ETriangle] = CreateHDivBoundTriangleEl;
             fp[EQuadrilateral] = CreateHDivBoundQuadEl;
             fp[ETetraedro] = CreateHDivTetraEl;
-            fp[EPiramide] = CreateHDivPyramEl;
+            fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateHDivPrismEl;
             fp[ECube] = CreateHDivCubeEl;
             break;
@@ -558,7 +558,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivReferred(int dimensio
             fp[ETriangle] = CreateRefHDivBoundTriangleEl;
             fp[EQuadrilateral] = CreateRefHDivBoundQuadEl;
             fp[ETetraedro] = CreateRefHDivTetraEl;
-            fp[EPiramide] = CreateRefHDivPyramEl;
+            fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateRefHDivPrismEl;
             fp[ECube] = CreateRefHDivCubeEl;
             break;
@@ -682,7 +682,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimensio
             fp[ETriangle] = CreateHDivBoundTriangleEl;
             fp[EQuadrilateral] = CreateHDivBoundQuadEl;
             fp[ETetraedro] = CreateHDivPressureTetraEl;
-            fp[EPiramide] = CreateHDivPressurePyramEl;
+            fp[EPiramide] = CreateNoElement;
             fp[EPrisma] = CreateHDivPressurePrismEl;
             fp[ECube] = CreateHDivPressureCubeEl;
             break;

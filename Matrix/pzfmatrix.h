@@ -53,6 +53,7 @@ class TPZVec;
 template<class TVar>
 TVar Dot(const TPZFMatrix<TVar> &A,const TPZFMatrix<TVar> &B);
 
+std::complex<double> Dot(const TPZFMatrix<std::complex<double>> &A, const TPZFMatrix<std::complex<double>> &B);
 /** @brief Returns the norm of the matrix A */
 template<class TVar>
 TVar Norm(const TPZFMatrix<TVar> &A);
@@ -566,7 +567,7 @@ template<class TVar>
 inline const TVar &TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col ) const {
 #ifdef PZDEBUG
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
-        Error("TPZFMatrix::operator() "," Index out of bounds");
+        Error("TPZFMatrix::GetVal() "," Index out of bounds");
         DebugStop();
     }
 #endif

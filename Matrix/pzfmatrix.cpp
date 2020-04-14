@@ -1150,6 +1150,50 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     this->fDecomposed = ELUPivot;
     return 1;
 }
+
+template <>
+int TPZFMatrix<std::complex<double>>::Decompose_LU(TPZVec<int> &index) {
+    
+    
+    if (this->fDecomposed != ENoDecompose && this->fDecomposed != ELUPivot) DebugStop();
+    
+    if (this->fDecomposed != ENoDecompose) {
+        return ELUPivot;
+    }
+    
+    if ( this->Rows() != this->Cols() ) {
+        cout << "TPZFPivotMatrix::DecomposeLU ERRO : A Matriz não é quadrada" << endl;
+        return 0;
+    }
+    
+    
+    int nRows = this->Rows();
+    int zero = 0;
+    _MKL_Complex16 b;
+    int info;
+    
+    fPivot.Resize(nRows);
+    
+    //    int sgesv_(__CLPK_integer *__n, __CLPK_integer *__nrhs, __CLPK_real *__a,
+    //               __CLPK_integer *__lda, __CLPK_integer *__ipiv, __CLPK_real *__b,
+    //               __CLPK_integer *__ldb,
+    //               __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                __IPHONE_4_0);
+    
+    _MKL_Complex16 *Elem = (_MKL_Complex16 *) fElem;
+    zgesv_(&nRows,&zero,Elem,&nRows,&fPivot[0],&b,&nRows,&info);
+    index = fPivot;
+    this->fDecomposed = ELUPivot;
+#ifdef PZDEBUG
+    if(info != 0)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " " << __LINE__ << std::endl;
+        DebugStop();
+    }
+#endif
+    return 1;
+}
+
 #endif //USING_LAPACK
 
 template <class TVar>
@@ -1237,6 +1281,7 @@ int TPZFMatrix<TVar>::Decompose_LU(TPZVec<int> &index) {
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular) {
     //return Decompose_LU();
+    DebugStop();
 #ifndef USING_LAPACK
     if (  this->fDecomposed && this->fDecomposed != ELU)  Error( "Decompose_LU <Matrix already Decomposed with other scheme>" );
 #else
@@ -1474,6 +1519,49 @@ int TPZFMatrix<double>::Substitution( TPZFMatrix<double> *B, const TPZVec<int> &
 #ifdef PZDEBUG
     if(info != 0)
     {
+        DebugStop();
+    }
+#endif
+    
+    return 1;
+}
+
+template<>
+int TPZFMatrix<std::complex<double> >::Substitution( TPZFMatrix<std::complex<double> > *B, const TPZVec<int> &index ) const{
+    
+    if(!B){
+        PZError << __PRETTY_FUNCTION__ << "TPZFMatrix<>*B eh nulo" << endl;
+        return 0;
+    }
+    
+    
+    if (!this->fDecomposed){
+        PZError <<  __PRETTY_FUNCTION__ << "Matriz não decomposta" << endl;
+        return 0;
+    }
+    
+    if (this->fDecomposed != ELUPivot){
+        PZError << __PRETTY_FUNCTION__ << "\nfDecomposed != ELUPivot" << endl;
+    }
+    
+    //    int sgetrs_(char *__trans, __CLPK_integer *__n, __CLPK_integer *__nrhs,
+    //                __CLPK_real *__a, __CLPK_integer *__lda, __CLPK_integer *__ipiv,
+    //                __CLPK_real *__b, __CLPK_integer *__ldb,
+    //                __CLPK_integer *__info) __OSX_AVAILABLE_STARTING(__MAC_10_2,
+    //                                                                 __IPHONE_4_0);
+    int nRows = this->Rows();
+    char notrans = 'N';
+    int BCols = B->Cols();
+    int info = 0;
+    
+    _MKL_Complex16 *Elem = (_MKL_Complex16 *) fElem;
+    _MKL_Complex16 *bElem = (_MKL_Complex16 *) B->fElem;
+    zgetrs_(&notrans,&nRows,&BCols,Elem,&nRows,&fPivot[0],bElem,&nRows,&info);
+    
+#ifdef PZDEBUG
+    if(info != 0)
+    {
+        std::cout << __PRETTY_FUNCTION__ << " "<< __LINE__ << std::endl;
         DebugStop();
     }
 #endif
@@ -2070,6 +2158,30 @@ int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
 }
 #endif //USING_LAPACK
 
+
+std::complex<double> Dot(const TPZFMatrix<std::complex<double>> &A, const TPZFMatrix<std::complex<double>> &B) {
+    int64_t size = (A.Rows())*A.Cols();
+    std::complex<double> result = 0.;
+    if(!size) return result;
+    // #ifdef USING_ATLAS
+    //     result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+    //     return result;
+    //
+    // #elif USING_BLAS
+    //     result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+    //     return result;
+    //
+    // #else
+    const std::complex<double> *fpA = &A.g(0,0), *fpB = &B.g(0,0);
+    const std::complex<double> *fpLast = fpA+size;
+    while(fpA < fpLast)
+    {
+        result += (*fpA++ * conj(*fpB++));
+    }
+    return result;
+    // #endif
+}
+
 /** @brief Implement dot product for matrices */
 template<class TVar>
 TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
@@ -2077,12 +2189,12 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
     TVar result = 0.;
     if(!size) return result;
     // #ifdef USING_ATLAS
-    // 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-    // 	return result;
+    //     result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+    //     return result;
     //
     // #elif USING_BLAS
-    // 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-    // 	return result;
+    //     result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
+    //     return result;
     //
     // #else
     const TVar *fpA = &A.g(0,0), *fpB = &B.g(0,0);
@@ -2094,6 +2206,7 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
     return result;
     // #endif
 }
+
 
 template
 std::complex<float> Dot(const TPZFMatrix< std::complex<float> > &A, const TPZFMatrix< std::complex<float> > &B);
@@ -2523,18 +2636,19 @@ int TPZFMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigen
         DebugStop();
     }
     char jobvl[] = "None", jobvr[] = "Vectors";
-    TPZFMatrix< double > VL(Rows(),Cols(),0.),VR(Rows(),Cols(),0.);
     int dim = Rows();
+    int twodim = dim*2;
+    TPZFMatrix< double > VL(twodim,twodim,0.),VR(twodim,twodim,0.);
 //    double testwork;
-    int lwork = 10+50*dim;
+    int lwork = 10+50*dim+100;
     int info = 0;
     std::complex<double> I(0,1.);
-    TPZVec<double> realeigen(dim,0.);
-    TPZVec<double> imageigen(dim,0.);
+    TPZVec<double> realeigen(twodim,0.);
+    TPZVec<double> imageigen(twodim,0.);
     
     TPZFMatrix<double> temp(*this);
-    TPZVec<double> work(lwork,0.);
-    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &dim, VR.fElem, &dim, &work[0], &lwork, &info);
+    TPZVec<double> work(2*lwork+10000,0.);
+    dgeev_(jobvl, jobvr, &dim, temp.fElem, &dim, &realeigen[0], &imageigen[0], VL.fElem, &twodim, VR.fElem, &twodim, &work[0], &lwork, &info);
     
     if (info != 0) {
         DebugStop();

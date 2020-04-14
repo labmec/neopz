@@ -2578,3 +2578,52 @@ TPZGeoEl* TPZGeoEl::Father() const {
 TPZGeoNode* TPZGeoEl::SideNodePtr(int side, int nodenum) const {
     return &(fMesh->NodeVec()[SideNodeIndex(side, nodenum)]);
 }
+
+/** Returns the directions of this geoel */
+void TPZGeoEl::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directionMaster, TPZFMatrix<REAL> &directionDeformed)
+{
+    int dim = Dimension();
+    TPZFNMatrix<9> gradx(3,dim);
+    GradX(pt, gradx);
+    REAL detjac = TPZAxesTools<REAL>::ComputeDetjac(gradx);
+    for(int ico=0; ico<3; ico++) for(int d=0; d<dim; d++) gradx(ico,d) /= detjac;
+    gradx.Multiply(directionMaster, directionDeformed);
+}
+
+#ifdef _AUTODIFF
+/** Returns the directions of this geoel */
+void TPZGeoEl::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directionMaster, TPZFMatrix<Fad<REAL> > &directionDeformed)
+{
+    int dim = Dimension();
+    TPZFNMatrix<9,REAL> gradx(3,dim,0.),gradxinv(dim,dim,0.);
+    
+    this->GradX(pt, gradx);
+    gradx.Resize(dim,dim);
+    gradx.Inverse(gradxinv, ENoDecompose);
+    
+    TPZManVector<Fad<REAL>> qsiFad(dim,0.);
+    
+    for(int i=0;i<dim;i++){
+        qsiFad[i] = Fad<REAL>(dim,pt[i]);
+
+        for(int j=0;j<dim;j++){
+            qsiFad[i].fastAccessDx(j)=gradxinv(i,j);
+        }
+    }
+    //std::cout<<qsiFad<<std::endl;
+    TPZFNMatrix<9,Fad<REAL>> gradxFad(3,dim);
+    this->GradX(qsiFad, gradxFad);
+    for(int col=0; col<directionMaster.Cols(); col++)
+    {
+        for(int d=0; d<dim; d++)
+        {
+            directionDeformed(d,col) = Fad<REAL>(dim,0.);
+            for(int j=0; j<dim; j++)
+            {
+                directionDeformed(d,col) += gradxFad(d,j)*directionMaster(j,col);
+            }
+        }
+    }
+}
+#endif
+        

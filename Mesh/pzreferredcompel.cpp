@@ -440,7 +440,7 @@ template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeQuad>>>;
 template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeCube>>>;
 template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapeTetra>>>;
 template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePrism>>>;
-template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>>;
+//template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>>;
 
 
 template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeLinear>>;
@@ -448,7 +448,7 @@ template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeTriang>>;
 template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeQuad>>;
 template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeTetra>>;
 template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePrism>>;
-template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>;
+//template class TPZReferredCompEl<TPZCompElHDiv<TPZShapePiram>>;
 template class TPZReferredCompEl<TPZCompElHDiv<TPZShapeCube>>;
 
 #include "pzelchdivbound2.h"

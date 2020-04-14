@@ -181,7 +181,7 @@ TPZCompEl *CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &ind
 /** @brief Creates computational prismal element for HDivPressure approximate space */
 TPZCompEl *CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational pyramidal element for HDivPressure approximate space */
-TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
+//TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 /** @brief Creates computational tetrahedral element for HDivPressure approximate space */
 TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 

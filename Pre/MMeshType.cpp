@@ -33,6 +33,8 @@ std::string MMeshType_Name(const MMeshType meshType){
 
 int MMeshType_Dimension(const MMeshType meshType){
     switch(meshType){
+        case MMeshType::EOneDimensional:
+            return 1;
         case MMeshType::ETriangular:
         case MMeshType::EQuadrilateral:
             return 2;

@@ -723,6 +723,7 @@ void TPZMatrix<TVar>::Transpose(TPZMatrix<TVar> *T) const {
 template<class TVar>
 int TPZMatrix<TVar>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::list<int64_t> &singular) {
 	
+    DebugStop();
 	switch ( dt ) {
 		case ELU:
 			return( Solve_LU( &B ,singular)  );
@@ -1134,6 +1135,7 @@ void TPZMatrix< std::complex<long double> >::SolveIR(int64_t &numiterations, TPZ
 /*** Decompose_LU ***/
 template <class TVar>
 int TPZMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular) {
+    DebugStop();
 	return Decompose_LU();
 }
 template <class TVar>

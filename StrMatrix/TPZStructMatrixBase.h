@@ -93,6 +93,11 @@ public:
     TPZStructMatrixBase(const TPZStructMatrixBase &);
     TPZStructMatrixBase(TPZCompMesh *);
     TPZStructMatrixBase(TPZAutoPointer<TPZCompMesh>);
+    
+    /** @brief Assemble the global system of equations into the matrix which has already been created */
+    virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    
+
 
   protected:
     /** @brief Pointer to the computational mesh from which the matrix will be

@@ -239,6 +239,12 @@ namespace pztopology {
         static void GetSideHDivDirections(TPZVec<int> &sides, TPZVec<int> &dir, TPZVec<int> &bilinearounao, TPZVec<int> &sidevectors);
         
         /// Compute the directions of the HDiv vectors
+        // @param face_orientation : +1/-1 indicating whether the vectors associated with the faces are outward or inward
+        // @param directions : direction of vectors that define the vector fields
+        // @param vecindices : for each vector, the index in the directions data that defines the vector
+        static void ComputeHDivDirections(TPZVec<int> &face_orientation, TPZFMatrix<REAL> &directions, TPZVec<int> &vecindices);
+        
+        /// Compute the directions of the HDiv vectors
         template <class TVar>
         static void ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions);
 
@@ -263,6 +269,25 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
+        
+        constexpr static int gVectorSides [45] =
+        {
+            0,1,2,4,5,6,10, //face 0
+            0,1,3,4,8,7,11,//face 1
+            1,2,3,5,9,8,12,//face 2
+            0,2,3,6,9,7,13,//face 3
+            4,5,6,7,
+            8,9,
+            10,10,//tg face 0
+            11,11,//tg face 1
+            12,12,//tg face 2
+            13,13,//tg face 3
+            14,14,14
+        };
+        
+        constexpr static int gDirecaoKsiEta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
+
+
 
 	protected:
 		/** @name Data structure which defines the tetrahedral transformations */
