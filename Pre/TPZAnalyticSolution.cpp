@@ -27,6 +27,7 @@
 #include "fadType.h"
 
 
+
 static Fad<REAL> atan2(Fad<REAL> y, Fad<REAL> x)
 {
     int sz = x.size();
@@ -1990,6 +1991,7 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
             flux[1] = -1.*cos(x1)*cos(x2);
             break;
         case EKovasznay:
+        case EKovasznayCDG:
             flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
             break;
@@ -2016,6 +2018,7 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &flu
             flux[1] = -1.*FADcos(x1)*FADcos(x2);
             break;
         case EKovasznay:
+        case EKovasznayCDG:
             flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
             break;
@@ -2034,6 +2037,7 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
 {
     TVar x1 = x[0];
     TVar x2 = x[1];
+    TPZVec<TVar> flux(2,0.);
     
     switch(fExactSol)
     {
@@ -2042,6 +2046,12 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
             break;
         case EKovasznay:
             p = -(1./2.)*exp(2.*lambda*x1);
+            break;
+        case EKovasznayCDG:
+            flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
+            flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
+            p = -(1./2.)*exp(2.*lambda*x1);
+            p += (1./2.)*(flux[0]*flux[0]+flux[1]*flux[1]);
             break;
         case EPconst:
             p = 0;
@@ -2056,7 +2066,8 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADREAL > &x, FADFADREAL &p) cons
 {
     FADFADREAL x1 = x[0];
     FADFADREAL x2 = x[1];
-    
+    TPZVec<FADFADREAL > flux(2,0.);
+
     switch(fExactSol)
     {
         case ESinCos:
@@ -2064,6 +2075,12 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADREAL > &x, FADFADREAL &p) cons
             break;
         case EKovasznay:
             p = -(1./2.)*FADexp(2.*lambda*x1);
+            break;
+        case EKovasznayCDG:
+            flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
+            flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
+            p = -(1./2.)*FADexp(2.*lambda*x1);
+            p += (1./2.)*(flux[0]*flux[0]+flux[1]*flux[1]);
             break;
         case EPconst:
             p = 0;
@@ -2211,7 +2228,7 @@ void TStokesAnalytic::DivSigma(const TPZVec<REAL> &x, TPZVec<REAL> &divsigma) co
 void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
 {
 
-    TPZManVector<REAL,3> locforce(3,0.),beta(3,0.),gradU_beta(3,0.);
+    TPZManVector<REAL,3> locforce(3,0.),beta(3,0.),gradU_beta(3,0.),gradUt_beta(3,0.);
     TPZFMatrix<REAL> grad(3,3,0.);
     DivSigma(x, locforce);
 
@@ -2238,6 +2255,29 @@ void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
             force[0] = -locforce[0]+gradU_beta[0];
             force[1] = -locforce[1]+gradU_beta[1];
             force[2] = -locforce[2]+gradU_beta[2];
+            break;
+
+        case ENavierStokesCDG:
+        case EOseenCDG:
+
+            graduxy(x,grad);
+            uxy(x,beta);
+
+            for (int e=0; e<3; e++) {
+                for (int f=0; f<3; f++) {
+                    gradU_beta[e] += grad(e,f)*beta[f];
+                }
+            }
+
+            for (int e=0; e<3; e++) {
+                for (int f=0; f<3; f++) {
+                    gradUt_beta[e] += grad(f,e)*beta[f];
+                }
+            }
+
+            force[0] = -locforce[0]+gradU_beta[0]-gradUt_beta[0];
+            force[1] = -locforce[1]+gradU_beta[1]-gradUt_beta[1];
+            force[2] = -locforce[2]+gradU_beta[2]-gradUt_beta[2];
             break;
             
         default:
