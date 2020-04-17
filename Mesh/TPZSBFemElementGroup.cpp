@@ -38,8 +38,13 @@ extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, m
 #include <blaze/math/DiagonalMatrix.h>
 #include <blaze/config/Thresholds.h>
 #include <blaze/Math.h>
+
+#ifndef BLAZE_CPP_THREADS_PARALLEL_MODE
 #define BLAZE_CPP_THREADS_PARALLEL_MODE 1
+#endif
+
 #define BLAZE_USE_SHARED_MEMORY_PARALLELIZATION 1
+
 //using blaze::rowMajor;
 using blaze::columnMajor;
 using blaze::DynamicMatrix;
