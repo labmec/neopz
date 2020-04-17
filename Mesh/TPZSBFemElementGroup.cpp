@@ -153,7 +153,7 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
 void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
 #ifdef USING_BLAZE
-    blaze::setNumThreads(2);
+//    blaze::setNumThreads(2);
     InitializeElementMatrix(ek, ef);
 
     if (fComputationMode == EOnlyMass) {
