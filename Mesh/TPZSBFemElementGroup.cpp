@@ -40,7 +40,7 @@ extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, m
 #include <blaze/Math.h>
 #define BLAZE_CPP_THREADS_PARALLEL_MODE 1
 #define BLAZE_USE_SHARED_MEMORY_PARALLELIZATION 1
-using blaze::rowMajor;
+//using blaze::rowMajor;
 using blaze::columnMajor;
 using blaze::DynamicMatrix;
 #endif
@@ -271,7 +271,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     }
     
 #ifdef PZDEBUG
-    std::cout << "eigval = {" << eigvalsel << "};\n";
+//    std::cout << "eigval = {" << eigvalsel << "};\n";
 #endif
 
     if (dim == 2)
@@ -304,6 +304,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     }
     if(dim==3 && count != n)
     {
+        std::cout << __PRETTY_FUNCTION__ << __LINE__ << " count = " << count << " n = " << n << std::endl;
+        for(int i=0; i< 2*n; i++) std::cout << eigenvalues[i] << std::endl;
         DebugStop();
     }
     fEigenvalues = eigvalsel;

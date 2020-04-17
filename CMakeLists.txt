@@ -25,7 +25,7 @@ ELSE (WIN32)
 	endif()
 ENDIF()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## inserting main definitions
@@ -396,11 +396,13 @@ if(USING_BLAZE)
         endif() 
 	find_package( blaze REQUIRED)
 	if( blaze_FOUND )
-		link_libraries(${MKL_LIB_INTEL})
+#		link_libraries(${MKL_LIB_INTEL})
 	    add_library( blaze_target INTERFACE )
     else()
         set (USING_BLAZE "" CACHE PATH "Directory where blaze can be found")
     endif()
+    add_definitions(-DUSING_BLAZE)
+
 endif(USING_BLAZE)
 
 #To enable Python bindings
@@ -585,11 +587,12 @@ IF (NOT WIN32)
 	target_link_libraries(pz pthread)
 ENDIF()
 
-if (USING_BLAZE)
-    target_link_libraries( blaze_target INTERFACE blaze::blaze )
-    target_link_libraries(pz blaze::blaze)
-    add_definitions(-DBLAZE_USE_CPP_THREADS)
-endif()
+#if (USING_BLAZE)
+#    target_link_libraries( blaze_target INTERFACE blaze::blaze )
+#    target_link_libraries( blaze_target INTERFACE )
+#    target_link_libraries(pz blaze::blaze)
+#    add_definitions(-DUSING_BLAZE)
+#endif()
 
 #if (USING_BOOST)
 #   target_link_libraries(pz ${Boost_LIBRARIES})
