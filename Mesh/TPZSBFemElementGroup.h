@@ -76,7 +76,9 @@ public:
      * @param ef element load vector
      */
     virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
-    
+
+    void CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix &ef);
+
     /// set the density or specific heat of the material
     void SetDensity(REAL density)
     {
