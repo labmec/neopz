@@ -631,7 +631,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
                 REAL InvKm = 1./bc.Val1()(0,0);
                 for(int in = 0 ; in < phiQ.Rows(); in++) {
                     //<InvKm(sigma.n +g)+u_D,phi>
-                    ef(in, 0) += (InvKm * (STATE)((phiQ(in,0) + bc.Val2()(0,0)) + res[0])* weight);
+                    ef(in, 0) += (InvKm * (STATE)((phiQ(in,0 ) + bc.Val2()(0,0)) + res[0])* weight);
                     for (int jn = 0 ; jn < phiQ.Rows(); jn++) {
                         //< Piu,phi>
                         ek(in,jn) += (STATE)(phiQ(in,0) * phiQ(jn,0) * weight);

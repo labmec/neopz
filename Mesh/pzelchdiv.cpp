@@ -1380,6 +1380,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
     bool needsol = data.fNeedsSol;
     data.fNeedsSol = false;
+    data.fNeedsNormal = true;
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     data.fNeedsSol = needsol;
     
