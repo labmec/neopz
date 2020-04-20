@@ -515,17 +515,17 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 
 void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-#ifdef PZDEBUG
-    int nref =  datavec.size();
+//#ifdef PZDEBUG
+//    int nref =  datavec.size();
 //    if (nref != 2 ) {
 //        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
 //        DebugStop();
 //    }
-	if (bc.Type() > 2 ) {
-        std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
-		DebugStop();
-	}
-#endif
+//	if (bc.Type() > 2 ) {
+//        std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
+//		DebugStop();
+//	}
+//#endif
     
     
     int dim = Dimension();
@@ -535,44 +535,62 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 
     REAL v2 = bc.Val2()(0,0);
     REAL v1 = bc.Val1()(0,0);
+    TPZManVector<STATE> res(1);
+    TPZFNMatrix<9,STATE> gradu(dim,1);
+    REAL normflux = 0.;
     if(bc.HasForcingFunction())
     {
-		TPZManVector<STATE> res(3);
-        TPZFNMatrix<9,STATE> gradu(dim,1);
+
         bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
+        
+        TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
+        GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
+        
+        for(int i=0; i<3; i++)
+        {
+            for(int j=0; j<dim; j++)
+            {
+                normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
+            }
+        }
+        
+        
         if(bc.Type() == 0)
         {
             v2 = res[0];
         }
         else if(bc.Type() == 1 || bc.Type() == 2)
         {
-            TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
-            GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
-            REAL normflux = 0.;
-            for(int i=0; i<3; i++)
-            {
-                for(int j=0; j<dim; j++)
-                {
-                    normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
-                }
-            }
+//            TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
+//            GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
+//            REAL normflux = 0.;
+//            for(int i=0; i<3; i++)
+//            {
+//                for(int j=0; j<dim; j++)
+//                {
+//                    normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
+//                }
+//            }
             v2 = -normflux;
             if(bc.Type() ==2)
             {
                 v2 = -res[0]+v2/v1;
             }
         }
-        else
-        {
-            DebugStop();
-        }
-	}else
+//        else
+//        {
+//            DebugStop();
+//        }
+	}
+    else
     {
         v2 = bc.Val2()(0,0);
     }
 
+
+    
 	switch (bc.Type()) {
-		case 0 :		// Dirichlet condition
+        case 0 :{		// Dirichlet condition
 			//primeira equacao
 			for(int iq=0; iq<phrq; iq++)
             {
@@ -580,8 +598,9 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
                 ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
             }
             break;
+        }
 			
-		case 1 :			// Neumann condition
+        case 1 :{			// Neumann condition
 			//primeira equacao
 			for(int iq=0; iq<phrq; iq++)
             {
@@ -592,8 +611,9 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
                 }
             }  
 			break;
+        }
         
-        case 2 :			// mixed condition
+        case 2 :{			// mixed condition
             for(int iq = 0; iq < phrq; iq++) {
                 
 				ef(iq,0) += v2*phiQ(iq,0)*weight;
@@ -602,6 +622,24 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 				}
 			}
             break;
+        }
+            case 4:{
+                    //this case implemented the general Robin boundary condition for projection of pressure into the boundary
+                //val1(0,0) = Km
+                //val2(0,0) = g
+                //res = u_D
+                REAL InvKm = 1./bc.Val1()(0,0);
+                for(int in = 0 ; in < phiQ.Rows(); in++) {
+                    //<InvKm(sigma.n +g)+u_D,phi>
+                    ef(in, 0) += (InvKm * (STATE)((phiQ(in,0) + bc.Val2()(0,0)) + res[0])* weight);
+                    for (int jn = 0 ; jn < phiQ.Rows(); jn++) {
+                        //< Piu,phi>
+                        ek(in,jn) += (STATE)(phiQ(in,0) * phiQ(jn,0) * weight);
+                    }
+                }
+            
+                break;
+            }
 	}
     
 }

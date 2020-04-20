@@ -502,9 +502,11 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	short in,jn;
 	STATE v2[1];
 	v2[0] = bc.Val2()(0,0);
+    TPZManVector<STATE,1> res(1);
+    REAL normal[3];
 	
 	if(bc.HasForcingFunction()) {            // phi(in, 0) = phi_in                          // JORGE 2013 01 26
-		TPZManVector<STATE,1> res(1);
+		//TPZManVector<STATE,1> res(1);
 		bc.ForcingFunction()->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
 //        if(fabs(res[0]) > 1.e-6)
 //        {
@@ -515,7 +517,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	}
 
 	switch (bc.Type()) {
-		case 0 :			// Dirichlet condition
+        case 0 :{// Dirichlet condition
 			for(in = 0 ; in < phr; in++) {
 				ef(in,0) += (STATE)(gBigNumber* phi(in,0) * weight) * v2[0];
 				for (jn = 0 ; jn < phr; jn++) {
@@ -523,12 +525,14 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 				}
 			}
 			break;
-		case 1 :			// Neumann condition
+        }
+        case 1 :	{		// Neumann condition
 			for(in = 0 ; in < phi.Rows(); in++) {
 				ef(in,0) += v2[0] * (STATE)(phi(in,0) * weight);
 			}
 			break;
-		case 2 :		// mixed condition
+        }
+        case 2 :	{	// mixed condition
 			for(in = 0 ; in < phi.Rows(); in++) {
 				ef(in, 0) += v2[0] * (STATE)(phi(in, 0) * weight);
 				for (jn = 0 ; jn < phi.Rows(); jn++) {
@@ -536,9 +540,14 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 				}
 			}
 			break;
-		case 3: // outflow condition
+        }
+
+            
+            
+        case 3:{ // outflow condition
 			int id, il, jl;
-			REAL normal[3];
+			
+            
 			if (fDim == 1) PZError << __PRETTY_FUNCTION__ << " - ERROR! The normal vector is not available for 1D TPZInterpolatedElement\n";
 			if (fDim == 2){
 				normal[0] = axes(0,1);
@@ -549,8 +558,8 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 				normal[1] = axes(1,2);
 				normal[2] = axes(2,2);
 			}
-			REAL ConvNormal = 0.;    
-			for(id=0; id<fDim; id++) ConvNormal += fC*fConvDir[id]*normal[id];  
+			REAL ConvNormal = 0.;
+			for(id=0; id<fDim; id++) ConvNormal += fC*fConvDir[id]*normal[id];
 			if(ConvNormal > 0.) {
 				for(il=0; il<phr; il++) {
 					for(jl=0; jl<phr; jl++) {
@@ -559,9 +568,30 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 				}
 			}
 			else{
-				if (ConvNormal < 0.) std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
+				std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
 			}
 			break;
+        }
+            
+        case 4:{
+                //this case implemented the general Robin boundary condition for projection of pressure into the boundary
+            //val1(0,0) = Km
+            //val2(0,0) = g
+            //res = u_D
+            REAL InvKm = 1./bc.Val1()(0,0);
+            for(in = 0 ; in < phi.Rows(); in++) {
+                //<InvKm(sigma.n +g)+u_D,phi>
+                ef(in, 0) += (InvKm * (STATE)((phi(in, 0) + bc.Val2()(0,0)) + res[0])* weight);
+                for (jn = 0 ; jn < phi.Rows(); jn++) {
+                    ek(in,jn) += (STATE)(phi(in,0) * phi(jn,0) * weight);
+                }
+            }
+        
+            break;
+        }
+            
+
+            
 	}
 	
 	if (this->IsSymetric()) {//only 1.e-3 because of bignumbers.
