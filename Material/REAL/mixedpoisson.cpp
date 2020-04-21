@@ -535,6 +535,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 
     REAL v2 = bc.Val2()(0,0);
     REAL v1 = bc.Val1()(0,0);
+    REAL uD = 0.;
     TPZManVector<STATE> res(1);
     TPZFNMatrix<9,STATE> gradu(dim,1);
     REAL normflux = 0.;
@@ -555,9 +556,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
         }
         
         
-        if(bc.Type() == 0)
+        if(bc.Type() == 0 || bc.Type() == 4 )
         {
             v2 = res[0];
+            uD = res[0];
         }
         else if(bc.Type() == 1 || bc.Type() == 2)
         {
@@ -623,23 +625,25 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 			}
             break;
         }
-            case 4:{
-                    //this case implemented the general Robin boundary condition for projection of pressure into the boundary
-                //val1(0,0) = Km
-                //val2(0,0) = g
-                //res = u_D
-                REAL InvKm = 1./bc.Val1()(0,0);
-                for(int in = 0 ; in < phiQ.Rows(); in++) {
-                    //<InvKm(sigma.n +g)+u_D,phi>
-                    ef(in, 0) += (InvKm * (STATE)((phiQ(in,0 ) + bc.Val2()(0,0)) + res[0])* weight);
-                    for (int jn = 0 ; jn < phiQ.Rows(); jn++) {
-                        //< Piu,phi>
-                        ek(in,jn) += (STATE)(phiQ(in,0) * phiQ(jn,0) * weight);
-                    }
+        case 4:{
+            //this case implemented the general Robin boundary condition
+            // sigma.n = Km(u-u_D)+g
+            //val1(0,0) = Km
+            //val2(0,0) = g
+            //res = u_D
+            REAL InvKm = 1./bc.Val1()(0,0);
+            REAL g = bc.Val2()(0,0);
+            for(int in = 0 ; in < phiQ.Rows(); in++) {
+                //<(InvKm g + u_D)*(v.n)
+                ef(in, 0) += (-1.)* (STATE)(res[0] + InvKm*g)*(phiQ(in,0))* weight;
+                for (int jn = 0 ; jn < phiQ.Rows(); jn++) {
+                    //InvKm(sigma.n)(v.n)
+                    ek(in,jn) += (STATE)(InvKm*phiQ(in,0) * phiQ(jn,0) * weight);
                 }
-            
-                break;
             }
+        
+            break;
+        }
 	}
     
 }
