@@ -137,16 +137,16 @@ void TPZMatPoisson3d::SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const 
     }
 }
 
-void TPZMatPoisson3d::GetPermeability(TPZFNMatrix<9,STATE> &K){
+void TPZMatPoisson3d::GetPermeability(TPZFMatrix<STATE> &K){
     K = fTensorPerm;
 }
 
-void TPZMatPoisson3d::GetInvPermeability(TPZFNMatrix<9,STATE> &invK){
+void TPZMatPoisson3d::GetInvPermeability(TPZFMatrix<STATE> &invK){
     invK = fInvPerm;
 }
 
 /// return the permeability and compute it if there is permeability function
-void TPZMatPoisson3d::GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor)
+void TPZMatPoisson3d::GetPermeabilities(TPZVec<REAL> &x, TPZFMatrix<STATE> &PermTensor, TPZFMatrix<STATE> &InvPermTensor)
 {
 
     this->GetPermeability(PermTensor);
