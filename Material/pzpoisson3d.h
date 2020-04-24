@@ -178,11 +178,11 @@ public:
 
     void SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const TPZFNMatrix<9,STATE> invK);
 
-    void GetPermeability(TPZFMatrix<STATE> &K);
+    void GetPermeability(TPZFNMatrix<9,STATE> &K);
 
-    void GetInvPermeability(TPZFMatrix<STATE> &invK);
+    void GetInvPermeability(TPZFNMatrix<9,STATE> &invK);
 
-    void GetPermeabilities(TPZVec<REAL> &x, TPZFMatrix<STATE> &PermTensor, TPZFMatrix<STATE> &InvPermTensor);
+    void GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor);
     
     void SetDimension(int dim)
     {

@@ -164,7 +164,6 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
     data.intGlobPtIndex = -1;
     this->ComputeShape(qsi, data);
-    data.fNeedsNormal  = true;
     
     if (data.fNeedsSol){
         if (data.phi.Rows()){//if shape functions are available
