@@ -132,7 +132,7 @@ TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh(int naumentedlayers,int matidbo
 	int64_t i,j,k;
 	TPZGeoNode gnode;
 	int64_t nnodes = fFineGeoMesh->NodeVec().NElements();
-	
+    maxid =nnodes;
 	//o numero de nos sera duplicado
 	extendedmesh->NodeVec().Resize((naumentedlayers+1)*nnodes);
 	TPZVec<REAL> coord(3);
