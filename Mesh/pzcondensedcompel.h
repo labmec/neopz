@@ -32,6 +32,8 @@
 class TPZCondensedCompEl : public TPZCompEl
 {
 
+protected:
+    
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
     int64_t fNumInternalEqs = 0;
     int64_t fNumTotalEqs = 0;
