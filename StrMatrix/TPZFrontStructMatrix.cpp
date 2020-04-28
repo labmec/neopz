@@ -113,7 +113,9 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 		numelconnected += fMesh->ConnectVec()[ic].NElConnected();
 		firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
 	}
-	
+#ifdef PZDEBUG
+    TPZVec<int64_t> firstel_copy(firstelconnect);
+#endif
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
@@ -138,6 +140,14 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		int64_t ic;
   		for(ic=0; ic<nc; ic++) {
   			int64_t cindex = connectlist[ic];
+#ifdef PZDEBUG
+            if(firstelconnect[cindex] >= firstel_copy[cindex+1])
+            {
+                std::cout << "firstelconnect " << firstelconnect << std::endl;
+                std::cout << "firstel_copy " << firstel_copy << std::endl;
+                DebugStop();
+            }
+#endif
   			elconnect[firstelconnect[cindex]] = el;
   			firstelconnect[cindex]++;
   		}
