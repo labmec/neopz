@@ -25,7 +25,7 @@ ELSE (WIN32)
 	endif()
 ENDIF()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## inserting main definitions
@@ -590,7 +590,7 @@ ENDIF()
 if (USING_BLAZE)
 #    target_link_libraries( blaze_target INTERFACE blaze::blaze )
 #    target_link_libraries( blaze_target INTERFACE )
-    target_link_libraries(pz blaze::blaze)
+#    target_link_libraries(pz blaze::blaze)
     add_definitions(-DUSING_BLAZE)
 endif()
 
