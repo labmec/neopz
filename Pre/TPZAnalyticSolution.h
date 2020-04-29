@@ -18,7 +18,7 @@ struct TPZAnalyticSolution
     /// integer to correct for the sign convention of the forcing term
     int fSignConvention = 1;
     
-    TPZAnalyticSolution(){
+    TPZAnalyticSolution() : fSignConvention(1){
 
     }
 
@@ -205,6 +205,10 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     virtual ~TElasticity2DAnalytic()
     {
         
+    }
+    TElasticity2DAnalytic() : TPZAnalyticSolution(), fProblemType(ENone), fPlaneStress(1)
+    {
+
     }
 
     TElasticity2DAnalytic(const TElasticity2DAnalytic &cp);
