@@ -88,14 +88,14 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-//#ifdef PZDEBUG
-//    int nref = datavec.size();
-//
-//    if (nref != 2) {
-//        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
-//        DebugStop();
-//    }
-//#endif
+#ifdef PZDEBUG
+    int nref = datavec.size();
+
+    if (nref != 2) {
+        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+        DebugStop();
+    }
+#endif
     
     
     
@@ -517,14 +517,14 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     
 #ifdef PZDEBUG
     int nref =  datavec.size();
-//    if (nref != 2 ) {
-//        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
-//        DebugStop();
-//    }
-	if (bc.Type() > 2 ) {
-        std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
-		DebugStop();
-	}
+    if (nref != 2 ) {
+        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+        DebugStop();
+    }
+//	if (bc.Type() > 2 ) {
+//        std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
+//		DebugStop();
+//	}
 #endif
     
     
@@ -535,14 +535,16 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 
     REAL v2 = bc.Val2()(0,0);
     REAL v1 = bc.Val1()(0,0);
+    REAL u_D = 0;
     if(bc.HasForcingFunction())
     {
 		TPZManVector<STATE> res(3);
         TPZFNMatrix<9,STATE> gradu(dim,1);
         bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
-        if(bc.Type() == 0)
+        if(bc.Type() == 0||bc.Type() == 4)
         {
             v2 = res[0];
+            u_D = res[0];
         }
         else if(bc.Type() == 1 || bc.Type() == 2)
         {
@@ -602,6 +604,27 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 				}
 			}
             break;
+            
+        case 4:
+            //this case implemented the general Robin boundary condition
+            // sigma.n = Km(u-u_D)+g
+            //val1(0,0) = Km
+            //val2(0,0) = g
+            //val2(1,0) = u_D
+            REAL InvKm = 1./bc.Val1()(0,0);
+            REAL g = bc.Val2()(0,0);
+           // REAL u_D = bc.Val2()(1,0);
+            for(int in = 0 ; in < phiQ.Rows(); in++) {
+                //-<(InvKm g + u_D)*(v.n)
+                ef(in, 0) +=  (-1.)*(STATE)(u_D + InvKm*g)*phiQ(in,0)* weight;
+                for (int jn = 0 ; jn < phiQ.Rows(); jn++) {
+                    //InvKm(sigma.n)(v.n)
+                    ek(in,jn) += (STATE)(InvKm*phiQ(in,0) * phiQ(jn,0) * weight);
+                }
+            }
+        
+            break;
+        
 	}
     
 }
