@@ -84,6 +84,7 @@ public:
     
     void GetMaxPermeability(REAL &perm)
     {
+        if(fPermeabilityFunction) DebugStop();//Not implemented for permeability given by a function
         TPZFNMatrix<9,STATE> TensorK(3,3);
         this->GetPermeability(TensorK);
         perm = 0;
