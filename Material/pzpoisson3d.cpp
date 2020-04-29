@@ -245,8 +245,8 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
     }
 
     //Kdphi = K*dphi
-    TPZFMatrix<STATE> Kdphi(3,3,0);
-    for(int in = 0 ; in < 3 ; in++) for(int jn = 0; jn < 3; jn++) for(int kn =0; kn <3; kn++)
+    TPZFMatrix<STATE> Kdphi(fDim,phr,0);
+    for(int in = 0 ; in < fDim ; in++) for(int jn = 0; jn < phr; jn++) for(int kn =0; kn <fDim; kn++)
         Kdphi(in,jn) += fTensorPerm.GetVal(in,kn)*dphi(kn,jn);
 
     //Equacao de Poisson

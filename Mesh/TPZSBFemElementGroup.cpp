@@ -165,6 +165,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
+        sout << "BLAZE VERSION\n";
         E0.fMat.Print("E0 = ",sout, EMathematicaInput);
         E1.fMat.Print("E1 = ",sout, EMathematicaInput);
         E2.fMat.Print("E2 = ",sout, EMathematicaInput);
@@ -220,6 +221,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
 
     TPZFMatrix< std::complex<double> > eigenVectors(2*n,2*n);
     TPZManVector<std::complex<double> > eigenvalues(2*n);
+    
+    // KAROL : Porque tem que voltar ao PZ neste estagio?
     
     memcpy(eigenvalues.begin(), &eigvalblaze.data()[0], 2*n*sizeof(std::complex<double>));
     memcpy(eigenVectors.Adress(), &eigvecblaze.data()[0], 2*n*2*n*sizeof(std::complex<double>));
@@ -310,7 +313,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
-        sout << "eigenvalues " << eigvalsel << std::endl;
+        sout << "eigenvalues BLAZE " << eigvalsel << std::endl;
         fPhi.Print("Phivec =",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }

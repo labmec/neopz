@@ -36,14 +36,12 @@ TPZMultiphysicsCompMesh::TPZMultiphysicsCompMesh(const TPZMultiphysicsCompMesh &
     m_mesh_vector           = other.m_mesh_vector;
 }
 
-/// Destructor
+
 TPZMultiphysicsCompMesh::~TPZMultiphysicsCompMesh()
 {
     m_active_approx_spaces.Resize(0);
     m_mesh_vector.Resize(0);
 }
-
-
 
 TPZMultiphysicsCompMesh & TPZMultiphysicsCompMesh::operator=(const TPZMultiphysicsCompMesh &other){
     
