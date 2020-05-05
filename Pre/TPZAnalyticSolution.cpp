@@ -159,10 +159,9 @@ TElasticity2DAnalytic::TElasticity2DAnalytic(const TElasticity2DAnalytic &cp) : 
 }
 
 TElasticity2DAnalytic & TElasticity2DAnalytic::operator=(const TElasticity2DAnalytic &copy){
-    std::cout << "TElasticity2DAnalytic & TElasticity2DAnalytic::operator=(const TElasticity2DAnalytic &copy): One should not invoke this copy constructor";
-    DebugStop();
-    TPZAnalyticSolution::operator=(copy);
     fProblemType = copy.fProblemType;
+    gE = copy.gE;
+    gPoisson = copy.gPoisson;
     return *this;
 }
 
@@ -741,9 +740,6 @@ TElasticity3DAnalytic::TElasticity3DAnalytic(const TElasticity3DAnalytic &cp) : 
 }
 
 TElasticity3DAnalytic & TElasticity3DAnalytic::operator=(const TElasticity3DAnalytic &copy){
-    std::cout << "TElasticity3DAnalytic & TElasticity3DAnalytic::operator=(const TElasticity3DAnalytic &copy): One should not invoke this copy constructor";
-    DebugStop();
-    TPZAnalyticSolution::operator=(copy);
     fProblemType = copy.fProblemType;
     fE = copy.fE;
     fPoisson = copy.fPoisson;
@@ -1221,9 +1217,6 @@ TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp) : TPZAnalyticSolu
 }
 
 TLaplaceExample1 & TLaplaceExample1::operator=(const TLaplaceExample1 &copy){
-    std::cout << "TLaplaceExample1 & TLaplaceExample1::operator=(const TLaplaceExample1 &copy): One should not invoke this copy constructor";
-    DebugStop();
-    TPZAnalyticSolution::operator=(copy);
     fExact = copy.fExact;
     return *this;
 }
