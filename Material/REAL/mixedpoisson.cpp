@@ -536,28 +536,45 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     REAL v2 = bc.Val2()(0,0);
     REAL v1 = bc.Val1()(0,0);
     REAL u_D = 0;
+    REAL normflux = 0.;
+    
     if(bc.HasForcingFunction())
     {
 		TPZManVector<STATE> res(3);
         TPZFNMatrix<9,STATE> gradu(dim,1);
         bc.ForcingFunction()->Execute(datavec[0].x,res,gradu);
+        TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
+        GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
+        
+        
+        for(int i=0; i<3; i++)
+        {
+            for(int j=0; j<dim; j++)
+            {
+                normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
+            }
+        }
+        
+        
         if(bc.Type() == 0||bc.Type() == 4)
         {
             v2 = res[0];
             u_D = res[0];
+            normflux *= (-1.);
         }
         else if(bc.Type() == 1 || bc.Type() == 2)
         {
-            TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
-            GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
-            REAL normflux = 0.;
-            for(int i=0; i<3; i++)
-            {
-                for(int j=0; j<dim; j++)
-                {
-                    normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
-                }
-            }
+//            TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
+//            GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
+//            REAL normflux = 0.;
+//
+//            for(int i=0; i<3; i++)
+//            {
+//                for(int j=0; j<dim; j++)
+//                {
+//                    normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
+//                }
+//            }
             v2 = -normflux;
             if(bc.Type() ==2)
             {
@@ -609,10 +626,23 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
             //this case implemented the general Robin boundary condition
             // sigma.n = Km(u-u_D)+g
             //val1(0,0) = Km
-            //val2(0,0) = g
-            //val2(1,0) = u_D
+            //val2(1,0) = g
+            if(bc.Val1()(0,0)==0){
+                
+                for(int iq=0; iq<phrq; iq++)
+                {
+                    ef(iq,0)+= gBigNumber*normflux*phiQ(iq,0)*weight;
+                    for (int jq=0; jq<phrq; jq++) {
+                        
+                        ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
+                    }
+                }
+                
+            }
+            else{
+            
             REAL InvKm = 1./bc.Val1()(0,0);
-            REAL g = bc.Val2()(0,0);
+            REAL g = bc.Val1()(1,0);
            // REAL u_D = bc.Val2()(1,0);
             for(int in = 0 ; in < phiQ.Rows(); in++) {
                 //-<(InvKm g + u_D)*(v.n)
@@ -621,6 +651,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
                     //InvKm(sigma.n)(v.n)
                     ek(in,jn) += (STATE)(InvKm*phiQ(in,0) * phiQ(jn,0) * weight);
                 }
+            }
             }
         
             break;
