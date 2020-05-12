@@ -6,7 +6,7 @@
 //
 //
 
-// #define COMPUTE_CRC
+#define COMPUTE_CRC
 
 //#ifndef USING_BLAZE
 //#define USING_BLAZE
@@ -201,7 +201,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     E0Invblaze = inv( E0blaze );  // Compute the inverse of E0
 
 #ifdef COMPUTE_CRC
-    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
+//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_lock(&mutex);
     {
         boost::crc_32_type crc;
@@ -243,15 +243,15 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
 	blaze::DynamicMatrix<blaze::complex<double>,blaze::columnMajor> eigvecblaze( 2*n, 2*n );  // The matrix for the left eigenvectors
 
 	eigen(globmatblaze, eigvalblaze, eigvecblaze);
-#ifdef COMPUTE_CRC
-    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
+#ifdef COMPUTE_CRC2
+//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_lock(&mutex);
     extern int gnumthreads;
     std::stringstream sout;
     sout << "eigval" << gnumthreads << ".nb";
-    static int count = 0;
+    static int count_loc = 0;
     std::ofstream file;
-    if (count == 0) {
+    if (count_loc == 0) {
         file.open(sout.str());
     }
     else
@@ -260,11 +260,11 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     }
     std::stringstream eigv;
     eigv << "EigVec" << Index() << " = ";
-    if(count < 1)
+    if(count_loc < 1)
     {
         eigvalblaze.Print(eigv.str().c_str(),file,EMathematicaInput);
     }
-    count++;
+    count_loc++;
     pthread_mutex_unlock(&mutex);
 #endif
 
@@ -411,7 +411,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     }
     ComputeMassMatrix(M0);
 #ifdef COMPUTE_CRC
-    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
+//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_lock(&mutex);
     {
         boost::crc_32_type crc;
