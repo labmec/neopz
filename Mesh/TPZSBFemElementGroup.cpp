@@ -25,15 +25,18 @@
 #ifdef COMPUTE_CRC
 #ifdef USING_BOOST
 #include "boost/crc.hpp"
-extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, matEcrc, matEInvcrc;
+extern TPZVec<boost::crc_32_type::value_type> matglobcrc, eigveccrc, stiffcrc, matEcrc, matEInvcrc, matPhicrc;
 #endif
 #endif
 
 #ifdef USING_BLAZE
-//#define BLAZE_DEFAULT_ALIGMENT_FLAG = blaze::aligned
+//#define BLAZE_DEFAULT_ALIGMENT_FLAG = blaze::unaligned
 //#define BLAZE_DEFAULT_PADDING_FLAG = blaze::unpadded
 #define BLAZE_USE_VECTORIZATION 0
 #define BLAZE_USE_SHARED_MEMORY_PARALLELIZATION 0
+#define BLAZE_BLAS_MODE 1
+#define BLAZE_BLAS_IS_PARALLEL 0
+#define BLAZE_BLAS_INCLUDE_FILE <mkl_lapacke.h>
 #include <blaze/math/DynamicMatrix.h>
 #include <blaze/math/HybridMatrix.h>
 #include <blaze/math/DiagonalMatrix.h>
@@ -115,17 +118,17 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-#ifdef COMPUTE_CRC
-        {
-            boost::crc_32_type crc;
-            int64_t n = E0Loc.fMat.Rows();
-            crc.process_bytes(&E0Loc.fMat(0,0), n*n*sizeof(STATE));
-            crc.process_bytes(&E1Loc.fMat(0,0), n*n*sizeof(STATE));
-            crc.process_bytes(&E2Loc.fMat(0,0), n*n*sizeof(STATE));
-            matEcrc[Index()] = crc.checksum();
+// #ifdef COMPUTE_CRC
+//         {
+//             boost::crc_32_type crc;
+//             int64_t n = E0Loc.fMat.Rows();
+//             crc.process_bytes(&E0Loc.fMat(0,0), n*n*sizeof(STATE));
+//             crc.process_bytes(&E1Loc.fMat(0,0), n*n*sizeof(STATE));
+//             crc.process_bytes(&E2Loc.fMat(0,0), n*n*sizeof(STATE));
+//             matEcrc[Index()] = crc.checksum();
 
-        }
-#endif
+//         }
+// #endif
         int nelcon = E0Loc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = E0Loc.fBlock.Size(ic);
@@ -173,20 +176,6 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-
-#ifdef COMPUTE_CRC
-    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex);
-    {
-        boost::crc_32_type crc;
-        int64_t n = E0.fMat.Rows();
-        crc.process_bytes(&E0.fMat(0,0), n*n*sizeof(STATE));
-        crc.process_bytes(&E1.fMat(0,0), n*n*sizeof(STATE));
-        crc.process_bytes(&E2.fMat(0,0), n*n*sizeof(STATE));
-        matEcrc[Index()] = crc.checksum();
-    }
-    pthread_mutex_unlock(&mutex);
-#endif
     
     int n = E0.fMat.Rows();
     
@@ -197,19 +186,29 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     memcpy(&E0blaze.data()[0], E0.fMat.Adress(), n*n*sizeof(STATE));
     memcpy(&E1blaze.data()[0], E1.fMat.Adress(), n*n*sizeof(STATE));
     memcpy(&E2blaze.data()[0], E2.fMat.Adress(), n*n*sizeof(STATE));
-    
-    E0Invblaze = inv( E0blaze );  // Compute the inverse of E0
 
 #ifdef COMPUTE_CRC
-//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex);
     {
         boost::crc_32_type crc;
-        crc.process_bytes(&E0Invblaze(0,0), n*n*sizeof(STATE));
+        crc.process_bytes(&E0blaze(0,0), E0blaze.spacing()*E0blaze.spacing()*sizeof(STATE));
+        crc.process_bytes(&E1blaze(0,0), E1blaze.spacing()*E1blaze.spacing()*sizeof(STATE));
+        crc.process_bytes(&E2blaze(0,0), E2blaze.spacing()*E2blaze.spacing()*sizeof(STATE));
         matEcrc[Index()] = crc.checksum();
     }
-    pthread_mutex_unlock(&mutex);
 #endif
+    
+    static pthread_mutex_t mutex_serial = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_lock(&mutex_serial);
+    E0Invblaze = serial(inv( E0blaze ));  // Compute the inverse of E0
+
+#ifdef COMPUTE_CRC
+    {
+        boost::crc_32_type crc;
+        crc.process_bytes(&E0Invblaze(0,0), E0Invblaze.spacing()*E0Invblaze.spacing()*sizeof(STATE));
+        matEInvcrc[Index()] = crc.checksum();
+    }
+#endif
+    pthread_mutex_unlock(&mutex_serial);
 
     blaze::DynamicMatrix<STATE,blaze::columnMajor> globmatblaze(2*n,2*n);
     blaze::DynamicMatrix<STATE,blaze::columnMajor> E0InvE1Tblaze = E0Invblaze*trans(E1blaze);
@@ -358,12 +357,20 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+#ifdef COMPUTE_CRC
+    {
+        boost::crc_32_type crc;
+        crc.process_bytes(&fPhi(0,0), fPhi.Rows()*fPhi.Cols()*sizeof(STATE));
+        matPhicrc[Index()] = crc.checksum();
+    }
+#endif
         
     fPhiInverse.Redim(n, n);
     blaze::DynamicMatrix<std::complex<double>,blaze::columnMajor> phiblaze(n,n), PhiInverseblaze(n,n);
     memcpy(&phiblaze.data()[0], fPhi.Adress(),n*n*sizeof(std::complex<double>));
     PhiInverseblaze = inv( phiblaze );  // Compute the inverse of A
     memcpy(fPhiInverse.Adress(), &PhiInverseblaze.data()[0], n*n*sizeof(std::complex<double>));
+
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -410,8 +417,9 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         sbfem->SetPhiEigVal(fPhi, fEigenvalues);
     }
     ComputeMassMatrix(M0);
+
 #ifdef COMPUTE_CRC
-//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
+    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_lock(&mutex);
     {
         boost::crc_32_type crc;
@@ -423,6 +431,11 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         int n = ekloc.Rows();
         crc.process_bytes(&ekloc(0,0), n*n*sizeof(STATE));
         stiffcrc[Index()] = crc.checksum();
+    }
+    {
+        boost::crc_32_type crc;
+        crc.process_bytes(&globmatblaze(0,0), globmatblaze.spacing()*globmatblaze.spacing()*sizeof(STATE));
+        matglobcrc[Index()] = crc.checksum();
     }
     pthread_mutex_unlock(&mutex);
 #endif
