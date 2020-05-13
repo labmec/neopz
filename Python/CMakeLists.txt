@@ -1,40 +1,56 @@
-if(BUILD_PYTHON_BINDING)
-    message (STATUS "SWIG 2 and Python found. Python module will built")
-	target_include_directories(pz PUBLIC 
-							   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-						       #$<INSTALL_INTERFACE:.> 
-						      )
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(SWSIZE SWIGWORDSIZE64)
-    else(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(SWSIZE SWIGWORDSIZE32)
-    endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+include_directories(${PROJECT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+                   "${PROJECT_SOURCE_DIR}/Analysis"
+                   "${PROJECT_SOURCE_DIR}/Common"
+                   "${PROJECT_BINARY_DIR}/Common"                    # pz_config.h
+                   "${PROJECT_SOURCE_DIR}/External/"
+                   "${PROJECT_SOURCE_DIR}/Frontal/"
+                   "${PROJECT_SOURCE_DIR}/Geom"
+                   "${PROJECT_SOURCE_DIR}/Integral"
+                   "${PROJECT_SOURCE_DIR}/Material"
+                   "${PROJECT_SOURCE_DIR}/Material/REAL"
+                   "${PROJECT_SOURCE_DIR}/Matrix"
+                   "${PROJECT_SOURCE_DIR}/Mesh"
+                   "${PROJECT_SOURCE_DIR}/Multigrid"
+                   "${PROJECT_SOURCE_DIR}/Pre"
+                   "${PROJECT_SOURCE_DIR}/Post"
+                   "${PROJECT_SOURCE_DIR}/Refine"
+                   "${PROJECT_SOURCE_DIR}/Save"
+                   "${PROJECT_SOURCE_DIR}/SpecialMaps"
+                   "${PROJECT_SOURCE_DIR}/StrMatrix"
+                   "${PROJECT_SOURCE_DIR}/Topology"
+                   "${PROJECT_SOURCE_DIR}/Util"
+                    ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR} )
 
-    add_custom_command(OUTPUT TPZPython_wrap.cxx ${CMAKE_CURRENT_BINARY_DIR}/TPZPython.py
-	COMMAND ${SWIG_EXECUTABLE} -c++ -Wall -python -D${SWSIZE} -o ${CMAKE_CURRENT_BINARY_DIR}/TPZPython_wrap.cxx -outdir ${CMAKE_CURRENT_BINARY_DIR} TPZPython.i
-	COMMENT "Building SWIG source in ${SWSIZE} mode: See swigpython.out for errors and warning"
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-        
-    set(TPZPython_src ${CMAKE_CURRENT_BINARY_DIR}/TPZPython_wrap.cxx)
+if(USING_FAD)
+    include_directories( "${PROJECT_SOURCE_DIR}/External/FAD/"
+                         "${PROJECT_SOURCE_DIR}/External/FAD/Fad"
+                         "${PROJECT_SOURCE_DIR}/External/FAD/TinyFad"
+                         "${PROJECT_SOURCE_DIR}/External/FAD/TinyFadET")
+endif(USING_FAD)
 
-    include_directories(${PYTHON_INCLUDE_PATH})
-
-    add_library(TPZPython SHARED ${TPZPython_src} ${pzsources})
-
-    IF (APPLE OR WIN32)
-        target_link_libraries(TPZPython pz ${PYTHON_LIBRARY}) #python)
-    ELSE()
-        target_link_libraries(TPZPython pz)
-    ENDIF()
-
-    IF (NOT WIN32)
-		SET_TARGET_PROPERTIES(TPZPython PROPERTIES PREFIX "_")
-		SET_TARGET_PROPERTIES(TPZPython PROPERTIES SUFFIX ".so")
-	ELSE()
-		SET_TARGET_PROPERTIES(TPZPython PROPERTIES PREFIX "_")
-		SET_TARGET_PROPERTIES(TPZPython PROPERTIES SUFFIX ".pyd")
-    ENDIF()
-    
+if(BUILD_PLASTICITY_MATERIALS)
+    include_directories( "${PROJECT_SOURCE_DIR}/Material/REAL/Plasticity" )
 endif()
+
+
+# pybind11
+find_package(pybind11 REQUIRED)
+
+# Project binding sources
+pybind11_add_module( NEOPZ src/neopz_bindings.cpp )
+
+IF(APPLE)
+  target_link_libraries(NEOPZ PRIVATE pz)
+ELSE()
+  IF(${USING_MKL})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing -Wl,--no-as-needed")
+    find_library(MKL_LIB_DEF NAMES libmkl_def.so libmkl_def.dylib PATHS ${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+    target_link_libraries(NEOPZ PUBLIC pz ${MKL_LIB_DEF})
+    target_include_directories(NEOPZ PUBLIC ${MKL_INCLUDE})
+  ELSE()
+    target_link_libraries(NEOPZ PUBLIC pz)
+  ENDIF()
+ENDIF()
+

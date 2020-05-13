@@ -25,7 +25,7 @@ ELSE (WIN32)
 	endif()
 ENDIF()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## inserting main definitions
@@ -388,15 +388,17 @@ if(USING_MKL)
 endif(USING_MKL)
 
 #To enable Python bindings
-option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
-if (BUILD_PYTHON_BINDING)
-  find_package(SWIG "2.0")
-  find_package(PythonLibs)
-  if (NOT SWIG_FOUND OR NOT PYTHONLIBS_FOUND)
-    message(WARNING "SWIG 2 and Python headers required for building Python API bindings. You can set proper SWIG executable with argument -DSWIG_EXECUTABLE=/path/to/swig2.0")
-    set(BUILD_PYTHON_BINDING OFF)
-  endif()
+if(NOT WIN32)
+   option(BUILD_PYTHON_BINDINGS "If checked, python MODULE 'SEST2D' will be built" OFF)
+   if(BUILD_PYTHON_BINDINGS)
+        add_subdirectory(Python)
+        message("--> python MODULE 'NEOPZ' will be built!")
+    else()
+        message("--> python MODULE 'NEOPZ' will NOT be built!")
+    endif()
 endif()
+
+
 
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
