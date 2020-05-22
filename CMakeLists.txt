@@ -546,20 +546,8 @@ include_directories("${PROJECT_BINARY_DIR}/Common")
 install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of pz_config.h part
 
-
-#creating target pz library and installing it
-if (BUILD_PYTHON_BINDING)
-	IF (NOT WIN32)
-		#Build a shared library to be used with python binding
-		add_library(pz SHARED)
-	ELSE()
-		add_library(pz STATIC)
-	ENDIF()
-else()
-  #Build a static library (default)
-  add_library(pz)
-endif()
-
+#Build a static library (default)
+add_library(pz)
 
 target_link_libraries(pz ${PTHREAD_LIB})
 target_include_directories(pz PUBLIC ${PTHREAD_INCLUDE})
@@ -639,9 +627,6 @@ endif()
 if(NOT BUILD_COMPLEX_PROJECTS)
     if(BUILD_PERF_TESTS)
         add_subdirectory(PerfTests)
-    endif()
-    if (BUILD_PYTHON_BINDING)
-        add_subdirectory(Python)
     endif()
 endif()
 
