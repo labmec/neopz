@@ -91,6 +91,24 @@ string to_string(const string &value) {return value;}
 namespace {
 
     template<typename T>
+    static void declareTPZAutoPointer(py::module &mod, std::string const &suffix) {
+        using Class = TPZAutoPointer<T>;
+        using PyClass = py::class_<Class, std::shared_ptr<Class>>;
+
+        PyClass cls(mod, ("TPZAutoPointer" + suffix).c_str());
+
+        cls.def(py::init());
+        cls.def(py::init<int>());
+        cls.def(py::init<double>());
+        cls.def(py::init<int64_t, T>());
+
+    } //TPZAutoPointer
+
+
+
+
+
+    template<typename T>
     static void declareTPZVec(py::module &mod, std::string const &suffix) {
         using Class = TPZVec<T>;
         using PyClass = py::class_<Class, std::shared_ptr<Class>>;
@@ -1005,9 +1023,9 @@ PYBIND11_MODULE(NEOPZ, m) {
     ;
 
 
-    py::class_<TPZAutoPointer<STATE> >(m, "TPZAutoPointer")
-
-    ;
+//    py::class_<TPZAutoPointer<STATE> >(m, "TPZAutoPointer")
+//        .def(py::init())
+//    ;
 
 
     py::class_<TPZSolver<STATE> >(m, "TPZSolver")

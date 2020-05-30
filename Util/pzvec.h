@@ -245,7 +245,7 @@ TPZVec<T>::TPZVec( const int64_t size ) : fStore( 0 )
 #ifndef NODEBUG
 	if( size < 0 )
 	{
-		PZError << "TPZVec constructor. Bad parameter size, then size = 0."
+		PZError << "TPZVec constructor. Bad parameter size " << size << " size is set to 0."
 		<< std::endl;
 		PZError.flush();
 		fNElements = 0;

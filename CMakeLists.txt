@@ -90,9 +90,9 @@ if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
-        set(CMAKE_PREFIX_PATH "C:/local/boost_1_72_0" ${CMAKE_PREFIX_PATH})
+		set(CMAKE_PREFIX_PATH "C:/local/boost_1_72_0" ${CMAKE_PREFIX_PATH})
 	ENDIF()
-	find_package( Boost COMPONENTS REQUIRED )
+	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
 endif(USING_BOOST)
 
 if(BUILD_UNITTESTING)
@@ -377,6 +377,7 @@ if(USING_MKL)
         else()
                 #include_directories(${MKL_INCLUDE})
         endif()
+
         if(MKL_LIB-NOTFOUND)
                 set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
         else()
@@ -546,19 +547,8 @@ install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of pz_config.h part
 
 
-#creating target pz library and installing it
-if (BUILD_PYTHON_BINDING)
-	IF (NOT WIN32)
-		#Build a shared library to be used with python binding
-		add_library(pz SHARED)
-	ELSE()
-		add_library(pz STATIC)
-	ENDIF()
-else()
-  #Build a static library (default)
-  add_library(pz)
-endif()
-
+#Build pz as a static library (default)
+add_library(pz)
 
 target_link_libraries(pz ${PTHREAD_LIB})
 target_include_directories(pz PUBLIC ${PTHREAD_INCLUDE})
@@ -572,7 +562,19 @@ IF (NOT WIN32)
 ENDIF()
 
 if (USING_BOOST)
-   target_link_libraries(pz ${Boost_LIBRARIES})
+   if(APPLE)
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
+   elseif(UNIX)
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
+   elseif(WIN32)                        
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-gd-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-gd-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-gd-x64-1_72.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib
+                               )
+   endif()
    target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif()
 
@@ -626,9 +628,6 @@ endif()
 if(NOT BUILD_COMPLEX_PROJECTS)
     if(BUILD_PERF_TESTS)
         add_subdirectory(PerfTests)
-    endif()
-    if (BUILD_PYTHON_BINDING)
-        add_subdirectory(Python)
     endif()
 endif()
 
