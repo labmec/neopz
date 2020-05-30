@@ -173,11 +173,13 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
     
 #ifdef PZDEBUG
     int nref =  datavec.size();
+    DebugStop();
     if (nref != 3 ) {
         std::cout << " Erro. The size of the datavec is different from 3 \n";
         DebugStop();
     }
 #endif
+    
     
     int s_b = 2;
     

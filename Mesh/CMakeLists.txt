@@ -22,7 +22,7 @@ if(NOT USING_MKL)
   file (GLOB to_remove_from_sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp )
   list (REMOVE_ITEM sources ${to_remove_from_sources})
 endif(NOT USING_MKL)
-
+file (GLOB to_remove_from_headers TPZSBFemElementGroup.h TPZSBFemVolume.h )
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Mesh)
 
 set(pzmesh_STAT_SRCS ${headers} ${sources} ${pzmesh_REAL_SRCS} PARENT_SCOPE)

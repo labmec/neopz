@@ -77,6 +77,7 @@ struct TPZElementMatrix {
     TPZElementMatrix() : fType(Unknown), fMesh(NULL), fConnect(), fMat(0,0), fBlock(&fMat), fConstrConnect(), 
       fConstrMat(0,0), fConstrBlock(&fConstrMat)
     {}
+    TPZElementMatrix &operator=(const TPZElementMatrix &copy);
 	
     TPZElementMatrix(const TPZElementMatrix &copy);
 	

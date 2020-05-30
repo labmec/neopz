@@ -23,6 +23,22 @@ void TPZElementMatrix::SetMatrixSize(short NumBli, short NumBlj,
 		fMat.Redim(NumBli*BlSizei,NumBlj*BlSizej);
 	}
 }
+TPZElementMatrix &TPZElementMatrix::operator=(const TPZElementMatrix &cp)
+{
+    fType = cp.fType;
+    fMesh = cp.fMesh;
+    fConnect = cp.fConnect;
+    fMat = cp.fMat;
+    fBlock = cp.fBlock;
+    fConstrConnect = cp.fConstrConnect;
+    fConstrMat = cp.fConstrMat;
+    fConstrBlock = cp.fConstrBlock;
+    fDestinationIndex = cp.fDestinationIndex;
+    fSourceIndex = cp.fSourceIndex;
+    fBlock.SetMatrix(&fMat);
+    fConstrBlock.SetMatrix(&fConstrMat);
+    return *this;
+}
 
 void TPZElementMatrix::SetMatrixMinSize(short NumBli, short NumBlj, 
 										short BlSizei, short BlSizej) {
