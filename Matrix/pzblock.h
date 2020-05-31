@@ -157,6 +157,8 @@ public:
 	/// Prints all the blocks of the matrix
 	void Print(const char *title = "",TPZostream &out = std::cout,TPZMatrix<TVar> *mat=NULL);
 	
+    void PrintStructure(std::ostream &out = cout);
+    
 	void PrintSolution(const char *title, TPZostream &out);
 	
 	/** @brief Returns the max number of blocks on diagonal */

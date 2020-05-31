@@ -444,6 +444,18 @@ TPZBlock<TVar>::Print(const char *title, TPZostream &out,TPZMatrix<TVar> *mat) {
 	SetMatrix( sol);
 }
 
+template<class TVar>
+void TPZBlock<TVar>::PrintStructure(std::ostream &out)
+{
+    int MaxBlocks = fBlock.NElements();
+    for ( int bRow = 0; bRow < MaxBlocks; bRow++ )
+    {
+        out << "row block " << bRow << " pos " << fBlock[bRow].pos << " dim " << fBlock[bRow].dim << "\n";
+    }
+}
+
+
+
 /*************/
 /*** Print ***/
 template<class TVar>
