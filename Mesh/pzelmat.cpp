@@ -76,7 +76,7 @@ void TPZElementMatrix::Print(std::ostream &out){
         ncon = fConstrConnect.NElements();
         for(ic=0; ic<ncon; ic++) {
             //	out << "Connect index " << fConstrConnect[ic] << endl;
-            out << "ic = " << ic << ' ';
+            out << "ic = " << ic << " index " << fConstrConnect[ic]  << ' ';
             this->fMesh->ConnectVec()[fConstrConnect[ic]].Print(*fMesh,out);
         }
 		ComputeDestinationIndices();
@@ -260,7 +260,7 @@ void TPZElementMatrix::ApplyConstraints(){
 	
 	this->fConstrBlock.Resequence();
 	this->fConstrBlock.SetMatrix(&this->fConstrMat);
-	
+	    
 	int64_t nrhs = this->fMat.Cols();
 	if (this->fType == TPZElementMatrix::EK){
 		this->fConstrMat.Redim(toteq,toteq);
