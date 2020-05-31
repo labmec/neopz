@@ -30,10 +30,10 @@ namespace TPZCompMeshTools
     void GroupElements(TPZCompMesh *cmesh, std::set<int64_t> elbasis, std::set<int64_t> &grouped);
     
     /// Put the element set into a subcompmesh and make the connects internal
-    void PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, bool KeepOneLagrangian);
+    void PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, int KeepOneLagrangian);
     
     /// Put the element set into a subcompmesh and make the connects internal
-    void PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, bool KeepOneLagrangian);
+    void PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, int KeepOneLagrangian);
     
     /// group all embedded elements of the computational mesh
     void GroupElements(TPZCompMesh *cmesh);

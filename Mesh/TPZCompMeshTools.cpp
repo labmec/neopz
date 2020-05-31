@@ -455,7 +455,7 @@ void TPZCompMeshTools::UnCondensedElements(TPZCompMesh *cmesh){
 }
 
 /// Put the element set into a subcompmesh and make the connects internal
-void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, bool KeepOneLagrangian)
+void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, int KeepOneLagrangian)
 {
     for (std::map<int64_t,std::set<int64_t> >::iterator it = elindices.begin(); it != elindices.end(); it++) {
         int64_t index;
@@ -477,7 +477,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
             int64_t nconnects = subcmesh->NConnects();
             for (int64_t ic=0; ic<nconnects; ic++) {
                 TPZConnect &c = subcmesh->Connect(ic);
-                if (c.LagrangeMultiplier() > 0) {
+                if (c.LagrangeMultiplier() == KeepOneLagrangian) {
                     c.IncrementElConnected();
                     count++;
                     if(count == 1 && c.NState() == 1)
@@ -505,7 +505,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::
 
 
 /// Put the element set into a subcompmesh and make the connects internal
-void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, bool KeepOneLagrangian)
+void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, int KeepOneLagrangian)
 {
     TPZSubCompMesh *subcmesh = new TPZSubCompMesh(*cmesh,index);
     for (std::set<int64_t>::iterator it = elindices.begin(); it != elindices.end(); it++) {
@@ -517,7 +517,7 @@ void TPZCompMeshTools::PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &eli
         int64_t nconnects = subcmesh->NConnects();
         for (int64_t ic=0; ic<nconnects; ic++) {
             TPZConnect &c = subcmesh->Connect(ic);
-            if (c.LagrangeMultiplier() > 0) {
+            if (c.LagrangeMultiplier() == KeepOneLagrangian) {
                 c.IncrementElConnected();
                 break;
             }
