@@ -6,7 +6,7 @@
 //
 //
 
-#define COMPUTE_CRC
+//#define COMPUTE_CRC
 
 //#ifndef USING_BLAZE
 //#define USING_BLAZE
