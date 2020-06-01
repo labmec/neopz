@@ -583,14 +583,8 @@ IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
 
-IF (NOT WIN32)
-	target_link_libraries(pz pthread)
-ENDIF()
-
 if (USING_BLAZE)
-#    target_link_libraries( blaze_target INTERFACE blaze::blaze )
-#    target_link_libraries( blaze_target INTERFACE )
-#    target_link_libraries(pz blaze::blaze)
+    target_link_libraries(pz blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
     add_definitions(-DUSING_BLAZE)
 endif()
 
