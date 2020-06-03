@@ -17,6 +17,9 @@ IF (WIN32)
     if (NOT CMAKE_GENERATOR MATCHES "Ninja")
     	set(CMAKE_INSTALL_PREFIX "C:/Program Files/PZ" CACHE PATH "Installation path, prepended onto install directories." FORCE) 
 	endif()
+	if (NOT ${MSVC_VERSION} MATCHES "191") # MSVC 2017 mandatory for C++14 (1910..1919)  MSVC 2019 not tested yet
+	    message(FATAL_ERROR "NeoPZ needs Visual Studio 2017 for proper building under Windows. MSVC version found: ${MSVC_VERSION}." )
+	endif()
 ELSE (WIN32)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
@@ -90,7 +93,7 @@ if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
 		set(Boost_USE_MULTITHREADED ON)
-		set(CMAKE_PREFIX_PATH "C:/local/boost_1_72_0" ${CMAKE_PREFIX_PATH})
+		set(CMAKE_PREFIX_PATH "C:/local/boost_1_7?_0" ${CMAKE_PREFIX_PATH})
 	ENDIF()
 	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
 endif(USING_BOOST)
@@ -388,6 +391,23 @@ if(USING_MKL)
         endif()
 endif(USING_MKL)
 
+#enabling Blaze
+option(USING_BLAZE "Whether the Blaze package will be linked with the library" OFF)
+if(USING_BLAZE)
+        if ( NOT USING_MKL AND NOT USING_LAPACK )
+                message( FATAL_ERROR "Blaze library requires either USING_MKL or USING_LAPACK enabled !")
+        endif() 
+	find_package( blaze REQUIRED)
+	if( blaze_FOUND )
+		#link_libraries(${MKL_LIB_INTEL})
+	    add_library( blaze_target INTERFACE )
+    else()
+        set (USING_BLAZE "" CACHE PATH "Directory where blaze can be found")
+    endif()
+    add_definitions(-DUSING_BLAZE)
+
+endif(USING_BLAZE)
+
 #To enable Python bindings
 if(NOT WIN32)
    option(BUILD_PYTHON_BINDINGS "If checked, python MODULE 'SEST2D' will be built" OFF)
@@ -557,9 +577,14 @@ IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
 
-IF (NOT WIN32)
-	target_link_libraries(pz pthread)
-ENDIF()
+if (USING_BLAZE)
+    target_link_libraries(pz blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
+    add_definitions(-DUSING_BLAZE)
+endif()
+
+#IF (NOT WIN32)
+#	target_link_libraries(pz pthread)
+#ENDIF()
 
 if (USING_BOOST)
    if(APPLE)
@@ -567,12 +592,12 @@ if (USING_BOOST)
    elseif(UNIX)
           target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
    elseif(WIN32)                        
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-gd-x64-1_72.lib
-                                   ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib
-                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-gd-x64-1_72.lib
-                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib
-                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-gd-x64-1_72.lib
-                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib
+          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc14?-mt-gd-x64-1_7?.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_date_time-vc14?-mt-x64-1_7?.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc14?-mt-gd-x64-1_7?.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_atomic-vc14?-mt-x64-1_7?.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc14?-mt-gd-x64-1_7?.lib
+                                   ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc14?-mt-x64-1_7?.lib
                                )
    endif()
    target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
