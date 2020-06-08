@@ -59,6 +59,11 @@ public:
         return fGeoElIndex == -1 || fSide == -1;
     }
     
+    bool operator==(const TPZGeoElSideIndex &copy)
+    {
+        return (fGeoElIndex == copy.fGeoElIndex && fSide == copy.fSide);
+    }
+    
 	int Side() const;
 	
 	void SetSide(int side);
