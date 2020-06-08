@@ -157,6 +157,12 @@ TPZGeoElRefLess<TGeo>::NSides() const{
 
 template<class TGeo>
 int
+TPZGeoElRefLess<TGeo>::NSides(int dim) const{
+    return TGeo::NumSides(dim);
+}
+
+template<class TGeo>
+int
 TPZGeoElRefLess<TGeo>::SideNodeLocId(int side, int node) const {
 	return TGeo::SideNodeLocId(side,node);
 }

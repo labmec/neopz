@@ -288,6 +288,9 @@ public:
 	
 	/** @brief Returns the number of nodes for a particular side*/
 	virtual int NSideNodes(int side) const = 0;
+    
+    /** @brief Returns the number of sides of a given dimension */
+    virtual int NSides(int dim) const = 0;
 	
 	/** @brief Returns the pointer to the nodenum node of side*/
 	virtual TPZGeoNode *SideNodePtr(int side,int nodenum) const;
