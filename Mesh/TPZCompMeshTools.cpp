@@ -604,8 +604,7 @@ static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, 
 
 static void ComputeError(TPZElementGroup *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
-    TPZStack<TPZCompEl *,5> celstack;
-    celstack = cel->GetElGroup();
+    const TPZVec<TPZCompEl *> &celstack = cel->GetElGroup();
     int64_t nel = celstack.size();
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *subcel = celstack[el];
