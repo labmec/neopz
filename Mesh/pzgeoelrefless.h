@@ -213,8 +213,11 @@ virtual int ClassId() const override;
 	/** @brief Returns the number of corner nodes of the element*/
 	virtual  int NCornerNodes() const override;
 	
-	/** @brief Returns the number of connectivities of the element*/
+	/** @brief Returns the number of sides of the element*/
 	virtual  int NSides() const override;
+
+    /** @brief Returns the number of sides of the element of a given dimension */
+    virtual  int NSides(int dim) const override;
 
     /**
      * Get the number of valid permutations among the element nodes
