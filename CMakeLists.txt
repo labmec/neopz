@@ -409,14 +409,12 @@ if(USING_BLAZE)
 endif(USING_BLAZE)
 
 #To enable Python bindings
-if(NOT WIN32)
-   option(BUILD_PYTHON_BINDINGS "If checked, python MODULE 'SEST2D' will be built" OFF)
-   if(BUILD_PYTHON_BINDINGS)
-        add_subdirectory(Python)
-        message("--> python MODULE 'NEOPZ' will be built!")
-    else()
-        message("--> python MODULE 'NEOPZ' will NOT be built!")
-    endif()
+option(BUILD_PYTHON_BINDINGS "If checked, python MODULE 'SEST2D' will be built" OFF)
+if(BUILD_PYTHON_BINDINGS)
+	add_subdirectory(Python)
+	message("--> python MODULE 'NEOPZ' will be built!")
+else()
+	message("--> python MODULE 'NEOPZ' will NOT be built!")
 endif()
 
 
