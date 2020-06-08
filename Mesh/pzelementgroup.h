@@ -85,7 +85,7 @@ public:
     bool NeedsComputing(const std::set<int> &matids) override;
     
 
-    TPZStack<TPZCompEl *, 5> GetElGroup(){
+    const TPZVec<TPZCompEl *> &GetElGroup(){
         return fElGroup;
     }
     
