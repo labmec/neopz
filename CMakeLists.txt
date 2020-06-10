@@ -399,14 +399,6 @@ if(NOT WIN32)
     endif()
 endif()
 
-
-
-#To building several examples for training and experimentation PZ
-option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
-if(BUILD_TUTORIAL)
-	####add_definitions(-DBUILD_TUTORIAL)
-endif()
-
 #To building several examples for training and experimentation PZ
 option(BUILD_BROKEN "To build projects which are broken" OFF)
 
