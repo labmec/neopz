@@ -1049,11 +1049,12 @@ REAL TPZGeoEl::QuadArea(TPZVec<TPZGeoNode *> &nodes){
 	return (areat1+areat2);
 }
 
-REAL TPZGeoEl::Volume(){
+REAL TPZGeoEl:: Volume(){
 	
-	TPZManVector<REAL,3> param(3,0.);
+    int dim = Dimension();
+	TPZManVector<REAL,3> param(dim,0.);
 	REAL detjac;
-	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3), gradx(3,3);
+	TPZFNMatrix<9> jacinv(dim,dim),jacobian(dim,dim),axes(dim,3), gradx(3,dim);
 	//supondo jacobiano constante: X linear
 	CenterPoint(NSides()-1,param);
     GradX(param, gradx);
