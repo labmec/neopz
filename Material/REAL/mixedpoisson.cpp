@@ -88,14 +88,14 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-#ifdef PZDEBUG
-    int nref = datavec.size();
-
-    if (nref != 2) {
-        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    int nref = datavec.size();
+//
+//    if (nref != 2) {
+//        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+//        DebugStop();
+//    }
+//#endif
     
     
     
@@ -517,10 +517,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     
 #ifdef PZDEBUG
     int nref =  datavec.size();
-    if (nref != 2 ) {
-        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
-        DebugStop();
-    }
+//    if (nref != 2 ) {
+//        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+//        DebugStop();
+//    }
 //	if (bc.Type() > 2 ) {
 //        std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
 //		DebugStop();
@@ -645,6 +645,8 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
             break;
         
 	}
+    
+ //   ek.Print("ek ");
     
 }
 
@@ -924,6 +926,7 @@ if(this->fForcingFunctionExact){
 
 
 REAL residual = 0.;
+  //  std::cout<<"divsigma "<<divsigma[0]<< " divsigmafem "<< divsigmafem<<std::endl;
 residual = (divsigma[0] - divsigmafem)*(divsigma[0] - divsigmafem);
 pressurefem[0] = data[1].sol[0][0];
 
