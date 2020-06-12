@@ -1185,7 +1185,7 @@ void TPZRefPattern::CreateRefinementPattern(){
         TPZGeoEl* subEl = fRefPatternMesh.Element(iSubEl + 1);
         subEl->SetFather(fatherEl);
         subEl->SetFatherIndex(0);
-        fatherEl->SetSubElement(iSubEl, subEl);
+        // fatherEl->SetSubElement(iSubEl, subEl);
     }
 
     SetRefPatternMeshToMasterDomain();
