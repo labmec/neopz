@@ -28,12 +28,12 @@ public:
 //    ~TPZVTKGeoMesh();
 	
 	/** @brief Generate an output of all geomesh to VTK */
-	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = true);
+	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = true, bool dimension = false);
 	
 	/** @brief Generate an output of all geomesh to VTK */
-	static void PrintGMeshVTK(TPZAutoPointer<TPZGeoMesh> gmesh, std::ofstream &file, bool matColor = true)
+	static void PrintGMeshVTK(TPZAutoPointer<TPZGeoMesh> gmesh, std::ofstream &file, bool matColor = true, bool dimension = false)
     {
-        PrintGMeshVTK(gmesh.operator->(), file, matColor );
+        PrintGMeshVTK(gmesh.operator->(), file, matColor, dimension);
     }
 	
 	/** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */

@@ -194,12 +194,12 @@ void TPZVTKGeoMesh::PrintCMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 /**
  * Generate an output of all geomesh to VTK
  */
-void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor) {
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor, bool dimension) {
     file.clear();
     int64_t nelements = gmesh->NElements();
     TPZGeoEl *gel;
 
-    std::stringstream node, connectivity, type, material, index;
+    std::stringstream node, connectivity, type, material, index, eldimension;
 
     //Header
     file << "# vtk DataFile Version 3.0" << std::endl;
@@ -245,6 +245,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
         if (matColor == true) {
             material << gel->MaterialId() << std::endl;
         }
+        if (dimension == true) {
+            eldimension << gel->Dimension() << std::endl;
+        }
         index << gel->Index() << std::endl;
         nVALIDelements++;
     }
@@ -261,13 +264,17 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
     file << type.str() << std::endl;
 
     file << "CELL_DATA" << " " << nVALIDelements << std::endl;
-    file << "FIELD FieldData " << (matColor ? "2" : "1") << std::endl;
+    file << "FIELD FieldData " << 1+int(matColor)+int(dimension) << std::endl;
     if (matColor == true) {
         file << "material 1 " << nVALIDelements << " int" << std::endl;
         file << material.str();
     }
     file << "elIndex 1 " << nVALIDelements << " int" << std::endl;
     file << index.str();
+    if (dimension == true) {
+        file << "Dimension 1 " << nVALIDelements << " int" << std::endl;
+        file << eldimension.str();
+    }
 
     file.close();
 }
