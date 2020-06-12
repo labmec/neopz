@@ -159,6 +159,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
     //  Mesh Creation
     TPZGeoMesh * gmesh = gmesh_input;
     if(!gmesh) gmesh = new TPZGeoMesh;
+    int max_dimension = 0;
     
     {
         
@@ -175,6 +176,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
             DebugStop();
         }
         
+
         while(read)
         {
             char buf[1024];
@@ -194,7 +196,6 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 
                 int64_t n_physical_names;
                 read >> n_physical_names;
-                int max_dimension = 0;
                 
                 int dimension, id;
                 std::string name;
@@ -248,7 +249,10 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
                 read >> m_n_curves;
                 read >> m_n_surfaces;
                 read >> m_n_volumes;
-                
+
+                if(max_dimension < 3 && m_n_volumes > 0) max_dimension = 3;
+                else if(max_dimension < 2 && m_n_surfaces > 0) max_dimension = 2;
+                else if(max_dimension < 1 && m_n_curves > 0) max_dimension = 1;
                 
                 int n_physical_tag;
                 std::pair<int, std::vector<int> > chunk;
@@ -456,6 +460,7 @@ TPZGeoMesh * TPZGmshReader::GeometricGmshMesh4(std::string file_name, TPZGeoMesh
         
     }
     
+    gmesh->SetDimension(max_dimension);
     std::cout << "Read General Mesh Data -> done!" << std::endl;
     std::cout << "Number of elements " << gmesh->NElements() << std::endl;
     gmesh->BuildConnectivity();
