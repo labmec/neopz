@@ -1530,6 +1530,10 @@ namespace pztopology {
     
     void TPZPrism::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {
+        // this method is out of date
+        std::cout << __PRETTY_FUNCTION__ << "Deprecated method, not compatible with Piola transform\n";
+        DebugStop();
+
         if(gradx.Cols()!=3)
         { std::cout << "Gradient dimensions are not compatible with this topology" << std::endl;
             DebugStop();
@@ -1681,8 +1685,8 @@ namespace pztopology {
         {
             for (int iv=0; iv<7; iv++)
             {
-                directions(i,iv) = -v3[i]*Nv1v2*NormalScales[0];
-                directions(i,iv+34) = v3[i]*Nv1v2*NormalScales[0];
+                directions(i,iv) = -v3[i]*NormalScales[0]/6.;
+                directions(i,iv+34) = v3[i]*NormalScales[0]/6.;
             }
             //face 1
             directions(i,7) = -v2[i]*Nv3v1*NormalScales[2];
@@ -1728,7 +1732,7 @@ namespace pztopology {
             directions(i,48) = (v2[i]-v1[i])/2.;//*Nvdiag
             directions(i,49) = -v2[i]*Nv3v1*NormalScales[2];//
             
-            //faces
+            // internal in faces
             directions(i,50) = v1[i]*Nv2v3*NormalScales[1];
             directions(i,51) = v2[i]*Nv3v1*NormalScales[2];
             directions(i,52) = v1[i]*Nv2v3*NormalScales[1]/2.;//

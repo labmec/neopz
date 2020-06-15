@@ -1243,6 +1243,10 @@ namespace pztopology {
     void computedirectionsT3(int inicio, int fim, TPZFMatrix<REAL> &bvec, TPZFMatrix<REAL> &t1vec,
                            TPZFMatrix<REAL> &t2vec, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions)
     {
+        // this method is out of date
+        std::cout << __PRETTY_FUNCTION__ << "Deprecated method, not compatible with Piola transform\n";
+        DebugStop();
+
         REAL detgrad = 0.0;
         TPZVec<REAL> u(3);
         TPZVec<REAL> v(3);
@@ -1312,6 +1316,9 @@ namespace pztopology {
     
     void TPZTetrahedron::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {
+        // this method is out of date
+        std::cout << __PRETTY_FUNCTION__ << "Deprecated method, not compatible with Piola transform\n";
+        DebugStop();
         if(gradx.Cols()!=3)
         { std::cout << "Gradient dimensions are not compatible with this topology" << std::endl;
             DebugStop();
@@ -1408,14 +1415,12 @@ namespace pztopology {
     {
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
-        TPZManVector<TVar,3> v1(3),v2(3),v3(3),v1v2(3),v3v1(3),v2v3(3),vdiagxy(3),vi(3),vivdiagxy(3);
+        TPZManVector<TVar,3> v1(3),v2(3),v3(3);
         
         for (int i=0; i<3; i++) {
-            v1[i] = gradx(i,0);
-            v2[i] = gradx(i,1);
-            v3[i] = gradx(i,2);
-            vdiagxy[i] = (gradx(i,0)-gradx(i,1));
-            vi[i] = gradx(i,2)-gradx(i,0);//gradx(i,2)-0.5*(gradx(i,0)+gradx(i,1));
+            v1[i] = gradx(i,0)/6.;
+            v2[i] = gradx(i,1)/6.;
+            v3[i] = gradx(i,2)/6.;
         }
         
         
@@ -1425,11 +1430,6 @@ namespace pztopology {
          * using contravariant piola mapping.
          */
         
-        TVar Nv1v2 = 1.0;
-        TVar Nv2v3 = 1.0;
-        TVar Nv3v1 = 1.0;
-        TVar Nvivdiagb = 1.0;
-
         {
             // the above constants are wrong
             for (int i=0; i<3; i++) {
