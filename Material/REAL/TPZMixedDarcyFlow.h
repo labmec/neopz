@@ -121,7 +121,7 @@ public:
     /** @brief Postprocess required variables multiphysics */
     void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
     
-    /// @TODO:: JV document me please
+     /** @brief Set Permeability */
     void SetPermeability(REAL kappa){
         int n_data = m_kappa.Rows();
         m_kappa.Zero();
@@ -132,7 +132,7 @@ public:
         }
     }
     
-    /// @TODO:: JV document me please
+  /** @brief Set Permeability */
     void SetPermeability(TPZFNMatrix<9,REAL> & kappa){
         
         if (kappa.Rows() != 3 && kappa.Cols() != 3) {
@@ -143,7 +143,7 @@ public:
         m_kappa.Inverse(m_kappa_inv, ELU);
     }
     
-    /// @TODO:: JV document me please
+  /** @brief Set fracture dim */
     void SetDimensionalFactor(REAL d){
         m_d = d;
     }
