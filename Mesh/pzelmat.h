@@ -66,16 +66,18 @@ struct TPZElementMatrix {
       fConstrConnect.Resize(0);
       fConstrMat.Resize(0,0);
       fConstrBlock.SetNBlocks(0);
+        fDestinationIndex.Resize(0);
+        fSourceIndex.Resize(0);
 	}
 	
-	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(),  fConstrConnect(), fConstrMat(0,0), fConstrBlock()
+	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(),fDestinationIndex(), fSourceIndex()
     {
         fBlock.SetMatrix(&fMat);
         fConstrBlock.SetMatrix(&fConstrMat);
     }
 
     TPZElementMatrix() : fType(Unknown), fMesh(NULL), fConnect(), fMat(0,0), fBlock(&fMat), fConstrConnect(), 
-      fConstrMat(0,0), fConstrBlock(&fConstrMat)
+    fConstrMat(0,0), fConstrBlock(&fConstrMat), fDestinationIndex(), fSourceIndex()
     {}
     TPZElementMatrix &operator=(const TPZElementMatrix &copy);
 	

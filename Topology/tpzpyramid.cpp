@@ -1465,6 +1465,10 @@ namespace pztopology {
     
     void TPZPyramid::ComputeDirections(int side, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, TPZVec<int> &sidevectors)
     {
+        // this method is out of date
+        std::cout << __PRETTY_FUNCTION__ << "Deprecated method, not compatible with Piola transform\n";
+        DebugStop();
+        
         if(gradx.Cols()!=3)
         { std::cout << "Gradient dimensions are not compatible with this topology" << std::endl;
             DebugStop();
@@ -1576,6 +1580,10 @@ namespace pztopology {
     template <class TVar>
     void TPZPyramid::ComputeHDivDirections(TPZFMatrix<TVar> &gradx, TPZFMatrix<TVar> &directions)
     {
+        // this method is out of date
+        std::cout << __PRETTY_FUNCTION__ << "Deprecated method, not compatible with Piola transform\n";
+        std::cout << "Pyramid elements should be divided into two tetrahedron elements\n";
+        DebugStop();
         TVar detjac = TPZAxesTools<TVar>::ComputeDetjac(gradx);
         
         TPZManVector<TVar,3> v1(3),v2(3),v3(3),ar9(3),ar10(3),ar11(3),ar12(3);
