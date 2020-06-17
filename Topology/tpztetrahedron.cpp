@@ -1418,9 +1418,9 @@ namespace pztopology {
         TPZManVector<TVar,3> v1(3),v2(3),v3(3);
         
         for (int i=0; i<3; i++) {
-            v1[i] = gradx(i,0)/6.;
-            v2[i] = gradx(i,1)/6.;
-            v3[i] = gradx(i,2)/6.;
+            v1[i] = gradx(i,0)*6.;
+            v2[i] = gradx(i,1)*6.;
+            v3[i] = gradx(i,2)*6.;
         }
         
         

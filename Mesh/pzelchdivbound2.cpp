@@ -571,7 +571,11 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
         TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
         gel->Jacobian(point, jac, axes, detjac, jacinv);
     }
-
+    if(gel->Type() == ETriangle)
+    {
+        // we multiply the shape functions by 6
+        detjac /= 6.;
+    }
 
     int order = this->Connect(0).Order();
     for (int side=0; side < TSHAPE::NSides; side++) {
@@ -606,115 +610,6 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
         phi *= -1.;
         dphi *= -1.;
     }
-    
-    
-    
-    return;
-	/*
-  TPZCompElSide thisside(this,TSHAPE::NSides-1);
-	TPZGeoElSide thisgeoside(thisside.Reference());
-	TPZGeoElSide neighgeo(thisgeoside.Neighbour());
-	TPZCompElSide neigh(fneighbour);
-	TPZInterpolatedElement *neighel = dynamic_cast<TPZInterpolatedElement *> (neigh.Element());
-	if(!neighel)
-	{
-        LOGPZ_ERROR(logger,"Inconsistent neighbour")
-        DebugStop();
-		return;
-	}
-	int nshapeneigh = neighel->NSideShapeF(neighgeo.Side())+1;
-	phi.Redim(nshapeneigh, 1);
-	dphi.Redim(neighgeo.Element()->Dimension(), nshapeneigh);
-	TPZTransform<> tr(thisgeoside.Dimension()),tr2; 
-	thisgeoside.SideTransform3(neighgeo, tr);
-	TPZManVector<REAL,3> pt2(neighgeo.Dimension()),pt3(neighel->Dimension());
-	tr.Apply(pt, pt2);
-	neighel->SideShapeFunction(neigh.Side(), pt2, phi, dphi);
-	 */
-		//tentando reimplementar 
-		TPZManVector<int64_t,TSHAPE::NSides-1> id(TSHAPE::NSides-1,0);
-		
-		TPZGeoEl *ref = this->Reference();
-		int nnodes= ref->NNodes();
-		for(int i=0; i<nnodes; i++) {
-				id[i] = ref->NodePtr(i)->Id();
-		}
-		
-#ifdef LOG4CXX
-		{
-				std::stringstream sout;
-				sout<< "---Id local---"<<id<<std::endl;
-				LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
-		
-		//-----ordenando os id's
-//		int i, j, min, x;
-//		for (i = 0; i < nnodes; ++i) {
-//				min = i;
-//				for (j = i+1; j < nnodes; ++j){
-//						if (id[j] < id[min])  min = j;
-//				x = id[i]; 
-//				id[i] = id[min]; 
-//				id[min] = x;
-//				}
-//		}	
-		
-#ifdef LOG4CXX
-		{
-				std::stringstream sout;
-				sout<< "---Id local Reordenado---"<<id<<std::endl;
-				LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
-		
-		//-----
-		
-	
-		TPZCompElSide thisside(this,TSHAPE::NSides-1);
-		TPZGeoElSide thisgeoside(thisside.Reference());
-//		TPZGeoElSide neighgeo(thisgeoside.Neighbour());
-//		TPZCompElSide neigh(fneighbour);
-		TPZInterpolatedElement *neighel = dynamic_cast<TPZInterpolatedElement *> (thisside.Element());
-//		if(!neighel)
-//		{
-//        LOGPZ_ERROR(logger,"Inconsistent neighbour")
-//        DebugStop();
-//				return;
-//		}
-		int nshapeneigh = neighel->NSideShapeF(thisgeoside.Side());
-		phi.Redim(nshapeneigh, 1);
-		dphi.Redim(thisgeoside.Element()->Dimension(), nshapeneigh);
-		TPZVec<int> ord;
-		neighel->GetInterpolationOrder(ord);
-		TSHAPE::Shape(pt,id,ord,phi,dphi);
-//    if(id[0] > id[1])
-//    {
-//        REAL phival = phi(0,0);
-//        phi(0,0) = phi(1,0);
-//        phi(1,0) = phival;
-//        REAL dphival = dphi(0,0);
-//        dphi(0,0) = dphi(0,1);
-//        dphi(0,1) = dphival;
-//    }
-		
-		
-//		TPZTransform<> tr(thisgeoside.Dimension()),tr2; 
-//		thisgeoside.SideTransform3(thisgeoside, tr);
-//		TPZManVector<REAL,3> pt2(thisgeoside.Dimension()),pt3(neighel->Dimension());
-//		tr.Apply(pt, pt2);
-//		neighel->SideShapeFunction(thisside.Side(), pt2, phi, dphi);
-    
-#ifdef LOG4CXX
-		//if (logger->isDebugEnabled())
-		{
-				std::stringstream sout;
-				sout.precision(20);
-				sout<< "---Phi Novo---"<<phi<<std::endl;
-				sout<< "---Dphi Novo---"<<dphi<<std::endl;
-				LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
 }
 
 template<class TSHAPE>
