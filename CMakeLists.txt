@@ -428,11 +428,6 @@ endif()
 #To building several examples for training and experimentation PZ
 option(BUILD_BROKEN "To build projects which are broken" OFF)
 
-if(BUILD_TUTORIAL)
-	####add_definitions(-DBUILD_TUTORIAL)
-endif()
-
-
 #To building all the specific projects developed with PZ environment
 option(BUILD_PROJECTS "To build specific projects." OFF)
 
