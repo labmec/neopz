@@ -142,6 +142,10 @@ public:
         m_kappa = kappa;
         m_kappa.Inverse(m_kappa_inv, ELU);
     }
+    /** @brief Gravity field */
+    std::vector<REAL> m_gravity;
+    /** @brief Sets Gravity field */
+    void SetGravity(std::vector<REAL> & gravity){ m_gravity = gravity; }
     
   /** @brief Set fracture dim */
     void SetDimensionalFactor(REAL d){

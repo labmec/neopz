@@ -11,6 +11,7 @@ TPZMixedDarcyFlow::TPZMixedDarcyFlow() : TPZMaterial(){
     
     m_kappa.Resize(0, 0);
     m_kappa_inv.Resize(0, 0);
+    m_gravity.resize(3);
     m_d = 0.0;
     m_dim = 0;
     
@@ -23,6 +24,7 @@ TPZMixedDarcyFlow::~TPZMixedDarcyFlow(){
 TPZMixedDarcyFlow::TPZMixedDarcyFlow(int mat_id, int dim) :  TPZMaterial(mat_id){
     m_kappa.Resize(3, 3);
     m_kappa_inv.Resize(3, 3);
+    m_gravity.resize(3);
     m_d = 0.0;
     m_dim = dim;
 }
@@ -34,6 +36,7 @@ TPZMixedDarcyFlow::TPZMixedDarcyFlow(const TPZMixedDarcyFlow &other) : TPZMateri
     m_kappa_inv     = other.m_kappa_inv;
     m_d             = other.m_d;
     m_dim           = other.m_dim;
+    m_gravity       =other.m_gravity;
 }
 
 TPZMaterial * TPZMixedDarcyFlow::NewMaterial(){
@@ -48,6 +51,7 @@ TPZMixedDarcyFlow & TPZMixedDarcyFlow::operator=(const TPZMixedDarcyFlow &other)
         m_kappa_inv     = other.m_kappa_inv;
         m_d             = other.m_d;
         m_dim           = other.m_dim;
+        m_gravity       =other.m_gravity;
     }
     return *this;
 }
@@ -156,14 +160,17 @@ void TPZMixedDarcyFlow::Contribute(TPZVec<TPZMaterialData> &datavec,REAL weight,
         s_i = datavec[qb].fVecShapeIndex[iq].second;
         
         STATE kappa_inv_q_dot_phi_q_i = 0.0;
+        STATE g_dot_phi_q_i = 0.0;
         for (int i = 0; i < 3; i++) {
             phi_q_i(i,0) = phi_qs(s_i,0) * datavec[qb].fDeformedDirections(i,v_i);
             kappa_inv_q_dot_phi_q_i        += kappa_inv_q(i,0)*phi_q_i(i,0);
+            g_dot_phi_q_i                  += m_gravity[i]*phi_q_i(i,0);
         }
         //errado
 //        ef(iq + first_q) += -1.0 * weight * ( kappa_inv_q_dot_phi_q_i - p * div_phi(iq,0));
+     
         
-           ef(iq + first_q) += -1.0 * weight * (  - p * div_phi(iq,0));
+        ef(iq + first_q) += -1.0 * weight * (  g_dot_phi_q_i );
         
         for (int jq = 0; jq < nphi_q; jq++)
         {
