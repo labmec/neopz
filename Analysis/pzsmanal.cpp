@@ -62,10 +62,7 @@ void TPZSubMeshAnalysis::Assemble(){
         DebugStop();
     }
     TPZCompMesh *fathermesh = submesh->Mesh();
-    if (fathermesh->NElements() < 50)
-    {
-        std::cout << "Assembling the SubCompMesh index " << fMesh->Index() << std::endl;
-    }
+
 	int numeq = fCompMesh->NEquations();
 	int numinternal = fMesh->NumInternalEquations();
 	fReferenceSolution.Redim(numeq,1);
