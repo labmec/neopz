@@ -1685,8 +1685,8 @@ namespace pztopology {
         {
             for (int iv=0; iv<7; iv++)
             {
-                directions(i,iv) = -v3[i]*NormalScales[0]/6.;
-                directions(i,iv+34) = v3[i]*NormalScales[0]/6.;
+                directions(i,iv) = -v3[i]*NormalScales[0]*6.;
+                directions(i,iv+34) = v3[i]*NormalScales[0]*6.;
             }
             //face 1
             directions(i,7) = -v2[i]*Nv3v1*NormalScales[2];
