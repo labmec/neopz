@@ -1,8 +1,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-						   $<INSTALL_INTERFACE:.> 
-						  )
+                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Optimization>
+                          )
 
 
 file(GLOB headers *.h)
