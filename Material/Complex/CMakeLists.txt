@@ -3,7 +3,7 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-						   $<INSTALL_INTERFACE:.> 
+			   $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Material/Complex> 
 						  )
 file(GLOB headers *.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/Complex)

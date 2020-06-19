@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-						   $<INSTALL_INTERFACE:.> 
-						  )
+                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Publications>
+                          )
 
 if(NOT BUILD_COMPLEX_PROJECTS) ##projetos nao compativeis com state=complex<double>
 file(GLOB headers *.h)
