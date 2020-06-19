@@ -203,7 +203,7 @@ void TRMPetrophysicsProperties::la(TPZManVector<STATE,10> &l, TPZManVector<STATE
     l[1] = kr_a[0]*(-B_a[1]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[1]/(B_a[0]*mu_a[0]*mu_a[0]));
     l[2] = kr_a[2]/(B_a[0]*mu_a[0]);
     l[3] = kr_a[3]/(B_a[0]*mu_a[0]);
-    l[1] = kr_a[0]*(-B_a[4]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[4]/(B_a[0]*mu_a[0]*mu_a[0]));
+    l[4] = kr_a[0]*(-B_a[4]/(B_a[0]*B_a[0]*mu_a[0]) - mu_a[4]/(B_a[0]*mu_a[0]*mu_a[0]));
     
 }
 
@@ -222,7 +222,7 @@ void TRMPetrophysicsProperties::lb(TPZManVector<STATE,10> &l, TPZManVector<STATE
     l[1] = kr_b[0]*(-B_b[1]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[1]/(B_b[0]*mu_b[0]*mu_b[0]));
     l[2] = kr_b[2]/(B_b[0]*mu_b[0]);
     l[3] = kr_b[3]/(B_b[0]*mu_b[0]);
-    l[1] = kr_b[0]*(-B_b[4]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[4]/(B_b[0]*mu_b[0]*mu_b[0]));
+    l[4] = kr_b[0]*(-B_b[4]/(B_b[0]*B_b[0]*mu_b[0]) - mu_b[4]/(B_b[0]*mu_b[0]*mu_b[0]));
     
 }
 

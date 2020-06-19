@@ -520,7 +520,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fg.Resize(3, 0.0);
     fg[1] = -9.81;
     
-    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     
@@ -574,7 +574,7 @@ void TRMRawData::SinglePhaseReservoir(bool Is3DGeometryQ){
     fEnhancedPressureQ = false;
     fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 2; // fine
+    fMHMResolutionQ.second.second = 0; // fine
     
     // RB controls
     fReduceBasisQ.first = false;
@@ -834,7 +834,181 @@ void TRMRawData::WaterReservoirCircle(bool Is3DGeometryQ){
     
 }
 
+/** @brief Define the materials for a primitive two-phase flow example and their functions associated */
+void TRMRawData::TwoPhaseWaterOilReservoir2D(){
+    
+    // two flow
+    TPZAutoPointer<TRMPhaseProperties> water    = new TRMWaterPhase;
+    TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
+    TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
+    fSystemType.Push("water");
+    fSystemType.Push("water");
+    water->SetRhoModel(0);
+    oil->SetRhoModel(0);
+    fPhases.Push(water);
+    fPhases.Push(oil);
+    int n_data = fSystemType.size();
+    
+    // Setting up gravity
+    fg.Resize(3, 0.0);
+    fg[1] = -9.81*1.0e-6;
+    
+    fGridName = "Meshes/Gmsh/reservoir.msh";
+    
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    fMap = new TRMSpatialPropertiesMap;
+    fMap->SetMapModel(map_model);
+    fPermPorFields.first = "case_2/spe_perm.dat";
+    fPermPorFields.second = "case_2/spe_phi.dat";
+    fNBlocks.Push(60);
+    fNBlocks.Push(220);
+    fNBlocks.Push(4);
+    REAL sp = 0.25;
+    fBlocks_sizes.Push(sp*(220/60)*4.5454545455);
+    fBlocks_sizes.Push(sp*4.5454545455);
+    fBlocks_sizes.Push(5);
+    fMap->SetSpatialFields(fNBlocks, fBlocks_sizes, fPermPorFields);
+    fMap->LoadSPE10Map(false);
+    
+    // Time control parameters
+    REAL hour       = 3600.0;
+    REAL day        = hour * 24.0;
+    
+    REAL s = 1.0;
 
+//    fReportingTimes.Push(std::make_pair(s*500.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*450.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*350.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*300.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*250.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*200.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*150.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*100.0*day,true));
+    fReportingTimes.Push(std::make_pair(s*50.0*day,true));
+    fReportingTimes.Push(std::make_pair(0.0*day,true));
+    
+    fn_steps  = 1000;
+    fdt       = s*10.0*day;
+    fdt_max   = s*50.0*day;
+    fdt_min   = s*0.01*day;
+    fdt_up    = 1.5;
+    fdt_down  = 0.5;
+    
+    // Numeric controls
+    fn_corrections = 50;
+    fepsilon_res = 0.0001;
+    fepsilon_cor = 0.01;
+    fUsePardisoQ  = true;
+    fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
+    fIsAdataptedQ = true;
+    fEnhancedPressureQ = false;
+    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.second.first = 0; // level
+    fMHMResolutionQ.second.second = 0; // fine
+    fIncreaseTransporResolutionQ.first = true;
+    fIncreaseTransporResolutionQ.second = 1;
+    
+    // RB controls
+    fReduceBasisQ.first = false;
+    fReduceBasisQ.second.second.Push(20); // x
+    fReduceBasisQ.second.second.Push(10); // y
+    fReduceBasisQ.second.second.Push(2); // z
+    
+    // Rock materials ids
+    int Rock = 5;
+    int wellbore_p = 6;
+    int wellbore_i = 7;
+    fOmegaIds.Push(Rock);
+    fOmegaIds.Push(wellbore_p);
+    fOmegaIds.Push(wellbore_i);
+    
+    int bc_W = 9;
+    int bc_E = 11;
+    int bc_S = 8;
+    int bc_N = 10;
+    int bc_B = 100; // inserted but not being used
+    int bc_T = 100; // inserted but not being used
+    
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > W(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > E(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > S(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > N(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > B(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > T(n_data);
+    
+    fGammaIds.Push(bc_W);
+    W[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
+    fIntial_bc_data.Push(W);
+    W[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(W);
+    
+    fGammaIds.Push(bc_E);
+    E[0] = std::make_pair(2,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(E);
+    E[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(E);
+    
+    fGammaIds.Push(bc_S);
+    S[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(S);
+    S[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(S);
+    
+    fGammaIds.Push(bc_N);
+    N[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(N);
+    N[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(N);
+    
+    fGammaIds.Push(bc_B);
+    B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(B);
+    B[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(B);
+    
+    fGammaIds.Push(bc_T);
+    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(T);
+    T[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(T);
+    
+    int bc_p_lids = 1;
+    int bc_i_lids = 2;
+    int bc_Prod = 3;
+    int bc_Inj  = 4;
+    
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WLids(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WPro(n_data);
+    TPZVec< std::pair< int, TPZFunction<REAL> * > > WInj(n_data);
+    
+    fGammaIds.Push(bc_p_lids);
+    WLids[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(WLids);
+    WLids[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(WLids);
+    
+    fGammaIds.Push(bc_i_lids);
+    WLids[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fIntial_bc_data.Push(WLids);
+    WLids[0] = std::make_pair(4,new TPZDummyFunction<REAL>(Impervious_2p));
+    fRecurrent_bc_data.Push(WLids);
+    
+    
+    fGammaIds.Push(bc_Prod);
+    WPro[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
+    fIntial_bc_data.Push(WPro);
+    WPro[0] = std::make_pair(0,new TPZDummyFunction<REAL>(PressureOutlet_2p));
+    fRecurrent_bc_data.Push(WPro);
+    
+    
+    fGammaIds.Push(bc_Inj);
+    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(WellBorePressure_2p));
+    fIntial_bc_data.Push(WInj);
+    WInj[0] = std::make_pair(2,new TPZDummyFunction<REAL>(PressureInlet_2p));
+    fRecurrent_bc_data.Push(WInj);
+    
+}
 
 
 /** @brief Define the materials for a primitive two-phase flow example and their functions associated */
@@ -845,7 +1019,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     TPZAutoPointer<TRMPhaseProperties> oil      = new TRMOilPhase;
     TPZAutoPointer<TRMPhaseProperties> gas      = new TRMGasPhase;
     fSystemType.Push("water");
-    fSystemType.Push("oil");
+    fSystemType.Push("water");
     water->SetRhoModel(0);
     oil->SetRhoModel(0);
     fPhases.Push(water);
@@ -861,9 +1035,10 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
         fg[2] = -9.81*1.0e-6;
     }
     
-    fGridName = "Meshes/Gmsh/reservoir_thiem.msh";
+//    fGridName = "Meshes/Gmsh/reservoir_thiem.msh";
+    fGridName = "Meshes/Gmsh/reservoir.msh";
     
-    int map_model = 2; // constant -> 0, function -> 1, SPE10 interpolation -> 2
+    int map_model = 0; // constant -> 0, function -> 1, SPE10 interpolation -> 2
     fMap = new TRMSpatialPropertiesMap;
     fMap->SetMapModel(map_model);
     fPermPorFields.first = "case_2/spe_perm.dat";
@@ -887,12 +1062,12 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
         s = 0.1;
     }
 
-    fReportingTimes.Push(std::make_pair(s*500.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*450.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*350.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*300.0*day,true));
-    fReportingTimes.Push(std::make_pair(s*250.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*500.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*450.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*400.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*350.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*300.0*day,true));
+//    fReportingTimes.Push(std::make_pair(s*250.0*day,true));
     fReportingTimes.Push(std::make_pair(s*200.0*day,true));
     fReportingTimes.Push(std::make_pair(s*150.0*day,true));
     fReportingTimes.Push(std::make_pair(s*100.0*day,true));
@@ -918,11 +1093,11 @@ void TRMRawData::TwoPhaseWaterOilReservoir(bool Is3DGeometryQ){
     }
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
-    fIsAdataptedQ = false;
+    fIsAdataptedQ = true;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = true;
-    fMHMResolutionQ.second.first = 2; // level
-    fMHMResolutionQ.second.second = 2; // fine
+    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.second.first = 0; // level
+    fMHMResolutionQ.second.second = 0; // fine
     fIncreaseTransporResolutionQ.first = true;
     fIncreaseTransporResolutionQ.second = 0;
     
@@ -1167,7 +1342,7 @@ void TRMRawData::CaseTracerTransport(bool Is3DGeometryQ){
     fMHMResolutionQ.second.first = 0;
     fMHMResolutionQ.second.second = 0;
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 2;
+    fIncreaseTransporResolutionQ.second = 0;
     
     // Rock materials ids
     int Rock = 4;
