@@ -230,7 +230,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
     
 #endif
     
-    int n_threads = 4;
+    int n_threads = 0;
     int order = 1;
     
     fSpaceGenerator->SetDefaultUOrder(order+1);
@@ -260,6 +260,7 @@ void TRMOrchestra::CreateSegregatedAnalysis(bool IsInitialQ)
         int skeleton_id = 0;
         fSpaceGenerator->InsertSkeletonInterfaces(skeleton_id); // @omar:: Primitive use of the mhm capabilities
         fSpaceGenerator->BuildMHM_Mesh();
+//        fSpaceGenerator->BuildMixed_Mesh();
     }
     else{
         fSpaceGenerator->BuildMixed_Mesh();

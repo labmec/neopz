@@ -1038,7 +1038,7 @@ void TRMRawData::TwoPhaseWaterOilReservoir2DBox(bool Is3DGeometryQ){
     fNBlocks.Push(220);
     fNBlocks.Push(1);
     REAL spx = 0.125;
-    REAL spy = 1.0;
+    REAL spy = 1.01;
     fBlocks_sizes.Push(spx*(220/60)*4.5454545455);
     fBlocks_sizes.Push(spy*4.5454545455);
     fBlocks_sizes.Push(1);
@@ -1076,13 +1076,13 @@ void TRMRawData::TwoPhaseWaterOilReservoir2DBox(bool Is3DGeometryQ){
     fepsilon_cor = 0.01;
     fUsePardisoQ  = true;
     fIsQuasiNewtonQ = true; // Deprecated fixed due to secant method
-    fIsAdataptedQ = true;
+    fIsAdataptedQ = false;
     fEnhancedPressureQ = false;
-    fMHMResolutionQ.first = false;
+    fMHMResolutionQ.first = true;
     fMHMResolutionQ.second.first = 0; // level
-    fMHMResolutionQ.second.second = 0; // fine
+    fMHMResolutionQ.second.second = 1; // fine
     fIncreaseTransporResolutionQ.first = true;
-    fIncreaseTransporResolutionQ.second = 3;
+    fIncreaseTransporResolutionQ.second = 0;
     
     // RB controls
     fReduceBasisQ.first = false;
