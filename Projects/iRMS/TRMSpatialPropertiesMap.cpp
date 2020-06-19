@@ -346,13 +346,13 @@ void TRMSpatialPropertiesMap::LoadSPE10Map(bool PrintMapQ)
     int axis = 3; // z -axis;
     this->RotateGeomesh(gmesh, angle, axis);
     
-    REAL s = 1.05;
+    REAL s = 1.0;
     this->ExpandGeomesh(gmesh, s, s, s);
     
     TPZVec<REAL> t_vec(3,0.0);
     t_vec[0] = 0.0;
     t_vec[1] = 0.0;
-    t_vec[2] = 10.0;
+    t_vec[2] = 0.0;
     this->TraslateGeomesh(gmesh, t_vec);
     
     if(!gmesh)

@@ -71,7 +71,8 @@ void MultiScaleSimulation()
     }
     else{
 //        RawData->CaseTracerTransport(Is3DGeometry); // Case 1 and 2 Tracer transport // recomposed
-        RawData->TwoPhaseWaterOilReservoir2D(); // Two-phase flow 2D
+        RawData->TwoPhaseWaterOilReservoir2DBox(Is3DGeometry); // Two-phase flow 2D for box meshes
+//        RawData->TwoPhaseWaterOilReservoir2D(); // Two-phase flow 2D
 //        RawData->TwoPhaseWaterOilReservoir(Is3DGeometry); // Two-phase flow Thiem
     }
     

@@ -529,7 +529,6 @@ void TRMSpaceOdissey::CreateFluxCmesh(){
     std::pair< int, TPZFunction<REAL> * > bc_item;
     TPZVec< std::pair< int, TPZFunction<REAL> * > > bc;
     
-    // Malha computacional
     fFluxCmesh = new TPZCompMesh(fGeoMesh);
     
     // Inserting volumetric materials

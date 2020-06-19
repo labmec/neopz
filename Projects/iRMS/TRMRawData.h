@@ -195,6 +195,8 @@ public:
 
     void TwoPhaseWaterOilReservoir2D();
     
+    void TwoPhaseWaterOilReservoir2DBox(bool Is3DGeometryQ);
+    
     void TwoPhaseWaterOilReservoir(bool Is3DGeometryQ);
     
     static void PressureOutlet_2p(const TPZVec< REAL >& pt, REAL time, TPZVec< REAL >& f, TPZFMatrix< REAL >& Gradf);
