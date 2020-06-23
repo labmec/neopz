@@ -233,7 +233,7 @@ void TPZMixedDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weigh
 
 void TPZMixedDarcyFlow::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
-    gBigNumber = 10e14;
+    gBigNumber = 1e18;
     int qb = 0;
     TPZFNMatrix<100,REAL> phi_qs       = datavec[qb].phi;
     
