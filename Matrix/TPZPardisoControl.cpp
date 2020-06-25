@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
-//#define Release_Memory_Q
+#define Release_Memory_Q
 
 /// empty constructor (non symetric and LU decomposition
 template<class TVar>
@@ -352,6 +352,52 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
 #endif
 #endif
 }
+
+// reset the pardiso data structure to its original state
+template<class TVar>
+void TPZPardisoControl<TVar>::ReleaseMemory()
+{
+    long long phase = -1;
+    long long n=0;
+    TVar *a;
+    long long *ia,*ja;
+    if (fSymmetricSystem) {
+        if(fSymmetricSystem->Rows() == 0)
+        {
+            return;
+        }
+        a = &(fSymmetricSystem->fA[0]);
+        ia = (long long *) &(fSymmetricSystem->fIA[0]);
+        ja = (long long *) &(fSymmetricSystem->fJA[0]);
+        n = fSymmetricSystem->Rows();
+    }
+    if (fNonSymmetricSystem) {
+        a = &(fNonSymmetricSystem->fA[0]);
+        ia = (long long *) &(fNonSymmetricSystem->fIA[0]);
+        ja = (long long *) &(fNonSymmetricSystem->fJA[0]);
+        n = fNonSymmetricSystem->Rows();
+    }
+    long long av,bv,xv;
+    void *b = &bv, *x = &xv;
+    long long perm,nrhs = 1;
+    long long Error = 0;
+    
+    pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, &perm,
+                &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
+    
+    if (Error) {
+        DebugStop();
+    }
+    if (fSymmetricSystem) {
+        fSymmetricSystem->SetIsDecomposed(0);
+    }
+    if (fNonSymmetricSystem) {
+        fNonSymmetricSystem->SetIsDecomposed(0);
+    }
+
+}
+
+
 
 template<class TVar>
 TPZPardisoControl<TVar>::~TPZPardisoControl()

@@ -50,6 +50,9 @@ public:
     
     virtual ~TPZPardisoControl();
     
+    // reset the pardiso data structure to its original state
+    void ReleaseMemory();
+    
     /// change the matrix type
     // this method should only be called if the pardiso control is zero (non initialized)
     void SetMatrixType(MSystemType systemtype, MProperty prop);

@@ -71,6 +71,9 @@ public :
         if(rows == this->fRow && cols == this->fCol)
         {
             Zero();
+#ifdef USING_MKL
+            fPardisoControl.ReleaseMemory();
+#endif
         }
         else
         {
