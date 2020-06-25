@@ -106,6 +106,9 @@ public:
 	/** @brief Sets the analysis type. */
 	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
+    /** @brief Sets the analysis type. */
+    void SetAnalysisSparse(int numThreads);
+    
     /**
      * @brief Condense the internal equations using a skyline symetric matrix 
      * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or 
