@@ -65,6 +65,18 @@ public :
         
     }
 
+    /** @brief Zeroes the matrix */
+    virtual int Redim(int64_t rows, int64_t cols) override
+    {
+        if(rows == this->fRow && cols == this->fCol)
+        {
+            Zero();
+        }
+        else
+        {
+            DebugStop();
+        }
+    }
     
     /** @brief Fill matrix storage with randomic values */
     /** This method use GetVal and PutVal which are implemented by each type matrices */
