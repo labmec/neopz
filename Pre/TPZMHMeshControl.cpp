@@ -2410,20 +2410,30 @@ void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
             TPZManVector<TPZGeoEl *,8> subels;
             if (neighbour.Side() == neighbour.NSides()-1) {
                 TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern();
-                if(!siderefpattern) DebugStop();
-                wrapelement->SetRefPattern(siderefpattern);
+                if(!siderefpattern)
+                {
+                    std::cout << __PRETTY_FUNCTION__ << " We expect elements to have refinement patterns\n";
+//                    DebugStop();
+                }
+                else
+                {
+                    wrapelement->SetRefPattern(siderefpattern);
+                }
             }
             else
             {
                 TPZAutoPointer<TPZRefPattern> elrefpattern = neighbour.Element()->GetRefPattern();
                 if(!elrefpattern)
                 {
-                    std::cout << "We expect elements to have refinement patterns\n";
-                    DebugStop();
+                    std::cout << __PRETTY_FUNCTION__ << " We expect elements to have refinement patterns\n";
+//                    DebugStop();
                 }
-                TPZAutoPointer<TPZRefPattern> siderefpattern = elrefpattern->SideRefPattern(neighbour.Side());
-                if(!siderefpattern) DebugStop();
-                wrapelement->SetRefPattern(siderefpattern);
+                else
+                {
+                    TPZAutoPointer<TPZRefPattern> siderefpattern = elrefpattern->SideRefPattern(neighbour.Side());
+                    if(!siderefpattern) DebugStop();
+                    wrapelement->SetRefPattern(siderefpattern);
+                }
             }
 
             wrapelement->Divide(subels);
