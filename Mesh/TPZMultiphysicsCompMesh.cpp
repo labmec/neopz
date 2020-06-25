@@ -158,10 +158,6 @@ void TPZMultiphysicsCompMesh::AddElements(){
     {
         if(!m_mesh_vector[i_as]) continue;
         m_mesh_vector[i_as]->LoadReferences();
-        {
-            std::ofstream out("gmesh.txt");
-            geometry->Print(out);
-        }
         int64_t icel;
         for(icel=0; icel < n_cels; icel++)
         {
