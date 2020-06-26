@@ -293,6 +293,7 @@ public:
 	virtual int Redim(const int64_t newRows, const int64_t newCols ) {
 		fRow = newRows;
 		fCol = newCols;
+        Zero();
 		return 0;
 	}
 	

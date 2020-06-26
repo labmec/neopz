@@ -394,6 +394,9 @@ void TPZPardisoControl<TVar>::ReleaseMemory()
     if (fNonSymmetricSystem) {
         fNonSymmetricSystem->SetIsDecomposed(0);
     }
+    fPardisoControl = new TPZManVector<long long,64>(64,0);
+    fHandle = &fPardisoControl.operator->()->operator[](0);
+    fMatrixType = MatrixType();
 
 }
 

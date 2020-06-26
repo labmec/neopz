@@ -503,7 +503,7 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	fK11.Zero();
 	fF0.Zero();
 	fF1.Zero();
-    TPZMatrix<TVar>::Redim(fDim0+fDim1,fDim0+fDim1);
+    TPZMatrix<TVar>::Resize(fDim0+fDim1,fDim0+fDim1);
 	return 0;
 }
 

@@ -665,6 +665,7 @@ int TPZFYsmpMatrix<TVar>::Zero()
 {
     fA.Fill(TVar(0.));
     fDiag.Fill(TVar(0.));
+//    fPardisoControl.ReleaseMemory();
 	return 1;
 }
 
