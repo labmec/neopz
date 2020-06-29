@@ -247,6 +247,12 @@ void TPZPardisoControl<TVar>::Decompose()
 template<class TVar>
 void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol) const
 {
+    REAL norm = Norm(rhs);
+    if(norm < 1.e-9)
+    {
+        std::cout << "Skipping pardiso because of zero rhs norm " << norm << "\n";
+        return;
+    }
     long long n=0;
     TVar *a,*b, *x;
     long long *ia,*ja;
