@@ -460,7 +460,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 
     EExactSol fExactSol = ESinCos;
     
-    REAL fvisco = 0.01; //Viscosity
+    REAL fvisco = 1.; //Viscosity
     
     REAL Pi = M_PI;
     
