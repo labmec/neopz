@@ -22,35 +22,11 @@ And much more!
 ### Optional external libraries
 The usage of NeoPZ can be improved by linking against the following libraries:
 - [log4cxx](https://logging.apache.org/log4cxx/latest_stable/), for logging information
-- [Boost](https://www.boost.org/) TODO
 - [Intel MKL](https://software.intel.com/en-us/mkl), for optimized linear system solvers
 - etc.
 
 ## Installation
-To install NeoPZ run the following commands:
-```shell
-git clone https://github.com/labmec/neopz.git
-mkdir neopz-build
-cd neopz-build
-ccmake ../neopz
-```
-This will open CMake configuration window, in which you can:
-- Set the installation prefix path,
-- Set the build type (Debug, Release, RelWithDebInfo),
-- Toggle the external libraries to be linked against NeoPZ, 
-- Choose to install executable targets under the ``BUILD_PROJECTS`` option.
-- etc.
-
-Then press ``c`` to 'configure', ``g`` to 'generate' the Makefile and install 
-NeoPZ with:
-```shell
-make install
-```
-\* The last command may require ``sudo`` according to the chosen installation path.
-
-## Using NeoPZ in your project
-
-TODO
+To install NeoPZ please refer to the tutorial for [Linux](http://www.labmec.org.br/wiki/howto/roteiro_pzlinux_eng), [Windows](http://www.labmec.org.br/wiki/howto/pz_windows) or [MacOS](http://www.labmec.org.br/wiki/howto/pz_no_ubuntu_macosx_mavericks).
 
 ## NeoPZ documentation
 
