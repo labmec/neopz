@@ -537,6 +537,7 @@ void TPZMHMixedMeshControl::CreateHDivPressureMHMMesh()
     cmeshes[0] = fFluxMesh.operator->();
     cmeshes[1] = fPressureFineMesh.operator->();
     
+    if(0)
     {
         std::ofstream out("PressureMesh_MultiPhis.txt");
         cmeshes[1] ->Print(out);
@@ -1022,13 +1023,13 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
             SetSubdomain(cel, it->first);
         }
     }
+    fGMesh->ResetReference();
 #endif
 
     ptime end_time = microsec_clock::local_time(); // TODO remove it later
     time_duration t = end_time - start_time;
     std::cout <<   "\n:: Internal loop duration: " << t << "\n\n"; // TODO remove it later
 
-    fGMesh->ResetReference();
     fFluxMesh->ExpandSolution();
 }
 
