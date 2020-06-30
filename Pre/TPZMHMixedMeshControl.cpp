@@ -957,14 +957,56 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
 
-    //Criar elementos computacionais malha MHM
-    TPZGeoEl *gel = NULL;
-    TPZGeoEl *gsubel = NULL;
+    // Create MHM computational elements
     fConnectToSubDomainIdentifier[cmeshHDiv].Expand(10000);
     int64_t nel = fGMesh->NElements();
 
     ptime start_time = microsec_clock::local_time(); // TODO remove it later
+#ifdef NEW_IMPL
+    if (fGeoToMHMDomain.size() != nel) DebugStop();
+
+    TPZManVector<std::pair<int64_t, int64_t>> MHMOfEachGeoEl(nel);
+    for (int i = 0; i < nel; i++) {
+        MHMOfEachGeoEl[i] = std::make_pair(fGeoToMHMDomain[i], i);
+    }
+
+    std::sort(&MHMOfEachGeoEl[0], &MHMOfEachGeoEl[nel - 1] + 1);
+
+    int64_t previousMHMDomain = -1;
+    int64_t firstElemInMHMDomain = -1;
+    for (int i = 0; i < MHMOfEachGeoEl.size(); i++) {
+        int64_t MHMDomain = MHMOfEachGeoEl[i].first;
+        int64_t elIndex = MHMOfEachGeoEl[i].second;
+
+        if (MHMDomain == -1) continue;
+
+        if (MHMDomain != previousMHMDomain) {
+            if (previousMHMDomain != -1) {
+                for (int j = firstElemInMHMDomain; j < i; j++) {
+                    fGMesh->Element(MHMOfEachGeoEl[j].second)->ResetReference();
+                }
+            }
+            firstElemInMHMDomain = i;
+            previousMHMDomain = MHMDomain;
+        }
+
+        // Create the flux element
+        TPZGeoEl *gel = fGMesh->Element(elIndex);
+        if (!gel || gel->HasSubElement()) continue;
+        int64_t index;
+        cmeshHDiv->CreateCompEl(gel, index);
+        TPZCompEl *cel = cmeshHDiv->Element(index);
+        // Associate the connects with the subdomain for the flux mesh
+        SetSubdomain(cel, MHMDomain);
+    }
+    // Resets references of last MHM domain
+    for (int j = firstElemInMHMDomain; j < MHMOfEachGeoEl.size(); j++) {
+        fGMesh->Element(MHMOfEachGeoEl[j].second)->ResetReference();
+    }
+
+#else
     for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+
         // create a flux mesh one subdomain at a time
         fGMesh->ResetReference();
         for (int64_t el = 0; el < nel; el++) {
@@ -980,6 +1022,8 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
             SetSubdomain(cel, it->first);
         }
     }
+#endif
+
     ptime end_time = microsec_clock::local_time(); // TODO remove it later
     time_duration t = end_time - start_time;
     std::cout <<   "\n:: Internal loop duration: " << t << "\n\n"; // TODO remove it later
