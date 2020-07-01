@@ -500,9 +500,17 @@ public:
         Flux(data.x, data.sol[0], data.dsol[0], data.axes, flux);
         Errors(data.x, data.sol[0], data.dsol[0], data.axes, flux, u_exact, du_exact, errors );
     }
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
-    {
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
+        PZError << __PRETTY_FUNCTION__ << std::endl;
+        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+    }
+    
+    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
+    
+            PZError << __PRETTY_FUNCTION__ << std::endl;
+            PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
         DebugStop();
+        
     }
 
     /**
@@ -521,6 +529,9 @@ public:
 		PZError << "Nao sei o q fazer." << std::endl;
 		
 	}
+    
+
+    
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     virtual int NEvalErrors() {return 3;}
     

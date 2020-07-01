@@ -142,8 +142,15 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     this->fMaterial->ContributeBC(data, weight, ek, ef, *this);
 }
-
+//--error for bc part
+void TPZBndCond::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
+    this->fMaterial->ErrorsBC(data, u_exact, du_exact,errors,*this);
+}
+//void TPZBndCond::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
+//    DebugStop();
+//}
 //----
+
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
     int nx = datavec[0].x.NElements();

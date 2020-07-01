@@ -177,6 +177,8 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
     {
         std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     }
+    
+    
 	
     /** @} */
 	

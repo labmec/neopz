@@ -335,9 +335,9 @@ void TPZElementGroup::EvaluateError(std::function<void(const TPZVec<REAL> &loc,T
     for (int el=0; el<nel; el++) {
         TPZManVector<REAL,10> errloc(nerr,0.);
         TPZGeoEl *elref = fElGroup[el]->Reference();
-        if (elref && elref->Dimension() != meshdim) {
-            continue;
-        }
+//        if (elref && elref->Dimension() != meshdim) {
+//            continue;
+//        }
         fElGroup[el]->EvaluateError(fp, errloc, store_error);
         if (errloc.size() != nerr) {
             nerr = errloc.size();
