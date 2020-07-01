@@ -294,6 +294,11 @@ public:
      */
     virtual void CalcResidual(TPZElementMatrix &ef) override;
     
+    /**
+     * Compute the residual norm of the internal equation
+     * This method gives accurate results after CalcStiff or CalcResidual has been called
+     */
+    REAL InternalResidualNorm();
 
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches

@@ -2210,3 +2210,31 @@ void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TP
     }
 
 }
+
+/**
+ * Compute the residual norm of the internal equation
+ * This method gives accurate results after CalcStiff or CalcResidual has been called
+ */
+REAL TPZSubCompMesh::InternalResidualNorm()
+{
+    REAL norm = 0.;
+    if(!fAnalysis) DebugStop();
+    TPZFMatrix<STATE> &rhs = fAnalysis->Rhs();
+    // identify the internal equations
+    int64_t ncon = ConnectVec().NElements();
+    for (int64_t ic = 0; ic<ncon; ic++) {
+        if(fExternalLocIndex[ic] != -1) continue;
+        TPZConnect &c = ConnectVec()[ic];
+        int nvar = c.NState()*c.NShape();
+        if(c.HasDependency() || c.IsCondensed() || nvar == 0) continue;
+        int64_t seqnum = c.SequenceNumber();
+        int64_t pos = Block().Position(seqnum);
+        for(int iv=0; iv<nvar; iv++)
+        {
+            norm += rhs(pos+iv,0)*rhs(pos+iv,0);
+        }
+    }
+    return sqrt(norm);
+    // sum the square of the residuals of the internal equations
+    
+}
