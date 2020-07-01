@@ -18,6 +18,7 @@
 #include <sstream>
 #include <iterator>
 #include <numeric>
+#include <algorithm>
 
 #include "pzsubcmesh.h"
 
@@ -940,13 +941,6 @@ void TPZMHMixedMeshControl::HybridizeSkeleton(int skeletonmatid, int pressuremat
 
 }
 
-#define NEW_IMPL
-
-#include "boost/date_time/posix_time/posix_time.hpp"
-
-using namespace boost::posix_time;
-using time_duration = ptime::time_system_type::time_duration_type;
-
 // create the elements domain per domain with approximation spaces disconnected from each other
 void TPZMHMixedMeshControl::CreateInternalFluxElements() {
     TPZGeoMesh *gmesh = fGMesh.operator->();
@@ -962,8 +956,6 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
     fConnectToSubDomainIdentifier[cmeshHDiv].Expand(10000);
     int64_t nel = fGMesh->NElements();
 
-    ptime start_time = microsec_clock::local_time(); // TODO remove it later
-#ifdef NEW_IMPL
     if (fGeoToMHMDomain.size() != nel) DebugStop();
 
     TPZManVector<std::pair<int64_t, int64_t>> MHMOfEachGeoEl(nel);
@@ -1004,31 +996,6 @@ void TPZMHMixedMeshControl::CreateInternalFluxElements() {
     for (int j = firstElemInMHMDomain; j < MHMOfEachGeoEl.size(); j++) {
         fGMesh->Element(MHMOfEachGeoEl[j].second)->ResetReference();
     }
-
-#else
-    for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
-
-        // create a flux mesh one subdomain at a time
-        fGMesh->ResetReference();
-        for (int64_t el = 0; el < nel; el++) {
-            TPZGeoEl *gel = fGMesh->Element(el);
-            if (!gel || gel->HasSubElement() || fGeoToMHMDomain[el] != it->first) {
-                continue;
-            }
-            int64_t index;
-            // create the flux element
-            cmeshHDiv->CreateCompEl(gel, index);
-            TPZCompEl *cel = cmeshHDiv->Element(index);
-            /// associate the connects with the subdomain for the flux mesh
-            SetSubdomain(cel, it->first);
-        }
-    }
-    fGMesh->ResetReference();
-#endif
-
-    ptime end_time = microsec_clock::local_time(); // TODO remove it later
-    time_duration t = end_time - start_time;
-    std::cout <<   "\n:: Internal loop duration: " << t << "\n\n"; // TODO remove it later
 
     fFluxMesh->ExpandSolution();
 }
