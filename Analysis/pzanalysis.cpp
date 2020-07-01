@@ -752,6 +752,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
     TPZManVector<REAL,10> values(10,0.);
     TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
     TPZGeoMesh *gmesh = fCompMesh->Reference();
+    int dim = fCompMesh->Dimension();
     int64_t i, nel = elvec.NElements();
     int64_t nelgeom = gmesh->NElements();
     TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
@@ -764,8 +765,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
         if(el) {
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            
-            if(!mat /*|| (!bc && mat->Dimension() == fCompMesh->Dimension())*/)
+            if(!mat || mat->Dimension() == dim || bc )
             {
                 errors.Fill(0.0);
             
