@@ -1150,10 +1150,10 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
         
         intrule->Point(nint,intpoint,weight);
         
-//        ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
+        ref->Jacobian(intpoint, jac, axe, detJac , jacInv);
         this->ComputeRequiredData(intpoint,trvec,datavec);
         
-        weight *= fabs(datavec[iactive].detjac);
+        weight *= fabs(detJac);
         // this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
         //this->ComputeSolution(intpoint, data);
         //contribuicoes dos erros
