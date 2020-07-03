@@ -111,6 +111,9 @@ public:
 
     /** @brief Sets the analysis type. Nonsymmetric type*/
     void SetAnalysisNonSymSparse(int numThreads);
+   
+    /** @brief Sets the analysis type. */
+    void SetAnalysisFStruct(int numThreads);
 
     /**
      * @brief Condense the internal equations using a skyline symetric matrix 
