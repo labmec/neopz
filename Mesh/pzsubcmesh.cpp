@@ -20,6 +20,7 @@
 #include "TPZFrontStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSSpStructMatrix.h"
+#include "TPZSpStructMatrix.h"
 #include "pzsmfrontalanal.h"
 #include "pzsmanal.h"
 #include "pzbndcond.h"
@@ -1368,6 +1369,42 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
 
 }
 
+/** @brief Sets the analysis type. */
+void TPZSubCompMesh::SetAnalysisNonSymSparse(int numThreads)
+{
+    fAnalysis = new TPZSubMeshAnalysis(this);
+    TPZAutoPointer<TPZStructMatrix> str = NULL;
+
+    if(numThreads > 0){
+        str = new TPZSpStructMatrix(this);
+        str->SetNumThreads(numThreads);
+    }
+    else{
+        str = new TPZSpStructMatrix(this);
+    }
+
+    SaddlePermute();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    PermuteExternalConnects();
+    str->SetNumThreads(numThreads);
+    int64_t numinternal = NumInternalEquations();
+    str->EquationFilter().SetMinMaxEq(0, numinternal);
+    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    str->EquationFilter().Reset();
+    fAnalysis->SetStructuralMatrix(str);
+    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+    step->SetDirect(ELDLt);
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    fAnalysis->SetSolver(autostep);
+
+}
 
 
 void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface){
