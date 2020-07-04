@@ -414,8 +414,8 @@ void TPZMHMeshControl::DivideSkeletonElements(int ndivide)
         }
         fInterfaces = mapdivided;
     }
-    BuildWrapMesh(fGMesh->Dimension());
-    BuildWrapMesh(fGMesh->Dimension()-1);
+//    BuildWrapMesh(fGMesh->Dimension());
+//    BuildWrapMesh(fGMesh->Dimension()-1);
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
 
     std::cout<<"WrapMatId created \n";
@@ -469,8 +469,8 @@ void TPZMHMeshControl::DivideBoundarySkeletonElements()
         }
         fInterfaces = mapdivided;
     }
-    BuildWrapMesh(fGMesh->Dimension());
-    BuildWrapMesh(fGMesh->Dimension()-1);
+//    BuildWrapMesh(fGMesh->Dimension());
+//    BuildWrapMesh(fGMesh->Dimension()-1);
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
 }
 
@@ -2018,6 +2018,50 @@ bool IsAncestor(TPZGeoEl *son, TPZGeoEl *father)
 
     return false;
 }
+
+void TPZMHMeshControl::BuildConnectedElementList(TPZGeoElSide gelside, std::list<TPZCompElSide> &ellist)
+{
+    int interfacedim = gelside.Dimension();
+    TPZGeoEl *gel = gelside.Element();
+    if(gel->Dimension() == interfacedim+1 && gel->Reference())
+    {
+        TPZCompElSide celside = gelside.Reference();
+        ellist.push_back(celside);
+
+    }
+    // look for neighbours of gelside
+    TPZGeoElSide neighbour = gelside.Neighbour();
+    TPZGeoElSide neighdivided;
+    while(neighbour != gelside)
+    {
+        TPZGeoEl *neighgel = neighbour.Element();
+        if(neighgel->Dimension() == interfacedim+1 && neighgel->Reference())
+        {
+            TPZCompElSide neighcel = neighbour.Reference();
+            ellist.push_back(neighcel);
+        }
+        if(neighbour.HasSubElement() && neighbour.NSubElements() > 1)
+        {
+            neighdivided = neighbour;
+        }
+        neighbour = neighbour.Neighbour();
+    }
+    if(neighdivided)
+    {
+        TPZStack<TPZGeoElSide> subelements;
+        neighdivided.GetSubElements2(subelements);
+        int64_t nsub = subelements.size();
+        for(int64_t isub = 0; isub < nsub; isub++)
+        {
+            TPZGeoElSide gelsub = subelements[isub];
+            if(gelsub.Dimension() == interfacedim)
+            {
+                BuildConnectedElementList(gelsub, ellist);
+            }
+        }
+    }
+}
+
 /// identify connected elements to the skeleton elements
 // the computational mesh is determined by the element pointed to by the geometric element
 // skeleton index of the geometric element which defines the skeleton
@@ -2025,6 +2069,81 @@ bool IsAncestor(TPZGeoEl *son, TPZGeoEl *father)
 // ellist : two elements : list of elements connected to the left and right indices respectively
 // ellist : one element : skeleton is a boundary list contains the compelsides linked to the skeleton on the interior of the mech
 void TPZMHMeshControl::ConnectedElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZCompElSide> > &ellist)
+{
+    TPZGeoEl *gelskeleton = fGMesh->Element(skeleton);
+    int meshdim = fGMesh->Dimension();
+    if (gelskeleton->Dimension() != meshdim-1) {
+        DebugStop();
+    }
+    TPZGeoElSide skelside(gelskeleton,gelskeleton->NSides()-1);
+
+    std::list<TPZCompElSide> allconnected;
+    BuildConnectedElementList(skelside, allconnected);
+    
+#ifdef PZDEBUG
+    // verify if the acumulated area of allconnected is the area of the element
+    REAL area = gelskeleton->SideArea(gelskeleton->NSides()-1);
+    REAL listarea = 0.;
+    for(auto it : allconnected)
+    {
+        TPZGeoElSide gside = it.Reference();
+        listarea += gside.Area();
+    }
+    REAL diff = fabs(area-listarea);
+    REAL diff2 = fabs(2*area - listarea);
+    if(diff > 1.e-3*area && diff2 >= 1.e-3*area)
+    {
+        std::cout << "The area of the connected elements does not correspond to the area " <<
+        "of the skeleton element area = " << area << " listarea = " << listarea <<
+        " diff/area = " << diff/area << " diff2/area " << diff2/area << std::endl;
+    }
+#endif
+    
+    for(auto celside : allconnected)
+    {
+        TPZGeoElSide gelside = celside.Reference();
+        TPZGeoEl *gel = gelside.Element();
+        int64_t gelindex = gel->Index();
+        int mhm_domain = fGeoToMHMDomain[gelindex];
+        if(mhm_domain == leftright.first)
+        {
+            ellist[mhm_domain].push_back(celside);
+        }
+        else if(mhm_domain == leftright.second)
+        {
+            ellist[mhm_domain].push_back(celside);
+        }
+        else
+        {
+            std::cout << "I dont understand leftright : " << leftright.first << " " <<
+            leftright.second << " mhm_domain " << mhm_domain << std::endl;
+        }
+    }
+    // a skeleton element with no computational elements is a bug
+    if (ellist.size() == 0) {
+        DebugStop();
+    }
+    // if the skeleton is boundary and if there are more than one subdomain, it is a bug
+    if (skeleton == leftright.second && ellist.size() != 1) {
+        DebugStop();
+    }
+    // if the skeleton is not boundary then there must be exactly two subdomains connected
+    if(skeleton != leftright.second && ellist.size() != 2)
+    {
+        DebugStop();
+    }
+}
+
+
+
+
+/// identify connected elements to the skeleton elements
+// the computational mesh is determined by the element pointed to by the geometric element
+// skeleton index of the geometric element which defines the skeleton
+// leftright indices of the left and right geometric elements which define the domains
+// ellist : two elements : list of elements connected to the left and right indices respectively
+// ellist : one element : skeleton is a boundary list contains the compelsides linked to the skeleton on the interior of the mech
+void TPZMHMeshControl::ConnectedElements2(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZCompElSide> > &ellist)
 {
     TPZGeoEl *gelskeleton = fGMesh->Element(skeleton);
     int meshdim = fGMesh->Dimension();

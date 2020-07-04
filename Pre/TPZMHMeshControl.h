@@ -424,6 +424,13 @@ protected:
     // the computational mesh is determined by the element pointed to by the geometric element
     void ConnectedElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZCompElSide> > &ellist);
 
+    /// identify connected elements to the skeleton elements
+    // the computational mesh is determined by the element pointed to by the geometric element
+    void ConnectedElements2(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZCompElSide> > &ellist);
+
+    /// build a list of all computational element/sides that have dimension of gel + 1 and are included in the domain of gel
+    void BuildConnectedElementList(TPZGeoElSide gelside,std::list<TPZCompElSide> &ellist);
+
     /// identify interface elements connected to the skeleton elements
     // the computational mesh is determined by the element pointed to by the geometric element
     void ConnectedInterfaceElements(int64_t skeleton, std::pair<int64_t,int64_t> &leftright, std::map<int64_t, std::list<TPZInterfaceElement *> > &ellist);
