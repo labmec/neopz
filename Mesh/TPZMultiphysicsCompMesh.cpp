@@ -156,43 +156,61 @@ void TPZMultiphysicsCompMesh::AutoBuild(){
 void TPZMultiphysicsCompMesh::AddElements(){
 
     TPZGeoMesh * geometry = Reference();
-    geometry->ResetReference();
+//    geometry->ResetReference();
     int64_t n_cels = NElements();
+    int64_t n_gels = geometry->NElements();
+    TPZVec<TPZCompEl *> Referred(n_gels,0);
     int n_approx_spaces = m_mesh_vector.size();
     for(int i_as = 0; i_as < n_approx_spaces; i_as++)
     {
-        if(!m_mesh_vector[i_as]) continue;
-        m_mesh_vector[i_as]->LoadReferences();
+        TPZCompMesh *atom = m_mesh_vector[i_as];
+        if(!atom) continue;
+        // load computational element references in the Referred vector
+        {
+            auto &elemvec = atom->ElementVec();
+            auto &gelvec = geometry->ElementVec();
+            int64_t nel = elemvec.NElements();
+            for(int64_t el=0; el<nel; el++)
+            {
+                TPZCompEl *cel = elemvec[el];
+                if(!cel) continue;
+                int64_t gelindex = cel->ReferenceIndex();
+                if(gelindex < 0) continue;
+                Referred[gelindex] = cel;
+            }
+        }
+//        m_mesh_vector[i_as]->LoadReferences();
         int64_t icel;
+        // loop over the multiphysics elements
         for(icel=0; icel < n_cels; icel++)
         {
             TPZCompEl * cel = ElementVec()[icel];
             TPZMultiphysicsElement * mfcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
-            TPZMultiphysicsInterfaceElement * mfint = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
             if(mfcel)
             {
                 int64_t found = 0;
-                TPZGeoEl * gel = mfcel->Reference();
-                TPZStack<TPZCompElSide> celstack;
-                TPZGeoElSide gelside(gel,gel->NSides()-1);
+                int64_t gelindex = mfcel->ReferenceIndex();
+                TPZCompEl *celatom = Referred[gelindex];
                 
-                if (gel->Reference()) {
-                    mfcel->AddElement(gel->Reference(), i_as);
+                if (celatom) {
+                    mfcel->AddElement(celatom, i_as);
                     continue;
                 }
                 else
                 {
+                    TPZGeoEl *gel = geometry->Element(gelindex);
                     TPZGeoEl *gelF = gel;
                     while(gelF->Father())
                     {
                         gelF = gelF->Father();
-                        if (gelF->Reference()) {
+                        int gelFindex = gelF->Index();
+                        if (Referred[gelFindex]) {
 #ifdef PZDEBUG
                             if (gelF->MaterialId() != gel->MaterialId()) {
                                 DebugStop();
                             }
 #endif
-                            mfcel->AddElement(gelF->Reference(), i_as);
+                            mfcel->AddElement(Referred[gelFindex], i_as);
                             found = true;
                             break;
                         }
@@ -202,14 +220,11 @@ void TPZMultiphysicsCompMesh::AddElements(){
                     mfcel->AddElement(0, i_as);
                 }
             }
-            else if (mfint) {
-                //set up interface
-            }
             else {
                 DebugStop();
             }
         }
-        geometry->ResetReference();
+        Referred.Fill(0);
     }
     
     for (int64_t icel = 0; icel < n_cels; icel++) {
