@@ -399,8 +399,11 @@ int TPZMatLaplacian::VariableIndex(const std::string &name){
     
     if(!strcmp("GradFluxX",name.c_str()))       return  19;
     if(!strcmp("GradFluxY",name.c_str()))       return  20;
-    if(!strcmp("FluxL2",name.c_str()))            return  21;//Only To calculate l2 error
-    if(!strcmp("Permeability",name.c_str()))    return 22; // output the permeability
+    if(!strcmp("FluxL2",name.c_str()))          return  21;//Only To calculate l2 error
+    if(!strcmp("Permeability",name.c_str()))    return  22; // output the permeability
+
+    if(!strcmp("ExactFluxShiftedOrigin",name.c_str()))  return 23; //Shift the coordinates at origin by 10^-10
+
 	return TPZMaterial::VariableIndex(name);
 }
 
@@ -426,7 +429,8 @@ int TPZMatLaplacian::NSolutionVariables(int var){
     if (var==20) return 3;
     if (var==21) return fDim;
     if (var==22) return 1; // number of permeabilities
-    
+
+    if (var == 23) return fDim;
     
 	return TPZMaterial::NSolutionVariables(var);
 }
@@ -449,7 +453,11 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
         fPermeabilityFunction->Execute(data.x, f, df);
         perm = df(0,0);
     }
-    
+
+    // Solution EArcTan returns NAN for (x,y) = (0,0). Replacing data.x by inf solves this problem,
+    STATE infinitesimal = 0.0000000001;
+    TPZManVector<STATE,3> inf ={infinitesimal,infinitesimal,infinitesimal};
+
 #ifndef STATE_COMPLEX
     
 	switch (var) {
@@ -506,11 +514,29 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
             
             Solout[0]=pressure[0];
 			break;
-		case 13:
-            fForcingFunctionExact->Execute(data.x,pressure,flux);
-            
-            Solout[0]=flux(0,0);
-            Solout[1]=flux(1,0);
+		case 13: //ExactFlux
+		    fForcingFunctionExact->Execute(data.x, pressure, flux);
+
+            Solout[0]=-flux(0,0);
+            Solout[1]=-flux(1,0);
+            break;
+
+        case 23: //ExactFluxShiftedOrigin
+            if(data.x[0] == 0. && data.x[1] == 0.) {
+                fForcingFunctionExact->Execute(inf, pressure, flux);
+            } else {
+                fForcingFunctionExact->Execute(data.x, pressure, flux);
+            }
+
+            if (std::isnan(flux(0, 0))) {
+                std::cout << "Flux X is NAN at: " << data.x[0] << "," << data.x[1] << std::endl;
+            }
+            if (std::isnan(flux(1, 0))) {
+                std::cout << "Flux Y is NAN at: " << data.x[0] << "," << data.x[1] << std::endl;
+            }
+
+            Solout[0]=-flux(0,0);
+            Solout[1]=-flux(1,0);
             break;
             
         case 14:

@@ -683,6 +683,8 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
     }
     if(!strcmp("g_average",name.c_str()))        return  44;
     if(!strcmp("u_average",name.c_str()))        return  45;
+
+    if(!strcmp("ExactFluxShiftedOrigin",name.c_str()))  return  46;
     return TPZMatPoisson3d::VariableIndex(name);
     
 }
@@ -702,6 +704,7 @@ int TPZMixedPoisson::NSolutionVariables(int var){
     if(var == 43) return 1;
     if(var == 44) return 1;
     if(var == 45) return 1;
+    if(var == 46) return fDim;
     return TPZMatPoisson3d::NSolutionVariables(var);
 }
 
@@ -731,8 +734,10 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         }
     }
 
+    // Solution EArcTan returns NAN for (x,y) == (0,0). Replacing data.x by inf solves this problem.
+    STATE infinitesimal = 0.0000000001;
+    TPZManVector<STATE,3> inf ={infinitesimal,infinitesimal,infinitesimal};
 
-    
    // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
     
@@ -803,7 +808,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         
         for (int i=0; i<fDim; i++)
         {
-            Solout[i] = fluxtmp(i,0);
+            Solout[i] = -fluxtmp(i,0);
         }
 
 		return;
@@ -880,6 +885,34 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
             return;
         }
         
+    }
+
+    if(var == 46){ //ExactFluxShiftedOrigin
+
+
+        if(fForcingFunctionExact)
+        {
+            if(datavec[0].x[0] == 0. && datavec[0].x[1] == 0.){
+                fForcingFunctionExact->Execute(inf, solExata, gradu);
+            } else {
+                fForcingFunctionExact->Execute(datavec[0].x, solExata, gradu);
+            }
+        }
+
+        TPZFNMatrix<3, REAL> fluxtmp(fDim + 1, 1);
+        TPZFNMatrix<3, REAL> gradutmp(fDim + 1, 1);
+        for (int idi = 0; idi < gradu.Rows(); idi++)
+            for (int jdi = 0; jdi < gradu.Cols(); jdi++)
+                gradutmp(idi, jdi) = gradu(idi, jdi);
+
+        PermTensor.Multiply(gradutmp, fluxtmp);
+
+        for (int i=0; i<fDim; i++)
+        {
+            Solout[i] = -fluxtmp(i,0);
+        }
+
+        return;
     }
     
 	TPZMatPoisson3d::Solution(datavec,var,Solout);
