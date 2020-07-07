@@ -161,6 +161,11 @@ public:
 	/** @brief Return a pointer to the corresponding geometric element if such exists, return 0 otherwise */
 	TPZGeoEl *Reference() const;
 
+    int64_t ReferenceIndex()
+    {
+        return fReferenceIndex;
+    }
+    
 	void SetReference(int64_t referenceindex)
 	{
 		fReferenceIndex = referenceindex;
