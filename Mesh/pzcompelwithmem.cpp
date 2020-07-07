@@ -13,6 +13,8 @@
 #include "pzshapeprism.h"
 #include "pzshapepiram.h"
 
+bool gSinglePointMemory = false;
+
 template<class TBASE>
 TPZCompElWithMem<TBASE>::~TPZCompElWithMem() {
 	SetFreeIntPtIndices();
@@ -55,12 +57,27 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     
     fIntPtIndices.Resize(intrulepoints);
     
-    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-        fIntPtIndices[int_ind] = this->Material()->PushMemItem();
-        // Pushing a new entry in the material memory
-    } //Loop over integratin points generating a reference vector of memory
-    //entries in the related pzmatwithmem for further use.
-    
+    if(gSinglePointMemory && intrulepoints > 0)
+    {
+        int64_t point_index = this->Material()->PushMemItem();
+#ifdef PZDEBUG
+        if(point_index < 0)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " material has no memory interface\n";
+        }
+#endif
+        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+            fIntPtIndices[int_ind] = point_index;
+        }
+    }
+    else
+    {
+        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+            fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+            // Pushing a new entry in the material memory
+        } //Loop over integratin points generating a reference vector of memory
+        //entries in the related pzmatwithmem for further use.
+    }
 }
 
 #include "TPZInterfaceEl.h"
@@ -105,11 +122,29 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     
     fIntPtIndices.Resize(intrulepoints);
     
-    for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-        fIntPtIndices[int_ind] = this->Material()->PushMemItem();
-        // Pushing a new entry in the material memory
-    } //Loop over integratin points generating a reference vector of memory
-    //entries in the related pzmatwithmem for further use.
+    if(gSinglePointMemory && intrulepoints > 0)
+    {
+        int64_t point_index = this->Material()->PushMemItem();
+#ifdef PZDEBUG
+        if(point_index < 0)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " material has no memory interface\n";
+        }
+#endif
+        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+        {
+            fIntPtIndices[int_ind] = point_index;
+        }
+    }
+    else
+    {
+        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+        {
+            fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+            // Pushing a new entry in the material memory
+        } //Loop over integratin points generating a reference vector of memory
+          //entries in the related pzmatwithmem for further use.
+    }
     
 }
 
