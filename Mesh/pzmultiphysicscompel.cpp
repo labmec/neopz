@@ -1009,33 +1009,19 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeIntegrationRule()
     }
     
     const int64_t nref = fElementVec.size();
-    TPZManVector<TPZMaterialData,3> datavec;
-    datavec.resize(nref);
-    this->InitMaterialData(datavec);
     TPZGeoEl *gel = this->Reference();
     int dim = gel->Dimension();
-    TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
-    TPZManVector<int> ordervec;
-    //ordervec.resize(nref);
+    TPZStack<int> ordervec;
     for (int64_t iref=0;  iref<nref; iref++)
     {
         if(fActiveApproxSpace[iref] == 0){
             continue;
         }
-        
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
-        int svec;
         if(msp)
         {
-            ordervec.Resize(ordervec.size()+1);
-            svec = ordervec.size();
+            ordervec.Push(msp->MaxOrder());
         }
-        else
-        {
-            continue;
-        }
-        datavec[iref].p = msp->MaxOrder();
-        ordervec[svec-1] = datavec[iref].p;
     }
     int order = material->IntegrationRuleOrder(ordervec);
     TPZManVector<int,3> orderdim(dim,order);
