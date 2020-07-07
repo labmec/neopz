@@ -37,8 +37,16 @@ class TPZCreateApproximationSpace : public TPZSavable {
     
     /// flag indicating that the elements need to be created with memory
     bool fCreateWithMemory;
+    
+public:
+    
+    enum MApproximationStyle {ENone,EContinuous,EDiscontinuous,EHDiv,EHCurl, EMultiphysics, ESBFem, ECustom};
+private:
+    /// approximation space style last used
+    MApproximationStyle fStyle = ENone;
 
 public:
+    
     
     TPZCreateApproximationSpace() : fCreateHybridMesh(false), fCreateLagrangeMultiplier(false), fCreateWithMemory(false)
     {
@@ -118,6 +126,11 @@ public:
     
     /** @brief Set custom function pointers */
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);
+    
+    MApproximationStyle Style()
+    {
+        return fStyle;
+    }
     
     /** @brief Create a computational element using the function pointer for the topology */
     TPZCompEl *CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) const;

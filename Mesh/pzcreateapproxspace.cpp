@@ -374,6 +374,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctions(TPZCompEl &cel, TPZCompM
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
 	
+    fStyle = EDiscontinuous;
     fp[EPoint] = TPZCompElDisc::CreateDisc;
     fp[EOned] = TPZCompElDisc::CreateDisc;
     fp[ETriangle] = TPZCompElDisc::CreateDisc;
@@ -397,6 +398,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
 
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
+    fStyle = EContinuous;
     fp[EPoint] = CreatePointEl;
     fp[EOned] = CreateLinearEl;
     fp[EQuadrilateral] = CreateQuadEl;
@@ -421,6 +423,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 {
+    fStyle = EContinuous;
 	// These ones will be always continuous for viscoelasticity
 	fp[EPoint] = CreatePointElWithMem;
 	fp[EOned] = CreateLinearElWithMem;
@@ -439,6 +442,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 	
+    fStyle = EHDiv;
     switch (dimension) {
         case 1:
             fp[EPoint] = CreateHDivBoundPointEl;
@@ -491,6 +495,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(int dimension){
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 
+    fStyle = EHCurl;
     switch (dimension) {
         case 1:
             fp[EPoint] = CreateHCurlBoundPointEl;
@@ -531,6 +536,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
 /** @brief Create an approximation space with HDiv elements */
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivReferred(int dimension)
 {
+    fStyle = EHDiv;
     switch (dimension) {
         case 1:
             fp[EPoint] = CreateRefHDivBoundPointEl;
@@ -575,6 +581,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivReferred(int dimensio
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
     
+    fStyle = ESBFem;
     switch (dimension) {
         case 1:
             DebugStop();
@@ -655,6 +662,8 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
 #include "pzhdivpressure.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimension){
+    
+    fStyle = EHDiv;
     switch (dimension) {
         case 1:
             fp[EPoint] = CreateHDivBoundPointEl;
@@ -699,6 +708,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimensio
 #include "pzelctemp.h"
 void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuousReferred(){
 	
+    fStyle = EDiscontinuous;
     fp[EPoint] = CreateReferredDisc;
     fp[EOned] = CreateReferredDisc;
     fp[ETriangle] = CreateReferredDisc;
@@ -722,6 +732,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuousReferred(){
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousReferred(){
 	
+    fStyle = EContinuous;
     fp[EPoint] = CreateReferredPointEl;
     fp[EOned] = CreateReferredLinearEl;
     fp[ETriangle] = CreateReferredTriangleEl;
@@ -747,6 +758,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousReferred(){
 #include "pzmultiphysicscompel.h"
 void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
 	
+    fStyle = EMultiphysics;
     fp[EPoint] = CreateMultiphysicsPointEl;
     fp[EOned] = CreateMultiphysicsLinearEl;
     fp[ETriangle] = CreateMultiphysicsTriangleEl;
@@ -770,7 +782,8 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElemWithMem()
 {
-	
+
+    fStyle = EMultiphysics;
 	fp[EPoint] = CreateMultiphysicsPointElWithMem;
 	fp[EOned] = CreateMultiphysicsLinearElWithMem;
 	fp[ETriangle] = CreateMultiphysicsTriangleElWithMem;
@@ -825,6 +838,7 @@ TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh 
 
 void TPZCreateApproximationSpace::SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs)
 {
+    fStyle = ECustom;
     fp[EPoint] = createfuncs[EPoint];
     fp[EOned] = createfuncs[EOned];
     fp[ETriangle] = createfuncs[ETriangle];
