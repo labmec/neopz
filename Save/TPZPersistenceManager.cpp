@@ -10,8 +10,13 @@
 #include "TPZChunkInTranslation.h"
 #include "TPZChunkTranslator.h"
 #include <algorithm>
-
+#include "pzlog.h"
 //#define VerboseMode_Q
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.persistencemanager"));
+#endif
+
 
 using namespace TPZPersistenceManagerNS;
 
@@ -83,6 +88,10 @@ void TPZPersistenceManager::OpenWrite(const std::string &fileName,
 }
 
 void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
+#ifdef PZDEBUG
+    PopulateClassIdMap();
+    bool ClassIdError = false;
+#endif
     auto objId = ScheduleToWrite(obj);
     unsigned int nMainObjIds = mMainObjIds.size();
     mMainObjIds.resize(nMainObjIds + 1);
@@ -100,6 +109,17 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         if (classId == -1 || classId == 666) {
             DebugStop();
         }
+#ifdef PZDEBUG
+        {
+            auto &classidmap = TPZSavable::ClassIdMap();
+            if(classidmap.find(classId) == classidmap.end())
+            {
+                std::cout << "ClassId not registered for a pointer " << classId << std::endl;
+                std::cout << "Class name " << typeid(*pointer).name() << std::endl;
+                ClassIdError = true;
+            }
+        }
+#endif
         mObjectsStream.Write(&classId, 1);
         // writes object data
         mCurrentObjectStream.clear();
@@ -119,6 +139,10 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
         written += sizeof (int64_t) + 2 * sizeof (int) +size;
 #endif
 #endif
+    }
+    if(ClassIdError)
+    {
+        DebugStop();
     }
 }
 
@@ -205,20 +229,24 @@ void TPZPersistenceManager::TranslatePointers(TPZChunkInTranslation& chunk, cons
     }
 }
 
-unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
-        const streamType cStreamType) {
-
+// populate the class id map
+void TPZPersistenceManager::PopulateClassIdMap()
+{
     if (TPZSavable::ClassIdMap().size() == 0) {
         //@TODO parallelize
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
-#ifdef VerboseMode_Q
-            std::cout << "Class : " << restoreClass->Restore()->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
-            if (restoreClass->GetTranslator()){
-                std::cout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
-            }
-            std::cout << std::endl;
-#endif
             TPZSavable *savable = restoreClass->Restore();
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << "Class : " << savable->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
+                if (restoreClass->GetTranslator()){
+                    sout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
+                }
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             //@TODO ensure thread-safety
             int classid = savable->ClassId();
 #ifdef VerboseMode_Q
@@ -232,8 +260,9 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
                     mVersionHistory.push_back(versionMap);
                 }
             }
+            delete savable;
         }
-
+        
         std::list<std::map < std::string, uint64_t>> mapsToRemove;
         for (auto versionMap : mVersionHistory) {
             for (auto otherMap : mVersionHistory) {
@@ -250,6 +279,13 @@ unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
             mVersionHistory.remove(mapToRemove);
         }
     }
+
+}
+
+unsigned int TPZPersistenceManager::OpenRead(const std::string &fileName,
+        const streamType cStreamType) {
+
+    PopulateClassIdMap();
 
     switch (cStreamType) {
         case binary:

@@ -55,6 +55,9 @@ public:
     
     // READ-RELATED METHODS
   public:
+    // populate the class id map
+    static void PopulateClassIdMap();
+    
     static unsigned int OpenRead(const std::string &fileName, streamType = binary);
     static void TranslateNextPointer(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
     static void TranslatePointers(TPZChunkInTranslation& chunk, const std::map<std::string, uint64_t>& toVersion);
