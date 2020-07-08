@@ -15,7 +15,7 @@
 #include "TPZChunkTranslator.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.saveable"));
+static LoggerPtr logger(Logger::getLogger("pz.savable"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
@@ -70,6 +70,10 @@ void TPZSavable::Register(TPZRestoreClassBase *restore) {
                 DebugStop();
 	}
 	RestoreClassSet().insert(restore);
+#ifdef LOG4CXX
+//    std::cout << "Registering object " << typeid(restore).name() <<
+//        std::endl;
+#endif
 }
 
 

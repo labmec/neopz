@@ -152,6 +152,7 @@ public:
 
     /** @brief Constructor */
     TPZRestoreClass() {
+//        std::cout << __PRETTY_FUNCTION__ << "Registering\n";
         TPZSavable::Register(this);
     }
 
