@@ -1330,3 +1330,72 @@ TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
     }
     return mesh->ElementVec()[this->fGeoElIndex];
 }
+
+// compute the partition data structure
+void TPZGeoElSidePartition::BuildPartition()
+{
+    if(!fCurrent)
+    {
+        fPartition.resize(0);
+        return;
+    }
+    TPZStack<TPZGeoElSide> subels, subelfit;
+    // this method returns all subelements
+    fCurrent.GetSubElements2(subels);
+    // filter out the subels of the same dimension
+    int dim = fCurrent.Dimension();
+    int nel = subels.size();
+    for(int el = 0; el<nel; el++)
+    {
+        if(subels[el].Dimension() == dim)
+        {
+            subelfit.Push(subels[el]);
+        }
+    }
+    fPartition.resize(subelfit.size());
+    for(int el=0; el<subelfit.size(); el++)
+    {
+        fPartition[el] = TPZGeoElSidePartition(subelfit[el]);
+    }
+}
+
+// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
+TPZGeoElSide TPZGeoElSidePartition::HasHigherLevelNeighbour(int matid) const
+{
+    int nel = fPartition.size();
+    for(int el = 0; el<nel; el++)
+    {
+        // As hasneighbour does not verify the element itself, we do it here
+        if(fPartition[el].fCurrent.Element()->MaterialId() == matid)
+        {
+            return fPartition[el].fCurrent;
+        }
+        TPZGeoElSide nextlev = fPartition[el].fCurrent.HasNeighbour(matid);
+        if(nextlev)
+        {
+            return nextlev;
+        }
+    }
+    for(int el = 0; el<nel; el++)
+    {
+        TPZGeoElSide higher = fPartition[el].HasHigherLevelNeighbour(matid);
+        if(higher)
+        {
+            return higher;
+        }
+    }
+    return TPZGeoElSide();
+}
+
+TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
+{
+    if(!fGeoEl) return false;
+    if(fGeoEl->MaterialId() == materialid) return true;
+    TPZGeoElSide neighbour = Neighbour();
+    while(neighbour != *this)
+    {
+        if(neighbour.Element()->MaterialId() == materialid) return neighbour;
+        neighbour = neighbour.Neighbour();
+    }
+    return TPZGeoElSide();
+}

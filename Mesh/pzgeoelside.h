@@ -281,6 +281,11 @@ public:
 	
 	/** @brief Returns 1 if neighbour is a neighbour of the element along side*/
 	int NeighbourExists(const TPZGeoElSide &neighbour) const;
+    
+    /**
+      *      verify if a neighbour with the given material id exists
+     */
+    TPZGeoElSide HasNeighbour(int materialid) const;
 	
     /** @brief Will return all elements of equal or higher level than than the current element */
 	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
@@ -332,6 +337,50 @@ public:
     void Write(TPZStream &buf, int withclassid) const override;
 };
 
+class TPZGeoElSidePartition
+{
+    // the TPZGeoElSide that defines the partition
+    TPZGeoElSide fCurrent;
+    // the same dimension objects whose closure form the fCurrent set
+    TPZVec<TPZGeoElSidePartition> fPartition;
+
+    // compute the partition data structure
+    void BuildPartition();
+    
+public:
+    
+    TPZGeoElSidePartition() : fCurrent(), fPartition()
+    {
+        
+    }
+    
+    TPZGeoElSidePartition(const TPZGeoElSidePartition &cp) :
+        fCurrent(cp.fCurrent), fPartition(cp.fPartition)
+    {
+        
+    }
+    
+    TPZGeoElSidePartition &operator=(const TPZGeoElSidePartition &cp)
+    {
+        fCurrent = cp.fCurrent;
+        fPartition = cp.fPartition;
+    }
+    
+    TPZGeoElSidePartition(const TPZGeoElSide &current) : fCurrent(current)
+    {
+        BuildPartition();
+    }
+    
+    void SetCurrent(const TPZGeoElSide &current)
+    {
+        fCurrent = current;
+        BuildPartition();
+    }
+    
+    /// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
+    TPZGeoElSide HasHigherLevelNeighbour(int matid) const;
+    
+};
 /** @brief Overload operator << to print geometric element side data */
 std::ostream  &operator << (std::ostream & out,const TPZGeoElSide &geoside);
 
