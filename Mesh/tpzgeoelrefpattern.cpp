@@ -120,14 +120,26 @@ TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
 
 /** registration of the class in the TPZRestoreClass */
 
-#ifndef BORLAND
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoCube>>;
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoLinear>>;
-template class TPZRestoreClass<TPZGeoElRefPattern<TPZGeoQuad>>;
-template class TPZRestoreClass<TPZGeoElRefPattern<TPZGeoTriangle>>;
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPrism>>;
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoTetrahedra>>;
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPyramid>>;
-template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>>;
-#endif
+//template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoCube>>;
+//template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoLinear>>;
+//template class TPZRestoreClass<TPZGeoElRefPattern<TPZGeoQuad>>;
+//template class TPZRestoreClass<TPZGeoElRefPattern<TPZGeoTriangle>>;
+//template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPrism>>;
+//template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoTetrahedra>>;
+//template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPyramid>>;
+//template class TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>>;
+
+//#define INSERTCLASS(TCL) \
+//template class \
+//TPZRestoreClass<TPZGeoElRefPattern<TCL > >; \
+//template class TPZGeoElRefPattern<TCL>;
+//
+//INSERTCLASS(TPZGeoPoint)
+//INSERTCLASS(TPZGeoLinear)
+//INSERTCLASS(TPZGeoTriangle)
+//INSERTCLASS(TPZGeoQuad)
+//INSERTCLASS(TPZGeoCube)
+//INSERTCLASS(TPZGeoPrism)
+//INSERTCLASS(TPZGeoTetrahedra)
+//INSERTCLASS(TPZGeoPyramid)
 
