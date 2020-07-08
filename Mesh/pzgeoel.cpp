@@ -47,7 +47,7 @@ TPZFMatrix<REAL> TPZGeoEl::gGlobalAxes;
 
 // Destructor and Constructors
 TPZGeoEl::~TPZGeoEl(){
-    int64_t index = Index();
+    int64_t index = fIndex;
     if (this->fFatherIndex != -1) {
         if(!this->Father()){
             //Why did this element lose its father?
@@ -61,12 +61,11 @@ TPZGeoEl::~TPZGeoEl(){
         }
     }
     if (index != -1){
+#ifdef PZDEBUG
+        if(!fMesh) DebugStop();
+#endif
         fMesh->ElementVec()[index] = NULL;
         fMesh->ElementVec().SetFree(index);  //the same line in TPZGeoMesh::DeleteElement was commented. Just call this once.
-    }
-    else
-    {
-        std::cout << __PRETTY_FUNCTION__ << " a derived class did reset the index of the element?\n";
     }
     fIndex = -1;
     fId = -1;
