@@ -199,6 +199,7 @@ TPZIntelGen<TSHAPE>(),fneighbour()
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::~TPZCompElHDivBound2(){
     TPZGeoEl *gel = this->Reference();
+    if(!gel) return;
     if (gel && gel->Reference() != this) {
         return;
     }
