@@ -59,6 +59,11 @@ public:
         return fGeoElIndex == -1 || fSide == -1;
     }
     
+    bool operator==(const TPZGeoElSideIndex &copy)
+    {
+        return (fGeoElIndex == copy.fGeoElIndex && fSide == copy.fSide);
+    }
+    
 	int Side() const;
 	
 	void SetSide(int side);
@@ -93,7 +98,7 @@ public:
 	void GetSubElements2(TPZStack<TPZGeoElSide> &subelements);
     
     /// returns the father/side pair which contains this/side and is strictly larger than this/side
-	TPZGeoElSide StrictFather();
+	TPZGeoElSide StrictFather() const;
     
     /// returns the father/side pair which contains the set of points associated with this/side
 	TPZGeoElSide Father2() const;
@@ -106,7 +111,13 @@ public:
 	
 	/** @brief Checks whether other is an ancestor of this */
 	bool IsAncestor(TPZGeoElSide other);
-	
+    
+    /** @brief Checks whether other is a neighbour of the current element */
+    bool IsNeighbour(const TPZGeoElSide &other) const
+    {
+        return NeighbourExists(other);
+    }
+    
     /** @brief X coordinate of a point loc of the side */
 	void X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const;
     
@@ -158,6 +169,8 @@ public:
     {
         
     }
+    
+    TPZGeoElSide(TPZGeoEl *gel);
 	
 	TPZGeoEl *Element()const{return fGeoEl;}
 	
@@ -248,7 +261,11 @@ public:
 	 */
 	TPZTransform<REAL> SideToSideTransform(TPZGeoElSide &higherdimensionside);
     
+    /// return the lowest level direct ancestor
     TPZGeoElSide LowestFatherSide();
+    
+    /// return the TPZGeoElSide element that contains the current element/side
+    TPZGeoElSide LowerLevelSide() const;
     
     /**
      * @brief [deprecated] use YoungestChildren
@@ -276,7 +293,17 @@ public:
 	
 	/** @brief Returns 1 if neighbour is a neighbour of the element along side*/
 	int NeighbourExists(const TPZGeoElSide &neighbour) const;
-	
+    
+    /**
+      *      verify if a neighbour with the given material id exists
+     */
+    TPZGeoElSide HasNeighbour(int materialid) const;
+    
+    /** verifiy if a larger (lower level) neighbour exists with the given material id
+     */
+    TPZGeoElSide HasLowerLevelNeighbour(int materialid) const;
+    
+    
     /** @brief Will return all elements of equal or higher level than than the current element */
 	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);
     
@@ -327,6 +354,50 @@ public:
     void Write(TPZStream &buf, int withclassid) const override;
 };
 
+class TPZGeoElSidePartition
+{
+    // the TPZGeoElSide that defines the partition
+    TPZGeoElSide fCurrent;
+    // the same dimension objects whose closure form the fCurrent set
+    TPZVec<TPZGeoElSidePartition> fPartition;
+
+    // compute the partition data structure
+    void BuildPartition();
+    
+public:
+    
+    TPZGeoElSidePartition() : fCurrent(), fPartition()
+    {
+        
+    }
+    
+    TPZGeoElSidePartition(const TPZGeoElSidePartition &cp) :
+        fCurrent(cp.fCurrent), fPartition(cp.fPartition)
+    {
+        
+    }
+    
+    TPZGeoElSidePartition &operator=(const TPZGeoElSidePartition &cp)
+    {
+        fCurrent = cp.fCurrent;
+        fPartition = cp.fPartition;
+    }
+    
+    TPZGeoElSidePartition(const TPZGeoElSide &current) : fCurrent(current)
+    {
+        BuildPartition();
+    }
+    
+    void SetCurrent(const TPZGeoElSide &current)
+    {
+        fCurrent = current;
+        BuildPartition();
+    }
+    
+    /// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
+    TPZGeoElSide HasHigherLevelNeighbour(int matid) const;
+    
+};
 /** @brief Overload operator << to print geometric element side data */
 std::ostream  &operator << (std::ostream & out,const TPZGeoElSide &geoside);
 

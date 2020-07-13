@@ -455,6 +455,17 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     
     fCondensed.SetF(ef.fMat);
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "BEFORE CONDENSING THE EQUATIONS\n";
+        sout << "Index = " << Index() << std::endl;
+        fCondensed.Print("Reduced = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+
     int64_t dim1 = fCondensed.Dim1();
     TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
