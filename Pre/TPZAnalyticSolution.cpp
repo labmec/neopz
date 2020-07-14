@@ -1584,7 +1584,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
             
         }
             break;
-        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=100, Omega2=Omega4=1
+        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=5, Omega2=Omega4=1
         {
             
             TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,
