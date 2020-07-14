@@ -381,6 +381,7 @@ public:
     {
         fCurrent = cp.fCurrent;
         fPartition = cp.fPartition;
+        return *this;
     }
     
     TPZGeoElSidePartition(const TPZGeoElSide &current) : fCurrent(current)

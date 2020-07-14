@@ -1365,8 +1365,23 @@ void TPZGeoElSidePartition::BuildPartition()
         return;
     }
     TPZStack<TPZGeoElSide> subels, subelfit;
-    // this method returns all subelements
-    fCurrent.GetSubElements2(subels);
+    if(fCurrent.HasSubElement() && fCurrent.NSubElements() > 1)
+    {
+        // this method returns all subelements
+        fCurrent.GetSubElements2(subels);
+    } else
+    {
+        TPZGeoElSide neighbour = fCurrent.Neighbour();
+        while(neighbour != fCurrent)
+        {
+            if(neighbour.HasSubElement() && neighbour.NSubElements() > 1)
+            {
+                neighbour.GetSubElements2(subels);
+                break;
+            }
+            neighbour = neighbour.Neighbour();
+        }
+    }
     // filter out the subels of the same dimension
     int dim = fCurrent.Dimension();
     int nel = subels.size();
@@ -1380,7 +1395,8 @@ void TPZGeoElSidePartition::BuildPartition()
     fPartition.resize(subelfit.size());
     for(int el=0; el<subelfit.size(); el++)
     {
-        fPartition[el] = TPZGeoElSidePartition(subelfit[el]);
+        TPZGeoElSidePartition sidepart(subelfit[el]);
+        fPartition[el] = TPZGeoElSidePartition(sidepart);
     }
 }
 
@@ -1415,7 +1431,10 @@ TPZGeoElSide TPZGeoElSidePartition::HasHigherLevelNeighbour(int matid) const
 TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
 {
     if(!fGeoEl) return TPZGeoElSide();
-    if(fGeoEl->MaterialId() == materialid) return TPZGeoElSide();
+    if(fGeoEl->MaterialId() == materialid)
+    {
+        return (*this);
+    }
     TPZGeoElSide neighbour = Neighbour();
     while(neighbour != *this)
     {
@@ -1433,8 +1452,8 @@ TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
     TPZGeoElSide lower = LowerLevelSide();
     while(lower)
     {
-        TPZGeoElSide neighbour = HasNeighbour(materialid);
-    if(neighbour) return neighbour;
+        TPZGeoElSide neighbour = lower.HasNeighbour(materialid);
+        if(neighbour) return neighbour;
         lower = lower.LowerLevelSide();
     }
     return lower;
