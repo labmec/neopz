@@ -22,6 +22,7 @@
 #include "pzsubcmesh.h"
 #include "TPZRefPatternTools.h"
 #include "pzlog.h"
+#include "TPZVTKGeoMesh.h"
 
 #include <iostream>
 #include <sstream>
@@ -30,6 +31,7 @@
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mhmeshcontrol"));
+static LoggerPtr loggerWRAP(Logger::getLogger("pz.mhmeshwrap"));
 #endif
 
 // toto
@@ -1850,6 +1852,7 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
                 fGeoToMHMDomain[right.Element()->Reference()->Index()] = subdomain;
                 SetSubdomain(right.Element(), subdomain);
 #ifdef LOG4CXX
+                if(logger->isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Interface right flux element " << right.Element()->Index() << " has been adjusted subdomain is " << WhichSubdomain(right.Element());
@@ -2179,6 +2182,15 @@ void TPZMHMeshControl::BuildWrapMesh(int dim)
                 if (IsSkeletonMatid(neighmatid)) {
                     int wrapmat = HasWrapNeighbour(gelside);
                     if (wrapmat && wrapmat != fSkeletonWrapMatId && wrapmat != fBoundaryWrapMatId) {
+                        std::cout << "neighbour is skeleton with matid " << neighmatid <<
+                        " but the element has a wrap neighbour with matid " << wrapmat << std::endl;
+                        gelside.Print(std::cout);
+                        std::cout << std::endl;
+                        gelside.Element()->Print(std::cout);
+                        std::ofstream out("gmesh.txt");
+                        fGMesh->Print(out);
+                        std::ofstream outvtk("gmesh.vtk");
+                        TPZVTKGeoMesh::PrintGMeshVTK(fGMesh,outvtk);
                         DebugStop();
                     }
                     else if(!wrapmat)
@@ -2249,8 +2261,8 @@ void TPZMHMeshControl::CheckDivisionConsistency(TPZGeoElSide gelside)
     TPZGeoElSide neighbour = gelside.Neighbour();
     while (neighbour != gelside) {
         TPZGeoElSide neighfather = neighbour.StrictFather();
-        if (neighfather && neighfather.Dimension() == gelside.Dimension()) {
-            std::cout << "neighfather dimension " << neighfather.Dimension() << " my dimension " << gelside.Dimension() << std::endl;
+        if (neighfather && neighfather.Element()->Dimension() == gelside.Dimension()) {
+            std::cout << "neighfather dimension " << neighfather.Element()->Dimension() << " my dimension " << gelside.Dimension() << std::endl;
             DebugStop();
         }
         neighbour = neighbour.Neighbour();
@@ -2343,6 +2355,15 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside)
     {
         wrapmat = WrapMaterialId(gelside);
         TPZGeoElBC gbc(gelside, wrapmat);
+#ifdef LOG4CXX
+        if(loggerWRAP->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Creating a wrap element on element/side " << gelside.Element()->Index() <<
+            " " << gelside.Side() << " with wrapmat " << wrapmat << " el index " << gbc.CreatedElement()->Index();
+            LOGPZ_DEBUG(loggerWRAP, sout.str())
+        }
+#endif
         DivideWrap(gbc.CreatedElement());
     }
     else
@@ -2403,11 +2424,32 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside, int wrapmaterial)
 void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
 {
     TPZGeoElSide gelside(wrapelement, wrapelement->NSides()-1);
+    int dim = gelside.Dimension();
     TPZGeoElSide neighbour = gelside.Neighbour();
     while (neighbour != gelside) {
         if(neighbour.Element()->HasSubElement() && neighbour.NSubElements() > 1)
         {
-            TPZManVector<TPZGeoEl *,8> subels;
+            // verify if the subelements are connected to a wrap element
+            TPZStack<TPZGeoElSide> subelsides;
+            neighbour.GetSubElements2(subelsides);
+            int nsub = subelsides.size();
+            int nwrap = 0;
+            int nsidesdim = 0;
+            for(int isub = 0; isub<nsub; isub++)
+            {
+                if(subelsides[isub].Dimension() == dim)
+                {
+                    nsidesdim++;
+                }
+                else continue;
+                if(HasWrapNeighbour(subelsides[isub])) nwrap++;
+            }
+            if(nwrap != 0 && nwrap != nsidesdim)
+            {
+                std::cout << "I don't understand\n";
+                DebugStop();
+            }
+            if(nwrap != 0) return;
             if (neighbour.Side() == neighbour.NSides()-1) {
                 TPZAutoPointer<TPZRefPattern> siderefpattern = neighbour.Element()->GetRefPattern();
                 if(!siderefpattern) DebugStop();
@@ -2425,12 +2467,26 @@ void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
                 if(!siderefpattern) DebugStop();
                 wrapelement->SetRefPattern(siderefpattern);
             }
+            TPZStack<TPZGeoEl *> subels;
 
             wrapelement->Divide(subels);
 #ifdef PZDEBUG
             if(subels.size() == 1)
             {
                 DebugStop();
+            }
+#endif
+#ifdef LOG4CXX
+            if(loggerWRAP->isDebugEnabled())
+            {
+                std::stringstream sout;
+                sout << std::endl;
+                for (int is=0; is<subels.size(); is++) {
+                    sout << "Created a son wrap element of " << wrapelement->Index() <<
+                    " matid " << wrapelement->MaterialId() << " with index " <<
+                    subels[is]->Index() << std::endl;
+                }
+                LOGPZ_DEBUG(loggerWRAP, sout.str())
             }
 #endif
             for (int is=0; is<subels.size(); is++) {
