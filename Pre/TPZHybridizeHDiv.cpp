@@ -68,7 +68,8 @@ void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec
     }
     fHDivWrapMatid = maxMatId + 1;
     fLagrangeInterface = maxMatId + 2;
-    fInterfaceMatid = maxMatId + 3;
+    fInterfaceMatid.first = maxMatId + 3;
+    fInterfaceMatid.second = maxMatId + 4;
 }
 
 /// split the connect between two neighbouring elements
@@ -293,7 +294,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
 }
 
 void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
-    if (fInterfaceMatid == 0) {
+    if (fInterfaceMatid.first == 0 || fInterfaceMatid.second == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
     }
@@ -319,7 +320,9 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
         int count = 0;
         for (auto &celstackside : celstack) {
             if (celstackside.Reference().Element()->Dimension() == dim - 1) {
-                TPZGeoElBC gbc(gelside, fInterfaceMatid);
+                int matid = fInterfaceMatid.first;
+                if(count == 1) matid = fInterfaceMatid.second;
+                TPZGeoElBC gbc(gelside, matid);
                 // check if the right side has a dependency
                 TPZCompEl *celneigh = celstackside.Element();
                 if (celneigh->NConnects() != 1) {
@@ -349,7 +352,7 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
             }
             clarge = glarge.Reference();
             if(!clarge) DebugStop();
-            TPZGeoElBC gbc(gelside, fInterfaceMatid);
+            TPZGeoElBC gbc(gelside, fInterfaceMatid.second);
 
             int64_t index;
             TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
@@ -541,7 +544,8 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &mes
 /// insert the material objects for HDivWrap, LagrangeInterface and InterfaceMatid in the multiphysics mesh
 
 void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid, double Lagrange_term_multiplier /* = 1. */) {
-    if (fLagrangeInterface == 0 || fHDivWrapMatid == 0 || fInterfaceMatid == 0) {
+    if (fLagrangeInterface == 0 || fHDivWrapMatid == 0 || fInterfaceMatid.first == 0 ||
+        fInterfaceMatid.second == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
     }
@@ -562,10 +566,17 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
-    if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid)) {
+    if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.first)) {
         
         std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
-        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid, dim - 1, fNState);
+        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid.first, dim - 1, fNState);
+        matleft->SetMultiplier(Lagrange_term_multiplier);
+        cmesh_Hybrid->InsertMaterialObject(matleft);
+    }
+    if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.second)) {
+        
+        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid.second, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }
