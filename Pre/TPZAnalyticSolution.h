@@ -163,6 +163,7 @@ struct TPZAnalyticSolution
     virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const = 0;
 };
 
+#ifndef STATE_COMPLEX
 #ifdef _AUTODIFF
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
@@ -475,5 +476,5 @@ struct TStokes2DAnalytic : public TPZAnalyticSolution
 };
 
 #endif
-
+#endif
 #endif
