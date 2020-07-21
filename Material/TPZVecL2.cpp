@@ -251,7 +251,7 @@ void TPZVecL2::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
             for(int iq=0; iq<phrq; iq++)
             {
                 //the contribution of the Dirichlet boundary condition appears in the flow equation
-                ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
+                ef(iq,0) += STATE(-1.)*v2*phiQ(iq,0)*weight;
             }
             break;
             

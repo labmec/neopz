@@ -71,7 +71,7 @@ void TPZMatLaplacian::SetParameters(STATE diff, STATE f) {
     fInvK.Zero();
     for (int i=0; i<fDim; i++) {
         fTensorK(i,i) = diff;
-        fInvK(i,i) = 1./diff;
+        fInvK(i,i) = STATE(1.)/diff;
     }
     fXf = f;
 }
@@ -680,7 +680,7 @@ void TPZMatLaplacian::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
     {
         for (int i=0; i<fDim; i++) {
             perm(i,i) = fK;
-            perm(i+fDim,i) = 1./fK;
+            perm(i+fDim,i) = STATE(1.)/fK;
         }
     }
     

@@ -179,7 +179,7 @@ public:
       fInvK.Redim(dim,dim);
       for (int i=0; i<dim; i++) {
           fTensorK(i,i) = fK;
-          fInvK(i,i) = 1./fK;
+          fInvK(i,i) = STATE(1.)/fK;
       }
   }
 
