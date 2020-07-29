@@ -83,6 +83,9 @@ struct TPZHybridizeHDiv {
     /// group and condense the elements
     static void GroupandCondenseElements(TPZCompMesh *cmesh_Hybrid);
     
+    /// group and condense the elements
+    static void GroupandCondenseElements(TPZCompMesh *cmesh_Hybrid, int lagrange_keep);
+    
     /// insert the material objects for HDivWrap and LagrangeInterface in the atomic meshes
     void InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
     

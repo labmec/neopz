@@ -280,6 +280,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
           DebugStop();
         }
 		mat->Print(out);
+        out << std::endl;
 	}
 }
 
