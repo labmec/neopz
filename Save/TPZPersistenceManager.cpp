@@ -140,10 +140,12 @@ void TPZPersistenceManager::WriteToFile(const TPZSavable *obj) {
 #endif
 #endif
     }
+#ifdef PZDEBUG
     if(ClassIdError)
     {
         DebugStop();
     }
+#endif
 }
 
 void TPZPersistenceManager::CloseWrite() {
