@@ -255,6 +255,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
                 TPZCompElSide celside(intel, side);
                 TPZCompElSide neighcomp = RightElement(intel, side);
                 if (neighcomp) {
+                    // SplitConnects returns the geometric element index and interpolation order
                     pressures.push_back(SplitConnects(celside, neighcomp, meshvec_Hybrid));
                 }
             }
@@ -452,6 +453,7 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
         int64_t groupfound = -1;
         for (auto cindex : connectlist) {
             if (groupindex[cindex] != -1) {
+                // assign the element to the group
                 elementgroup[cel->Index()] = groupindex[cindex];
                 if(groupfound != -1 && groupfound != groupindex[cindex])
                 {
@@ -509,6 +511,52 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
         }
     }
 }
+
+void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh, int lagrange_keep) {
+
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> groupnumber(nel,-1);
+    /// compute a groupnumber associated with each element
+    AssociateElements(cmesh, groupnumber);
+    std::map<int64_t, TPZElementGroup *> groupmap;
+    //    std::cout << "Groups of connects " << groupindex << std::endl;
+    for (int64_t el = 0; el<nel; el++) {
+        int64_t groupnum = groupnumber[el];
+        if(groupnum == -1) continue;
+        auto iter = groupmap.find(groupnum);
+        if (groupmap.find(groupnum) == groupmap.end()) {
+            int64_t index;
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+            groupmap[groupnum] = elgr;
+            elgr->AddElement(cmesh->Element(el));
+        }
+        else
+        {
+            iter->second->AddElement(cmesh->Element(el));
+        }
+//        std::cout << std::endl;
+    }
+    cmesh->ComputeNodElCon();
+    nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
+        if (elgr) {
+            int nc = elgr->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = elgr->Connect(ic);
+                if(c.NElConnected() == 1 && c.LagrangeMultiplier() == lagrange_keep)
+                {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            cond->SetKeepMatrix(false);
+        }
+    }
+}
+
 
 /// insert the material objects for HDivWrap and LagrangeInterface in the atomic meshes
 

@@ -116,7 +116,7 @@ void TPZMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 void TPZMaterial::Print(std::ostream & out) {
     out << __PRETTY_FUNCTION__ << std::endl;
-	out << std::endl << "Material Id = " << fId << std::endl;
+	out << "Material Id = " << fId << std::endl;
     out << "Linear context " << fLinearContext << std::endl;
     out << "Num loadcases " << fNumLoadCases << std::endl;
     out << "Big number " << gBigNumber << std::endl;

@@ -76,12 +76,23 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
         fMultiplier = mult;
     }
     
+    STATE Multiplier()
+    {
+        return fMultiplier;
+    }
+    
+    int NStateVariables()
+    {
+        return fNStateVariables;
+    }
 	
 	virtual std::string Name() override
     {
         return "TPZLagrangeMultiplier";
     }
 	
+    // print the data in human readable form
+    virtual void Print(std::ostream &out) override;
 	/**
 	 * @brief Fill material data parameter with necessary requirements for the ContributeInterface method.
      * @since April 10, 2007

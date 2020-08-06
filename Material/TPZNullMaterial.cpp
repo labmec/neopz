@@ -40,6 +40,8 @@ TPZNullMaterial::~TPZNullMaterial()
 void TPZNullMaterial::Print(std::ostream & out) {
     out << __PRETTY_FUNCTION__ << std::endl;
     TPZMaterial::Print(out);
+    out << "Dimension " << fDim << std::endl;
+    out << "NState " << fNState << std::endl;
     
 }
 

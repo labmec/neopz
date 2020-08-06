@@ -581,46 +581,37 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
         return;
     }
-    
-    TPZVec<REAL> ptx(3);
-	TPZVec<STATE> solExata(1);
-    TPZFNMatrix<3,STATE> flux(fDim+1,1);//pq colocar fdim +1?
-    TPZFNMatrix<3,STATE> gradu(fDim+1,1);
-    
-    //Exact solution
-	if(var == 36){
-        if(fForcingFunctionExact)
-        {
-            fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-        }
-		Solout[0] = solExata[0];
-		return;
-	}//var6
-    
-    if(var == 37){
-        
-        
-        if(fForcingFunctionExact)
-        {
-            fForcingFunctionExact->Execute(datavec[0].x, solExata,gradu);
 
+    // Exact solution
+    if (var == 36) {
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> flux(3, 1);
+        if (fForcingFunctionExact) {
+            fForcingFunctionExact->Execute(datavec[0].x, exactSol, flux);
         }
-        
-		TPZFNMatrix<3, REAL> fluxtmp(fDim + 1, 1);
-		TPZFNMatrix<3, REAL> gradutmp(fDim + 1, 1);
-		for (int idi = 0; idi < gradu.Rows(); idi++)
-			for (int jdi = 0; jdi < gradu.Cols(); jdi++)
-				gradutmp(idi, jdi) = gradu(idi, jdi);
+        Solout[0] = exactSol[0];
+        return;
+    } // var6
 
-        PermTensor.Multiply(gradutmp, fluxtmp);
-        
-        for (int i=0; i<fDim; i++)
-        {
-            Solout[i] = fluxtmp(i,0);
+    if (var == 37) {
+
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> gradu(3, 1);
+
+        if (fForcingFunctionExact) {
+            fForcingFunctionExact->Execute(datavec[0].x, exactSol, gradu);
         }
 
-		return;
-	}//var7
+        TPZFNMatrix<3, REAL> flux(3, 1);
+
+        PermTensor.Multiply(gradu, flux);
+
+        for (int i = 0; i < fDim; i++) {
+            Solout[i] = flux(i, 0);
+        }
+
+        return;
+    } // var7
 
     if(var==38){
         Solout[0] = datavec[1].p;
@@ -652,7 +643,9 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==41){
-        fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> flux(3, 1);
+        fForcingFunctionExact->Execute(datavec[0].x, exactSol, flux);
         Solout[0]=flux(2,0);
         return;
     }
