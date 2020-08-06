@@ -862,7 +862,7 @@ void TPZMixedPoisson::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
     
     REAL robinBCterm = 0.;
    
-    std::cout<<"normalflux fem = "<<normalflux_fem<<" normalflux ex = "<<normalflux_ex<<std::endl;
+  //  std::cout<<"normalflux fem = "<<normalflux_fem<<" normalflux ex = "<<normalflux_ex<<std::endl;
        
     robinBCterm = (normalflux_fem +normalflux_ex)*InvKm*(normalflux_fem +normalflux_ex);//Pq esta somando: o fluxo fem esta + e o exato -
 
