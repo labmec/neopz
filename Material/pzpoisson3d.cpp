@@ -966,7 +966,7 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	TPZVec<REAL> graduDiff(fDim,0);
     for(id=0; id<fDim; id++)  graduDiff[id] += fabs(dsol[id]-du_exact(id,0));
 	for(id=0; id<fDim; id++) {
-	    diff =0;
+	    STATE diff =0;
         for(int jd = 0; jd <fDim; jd ++){
             diff += fTensorPerm.GetVal(id,jd)*graduDiff[jd];
         }
@@ -1173,7 +1173,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
     tensorRightK = fTensorPerm;
 
 	//KdphiL = K*dphiL ; KdphiR = K*dphiR
-    TPZFNMatrix<660> KdphiL(3,3,0), KdphiR(3,3,0);
+    TPZFNMatrix<660,STATE> KdphiL(3,3,0), KdphiR(3,3,0);
 	for(int in = 0; in < dphiL.Rows(); in++) for(int jn = 0; jn < dphiL.Cols(); jn++) for(int kn = 0; kn < dphiL.Rows() ; kn++){
 	    KdphiL(in,jn) +=  tensorLeftK.GetVal(in,kn)*dphiL(kn,jn);
 	    KdphiR(in,jn) +=  tensorRightK.GetVal(in,kn)*dphiR(kn,jn);
@@ -1183,12 +1183,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 
 	// 1) phi_I_left, phi_J_left
 	for(il=0; il<nrowl; il++) {
-		REAL KdphiLinormal = 0.;
+		STATE KdphiLinormal = 0.;
 		for(id=0; id<fDim; id++) {
 			KdphiLinormal += KdphiL(id,il)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL KdphiLjnormal = 0.;
+			STATE KdphiLjnormal = 0.;
 			for(id=0; id<fDim; id++) {
 				KdphiLjnormal += KdphiL(id,jl)*normal[id];
 			}
@@ -1198,12 +1198,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 	// 2) phi_I_right, phi_J_right
 	for(ir=0; ir<nrowr; ir++) {
-		REAL KdphiRinormal = 0.;
+		STATE KdphiRinormal = 0.;
 		for(id=0; id<fDim; id++) {
 			KdphiRinormal += KdphiR(id,ir)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL KdphiRjnormal = 0.;
+			STATE KdphiRjnormal = 0.;
 			for(id=0; id<fDim; id++) {
 				KdphiRjnormal += KdphiR(id,jr)*normal[id];
 			}
@@ -1213,12 +1213,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 	// 3) phi_I_left, phi_J_right
 	for(il=0; il<nrowl; il++) {
-		REAL KdphiLinormal = 0.;
+		STATE KdphiLinormal = 0.;
 		for(id=0; id<fDim; id++) {
 			KdphiLinormal += KdphiL(id,il)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL KdphiRjnormal = 0.;
+			STATE KdphiRjnormal = 0.;
 			for(id=0; id<fDim; id++) {
 				KdphiRjnormal += KdphiR(id,jr)*normal[id];
 			}
@@ -1228,12 +1228,12 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 	// 4) phi_I_right, phi_J_left
 	for(ir=0; ir<nrowr; ir++) {
-		REAL KdphiRinormal = 0.;
+		STATE KdphiRinormal = 0.;
 		for(id=0; id<fDim; id++) {
 			KdphiRinormal += KdphiR(id,ir)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL KdphiLjnormal = 0.;
+			STATE KdphiLjnormal = 0.;
 			for(id=0; id<fDim; id++) {
 				KdphiLjnormal += KdphiL(id,jl)*normal[id];
 			}
@@ -1251,7 +1251,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 
 	//penalty = <A p^2>/h
 	STATE averageTraceK = AVGK();
-	REAL penalty = fPenaltyConstant * (0.5 * averageTraceK*(LeftPOrder*LeftPOrder + RightPOrder*RightPOrder)) / faceSize;
+	STATE penalty = fPenaltyConstant * (0.5 * averageTraceK*(STATE)(LeftPOrder*LeftPOrder + RightPOrder*RightPOrder)) / faceSize;
 	
 	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
 		
@@ -1363,7 +1363,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	REAL faceSize=data.HSize;
 
     //KdphiL = K*dphiL ; KdphiR = K*dphiR
-    TPZFNMatrix<660> KdphiL(3,3,0);
+    TPZFNMatrix<660,STATE> KdphiL(3,3,0);
     for(int in = 0; in < dphiL.Rows(); in++) for(int jn = 0; jn < dphiL.Cols(); jn++) for(int kn = 0; kn < dphiL.Rows() ; kn++){
         KdphiL(in,jn) +=  fTensorPerm.GetVal(in,kn)*dphiL(kn,jn);
     }
@@ -1378,13 +1378,13 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 			
 			//Diffusion
 			for(il=0; il<nrowl; il++) {
-				REAL KdphiLinormal = 0.;
+				STATE KdphiLinormal = 0.;
 				for(id=0; id<fDim; id++) {
 					KdphiLinormal += KdphiL(id,il)*normal[id];
 				}
 				ef(il,0) += (STATE)(weight*KdphiLinormal*fSymmetry)*bc.Val2()(0,0);
 				for(jl=0; jl<nrowl; jl++) {
-					REAL KdphiLjnormal = 0.;
+					STATE KdphiLjnormal = 0.;
 					for(id=0; id<fDim; id++) {
 						KdphiLjnormal += KdphiL(id,jl)*normal[id];
 					}
@@ -1440,7 +1440,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 
         STATE averageTraceK = AVGK();
 		nrowl = phiL.Rows(); 
-		const REAL penalty = fPenaltyConstant * averageTraceK * POrder * POrder / faceSize; //Ap^2/h
+		const STATE penalty = fPenaltyConstant * averageTraceK * (STATE)(POrder * POrder) / faceSize; //Ap^2/h
 		REAL outflow = 0.;
 		for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
 		

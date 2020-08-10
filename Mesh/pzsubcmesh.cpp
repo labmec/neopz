@@ -2306,7 +2306,8 @@ REAL TPZSubCompMesh::InternalResidualNorm()
         int64_t pos = Block().Position(seqnum);
         for(int iv=0; iv<nvar; iv++)
         {
-            norm += rhs(pos+iv,0)*rhs(pos+iv,0);
+            REAL rhsabs = abs(rhs(pos+iv,0));
+            norm += rhsabs*rhsabs;
         }
     }
     return sqrt(norm);

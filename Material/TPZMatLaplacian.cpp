@@ -456,7 +456,7 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 
     // Solution EArcTan returns NAN for (x,y) = (0,0). Replacing data.x by inf solves this problem,
     STATE infinitesimal = 0.0000000001;
-    TPZManVector<REAL,3> inf ={infinitesimal,infinitesimal,infinitesimal};
+    TPZManVector<STATE,3> inf ={infinitesimal,infinitesimal,infinitesimal};
 
 #ifndef STATE_COMPLEX
     
