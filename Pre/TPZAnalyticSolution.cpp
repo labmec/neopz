@@ -27,17 +27,43 @@
 #include "fadType.h"
 
 
-
+#ifndef STATE_COMPLEX
 static Fad<STATE> atan2(Fad<STATE> y, Fad<STATE> x)
 {
     int sz = x.size();
-    Fad<STATE> result(sz,atan2(y.val(),x.val()));
-    REAL r = x.val()*x.val()+y.val()*y.val();
+    STATE xval,yval;
+    xval = x.val();
+    yval = y.val();
+    STATE angle = atan2(yval,xval);
+    Fad<STATE> result(sz,angle);
+    STATE r = x.val()*x.val()+y.val()*y.val();
     for (int i=0; i<sz; i++) {
         result.fastAccessDx(i) = (-y.val()*x.fastAccessDx(i) + x.val()*y.fastAccessDx(i))/r;
     }
     return result;
 }
+#else
+static Fad<STATE> atan2(Fad<STATE> y, Fad<STATE> x)
+{
+    int sz = x.size();
+    double xval,yval,xvalimag,yvalimag;
+    xval = x.val().real();
+    yval = y.val().real();
+    xvalimag = x.val().imag();
+    yvalimag = y.val().imag();
+    if(abs(xvalimag) > 1.e-12 || abs(yvalimag)> 1.e-12)
+    {
+        DebugStop();
+    }
+    REAL angle = atan2(yval,xval);
+    Fad<STATE> result(sz,angle);
+    double r = xval*xval+yval*yval;
+    for (int i=0; i<sz; i++) {
+        result.fastAccessDx(i) = (-y.val()*x.fastAccessDx(i) + x.val()*y.fastAccessDx(i))/r;
+    }
+    return result;
+}
+#endif
 
 static FADFADSTATE FADatan2(FADFADSTATE y, FADFADSTATE x)
 {
@@ -52,8 +78,9 @@ static FADFADSTATE FADatan2(FADFADSTATE y, FADFADSTATE x)
 
 static FADFADSTATE FADsin(FADFADSTATE x)
 {
-    FADREAL_ sinaval = sin(x.val());
-    FADREAL_ cosaval = cos(x.val());
+    
+    Fad<STATE> sinaval = sin(x.val());
+    Fad<STATE> cosaval = cos(x.val());
     int sz = x.size();
     FADFADSTATE sina(sz,sinaval);
     for (int i=0; i<sz; i++) {
@@ -64,8 +91,8 @@ static FADFADSTATE FADsin(FADFADSTATE x)
 
 static FADFADSTATE FADcos(FADFADSTATE x)
 {
-    FADREAL_ sinaval = sin(x.val());
-    FADREAL_ cosaval = cos(x.val());
+    Fad<STATE> sinaval = sin(x.val());
+    Fad<STATE> cosaval = cos(x.val());
     int sz = x.size();
     FADFADSTATE cosa(sz,cosaval);
     for (int i=0; i<sz; i++) {
@@ -76,7 +103,7 @@ static FADFADSTATE FADcos(FADFADSTATE x)
 
 static FADFADSTATE FADexp(FADFADSTATE x)
 {
-    FADREAL_ expaval = exp(x.val());
+    Fad<STATE> expaval = exp(x.val());
     int sz = x.size();
     FADFADSTATE expa(sz,expaval);
     for (int i=0; i<sz; i++) {
@@ -87,7 +114,7 @@ static FADFADSTATE FADexp(FADFADSTATE x)
 
 static FADFADSTATE FADsqrt(FADFADSTATE x)
 {
-    FADREAL_ fadres = sqrt(x.val());
+    Fad<STATE> fadres = sqrt(x.val());
     int sz = x.size();
     FADFADSTATE resa(sz,fadres);
     for (int i=0; i<sz; i++) {
@@ -98,19 +125,19 @@ static FADFADSTATE FADsqrt(FADFADSTATE x)
 
 static FADFADSTATE FADatan(FADFADSTATE x)
 {
-    FADREAL_ fadres = atan(x.val());
+    Fad<STATE> fadres = atan(x.val());
     int sz = x.size();
     FADFADSTATE resa(sz,fadres);
     for (int i=0; i<sz; i++) {
-        resa.fastAccessDx(i) = 1./(1+x.val()*x.val())*x.dx(i);
+        resa.fastAccessDx(i) = 1./(1.+x.val()*x.val())*x.dx(i);
     }
     return resa;
 }
 
 static FADFADSTATE FADcosh(FADFADSTATE x)
 {
-    FADREAL_ coshval = cosh(x.val());
-    FADREAL_ sinhval = sinh(x.val());
+    Fad<STATE> coshval = cosh(x.val());
+    Fad<STATE> sinhval = sinh(x.val());
     int sz = x.size();
     FADFADSTATE resa(sz,coshval);
     for (int i=0; i<sz; i++) {
@@ -121,8 +148,8 @@ static FADFADSTATE FADcosh(FADFADSTATE x)
 
 static FADFADSTATE FADsinh(FADFADSTATE x)
 {
-    FADREAL_ coshval = cosh(x.val());
-    FADREAL_ sinhval = sinh(x.val());
+    Fad<STATE> coshval = cosh(x.val());
+    Fad<STATE> sinhval = sinh(x.val());
     int sz = x.size();
     FADFADSTATE resa(sz,sinhval);
     for (int i=0; i<sz; i++) {
@@ -180,8 +207,8 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
-        disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[0] = ((1.-x[0]*x[0])*(1.+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((1.-x[1]*x[1])*(1.+x[0]*x[0]*x[0]*x[0]));
     }
       
     else if(fProblemType ==ERot)//rotation
@@ -277,7 +304,7 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
             nust = gPoisson;
         }
         disp[0] = MI*h*h*x[1]/(2.*G)+ MI*x[0]*x[0]*x[1]/(2.*Est)-MI *x[1]*x[1]*x[1]/(6.*G)+MI*nust*x[1]*x[1]*x[1]/(6.*Est);
-        disp[1] = -MI*x[0]*x[0]*x[0]/(6*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
+        disp[1] = -MI*x[0]*x[0]*x[0]/(6.*Est)-MI*nust*x[0]*x[1]*x[1]/(2.*Est);
     }
     else if(fProblemType == ESquareRoot)
     {
@@ -289,19 +316,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
             //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
             //            nust = gPoisson/(1.+gPoisson);
             Est = gE/((1.-gPoisson*gPoisson));
-            nust = gPoisson/(1-gPoisson);
+            nust = gPoisson/(1.-gPoisson);
             kappa = 3.-4.*gPoisson;
         }
         else
         {
             Est = gE;
             nust = gPoisson;
-            kappa = (3.-gPoisson)/(1+gPoisson);
+            kappa = (3.-gPoisson)/(1.+gPoisson);
         }
         TVar costh = FADcos(theta/2.);
         TVar sinth = FADsin(theta/2.);
-        disp[0] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
-        disp[1] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+        disp[0] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
     }
     else if(fProblemType == ESquareRootLower)
     {
@@ -316,19 +343,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
             //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
             //            nust = gPoisson/(1.+gPoisson);
             Est = gE/((1.-gPoisson*gPoisson));
-            nust = gPoisson/(1-gPoisson);
+            nust = gPoisson/(1.-gPoisson);
             kappa = 3.-4.*gPoisson;
         }
         else
         {
             Est = gE;
             nust = gPoisson;
-            kappa = (3.-gPoisson)/(1+gPoisson);
+            kappa = (3.-gPoisson)/(1.+gPoisson);
         }
         TVar costh = FADcos(theta/2.);
         TVar sinth = FADsin(theta/2.);
-        disp[0] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
-        disp[1] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+        disp[0] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
     }
     else if(fProblemType == ESquareRootUpper)
     {
@@ -343,19 +370,19 @@ void TElasticity2DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
             //            Est = (1.+2.*gPoisson)/((1+gPoisson)*(1.+gPoisson))*fE;
             //            nust = gPoisson/(1.+gPoisson);
             Est = gE/((1.-gPoisson*gPoisson));
-            nust = gPoisson/(1-gPoisson);
+            nust = gPoisson/(1.-gPoisson);
             kappa = 3.-4.*gPoisson;
         }
         else
         {
             Est = gE;
             nust = gPoisson;
-            kappa = (3.-gPoisson)/(1+gPoisson);
+            kappa = (3.-gPoisson)/(1.+gPoisson);
         }
         TVar costh = FADcos(theta/2.);
         TVar sinth = FADsin(theta/2.);
-        disp[0] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
-        disp[1] = 1/(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
+        disp[0] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*costh*(kappa-1.+2.*sinth*sinth);
+        disp[1] = 1./(2.*G)*FADsqrt(r/(2.*M_PI))*sinth*(kappa+1.-2.*costh*costh);
     }
     else
     {
@@ -899,8 +926,8 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
     {
         disp[0] = x[0]*0.;
         disp[1] = x[0]*0.;
-        disp[0] = ((1-x[0]*x[0])*(1+x[1]*x[1]*x[1]*x[1]));
-        disp[1] = ((1-x[1]*x[1])*(1+x[0]*x[0]*x[0]*x[0]));
+        disp[0] = ((1.-x[0]*x[0])*(1.+x[1]*x[1]*x[1]*x[1]));
+        disp[1] = ((1.-x[1]*x[1])*(1.+x[0]*x[0]*x[0]*x[0]));
         disp[2] = x[0]*TVar(0.);
     }
     
@@ -975,14 +1002,14 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         G = fE/(2.*(1.+fPoisson));
         // returning the solution of plane strain
         Est = fE/((1.-fPoisson*fPoisson));
-        nust = fPoisson/(1-fPoisson);
+        nust = fPoisson/(1.-fPoisson);
         int offset = 2;
         int i0 = offset;
         int i1 = (offset+1)%3;
         int i2 = (offset+2)%3;
 
         disp[i0] = MI*h*h*x[i1]/(2.*G)+MI * x[i0]*x[i0]*x[i1]/(2.*Est)-MI *x[i1]*x[i1]*x[i1]/(6.*G)+MI*nust*x[i1]*x[i1]*x[i1]/(6.*Est);
-        disp[i1] = -MI*x[i0]*x[i0]*x[i0]/(6*Est)-MI*nust*x[i0]*x[i1]*x[i1]/(2.*Est);
+        disp[i1] = -MI*x[i0]*x[i0]*x[i0]/(6.*Est)-MI*nust*x[i0]*x[i1]*x[i1]/(2.*Est);
         disp[i2] = x[i2]*0.;
     }
     else if(fProblemType == ETestShearMoment)
@@ -993,7 +1020,8 @@ void TElasticity3DAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTAT
         TVar series = (TVar) 0.;
         TVar minusone = (TVar) -1;
         for (int i=1; i<5; i++) {
-            series += (minusone/(i*i*i)*FADcos(i*M_PI*x[0]/a)*FADsinh(i*M_PI*x[1]/a)/FADcosh(i*M_PI*b/a));
+            TVar ivar(i);
+            series += (minusone/(TVar)(i*i*i)*FADcos(ivar*M_PI*x[0]/a)*FADsinh(ivar*M_PI*x[1]/a)/FADcosh(ivar*M_PI*b/a));
             minusone *= (TVar) -1.;
         }
         series *= (-4.*a*a*a*fPoisson/(M_PI*M_PI*M_PI));
@@ -1234,6 +1262,8 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
     }
     TVar r = sqrt(r2);
     disp[0] = xloc[0]*(TVar)(0.);
+    
+    REAL xval[2] = {shapeFAD::val(x[0]),shapeFAD::val(x[1])};
      
     switch (fExact) {
         case EConst:
@@ -1306,11 +1336,11 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         {
 
             TVar theta = atan2(xloc[1], xloc[0]);//theta=arctan(y/x)
-
-            if (theta < TVar(0.)) theta += 2. * M_PI;
+            auto thetaval = shapeFAD::val(theta);
+            if (thetaval < (0.)) theta += 2. * M_PI;
 
             // Verification to avoid numerical errors when x > 0 and y = 0
-            if (xloc[0] > 0 && xloc[1] < 1e-15 && xloc[1] > -1e-15) {
+            if (xval[0] > 0 && xval[1] < 1e-15 && xval[1] > -1.e-15) {
                disp[0] = 0.;
             }
             else {
@@ -1341,9 +1371,10 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                 -2.4017026424997736};
             TVar lambda = 0.53544094560246;
             TVar t = atan2(xloc[1], xloc[0]);
-            if(t < TVar(0.)) t += 2.*M_PI;
+            REAL tval = shapeFAD::val(t);
+            if(tval < (0.)) t += 2.*M_PI;
             
-            if((xloc[0] >=TVar(0.)) && (xloc[1] >=TVar(0.))){
+            if((xval[0] >=(0.)) && (xval[1] >=(0.))){
                // std::cout<<"1o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
                 
                 disp[0]=pow(r, lambda)*(TVar(coefs[0])*cos(lambda *t) + TVar(coefs[1])*sin(lambda*t) );
@@ -1352,7 +1383,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                 
             }
             
-            if(( xloc[0] <= TVar(0.)) && (xloc[1] >=TVar(0.))){
+            if(( xval[0] <= (0.)) && (xval[1] >=(0.))){
                // std::cout<<"2o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
                 
                 disp[0]= pow(r, lambda)*(TVar(coefs[2])*cos(lambda*t) + TVar(coefs[3])*sin(lambda* t));
@@ -1360,13 +1391,13 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
              //    std::cout<<"valor da funcao no 2o. Q "<<disp[0]<<std::endl;
             }
             
-            if((xloc[0] <TVar(0.)) && ( xloc[1] <= TVar(0.))){
+            if((xval[0] <(0.)) && ( xval[1] <= (0.))){
                // std::cout<<"3o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
                 disp[0]= pow(r, lambda)*(TVar(coefs[4] )*cos(lambda*t) + TVar(coefs[5])*sin(lambda* t));
                 //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(0.882757 )*cos(lambda*t) + TVar(-1.)*TVar(0.480355)*sin(lambda* t));
               //   std::cout<<"valor da funcao no 3o. Q "<<disp[0]<<std::endl;
             }
-            if(( xloc[0] >= TVar(0.)) && ( xloc[1] < TVar(0.))){
+            if(( xval[0] >= (0.)) && ( xval[1] < (0.))){
               //  std::cout<<"4o. Q "<<xloc<< " r " << r << " th " << t << std::endl;
 
                 disp[0]= pow(r, lambda)*(TVar(coefs[6])*cos(lambda*t) +  TVar(coefs[7])*sin(lambda* t));
@@ -1386,9 +1417,9 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             TVar k2 = 5;
             
             
-            if((xloc[0] <= TVar(0.)) && (xloc[1] <= TVar(0.))){
+            if((xval[0] <= (0.)) && (xval[1] <= (0.))){
                 
-                TVar u1 = sin(M_PI*(xloc[0]+TVar(1.))/(k1+1));
+                TVar u1 = sin(M_PI*(xloc[0]+TVar(1.))/(k1+1.));
                 TVar u2 = TVar(4.)*(xloc[1]+TVar(1.))*(k2-xloc[1])/((k2+TVar(1.))*(k2+TVar(1.)));
                 
                 disp[0]=u1*u2;
@@ -1396,7 +1427,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                 
             }
             
-            if(( xloc[0] > TVar(0.)) && (xloc[1] < TVar(0.))){
+            if(( xval[0] > (0.)) && (xval[1] < (0.))){
              
                 
                 TVar u1 = sin(M_PI*(k1*xloc[0]+TVar(1.))/(k1 + TVar(1.)));
@@ -1407,7 +1438,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
                 
             }
             
-            if((xloc[0] < TVar(0.)) && ( xloc[1] >= TVar(0.))){
+            if((xval[0] < (0.)) && ( xval[1] >= (0.))){
               
                 TVar u1 = sin(M_PI*(xloc[0]+TVar(1.))/(k1+TVar(1.)));
                 TVar u2 = TVar(4.)*(k2*xloc[1]+TVar(1.))*(k2-k2*xloc[1])/((k2+TVar(1.))*(k2+TVar(1.)));
@@ -1416,7 +1447,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
            //     std::cout<<"2o. Q "<<xloc<<" valor da funcao "<<disp[0]<<std::endl;
                 
             }
-            if(( xloc[0] >= TVar(0.)) && ( xloc[1] >= TVar(0.))){
+            if(( xval[0] >= (0.)) && ( xval[1] >= (0.))){
                
                 
                 TVar u1 = sin(M_PI*(k1*xloc[0]+TVar(1.))/(k1+TVar(1.)));
@@ -1433,7 +1464,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             break;
             
         case EBoundaryLayer:{
-            TVar term1 = xloc[0]*xloc[1]*(1-xloc[0])*(1-xloc[1]);
+            TVar term1 = xloc[0]*xloc[1]*(1.-xloc[0])*(1.-xloc[1]);
             TVar term2 = exp(TVar(10.)*xloc[0])*exp(TVar(10.)*xloc[1]);
             TVar factor = TVar(537930);
             
@@ -1570,12 +1601,22 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
         {
             
             TVar theta=FADatan2(xloc[1],xloc[0]);//theta=atan(y/x)
+#ifdef STATE_COMPLEX
+            if( theta.val().val().real() < 0.) theta += 2.*M_PI;
+#else
             if( theta < TVar(0.)) theta += 2.*M_PI;
+#endif
             
             // Verification to avoid numerical errors when x > 0 and y = 0
+#ifdef STATE_COMPLEX
+            if ((xloc[0].val().val().real() > 0.) && (xloc[1].val().val().real() <  (1e-15)) && (xloc[1].val().val().real() > (-1e-15))) {
+               disp[0] = TVar(0.);
+            }
+#else
             if ((xloc[0] > TVar(0.)) && (xloc[1] < TVar (1e-15)) && (xloc[1] > TVar(-1e-15))) {
                disp[0] = TVar(0.);
             }
+#endif
             else{
                 
             TVar factor = pow(r,TVar (2.)/TVar (3.));//pow(r,TVar (2.)/TVar (3.))-pow(r,TVar (2.));
@@ -1592,10 +1633,18 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
                 -0.9441175904999111, -0.48148148148148173,
                 -2.4017026424997736};
             TVar lambda = 0.53544094560246;
+#ifdef STATE_COMPLEX
+            double xr = xloc[0].val().val().real();
+            double yr = xloc[1].val().val().real();
+#else
+            double xr = xloc[0].val().val();
+            double yr = xloc[1].val().val();
+#endif
             TVar t = FADatan2(xloc[1], xloc[0]);
-            if(t < TVar(0.)) t += TVar(2.*M_PI);
+            double tval = atan2(yr,xr);
+            if(tval < (0.)) t += TVar(2.*M_PI);
 
-            if((xloc[0] >= TVar(0.)) && (xloc[1] >= TVar(0.))){
+            if((xr >= (0.)) && (yr >= (0.))){
               //  std::cout<<"1o. Q"<<xloc<<std::endl;
                 
                 disp[0]=pow(r, lambda)*(TVar(coefs[0])*FADcos(lambda *t) + TVar(coefs[1])*FADsin(lambda*t));
@@ -1604,7 +1653,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
                 
             }
             
-            if(( xloc[0] < TVar(0)) && (xloc[1] >TVar(0.))){
+            if(( xr < (0)) && (yr >(0.))){
                // std::cout<<"2o. Q"<<xloc<<std::endl;
                 
                 disp[0]= pow(r, lambda)*(TVar(coefs[2])*FADcos(lambda*t) + TVar(coefs[3])*FADsin(lambda* t));
@@ -1612,13 +1661,13 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
                 //std::cout<<"valor da funcao no 2o. Q "<<disp[0]<<std::endl;
             }
             
-            if((xloc[0] < TVar(0.)) && ( xloc[1] <= TVar(0.))){
+            if((xr < (0.)) && ( yr <= (0.))){
              //   std::cout<<"3o. Q"<<xloc<<std::endl;
                 disp[0]= pow(r, lambda)*(TVar(coefs[4] )*FADcos(lambda*t) + TVar(coefs[5])*FADsin(lambda* t));
                 //disp[0]= pow(r, lambda)*(TVar(-1.)*TVar(0.882757 )*cos(lambda*t) + TVar(-1.)*TVar(0.480355)*sin(lambda* t));
                // std::cout<<"valor da funcao no 3o. Q "<<disp[0]<<std::endl;
             }
-            if(( xloc[0] >= TVar(0.)) && ( xloc[1] < TVar(0.))){
+            if(( xr >= (0.)) && ( yr < 0.)){
                // std::cout<<"4o. Q"<<xloc<<std::endl;
                 
                 disp[0]= pow(r, lambda)*(TVar(coefs[6])*FADcos(lambda*t) +  TVar(coefs[7])*FADsin(lambda* t));
@@ -1637,11 +1686,18 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             
             TVar k1 = 2;
             TVar k2 = 5;
+#ifdef STATE_COMPLEX
+            double xr = xloc[0].val().val().real();
+            double yr = xloc[1].val().val().real();
+#else
+            double xr = xloc[0].val().val();
+            double yr = xloc[1].val().val();
+#endif
+
             
-            
-            if((xloc[0] <= TVar(0.)) && (xloc[1] <= TVar(0.))){
+            if((xr <= (0.)) && (yr <= (0.))){
                 
-                TVar u1 = FADsin(M_PI*(xloc[0]+TVar(1.))/(k1+1));
+                TVar u1 = FADsin(M_PI*(xloc[0]+TVar(1.))/(k1+1.));
                 TVar u2 = TVar(4.)*(xloc[1]+TVar(1.))*(k2-xloc[1])/((k2+TVar(1.))*(k2+TVar(1.)));
                 
                 disp[0]=u1*u2;
@@ -1649,7 +1705,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
                 
             }
             
-            if(( xloc[0] > TVar(0.)) && (xloc[1] < TVar(0.))){
+            if(( xr > (0.)) && (yr < (0.))){
                 
                 
                 TVar u1 = FADsin(M_PI*(k1*xloc[0]+TVar(1.))/(k1 + TVar(1.)));
@@ -1660,7 +1716,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
                 
             }
             
-            if((xloc[0] < TVar(0.)) && ( xloc[1] >= TVar(0.))){
+            if((xr < (0.)) && ( yr >= (0.))){
                 
                 TVar u1 = FADsin(M_PI*(xloc[0]+TVar(1.))/(k1+TVar(1.)));
                 TVar u2 = TVar(4.)*(k2*xloc[1]+TVar(1.))*(k2-k2*xloc[1])/((k2+TVar(1.))*(k2+TVar(1.)));
@@ -1669,7 +1725,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
               //  std::cout<<"2o. Q "<<xloc<<" valor da funcao "<<disp[0]<<std::endl;
                 
             }
-            if(( xloc[0] >= TVar(0.)) && ( xloc[1] >= TVar(0.))){
+            if(( xr >= (0.)) && ( yr >= (0.))){
                 
                 
                 TVar u1 = FADsin(M_PI*(k1*xloc[0]+TVar(1.))/(k1+TVar(1.)));
@@ -1684,7 +1740,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             break;
             
         case EBoundaryLayer:{
-            TVar term1 = xloc[0]*xloc[1]*(1-xloc[0])*(1-xloc[1]);
+            TVar term1 = xloc[0]*xloc[1]*(1.-xloc[0])*(1.-xloc[1]);
             TVar term2 = FADexp(TVar(10.)*xloc[0])*FADexp(TVar(10.)*xloc[1]);
             TVar factor = TVar(537930);
             
