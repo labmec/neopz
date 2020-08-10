@@ -177,3 +177,43 @@ void TPZStream::Read(Fad<long double> *p, int howMany) {//weird but necessary fo
     delete[] copy;
 }
 #endif
+
+#ifdef _AUTODIFF
+void TPZStream::Read(Fad<std::complex< float >> *p, int howMany)
+{
+    std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
+    DebugStop();
+}
+
+void TPZStream::Read(Fad<std::complex< double >> *p, int howMany)
+{
+    std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
+    DebugStop();
+}
+
+void TPZStream::Read(Fad<std::complex< long double >> *p, int howMany)
+{
+    std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
+    DebugStop();
+}
+
+void TPZStream::Write(const Fad<std::complex< float > > *p, int howMany)
+{
+    std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
+    DebugStop();
+}
+
+void TPZStream::Write(const Fad<std::complex< double > >*p, int howMany)
+{
+    std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
+    DebugStop();
+}
+
+void TPZStream::Write(const Fad<std::complex< long double >> *p, int howMany)
+{
+    std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
+    DebugStop();
+}
+
+
+#endif

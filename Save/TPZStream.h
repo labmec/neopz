@@ -112,6 +112,12 @@ public:
 
     virtual void Write(const Fad< long double > *p, int howMany = 1);
 
+    virtual void Write(const Fad<std::complex< float > > *p, int howMany = 1);
+
+    virtual void Write(const Fad<std::complex< double > >*p, int howMany = 1);
+
+    virtual void Write(const Fad<std::complex< long double >> *p, int howMany = 1);
+
 #endif
 
     void Write(const TPZFlopCounter *p, int howMany = 1);
@@ -172,6 +178,13 @@ public:
     virtual void Read(Fad< double > *p, int howMany = 1) = 0;
 
     virtual void Read(Fad< long double > *p, int howMany = 1);
+
+    virtual void Read(Fad<std::complex< float >> *p, int howMany = 1);
+
+    virtual void Read(Fad<std::complex< double >> *p, int howMany = 1);
+
+    virtual void Read(Fad<std::complex< long double >> *p, int howMany = 1);
+
 
 #endif
 
