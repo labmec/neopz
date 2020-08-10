@@ -102,7 +102,7 @@ public:
     
     /** returns the solution associated with the var index based on
      * the finite element approximation */
-    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout) override;
+    void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
     
     /** index of velocity */
     int VIndex(){ return 0; }

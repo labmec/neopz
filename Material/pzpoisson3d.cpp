@@ -295,7 +295,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	int numprimalshape = data.phi.Rows()-numdual;
 	
 	int i,j;
-	TPZFNMatrix<9,REAL> Kreal,invKreal;
+	TPZFNMatrix<9,STATE> Kreal,invKreal;
 
 #ifdef STATE_COMPLEX
     STATE k,ik;

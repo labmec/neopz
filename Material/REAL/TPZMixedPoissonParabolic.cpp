@@ -72,8 +72,10 @@ void TPZMixedPoissonParabolic::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
     
     STATE pressureN = datavec[1].sol[0][0];
     
-    TPZFNMatrix<9,REAL> PermTensor; this->GetPermeability(PermTensor);
-    TPZFNMatrix<9,REAL> InvPermTensor; this->GetInvPermeability(InvPermTensor);
+    TPZFNMatrix<9,STATE> PermTensor;
+    this->GetPermeability(PermTensor);
+    TPZFNMatrix<9,STATE> InvPermTensor;
+    this->GetInvPermeability(InvPermTensor);
     //int rtens = 2*fDim;
     if(fPermeabilityFunction){
         PermTensor.Zero();

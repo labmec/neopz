@@ -135,9 +135,14 @@ void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMa
             REAL alpha = 1.;
             REAL beta = 0.;
             TPZFMatrix<REAL> &mult = transform.Mult();
+#ifdef REALdouble
             cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, mult.Cols(), dphin.Cols(), mult.Rows(),
                         alpha, &mult(0,0), mult.Rows(), &dphin(0,0), dphin.Rows(), beta, &dphiaux(0,0), dphiaux.Rows());
-
+#else
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            std::cout << "Please implement me for other types \n";
+            DebugStop();
+#endif
 //            bool transpose = true;
 //            transform.Mult().MultAdd(dphin, dphin, dphiaux, alpha, beta, transpose);
 //
