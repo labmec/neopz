@@ -23,6 +23,7 @@ typedef Fad<REAL> FADREAL_; // the simplest FAD
 typedef FADREAL_ FADREAL;
 
 typedef Fad< Fad<REAL> > FADFADREAL;
+typedef Fad< Fad<STATE> > FADFADSTATE;
 
 //#define _AUTODIFF
 

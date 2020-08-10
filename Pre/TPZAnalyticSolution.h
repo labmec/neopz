@@ -18,6 +18,14 @@ struct TPZAnalyticSolution
     /// integer to correct for the sign convention of the forcing term
     int fSignConvention = 1;
     
+    TPZAnalyticSolution() : fSignConvention(1){
+
+    }
+
+    TPZAnalyticSolution(const TPZAnalyticSolution &cp);
+    
+    TPZAnalyticSolution &operator=(const TPZAnalyticSolution &copy);
+
     class TForce : public TPZFunction<STATE>
     {
         const TPZAnalyticSolution *fAnalytic;
@@ -136,7 +144,7 @@ struct TPZAnalyticSolution
     TPZAutoPointer<TPZFunction<STATE> > Exact() const
     {
         return new TExactState(this);
-    }
+    };
     
     std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> ExactSolution() const
     {
@@ -163,7 +171,6 @@ struct TPZAnalyticSolution
     virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const = 0;
 };
 
-#ifndef STATE_COMPLEX
 #ifdef _AUTODIFF
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
@@ -186,7 +193,8 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
-        TPZManVector<REAL,3> locforce(2);
+        TPZManVector<STATE,3> xstate(3),locforce(2);
+        for(int i=0; i<3; i++) xstate[i]=x[i];
         DivSigma(x, locforce);
         force[0] = -locforce[0];
         force[1] = -locforce[1];
@@ -199,7 +207,15 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     {
         
     }
-    
+    TElasticity2DAnalytic() : TPZAnalyticSolution(), fProblemType(ENone), fPlaneStress(1)
+    {
+
+    }
+
+    TElasticity2DAnalytic(const TElasticity2DAnalytic &cp);
+
+    TElasticity2DAnalytic &operator=(const TElasticity2DAnalytic &copy);
+
     static TPZAutoPointer<TPZFunction<STATE> > ConstitutiveLawFunction()
     {
         TPZAutoPointer<TPZFunction<STATE> > result;
@@ -211,7 +227,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
     void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
     
-    void Sigma(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
+    void Sigma(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad<STATE> > &sigma) const;
     
     template<class TVar>
     void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
@@ -261,7 +277,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
-        TPZManVector<REAL,3> locforce(3);
+        TPZManVector<STATE,3> locforce(3);
         DivSigma(x, locforce);
         force[0] = -locforce[0];
         force[1] = -locforce[1];
@@ -270,11 +286,20 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
     
+    TElasticity3DAnalytic() : TPZAnalyticSolution(), fProblemType(ENone)
+    {
+
+    }
+    
     virtual ~TElasticity3DAnalytic()
     {
         
     }
-    
+
+    TElasticity3DAnalytic (const TElasticity3DAnalytic  &cp);
+
+    TElasticity3DAnalytic  &operator=(const TElasticity3DAnalytic  &copy);
+
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
@@ -300,25 +325,40 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble,ESinCosCircle};
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble,ESinCosCircle, EHarmonic};
     
     int fDimension = 2;
     
     EExactSol fExact = EArcTan;
     
     TPZManVector<REAL,3> fCenter;
-    
-    TLaplaceExample1() : fCenter(3,0.)
+
+    TPZFNMatrix<9,REAL> fTensorPerm;
+
+    TPZFNMatrix<9,REAL> fInvPerm;
+
+    TLaplaceExample1() : fCenter(3,0.), TPZAnalyticSolution()
     {
-        
+        fTensorPerm = fInvPerm = {{1,0,0},{0,1,0},{0,0,1}};
     }
-    
+
+    TLaplaceExample1(TPZFNMatrix<9,REAL> K, TPZFNMatrix<9,REAL> invK): fCenter(3,0.), TPZAnalyticSolution()
+    {
+        fTensorPerm = K;
+        fInvPerm =invK;
+    }
+
+    void setPermeabilyTensor(TPZFNMatrix<9,REAL> K, TPZFNMatrix<9,REAL> invK);
+
     virtual ~TLaplaceExample1()
     {
         fExact = ENone;
         fDimension = -1;
-        
     }
+
+    TLaplaceExample1(const TLaplaceExample1 &cp);
+
+    TLaplaceExample1 &operator=(const TLaplaceExample1 &copy);
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
 
@@ -328,7 +368,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     
     template<class TVar>
     void graduxy(const TPZVec<TVar> &x, TPZVec<TVar> &grad) const;
-    
+
     template<class TVar>
     static void Permeability(const TPZVec<TVar> &x, TVar &Elast);
 
@@ -338,12 +378,12 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TVar &divsigma) const;
+    void DivSigma(const TPZVec<REAL> &x, TVar &divsigma) const;
     
     
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
-        REAL locforce;
+        STATE locforce;
         DivSigma(x, locforce);
         force[0] = locforce;
     }
@@ -398,7 +438,7 @@ public:
     virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
     
     template<class TVar>
-    void DivSigma(const TPZVec<TVar> &x, TVar &divsigma) const;
+    void DivSigma(const TPZVec<REAL> &x, TVar &divsigma) const;
     
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
     {
@@ -408,73 +448,71 @@ public:
 
 };
 
-struct TStokes2DAnalytic : public TPZAnalyticSolution
+struct TStokesAnalytic : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EStokes0, EStokesLimit1, EBrinkman1, EDarcyLimit1};
+    enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
+    
+    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
     
     int fDimension = 2;
     
-    EExactSol fProblemType = ENone;
+    MProblemType fProblemType = EStokes;
+
+    EExactSol fExactSol = ESinCos;
     
-    REAL fvisco = 1.;
+    REAL fvisco = 1.; //Viscosity
+    
+    REAL Pi = M_PI;
+    
+    REAL Re = 1./fvisco; //Reynolds number
+
+    REAL lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
+    
+    REAL falphaBrinkman = 1.;
         
     TPZManVector<REAL,3> fCenter;
     
-    TStokes2DAnalytic() : fCenter(3,0.)
+    TStokesAnalytic() : fCenter(3,0.), TPZAnalyticSolution()
     {
         
     }
     
-    virtual ~TStokes2DAnalytic()
+    virtual ~TStokesAnalytic()
     {
         
     }
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) const;
     
-    template<typename TVar1, typename TVar2>
-    void uxy(const TPZVec<TVar1> &x, TPZVec<TVar2> &flux) const;
+    template<class TVar>
+    void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const;
 
-    template<typename TVar1, typename TVar2>
-    void pressure(const TPZVec<TVar1> &x, TVar2 &p) const;
+    template<class TVar>
+    void pressure(const TPZVec<TVar> &x, TVar &p) const;
     
-    template<typename TVar1, typename TVar2>
-    void graduxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &grad) const;
+    template<class TVar>
+    void graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &grad) const;
 
-    template<typename TVar1, typename TVar2>
-    void Duxy(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &Du) const;
+    template<class TVar>
+    void Duxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &Du) const;
     
-    template<typename TVar1, typename TVar2>
-    void SigmaLoc(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const;
+    template<class TVar>
+    void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    template<typename TVar1, typename TVar2>
-    void DivSigma(const TPZVec<TVar1> &x, TPZVec<TVar2> &divsigma) const;
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
-    {
-        TPZManVector<REAL,3> locforce(3);
-        DivSigma(x, locforce);
-        force[0] = -locforce[0];
-        force[1] = -locforce[1];
-        force[2] = -locforce[2];
-    }
+    template<class TVar>
+    void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    template<typename TVar1, typename TVar2>
-    void Sigma(const TPZVec<TVar1> &x, TPZFMatrix<TVar2> &sigma) const;
+    template<class TVar>
+    void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const{
-        TPZManVector<STATE,3> xco(3);
-        for (int i=0; i<3; i++) {
-            xco[i] = x[i];
-        }
-        SigmaLoc<STATE>(xco,tensor);
-    }
-    
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const;
     
     
 };
 
 #endif
-#endif
+
 #endif
