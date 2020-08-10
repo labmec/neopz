@@ -582,7 +582,7 @@ public:
     
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */
-    void UpdatePreviousState(REAL mult = 1.0);
+    void UpdatePreviousState(STATE mult = 1.0);
     
     /**
      * @brief Transfer multiphysics mesh solution

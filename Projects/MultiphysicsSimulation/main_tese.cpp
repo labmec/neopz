@@ -564,8 +564,8 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     material->SetViscosity(coefvisc);
     
     //permeabilidade
-    TPZFMatrix<REAL> Ktensor(dim,dim,0.);
-    TPZFMatrix<REAL> InvK(dim,dim,0.);
+    TPZFMatrix<STATE> Ktensor(dim,dim,0.);
+    TPZFMatrix<STATE> InvK(dim,dim,0.);
     Ktensor(0,0)=1.; Ktensor(1,1)=1.;
     InvK=Ktensor;
     material->SetPermeabilityTensor(Ktensor,InvK);

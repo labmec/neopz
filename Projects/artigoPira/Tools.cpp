@@ -571,8 +571,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mymaterial = new TPZMixedPoisson(MatId,dim);
     mymaterial->SetPermeability(coefk);
     
-    TPZFMatrix<REAL> TensorK(dim,dim,0.);
-    TPZFMatrix<REAL> InvK(dim,dim,0.);
+    TPZFMatrix<STATE> TensorK(dim,dim,0.);
+    TPZFMatrix<STATE> InvK(dim,dim,0.);
     for(int i = 0; i<dim; i++) {
         TensorK(i,i)=coefk;
         InvK(i,i)=coefk;
