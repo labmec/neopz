@@ -511,9 +511,6 @@ TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
         TPZCompEl *cel = cmesh->ElementVec()[i];
         TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
         celdisc->SetConstC(1.);
-        celdisc->SetCenterPoint(0, 0.);
-        celdisc->SetCenterPoint(1, 0.);
-        celdisc->SetCenterPoint(2, 0.);
         celdisc->SetTrueUseQsiEta();
         if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
         {
@@ -564,8 +561,8 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     material->SetViscosity(coefvisc);
     
     //permeabilidade
-    TPZFMatrix<REAL> Ktensor(dim,dim,0.);
-    TPZFMatrix<REAL> InvK(dim,dim,0.);
+    TPZFMatrix<REAL> Ktensor(3,3,0.);
+    TPZFMatrix<REAL> InvK(3,3,0.);
     Ktensor(0,0)=1.; Ktensor(1,1)=1.;
     InvK=Ktensor;
     material->SetPermeabilityTensor(Ktensor,InvK);
