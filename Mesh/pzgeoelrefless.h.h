@@ -420,7 +420,9 @@ TPZGeoElRefLess<TGeo>::GradX(TPZVec<REAL> &par, TPZFMatrix<REAL> &gradx) const
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
-    result.Resize(3);
+#ifdef PZDEBUG
+    if(result.size() != 3) DebugStop();
+#endif
     TPZFNMatrix<54,REAL> cornerco(3,fGeo.NNodes);
     CornerCoordinates(cornerco);
 	fGeo.X(cornerco,coordinate,result);
