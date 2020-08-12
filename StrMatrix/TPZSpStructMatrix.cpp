@@ -47,10 +47,20 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
     int64_t neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
+#ifndef STATE_COMPLEX
 		return new TPZFYsmpMatrix<STATE>(0,0);
+#else
+        DebugStop();
+        return 0;
+#endif
     }
     TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
+#ifndef STATE_COMPLEX
     TPZFYsmpMatrix<STATE> *mat = dynamic_cast<TPZFYsmpMatrix<STATE> *> (stiff);
+#else
+    TPZFYsmpMatrix<STATE> *mat = 0;
+    DebugStop();
+#endif
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
@@ -78,8 +88,12 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
 	 neq = smesh->NumInternalEquations();
 	 }*/
+#ifndef STATE_COMPLEX
     TPZFYsmpMatrix<STATE> * mat = new TPZFYsmpMatrix<STATE>(neq,neq);
-	
+#else
+    TPZFYsmpMatrix<STATE> * mat = 0;
+    DebugStop();
+#endif
     /**
      *Longhin implementation
 	 */

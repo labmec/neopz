@@ -47,7 +47,8 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     int64_t neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSymetricSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZSYsmpMatrix<STATE>(0,0);
+        DebugStop();
+        return 0;
     }
 //    std::cout << "Creating\n";
     TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
@@ -61,8 +62,9 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
 #endif
 	Assemble(*stiff,rhs,guiInterface);
+#ifndef STATE_COMPLEX
     mat->ComputeDiagonal();
-    
+#endif
 //    std::cout << "Rhs norm " << Norm(rhs) << std::endl;
     
     before.stop();
@@ -90,7 +92,12 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::Create(){
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
     
     int64_t neq = fEquationFilter.NActiveEquations();
+#ifndef STATE_COMPLEX
     TPZSYsmpMatrix<STATE> * mat = new TPZSYsmpMatrix<STATE>(neq,neq);
+#else
+    TPZSYsmpMatrix<STATE> * mat = 0;
+    DebugStop();
+#endif
     
     /**Creates a element graph*/
     TPZMetis metis;
