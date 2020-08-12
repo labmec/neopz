@@ -129,4 +129,28 @@ TPZGeoEl * TPZGeoElRefPattern<TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,
 	return new TPZGeoElRefPattern<TGeo>(DestMesh, *this, gl2lcNdMap, gl2lcElMap);
 }
 
+#include "TPZGeoCube.h"
+#include "TPZGeoLinear.h"
+#include "pzgeoquad.h"
+#include "pzgeotriangle.h"
+#include "pzgeoprism.h"
+#include "pzgeotetrahedra.h"
+#include "pzgeopyramid.h"
+#include "pzgeopoint.h"
+
+
+#define INSERTCLASS(TCL) \
+template class \
+TPZRestoreClass<TPZGeoElRefPattern<TCL > >; \
+template class TPZGeoElRefPattern<TCL>;
+
+INSERTCLASS(pzgeom::TPZGeoPoint)
+INSERTCLASS(pzgeom::TPZGeoLinear)
+INSERTCLASS(pzgeom::TPZGeoTriangle)
+INSERTCLASS(pzgeom::TPZGeoQuad)
+INSERTCLASS(pzgeom::TPZGeoCube)
+INSERTCLASS(pzgeom::TPZGeoPrism)
+INSERTCLASS(pzgeom::TPZGeoTetrahedra)
+INSERTCLASS(pzgeom::TPZGeoPyramid)
+
 #endif
