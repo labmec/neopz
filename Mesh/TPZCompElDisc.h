@@ -216,6 +216,9 @@ protected:
 	void SetConstC(REAL c){fConstC = c;}
     
     void SetTrueUseQsiEta(){
+#ifdef PZDEBUG
+        if(!Reference()) DebugStop();
+#endif
         fUseQsiEta = true;
         fCenterPoint.Fill(0.);
         fConstC = 1.;
@@ -224,14 +227,18 @@ protected:
         if (gel)
         {
             int ns = Reference()->NSides();
+            fCenterPoint.resize(gel->Dimension());
             this->Reference()->CenterPoint(ns-1, fCenterPoint);
         }
     }
 
     void SetFalseUseQsiEta(){
+#ifdef PZDEBUG
+        if(!Reference()) DebugStop();
+#endif
         fUseQsiEta = false;
-        Reference()->CenterPoint(Reference()->NSides()-1,fCenterPoint);
-        TPZVec<REAL> csi(fCenterPoint);
+        TPZManVector<REAL,3> csi(Reference()->Dimension(),0.);
+        Reference()->CenterPoint(Reference()->NSides()-1,csi);
         Reference()->X(csi,fCenterPoint);
         fConstC = NormalizeConst();
     }
