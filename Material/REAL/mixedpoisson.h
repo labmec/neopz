@@ -95,11 +95,11 @@ public:
 	}
     
     //Set the permeability tensor and inverser tensor
-   void SetPermeabilityTensor(TPZFMatrix<REAL> K, TPZFMatrix<REAL> invK){
+   void SetPermeabilityTensor(const TPZFMatrix<REAL> &K, const TPZFMatrix<REAL> &invK){
    
 //       if(K.Rows() != fDim || K.Cols() != fDim) DebugStop();
 //       if(K.Rows()!=invK.Rows() || K.Cols()!=invK.Cols()) DebugStop();
-       if(K.Rows() < fDim || invK.Rows() < fDim)
+       if(K.Rows() != 3 || invK.Rows() != 3)
        {
            DebugStop();
        }
