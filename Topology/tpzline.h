@@ -39,7 +39,7 @@ namespace pztopology {
 	public:
         friend void pztopology::GetPermutation<TPZLine>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFaces = 2, NPermutations = 2};
+		enum {NCornerNodes = 2, NSides = 3, Dimension = 1, NFacets = 2, NPermutations = 2};
 		
                 public:
                 int ClassId() const override;

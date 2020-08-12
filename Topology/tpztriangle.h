@@ -36,7 +36,7 @@ namespace pztopology {
 	public:
         friend void pztopology::GetPermutation<TPZTriangle>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFaces = 3, NPermutations = 6};
+		enum {NSides = 7, NCornerNodes= 3, Dimension = 2, NFacets = 3, NPermutations = 6};
 		
             int ClassId() const override;
             void Read(TPZStream &buf, void *context) override;

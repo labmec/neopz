@@ -22,7 +22,7 @@ template<class TSHAPE>
 class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
 	
     /// vector which defines whether the normal is outward or not
-    TPZManVector<int, TSHAPE::NFaces> fSideOrient;
+    TPZManVector<int, TSHAPE::NFacets> fSideOrient;
     
     /// Data structure which defines the restraints
     std::list<TPZOneShapeRestraint> fRestraints;
@@ -189,7 +189,7 @@ public:
     int SideOrient(int face)
     {
 #ifdef PZDEBUG
-        if (face < 0 || face >= TSHAPE::NFaces) {
+        if (face < 0 || face >= TSHAPE::NFacets) {
             DebugStop();
         }
 #endif

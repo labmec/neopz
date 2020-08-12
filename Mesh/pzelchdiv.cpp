@@ -31,7 +31,7 @@ using namespace std;
 template<class TSHAPE>
 TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
 TPZRegisterClassId(&TPZCompElHDiv::ClassId),
-TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
+TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
@@ -72,7 +72,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFaces,1) {
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	TPZManVector<int,3> order(3,sideorder);
 	this->fIntRule.SetOrder(order);
-    int firstside = TSHAPE::NSides-TSHAPE::NFaces-1;
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
     for(int side = firstside ; side < TSHAPE::NSides-1; side++ )
     {
         fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
@@ -872,7 +872,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::GetSideOrient(int side){
     
-    int firstside = TSHAPE::NSides-TSHAPE::NFaces-1;
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
     if (side < firstside || side >= TSHAPE::NSides - 1) {
         DebugStop();
     }
@@ -887,7 +887,7 @@ int TPZCompElHDiv<TSHAPE>::GetSideOrient(int side){
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SetSideOrient(int side, int sideorient){
     
-    int firstside = TSHAPE::NSides-TSHAPE::NFaces-1;
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
     if (side < firstside || side >= TSHAPE::NSides - 1) {
         DebugStop();
     }
@@ -1386,7 +1386,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     int restrainedface = this->RestrainedFace();
     // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
     // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-    int firstface = TSHAPE::NSides - TSHAPE::NFaces - 1;
+    int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
     int lastface = TSHAPE::NSides - 1;
     int cont = 0;
    
@@ -1575,7 +1575,7 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 	TPZManVector<int,3> order;
 	buf.Read(order);
 	this-> fIntRule.SetOrder(order);
-    TPZManVector<int, TSHAPE::NFaces> SideOrient;
+    TPZManVector<int, TSHAPE::NFacets> SideOrient;
     buf.Read(SideOrient);
     fSideOrient = SideOrient;
 	buf.Read(this->fConnectIndexes.begin(),TSHAPE::NSides);

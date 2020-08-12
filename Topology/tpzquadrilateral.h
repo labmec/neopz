@@ -39,7 +39,7 @@ namespace pztopology {
 
         friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
 		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFaces = 4, NPermutations = 8};
+		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFacets = 4, NPermutations = 8};
         int ClassId() const override;
             void Read(TPZStream &buf, void *context) override;
             void Write(TPZStream &buf, int withclassid) const override;
