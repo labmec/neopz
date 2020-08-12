@@ -112,7 +112,7 @@ int main() {
                 
 	}
 	{
-                TPZPersistenceManager::OpenRead("dump.dat");
+        TPZPersistenceManager::OpenRead("dump.dat");
 		TPZGeoMesh *tst = dynamic_cast<TPZGeoMesh*>(TPZPersistenceManager::ReadFromFile());
 		TPZCompMesh *tsc = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
         std::cout << "depois de lido "<<endl;

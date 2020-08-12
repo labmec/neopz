@@ -15,6 +15,9 @@ using namespace std;
 
 
 int main(){
+#ifdef LOG4CXX
+    InitializePZLOG();
+#endif
   REAL coordinates [6][3] = {	{0.,0.,0.},{1.,0.,1.},{2.,0.,0.},
                                 {0.,1.,0.},{1.,1.,1.},{2.,1.,0.}};
                    //0 , 1  , 2 , 3 ,  4 , 5
@@ -60,7 +63,7 @@ int main(){
     std::cout << "Original x value " << gpt << " After inversion x value " << xvalue << std::endl;
  
  TPZFMatrix<REAL> jac(dim,dim,0.);
- TPZFMatrix<REAL> axes(3,3,0.);
+ TPZFMatrix<REAL> axes(dim,3,0.);
  REAL detjac;
  TPZFMatrix<REAL> jacinv(dim,dim,0.);
  elvec[1]->Jacobian(mpt, jac, axes, detjac, jacinv);

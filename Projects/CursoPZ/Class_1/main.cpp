@@ -39,6 +39,7 @@ int main() {
     int it, npoints;
     
     //=====1D Rule===Computing $f \int_{-1} f(x) $f==================================
+    double minone = -1.;
     while(degree < 26) {
         TPZInt1d ordem1d (p);
         //	for(it2=0;it2<3;it2++) {
@@ -56,8 +57,9 @@ int main() {
             integrate << "Type = " << nome << endl;
         }
         //		ordem1d.Print(integrate);
-        integrate << "1D : p = " << p << " - Integral = " << integral << endl;
+        integrate << "1D : p = " << p << " - Integral = " << integral << " analytic value " << (1.-minone)/(degree+1)<< endl;
         //}
+        minone *= -1.;
         degree++;
         p=degree;
     }
@@ -78,6 +80,8 @@ int main() {
     //=====Triangle Rule==============================
     //point.Resize(2);
     degree = p = 2;
+    double trval[] = {0.25, 0.1625, 0.164583, 0.146577, 0.143973, 0.138455, 0.136328, \
+        0.134002, 0.13262, 0.131391};
     while(degree < 12) {
         TPZIntTriang ordem2dt (p);
         npoints = ordem2dt.NPoints();
@@ -86,13 +90,15 @@ int main() {
             ordem2dt.Point(it,point,weight);
             integral += weight * Funcao2D(point,degree);
         }
-        integrate << "2D - Triangle Integral = " << integral << endl;
+        integrate << "2D - Triangle Integral = " << integral  << " analytic value " << trval[degree-2] << endl;
         degree++;
         p= degree;
     }
     
     //=====Quad Rule==================================
     degree = p = 2;
+    double quadval[] = {3.66667, -2.5, 3.85, -3.79167, 5.45536, -6.40625, 8.98785, -11.5328,
+        16.0906, -21.6243};
     while(degree < 12) {
         TPZIntQuad ordem2dq (p,p);
         npoints = ordem2dq.NPoints();
@@ -101,7 +107,7 @@ int main() {
             ordem2dq.Point(it,point,weight);
             integral += weight * Funcao2D(point,degree);
         }
-        integrate << "2D - Quad Integral = " << integral << endl;
+        integrate << "2D - Quad Integral = " << integral << " analytic value " << quadval[degree-2] << endl;
         //=====End 2D integration============================
         degree++;
         p= degree;
@@ -111,15 +117,22 @@ int main() {
     // The function is f(x) = x^d + y^d + z^d - 2 x y z
     //=====Tetrahedra Rule==================================
     //point.Resize(3);
-    TPZIntTetra3D ordem3dt (p);
-    npoints = ordem3dt.NPoints();
-    integral = 0.0;
-    for (it=0;it<npoints;it++){
-        ordem3dt.Point(it,point,weight);
-        integral += weight * Funcao3D(point,degree);
+    double tetrval[] = {0.0541667, 0.0145833, 0.016369, 0.00900298, 0.00863095, 0.00672743,
+        0.00628551, 0.00563743, 0.00535266, 0.00507303};
+    p = 2;
+    while(p<12)
+    {
+        degree = p;
+        TPZIntTetra3D ordem3dt (p);
+        npoints = ordem3dt.NPoints();
+        integral = 0.0;
+        for (it=0;it<npoints;it++){
+            ordem3dt.Point(it,point,weight);
+            integral += weight * Funcao3D(point,degree);
+        }
+        integrate << "3D - Tetra Integral = " << integral << " analytic value " << tetrval[p-2] << endl;
+        p++;
     }
-    integrate << "3D - Tetra Integral = " << integral << endl;
-    
     //=====Pyramid Rule==================================
     TPZIntPyram3D ordem3dpy (p);
     npoints = ordem3dpy.NPoints();
@@ -178,7 +191,7 @@ REAL Funcao2D (TPZVec<REAL> &pt,int degree) {
     return (a+b + 3.*pt[0]*pt[1]);
 }
 REAL Funcao3D (TPZVec<REAL> &pt,int degree) {
-    if(pt.NElements() < 0)
+    if(pt.NElements() != 3)
         DebugStop();
     REAL a=1., b=1., c=1.;
     
