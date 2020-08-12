@@ -126,7 +126,6 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 	if(!mat) return;
 	
-    UpdateBCValues(data.x);
 	
 	if(dataleft.sol.NElements() < dataright.sol.NElements()){
 		//		data.InvertLeftRightData();
@@ -146,20 +145,12 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-    int nx = datavec[0].x.NElements();
-    if(nx==0){
-       UpdateBCValues(datavec[1].x);
-    }
-    else{
-        UpdateBCValues(datavec[0].x);
-    }
     
 	this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
 }
 //----
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
-	UpdateBCValues(data.x);
 	this->fMaterial->ContributeBC(data,weight,ef,*this);
 }
 
@@ -174,7 +165,6 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STA
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 	if(!mat) DebugStop();
-    UpdateBCValues(data.x);
 
 	
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
@@ -193,7 +183,6 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialDa
     
     TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
     if(!mat) DebugStop();
-	UpdateBCValues(data.x);
 	
     int nel = dataleft.size();
     if(!nel) DebugStop();
@@ -215,7 +204,6 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialDa
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
-    UpdateBCValues(data.x);
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
         for(int i=0; i<3; i++) data.normal[i] *= -1.;
@@ -236,53 +224,6 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 }
 
 
-void TPZBndCond::UpdateBCValues(TPZManVector<REAL,3> & x){
-	if(fForcingFunction){
-		TPZManVector<STATE,3> result(fBCVal2.Rows(),0.);
-        TPZFNMatrix<9,STATE> gradu(Dimension(),fBCVal2.Rows());
-        // use gradu to update the Neumann boundary condition
-		fForcingFunction->Execute(x,result,gradu);
-        
-#ifdef PZDEBUG
-        if (fBCVal2.Rows() != result.size()) {
-            DebugStop();
-        }
-#endif
-		int i;
-		for(i=0; i<fBCVal2.Rows(); i++) {
-			fBCVal2(i,0) = result[i];
-		}
-	}
-	
-	if( this->fValFunction ){
-		TPZManVector<STATE> result(this->fBCVal2.Rows(),0.);
-		this->fValFunction(x, this->fBCVal1, result, this->fType );
-		int i;
-		for(i = 0; i < this->fBCVal2.Rows(); i++) {
-			this->fBCVal2(i,0) = result[i];
-		}
-	}//if
-    
-    int nbc = fBCs.size();
-    for (int ibc=0; ibc<nbc; ibc++) {
-        if (fBCs[ibc].fForcingFunction) {
-            TPZManVector<STATE> result(fBCVal2.Rows(),0.);
-            fBCs[ibc].fForcingFunction->Execute(x,result);
-            int i;
-            for(i=0; i<fBCVal2.Rows(); i++) {
-                fBCs[ibc].fBCVal2(i,0) = result[i];
-            }
-
-        }
-    }
-}
-
-
-void TPZBndCond::UpdateBCValues(TPZVec<TPZMaterialData> &datavec){
-	
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
-}
 
 
 void TPZBndCond::FillDataRequirements(TPZMaterialData &data){

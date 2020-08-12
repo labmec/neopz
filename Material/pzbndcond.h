@@ -290,13 +290,6 @@ protected:
 		else out << "has no forcing function\n";
 	}
 	
-	void UpdateBCValues(TPZManVector<REAL,3> & x);
-	
-	/*
-	 @brief this method will be used only in case of multiphysics simulation
-	 */
-	void UpdateBCValues(TPZVec<TPZMaterialData> &datavec);
-	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
 	 * @param data [in] stores all input data
