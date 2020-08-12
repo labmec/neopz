@@ -97,12 +97,10 @@ protected:
         TPZVec<int> fSideNodes;
         /// a vector of TPZGeoElSide relative to its sons
         TPZVec<TPZGeoElSide> fSideSons;
-        ///if there is a midsidenode in the side, its index. otherwise is -1
-        int64_t fMidSideIndex;
         SPZFatherSideInfo(const TPZVec<int> &sideNodes,
                 const TPZVec<TPZGeoElSide> &sideSons,
                 const int64_t &midSideIndex) :
-        fSideNodes(sideNodes), fSideSons(sideSons), fMidSideIndex(midSideIndex) {}
+        fSideNodes(sideNodes), fSideSons(sideSons) {}
         SPZFatherSideInfo() = default;
         SPZFatherSideInfo(const SPZFatherSideInfo &) = default;
         void Read(TPZStream &buf, void *context);
@@ -496,6 +494,8 @@ public:
     * @brief Find the side refinement pattern corresponding to the parameter transformation
     */
     TPZAutoPointer<TPZRefPattern> SideRefPattern(int side, TPZTransform<> &trans);
+
+    TPZAutoPointer<TPZRefPattern> FindRefPattern(TPZTransform<> &trans);
 
     TPZGeoMesh &RefPatternMesh(){
 		return fRefPatternMesh;
