@@ -812,10 +812,10 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     int side = -1;
     side = gel->ProjectInParametricDomain(qsi, projection);
 
-    
+
     TPZGeoElSide mySide(gel,side);
     TPZManVector<REAL,3> xclose(3);
-    mySide.X(projection, xclose);
+    gel->X(projection, xclose);
     REAL mindist = 0.;
     for (int i=0; i<3; i++) {
         mindist += (xclose[i]-x[i])*(xclose[i]-x[i]);
