@@ -59,6 +59,8 @@ namespace TPZCompMeshTools
     
     void OptimizeBandwidth(TPZCompMesh *cmesh);
 
+    /// Print cmesh solution per geometric element
+    void PrintSolutionByGeoElement(TPZCompMesh *cmesh, std::ostream &out);
 }
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */

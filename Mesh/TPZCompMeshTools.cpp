@@ -781,3 +781,42 @@ void TPZCompMeshTools::SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pre
     pressuremesh->ExpandSolution();
 }
 
+/// Print cmesh solution per geometric element
+void TPZCompMeshTools::PrintSolutionByGeoElement(TPZCompMesh* cmesh, std::ostream &out) {
+
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+
+        bool hasgeometry = false;
+        TPZManVector<REAL> xcenter(3, 0.);
+        TPZGeoEl *gel = cel->Reference();
+        // if a geometric element exists, extract its center coordinate
+        if (gel) {
+            hasgeometry = true;
+            TPZManVector<REAL, 3> xicenter(gel->Dimension(), 0.);
+            gel->CenterPoint(gel->NSides() - 1, xicenter);
+            gel->X(xicenter, xcenter);
+        }
+        out << "CompEl " << el;
+        if (hasgeometry) {
+            out << " Gel " << gel->Index() << " matid " << gel->MaterialId() << " Center " << xcenter << std::endl;
+        }
+        for (int ic = 0; ic < nc; ic++) {
+            TPZManVector<STATE> connectsol;
+            int64_t cindex = cel->ConnectIndex(ic);
+            TPZConnect &c = cmesh->ConnectVec()[cindex];
+            cmesh->ConnectSolution(cindex, cmesh, cmesh->Solution(), connectsol);
+            //for (int i=0; i<connectsol.size(); i++) {
+            //    if (fabs(connectsol[i]) < tol) {
+            //        connectsol[i] = 0.;
+            //    }
+            //}
+            out << ic << " index " << cindex << " values " << connectsol << std::endl;
+        }
+    }
+}

@@ -2898,3 +2898,15 @@ void TPZCompMesh::UpdatePreviousState(REAL mult)
 
 template class TPZRestoreClass<TPZCompMesh>;
 
+/// extract the values corresponding to the connect from the vector
+void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol)
+{
+    int64_t seqnum = cmesh->ConnectVec()[cindex].SequenceNumber();
+    int blsize = cmesh->Block().Size(seqnum);
+    int position = cmesh->Block().Position(seqnum);
+    sol.resize(blsize);
+    for (int64_t i=position; i< position+blsize; i++) {
+        sol[i-position] = glob(i,0);
+    }
+}
+
