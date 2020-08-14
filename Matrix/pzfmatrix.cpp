@@ -681,9 +681,17 @@ void TPZFMatrix<float>::MultAdd(const TPZFMatrix<float> &x,const TPZFMatrix<floa
     }
     if(this->Cols() == 0) {
         z.Zero();
+        if (beta != 0) {
+            z = y;
+            z *= beta;
+        }
+        return;
     }
     if (beta != (float)0.) {
         z = y;
+    }
+    if (Rows() == 0 || Cols() == 0 || x.Rows() == 0 || x.Cols() == 0) {
+        return;
     }
     if (!opt) {
         cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, this->Rows(), x.Cols(), this->Cols(),
