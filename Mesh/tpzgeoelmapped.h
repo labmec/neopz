@@ -172,7 +172,12 @@ int ClassId() const override;
 					ksidiff += (aux[i]-ptancestor[i])*(aux[i]-ptancestor[i]);
 				}//i
 				ksidiff = sqrt(ksidiff);
-				if(ksidiff > 1e-8){
+#ifdef REALfloat
+                REAL tol = 1.e-6;
+#else
+                REAL tol = 1.e-8;
+#endif
+				if(ksidiff > tol){
 					std::cout.precision(12);
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
 					std::cout << "aux:\n";
@@ -217,7 +222,7 @@ int ClassId() const override;
 				}
 
 				error = sqrt(error);
-				if(error > 1e-8){
+				if(error > tol){
 					std::stringstream sout;
 					
 					sout.precision(16);
