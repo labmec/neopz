@@ -335,6 +335,8 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     TPZFNMatrix<9,REAL> fTensorPerm;
 
     TPZFNMatrix<9,REAL> fInvPerm;
+    
+    static double gC;
 
     TLaplaceExample1() : fCenter(3,0.), TPZAnalyticSolution()
     {

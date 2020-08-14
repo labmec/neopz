@@ -1211,6 +1211,8 @@ void TElasticity3DAnalytic::DivSigma<REAL>(const TPZVec<REAL> &x, TPZVec<REAL> &
 template
 void TElasticity3DAnalytic::Sigma<Fad<REAL> >(const TPZVec<Fad<REAL> > &x, TPZFMatrix<Fad<REAL> > &sigma) const;
 
+double TLaplaceExample1::gC = 1.;
+
 TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp) : TPZAnalyticSolution(cp),fExact(cp.fExact) {
     std::cout << "TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp): One should not invoke this copy constructor";
     DebugStop();
@@ -1237,7 +1239,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
      
     switch (fExact) {
         case EConst:
-            disp[0] += 1.;
+            disp[0] += gC;
             break;
         case EX:
             disp[0] += xloc[0];
@@ -1494,7 +1496,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADREAL > &x, TPZVec<FADFADREAL > &di
     disp[0] = (TVar)(0.)*xloc[0];
     switch (fExact) {
         case EConst:
-            disp[0] += 1.;
+            disp[0] += gC;
             break;
         case EX:
             disp[0] += xloc[0];
