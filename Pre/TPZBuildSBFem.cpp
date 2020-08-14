@@ -720,7 +720,7 @@ void TPZBuildSBFem::CreateElementGroups(TPZCompMesh &cmesh)
         if (!sbfemgroup) {
             DebugStop();
         }
-        TPZStack<TPZCompEl *, 5> subgr = sbfemgroup->GetElGroup();
+        TPZVec<TPZCompEl *> &subgr = sbfemgroup->GetElGroup();
         int64_t nsub = subgr.NElements();
         for (int64_t is=0; is<nsub; is++) {
             TPZCompEl *cel = subgr[is];

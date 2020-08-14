@@ -21,7 +21,7 @@ class TPZElementGroup : public TPZCompEl
 {
 
 protected:
-    TPZStack<TPZCompEl *,5> fElGroup;
+    TPZStack<TPZCompEl *,8> fElGroup;
     TPZManVector<int64_t,27> fConnectIndexes;
     std::map<int64_t,TPZOneShapeRestraint> fRestraints;
 
@@ -85,7 +85,7 @@ public:
     bool NeedsComputing(const std::set<int> &matids) override;
     
 
-    TPZStack<TPZCompEl *, 5> GetElGroup(){
+    TPZVec<TPZCompEl *> &GetElGroup(){
         return fElGroup;
     }
     
