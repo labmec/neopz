@@ -23,6 +23,10 @@
 #include "pzgeoprism.h"
 #include "pzgeopyramid.h"
 
+#include "tpzquadraticline.h"
+#include "tpzquadraticquad.h"
+#include "tpzquadratictrig.h"
+
 #include "tpzquadraticcube.h"
 #include "tpzquadratictetra.h"
 #include "tpzquadraticprism.h"
@@ -32,9 +36,11 @@
 #include "tpzellipse3d.h"
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
+#include "TPZWavyLine.h"
+#include "TPZQuadTorus.h"
+#include "TPZTriangleTorus.h"
 
-#include "TPZCurve.h"
-#include "TPZSurface.h"
+#include "tpzgeoblend.h"
 
 #include "TPZVTKGeoMesh.h"
 
@@ -64,7 +70,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
 //#define NOISY //outputs x and grad comparisons
-//#define NOISYVTK //prints all elements in .vtk format
+#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
@@ -87,8 +93,7 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
 {
     TPZManVector<REAL,3> lowercorner(3,0.),size(3,1.); // Setting the first corner as the origin and the max element size is 1.0;
 
-    AddElement<TPZGeoPoint>(mesh,lowercorner,size); // @omar:: It makes no sense to test gradx of a 0D element
-                                                    // @phil : It helps to check whether vectors of proper dimension are created
+    AddElement<TPZGeoPoint>(mesh,lowercorner,size);
     AddElement<TPZGeoLinear>(mesh,lowercorner,size);
     AddElement<TPZGeoTriangle>(mesh,lowercorner,size);
     AddElement<TPZGeoQuad>(mesh,lowercorner,size);
@@ -117,11 +122,12 @@ void FillGeometricMesh(TPZGeoMesh &mesh)
     
     AddElement<TPZArc3D >(mesh,lowercorner,size);
     AddElement<TPZEllipse3D >(mesh,lowercorner,size);
-//    AddElement<TPZWavyLine>(mesh,lowercorner,size);
-//    AddElement<TPZQuadTorus>(mesh,lowercorner,size);
-//    AddElement<TPZTriangleTorus>(mesh,lowercorner,size);
-//    AddElement<TPZQuadSphere<> >(mesh,lowercorner,size);
-//    AddElement<TPZTriangleSphere<> >(mesh,lowercorner,size);
+    AddElement<TPZWavyLine>(mesh,lowercorner,size);
+    AddElement<TPZQuadTorus>(mesh,lowercorner,size);
+    AddElement<TPZTriangleTorus>(mesh,lowercorner,size);
+    AddElement<TPZQuadSphere<> >(mesh,lowercorner,size);
+    
+    AddElement<TPZTriangleSphere<> >(mesh,lowercorner,size);
     mesh.BuildConnectivity();
 }
 
@@ -206,26 +212,27 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
             
             int r = gradx_r.Rows();
             int c = gradx_r.Cols();
-            
+#ifdef NOISY
+            for(int j=0; j<c; j++) {
+                std::cout << "qsi["<<j<<"] =" << qsi[j] << std::endl;
+            }
             for(int i = 0; i < r; i++ ){
-#ifdef NOISY
-                std::cout << " x = " << x_r[i] << std::endl;
-                std::cout << " x fad = " << x[i] << std::endl;
-#endif
+                std::cout << " x[" << i << "] = " << x_r[i] << std::endl;
+                std::cout << " x fad[" << i << "] = " << x[i] << std::endl;
+            }
+            for(int i=0; i<r; i++) {
                 for(int j = 0; j < c; j++ ){
-#ifdef NOISY
-                    std::cout << " gradx = " << gradx_r(i,j) << std::endl;
-                    std::cout << " gradx fad = " << x[i].dx(j) << std::endl;
+                    std::cout << " gradx(" << i << "," << j << ") = " << gradx_r(i,j) << std::endl;
+                    std::cout << " gradx fad(" << i << "," << j << ") = " << x[i].dx(j) << std::endl;
+                }
+            }
 #endif
+            for(int i = 0; i< r; i++) {
+                for(int j=0; j<c; j++) {
                     REAL diff1 = gradx_r(i,j)-x[i].dx(j);
                     REAL diff2 = gradx_r(i,j)-gradx(i,j).val();
-#ifdef REALfloat
-                    bool gradx_from_x_fad_check = std::abs(diff1) < tol;
-                    bool gradx_vs_gradx_fad_check = std::abs(diff2) < tol;
-#else
                     bool gradx_from_x_fad_check = fabs(diff1) < tol;
                     bool gradx_vs_gradx_fad_check = fabs(diff2) < tol;
-#endif
                     if(!gradx_from_x_fad_check || ! gradx_vs_gradx_fad_check)
                     {
                         std::cout << "gel type name " << gel->TypeName() << std::endl;
