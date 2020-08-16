@@ -17,7 +17,9 @@ void ExemploIni();
 
 int main(int argc, char *argv[])
 {
+    QuadWavy();
 	QuadSphere();
+    ExemploIni();
 	return 0;
 }
 
@@ -115,7 +117,7 @@ void QuadWavy()
 		}
 	}
 
-	std::ofstream outfile("malha.vtk");
+	std::ofstream outfile("QuadWavy.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile,true);
 	
 }
@@ -340,7 +342,7 @@ void ExemploIni()
     //no 3
     coord[0] = 4.;
     coord[1] = 4.;
-    coord[2] = 6.;
+    coord[2] = 4.;
     node3.SetNodeId(3);
     node3.SetCoord(coord);
     geomesh->NodeVec()[3] = node3;
@@ -379,6 +381,7 @@ void ExemploIni()
     topology[2] = 5;//no local 2 do quadrilatero corresponde ao no 2 da malha geometrica
     topology[3] = 2;//no local 3 do quadrilatero corresponde ao no 3 da malha geometrica
     
+    materialId = 2;
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (topology,materialId,*geomesh);
     
     //CONCLUINDO A CONSTRUCAO DA MALHA GEOMETRICA
@@ -416,22 +419,22 @@ void ExemploIni()
     
     std::cout << "\n\n";
     
-    
-    ///Refinando o elemento quadrilateral em subelementos (chamados de "filhos")
-    TPZVec<TPZGeoEl *> sons0, sons1;
-    quadrilatero->Divide(sons0);
-    
-    ///Refinando os filhos do elemento quadrilateral
-    for(int s = 0; s < sons0.NElements(); s++)
-    {
-        sons1.Resize(0);
-        TPZGeoEl * actSon = sons0[s];
-        actSon->Divide(sons1);
-    }
-    
-    std::ofstream outfile("malha.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile);
-    
     geomesh->Print();
+    
+
+    ///Refinando o elemento quadrilateral em subelementos (chamados de "filhos")
+    TPZVec<TPZGeoEl *> sons;
+    
+    const int nref = 7;
+    for (int iref = 0; iref < nref; iref++) {
+        int nel = geomesh->NElements();
+        for (int iel = 0; iel < nel; iel++) {
+            TPZGeoEl *gel = geomesh->ElementVec()[iel];
+            if(!gel->HasSubElement()) gel->Divide(sons);
+        }
+    }
+
+    std::ofstream outfile("ExemploSimples.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outfile);
     
 }
