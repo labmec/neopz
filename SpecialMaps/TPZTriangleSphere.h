@@ -125,6 +125,39 @@ namespace pzgeom {
         template<class T>
         void GradX(TPZFMatrix<REAL> &cornerco, TPZVec<T> &par, TPZFMatrix<T> &gradx) const
         {
+            // will first do dxdqsi and then d(phi*v)/dx, finaly d(phi*v)/dx * dxdqsi, where phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            
+            TPZManVector<T,3> xqsi(3,0.); // will store (x,y,z) from (qsi,eta)
+            TPZManVector<T,3> xqsiLxc(3,0.); // will store (x,y,z)-xc
+            GeomTriang::X(cornerco,par,xqsi); // gives the map (qsi,eta) to (x,y,z)
+            T norm = 0.;
+            for (int i = 0; i < 3; i++) { // Does xqsi-xc and calculates its norm
+                xqsiLxc[i] = xqsi[i] - fXc[i];
+                norm += xqsiLxc[i] * xqsiLxc[i];
+            }
+            norm = sqrt(norm);
+            
+            TPZFNMatrix<6,T> dxdqsi(3,2,0.); // But it is a (3,2) matrix. It is set (3,3) because of the later products
+            GeomTriang::GradX(cornerco,par,dxdqsi);
+            
+            TPZFNMatrix<3,T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            T zero = par[0]-par[0];
+            TPZFNMatrix<9,T> gradvphi(3,3,zero); // here v = (xqsi - xc) * fR
+            T phi = 1./norm;
+            
+            for (int i = 0; i < 3; i++) {
+                v(i,0) = xqsiLxc[i] * fR;
+                gradvphi(i,i) = fR*phi;
+                gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
+            }
+            
+            TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
+            TensorProd(v,gradphi,DphivDx);
+            DphivDx += gradvphi;
+            
+            DphivDx.Multiply(dxdqsi, gradx);
+
+            /*
             TPZManVector<T,3> XTriangle(3,0.0);
             TPZFNMatrix<9,T> GradOneoverNorm(3,1,0.0);
             TPZFNMatrix<9,T> TensorXtGradX(3,2,0.0);
@@ -159,9 +192,20 @@ namespace pzgeom {
             TensorXtGradX(2,1)= XtminusXc(2,0)*GradOneoverNorm(1,0);
             a = fR/NormValue;
             gradx=a*GradXt+TensorXtGradX;
-
+*/
         }
 		
+        template<class T>
+        static void TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2, TPZFMatrix<T> &res)
+        {
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    res(i,j) = vec1(i,0) * vec2(j,0);
+                }
+            }
+        }
+        
+
         /* @brief Computes the jacobian of the map between the master element and deformed element */
 //        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 //        {

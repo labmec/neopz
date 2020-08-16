@@ -127,17 +127,18 @@ namespace pzgeom {
             
             TPZFNMatrix<3,T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
             T zero = param[0]-param[0];
-            TPZFNMatrix<9,T> gradv(3,3,zero); // here v = (xqsi - xc) * fR
+            TPZFNMatrix<9,T> gradvphi(3,3,zero); // here v = (xqsi - xc) * fR
             T phi = 1./norm;
             
             for (int i = 0; i < 3; i++) {
                 v(i,0) = xqsiLxc[i] * fR;
-                gradv(i,i) = fR+zero;
+                gradvphi(i,i) = fR*phi;
                 gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
             }
             
             TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
-            DphivDx = TensorProd(v,gradphi) + phi*gradv;
+            TensorProd(v,gradphi,DphivDx);
+            DphivDx += gradvphi;
             
             DphivDx.Multiply(dxdqsi, gradx);
         }
@@ -235,15 +236,13 @@ namespace pzgeom {
 //        }
         
         template<class T>
-        static TPZFMatrix<T> TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2)
+        static void TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2, TPZFMatrix<T> &res)
         {
-            TPZFNMatrix<9,T> res(3,3,0.);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     res(i,j) = vec1(i,0) * vec2(j,0);
                 }
             }
-            return res;
         }
 		
 		// static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);

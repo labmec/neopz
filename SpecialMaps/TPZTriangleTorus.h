@@ -118,25 +118,16 @@ int ClassId() const override;
             TPZGeoTriangle::X(fPhiTheta,par,ft);
             TPZGeoTriangle::GradX(fPhiTheta, par, gradphi);
             
-            DxDphi(0,0) = -cos(ft[1]) * sin(ft[0]);
-            DxDphi(0,1) = -(3. + cos(ft[0])) * sin(ft[1]);
-            DxDphi(1,0) = -sin(ft[1]) * sin(ft[0]);
-            DxDphi(1,1) = cos(ft[1]) * (3. + cos(ft[0]));
-            DxDphi(2,0) = cos(ft[0]);
+            DxDphi(0,0) = -fr*cos(ft[1]) * sin(ft[0]);
+            DxDphi(0,1) = -(fr*cos(ft[0])+fR) * sin(ft[1]);
+            DxDphi(1,0) = -fr*sin(ft[1]) * sin(ft[0]);
+            DxDphi(1,1) = cos(ft[1]) * (fr*cos(ft[0])+fR);
+            DxDphi(2,0) = fr*cos(ft[0]);
             DxDphi(2,1) = 0.;
             DxDphi.Multiply(gradphi, gradx);
 
             
         }
-		
-        /* @brief Computes the jacobian of the map between the master element and deformed element */
-//        void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
-//        {
-//            std::cout << __PRETTY_FUNCTION__ << "PLEASE IMPLEMENT ME!!!\n";
-//            DebugStop();
-//            //TPZGeoTriangle::Jacobian(gel, param, jacobian , axes, detjac, jacinv);
-//        }
-        
         template<class T>
 		void X(const TPZFMatrix<REAL> &nodes,TPZVec<T> &loc,TPZVec<T> &result) const
         {
