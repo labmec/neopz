@@ -1,5 +1,6 @@
 /**
  * @file
+ * @author Jorge Diaz Calle
  * @brief Declaration of the generator of special grids class.
  * @note The idea is to generate a polygonal mesh approximating a three dimensional geometric element from another simple polygonal mesh.
  */

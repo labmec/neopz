@@ -217,7 +217,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 #ifndef WINDOWS
 		sout << __PRETTY_FUNCTION__ << " no materials " << std::endl;
 #endif
-		sout << "\tN� encontrei material na malha!";
+		sout << "\tdidnt find any material in the mesh!";
 #ifdef LOG4CXX
 		LOGPZ_ERROR (logger, sout.str().c_str());
 #else
@@ -267,7 +267,7 @@ int64_t TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int64_t Id)
 #ifndef WINDOWS
 	sout << __PRETTY_FUNCTION__;
 #endif
-	sout << " N�" << Id << " n� encontrado!";
+	sout << " Node" << Id << " not found!";
 #ifdef LOG4CXX
 	LOGPZ_WARN (logger, sout.str().c_str());
 #else

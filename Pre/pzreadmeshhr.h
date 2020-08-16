@@ -75,7 +75,7 @@ protected:
 	virtual void ReadBCs (int NMat, TPZCompMesh & CMesh);
 	
 	/**
-	 * @brief Remove the coments and return the integer parameter of the first line
+	 * @brief Remove the comments and return the integer parameter of the first line
 	 * without comment token
 	 */
 	void removeComents (std::string &NumberOf);

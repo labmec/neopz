@@ -15,7 +15,7 @@
 #include "pzgmesh.h"
 #include <iostream>
 
-
+/// build a mesh with hexahedral topology and consisting of different element types
 class TPZAcademicGeoMesh
 {
 public:
