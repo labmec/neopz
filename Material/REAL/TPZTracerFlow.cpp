@@ -127,7 +127,7 @@ int TPZTracerFlow::NSolutionVariables(int var){
 
 // Contribute Methods being used
 /** @brief Returns the solution associated with the var index */
-void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
     
     int s_b    = 2;
     REAL sw = datavec[s_b].sol[0][0];
