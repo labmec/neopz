@@ -173,7 +173,7 @@ int ClassId() const override;
 				}//i
 				ksidiff = sqrt(ksidiff);
 #ifdef REALfloat
-                REAL tol = 1.e-6;
+                REAL tol = 1.e-5;
 #else
                 REAL tol = 1.e-8;
 #endif
