@@ -1293,7 +1293,7 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElementMapped(MElementType type, TPZVec<int64_t>&
     }
 }
 
-TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
+TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType eltype,
                                        TPZVec<int64_t>& nodeindexes,
                                        int matid,
                                        int64_t& index,
@@ -1303,97 +1303,116 @@ TPZGeoEl *TPZGeoMesh::CreateGeoElement(MElementType type,
     {
         for (int i=0; i<nodeindexes.size(); i++) {
             if (nodeindexes[i] < 0) {
+                std::cout << __PRETTY_FUNCTION__ << "Creating element of type " << eltype
+                << " matid " << matid << " reftype " << reftype << " nodeindexes " << nodeindexes
+                << std::endl;
                 DebugStop();
             }
         }
     }
 #endif
+    TPZGeoEl *gel = 0;
 	if (reftype == 0)
     {
-        switch( type )
+        switch( eltype )
         {
             case 0://point
-                return new TPZGeoElement< TPZGeoPoint, TPZRefPoint>(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoPoint, TPZRefPoint>(nodeindexes, matid, *this, index );
+                break;
             case 1://line
-                return new TPZGeoElement< TPZGeoLinear, TPZRefLinear>(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoLinear, TPZRefLinear>(nodeindexes, matid, *this, index );
+                break;
             case 2://triangle
-                return new TPZGeoElement< TPZGeoTriangle, TPZRefTriangle >(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoTriangle, TPZRefTriangle >(nodeindexes, matid, *this, index );
+                break;
             case 3://quadrilatera
-                return  new TPZGeoElement< TPZGeoQuad, TPZRefQuad >(nodeindexes, matid, *this, index );
+                gel =  new TPZGeoElement< TPZGeoQuad, TPZRefQuad >(nodeindexes, matid, *this, index );
+                break;
             case 4://tetraedra
-                return new TPZGeoElement< TPZGeoTetrahedra, TPZRefTetrahedra >(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoTetrahedra, TPZRefTetrahedra >(nodeindexes, matid, *this, index );
+                break;
             case 5:
-                return new TPZGeoElement< TPZGeoPyramid, TPZRefPyramid >(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoPyramid, TPZRefPyramid >(nodeindexes, matid, *this, index );
+                break;
             case 6:
-                return new TPZGeoElement< TPZGeoPrism, TPZRefPrism >(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoPrism, TPZRefPrism >(nodeindexes, matid, *this, index );
+                break;
             case 7:
-                return new TPZGeoElement< TPZGeoCube, TPZRefCube >(nodeindexes, matid, *this, index );
+                gel = new TPZGeoElement< TPZGeoCube, TPZRefCube >(nodeindexes, matid, *this, index );
+                break;
             default:
                 PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
-                << " type = " << type << std::endl;
+                << " type = " << eltype << std::endl;
                 return NULL;
         }
     }
 	else
 	{
 		//TPZAutoPointer<TPZRefPattern> ref = GetUniformPattern(type);
-		switch( type )
+		switch( eltype )
 		{
 			case 0://point
 			{
-				TPZGeoElRefPattern<TPZGeoPoint> * gel = new TPZGeoElRefPattern<TPZGeoPoint> (nodeindexes, matid, *this, index);
-				return gel;
+				gel = new TPZGeoElRefPattern<TPZGeoPoint> (nodeindexes, matid, *this, index);
+                break;
 			}
 			case 1://line
 			{
-				TPZGeoElRefPattern < TPZGeoLinear > *gel = new TPZGeoElRefPattern < TPZGeoLinear >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoLinear >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			case 2://triangle
 			{
-				TPZGeoElRefPattern < TPZGeoTriangle > *gel = new TPZGeoElRefPattern < TPZGeoTriangle >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoTriangle >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			case 3://quadrilatera
 			{
-				TPZGeoElRefPattern < TPZGeoQuad > * gel = new TPZGeoElRefPattern < TPZGeoQuad >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoQuad >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			case 4://tetraedra
 			{
-				TPZGeoElRefPattern < TPZGeoTetrahedra > *gel = new TPZGeoElRefPattern < TPZGeoTetrahedra >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoTetrahedra >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			case 5://pyramid
 			{
-				TPZGeoElRefPattern < TPZGeoPyramid > *gel = new TPZGeoElRefPattern < TPZGeoPyramid >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoPyramid >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			case 6://prism
 			{
-				TPZGeoElRefPattern < TPZGeoPrism > *gel = new TPZGeoElRefPattern < TPZGeoPrism >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoPrism >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			case 7://cube
 			{
-				TPZGeoElRefPattern < TPZGeoCube > *gel = new TPZGeoElRefPattern < TPZGeoCube >(nodeindexes, matid, *this, index);
+				gel = new TPZGeoElRefPattern < TPZGeoCube >(nodeindexes, matid, *this, index);
 				//gel->SetRefPattern (ref);
-				return gel;
+				break;
 			}
 			default:
 			{
 				PZError << "TPZGeoMesh::CreateGeoElement type element not exists:"
-                << " type = " << type << std::endl;
+                << " type = " << eltype << std::endl;
 				return NULL;
 			}
 		}
 	}
+#ifdef PZDEBUG
+    if(nodeindexes.size() != gel->NCornerNodes())
+    {
+        DebugStop();
+    }
+#endif
+    return gel;
 	//return NULL;
 }
 

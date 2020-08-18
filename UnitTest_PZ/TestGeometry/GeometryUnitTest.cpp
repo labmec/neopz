@@ -70,7 +70,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
 //#define NOISY //outputs x and grad comparisons
-#define NOISYVTK //prints all elements in .vtk format
+//#define NOISYVTK //prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 using namespace pzgeom;
