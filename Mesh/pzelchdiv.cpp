@@ -1099,16 +1099,15 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         }
         
         TPZFNMatrix<4,REAL> Grad0(3,3,0.);
+	TPZGeoEl *ref = this->Reference();
+	const int gel_dim = ref->Dimension();
         
-        for (int s = 0; s < normvecCols; s++) {
-            
-            if (data.fDeformedDirectionsFad(0,s)>0||data.fDeformedDirectionsFad(1,s)>0) {
-                Grad0(0,0)=data.fDeformedDirectionsFad(0,s).fastAccessDx(0);
-                Grad0(0,1)=data.fDeformedDirectionsFad(0,s).fastAccessDx(1);
-                Grad0(1,0)=data.fDeformedDirectionsFad(1,s).fastAccessDx(0);
-                Grad0(1,1)=data.fDeformedDirectionsFad(1,s).fastAccessDx(1);
+	for (int s = 0; s < normvecCols; s++) {
+            for (int i = 0; i < gel_dim; i++) {
+                for (int j = 0; j < gel_dim; j++) {
+                    Grad0(i,j)=data.fDeformedDirectionsFad(i,s).fastAccessDx(j);
+                }
             }
-            
             GradNormalvec[s] = Grad0;
         }
         
