@@ -117,6 +117,7 @@ ENABLE_TESTING()
 			add_subdirectory(dactests)
 
 			#Testes padroes de refinamento
+                        add_subdirectory(F17DirectionalRefinement)
 			add_subdirectory(Heman)
 
 			#Using discontinuous approximation functions - masters thesis of Erick Slis
