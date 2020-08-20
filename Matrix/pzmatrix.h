@@ -816,6 +816,12 @@ inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix
 	DebugStop();
 }
 
+template<>
+inline void TPZMatrix<float>::Residual(const TPZFMatrix<float>& x,const TPZFMatrix<float>& rhs, TPZFMatrix<float>& res )  {
+    MultAdd( x, rhs, res, ((float)-1.0), ((float)1.0) );
+}
+
+
 
 template<>
 inline void TPZMatrix<double>::Residual(const TPZFMatrix<double>& x,const TPZFMatrix<double>& rhs, TPZFMatrix<double>& res )  {
