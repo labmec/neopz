@@ -159,7 +159,6 @@ void TPZMat2dLin::Print(std::ostream & out) {
 }
 
 int TPZMat2dLin::VariableIndex(const std::string &name) {
-	if(!strcmp(name.c_str(),"displacement")) return 1;
 	if(!strcmp(name.c_str(),"Solution")) return 1;
 	if(!strcmp("Derivate",name.c_str())) return 2;
     if(!strcmp("Pressure",name.c_str())) return 3;
@@ -167,7 +166,7 @@ int TPZMat2dLin::VariableIndex(const std::string &name) {
 }
 
 int TPZMat2dLin::NSolutionVariables(int index) {
-	if(index == 1) return 3;
+	if(index == 1) return 1;
 	if(index == 2) return 2;
     if(index == 3) return 1;
 	return TPZMaterial::NSolutionVariables(index);
