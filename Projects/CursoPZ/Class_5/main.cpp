@@ -17,6 +17,9 @@
 #include "pzfstrmatrix.h"
 #include "TPZPersistenceManager.h"
 
+#include "pzanalysis.h"
+#include "pzintel.h"
+
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -79,9 +82,34 @@ int main() {
     cmesh->InsertMaterialObject(bc4);
 	//TPZMaterial* mat(mat2d);
 //    cmesh->SetAllCreateFunctionsDiscontinuous();
-//    cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->SetAllCreateFunctionsHDivPressure();
+    cmesh->SetAllCreateFunctionsContinuous();
+//    cmesh->SetAllCreateFunctionsHDivPressure();
 	cmesh->AutoBuild();
+    
+    {
+        TPZCompEl *cel = cmesh->Element(0);
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if(!intel) DebugStop();
+        TPZGeoEl *gel = cel->Reference();
+        int ncor = gel->NCornerNodes();
+        int nsides = gel->NSides();
+        int orders[]={1,1,1,1,2,6,1,1,4};
+        for(int side = ncor; side < nsides; side++)
+        {
+            intel->ForceSideOrder(side, orders[side]);
+        }
+        cmesh->ExpandSolution();
+        int64_t neq = cmesh->NEquations();
+        TPZVec<int64_t> eqindex(neq,0);
+        for (int i=0; i<neq; i++) {
+            eqindex[i] = i;
+        }
+        cmesh->SetDefaultOrder(4);
+        TPZAnalysis an(cmesh);
+        an.ShowShape("ShowShape.vtk", eqindex);
+        cmesh->SetDefaultOrder(1);
+    }
+    
 //    cmesh->ApproxSpace().CreateInterfaces(*cmesh);
 	TPZVec<int64_t> subelindex(4,0);
     int64_t elindex = 0;
@@ -118,6 +146,7 @@ int main() {
         std::cout << "depois de lido "<<endl;
 		//if(tst) tst->Print(out);
 		if(tsc) tsc->Print(std::cout);
+        delete tsc;
 		delete tst;
 	}
 	if(cmesh) delete cmesh;
