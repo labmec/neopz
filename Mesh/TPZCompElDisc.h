@@ -232,6 +232,7 @@ protected:
         fUseQsiEta = false;
         Reference()->CenterPoint(Reference()->NSides()-1,fCenterPoint);
         TPZVec<REAL> csi(fCenterPoint);
+	fCenterPoint.Resize(3);
         Reference()->X(csi,fCenterPoint);
         fConstC = NormalizeConst();
     }
