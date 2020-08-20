@@ -164,7 +164,9 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path, int maxdim)
 			{
 				psBuffer[strlen(psBuffer)-1] = 0;
 			}
+#ifdef PZDEBUG
 			std::cout << "Reading refinement patern file : " << psBuffer << std::endl;
+#endif
 			std::string filref(psBuffer);
 			
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filref);
@@ -178,6 +180,13 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path, int maxdim)
 			{
 				this->InsertRefPattern(refpat);
 			}
+#ifdef PZDEBUG
+            else
+            {
+                std::cout << "Refpattern was already found\n";
+            }
+            std::cout << "pattern id " << refpat->fId << std::endl;
+#endif
 			refpat->InsertPermuted();
 			
 			count++;

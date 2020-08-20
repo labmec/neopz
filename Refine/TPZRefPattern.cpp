@@ -774,6 +774,9 @@ void TPZRefPattern::InsertPermuted()
                 refp->BuildName();
             }
             gRefDBase.InsertRefPattern(refp);
+#ifdef PZDEBUG
+            std::cout << "Permuted pattern id " << refp->fId << std::endl;
+#endif
         }
     }
 }
