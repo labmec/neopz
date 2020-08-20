@@ -181,15 +181,25 @@ int main() {
 	TPZGeoMesh *meshgrid2D1 = grid.GeometricGIDMesh(nombre);
 	if(!meshgrid2D1->NElements())
 		return 1;
-	ofstream meshoutvtk2D1("MeshGIDToVTK2D1.1.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1,true);
-
+    {
+        ofstream meshoutvtk2D1("MeshGIDToVTK2D1.1.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1,true);
+    }
 	RefineTowardsCenter(*meshgrid2D1, 1, 3);
-	ofstream meshoutvtk2D1b("MeshGIDToVTK2D1.2.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1b,true);
-    
-    meshoutvtk2D1.close();
-    meshoutvtk2D1b.close();
+    {
+        ofstream meshoutvtk2D1b("MeshGIDToVTK2D1.2.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1b,true);
+    }
+    RefineTowardsCenter(*meshgrid2D1, 1, 1);
+    {
+        ofstream meshoutvtk2D1b("MeshGIDToVTK2D1.3.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1b,true);
+    }
+    RefineTowardsCenter(*meshgrid2D1, 1, 1);
+    {
+        ofstream meshoutvtk2D1b("MeshGIDToVTK2D1.4.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1b,true);
+    }
 
 	// Segundo ejemplo bi-dimensional para la generacion de una malla para un reservatorio con las bordas superior e inferior
 	nombre = DirectorioCorriente;
@@ -279,10 +289,17 @@ TPZGeoMesh *GetMesh (int nx,int ny) {
 
 void RefineTowards(TPZGeoElSide gelside, int numtimes)
 {
-    TPZGeoElBC gbc(gelside,10);
+    TPZGeoMesh *gmesh = gelside.Element()->Mesh();
+    int64_t nel = gmesh->NElements();
+    int maxmatid = 0;
+    for (int64_t el=0; el<nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if(gel && gel->MaterialId() > maxmatid) maxmatid = gel->MaterialId();
+    }
+    TPZGeoElBC gbc(gelside,maxmatid+10);
     TPZGeoEl *gel = gelside.Element();
     std::set<int> matids;
-    matids.insert(10);
+    matids.insert(maxmatid+10);
     
     for (int iref=0; iref<numtimes; iref++)
     {
