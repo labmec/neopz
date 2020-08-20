@@ -122,12 +122,12 @@ void ReadF17(TPZGeoMesh *geomesh)
 //
 //   // First step: nodes reading and initialization.
   std::string path;
-#ifdef HAVE_CONFIG_H
+//#ifdef HAVE_CONFIG_H
   path = PZSOURCEDIR;
   path += "/Projects/Heman/Files/Meshes/";
-#else
-  path = "/Users/Cesar/Documents/Projects/NeoPZ/Projects/Heman/Files/Meshes/";
-#endif
+//#else
+//  path = "/Users/Cesar/Documents/Projects/NeoPZ/Projects/Heman/Files/Meshes/";
+//#endif
 
   std::cout << "===============================================================\n"
             << "Reading F17 mesh\n";
@@ -356,11 +356,16 @@ TPZGeoMesh * choiceMesh(std::string &meshName)
 
 int main/*F17*/()
 {
-  cout << "Initilizing log system...\n";
+  cout << "Initializing log system...\n";
   InitializePZLOG("log4cxx.cfg");
 	
   gRefDBase.InitializeRefPatterns();
-	
+#ifdef PZDEBUG
+    {
+        std::ofstream out("OutputRefPatterns.txt");
+        gRefDBase.WriteRefPatternDBase(out);
+    }
+#endif
   std::string meshname;
   TPZGeoMesh *geomesh = choiceMesh(meshname);
 
