@@ -242,8 +242,18 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
             }
         }
         if (patlist.size() != 1) {
+            int ipat = 0;
+            std::ofstream out("DuplicatePatterns.txt");
             for (auto it2=patlist.begin(); it2 != patlist.end(); it2++) {
-                (*it2)->fRefPatternMesh.Print();
+                (*it2)->fRefPatternMesh.Print(out);
+                std::stringstream dup;
+                dup << "Duplicate." << ipat << ".vtk";
+                std::string filename("file.vtk");
+                filename = dup.str();
+                std::ofstream out(filename);
+                delete (*it2)->fRefPatternMesh.Element(0);
+                TPZVTKGeoMesh::PrintGMeshVTK(&(*it2)->fRefPatternMesh, out);
+                ipat++;
             }
             DebugStop();
         }
