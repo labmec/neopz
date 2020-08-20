@@ -919,7 +919,8 @@ TPZGeoEl * TPZGeoMesh::FindSubElement(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<RE
     else
     {
         TPZStack<TPZGeoEl*> subElements;
-        gel->GetAllSiblings(subElements);
+        gel->YoungestChildren(subElements);
+//        gel->GetAllSiblings(subElements);
         
         int nsons = subElements.NElements();
         TPZGeoEl * son = NULL;
