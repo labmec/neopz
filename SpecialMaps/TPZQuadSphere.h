@@ -137,9 +137,15 @@ namespace pzgeom {
             }
             
             TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
-            TensorProd(v,gradphi,DphivDx);
-            DphivDx += gradvphi;
-            
+            if(0)
+            {
+                DphivDx = gradvphi+TensorProd(v, gradphi);
+            }
+            else
+            {
+                TensorProd(v,gradphi,DphivDx);
+                DphivDx += gradvphi;
+            }
             DphivDx.Multiply(dxdqsi, gradx);
         }
 		
@@ -244,7 +250,18 @@ namespace pzgeom {
                 }
             }
         }
-		
+        template<class T>
+        static TPZFMatrix<T> TensorProd(TPZFMatrix<T> &vec1, TPZFMatrix<T> &vec2)
+        {
+            TPZFMatrix<T> res(3,3);
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    res(i,j) = vec1(i,0) * vec2(j,0);
+                }
+            }
+            return res;
+        }
+
 		// static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 		// /** @brief Creates a geometric element according to the type of the father element */
