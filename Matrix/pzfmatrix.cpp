@@ -145,9 +145,9 @@ TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator=(const TPZFMatrix<TVar> &A ) {
     this->fRow  = A.fRow;
     this->fCol  = A.fCol;
     fElem = newElem;
-    
+    for(int64_t i = 0; i<size; i++) fElem[i]=A.fElem[i];
     // Copia a matriz
-    memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
+//    memcpy((void *)(fElem),(void *)(A.fElem),(size_t)size*sizeof(TVar));
     
     TPZMatrix<TVar>::operator=(A);
     
