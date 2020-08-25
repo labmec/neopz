@@ -324,7 +324,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     if (Error<0) {
         Error_check(int(Error));
         std::cout << "Pardiso:: Calling a numerical factorization. \n";
-        phase = 22;
+        phase = 23;
         pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                     &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
     }
