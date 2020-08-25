@@ -836,8 +836,21 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
 	
     SetStep(1);
     TPZStack<std::string> scalnames,vecnames;
-    TPZMaterial *mat = fCompMesh->MaterialVec().begin()->second;
-    int nstate = mat->NStateVariables();
+    TPZMaterial *mat = 0;
+    int dim = this->fCompMesh->Dimension();
+    for(auto it : fCompMesh->MaterialVec())
+    {
+        TPZBndCond *bnd = dynamic_cast<TPZBndCond *> (it.second);
+        if(bnd) continue;
+        if(it.second->Dimension() == dim)
+        {
+            mat = it.second;
+            break;
+        }
+    }
+    if(!mat) DebugStop();
+    int nstate = mat->NSolutionVariables(0);
+    
     if (nstate == 1) {
         scalnames.Push("Solution");
     }
