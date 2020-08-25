@@ -125,9 +125,9 @@ namespace pzgeom {
             TPZFNMatrix<6,T> dxdqsi(3,2,0.); // But it is a (3,2) matrix. It is set (3,3) because of the later products
             GeomQuad::GradX(coord,param,dxdqsi);
             
-            TPZFNMatrix<3,T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
+            TPZFMatrix<T> gradphi(3,1,0.), v(3,1,0.); // here phi = 1/norm(xqsi - xc) and v = (xqsi - xc) * fR
             T zero = param[0]-param[0];
-            TPZFNMatrix<9,T> gradvphi(3,3,zero); // here v = (xqsi - xc) * fR
+            TPZFMatrix<T> gradvphi(3,3,zero); // here v = (xqsi - xc) * fR
             T phi = 1./norm;
             
             for (int i = 0; i < 3; i++) {
@@ -136,8 +136,8 @@ namespace pzgeom {
                 gradphi(i,0) = - (1. / (norm*norm*norm) ) * xqsiLxc[i];
             }
             
-            TPZFNMatrix <9,T> DphivDx(3,3,0.); // will store d(phi*v)/dx
-            if(0)
+            TPZFMatrix <T> DphivDx(3,3,0.); // will store d(phi*v)/dx
+            if(1)
             {
                 DphivDx = gradvphi+TensorProd(v, gradphi);
             }
