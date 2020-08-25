@@ -58,6 +58,7 @@ int main() {
         }
         //		ordem1d.Print(integrate);
         integrate << "1D : p = " << p << " - Integral = " << integral << " analytic value " << (1.-minone)/(degree+1)<< endl;
+        std::cout << "1D : p = " << p << " - Integral = " << integral << " analytic value " << (1.-minone)/(degree+1)<< endl;
         //}
         minone *= -1.;
         degree++;
@@ -91,6 +92,7 @@ int main() {
             integral += weight * Funcao2D(point,degree);
         }
         integrate << "2D - Triangle Integral = " << integral  << " analytic value " << trval[degree-2] << endl;
+        std::cout << "2D - Triangle Integral = " << integral  << " analytic value " << trval[degree-2] << endl;
         degree++;
         p= degree;
     }
