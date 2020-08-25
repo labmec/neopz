@@ -51,7 +51,7 @@ int main(){
  //Given point-->> (1.50,0.65,0.50)
  int dim = elvec[1]->Dimension();
  TPZVec<REAL> gpt(3,0.);
- TPZVec<REAL> mpt(dim,0.);
+ TPZManVector<REAL,3> mpt(dim,0.);
  gpt[0] = 1.5; gpt[1] = 0.65; gpt[2] = 0.5;
  REAL Tol;
  ZeroTolerance(Tol);
