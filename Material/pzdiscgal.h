@@ -96,9 +96,7 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-	
+
 	/**
 	 * @brief Computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
 	 * @param data [in]
