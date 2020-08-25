@@ -65,7 +65,7 @@ int TPZVecL2::VariableIndex(const std::string &name) {
 
 int TPZVecL2::NSolutionVariables(int index) {
 #ifdef STATE_COMPLEX
-	if(index == 0) return NStateVariables()*2;    
+	if(index == 0) return 3*2;    
 #else
 	if(index == 0) return 3;
 #endif
