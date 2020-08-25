@@ -116,16 +116,16 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
     matx ma;
     ma.AutoFill(dim, dim, symmetric);
 
-    TPZFMatrix<TVar> duplicate(ma);
-    TPZFMatrix<TVar> square, square2;
+    TPZFNMatrix<400,TVar> duplicate(ma);
+    TPZFNMatrix<400,TVar> square, square2;
 
     square2 = duplicate*duplicate;
-    square = ma*duplicate;
+    ma.Multiply(duplicate,square);
     // Checking whether both matrices are equal
     bool check = true;
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            TVar diff = fabs(square.GetVal(i, j) - square2.GetVal(i, j));
+            TVar diff = abs(square.GetVal(i, j) - square2.GetVal(i, j));
             if (!IsZero(diff)) {
                 check = false;
             }
@@ -522,6 +522,7 @@ BOOST_AUTO_TEST_CASE(multiplyoperator_tests) {
     for (dim = 3; dim < 100; dim += 5) {
         TestingMultiplyOperatorWithAutoFill<TPZFMatrix<float>, float >(dim, 0);
         TestingMultiplyOperatorWithAutoFill<TPZFMatrix<double>, double >(dim, 0);
+        TestingMultiplyOperatorWithAutoFill<TPZFMatrix<Fad<double> >, Fad<double> >(dim, 0);
     }
 }
 
