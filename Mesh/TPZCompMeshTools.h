@@ -61,6 +61,14 @@ namespace TPZCompMeshTools
 
     /// Print cmesh solution per geometric element
     void PrintSolutionByGeoElement(TPZCompMesh *cmesh, std::ostream &out);
+
+    /// Print stiffness matrix per geometric element of given material IDs.
+    /// If matIDs is empty, all materials are considered.
+    void PrintStiffnessMatrixByGeoElement(TPZCompMesh *cmesh, std::ostream &out, std::set<int> matIDs = {});
+
+    void PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ostream &out, std::set<int> matIDs = {},
+                                      bool printSeqNumber = true, bool printSolution = true,
+                                      bool printLagrangeMult = true);
 }
 
 #endif /* defined(__PZ__TPZCompMeshTools__) */
