@@ -1494,6 +1494,14 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
         case EHarmonic:
             disp[0] = exp(M_PI*x[0])*sin(M_PI*x[1]);
             break;
+
+        case EHarmonic2:
+        {
+            TVar a1 = 1./4;
+            TVar alpha = M_PI/2;
+            disp[0] = x[0]*a1*cos(x[0]*alpha)*cosh(x[1]*alpha) + x[1]*a1*sin(x[0]*alpha)*sinh(x[1]*alpha);
+        }
+            break;
             
         default:
             disp[0] = 0.;
@@ -1771,6 +1779,13 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
         case EHarmonic:
             disp[0] = FADexp(M_PI*x[0])*FADsin(M_PI*x[1]);
             break;
+
+        case EHarmonic2:
+        {
+            TVar a1 = 1./4;
+            TVar alpha = M_PI/2;
+            disp[0] = x[0]*a1*FADcos(x[0]*alpha)*FADcosh(x[1]*alpha) + x[1]*a1*FADsin(x[0]*alpha)*FADsinh(x[1]*alpha);
+        }
             
         default:
             disp[0] = xloc[0]*0.;
