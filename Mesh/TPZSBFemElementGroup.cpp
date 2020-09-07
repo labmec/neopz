@@ -463,6 +463,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
 
 void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
+    if (fElGroup.size() == 0) return;
+
 #ifdef USING_BLAZE
     CalcStiffBlaze(ek,ef);
     return;
