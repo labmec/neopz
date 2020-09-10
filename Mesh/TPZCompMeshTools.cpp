@@ -912,6 +912,7 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
             if (printLagrangeMult) {
                 out << " IsLagrangeMult = " << (int)con.LagrangeMultiplier();
             }
+            out << " IsCondensed: " << (int)con.IsCondensed();
 
             if (con.SequenceNumber() > -1) {
                 out << " NumElCon = " << con.NElConnected();
