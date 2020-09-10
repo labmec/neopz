@@ -2073,6 +2073,9 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
 {
     TVar x1 = x[0];
     TVar x2 = x[1];
+    TVar x3 = x[2];
+    REAL Re = 0.;
+    REAL lambda = 0.;    
     
     switch(fExactSol)
     {
@@ -2082,6 +2085,8 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
             break;
         case EKovasznay:
         case EKovasznayCDG:
+	    Re = 1./fvisco; //Reynolds number
+            lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
             break;
@@ -2100,6 +2105,9 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
 {
     FADFADSTATE x1 = x[0];
     FADFADSTATE x2 = x[1];
+    FADFADSTATE x3 = x[2];
+    REAL Re = 0.;
+    REAL lambda = 0.;    
 
     switch(fExactSol)
     {
@@ -2109,6 +2117,8 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             break;
         case EKovasznay:
         case EKovasznayCDG:
+	    Re = 1./fvisco; //Reynolds number
+            lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
             break;
@@ -2127,7 +2137,10 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
 {
     TVar x1 = x[0];
     TVar x2 = x[1];
-    TPZVec<TVar> flux(2,0.);
+    TVar x3 = x[2];
+    TPZVec<TVar> flux(3,0.);
+    REAL Re = 0.;
+    REAL lambda = 0.;    
     
     switch(fExactSol)
     {
@@ -2135,9 +2148,13 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
             p = cos(x1)*sin(x2);
             break;
         case EKovasznay:
+	    Re = 1./fvisco; //Reynolds number
+            lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             p = -(1./2.)*exp(2.*lambda*x1);
             break;
         case EKovasznayCDG:
+	    Re = 1./fvisco; //Reynolds number
+            lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - exp(lambda*x1)*cos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*exp(lambda*x1)*sin(2.*Pi*x2);
             p = -(1./2.)*exp(2.*lambda*x1);
@@ -2156,7 +2173,10 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
 {
     FADFADSTATE x1 = x[0];
     FADFADSTATE x2 = x[1];
-    TPZVec<FADFADSTATE > flux(2,0.);
+    FADFADSTATE x3 = x[2];
+    TPZVec<FADFADSTATE > flux(3,0.);
+    REAL Re = 0.;
+    REAL lambda = 0.;    
 
     switch(fExactSol)
     {
@@ -2164,9 +2184,13 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
         p = FADcos(x1)*FADsin(x2);
             break;
         case EKovasznay:
+	    Re = 1./fvisco; //Reynolds number
+            lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             p = -(1./2.)*FADexp(2.*lambda*x1);
             break;
         case EKovasznayCDG:
+	    Re = 1./fvisco; //Reynolds number
+            lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
             flux[0] = 1. - FADexp(lambda*x1)*FADcos(2.*Pi*x2);
             flux[1] = (lambda/(2.*Pi))*FADexp(lambda*x1)*FADsin(2.*Pi*x2);
             p = -(1./2.)*FADexp(2.*lambda*x1);
@@ -2185,17 +2209,17 @@ template<class TVar>
 void TStokesAnalytic::graduxy(const TPZVec<TVar> &x, TPZFMatrix<TVar> &gradu) const
 {
     TPZManVector<Fad<TVar>,3> xfad(x.size());
-    for(int i=0; i<2; i++)
+    for(int i=0; i<3; i++)
     {
-        Fad<TVar> temp = Fad<TVar>(2,i,x[i]);
+        Fad<TVar> temp = Fad<TVar>(3,i,x[i]);
         xfad[i] = temp;
     }
-    xfad[2] = x[2];
-    TPZManVector<Fad<TVar>,3> result(2);
+    //xfad[2] = x[2];
+    TPZManVector<Fad<TVar>,3> result(3);
     uxy(xfad,result);
     gradu.Redim(3,3);
-    for (int i=0; i<2; i++) {
-        for (int j=0; j<2; j++)
+    for (int i=0; i<fDimension; i++) {
+        for (int j=0; j<fDimension; j++)
         {
             gradu(i,j) = result[i].d(j);
         }

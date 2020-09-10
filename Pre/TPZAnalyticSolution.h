@@ -462,13 +462,9 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     EExactSol fExactSol = ESinCos;
     
     REAL fvisco = 1.; //Viscosity
-    
-    REAL Pi = M_PI;
-    
-    REAL Re = 1./fvisco; //Reynolds number
 
-    REAL lambda = Re/2.- sqrt(Re*Re/4.+4.*Pi*Pi); // Parameter for Navier-Stokes solution
-    
+    REAL Pi = M_PI;
+        
     REAL falphaBrinkman = 1.;
         
     TPZManVector<REAL,3> fCenter;
@@ -509,7 +505,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
     
     virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const;
-    
+
     
 };
 
