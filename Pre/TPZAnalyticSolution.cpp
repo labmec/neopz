@@ -2083,6 +2083,11 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
             flux[0] = -1.*sin(x1)*sin(x2);
             flux[1] = -1.*cos(x1)*cos(x2);
             break;
+        case ESinCos3D:
+            flux[0] = -sin(x1)*sin(x2);
+            flux[1] = -cos(x1)*cos(x2)-sin(x2)*sin(x3);
+            flux[2] = -cos(x2)*cos(x3);
+            break;
         case EKovasznay:
         case EKovasznayCDG:
 	    Re = 1./fvisco; //Reynolds number
@@ -2115,6 +2120,11 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             flux[0] = -1.*FADsin(x1)*FADsin(x2);
             flux[1] = -1.*FADcos(x1)*FADcos(x2);
             break;
+        case ESinCos3D:
+            flux[0] = -FADsin(x1)*FADsin(x2);
+            flux[1] = -FADcos(x1)*FADcos(x2)-FADsin(x2)*FADsin(x3);
+            flux[2] = -FADcos(x2)*FADcos(x3);
+            break;
         case EKovasznay:
         case EKovasznayCDG:
 	    Re = 1./fvisco; //Reynolds number
@@ -2146,6 +2156,9 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
     {
         case ESinCos:
             p = cos(x1)*sin(x2);
+            break;
+        case ESinCos3D:
+            p = cos(x1)*sin(x2)+cos(x2)*sin(x3);
             break;
         case EKovasznay:
 	    Re = 1./fvisco; //Reynolds number
@@ -2182,6 +2195,9 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
     {
         case ESinCos:
         p = FADcos(x1)*FADsin(x2);
+            break;
+        case ESinCos3D:
+        p = FADcos(x1)*FADsin(x2)+FADcos(x2)*FADsin(x3);
             break;
         case EKovasznay:
 	    Re = 1./fvisco; //Reynolds number

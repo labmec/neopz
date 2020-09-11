@@ -453,7 +453,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
+    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ESinCos3D, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
     
     int fDimension = 2;
     
