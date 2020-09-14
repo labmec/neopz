@@ -2075,13 +2075,20 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
     TVar x2 = x[1];
     TVar x3 = x[2];
     REAL Re = 0.;
-    REAL lambda = 0.;    
+    REAL lambda = 0.;
+    REAL xs = 0.;    
     
     switch(fExactSol)
     {
         case ESinCos:
             flux[0] = -1.*sin(x1)*sin(x2);
             flux[1] = -1.*cos(x1)*cos(x2);
+            break;
+        case ESinCosBDS:
+	    if(fvisco==0) xs = 0.;
+	    xs = 1./exp(fcBrinkman/fvisco);
+            flux[0] = -xs*sin(x1)*sin(x2)+(1-xs)*sin(x1)*sin(x2);
+            flux[1] = -xs*cos(x1)*cos(x2)-(1-xs)*cos(x1)*cos(x2);
             break;
         case ESinCos3D:
             flux[0] = -sin(x1)*sin(x2);
@@ -2113,12 +2120,19 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
     FADFADSTATE x3 = x[2];
     REAL Re = 0.;
     REAL lambda = 0.;    
-
+    FADFADSTATE xs = 0.;
+    
     switch(fExactSol)
     {
         case ESinCos:
             flux[0] = -1.*FADsin(x1)*FADsin(x2);
             flux[1] = -1.*FADcos(x1)*FADcos(x2);
+            break;
+        case ESinCosBDS:
+	    if(fvisco==0) xs = 0.;
+	    xs = 1./FADexp(fcBrinkman/fvisco);
+            flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1-xs)*FADsin(x1)*FADsin(x2);
+            flux[1] = -xs*FADcos(x1)*FADcos(x2)-(1-xs)*FADcos(x1)*FADcos(x2);
             break;
         case ESinCos3D:
             flux[0] = -FADsin(x1)*FADsin(x2);
@@ -2155,6 +2169,7 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
     switch(fExactSol)
     {
         case ESinCos:
+        case ESinCosBDS:
             p = cos(x1)*sin(x2);
             break;
         case ESinCos3D:
@@ -2194,6 +2209,7 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
     switch(fExactSol)
     {
         case ESinCos:
+        case ESinCosBDS:
         p = FADcos(x1)*FADsin(x2);
             break;
         case ESinCos3D:
@@ -2371,6 +2387,15 @@ void TStokesAnalytic::Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
             force[0] = -locforce[0];
             force[1] = -locforce[1];
             force[2] = -locforce[2];
+            break;
+
+        case EBrinkman:
+    	    uxy(xst,beta);
+            force[0] = -locforce[0]+fcBrinkman*beta[0];
+            force[1] = -locforce[1]+fcBrinkman*beta[1];
+            force[2] = -locforce[2]+fcBrinkman*beta[2];
+	    graduxy(xst,grad);
+            force[3] = grad(0,0)+grad(1,1)+grad(2,2); //Pressure block term
             break;
             
         case ENavierStokes:

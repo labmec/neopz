@@ -453,7 +453,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     
     enum MProblemType {EStokes, ENavierStokes, EOseen, ENavierStokesCDG, EOseenCDG, EBrinkman};
     
-    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ESinCos3D, EPconst, EObstacles, EOneCurve ,EStokesLimit, EDarcyLimit};
+    enum EExactSol {ENone, ECavity,  EKovasznay, EKovasznayCDG, ESinCos, ESinCos3D, EPconst, EObstacles, EOneCurve , ESinCosBDS, ESinCosBDS3D};
     
     int fDimension = 2;
     
@@ -465,7 +465,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 
     REAL Pi = M_PI;
         
-    REAL falphaBrinkman = 1.;
+    REAL fcBrinkman = 1.;
         
     TPZManVector<REAL,3> fCenter;
     
