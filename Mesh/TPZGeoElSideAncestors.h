@@ -40,7 +40,10 @@ public:
     TPZTransform<REAL> BuildTransform(TPZGeoElSide larger);
     
     /// return true is a (strict) larger element with matid exists
-    bool HasLarger(int matid);
+    TPZGeoElSide HasLarger(int matid);
+    
+    /// return the element/side of the larger element
+    TPZGeoElSide LargeSide(TPZGeoEl *large);
 };
 
 #endif

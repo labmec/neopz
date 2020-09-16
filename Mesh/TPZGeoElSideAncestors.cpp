@@ -57,15 +57,41 @@ TPZTransform<REAL> TPZGeoElSideAncestors::BuildTransform(TPZGeoElSide larger)
 }
 
 /// return true is a (strict) larger element with matid exists
-bool TPZGeoElSideAncestors::HasLarger(int matid)
+TPZGeoElSide TPZGeoElSideAncestors::HasLarger(int matid)
 {
     int64_t num_ancestors = fAncestors.size();
     for (int il = 0; il<num_ancestors; il++) {
-        TPZGeoElSide larger = fAncestors[il].second;
-        if(larger.HasNeighbour(matid))
+        TPZGeoElSide neighbour = fAncestors[il].second.HasNeighbour(matid);
+        if(neighbour)
         {
-            return true;
+            return neighbour;
         }
     }
-    return false;
+    return TPZGeoElSide();
+}
+
+
+/// return the element/side of the larger element
+TPZGeoElSide TPZGeoElSideAncestors::LargeSide(TPZGeoEl *large)
+{
+    if(!fCurrent) DebugStop();
+    if(fCurrent.Element() == large) DebugStop();
+    TPZGeoElSide neighbour = fCurrent.Neighbour();
+    while(neighbour != fCurrent)
+    {
+        if(neighbour.Element() == large) return neighbour;
+        neighbour = neighbour.Neighbour();
+    }
+    int64_t nancestors = fAncestors.size();
+    for (int64_t il = 0; il<nancestors; il++) {
+        TPZGeoElSide largeside = fAncestors[il].second;
+        if(largeside.Element() == large) return largeside;
+        TPZGeoElSide neighbour = largeside.Neighbour();
+        while(neighbour != largeside)
+        {
+            if(neighbour.Element() == large) return neighbour;
+            neighbour = neighbour.Neighbour();
+        }
+    }
+    DebugStop();
 }
