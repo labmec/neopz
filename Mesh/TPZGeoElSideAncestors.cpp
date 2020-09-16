@@ -4,30 +4,68 @@
 
 #include "TPZGeoElSideAncestors.h"
 
-void TPZGeoElSideAncestors::BuildAncestors() {
-
-    int nlowerlevels = 0;
-    if (!fCurrent) {
-        fAncestors.resize(nlowerlevels);
-        return;
+void TPZGeoElSideAncestors::AddAncestor(TPZGeoElSide gelside) {
+    
+    if(!gelside) DebugStop();
+    
+    TPZGeoElSide lower = gelside.StrictFather();
+    if(lower)
+    {
+        fAncestors.Push({gelside,lower});
     }
-
-    TPZGeoElSide lower = fCurrent.StrictFather();
-
-    TPZGeoElSide neighbour = fCurrent.Neighbour();
-    TPZGeoElSide neighLower;
-    while (neighbour != fCurrent) {
-        neighLower = neighbour.StrictFather();
-        if (neighLower) break;
+    TPZGeoElSide neighbour(gelside.Neighbour());
+    while(neighbour != gelside)
+    {
+        lower = neighbour.StrictFather();
+        if(lower)
+        {
+            fAncestors.Push({neighbour,lower});
+            AddAncestor(lower);
+            break;
+        }
         neighbour = neighbour.Neighbour();
     }
+}
 
-    while(lower || neighLower) {
-        nlowerlevels++;
-        fAncestors.resize(nlowerlevels);
-        fAncestors[nlowerlevels - 1] = std::make_pair(TPZGeoElSideAncestors(lower), TPZGeoElSideAncestors(neighLower));
+void TPZGeoElSideAncestors::BuildAncestors() {
 
-        lower = lower.StrictFather();
-        neighLower = neighLower.StrictFather();
+    fAncestors.resize(0);
+    if (!fCurrent) {
+        return;
     }
+    AddAncestor(fCurrent);
+}
+
+TPZTransform<REAL> TPZGeoElSideAncestors::BuildTransform(TPZGeoElSide larger)
+{
+    if(!fCurrent) DebugStop();
+    // check if larger is an ancestor of the current element
+    int64_t num_ancestors = fAncestors.size();
+    int ilevel = -1;
+    for (int il = 0; il<num_ancestors; il++) {
+        if(larger.IsNeighbour(fAncestors[il].second))
+        {
+            ilevel = il;
+            break;
+        }
+    }
+    if(ilevel == -1) DebugStop();
+    // use the TPZGeoElSide method
+    TPZTransform<REAL> result(fCurrent.Dimension());
+    fCurrent.SideTransform3(larger, result);
+    return result;
+}
+
+/// return true is a (strict) larger element with matid exists
+bool TPZGeoElSideAncestors::HasLarger(int matid)
+{
+    int64_t num_ancestors = fAncestors.size();
+    for (int il = 0; il<num_ancestors; il++) {
+        TPZGeoElSide larger = fAncestors[il].second;
+        if(larger.HasNeighbour(matid))
+        {
+            return true;
+        }
+    }
+    return false;
 }

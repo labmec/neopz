@@ -13,10 +13,12 @@ class TPZGeoElSideAncestors {
     TPZGeoElSide fCurrent;
 
     // Data structure with a pair o TPZGeoElSideAncestors for the lower side and its neighbour
-    TPZVec<std::pair<TPZGeoElSideAncestors, TPZGeoElSideAncestors>> fAncestors;
+    TPZStack<std::pair<TPZGeoElSide, TPZGeoElSide>> fAncestors;
 
     // Compute the ancestor data structure
     void BuildAncestors();
+    
+    void AddAncestor(TPZGeoElSide gelside);
 
 public:
 
@@ -34,6 +36,11 @@ public:
         fCurrent = current;
         BuildAncestors();
     }
+    
+    TPZTransform<REAL> BuildTransform(TPZGeoElSide larger);
+    
+    /// return true is a (strict) larger element with matid exists
+    bool HasLarger(int matid);
 };
 
 #endif
