@@ -349,56 +349,11 @@ public:
 	TPZIntPoints * CreateIntegrationRule(int order);
 
     int GelLocIndex(int index) const;
-        int ClassId() const override;
+    int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
     void Write(TPZStream &buf, int withclassid) const override;
 };
 
-class TPZGeoElSidePartition
-{
-    // the TPZGeoElSide that defines the partition
-    TPZGeoElSide fCurrent;
-    // the same dimension objects whose closure form the fCurrent set
-    TPZVec<TPZGeoElSidePartition> fPartition;
-
-    // compute the partition data structure
-    void BuildPartition();
-    
-public:
-    
-    TPZGeoElSidePartition() : fCurrent(), fPartition()
-    {
-        
-    }
-    
-    TPZGeoElSidePartition(const TPZGeoElSidePartition &cp) :
-        fCurrent(cp.fCurrent), fPartition(cp.fPartition)
-    {
-        
-    }
-    
-    TPZGeoElSidePartition &operator=(const TPZGeoElSidePartition &cp)
-    {
-        fCurrent = cp.fCurrent;
-        fPartition = cp.fPartition;
-        return *this;
-    }
-    
-    TPZGeoElSidePartition(const TPZGeoElSide &current) : fCurrent(current)
-    {
-        BuildPartition();
-    }
-    
-    void SetCurrent(const TPZGeoElSide &current)
-    {
-        fCurrent = current;
-        BuildPartition();
-    }
-    
-    /// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
-    TPZGeoElSide HasHigherLevelNeighbour(int matid) const;
-    
-};
 /** @brief Overload operator << to print geometric element side data */
 std::ostream  &operator << (std::ostream & out,const TPZGeoElSide &geoside);
 
