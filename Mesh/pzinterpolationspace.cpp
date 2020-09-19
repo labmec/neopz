@@ -158,6 +158,21 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
             data.dsol[is].Redim(dim,nstate);            
         }
 	}
+    TPZManVector<REAL,3> x_center(3,0.0);
+    TPZVec<REAL> center_qsi(dim,0.0);
+    
+    if (Reference()->Dimension() == 2){
+        if (dim == EQuadrilateral) {
+            center_qsi[0] = 0.0;
+            center_qsi[1] = 0.0;
+        } else if (Reference()->Type() == ETriangle) {
+            center_qsi[0] = 0.25;
+            center_qsi[1] = 0.25;
+        }
+    }
+    Reference()->X(center_qsi, x_center);
+    data.XCenter = x_center;
+    
 }//void
 
 void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
@@ -177,23 +192,6 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
     data.x.Resize(3, 0.0);
     Reference()->X(qsi, data.x);
     data.xParametric = qsi;
-    TPZManVector<REAL,3> x_center(3,0.0);
-    int dim = Reference()->Dimension();
-    TPZVec<REAL> center_qsi(dim,0.0);
-    
-    if (Reference()->Dimension() == 2){
-        if (dim == EQuadrilateral) {
-            center_qsi[0] = 0.0;
-            center_qsi[1] = 0.0;
-        } else if (Reference()->Type() == ETriangle) {
-            center_qsi[0] = 0.25;
-            center_qsi[1] = 0.25;
-        }
-    }
-
-    Reference()->X(center_qsi, x_center);
-    data.XCenter = x_center;
-    
     if (data.fNeedsHSize){
         data.HSize = 2.*this->InnerRadius();
     }//fNeedHSize
