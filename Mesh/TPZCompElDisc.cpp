@@ -220,6 +220,16 @@ REAL TPZCompElDisc::NormalizeConst()
 	return maxdist;
 }
 
+/**
+ * @brief Initialize a material data and its attributes based on element dimension, number
+ * of state variables and material definitions
+ */
+void TPZCompElDisc::InitMaterialData(TPZMaterialData &data)
+{
+    TPZInterpolationSpace::InitMaterialData(data);
+    data.XCenter = fCenterPoint;
+}
+
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                  TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                  REAL &detjac, TPZFMatrix<REAL> &jacinv,

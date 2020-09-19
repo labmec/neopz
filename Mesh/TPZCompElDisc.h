@@ -172,6 +172,13 @@ public:
 	/** @brief Divide the computational element */
 	void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0) override;
 	
+    
+    /**
+     * @brief Initialize a material data and its attributes based on element dimension, number
+     * of state variables and material definitions
+     */
+    virtual void InitMaterialData(TPZMaterialData &data) override;
+
 	/**
 	 * @brief Computes the shape function set at the point x. This method uses the order of interpolation
 	 * of the element along the sides to compute the number of shapefunctions
@@ -230,10 +237,10 @@ protected:
 
     void SetFalseUseQsiEta(){
         fUseQsiEta = false;
-        Reference()->CenterPoint(Reference()->NSides()-1,fCenterPoint);
-        TPZVec<REAL> csi(fCenterPoint);
-	fCenterPoint.Resize(3);
-        Reference()->X(csi,fCenterPoint);
+        TPZManVector<REAL,3> centerqsi(Reference()->Dimension(),0);
+        Reference()->CenterPoint(Reference()->NSides()-1,centerqsi);
+        fCenterPoint.Resize(3);
+        Reference()->X(centerqsi,fCenterPoint);
         fConstC = NormalizeConst();
     }
 
