@@ -402,7 +402,7 @@ TPZCompMesh * TPZHybridizeHDiv::CreateMultiphysicsMesh(TPZMultiphysicsCompMesh *
 /// create a multiphysics hybridized mesh based on and input mesh
 void TPZHybridizeHDiv::ReCreateMultiphysicsMesh(TPZMultiphysicsCompMesh *cmesh_HDiv, double Lagrange_term_multiplier)
 {
-    TPZManVector<TPZCompMesh *, 3> meshvec_Hybrid = cmesh_HDiv->MeshVector();
+    TPZManVector<TPZCompMesh *, 5> meshvec_Hybrid = cmesh_HDiv->MeshVector();
     InsertPeriferalMaterialObjects(cmesh_HDiv, Lagrange_term_multiplier);
     InsertPeriferalMaterialObjects(meshvec_Hybrid);
     TPZManVector<int> active = cmesh_HDiv->GetActiveApproximationSpaces();

@@ -54,7 +54,7 @@ private:
 	/**
 	 * @brief Stores the element's inner radius.
 	 */ 
-	/** It is the lessest distance between the element center point and its interface's center points.
+	/** It is the smallest distance between the element center point and its interface's center points.
 	 */
 	REAL fInnerRadius;
 	
