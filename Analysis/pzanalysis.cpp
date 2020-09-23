@@ -752,6 +752,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
     TPZManVector<REAL,10> values(10,0.);
     TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
     TPZGeoMesh *gmesh = fCompMesh->Reference();
+    int dim = fCompMesh->Dimension();
     int64_t i, nel = elvec.NElements();
     int64_t nelgeom = gmesh->NElements();
     TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
@@ -764,14 +765,37 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
         if(el) {
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            if(!mat || (!bc && mat->Dimension() == fCompMesh->Dimension()))
+            if(bc) continue;
+            if(!mat || mat->Dimension() == dim)
             {
                 errors.Fill(0.0);
             
                 el->EvaluateError(fExact, errors, store_error);
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
-                elvalues.Resize(nelgeom,nerrors);
+                elvalues.Resize(nelgeom, nerrors);
+
+#ifdef LOG4CXX
+                if (loggerError->isDebugEnabled()) {
+                    std::stringstream sout;
+                    sout << "Values: ";
+                    for (int ierr = 0; ierr < nerrors; ierr++) {
+                        sout << errors[ierr] << " ";
+                    }
+                    sout << "\n";
+                    sout << "GelID: ";
+                    if (el->Reference()) {
+                        sout << el->Reference()->Index();
+                        TPZGeoElSide side(el->Reference());
+                        TPZManVector<REAL> coord(3);
+                        side.CenterX(coord);
+                        sout << " CenterCoord: " << coord;
+                        sout << " MatID: " << el->Material()->Id();
+                    }
+                    sout << "\n";
+                    LOGPZ_DEBUG(loggerError, sout.str())
+                }
+#endif
                 for(int ier = 0; ier < nerrors; ier++)
                 {
                     if(el->Reference()){
@@ -806,14 +830,14 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             out << "other norms = " << sqrt(values[ier]) << endl;
 #endif
     }
-#ifdef LOG4CXX
-    if(loggerError->isDebugEnabled())
-    {
-        std::stringstream sout;
-        elvalues.Print("Errors = ",sout,EMathematicaInput);
-        LOGPZ_DEBUG(loggerError,sout.str())
-    }
-#endif
+//#ifdef LOG4CXX
+//    if(loggerError->isDebugEnabled())
+//    {
+//        std::stringstream sout;
+//        elvalues.Print("Errors = ",sout,EMathematicaInput);
+//        LOGPZ_DEBUG(loggerError,sout.str())
+//    }
+//#endif
 	// Returns the calculated errors.
 	for(i=0;i<nerrors;i++)
 		ervec[i] = sqrt(values[i]);

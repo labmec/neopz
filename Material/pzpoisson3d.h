@@ -225,7 +225,6 @@ public:
         TPZDiscontinuousGalerkin::ContributeBC(datavec,weight,ek,ef,bc);
     }
 
-    
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);

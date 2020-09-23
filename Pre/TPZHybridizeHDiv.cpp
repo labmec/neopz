@@ -68,7 +68,8 @@ void TPZHybridizeHDiv::ComputePeriferalMaterialIds(TPZVec<TPZCompMesh*>& meshvec
     }
     fHDivWrapMatid = maxMatId + 1;
     fLagrangeInterface = maxMatId + 2;
-    fInterfaceMatid = maxMatId + 3;
+    fInterfaceMatid.first = maxMatId + 3;
+    fInterfaceMatid.second = maxMatId + 4;
 }
 
 /// split the connect between two neighbouring elements
@@ -254,6 +255,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
                 TPZCompElSide celside(intel, side);
                 TPZCompElSide neighcomp = RightElement(intel, side);
                 if (neighcomp) {
+                    // SplitConnects returns the geometric element index and interpolation order
                     pressures.push_back(SplitConnects(celside, neighcomp, meshvec_Hybrid));
                 }
             }
@@ -293,7 +295,7 @@ void TPZHybridizeHDiv::HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hyb
 }
 
 void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
-    if (fInterfaceMatid == 0) {
+    if (fInterfaceMatid.first == 0 || fInterfaceMatid.second == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
     }
@@ -319,7 +321,9 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
         int count = 0;
         for (auto &celstackside : celstack) {
             if (celstackside.Reference().Element()->Dimension() == dim - 1) {
-                TPZGeoElBC gbc(gelside, fInterfaceMatid);
+                int matid = fInterfaceMatid.first;
+                if(count == 1) matid = fInterfaceMatid.second;
+                TPZGeoElBC gbc(gelside, matid);
                 // check if the right side has a dependency
                 TPZCompEl *celneigh = celstackside.Element();
                 if (celneigh->NConnects() != 1) {
@@ -349,7 +353,7 @@ void TPZHybridizeHDiv::CreateInterfaceElements(TPZCompMesh *cmesh_Hybrid, TPZVec
             }
             clarge = glarge.Reference();
             if(!clarge) DebugStop();
-            TPZGeoElBC gbc(gelside, fInterfaceMatid);
+            TPZGeoElBC gbc(gelside, fInterfaceMatid.second);
 
             int64_t index;
             TPZMultiphysicsInterfaceElement *intface = new TPZMultiphysicsInterfaceElement(*cmesh_Hybrid, gbc.CreatedElement(), index, celside, clarge);
@@ -449,6 +453,7 @@ void TPZHybridizeHDiv::AssociateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &el
         int64_t groupfound = -1;
         for (auto cindex : connectlist) {
             if (groupindex[cindex] != -1) {
+                // assign the element to the group
                 elementgroup[cel->Index()] = groupindex[cindex];
                 if(groupfound != -1 && groupfound != groupindex[cindex])
                 {
@@ -507,6 +512,52 @@ void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh) {
     }
 }
 
+void TPZHybridizeHDiv::GroupandCondenseElements(TPZCompMesh *cmesh, int lagrange_keep) {
+
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> groupnumber(nel,-1);
+    /// compute a groupnumber associated with each element
+    AssociateElements(cmesh, groupnumber);
+    std::map<int64_t, TPZElementGroup *> groupmap;
+    //    std::cout << "Groups of connects " << groupindex << std::endl;
+    for (int64_t el = 0; el<nel; el++) {
+        int64_t groupnum = groupnumber[el];
+        if(groupnum == -1) continue;
+        auto iter = groupmap.find(groupnum);
+        if (groupmap.find(groupnum) == groupmap.end()) {
+            int64_t index;
+            TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+            groupmap[groupnum] = elgr;
+            elgr->AddElement(cmesh->Element(el));
+        }
+        else
+        {
+            iter->second->AddElement(cmesh->Element(el));
+        }
+//        std::cout << std::endl;
+    }
+    cmesh->ComputeNodElCon();
+    nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *> (cel);
+        if (elgr) {
+            int nc = elgr->NConnects();
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = elgr->Connect(ic);
+                if(c.NElConnected() == 1 && c.LagrangeMultiplier() == lagrange_keep)
+                {
+                    c.IncrementElConnected();
+                    break;
+                }
+            }
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(elgr);
+            cond->SetKeepMatrix(false);
+        }
+    }
+}
+
+
 /// insert the material objects for HDivWrap and LagrangeInterface in the atomic meshes
 
 void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &meshvec_Hybrid) {
@@ -541,7 +592,8 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &mes
 /// insert the material objects for HDivWrap, LagrangeInterface and InterfaceMatid in the multiphysics mesh
 
 void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid, double Lagrange_term_multiplier /* = 1. */) {
-    if (fLagrangeInterface == 0 || fHDivWrapMatid == 0 || fInterfaceMatid == 0) {
+    if (fLagrangeInterface == 0 || fHDivWrapMatid == 0 || fInterfaceMatid.first == 0 ||
+        fInterfaceMatid.second == 0) {
         std::cerr << "Using uninitialized TPZHybridizeHDiv object. You need to call ComputePeriferalMaterialIds function first!" << std::endl;
         DebugStop();
     }
@@ -562,10 +614,17 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
         matPerif->SetDimension(dim-1);
         cmesh_Hybrid->InsertMaterialObject(matPerif);
     }
-    if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid)) {
+    if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.first)) {
         
         std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
-        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid, dim - 1, fNState);
+        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid.first, dim - 1, fNState);
+        matleft->SetMultiplier(Lagrange_term_multiplier);
+        cmesh_Hybrid->InsertMaterialObject(matleft);
+    }
+    if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.second)) {
+        
+        std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
+        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid.second, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }

@@ -82,7 +82,9 @@ struct TPZElementMatrix {
     TPZElementMatrix &operator=(const TPZElementMatrix &copy);
 	
     TPZElementMatrix(const TPZElementMatrix &copy);
-	
+
+    TPZElementMatrix &operator=(const TPZElementMatrix &copy);
+    
 	~TPZElementMatrix(){
 	}
 	

@@ -309,7 +309,14 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     gmesh->ResetReference();
     cmeshPressure->SetName("PressureMesh");
     cmeshPressure->SetDimModel(gmesh->Dimension());
-    cmeshPressure->SetAllCreateFunctionsContinuous(); //AQUI
+    if(porder+fHdivmaismais > 0)
+    {
+        cmeshPressure->SetAllCreateFunctionsContinuous();
+    }
+    else
+    {
+        cmeshPressure->SetAllCreateFunctionsDiscontinuous(); //AQUI
+    }
     cmeshPressure->ApproxSpace().CreateDisconnectedElements(true);
     cmeshPressure->SetDefaultOrder(porder + fHdivmaismais);
     int meshdim = cmeshPressure->Dimension();

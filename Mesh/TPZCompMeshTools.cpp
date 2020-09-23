@@ -780,3 +780,160 @@ void TPZCompMeshTools::SetPressureOrders(TPZCompMesh *fluxmesh, TPZCompMesh *pre
     pressuremesh->ExpandSolution();
 }
 
+/// Print cmesh solution per geometric element
+void TPZCompMeshTools::PrintSolutionByGeoElement(TPZCompMesh* cmesh, std::ostream &out) {
+
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+
+        bool hasgeometry = false;
+        TPZManVector<REAL> xcenter(3, 0.);
+        TPZGeoEl *gel = cel->Reference();
+        // if a geometric element exists, extract its center coordinate
+        if (gel) {
+            hasgeometry = true;
+            TPZManVector<REAL, 3> xicenter(gel->Dimension(), 0.);
+            gel->CenterPoint(gel->NSides() - 1, xicenter);
+            gel->X(xicenter, xcenter);
+        }
+        out << "CompEl " << el;
+        if (hasgeometry) {
+            out << " Gel " << gel->Index() << " matid " << gel->MaterialId() << " Center " << xcenter;
+        }
+        out << '\n';
+        for (int ic = 0; ic < nc; ic++) {
+            TPZManVector<STATE> connectsol;
+            int64_t cindex = cel->ConnectIndex(ic);
+            TPZConnect &c = cmesh->ConnectVec()[cindex];
+            cmesh->ConnectSolution(cindex, cmesh, cmesh->Solution(), connectsol);
+            //for (int i=0; i<connectsol.size(); i++) {
+            //    if (fabs(connectsol[i]) < tol) {
+            //        connectsol[i] = 0.;
+            //    }
+            //}
+            out << ic << " index " << cindex << " values " << connectsol << '\n';
+        }
+    }
+}
+
+void TPZCompMeshTools::PrintStiffnessMatrixByGeoElement(TPZCompMesh *cmesh, std::ostream &out, std::set<int> matIDs) {
+
+    int64_t nel = cmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        // if a geometric element exists, extract its center coordinate
+        if (gel) {
+            // Only prints information of desired matIDs
+            if (!matIDs.empty()) {
+                if(matIDs.find(gel->MaterialId()) == matIDs.end()) {
+                    continue;
+                }
+            }
+
+            //out << "CompEl " << el;
+
+            TPZManVector<REAL, 3> xicenter(gel->Dimension(), 0.);
+            gel->CenterPoint(gel->NSides() - 1, xicenter);
+
+            TPZManVector<REAL> xcenter(3, 0.);
+            gel->X(xicenter, xcenter);
+
+            out << " Gel " << gel->Index() << " dim " << gel->Dimension() << " matid " << gel->MaterialId() << " Center " << xcenter;
+        }
+        out << '\n';
+
+        TPZElementMatrix ekbc, efbc;
+        cel->CalcStiff(ekbc, efbc);
+
+        ekbc.fMat.Print("StiffnessMatrix", out);
+    }
+}
+
+void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ostream &out, std::set<int> matIDs,
+                                                    bool printSeqNumber, bool printSolution, bool printLagrangeMult) {
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    gmesh->ResetReference();
+    cmesh->LoadReferences();
+
+    int64_t nel = gmesh->NElements();
+    for (int64_t el = 0; el < nel; el++) {
+        TPZGeoEl *gel = gmesh->Element(el);
+        if (!gel) {
+            continue;
+        }
+        TPZCompEl *cel = gel->Reference();
+        if (!cel) {
+            continue;
+        }
+        // Only prints information of desired matIDs
+        if (!matIDs.empty()) {
+            if (matIDs.find(gel->MaterialId()) == matIDs.end()) {
+                continue;
+            }
+        }
+
+        TPZManVector<REAL, 3> xicenter(gel->Dimension(), 0.);
+
+        int nCon = cel->NConnects();
+        int nSides = gel->NSides();
+        int firstSideToHaveConnect = 0;
+        if (nSides != nCon) {
+            firstSideToHaveConnect = gel->NCornerNodes();
+        }
+
+        out << "Gel " << gel->Index() //<< " Cel " << cel->Index()
+            << " dim " << gel->Dimension() << " matid " << gel->MaterialId() << '\n';
+        for (int i = firstSideToHaveConnect; i < nSides; i++) {
+
+            gel->CenterPoint(i, xicenter);
+            TPZManVector<REAL> xcenter(3, 0.);
+            gel->X(xicenter, xcenter);
+            out << "Cord = [" << xcenter;
+
+            int iCon = i - firstSideToHaveConnect;
+            TPZConnect &con = cel->Connect(iCon);
+
+            out << "] Side = " << i;
+            if (printSeqNumber) {
+                out << " Seqnumber = " << con.SequenceNumber();
+            }
+            out << " Order = " << (int) con.Order() << " NState = " << (int) con.NState()
+                << " NShape " << con.NShape();
+
+            if (printLagrangeMult) {
+                out << " IsLagrangeMult = " << (int)con.LagrangeMultiplier();
+            }
+            out << " IsCondensed: " << (int)con.IsCondensed();
+
+            if (con.SequenceNumber() > -1) {
+                out << " NumElCon = " << con.NElConnected();
+                if (cmesh->Block().NBlocks()) {
+                    out << " Block size " << cmesh->Block().Size(con.SequenceNumber());
+                    if (printSolution) {
+                        out << " Solution = ";
+                        int64_t ieq;
+                        for (ieq = 0; ieq < cmesh->Block().Size(con.SequenceNumber()); ieq++) {
+                            if (IsZero(cmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                                out << 0.0 << ' ';
+                            } else {
+                                out << cmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                            }
+                        }
+                    }
+                }
+            }
+
+            out << '\n';
+        }
+        out << '\n';
+    }
+}

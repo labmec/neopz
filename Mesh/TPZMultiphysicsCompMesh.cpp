@@ -233,6 +233,21 @@ void TPZMultiphysicsCompMesh::AddElements(){
         if (!mfel) {
             continue;
         }
+#ifdef PZDEBUG
+        {
+            int ncontained = 0;
+            for(int i=0; i<n_approx_spaces; i++)
+            {
+                TPZCompEl *atcel = mfel->Element(i);
+                if(atcel) ncontained++;
+            }
+            if(ncontained == 0)
+            {
+                std::cout << "Multiphysics element " << icel << " with matid " <<
+                    cel->Reference()->MaterialId() << " does not refer to any elements\n";
+            }
+        }
+#endif
         mfel->SetActiveApproxSpaces(m_active_approx_spaces);
         mfel->InitializeIntegrationRule();
     }

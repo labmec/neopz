@@ -27,7 +27,7 @@ struct TPZHybridizeHDiv {
     // material id of the lagrange interface (either pressure or displacement)
     int fLagrangeInterface = -9;
     // material id of the interface elements
-    int fInterfaceMatid = -8;
+    std::pair<int,int> fInterfaceMatid = {-8,-8};
     // number of state variables
     int fNState = 1;
     
@@ -45,14 +45,16 @@ struct TPZHybridizeHDiv {
     {
         fHDivWrapMatid = HDivWrapMatid;
         fLagrangeInterface = LagrangeInterface;
-        fInterfaceMatid = InterfaceMatid;
-        
+        fInterfaceMatid.first = InterfaceMatid;
+        fInterfaceMatid.second = InterfaceMatid;
+
     }
     
     /// return true if a material id is a peripheral material
     bool IsPeriferalMaterialId(int matid)
     {
-        return matid == fHDivWrapMatid || matid == fLagrangeInterface || matid == fInterfaceMatid;
+        return matid == fHDivWrapMatid || matid == fLagrangeInterface || matid == fInterfaceMatid.first ||
+        matid == fInterfaceMatid.second;
     }
     /// split the connects between flux elements and create a dim-1 pressure element
     void HybridizeInternalSides(TPZVec<TPZCompMesh *> &meshvec_Hybrid);
@@ -80,6 +82,9 @@ struct TPZHybridizeHDiv {
     
     /// group and condense the elements
     static void GroupandCondenseElements(TPZCompMesh *cmesh_Hybrid);
+    
+    /// group and condense the elements
+    static void GroupandCondenseElements(TPZCompMesh *cmesh_Hybrid, int lagrange_keep);
     
     /// insert the material objects for HDivWrap and LagrangeInterface in the atomic meshes
     void InsertPeriferalMaterialObjects(TPZVec<TPZCompMesh *> &meshvec_Hybrid);

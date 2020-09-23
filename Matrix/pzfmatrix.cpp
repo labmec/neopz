@@ -1138,6 +1138,8 @@ int TPZFMatrix<double>::Decompose_LU(TPZVec<int> &index) {
     
     
     int nRows = this->Rows();
+    if (nRows == 0) return 0;
+
     int zero = 0;
     double b;int info;
     

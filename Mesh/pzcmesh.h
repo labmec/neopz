@@ -702,6 +702,7 @@ int ClassId() const override;
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context) override;
 
+    static void ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
 };
 
 inline int64_t TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {

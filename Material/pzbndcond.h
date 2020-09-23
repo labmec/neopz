@@ -375,6 +375,11 @@ protected:
 				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val) override {
 		val.Fill(0.);
 	}
+    //error for bc
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)override;
+    
+//    // error for boundary robin part
+//    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors, TPZBndCond &bc) override;
 	
 	virtual void Clone(std::map<int, TPZMaterial * > &matvec) override;
 	
@@ -411,6 +416,9 @@ virtual int ClassId() const override;
 						   int &errorid) override {
 		//nothing to be done here
 	};
+    
+
+    
 	
 	
 	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,

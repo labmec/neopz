@@ -88,14 +88,14 @@ void TPZMixedPoisson::Print(std::ostream &out) {
 
 void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-#ifdef PZDEBUG
-    int nref = datavec.size();
-
-    if (nref != 2) {
-        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    int nref = datavec.size();
+//
+//    if (nref != 2) {
+//        std::cout << " Error. The size of the datavec is different from 2." << std::endl;
+//        DebugStop();
+//    }
+//#endif
     
     
     
@@ -294,7 +294,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     if(fIsStabilized==true)
     {
         //produto KgradPu x KgradPv
-        
+
         TPZFNMatrix<3,STATE> dphiPuZ(dphiP.Rows(),dphiP.Cols(),0.), dphiPXYState(3,1);
         for(int i=0; i<3; i++) dphiPXYState(i,0) = dphiPXY(i,0);
         PermTensor.Multiply(dphiPXYState, dphiPuZ);
@@ -519,10 +519,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
     
 #ifdef PZDEBUG
     int nref =  datavec.size();
-    if (nref != 2 ) {
-        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
-        DebugStop();
-    }
+//    if (nref != 2 ) {
+//        std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+//        DebugStop();
+//    }
 //	if (bc.Type() > 2 ) {
 //        std::cout << " Erro.!! Neste material utiliza-se apenas condicoes de Neumann e Dirichlet\n";
 //		DebugStop();
@@ -566,17 +566,6 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
         }
         else if(bc.Type() == 1 || bc.Type() == 2)
         {
-//            TPZFNMatrix<9,REAL> PermTensor, InvPermTensor;
-//            GetPermeabilities(datavec[0].x, PermTensor, InvPermTensor);
-//            REAL normflux = 0.;
-//
-//            for(int i=0; i<3; i++)
-//            {
-//                for(int j=0; j<dim; j++)
-//                {
-//                    normflux += datavec[0].normal[i]*PermTensor(i,j)*gradu(j,0);
-//                }
-//            }
             v2 = -normflux;
             if(bc.Type() ==2)
             {
@@ -629,7 +618,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
             // sigma.n = Km(u-u_D)+g
             //val1(0,0) = Km
             //val2(1,0) = g
-            if(bc.Val1()(0,0)==0){
+            if(IsZero(bc.Val1()(0,0))){
                 
                 for(int iq=0; iq<phrq; iq++)
                 {
@@ -644,11 +633,10 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
             else{
             
             REAL InvKm = 1./bc.Val1()(0,0);
-            REAL g = bc.Val1()(1,0);
-           // REAL u_D = bc.Val2()(1,0);
+            REAL g = normflux;
             for(int in = 0 ; in < phiQ.Rows(); in++) {
-                //-<(InvKm g + u_D)*(v.n)
-                ef(in, 0) +=  (-1.)*(STATE)(u_D + InvKm*g)*phiQ(in,0)* weight;
+                //<(InvKm g - u_D)*(v.n)
+                ef(in, 0) +=  (STATE)(InvKm*g -u_D)*phiQ(in,0)* weight;
                 for (int jn = 0 ; jn < phiQ.Rows(); jn++) {
                     //InvKm(sigma.n)(v.n)
                     ek(in,jn) += (STATE)(InvKm*phiQ(in,0) * phiQ(jn,0) * weight);
@@ -775,46 +763,37 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         Solout[0]=datavec[0].dsol[0](0,0)+datavec[0].dsol[0](1,1);
         return;
     }
-    
-    TPZVec<REAL> ptx(3);
-	TPZVec<STATE> solExata(1);
-    TPZFNMatrix<3,STATE> flux(fDim+1,1);//pq colocar fdim +1?
-    TPZFNMatrix<3,STATE> gradu(fDim+1,1);
-    
-    //Exact solution
-	if(var == 36){
-        if(fForcingFunctionExact)
-        {
-            fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
-        }
-		Solout[0] = solExata[0];
-		return;
-	}//var6
-    
-    if(var == 37){
-        
-        
-        if(fForcingFunctionExact)
-        {
-            fForcingFunctionExact->Execute(datavec[0].x, solExata,gradu);
 
+    // Exact solution
+    if (var == 36) {
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> flux(3, 1);
+        if (fForcingFunctionExact) {
+            fForcingFunctionExact->Execute(datavec[0].x, exactSol, flux);
         }
-        
-		TPZFNMatrix<3, STATE> fluxtmp(fDim + 1, 1);
-		TPZFNMatrix<3, STATE> gradutmp(fDim + 1, 1);
-		for (int idi = 0; idi < gradu.Rows(); idi++)
-			for (int jdi = 0; jdi < gradu.Cols(); jdi++)
-				gradutmp(idi, jdi) = gradu(idi, jdi);
+        Solout[0] = exactSol[0];
+        return;
+    } // var6
 
-        PermTensor.Multiply(gradutmp, fluxtmp);
-        
-        for (int i=0; i<fDim; i++)
-        {
-            Solout[i] = -fluxtmp(i,0);
+    if (var == 37) {
+
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> gradu(3, 1);
+
+        if (fForcingFunctionExact) {
+            fForcingFunctionExact->Execute(datavec[0].x, exactSol, gradu);
         }
 
-		return;
-	}//var7
+        TPZFNMatrix<3, REAL> flux(3, 1);
+
+        PermTensor.Multiply(gradu, flux);
+
+        for (int i = 0; i < fDim; i++) {
+            Solout[i] = flux(i, 0);
+        }
+
+        return;
+    } // var7
 
     if(var==38){
         Solout[0] = datavec[1].p;
@@ -822,19 +801,14 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==39){
-        TPZFNMatrix<3,REAL> dsoldx;
+
+        TPZFMatrix<REAL> dsoldx(fDim,1.);
         TPZFMatrix<REAL> dsoldaxes(fDim,1);
-//        dsoldaxes(0,0) = datavec[1].dsol[0][0];
-//        dsoldaxes(1,0) = datavec[1].dsol[0][1];
         
-        for (int i=0; i<fDim; i++)
-        {
-           dsoldaxes(i,0) = datavec[1].dsol[0][i];;
-        }
-        
+        dsoldaxes = datavec[1].dsol[0];
+
         TPZAxesTools<REAL>::Axes2XYZ(dsoldaxes, dsoldx, datavec[1].axes);
-//        Solout[0] = dsoldx(0,0);
-//        Solout[1] = dsoldx(1,0);
+
         
         for (int i=0; i<fDim; i++)
         {
@@ -851,7 +825,9 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     }
     
     if(var==41){
-        fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> flux(3, 1);
+        fForcingFunctionExact->Execute(datavec[0].x, exactSol, flux);
         Solout[0]=flux(2,0);
         return;
     }
@@ -916,7 +892,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 
         return;
     }
-    
+
 	TPZMatPoisson3d::Solution(datavec,var,Solout);
 }
 
@@ -1025,6 +1001,89 @@ errors[4] = L2flux + residual;
                              
 
 }
+
+void TPZMixedPoisson::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
+    //Add on Robin part the term ||e||_Gamma_R = K_R (e.n)^2
+    // with e = sigma_fem - sigma_ex
+
+    if(bc.Type() == 4){
+
+    REAL InvKm = 1/bc.Val1()(0,0);
+
+    errors.Resize(NEvalErrors());
+    errors.Fill(0.0);
+
+    int dim = fDim;
+
+
+    REAL normalflux_fem = 0;//u.n
+    normalflux_fem = data[0].sol[0][0];
+
+
+
+    if(this->fForcingFunctionExact){
+
+       this->fForcingFunctionExact->Execute(data[0].x,u_exact,du_exact);
+    }
+
+
+    TPZFNMatrix<9,REAL> PermTensor; this->GetPermeability(PermTensor);
+
+
+
+    if(fPermeabilityFunction){
+       PermTensor.Redim(3,3);
+       TPZFNMatrix<3,STATE> resultMat;
+       TPZManVector<STATE> res;
+       fPermeabilityFunction->Execute(data[0].x,res,resultMat);
+       for(int id=0; id<dim; id++){
+           for(int jd=0; jd<dim; jd++){
+               PermTensor(id,jd) = resultMat(id,jd);
+           }
+       }
+    }
+
+        TPZFNMatrix<3,REAL> fluxexactneg;
+
+        //sigma=-K grad(u)
+
+           TPZFNMatrix<9,REAL> gradpressure(3,1);
+           for (int i=0; i<3; i++) {
+               gradpressure(i,0) = du_exact[i];
+           }
+           PermTensor.Multiply(gradpressure,fluxexactneg);
+
+        REAL normalflux_ex=0.;
+        for(int i=0;i<fDim;i++){
+
+            normalflux_ex += fluxexactneg(i,0)*data[0].normal[i];
+
+        }
+
+
+    REAL robinBCterm = 0.;
+
+  //  std::cout<<"normalflux fem = "<<normalflux_fem<<" normalflux ex = "<<normalflux_ex<<std::endl;
+
+    robinBCterm = (normalflux_fem +normalflux_ex)*InvKm*(normalflux_fem +normalflux_ex);//Pq esta somando: o fluxo fem esta + e o exato -
+
+
+    errors[1] = robinBCterm;//L2 error for flux
+    //errors[0] = L2 error for pressure
+    //errors[2] = L2 for div
+    //errors[3] = L2 for grad;
+    //errors[4] = L2flux + residual;
+
+    }
+
+
+
+
+
+
+}
+
+
 
 int TPZMixedPoisson::ClassId() const{
     return Hash("TPZMixedPoisson") ^ TPZMatPoisson3d::ClassId() << 1;

@@ -1239,6 +1239,8 @@ void TElasticity3DAnalytic::DivSigma<STATE>(const TPZVec<REAL> &x, TPZVec<STATE>
 template
 void TElasticity3DAnalytic::Sigma<Fad<STATE> >(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad<STATE> > &sigma) const;
 
+double TLaplaceExample1::gC = 1.;
+
 TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp) : TPZAnalyticSolution(cp),fExact(cp.fExact) {
     std::cout << "TLaplaceExample1::TLaplaceExample1(const TLaplaceExample1 &cp): One should not invoke this copy constructor";
     DebugStop();
@@ -1267,7 +1269,7 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
      
     switch (fExact) {
         case EConst:
-            disp[0] += 1.;
+            disp[0] += gC;
             break;
         case EX:
             disp[0] += xloc[0];
@@ -1533,7 +1535,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
     disp[0] = (TVar)(0.)*xloc[0];
     switch (fExact) {
         case EConst:
-            disp[0] += 1.;
+            disp[0] += gC;
             break;
         case EX:
             disp[0] += xloc[0];
@@ -1633,7 +1635,7 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             
         }
             break;
-        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=100, Omega2=Omega4=1
+        case ESteklovNonConst://Steklov function for eigenvalue lambda=0.126902 and permeability Omega1=Omega=3=5, Omega2=Omega4=1
         {
             
             TVar coefs[] = {1., 0.44721359549995787, 2.3333333333333326,

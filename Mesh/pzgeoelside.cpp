@@ -92,6 +92,12 @@ TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<int64_t> &sideCornerNodes)
 	}
 }
 
+TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel) : fGeoEl(gel), fSide(-1)
+{
+    if(fGeoEl) fSide = fGeoEl->NSides()-1;
+}
+
+
 bool TPZGeoElSide::IsAncestor(TPZGeoElSide other){
 	if(*this == other) return true;
 	TPZGeoElSide father = this->Father2();
@@ -113,6 +119,8 @@ bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
 	if( other.IsAncestor(*this) ) return true;
 	return false;
 }
+
+
 
 void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
@@ -772,6 +780,23 @@ TPZGeoElSide TPZGeoElSide::LowestFatherSide()
     return side;
 }
 
+/// return the TPZGeoElSide element that contains the current element/side
+TPZGeoElSide TPZGeoElSide::LowerLevelSide() const
+{
+    TPZGeoElSide lower = StrictFather();
+    if(lower) return lower;
+    TPZGeoElSide neighbour = Neighbour();
+    while(neighbour != *this)
+    {
+        lower = neighbour.StrictFather();
+        if(lower) return lower;
+        neighbour = neighbour.Neighbour();
+    }
+    return lower;
+}
+
+
+
 void TPZGeoElSide::GetAllSiblings(TPZStack<TPZGeoElSide> &sonSides)
 {
 #ifdef PZDEBUG
@@ -878,7 +903,7 @@ TPZGeoElSide TPZGeoElSide::Father2() const
 	return fGeoEl->Father2(fSide);
 }
 
-TPZGeoElSide TPZGeoElSide::StrictFather()
+TPZGeoElSide TPZGeoElSide::StrictFather() const
 {
 	TPZGeoElSide father = Father2();
 	int nfathsub = 0;
@@ -1331,66 +1356,13 @@ TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
     return mesh->ElementVec()[this->fGeoElIndex];
 }
 
-// compute the partition data structure
-void TPZGeoElSidePartition::BuildPartition()
-{
-    if(!fCurrent)
-    {
-        fPartition.resize(0);
-        return;
-    }
-    TPZStack<TPZGeoElSide> subels, subelfit;
-    // this method returns all subelements
-    fCurrent.GetSubElements2(subels);
-    // filter out the subels of the same dimension
-    int dim = fCurrent.Dimension();
-    int nel = subels.size();
-    for(int el = 0; el<nel; el++)
-    {
-        if(subels[el].Dimension() == dim)
-        {
-            subelfit.Push(subels[el]);
-        }
-    }
-    fPartition.resize(subelfit.size());
-    for(int el=0; el<subelfit.size(); el++)
-    {
-        fPartition[el] = TPZGeoElSidePartition(subelfit[el]);
-    }
-}
-
-// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
-TPZGeoElSide TPZGeoElSidePartition::HasHigherLevelNeighbour(int matid) const
-{
-    int nel = fPartition.size();
-    for(int el = 0; el<nel; el++)
-    {
-        // As hasneighbour does not verify the element itself, we do it here
-        if(fPartition[el].fCurrent.Element()->MaterialId() == matid)
-        {
-            return fPartition[el].fCurrent;
-        }
-        TPZGeoElSide nextlev = fPartition[el].fCurrent.HasNeighbour(matid);
-        if(nextlev)
-        {
-            return nextlev;
-        }
-    }
-    for(int el = 0; el<nel; el++)
-    {
-        TPZGeoElSide higher = fPartition[el].HasHigherLevelNeighbour(matid);
-        if(higher)
-        {
-            return higher;
-        }
-    }
-    return TPZGeoElSide();
-}
-
 TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
 {
-    if(!fGeoEl) return false;
-    if(fGeoEl->MaterialId() == materialid) return true;
+    if(!fGeoEl) return TPZGeoElSide();
+    if(fGeoEl->MaterialId() == materialid)
+    {
+        return (*this);
+    }
     TPZGeoElSide neighbour = Neighbour();
     while(neighbour != *this)
     {
@@ -1398,4 +1370,19 @@ TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
         neighbour = neighbour.Neighbour();
     }
     return TPZGeoElSide();
+}
+
+/** verifiy if a larger (lower level) neighbour exists with the given material id
+ */
+TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
+{
+    if(!fGeoEl) return TPZGeoElSide();
+    TPZGeoElSide lower = LowerLevelSide();
+    while(lower)
+    {
+        TPZGeoElSide neighbour = lower.HasNeighbour(materialid);
+        if(neighbour) return neighbour;
+        lower = lower.LowerLevelSide();
+    }
+    return lower;
 }

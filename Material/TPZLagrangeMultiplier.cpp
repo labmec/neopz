@@ -197,4 +197,13 @@ void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZMateri
     DebugStop();
 }
 
+// print the data in human readable form
+void TPZLagrangeMultiplier::Print(std::ostream &out)
+{
+    out << __PRETTY_FUNCTION__ << std::endl;
+    TPZMaterial::Print(out);
+    out << "NStateVariables " << this->fNStateVariables << std::endl;
+    out << "fDimension " << this->fDimension << std::endl;
+    out << "fMultiplier " << this->fMultiplier << std::endl;
+}
 
