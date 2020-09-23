@@ -186,6 +186,7 @@ void TPZQuadraticTrig::InsertExampleElement(TPZGeoMesh &gmesh, int matid, TPZVec
     
     for (int i=0; i<NCornerNodes; i++) {
         ParametricDomainNodeCoord(i, co);
+        co.Resize(3, 0.);
         for (int j=0; j<co.size(); j++) {
             co[j] = shift[j]+scale[j]*co[j]+(rand()*0.2/RAND_MAX)-0.1;
         }
