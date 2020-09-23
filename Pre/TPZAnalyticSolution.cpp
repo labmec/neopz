@@ -2076,7 +2076,7 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
     TVar x3 = x[2];
     REAL Re = 0.;
     REAL lambda = 0.;
-    REAL xs = 0.;    
+    REAL xs = 0.; 
     
     switch(fExactSol)
     {
@@ -2087,9 +2087,20 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
         case ESinCosBDS:
 	    if(fvisco==0) xs = 0.;
 	    xs = 1./exp(fcBrinkman/fvisco);
-            flux[0] = -xs*sin(x1)*sin(x2)+(1-xs)*sin(x1)*sin(x2);
-            flux[1] = -xs*cos(x1)*cos(x2)-(1-xs)*cos(x1)*cos(x2);
+            flux[0] = -xs*sin(x1)*sin(x2)+(1.-xs)*sin(x1)*sin(x2);
+            flux[1] = -xs*cos(x1)*cos(x2)-(1.-xs)*cos(x1)*cos(x2);
             break;
+	case ESinCosBDS3D:
+	    xs = 1./exp(fcBrinkman/fvisco);
+            flux[0] = -xs*sin(x1)*sin(x2)+(1.-xs)*sin(x1)*sin(x2);
+            flux[1] = xs*(-cos(x1)*cos(x2)-sin(x2)*sin(x3))+(1.-xs)*(-cos(x1)*cos(x2)+sin(x2)*sin(x3));
+            flux[2] = -xs*cos(x2)*cos(x3)+(1.-xs)*(-cos(x2)*cos(x3));
+            break;
+	case EGatica3D:
+    	    flux[0] = cos(Pi*x1)*sin(Pi*x2)*sin(Pi*x3);
+	    flux[1] = sin(Pi*x1)*cos(Pi*x2)*sin(Pi*x3);
+	    flux[2] = -2.*sin(Pi*x1)*sin(Pi*x2)*cos(Pi*x3);
+	break;
         case ESinCos3D:
             flux[0] = -sin(x1)*sin(x2);
             flux[1] = -cos(x1)*cos(x2)-sin(x2)*sin(x3);
@@ -2131,9 +2142,19 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
         case ESinCosBDS:
 	    if(fvisco==0) xs = 0.;
 	    xs = 1./FADexp(fcBrinkman/fvisco);
-            flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1-xs)*FADsin(x1)*FADsin(x2);
-            flux[1] = -xs*FADcos(x1)*FADcos(x2)-(1-xs)*FADcos(x1)*FADcos(x2);
+            flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1.-xs)*FADsin(x1)*FADsin(x2);
+            flux[1] = -xs*FADcos(x1)*FADcos(x2)-(1.-xs)*FADcos(x1)*FADcos(x2);
             break;
+	case ESinCosBDS3D:
+	    xs = 1./exp(fcBrinkman/fvisco);
+            flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1.-xs)*FADsin(x1)*FADsin(x2);
+            flux[1] = xs*(-FADcos(x1)*FADcos(x2)-FADsin(x2)*FADsin(x3))+(1.-xs)*(-FADcos(x1)*FADcos(x2)+FADsin(x2)*FADsin(x3));
+            flux[2] = -xs*FADcos(x2)*FADcos(x3)+(1.-xs)*(-FADcos(x2)*FADcos(x3));
+            break;
+	case EGatica3D:
+    	    flux[0] = FADcos(Pi*x1)*FADsin(Pi*x2)*FADsin(Pi*x3);
+	    flux[1] = FADsin(Pi*x1)*FADcos(Pi*x2)*FADsin(Pi*x3);
+	    flux[2] = -2.*FADsin(Pi*x1)*FADsin(Pi*x2)*FADcos(Pi*x3);
         case ESinCos3D:
             flux[0] = -FADsin(x1)*FADsin(x2);
             flux[1] = -FADcos(x1)*FADcos(x2)-FADsin(x2)*FADsin(x3);
@@ -2173,7 +2194,11 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
             p = cos(x1)*sin(x2);
             break;
         case ESinCos3D:
+        case ESinCosBDS3D:
             p = cos(x1)*sin(x2)+cos(x2)*sin(x3);
+            break;
+        case EGatica3D:
+            p = sin(Pi*x1)*sin(Pi*x2)*sin(Pi*x3);
             break;
         case EKovasznay:
 	    Re = 1./fvisco; //Reynolds number
@@ -2210,10 +2235,14 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
     {
         case ESinCos:
         case ESinCosBDS:
-        p = FADcos(x1)*FADsin(x2);
+            p = FADcos(x1)*FADsin(x2);
             break;
         case ESinCos3D:
-        p = FADcos(x1)*FADsin(x2)+FADcos(x2)*FADsin(x3);
+        case ESinCosBDS3D:
+            p = FADcos(x1)*FADsin(x2)+FADcos(x2)*FADsin(x3);
+            break;
+        case EGatica3D:
+            p = FADsin(Pi*x1)*FADsin(Pi*x2)*FADsin(Pi*x3);
             break;
         case EKovasznay:
 	    Re = 1./fvisco; //Reynolds number
@@ -2469,7 +2498,7 @@ void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMa
     for(int i=0; i<fDimension; i++) {
         for (int j=0; j<fDimension; j++)
         {
-            gradsol(i,j) = u_result[j].d(i);
+              gradsol(i,j) = u_result[j].d(i);
         }
     }
     Fad<STATE> p_result = 0.;
