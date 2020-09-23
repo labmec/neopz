@@ -59,25 +59,6 @@ TPZElementMatrix::TPZElementMatrix(const TPZElementMatrix &cp) :
     fConstrBlock.SetMatrix(&fConstrMat);
 }
 
-TPZElementMatrix &TPZElementMatrix::operator=(const TPZElementMatrix &cp)
-{
-    fType = cp.fType;
-    fMesh = cp.fMesh;
-    fConnect = cp.fConnect;
-    fMat = cp.fMat;
-    fBlock = cp.fBlock;
-    fConstrConnect = cp.fConstrConnect;
-    fConstrMat = cp.fConstrMat;
-    fConstrBlock = cp.fConstrBlock;
-    fDestinationIndex = cp.fDestinationIndex;
-    fSourceIndex = cp.fSourceIndex;
-    fBlock.SetMatrix(&fMat);
-    fConstrBlock.SetMatrix(&fConstrMat);
-    return *this;
-}
-
-
-
 void TPZElementMatrix::Print(std::ostream &out){
 	if(fType == EK)
 	{
