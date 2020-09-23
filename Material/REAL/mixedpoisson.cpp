@@ -724,10 +724,6 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         }
     }
 
-    // Solution EArcTan returns NAN for (x,y) == (0,0). Replacing data.x by inf solves this problem.
-    STATE infinitesimal = 0.0000000001;
-    TPZManVector<REAL,3> inf ={infinitesimal,infinitesimal,infinitesimal};
-
    // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
     
@@ -865,35 +861,34 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         
     }
 
-    if(var == 46){ //ExactFluxShiftedOrigin
+    if(var == 46) { //ExactFluxShiftedOrigin
+        // Solution EArcTan returns NAN for (x,y) == (0,0). Replacing data.x by
+        // inf solves this problem.
+        STATE infinitesimal = 0.0000000001;
+        TPZManVector<REAL, 3> inf = {infinitesimal, infinitesimal, infinitesimal};
 
+        TPZVec<STATE> exactSol(1);
+        TPZFNMatrix<3, STATE> gradu(3, 1);
 
-        if(fForcingFunctionExact)
-        {
-            if(datavec[0].x[0] == 0. && datavec[0].x[1] == 0.){
-                fForcingFunctionExact->Execute(inf, solExata, gradu);
+        if (fForcingFunctionExact) {
+            if (datavec[0].x[0] == 0. && datavec[0].x[1] == 0.) {
+                fForcingFunctionExact->Execute(inf, exactSol, gradu);
             } else {
-                fForcingFunctionExact->Execute(datavec[0].x, solExata, gradu);
+                fForcingFunctionExact->Execute(datavec[0].x, exactSol, gradu);
             }
         }
+        TPZFNMatrix<3, REAL> flux(3, 1);
 
-        TPZFNMatrix<3, STATE> fluxtmp(fDim + 1, 1);
-        TPZFNMatrix<3, STATE> gradutmp(fDim + 1, 1);
-        for (int idi = 0; idi < gradu.Rows(); idi++)
-            for (int jdi = 0; jdi < gradu.Cols(); jdi++)
-                gradutmp(idi, jdi) = gradu(idi, jdi);
+        PermTensor.Multiply(gradu, flux);
 
-        PermTensor.Multiply(gradutmp, fluxtmp);
-
-        for (int i=0; i<fDim; i++)
-        {
-            Solout[i] = -fluxtmp(i,0);
+        for (int i = 0; i < fDim; i++) {
+            Solout[i] = flux(i, 0);
         }
 
         return;
     }
 
-	TPZMatPoisson3d::Solution(datavec,var,Solout);
+    TPZMatPoisson3d::Solution(datavec, var, Solout);
 }
 
 
