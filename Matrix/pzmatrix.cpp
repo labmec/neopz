@@ -282,6 +282,25 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 			out << "\n";
 		}
     	out << "\n";
+	} else if (form == EFixedColumn) {
+		out << "Writing matrix '";
+		if(name) out << name;
+		out << "' (" << Rows() << " x " << Cols() << "):\n";
+		TVar value;
+		int columnlength = 15;
+		for ( int64_t row = 0; row < Rows(); row++) {
+			for ( int64_t col = 0; col < Cols(); col++ ) {
+				value = Get( row, col);
+				if(value<0.) {
+					out << std::setw(columnlength+1) << std::left << value << " ";
+				}else{
+					out << " ";
+					out << std::setw(columnlength)   << std::left << value << " ";
+				}
+			}
+			out << "\n";
+		}
+		out << "\n";
 	} else if (form == EInputFormat) {
 		out << Rows() << " " << Cols() << endl;
 		for ( int64_t row = 0; row < Rows(); row++) {

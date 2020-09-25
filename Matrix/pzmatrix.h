@@ -52,7 +52,7 @@ extern "C"{
 enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
 
 /** @brief Defines output format */
-enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros, EMatrixMarket, ECSV};
+enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros, EMatrixMarket, ECSV, EFixedColumn};
 
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
