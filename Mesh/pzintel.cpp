@@ -848,9 +848,10 @@ int64_t TPZInterpolatedElement::CreateMidSideConnect(int side) {
 
 void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
     TPZCompElSide thisside(this, side);
+    TPZGeoElSide thisgeoside = thisside.Reference();
     TPZCompElSide largecompside(large, neighbourside);
-    TPZGeoElSide largecompsideref = largecompside.Reference();
-    TPZInterpolatedElement *cel = 0;
+    TPZGeoElSide largegeoside = largecompside.Reference();
+    TPZInterpolatedElement *cel = nullptr;
     if (largecompside.Exists()) cel = dynamic_cast<TPZInterpolatedElement *> (largecompside.Element());
     if (!cel) {
         LOGPZ_ERROR(logger, "Exiting RestrainSide - null computational element.");
@@ -865,7 +866,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         /// no shape functions to restrain
         return;
     }
-    if (myconnect.HasDependency() && largecompsideref.Dimension() > 0) {
+    if (myconnect.HasDependency() && largegeoside.Dimension() > 0) {
         LOGPZ_WARN(logger, "RestrainSide - unnecessary call to restrainside");
         DebugStop();
     }
@@ -874,15 +875,13 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         DebugStop();
         return;
     }
-    if (largecompsideref.Dimension() == 0) {
-        LOGPZ_ERROR(logger, "Exiting RestrainSide - dimension of large element is 0");
+    if (largegeoside.Dimension() < thisgeoside.Dimension()) {
+        LOGPZ_ERROR(logger, "Exiting RestrainSide - Trying to restrict to a side of smaller dimension");
         DebugStop();
         return;
     }
-    TPZGeoElSide thisgeoside(Reference(), side);
-    TPZGeoElSide largeside = largecompside.Reference();
     TPZTransform<> t(thisgeoside.Dimension());
-    thisgeoside.SideTransform3(largeside, t);
+    thisgeoside.SideTransform3(largegeoside, t);
     int nsideconnects = NSideConnects(side);
     int maxord = 1;
     for (int sidecon = 0; sidecon < nsideconnects; sidecon++) {
@@ -892,7 +891,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     }
     int largeorder = large->EffectiveSideOrder(neighbourside);
     int sideorder = MidSideConnect(side).Order();
-    if (sideorder < largeorder && thisgeoside.Dimension() && largeside.Dimension()) {
+    if (sideorder < largeorder && thisgeoside.Dimension() && largegeoside.Dimension()) {
         DebugStop();
     }
     TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side, maxord * 2);
@@ -903,7 +902,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     int numint = intrule->NPoints();
     int numshape = NSideShapeF(side);
     int sidedimension = thisgeoside.Dimension();
-    int largesidedimension = largeside.Dimension();
+    int largesidedimension = largegeoside.Dimension();
     int numshapel = large->NSideShapeF(neighbourside);
     TPZFNMatrix<100, REAL> phis(numshape, 1), dphis(2, numshape), phil(numshapel, 1), dphil(2, numshapel);
     TPZFNMatrix<1000, REAL> MSL(numshape, numshapel, 0.);
