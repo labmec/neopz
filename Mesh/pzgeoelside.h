@@ -151,7 +151,7 @@ public:
 	TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
 	
 	TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide = side;}
-	
+	    
 	/** @brief This constructor set an TPZGeoElSide based in the cornerNodes of an side of gel */
 	/** If the cornerNodes are not consistent, the TPZGeoElSide created is NULL */
 	TPZGeoElSide(TPZGeoEl *gel, std::set<int64_t> &sideCornerNodes);
@@ -303,6 +303,11 @@ public:
      */
     TPZGeoElSide HasLowerLevelNeighbour(int materialid) const;
     
+	
+    /**
+      *      verify if a neighbour with the given material id exists
+     */
+    TPZGeoElSide HasNeighbour(std::set<int> materialid) const;
     
     /** @brief Will return all elements of equal or higher level than than the current element */
 	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);

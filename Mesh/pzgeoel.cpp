@@ -1737,6 +1737,8 @@ bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 		if(error > tol || !(error==error)){
 			std::stringstream mess;
 			mess << "FATAL ERROR AT " << __PRETTY_FUNCTION__ << " - Node coordinate differs from mapped node.\n";
+            mess << "NodeX " << NodeX << std::endl;
+            mess << "MappedX " << MappedX << std::endl;
 			this->Print(mess);
 			PZError << mess.str() << "\n";
 #ifdef LOG4CXX

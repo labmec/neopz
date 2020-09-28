@@ -1386,3 +1386,16 @@ TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
     }
     return lower;
 }
+TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> materialid) const
+{
+    if(!fGeoEl) return TPZGeoElSide();
+    auto it = materialid.find(fGeoEl->MaterialId());
+    if(it != materialid.end()) return *this;
+    TPZGeoElSide neighbour = Neighbour();
+    while(neighbour != *this)
+    {
+        if(materialid.find(neighbour.Element()->MaterialId()) != materialid.end()) return neighbour;
+        neighbour = neighbour.Neighbour();
+    }
+    return TPZGeoElSide();
+}

@@ -64,7 +64,7 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int6
 #endif
     fCMesh = new TPZMultiphysicsCompMesh(fGMesh);
     fCMesh->SetDimModel(fGMesh->Dimension());
-    fPressureFineMesh = fCMesh;
+    fPressureFineMesh = new TPZCompMesh(fGMesh);
 }
 
 /// Define the partitioning information of the MHM mesh
@@ -192,9 +192,9 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh) : fGMesh(gm
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    fCMesh = new TPZCompMesh(fGMesh);
+    fCMesh = new TPZMultiphysicsCompMesh(fGMesh);
     fCMesh->SetDimModel(fGMesh->Dimension());
-    fPressureFineMesh = fCMesh;
+    fPressureFineMesh = new TPZCompMesh(fGMesh);
 }
 
 TPZMHMeshControl::TPZMHMeshControl(const TPZMHMeshControl &copy){
@@ -1151,12 +1151,18 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     int dim = fGMesh->Dimension();
     fCMeshLagrange->SetDimModel(dim);
     fCMeshLagrange->SetAllCreateFunctionsDiscontinuous();
+    fCMeshLagrange->SetDefaultOrder(0);
+    int nStateVariables = 1;
     if (fProblemType == EScalar) {
-        fCMeshLagrange->SetDefaultOrder(0);
+        nStateVariables = 1;
     }
     else if(fProblemType == EElasticity2D)
     {
-        fCMeshLagrange->SetDefaultOrder(1);
+        nStateVariables = 3;
+    }
+    else if(fProblemType == EElasticity3D)
+    {
+        nStateVariables = 6;
     }
     fGMesh->ResetReference();
     int64_t connectcounter = fCMesh->NConnects();
@@ -1164,9 +1170,6 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     std::set<int> matids;
     TPZGeoMesh &gmesh = fGMesh;
     int64_t nel = gmesh.NElements();
-    // this code needs to be modified to create lagrange computational elements which share a connect
-    // between each other
-    //DebugStop();
     for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh.ElementVec()[el];
         if (!gel) {
@@ -1185,6 +1188,8 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     TPZMaterial *meshmat = 0;
     while (it != matids.end()) {
         TPZNullMaterial *material = new TPZNullMaterial(*it);
+        material->SetDimension(fGMesh->Dimension());
+        material->SetNStateVariables(nStateVariables);
         fCMeshLagrange->InsertMaterialObject(material);
         if (!meshmat) {
             meshmat = material;
@@ -1250,7 +1255,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
 void TPZMHMeshControl::TransferToMultiphysics()
 {
     fGMesh->ResetReference();
-    this->fCMesh = new TPZCompMesh(fGMesh);
+    this->fCMesh = new TPZMultiphysicsCompMesh(fGMesh);
     this->fCMesh->SetDimModel(fGMesh->Dimension());
     fCMesh->SetAllCreateFunctionsMultiphysicElem();
 
@@ -1937,9 +1942,22 @@ void TPZMHMeshControl::SetSubdomain(TPZCompEl *cel, int64_t subdomain)
 
     if (index >= fGeoToMHMDomain.size()) {
         fGeoToMHMDomain.Resize(index+1, -1);
-        fGeoToMHMDomain[index] = subdomain;
     }
+    fGeoToMHMDomain[index] = subdomain;
 }
+
+/// associates a geometric element with a subdomain
+void TPZMHMeshControl::SetSubdomain(TPZGeoEl *gel, int64_t subdomain)
+{
+    int64_t index = gel->Index();
+
+    if (index >= fGeoToMHMDomain.size()) {
+        fGeoToMHMDomain.Resize(index+1, -1);
+    }
+    fGeoToMHMDomain[index] = subdomain;
+}
+
+
 
 /// associates the connects index with a subdomain
 void TPZMHMeshControl::SetSubdomain(TPZCompMesh *cmesh, int64_t cindex, int64_t subdomain)

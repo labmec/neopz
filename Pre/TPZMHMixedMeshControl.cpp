@@ -107,32 +107,26 @@ TPZMHMixedMeshControl::~TPZMHMixedMeshControl()
 /// Insert Boundary condition objects that do not perform any actual computation
 void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
 {
+#ifdef PZDEBUG
     int matid = *fMaterialIds.begin();
     TPZMaterial *mat = fCMesh->FindMaterial(matid);
     if (!mat) {
         DebugStop();
     }
     int nstate = mat->NStateVariables();
-    TPZFNMatrix<1,STATE> val1(nstate,nstate,0.), val2Flux(nstate,1,0.);
-    int typePressure = 0;
-    
+    if(nstate != fNState) DebugStop();
+#endif
     if(fCMesh->MaterialVec().find(fSkeletonMatId) != fCMesh->MaterialVec().end())
     {
         std::cout << "Peripheral material inserted twice " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
         return;
     }
     
     TPZNullMaterial *nullmat = new TPZNullMaterial(fSkeletonMatId);
     nullmat->SetDimension(mat->Dimension()-1);
-    nullmat->SetNStateVariables(nstate);
+    nullmat->SetNStateVariables(fNState);
     fCMesh->InsertMaterialObject(nullmat);
-//    TPZBndCond * bcFlux = mat->CreateBC(mat, fSkeletonMatId, typePressure, val1, val2Flux);
-    //    bcN->SetForcingFunction(0,force);
-//    fCMesh->InsertMaterialObject(bcFlux);
-    
-    
-
-
 }
 
 
@@ -207,7 +201,7 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
     cmeshHDiv->SetName("FluxMesh");
-    InsertPeriferalHdivMaterialObjects();
+    // implemented in a derived class
     CreateInternalFluxElements();
     
 #ifdef PZDEBUG
@@ -217,6 +211,7 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
         fFluxMesh->Print(out);
     }
 #endif
+    // implemented in a derived class
     CreateSkeleton();
     
     if (fHdivmaismais) {
@@ -254,15 +249,11 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
     TPZGeoMesh *gmesh = fGMesh.operator->();
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
-    gmesh->ResetReference();
-    cmeshHDiv->LoadReferences();
     cmeshHDiv->SetDimModel(meshdim);
-    cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
-    cmeshHDiv->SetDefaultOrder(fpOrderInternal);
     if(fMaterialIds.size() == 0) DebugStop();
     TPZMaterial *matl2;
     for (auto item:fMaterialIds) {
-        TPZVecL2 *mat = new TPZVecL2(item);
+        TPZNullMaterial *mat = new TPZNullMaterial(item);
         matl2 = mat;
         mat->SetNStateVariables(fNState);
         mat->SetDimension(meshdim);
@@ -297,8 +288,8 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     gmesh->ResetReference();
 
     // the pressure mesh should be empty when calling this method
-    int64_t nskeletonconnects = fPressureFineMesh->NConnects();
-    if(nskeletonconnects != 0){
+    int64_t npressureconnects = fPressureFineMesh->NConnects();
+    if(npressureconnects != 0){
         DebugStop();
     }
 
@@ -338,24 +329,10 @@ void TPZMHMixedMeshControl::CreatePressureMHMMesh()
     }
 
     
-#ifdef PZDEBUG
-    // a very strange check!! Why does material id 1 need to be volumetric?
-    {
-        int64_t nel = fGMesh->NElements();
-        for (int64_t el = 0; el<nel; el++) {
-            TPZGeoEl *gel = fGMesh->Element(el);
-            if (gel && gel->MaterialId() == 1) {
-                if (gel->Dimension() != fGMesh->Dimension()) {
-                    DebugStop();
-                }
-            }
-        }
-    }
-#endif
     
     // the lagrange multiplier level is set to one
     int64_t nc = cmeshPressure->NConnects();
-    for (int64_t ic=nskeletonconnects; ic<nc; ic++) {
+    for (int64_t ic=0; ic<nc; ic++) {
         cmeshPressure->ConnectVec()[ic].SetLagrangeMultiplier(1);
     }
     // associate the connects with the proper subdomain
@@ -1016,6 +993,7 @@ void TPZMHMixedMeshControl::CreateSkeleton()
     fGMesh->ResetReference();
     int order = fpOrderSkeleton;
     if (order <= 0) {
+        DebugStop();
         order = 1;
     }
     // create the skeleton elements without applying the restraints of the elements of the subdomains

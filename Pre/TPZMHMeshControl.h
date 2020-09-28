@@ -14,6 +14,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
+#include "TPZMultiphysicsCompMesh.h"
 
 /// class oriented towards the creation of multiscale hybrid meshes - YES
 class TPZMHMeshControl
@@ -29,7 +30,7 @@ protected:
     TPZAutoPointer<TPZGeoMesh> fGMesh;
     
     /// computational MHM mesh being built by this class
-    TPZAutoPointer<TPZCompMesh> fCMesh;
+    TPZAutoPointer<TPZMultiphysicsCompMesh> fCMesh;
     
     /// computational mesh to represent the distributed flux in each subdomain
     TPZAutoPointer<TPZCompMesh> fCMeshLagrange;
@@ -51,7 +52,7 @@ public:
     /// material id associated with the skeleton elements
     int fSkeletonMatId = 4;
     
-    /// material id associated with the skeleton elements
+    /// material id associated with the skeleton elements when hybridized
     int fSecondSkeletonMatId = 3;
     
     /// material id associated with the skeleton elements in a hybrid context
@@ -106,7 +107,7 @@ protected:
      */
     bool fLagrangeAveragePressure = false;
     
-    /// flag to indicate whether we create a hybridized mesh
+    /// flag to indicate whether we hybridize the skeleton fluxes
     bool fHybridize = false;
     
     /// flag to indicate whether the lagrange multipliers should switch signal
@@ -135,7 +136,7 @@ public:
     {
         fGMesh = new TPZGeoMesh;
         fGMesh->SetDimension(dimension);
-        fCMesh = new TPZCompMesh(fGMesh);
+        fCMesh = new TPZMultiphysicsCompMesh(fGMesh);
         fPressureFineMesh = new TPZCompMesh(fGMesh);
     }
 
@@ -153,7 +154,7 @@ public:
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
-    TPZAutoPointer<TPZCompMesh> CMesh() const
+    TPZAutoPointer<TPZMultiphysicsCompMesh> CMesh() const
     {
         return fCMesh;
     }
@@ -403,12 +404,22 @@ protected:
     /// associates the connects of an element with a subdomain
     void SetSubdomain(TPZCompEl *cel, int64_t subdomain);
     
+    /// associates a geometric element with a subdomain
+    void SetSubdomain(TPZGeoEl *gel, int64_t subdomain);
+    
     /// associates the connects index with a subdomain
     void SetSubdomain(TPZCompMesh *cmesh, int64_t connectindex, int64_t subdomain);
     
-    /// returns to which subdomain a given element beint64_ts
-    // this method calls debugstop if the element beint64_ts to two subdomains
+    /// returns to which subdomain a given element belongs
+    // this method calls debugstop if the element belongs to two subdomains
     int64_t WhichSubdomain(TPZCompEl *cel);
+    
+    /// returns to which subdomain a given element belongs
+    // this method calls debugstop if the element belongs to two subdomains
+    int64_t WhichSubdomain(TPZGeoEl *gel)
+    {
+        return fGeoToMHMDomain[gel->Index()];
+    }
     
     /// Subdomains are identified by computational mesh, this method will join
     // the subdomain indices of the connects to the multi physics mesh
