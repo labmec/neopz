@@ -2092,6 +2092,24 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
             flux[0] = -xs*sin(x1)*sin(x2)+(1.-xs)*sin(x1)*sin(x2);
             flux[1] = -xs*cos(x1)*cos(x2)-(1.-xs)*cos(x1)*cos(x2);
             break;
+	case ECouplingSD:
+	    if(x2<0.){
+		flux[0] = (exp(-x2)-exp(x2))*cos(x1);
+		flux[1] = -(exp(-x2)+exp(x2))*sin(x1);			
+	    }else if(x2>=0.){
+		flux[0] = (2./Pi)*sin(Pi*x2)*cos(Pi*x2)*cos(x1);
+		flux[1] = ((1./(Pi*Pi))*sin(Pi*x2)*sin(Pi*x2)-2.)*sin(x1);	
+	    }
+	    break;
+	case ECouplingNSD:
+	    if(x2<1.){
+		flux[0] = -(1./8.)*Pi*Pi*x2*sin(Pi*x1/2.)*sin(1.-x2);
+		flux[1] = (1./4.)*Pi*cos(Pi*x1/2.)*(-x2*cos(1.-x2)+sin(1.-x2));			
+	    }else if(x2>=1.){
+	        flux[0] = cos(Pi*x2/2.)*cos(Pi*x2/2.)*sin(Pi*x1/2.);
+	        flux[1] = -cos(Pi*x1/2.)*((1./4.)*sin(Pi*x2)+Pi*x2/4.);	
+	    }
+	    break;
 	case ESinCosBDS3D:
 	    xs = 1./exp(fcBrinkman/fvisco);
             flux[0] = -xs*sin(x1)*sin(x2)+(1.-xs)*sin(x1)*sin(x2);
@@ -2147,6 +2165,24 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1.-xs)*FADsin(x1)*FADsin(x2);
             flux[1] = -xs*FADcos(x1)*FADcos(x2)-(1.-xs)*FADcos(x1)*FADcos(x2);
             break;
+	case ECouplingSD:
+	    if(x2< (FADFADSTATE) 0.){
+		flux[0] = (FADexp(-x2)-FADexp(x2))*FADcos(x1);
+		flux[1] = -(FADexp(-x2)+FADexp(x2))*FADsin(x1);			
+	    }else if(x2>=(FADFADSTATE) 0.){
+		flux[0] = (2./Pi)*FADsin(Pi*x2)*FADcos(Pi*x2)*FADcos(x1);
+		flux[1] = ((1./(Pi*Pi))*FADsin(Pi*x2)*FADsin(Pi*x2)-2.)*FADsin(x1);	
+	    }
+	    break;
+	case ECouplingNSD:
+	    if(x2< (FADFADSTATE) 1.){
+		flux[0] = -(1./8.)*Pi*Pi*x2*FADsin(Pi*x1/2.)*FADsin(1.-x2);
+		flux[1] = (1./4.)*Pi*FADcos(Pi*x1/2.)*(-x2*FADcos(1.-x2)+FADsin(1.-x2));			
+	    }else if(x2>= (FADFADSTATE) 1.){
+	        flux[0] = FADcos(Pi*x2/2.)*FADcos(Pi*x2/2.)*FADsin(Pi*x1/2.);
+	        flux[1] = -FADcos(Pi*x1/2.)*((1./4.)*FADsin(Pi*x2)+Pi*x2/4.);	
+	    }
+	    break;
 	case ESinCosBDS3D:
 	    xs = 1./exp(fcBrinkman/fvisco);
             flux[0] = -xs*FADsin(x1)*FADsin(x2)+(1.-xs)*FADsin(x1)*FADsin(x2);
@@ -2195,6 +2231,20 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
         case ESinCosBDS:
             p = cos(x1)*sin(x2);
             break;
+	case ECouplingSD:
+	    if(x2<0.){
+		p = (-exp(-x2)+exp(x2))*sin(x1);		
+	    }else if(x2>=0.){
+		p = sin(x1)*sin(x2);
+	    }
+	    break;
+	case ECouplingNSD:
+	    if(x2<1.){
+		p = -(Pi*x2/4.)*cos(Pi*x1/2.)*sin(1.-x2);		
+	    }else if(x2>=1.){
+                p = (Pi/4.)*cos(Pi*x1/2.)*(x2-1.-cos(Pi*x2))*sin(x2-1.);
+	    }
+	    break;
         case ESinCos3D:
         case ESinCosBDS3D:
             p = cos(x1)*sin(x2)+cos(x2)*sin(x3);
@@ -2239,6 +2289,20 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
         case ESinCosBDS:
             p = FADcos(x1)*FADsin(x2);
             break;
+	case ECouplingSD:
+	    if(x2< (FADFADSTATE) 0.){
+		p = (-FADexp(-x2)+FADexp(x2))*FADsin(x1);		
+	    }else if(x2>= (FADFADSTATE) 0.){
+		p = FADsin(x1)*FADsin(x2);
+	    }
+	    break;
+	case ECouplingNSD:
+	    if(x2< (FADFADSTATE)1.){
+		p = -(Pi*x2/4.)*FADcos(Pi*x1/2.)*FADsin(1.-x2);		
+	    }else if(x2>= (FADFADSTATE)1.){
+                p = (Pi/4.)*FADcos(Pi*x1/2.)*(x2-1.-FADcos(Pi*x2))*FADsin(x2-1.);
+	    }
+	    break;
         case ESinCos3D:
         case ESinCosBDS3D:
             p = FADcos(x1)*FADsin(x2)+FADcos(x2)*FADsin(x3);
