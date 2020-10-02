@@ -61,3 +61,17 @@ TPZGeoElSide TPZGeoElSidePartition::HasHigherLevelNeighbour(int matid) const {
     return TPZGeoElSide();
 }
 
+bool TPZGeoElSidePartition::HigherLevelNeighbours(TPZStack<TPZGeoElSide> &neighbours, int matid) const {
+    bool foundNeighbourForEverySubElement = true;
+    for (auto &partition : fPartition) {
+        // First check the partition side itself
+        TPZGeoElSide neighbour = partition.fCurrent.HasNeighbour(matid);
+        if (neighbour) {
+            neighbours.Push(partition.fCurrent);
+        } else {
+            DebugStop();
+            foundNeighbourForEverySubElement = false;
+        }
+    }
+    return foundNeighbourForEverySubElement;
+}
