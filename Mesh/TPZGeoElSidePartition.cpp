@@ -67,7 +67,7 @@ bool TPZGeoElSidePartition::HigherLevelNeighbours(TPZStack<TPZGeoElSide> &neighb
         // First check the partition side itself
         TPZGeoElSide neighbour = partition.fCurrent.HasNeighbour(matid);
         if (neighbour) {
-            neighbours.Push(partition.fCurrent);
+            neighbours.Push(neighbour);
         } else {
             DebugStop();
             foundNeighbourForEverySubElement = false;
