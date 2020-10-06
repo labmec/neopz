@@ -298,6 +298,11 @@ public:
       *      verify if a neighbour with the given material id exists
      */
     TPZGeoElSide HasNeighbour(int materialid) const;
+
+    /**
+     *      verify if a neighbour with the given material id exists
+    */
+    TPZGeoElSide HasNeighbour(std::set<int> matIDs) const;
     
     /** verifiy if a larger (lower level) neighbour exists with the given material id
      */
