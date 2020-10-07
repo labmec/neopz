@@ -223,6 +223,39 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
         DebugStop();
     }
 #endif
+    MElementType thistype = TSHAPE::Type();
+    if(thistype == EOned)
+    {
+        if(connect < 2) return 1;
+        else return order;
+    }
+    else if(thistype == ETriangle)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1);
+        else return (order+1)*(order+1)-1;
+    }
+    else if(thistype == EQuadrilateral)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1);
+        else return 2*order*(order+1);
+    }
+    else if(thistype == ETetraedro)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1)*(order+2)/2;
+        else return order*(order+2)*(order+3)/2;
+    }
+    else if(thistype == EPrisma)
+    {
+        if(connect == 0 || connect == 4) return (order+1)*(order+2)/2;
+        else if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
+        else return order*order*(3*order+5)/2+7*order-2;
+    }
+    else if(thistype == ECube)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
+        else return 3*order*(order+1);
+    }
+    DebugStop();
     // @TODO put in the analytic values
     if (connect < TSHAPE::NFacets) {
          int64_t connectindex = ConnectIndex(connect);
@@ -1238,6 +1271,20 @@ void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::FillOrder(TPZVec<int> &order) const
 {
+    order.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    int ncon = TSHAPE::NFacets+1;
+    
+    TPZConnect &c = this->Connect(ncon-1);
+    int internalorder = c.Order();
+    order.Fill(internalorder+1);
+#ifdef PZDEBUG
+    for(int ic=0; ic<ncon-1; ic++)
+    {
+        if(ConnectOrder(ic) > internalorder) DebugStop();
+    }
+#endif
+    return;
+    
     int nvecs = TSHAPE::Dimension*TSHAPE::NSides;
     TPZManVector<int,3*27> associated_side(nvecs),bilinear(nvecs),direction(nvecs);
     TSHAPE::GetSideHDivDirections(associated_side,direction,bilinear);
@@ -1249,11 +1296,6 @@ void TPZCompElHDiv<TSHAPE>::FillOrder(TPZVec<int> &order) const
             sideinc[side] = 1;
         }
     }
-    order.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
-    int ncon = TSHAPE::NFacets+1;
-    
-    TPZConnect &c = this->Connect(ncon-1);
-    int internalorder = c.Order();
     int nsides = TSHAPE::NSides;
     for (int is=0; is<nsides; is++) {
         if (TSHAPE::SideDimension(is) < TSHAPE::Dimension-1) {
@@ -1468,6 +1510,14 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //        int maxorder = this->MaxOrder();
 //        data.p = maxorder+1;
 //    }
+    {
+        TPZManVector<int> orders;
+        FillOrder(orders);
+        int nshapescalar = TSHAPE::NShapeF(orders);
+        data.phi.Resize(nshapescalar, 1);
+        data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
+        data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
+    }
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
 		{
@@ -1505,6 +1555,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         
 
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
+        data.divphi.Resize(data.fVecShapeIndex.size(), 1);
     }
     data.fShapeType = TPZMaterialData::EVecandShape;
     
