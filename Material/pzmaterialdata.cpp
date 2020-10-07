@@ -19,7 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty), numberdualfunctions(0){
+TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty),
+    numberdualfunctions(0),normal(3,0.),x(3,0.),p(-1){
     this->SetAllRequirements(false);
     this->fNeedsDeformedDirectionsFad = false;
     this->intLocPtIndex = -1;
@@ -170,9 +171,12 @@ bool TPZMaterialData::Compare(TPZSavable *copy, bool override) const
 /** Print the data */
 void TPZMaterialData::Print(std::ostream &out) const
 {
+    out << "Shape function type " << ShapeFunctionType() << std::endl;
+    out << "Active Approximation Space " << fActiveApproxSpace << std::endl;
     phi.Print("phi",out);
     dphi.Print("dphi",out);
     dphix.Print("dphix",out);
+    out << "Number dual functions " << numberdualfunctions << std::endl;
     divphi.Print("div phi",out);
     curlphi.Print("curl phi",out);
     axes.Print("axes",out);
@@ -180,6 +184,7 @@ void TPZMaterialData::Print(std::ostream &out) const
     jacinv.Print("jacinv",out);
     out << "normal " << normal << std::endl;
     out << "x " << x << std::endl;
+    out << "xParametric " << xParametric << std::endl;
     out << "p " << p << std::endl;
     out << "sol " << sol << std::endl;
     int nsol = dsol.size();
@@ -192,9 +197,16 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "detjac " << detjac << std::endl;
     out << "XCenter " << XCenter << std::endl;
     out << "fMasterDirections" << fMasterDirections << std::endl;
-    out << "intLocPtIndex " << intLocPtIndex << std::endl;
-    out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
-    out << "NintPts " << NintPts << std::endl;
+    out << "fDeformedDirections" << fDeformedDirections << std::endl;
+#ifdef _AUTODIFF
+    if(fNeedsDeformedDirectionsFad){
+        fDeformedDirectionsFad.Print(out);
+    }
+    else
+    {
+        out << "No need for directions FAD\n";
+    }
+#endif
     out << "gelElId " << gelElId << std::endl;
     if (fVecShapeIndex.size()) {
         out << "VecShapeIndex: ";
@@ -203,6 +215,15 @@ void TPZMaterialData::Print(std::ostream &out) const
         }
         out << '\n';
     }
+    out << "NintPts " << NintPts << std::endl;
+    out << "intLocPtIndex " << intLocPtIndex << std::endl;
+    out << "intGlobPtIndex " << intGlobPtIndex << std::endl;
+    out << "NeedsSol " << fNeedsSol << std::endl;
+    out << "fNeedsNeighborSol " << fNeedsNeighborSol << std::endl;
+    out << "fNeedsHSize " << fNeedsHSize << std::endl;
+    out << "fNeedsNeighborCenter " << fNeedsNeighborCenter << std::endl;
+    out << "fNeedsDeformedDirectionsFad " << fNeedsDeformedDirectionsFad << std::endl;
+    out << "fNeedsNormal " << fNeedsNormal << std::endl;
 }
 
 /** Print the data in a format suitable for Mathematica */
@@ -382,6 +403,24 @@ void TPZMaterialData::ComputeFunctionDivergence()
     }
         
 
+}
+
+/// Shape function type as a string
+std::string TPZMaterialData::ShapeFunctionType() const
+{
+    switch(fShapeType){
+        case EEmpty:
+            return "NotInitialized";
+        case EScalarShape:
+            return "Scalar";
+        case EVecandShape:
+            return "Vector combined with Scalar";
+        case EVecShape:
+            return "Vector shape";
+        default:
+            DebugStop();
+    }
+    return "All Wrong!\n";
 }
 
 
