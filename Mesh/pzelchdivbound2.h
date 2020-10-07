@@ -27,10 +27,6 @@ class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
 	/** @brief Method to append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
     
-    TPZCompElSide fneighbour;
-    
-    /// Restraint on a single shape function for pyramid implementation
-    TPZOneShapeRestraint fRestraint;
 public:
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
@@ -140,10 +136,7 @@ public:
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override
     {
-        if (fRestraint.IsInitialized()) {
-            std::cout << "****************** Overwriting a constraint\n";
-        }
-        fRestraint = restraint;
+        DebugStop();
     }
     
 
@@ -151,16 +144,14 @@ public:
     virtual std::list<TPZOneShapeRestraint> GetShapeRestraints() const override
     {
         std::list<TPZOneShapeRestraint> loc;
-        if (fRestraint.IsInitialized()) {
-            loc.push_back(fRestraint);
-        }
+        DebugStop();
         return loc;
     }
 
     /// Return a list with the shape restraints
     virtual void ResetShapeRestraints() override
     {
-        fRestraint = TPZOneShapeRestraint();
+        DebugStop();
     }
 
 	/** @brief Returns the unique identifier for reading/writing objects to streams */

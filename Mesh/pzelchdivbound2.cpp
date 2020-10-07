@@ -44,37 +44,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
     mesh.ConnectVec()[this->fConnectIndexes[0]].IncrementElConnected();
     
 		
-	//TPZGeoElSide myInnerSide(gel,gel->NSides()-1);
-//	TPZGeoElSide neigh = myInnerSide.Neighbour();
-//	while(!neigh.Reference())
-//	{
-//		neigh = neigh.Neighbour();
-//	}
-//	if(neigh == myInnerSide)
-//	{
-//		/**
-//		 O codigo pressupoe que os elementos computacionais 2D sao criados antes dos 1D.
-//		 Quando serao criados os elementos computacionais 1D, os respectivos vizinhos 2D sao encontrados.
-//		 Situacoes assim ocorrem (neste algoritmo) quando eh realizado refinamento uniforme, pois os primeiros elementos sem descendentes sao os 2D (e depois os descendentes 1D de contorno)
-//		 
-//		 Ocorreu o problema quando tentou-se realizar o refinamento do quadrilatero em 02 triangulos, em que o quadrilatero apresenta descendentes e as arestas nao.
-//		 Neste caso a criacao de elementos computacionais eh iniciada pelos 1D, fazendo com que nao encontrem vizinhos computacionais 2D.
-//		 Com isso a variavel int connectIndex0 eh setada com -1, dando o BUG observado.
-//		 */
-//		std::cout << "Nao foi encontrado elemento 2D com elemento computacional inicializado!!!\n"; 
-//		DebugStop();
-//	}
-//	TPZCompElSide compneigh(neigh.Reference());
-//    fneighbour = compneigh;
-//	int sideoffset = neigh.Element()->NSides()-neigh.Side();
-//	int neighnconnects = compneigh.Element()->NConnects();
-//	int connectnumber = neighnconnects-sideoffset;
-//	TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (compneigh.Element());
-//	connectnumber = intel->SideConnectLocId(0,compneigh.Side());
-//	int connectIndex0 = compneigh.Element()->ConnectIndex(connectnumber);
-//	
-//	this->fConnectIndexes[0] = connectIndex0;
-//	mesh.ConnectVec()[connectIndex0].IncrementElConnected();
 	
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -115,19 +84,6 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCom
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,copy), fSideOrient(copy.fSideOrient)
 {
-//	for(int i=0;i<TSHAPE::NSides;i++)
-//	{
-//		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
-//	}
-    if (copy.fneighbour)
-    {
-        int64_t index = copy.fneighbour.Element()->Index();
-        TPZCompEl *cel = this->Mesh()->ElementVec()[index];
-        if (!cel) {
-            DebugStop();
-        }
-        fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
-    }
 }
 
 // NAO TESTADO
@@ -168,25 +124,14 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap), fSideOrient(copy.fSideOri
 		}
 		this-> fConnectIndexes[i] = lcIdx;
 	}
-	//   gl2lcElMap[copy.fIndex] = this->Index();
     
-    int64_t neiIdx = copy.fneighbour.Element()->Index();
-    if(gl2lcElMap.find(neiIdx)==gl2lcElMap.end())
-    {
-        DebugStop();
-    }
-    TPZCompEl *cel = mesh.ElementVec()[gl2lcElMap[neiIdx]];
-    if (!cel) {
-        DebugStop();
-    }
-    fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
 }
 
 // TESTADO
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : 
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
-TPZIntelGen<TSHAPE>(),fneighbour()
+TPZIntelGen<TSHAPE>()
 {
 	this->fPreferredOrder = -1;
 	int i;
@@ -654,9 +599,6 @@ void TPZCompElHDivBound2<TSHAPE>::Print(std::ostream &out) const
 {
     out << __PRETTY_FUNCTION__ << std::endl;
     out << "Side orientation " << fSideOrient << std::endl;
-    if (fRestraint.IsInitialized()) {
-        fRestraint.Print(out);
-    }
     TPZIntelGen<TSHAPE>::Print(out);
     
     
