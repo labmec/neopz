@@ -65,7 +65,7 @@ int TPZInterpolatedElement::NShapeF() const {
     int in, res = 0;
     for (in = 0; in < nn; in++) {
         TPZConnect &c = Connect(in);
-        res += NConnectShapeF(in, c.Order());
+        res += c.NShape();
     }
     return res;
 }
