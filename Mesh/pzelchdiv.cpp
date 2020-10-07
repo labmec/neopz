@@ -190,10 +190,8 @@ MElementType TPZCompElHDiv<TSHAPE>::Type() {
 
 
 template<class TSHAPE>
-int TPZCompElHDiv<TSHAPE>::NConnects() const {
-	int dimension = Dimension()-1;
-	
-	return TSHAPE::NumSides(dimension) + 1;
+int TPZCompElHDiv<TSHAPE>::NConnects() const {	
+	return TSHAPE::NFacets + 1;
 }
 
 template<class TSHAPE>
@@ -221,11 +219,12 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
 #ifdef DEBUG
-    if (connect < 0 || connect >= NConnects()) {
+    if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
     }
 #endif
-    if (connect < TPZCompElHDiv<TSHAPE>::NConnects()-1) {
+    // @TODO put in the analytic values
+    if (connect < TSHAPE::NFacets) {
          int64_t connectindex = ConnectIndex(connect);
 //         int order = 0;
 //         if (connectindex >= 0) {
@@ -235,7 +234,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 //         {
 //             order = this->fPreferredOrder;
 //         }
-         const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
+         const int nfaces = TSHAPE::NFacets;
          int face = TSHAPE::NSides-nfaces+connect-1;
          TPZStack<int> lowerdimensionsides;
          TSHAPE::LowerDimensionSides(face,lowerdimensionsides);
@@ -246,8 +245,11 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
          return nshape;
      }
 
-     const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
+    // connect == NFacets
+    
+     const int nfaces = TSHAPE::NFacets;
      int face = TSHAPE::NSides-nfaces-1;
+    // nvecignore is the first vector index associated with the internal vectors
      int nvecignore = 0;
      for (int side = face; side < TSHAPE::NSides-1; side++) {
          nvecignore += TSHAPE::NContainedSides(side);
@@ -478,9 +480,9 @@ int TPZCompElHDiv<TSHAPE>::PreferredSideOrder(int side) {
 template<class TSHAPE>
 int64_t TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
 #ifndef NODEBUG
-	if(con<0 || con>= this->NConnects()) {
+	if(con<0 || con > TSHAPE::NFacets) {
 		std::cout << "TPZCompElHDiv::ConnectIndex wrong parameter connect " << con <<
-		" NConnects " << this-> NConnects() << std::endl;
+		" NConnects " << TSHAPE::NFacets << std::endl;
 		DebugStop();
 		return -1;
 	}
@@ -574,24 +576,12 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::EffectiveSideOrder(int side) const
 {
 	if(!NSideConnects(side)) return -1;
-	int corder =SideConnectLocId(0, side);
-	int maxorder = 0;
-	int conectaux;
-	if(corder>=0 || corder <= NConnects()) return ConnectOrder(corder);
+	int cindex =SideConnectLocId(0, side);
+#ifdef PZDEBUG
+    if(cindex<0 || cindex >= NConnects()) DebugStop();
+#endif
+    return ConnectOrder(cindex);
     
-    DebugStop();
-	TPZStack< int > high;
-	TSHAPE::HigherDimensionSides(side, high);
-	int highside= high.NElements();
-	
-	
-	for(int j=0;j<highside;j++)
-	{
-		conectaux =SideConnectLocId(0, high[j]);
-		maxorder = (ConnectOrder(conectaux) > maxorder) ? ConnectOrder(conectaux) : maxorder;
-	}
-	
-	return maxorder;	
 }
 
 /**return the first shape associate to each side*/
@@ -677,6 +667,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     // compute the permutation which needs to be applied to the vectors to enforce compatibility between neighbours
     TPZManVector<int,81> vecpermute(TSHAPE::NSides*TSHAPE::Dimension);
     if (TSHAPE::Type() == EPiramide) {
+        DebugStop();
         vecpermute.resize(TSHAPE::NSides*TSHAPE::Dimension+1);
     }
     int count = 0;
@@ -895,6 +886,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrient(int side, int sideorient){
 }
 
 //compute the values of the shape function of the side
+// this method is used by the method RestrainSide. It does not consider the side orientation
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
@@ -1258,28 +1250,30 @@ void TPZCompElHDiv<TSHAPE>::FillOrder(TPZVec<int> &order) const
         }
     }
     order.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
-    int ncon = NConnects();
+    int ncon = TSHAPE::NFacets+1;
     
     TPZConnect &c = this->Connect(ncon-1);
     int internalorder = c.Order();
     int nsides = TSHAPE::NSides;
     for (int is=0; is<nsides; is++) {
-        if (TSHAPE::SideDimension(is) ==0) {
+        if (TSHAPE::SideDimension(is) < TSHAPE::Dimension-1) {
             continue;
         }
         else if(TSHAPE::SideDimension(is) == TSHAPE::Dimension -1)
         {
             int intorder = internalorder;
-            if (sideinc[is]) {
-                intorder++;
-            }
             int connectindex = SideConnectLocId(0, is);
             if (connectindex < 0) {
+                connectindex = SideConnectLocId(0,is);
                 DebugStop();
             }
             TPZConnect &c = this->Connect(connectindex);
             if (c.Order() > intorder) {
+                DebugStop();
                 intorder = c.Order();
+            }
+            if (sideinc[is]) {
+                intorder++;
             }
             order[is-TSHAPE::NCornerNodes] = intorder;
         }
@@ -1487,15 +1481,17 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
     
     {
-		
-        int internalorder = this->Connect(NConnects()-1).Order();
+        int nconnects = TSHAPE::NFacets+1;
+        int internalorder = this->Connect(nconnects-1).Order();
         TPZVec<std::pair<int,int64_t> > IndexVecShape;
         if (TSHAPE::Type()==EPiramide) {
+            DebugStop();
             normalsides.resize(3*TSHAPE::NSides+1);
         }
         TSHAPE::GetSideHDivDirections(vecside,directions,bilinear,normalsides);
         int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
         if (TSHAPE::Type() == EPiramide) {
+            DebugStop();
             numvec++;
         }
 
