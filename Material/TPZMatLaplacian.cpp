@@ -76,10 +76,38 @@ void TPZMatLaplacian::SetParameters(STATE diff, STATE f) {
     fXf = f;
 }
 
-//void TPZMatLaplacian::GetParameters(STATE &diff, STATE &f) {
-//	diff = fK;
-//    f = fXf;
-//}
+void TPZMatLaplacian::SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const TPZFNMatrix<9,STATE> invK){
+
+    if(K.Rows() != 3 || invK.Rows() != 3)
+    {
+        if(K.Rows() != 2 || invK.Rows() != 2) {
+            std::cout << "ERROR: Insert a 3x3 or a 2x2 permeability tensor";
+            DebugStop();
+        }
+        for(int iind =0; iind < 2 ; iind++) for(int jind = 0; jind <2 ; jind++){
+                fTensorK(iind,jind) = K.GetVal(iind,jind);
+                fInvK(iind,jind) = invK.GetVal(iind,jind);
+            }
+    }
+    else {
+        fTensorK = K;
+        fInvK = invK;
+    }
+}
+
+void TPZMatLaplacian::GetPermeability(TPZFNMatrix<9,STATE> &K){
+    K = fTensorK;
+}
+
+void TPZMatLaplacian::GetInvPermeability(TPZFNMatrix<9,STATE> &invK){
+    invK = fInvK;
+}
+
+void TPZMatLaplacian::GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor)
+{
+    this->GetPermeability(PermTensor);
+    this->GetInvPermeability(InvPermTensor);
+}
 
 TPZMatLaplacian::~TPZMatLaplacian() {
 }

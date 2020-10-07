@@ -144,6 +144,12 @@ public:
         diff = fK;
         f = fXf;
     }
+
+    void GetPermeability(TPZFNMatrix<9,STATE> &K);
+
+    void GetInvPermeability(TPZFNMatrix<9,STATE> &invK);
+
+    void GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor);
     
     void SetPermeability(REAL perm) {
         fK = perm;
@@ -154,6 +160,8 @@ public:
             fInvK(i,i) = 1./perm;
         }
     }
+
+    void SetPermeabilityTensor(const TPZFNMatrix<9,STATE> K, const TPZFNMatrix<9,STATE> invK);
     
     void SetValPenaltyConstant(REAL penalty)
     {
