@@ -64,7 +64,7 @@ fTop(mesh,copy.fBottom,gl2lcConMap,gl2lcElMap)
 	
 	this-> fPreferredOrder = copy.fPreferredOrder;
 	int i;
-	for(i=0;i<TSHAPE::NFacets;i++)
+	for(i=0;i<=TSHAPE::NFacets;i++)
 	{
 		int64_t lcIdx = -1;
 		int64_t glIdx = copy.fConnectIndexes[i];
@@ -102,7 +102,7 @@ TPZCompElHDiv<TSHAPE>(),fBottom(),fTop()
 {
 	this->fPreferredOrder = -1;
 	int i;
-	for(i=0;i<TSHAPE::NFacets;i++) {
+	for(i=0;i<TSHAPE::NFacets+1;i++) {
 		this-> fConnectIndexes[i] = -1;
 	}
 }
@@ -120,7 +120,7 @@ TPZCompElHDivCollapsed<TSHAPE>::~TPZCompElHDivCollapsed(){
     TPZStack<TPZCompElSide> celstack;
     TPZCompElSide largecel = gelside.LowerLevelCompElementList2(0);
     if (largecel) {
-        int cindex = SideConnectLocId(0, side);
+        int cindex = this->SideConnectLocId(0, side);
         TPZConnect &c = this->Connect(cindex);
         c.RemoveDepend();
     }
@@ -145,13 +145,6 @@ TPZCompElHDivCollapsed<TSHAPE>::~TPZCompElHDivCollapsed(){
         gel->ResetReference();
     }
 
-}
-
-// NAO TESTADO
-template<class TSHAPE>
-MElementType TPZCompElHDivCollapsed<TSHAPE>::Type() {
-    DebugStop();
-	return TSHAPE::Type();
 }
 
 // NAO TESTADO
@@ -219,121 +212,6 @@ int TPZCompElHDivCollapsed<TSHAPE>::NConnectShapeF(int connect, int connectorder
     return -1;
 }
 
-template<class TSHAPE>
-int TPZCompElHDivCollapsed<TSHAPE>::NSideConnects(int side) const
-{
-	if(side == TSHAPE::NSides-1)
-	{
-		return 1;
-	}
-    else if(side < TSHAPE::NSides-1)
-    {
-        return TPZCompElHDiv<TSHAPE>::NSideConnects(side);
-    }
-    DebugStop();
-	return 0;
-}
-
-template<class TSHAPE>
-int TPZCompElHDivCollapsed<TSHAPE>::SideConnectLocId(int node, int side) const
-{
-	if(side == TSHAPE::NSides-1 && node < 2)
-	{
-		return TSHAPE::NFacets+1+node;
-	}
-	else{
-        return TPZCompElHDiv<TSHAPE>::SideConnectLocId(node,side);
-	}
-	
-}
-
-//Identifies the interpolation order on the connects of the element
-template<class TSHAPE>
-void TPZCompElHDivCollapsed<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
-    int myorder = ConnectOrder(0);
-    ord.Resize(TSHAPE::NSides-TSHAPE::NCornerNodes, 0);
-	int i;
-	for(i=0; i<ord.size(); i++) {
-		ord[i] = myorder;
-	}
-}
-
-//return the preferred order of the polynomial along connect connect
-template<class TSHAPE>
-int TPZCompElHDivCollapsed<TSHAPE>::PreferredSideOrder(int side) {
-	if(side != TSHAPE::NSides-1)
-	{
-		PZError << __PRETTY_FUNCTION__ << " side " << side << std::endl;
-	}
-	int connect= 0;
-	int order =this->fPreferredOrder;
-	return this->AdjustPreferredSideOrder(connect,order);
-}
-
-//sets the interpolation order of side to order
-template<class TSHAPE>
-void TPZCompElHDivCollapsed<TSHAPE>::SetSideOrder(int side, int order) {
-	int connectaux= SideConnectLocId(0,side);
-	if(connectaux<0 || connectaux > this-> NConnects()) {
-		PZError << "TPZCompElHDiv::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
-#ifdef LOG4CXX
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
-		LOGPZ_DEBUG(logger,sout.str())
-#endif
-		return;
-	}
-	TPZConnect &c = this->Connect(connectaux);
-    c.SetOrder(order,this->fConnectIndexes[connectaux]);
-    int64_t seqnum = c.SequenceNumber();
-    int nvar = 1;
-    TPZMaterial * mat =this-> Material();
-    if(mat) nvar = mat->NStateVariables();
-    int nshape = NConnectShapeF(connectaux,order);
-    c.SetNShape(nshape);
-    c.SetNState(nvar);
-    this-> Mesh()->Block().Set(seqnum,nshape*nvar);
-    if(connectaux == NConnects()-1)
-    {
-		this->SetIntegrationRule(2*order);
-    }
-}
-
-/**
- return the interpolation orderof the polynomial for connect
- **/
-template<class TSHAPE>
-int TPZCompElHDivCollapsed<TSHAPE>::ConnectOrder(int connect) const
-{
-	
-	if (connect < 0 || connect >= this->NConnects())
-	{
-#ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "Connect index out of range connect " << connect <<
-			" nconnects " << NConnects();
-			LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
-		return -1;
-	}
-	
-	if (this->fConnectIndexes[connect] == -1) {
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " connect " << connect
-		<< " is not initialized" << std::endl;
-#ifdef LOG4CXX
-		LOGPZ_ERROR(logger,sout.str());
-		DebugStop();
-#else
-		std::cout << sout.str() << std::endl;
-#endif
-		return -1;
-	}
-	const TPZConnect &c = this-> Connect(connect);
-	return c.Order();
-}
 
 /** Initialize a material data and its attributes based on element dimension, number
  * of state variables and material definitions
@@ -343,48 +221,31 @@ template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
-    data.fShapeType = TPZMaterialData::EVecShape;
+    TPZMaterialData datatop,databottom;
+    fTop.InitMaterialData(datatop);
+    fBottom.InitMaterialData(databottom);
     // expand the shape vector and normal vector
-	
+    int nvecshape = data.fVecShapeIndex.size();
+    int nscalar = data.phi.Rows();
+    int nscalartop = datatop.phi.Rows();
+    int nscalarbottom = databottom.phi.Rows();
+    int nvec = data.fDeformedDirections.Cols();
+    const int dim = TSHAPE::Dimension;
+    data.fMasterDirections.Resize(dim+1, nvec+2);
+    data.fMasterDirections(dim,nvec) = 1.;
+    data.fMasterDirections(dim,nvec+1) = -1.;
+    data.fDeformedDirections.Resize(dim+1, nvec+2);
+    data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
+#ifdef _AUTODIFF
+    if(data.fNeedsDeformedDirectionsFad) DebugStop();
+#endif
+    
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
         std::stringstream sout;
         sout << "After InitMaterialData\n";
         data.Print(sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	
-}
-
-template<class TSHAPE>
-void TPZCompElHDivCollapsed<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex) {
-	
-	TPZManVector<int64_t> firstshapeindex;    // Para o que?
-	TPZCompElHDiv<TSHAPE>::FirstShapeIndex(firstshapeindex);      // se foram calculados os indices mas n�o utilizados?
-	int nshape = TPZIntelGen<TSHAPE>::NShapeF();
-	shapeindex.Resize(nshape);
-	int64_t nsides = sides.NElements();
-	int64_t is, count=0;
-	for(is=0 ; is<nsides; is++)
-	{
-		int side = sides[is];
-		int sideorder= this->EffectiveSideOrder(side);
-		int NShapeFace = TSHAPE::NConnectShapeF(side,sideorder);
-		int ishapeface;
-		for(ishapeface=0; ishapeface<NShapeFace; ishapeface++)
-		{
-			shapeindex[count++] = is;
-		}
-	}
-	shapeindex.Resize(count);
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "count = " << count << " nshape " << nshape;
-		sout << std::endl<<"sides associated with the normals "<< sides <<
-		"\nnormal associated with each shape function : shape function indexes " << shapeindex;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -436,23 +297,6 @@ void TPZCompElHDivCollapsed<TSHAPE>::Print(std::ostream &out) const
     fBottom.Print(out);
     fTop.Print(out);
     
-}
-
-/** Returns the actual interpolation order of the polynomial along the side */
-template<class TSHAPE>
-int TPZCompElHDivCollapsed<TSHAPE>::EffectiveSideOrder(int side) const
-{
-    if(side >= 0 && side < TSHAPE::NSides-1)
-    {
-        return TPZCompElHDiv<TSHAPE>::EffectiveSideOrder(side);
-    }
-	if(side == TSHAPE::NSides-1)
-	{
-		return fBottom.EffectiveSideOrder(side);
-	}
-	else {
-		return -1;
-	}
 }
 
 template<class TSHAPE>
