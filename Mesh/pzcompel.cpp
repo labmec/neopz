@@ -488,7 +488,6 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
         std::sort(&connectlist[0], &connectlist[0]+ncon);
     }
     TPZAdmChunkVector<TPZConnect> &connectvec = Mesh()->ConnectVec();
-    std::list<TPZOneShapeRestraint> rest = GetShapeRestraints();
     int64_t nconloc = NConnects();
     bool hasdependency = false;
     if (ncon == 0) {
@@ -500,7 +499,7 @@ void TPZCompEl::BuildConnectList(TPZStack<int64_t> &connectlist) const {
                 hasdependency = true;
             }
         }
-        if (hasdependency == false && rest.size() == 0) {
+        if (hasdependency == false) {
             return;
         }
         std::sort(&connectlist[0], &connectlist[0]+nconloc);
