@@ -34,9 +34,6 @@ TPZGenMatrix<TObj>::TPZGenMatrix(int64_t Rows, int64_t columns) {
 template <class TObj>
 TPZGenMatrix<TObj>::TPZGenMatrix(const TPZGenMatrix<TObj> & A) {
 	
-	//***** WARNING *****
-	// matrices created with copy initializer are always temporary, eg, they
-	// share the same storage with another matrix
 	int64_t naloc = A.fRows*A.fCols;
 	fMem = new TObj[naloc];
 	if(fMem) {
@@ -49,6 +46,15 @@ TPZGenMatrix<TObj>::TPZGenMatrix(const TPZGenMatrix<TObj> & A) {
 		this->fCols = 0;
 	}
 }
+
+template <class TObj>
+void TPZGenMatrix<TObj>::Fill(const TObj &val)
+{
+    int64_t naloc = fRows*fCols;
+    TObj *f = fMem,*l = f+naloc;
+    while(f<l) *f++ = val;
+}
+
 
 template <class TObj>
 void TPZGenMatrix<TObj>::Resize(const int64_t newrow, const int64_t newcol) {
