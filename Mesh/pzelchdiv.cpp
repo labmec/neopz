@@ -1418,34 +1418,14 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     data.fNeedsSol = needsol;
     
-    int restrainedface = this->RestrainedFace();
-    // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-    int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
-    int lastface = TSHAPE::NSides - 1;
-    int cont = 0;
    
-    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
-
-    for(int side = firstface; side < lastface; side++)
-    {
-        int nvec = TSHAPE::NContainedSides(side);
-        for (int ivet = 0; ivet<nvec; ivet++)
-        {
-            for (int il = 0; il<3; il++)
-            {
-                data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
-            }
-
-        }
-        cont += nvec;
-    }
     
     if(data.fNeedsDeformedDirectionsFad){
-    #ifdef _AUTODIFF
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad,restrainedface);
-        cont = 0;
-        
+#ifdef _AUTODIFF
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad);
+        int cont = 0;
+        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
+        int lastface = TSHAPE::NSides - 1;
         for(int side = firstface; side < lastface; side++)
         {
             int nvec = TSHAPE::NContainedSides(side);
@@ -1459,13 +1439,15 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             }
             cont += nvec;
         }
-    #else
+#else
         DebugStop();
-    #endif
+#endif
     }else{
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections,restrainedface);
-        cont = 0;
-    
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections);
+        int cont = 0;
+        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
+        int lastface = TSHAPE::NSides - 1;
+
         for(int side = firstface; side < lastface; side++)
         {
             int nvec = TSHAPE::NContainedSides(side);
@@ -1475,7 +1457,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
                 {
                     data.fDeformedDirections(il,ivet+cont) *= fSideOrient[side-firstface];
                 }
-                
             }
             cont += nvec;
         }
@@ -1526,33 +1507,41 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #endif
     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
     
-    TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
-	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension+1> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
-    TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
+	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
     
     {
         int nconnects = TSHAPE::NFacets+1;
         int internalorder = this->Connect(nconnects-1).Order();
         TPZVec<std::pair<int,int64_t> > IndexVecShape;
-        if (TSHAPE::Type()==EPiramide) {
-            DebugStop();
-            normalsides.resize(3*TSHAPE::NSides+1);
-        }
         TSHAPE::GetSideHDivDirections(vecside,directions,bilinear,normalsides);
         int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
-        if (TSHAPE::Type() == EPiramide) {
-            DebugStop();
-            numvec++;
-        }
 
         data.fMasterDirections.Resize(3, numvec);
+        this->Reference()->HDivDirectionsMaster(data.fMasterDirections);
+        // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
+        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
+        int lastface = TSHAPE::NSides - 1;
+        int cont = 0;
+        for(int side = firstface; side < lastface; side++)
+        {
+            int nvec = TSHAPE::NContainedSides(side);
+            for (int ivet = 0; ivet<nvec; ivet++)
+            {
+                for (int il = 0; il<3; il++)
+                {
+                    data.fMasterDirections(il,ivet+cont) *= SideOrient(side-firstface);
+                }
+            }
+            cont += nvec;
+        }
 
 #ifdef _AUTODIFF
             data.fDeformedDirectionsFad.Resize(3, numvec);
 #endif
 
         data.fDeformedDirections.Resize(3, numvec);
-        
+
 
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
         data.divphi.Resize(data.fVecShapeIndex.size(), 1);

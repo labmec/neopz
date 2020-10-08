@@ -299,78 +299,87 @@ void TPZCompElHDivCollapsed<TSHAPE>::Print(std::ostream &out) const
     
 }
 
+#include "pzvec_extras.h"
+
+static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
+{
+    int dim = axinput.Rows();
+    switch (dim) {
+        case 1:
+        {
+            REAL norms[3];
+            TPZManVector<REAL,3> v1(3),try1[3];
+            for(int i=0; i<3; i++) v1[i] = axinput(0,i);
+            for(int i=0;i<3;i++)
+            {
+                TPZManVector<REAL,3> uni(3,0.);
+                uni[i] = 1.;
+                Cross(v1,uni,try1[i]);
+                norms[i] = Norm<REAL>(try1[i]);
+            }
+            int maxi = 0;
+            if(norms[1]>norms[0]) maxi = 1;
+            if(norms[2]>norms[maxi]) maxi = 2;
+            for(int i=0; i<3; i++)
+            {
+                axout(0,i) = axinput(0,i);
+                axout(1,i) = axinput(1,maxi)/norms[maxi];
+            }
+        }
+            break;
+        case 2:
+        {
+            TPZManVector<REAL,3> v1(3),v2(3),v3(3);
+            for(int i=0; i<3; i++)
+            {
+                v1[i] = axinput(0,i);
+                v2[i] = axinput(1,i);
+            }
+            Cross<REAL>(v1,v2,v3);
+            for(int i=0; i<3; i++)
+            {
+                axout(0,i) = v1[i];
+                axout(1,i) = v2[i];
+                axout(2,i) = v3[i];
+            }
+
+        }
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+}
+
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
-    bool needsol = data.fNeedsSol;
-    data.fNeedsSol = false;
-    TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
-    data.fNeedsSol = needsol;
-    
-    int restrainedface = this->RestrainedFace();
-    // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-    int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
-    int lastface = TSHAPE::NSides - 1;
-    int cont = 0;
-   
-    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
-
-    for(int side = firstface; side < lastface; side++)
+    TPZCompElHDiv<TSHAPE>::ComputeRequiredData(data, qsi);
+    TPZFNMatrix<9,REAL> axeslocal(TSHAPE::Dimension+1,3);
+    ExpandAxes(data.axes, axeslocal);
+    data.axes = axeslocal;
+    int dim = TSHAPE::Dimension+1;
+    // compute the deformed directions for the two additional vectors
     {
-        int nvec = TSHAPE::NContainedSides(side);
-        for (int ivet = 0; ivet<nvec; ivet++)
-        {
-            for (int il = 0; il<3; il++)
-            {
-                data.fMasterDirections(il,ivet+cont) *= SideOrient(side-firstface);
+        int nvec = TSHAPE::NSides*TSHAPE::Dimension;
+        TPZFNMatrix<3,REAL> masterdir(TSHAPE::Dimension+1,2);
+        for(int i=0; i<3; i++){
+            for(int k=0; k<2; k++){
+                data.fDeformedDirections(i,nvec+k) = 0.;
+                for(int l=0; l<dim; l++){
+                    data.fDeformedDirections(i,nvec+k) += data.axes(l,i)*data.fMasterDirections(l,nvec+k);
+                }
             }
-
         }
-        cont += nvec;
     }
-    
-    if(data.fNeedsDeformedDirectionsFad){
-    #ifdef _AUTODIFF
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad,restrainedface);
-        cont = 0;
+    TPZMaterialData databottom,datatop;
+    // compute the divergence of the top and bottom elements
+    // the value is the value of the shape function times the sign of the vector in master direction
+    {
         
-        for(int side = firstface; side < lastface; side++)
-        {
-            int nvec = TSHAPE::NContainedSides(side);
-            for (int ivet = 0; ivet<nvec; ivet++)
-            {
-                for (int il = 0; il<3; il++)
-                {
-                    data.fDeformedDirectionsFad(il,ivet+cont) *= SideOrient(side-firstface);
-                }
-                
-            }
-            cont += nvec;
-        }
-    #else
-        DebugStop();
-    #endif
-    }else{
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections,restrainedface);
-        cont = 0;
-    
-        for(int side = firstface; side < lastface; side++)
-        {
-            int nvec = TSHAPE::NContainedSides(side);
-            for (int ivet = 0; ivet<nvec; ivet++)
-            {
-                for (int il = 0; il<3; il++)
-                {
-                    data.fDeformedDirections(il,ivet+cont) *= SideOrient(side-firstface);
-                }
-                
-            }
-            cont += nvec;
-        }
     }
     
     data.ComputeFunctionDivergence();
