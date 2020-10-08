@@ -605,7 +605,7 @@ void TPZGeoElRefLess<TGeo>::HDivDirectionsMaster(TPZFMatrix<REAL> &directions)
 
 
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace)
+void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions)
 {
     TPZFNMatrix<9,REAL> jac(TGeo::Dimension,TGeo::Dimension), jacinv(TGeo::Dimension,TGeo::Dimension), axes(TGeo::Dimension,3), gradx(3,TGeo::Dimension,0.);
   
@@ -613,15 +613,11 @@ void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &d
 
     TGeo::ComputeHDivDirections(gradx, directions);
     
-    if (TGeo::Type() == EPiramide) {
-        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradx, directions);
-    }
-    
 }
 
 #ifdef _AUTODIFF
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions, int ConstrainedFace)
+void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions)
 {
     TPZFNMatrix<9,REAL> gradx(3,TGeo::Dimension,0.),gradxinv(TGeo::Dimension,TGeo::Dimension,0.);
     
@@ -644,10 +640,6 @@ void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL
     //gradxFad.Print(std::cout);
     TGeo::ComputeHDivDirections(gradxFad, directions);
    
-    if (TGeo::Type() == EPiramide) {
-        pztopology::TPZPyramid::AdjustTopDirections(ConstrainedFace-13, gradxFad, directions);
-    }
-    
 }
 #endif
 
