@@ -15,6 +15,9 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.pardisocontrol"));
+#endif
 //#define Release_Memory_Q
 
 /// empty constructor (non symetric and LU decomposition
@@ -230,6 +233,21 @@ void TPZPardisoControl<TVar>::Decompose()
             fParam[12] = 1;
         }
     }
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "phase = " << phase << std::endl;
+        for(int i=0; i<64; i++)
+        {
+            sout << i << " / " << fParam[i] << " ";
+        }
+        sout << "Param " << fParam << std::endl;
+        sout << "perm " << fPermutation << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
