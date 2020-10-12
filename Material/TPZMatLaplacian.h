@@ -145,6 +145,15 @@ public:
         f = fXf;
     }
 
+    void GetMaxPermeability(REAL &perm)
+    {
+        if(fPermeabilityFunction) DebugStop();//Not implemented for permeability given by a function
+        TPZFNMatrix<9,STATE> TensorK(3,3);
+        this->GetPermeability(TensorK);
+        perm = 0;
+        for(int i=0; i<fDim; i++) perm = perm < TensorK(i,i) ? TensorK(i,i) : perm;
+    }
+
     void GetPermeability(TPZFNMatrix<9,STATE> &K);
 
     void GetInvPermeability(TPZFNMatrix<9,STATE> &invK);

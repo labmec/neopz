@@ -90,9 +90,6 @@ public:
         perm = 0;
         for(int i=0; i<3; i++) perm = perm < TensorK(i,i) ? TensorK(i,i) : perm;
     }
-//	void GetPermeability(REAL &perm) {
-//		perm = fK;
-//	}
 	
 	void SetInternalFlux(REAL flux) {
 		ff = flux;
