@@ -590,7 +590,12 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
 {
     out << "Output for a condensed element\n";
     TPZCompEl::Print(out);
-    
+    out << "Connect indices (Condensed or not)\n";
+    for(int i=0; i<NConnects(); i++){
+        TPZConnect &c = Connect(i);
+        out << ConnectIndex(i) << "/" << c.IsCondensed() << ' ';
+    }
+    out << std::endl;
     TPZElementGroup *eg = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
     if(eg)
     {
