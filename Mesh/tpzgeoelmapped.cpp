@@ -110,16 +110,16 @@ TPZRegisterClassId(&TPZGeoElMapped::ClassId),TBase(destmesh,copy,gl2lcNdIdx,gl2l
 using namespace pzgeom;
 
 /// Macro to define templates to TPZGeoElMapped for all the geometric element types
-#define INSERTCLASS(TCL) \
+#define INSERTCLASS2(TCL) \
 template class \
 TPZRestoreClass< TPZGeoElMapped<TPZGeoElRefPattern<TCL > >>; \
 template class TPZGeoElMapped< TPZGeoElRefPattern<TCL> >;
 
-INSERTCLASS(TPZGeoPoint)
-INSERTCLASS(TPZGeoLinear)
-INSERTCLASS(TPZGeoTriangle)
-INSERTCLASS(TPZGeoQuad)
-INSERTCLASS(TPZGeoCube)
-INSERTCLASS(TPZGeoPrism)
-INSERTCLASS(TPZGeoTetrahedra)
-INSERTCLASS(TPZGeoPyramid)
+INSERTCLASS2(TPZGeoPoint)
+INSERTCLASS2(TPZGeoLinear)
+INSERTCLASS2(TPZGeoTriangle)
+INSERTCLASS2(TPZGeoQuad)
+INSERTCLASS2(TPZGeoCube)
+INSERTCLASS2(TPZGeoPrism)
+INSERTCLASS2(TPZGeoTetrahedra)
+INSERTCLASS2(TPZGeoPyramid)
