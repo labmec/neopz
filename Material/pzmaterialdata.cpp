@@ -20,7 +20,7 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty),
-    numberdualfunctions(0),normal(3,0.),x(3,0.),p(-1){
+    numberdualfunctions(0),normal(3,0.),x(3,0.),p(-1), fUserData(0){
     this->SetAllRequirements(false);
     this->fNeedsDeformedDirectionsFad = false;
     this->intLocPtIndex = -1;
@@ -82,11 +82,16 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
 #endif
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
-    
+    this->fUserData = cp.fUserData;
     return *this;
 }
 
 TPZMaterialData::~TPZMaterialData(){
+    if(fUserData)
+    {
+        std::cout << "User data should be deleted and data set to zero before the destructor\n";
+        DebugStop();
+    }
     //NOTHING TO BE DONE!
 }
 

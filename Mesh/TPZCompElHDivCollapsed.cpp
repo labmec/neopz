@@ -221,7 +221,10 @@ template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
-    TPZMaterialData datatop,databottom;
+    if(data.fUserData) DebugStop();
+    auto datapair = new std::pair<TPZMaterialData,TPZMaterialData>;
+    data.fUserData = datapair;
+    TPZMaterialData &datatop = datapair->second, &databottom = datapair->first;
     fTop.InitMaterialData(datatop);
     fBottom.InitMaterialData(databottom);
     // expand the shape vector and normal vector
@@ -249,7 +252,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	
+    
 }
 
 template<class TSHAPE>
@@ -375,14 +378,29 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             }
         }
     }
-    TPZMaterialData databottom,datatop;
+    data.ComputeFunctionDivergence();
+    std::pair<TPZMaterialData,TPZMaterialData> *datapair = (std::pair<TPZMaterialData,TPZMaterialData> *) data.fUserData;
+    TPZMaterialData &datatop = datapair->second, &databottom = datapair->first;
+
+    int nsides = this->Reference()->NSides();
     // compute the divergence of the top and bottom elements
     // the value is the value of the shape function times the sign of the vector in master direction
     {
-        
+        fTop.ComputeRequiredData(datatop, qsi);
+        fBottom.ComputeRequiredData(databottom, qsi);
+        int64_t numvec = data.divphi.Rows();
+        int64_t nvec_top = datatop.phi.Rows();
+        int64_t nvec_bottom = databottom.phi.Rows();
+        int64_t nvec_hdiv = numvec-nvec_top-nvec_bottom;
+        //
+        for (int64_t i= nvec_hdiv; i<numvec-nvec_top; i++) {
+            data.divphi(i) = databottom.phi(i-nvec_hdiv);
+        }
+        for (int64_t i= nvec_hdiv+nvec_bottom; i<numvec; i++) {
+            data.divphi(i) = databottom.phi(i-nvec_hdiv-nvec_bottom);
+        }
     }
     
-    data.ComputeFunctionDivergence();
     if (data.fNeedsSol) {
         TPZCompElHDiv<TSHAPE>::ComputeSolution(qsi, data);
     }

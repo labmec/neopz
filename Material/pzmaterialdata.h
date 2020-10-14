@@ -121,6 +121,11 @@ public:
     /** @brief amount of points in the integrstion rule */
     int NintPts;
     
+    /** @brief pointer to user data
+     * the user is responsible to delete the allocated data BEFORE the destructor of this object
+     */
+    void *fUserData = 0;
+    
     /** @brief Default constructor */
     TPZMaterialData();
     
