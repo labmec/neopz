@@ -740,8 +740,10 @@ inline int64_t TPZCompMesh::AllocateNewConnect(const TPZConnect &connect)
 
 
 inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
-	this->fReference = gmesh;
-    this->fDimModel = gmesh->Dimension();
+    if (gmesh) {
+        this->fDimModel = gmesh->Dimension();
+    }
+    this->fReference = gmesh;
     fGMesh = TPZAutoPointer<TPZGeoMesh>(0);
 }
 
