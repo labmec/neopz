@@ -238,7 +238,9 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.fMasterDirections(dim,nvec) = 1.;
     data.fMasterDirections(dim,nvec+1) = -1.;
     data.fDeformedDirections.Resize(3, nvec+2);
-    // NEED TO EXPAND fVecShapeIndex
+    data.fVecShapeIndex.Resize(nvecshape+nscalartop+nscalarbottom, {0,0});
+    for(int i=0; i<nscalartop; i++) data.fVecShapeIndex[nvecshape+i] = std::pair<int,int64_t>(nvec,nscalar+i);
+    for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
     data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
     data.dphi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
     data.divphi.Resize(nscalar+nscalartop+nscalarbottom,1);
@@ -431,6 +433,18 @@ int64_t TPZCompElHDivCollapsed<TSHAPE>::ConnectIndex(int con) const
     DebugStop();
     return -1;
 }
+
+/**
+ * @brief Destroy internally allocated data structures
+ */
+template<class TSHAPE>
+void TPZCompElHDivCollapsed<TSHAPE>::CleanupMaterialData(TPZMaterialData &data)
+{
+    std::pair<TPZMaterialData,TPZMaterialData> *userdata = (std::pair<TPZMaterialData,TPZMaterialData> *) data.fUserData;
+    delete userdata;
+    data.fUserData = 0;
+}
+
 
 
 

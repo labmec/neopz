@@ -708,6 +708,28 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
     
 }
 
+/**
+ * @brief Initialize a material data vector and its attributes based on element dimension, number
+ * of state variables and material definitions
+ */
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::CleanupMaterialData(TPZVec<TPZMaterialData > &dataVec)
+{
+
+    int64_t nref = this->fElementVec.size();
+
+    TPZVec<int> nshape(nref);
+    for (int64_t iref = 0; iref < nref; iref++)
+    {
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        if (!msp) {
+            continue;
+        }
+        // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+        msp->CleanupMaterialData(dataVec[iref]);
+    }
+}
+
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
@@ -787,6 +809,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         material->Contribute(datavec,weight,ek.fMat,ef.fMat);
     }//loop over integration points
     
+    CleanupMaterialData(datavec);
 }//CalcStiff
 
 template <class TGeometry>
@@ -864,6 +887,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
         
         material->Contribute(datavec,weight,ef.fMat);
     }//loop over integratin points
+    
+    CleanupMaterialData(datavec);
+    
 }//CalcStiff
 
 /**

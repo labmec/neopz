@@ -312,6 +312,12 @@ public:
 	 */
 	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) override;
 	
+    /**
+     * @brief Initialize a material data vector and its attributes based on element dimension, number
+     * of state variables and material definitions
+     */
+    void CleanupMaterialData(TPZVec<TPZMaterialData > &dataVec);
+    
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
 	
 	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);

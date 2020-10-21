@@ -128,6 +128,11 @@ public:
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data) override;
     
+    /**
+     * @brief Destroy internally allocated data structures
+     */
+    virtual void CleanupMaterialData(TPZMaterialData &data) override;
+    
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialData &data,
 									 TPZVec<REAL> &qsi) override;
