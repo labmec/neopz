@@ -1345,8 +1345,8 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
     FillOrder(ord);
     int nshape= this->NShapeContinuous(ord);
     
-    phi.Redim(nshape, 1);
-    dphi.Redim(TSHAPE::Dimension, nshape);
+//    phi.Redim(nshape, 1);
+//    dphi.Redim(TSHAPE::Dimension, nshape);
     TSHAPE::Shape(pt,id,ord,phi,dphi);
 
 }

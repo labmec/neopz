@@ -237,8 +237,11 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.fMasterDirections.Resize(dim+1, nvec+2);
     data.fMasterDirections(dim,nvec) = 1.;
     data.fMasterDirections(dim,nvec+1) = -1.;
-    data.fDeformedDirections.Resize(dim+1, nvec+2);
+    data.fDeformedDirections.Resize(3, nvec+2);
+    // NEED TO EXPAND fVecShapeIndex
     data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
+    data.dphi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
+    data.divphi.Resize(nscalar+nscalartop+nscalarbottom,1);
 #ifdef _AUTODIFF
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
 #endif
@@ -267,11 +270,11 @@ void TPZCompElHDivCollapsed<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &po
 }
 
 /** Compute the shape function at the integration point */
-template<class TSHAPE>
-void TPZCompElHDivCollapsed<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
-{
-    fBottom.Shape(pt, phi, dphi);
-}
+//template<class TSHAPE>
+//void TPZCompElHDivCollapsed<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
+//{
+//    fBottom.Shape(pt, phi, dphi);
+//}
 
 /** Read the element data from a stream */
 template<class TSHAPE>
@@ -317,6 +320,7 @@ static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
             {
                 TPZManVector<REAL,3> uni(3,0.);
                 uni[i] = 1.;
+                try1[i].resize(3);
                 Cross(v1,uni,try1[i]);
                 norms[i] = Norm<REAL>(try1[i]);
             }
@@ -326,7 +330,7 @@ static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
             for(int i=0; i<3; i++)
             {
                 axout(0,i) = axinput(0,i);
-                axout(1,i) = axinput(1,maxi)/norms[maxi];
+                axout(1,i) = try1[maxi][i]/norms[maxi];
             }
         }
             break;

@@ -390,7 +390,9 @@ void TPZMaterialData::ComputeFunctionDivergence()
     TPZFMatrix<REAL> dphi_s       = dphi; // Derivative For H1  test functions
     
     int n_phi_v = fVecShapeIndex.NElements();
-    divphi.Redim(n_phi_v,1);
+#ifdef PZDEBUG
+    if(divphi.Rows() < n_phi_v) DebugStop();
+#endif
     REAL det_jac = detjac;
 
     int i_vec = 0;

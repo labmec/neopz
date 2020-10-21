@@ -137,7 +137,7 @@ public:
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
     /** @brief Computes the values of the shape function of the side NSides-1 considering the side orientation*/
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
+//	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
     
     /** @brief Compute the solution for a given variable */
 //	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
