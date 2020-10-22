@@ -222,15 +222,16 @@ int ClassId() const override;
 	
 	void Write(TPZStream &buf, int withclassid) const override;
 	void Read(TPZStream &buf, void *context) override;
+    /**
+     * @brief Swaps the row and column index
+     * @param row Row number
+     * @param col Column number
+     */
+    static void Swap(int64_t *row, int64_t *col);
 	
 private:
 	
-	/**
-	 * @brief Swaps the row and column index
-	 * @param row Row number
-	 * @param col Column number
-	 */
-	static void Swap(int64_t *row, int64_t *col);
+	
     
     /** @brief Decompose K00 and adjust K01 and K10 to reflect rigid body modes */
     void DecomposeK00();
