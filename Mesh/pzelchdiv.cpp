@@ -253,7 +253,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
     else if(thistype == ECube)
     {
         if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
-        else return 3*order*(order+1);
+        else return 3*order*(order+1)*(order+1);
     }
     DebugStop();
     // @TODO put in the analytic values
