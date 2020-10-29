@@ -300,6 +300,33 @@ int TPZGeoElSide::NNeighbours()
 	return nneighbours;
 }
 
+/** @brief Get number of neighbours of a given dimension */
+int TPZGeoElSide::NNeighbours(int dimfilter){
+	if(dimfilter < 0) return NNeighbours();
+	int nneighbours = 0;
+
+	TPZGeoElSide neig = this->Neighbour();
+	while(neig != *this){
+		nneighbours += neig.Element()->Dimension() == dimfilter;
+		neig = neig.Neighbour();
+	}
+
+	return nneighbours;
+}
+
+int TPZGeoElSide::NNeighbours(int dimfilter, std::set<int>& matids){
+	if(matids.size() == 0) return NNeighbours(dimfilter);
+	int nneighbours = 0;
+
+	TPZGeoElSide neig = this->Neighbour();
+	auto end = matids.end();
+	while(neig != *this){
+		nneighbours += (dimfilter<0 || neig.Element()->Dimension() == dimfilter) && matids.find(neig.Element()->MaterialId()) != end;
+		neig = neig.Neighbour();
+	}
+
+	return nneighbours;
+}
 
 int TPZGeoElSide::NNeighboursButThisElem(TPZGeoEl *thisElem)
 {

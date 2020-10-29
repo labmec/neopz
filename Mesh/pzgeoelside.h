@@ -143,7 +143,17 @@ public:
     /** @brief Area associated with the side */
     REAL Area();
 	
+	/** @returns Number of neighbours */
 	int NNeighbours();
+
+	/** @brief Get number of neighbours of a given dimension */
+	int NNeighbours(int dimfilter);
+
+	/** @brief Get number of neighbours filtered by dimension and/or material id
+	 * @param dimfilter: only return elements of this dimension. Ignore filter if set to < 0;
+	 * @param matids: only return elements of a material id contained in this set. Ignore filter if passing empty set;
+	*/
+	int NNeighbours(int dimfilter, std::set<int>& matids);
 	
 	/** @brief Returns the number of neighbours, excluding the given element (thisElem) */
 	int NNeighboursButThisElem(TPZGeoEl *thisElem);
