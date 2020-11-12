@@ -1082,6 +1082,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     
     int64_t numbersol = MeshSol.Cols();
+    
     if(numbersol != 1)
     {
         DebugStop();
@@ -1203,6 +1204,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                         LOGPZ_DEBUG(logger,sout.str())
                     }
 #endif
+
                     data.divsol[is][idf] += data.divphi(counter,0)*meshsol;
                     for (int ilinha=0; ilinha<dim; ilinha++) {
                         data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
@@ -1212,6 +1214,27 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                                 data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
                             }
                         }
+                        
+                    }
+                    //verifying if Sum gradPhiHiv = div Hdiv
+                    REAL tracedphi=0.;
+                    REAL divphi=0.;
+                    
+                    for (int ilinha=0; ilinha<dim; ilinha++) {
+                            tracedphi += GradOfPhiHdiv(ilinha,ilinha);
+                    }
+                    
+                    for(int ilinha= counter; ilinha< data.divphi.Rows();ilinha++){
+                    //    std::cout<<" divphi_ilinha "<< ilinha << " divphi "<<data.divphi(ilinha,0)<<std::endl;
+                        divphi += data.divphi(ilinha,0);
+                    
+                    }
+                    
+                    std::cout<<" tracedphi "<< tracedphi << " divphi "<<divphi<<std::endl;
+                    if(abs(tracedphi - divphi)>1.e-10){
+                        std::cout<<" Trace of gradPhiHdiv != divPhiHdiv"<<"\n";
+                        
+                        DebugStop();
                     }
                     
                 }
@@ -1219,6 +1242,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             counter++;
         }
     }
+    
+
+    
+    
+    
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
