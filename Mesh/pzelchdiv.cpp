@@ -1216,26 +1216,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                         }
                         
                     }
-                    //verifying if Sum gradPhiHiv = div Hdiv
-                    REAL tracedphi=0.;
-                    REAL divphi=0.;
-                    
-                    for (int ilinha=0; ilinha<dim; ilinha++) {
-                            tracedphi += GradOfPhiHdiv(ilinha,ilinha);
-                    }
-                    
-                    for(int ilinha= counter; ilinha< data.divphi.Rows();ilinha++){
-                    //    std::cout<<" divphi_ilinha "<< ilinha << " divphi "<<data.divphi(ilinha,0)<<std::endl;
-                        divphi += data.divphi(ilinha,0);
-                    
-                    }
-                    
-                    std::cout<<" tracedphi "<< tracedphi << " divphi "<<divphi<<std::endl;
-                    if(abs(tracedphi - divphi)>1.e-10){
-                        std::cout<<" Trace of gradPhiHdiv != divPhiHdiv"<<"\n";
-                        
-                        DebugStop();
-                    }
                     
                 }
             }
