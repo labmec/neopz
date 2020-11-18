@@ -400,9 +400,11 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         int64_t nvec_hdiv = numvec-nvec_top-nvec_bottom;
         //
         for (int64_t i= nvec_hdiv; i<numvec-nvec_top; i++) {
+            data.phi(i) = databottom.phi(i-nvec_hdiv);
             data.divphi(i) = databottom.phi(i-nvec_hdiv);
         }
         for (int64_t i= nvec_hdiv+nvec_bottom; i<numvec; i++) {
+            data.phi(i) = databottom.phi(i-nvec_hdiv-nvec_bottom);
             data.divphi(i) = databottom.phi(i-nvec_hdiv-nvec_bottom);
         }
     }
