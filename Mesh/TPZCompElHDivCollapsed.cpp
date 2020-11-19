@@ -30,6 +30,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index), fBottom(mesh,gel,index), fTop(mesh,gel,in
     int64_t top_c_index = fTop.ConnectIndex(0);
     fBottom.SetIndex(-1);
     fTop.SetIndex(-1);
+    this->Reference()->SetReference(this);
     
 
 #ifdef LOG4CXX
