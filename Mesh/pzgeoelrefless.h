@@ -219,6 +219,8 @@ virtual int ClassId() const override;
     /** @brief Returns the number of sides of the element of a given dimension */
     virtual  int NSides(int dim) const override;
 
+    /** @brief Returns the first side of the element of a given dimension */
+    virtual  int FirstSide(int dim) const override;
     /**
      * Get the number of valid permutations among the element nodes
      * @return
