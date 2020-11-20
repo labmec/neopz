@@ -147,7 +147,7 @@ void TPZMHMixedFractureMeshControl::BuildComputationalMesh(bool usersubstructure
         HybridizeSkeleton(*it, fSkeletonWithFlowPressureMatId);
     }
     CreateSkeletonAxialFluxes();
-    if(fHybridize)
+    if(fHybridizeSkeleton)
     {
         /// hybridize the normal fluxes
         TPZMHMixedMeshControl::HybridizeSkeleton(fSkeletonMatId,fPressureSkeletonMatId);
@@ -564,11 +564,11 @@ void TPZMHMixedFractureMeshControl::FindConnectedElements(TPZGeoElSide &pressure
         {
             skinside = neighbour;
         }
-        else if(neighbour.Element()->MaterialId() == fSkeletonWrapMatId && pressuredim == meshdim-1)
+        else if(neighbour.Element()->MaterialId() == fWrapMatId && pressuredim == meshdim-1)
         {
             return;
         }
-        else if(neighbour.Element()->MaterialId() == fSkeletonWrapMatId)
+        else if(neighbour.Element()->MaterialId() == fWrapMatId)
         {
             skinside = neighbour;
         }
@@ -959,8 +959,8 @@ void TPZMHMixedFractureMeshControl::CreateLowerDimensionPressureElements()
         if (!gel || gel->Dimension() != meshdim-2) {
             continue;
         }
-        // initially we will only create fracture flow aint64_t the skeleton elements
-        if (gel->MaterialId() == fSkeletonWrapMatId || gel->MaterialId() == fInternalWrapMatId) {
+        // initially we will only create fracture flow along the skeleton elements
+        if (gel->MaterialId() == fWrapMatId || gel->MaterialId() == fInternalWrapMatId) {
             TPZGeoElSide gelside(gel,gel->NSides()-1);
             TPZGeoElSide neighbour = gelside.Neighbour();
             int neighmatid = neighbour.Element()->MaterialId();
@@ -1012,7 +1012,7 @@ void TPZMHMixedFractureMeshControl::CreateLowerDimensionPressureElements()
                 cel->Connect(ic).SetLagrangeMultiplier(3);
             }
             SetSubdomain(cel, -1);
-            if (gel->MaterialId() != fSkeletonWrapMatId && neighmatid == fPressureDim1MatId) {
+            if (gel->MaterialId() != fWrapMatId && neighmatid == fPressureDim1MatId) {
                 int64_t neighindex = neighbour.Element()->Index();
                 int subdomain = fGeoToMHMDomain[neighindex];
                 SetSubdomain(cel, subdomain);
@@ -1025,7 +1025,7 @@ void TPZMHMixedFractureMeshControl::CreateLowerDimensionPressureElements()
                 TPZGeoElSide gelside(newgel,newgel->NSides()-1);
                 TPZGeoElSide neighbour = gelside.Neighbour();
                 while (neighbour != gelside) {
-                    if (neighbour.Element()->MaterialId() == fSkeletonWrapMatId) {
+                    if (neighbour.Element()->MaterialId() == fWrapMatId) {
                         // find the pressure skeleton element and restrain the pressure element
 #ifdef PZDEBUG
                         if (neighbour.Element()->Dimension() != meshdim-1) {

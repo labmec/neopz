@@ -128,7 +128,7 @@ TPZMHMixedMeshControl::TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, s
 void TPZMHMixedMeshChannelControl::HideTheElements()
 {
     bool KeepOneLagrangian = true;
-    if (fHybridize) {
+    if (fHybridizeSkeleton) {
         KeepOneLagrangian = false;
     }
     typedef std::set<int64_t> TCompIndexes;

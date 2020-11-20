@@ -18,11 +18,13 @@
 #include <numeric>
 
 #include "TPZGeoElSideAncestors.h"
+#include "TPZGeoElSidePartition.h"
 #include "pzsubcmesh.h"
 
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZCompMeshTools.h"
 #include "pzelementgroup.h"
+#include "pzcondensedcompel.h"
 
 #include "pzinterpolationspace.h"
 #include "pzintel.h"
@@ -77,54 +79,115 @@ void TPZMHMixedHybridMeshControl::CreateInternalFluxElements()
     cmeshHDiv->ApproxSpace().CreateDisconnectedElements(true);
     //Criar elementos computacionais malha MHM
     cmeshHDiv->AutoBuild(fMaterialIds);
-    
-    cmeshHDiv->SetDefaultOrder(fpOrderSkeleton);
-    std::set<int> skelmatids({fSkeletonMatId,fSecondSkeletonMatId});
-    cmeshHDiv->AutoBuild(skelmatids);
-    // duplicate the skeleton elements depending on whether the macro fluxes are hybridized or not
-    if(fHybridize == false)
+    {
+        int64_t nel = cmeshHDiv->NElements();
+        for (int64_t i = 0; i < nel; i++) {
+            TPZCompEl *cel = cmeshHDiv->Element(i);
+            if(!cel) continue;
+            // Create the flux element
+            TPZGeoEl *gel = cel->Reference();
+            int MHMDomain = fGeoToMHMDomain[gel->Index()];
+            // Associate the connects with the subdomain for the flux mesh
+            SetSubdomain(cel, MHMDomain);
+        }
+    }
+    // create the boundary elements with the same connect as the volumetric element
+    // we assume the boundary elements have the same level as the flux elements
     {
         int64_t nel = cmeshHDiv->NElements();
         for (int64_t el = 0; el<nel; el++) {
             TPZCompEl *cel = cmeshHDiv->Element(el);
             TPZGeoEl *gel = cel->Reference();
-            if(gel->MaterialId() == fSkeletonMatId)
+            if(gel->Dimension() != meshdim) DebugStop();
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            for(int side = gel->FirstSide(meshdim-1); side < gel->NSides()-1; side++)
             {
-                if(this->fInterfaces.find(gel->Index()) == fInterfaces.end()) DebugStop();
-                auto domains = this->fInterfaces[gel->Index()];
-                TPZGeoElSide gelside(gel);
-                TPZGeoElBC gbc1(gelside,fSkeletonMatId);
-                TPZGeoElBC gbc2(gelside,fSkeletonMatId);
-                int64_t index;
-                TPZCompEl *cel1 = cmeshHDiv->CreateCompEl(gbc1.CreatedElement(), index);
-                TPZCompEl *cel2 = cmeshHDiv->CreateCompEl(gbc2.CreatedElement(), index);
-                SetSubdomain(cel1, domains.first);
-                SetSubdomain(cel2, domains.second);
+                intel->SetSideOrient(side, 1);
+                // create the boundary element with the same connect as the volumetric element
+                TPZGeoElSide gelside(gel,side);
+                TPZGeoElSide neighbour = gelside.HasNeighbour(fMaterialBCIds);
+                if(neighbour)
+                {
+                    cel->LoadElementReference();
+                    int64_t index;
+                    TPZCompEl *bcel = cmeshHDiv->CreateCompEl(neighbour.Element(), index);
+                    int domain = WhichSubdomain(cel);
+                    SetSubdomain(bcel, domain);
+                    gel->ResetReference();
+                    neighbour.Element()->ResetReference();
+                }
             }
         }
     }
-    else
+    
+    int64_t nelprev = cmeshHDiv->NElements();
+    cmeshHDiv->SetDefaultOrder(fpOrderSkeleton);
+    std::set<int> skelmatids({fSkeletonMatId,fSecondSkeletonMatId});
+    cmeshHDiv->AutoBuild(skelmatids);
     {
-        // the two flux elements already exist
-        // each one should stay in the super element
-        DebugStop();
+        int64_t nel = cmeshHDiv->NElements();
+        for (int el = nelprev; el<nel; el++) {
+            TPZCompEl *cel = cmeshHDiv->Element(el);
+            SetSubdomain(cel, -1);
+        }
     }
+    // duplicate the skeleton elements depending on whether the macro fluxes are hybridized or not
+//    if(fHybridize == false)
+//    {
+//        int64_t nel = cmeshHDiv->NElements();
+//        for (int64_t el = 0; el<nel; el++) {
+//            TPZCompEl *cel = cmeshHDiv->Element(el);
+//            TPZGeoEl *gel = cel->Reference();
+//            if(gel->MaterialId() == fSkeletonMatId)
+//            {
+//                if(this->fInterfaces.find(gel->Index()) == fInterfaces.end()) DebugStop();
+//                auto domains = this->fInterfaces[gel->Index()];
+//                TPZGeoElSide gelside(gel);
+//                TPZGeoElBC gbc1(gelside,fSkeletonMatId);
+//                TPZGeoElBC gbc2(gelside,fSkeletonMatId);
+//                int64_t index;
+//                TPZCompEl *cel1 = cmeshHDiv->CreateCompEl(gbc1.CreatedElement(), index);
+//                TPZCompEl *cel2 = cmeshHDiv->CreateCompEl(gbc2.CreatedElement(), index);
+//                SetSubdomain(cel1, domains.first);
+//                SetSubdomain(cel2, domains.second);
+//            }
+//        }
+//    }
+//    else
+//    {
+//        // the two flux elements already exist
+//        // each one should stay in the super element
+//        DebugStop();
+//    }
     cmeshHDiv->LoadReferences();
     int64_t nel = cmeshHDiv->NElements();
     
     if (fGeoToMHMDomain.size() != gmesh->NElements()) DebugStop();
 
-    for (int64_t i = 0; i < nel; i++) {
-        TPZCompEl *cel = cmeshHDiv->Element(i);
-        if(!cel) continue;
-        // Create the flux element
-        TPZGeoEl *gel = cel->Reference();
-        int MHMDomain = fGeoToMHMDomain[gel->Index()];
-        // Associate the connects with the subdomain for the flux mesh
-        SetSubdomain(cel, MHMDomain);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Subdomain indices " << fGeoToMHMDomain << std::endl;
+        sout << "Recognized domains ";
+        for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            sout << it->first << ' ';
+        }
+        LOGPZ_DEBUG(logger, sout.str())
     }
+#endif
     fFluxMesh->ExpandSolution();
     
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Subdomain indices " << fGeoToMHMDomain << std::endl;
+        sout << "Recognized domains ";
+        for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            sout << it->first << ' ';
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     {
         TPZVec<int64_t> eldata(fGeoToMHMDomain);
         int64_t nel = fGMesh->NElements();
@@ -138,9 +201,19 @@ void TPZMHMixedHybridMeshControl::CreateInternalFluxElements()
 
 
     
-    /// create dim-1 elements, either boundary or HDivWrap elements
-    // if the boundary elements would induce restraints, this method won't work!!
+    /// create dim-1 elements, either of material id fHDivWrapperMatId or fWrapMatID
     CreateHDivWrappers();
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Subdomain indices " << fGeoToMHMDomain << std::endl;
+        sout << "Recognized domains ";
+        for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            sout << it->first << ' ';
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 /// Create geometric Skeleton elements for flux and pressure in case of hybridization of skeleton fluxes
@@ -178,16 +251,16 @@ void TPZMHMixedHybridMeshControl::CreatePressureInterfaceGeometricElements()
 {
     // for each HDivWrapElement, decide if a neighbouring pressure element
     // needs to be created
+    // always create :
+    // - when there is a skeleton element (larger or equal)
     // when NOT TO CREATE :
-    //  - when there is a neighbouring pressure element of fPressureDim1MatId and NOT
-    //         a fSkeletonMatId element
-    //  - when there is a neighbouring boundary element (should never occur)
-    //  - when there is a large HDivWrapMatiD element and NOT a fSkeletonMatID element
-    // always create
-    //  - there is a neighbouring fSkeletonMatId element
+    //  - when there is a neighbouring pressure element of fPressureDim1MatId
+    //  - when there is a smaller HDivWrapMatiD element
     int64_t nel = fGMesh->NElements();
     fGMesh->ResetReference();
     int dim = fGMesh->Dimension();
+    std::set<int> SkelMatids(fMaterialBCIds);
+    SkelMatids.insert(fSkeletonMatId);
     for(int64_t el=0; el<nel; el++)
     {
         TPZGeoEl *gel = fGMesh->Element(el);
@@ -195,10 +268,13 @@ void TPZMHMixedHybridMeshControl::CreatePressureInterfaceGeometricElements()
         TPZGeoElSide gelside(gel);
         int domain = fGeoToMHMDomain[el];
         TPZGeoElSideAncestors ancest(gelside);
-        bool has_skel_neighbour = ancest.HasLarger(fSkeletonMatId);
-        bool has_equal = gelside.HasNeighbour(fPressureDim1MatId);
+        TPZGeoElSidePartition part(gelside);
+        bool has_smaller = part.HasHigherLevelNeighbour(fHDivWrapperMatId);
+        bool has_skel_neighbour = ancest.HasLargerorEqual(SkelMatids);
         bool has_large = ancest.HasLarger(fPressureDim1MatId);
-        if(!(has_equal || has_large) || has_skel_neighbour)
+        if(has_large) DebugStop();
+        bool has_equal = gelside.HasNeighbour(fPressureDim1MatId);
+        if((!(has_equal) && !has_smaller) || has_skel_neighbour)
         {
             TPZGeoElBC gbc(gelside,fPressureDim1MatId);
             SetSubdomain(gbc.CreatedElement(), domain);
@@ -249,18 +325,26 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     if (fpOrderInternal == 0 || fpOrderSkeleton == 0) {
         DebugStop();
     }
-    if(fHybridize)
+    // when the approximation space is HDiv, it makes no sense to have "large boundary skeleton elements
+    DivideBoundarySkeletonElements();
+    if(fHybridizeSkeleton)
     {
         /// hybridize the normal fluxes
         CreateSecondSkeletonGeometricElements();
     }
-    InsertPeriferalHdivMaterialObjects();
-    InsertPeriferalPressureMaterialObjects();
-    if(fNState > 1){
-        fRotationMesh = new TPZCompMesh(fGMesh);
-        InsertPeriferalRotationMaterialObjects();
-    }
+    InsertPeriferalMaterialObjects();
 
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Subdomain indices " << fGeoToMHMDomain << std::endl;
+        sout << "Recognized domains ";
+        for (auto it = fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
+            sout << it->first << ' ';
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     // this method will create the flux elements, include HDivWratMatId elements
     CreateHDivMHMMesh();
     
@@ -275,9 +359,19 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
         TPZVTKGeoMesh::PrintGMeshVTK(fGMesh.operator->(), out, eldata);
     }
 
-    
+    // create a pressure dim1 geometric element next to each fHDivWrapperMatId element
     CreatePressureInterfaceGeometricElements();
     
+    {
+        TPZVec<int64_t> eldata(fGeoToMHMDomain);
+        int64_t nel = fGMesh->NElements();
+        for (int64_t el=0; el<nel; el++) {
+            TPZGeoEl *gel = fGMesh->Element(el);
+            if(!gel || gel->HasSubElement()) eldata[el] = -999;
+        }
+        std::ofstream out("MHMDomainWithPress.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(fGMesh.operator->(), out);
+    }
     // hybridize the fluxes between macro elements
     
 #ifdef PZDEBUG
@@ -287,9 +381,15 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
 #endif
     // create the discontinuous pressure mesh
     // this method creates the internal pressure elements (super class)
-    // this method will create the dim-1 skeleton and interface elements
+    // this method will create the dim-1 skeleton elements as well
     CreatePressureMHMMesh();
-    
+#ifdef PZDEBUG
+    {
+        int numc = fPressureFineMesh->NConnects();
+        int numc2 = fConnectToSubDomainIdentifier[fPressureFineMesh.operator->()].size();
+        if(numc != numc2) DebugStop();
+    }
+#endif
     if(fNState > 1)
     {
         CreateRotationMesh();
@@ -315,8 +415,17 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     }
 #endif
 
-    // insert periferal material objects in the multiphysics mesh
-    InsertPeriferalMaterialObjects();
+    {
+        TPZVec<int64_t> eldata(fGeoToMHMDomain);
+        int64_t nel = fGMesh->NElements();
+        for (int64_t el=0; el<nel; el++) {
+            TPZGeoEl *gel = fGMesh->Element(el);
+            if(!gel || gel->HasSubElement()) eldata[el] = -999;
+        }
+        std::ofstream out("MHMDomainAfterPress.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(fGMesh.operator->(), out, eldata);
+    }
+
     
     // Set Lagrange multiplier levels of the connects of the atomic meshes
     SetLagrangeMultiplierLevels();
@@ -330,6 +439,21 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
     fGlobalSystemSize = fCMesh->Solution().Rows();
     
     fCMesh->ComputeNodElCon();
+    /*
+    {
+        int neq = fPressureFineMesh->NEquations();
+        for(int eq=0; eq<neq; eq++) fPressureFineMesh->Solution()(eq,0) = 1.;
+    }
+    {
+        int neq = fAverageSolution->NEquations();
+        for(int eq=0; eq<neq; eq++) fAverageSolution->Solution()(eq,0) = 1.;
+    }
+    {
+        int neq = fCMeshConstantPressure->NEquations();
+        for(int eq=0; eq<neq; eq++) fCMeshConstantPressure->Solution()(eq,0) = 1.;
+    }
+    fCMesh->LoadSolutionFromMeshes();
+     */
 #ifdef PZDEBUG
     if(1)
     {
@@ -348,13 +472,22 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
         fDistributedFlux->Print(outdistflux);
         std::ofstream outavSol("AveragePressureMesh.txt");
         fAverageSolution->Print(outavSol);
-        std::ofstream outdistFluxDomain("AverageFluxByDomain.txt");
+        std::ofstream outdistFluxDomain("DistrFluxByDomain.txt");
         fCMeshLagrange->Print(outdistFluxDomain);
         std::ofstream outAvPresDomain("AveragePressureByDomainMesh.txt");
         fCMeshConstantPressure->Print(outAvPresDomain);
 
         std::ofstream outmf("MFMesh.txt");
         fCMesh->Print(outmf);
+        {
+            int64_t nel = fCMesh->NElements();
+            for (int64_t el = 0; el < nel; el++) {
+                TPZCompEl *cel = fCMesh->Element(el);
+                TPZGeoEl *gel = cel->Reference();
+                int domain = WhichSubdomain(cel);
+                outmf << "El index " << el << " matid " << gel->MaterialId() << " domain " << domain << std::endl;
+            }
+        }
         std::ofstream out("Friendly.txt");
         PrintFriendly(out);
     }
@@ -362,7 +495,8 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
 #endif
     
     if (usersubstructure) {
-        HideTheElements();
+        char average_displacement_subdomain = 10;
+        HideTheElements(average_displacement_subdomain);
     }
     fNumeq = fCMesh->NEquations();
 
@@ -371,16 +505,13 @@ void TPZMHMixedHybridMeshControl::BuildComputationalMesh(bool usersubstructure)
 /// create the multiphysics mesh
 void TPZMHMixedHybridMeshControl::CreateMultiphysicsMHMMesh()
 {
-    TPZManVector<TPZCompMesh *,9> meshvec(7,0);
-    meshvec[0] = fFluxMesh.operator->();
-    meshvec[1] = fPressureFineMesh.operator->();
-    meshvec[2] = fRotationMesh.operator->();
-    meshvec[3] = fDistributedFlux.operator->();
-    meshvec[4] = fAverageSolution.operator->();
-    meshvec[5] = fCMeshLagrange.operator->();
-    meshvec[6] = fCMeshConstantPressure.operator->();
+    TPZManVector<TPZCompMesh *,9> meshvec;
+    GetMeshVec(meshvec);
     // build the multiphysics mesh
-    fCMesh->BuildMultiphysicsSpace(meshvec);
+    TPZVec<int64_t> gelindices;
+    this->GetGeometricElementPartition(gelindices);
+    
+    fCMesh->BuildMultiphysicsSpace(meshvec,gelindices);
     // identify connects with submeshes
     JoinSubdomains(meshvec, fCMesh.operator->());
     
@@ -409,51 +540,6 @@ void TPZMHMixedHybridMeshControl::CreateMultiphysicsMHMMesh()
 //    DebugStop();
 }
 
-/// create the distributed flux and average solution mesh
-void TPZMHMixedHybridMeshControl::CreateAverageSolutionMeshes()
-{
-    if(fAverageSolution || fDistributedFlux) DebugStop();
-    fAverageSolution = new TPZCompMesh(fGMesh);
-    int nstate = -1;
-    switch (fProblemType) {
-        case TPZMHMeshControl::EScalar:
-            nstate = 1;
-            break;
-        case TPZMHMeshControl::EElasticity2D:
-            nstate = 3;
-            break;
-        case TPZMHMeshControl::EElasticity3D:
-            nstate = 6;
-            break;
-        default:
-            break;
-    }
-    for(auto it : fMaterialIds)
-    {
-        TPZNullMaterial *mat = new TPZNullMaterial(it);
-        mat->SetDimension(fGMesh->Dimension());
-        mat->SetNStateVariables(nstate);
-        fAverageSolution->InsertMaterialObject(mat);
-    }
-    fAverageSolution->SetAllCreateFunctionsDiscontinuous();
-    fAverageSolution->SetDefaultOrder(0);
-    fAverageSolution->AutoBuild();
-    TPZCompElDisc::SetTotalOrderShape(fAverageSolution.operator->());
-    fDistributedFlux = new TPZCompMesh(fAverageSolution);
-    
-    {
-        int64_t nel = fAverageSolution->NElements();
-        for (int64_t el=0; el<nel; el++) {
-            TPZCompEl *cel = fAverageSolution->Element(el);
-            TPZCompEl *cel2 = fDistributedFlux->Element(el);
-            TPZGeoEl *gel = cel->Reference();
-            int subdomain = fGeoToMHMDomain[gel->Index()];
-            SetSubdomain(cel, subdomain);
-            SetSubdomain(cel2, subdomain);
-        }
-    }
-
-}
 
 
 
@@ -471,15 +557,31 @@ void TPZMHMixedHybridMeshControl::CreatePressureInterfaces()
 {
     fGMesh->ResetReference();
     int meshdim = fGMesh->Dimension();
-    std::set<int> matids = {fPressureSkeletonMatId,fPressureDim1MatId};
+    std::set<int> matids = {fPressureSkeletonMatId};
+    int nelbefore = fPressureFineMesh->NElements();
     fPressureFineMesh->ApproxSpace().SetAllCreateFunctionsContinuous();
     fPressureFineMesh->ApproxSpace().CreateDisconnectedElements(true);
     fPressureFineMesh->SetDefaultOrder(fpOrderSkeleton);
     fPressureFineMesh->AutoBuild(matids);
+    int Nelafter = fPressureFineMesh->NElements();
+    for (int64_t el = nelbefore; el< Nelafter; el++) {
+        TPZCompEl *cel = fPressureFineMesh->Element(el);
+        SetSubdomain(cel, -1);
+    }
+    
     matids.clear();
     matids.insert(fPressureDim1MatId);
     fPressureFineMesh->SetDefaultOrder(fpOrderInternal);
+    nelbefore = Nelafter;
     fPressureFineMesh->AutoBuild(matids);
+    Nelafter = fPressureFineMesh->NElements();
+    for (int64_t el = nelbefore; el< Nelafter; el++) {
+        TPZCompEl *cel = fPressureFineMesh->Element(el);
+        TPZGeoEl *gel = cel->Reference();
+        int domain = fGeoToMHMDomain[gel->Index()];
+        SetSubdomain(cel, domain);
+    }
+
     fPressureFineMesh->ExpandSolution();
 }
 
@@ -490,7 +592,13 @@ void TPZMHMixedHybridMeshControl::CreatePressureMHMMesh()
     // mesh
     TPZMHMixedMeshControl::CreatePressureMHMMesh();
     // will create a pressure element associated with internal interfaces only
+    {
+        int numc = fPressureFineMesh->NConnects();
+        int numc2 = fConnectToSubDomainIdentifier[fPressureFineMesh.operator->()].size();
+        if(numc != numc2) DebugStop();
+    }
     
+
     CreatePressureInterfaces();
 }
 
@@ -531,21 +639,25 @@ void TPZMHMixedHybridMeshControl::CreateHDivWrappers()
         {
             if(gel->SideDimension(side) != meshdim-1) continue;
             TPZGeoElSide gelside(gel,side);
+            TPZGeoElSideAncestors ancestor(gelside);
             // create an element on the side of the H(div) element
             // verify if there a BC neighbouring
-            TPZGeoElSide neighbour = gelside.HasNeighbour(fMaterialBCIds);
-            if(!neighbour)
-            {
-                // create a neighbouring element HDivWrap or BC matid
-                TPZGeoElBC gbc(gelside,fHDivWrapperMatId);
-                neighbour = TPZGeoElSide(gbc.CreatedElement());
-            }
+            TPZGeoElSide neighbour;
+            neighbour = ancestor.HasLargerorEqual(fMaterialBCIds);
+            // if the element is on the domain boundary, no wrapper is created
+            if(neighbour) continue;
+            // create a neighbouring element HDivWrap or BC matid
+            TPZGeoElBC gbc(gelside,fHDivWrapperMatId);
+            neighbour = TPZGeoElSide(gbc.CreatedElement());
+            int64_t neighindex = neighbour.Element()->Index();
+            int neighmatid = neighbour.Element()->MaterialId();
             fluxelements[el]->LoadElementReference();
             TPZConnect &c = fluxelements[el]->SideConnect(0, side);
             fFluxMesh->SetDefaultOrder(c.Order());
             int64_t index;
             TPZCompEl *cel = fFluxMesh->ApproxSpace().CreateCompEl(neighbour.Element(), fFluxMesh, index);
             int64_t mhm_domain = fGeoToMHMDomain[gel->Index()];
+            // if the geometric element already existed, keep its mhm domain index
             SetSubdomain(cel, mhm_domain);
             gel->ResetReference();
             cel->Reference()->ResetReference();
@@ -583,11 +695,11 @@ void TPZMHMixedHybridMeshControl::FindConnectedElements(TPZGeoElSide &pressuresi
         {
             skinside = neighbour;
         }
-        else if(neighbour.Element()->MaterialId() == fSkeletonWrapMatId && pressuredim == meshdim-1)
+        else if(neighbour.Element()->MaterialId() == fWrapMatId && pressuredim == meshdim-1)
         {
             return;
         }
-        else if(neighbour.Element()->MaterialId() == fSkeletonWrapMatId)
+        else if(neighbour.Element()->MaterialId() == fWrapMatId)
         {
             skinside = neighbour;
         }
@@ -648,17 +760,20 @@ void TPZMHMixedHybridMeshControl::CreateMultiPhysicsInterfaceElements(int dim)
     if(fGMesh->Reference()) fGMesh->ResetReference();
     fCMesh->LoadReferences();
     int64_t nel = fGMesh->NElements();
+    std::set<int> allSkeleton(fMaterialBCIds);
+    allSkeleton.insert(fSkeletonMatId);
+    // loop over the hybridized pressure elements
     for (int64_t el = 0; el<nel; el++) {
         TPZGeoEl *gel = fGMesh->Element(el);
         if(!gel || gel->MaterialId() != fPressureDim1MatId) continue;
         TPZGeoElSide gelside(gel);
         int domain = fGeoToMHMDomain[gel->Index()];
         TPZGeoElSideAncestors ancestor(gelside);
-        TPZGeoElSide skelside = ancestor.HasLarger(fSkeletonMatId);
+        TPZGeoElSide skelside = ancestor.HasLargerorEqual(allSkeleton);
         TPZStack<TPZGeoElSide> connected;
         // by default the sign of the lagrange interface corresponds to left matid
         int interfacematid = fLagrangeMatIdLeft;
-        if(skelside && !fHybridize)
+        if(skelside && !fHybridizeSkeleton)
         {
             connected.Push(skelside);
             int64_t gelindex = skelside.Element()->Index();
@@ -674,7 +789,7 @@ void TPZMHMixedHybridMeshControl::CreateMultiPhysicsInterfaceElements(int dim)
             }
             else DebugStop();
         }
-        else if(fHybridize)
+        else if(fHybridizeSkeleton)
             DebugStop();
         TPZGeoElSide neighbour = gelside.Neighbour();
         while(neighbour != gelside)
@@ -689,7 +804,12 @@ void TPZMHMixedHybridMeshControl::CreateMultiPhysicsInterfaceElements(int dim)
             TPZGeoElSide large = ancestor.HasLarger(fHDivWrapperMatId);
             if(large) connected.Push(large);
         }
-        if(connected.size() != 2) DebugStop();
+        if(connected.size() != 2)
+        {
+            std::cout << "the pressure element didn't find two flux elements to connect\n";
+            gel->Print();
+            DebugStop();
+        }
         // generate the interface element
         TPZCompElSide celpressuredim1 = gelside.Reference();
         TPZCompElSide celconnect1 = connected[0].Reference();
@@ -716,7 +836,36 @@ void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
             DebugStop();
         }
         subcmesh->ComputeNodElCon();
-        GroupElements(subcmesh);
+        TPZCompMeshTools::GroupElements(subcmesh);
+        TPZStack<int64_t> grouped_elements;
+        {
+            int64_t nel = subcmesh->NElements();
+            for (int64_t el = 0; el<nel; el++) {
+                TPZCompEl *cel = subcmesh->Element(el);
+                TPZElementGroup *group = dynamic_cast<TPZElementGroup *>(cel);
+                if(group)
+                {
+                    grouped_elements.Push(group->Index());
+                }
+            }
+        }
+//        int lagrangeLevelPressureInterface = 6;
+//        TPZCompMeshTools::CondenseElements(subcmesh, lagrangeLevelPressureInterface);
+//        TPZStack<int64_t> condensed_elements;
+//        {
+//            int64_t nel = subcmesh->NElements();
+//            for (int64_t el = 0; el<nel; el++) {
+//                TPZCompEl *cel = subcmesh->Element(el);
+//                TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
+//                if(condense) condensed_elements.Push(condense->Index());
+//            }
+//        }
+        unsigned char boundaryflux_lagrangelevel = 5;
+        TPZCompMeshTools::AgglomerateElements(subcmesh, grouped_elements,boundaryflux_lagrangelevel);
+        subcmesh->ComputeNodElCon();
+        bool keeplagrange = false;
+        bool keepmatrix = false;
+        TPZCompMeshTools::CreatedCondensedElements(subcmesh, keeplagrange, keepmatrix);
         subcmesh->InitializeBlock();
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
@@ -726,8 +875,6 @@ void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        bool keeplagrange = true;
-        TPZCompMeshTools::CreatedCondensedElements(subcmesh, keeplagrange);
         subcmesh->CleanUpUnconnectedNodes();
         int numthreads = 0;
         int preconditioned = 0;
@@ -932,21 +1079,6 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalMaterialObjects()
 {
     TPZMHMixedMeshControl::InsertPeriferalMaterialObjects();
     int dim = fGMesh->Dimension();
-    if(fHybridize)
-    {
-        TPZNullMaterial *mat = new TPZNullMaterial(fPressureSkeletonMatId);
-        mat->SetNStateVariables(fNState);
-        mat->SetDimension(dim-1);
-        fCMesh->InsertMaterialObject(mat);
-    }
-    if(fHybridize)
-    {
-        TPZNullMaterial *mat = new TPZNullMaterial(fSecondSkeletonMatId);
-        mat->SetNStateVariables(fNState);
-        mat->SetDimension(dim-1);
-        fCMesh->InsertMaterialObject(mat);
-
-    }
     {
         TPZNullMaterial *mat = new TPZNullMaterial(fHDivWrapperMatId);
         mat->SetNStateVariables(fNState);
@@ -963,7 +1095,7 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalMaterialObjects()
 
     TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,fNState);
     TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,fNState);
-    
+    matright->SetMultiplier(-1.);
     fCMesh->InsertMaterialObject(matleft);
     fCMesh->InsertMaterialObject(matright);
 
@@ -1054,7 +1186,7 @@ void TPZMHMixedHybridMeshControl::CheckMeshConsistency()
         int matid = mphys->Reference()->MaterialId();
         int nelref = mphys->NMeshes();
         // in the near future this will be seven...
-        if (nelref != 7) {
+        if ((fNState > 1 && nelref != 7) || (fNState == 1 && nelref != 6)) {
             std::cout << "I dont understand\n";
             DebugStop();
         }
@@ -1083,6 +1215,10 @@ void TPZMHMixedHybridMeshControl::CheckMeshConsistency()
                     gel->Node(i).GetCoordinates(co);
                     std::cout << co << std::endl;
                 }
+                std::cout << "gel index " << gel->Index() << std::endl;
+                std::cout << "material id " << gel->MaterialId() << std::endl;
+                std::cout << "Connect index " << mphys->ConnectIndex(0) << std::endl;
+                gel->Print();
                 std::cout << "I dont understand nelconnected = " << c.NElConnected() <<  "\n";
                 DebugStop();
             }

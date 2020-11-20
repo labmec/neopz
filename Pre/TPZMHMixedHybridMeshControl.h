@@ -26,10 +26,6 @@ public:
         
     }
     
-    TPZMHMixedHybridMeshControl(int dimension) : TPZMHMixedMeshControl(dimension)
-    {
-        
-    }
 
     //    TPZMHMixedHybridMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices);
     
@@ -55,13 +51,13 @@ public:
     virtual void InsertPeriferalMaterialObjects() override;
     
     /// Insert the necessary H(div) material objects to create the flux mesh
-    virtual void InsertPeriferalHdivMaterialObjects();
+    virtual void InsertPeriferalHdivMaterialObjects() override;
     
     /// Insert the necessary pressure material objects to create the pressure mesh
-    virtual void InsertPeriferalPressureMaterialObjects();
+    virtual void InsertPeriferalPressureMaterialObjects() override;
     
     /// Create all data structures for the computational mesh
-    virtual void BuildComputationalMesh(bool usersubstructure);
+    virtual void BuildComputationalMesh(bool usersubstructure) override;
     
 public:
     
@@ -71,17 +67,6 @@ public:
     /// material id of the pressure Lagrange multipliers of dimension fDim-1
     int fPressureDim1MatId = 506;
     
-    /// mesh representing a distributed flux in each element
-    TPZAutoPointer<TPZCompMesh> fDistributedFlux;
-    
-    /// mesh representing the average solution in each element
-    TPZAutoPointer<TPZCompMesh> fAverageSolution;
-    
-    /// Return true if the material id is related to a skeleton
-    virtual bool IsSkeletonMatid(int matid)
-    {
-        return matid == fSkeletonMatId;
-    }
 
 protected:
     
@@ -89,7 +74,7 @@ protected:
     virtual void CreateInternalFluxElements();
 
     // create the approximation space associated with the skeleton and restrain the connects
-    virtual void CreateSkeleton();
+    virtual void CreateSkeleton() override;
         
     /// Create the interfaces between the pressure elements of dimension dim
     virtual void CreateMultiPhysicsInterfaceElements(int dim);
@@ -102,12 +87,9 @@ protected:
     void CreatePressureInterfaceGeometricElements();
 
     /// Control the numbering of the equations based on the lagrange multiplier level of the connects
-    void SetLagrangeMultiplierLevels();
+    virtual void SetLagrangeMultiplierLevels() override;
 
 public:
-    
-    /// create the distributed flux and average solution mesh
-    void CreateAverageSolutionMeshes();
     
     
     /// verify the consistency of the datastructure
@@ -116,12 +98,6 @@ public:
     
     /// print the elements in a readable format
     virtual void PrintFriendly(std::ostream &out);
-
-    /// Set the hybridization to true
-    virtual void SetHybridize(bool flag)
-    {
-        fHybridize = flag;
-    }
 
 
 protected:
