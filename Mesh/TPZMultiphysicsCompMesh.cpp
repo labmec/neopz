@@ -245,6 +245,8 @@ void TPZMultiphysicsCompMesh::AddElements(){
             {
                 std::cout << "Multiphysics element " << icel << " with matid " <<
                     cel->Reference()->MaterialId() << " does not refer to any elements\n";
+                TPZGeoEl *gel = cel->Reference();
+                gel->Print();
             }
         }
 #endif
