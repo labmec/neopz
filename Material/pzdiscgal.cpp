@@ -95,7 +95,13 @@ void TPZDiscontinuousGalerkin::Errors(TPZMaterialData &data, TPZVec<STATE> &u_ex
 
 void TPZDiscontinuousGalerkin::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
 {
-    TPZMaterial::Errors(data[0],u_exact,du_exact,errors);
+    int nspace = data.size();
+    int ispace = 0;
+    for(; ispace <nspace; ispace++)
+    {
+        if(data[ispace].fShapeType != TPZMaterialData::EEmpty) break;
+    }
+    TPZMaterial::Errors(data[ispace],u_exact,du_exact,errors);
 }
 
 
