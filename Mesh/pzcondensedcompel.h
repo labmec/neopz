@@ -35,12 +35,20 @@ class TPZCondensedCompEl : public TPZCompEl
 protected:
     
     //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+    // number of internal equations
     int64_t fNumInternalEqs = 0;
+    // total number of equations
     int64_t fNumTotalEqs = 0;
+    // matrix structure for static condensation
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
+    // original element whose internal connects will be condensed
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<int64_t,27> fIndexes; 
+    // connect indexes, numbering the condensed connects first
+    TPZManVector<int64_t,27> fIndexes;
+    // flag indicating whether the internal stiffness should be kept
     bool fKeepMatrix = true;
+    
+    // resequence the connects so that the condensable connects come first
     void Resequence();
 
 public:
@@ -73,6 +81,9 @@ public:
     {
         return fReferenceCompEl->NConnects();
     }
+    
+    /// return the number of connects that will be condensed
+    int NCondensableConnects() const;
 	
 	/**
 	 * @brief Returns the index of the ith connectivity of the element
