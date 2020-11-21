@@ -70,6 +70,21 @@ TPZGeoElSide TPZGeoElSideAncestors::HasLarger(int matid)
     return TPZGeoElSide();
 }
 
+/// return true is a (strict) larger element with matid exists
+TPZGeoElSide TPZGeoElSideAncestors::HasLarger(const std::set<int> &matid)
+{
+    int64_t num_ancestors = fAncestors.size();
+    for (int il = 0; il<num_ancestors; il++) {
+        TPZGeoElSide neighbour = fAncestors[il].second.HasNeighbour(matid);
+        if(neighbour)
+        {
+            return neighbour;
+        }
+    }
+    return TPZGeoElSide();
+}
+
+
 
 /// return the element/side of the larger element
 TPZGeoElSide TPZGeoElSideAncestors::LargeSide(TPZGeoEl *large)
@@ -95,3 +110,20 @@ TPZGeoElSide TPZGeoElSideAncestors::LargeSide(TPZGeoEl *large)
     }
     DebugStop();
 }
+
+/// return true is a (strict) larger element with matid exists
+TPZGeoElSide TPZGeoElSideAncestors::HasLargerorEqual(int matid)
+{
+    TPZGeoElSide neighbour = fCurrent.HasNeighbour(matid);
+    if(neighbour) return neighbour;
+    return HasLarger(matid);
+}
+
+/// return true is a (strict) larger element with matid exists
+TPZGeoElSide TPZGeoElSideAncestors::HasLargerorEqual(const std::set<int> &matid)
+{
+    TPZGeoElSide neighbour = fCurrent.HasNeighbour(matid);
+    if(neighbour) return neighbour;
+    return HasLarger(matid);
+}
+
