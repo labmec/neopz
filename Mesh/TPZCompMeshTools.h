@@ -30,17 +30,38 @@ namespace TPZCompMeshTools
     void GroupElements(TPZCompMesh *cmesh, std::set<int64_t> elbasis, std::set<int64_t> &grouped);
     
     /// Put the element set into a subcompmesh and make the connects internal
-    void PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, int KeepOneLagrangian);
+    void PutinSubmeshes(TPZCompMesh *cmesh, std::set<int64_t> &elindices, int64_t &index, char KeepOneLagrangian);
     
     /// Put the element set into a subcompmesh and make the connects internal
-    void PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, int KeepOneLagrangian);
+    // @input elindices
+    // elindices.first - identifier of the subdomain
+    // elindices.second - indices of the elements that will be transferred to the submesh
+    // @output indices
+    // indices.first - identifier of the subdomain
+    // indices.second - index of the SubCMesh element
+    void PutinSubmeshes(TPZCompMesh *cmesh, std::map<int64_t,std::set<int64_t> >&elindices, std::map<int64_t,int64_t> &indices, char KeepOneLagrangian);
     
-    /// group all embedded elements of the computational mesh
+    /// group elements of the computational mesh
+    // for all elements that have dimension of the dimension of cmesh
+    // verify if connected elements are included in the current element
     void GroupElements(TPZCompMesh *cmesh);
     
-    /// created condensed elements for the elements that have internal nodes
-    void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix = true);
+    /// group elements of the computational mesh
+    // for all elements in the list
+    // group all elements that share a connect with the current element
+    // the elements in the list should not share a connect
+    // the elements in the mesh cannot share connects with more than one element in the list
+    // if either condition isn't met, the program will stop
+    void AgglomerateElements(TPZCompMesh *cmesh, TPZVec<int64_t> &ellist, unsigned char lagrangelevel);
     
+    /// created condensed elements for the elements that have internal nodes
+    void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix = false);
+    
+    /// create a condensed element and do not condense the connect with a given lagrange level or above
+    // the method does the same procedure as CreatedCondensedElements, but has different policy for
+    // keeping a connect out the condensation loop
+    void CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix = false);
+
     /// ungroup all embedded elements of the computational mesh
     void UnGroupElements(TPZCompMesh *cmesh);
     
