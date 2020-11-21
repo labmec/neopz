@@ -230,6 +230,7 @@ protected:
         TPZGeoEl *gel = Reference();
         if (gel)
         {
+            fCenterPoint.Resize(gel->Dimension());
             int ns = Reference()->NSides();
             this->Reference()->CenterPoint(ns-1, fCenterPoint);
         }
@@ -314,6 +315,8 @@ protected:
 	
 	void SetCenterPoint(int i,REAL x){fCenterPoint[i] = x;}
 	
+    void SetCenterPoint(TPZVec<REAL> &center){fCenterPoint = center;}
+    
 	REAL SizeOfElement();
 	
 	/** @brief Returns the volume of the geometric element associated. */
