@@ -32,14 +32,14 @@ public:
 	
     /**
 	 * @brief Constructor of the rectangular domain
-	 * @param nx numbers of partition intervals for x (nx[0]) and for y (nx[1])
+	 * @param nx numbers of partition intervals for x (nelx[0]) and for y (nelx[1])
      * @param x0 lower left coordinate
      * @param x1 upper right coordinate
      * @param numl number of layers
      * @param rot rotation applied to the grid for the next layer
 	 * @note All the layers has a common interval \f$ [(x0[0],0,0);(x1[0],0,0)] \f$
      */
-    TPZGenGrid2D(const TPZVec<int> &nx, const TPZVec<REAL> &x0, const TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
+    TPZGenGrid2D(const TPZVec<int> &nelx, const TPZVec<REAL> &x0, const TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 	
 	/** @brief Default destructor */
     virtual ~TPZGenGrid2D();

@@ -30,22 +30,22 @@ static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid2d"));
 
 using namespace std;
 
-TPZGenGrid2D::TPZGenGrid2D(const TPZVec<int> &nx, const TPZVec<REAL> &x0, const TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
+TPZGenGrid2D::TPZGenGrid2D(const TPZVec<int> &nelx, const TPZVec<REAL> &x0, const TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nelx), fX0(x0), fX1(x1),
 fDelx(2), fGeometricProgression(2, 1.), fNumLayers(numl), fRotAngle(rot), fZigZag(false), fTrapeze(false), fDistortion(0.), fRefPattern(false) {
-    fDelx[0] = (x1[0] - x0[0]) / (nx[0]); // Delta x
-    fDelx[1] = (x1[1] - x0[1]) / (nx[1]); // Delta y
-    fNumNodes = (nx[0] + 1)*(nx[1] + 1)+(fNumLayers - 1)*(nx[0])*(nx[1] + 1);
+    fDelx[0] = (x1[0] - x0[0]) / (nelx[0]); // Delta x
+    fDelx[1] = (x1[1] - x0[1]) / (nelx[1]); // Delta y
+    fNumNodes = (nelx[0] + 1)*(nelx[1] + 1)+(fNumLayers - 1)*(nelx[0])*(nelx[1] + 1);
     fMeshType = MMeshType::EQuadrilateral;
 }
 
 TPZGenGrid2D::~TPZGenGrid2D() {
 }
 
-void TPZGenGrid2D::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MMeshType meshtype, int numl, REAL rot) {
+void TPZGenGrid2D::SetData(TPZVec<int> &nelx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, MMeshType meshtype, int numl, REAL rot) {
     int i;
-    fNx.Resize(nx.NElements());
+    fNx.Resize(nelx.NElements());
     for (i = 0; i < fNx.NElements(); i++)
-        fNx[i] = nx[i];
+        fNx[i] = nelx[i];
     fX0.Resize(x0.NElements());
     for (i = 0; i < fX0.NElements(); i++)
         fX0[i] = x0[i];
@@ -53,9 +53,9 @@ void TPZGenGrid2D::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, 
     for (i = 0; i < fX1.NElements(); i++)
         fX1[i] = x1[i];
     fDelx.Resize(2);
-    fDelx[0] = (x1[0] - x0[0]) / (nx[0]); // Delta x
-    fDelx[1] = (x1[1] - x0[1]) / (nx[1]); // Delta y
-    fNumNodes = (nx[0] + 1)*(nx[1] + 1)+(fNumLayers - 1)*(nx[0])*(nx[1] + 1);
+    fDelx[0] = (x1[0] - x0[0]) / (nelx[0]); // Delta x
+    fDelx[1] = (x1[1] - x0[1]) / (nelx[1]); // Delta y
+    fNumNodes = (nelx[0] + 1)*(nelx[1] + 1)+(fNumLayers - 1)*(nelx[0])*(nelx[1] + 1);
     fMeshType = meshtype;
     fNumLayers = numl;
     fRotAngle = rot;
