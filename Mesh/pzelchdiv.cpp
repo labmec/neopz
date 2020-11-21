@@ -23,6 +23,7 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDiv"));
 static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+static LoggerPtr loggerconfig(Logger::getLogger("pz.hdiv.vecconfig"));
 #endif
 
 using namespace std;
@@ -851,7 +852,6 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     if (count != ivs) {
         DebugStop();
     }
-
 //    cout <<  " foi  " << endl;
 }
 
@@ -1389,21 +1389,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     int lastface = TSHAPE::NSides - 1;
     int cont = 0;
    
-    TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
-
-    for(int side = firstface; side < lastface; side++)
-    {
-        int nvec = TSHAPE::NContainedSides(side);
-        for (int ivet = 0; ivet<nvec; ivet++)
-        {
-            for (int il = 0; il<3; il++)
-            {
-                data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
-            }
-
-        }
-        cont += nvec;
-    }
     
     if(data.fNeedsDeformedDirectionsFad){
     #ifdef _AUTODIFF
@@ -1500,9 +1485,29 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         }
 
         data.fMasterDirections.Resize(3, numvec);
+        
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
+
+        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
+        int lastface = TSHAPE::NSides - 1;
+        int cont = 0;
+        for(int side = firstface; side < lastface; side++)
+        {
+            int nvec = TSHAPE::NContainedSides(side);
+            for (int ivet = 0; ivet<nvec; ivet++)
+            {
+                for (int il = 0; il<3; il++)
+                {
+                    data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
+                }
+
+            }
+            cont += nvec;
+        }
+
 
 #ifdef _AUTODIFF
-            data.fDeformedDirectionsFad.Resize(3, numvec);
+        data.fDeformedDirectionsFad.Resize(3, numvec);
 #endif
 
         data.fDeformedDirections.Resize(3, numvec);
@@ -1539,7 +1544,24 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif    
-    
+#ifdef LOG4CXX
+    if(loggerconfig->isDebugEnabled())
+    {
+        std::stringstream sout;
+        data.fMasterDirections.Print("MasterDir = ", sout, EMathematicaInput);
+        sout << "VecShape = {\n";
+        int ivs = data.fVecShapeIndex.size();
+        for(int i=0; i< ivs; i++)
+        {
+            sout << '{' << data.fVecShapeIndex[i].first+1 << ',' << data.fVecShapeIndex[i].second+1 << "}";
+            if(i<ivs-1) sout << ",\n";
+            else sout << "\n";
+        }
+        sout << "};\n";
+        LOGPZ_DEBUG(loggerconfig, sout.str())
+    }
+#endif
+
 }
 
 
