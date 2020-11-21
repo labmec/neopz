@@ -322,7 +322,7 @@ TPZConnect &TPZCompEl::Connect(int i) const{
 
 void TPZCompEl::Print(std::ostream & out) const {
 
-	out << "\nOutput for a computable element index: " << fIndex;
+	out << "Output for a computable element index: " << fIndex;
     out << "\nfReferenceIndex " << fReferenceIndex;
 	if(this->Reference())
 	{

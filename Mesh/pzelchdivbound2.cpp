@@ -23,6 +23,8 @@ TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *ge
 TPZRegisterClassId(&TPZCompElHDivBound2::ClassId),
 TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		
+    
+    std::cout << "Criando hdivbound with matid " << gel->MaterialId() << std::endl;
 	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
 	//for(i=0; i<TSHAPE::NSides; i++) this->fConnectIndexes[i]=-1;
