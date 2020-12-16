@@ -161,6 +161,8 @@ protected:
     
     /// delete the pressure elements leaving the geometric mesh without pointing to the computational mesh
     void DeletePressureElements();
+
+    void AdjustBoundaryElements();
 };
 
 #endif /* TPZMHMixedMeshControl_hpp */

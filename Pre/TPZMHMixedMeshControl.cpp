@@ -208,6 +208,9 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
     cmeshHDiv->SetName("FluxMesh");
     InsertPeriferalHdivMaterialObjects();
+
+    AdjustBoundaryElements();
+
     CreateInternalFluxElements();
     
 #ifdef PZDEBUG
@@ -499,7 +502,7 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
         TPZNullMaterial *mathybrid = new TPZNullMaterial(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
         mathybrid->SetNStateVariables(fNState);
-        fPressureFineMesh->InsertMaterialObject(mathybrid);
+        //fPressureFineMesh->InsertMaterialObject(mathybrid);
     }
     else
     {
@@ -1020,14 +1023,15 @@ void TPZMHMixedMeshControl::CreateSkeleton()
     }
     // create the skeleton elements without applying the restraints of the elements of the subdomains
     fFluxMesh->SetDefaultOrder(order);
-    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it = fInterfaces.begin();
+    std::map<int64_t, std::pair<int64_t, int64_t> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
         int64_t elindex = it->first;
-        // skip the boundary elements
-        //        if (elindex == it->second.second) {
-        //            it++;
-        //            continue;
-        //        }
+
+        if (elindex == it->second.second) {
+            DebugStop();
+            // boundary elements shouldn't be in fInterface map. they are removed from the map in method
+            // TPZMHMixedMeshControl::AdjustBoundaryElements
+        }
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
         int64_t index;
         // create an element to model the flux between subdomains
@@ -1036,29 +1040,18 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         int Side = gel->NSides()-1;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         SetSubdomain(cel, -1);
-        
-        
-        if (elindex == it->second.second) {
-            // this is a boundary element
-            // set the side orientation of the boundary elements
-            intel->SetSideOrient(Side, 1);
-            SetSubdomain(cel, it->second.first);
+
+        if (it->second.first < it->second.second) {
+          // set the flux orientation depending on the relative value of the
+          // element ids
+          intel->SetSideOrient(Side, 1);
+        } else {
+          intel->SetSideOrient(Side, -1);
         }
-        else
-        {
-            if (it->second.first < it->second.second) {
-                // set the flux orientation depending on the relative value of the element ids
-                intel->SetSideOrient(Side, 1);
-            }
-            else
-            {
-                intel->SetSideOrient(Side, -1);
-            }
-            // this element will not be put in a subdomain
-            SetSubdomain(cel, -1);
-        }
+        // this element will not be put in a subdomain
+        SetSubdomain(cel, -1);
         gel->ResetReference();
-        
+
         it++;
     }
     // Apply restraints to the element/sides and the skeleton
@@ -1436,5 +1429,49 @@ void TPZMHMixedMeshControl::BuildMultiPhysicsMesh()
 #endif
     mphysics->BuildMultiphysicsSpace(meshvec,gelindexes);
 
+}
+
+void TPZMHMixedMeshControl::AdjustBoundaryElements() {
+
+    // store the entries of the map that correspond to boundary elements. these entries will be removed from the map
+    std::set<int64_t> entries_to_erase;
+
+    for (auto it = fInterfaces.cbegin(); it != fInterfaces.cend();) {
+        int64_t elindex = it->first;
+        TPZGeoEl *gel = fGMesh->Element(elindex);
+
+        // filter boundary elements
+        if (elindex == it->second.second) {
+
+            // create boundary compels
+            int64_t index;
+            fFluxMesh->CreateCompEl(gel, index);
+            TPZCompEl *cel = fFluxMesh->ElementVec()[index];
+            SetSubdomain(cel, -1);
+
+            // set the side orientation of the boundary elements
+            int side = gel->NSides() - 1;
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            intel->SetSideOrient(side, 1);
+
+            TPZGeoElSide gelside(gel);
+            for (TPZGeoElSide neighbour = gelside.Neighbour(); neighbour != gelside; neighbour++) {
+                TPZGeoEl *neigh_element = neighbour.Element();
+                if (neigh_element->Dimension() != fGMesh->Dimension()) continue;
+                SetSubdomain(cel, fGeoToMHMDomain[neigh_element->Index()]);
+            }
+            entries_to_erase.insert(it->first);
+        }
+        it++;
+    }
+
+    auto it = fInterfaces.cbegin();
+    while (it != fInterfaces.cend()) {
+        if (entries_to_erase.find(it->first) != entries_to_erase.cend()) {
+            it = fInterfaces.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
