@@ -874,6 +874,7 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
         if (!cel) {
             continue;
         }
+        TPZCompMesh *celmesh = cel->Mesh();
         // Only prints information of desired matIDs
         if (!matIDs.empty()) {
             if (matIDs.find(gel->MaterialId()) == matIDs.end()) {
@@ -916,16 +917,16 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
 
             if (con.SequenceNumber() > -1) {
                 out << " NumElCon = " << con.NElConnected();
-                if (cmesh->Block().NBlocks()) {
-                    out << " Block size " << cmesh->Block().Size(con.SequenceNumber());
+                if (celmesh->Block().NBlocks()) {
+                    out << " Block size " << celmesh->Block().Size(con.SequenceNumber());
                     if (printSolution) {
                         out << " Solution = ";
                         int64_t ieq;
-                        for (ieq = 0; ieq < cmesh->Block().Size(con.SequenceNumber()); ieq++) {
-                            if (IsZero(cmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                        for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
+                            if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
                                 out << 0.0 << ' ';
                             } else {
-                                out << cmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                                out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
                             }
                         }
                     }
