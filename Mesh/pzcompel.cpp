@@ -1170,3 +1170,76 @@ TPZGeoEl* TPZCompEl::Reference() const {
     if (fMesh == NULL || fMesh->Reference() == NULL) return NULL;
     return (fReferenceIndex == -1) ? NULL : fMesh->Reference()->ElementVec()[fReferenceIndex];
 }
+
+void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
+    const int ncon = this->NConnects();
+    int numloadcases = Mesh()->Solution().Cols();
+    ek.fMesh = Mesh();
+    ek.fType = TPZElementMatrix::EK;
+    ek.fOneRestraints = GetShapeRestraints();
+    ef.fOneRestraints = ek.fOneRestraints;
+
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
+    
+    ek.fBlock.SetNBlocks(ncon);
+    ef.fBlock.SetNBlocks(ncon);
+
+    int i;
+    int numeq=0;
+    for(i=0; i<ncon; i++){
+        TPZConnect &c = Connect(i);
+        int nshape = c.NShape();
+#ifdef PZDEBUG2
+        if (nshape != NConnectShapeF(i,c.Order())) {
+            PZError<<__PRETTY_FUNCTION__ <<" ERROR"<<std::endl;
+            PZError<<"n shape (con.NShape): "<<nshape<<std::endl;
+            PZError<<"n shape (NConnectShapeF): "<<NConnectShapeF(i,c.Order())<<std::endl;
+            DebugStop();
+        }
+#endif
+        int nstate = c.NState();
+        
+        ek.fBlock.Set(i,nshape*nstate);
+        ef.fBlock.Set(i,nshape*nstate);
+        numeq += nshape*nstate;
+    }
+    ek.fMat.Redim(numeq,numeq);
+    ef.fMat.Redim(numeq,numloadcases);
+    ek.fConnect.Resize(ncon);
+    ef.fConnect.Resize(ncon);
+    for(i=0; i<ncon; i++){
+        (ef.fConnect)[i] = ConnectIndex(i);
+        (ek.fConnect)[i] = ConnectIndex(i);
+    }
+}//void
+
+void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
+    TPZMaterial *mat = this->Material();
+    const int numdof = mat->NStateVariables();
+    const int ncon = this->NConnects();
+    const int numloadcases = mat->NumLoadCases();
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
+    ef.fBlock.SetNBlocks(ncon);
+    ef.fOneRestraints = GetShapeRestraints();
+    int numeq = 0;
+    for(int i=0; i<ncon; i++){
+        TPZConnect &c = Connect(i);
+        unsigned int nshapec = c.NShape();
+        int numdof = c.NState();
+        numeq += numdof*nshapec;
+#ifdef PZDEBUG2
+        if (NConnectShapeF(i, c.Order()) != nshapec || c.NState() != numdof) {
+            DebugStop();
+        }
+#endif
+        ef.fBlock.Set(i,nshapec*numdof);
+    }
+    ef.fMat.Redim(numeq,numloadcases);
+    ef.fConnect.Resize(ncon);
+    for(int i=0; i<ncon; i++){
+        (ef.fConnect)[i] = ConnectIndex(i);
+    }
+}//void
+
