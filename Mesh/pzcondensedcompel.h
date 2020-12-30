@@ -39,7 +39,9 @@ protected:
     int64_t fNumTotalEqs = 0;
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
-    TPZManVector<int64_t,27> fIndexes; 
+    TPZManVector<int64_t,27> fIndexes;
+    TPZManVector<int64_t,10> fCondensedConnectIndexes;
+    TPZManVector<int64_t,10> fActiveConnectIndexes;
     bool fKeepMatrix = true;
     void Resequence();
 
@@ -71,7 +73,8 @@ public:
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const override 
     {
-        return fReferenceCompEl->NConnects();
+        return fActiveConnectIndexes.size();
+//        return fReferenceCompEl->NConnects();
     }
 	
 	/**
@@ -80,7 +83,8 @@ public:
 	 */
 	virtual int64_t ConnectIndex(int i) const override 
     {
-        return fReferenceCompEl->ConnectIndex(fIndexes[i]);
+        return fActiveConnectIndexes[i];
+//        return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
 
     TPZCompEl * ReferenceCompEl(){
