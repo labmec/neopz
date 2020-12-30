@@ -581,6 +581,55 @@ void TPZCompMeshTools::CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOne
     
 }
 
+/// create a condensed element and do not condense the connect with a given lagrange level
+// the method does the same procedure as CreatedCondensedElements, but has different policy for
+// keeping a connect out the condensation loop
+void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix)
+{
+    //    cmesh->ComputeNodElCon();
+    int64_t nel = cmesh->NElements();
+    for (int64_t el=0; el<nel; el++) {
+//        std::cout << "Element " << el << std::endl;
+        TPZCompEl *cel = cmesh->Element(el);
+        if (!cel) {
+            continue;
+        }
+        int nc = cel->NConnects();
+        bool found = false;
+        if(LagrangeLevelNotCondensed >=0)
+        {
+            for (int ic=0; ic<nc; ic++) {
+                TPZConnect &c = cel->Connect(ic);
+//                std::cout << "ic ";
+//                c.Print(*cmesh,std::cout);
+                if(c.LagrangeMultiplier() >= LagrangeLevelNotCondensed && c.NElConnected() == 1)
+                {
+                    c.IncrementElConnected();
+                    found = true;
+                }
+            }
+        }
+        int ic;
+        for (ic=0; ic<nc; ic++) {
+            TPZConnect &c = cel->Connect(ic);
+            if (c.HasDependency() || c.NElConnected() > 1) {
+                continue;
+            }
+            break;
+        }
+        bool cancondense = (ic != nc);
+        if(cancondense)
+        {
+            if(LagrangeLevelNotCondensed >= 0 && !found) DebugStop();
+            TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel, keepmatrix);
+        }
+        
+    }
+
+    cmesh->CleanUpUnconnectedNodes();
+
+}
+
 static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
 
 static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
@@ -938,3 +987,53 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
         out << '\n';
     }
 }
+
+/// group elements that share a connect with the basis elements
+void TPZCompMeshTools::GroupNeighbourElements(TPZCompMesh *cmesh, const std::set<int64_t> &seed_elements, std::set<int64_t> &groupindexes)
+{
+    TPZVec<int64_t> connectgroup(cmesh->NConnects(),-1);
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> elhandled(nel,0);
+    for(auto el : seed_elements)
+    {
+        elhandled[el] = 1;
+        int64_t index;
+        TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+        if(index < nel) elhandled[index] = 1;
+        groupindexes.insert(index);
+        TPZCompEl *cel = cmesh->Element(el);
+        int nc = cel->NConnects();
+        for(int ic=0; ic<nc; ic++)
+        {
+            int64_t cindex = cel->ConnectIndex(ic);
+#ifdef PZDEBUG
+            // the elements in seed_elements should not share any connect
+            if(connectgroup[cindex] != -1) DebugStop();
+#endif
+            connectgroup[cindex] = index;
+        }
+        elgr->AddElement(cel);
+    }
+    for(int64_t el = 0; el < nel; el++)
+    {
+        if(elhandled[el]) continue;
+        TPZCompEl *cel = cmesh->Element(el);
+        if(!cel) continue;
+        std::set<int64_t> groups;
+        int nc = cel->NConnects();
+        for(int ic=0; ic<nc; ic++)
+        {
+            int64_t cindex = cel->ConnectIndex(ic);
+            int64_t group = connectgroup[cindex];
+            if(group != -1) groups.insert(group);
+        }
+        if(groups.size()>1) DebugStop();
+        if(groups.size())
+        {
+            int64_t group = *groups.begin();
+            TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cmesh->Element(group));
+            elgr->AddElement(cel);
+        }
+    }
+}
+

@@ -37,10 +37,18 @@ namespace TPZCompMeshTools
     
     /// group all embedded elements of the computational mesh
     void GroupElements(TPZCompMesh *cmesh);
+
+    /// group elements that share a connect with the basis elements
+    void GroupNeighbourElements(TPZCompMesh *cmesh, const std::set<int64_t> &seed_elements, std::set<int64_t> &groupindexes);
     
     /// created condensed elements for the elements that have internal nodes
     void CreatedCondensedElements(TPZCompMesh *cmesh, bool KeepOneLagrangian, bool keepmatrix = true);
     
+    /// create a condensed element and do not condense the connect with a given lagrange level
+    // the method does the same procedure as CreatedCondensedElements, but has different policy for
+    // keeping a connect out the condensation loop
+    void CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNotCondensed, bool keepmatrix);
+
     /// ungroup all embedded elements of the computational mesh
     void UnGroupElements(TPZCompMesh *cmesh);
     
