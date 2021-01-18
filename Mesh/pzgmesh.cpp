@@ -440,7 +440,7 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 	return gnkeep;
 }
 
-TPZGeoNode* TPZGeoMesh::FindNode(TPZVec<REAL> &co, int &nodeFoundIndex)
+TPZGeoNode* TPZGeoMesh::FindNode(TPZVec<REAL> &co, int64_t &nodeFoundIndex)
 {
     int i=0, in, nnodes = fNodeVec.NElements();
     while(i<nnodes && fNodeVec[i].Id() == -1) i++;

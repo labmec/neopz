@@ -173,7 +173,7 @@ int ClassId() const override;
     /** @brief Returns the nearest node to the coordinate. This method is VERY INEFFICIENT */
 	TPZGeoNode* FindNode(TPZVec<REAL> &co);
     
-    TPZGeoNode* FindNode(TPZVec<REAL> &co, int &nodeFoundIndex);
+    TPZGeoNode* FindNode(TPZVec<REAL> &co, int64_t &nodeFoundIndex);
     
     /** by Phil */
     /** @brief Returns the element that contains the given point x and it respective point in parametric domain qsi */
