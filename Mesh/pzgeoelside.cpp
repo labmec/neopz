@@ -266,13 +266,18 @@ int TPZGeoElSide::NSides() const
 /// Area associated with the side
 REAL TPZGeoElSide::Area()
 {
+    // Assuming linear mapping
+	if(!this->IsLinearMapping()){PZError << "\n\n" << __PRETTY_FUNCTION__ << "\nOnly implemented for linear mappings.\n\n";DebugStop();}
+	
+	// Compute determinant of the jacobian
 	TPZManVector<REAL,3> sideparam(Dimension(),0);
-	REAL detjac;
-	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
-    //supondo jacobiano constante: X linear
+	TPZFNMatrix<9,REAL> gradx(3,Dimension());
 	CenterPoint(sideparam);
-	Jacobian(sideparam,jacobian,axes,detjac,jacinv);
-    TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
+	GradX(sideparam,gradx);
+	REAL detjac = TPZAxesTools<REAL>::ComputeDetjac(gradx);
+    
+	// Compute volume of side in parametric space (RefElVolume)
+	TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
     REAL RefElVolume = 0.;
     int np = intrule->NPoints();
     TPZManVector<REAL,3> points(Dimension());
@@ -281,8 +286,8 @@ REAL TPZGeoElSide::Area()
         intrule->Point(ip, points, weight);
         RefElVolume += weight;
     }
-	return (RefElVolume*detjac);//RefElVolume(): volume do elemento de refer�ncia
-	
+	// Return area of side in mapped element
+	return (RefElVolume*detjac);
 }
 
 
