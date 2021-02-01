@@ -228,7 +228,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect, int connectorder) c
 {
 	if(connect == 0)
 	{
-		
+        if(connectorder == 0) return 1;
 		TPZManVector<int,22> order(TSHAPE::NSides-TSHAPE::NCornerNodes,connectorder);
         return TSHAPE::NShapeF(order);
     }
@@ -492,6 +492,23 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 		DebugStop() ;
 	}
     TPZGeoEl *gel = this->Reference();
+    REAL detjac;
+    {
+        int dim = gel->SideDimension(side);
+        TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
+        gel->Jacobian(point, jac, axes, detjac, jacinv);
+    }
+    if(gel->Type() == ETriangle)
+    {
+        // we multiply the shape functions by 6
+        detjac /= 6.;
+    }
+    if(this->Connect(0).Order() == 0)
+    {
+        phi(0) = 1./detjac;
+        dphi.Zero();
+        return;
+    }
     int nc = gel->NCornerNodes();
     TPZManVector<int64_t,8> id(nc);
     for (int ic=0; ic<nc; ic++) {
@@ -511,17 +528,6 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
     TPZManVector<int64_t,27> FirstIndex(TSHAPE::NSides+1);
     FirstShapeIndex(FirstIndex);
    
-    REAL detjac;
-    {
-        int dim = gel->SideDimension(side);
-        TPZFNMatrix<9,REAL> jac(dim,dim),jacinv(dim,dim),axes(dim,3);
-        gel->Jacobian(point, jac, axes, detjac, jacinv);
-    }
-    if(gel->Type() == ETriangle)
-    {
-        // we multiply the shape functions by 6
-        detjac /= 6.;
-    }
 
     int order = this->Connect(0).Order();
     for (int side=0; side < TSHAPE::NSides; side++) {
