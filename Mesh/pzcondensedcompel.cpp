@@ -38,12 +38,26 @@ TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
     }
     SetIndex(ref->Index());
     fMesh->ElementVec()[fIndex] = this;
+    TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(ref);
+    if(elgr)
+    {
+        elgr->ReorderConnects();
+    }
+
     int ncon = ref->NConnects();
     fIndexes.resize(ncon);
     for (int ic=0; ic< ncon ; ic++) {
         fIndexes[ic] = ic;
     }
     Resequence();
+#ifdef PZDEBUG
+    if(elgr)
+    {
+        for (int ic=0; ic<ncon; ic++) {
+            if(fIndexes[ic] != ic) DebugStop();
+        }
+    }
+#endif
 }
 
 
@@ -317,8 +331,12 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    ek.PermuteGather(fIndexes);
-    ef.PermuteGather(fIndexes);
+    TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(fReferenceCompEl);
+    if(!elgr)
+    {
+        ek.PermuteGather(fIndexes);
+        ef.PermuteGather(fIndexes);
+    }
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
         std::stringstream sout;
