@@ -82,22 +82,22 @@ TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId), TPZGeoEl(id,matind,mesh) , 
 }
 
 template<class TGeo>
-int64_t
+inline int64_t
 TPZGeoElRefLess<TGeo>::NodeIndex(int node) const {
+#ifdef PZDEBUG
 	if(node<0 || node>=fGeo.NNodes) return -1;
+#endif
 	return fGeo.fNodeIndexes[node];
 }
 
 /** @brief Gets the corner node coordinates in coord */
 template<class TGeo>
-void TPZGeoElRefLess<TGeo>::CornerCoordinates(TPZFMatrix<REAL> &coord) const
+inline void TPZGeoElRefLess<TGeo>::CornerCoordinates(TPZFMatrix<REAL> &coord) const
 {
-    TPZGeoNode *np;
-    int i,j;
-    for(i=0;i<TGeo::NNodes;i++) {
-        np = NodePtr(i);
-        for(j=0;j<3;j++) {
-            coord(j,i) = np->Coord(j);
+    for(int i=0;i<TGeo::NNodes;i++) {
+        auto &np = fMesh->NodeVec()[fGeo.fNodeIndexes[i]];
+        for(int j=0;j<3;j++) {
+            coord(j,i) = np.Coord(j);
         }
     }
 }

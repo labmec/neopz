@@ -127,7 +127,7 @@ virtual int ClassId() const override;
 	
 	virtual  int64_t NodeIndex(int node) const override;
 	
-    void CornerCoordinates(TPZFMatrix<REAL> &coord) const;
+    inline void CornerCoordinates(TPZFMatrix<REAL> &coord) const;
 	//HDiv
     
 //    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
