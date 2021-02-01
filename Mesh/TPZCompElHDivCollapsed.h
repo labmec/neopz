@@ -104,26 +104,6 @@ public:
     virtual void SetSideOrient(int side, int sideorient) override;
     
 	
-    /// the orientation of the face
-    int SideOrient(int face)
-    {
-#ifdef PZDEBUG
-        if (face < 0 || face >= TSHAPE::NFacets+2) {
-            DebugStop();
-        }
-#endif
-        if(face < TSHAPE::NFacets)
-            return SideOrient(face);
-        else if(face == TSHAPE::NFacets)
-        {
-            return fBottom.GetSideOrient(face);
-        }
-        else
-        {
-            return fTop.GetSideOrient(face);
-        }
-    }
-	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data) override;

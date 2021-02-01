@@ -152,22 +152,31 @@ TPZCompElHDivCollapsed<TSHAPE>::~TPZCompElHDivCollapsed(){
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::SetSideOrient(int side, int sideorient)
 {
-    if (side < TSHAPE::NFacets || side >= TSHAPE::NSides) {
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
+    if (side < firstside || side >= TSHAPE::NSides + 1) {
         DebugStop();
     }
+
+
     if(side < TSHAPE::NSides-1) TPZCompElHDiv<TSHAPE>::SetSideOrient(side, sideorient);
-    else fBottom.SetSideOrient(side, sideorient);
+    else if(side == TSHAPE::NSides-1 ) fBottom.SetSideOrient(side, sideorient);
+    else fTop.SetSideOrient(side-1, sideorient);
 }
 
 // NAO TESTADO
 template<class TSHAPE>
 int TPZCompElHDivCollapsed<TSHAPE>::GetSideOrient(int side)
 {
-    if (side >= TSHAPE::NFacets && side < TSHAPE::NSides - 1) {
+    int firstside = TSHAPE::NSides-TSHAPE::NFacets-1;
+    if (side < firstside || side >= TSHAPE::NSides + 1) {
+        DebugStop();
+    }
+
+    if (side < TSHAPE::NSides - 1) {
         return TPZCompElHDiv<TSHAPE>::GetSideOrient(side);
     }
     else if(side == TSHAPE::NSides-1) return fBottom.GetSideOrient(side);
-    DebugStop();
+    else return fTop.GetSideOrient(side-1);
 }
 
 template<class TSHAPE>
@@ -179,15 +188,15 @@ int TPZCompElHDivCollapsed<TSHAPE>::NConnects() const {
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::SetConnectIndex(int i, int64_t connectindex)
 {
-	if(i < TSHAPE::NFacets)
+	if(i <= TSHAPE::NFacets)
 	{
         SetConnectIndex(i, connectindex);
 	}
-    else if(i == TSHAPE::NFacets)
+    else if(i == TSHAPE::NFacets+1)
     {
         fBottom.SetConnectIndex(0, connectindex);
     }
-    else if(i == TSHAPE::NFacets+1)
+    else if(i == TSHAPE::NFacets+2)
     {
         fTop.SetConnectIndex(0, connectindex);
     }
@@ -205,9 +214,13 @@ int TPZCompElHDivCollapsed<TSHAPE>::NConnectShapeF(int connect, int connectorder
     {
         return TPZCompElHDiv<TSHAPE>::NConnectShapeF(connect, connectorder);
     }
-    else if(connect <= TSHAPE::NFacets+2)
+    else if(connect == TSHAPE::NFacets+1)
     {
         return fBottom.NConnectShapeF(0, connectorder);
+    }
+    else if(connect == TSHAPE::NFacets+2)
+    {
+        return fTop.NConnectShapeF(0, connectorder);
     }
     else DebugStop();
     return -1;
@@ -244,7 +257,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     for(int i=0; i<nscalarbottom; i++) data.fVecShapeIndex[nvecshape+nscalartop+i] = std::pair<int,int64_t>(nvec+1,nscalar+nscalartop+i);
     data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
     data.dphi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
-    data.divphi.Resize(nscalar+nscalartop+nscalarbottom,1);
+    data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
 #ifdef _AUTODIFF
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
 #endif
@@ -367,7 +380,10 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
 
+    bool needsol = data.fNeedsSol;
+    data.fNeedsSol = false;
     TPZCompElHDiv<TSHAPE>::ComputeRequiredData(data, qsi);
+    data.fNeedsSol = needsol;
     TPZFNMatrix<9,REAL> axeslocal(TSHAPE::Dimension+1,3);
     ExpandAxes(data.axes, axeslocal);
     data.axes = axeslocal;
@@ -396,19 +412,24 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         fTop.ComputeRequiredData(datatop, qsi);
         fBottom.ComputeRequiredData(databottom, qsi);
         int64_t numvec = data.divphi.Rows();
+        int64_t numphi = data.phi.Rows();
         int64_t nvec_top = datatop.phi.Rows();
         int64_t nvec_bottom = databottom.phi.Rows();
         int64_t nvec_hdiv = numvec-nvec_top-nvec_bottom;
         //
         for (int64_t i= nvec_hdiv; i<numvec-nvec_top; i++) {
-            data.phi(i) = databottom.phi(i-nvec_hdiv);
             data.divphi(i) = databottom.phi(i-nvec_hdiv);
         }
         for (int64_t i= nvec_hdiv+nvec_bottom; i<numvec; i++) {
-            data.phi(i) = databottom.phi(i-nvec_hdiv-nvec_bottom);
-            data.divphi(i) = databottom.phi(i-nvec_hdiv-nvec_bottom);
+            data.divphi(i) = datatop.phi(i-nvec_hdiv-nvec_bottom);
         }
-    }
+        for (int64_t i= numphi; i<numphi-nvec_top; i++) {
+            data.phi(i) = databottom.phi(i-numphi);
+        }
+        for (int64_t i= numphi+nvec_bottom; i<numphi; i++) {
+            data.phi(i) = datatop.phi(i-numphi-nvec_bottom);
+        }
+}
     
     if (data.fNeedsSol) {
         TPZCompElHDiv<TSHAPE>::ComputeSolution(qsi, data);
