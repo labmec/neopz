@@ -104,6 +104,40 @@ void TPZElementGroup::SetConnectIndex(int inode, int64_t index)
     DebugStop();
 }
 
+
+/// Reorder the connects in increasing number of elements connected
+void TPZElementGroup::ReorderConnects()
+{
+    TPZManVector<std::pair<int,int64_t>, 100 > orderedindexes(fConnectIndexes.size());
+    int nc = fConnectIndexes.size();
+    std::set<int64_t> depreceive;
+    // if a connect of the condensed element receives a contribution through connect dependency
+    // this will be tracked by depreceive
+    for (int ic=0; ic<nc; ic++) {
+        TPZConnect &c = Connect(ic);
+        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        while (dep) {
+            depreceive.insert(dep->fDepConnectIndex);
+            dep = dep->fNext;
+        }
+    }
+    for (int i=0; i<nc ; ++i) {
+        TPZConnect &c = Connect(i);
+        int64_t cindex = ConnectIndex(i);
+        if(c.NElConnected() == 1 && c.HasDependency() == 0 && depreceive.find(cindex) == depreceive.end())
+        {
+            orderedindexes[i] = {0,cindex};
+        }
+        else
+        {
+            orderedindexes[i] = {1,cindex};
+        }
+    }
+    std::sort(&orderedindexes[0],&orderedindexes[0]+nc);
+    for(int ic=0; ic<nc; ic++) fConnectIndexes[ic] = orderedindexes[ic].second;
+}
+
+
 /**
  * @brief Method for creating a copy of the element in a patch mesh
  * @param mesh Patch clone mesh

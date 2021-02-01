@@ -85,6 +85,9 @@ public:
     bool NeedsComputing(const std::set<int> &matids) override;
     
 
+    /// Reorder the connects in increasing number of elements connected
+    void ReorderConnects();
+    
     const TPZVec<TPZCompEl *> &GetElGroup(){
         return fElGroup;
     }
