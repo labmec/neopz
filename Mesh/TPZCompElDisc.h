@@ -192,7 +192,7 @@ public:
 protected:
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx) override;
     
-    public:
+public:
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
