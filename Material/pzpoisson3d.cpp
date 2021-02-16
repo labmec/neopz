@@ -207,7 +207,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         TPZManVector<STATE,1> res(1);
         TPZFMatrix<STATE> dres(Dimension(),1);
         fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
-        fXfLoc = res[0];
+        fXfLoc = -res[0];
     }
     REAL delx = 0.;
     STATE ConvDirAx[3] = {0.};
