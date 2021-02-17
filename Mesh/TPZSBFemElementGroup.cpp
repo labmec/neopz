@@ -15,6 +15,7 @@
 #include "TPZSBFemElementGroup.h"
 #include "TPZSBFemVolume.h"
 #include "pzcmesh.h"
+#include "TPZMaterial.h"
 
 #ifdef USING_MKL
 #include <mkl.h>
@@ -52,6 +53,8 @@ static LoggerPtr loggerMT(Logger::getLogger("pz.mesh.sbfemelementgroupMT"));
 #endif
 
 
+int TPZSBFemElementGroup::gDefaultPolynomialOrder = 0;
+
 /**
  * @brief Computes the element stifness matrix and right hand side
  * @param ek element stiffness matrix
@@ -64,14 +67,29 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
     for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
+
     TPZElementMatrix ef(Mesh(),TPZElementMatrix::EF);
     int64_t nel = fElGroup.size();
     InitializeElementMatrix(E0, ef);
     InitializeElementMatrix(E1, ef);
     InitializeElementMatrix(E2, ef);
     InitializeElementMatrix(M0, ef);
-    for (int64_t el = 0; el<nel; el++) {
-        TPZCompEl *cel = fElGroup[el];
+
+    if(fInternalPolynomialOrder != 0){
+        int ndof = 0;
+        for (auto conid : fConnectIndexes)
+        {
+            if (conid == fInternalConnectIndex) continue;
+
+            ndof += Mesh()->ConnectVec()[conid].NShape()* Mesh()->ConnectVec()[conid].NState();
+        }
+        E0.fMat.Resize(ndof, ndof);
+        E1.fMat.Resize(ndof, ndof);
+        E2.fMat.Resize(ndof, ndof);
+    }
+
+    for (auto cel : fElGroup)
+    {
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
         if (!sbfem) {
@@ -84,9 +102,6 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
         TPZElementMatrix M0Loc(Mesh(),TPZElementMatrix::EK);
         sbfem->ComputeKMatrices(E0Loc, E1Loc, E2Loc,M0Loc);
         
-//        boost::crc_32_type crc;
-//        crc.process_bytes(&E0Loc.fMat(0,0),E0Loc.fMat.Rows()*E0Loc.fMat.Rows()*sizeof(STATE));
-//        EMatcrc[cel->Index()]= crc.checksum();
 #ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
             TPZGeoEl *gel = cel->Reference();
@@ -118,25 +133,23 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-// #ifdef COMPUTE_CRC
-//         {
-//             boost::crc_32_type crc;
-//             int64_t n = E0Loc.fMat.Rows();
-//             crc.process_bytes(&E0Loc.fMat(0,0), n*n*sizeof(STATE));
-//             crc.process_bytes(&E1Loc.fMat(0,0), n*n*sizeof(STATE));
-//             crc.process_bytes(&E2Loc.fMat(0,0), n*n*sizeof(STATE));
-//             matEcrc[Index()] = crc.checksum();
 
-//         }
-// #endif
         int nelcon = E0Loc.NConnects();
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = E0Loc.fBlock.Size(ic);
             int icindex = E0Loc.fConnect[ic];
+            if (icindex == fInternalConnectIndex)
+            {
+                continue;
+            }
             int ibldest = locindex[icindex];
             for (int jc = 0; jc<nelcon; jc++) {
                 int jblsize = E0Loc.fBlock.Size(jc);
                 int jcindex = E0Loc.fConnect[jc];
+                if (jcindex == fInternalConnectIndex)
+                {
+                    continue;
+                }
                 int jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
@@ -458,17 +471,139 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
             }
         }
     }
+
+    if (fInternalPolynomialOrder > 0)
+    {
+        ComputeBubbleParameters();
+        for (auto cel : fElGroup)
+        {
+            TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
+#ifdef PZDEBUG
+            if (!sbfem) DebugStop();
+#endif
+            sbfem->SetCoefNonHomogeneous(fPhiBubble, fEigenvaluesBubble, fPhiInverse, fMatBubble);
+        }
+        // Computing the stiffness matrix related to the bubbles
+        int64_t nbubbles = fEigenvaluesBubble.size();
+        int n = fPhi.Rows();
+
+        TPZFNMatrix<100, std::complex<double>> k01(n,n,0),  k02(n,n,0), k03(n,n,0);
+        for (int64_t i = 0; i < n; i++)
+        {
+            for (int64_t j = 0; j < n; j++)
+            {
+                k01(i,j) = E0.fMat(i,j);
+                k02(i,j) = E1.fMat(i,j);
+                k03(i,j) = E2.fMat(i,j);
+            }
+        }
+
+        TPZFNMatrix<100, std::complex<double>> temp1(n,nbubbles,0), temp2(n,nbubbles,0), temp3(n,nbubbles,0);
+
+        k01.Multiply(fPhiBubble, temp1); 
+        k02.Multiply(fPhiBubble, temp2);
+        k03.Multiply(fPhiBubble, temp3);
+
+        bool transpose = 1;
+        fPhiBubble.Multiply(temp1, k01, transpose); // k01 = fPhi^T * E0 * fPhi
+        fPhiBubble.Multiply(temp2, k02, transpose); // k02 = fPhi^T * E1 * fPhi
+        fPhiBubble.Multiply(temp3, k03, transpose); // k02 = fPhi^T * E2 * fPhi
+        
+        TPZFNMatrix<200,std::complex<double>> K0(nbubbles,nbubbles,0);
+        // K0 = ( k01* (-eigval[i])*(-eigval[j]) + k02^T * (-eigval[i]) + k02 * (-eigval[j]) + k03 / (-eigval[i]-eigval[j])
+        for (int i=0; i<nbubbles; i++) {
+            for (int j=0; j<nbubbles; j++) {
+                if(IsZero((-fEigenvaluesBubble[i]-fEigenvaluesBubble[j]).real())) {
+                    K0(i,j) += 0;
+                } else {
+                    K0(i,j) = (k01(i,j) * (-fEigenvaluesBubble[i]*-fEigenvaluesBubble[j]) + k02(j,i) * -fEigenvaluesBubble[i] +
+                        k02(i,j) * -fEigenvaluesBubble[j] + k03(i,j))/(-fEigenvaluesBubble[i]-fEigenvaluesBubble[j]);
+                }
+            }
+        }
+
+        K0.Multiply(fMatBubble, temp1);
+        
+        int ndofbubbles = fMatBubble.Cols();
+        TPZFNMatrix<100, std::complex<double>> K(ndofbubbles,ndofbubbles,0);
+        fMatBubble.Multiply(temp1, K, transpose);  // K = fMatBubble^T K fMatBubble;
+        
+        ek.fMat.Resize(n+ndofbubbles,n+ndofbubbles);
+        for (int i=0; i<ndofbubbles; i++) {
+            for (int j=0; j<ndofbubbles; j++) {
+                ek.fMat(i+n,j+n) = K(i,j).real();
+            }
+        }
+    
+#ifdef LOG4CXX
+        if(loggerbubble->isDebugEnabled())
+        {
+            std::stringstream sout;
+            K.Print("KBubble = ",sout,EMathematicaInput);
+            LOGPZ_DEBUG(loggerbubble, sout.str())
+        }
+#endif
+
+        // Computing the force vector
+        int icon = this->ConnectIndex(NConnects()-1);
+
+        TPZFNMatrix<100,std::complex<double>> f(n,1,0);
+        TPZFNMatrix<100,std::complex<double>> fbubble(nbubbles,1,0);
+
+        int64_t nel = fElGroup.size();
+        
+        for (auto cel : fElGroup)
+        {
+            TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
+#ifdef PZDEBUG
+            if (!sbfem) DebugStop();
+#endif
+            sbfem->LocalBodyForces(f, fbubble, fEigenvalues, fEigenvaluesBubble, icon);
+        }
+
+        ef.fMat.Zero();
+        ef.fMat.Resize(n+ndofbubbles,1);
+
+        TPZFNMatrix<200, std::complex<REAL>> ef0, efbubbles;
+
+        fPhiInverse.Multiply(f, ef0, transpose);
+        fMatBubble.Multiply(fbubble, efbubbles, transpose);
+
+        for (int i=0; i<n; i++)
+        {
+            ef.fMat(i,0) = -ef0(i,0).real();
+        }
+        for (int i=0; i<ndofbubbles; i++) 
+        {
+            ef.fMat(i+n,0) = -efbubbles(i,0).real();
+        }
+    
+#ifdef LOG4CXX
+        if (loggerBF->isDebugEnabled()) {
+            std::stringstream sout;
+
+            K0.Print("K0 = ", sout, EMathematicaInput);
+            f.Print("f = ", sout, EMathematicaInput);
+            fbubble.Print("fbubble = ", sout, EMathematicaInput);
+            
+            ek.fMat.Print("ek = ", sout, EMathematicaInput);
+            ef.fMat.Print("ef = ", sout, EMathematicaInput);
+            LOGPZ_DEBUG(loggerBF, sout.str())
+        }
+#endif
+    }
+    }
 #endif
 }
 
 void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 {
-    if (fElGroup.size() == 0) return;
 
 #ifdef USING_BLAZE
     CalcStiffBlaze(ek,ef);
     return;
 #endif
+
     InitializeElementMatrix(ek, ef);
 
     if (fComputationMode == EOnlyMass) {
@@ -479,9 +614,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     TPZElementMatrix E0,E1,E2, M0;
     ComputeMatrices(E0, E1, E2, M0);
-    
-//    crc.process_bytes(&E0.fMat(0,0),E0.fMat.Rows()*E0.fMat.Rows()*sizeof(STATE));
-//    EMatcrc[Index()]= crc.checksum();
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled()) {
@@ -516,8 +648,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
     else
     {
-//        E0.fMat.Print("E0 = ",std::cout,EMathematicaInput);
-
         TPZVec<int> pivot(E0Inv.Rows(),0);
         int nwork = 4*n*n + 2*n;
         TPZVec<STATE> work(2*nwork,0.);
@@ -541,13 +671,9 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             DebugStop();
         }
     }
-//    E0Inv.Print("E0InvCheck = ",std::cout,EMathematicaInput);
-    
-
     
     TPZFMatrix<STATE> globmat(2*n,2*n,0.);
-    
-//    cblas_dgemm(<#const enum CBLAS_ORDER __Order#>, <#const enum CBLAS_TRANSPOSE __TransA#>, <#const enum CBLAS_TRANSPOSE __TransB#>, <#const int __M#>, <#const int __N#>, <#const int __K#>, <#const double __alpha#>, <#const double *__A#>, <#const int __lda#>, <#const double *__B#>, <#const int __ldb#>, <#const double __beta#>, <#double *__C#>, <#const int __ldc#>)
+
 #ifdef STATEdouble
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasTrans, n, n, n, 1., &E0Inv(0,0), n, &E1.fMat(0,0), n, 0., &globmat(0,0), 2*n);
 #elif defined STATEfloat
@@ -584,7 +710,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     std::cout << "SBFem does not execute for this configuration\n";
     DebugStop();
 #endif
-    //    globmat.Print("GlobMatCheck = ",std::cout, EMathematicaInput);
 
     for (int i=0; i<n; i++) {
         globmat(i,i) -= (dim-2)*0.5;
@@ -638,7 +763,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
                 eigvecreal(i,j) = eigenVectors(i,j).real();
             }
         }
-//        eigenVectors.Print("eigvec =",std::cout,EMathematicaInput);
     }
         
     TPZFNMatrix<200,std::complex<double> > QVectors(n,n,0.);
@@ -717,12 +841,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         fPhi.Print("Phivec =",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
-//    double phinorm = Norm(fPhi);
-//    if (loggerMT->isDebugEnabled()) {
-//        std::stringstream sout;
-//        sout << "Element index " << Index() << " phinorm = " << phinorm;
-//        LOGPZ_DEBUG(loggerMT, sout.str())
-//    }
 #endif
         
     TPZFMatrix<std::complex<double> > phicopy(fPhi);
@@ -743,10 +861,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
-    //   phicopy.Inverse(fPhiInverse, ELU);
-//    phicopy.Print("phidec = ",std::cout,EMathematicaInput);
         fPhiInverse.Print("fPhiInverse = ",sout,EMathematicaInput);
-//    QVectors.Print("QVectors ", std::cout);
+        QVectors.Print("QVectors ", std::cout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
@@ -771,9 +887,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
     }
     
-    int64_t nel = fElGroup.size();
-    for (int64_t el = 0; el<nel; el++) {
-        TPZCompEl *cel = fElGroup[el];
+    for (auto cel : fElGroup)
+    {
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
         if (!sbfem) {
@@ -840,16 +955,141 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
     }
     
-//    ek.fMat.Print("Stiffness",std::cout,EMathematicaInput);
 #ifdef PZDEBUG
 //    std::cout << "Norm of imaginary part " << Norm(ekimag) << std::endl;
 #endif
+
+    if (fInternalPolynomialOrder > 0)
+    {
+        ComputeBubbleParameters();
+        for (auto cel : fElGroup)
+        {
+            TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
+#ifdef PZDEBUG
+            if (!sbfem) DebugStop();
+#endif
+            sbfem->SetCoefNonHomogeneous(fPhiBubble, fEigenvaluesBubble, fPhiInverse, fMatBubble);
+        }
+        // Computing the stiffness matrix related to the bubbles
+        int64_t nbubbles = fEigenvaluesBubble.size();
+        int n = fPhi.Rows();
+
+        TPZFNMatrix<100, std::complex<double>> k01(n,n,0),  k02(n,n,0), k03(n,n,0);
+        for (int64_t i = 0; i < n; i++)
+        {
+            for (int64_t j = 0; j < n; j++)
+            {
+                k01(i,j) = E0.fMat(i,j);
+                k02(i,j) = E1.fMat(i,j);
+                k03(i,j) = E2.fMat(i,j);
+            }
+        }
+
+        TPZFNMatrix<100, std::complex<double>> temp1(n,nbubbles,0), temp2(n,nbubbles,0), temp3(n,nbubbles,0);
+
+        k01.Multiply(fPhiBubble, temp1); 
+        k02.Multiply(fPhiBubble, temp2);
+        k03.Multiply(fPhiBubble, temp3);
+
+        bool transpose = 1;
+        fPhiBubble.Multiply(temp1, k01, transpose); // k01 = fPhi^T * E0 * fPhi
+        fPhiBubble.Multiply(temp2, k02, transpose); // k02 = fPhi^T * E1 * fPhi
+        fPhiBubble.Multiply(temp3, k03, transpose); // k02 = fPhi^T * E2 * fPhi
+        
+        TPZFNMatrix<200,std::complex<double>> K0(nbubbles,nbubbles,0);
+        // K0 = ( k01* (-eigval[i])*(-eigval[j]) + k02^T * (-eigval[i]) + k02 * (-eigval[j]) + k03 / (-eigval[i]-eigval[j])
+        for (int i=0; i<nbubbles; i++) {
+            for (int j=0; j<nbubbles; j++) {
+                if(IsZero((-fEigenvaluesBubble[i]-fEigenvaluesBubble[j]).real())) {
+                    K0(i,j) += 0;
+                } else {
+                    K0(i,j) = (k01(i,j) * (-fEigenvaluesBubble[i]*-fEigenvaluesBubble[j]) + k02(j,i) * -fEigenvaluesBubble[i] +
+                        k02(i,j) * -fEigenvaluesBubble[j] + k03(i,j))/(-fEigenvaluesBubble[i]-fEigenvaluesBubble[j]);
+                }
+            }
+        }
+
+        K0.Multiply(fMatBubble, temp1);
+        
+        int ndofbubbles = fMatBubble.Cols();
+        TPZFNMatrix<100, std::complex<double>> K(ndofbubbles,ndofbubbles,0);
+        fMatBubble.Multiply(temp1, K, transpose);  // K = fMatBubble^T K fMatBubble;
+        
+        ek.fMat.Resize(n+ndofbubbles,n+ndofbubbles);
+        for (int i=0; i<ndofbubbles; i++) {
+            for (int j=0; j<ndofbubbles; j++) {
+                ek.fMat(i+n,j+n) = K(i,j).real();
+            }
+        }
+    
+#ifdef LOG4CXX
+        if(loggerbubble->isDebugEnabled())
+        {
+            std::stringstream sout;
+            K.Print("KBubble = ",sout,EMathematicaInput);
+            LOGPZ_DEBUG(loggerbubble, sout.str())
+        }
+#endif
+
+        // Computing the force vector
+        int icon = this->ConnectIndex(NConnects()-1);
+
+        TPZFNMatrix<100,std::complex<double>> f(n,1,0);
+        TPZFNMatrix<100,std::complex<double>> fbubble(nbubbles,1,0);
+
+        int64_t nel = fElGroup.size();
+        
+        for (auto cel : fElGroup)
+        {
+            TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
+#ifdef PZDEBUG
+            if (!sbfem) DebugStop();
+#endif
+            sbfem->LocalBodyForces(f, fbubble, fEigenvalues, fEigenvaluesBubble, icon);
+        }
+
+        ef.fMat.Zero();
+        ef.fMat.Resize(n+ndofbubbles,1);
+
+        TPZFNMatrix<200, std::complex<REAL>> ef0, efbubbles;
+
+        fPhiInverse.Multiply(f, ef0, transpose);
+        fMatBubble.Multiply(fbubble, efbubbles, transpose);
+
+        for (int i=0; i<n; i++)
+        {
+            ef.fMat(i,0) = ef0(i,0).real();
+        }
+        for (int i=0; i<ndofbubbles; i++) 
+        {
+            ef.fMat(i+n,0) = efbubbles(i,0).real();
+        }
+    
+#ifdef LOG4CXX
+        if (loggerBF->isDebugEnabled()) {
+            std::stringstream sout;
+
+            K0.Print("K0 = ", sout, EMathematicaInput);
+            f.Print("f = ", sout, EMathematicaInput);
+            fbubble.Print("fbubble = ", sout, EMathematicaInput);
+            
+            ek.fMat.Print("ek = ", sout, EMathematicaInput);
+            ef.fMat.Print("ef = ", sout, EMathematicaInput);
+            LOGPZ_DEBUG(loggerBF, sout.str())
+        }
+#endif
+    }
 }
 
 void TPZSBFemElementGroup::LoadSolution()
 {
-    TPZFNMatrix<200,std::complex<double> > uh_local(fPhi.Rows(),fMesh->Solution().Cols(),0.);
     int nc = NConnects();
+    int ndofs = fPhiInverse.Cols()+fMatBubble.Cols();
+    int ncoef = fPhiInverse.Rows()+fMatBubble.Rows();
+    
+    TPZFNMatrix<100, std::complex<double> > uh_local(ncoef, fMesh->Solution().Cols(),0.);
+    fCoef.Resize(ncoef,fMesh->Solution().Cols());
+    
     int count = 0;
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = Connect(ic);
@@ -866,7 +1106,27 @@ void TPZSBFemElementGroup::LoadSolution()
         }
         count += blsize;
     }
-    fPhiInverse.Multiply(uh_local, fCoef);
+    if(fInternalPolynomialOrder == 0){
+        fPhiInverse.Multiply(uh_local, fCoef);
+    } else {
+        TPZFMatrix<std::complex<REAL> > coefbubble;
+        TPZFMatrix<std::complex<REAL> > uh_localbubble(fMatBubble.Cols(),1);
+        for (int64_t i = 0; i < fMatBubble.Cols(); i++)
+        {
+            uh_localbubble(i,0) = uh_local(i+fPhiInverse.Cols());
+        }
+        fMatBubble.Multiply(uh_localbubble, coefbubble);
+        
+        uh_local.Resize(fPhiInverse.Rows(),1);
+        fPhiInverse.Multiply(uh_local, fCoef);
+
+        fCoef.Resize(ncoef,1);
+        for (int64_t i = 0; i < fMatBubble.Rows(); i++)
+        {
+            fCoef(i+fPhiInverse.Rows(),0) = coefbubble(i);
+        }
+    }
+
     int64_t nel = fElGroup.size();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
@@ -878,6 +1138,13 @@ void TPZSBFemElementGroup::LoadSolution()
 #endif
         sbfem->LoadCoef(fCoef);
     }
+    #ifdef LOG4CXX
+        if (loggerBF->isDebugEnabled()) {
+            std::stringstream sout;
+            fCoef.Print("fCoef = ", sout, EMathematicaInput);
+            LOGPZ_DEBUG(loggerBF, sout.str())
+        }
+#endif
 
 }
 
@@ -928,9 +1195,8 @@ void TPZSBFemElementGroup::LoadEigenVector(int64_t eig)
 {
     fCoef.Zero();
     fCoef(eig,0) = 1.;
-    int64_t nel = fElGroup.size();
-    for (int64_t el = 0; el<nel; el++) {
-        TPZCompEl *cel = fElGroup[el];
+    for (auto cel : fElGroup)
+    {
         TPZSBFemVolume *sbfem = dynamic_cast<TPZSBFemVolume *>(cel);
 #ifdef PZDEBUG
         if (!sbfem) {
@@ -968,6 +1234,214 @@ void TPZSBFemElementGroup::AddElement(TPZCompEl *cel)
     TPZElementGroup::AddElement(cel);
 }
 
+void TPZSBFemElementGroup::InitializeInternalConnect()
+{
+    if(fElGroup.size() == 0) return;
+
+    // Verifies if the internal connect is allocated into the connect list
+    auto it = std::find(fConnectIndexes.begin(), fConnectIndexes.end(), fInternalConnectIndex);
+    auto ncon = NConnects();
+    if (it != fConnectIndexes.end())
+    {
+        TPZConnect &c = Mesh()->ConnectVec()[fInternalConnectIndex];
+        if (c.SequenceNumber() != -1)
+        {
+            return;
+        }
+    }
+    else
+    {
+        fConnectIndexes.resize(ncon+1);
+        fConnectIndexes[ncon] = fInternalConnectIndex;
+    }
+    
+    int nshapeboundary = 0;
+    int64_t nshapeinternal = 0;
+    auto nstate = fElGroup[0]->Material()->NStateVariables();
+
+    std::vector<int64_t> connects(ncon);
+    for (auto icon : fConnectIndexes)
+    {
+        nshapeboundary += Mesh()->ConnectVec()[icon].NShape()*Mesh()->ConnectVec()[icon].NState();
+    }
+    if(!(fElGroup[0]->Material()) )
+    {
+        std::cout << "TPZSBFemElementGroup::InitializeInternalConnect - No material associated\n";
+        DebugStop();
+    }
+    nshapeinternal = 1; // hat function
+    nshapeinternal += (fInternalPolynomialOrder-1)*nshapeboundary; // p > 2, one bubble for each boundary DOF.
+
+    if (Dimension() == 2)
+    {
+        if (fInternalPolynomialOrder > 1)
+        {
+            // number of real exponents
+            nshapeinternal += nshapeboundary - (fInternalPolynomialOrder*2*nstate + 1);
+            if ( !(IsZero(fInternalPolynomialOrder%2)) )
+            {
+                nshapeinternal--;
+            }
+        }
+    }
+    if (Dimension() == 3)
+    {
+        nshapeinternal += nshapeboundary; // for 3D all exponents are rational
+    }
+    
+    TPZConnect &c = Mesh()->ConnectVec()[fInternalConnectIndex];
+    
+    c.SetNShape(nshapeinternal);
+    int64_t seq = c.SequenceNumber();
+    Mesh()->Block().Set(seq, nshapeinternal);
+}
+
+void TPZSBFemElementGroup::ComputeBubbleParameters()
+{
+    int cont = 0;
+    int nstate = fElGroup[0]->Material()->NStateVariables();
+    int n = fPhi.Rows();
+
+    // Finding the non integer eigenvalues
+    TPZManVector<int64_t> ind(0);
+    if (Dimension() == 2)
+    {
+        for (int i=0; i<n; i++)
+        {
+            REAL resto = fEigenvalues[i].real() - nearbyint(fEigenvalues[i].real());
+            if( !IsZero(resto))
+            {
+                ind.resize(ind.size()+1);
+                ind[cont] = i;
+                cont++;
+            }
+        }
+    }
+    if (Dimension() == 3)
+    {
+        cont = fEigenvalues.size();
+        ind.resize(cont);
+        for (int i = 0; i < cont; i++)
+        {
+            ind[i] = i;
+        }
+    }
+    // TPZManVector<int64_t> ind(0);
+    // if(fPolynomialShapeFunctions == false){
+        // for (int i=0; i<n; i++) {
+        //     REAL resto = fEigenvalues[i].real() - nearbyint(fEigenvalues[i].real());
+        //     if( !IsZero(resto)){
+        //         ind.resize(ind.size()+1);
+        //         ind[cont] = i;
+        //         cont++;
+        //     }
+        // }
+    // }
+    
+    fEigenvaluesBubble.resize(cont*2 + n*fInternalPolynomialOrder + nstate);
+    for (int i = 0; i < cont; ++i)
+    {
+        fEigenvaluesBubble[2*i] = fEigenvalues[ind[i]];
+        fEigenvaluesBubble[2*i+1] = -fInternalPolynomialOrder;
+    }
+    int64_t neigval = fEigenvaluesBubble.size();
+    
+    // Updating the eigenvalue vector for polynomial bubbles
+    for (int i=0; i<n; i++) {
+        fEigenvaluesBubble[i + 2*cont] = -1;
+    }
+    for (int j=0; j<nstate; j++) {
+        fEigenvaluesBubble[n + 2*cont + j] = 0;
+    }
+    for (int j=2; j<=fInternalPolynomialOrder; j++) {
+        for (int i=0; i<n; i++) {
+            fEigenvaluesBubble[i + n*(j-1) + nstate + 2*cont] = -j;
+        }
+    }
+#ifdef PZDEBUG
+    // std::cout << fEigenvaluesBubble << std::endl;
+#endif
+
+    // Updating the eigenvectors matrix
+    int64_t nphis = fEigenvaluesBubble.size();
+    fPhiBubble.Resize(n, nphis);
+    fPhiBubble.Zero();
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<cont; j++) {
+            fPhiBubble(i,j*2) = -fPhi(i,ind[j]);
+            fPhiBubble(i,j*2+1) = fPhi(i,ind[j]);
+        }
+    }
+    for (int i=0; i<n; i++) {
+        fPhiBubble(i,i+2*cont) = 1;
+        for (int j=0; j<nstate; j++) {
+            fPhiBubble(i,n+2*cont+j) = fPhi(i,n-nstate+j);
+        }
+    }
+    for (int j=1; j<fInternalPolynomialOrder; j++) {
+        for (int i=0; i<n; i++) {
+            fPhiBubble(i,n*j+i + 2*cont + nstate) = 1;
+        }
+    }
+    
+    // Updating the fPhiInverse
+    fMatBubble.Resize(fInternalPolynomialOrder*n + nstate + cont*2, (fInternalPolynomialOrder-1)*n + nstate + cont);
+    
+    TPZConnect &c = Mesh()->ConnectVec()[fInternalConnectIndex];
+    int64_t seq = c.SequenceNumber();
+    int internalpoly = Mesh()->Block().Size(seq);
+    if (internalpoly != fMatBubble.Cols())
+    {
+        DebugStop();
+    }
+    
+    
+    // rational functions
+    for (int64_t i=0; i<cont; i++) {
+        fMatBubble(2*i, i) = 1;
+        fMatBubble(2*i+1, i) = 1;
+    }
+    // hat functions
+    for (int64_t i=0; i<n; i++) {
+        for (int j=0; j<nstate; j++) {
+            fMatBubble(i + 2*cont, j + cont) = -1.;
+            if(IsZero(fPhi(i, n - nstate + j))){
+                fMatBubble(2*cont + i, j + cont) = 0.;
+            }
+        }
+    }
+    //polynomial functions
+    for (int j=0; j<nstate; j++)
+    {
+        fMatBubble(n + j + 2*cont,j + cont) = 1;
+    }
+    if(fInternalPolynomialOrder > 1)
+    {
+        for (int i=0; i<n; i++) {
+            fMatBubble(i+ 2*cont, i+1 + cont+ nstate-1) = 1;
+            fMatBubble(n+1 + i + 2*cont+ nstate-1, i+1 + cont+ nstate-1) = -1;
+        }
+    }
+    for (int j=2; j<fInternalPolynomialOrder; j++)
+    {
+        for (int i=0; i<n; i++) {
+            fMatBubble(i+n*(j-1) + 2*cont + nstate, i+n*(j-1) + cont+ nstate) = 1;
+            fMatBubble(i+n*j + 2*cont+ nstate, i+n*(j-1) + cont+ nstate) = -1;
+        }
+    }
+
+#ifdef LOG4CXX
+    if (loggerbubble->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "eigvalbubbles = {" << fEigenvaluesBubble << "};\n";
+        fPhiBubble.Print("fPhiBubble = ", sout, EMathematicaInput);
+        fMatBubble.Print("fMatBubble = ", sout, EMathematicaInput);
+        // fMat.Print("fMat = ", sout, EMathematicaInput);
+        LOGPZ_DEBUG(loggerbubble, sout.str())
+    }
+#endif
+
+}
 
 
 //http://www.netlib.org/lapack/lug/node50.html

@@ -13,6 +13,7 @@
 
 #include "pzelementgroup.h"
 #include "TPZSBFemVolume.h"
+#include "pzcmesh.h"
 
 
 class TPZSBFemElementGroup : public TPZElementGroup
@@ -20,17 +21,28 @@ class TPZSBFemElementGroup : public TPZElementGroup
     
 public:
     enum EComputationMode {EStiff, EOnlyMass, EMass};
+
+    static int gDefaultPolynomialOrder;
     
 private:
     
     /// Matrix of eigenvectors which compose the stiffness matrix
     TPZFMatrix<std::complex<double> > fPhi;
+
+    /// Matrix of coefficients that compose the stiffness matrix for bubble functions
+    TPZFNMatrix<100,std::complex<double> > fPhiBubble;
     
     /// Inverse of the eigenvector matrix (transfers eigenvector coeficients to side shape coeficients)
-    TPZFMatrix<std::complex<double> > fPhiInverse;
+    TPZFNMatrix<100,std::complex<double> > fPhiInverse;
+
+    /// Matrix that composes the bubble functions
+    TPZFNMatrix<100,std::complex<double> > fMatBubble;
     
     /// Vector of eigenvalues of the SBFem analyis
     TPZManVector<std::complex<double> > fEigenvalues;
+    
+    /// Vector of bubble exponents of the SBFem analyis with source term
+    TPZManVector<std::complex<double> > fEigenvaluesBubble;
     
     /// Multiplying coefficients of each eigenvector
     TPZFMatrix<std::complex<double> > fCoef;
@@ -47,6 +59,10 @@ private:
     
     /// Compute the mass matrix based on the value of M0 and the eigenvectors
     void ComputeMassMatrix(TPZElementMatrix &M0);
+
+    int fInternalPolynomialOrder = 0;
+
+    int64_t fInternalConnectIndex = -1;
     
 public:
     
@@ -58,7 +74,13 @@ public:
     /// constructor
     TPZSBFemElementGroup(TPZCompMesh &mesh, int64_t &index) : TPZElementGroup(mesh,index)
     {
-        
+        fInternalPolynomialOrder = TPZSBFemElementGroup::gDefaultPolynomialOrder;
+        if (fInternalPolynomialOrder != 0) {
+            int nshape = 0;
+            int nvar = 1;
+            int64_t newindex = Mesh()->AllocateNewConnect(nshape, nvar, fInternalPolynomialOrder);
+            fInternalConnectIndex = newindex;
+        }
     }
     
     /** @brief add an element to the element group
@@ -267,6 +289,10 @@ public:
         }
         return coefreal;
     }
+
+    void InitializeInternalConnect();
+
+    void ComputeBubbleParameters();
 
 };
 

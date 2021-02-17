@@ -32,8 +32,20 @@ class TPZSBFemVolume : public TPZInterpolationSpace
     /// Section of the phi vector associated with this volume element
     TPZFNMatrix<30,std::complex<double> > fPhi;
     
+    /// Section of the phi vector associated with this volume element
+    TPZFNMatrix<30,std::complex<REAL> > fPhiBubble;
+    
     /// Eigenvlues associated with the internal shape functions
     TPZManVector<std::complex<double> > fEigenvalues;
+    
+    /// Eigenvlues associated with the internal shape functions
+    TPZManVector<std::complex<REAL> > fEigenvaluesBubble;
+    
+    /// Inverse of fPhi and bubble coefficients
+    TPZFNMatrix<100,std::complex<REAL> > fPhiInv;
+    
+    /// Inverse of fPhi and bubble coefficients
+    TPZFNMatrix<100,std::complex<REAL> > fPhiInvBubbles;
     
     /// Multiplier coeficients associated with the solution
     TPZFNMatrix<30,std::complex<double> > fCoeficients;
@@ -379,6 +391,14 @@ public:
     }
     
     void CreateGraphicalElement(TPZGraphMesh &, int);
+
+    void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &f, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
+
+    void ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
+                                    TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes);
+    
+    void SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, TPZFNMatrix<100,std::complex<double> > &phiinv, TPZFNMatrix<100,std::complex<double> > &rot);
+
 
 };
 
