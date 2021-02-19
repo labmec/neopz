@@ -341,8 +341,6 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
         for (int idf=0; idf<blsize; idf++) {
             auto getval = block.Get(seqnum, idf, 0);
             blockMF.Put(seqnumMF, idf, 0, getval);
-            int64_t pos = blockMF.Position(seqnumMF);
-            std::cout << " getval " << getval << " sol " << MFMesh->Solution()(pos) << std::endl;
         }
 	}
     
