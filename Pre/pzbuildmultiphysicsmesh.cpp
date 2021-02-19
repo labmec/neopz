@@ -341,12 +341,14 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
         for (int idf=0; idf<blsize; idf++) {
             auto getval = block.Get(seqnum, idf, 0);
             blockMF.Put(seqnumMF, idf, 0, getval);
+            int64_t pos = blockMF.Position(seqnumMF);
+            std::cout << " getval " << getval << " sol " << MFMesh->Solution()(pos) << std::endl;
         }
 	}
     
     
     // copy the solution of the submesh to father mesh
-    if(0)
+    if(1)
     {
         TPZSubCompMesh *msub = dynamic_cast<TPZSubCompMesh*>(MFMesh);
         if(msub){
@@ -377,12 +379,11 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
                     STATE valsub = blocksub.Get(seqnumsub, idf,0);
                     fathermesh->Solution()(posfather + idf) = valsub;
                 }
-                
-                
             }
             
         }
     }
+    
     int64_t nel = MFMesh->NElements();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = MFMesh->Element(el);
