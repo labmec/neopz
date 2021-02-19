@@ -495,3 +495,24 @@ void TPZMultiphysicsElement::EvaluateError(TPZFunction<STATE> &func,
     DebugStop();
 }
 
+void TPZMultiphysicsElement::GetConnectMeshPairs(TPZVec<std::pair<int64_t,int>> &connectpairs)
+{
+    int nconnect = NConnects();
+    connectpairs.Resize(nconnect);
+    int nmeshes = NMeshes();
+    int count = 0;
+    for (int imesh = 0; imesh < nmeshes; imesh++) {
+        if(!fActiveApproxSpace[imesh]) continue;
+        TPZCompEl *cel = Element(imesh);
+        if(!cel) continue;
+        int nc = cel->NConnects();
+        for (int ic=0; ic < nc; ic++) {
+            connectpairs[count+ic] = std::pair<int64_t, int>(ConnectIndex(count+ic),imesh);
+        }
+        count += nc;
+    }
+#ifdef PZDEBUG
+    if(count != nconnect) DebugStop();
+#endif
+}
+

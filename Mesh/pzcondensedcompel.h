@@ -122,6 +122,11 @@ public:
         fKeepMatrix = keep;
     }
     
+    TPZMatRed<STATE, TPZFMatrix<STATE> > &Matrix()
+    {
+        return fCondensed;
+    }
+
 	/** @brief Dimension of the element */
 	virtual int Dimension() const override
     {

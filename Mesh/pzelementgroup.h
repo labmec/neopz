@@ -21,7 +21,7 @@ class TPZElementGroup : public TPZCompEl
 {
 
 protected:
-    TPZStack<TPZCompEl *,8> fElGroup;
+    TPZStack<TPZCompEl *,10> fElGroup;
     TPZManVector<int64_t,27> fConnectIndexes;
     std::map<int64_t,TPZOneShapeRestraint> fRestraints;
 

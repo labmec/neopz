@@ -553,6 +553,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     if(logger->isDebugEnabled())
     {
         std::stringstream sout;
+        sout << std::endl;
         int nc = NConnects();
         for (int ic=0; ic<nc; ic++) {
             sout << "ic = " << ic << ' ';

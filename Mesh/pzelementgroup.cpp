@@ -227,6 +227,14 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Assembling element " << el << " out of " << nel;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 #ifdef PZDEBUG
         if(!cel){
             DebugStop();
@@ -252,7 +260,6 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             for (int i=0; i<cel->NConnects(); i++) {
                 sout << cel->ConnectIndex(i) << " ";
             }
-            efloc.Print(sout);
             sout << std::endl;
             sout << "Local indexes ";
             for (int i=0; i<cel->NConnects(); i++) {
@@ -286,16 +293,16 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             }
 
         }
-#ifdef LOG4CXX2
+    }
+#ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;
-            ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);
+            //ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);
             ek.fMat.Print("EKAssembled = ",sout,EMathematicaInput);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-    }
 }
 
 /** @brief Verifies if the material associated with the element is contained in the set */
