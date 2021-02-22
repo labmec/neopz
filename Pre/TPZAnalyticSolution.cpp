@@ -2150,6 +2150,10 @@ void TStokesAnalytic::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const
             flux[0] = -1.*sin(x1)*sin(x2);
             flux[1] = -1.*cos(x1)*cos(x2);
             break;
+        case ENoFlow:
+            flux[0] = x1*0.;
+            flux[1] = x1*0.;
+            break;
         case ESinCosBDS:
 	    if(fvisco==0) xs = 0.;
 	    xs = 1./exp(fcBrinkman/fvisco);
@@ -2223,6 +2227,10 @@ void TStokesAnalytic::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &f
             flux[0] = -1.*FADsin(x1)*FADsin(x2);
             flux[1] = -1.*FADcos(x1)*FADcos(x2);
             break;
+        case ENoFlow:
+            flux[0] = (FADFADSTATE) x1*0.;
+            flux[1] = (FADFADSTATE) x1*0.;
+            break;
         case ESinCosBDS:
 	    if(fvisco==0) xs = 0.;
 	    xs = 1./FADexp(fcBrinkman/fvisco);
@@ -2295,6 +2303,9 @@ void TStokesAnalytic::pressure(const TPZVec<TVar> &x, TVar &p) const
         case ESinCosBDS:
             p = cos(x1)*sin(x2);
             break;
+        case ENoFlow:
+            p = multRa*(x2*x2*x2-(x2*x2)/2.+x2-7./12.);
+            break;
 	case ECouplingSD:
 	    if(x2<0.){
 		p = (-exp(-x2)+exp(x2))*sin(x1);		
@@ -2345,13 +2356,17 @@ void TStokesAnalytic::pressure(const TPZVec<FADFADSTATE > &x, FADFADSTATE &p) co
     FADFADSTATE x3 = x[2];
     TPZVec<FADFADSTATE > flux(3,0.);
     REAL Re = 0.;
-    REAL lambda = 0.;    
+    REAL lambda = 0.;
+    FADFADSTATE fadRa = multRa;    
 
     switch(fExactSol)
     {
         case ESinCos:
         case ESinCosBDS:
             p = FADcos(x1)*FADsin(x2);
+            break;
+        case ENoFlow:
+            p = (FADFADSTATE) fadRa*(x2*x2*x2-(x2*x2)/2.+x2-7./12.);
             break;
 	case ECouplingSD:
 	    if(x2< (FADFADSTATE) 0.){
