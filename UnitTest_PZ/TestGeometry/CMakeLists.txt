@@ -13,16 +13,12 @@ if(BUILD_UNITTESTING)
 		set(pztestgeometry ${headers} ${sources} PARENT_SCOPE )
 
 		add_executable(TestGeometry ${headers} ${sources})
-
-		if(USING_BOOST)
-			IF (WIN32)
-				target_link_libraries(TestGeometry pz ${Boost_LIBRARIES})
-			else()
-				target_link_libraries(TestGeometry pz)
-			endif(WIN32)
-		else()
-			target_link_libraries(TestGeometry pz)
-		endif(USING_BOOST)
+                if (WIN32)
+                  target_link_libraries(TestGeometry pz ${Boost_LIBRARIES})
+                else()
+                  target_link_libraries(TestGeometry pz)
+                  target_link_libraries(TestGeometry ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+                endif()
 
 	endif(USING_FAD)
 

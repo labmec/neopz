@@ -12,15 +12,12 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestMatrix ${headers} ${sources})
 
-if(USING_BOOST)
-	IF (WIN32)
-		target_link_libraries(TestMatrix pz ${Boost_LIBRARIES})
-	ELSE()
-		target_link_libraries(TestMatrix pz)
-	ENDIF()
-else()
-	target_link_libraries(TestMatrix pz)
-endif()
+        if (WIN32)
+	  target_link_libraries(TestMatrix pz ${Boost_LIBRARIES})
+	else()
+	  target_link_libraries(TestMatrix pz)
+          target_link_libraries(TestMatrix ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        endif()
 
 endif()
 

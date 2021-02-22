@@ -12,15 +12,11 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestIntNum ${headers} ${sources})
 
-if(USING_BOOST)
-	IF (WIN32)
-		target_link_libraries(TestIntNum pz ${Boost_LIBRARIES})
-	ELSE()
-		target_link_libraries(TestIntNum pz)
-	ENDIF()
-else()
-	target_link_libraries(TestIntNum pz)
-endif()
-
+        if (WIN32)
+          target_link_libraries(TestIntNum pz ${Boost_LIBRARIES})
+        else()
+          target_link_libraries(TestIntNum pz)
+          target_link_libraries(TestIntNum ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        endif()
 endif()
 

@@ -11,17 +11,10 @@ if(BUILD_UNITTESTING)
 	set(pztestmesh ${headers} ${sources} PARENT_SCOPE )
 
 	add_executable(TestHCurl ${headers} ${sources})
-
-	if(USING_BOOST)
-		IF (WIN32)
-			target_link_libraries(TestHCurl pz ${Boost_LIBRARIES})
-		else()
-			target_link_libraries(TestHCurl pz)
-		endif(WIN32)
+        if (WIN32)
+	  target_link_libraries(TestHCurl pz ${Boost_LIBRARIES})
 	else()
-		target_link_libraries(TestHCurl pz)
-	endif(USING_BOOST)
-
-	
-
+	  target_link_libraries(TestHCurl pz)
+          target_link_libraries(TestHCurl ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        endif()
 endif(BUILD_UNITTESTING)

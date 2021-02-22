@@ -12,14 +12,12 @@ if (BUILD_UNITTESTING)
 
     add_executable(TestShape ${headers} ${sources})
 
-    if (USING_BOOST)
-        IF (WIN32)
-            target_link_libraries(TestShape pz ${Boost_LIBRARIES})
-        ELSE ()
-            target_link_libraries(TestShape pz)
-        ENDIF ()
-    else ()
-        target_link_libraries(TestShape pz)
-    endif ()
+    
+    IF (WIN32)
+      target_link_libraries(TestShape pz ${Boost_LIBRARIES})
+    ELSE ()
+      target_link_libraries(TestShape pz)
+      target_link_libraries(TestShape ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    ENDIF ()
 
 endif ()

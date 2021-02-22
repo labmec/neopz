@@ -12,15 +12,13 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestRandom ${headers} ${sources})
 
-if(USING_BOOST)
+
 	IF (WIN32)
-		target_link_libraries(TestRandom pz ${Boost_LIBRARIES})
+	  target_link_libraries(TestRandom pz ${Boost_LIBRARIES})
 	ELSE()
-		target_link_libraries(TestRandom pz)
+	  target_link_libraries(TestRandom pz)
+          target_link_libraries(TestRandom ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	ENDIF()
-else()
-	target_link_libraries(TestRandom pz)
-endif()
 
 endif()
 
