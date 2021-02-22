@@ -47,9 +47,13 @@ using blaze::columnMajor;
 using blaze::DynamicMatrix;
 #endif
 
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemelementgroup"));
+static LoggerPtr loggercoefmatrices(Logger::getLogger("pz.mesh.sbfemcoefmatrices"));
 static LoggerPtr loggerMT(Logger::getLogger("pz.mesh.sbfemelementgroupMT"));
+static LoggerPtr loggerBF(Logger::getLogger("pz.mesh.sbfemelementgroupBF"));
+static LoggerPtr loggerbubble(Logger::getLogger("pz.mesh.sbfembubbleparam"));
 #endif
 
 

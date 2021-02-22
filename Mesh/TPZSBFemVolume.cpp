@@ -19,8 +19,13 @@
 #include "pzvec_extras.h"
 #include "pzcmesh.h"
 
+#include <algorithm>
+
 #ifdef LOG4CXX
+static LoggerPtr loggercoefmatrices(Logger::getLogger("pz.mesh.sbfemvolume.coefmatrices"));
 static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
+static LoggerPtr loggerLBF(Logger::getLogger("pz.mesh.sbfemvolume.bodyloads"));
+static LoggerPtr loggerEvaluateError(Logger::getLogger("pz.mesh.sbfemvolume.error"));
 #endif
 
 TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZInterpolationSpace(mesh, gel, index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {
