@@ -16,7 +16,7 @@
 #include "TPZSBFemVolume.h"
 #include "pzcmesh.h"
 #include "TPZMaterial.h"
-
+#include <algorithm>
 #ifdef USING_MKL
 #include <mkl.h>
 #elif MACOSX
