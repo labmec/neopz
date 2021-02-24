@@ -113,6 +113,15 @@ public:
 	void GetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel);
 	
     /**
+     * Add elements to the list of left and right indices given related elements
+     */
+    void GetLeftRightElementIndices(TPZVec<int64_t> &leftindices, TPZVec<int64_t> &rightindices)
+    {
+        leftindices = fLeftElIndices;
+        rightindices = fRightElIndices;
+    }
+    
+    /**
 	 * @brief Set the index i to node inode
 	 * @param inode node to set index
 	 * @param index index to be seted
