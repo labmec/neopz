@@ -239,6 +239,18 @@ public:
 	int operator>(const TPZGeoElSide &other) const {
 		return (fGeoEl > other.fGeoEl || (fGeoEl == other.fGeoEl && fSide > other.fSide));
 	}
+
+	/** @brief Next neighbour operator as post-increment */
+	TPZGeoElSide operator++(int){
+		TPZGeoElSide pre = *this;
+		*this = this->Neighbour();
+		return pre;
+	}
+	/** @brief Next neighbour operator as pre-increment */
+	TPZGeoElSide& operator++(){
+		*this = this->Neighbour();
+		return *this;
+	}
     
     /** @brief The conversion to bool indicates whether the object has an associated element */
     operator bool() const
@@ -308,6 +320,11 @@ public:
       *      verify if a neighbour with the given material id exists
      */
     TPZGeoElSide HasNeighbour(int materialid) const;
+
+    /**
+     *      verify if a neighbour with the given material id exists
+    */
+    TPZGeoElSide HasNeighbour(std::set<int> matIDs) const;
     
     /** verifiy if a larger (lower level) neighbour exists with the given material id
      */

@@ -30,12 +30,6 @@ public:
 	/** @brief Constructor creating a rows x columns matrix */
 	TPZGenMatrix (const int64_t rows ,const int64_t columns);
 	
-	/**
-	 * @brief Constructor copy initializer
-	 * @warning ***** WARNING *****
-	 * matrices created with copy initializer are always temporary, eg, they
-	 * share the same storage with another matrix
-	 */
 	TPZGenMatrix (const TPZGenMatrix & A);
 	
 	~TPZGenMatrix();
@@ -46,6 +40,8 @@ public:
 	
 	int64_t Cols() const {return fCols;}
 	
+    void Fill(const TObj &val);
+    
 	void Resize(const int64_t newrow,const int64_t newcol);
 	
 	//DEFINE OPERATORS

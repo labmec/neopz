@@ -107,9 +107,6 @@ void TPZMatPoisson3d::GetParameters(TPZFNMatrix<9,STATE> &tensorPerm, TPZFNMatri
 }
 
 void TPZMatPoisson3d::SetPermeability(STATE perm){
-#ifdef PZDEBUG
-    std::cout <<"WARNING: TPZMatPoisson3d::SetPermeability: Permeability is a tensor. This method only works if one is working with an identity permeability tensor. If that is not one's case, the result is wrong.";
-#endif
     fTensorPerm.Resize(3,3); fTensorPerm.Zero();
     fInvPerm.Resize(3,3); fInvPerm.Zero();
     for (int i=0; i<3; i++) {
@@ -148,7 +145,6 @@ void TPZMatPoisson3d::GetInvPermeability(TPZFNMatrix<9,STATE> &invK){
 /// return the permeability and compute it if there is permeability function
 void TPZMatPoisson3d::GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor)
 {
-
     this->GetPermeability(PermTensor);
     this->GetInvPermeability(InvPermTensor);
 }
@@ -211,7 +207,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         TPZManVector<STATE,1> res(1);
         TPZFMatrix<STATE> dres(Dimension(),1);
         fForcingFunction->Execute(x,res,dres);       // dphi(i,j) = dphi_j/dxi
-        fXfLoc = res[0];
+        fXfLoc = -res[0];
     }
     REAL delx = 0.;
     STATE ConvDirAx[3] = {0.};

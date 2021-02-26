@@ -651,8 +651,6 @@ void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNo
 
 }
 
-
-
 static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
 
 static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
@@ -946,6 +944,7 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
         if (!cel) {
             continue;
         }
+        TPZCompMesh *celmesh = cel->Mesh();
         // Only prints information of desired matIDs
         if (!matIDs.empty()) {
             if (matIDs.find(gel->MaterialId()) == matIDs.end()) {
@@ -988,16 +987,16 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
 
             if (con.SequenceNumber() > -1) {
                 out << " NumElCon = " << con.NElConnected();
-                if (cmesh->Block().NBlocks()) {
-                    out << " Block size " << cmesh->Block().Size(con.SequenceNumber());
+                if (celmesh->Block().NBlocks()) {
+                    out << " Block size " << celmesh->Block().Size(con.SequenceNumber());
                     if (printSolution) {
                         out << " Solution = ";
                         int64_t ieq;
-                        for (ieq = 0; ieq < cmesh->Block().Size(con.SequenceNumber()); ieq++) {
-                            if (IsZero(cmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                        for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
+                            if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
                                 out << 0.0 << ' ';
                             } else {
-                                out << cmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                                out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
                             }
                         }
                     }
@@ -1006,6 +1005,94 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
 
             out << '\n';
         }
+        for (int i = nSides-firstSideToHaveConnect; i < nCon; i++)
+        {
+
+            TPZConnect &con = cel->Connect(i);
+
+            out << "Connect Number = " << i;
+            if (printSeqNumber) {
+                out << " Seqnumber = " << con.SequenceNumber();
+            }
+            out << " Order = " << (int) con.Order() << " NState = " << (int) con.NState()
+                << " NShape " << con.NShape();
+
+            if (printLagrangeMult) {
+                out << " IsLagrangeMult = " << (int)con.LagrangeMultiplier();
+            }
+            out << " IsCondensed: " << (int)con.IsCondensed();
+
+            if (con.SequenceNumber() > -1) {
+                out << " NumElCon = " << con.NElConnected();
+                if (celmesh->Block().NBlocks()) {
+                    out << " Block size " << celmesh->Block().Size(con.SequenceNumber());
+                    if (printSolution) {
+                        out << " Solution = ";
+                        int64_t ieq;
+                        for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
+                            if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                                out << 0.0 << ' ';
+                            } else {
+                                out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                            }
+                        }
+                    }
+                }
+            }
+
+            out << '\n';
+        }
+        out << '\n';
+    }
+}
+
+/// group elements that share a connect with the basis elements
+void TPZCompMeshTools::GroupNeighbourElements(TPZCompMesh *cmesh, const std::set<int64_t> &seed_elements, std::set<int64_t> &groupindexes)
+{
+    TPZVec<int64_t> connectgroup(cmesh->NConnects(),-1);
+    int64_t nel = cmesh->NElements();
+    TPZVec<int64_t> elhandled(nel,0);
+    for(auto el : seed_elements)
+    {
+        elhandled[el] = 1;
+        int64_t index;
+        TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
+        if(index < nel) elhandled[index] = 1;
+        groupindexes.insert(index);
+        TPZCompEl *cel = cmesh->Element(el);
+        int nc = cel->NConnects();
+        for(int ic=0; ic<nc; ic++)
+        {
+            int64_t cindex = cel->ConnectIndex(ic);
+#ifdef PZDEBUG
+            // the elements in seed_elements should not share any connect
+            if(connectgroup[cindex] != -1) DebugStop();
+#endif
+            connectgroup[cindex] = index;
+        }
+        elgr->AddElement(cel);
+    }
+    for(int64_t el = 0; el < nel; el++)
+    {
+        if(elhandled[el]) continue;
+        TPZCompEl *cel = cmesh->Element(el);
+        if(!cel) continue;
+        std::set<int64_t> groups;
+        int nc = cel->NConnects();
+        for(int ic=0; ic<nc; ic++)
+        {
+            int64_t cindex = cel->ConnectIndex(ic);
+            int64_t group = connectgroup[cindex];
+            if(group != -1) groups.insert(group);
+        }
+        if(groups.size()>1) DebugStop();
+        if(groups.size())
+        {
+            int64_t group = *groups.begin();
+            TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cmesh->Element(group));
+            elgr->AddElement(cel);
+        }
+    }
         out << '\n';
     }
 }

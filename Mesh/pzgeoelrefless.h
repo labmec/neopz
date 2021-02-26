@@ -127,18 +127,18 @@ virtual int ClassId() const override;
 	
 	virtual  int64_t NodeIndex(int node) const override;
 	
-    void CornerCoordinates(TPZFMatrix<REAL> &coord) const;
+    inline void CornerCoordinates(TPZFMatrix<REAL> &coord) const;
 	//HDiv
     
 //    virtual void Directions(int side, TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, TPZVec<int> &vectorsides) override;
 
     virtual void HDivDirectionsMaster(TPZFMatrix<REAL> &directions) override;
     
-    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int ConstrainedFace = -1) override;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions) override;
     
 
 #ifdef _AUTODIFF
-    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int ConstrainedFace = -1) override;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions) override;
 #endif
     
 	//virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector) override;

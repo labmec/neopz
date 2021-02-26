@@ -310,8 +310,10 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
     cmeshHDiv->SetName("FluxMesh");
-    // implemented in a derived class
-    // for hybrid meshes, create a HDivWrapperMatId element around each element
+    InsertPeriferalHdivMaterialObjects();
+
+    AdjustBoundaryElements();
+
     CreateInternalFluxElements();
     
 #ifdef PZDEBUG
@@ -607,7 +609,7 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
         TPZNullMaterial *mathybrid = new TPZNullMaterial(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
         mathybrid->SetNStateVariables(fNState);
-        fPressureFineMesh->InsertMaterialObject(mathybrid);
+        //fPressureFineMesh->InsertMaterialObject(mathybrid);
     }
     else
     {
@@ -1264,14 +1266,15 @@ void TPZMHMixedMeshControl::CreateSkeletonOld()
     }
     // create the skeleton elements without applying the restraints of the elements of the subdomains
     fFluxMesh->SetDefaultOrder(order);
-    std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it = fInterfaces.begin();
+    std::map<int64_t, std::pair<int64_t, int64_t> >::iterator it = fInterfaces.begin();
     while (it != fInterfaces.end()) {
         int64_t elindex = it->first;
-        // skip the boundary elements
-        //        if (elindex == it->second.second) {
-        //            it++;
-        //            continue;
-        //        }
+
+        if (elindex == it->second.second) {
+            DebugStop();
+            // boundary elements shouldn't be in fInterface map. they are removed from the map in method
+            // TPZMHMixedMeshControl::AdjustBoundaryElements
+        }
         TPZGeoEl *gel = fGMesh->ElementVec()[elindex];
         int64_t index;
         // create an element to model the flux between subdomains
@@ -1280,29 +1283,18 @@ void TPZMHMixedMeshControl::CreateSkeletonOld()
         int Side = gel->NSides()-1;
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         SetSubdomain(cel, -1);
-        
-        
-        if (elindex == it->second.second) {
-            // this is a boundary element
-            // set the side orientation of the boundary elements
-            intel->SetSideOrient(Side, 1);
-            SetSubdomain(cel, it->second.first);
+
+        if (it->second.first < it->second.second) {
+          // set the flux orientation depending on the relative value of the
+          // element ids
+          intel->SetSideOrient(Side, 1);
+        } else {
+          intel->SetSideOrient(Side, -1);
         }
-        else
-        {
-            if (it->second.first < it->second.second) {
-                // set the flux orientation depending on the relative value of the element ids
-                intel->SetSideOrient(Side, 1);
-            }
-            else
-            {
-                intel->SetSideOrient(Side, -1);
-            }
-            // this element will not be put in a subdomain
-            SetSubdomain(cel, -1);
-        }
+        // this element will not be put in a subdomain
+        SetSubdomain(cel, -1);
         gel->ResetReference();
-        
+
         it++;
     }
     // Apply restraints to the element/sides and the skeleton

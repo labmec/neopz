@@ -15,6 +15,9 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.matrix.pardisocontrol"));
+#endif
 //#define Release_Memory_Q
 
 /// empty constructor (non symetric and LU decomposition
@@ -267,6 +270,15 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         n = fNonSymmetricSystem->Rows();
     }
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "The pardiso control vector is\n";
+        sout << fParam << std::endl;
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
     long long *perm,nrhs;
     long long Error = 0;
     nrhs = rhs.Cols();

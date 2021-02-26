@@ -58,6 +58,9 @@ public:
     /// values of the derivative of the shape functions
     TPZFNMatrix<660, REAL> dphix;
     /// values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)
+    /// number of dual function (e.g. pressure in HDiv approximations)
+    int numberdualfunctions;
+    
     TPZFNMatrix<220, REAL> divphi;
     /// values of the curl of the shape functions in the mapped element (only applicable to H(curl) spaces)
     TPZFNMatrix<220, REAL> curlphi;
@@ -93,9 +96,6 @@ public:
     TPZFNMatrix<180> fMasterDirections;
     
     
-    /// number of dual function (e.g. pressure in HDiv approximations)
-    int numberdualfunctions;
-    
     //Id of associated geo element
     int gelElId;
     
@@ -121,6 +121,11 @@ public:
     /** @brief amount of points in the integrstion rule */
     int NintPts;
     
+    /** @brief pointer to user data
+     * the user is responsible to delete the allocated data BEFORE the destructor of this object
+     */
+    void *fUserData = 0;
+    
     /** @brief Default constructor */
     TPZMaterialData();
     
@@ -129,6 +134,9 @@ public:
     
     /** @brief Default destructor */
     ~TPZMaterialData();
+    
+    /// Shape function type as a string
+    std::string ShapeFunctionType() const;
     
     /** @brief Set all flags at once */
     void SetAllRequirements(bool set);

@@ -59,7 +59,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     
     if(gSinglePointMemory && intrulepoints > 0)
     {
-        int64_t point_index = this->Material()->PushMemItem();
+        int64_t point_index = material->PushMemItem();
 #ifdef PZDEBUG
         if(point_index < 0)
         {

@@ -167,13 +167,21 @@ virtual int ClassId() const override;
 	 */
 	virtual void InitMaterialData(TPZMaterialData &data);
 	
+    /**
+     * @brief Destroy internally allocated data structures
+     */
+    virtual void CleanupMaterialData(TPZMaterialData &data)
+    {
+        
+    }
+    
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialData &data,
 									 TPZVec<REAL> &qsi);
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
 	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<REAL> > &trvec, TPZVec<TPZMaterialData> &datavec)
-  {
+    {
 		PZError << "This Should never be called in this class, only in its children" << std::endl;
 		DebugStop();
 	}
@@ -199,10 +207,10 @@ virtual int ClassId() const override;
 	virtual void CalcResidual(TPZElementMatrix &ef) override;
 	
 	/** @brief Initialize element matrix in which is computed CalcStiff */
-	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+//	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
 	/** @brief Initialize element matrix in which is computed in CalcResidual */
-	virtual void InitializeElementMatrix(TPZElementMatrix &ef);
+//	virtual void InitializeElementMatrix(TPZElementMatrix &ef);
 	
 	/** @brief Returns minimum and maximum values for each state variable */
 	/** 

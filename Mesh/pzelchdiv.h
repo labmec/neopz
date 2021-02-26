@@ -179,7 +179,7 @@ public:
      **/
 	int NShapeContinuous(TPZVec<int> &order);
     
-    /// Fill the polynomial order needed from the continuous shape functions
+    /// Fill the polynomial order needed from the scalar shape functions
     void FillOrder(TPZVec<int> &order) const ;
 	
     /// Return the maximum order??

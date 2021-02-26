@@ -1404,6 +1404,18 @@ TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
     return TPZGeoElSide();
 }
 
+TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> matIDs) const
+{
+    for (const auto &it : matIDs) {
+        TPZGeoElSide neigh = HasNeighbour(it);
+        if (neigh.Exists())
+        {
+            return neigh;
+        }
+    }
+    return TPZGeoElSide();
+}
+
 /** verifiy if a larger (lower level) neighbour exists with the given material id
  */
 TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const

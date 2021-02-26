@@ -553,13 +553,20 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
     {
 		TPZConnect &no = fConnectVec[i];
 		int64_t seq = no.SequenceNumber();
-		if(!no.NElConnected() && seq != -1)
+		if(!no.NElConnected() && !no.IsCondensed() && seq != -1)
 		{
 			nremoved++;
 		}
 		else if(!no.HasDependency() && no.NElConnected() && !no.IsCondensed()) nvalidblocks++;
-        else if(!no.HasDependency() && no.NElConnected() && no.IsCondensed()) ncondensed++;
+        else if(!no.HasDependency() && no.IsCondensed()) ncondensed++;
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
+#ifdef PZDEBUG
+        if(no.HasDependency() && no.IsCondensed())
+        {
+            std::cout << __PRETTY_FUNCTION__ << " I dont understand\n";
+            DebugStop();
+        }
+#endif
     }
 	int need = 0;
 	for (i=0;i<nconnects;i++) {
@@ -569,7 +576,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			PZError << "TPZCompMesh::CleanUpUnconnectedNodes node has dependency\n";
 			continue;
 		}
-		if (!no.NElConnected() && no.SequenceNumber() != -1)
+		if (!no.NElConnected() && !no.IsCondensed() && no.SequenceNumber() != -1)
 		{
 			need = 1;
 			break;
@@ -597,7 +604,8 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			TPZConnect &no = fConnectVec[i];
 			if(no.SequenceNumber() == -1) continue;
 			int seq = no.SequenceNumber();
-			if(no.NElConnected() == 0)
+            // a condensed connect will never by removed
+			if(no.NElConnected() == 0 && !no.IsCondensed())
 			{
 				permute[seq] = nvalidblocks+ndepblocks+iremovedblocks+ncondensed;
 				down[seq] = 1;
@@ -689,11 +697,11 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
         int64_t nel = fConnectVec.NElements();
         for (int64_t i=0;i<nel;i++) {
             TPZConnect &no = fConnectVec[i];
-            if (no.NElConnected() == 0 && no.SequenceNumber() >= nblocks-nremoved) {
+            if (no.NElConnected() == 0 && !no.IsCondensed() && no.SequenceNumber() >= nblocks-nremoved) {
                 no.Reset();
                 fConnectVec.SetFree(i);
             }
-            else if(no.NElConnected() == 0 && no.SequenceNumber() != -1)
+            else if(no.NElConnected() == 0 && !no.IsCondensed() && no.SequenceNumber() != -1)
             {
                 DebugStop();
             }

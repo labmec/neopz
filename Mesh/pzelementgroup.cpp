@@ -7,6 +7,7 @@
 #include "pzlog.h"
 #include "pzstepsolver.h"
 #include "pzcmesh.h"
+#include <algorithm>
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelementgroup"));
@@ -104,6 +105,40 @@ void TPZElementGroup::SetConnectIndex(int inode, int64_t index)
     DebugStop();
 }
 
+
+/// Reorder the connects in increasing number of elements connected
+void TPZElementGroup::ReorderConnects()
+{
+    TPZManVector<std::pair<int,int64_t>, 100 > orderedindexes(fConnectIndexes.size());
+    int nc = fConnectIndexes.size();
+    std::set<int64_t> depreceive;
+    // if a connect of the condensed element receives a contribution through connect dependency
+    // this will be tracked by depreceive
+    for (int ic=0; ic<nc; ic++) {
+        TPZConnect &c = Connect(ic);
+        TPZConnect::TPZDepend * dep = c.FirstDepend();
+        while (dep) {
+            depreceive.insert(dep->fDepConnectIndex);
+            dep = dep->fNext;
+        }
+    }
+    for (int i=0; i<nc ; ++i) {
+        TPZConnect &c = Connect(i);
+        int64_t cindex = ConnectIndex(i);
+        if(c.NElConnected() == 1 && c.HasDependency() == 0 && depreceive.find(cindex) == depreceive.end())
+        {
+            orderedindexes[i] = {0,cindex};
+        }
+        else
+        {
+            orderedindexes[i] = {1,cindex};
+        }
+    }
+    std::sort(&orderedindexes[0],&orderedindexes[0]+nc);
+    for(int ic=0; ic<nc; ic++) fConnectIndexes[ic] = orderedindexes[ic].second;
+}
+
+
 /**
  * @brief Method for creating a copy of the element in a patch mesh
  * @param mesh Patch clone mesh
@@ -193,6 +228,14 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         
+#ifdef LOG4CXX
+        if(logger->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Assembling element " << el << " out of " << nel;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 #ifdef PZDEBUG
         if(!cel){
             DebugStop();
@@ -218,7 +261,6 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             for (int i=0; i<cel->NConnects(); i++) {
                 sout << cel->ConnectIndex(i) << " ";
             }
-            efloc.Print(sout);
             sout << std::endl;
             sout << "Local indexes ";
             for (int i=0; i<cel->NConnects(); i++) {
@@ -252,16 +294,16 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             }
 
         }
-#ifdef LOG4CXX2
+    }
+#ifdef LOG4CXX
         if (logger->isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;
-            ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);
+            //ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);
             ek.fMat.Print("EKAssembled = ",sout,EMathematicaInput);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-    }
 }
 
 /** @brief Verifies if the material associated with the element is contained in the set */

@@ -14,11 +14,12 @@ if(BUILD_UNITTESTING AND USING_BOOST AND USING_FAD AND BUILD_PLASTICITY_MATERIAL
 
 		add_executable(TestPlasticity ${headers} ${sources})
 
-		if (WIN32)
-			target_link_libraries(TestPlasticity pz ${Boost_LIBRARIES})
-		else()
-			target_link_libraries(TestPlasticity pz)
-		endif()
+                if (WIN32)
+                  target_link_libraries(TestPlasticity pz ${Boost_LIBRARIES})
+                else()
+                  target_link_libraries(TestPlasticity pz)
+                  target_link_libraries(TestPlasticity ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+                endif()
 	endif()
 endif()
 

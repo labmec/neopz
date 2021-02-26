@@ -19,18 +19,20 @@
 #include "pzvec_extras.h"
 #include "pzcmesh.h"
 
+#include <algorithm>
+
 #ifdef LOG4CXX
+static LoggerPtr loggercoefmatrices(Logger::getLogger("pz.mesh.sbfemvolume.coefmatrices"));
 static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
+static LoggerPtr loggerLBF(Logger::getLogger("pz.mesh.sbfemvolume.bodyloads"));
+static LoggerPtr loggerEvaluateError(Logger::getLogger("pz.mesh.sbfemvolume.error"));
 #endif
 
 TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZInterpolationSpace(mesh, gel, index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {
 
 }
 
-
-
 /// Compute the K matrices
-
 void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0) {
     // do all the computations here
 
@@ -157,11 +159,6 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         }
         // compute the contributions to K11 K12 and K22
         mat2d->Contribute(data2d, weight, ek, ef);
-#ifdef PZDEBUG
-        if (Norm(ef) > 1.e-6) {
-            DebugStop();
-        }
-#endif
     }
     for (int i = 0; i < nstate * nshape; i++) {
         for (int j = 0; j < nstate * nshape; j++) {
@@ -571,7 +568,14 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi, int var, TPZVec<STATE> &sol) {
     TPZMaterial *mat2d = cmesh->FindMaterial(matid);
     TPZMaterialData data2d;
 
-    ComputeSolution(qsi, data2d.sol, data2d.dsol, data2d.axes);
+    if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
+    {
+        ComputeSolution(qsi, data2d.sol, data2d.dsol, data2d.axes);
+    }
+    else
+    {
+        ComputeSolutionWithBubbles(qsi, data2d.sol, data2d.dsol, data2d.axes);
+    }
     data2d.x.Resize(3, 0.);
     Reference()->X(qsi, data2d.x);
     mat2d->Solution(data2d, var, sol);
@@ -650,10 +654,13 @@ void TPZSBFemVolume::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TP
         ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 
         weight *= fabs(data.detjac);
-        ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
-        // this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-        //this->ComputeSolution(intpoint, data);
-        //contribuicoes dos erros
+        if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
+        {
+            ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
+        } else
+        {
+            ComputeSolutionWithBubbles(intpoint, data.sol, data.dsol, data.axes);
+        }
         ref->X(intpoint, data.x);
 
         if (fp) {
@@ -808,4 +815,334 @@ void TPZSBFemVolume::SetSkeleton(int64_t skeleton) {
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *> (cel);
     int order = intel->GetPreferredOrder();
     SetIntegrationRule(2 * order);
+}
+
+void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, TPZFNMatrix<100,std::complex<double>> &fbubble, TPZManVector<std::complex<double>> &eigval, TPZManVector<std::complex<double>> &eigvalbubbles, int icon)
+{
+    TPZCompMesh *cmesh = Mesh();
+    TPZGeoEl *Ref2D = Reference();
+    int matid = Ref2D->MaterialId();
+    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
+    int dim2 = Ref2D->Dimension();
+    
+    TPZMaterial * material = Material();
+    if (!material) {
+        PZError << "TPZSBFemVolume::LocalBodyForces : no material for this element\n";
+        Print(PZError);
+        return;
+    }
+    if (dynamic_cast<TPZBndCond *> (material)) {
+        std::cout << "TPZSBFemVolume::LocalBodyForces : null error - boundary condition material.";
+        DebugStop();
+    }
+    int problemdimension = Mesh()->Dimension();
+    if (Ref2D->Dimension() < problemdimension) return;
+    
+    TPZAutoPointer<TPZIntPoints> intrule = Ref2D->CreateSideIntegrationRule(Ref2D->NSides() - 1, 7);
+    TPZManVector<int, 3> maxorder(problemdimension, int(fabs(eigval[0].real()))*5);
+    intrule->SetOrder(maxorder);
+    
+    int nstate = material->NStateVariables();
+    TPZManVector<REAL, 10> intpoint(problemdimension);
+    REAL weight;
+    
+    TPZMaterialData data;
+    TPZMaterialData data1d;
+    this->InitMaterialData(data);
+    int npts = intrule->NPoints();
+    
+    TPZManVector<REAL> bodyforce(nstate, 0.);
+    TPZFMatrix<REAL> dbodyforce(nstate, dim2, 0.);
+    
+    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    CSkeleton->InitMaterialData(data1d);
+    
+    TPZGeoEl *Ref1D = CSkeleton->Reference();
+    
+    int nphixi = fPhi.Rows();
+    int numeig = fPhi.Cols();
+    int numbubbles = fPhiBubble.Cols();
+    
+    TPZFNMatrix<200,std::complex<double>> eflocal(nphixi, numeig,0);
+    TPZFNMatrix<200,std::complex<double>> eflocalbubble(nphixi, numbubbles, 0);
+    
+    for (int ipts=0; ipts<npts; ipts++) {
+        intrule->Point(ipts, intpoint, weight);
+        
+        REAL sbfemparam = (1. - intpoint[dim2 - 1]) / 2.;
+        if (sbfemparam < 0.) {
+            std::cout << "sbfemparam " << sbfemparam << std::endl;
+            sbfemparam = 0.;
+        }
+        if (IsZero(sbfemparam)) {
+            for (int i = 0; i < dim2 - 1; i++) {
+                intpoint[i] = 0.;
+            }
+            if (dim2 == 2) {
+                sbfemparam = 1.e-6;
+                intpoint[dim2 - 1] = 1. - 2.e-6;
+            } else {
+                sbfemparam = 1.e-4;
+                intpoint[dim2 - 1] = 1. - 2.e-4;
+            }
+        }
+        
+        Ref2D->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+        weight *= fabs(data.detjac);
+        
+        CSkeleton->Shape(intpoint, data1d.phi, data1d.dphi);
+        
+        Ref2D->X(intpoint, data.x);
+        if (mat2d->ForcingFunction())
+        {
+            TPZAutoPointer<TPZFunction<STATE> > autodummy = mat2d->ForcingFunction();
+            autodummy->Execute(data.x, bodyforce, dbodyforce);
+        }
+        
+        for (int c = 0; c < numeig; c++) {
+            std::complex<double> xiexp;
+            if (IsZero(eigval[c])) {
+                xiexp = 1;
+            } else {
+                xiexp = pow(sbfemparam, -eigval[c]);
+            }
+            for (int i = 0; i < data1d.phi.Rows(); i++) {
+                for (int istate = 0; istate < nstate; istate++) {
+                    eflocal(i*nstate + istate, c) += xiexp * data1d.phi(i,0) * bodyforce[istate] * weight;
+                }
+            }
+        }
+        for (int c = 0; c < numbubbles; c++) {
+            std::complex<double> xiexp;
+            if (IsZero(eigvalbubbles[c])) {
+                xiexp = 1;
+            } else {
+                xiexp = pow(sbfemparam, -eigvalbubbles[c]);
+            }
+            for (int i = 0; i < data1d.phi.Rows(); i++) {
+                for (int istate = 0; istate < nstate; istate++) {
+                    eflocalbubble(i*nstate + istate, c) += xiexp * data1d.phi(i,0) * bodyforce[istate] * weight;
+                }
+            }
+        }
+    }
+    
+    for (int c = 0; c < numeig; c++) {
+        for (int i = 0; i < nphixi; i++) {
+            f(c,0) += eflocal(i,c) * fPhi(i,c);
+        }
+    }
+    for (int c = 0; c < numbubbles; c++) {
+        for (int i = 0; i < nphixi; i++) {
+            fbubble(c,0) += eflocalbubble(i,c) * fPhiBubble(i,c);
+        }
+    }
+    
+#ifdef LOG4CXX
+    if (loggerLBF->isDebugEnabled()) {
+        std::stringstream sout;
+        eflocal.Print("eflocal = ", sout, EMathematicaInput);
+        f.Print("f = ", sout, EMathematicaInput);
+        eflocalbubble.Print("eflocalbubble = ", sout, EMathematicaInput);
+        fbubble.Print("fbubble = ", sout, EMathematicaInput);
+        LOGPZ_DEBUG(loggerLBF, sout.str())
+    }
+#endif
+}
+
+void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
+                                       TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
+{
+    
+    TPZCompMesh *cmesh = Mesh();
+    int nrows = fCoeficients.Rows();
+    if (fCoeficients.Rows() ==0)
+    {
+        TPZSBFemElementGroup * sbgr = dynamic_cast<TPZSBFemElementGroup *> (fElementGroup);
+        sbgr->LoadSolution();
+    }
+    
+    sol.Resize(fCoeficients.Cols());
+    dsol.Resize(fCoeficients.Cols());
+    TPZGeoEl *Ref2D = Reference();
+    int matid = Ref2D->MaterialId();
+    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
+    
+    int dim = Ref2D->Dimension();
+    REAL sbfemparam = (1. - qsi[dim - 1]) / 2.;
+    if (sbfemparam < 0.) {
+        std::cout << "sbfemparam " << sbfemparam << std::endl;
+        sbfemparam = 0.;
+    }
+    if (IsZero(sbfemparam)) {
+        for (int i = 0; i < dim - 1; i++) {
+            qsi[i] = 0.;
+        }
+        if (dim == 2) {
+            sbfemparam = 1.e-6;
+            qsi[dim - 1] = 1. - 2.e-6;
+        } else {
+            sbfemparam = 1.e-4;
+            qsi[dim - 1] = 1. - 2.e-4;
+        }
+    }
+    TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
+    TPZMaterialData data1d, data2d;
+    // compute the lower dimensional shape functions
+    TPZManVector<REAL, 3> qsilow(qsi);
+    qsilow.Resize(dim - 1);
+    CSkeleton->InitMaterialData(data1d);
+    TPZGeoEl *Ref1D = CSkeleton->Reference();
+    
+    Ref1D->Jacobian(qsilow, data1d.jacobian, data1d.axes, data1d.detjac, data1d.jacinv);
+    Ref2D->Jacobian(qsi, data2d.jacobian, data2d.axes, data2d.detjac, data2d.jacinv);
+    if (dim == 3)
+    {
+        AdjustAxes3D(data1d.axes, data2d.axes, data2d.jacobian, data2d.jacinv, data2d.detjac);
+    }
+    axes = data2d.axes;
+    CSkeleton->ComputeRequiredData(data1d, qsilow);
+    CSkeleton->Shape(qsilow, data1d.phi, data1d.dphi);
+    
+    int nshape = data1d.phi.Rows();
+    int nstate = mat2d->NStateVariables();
+    int numeig = fEigenvalues.size();
+#ifdef PZDEBUG
+    if (fPhiInv.Rows() + fPhiInvBubbles.Rows() != fCoeficients.Rows()) {
+        DebugStop();
+    }
+#endif
+#ifdef LOG4CXX2
+    if (logger->isDebugEnabled()) {
+        TPZManVector<std::complex<double> > coefcol(fCoeficients.Rows());
+        for (int i = 0; i < fCoeficients.Rows(); i++) {
+            coefcol[i] = fCoeficients(i, 0);
+        }
+        std::stringstream sout;
+        sout << "coefficients " << coefcol << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
+    for (int s = 0; s < sol.size(); s++)
+    {
+        int nphixi = fPhi.Rows();
+        TPZManVector<std::complex<double>, 10> uh_xi(nphixi, 0.), Duh_xi(nphixi, 0.);
+
+        TPZFNMatrix<200,std::complex<double>> umat0(nphixi, numeig, 0), Dumat0(nphixi, numeig, 0);
+        for (int c = 0; c < numeig; c++) {
+            std::complex<double> xiexp;
+            std::complex<double> xiexpm1;
+            if (IsZero(fEigenvalues[c] + 0.5 * (dim - 2))) {
+                xiexp = 1;
+                xiexpm1 = 0;
+            } else if (IsZero(fEigenvalues[c] + 1. + 0.5 * (dim - 2))) {
+                xiexp = sbfemparam;
+                xiexpm1 = 1;
+            } else {
+                xiexp = pow(sbfemparam, -fEigenvalues[c] - 0.5 * (dim - 2));
+                xiexpm1 = pow(sbfemparam, -fEigenvalues[c] - 1. - 0.5 * (dim - 2));
+            }
+            for (int i = 0; i < nphixi; i++) {
+                umat0(i,c) += xiexp * fPhi(i, c);
+                Dumat0(i,c) += (fEigenvalues[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhi(i, c);
+            }
+        }
+        int numeigbubbles = fEigenvaluesBubble.size();
+        TPZFNMatrix<200,std::complex<double>> umat(nphixi, numeigbubbles, 0), Dumat(nphixi, numeigbubbles, 0);
+        for (int c = 0; c < numeigbubbles; c++) {
+            std::complex<double> xiexp;
+            std::complex<double> xiexpm1;
+            if (IsZero(fEigenvaluesBubble[c] + 0.5 * (dim - 2))) {
+                xiexp = 1;
+                xiexpm1 = 0;
+            } else if (IsZero(fEigenvaluesBubble[c] + 1. + 0.5 * (dim - 2))) {
+                xiexp = sbfemparam;
+                xiexpm1 = 1;
+            } else {
+                xiexp = pow(sbfemparam, -fEigenvaluesBubble[c] - 0.5 * (dim - 2));
+                xiexpm1 = pow(sbfemparam, -fEigenvaluesBubble[c] - 1. - 0.5 * (dim - 2));
+            }
+            for (int i = 0; i < nphixi; i++) {
+                umat(i,c) += xiexp * fPhiBubble(i, c);
+                Dumat(i,c) += (fEigenvaluesBubble[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhiBubble(i, c);
+            }
+        }
+        for (int i = 0; i < nphixi; i++) {
+            for (int c = 0; c < fPhiInv.Rows(); c++) {
+                uh_xi[i] += fCoeficients(c, s) * umat0(i, c);
+                Duh_xi[i] += -fCoeficients(c, s) * Dumat0(i, c);
+            }
+            for (int c = 0; c < numeigbubbles; c++) {
+                uh_xi[i] += fCoeficients(c+numeig, s) * umat(i, c);
+                Duh_xi[i] += -fCoeficients(c+numeig, s) * Dumat(i, c);
+            }
+        }
+        
+#ifdef LOG4CXX
+        if (s == 0 && logger->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "uh_xi " << uh_xi << std::endl;
+            sout << "Duh_xi " << Duh_xi << std::endl;
+            data1d.phi.Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        sol[s].Resize(nstate);
+        sol[s].Fill(0.);
+        TPZFNMatrix<9, STATE> dsolxieta(dim, nstate, 0.);
+        TPZManVector<STATE, 3> dsolxi(nstate, 0.);
+        for (int ishape = 0; ishape < nshape; ishape++) {
+            for (int istate = 0; istate < nstate; istate++) {
+                sol[s][istate] += data1d.phi(ishape) * uh_xi[ishape * nstate + istate].real();
+                dsolxi[istate] += data1d.phi(ishape) * Duh_xi[ishape * nstate + istate].real();
+                for (int d = 0; d < dim - 1; d++) {
+                    dsolxieta(d, istate) += data1d.dphi(d, ishape) * uh_xi[ishape * nstate + istate].real();
+                }
+                dsolxieta(dim - 1, istate) = -dsolxi[istate] / 2.;
+            }
+        }
+        dsol[s].Resize(dim, nstate);
+        dsol[s].Zero();
+        for (int istate = 0; istate < nstate; istate++) {
+            for (int d1 = 0; d1 < dim; d1++) {
+                for (int d2 = 0; d2 < dim; d2++) {
+                    dsol[s](d1, istate) += data2d.jacinv(d2, d1) * dsolxieta(d2, istate);
+                }
+            }
+        }
+    }
+    
+    
+#ifdef LOG4CXX
+   if (loggerEvaluateError->isDebugEnabled()) {
+        TPZFNMatrix<200, std::complex<double> > sbfemmat(numeig,numeig,0.);
+        for (int i=0; i<numeig; i++) {
+            sbfemmat(i,i) = pow(sbfemparam, -Eigenvalues()[i].real());
+        }
+        TPZFMatrix<std::complex<double> > res;
+        sbfemmat.Multiply(fPhiInv, res);
+        TPZFNMatrix<200, std::complex<REAL>> umatrix;
+        fPhi.Multiply(res, umatrix);
+        std::stringstream sout;
+        umatrix.Print("umatrix = ", sout, EMathematicaInput);
+        LOGPZ_DEBUG(loggerEvaluateError, sout.str());
+   }
+#endif
+    
+}
+
+void TPZSBFemVolume::SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, 
+    TPZFNMatrix<100,std::complex<double> > &phiinv, TPZFNMatrix<100,std::complex<double> > &rot)
+{
+    fEigenvaluesBubble = eigval;
+    int nrow = fLocalIndices.size();
+    fPhiBubble.Resize(nrow, phi.Cols());
+    for (int i = 0; i < nrow; i++) {
+        for (int j = 0; j < phi.Cols(); j++) {
+            fPhiBubble(i, j) = phi(fLocalIndices[i], j);
+        }
+    }
+    fPhiInv = phiinv;
+    fPhiInvBubbles = rot;
 }

@@ -317,15 +317,15 @@ public:
 
 	/**
 	 * @brief Computes the connectivity graph of the elements, as appropriate for the TPZRenumbering class
-	 * @param elgraph stack of elements to create the grapho????
-	 * @param elgraphindex graphos indexes vector
+	 * @param elgraph stack of elements to create the graph
+	 * @param elgraphindex graph indexes vector
 	 */
 	void ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex);
     
     /**
      * @brief Computes the connectivity graph of the elements, as appropriate for the TPZRenumbering class
-     * @param elgraph stack of elements to create the grapho????
-     * @param elgraphindex graphos indexes vector
+     * @param elgraph stack of elements to create the graph
+     * @param elgraphindex graphs indexes vector
      */
     void ComputeElGraph(TPZStack<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex, std::set<int> & mat_ids);
 
@@ -740,8 +740,10 @@ inline int64_t TPZCompMesh::AllocateNewConnect(const TPZConnect &connect)
 
 
 inline void TPZCompMesh::SetReference(TPZGeoMesh * gmesh){
-	this->fReference = gmesh;
-    this->fDimModel = gmesh->Dimension();
+    if (gmesh) {
+        this->fDimModel = gmesh->Dimension();
+    }
+    this->fReference = gmesh;
     fGMesh = TPZAutoPointer<TPZGeoMesh>(0);
 }
 

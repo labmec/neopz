@@ -12,15 +12,12 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestTopology ${headers} ${sources})
 
-if(USING_BOOST)
-	IF (WIN32)
-		target_link_libraries(TestTopology pz ${Boost_LIBRARIES})
-	ELSE()
-		target_link_libraries(TestTopology pz)
-	ENDIF()
-else()
-	target_link_libraries(TestTopology pz)
-endif()
+        if (WIN32)
+	  target_link_libraries(TestTopology pz ${Boost_LIBRARIES})
+	else()
+	  target_link_libraries(TestTopology pz)
+          target_link_libraries(TestTopology ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+        endif()
 
 endif()
 

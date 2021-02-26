@@ -12,16 +12,12 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestBlend ${headers} ${sources})
 
-	if(USING_BOOST)
-		IF (WIN32)
-			target_link_libraries(TestBlend pz ${Boost_LIBRARIES})
-		else()
-			target_link_libraries(TestBlend pz)
-		endif(WIN32)
+	IF (WIN32)
+	  target_link_libraries(TestBlend pz ${Boost_LIBRARIES})
 	else()
-		target_link_libraries(TestBlend pz)
-	endif(USING_BOOST)
-
+	  target_link_libraries(TestBlend pz)
+          target_link_libraries(TestBlend ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	endif(WIN32)
 	
 
 endif(BUILD_UNITTESTING)

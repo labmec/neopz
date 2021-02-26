@@ -45,6 +45,9 @@ namespace TPZCompMeshTools
     // for all elements that have dimension of the dimension of cmesh
     // verify if connected elements are included in the current element
     void GroupElements(TPZCompMesh *cmesh);
+
+    /// group elements that share a connect with the basis elements
+    void GroupNeighbourElements(TPZCompMesh *cmesh, const std::set<int64_t> &seed_elements, std::set<int64_t> &groupindexes);
     
     /// group elements of the computational mesh
     // for all elements in the list

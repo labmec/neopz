@@ -80,11 +80,11 @@ public:
     virtual void HDivDirectionsMaster(TPZFMatrix<REAL> &directions) = 0;
     
     /** Returns the directions of this geoel */
-    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions, int RestrainedFace)  = 0;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions)  = 0;
 
 #ifdef _AUTODIFF
     /** Returns the directions of this geoel */
-    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions, int RestrainedFace)  = 0;
+    virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions)  = 0;
 #endif
     
     /** Returns the eldest ancestor of this geoel */

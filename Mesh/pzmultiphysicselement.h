@@ -55,7 +55,8 @@ public:
     
     virtual void AddElement(const TPZCompElSide &cel, int64_t mesh) = 0;
     
-    virtual TPZCompEl *Element(int64_t elindex) = 0;
+    /// return the element associated with a mesh
+    virtual TPZCompEl *Element(int64_t mesh) = 0;
 	
     /** @brief Returns a reference to the element pointers vector */
     virtual TPZManVector<TPZCompElSide,5>   &ElementVec() = 0;
@@ -65,6 +66,8 @@ public:
     virtual int64_t NMeshes() = 0;
 	
 	virtual void SetConnectIndexes(TPZVec<int64_t> &indexes) = 0;
+    
+    void GetConnectMeshPairs(TPZVec<std::pair<int64_t,int>> &connectpairs);
 	
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const = 0;
 	

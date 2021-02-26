@@ -37,7 +37,6 @@ public:
     /// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
     TPZGeoElSide HasHigherLevelNeighbour(int matid) const;
 
-    /// checks whether an element with MaterialID matid is neighbour of a partition of fCurrent
     // fills a stack of neighbours which matid is neighbour of a partition of fCurrent
     // returns true if a neighbour of the given material id is found for every subelement of the partition
     bool HigherLevelNeighbours(TPZStack<TPZGeoElSide> &neighbours, int matid) const;

@@ -69,7 +69,7 @@ public:
     void SetDimension(int dim) { m_dimension = dim; }
     
     /** @brief Returns the number of state variables associated with the material */
-    int NStateVariables() const {return 1;} // Deprecated, must to be removed
+    int NStateVariables() const override {return 1;} // Deprecated, must to be removed
     
     /** @brief Returns material copied form this object */
     virtual TPZMaterial *NewMaterial() override

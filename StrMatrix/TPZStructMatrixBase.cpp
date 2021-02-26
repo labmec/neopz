@@ -6,6 +6,7 @@
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
 #include "TPZThreadPool.h"
+#include "pzshtmat.h"
 
 #ifdef LOG4CXX
 #include "pzlog.h"
@@ -148,3 +149,66 @@ void TPZStructMatrixBase::Write(TPZStream& buf, int withclassid) const {
     buf.Write(fMaterialIds);
     buf.Write(&fNumThreads);
 }
+
+/// compute a color for each element
+// @return the number of colors for parallel assembly
+// the color =-1 when the element should not be computed
+int TPZStructMatrixBase::ComputeElementColors(TPZVec<int> &elementcolors)
+{
+    TPZStack<int64_t> elgraph;
+    TPZVec<int64_t> elgraphindex;
+    if(!fMaterialIds.size())
+    {
+        fMesh->ComputeElGraph(elgraph, elgraphindex);
+    }
+    else
+    {
+        fMesh->ComputeElGraph(elgraph, elgraphindex, fMaterialIds);
+    }
+    int64_t nconnects = fMesh->NConnects();
+    const int color_stored = 10;
+    TPZGenMatrix<int64_t> domain(nconnects,color_stored);
+    int64_t nel = elgraphindex.size()-1;
+    elementcolors.resize(nel);
+    elementcolors.Fill(-1);
+    bool element_not_colored = true;
+    int highest_color = 0;
+    int min_color = 0;
+    int max_color = min_color+color_stored;
+    while(element_not_colored)
+    {
+        element_not_colored = false;
+        for (int64_t el = 0; el<nel; el++) {
+            int icolor;
+            bool color_found = true;
+            for(int icolor = 0; icolor<color_stored; icolor++)
+            {
+                color_found = true;
+                int64_t firstnode = elgraphindex[el];
+                int64_t lastnode = elgraphindex[el+1];
+                for (int inod = firstnode; inod < lastnode; inod++) {
+                    int64_t ic = elgraph[inod];
+                    if(domain(ic,icolor) != 0)
+                    {
+                        color_found = false;
+                        break;
+                    }
+                    domain(ic,icolor) = 1;
+                }
+                if(color_found == true)
+                {
+                    elementcolors[el] = min_color+icolor;
+                    if(min_color+icolor > highest_color) highest_color = min_color+icolor;
+                    break;
+                }
+            }
+            // the element didn't fit any color, the loop will have to be executed again
+            if(!color_found) element_not_colored = true;
+        }
+        min_color += color_stored;
+        max_color += color_stored;
+        domain.Fill(0);
+    }
+    return highest_color;
+}
+

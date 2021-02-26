@@ -95,12 +95,6 @@ if(USING_BOOST)
 	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
 endif(USING_BOOST)
 
-if(BUILD_UNITTESTING)
-	IF (NOT WIN32)
-		link_libraries(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-	ENDIF()
-endif()
-
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 if(USING_FAD)
 	#Adding a variable to hold this definition

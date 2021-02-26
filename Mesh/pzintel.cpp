@@ -65,7 +65,7 @@ int TPZInterpolatedElement::NShapeF() const {
     int in, res = 0;
     for (in = 0; in < nn; in++) {
         TPZConnect &c = Connect(in);
-        res += NConnectShapeF(in, c.Order());
+        res += c.NShape();
     }
     return res;
 }
@@ -1527,11 +1527,12 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname) {
 void TPZInterpolatedElement::Print(std::ostream &out) const {
     out << __PRETTY_FUNCTION__ << std::endl;
     TPZInterpolationSpace::Print(out);
+    TPZGeoEl *gel = Reference();
     out << "Index = " << fIndex;
     out << " - Center coordinate: ";
-    for (int i = 0; i < Reference()->NCornerNodes(); i++) {
+    for (int i = 0; i < gel->NCornerNodes(); i++) {
         TPZVec< REAL > center(3, 0.);
-        for (int j = 0; j < 3; j++) center[j] = Reference()->NodePtr(i)->Coord(j);
+        for (int j = 0; j < 3; j++) center[j] = gel->NodePtr(i)->Coord(j);
         out << "[" << i << "]" << center << " ";
     }
     out << std::endl;
@@ -1541,7 +1542,8 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
     for (nod = 0; nod < nconects/*NConnects()*/; nod++) {
         TPZConnect &c = Connect(nod);
 #ifdef PZDEBUG
-        if (c.NShape() != NConnectShapeF(nod, c.Order())) {
+        int ncon_compute = NConnectShapeF(nod, c.Order());
+        if (c.NShape() != ncon_compute) {
             DebugStop();
         }
 #endif

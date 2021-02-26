@@ -43,9 +43,9 @@ protected:
 	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     // original element whose internal connects will be condensed
     TPZCompEl *fReferenceCompEl;
-    // connect indexes, numbering the condensed connects first
     TPZManVector<int64_t,27> fIndexes;
-    // flag indicating whether the internal stiffness should be kept
+    TPZManVector<int64_t,10> fCondensedConnectIndexes;
+    TPZManVector<int64_t,10> fActiveConnectIndexes;
     bool fKeepMatrix = true;
     
     // resequence the connects so that the condensable connects come first
@@ -79,7 +79,8 @@ public:
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const override 
     {
-        return fReferenceCompEl->NConnects();
+        return fActiveConnectIndexes.size();
+//        return fReferenceCompEl->NConnects();
     }
     
     /// return the number of connects that will be condensed
@@ -91,7 +92,8 @@ public:
 	 */
 	virtual int64_t ConnectIndex(int i) const override 
     {
-        return fReferenceCompEl->ConnectIndex(fIndexes[i]);
+        return fActiveConnectIndexes[i];
+//        return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
 
     TPZCompEl * ReferenceCompEl(){
@@ -129,6 +131,11 @@ public:
         fKeepMatrix = keep;
     }
     
+    TPZMatRed<STATE, TPZFMatrix<STATE> > &Matrix()
+    {
+        return fCondensed;
+    }
+
 	/** @brief Dimension of the element */
 	virtual int Dimension() const override
     {

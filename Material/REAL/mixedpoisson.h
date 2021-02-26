@@ -90,9 +90,6 @@ public:
         perm = 0;
         for(int i=0; i<3; i++) perm = perm < TensorK(i,i) ? TensorK(i,i) : perm;
     }
-//	void GetPermeability(REAL &perm) {
-//		perm = fK;
-//	}
 	
 	void SetInternalFlux(REAL flux) {
 		ff = flux;
@@ -152,13 +149,13 @@ public:
         int nref = datavec.size();
         for (int iref = 0; iref <nref; iref++) {
             datavec[iref].SetAllRequirements(false);
-            datavec[iref].fNeedsSol = true;
+            datavec[iref].fNeedsSol = false;
         }
-        datavec[0].fNeedsNormal = true;
+        datavec[0].fNeedsNormal = false;
         if(type == 50)
         {
             for(int iref = 0; iref<nref; iref++){
-                datavec[iref].fNeedsSol = true;
+                datavec[iref].fNeedsSol = false;
             }
         }
     }

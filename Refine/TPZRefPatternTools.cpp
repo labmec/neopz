@@ -328,7 +328,7 @@ void TPZRefPatternTools::ModifyElementsBasedOnRefpFound(TPZAutoPointer<TPZRefPat
         TPZManVector<REAL,3> coord(3);
         refpGMesh.NodeVec()[n].GetCoordinates(coord);
         
-        int nodeIndex;
+        int64_t nodeIndex;
         TPZGeoNode * node = refpFoundGMesh.FindNode(coord,nodeIndex);
         if(!node)
         {

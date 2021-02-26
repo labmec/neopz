@@ -18,6 +18,11 @@ public:
         fNState = 1;
     }
     
+    TPZNullMaterial(int num, int dimension, int nstate) : TPZRegisterClassId(&TPZNullMaterial::ClassId), TPZMaterial(num) {
+        fDim = dimension;
+        fNState = nstate;
+    }
+    
     TPZNullMaterial(const TPZNullMaterial &copy) : TPZRegisterClassId(&TPZNullMaterial::ClassId),
     TPZMaterial(copy)
     {

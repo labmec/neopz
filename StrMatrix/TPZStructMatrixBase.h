@@ -83,6 +83,11 @@ public:
         return fMaterialIds;
     }
     
+    /// compute a color for each element
+    // @return the number of colors for parallel assembly
+    // the color =-1 when the element should not be computed
+    int ComputeElementColors(TPZVec<int> &elementcolors);
+    
     public:
     int ClassId() const override;
     void Read(TPZStream& buf, void* context) override;

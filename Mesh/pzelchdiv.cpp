@@ -191,10 +191,8 @@ MElementType TPZCompElHDiv<TSHAPE>::Type() {
 
 
 template<class TSHAPE>
-int TPZCompElHDiv<TSHAPE>::NConnects() const {
-	int dimension = Dimension()-1;
-	
-	return TSHAPE::NumSides(dimension) + 1;
+int TPZCompElHDiv<TSHAPE>::NConnects() const {	
+	return TSHAPE::NFacets + 1;
 }
 
 template<class TSHAPE>
@@ -222,11 +220,45 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 {
 #ifdef DEBUG
-    if (connect < 0 || connect >= NConnects()) {
+    if (connect < 0 || connect > TSHAPE::NFacets) {
         DebugStop();
     }
 #endif
-    if (connect < TPZCompElHDiv<TSHAPE>::NConnects()-1) {
+    MElementType thistype = TSHAPE::Type();
+    if(thistype == EOned)
+    {
+        if(connect < 2) return 1;
+        else return order;
+    }
+    else if(thistype == ETriangle)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1);
+        else return (order+1)*(order+1)-1;
+    }
+    else if(thistype == EQuadrilateral)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1);
+        else return 2*order*(order+1);
+    }
+    else if(thistype == ETetraedro)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1)*(order+2)/2;
+        else return order*(order+2)*(order+3)/2;
+    }
+    else if(thistype == EPrisma)
+    {
+        if(connect == 0 || connect == 4) return (order+1)*(order+2)/2;
+        else if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
+        else return order*order*(3*order+5)/2+7*order-2;
+    }
+    else if(thistype == ECube)
+    {
+        if(connect < TSHAPE::NFacets) return (order+1)*(order+1);
+        else return 3*order*(order+1)*(order+1);
+    }
+    DebugStop();
+    // @TODO put in the analytic values
+    if (connect < TSHAPE::NFacets) {
          int64_t connectindex = ConnectIndex(connect);
 //         int order = 0;
 //         if (connectindex >= 0) {
@@ -236,7 +268,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
 //         {
 //             order = this->fPreferredOrder;
 //         }
-         const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
+         const int nfaces = TSHAPE::NFacets;
          int face = TSHAPE::NSides-nfaces+connect-1;
          TPZStack<int> lowerdimensionsides;
          TSHAPE::LowerDimensionSides(face,lowerdimensionsides);
@@ -247,8 +279,11 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
          return nshape;
      }
 
-     const int nfaces = TSHAPE::NumSides(TSHAPE::Dimension-1);
+    // connect == NFacets
+    
+     const int nfaces = TSHAPE::NFacets;
      int face = TSHAPE::NSides-nfaces-1;
+    // nvecignore is the first vector index associated with the internal vectors
      int nvecignore = 0;
      for (int side = face; side < TSHAPE::NSides-1; side++) {
          nvecignore += TSHAPE::NContainedSides(side);
@@ -479,9 +514,9 @@ int TPZCompElHDiv<TSHAPE>::PreferredSideOrder(int side) {
 template<class TSHAPE>
 int64_t TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
 #ifndef NODEBUG
-	if(con<0 || con>= this->NConnects()) {
+	if(con<0 || con > TSHAPE::NFacets) {
 		std::cout << "TPZCompElHDiv::ConnectIndex wrong parameter connect " << con <<
-		" NConnects " << this-> NConnects() << std::endl;
+		" NConnects " << TSHAPE::NFacets << std::endl;
 		DebugStop();
 		return -1;
 	}
@@ -575,24 +610,12 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::EffectiveSideOrder(int side) const
 {
 	if(!NSideConnects(side)) return -1;
-	int corder =SideConnectLocId(0, side);
-	int maxorder = 0;
-	int conectaux;
-	if(corder>=0 || corder <= NConnects()) return ConnectOrder(corder);
+	int cindex =SideConnectLocId(0, side);
+#ifdef PZDEBUG
+    if(cindex<0 || cindex >= NConnects()) DebugStop();
+#endif
+    return ConnectOrder(cindex);
     
-    DebugStop();
-	TPZStack< int > high;
-	TSHAPE::HigherDimensionSides(side, high);
-	int highside= high.NElements();
-	
-	
-	for(int j=0;j<highside;j++)
-	{
-		conectaux =SideConnectLocId(0, high[j]);
-		maxorder = (ConnectOrder(conectaux) > maxorder) ? ConnectOrder(conectaux) : maxorder;
-	}
-	
-	return maxorder;	
 }
 
 /**return the first shape associate to each side*/
@@ -678,6 +701,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     // compute the permutation which needs to be applied to the vectors to enforce compatibility between neighbours
     TPZManVector<int,81> vecpermute(TSHAPE::NSides*TSHAPE::Dimension);
     if (TSHAPE::Type() == EPiramide) {
+        DebugStop();
         vecpermute.resize(TSHAPE::NSides*TSHAPE::Dimension+1);
     }
     int count = 0;
@@ -895,6 +919,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrient(int side, int sideorient){
 }
 
 //compute the values of the shape function of the side
+// this method is used by the method RestrainSide. It does not consider the side orientation
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
@@ -1057,6 +1082,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     
     int64_t numbersol = MeshSol.Cols();
+    
     if(numbersol != 1)
     {
         DebugStop();
@@ -1178,6 +1204,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                         LOGPZ_DEBUG(logger,sout.str())
                     }
 #endif
+
                     data.divsol[is][idf] += data.divphi(counter,0)*meshsol;
                     for (int ilinha=0; ilinha<dim; ilinha++) {
                         data.sol[is][ilinha+dim*idf] += normal[ilinha]*phival*meshsol;
@@ -1187,6 +1214,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                                 data.dsol[is](ilinha+dim*idf,kdim)+=meshsol *GradNormalvec[ivec](ilinha,kdim)*data.phi(ishape,0);
                             }
                         }
+                        
                     }
                     
                 }
@@ -1194,6 +1222,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
             counter++;
         }
     }
+    
+
+    
+    
+    
     
 #ifdef LOG4CXX
     if(logger->isDebugEnabled())
@@ -1246,6 +1279,20 @@ void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, T
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::FillOrder(TPZVec<int> &order) const
 {
+    order.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
+    int ncon = TSHAPE::NFacets+1;
+    
+    TPZConnect &c = this->Connect(ncon-1);
+    int internalorder = c.Order();
+    order.Fill(internalorder+1);
+#ifdef PZDEBUG
+    for(int ic=0; ic<ncon-1; ic++)
+    {
+        if(ConnectOrder(ic) > internalorder) DebugStop();
+    }
+#endif
+    return;
+    
     int nvecs = TSHAPE::Dimension*TSHAPE::NSides;
     TPZManVector<int,3*27> associated_side(nvecs),bilinear(nvecs),direction(nvecs);
     TSHAPE::GetSideHDivDirections(associated_side,direction,bilinear);
@@ -1257,29 +1304,26 @@ void TPZCompElHDiv<TSHAPE>::FillOrder(TPZVec<int> &order) const
             sideinc[side] = 1;
         }
     }
-    order.resize(TSHAPE::NSides-TSHAPE::NCornerNodes);
-    int ncon = NConnects();
-    
-    TPZConnect &c = this->Connect(ncon-1);
-    int internalorder = c.Order();
     int nsides = TSHAPE::NSides;
     for (int is=0; is<nsides; is++) {
-        if (TSHAPE::SideDimension(is) ==0) {
+        if (TSHAPE::SideDimension(is) < TSHAPE::Dimension-1) {
             continue;
         }
         else if(TSHAPE::SideDimension(is) == TSHAPE::Dimension -1)
         {
             int intorder = internalorder;
-            if (sideinc[is]) {
-                intorder++;
-            }
             int connectindex = SideConnectLocId(0, is);
             if (connectindex < 0) {
+                connectindex = SideConnectLocId(0,is);
                 DebugStop();
             }
             TPZConnect &c = this->Connect(connectindex);
             if (c.Order() > intorder) {
+                DebugStop();
                 intorder = c.Order();
+            }
+            if (sideinc[is]) {
+                intorder++;
             }
             order[is-TSHAPE::NCornerNodes] = intorder;
         }
@@ -1309,8 +1353,8 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
     FillOrder(ord);
     int nshape= this->NShapeContinuous(ord);
     
-    phi.Redim(nshape, 1);
-    dphi.Redim(TSHAPE::Dimension, nshape);
+//    phi.Redim(nshape, 1);
+//    dphi.Redim(TSHAPE::Dimension, nshape);
     TSHAPE::Shape(pt,id,ord,phi,dphi);
 
 }
@@ -1382,19 +1426,14 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     TPZIntelGen<TSHAPE>::ComputeRequiredData(data,qsi);
     data.fNeedsSol = needsol;
     
-    int restrainedface = this->RestrainedFace();
-    // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
-    // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
-    int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
-    int lastface = TSHAPE::NSides - 1;
-    int cont = 0;
    
     
     if(data.fNeedsDeformedDirectionsFad){
-    #ifdef _AUTODIFF
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad,restrainedface);
-        cont = 0;
-        
+#ifdef _AUTODIFF
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirectionsFad);
+        int cont = 0;
+        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
+        int lastface = TSHAPE::NSides - 1;
         for(int side = firstface; side < lastface; side++)
         {
             int nvec = TSHAPE::NContainedSides(side);
@@ -1408,13 +1447,15 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
             }
             cont += nvec;
         }
-    #else
+#else
         DebugStop();
-    #endif
+#endif
     }else{
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections,restrainedface);
-        cont = 0;
-    
+        TPZIntelGen<TSHAPE>::Reference()->HDivDirections(qsi,data.fDeformedDirections);
+        int cont = 0;
+        int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
+        int lastface = TSHAPE::NSides - 1;
+
         for(int side = firstface; side < lastface; side++)
         {
             int nvec = TSHAPE::NContainedSides(side);
@@ -1424,7 +1465,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
                 {
                     data.fDeformedDirections(il,ivet+cont) *= fSideOrient[side-firstface];
                 }
-                
             }
             cont += nvec;
         }
@@ -1459,6 +1499,14 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //        int maxorder = this->MaxOrder();
 //        data.p = maxorder+1;
 //    }
+    {
+        TPZManVector<int> orders;
+        FillOrder(orders);
+        int nshapescalar = TSHAPE::NShapeF(orders);
+        data.phi.Resize(nshapescalar, 1);
+        data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
+        data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
+    }
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())
 		{
@@ -1467,27 +1515,19 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #endif
     TPZManVector<int,TSHAPE::Dimension*TSHAPE::NSides> vecside(TSHAPE::Dimension*TSHAPE::NSides),bilinear(TSHAPE::Dimension*TSHAPE::NSides),directions(TSHAPE::Dimension*TSHAPE::NSides);
     
-    TPZFNMatrix<TSHAPE::NSides*TSHAPE::Dimension*3> NormalsDouglas(3,TSHAPE::Dimension*TSHAPE::NSides);
-	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension+1> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
-    TPZManVector<REAL,TSHAPE::Dimension> pt(TSHAPE::Dimension,0.);
+	TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsides(TSHAPE::Dimension*TSHAPE::NSides);
     
     {
-		
-        int internalorder = this->Connect(NConnects()-1).Order();
+        int nconnects = TSHAPE::NFacets+1;
+        int internalorder = this->Connect(nconnects-1).Order();
         TPZVec<std::pair<int,int64_t> > IndexVecShape;
-        if (TSHAPE::Type()==EPiramide) {
-            normalsides.resize(3*TSHAPE::NSides+1);
-        }
         TSHAPE::GetSideHDivDirections(vecside,directions,bilinear,normalsides);
         int64_t numvec = TSHAPE::Dimension*TSHAPE::NSides;
-        if (TSHAPE::Type() == EPiramide) {
-            numvec++;
-        }
 
         data.fMasterDirections.Resize(3, numvec);
-        
-        TPZIntelGen<TSHAPE>::Reference()->HDivDirectionsMaster(data.fMasterDirections);
-
+        this->Reference()->HDivDirectionsMaster(data.fMasterDirections);
+        // Acerta o vetor data.fDeformedDirections para considerar a direcao do campo. fSideOrient diz se a orientacao e de entrada
+        // no elemento (-1) ou de saida (+1), dependedo se aquele lado eh vizinho pela direita (-1) ou pela esquerda(+1)
         int firstface = TSHAPE::NSides - TSHAPE::NFacets - 1;
         int lastface = TSHAPE::NSides - 1;
         int cont = 0;
@@ -1498,22 +1538,21 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
             {
                 for (int il = 0; il<3; il++)
                 {
-                    data.fMasterDirections(il,ivet+cont) *= fSideOrient[side-firstface];
+                    data.fMasterDirections(il,ivet+cont) *= SideOrient(side-firstface);
                 }
-
             }
             cont += nvec;
         }
-
 
 #ifdef _AUTODIFF
         data.fDeformedDirectionsFad.Resize(3, numvec);
 #endif
 
         data.fDeformedDirections.Resize(3, numvec);
-        
+
 
         IndexShapeToVec2(normalsides, bilinear, directions,data.fVecShapeIndex,internalorder);
+        data.divphi.Resize(data.fVecShapeIndex.size(), 1);
     }
     data.fShapeType = TPZMaterialData::EVecandShape;
     
@@ -1544,24 +1583,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif    
-#ifdef LOG4CXX
-    if(loggerconfig->isDebugEnabled())
-    {
-        std::stringstream sout;
-        data.fMasterDirections.Print("MasterDir = ", sout, EMathematicaInput);
-        sout << "VecShape = {\n";
-        int ivs = data.fVecShapeIndex.size();
-        for(int i=0; i< ivs; i++)
-        {
-            sout << '{' << data.fVecShapeIndex[i].first+1 << ',' << data.fVecShapeIndex[i].second+1 << "}";
-            if(i<ivs-1) sout << ",\n";
-            else sout << "\n";
-        }
-        sout << "};\n";
-        LOGPZ_DEBUG(loggerconfig, sout.str())
-    }
-#endif
-
+    
 }
 
 

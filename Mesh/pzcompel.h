@@ -311,6 +311,14 @@ public:
      */
     virtual void Assemble();
     
+    
+    /** @brief Initialize element matrix in which is computed CalcStiff */
+    virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    
+    /** @brief Initialize element matrix in which is computed in CalcResidual */
+    virtual void InitializeElementMatrix(TPZElementMatrix &ef);
+    
+
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix

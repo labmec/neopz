@@ -12,12 +12,16 @@ class TPZGeoElSideAncestors {
     // The TPZGeoElSide from which we derive the ancestors tree
     TPZGeoElSide fCurrent;
 
-    // Data structure with a pair o TPZGeoElSideAncestors for the lower side and its neighbour
+    // Data structure containing the ancestor tree. It is filled by AddAncestor method.
     TPZStack<std::pair<TPZGeoElSide, TPZGeoElSide>> fAncestors;
 
     // Compute the ancestor data structure
     void BuildAncestors();
-    
+
+    // Fills fAncestor data structure as follows:
+    // Insert a pair containing the given side and its father side, if it exists.
+    // For every neighbour, insert a pair of its side and its father side, if it exists, and call AddAncestor for the
+    // father.
     void AddAncestor(TPZGeoElSide gelside);
 
 public:

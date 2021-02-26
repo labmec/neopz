@@ -239,14 +239,18 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
 		return;
 	}//if
-	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
-	
     if(fUseQsiEta==true){
+        ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
         this->Shape(intpoint,phi,dphi);
         this->Convert2Axes(dphi,jacinv,dphix);
         ref->X(intpoint, X);
     }else{
         dphi.Zero();
+        if(Degree() == 0 && !fExternalShape)
+        {
+            phi(0,0) = 1.;
+            return;
+        }
         ref->X(intpoint, X);
         this->ShapeX(X,phi,dphix);
         //axes is identity in discontinuous elements
@@ -364,13 +368,14 @@ void TPZCompElDisc::Print(std::ostream &out) const{
 	out << "\tMaterial id : " << Reference()->MaterialId() << endl
 	<< "\tDegree of interpolation : " <<  this->Degree() << endl
 	<< "\tConnect index : " << fConnectIndex << endl
+    << "\tUsing qsieta : " << (int)fUseQsiEta << endl
 	<< "\tNormalizing constant : " << fConstC << endl
 	<< "\tCenter point of the element : ";
     if(fUseQsiEta == false)
     {
         int size = fCenterPoint.NElements(),i;
         for(i=0;i<size-1;i++) out << fCenterPoint[i] << " , ";
-        out << fCenterPoint[i] << endl;
+        out << "stored xy : " << fCenterPoint[i] << endl;
     }
     else
     {
@@ -378,7 +383,7 @@ void TPZCompElDisc::Print(std::ostream &out) const{
         if (Ref) {
             TPZManVector<REAL,3> xcenter(3),loccenter(fCenterPoint);
             Ref->X(loccenter, xcenter);
-            out << xcenter << std::endl;
+            out << "stored qsieta " << fCenterPoint << " computed xy " << xcenter << std::endl;
         }
     }
 	out << "\tDimension : " << this->Dimension() << endl;
