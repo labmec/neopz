@@ -919,7 +919,11 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
         LoadSolution();
         Mesh()->TransferMultiphysicsSolution();
         
-        PostProcess(0);
+        {
+            std::ofstream out("shapemesh.txt");
+            Mesh()->Print(out);
+        }
+        PostProcess(3);
         fSolution.Zero();
     }
     fSolution = solkeep;

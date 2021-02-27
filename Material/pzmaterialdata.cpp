@@ -405,6 +405,7 @@ void TPZMaterialData::ComputeFunctionDivergence()
         divphi(iq,0) = 0.;
 
         int n_dir = dphi_s.Rows();
+        divphi(iq,0) = 0.;
         for (int k = 0; k < n_dir; k++) {
             divphi(iq,0) +=  dphi(k,i_phi_s)*fMasterDirections(k,i_vec)/detjac;
         }
