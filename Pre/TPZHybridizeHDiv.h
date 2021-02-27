@@ -8,7 +8,7 @@
 #ifndef TPZHybridizeHDiv_hpp
 #define TPZHybridizeHDiv_hpp
 
-#include <stdio.h>
+#include <iostream>
 #include <map>
 
 template<class T>
