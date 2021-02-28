@@ -56,6 +56,19 @@ TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
         for (int ic=0; ic<ncon; ic++) {
             if(fIndexes[ic] != ic) DebugStop();
         }
+        for (int ic=0; ic<fCondensedConnectIndexes.size(); ic++) {
+            if(fCondensedConnectIndexes[ic] != elgr->ConnectIndex(ic))
+            {
+                DebugStop();
+            }
+        }
+        int ncondense = fCondensedConnectIndexes.size();
+        for (int ic=0; ic<fActiveConnectIndexes.size(); ic++) {
+            if(fActiveConnectIndexes[ic] != elgr->ConnectIndex(ncondense+ic))
+            {
+                DebugStop();
+            }
+        }
     }
 #endif
 }
@@ -280,7 +293,7 @@ void TPZCondensedCompEl::Resequence()
 }
 
 /// Assemble the stiffness matrix in locally kept datastructure
-void TPZCondensedCompEl::TPZCondensedCompEl::Assemble()
+void TPZCondensedCompEl::Assemble()
 {
     fCondensed.K00()->Redim(fNumInternalEqs, fNumInternalEqs);
     fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
