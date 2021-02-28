@@ -207,10 +207,10 @@ virtual int ClassId() const override;
 	virtual void CalcResidual(TPZElementMatrix &ef) override;
 	
 	/** @brief Initialize element matrix in which is computed CalcStiff */
-//	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 	/** @brief Initialize element matrix in which is computed in CalcResidual */
-//	virtual void InitializeElementMatrix(TPZElementMatrix &ef);
+	virtual void InitializeElementMatrix(TPZElementMatrix &ef) override;
 	
 	/** @brief Returns minimum and maximum values for each state variable */
 	/** 
