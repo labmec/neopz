@@ -2,7 +2,8 @@
  * @file
  * @brief Contains the implementation of the TPZStructMatrixOR methods.
  */
-
+#include <thread>
+#include <vector>
 #include "pzstrmatrix.h"
 
 #include "pzvec.h"
@@ -472,7 +473,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
 void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     ThreadData threaddata(this,mat,rhs,fMaterialIds,guiInterface);
     const int numthreads = this->fNumThreads;
-    TPZVec<pthread_t> allthreads(numthreads);
+    std::vector<std::thread> allthreads;
     int itr;
     if (guiInterface) {
         if (guiInterface->AmIKilled()) {
@@ -480,14 +481,13 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         }
     }
     for (itr = 0; itr < numthreads; itr++) {
-        PZ_PTHREAD_CREATE(&allthreads[itr], NULL, ThreadData::ThreadWork,
-                &threaddata, __FUNCTION__);
+      allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
     }
 
     ThreadData::ThreadAssembly(&threaddata);
 
     for (itr = 0; itr < numthreads; itr++) {
-        PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+      allthreads[itr].join();
     }
 
 #ifdef LOG4CXX2
@@ -504,7 +504,7 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
 void TPZStructMatrixOR::MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     ThreadData threaddata(this, rhs, fMaterialIds, guiInterface);
     const int numthreads = this->fNumThreads;
-    TPZVec<pthread_t> allthreads(numthreads);
+    std::vector<std::thread> allthreads;
     int itr;
     if (guiInterface) {
         if (guiInterface->AmIKilled()) {
@@ -513,14 +513,13 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPoi
     }
 
     for (itr = 0; itr < numthreads; itr++) {
-        PZ_PTHREAD_CREATE(&allthreads[itr], NULL, ThreadData::ThreadWork,
-                &threaddata, __FUNCTION__);
+      allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
     }
 
     ThreadData::ThreadAssembly(&threaddata);
 
     for (itr = 0; itr < numthreads; itr++) {
-        PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+      allthreads[itr].join();
     }
 }
 
