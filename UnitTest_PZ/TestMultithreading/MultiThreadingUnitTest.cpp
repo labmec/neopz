@@ -53,33 +53,31 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
   }();
 
   
-    auto CreateCMesh = [&](TPZGeoMesh *gmesh) -> TPZCompMesh *
-    {    
-      auto *cmesh = new TPZCompMesh(gmesh);
+  auto * cMesh = [&]() -> TPZCompMesh *
+  {    
+    auto *cmesh = new TPZCompMesh(gMesh);
  
-      auto *laplacianMat = new TPZMatLaplacian(matIdVec[0], dim);
-      cmesh->InsertMaterialObject(laplacianMat);
+    auto *laplacianMat = new TPZMatLaplacian(matIdVec[0], dim);
+    cmesh->InsertMaterialObject(laplacianMat);
  
-      cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDefaultOrder(pOrder);
  
-      cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
-      cmesh->AutoBuild();
-      cmesh->AdjustBoundaryElements();
-      cmesh->CleanUpUnconnectedNodes();
-      return cmesh;
-    };
-  constexpr bool optimizeBandwidth{true};
+    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+    return cmesh;
+  }();
+    
+  constexpr bool optimizeBandwidth{false};
   //lambda for obtaining the FE matrix
-    auto GetMatrix = [gMesh, CreateCMesh](const int nThreads){
-    TPZCompMesh *cMesh = CreateCMesh(gMesh);
+  auto GetMatrix = [cMesh, optimizeBandwidth](const int nThreads){
     TPZAnalysis an(cMesh, optimizeBandwidth);
     TPZSkylineStructMatrix matskl(cMesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
     an.Assemble();
-    auto getMat = an.Solver().Matrix();
-    delete cMesh;
-    return getMat;
+    return an.Solver().Matrix();
   };
   
   auto matSerial = GetMatrix(0);
