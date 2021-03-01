@@ -614,17 +614,25 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
   TPZManVector<REAL,10> errors(10);
  
   // Getting unique id for each thread
-  PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
-  const int64_t myid = data->ftid;
-  data->ftid++;
-  PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
+  const int64_t myid = [&]()
+  {
+    std::scoped_lock lock(data->fMutexThreadId);
+    const int64_t myid_loc = data->ftid;
+    data->ftid++;
+    return myid_loc;
+  }();
+
   
   
   do{
-    PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
-    const int64_t iel = data->fNextElement;
-    data->fNextElement++;
-    PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZAnalysis::ThreadData::ThreadWork");
+
+    const int64_t iel = [&]()
+    {
+      std::scoped_lock lock(data->fMutexAccessEl);
+      const int64_t iel_loc = data->fNextElement;
+      data->fNextElement++;
+      return iel_loc;
+    }();
     
     // For all the elements it tries to get after the last one
     if ( iel >= nelem ) continue;
@@ -1545,13 +1553,9 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
 }
 
 TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f) : fNextElement(0), fvalues(0), fStoreError(store_error), fExact(f), ftid(0), fElvec(elvec){
-  PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZAnalysis::ThreadData::ThreadData()");
-  PZ_PTHREAD_MUTEX_INIT(&fGetUniqueId,NULL,"TPZAnalysis::ThreadData::ThreadData()");
 }
 
 
 TPZAnalysis::ThreadData::~ThreadData()
 {
-  PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOR::ThreadData::~ThreadData()");
-  PZ_PTHREAD_MUTEX_DESTROY(&fGetUniqueId,"TPZStructMatrixOR::ThreadData::~ThreadData()");
 }

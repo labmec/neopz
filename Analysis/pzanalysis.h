@@ -16,6 +16,7 @@
 #include "pzstrmatrix.h"      // for TPZStructMatrix
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer
+#include <mutex>
 class TPZCompEl;
 class TPZCompMesh;
 class TPZConnect;
@@ -342,11 +343,11 @@ int ClassId() const override;
     // Vector with errors. Assuming no more than a 100 threads
     TPZManVector<TPZManVector<REAL,10>,100> fvalues;
     
-    /** @brief Mutexes (to choose which element is next) */
-    pthread_mutex_t fAccessElement;
-    
-    /** @brief Mutexes (to sum error) */
-    pthread_mutex_t fGetUniqueId;
+    protected:
+    //mutex for assigning thread id
+    std::mutex fMutexThreadId;
+    //mutex for accessing next element on list
+    std::mutex fMutexAccessEl;
     
   };
   
