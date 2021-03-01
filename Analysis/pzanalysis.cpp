@@ -5,6 +5,8 @@
 
 #include "pzanalysis.h"
 #include <math.h>                          // for sqrt, fabs
+#include <thread>
+#include <vector>
 #include <stdio.h>                         // for NULL
 #include <string.h>                        // for strcpy, strlen
 #ifdef MACOSX
@@ -661,7 +663,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   
   fCompMesh->LoadSolution(fSolution);
   const int numthreads = this->fNthreadsError;
-  TPZVec<pthread_t> allthreads(numthreads);
+  std::vector<std::thread> allthreads;
 
   TPZAdmChunkVector<TPZCompEl *> elvec;
   
@@ -688,12 +690,12 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   
   for(int itr=0; itr<numthreads; itr++)
   {
-    PZ_PTHREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata, __FUNCTION__);
+    allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
   }
   
   for(int itr=0; itr<numthreads; itr++)
   {
-    PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
+    allthreads[itr].join();
   }
   
 #ifdef USING_BOOST
