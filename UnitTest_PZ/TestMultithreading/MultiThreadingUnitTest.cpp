@@ -52,47 +52,48 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
     return TPZGeoMeshTools::CreateGeoMeshOnGrid(dim,minX,maxX,matIdVec,nDivs,meshType,false);
   }();
 
-  TPZCompMesh *cMesh = [&]() -> TPZCompMesh *
-  {    
-    auto *cmesh = new TPZCompMesh(gMesh);
+  
+    auto CreateCMesh = [&](TPZGeoMesh *gmesh) -> TPZCompMesh *
+    {    
+      auto *cmesh = new TPZCompMesh(gmesh);
  
-    auto *laplacianMat = new TPZMatLaplacian(matIdVec[0], dim);
-    cmesh->InsertMaterialObject(laplacianMat);
+      auto *laplacianMat = new TPZMatLaplacian(matIdVec[0], dim);
+      cmesh->InsertMaterialObject(laplacianMat);
  
-    cmesh->SetDefaultOrder(pOrder);
+      cmesh->SetDefaultOrder(pOrder);
  
-    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
-    cmesh->AutoBuild();
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
-    return cmesh;
-  }();
+      cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+      cmesh->AutoBuild();
+      cmesh->AdjustBoundaryElements();
+      cmesh->CleanUpUnconnectedNodes();
+      return cmesh;
+    };
   constexpr bool optimizeBandwidth{true};
-  //lambda for obtaining the matrix
-  auto GetMatrix = [&](const int nThreads){
+  //lambda for obtaining the FE matrix
+    auto GetMatrix = [gMesh, CreateCMesh](const int nThreads){
+    TPZCompMesh *cMesh = CreateCMesh(gMesh);
     TPZAnalysis an(cMesh, optimizeBandwidth);
     TPZSkylineStructMatrix matskl(cMesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ELDLt);
-    an.SetSolver(step);
     an.Assemble();
-    return an.Solver().Matrix();
-    
+    auto getMat = an.Solver().Matrix();
+    delete cMesh;
+    return getMat;
   };
   
   auto matSerial = GetMatrix(0);
   auto matParallel = GetMatrix(4);
-  std::cout<< "r = " << matParallel->Rows() << std::endl;
-  std::cout<< "c = " << matParallel->Cols() << std::endl;
-  TPZFMatrix<STATE> matDiff;
-  matSerial->Substract(matParallel.operator*(),matDiff);
+  const int nr = matParallel->Rows();
+  const int nc = matParallel->Cols();
+  
+  TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
+  matSerial->Substract(matParallel, matDiff);
   const auto normDiff = Norm(matDiff);
-  std::cout << normDiff << std::endl;
+  std::cout.precision(17);
+  std::cout << std::fixed << normDiff << std::endl;
   const bool checkMatNorm= IsZero(normDiff);
   BOOST_CHECK_MESSAGE(checkMatNorm,"failed");
-  delete cMesh;
   delete gMesh;
 }
 
