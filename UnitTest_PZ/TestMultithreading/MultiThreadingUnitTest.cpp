@@ -18,6 +18,8 @@
 
 #include "TPZMatLaplacian.h"
 #include "TPZGeoMeshTools.h"
+#include "TPZAnalyticSolution.h"
+#include "pzbndcond.h"
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -44,14 +46,17 @@ struct SuiteInitializer
 namespace threadTest {
   constexpr int dim{2};//aux variable
   //aux function for creating 2d gmesh on unit square
-  TPZGeoMesh *CreateGMesh(const int nDiv, int& matIdVol);
+  TPZGeoMesh *CreateGMesh(const int nDiv, int& matIdVol, int& matIdBC);
   //aux function for creating 2d cmesh with laplacian mat
-  TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol);
+  TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol, const int matIdBC);
 
 
   //test the stiffness matrices in serial and parallel computations
   template <class TSTMAT>
   void CompareStiffnessMatrices(const int nThreads);
+
+  template <class TSTMAT>
+  void ComparePostProcError(const int nThreads);
 };
 
 BOOST_FIXTURE_TEST_SUITE(multithread_tests,SuiteInitializer)
@@ -63,13 +68,17 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
   threadTest::CompareStiffnessMatrices<TPZBlockDiagonalStructMatrix>(4);
   threadTest::CompareStiffnessMatrices<TPZBandStructMatrix>(4);
   threadTest::CompareStiffnessMatrices<TPZSpStructMatrix>(4);
+}
 
+BOOST_AUTO_TEST_CASE(multithread_postprocerror_test)
+{
+  threadTest::ComparePostProcError<TPZSkylineStructMatrix>(4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 
-TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int&matIdVol)
+TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int& matIdVol, int& matIdBC)
 {
   constexpr MMeshType meshType = MMeshType::ETriangular;
   
@@ -77,23 +86,39 @@ TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int&matIdVol)
   static TPZManVector<REAL,3> maxX(3,1);
   maxX[2] = 0.;
   TPZVec<int> nDivs(dim,nDiv);
-  TPZManVector<int,1> matIdVec(1);
+  TPZManVector<int,5> matIdVec(5, -1);
+  matIdVec[0] = 1;
   matIdVol = matIdVec[0];
-  return TPZGeoMeshTools::CreateGeoMeshOnGrid(threadTest::dim,minX,maxX,matIdVec,nDivs,meshType,false);
+  matIdBC = matIdVec[1];
+  return TPZGeoMeshTools::CreateGeoMeshOnGrid(threadTest::dim,minX,maxX,matIdVec,nDivs,meshType,true);
 }
 
-TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol)
+TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol, const int matIdBC)
 {
   auto *cmesh = new TPZCompMesh(gmesh);
   auto *laplacianMat = new TPZMatLaplacian(matIdVol, threadTest::dim);
+
+  TLaplaceExample1* exact = new TLaplaceExample1;
+  exact->fExact = TLaplaceExample1::ESinSin;
+  laplacianMat->SetForcingFunctionExact(exact->Exact());
+  laplacianMat->SetForcingFunction(exact->ForcingFunction());
+
+  TPZFNMatrix<1, REAL> val1(1, 1, 0.), val2(1, 1, 0.);
+  int bctype = 0;
+  val2.Zero();
+  TPZBndCond *bc = laplacianMat->CreateBC(laplacianMat, matIdBC, bctype, val1, val2);
+  bc->TPZMaterial::SetForcingFunction(exact->Exact());
+
   cmesh->InsertMaterialObject(laplacianMat);
- 
+  cmesh->InsertMaterialObject(bc);
+
   cmesh->SetDefaultOrder(pOrder);
- 
   cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
   cmesh->AutoBuild();
+
   cmesh->AdjustBoundaryElements();
   cmesh->CleanUpUnconnectedNodes();
+
   return cmesh;
 }
 
@@ -103,9 +128,9 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   constexpr int nDiv{4};
   constexpr int pOrder{3};
   int matIdVol;
-  TPZGeoMesh *gMesh = CreateGMesh(nDiv, matIdVol);
-
-  auto * cMesh = CreateCMesh(gMesh,pOrder,matIdVol);
+  int matIdBC;
+  auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
+  auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
     
   constexpr bool optimizeBandwidth{false};
   //lambda for obtaining the FE matrix
@@ -143,4 +168,64 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   const bool checkMatNorm = IsZero(normDiff);
   BOOST_CHECK_MESSAGE(checkMatNorm,"failed");
   delete gMesh;
+}
+
+template <class TSTMAT>
+void threadTest::ComparePostProcError(const int nThreads)
+{
+    constexpr int nDiv{4};
+    constexpr int pOrder{3};
+
+    int matIdVol;
+    int matIdBC;
+    auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
+    auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
+
+    constexpr bool optimizeBandwidth{false};
+
+    auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads){
+        TPZAnalysis an(cMesh, optimizeBandwidth);
+        TSTMAT matskl(cMesh);
+        matskl.SetNumThreads(nThreads);
+        an.SetStructuralMatrix(matskl);
+
+        TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
+        direct->SetDirect(ELDLt);
+        an.SetSolver(*direct);
+        delete direct;
+        direct = 0;
+
+        an.Assemble();
+        an.Solve();
+
+        TLaplaceExample1* exact = new TLaplaceExample1;
+        exact->fExact = TLaplaceExample1::ESinSin;
+        an.SetExact(exact->ExactSolution());
+        an.SetThreadsForError(nThreads);
+
+        TPZManVector<REAL> errorVec(3, 0.);
+        int64_t nelem = cMesh->NElements();
+        cMesh->LoadSolution(cMesh->Solution());
+        cMesh->ExpandSolution();
+        cMesh->ElementSolution().Redim(nelem, 10);
+
+        an.PostProcessError(errorVec);
+        return errorVec;
+    };
+
+    auto errorVecSer = GetErrorVec(0);
+    std::cout << "Serial errors: " << errorVecSer << std::endl;
+
+    auto errorVecPar = GetErrorVec(nThreads);
+    std::cout << "Parallel errors: " << errorVecPar << std::endl;
+
+    bool pass = true;
+    for (auto i = 0; i < errorVecSer.size(); i++) {
+        if (!IsZero(errorVecSer[i] - errorVecPar[i])) {
+            pass = false;
+        }
+    }
+    BOOST_CHECK_MESSAGE(pass, "failed");
+
+    delete gMesh;
 }
