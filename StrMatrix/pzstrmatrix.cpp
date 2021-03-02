@@ -48,18 +48,11 @@ static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
-TPZStructMatrixOR::TPZStructMatrixOR(): TPZStructMatrixBase() {
-}
-
 TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
     
 }
 
 TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
-    
-}
-
-TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : TPZStructMatrixBase(copy) {
     
 }
 
