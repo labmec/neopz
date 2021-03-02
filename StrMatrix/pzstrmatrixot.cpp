@@ -477,7 +477,6 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
             return;
         }
     }
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
     pthread_cond_init(&fCondition, NULL);
 
 #ifdef USING_BOOST
@@ -524,7 +523,6 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
     {
         delete allthreaddata[itr];
     }
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOT::ThreadData::~ThreadData()");
     pthread_cond_destroy(&fCondition);
 
 #ifdef LOG4CXX
@@ -551,7 +549,6 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
         }
     }
     
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixOT::ThreadData::ThreadData()");
     pthread_cond_init(&fCondition, NULL);
 
 #ifdef USING_BOOST
@@ -589,7 +586,6 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
         delete allthreaddata[itr];
     }
 
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixOT::ThreadData::~ThreadData()");
     pthread_cond_destroy(&fCondition);
 
 #ifdef LOG4CXX
@@ -671,17 +667,6 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
      {
      std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
      }
-     #endif
-     */
-}
-
-TPZStructMatrixOT::ThreadData::~ThreadData()
-{
-    /*
-     #ifdef MACOSX
-     sem_close(fAssembly);
-     #else
-     sem_destroy(&fAssembly);
      #endif
      */
 }

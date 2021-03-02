@@ -52,8 +52,7 @@ public:
     TPZStructMatrixOT(TPZAutoPointer<TPZCompMesh> cmesh);
     
     TPZStructMatrixOT(const TPZStructMatrixOT &copy);
-    
-    virtual ~TPZStructMatrixOT(){};
+    virtual ~TPZStructMatrixOT() = default;
         
     virtual TPZMatrix<STATE> * Create() override;
     
@@ -131,8 +130,6 @@ protected:
         ThreadData(TPZStructMatrixOT *strmat,int seqnum, TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
         ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
-        /** @brief Destructor: Destroy the mutex semaphores and others */
-        ~ThreadData();
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief The function which will compute the assembly */
@@ -160,8 +157,6 @@ protected:
         /** @brief vector indicating whether an element has been computed */
         TPZVec<int64_t> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
-        pthread_mutex_t *fAccessElement;
-        
         pthread_cond_t *fCondition;
         
         int *fSomeoneIsSleeping;
