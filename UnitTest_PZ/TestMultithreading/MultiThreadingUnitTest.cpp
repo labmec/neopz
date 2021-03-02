@@ -12,6 +12,10 @@
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
+#include "pzbdstrmatrix.h"
+#include "pzbstrmatrix.h"
+#include "TPZSpStructMatrix.h"
+
 #include "TPZMatLaplacian.h"
 #include "TPZGeoMeshTools.h"
 
@@ -37,7 +41,7 @@ struct SuiteInitializer
 };
 
 
-namespace threadTest{
+namespace threadTest {
   constexpr int dim{2};//aux variable
   //aux function for creating 2d gmesh on unit square
   TPZGeoMesh *CreateGMesh(const int nDiv, int& matIdVol);
@@ -45,7 +49,7 @@ namespace threadTest{
   TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol);
 
 
-  //test the stifness matrices in serial and parallel computations
+  //test the stiffness matrices in serial and parallel computations
   template <class TSTMAT>
   void CompareStiffnessMatrices(const int nThreads);
 };
@@ -56,6 +60,10 @@ BOOST_FIXTURE_TEST_SUITE(multithread_tests,SuiteInitializer)
 BOOST_AUTO_TEST_CASE(multithread_assemble_test)
 {
   threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix>(4);
+  threadTest::CompareStiffnessMatrices<TPZBlockDiagonalStructMatrix>(4);
+  threadTest::CompareStiffnessMatrices<TPZBandStructMatrix>(4);
+  threadTest::CompareStiffnessMatrices<TPZSpStructMatrix>(4);
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -65,8 +73,9 @@ TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int&matIdVol)
 {
   constexpr MMeshType meshType = MMeshType::ETriangular;
   
-  static TPZManVector<REAL,2> minX(2,0);
-  static TPZManVector<REAL,2> maxX(2,1);
+  static TPZManVector<REAL,2> minX(3,0);
+  static TPZManVector<REAL,2> maxX(3,1);
+  maxX[2] = 0.;
   TPZVec<int> nDivs(dim,nDiv);
   TPZManVector<int,1> matIdVec(1);
   matIdVol = matIdVec[0];
@@ -96,7 +105,6 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   int matIdVol;
   TPZGeoMesh *gMesh = CreateGMesh(nDiv, matIdVol);
 
-  
   auto * cMesh = CreateCMesh(gMesh,pOrder,matIdVol);
     
   constexpr bool optimizeBandwidth{false};
@@ -131,8 +139,8 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   matSerial->Substract(matParallel, matDiff);
   const auto normDiff = Norm(matDiff);
   std::cout.precision(17);
-  std::cout << std::fixed << normDiff << std::endl;
-  const bool checkMatNorm= IsZero(normDiff);
+  std::cout << std::fixed << "Norm diff: " << normDiff << std::endl;
+  const bool checkMatNorm = IsZero(normDiff);
   BOOST_CHECK_MESSAGE(checkMatNorm,"failed");
   delete gMesh;
 }
