@@ -1404,17 +1404,19 @@ TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
     return TPZGeoElSide();
 }
 
-TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> matIDs) const
-{
-    for (const auto &it : matIDs) {
-        TPZGeoElSide neigh = HasNeighbour(it);
-        if (neigh.Exists())
+TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> materialid) const
+    {
+        if(!fGeoEl) return TPZGeoElSide();
+        auto it = materialid.find(fGeoEl->MaterialId());
+        if(it != materialid.end()) return *this;
+        TPZGeoElSide neighbour = Neighbour();
+        while(neighbour != *this)
         {
-            return neigh;
+            if(materialid.find(neighbour.Element()->MaterialId()) != materialid.end()) return neighbour;
+            neighbour = neighbour.Neighbour();
         }
+        return TPZGeoElSide();
     }
-    return TPZGeoElSide();
-}
 
 /** verifiy if a larger (lower level) neighbour exists with the given material id
  */
@@ -1429,17 +1431,4 @@ TPZGeoElSide TPZGeoElSide::HasLowerLevelNeighbour(int materialid) const
         lower = lower.LowerLevelSide();
     }
     return lower;
-}
-TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> materialid) const
-{
-    if(!fGeoEl) return TPZGeoElSide();
-    auto it = materialid.find(fGeoEl->MaterialId());
-    if(it != materialid.end()) return *this;
-    TPZGeoElSide neighbour = Neighbour();
-    while(neighbour != *this)
-    {
-        if(materialid.find(neighbour.Element()->MaterialId()) != materialid.end()) return neighbour;
-        neighbour = neighbour.Neighbour();
-    }
-    return TPZGeoElSide();
 }

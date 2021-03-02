@@ -310,9 +310,6 @@ void TPZMHMixedMeshControl::CreateHDivMHMMesh()
 {
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
     cmeshHDiv->SetName("FluxMesh");
-    InsertPeriferalHdivMaterialObjects();
-
-    AdjustBoundaryElements();
 
     CreateInternalFluxElements();
     
@@ -1636,11 +1633,13 @@ void TPZMHMixedMeshControl::CreateAverageSolutionMeshes()
     fAverageSolution->SetDefaultOrder(0);
     fAverageSolution->AutoBuild(gelindexes);
     TPZCompElDisc::SetTotalOrderShape(fAverageSolution.operator->());
+    TPZCompElDisc::SetQsiEtaShape(fAverageSolution.operator->(),false);
     fGMesh->ResetReference();
     fDistributedFlux->SetAllCreateFunctionsDiscontinuous();
     fDistributedFlux->SetDefaultOrder(0);
     fDistributedFlux->AutoBuild(gelindexes);
     TPZCompElDisc::SetTotalOrderShape(fDistributedFlux.operator->());
+    TPZCompElDisc::SetQsiEtaShape(fDistributedFlux.operator->(),false);
 
     {
         int64_t nel = fAverageSolution->NElements();

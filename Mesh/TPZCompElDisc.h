@@ -53,6 +53,9 @@ public:
 	/** @brief Set total order shape functions for all Discontinuous elements in cmesh. */
 	static void SetTotalOrderShape(TPZCompMesh * cmesh);
 	
+    /** @brief Set shape function type for all discontinuous elements in cmesh. */
+    static void SetQsiEtaShape(TPZCompMesh * cmesh, bool qsieta);
+    
 	/** @brief Set tensorial shape functions. */
 	void SetTensorialShape();
 	

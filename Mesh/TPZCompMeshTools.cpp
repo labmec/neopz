@@ -1093,8 +1093,6 @@ void TPZCompMeshTools::GroupNeighbourElements(TPZCompMesh *cmesh, const std::set
             elgr->AddElement(cel);
         }
     }
-        out << '\n';
-    }
 }
 
 /// group elements of the computational mesh

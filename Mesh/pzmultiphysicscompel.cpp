@@ -1097,6 +1097,11 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
     //if(Reference()->Dimension() < problemdimension) return;
     TPZMaterial *mat = this->Material();
     int NErrors = mat->NEvalErrors();
+    if(store_errors && this->Mesh()->ElementSolution().Cols() < NErrors)
+    {
+        auto nrows = Mesh()->NElements();
+        this->Mesh()->ElementSolution().Resize(nrows,NErrors);
+    }
     errors.Resize(NErrors);
     errors.Fill(0.);
     
