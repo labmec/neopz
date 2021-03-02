@@ -862,25 +862,19 @@ void TPZStructMatrixCS::AssembleTask::operator()(const tbb::blocked_range<size_t
         if(!ek->HasDependency())
         {
             if (data->fGlobMatrix) {
-                PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementK,"");
-                data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);
-                PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementK,"");
-                
+              data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);
+                                
             }
-            PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementF,"");
             data->fGlobRhs->AddFel(ef->fMat,ek->fSourceIndex,ek->fDestinationIndex);
-            PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
         }
         else
         {
             if (data->fGlobMatrix) {
-                PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementK,"");
-                data->fGlobMatrix->AddKel(ek->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
-                PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementK,"");
+              data->fGlobMatrix->AddKel(ek->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
             }
-            PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementF,"");
+            
             data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
-            PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
+            
         }
         }
     }
