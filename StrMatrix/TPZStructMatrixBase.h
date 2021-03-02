@@ -124,28 +124,10 @@ typedef TPZStructMatrixOR TPZStructMatrix;
 //#include "pzstrmatrixst.h"
 //typedef TPZStructMatrixST TPZStructMatrix;
 
-/** This version uses locks in the assemble contribution with tbb (Nathan-Borin) */
-//#include "pzstrmatrixcs.h"
-//typedef TPZStructMatrixCS TPZStructMatrix;
-
-/** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) */
-//#include "pzstrmatrixgc.h"
-//typedef TPZStructMatrixGC TPZStructMatrix;
-
 /** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) and
  * each color is processed and synchronized */
 //#include "pzstrmatrixot.h"
 //typedef TPZStructMatrixOT TPZStructMatrix;
-
-/** This version uses graph coloring to define the order to process the elements (Devloo-Quinelato) and
- * each color is processed separately using TPZThreadPool */
-//#include "TPZStrMatrixGCTP.h"
-//typedef TPZStructMatrixGCTP TPZStructMatrix;
-
-/** This version uses the graph coloring and creates a tbb::flow::graph to process in parallel */
-//https://trac.macports.org/wiki/MigrationTBB
-//#include "pzstrmatrixtbb.h"
-//typedef TPZStructMatrixTBB TPZStructMatrix;
 
 /** This version uses the graph coloring and creates a tbb::flow::graph to process in parallel 
  *  every node of the tbb flow graph computes calc and the assemble
