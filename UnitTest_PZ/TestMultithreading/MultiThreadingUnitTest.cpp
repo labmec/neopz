@@ -73,8 +73,8 @@ TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int&matIdVol)
 {
   constexpr MMeshType meshType = MMeshType::ETriangular;
   
-  static TPZManVector<REAL,2> minX(3,0);
-  static TPZManVector<REAL,2> maxX(3,1);
+  static TPZManVector<REAL,3> minX(3,0);
+  static TPZManVector<REAL,3> maxX(3,1);
   maxX[2] = 0.;
   TPZVec<int> nDivs(dim,nDiv);
   TPZManVector<int,1> matIdVec(1);
