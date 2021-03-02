@@ -1,6 +1,8 @@
 /**
  * @file
- * @brief Contains the TPZStructMatrixOT class which responsible for a interface among Matrix and Finite Element classes.
+ * @brief Contains the TPZStructMatrixOT class which is a TPZStructMatrixBase using graph coloring to define the order
+to process the elements and each color is processed and 
+synchronized.
  */
 
 #ifndef TPZStructMatrixOT_H
