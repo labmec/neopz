@@ -493,29 +493,7 @@ TPZStructMatrixCS::ThreadData::ThreadData(TPZStructMatrixCS *strmat, TPZMatrix<S
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fNextElement(0)
 {
-    /*	sem_t *sem_open( ... );
-     int sem_close(sem_t *sem);
-     int sem_unlink(const char *name);
-     */
-    /*
-     #ifdef MACOSX
-     std::stringstream sout;
-     static int counter = 0;
-     sout << "AssemblySem" << counter++;
-     fAssembly = sem_open(sout.str().c_str(), O_CREAT,777,1);
-     if(fAssembly == SEM_FAILED)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     DebugStop();
-     }
-     #else
-     int sem_result = sem_init(&fAssembly,0,0);
-     if(sem_result != 0)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     }
-     #endif
-     */
+
 }
 
 TPZStructMatrixCS::ThreadData::ThreadData(TPZStructMatrixCS *strmat,
@@ -524,43 +502,9 @@ TPZStructMatrixCS::ThreadData::ThreadData(TPZStructMatrixCS *strmat,
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fNextElement(0)
 {
-    /*	sem_t *sem_open( ... );
-     int sem_close(sem_t *sem);
-     int sem_unlink(const char *name);
-     */
-    /*
-     #ifdef MACOSX
-     std::stringstream sout;
-     static int counter = 0;
-     sout << "AssemblySem" << counter++;
-     fAssembly = sem_open(sout.str().c_str(), O_CREAT,777,1);
-     if(fAssembly == SEM_FAILED)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     DebugStop();
-     }
-     #else
-     int sem_result = sem_init(&fAssembly,0,0);
-     if(sem_result != 0)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     }
-     #endif
-     */
+  
 }
 
-TPZStructMatrixCS::ThreadData::~ThreadData()
-{
-    
-    /*
-     
-     #ifdef MACOSX
-     sem_close(fAssembly);
-     #else
-     sem_destroy(&fAssembly);
-     #endif
-     */
-}
 
 void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
 {

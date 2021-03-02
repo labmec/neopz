@@ -103,8 +103,6 @@ protected:
         ThreadData(TPZStructMatrixCS *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
         ThreadData(TPZStructMatrixCS *strmat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
-        /** @brief Destructor: Destroy the mutex semaphores and others */
-        ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */
         int64_t NextElement();
         /** @brief The function which will compute the matrices */
