@@ -81,16 +81,21 @@ protected:
     
 public:
     
-    TPZStructMatrixOR();
+    TPZStructMatrixOR() = default;
     
     TPZStructMatrixOR(TPZCompMesh *);
     
     TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh);
     
-    TPZStructMatrixOR(const TPZStructMatrixOR &copy);
+    TPZStructMatrixOR(const TPZStructMatrixOR &copy) = default;
+  //for now we delete the move ctor and assignment
+    TPZStructMatrixOR(const TPZStructMatrixOR &&copy) = delete;
     
-    virtual ~TPZStructMatrixOR(){};
-    
+    virtual ~TPZStructMatrixOR() = default;
+
+    TPZStructMatrixOR& operator=(const TPZStructMatrixOR &) = default;
+
+    TPZStructMatrixOR& operator=(const TPZStructMatrixOR &&) = delete;
     virtual TPZMatrix<STATE> * Create() override;
     
     virtual TPZStructMatrixOR * Clone() override;
