@@ -4,6 +4,7 @@
  *
  */
 #include <iostream>
+#include <chrono>
 
 #include "pzlog.h"
 #include "pzgmesh.h"
@@ -46,8 +47,9 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
   TPZManVector<int,1> matIdVec(1);
   TPZGeoMesh *gMesh = [&]() -> TPZGeoMesh *
   {
-    static TPZManVector<REAL,2> minX(2,0);
-    static TPZManVector<REAL,2> maxX(2,1);
+    static TPZManVector<REAL,2> minX(3,0);
+    static TPZManVector<REAL,2> maxX(3,1);
+    maxX[2] = 0.;
     TPZVec<int> nDivs(dim,nDiv);
     return TPZGeoMeshTools::CreateGeoMeshOnGrid(dim,minX,maxX,matIdVec,nDivs,meshType,false);
   }();
@@ -79,9 +81,20 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
     an.Assemble();
     return an.Solver().Matrix();
   };
-  
+
+  auto start = std::chrono::system_clock::now();
   auto matSerial = GetMatrix(0);
-  auto matParallel = GetMatrix(4);
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsedSerial = end - start;
+  std::cout << "Serial time: " << elapsedSerial.count() << "s\n";
+
+  start = std::chrono::system_clock::now();
+  auto matParallel = GetMatrix(8);
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsedParallel = end - start;
+  std::cout << "Parallel time: " << elapsedParallel.count() << "s\n";
+  std::cout << "Speedup: " << elapsedSerial / elapsedParallel << "x\n";
+
   const int nr = matParallel->Rows();
   const int nc = matParallel->Cols();
   
