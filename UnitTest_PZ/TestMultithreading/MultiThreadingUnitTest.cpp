@@ -36,46 +36,74 @@ struct SuiteInitializer
     }
 };
 
+
+namespace threadTest{
+  constexpr int dim{2};//aux variable
+  //aux function for creating 2d gmesh on unit square
+  TPZGeoMesh *CreateGMesh(const int nDiv, int& matIdVol);
+  //aux function for creating 2d cmesh with laplacian mat
+  TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol);
+
+
+  //test the stifness matrices in serial and parallel computations
+  template <class TSTMAT>
+  void CompareStiffnessMatrices(const int nThreads);
+};
+
 BOOST_FIXTURE_TEST_SUITE(multithread_tests,SuiteInitializer)
-    
+
+
 BOOST_AUTO_TEST_CASE(multithread_assemble_test)
 {
-  constexpr int dim{2};
-  constexpr int nDiv{4};
-  constexpr MMeshType meshType{MMeshType::ETriangular};
-  constexpr int pOrder{3};
+  threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix>(4);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int&matIdVol)
+{
+  constexpr MMeshType meshType = MMeshType::ETriangular;
+  
+  static TPZManVector<REAL,2> minX(2,0);
+  static TPZManVector<REAL,2> maxX(2,1);
+  TPZVec<int> nDivs(dim,nDiv);
   TPZManVector<int,1> matIdVec(1);
-  TPZGeoMesh *gMesh = [&]() -> TPZGeoMesh *
-  {
-    static TPZManVector<REAL,2> minX(3,0);
-    static TPZManVector<REAL,2> maxX(3,1);
-    maxX[2] = 0.;
-    TPZVec<int> nDivs(dim,nDiv);
-    return TPZGeoMeshTools::CreateGeoMeshOnGrid(dim,minX,maxX,matIdVec,nDivs,meshType,false);
-  }();
+  matIdVol = matIdVec[0];
+  return TPZGeoMeshTools::CreateGeoMeshOnGrid(threadTest::dim,minX,maxX,matIdVec,nDivs,meshType,false);
+}
+
+TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol)
+{
+  auto *cmesh = new TPZCompMesh(gmesh);
+  auto *laplacianMat = new TPZMatLaplacian(matIdVol, threadTest::dim);
+  cmesh->InsertMaterialObject(laplacianMat);
+ 
+  cmesh->SetDefaultOrder(pOrder);
+ 
+  cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
+  cmesh->AutoBuild();
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
+  return cmesh;
+}
+
+template <class TSTMAT>
+void threadTest::CompareStiffnessMatrices(const int nThreads)
+{
+  constexpr int nDiv{4};
+  constexpr int pOrder{3};
+  int matIdVol;
+  TPZGeoMesh *gMesh = CreateGMesh(nDiv, matIdVol);
 
   
-  auto * cMesh = [&]() -> TPZCompMesh *
-  {    
-    auto *cmesh = new TPZCompMesh(gMesh);
- 
-    auto *laplacianMat = new TPZMatLaplacian(matIdVec[0], dim);
-    cmesh->InsertMaterialObject(laplacianMat);
- 
-    cmesh->SetDefaultOrder(pOrder);
- 
-    cmesh->ApproxSpace().SetAllCreateFunctionsContinuous();
-    cmesh->AutoBuild();
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
-    return cmesh;
-  }();
+  auto * cMesh = CreateCMesh(gMesh,pOrder,matIdVol);
     
   constexpr bool optimizeBandwidth{false};
   //lambda for obtaining the FE matrix
   auto GetMatrix = [cMesh, optimizeBandwidth](const int nThreads){
     TPZAnalysis an(cMesh, optimizeBandwidth);
-    TPZSkylineStructMatrix matskl(cMesh);
+    TSTMAT matskl(cMesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
     an.Assemble();
@@ -84,12 +112,13 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
 
   auto start = std::chrono::system_clock::now();
   auto matSerial = GetMatrix(0);
+
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsedSerial = end - start;
   std::cout << "Serial time: " << elapsedSerial.count() << "s\n";
 
   start = std::chrono::system_clock::now();
-  auto matParallel = GetMatrix(8);
+  auto matParallel = GetMatrix(nThreads);
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsedParallel = end - start;
   std::cout << "Parallel time: " << elapsedParallel.count() << "s\n";
@@ -107,6 +136,3 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
   BOOST_CHECK_MESSAGE(checkMatNorm,"failed");
   delete gMesh;
 }
-
-
-BOOST_AUTO_TEST_SUITE_END()
