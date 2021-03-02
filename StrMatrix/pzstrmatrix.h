@@ -8,6 +8,7 @@
 
 #include <set>
 #include <map>
+#include <mutex>
 #include <semaphore.h>
 #include "pzvec.h"
 #include "tpzautopointer.h"
@@ -74,7 +75,7 @@ protected:
         /** @brief  Current element */
         int64_t fNextElement;
         /** @brief Mutexes (to choose which element is next) */
-        pthread_mutex_t fAccessElement;
+        std::mutex fMutexAccessElement;
         /** @brief Semaphore (to wake up assembly thread) */
         TPZSemaphore fAssembly;
     };

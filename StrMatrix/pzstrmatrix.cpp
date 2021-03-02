@@ -521,8 +521,6 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat, TPZMatrix<S
         std::set<int> &MaterialIds,
         TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fNextElement(0) {
-
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement, NULL, "TPZStructMatrixOR::ThreadData::ThreadData()");
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -566,8 +564,6 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat,
         std::set<int> &MaterialIds,
         TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fNextElement(0) {
-
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement, NULL, "TPZStructMatrixOR::ThreadData::ThreadData()");
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -594,7 +590,6 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat,
 }
 
 TPZStructMatrixOR::ThreadData::~ThreadData() {
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement, "TPZStructMatrixOR::ThreadData::~ThreadData()");
     /*
      #ifdef MACOSX
      sem_close(fAssembly);
@@ -708,16 +703,11 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
         // compute the next element (this method is threadsafe)
         iel = data->NextElement();
     }
-    PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadWork");
-    data->fAssembly.Post();
-    /*
-     #ifdef MACOSX
-     sem_post(data->fAssembly);
-     #else
-     sem_post(&data->fAssembly);
-     #endif
-     */
-    PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadWork");
+
+    {
+      std::scoped_lock lock(data->fMutexAccessElement);
+      data->fAssembly.Post();
+    }
 
     return 0;
 }
@@ -729,12 +719,12 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
     TPZCompMesh *cmesh = data->fStruct->fMesh;
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     int64_t nel = cmesh->NElements();
-    PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement), "TPZStructMatrixOR::ThreadData::ThreadAssembly");
+    data->fMutexAccessElement.lock();
     int64_t nextel = data->fNextElement;
     int numprocessed = data->fProcessed.size();
     while (nextel < nel || numprocessed) {
         if (guiInterface) if (guiInterface->AmIKilled()) {
-                break;
+            break;//mutex will still be unlocked at the end of the function
             }
         std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > >::iterator itavail;
         std::set<int>::iterator itprocess;
@@ -774,8 +764,7 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
 #endif
 
                 // Release the mutex
-                PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadAssembly");
-
+                data->fMutexAccessElement.unlock();
 #ifndef DRY_RUN
                 // Assemble the matrix
                 if (!ek->HasDependency()) {
@@ -791,11 +780,11 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
                 }
 #endif
                 // acquire the mutex
-                PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadAssembly");
+                data->fMutexAccessElement.lock();
             }
         }
         if (!keeplooking) {
-            PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadAssembly");
+          data->fMutexAccessElement.unlock();
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 LOGPZ_DEBUG(logger, "Going to sleep within assembly")
@@ -815,7 +804,7 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
                 LOGPZ_DEBUG(logger, "Waking up for assembly")
             }
 #endif
-            PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadAssembly");
+            data->fMutexAccessElement.lock();
         }
         nextel = data->fNextElement;
         numprocessed = data->fProcessed.size();
@@ -839,12 +828,12 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
 #endif
-    PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement, "TPZStructMatrixOR::ThreadData::ThreadAssembly");
+    data->fMutexAccessElement.unlock();
     return 0;
 }
 
 int64_t TPZStructMatrixOR::ThreadData::NextElement() {
-    PZ_PTHREAD_MUTEX_LOCK(&fAccessElement, "TPZStructMatrixOR::ThreadData::NextElement()");
+    fMutexAccessElement.lock();
     int64_t iel;
     int64_t nextel = fNextElement;
     TPZCompMesh *cmesh = fStruct->fMesh;
@@ -859,7 +848,7 @@ int64_t TPZStructMatrixOR::ThreadData::NextElement() {
     fNextElement = iel + 1;
     nextel = iel;
     if (iel < nel) fProcessed.insert(iel); //AQUIBORIN pelo que percebi, aqui tem que acontecer antes do unlock no caso sem Critical Section
-    PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement, "TPZStructMatrixOR::ThreadData::NextElement()");
+    fMutexAccessElement.unlock();
 #ifdef LOG4CXX
     {
         if (logger->isDebugEnabled()) {
@@ -876,7 +865,7 @@ int64_t TPZStructMatrixOR::ThreadData::NextElement() {
 // put the computed element matrices in the map
 
 void TPZStructMatrixOR::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef) {
-    PZ_PTHREAD_MUTEX_LOCK(&fAccessElement, "TPZStructMatrixOR::ThreadData::ComputedElementMatrix()");
+    std::scoped_lock lock(fMutexAccessElement);
     std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek, ef);
     fSubmitted[iel] = el;
     fAssembly.Post();
@@ -887,7 +876,6 @@ void TPZStructMatrixOR::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPo
      sem_post(&fAssembly);
      #endif
      */
-    PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement, "TPZStructMatrixOR::ThreadData::ComputedElementMatrix()");
 }
 
 template class TPZRestoreClass<TPZStructMatrixOR>;
