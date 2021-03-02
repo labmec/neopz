@@ -646,13 +646,11 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     const int nerrors = errors.NElements();
     data->fvalues[myid].Resize(nerrors, 0.);
 
-    //PZ_PTHREAD_MUTEX_LOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
-    //std::cout << "size of fvalues[" << myid << "] = " << data->fvalues[myid].NElements() << std::endl;
+
     for(int ier = 0; ier < nerrors; ier++)
     {
       (data->fvalues[myid])[ier] += errors[ier] * errors[ier];
     }
-    //PZ_PTHREAD_MUTEX_UNLOCK(&data->fGetUniqueId,"TPZAnalysis::ThreadData::ThreadWork");
     
     
   } while (data->fNextElement < nelem);
