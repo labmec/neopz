@@ -493,10 +493,6 @@ TPZStructMatrixCS::ThreadData::ThreadData(TPZStructMatrixCS *strmat, TPZMatrix<S
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fNextElement(0)
 {
-    
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixCS::ThreadData::ThreadData()");
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElementK,NULL,"");
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElementF,NULL,"");
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -528,10 +524,6 @@ TPZStructMatrixCS::ThreadData::ThreadData(TPZStructMatrixCS *strmat,
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fNextElement(0)
 {
-    
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrixCS::ThreadData::ThreadData()");
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElementK,NULL,"");
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElementF,NULL,"");
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -559,9 +551,6 @@ TPZStructMatrixCS::ThreadData::ThreadData(TPZStructMatrixCS *strmat,
 
 TPZStructMatrixCS::ThreadData::~ThreadData()
 {
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrixCS::ThreadData::~ThreadData()");
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElementK,"");
-    PZ_PTHREAD_MUTEX_DESTROY(&fAccessElementF,"");
     
     /*
      
@@ -681,25 +670,20 @@ void *TPZStructMatrixCS::ThreadData::ThreadWork(void *datavoid)
         if(!ek->HasDependency())
         {
             if (data->fGlobMatrix) {
-                PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementK,"");
-                data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);
-                PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementK,"");
-                
+              std::scoped_lock lock(data->fMutexAccessElementK);
+                data->fGlobMatrix->AddKel(ek->fMat,ek->fSourceIndex,ek->fDestinationIndex);                
             }
-            PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementF,"");
+            std::scoped_lock lock(data->fMutexAccessElementF);
             data->fGlobRhs->AddFel(ef->fMat,ek->fSourceIndex,ek->fDestinationIndex);
-            PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
         }
         else
         {
             if (data->fGlobMatrix) {
-                PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementK,"");
+                std::scoped_lock lock(data->fMutexAccessElementK);
                 data->fGlobMatrix->AddKel(ek->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
-                PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementK,"");
             }
-            PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElementF,"");
+            std::scoped_lock lock(data->fMutexAccessElementF);
             data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);
-            PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElementF,"");
         }
 #ifdef LOG4CXX
         timeforel.stop();
@@ -727,10 +711,11 @@ int64_t TPZStructMatrixCS::ThreadData::NextElement()
     int64_t my_el;
     
     while (1) {
-        
-        PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
+      {
+        std::scoped_lock lock(fMutexAccessElement);
         my_el = fNextElement++;
-        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
+      }
+        
         
         if (my_el >= nel-1)
             break;
