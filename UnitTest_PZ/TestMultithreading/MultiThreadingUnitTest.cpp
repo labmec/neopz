@@ -145,17 +145,17 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
 
   auto start = std::chrono::system_clock::now();
   auto matSerial = GetMatrix(0);
-
+  std::cout<<typeid(TSTMAT).name()<<std::endl;
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsedSerial = end - start;
-  std::cout << "Serial time: " << elapsedSerial.count() << "s\n";
+  std::cout << "\tSerial time: " << elapsedSerial.count() << "s\n";
 
   start = std::chrono::system_clock::now();
   auto matParallel = GetMatrix(nThreads);
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsedParallel = end - start;
-  std::cout << "Parallel time: " << elapsedParallel.count() << "s\n";
-  std::cout << "Speedup: " << elapsedSerial / elapsedParallel << "x\n";
+  std::cout << "\tParallel time: " << elapsedParallel.count() << "s\n";
+  std::cout << "\tSpeedup: " << elapsedSerial / elapsedParallel << "x\n";
 
   const int nr = matParallel->Rows();
   const int nc = matParallel->Cols();
@@ -164,7 +164,7 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   matSerial->Substract(matParallel, matDiff);
   const auto normDiff = Norm(matDiff);
   std::cout.precision(17);
-  std::cout << std::fixed << "Norm diff: " << normDiff << std::endl;
+  std::cout << std::fixed << "\tNorm diff: " << normDiff << std::endl;
   const bool checkMatNorm = IsZero(normDiff);
   BOOST_CHECK_MESSAGE(checkMatNorm,"failed");
   delete gMesh;
