@@ -101,13 +101,7 @@ public:
     static void OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);
-    
-    /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const override;
-    
-    /** @brief Set the set of material ids which will be considered when assembling the system */
-    void SetMaterialIds(const std::set<int> &materialids) override;
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);    
     
     /** @brief Establish whether the element should be computed */
     bool ShouldCompute(int matid) const override
