@@ -56,10 +56,6 @@ TPZStructMatrixOR::TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStr
     
 }
 
-TPZStructMatrixOR::TPZStructMatrixOR(const TPZStructMatrixOR &copy) : TPZStructMatrixBase(copy) {
-    
-}
-
 TPZMatrix<STATE> *TPZStructMatrixOR::Create() {
     cout << "TPZStructMatrixOR::Create should never be called\n";
     return 0;
