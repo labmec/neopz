@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZStructMatrixOR class which responsible for a interface among Matrix and Finite Element classes.
+ * @brief Contains the TPZStructMatrixOR class which is a TPZStructMatrix using threads and mutexes without mesh coloring for parallelization.
  */
 
 #ifndef TPZStructMatrixOR_H
