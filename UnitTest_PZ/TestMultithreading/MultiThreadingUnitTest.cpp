@@ -245,4 +245,5 @@ static void threadTest::ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &s
   sol[0] = std::sin(2 * M_PI * x) * std::sin(2 * M_PI * y);
   solDx(0, 0) = 2 * M_PI * std::cos(2 * M_PI * x) * std::sin(2 * M_PI * y);
   solDx(1, 0) = 2 * M_PI * std::sin(2 * M_PI * x) * std::cos(2 * M_PI * y);
+  solDx(2, 0) = 0;
 }
