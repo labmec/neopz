@@ -13,29 +13,23 @@
 static LoggerPtr logger(Logger::getLogger("pz.util.semaphore"));
 #endif
 
-TPZSemaphore::TPZSemaphore(void)
-{
-	fCounter = 0;
-        PZ_PTHREAD_MUTEX_INIT(&fMutex, NULL, "TPZSemaphore::TPZSemaphore()");
-        PZ_PTHREAD_COND_INIT(&fCond, NULL, "TPZSemaphore::TPZSemaphore()");
-}
-
-TPZSemaphore::~TPZSemaphore(void)
-{
-        PZ_PTHREAD_MUTEX_DESTROY(&fMutex, "TPZSemaphore::~TPZSemaphore()");
-        PZ_PTHREAD_COND_DESTROY(&fCond, "TPZSemaphore::~TPZSemaphore()");
-}
 
 TPZSemaphore::TPZSemaphore(int initCount)
 {
 	fCounter = initCount;
-        PZ_PTHREAD_MUTEX_INIT(&fMutex, NULL, "TPZSemaphore::TPZSemaphore(int)");
-        PZ_PTHREAD_COND_INIT(&fCond, NULL, "TPZSemaphore::TPZSemaphore(int)");
 }
+
+TPZSemaphore& TPZSemaphore::operator=(const TPZSemaphore &cp)
+{
+  fCounter = cp.fCounter;
+  return *this;
+}
+
+TPZSemaphore::TPZSemaphore(const TPZSemaphore &cp){ *this = cp;}
 
 void TPZSemaphore::Wait()
 {
-        PZ_PTHREAD_MUTEX_LOCK(&fMutex, "TPZSemaphore::Wait()");
+  std::unique_lock lck (fMutex);
 	if (fCounter > 0)
 	{
 		fCounter--;
@@ -52,11 +46,10 @@ void TPZSemaphore::Wait()
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		PZ_PTHREAD_MUTEX_UNLOCK(&fMutex, "TPZSemaphore::Wait()");
 		return;
 	}
 	while (fCounter == 0) {
-                PZ_PTHREAD_COND_WAIT(&fCond, &fMutex, "TPZSemaphore::Wait()");
+    fCond.wait(lck);
 		if (fCounter > 0) {
 			fCounter--;
 #ifdef LOG4CXX
@@ -72,7 +65,6 @@ void TPZSemaphore::Wait()
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
-			PZ_PTHREAD_MUTEX_UNLOCK(&fMutex, "TPZSemaphore::Wait()");
 			return;
 		}
 	}
@@ -81,7 +73,8 @@ void TPZSemaphore::Wait()
 
 void TPZSemaphore::Post()
 {
-	PZ_PTHREAD_MUTEX_LOCK(&fMutex, "TPZSemaphore::Post()");
+	std::unique_lock lck(fMutex);
+        
 	fCounter++;
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
@@ -96,7 +89,8 @@ void TPZSemaphore::Post()
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	PZ_PTHREAD_COND_SIGNAL(&fCond, "TPZSemaphore::Post()");
-	PZ_PTHREAD_MUTEX_UNLOCK(&fMutex, "TPZSemaphore::Post()");
+  lck.unlock();
+  fCond.notify_one();
+  lck.lock();
 	return;
 }
