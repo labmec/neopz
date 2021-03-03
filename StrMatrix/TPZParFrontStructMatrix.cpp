@@ -29,7 +29,6 @@
 
 #include "pzdxmesh.h"
 #include <fstream>
-using namespace std;
 
 #include "pzelmat.h"
 
