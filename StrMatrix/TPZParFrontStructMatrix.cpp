@@ -42,9 +42,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
 
 #endif
-
-/// Semaphore which controls multiple threads
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 /// Semaphore which controls threads assembling elements
 pthread_mutex_t mutex_element_assemble = PTHREAD_MUTEX_INITIALIZER;
 /// Semaphore which controls thread assembling global matrices
