@@ -17,6 +17,7 @@
 #include "pzcmesh.h"
 #include "TPZMaterial.h"
 #include <algorithm>
+#include <thread>
 #ifdef USING_MKL
 #include <mkl.h>
 #elif MACOSX
@@ -214,8 +215,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     }
 #endif
     
-    static pthread_mutex_t mutex_serial = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex_serial);
+    static std::mutex mutex_serial;
+    mutex_serial.lock();
     E0Invblaze = serial(inv( E0blaze ));  // Compute the inverse of E0
 
 #ifdef COMPUTE_CRC
@@ -225,7 +226,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         matEInvcrc[Index()] = crc.checksum();
     }
 #endif
-    pthread_mutex_unlock(&mutex_serial);
+    mutex_serial.unlock();
 
     blaze::DynamicMatrix<STATE,blaze::columnMajor> globmatblaze(2*n,2*n);
     blaze::DynamicMatrix<STATE,blaze::columnMajor> E0InvE1Tblaze = E0Invblaze*trans(E1blaze);
@@ -260,8 +261,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
 
 	eigen(globmatblaze, eigvalblaze, eigvecblaze);
 #ifdef COMPUTE_CRC2
-//    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex);
+    mutex.lock();
     extern int gnumthreads;
     std::stringstream sout;
     sout << "eigval" << gnumthreads << ".nb";
@@ -281,7 +281,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         eigvalblaze.Print(eigv.str().c_str(),file,EMathematicaInput);
     }
     count_loc++;
-    pthread_mutex_unlock(&mutex);
+    mutex.unlock();
 #endif
 
     if(0)
@@ -720,20 +720,18 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         globmat(i+n,i+n) += (dim-2)*0.5;
     }
     
-    static pthread_mutex_t mutex_serial = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex_serial);
+    static std::mutex mutex_serial;
+    mutex_serial.lock();
     
     TPZFMatrix<STATE> globmatkeep(globmat);
     TPZFMatrix< std::complex<double> > eigenVectors;
     TPZManVector<std::complex<double> > eigenvalues;
     globmatkeep.SolveEigenProblem(eigenvalues, eigenVectors);
-    
-    pthread_mutex_unlock(&mutex_serial);
- 
+    mutex_serial.unlock();
     {
 #ifdef COMPUTE_CRC
-        static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
-        pthread_mutex_lock(&mutex);
+        static std::mutex mtx;
+        std::scoped_lock lck(mtx);
         extern int gnumthreads;
         std::stringstream sout;
         sout << "eigval" << gnumthreads << ".nb";
@@ -753,7 +751,6 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             eigenVectors.Print(eigv.str().c_str(),file,EMathematicaInput);
         }
         count++;
-        pthread_mutex_unlock(&mutex);
 #endif
     }
 
@@ -902,8 +899,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         sbfem->SetPhiEigVal(fPhi, fEigenvalues);
     }
 #ifdef COMPUTE_CRC
-    static pthread_mutex_t mutex =PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex);
+    static std::mutex mtx;
+    mtx.lock();
     {
         boost::crc_32_type crc;
         int64_t n = E0.fMat.Rows();
@@ -936,7 +933,7 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         crc.process_bytes(&ekloc(0,0), n*n*sizeof(STATE));
         stiffcrc[Index()] = crc.checksum();
     }
-    pthread_mutex_unlock(&mutex);
+    mtx.unlock();
 #endif
     ComputeMassMatrix(M0);
     
