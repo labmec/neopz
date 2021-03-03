@@ -23,8 +23,7 @@ inline void StopError()
 
 #ifdef LOG4CXX
 
-#include "pz_pthread.h"
-
+#include <mutex>
 #include <iostream>
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
@@ -38,7 +37,7 @@ using namespace log4cxx::helpers;
  * \{ */
 
 /// External variable to mutex which controls write log
-extern pthread_mutex_t glogmutex;
+extern std::mutex glogmutex;
 
 ///EBORIN: PERF FIX: These macros  lock and unlock mutexes even if the
 ///        LOG4CXX macro does not have to log anything. Assuming the log
@@ -48,36 +47,36 @@ extern pthread_mutex_t glogmutex;
 ///        Check on the loglevel before composing the log string
 
 /// Define log for debug
-#define LOGPZ_DEBUG(A,B) { \
-      if(A->isDebugEnabled()) {		\
-      PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_DEBUG");	   \
-      LOG4CXX_DEBUG(A,B);				   \
-      PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex,"LOGPZ_DEBUG"); } \
-        else std::cout << "Coloque IsDebugEnabled em " << __FILE__ << ":" << __LINE__ << std::endl;}
+#define LOGPZ_DEBUG(A,B) {                      \
+    if(A->isDebugEnabled()){                    \
+      std::scoped_lock lock(glogmutex);         \
+      LOG4CXX_DEBUG(A,B);                       \
+    }                                           \
+    else std::cout << "Coloque IsDebugEnabled em " << __FILE__ << ":" << __LINE__ << std::endl;}
 
 /// Define log for info
-#define LOGPZ_INFO(A,B) {if(A->isInfoEnabled()) {		\
-      PZ_PTHREAD_MUTEX_LOCK(&glogmutex, "LOGPZ_INFO");		\
-      LOG4CXX_INFO(A,B);					\
-      PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex, "LOGPZ_INFO"); } }
+#define LOGPZ_INFO(A,B) {                                       \
+    if(A->isInfoEnabled()) {                                    \
+      std::scoped_lock lock(glogmutex);                         \
+      LOG4CXX_INFO(A,B);}}
 
 /// Define log for warnings
-#define LOGPZ_WARN(A,B) {if(A->isWarnEnabled()) {			\
-      PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_WARN");			\
-      LOG4CXX_WARN(A,B);						\
-      PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex,"LOGPZ_WARN"); } }
+#define LOGPZ_WARN(A,B) {                                               \
+    if(A->isWarnEnabled()) {                                            \
+      std::scoped_lock lock(glogmutex);                                 \
+      LOG4CXX_WARN(A,B);}}
 /// Define log for errors
 
-#define LOGPZ_ERROR(A,B) {if(A->isErrorEnabled()) {		\
-      PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_ERROR");		\
-      LOG4CXX_ERROR(A,B); StopError();				\
-      PZ_PTHREAD_MUTEX_UNLOCK(&glogmutex,"LOGPZ_ERROR"); } }
+#define LOGPZ_ERROR(A,B) {                                      \
+    if(A->isErrorEnabled()) {                                   \
+      std::scoped_lock lock(glogmutex);                         \
+      LOG4CXX_ERROR(A,B); StopError();}}
 
 /// Define log for fatal errors
-#define LOGPZ_FATAL(A,B) {if(A->isFatalEnabled()) {         \
-      PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_FATAL");	    \
-      LOG4CXX_FATAL(A,B);				    \
-      PZ_PTHREAD_MUTEX_LOCK(&glogmutex,"LOGPZ_FATAL"); } }
+#define LOGPZ_FATAL(A,B) {                                  \
+    if(A->isFatalEnabled()) {                               \
+      std::scoped_lock lock(glogmutex);                     \
+      LOG4CXX_FATAL(A,B);}}
 
 #else
 

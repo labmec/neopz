@@ -8,7 +8,7 @@
 #include <iostream>
 
 #ifdef LOG4CXX
-pthread_mutex_t glogmutex = PTHREAD_MUTEX_INITIALIZER;
+std::mutex glogmutex;
 #endif
 
 void InitializePZLOG()
