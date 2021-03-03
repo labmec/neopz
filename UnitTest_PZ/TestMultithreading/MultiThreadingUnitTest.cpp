@@ -18,7 +18,6 @@
 
 #include "TPZMatLaplacian.h"
 #include "TPZGeoMeshTools.h"
-#include "TPZAnalyticSolution.h"
 #include "pzbndcond.h"
 
 #ifndef WIN32
@@ -50,14 +49,16 @@ namespace threadTest {
   //aux function for creating 2d cmesh with laplacian mat
   TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol, const int matIdBC);
 
-
   //test the stiffness matrices in serial and parallel computations
   template <class TSTMAT>
   void CompareStiffnessMatrices(const int nThreads);
 
   template <class TSTMAT>
   void ComparePostProcError(const int nThreads);
-};
+
+  static void ForcingFunction(const TPZVec <REAL> &pt, TPZVec <STATE> &result);
+  static void ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &sol, TPZFMatrix <STATE> &solDx);
+}
 
 BOOST_FIXTURE_TEST_SUITE(multithread_tests,SuiteInitializer)
 
@@ -98,16 +99,12 @@ TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const 
   auto *cmesh = new TPZCompMesh(gmesh);
   auto *laplacianMat = new TPZMatLaplacian(matIdVol, threadTest::dim);
 
-  TLaplaceExample1* exact = new TLaplaceExample1;
-  exact->fExact = TLaplaceExample1::ESinSin;
-  laplacianMat->SetForcingFunctionExact(exact->Exact());
-  laplacianMat->SetForcingFunction(exact->ForcingFunction());
+  laplacianMat->SetForcingFunction(ForcingFunction, 10);
 
   TPZFNMatrix<1, REAL> val1(1, 1, 0.), val2(1, 1, 0.);
   int bctype = 0;
   val2.Zero();
   TPZBndCond *bc = laplacianMat->CreateBC(laplacianMat, matIdBC, bctype, val1, val2);
-  bc->TPZMaterial::SetForcingFunction(exact->Exact());
 
   cmesh->InsertMaterialObject(laplacianMat);
   cmesh->InsertMaterialObject(bc);
@@ -171,61 +168,81 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
 }
 
 template <class TSTMAT>
-void threadTest::ComparePostProcError(const int nThreads)
-{
-    constexpr int nDiv{4};
-    constexpr int pOrder{3};
+void threadTest::ComparePostProcError(const int nThreads) {
+  constexpr int nDiv{4};
+  constexpr int pOrder{3};
 
-    int matIdVol;
-    int matIdBC;
-    auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
-    auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
+  int matIdVol;
+  int matIdBC;
+  auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
+  auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
 
-    constexpr bool optimizeBandwidth{false};
+  constexpr bool optimizeBandwidth{false};
 
-    auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads){
-        TPZAnalysis an(cMesh, optimizeBandwidth);
-        TSTMAT matskl(cMesh);
-        matskl.SetNumThreads(nThreads);
-        an.SetStructuralMatrix(matskl);
+  auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads) {
+    TPZAnalysis an(cMesh, optimizeBandwidth);
+    TSTMAT matskl(cMesh);
+    matskl.SetNumThreads(nThreads);
+    an.SetStructuralMatrix(matskl);
 
-        TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
-        direct->SetDirect(ELDLt);
-        an.SetSolver(*direct);
-        delete direct;
-        direct = 0;
+    TPZStepSolver <STATE> *direct = new TPZStepSolver<STATE>;
+    direct->SetDirect(ELDLt);
+    an.SetSolver(*direct);
+    delete direct;
+    direct = 0;
 
-        an.Assemble();
-        an.Solve();
+    an.Assemble();
+    an.Solve();
 
-        TLaplaceExample1* exact = new TLaplaceExample1;
-        exact->fExact = TLaplaceExample1::ESinSin;
-        an.SetExact(exact->ExactSolution());
-        an.SetThreadsForError(nThreads);
+    an.SetExact(threadTest::ExactSolution);
+    an.SetThreadsForError(nThreads);
 
-        TPZManVector<REAL> errorVec(3, 0.);
-        int64_t nelem = cMesh->NElements();
-        cMesh->LoadSolution(cMesh->Solution());
-        cMesh->ExpandSolution();
-        cMesh->ElementSolution().Redim(nelem, 10);
+    TPZManVector <REAL> errorVec(3, 0.);
+    int64_t nelem = cMesh->NElements();
+    cMesh->LoadSolution(cMesh->Solution());
+    cMesh->ExpandSolution();
+    cMesh->ElementSolution().Redim(nelem, 10);
 
-        an.PostProcessError(errorVec);
-        return errorVec;
-    };
+    an.PostProcessError(errorVec);
+    return errorVec;
+  };
 
-    auto errorVecSer = GetErrorVec(0);
-    std::cout << "Serial errors: " << errorVecSer << std::endl;
+  auto start = std::chrono::system_clock::now();
+  auto errorVecSer = GetErrorVec(0);
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsedSerial = end - start;
+  std::cout << "\tSerial time: " << elapsedSerial.count() << "s\n";
+  std::cout << "\tSerial errors: " << errorVecSer << std::endl;
 
-    auto errorVecPar = GetErrorVec(nThreads);
-    std::cout << "Parallel errors: " << errorVecPar << std::endl;
+  start = std::chrono::system_clock::now();
+  auto errorVecPar = GetErrorVec(nThreads);
+  end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsedParallel = end - start;
 
-    bool pass = true;
-    for (auto i = 0; i < errorVecSer.size(); i++) {
-        if (!IsZero(errorVecSer[i] - errorVecPar[i])) {
-            pass = false;
-        }
+  std::cout << "\tParallel time: " << elapsedParallel.count() << "s\n";
+  std::cout << "\tParallel errors: " << errorVecPar << std::endl;
+
+  std::cout << "\tSpeedup: " << elapsedSerial / elapsedParallel << "x\n";
+
+  bool pass = true;
+  for (auto i = 0; i < errorVecSer.size(); i++) {
+    if (!IsZero(errorVecSer[i] - errorVecPar[i])) {
+      pass = false;
     }
-    BOOST_CHECK_MESSAGE(pass, "failed");
+  }
+  BOOST_CHECK_MESSAGE(pass, "failed");
 
-    delete gMesh;
+  delete gMesh;
+}
+
+static void threadTest::ForcingFunction(const TPZVec <REAL> &pt, TPZVec <STATE> &result) {
+  const auto x = pt[0], y = pt[1];
+  result[0] = 8 * M_PI * M_PI * std::sin(2 * M_PI * x) * std::sin(2 * M_PI * y);
+}
+
+static void threadTest::ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &sol, TPZFMatrix <STATE> &solDx) {
+  const auto x = pt[0], y = pt[1];
+  sol[0] = std::sin(2 * M_PI * x) * std::sin(2 * M_PI * y);
+  solDx(0, 0) = 2 * M_PI * std::cos(2 * M_PI * x) * std::sin(2 * M_PI * y);
+  solDx(1, 0) = 2 * M_PI * std::sin(2 * M_PI * x) * std::cos(2 * M_PI * y);
 }
