@@ -521,29 +521,7 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat, TPZMatrix<S
         std::set<int> &MaterialIds,
         TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fNextElement(0) {
-    /*	sem_t *sem_open( ... );
-     int sem_close(sem_t *sem);
-     int sem_unlink(const char *name);
-     */
-    /*
-     #ifdef MACOSX
-     std::stringstream sout;
-     static int counter = 0;
-     sout << "AssemblySem" << counter++;
-     fAssembly = sem_open(sout.str().c_str(), O_CREAT,777,1);
-     if(fAssembly == SEM_FAILED)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     DebugStop();
-     }
-     #else
-     int sem_result = sem_init(&fAssembly,0,0);
-     if(sem_result != 0)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     }
-     #endif
-     */
+
 }
 
 int TPZStructMatrixOR::ClassId() const{
@@ -564,39 +542,9 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrixOR *strmat,
         std::set<int> &MaterialIds,
         TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fNextElement(0) {
-    /*	sem_t *sem_open( ... );
-     int sem_close(sem_t *sem);
-     int sem_unlink(const char *name);
-     */
-    /*
-     #ifdef MACOSX
-     std::stringstream sout;
-     static int counter = 0;
-     sout << "AssemblySem" << counter++;
-     fAssembly = sem_open(sout.str().c_str(), O_CREAT,777,1);
-     if(fAssembly == SEM_FAILED)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     DebugStop();
-     }
-     #else
-     int sem_result = sem_init(&fAssembly,0,0);
-     if(sem_result != 0)
-     {
-     std::cout << __PRETTY_FUNCTION__ << " could not open the semaphore\n";
-     }
-     #endif
-     */
 }
 
 TPZStructMatrixOR::ThreadData::~ThreadData() {
-    /*
-     #ifdef MACOSX
-     sem_close(fAssembly);
-     #else
-     sem_destroy(&fAssembly);
-     #endif
-     */
 }
 
 //#define DRY_RUN
@@ -792,13 +740,6 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
 #endif
             // wait for a signal
             data->fAssembly.Wait();
-            /*
-             #ifdef MACOSX
-             sem_wait(data->fAssembly);
-             #else
-             sem_wait(&data->fAssembly);
-             #endif
-             */
 #ifdef LOG4CXX
             if (logger->isDebugEnabled()) {
                 LOGPZ_DEBUG(logger, "Waking up for assembly")
@@ -869,13 +810,6 @@ void TPZStructMatrixOR::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPo
     std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek, ef);
     fSubmitted[iel] = el;
     fAssembly.Post();
-    /*
-     #ifdef MACOSX
-     sem_post(fAssembly);
-     #else
-     sem_post(&fAssembly);
-     #endif
-     */
 }
 
 template class TPZRestoreClass<TPZStructMatrixOR>;
