@@ -12,7 +12,7 @@
 #include "tpzdohrassembly.h"
 #include "TPZSemaphore.h"
 
-#include <pthread.h>
+//#include <pthread.h>
 #include <list>
 #include <semaphore.h>
 

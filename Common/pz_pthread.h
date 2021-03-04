@@ -1,7 +1,7 @@
 #ifndef PZ_PTHREAD_H
 #define PZ_PTHREAD_H
 
-#include<pthread.h>
+//#include<pthread.h>
 #include<iostream> // cout, ostream
 #include <pz_config.h>
 

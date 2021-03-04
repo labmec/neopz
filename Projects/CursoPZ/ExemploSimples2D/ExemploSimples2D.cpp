@@ -14,6 +14,8 @@
 #include "pzanalysis.h"
 #include "pzbndcond.h"
 #include "TPZMatExSimples2D.h"
+#include "TPZParFrontStructMatrix.h"
+#include "pzstepsolver.h"
 
 //------------------PROBLEMA MODELO------------------------
 
@@ -53,6 +55,15 @@ int main(int argc, char *argv[])
 	// Resolvendo o Sistema
     bool optimizeBandwidth = false; //impede a renumeracao das equacoes do problema(para obter o mesmo resultado do Oden)
 	TPZAnalysis an(cmesh, optimizeBandwidth); //cria objeto de analise que gerenciaria a analise do problema
+    
+    TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(cmesh);
+    
+    an.SetStructuralMatrix(strmat);
+    
+    TPZStepSolver<STATE> solver;
+    solver.SetDirect(ECholesky);
+    an.SetSolver(solver);
+    
 	an.Run();//assembla a matriz de rigidez (e o vetor de carga) global e inverte o sistema de equacoes
     
 	TPZFMatrix<STATE> solucao=cmesh->Solution();//Pegando o vetor de solucao, alphaj

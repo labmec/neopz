@@ -35,7 +35,7 @@
 #include "TPZFileEqnStorage.h"
 #include "pzlog.h"
 
-#include "pz_pthread.h"
+//#include "pz_pthread.h"
 
 #ifdef LOG4CXX
 

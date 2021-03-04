@@ -129,7 +129,7 @@ int TPZDohrPrecond<TVar, TSubStruct>::ClassId() const{
     return Hash("TPZDohrPrecond") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSubStruct().ClassId() << 2;
 }
 
-#include <pthread.h>
+//#include <pthread.h>
 
 /**
  * @brief Auxiliar structure with thread to compute the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"

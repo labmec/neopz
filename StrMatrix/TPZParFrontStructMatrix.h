@@ -25,7 +25,7 @@
 #include <time.h>
 
 //#ifndef PZPAR
-#include <pthread.h>
+//#include <pthread.h>
 //#endif
 
 //#define STACKSTORAGE
