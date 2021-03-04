@@ -92,7 +92,7 @@ public:
     int ClassId() const override;
     void Read(TPZStream& buf, void* context) override;
     void Write(TPZStream& buf, int withclassid) const override;
-    virtual ~TPZStructMatrixBase() {}
+    virtual ~TPZStructMatrixBase() = default;
   protected:
     TPZStructMatrixBase();
     TPZStructMatrixBase(const TPZStructMatrixBase &);

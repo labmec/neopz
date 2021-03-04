@@ -6,23 +6,15 @@
 #ifndef TPZStructMatrixOR_H
 #define TPZStructMatrixOR_H
 
-#include <set>
-#include <map>
+
 #include <mutex>
-#include <semaphore.h>
-#include "pzvec.h"
-#include "tpzautopointer.h"
-#include "pzcmesh.h"
-#include "pzelmat.h"
-#include "TPZSemaphore.h"
-#include "TPZEquationFilter.h"
-#include "TPZGuiInterface.h"
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
 
 class TPZStructMatrixOR;
 #include "TPZStructMatrixBase.h"
+#include "TPZSemaphore.h"
 
+//forward declarations
+class TPZElementMatrix;
 /**
  * @brief Refines geometrical mesh (all the elements) num times
  * @ingroup geometry

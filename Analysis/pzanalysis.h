@@ -6,8 +6,10 @@
 #ifndef ANALYSISH
 #define ANALYSISH
 
+#include <mutex>              // for mutex
 #include <iostream>           // for string, cout, ostream
 #include <set>                // for set
+#include <functional>         // for function
 #include "TPZGuiInterface.h"  // for TPZGuiInterface
 #include "pzerror.h"          // for DebugStop
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
@@ -16,7 +18,7 @@
 #include "pzstrmatrix.h"      // for TPZStructMatrix
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer
-#include <mutex>
+#include "pzadmchunk.h"       // for TPZAdmChunkVector
 class TPZCompEl;
 class TPZCompMesh;
 class TPZConnect;
