@@ -12,6 +12,7 @@
 #include "TPZTimeTemp.h"
 
 #include "pz_pthread.h"
+#include <thread>
 
 #include "tpzparallelenviroment.h"
 
@@ -130,17 +131,13 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,const 
         
         multwork.addWorkItem(data);
     }
-    TPZVec<pthread_t> AllThreads(1);
-    
+
     multwork.run_parallel_for(pzenviroment.fSubstructurePartitioner);
-    
-    PZ_PTHREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList<TVar>::Assemble, 
-                      assemblelist.operator->(), __FUNCTION__);
-    
-    void *result;
-    PZ_PTHREAD_JOIN(AllThreads[0], &result, __FUNCTION__);
-#endif    
-    
+
+    std::thread t(TPZDohrAssembleList<TVar>::Assemble, assemblelist.operator->());
+    t.join();
+#endif
+
 }
 
 
@@ -196,19 +193,15 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
             
             multwork.AddItem(data);
 		}
-		TPZVec<pthread_t> AllThreads(fNumThreads+1);
-		int i;
-		for (i=0; i<fNumThreads; i++) {
-            PZ_PTHREAD_CREATE(&AllThreads[i+1], 0, (TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork), 
-                              &multwork, __FUNCTION__);
-		}
-        //sleep(1);
-		PZ_PTHREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList<TVar>::Assemble, 
-                          assemblelist.operator->(), __FUNCTION__);
-		
-		for (i=0; i<fNumThreads+1; i++) {
-            void *result;
-            PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
+		std::vector<std::thread> listThreads(fNumThreads);
+    int i;
+    for (i = 0; i < fNumThreads; i++) {
+		  listThreads.emplace_back(std::thread(TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork, &multwork));
+    }
+    std::thread assembleThread(TPZDohrAssembleList<TVar>::Assemble, assemblelist.operator->());
+		assembleThread.join();
+    for (i = 0; i < fNumThreads; i++) {
+      listThreads[i].join();
 		}
 	}
 	tempo.fMultiply.Push(mult.ReturnTimeDouble());
