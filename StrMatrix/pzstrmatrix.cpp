@@ -22,7 +22,6 @@
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
-#include "TPZThreadTools.h"
 
 #include "pzcheckmesh.h"
 #include "pzcheckconsistency.h"
