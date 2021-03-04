@@ -40,7 +40,7 @@ static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
 static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"));
 #endif
 
-#include "pz_pthread.h"
+//#include "pz_pthread.h"
 #include "clock_timer.h"
 #include "timing_analysis.h"
 #include "arglib.h"

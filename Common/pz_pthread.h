@@ -53,6 +53,10 @@ int pz_pthread_mutex_unlock(pthread_mutex_t *mutex,
 // 49 thread_mutex_lock
 // 51 thread_mutex_unlock
 
+int pz_pthread_mutex_init(pthread_mutex_t* mutex, const pthread_mutexattr_t* attr,
+const char* fn, const char* file, unsigned line);
+
+
 #define PZ_PTHREAD_MUTEX_INIT(mutex,attr,fn)    \
   pz_pthread_mutex_init(mutex,attr,fn,__FILE__,__LINE__)
 
