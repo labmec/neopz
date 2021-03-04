@@ -328,7 +328,7 @@ template <class TVar>
 void TPZFrontNonSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STensorProductMTData *data){
   if(!data) DebugStop();
   while(data->fRunning){
-    tht::SemaphoreWait(data->fWorkSem[ ithread ]);
+    data->fWorkSem[ithread].Wait();
     if(!data->fRunning) break;
     const int n = data->fAuxVecCol->NElements();
     const int Nthreads = data->NThreads();
