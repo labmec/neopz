@@ -28,8 +28,6 @@
 
 #include "pzlog.h"
 
-#include "pz_pthread.h"
-
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixTBBFlow"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));

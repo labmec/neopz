@@ -1,6 +1,6 @@
 #include "TPZThreadTools.h"
 #include "pzerror.h"
-
+#include "pz_pthread.h"
 /// namespace tht means "ThreadTools"
 namespace tht
 {

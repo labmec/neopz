@@ -11,7 +11,6 @@
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 
-#include "pz_pthread.h"
 #include <thread>
 
 #include "tpzparallelenviroment.h"

@@ -4,9 +4,8 @@
 
 #define using_pthread 
 #ifdef using_pthread
-	#include "pthread.h"
-	//#include "semaphore.h" does not work in MACOS
-	#include "TPZSemaphore.h"
+#include "pthread.h"
+#include "TPZSemaphore.h"
 #endif
 #ifdef WINDOWS_THREADS
 #ifndef NOMINMAX

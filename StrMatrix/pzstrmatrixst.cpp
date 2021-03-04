@@ -20,7 +20,6 @@
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
-#include "TPZThreadTools.h"
 
 
 #include "pzcheckconsistency.h"
@@ -31,7 +30,6 @@ using namespace std;
 
 #include "pzlog.h"
 
-#include "pz_pthread.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixST"));
