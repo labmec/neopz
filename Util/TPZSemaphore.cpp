@@ -91,6 +91,5 @@ void TPZSemaphore::Post()
 #endif
   lck.unlock();
   fCond.notify_one();
-  lck.lock();
 	return;
 }
