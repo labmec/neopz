@@ -15,7 +15,6 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
-#include "TPZParSkylineStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "TPZFrontStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
