@@ -199,7 +199,7 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 		  listThreads.emplace_back(std::thread(TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork, &multwork));
     }
     std::thread assembleThread(TPZDohrAssembleList<TVar>::Assemble, assemblelist.operator->());
-		assembleThread.join();
+    assembleThread.join();
     for (i = 0; i < fNumThreads; i++) {
       listThreads[i].join();
 		}
