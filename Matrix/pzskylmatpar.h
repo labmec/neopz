@@ -21,10 +21,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
-
-//parallel libraries
-//#include <pthread.h>
-
 #include <set>
 
 /**

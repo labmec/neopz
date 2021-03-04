@@ -24,10 +24,6 @@
 #include <signal.h>
 #include <time.h>
 
-//#ifndef PZPAR
-//#include <pthread.h>
-//#endif
-
 //#define STACKSTORAGE
 
 /**

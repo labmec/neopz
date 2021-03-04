@@ -15,9 +15,6 @@
 #include "tpzdohrassemblelist.h"
 
 #include <list>
-#include <semaphore.h>
-
-#include "pz_pthread.h"
 
 /**
  * \addtogroup substructure
