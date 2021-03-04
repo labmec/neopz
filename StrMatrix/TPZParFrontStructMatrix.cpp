@@ -236,16 +236,16 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		
 #ifndef USING_ATLAS
         const int unit = (parfront->fNElements/200 == 0 ? 1 : parfront->fNElements/200);
-        if(!(parfront->fCurrentAssembled%unit))cout << "*";
-		cout.flush();
+        if(!(parfront->fCurrentAssembled%unit))std::cout << "*";
+		std::cout.flush();
 		if(!(parfront->fCurrentAssembled%(20*unit)) && parfront->fCurrentAssembled)
         {
 			if(parfront->fCurrentElement!=parfront->fNElements){
-				cout << " Element " << parfront->fCurrentElement << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << endl;
-				cout.flush();
+				std::cout << " Element " << parfront->fCurrentElement << " " << (100*parfront->fCurrentElement/parfront->fNElements) << "% Elements computed " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << std::endl;
+				std::cout.flush();
 			}else{
-				cout << " " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << endl;
-				cout.flush();
+				std::cout << " " << (100*parfront->fCurrentAssembled/parfront->fNElements) << "% Elements assembled " << std::endl;
+				std::cout.flush();
 			}
 		}
 #endif
@@ -383,8 +383,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	cout << "Matrix assembled\n";
-	cout.flush();
+	std::cout << "Matrix assembled\n";
+	std::cout.flush();
 
 	return 0;
 }
@@ -402,7 +402,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 #endif
 	if(!mat)
 	{
-		cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< endl;
+		std::cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< std::endl;
 		DebugStop();
 	}
 	
@@ -413,9 +413,9 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
     if (this->fNumThreads < 3) {
         this->fNumThreads = 3;
     }
-	cout << "Number of Threads " << this->fNumThreads << endl;
+	std::cout << "Number of Threads " << this->fNumThreads << std::endl;
 	nthreads = this->fNumThreads;
-	cout.flush();
+	std::cout.flush();
 	//int nthreads = fNThreads+1;
 	
 	pthread_t *allthreads = new pthread_t[nthreads];
@@ -470,16 +470,16 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 #ifdef VC
 		cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1].x << endl;
 #else
-		cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1] << endl;
+		std::cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1] << std::endl;
 #endif
-		cout.flush();
+		std::cout.flush();
 	}else{
 #ifdef VC
-		cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1].x << endl;
+		std::cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1].x << std::endl;
 #else
-		cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1] << endl;
+		std::cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1] << std::endl;
 #endif
-		cout.flush();
+		std::cout.flush();
 		//          DebugStop();
 	}
 	res[nthreads-2] = PZ_PTHREAD_CREATE(&allthreads[nthreads-2], NULL, 
@@ -488,16 +488,16 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 #ifdef VC
 		cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2].x << endl;
 #else
-		cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << endl;
+		std::cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << std::endl;
 #endif
-		cout.flush();
+		std::cout.flush();
 	}else{
 #ifdef VC
-		cout << "WriteFile Thread Fail "<< allthreads[nthreads-2].x << endl;
+		std::cout << "WriteFile Thread Fail "<< allthreads[nthreads-2].x << std::endl;
 #else
-		cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << endl;
+		std::cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << std::endl;
 #endif
-		cout.flush();
+		std::cout.flush();
 		//          DebugStop();
 	}
 	
@@ -508,17 +508,17 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 #ifdef VC
 			cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i].x << endl;
 #else
-			cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i] << endl;
+			std::cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i] << std::endl;
 #endif
-			cout.flush();
+			std::cout.flush();
 		}else{
-			cout << "Error " << res[i] << "\t";
+			std::cout << "Error " << res[i] << "\t";
 #ifdef VC
-			cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i].x << endl;
+			std::cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i].x << std::endl;
 #else
-			cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i] << endl;
+			std::cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i] << std::endl;
 #endif
-			cout.flush();
+			std::cout.flush();
 		}
 	}
 	for(i=0;i<nthreads;i++) {
@@ -577,9 +577,9 @@ int TPZParFrontStructMatrix<front>::main() {
 	
 	
 	
-	cout << "Refinement ";
-	cin >> refine;
-	cout << endl;
+	std::cout << "Refinement ";
+	std::cin >> refine;
+	std::cout << std::endl;
 	DebugStop();
 	//UniformRefine(refine,gmesh);
 	
@@ -587,18 +587,18 @@ int TPZParFrontStructMatrix<front>::main() {
 	TPZMat2dLin *mat2d = new TPZMat2dLin(1);
 	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	mat2d->SetMaterial (xk,xc,xf);
-	TPZMaterial * meumat = mat2d;
+	auto * meumat = (TPZMaterial*) mat2d;
 	cmesh.InsertMaterialObject(meumat);
 	
 	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	TPZMaterial * bnd = meumat->CreateBC (meumat,-4,0,val1,val2);
+	auto * bnd = (TPZMaterial*) meumat->CreateBC (meumat,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
 	
 	
-	cout << "Interpolation order ";
-	cin >> order;
-	cout << endl;
+	std::cout << "Interpolation order ";
+	std::cin >> order;
+	std::cout << std::endl;
 	
 	//	TPZCompEl::gOrder = order;
 	cmesh.SetDefaultOrder(order);
@@ -607,7 +607,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	//	cmesh.AdjustBoundaryElements();
 	cmesh.InitializeBlock();
 	
-	ofstream output("outputPar.dat");
+	std::ofstream output("outputPar.dat");
 	//	ofstream output2("outputNon.dat");
 	cmesh.Print(output);
 	TPZAnalysis an(&cmesh,true,output);
@@ -618,7 +618,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	//cout << "Nmero de Equa�es -> " << cmesh.NEquations() << endl;
 	//cout.flush();
 	
-	ofstream out("cmeshBlock_out.txt");
+	std::ofstream out("cmeshBlock_out.txt");
 	//	cmesh.Print(out);
 	//	cmesh.Block().Print("Block",out);
 	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
@@ -649,9 +649,9 @@ int TPZParFrontStructMatrix<front>::main() {
 	//  mat->SetNumElConnected(numelconnected);
 	//mat = CreateAssemble();
 	int threads;
-	cout << "Number of Threads  ";
-	cin >> threads;
-	cout << endl;
+	std::cout << "Number of Threads  ";
+	std::cin >> threads;
+	std::cout << std::endl;
 	
 	mat.SetNumThreads(threads);
 	//mat.SetNumberOfThreads(1);
@@ -709,7 +709,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	 //	full->Print("full decomposed matrix");
 	 */
 	output.flush();
-	cout.flush();
+	std::cout.flush();
 	return 0;
 	
 }
