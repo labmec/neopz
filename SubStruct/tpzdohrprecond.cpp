@@ -143,12 +143,13 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
     TPZFMatrix<TVar> v1(rows,x.Cols(),0.);
 	TPZFMatrix<TVar> v2(cols,x.Cols(),0.);
 
-    TPZVec<pthread_t> AllThreads(2);
+    std::vector<thread> AllThreads(2);
     TPZDohrPrecondThreadV1Data<TVar,TSubStruct> v1threaddata(this,x,v1);
-    
-    PZ_PTHREAD_CREATE(&AllThreads[0], 0,
-                      (TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1),
-                      &v1threaddata, __FUNCTION__);
+    AllThreads[0] = thread((TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1),
+                           &v1threaddata);
+//    PZ_PTHREAD_CREATE(&AllThreads[0], 0,
+//                      (TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1),
+//                      &v1threaddata, __FUNCTION__);
     
     TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(fGlobal.size(),v2,this->fAssemble);
     
@@ -169,12 +170,15 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAddTBB(const TPZFMatrix<TVar> &x,cons
 
     tbb_work.run_parallel_for(pzenviroment.fSubstructurePartitioner);
 
-    PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
-                      assemblelist.operator->(), __FUNCTION__);
+    AllThreads[1] = thread(TPZDohrAssembleList<TVar>::Assemble,
+                           assemblelist.operator->());
+//    PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble,
+//                      assemblelist.operator->(), __FUNCTION__);
     
     for (int i=0; i<2; i++) {
-        void *result;
-        PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
+        AllThreads[i].join();
+//        void *result;
+//        PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
     }
     
     v2 += v1;

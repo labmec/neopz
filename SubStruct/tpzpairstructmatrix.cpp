@@ -683,7 +683,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 	ThreadData *data = (ThreadData *) threaddata;
 	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
-    unique_lock<mutex> lock(data->fAccessElement);
+    unique_lock<std::mutex> lock(data->fAccessElement);
 //	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed1.size();
@@ -758,7 +758,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 	ThreadData *data = (ThreadData *) threaddata;
 	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
-    unique_lock<mutex> lock(data->fAccessElement);
+    unique_lock<std::mutex> lock(data->fAccessElement);
 //	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed2.size();
@@ -830,7 +830,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 int TPZPairStructMatrix::ThreadData::NextElement()
 {
 //        PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::NextElement()");
-    std::unique_lock<mutex> lock(fAccessElement);
+    std::unique_lock<std::mutex> lock(fAccessElement);
 	int iel;
 	int nextel = fNextElement;
 	TPZCompMesh *cmesh = fStrMatrix->Mesh();
@@ -881,7 +881,7 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 // put the computed element matrices in the map
 void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef)
 {
-    unique_lock<mutex> lock(fAccessElement);
+    unique_lock<std::mutex> lock(fAccessElement);
 //        PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::ComputedElementMatrix()");
 	std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek,ef);
 	fSubmitted1[iel] = el;
