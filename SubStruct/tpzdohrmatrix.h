@@ -227,7 +227,7 @@ struct TPZDohrThreadMultList
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
 	{
-        lock_guard<mutex> lock(fAccessLock);
+    std::scoped_lock<std::mutex> lock(fAccessLock);
 //        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 		fWork.push_back(data);
 //        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
@@ -236,7 +236,7 @@ struct TPZDohrThreadMultList
 	TPZDohrThreadMultData<TSubStruct> PopItem()
 	{
 		TPZDohrThreadMultData<TSubStruct> result;
-        lock_guard<mutex> lock(fAccessLock);
+    std::scoped_lock<std::mutex> lock(fAccessLock);
 //        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
