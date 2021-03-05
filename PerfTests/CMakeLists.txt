@@ -29,7 +29,7 @@ if(BUILD_PERF_TESTS)
   set(PERFTEST_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
   # Include the subdirectories
-  add_subdirectory(progs)
+  # add_subdirectory(progs)
   add_subdirectory(scripts)
   
   message("PERFTEST_BASE_DIR = ${PERFTEST_APPS_DIR}")
