@@ -10,7 +10,6 @@
 #include "pzstack.h"
 #include "pzreal.h"
 #include <math.h>
-//#include "pz_pthread.h"
 
 #include "tpzeqnarray.h"
 #include <iostream>
@@ -28,11 +27,6 @@ static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
 static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
 
 #endif
-
-/** @brief Initializing semaphore */
-pthread_mutex_t mutex_write = PTHREAD_MUTEX_INITIALIZER;
-/** @brief Initializing condition */
-pthread_cond_t conda_write = PTHREAD_COND_INITIALIZER;
 
 // At the class constructor creates a thread
 // this thread will be active while ParFrontMatrix is active
