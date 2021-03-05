@@ -74,14 +74,14 @@ public:
 	
 	/** @brief It computes element matrices in an independent thread. */
 	/** 
-	 * It is passed as a parameter to the  pthread_create() function. \n
-	 * It is a 'static void *' to be used by pthread_create
+	 * It is passed as a parameter to the thread creation function. \n
+	 * It is a 'static void *'
 	 */
 	static void *ElementAssemble(void *t);
 	/** @brief It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. */
 	/**
-	 * It is passed as a parameter to the  pthread_create() function. \n
-	 * It is a 'static void *' to be used by pthread_create
+	 * It is passed as a parameter to the thread creation function. \n
+	 * It is a 'static void *'
 	 */
 	static void *GlobalAssemble(void *t);
 	

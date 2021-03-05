@@ -53,8 +53,6 @@ private:
 	const TPZFMatrix<TVar> *fInput;
 	/** @brief Scalar multiplication factor */
 	TVar fAlpha;
-	/** @brief Mutex which will enable the access protection of the list */
-	pthread_mutex_t fAccessLock;
 	/** @brief The data structure which defines the assemble destinations */
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
 	/** @brief The list of data objects which need to treated by the threads */

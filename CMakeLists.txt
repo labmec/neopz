@@ -430,7 +430,6 @@ if(WIN32)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251 /wd4244")
 	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4244")
 	#endif()
-	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
         #enabling /bigobj
         add_definitions("/bigobj")
