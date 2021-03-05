@@ -1,7 +1,7 @@
 /**
- * @file TPZAlgorithms.h
+ * @file TPZParallelUtils.h
  *
- * @brief Defines useful algorithms for use in the library
+ * @brief Defines useful utility functions related to multithreading for use in the NeoPZ library
  *
  * @ingroup util
  * (Note: this needs exactly one @defgroup somewhere)
@@ -10,8 +10,8 @@
  * Contact: francisco.orlandini@gmail.com
  *
  */
-#ifndef PZALGORITHMS_H
-#define PZALGORITHMS_H
+#ifndef PZPARALLELUTILS_H
+#define PZPARALLELUTILS_H
 #include <vector>
 #include <thread>
 /**based on: https://ideone.com/Z7zldb and netgen source code*/
