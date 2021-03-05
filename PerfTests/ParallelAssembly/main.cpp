@@ -23,7 +23,6 @@
 #include "pzbndcond.h"
 #include "pzanalysis.h"
 
-#include "TPZParSkylineStructMatrix.h"
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"
 #include "pzfstrmatrix.h"
@@ -32,7 +31,7 @@
 #include "TPBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbstrmatrix.h"
-
+#include "pzskylstrmatrix.h"
 #include "pzpoisson3d.h"
 //#include "pzhybridpoisson.h"
 #include "pzpoisson3dreferred.h"
@@ -59,7 +58,7 @@
 #include "pzcheckgeom.h"
 
 #include "TPZMHMeshControl.h"
-
+#include "pzintel.h"
 #include <iostream>
 #include <string>
 
