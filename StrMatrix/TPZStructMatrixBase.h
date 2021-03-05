@@ -120,10 +120,6 @@ public:
 #include "pzstrmatrix.h"
 typedef TPZStructMatrixOR TPZStructMatrix;
 
-/** This version has a clean code with openmp parallelism */
-//#include "pzstrmatrixst.h"
-//typedef TPZStructMatrixST TPZStructMatrix;
-
 /** This version uses graph coloring to define the order to process the elements (Devloo-Gilvan) and
  * each color is processed and synchronized */
 //#include "pzstrmatrixot.h"
