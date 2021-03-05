@@ -22,6 +22,7 @@
 #include "pzbndcond.h"
 #include "TPZVTKGeoMesh.h"
 
+#include "pzcmesh.h"
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"

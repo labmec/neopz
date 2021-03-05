@@ -31,7 +31,7 @@
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzanalysis.h"
-#include "TPZParSkylineStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 
 class tools{

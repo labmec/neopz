@@ -13,6 +13,7 @@
 #include "TPZVTKGeoMesh.h"
 
 #include "pzbstrmatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzintel.h"
 #include "pzcompel.h"
 #include "pzcheckmesh.h"
