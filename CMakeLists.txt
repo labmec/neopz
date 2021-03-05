@@ -58,17 +58,6 @@ set(NEOPZ_LIB pzlib/lib)
 
 #ENABLING EXTERNAL LIBRARIES
 
-#enabling pthread library
-find_path(PTHREAD_INCLUDE NAMES PThread.h pthread.h PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../externallibs/pthread ${PROJECT_SOURCE_DIR}/../externallibs/pthread/include ${PROJECT_SOURCE_DIR}/../pthread )
-find_library(PTHREAD_LIB NAMES libpthread.dylib pthread.lib pthreadVC2.lib libPThread.so libPThread.a libpthread.so libpthread.a PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../externallibs/pthread/lib  ${PROJECT_SOURCE_DIR}/../pthread/lib)
-if(PTHREAD_INCLUDE-NOTFOUND)
-	set (PTHREAD_INCLUDE "" CACHE PATH "Directory where pthread.h can be found")
-endif()
-if(PTHREAD_LIB-NOTFOUND)
-	set (PTHREAD_LIB "" CACHE PATH "Directory where the pthread library can be found")
-endif()
-include_directories(${PTHREAD_INCLUDE})
-
 IF(APPLE)
    # Mac OS X specific code
    add_definitions(-DMACOSX)
@@ -200,23 +189,6 @@ if(USING_TBB)
 		endif()
 	endif(WIN32)
 endif(USING_TBB)
-
-#enabling OpenMP runtime and library
-option(USING_OPENMP "Whether the OpenMP library and runtime will be linked in" OFF)
-if(USING_OPENMP)
-	find_path(OPENMP_INCLUDE omp.h PATHS ${SEARCH_DIRS} /opt/local/lib/gcc5/gcc/x86_64-apple-darwin15/5.2.0/include)
-	find_library(OPENMP_LIB NAMES libgomp.dylib PATHS ${SEARCH_DIRS}  /opt/local/lib/gcc5)
-	if(OPENMP_INCLUDE-NOTFOUND)
-		set (OPENMP_INCLUDE "" CACHE PATH "Directory where omp header files can be found")
-	else()
-		include_directories(${OPENMP_INCLUDE})
-	endif()
-	if(OPENMP_LIB-NOTFOUND)
-		set (TBB_OPENMP "" CACHE PATH "Directory where the OpenMP library can be found")
-	else()
-		link_libraries(${OPENMP_LIB})
-	endif()
-endif(USING_OPENMP)
 
 #enabling LIKWID library
 option(USING_LIKWID "Whether the likwid library will be linked in" OFF)
@@ -569,10 +541,8 @@ else()
   add_library(pz)
 endif()
 
-
-target_link_libraries(pz ${PTHREAD_LIB})
-target_include_directories(pz PUBLIC ${PTHREAD_INCLUDE})
-
+find_package(Threads REQUIRED)
+target_link_libraries(pz Threads::Threads)
 IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
