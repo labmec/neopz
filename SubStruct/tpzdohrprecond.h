@@ -15,6 +15,7 @@
 #include "tpzdohrassemblelist.h"
 
 #include <list>
+#include <mutex>
 
 /**
  * \addtogroup substructure
@@ -209,17 +210,15 @@ struct TPZDohrAssembleList;
  */
 template <class TVar, class TSubStruct> 
 struct TPZDohrPrecondV2SubDataList {
-	TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemble) : fAssemblyStructure(assemble)
+    TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemble) : fAssemblyStructure(assemble), fAccessLock()
 	{
-	  PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrPrecondV2SubDataList::TPZDohrPrecondV2SubDataList()");
 	}
 	~TPZDohrPrecondV2SubDataList()
 	{
-	  PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrPrecondV2SubDataList::~TPZDohrPrecondV2SubDataList()");
 	}
 	
     /** @brief Mutex which will enable the access protection of the list */
-	pthread_mutex_t fAccessLock;
+	std::mutex fAccessLock;
 	
     /** @brief The list of structures which need to be computed */
 	std::list<TPZDohrPrecondV2SubData<TVar, TSubStruct> > fWork;
@@ -227,20 +226,22 @@ struct TPZDohrPrecondV2SubDataList {
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrPrecondV2SubData<TVar, TSubStruct> &data)
 	{
-	  PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
+        std::lock_guard<std::mutex> lock(fAccessLock);
+//	  PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
 	  fWork.push_back(data);
-	  PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
+//	  PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrPrecondV2SubData<TVar, TSubStruct> PopItem()
 	{
 		TPZDohrPrecondV2SubData<TVar, TSubStruct> result;
-		PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
+        std::lock_guard<std::mutex> lock(fAccessLock);
+//		PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-		PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
+//		PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		return result;
 	}
 	

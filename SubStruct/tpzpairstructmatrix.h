@@ -66,7 +66,7 @@ public:
 		/** @brief Current structmatrix object */
 		TPZStructMatrix *fStrMatrix;
 		/** @brief Mutexes (to choose which element is next) */
-		pthread_mutex_t fAccessElement;
+		std::mutex fAccessElement;
 		/** @brief Semaphore (to wake up the first assembly thread) */
 		TPZSemaphore fAssembly1;
 		/** @brief Semaphore (to wake up the second assembly thread) */

@@ -52,6 +52,10 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 using namespace tbb;
 #endif
 
+#include <thread>
+
+using namespace std;
+
 #include <rcm.h>
 
 #ifdef USING_PAPI
@@ -67,33 +71,29 @@ static int64_t NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
 static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
-                             pthread_mutex_t* TestThread);
+                             mutex* TestThread);
 
 static void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 
 TPZDohrStructMatrix::TPZDohrStructMatrix() :
-TPZStructMatrix(), fDohrAssembly(0), fDohrPrecond(0)
+TPZStructMatrix(), fDohrAssembly(0), fDohrPrecond(0), fAccessElement()
 {
-	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) :
 TPZStructMatrix(cmesh), fDohrAssembly(0),
-fDohrPrecond(0)
+fDohrPrecond(0), fAccessElement()
 {
-	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
-TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond)
+TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fAccessElement()
 {
-	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix(copy)");
 }
 
 TPZDohrStructMatrix::~TPZDohrStructMatrix()
 {
-	PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement, "TPZDohrStructMatrix::~TPZDohrStructMatrix()");
 }
 
 
@@ -417,7 +417,7 @@ struct ThreadDohrmanAssemblyList_ThreadArgs_t
     /* Thread index. */
     unsigned thread_idx;
     /* Thread descriptor. */
-    pthread_t pthread;
+    std::thread pthread;
     /* List of items to be assembled. */
     ThreadDohrmanAssemblyList<T>* list;
 };
@@ -502,14 +502,16 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>* targ = &(args[itr]);
             targ->thread_idx=itr;
             targ->list = &worklistAssemble;
-            PZ_PTHREAD_CREATE(&targ->pthread, NULL,
-                              ThreadDohrmanAssemblyList<STATE>::ThreadWork,
-                              targ, __FUNCTION__);
+            targ->pthread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork, targ);
+//            PZ_PTHREAD_CREATE(&targ->pthread, NULL,
+//                              ThreadDohrmanAssemblyList<STATE>::ThreadWork,
+//                              targ, __FUNCTION__);
         }
         /* Sync. */
         for(unsigned itr=0; itr<numthreads_assemble; itr++)
         {
-            PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
+            args[itr].pthread.join();
+//            PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
         }
     }
     dohr_ass.stop();
@@ -569,13 +571,16 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>& targ = args[itr];
             targ.thread_idx=itr;
             targ.list = &worklistDecompose;
-            PZ_PTHREAD_CREATE(&targ.pthread, NULL,
-                              ThreadDohrmanAssemblyList<STATE>::ThreadWork,
-                              &targ, __FUNCTION__);
+            targ.pthread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork,
+                                  &targ);
+//            PZ_PTHREAD_CREATE(&targ.pthread, NULL,
+//                              ThreadDohrmanAssemblyList<STATE>::ThreadWork,
+//                              &targ, __FUNCTION__);
         }
         for(unsigned itr=0; itr<numthreads_decompose; itr++)
         {
-            PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
+            args[itr].pthread.join();
+//            PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
         }
     }
     dohr_dec.stop();
@@ -1232,7 +1237,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 
 // This is a lengthy process which should run on the remote processor assembling all
 void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
-                      pthread_mutex_t* TestThread)
+                      mutex* TestThread)
 {
     //	static std::set<int> subindexes;
     //	int index = submesh->Index();
@@ -1503,7 +1508,7 @@ void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruc
 
 //EComputeMatrix, EDecomposeInternal, EDecomposeBig
 template<class TVar>
-void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest, int numa_node)
+void ThreadDohrmanAssembly<TVar>::AssembleMatrices(mutex &threadtest, int numa_node)
 {
     ThreadDohrmanAssembly *threadData = this;
     TPZSubCompMesh *submesh = SubMesh(threadData->fMesh,threadData->fSubMeshIndex);
@@ -1537,44 +1542,36 @@ void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest, 
 }
 
 template<class TVar>
-ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList()
+ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList() : fAccessElement(), fTestThreads()
 {
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
-    PZ_PTHREAD_MUTEX_INIT(&fTestThreads,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
 }
 
 template<class TVar>
-ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList(ThreadDohrmanAssemblyList<TVar> &cpy) : fList(cpy.fList)
+ThreadDohrmanAssemblyList<TVar>::ThreadDohrmanAssemblyList(ThreadDohrmanAssemblyList<TVar> &cpy) : fList(cpy.fList), fAccessElement(), fTestThreads()
 {
-    PZ_PTHREAD_MUTEX_INIT(&fAccessElement,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
-    PZ_PTHREAD_MUTEX_INIT(&fTestThreads,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
 }
 
 template<class TVar>
 ThreadDohrmanAssemblyList<TVar>::~ThreadDohrmanAssemblyList()
 {
-	PZ_PTHREAD_MUTEX_DESTROY(&fAccessElement,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
-	PZ_PTHREAD_MUTEX_DESTROY(&fTestThreads,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
 }
 
 template<class TVar>
 void ThreadDohrmanAssemblyList<TVar>::Append(TPZAutoPointer<ThreadDohrmanAssembly<TVar> > object)
 {
-    PZ_PTHREAD_MUTEX_LOCK(&fAccessElement, "ThreadDohrmanAssemblyList::Append()");
+    unique_lock<mutex> lock(fAccessElement);
     fList.push_back(object);
-    PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement, "ThreadDohrmanAssemblyList::Append()");
 }
 
 template<class TVar>
 TPZAutoPointer<ThreadDohrmanAssembly<TVar> > ThreadDohrmanAssemblyList<TVar>::NextObject()
 {
     TPZAutoPointer<ThreadDohrmanAssembly<TVar> > result;
-    PZ_PTHREAD_MUTEX_LOCK(&fAccessElement, "ThreadDohrmanAssemblyList::NextObject()");
+    unique_lock<mutex> lock(fAccessElement);
     if (fList.begin() != fList.end()) {
         result = *fList.begin();
         fList.pop_front();
     }
-    PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement, "ThreadDohrmanAssemblyList::NextObject()");
     return result;
 }
 

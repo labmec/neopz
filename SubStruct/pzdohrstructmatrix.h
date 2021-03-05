@@ -141,7 +141,7 @@ private:
 	std::set<int> fCornerEqs;
 	
 	/** @brief Mutexes (to choose which submesh is next) */
-	pthread_mutex_t fAccessElement;
+	std::mutex fAccessElement;
 	
 	friend struct ThreadDohrmanAssembly<STATE>;
         
@@ -193,7 +193,7 @@ struct ThreadDohrmanAssembly {
 		return *this;
 	}
 	
-	void AssembleMatrices(pthread_mutex_t &testthread, int numa_node);
+	void AssembleMatrices(std::mutex &testthread, int numa_node);
 };
 
 /**
@@ -218,10 +218,10 @@ struct ThreadDohrmanAssemblyList {
 	static void *ThreadWork(void *voidptr);
 	
 	/** @brief Mutexes (to choose which submesh is next) */
-	pthread_mutex_t fAccessElement;
+	std::mutex fAccessElement;
 	
 	/** @brief mutex to debug the assembly process */
-	pthread_mutex_t fTestThreads;
+	std::mutex fTestThreads;
 };
 
 #endif

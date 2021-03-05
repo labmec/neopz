@@ -6,6 +6,7 @@
 #include "TPZSemaphore.h"
 
 #include <fstream>
+#include <thread>
 
 #include "pzlog.h"
 
@@ -40,7 +41,7 @@ void TPZSemaphore::Wait()
 #ifdef VC
 			sout << "THREAD IN SEMAPHORE WAIT: " << pthread_self().x <<" " <<__LINE__ << std::endl;
 #else
-			sout << "THREAD IN SEMAPHORE WAIT: " << pthread_self() <<" " <<__LINE__ << std::endl;
+			sout << "THREAD IN SEMAPHORE WAIT: " << std::this_thread::get_id() <<" " <<__LINE__ << std::endl;
 #endif
 			sout << "FCOUNTER VALUE : " << fCounter << std::endl;
 			LOGPZ_DEBUG(logger,sout.str())

@@ -69,6 +69,7 @@ protected:
         /** @brief Mutexes (to choose which element is next) */
         std::mutex fMutexAccessElement;
         /** @brief Semaphore (to wake up assembly thread) */
+//        std::condition_variable fAssembly;
         TPZSemaphore fAssembly;
     };
     
