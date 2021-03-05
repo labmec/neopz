@@ -7,6 +7,7 @@
 
 #include "pzsbndmat.h"
 #include "pzcmesh.h"
+#include "TPZGuiInterface.h"
 
 TPZStructMatrix * TPZSBandStructMatrix::Clone(){
     return new TPZSBandStructMatrix(*this);

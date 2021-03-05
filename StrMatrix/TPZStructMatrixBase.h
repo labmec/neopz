@@ -92,7 +92,12 @@ public:
     int ClassId() const override;
     void Read(TPZStream& buf, void* context) override;
     void Write(TPZStream& buf, int withclassid) const override;
-    virtual ~TPZStructMatrixBase() = default;
+    /*Setting the destructor as default would work. however,
+      it would request the deletion of the TPZAutoPointer<TPZCompMesh>
+      and, since at this point TPZCompMesh is an incomplete type,
+      it would lead to a -Wdelete-incomplete warning.
+     */
+    virtual ~TPZStructMatrixBase();
   protected:
     TPZStructMatrixBase();
     TPZStructMatrixBase(const TPZStructMatrixBase &);

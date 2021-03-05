@@ -97,10 +97,7 @@ public:
     using TPZStructMatrixBase::CreateAssemble;
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                                              unsigned numthreads_assemble, unsigned numthreads_decompose) {
-        SetNumThreads(numthreads_assemble);
-        return CreateAssemble(rhs, guiInterface);
-    }
+                                              unsigned numthreads_assemble, unsigned numthreads_decompose);
     
     //virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     

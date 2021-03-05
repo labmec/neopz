@@ -64,6 +64,11 @@ TPZStructMatrixOR *TPZStructMatrixOR::Clone() {
     return 0;
 }
 
+TPZMatrix<STATE> * TPZStructMatrixOR::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+                                          unsigned numthreads_assemble, unsigned numthreads_decompose) {
+  SetNumThreads(numthreads_assemble);
+  return CreateAssemble(rhs, guiInterface);
+}
 
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
