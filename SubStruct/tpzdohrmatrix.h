@@ -19,7 +19,6 @@
 
 #include "tpzdohrassemblelist.h"
 
-//#include "pz_pthread.h"
 
 /**
  * @brief Implements a matrix divided into substructures. \ref matrix "Matrix" \ref substructure "Sub structure"
@@ -228,21 +227,17 @@ struct TPZDohrThreadMultList
 	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
 	{
     std::scoped_lock<std::mutex> lock(fAccessLock);
-//        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 		fWork.push_back(data);
-//        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrThreadMultData<TSubStruct> PopItem()
 	{
 		TPZDohrThreadMultData<TSubStruct> result;
     std::scoped_lock<std::mutex> lock(fAccessLock);
-//        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-//        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		return result;
 	}
 };

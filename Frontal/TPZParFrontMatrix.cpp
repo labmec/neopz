@@ -75,7 +75,6 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		this->CheckCompress();
         {
             std::lock_guard<std::mutex> lock(fwritelock);
-            //PZ_PTHREAD_MUTEX_LOCK(&fwritelock,"TPZParFrontMatrix<...>::AddKel()");
             fEqnStack.Push(AuxEqn);
             if(maxeq == this->Rows()-1){
                 cout << "Decomposition finished" << endl;
@@ -85,7 +84,6 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
             }
         }
         fwritecond.notify_all();
-//		PZ_PTHREAD_COND_SIGNAL(&fwritecond,"TPZParFrontMatrix<...>::AddKel()");
 	}
 	this->fDecomposed = this->fFront.GetDecomposeType();
 } 
@@ -110,7 +108,6 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
 		this->CheckCompress();
         std::lock_guard<std::mutex> lock(fwritelock);
-//		PZ_PTHREAD_MUTEX_LOCK(&fwritelock,"TPZParFrontMatrix<...>::AddKel()");
 		fEqnStack.Push(AuxEqn);
 		if(maxeq == this->Rows()-1){
             //check if writeing is over and closes file
@@ -120,8 +117,6 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 			this->fFront.Reset(0);
 			//fStorage.ReOpen();
 		}
-//		PZ_PTHREAD_MUTEX_UNLOCK(&fwritelock,"TPZParFrontMatrix<...>::AddKel()");
-//		PZ_PTHREAD_COND_SIGNAL(&fwritecond,"TPZParFrontMatrix<...>::AddKel()");
         fwritecond.notify_all();
 	}
 	this->fDecomposed = this->fFront.GetDecomposeType();
@@ -130,15 +125,12 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 template<class TVar, class store, class front>
 void TPZParFrontMatrix<TVar, store, front>::FinishWriting(){
 	// FinishWriting already has a lock
-	//PZ_PTHREAD_MUTEX_LOCK(&fwritelock);
 	cout << endl << "FinishWriting" << endl;
 	cout.flush();     
 	fFinish = 1;
 	// FinishWriting already has a lock
-	//pthread_mutex_unlock(&fwritelock);
     fwritecond.notify_all();
-//	PZ_PTHREAD_COND_SIGNAL(&fwritecond,"TPZParFrontMatrix<...>::FinishWriting()");
-} 
+}
 
 template<class TVar, class store, class front>
 void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
@@ -157,7 +149,6 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 		TPZStack<TPZEqnArray<TVar> *> local;
         {
             std::unique_lock<std::mutex> lock(parfront->fwritelock);
-//            PZ_PTHREAD_MUTEX_LOCK(&parfront->fwritelock,"TPZParFrontMatrix<...>::WriteFile()");
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())
             {
@@ -188,7 +179,6 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
                     LOGPZ_DEBUG(logger,sout.str())
                 }
 #endif
-//                PZ_PTHREAD_COND_WAIT(&parfront->fwritecond, &parfront->fwritelock,"TPZParFrontMatrix<...>::WriteFile()");
                 parfront->fwritecond.wait(lock);
             }
             
@@ -203,7 +193,6 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
             }
 #endif
             
-//            PZ_PTHREAD_MUTEX_UNLOCK(&parfront->fwritelock,"TPZParFrontMatrix<...>::WriteFile()");
         }
 		int64_t neqn = local.NElements();
 
@@ -225,7 +214,6 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	}
 #endif
 	
-//	PZ_PTHREAD_MUTEX_UNLOCK(&parfront->fwritelock,"TPZParFrontMatrix<...>::WriteFile()");
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{

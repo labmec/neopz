@@ -18,7 +18,6 @@ using namespace std;
 
 #include "pzlog.h"
 
-//#include "pz_pthread.h"
 
 #ifdef USING_TBB
 #include <tbb/tbb.h>
@@ -552,7 +551,7 @@ void TPZPairStructMatrix::Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *se
 #endif
 
     /// "Fixme!!!"   "Fixme!!!"   "Fixme!!!"   "Fixme!!!"
-  /// @note Find a better way to select among TBB, pthread or serial execution! in this TPZPairStructMatrix::Assemble
+  /// @note Find a better way to select among TBB, std::thread or serial execution! in this TPZPairStructMatrix::Assemble
 
     int numthreads = fStrMatrix.GetNumThreads();
   if (numthreads < 0)
@@ -573,22 +572,17 @@ void TPZPairStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> *first, TPZMatri
 	for(itr=0; itr<numthreads; itr++)
 	{
         allthreads[itr] = thread(ThreadData::ThreadWork, &threaddata);
-//	  PZ_PTHREAD_CREATE(&allthreads[itr], NULL,
-//			    ThreadData::ThreadWork, &threaddata, __FUNCTION__);
 	}
-	
-    allthreads[itr] = thread(ThreadData::ThreadAssembly1, &threaddata);
-	// assemble the first matrix
-//	PZ_PTHREAD_CREATE(&allthreads[itr], NULL,
-//			  ThreadData::ThreadAssembly1, &threaddata, __FUNCTION__);
-	
+
+  // assemble the first matrix
+  allthreads[itr] = thread(ThreadData::ThreadAssembly1, &threaddata);
+
 	// assemble the second matrix
 	ThreadData::ThreadAssembly2(&threaddata);
 	
 	for(itr=0; itr<numthreads+1; itr++)
 	{
         allthreads[itr].join();
-//	  PZ_PTHREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
 	}
 }
 
@@ -684,7 +678,6 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
     unique_lock<std::mutex> lock(data->fAccessElement);
-//	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed1.size();
 	while(nextel < nel || numprocessed)
@@ -716,7 +709,6 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 #endif
 				// Release the mutex
                 lock.unlock();
-//				PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 				// Assemble the matrix
 				if(!ek->HasDependency())
 				{
@@ -730,26 +722,22 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 				}
 				// acquire the mutex
                 lock.lock();
-//				PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 			}
 		}
 		if(!keeplooking)
 		{
             lock.unlock();
-//			PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
             if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 			// wait for a signal
 			data->fAssembly1.Wait();
 			if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
             lock.lock();
-//			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 		}
 		nextel = data->fNextElement;
 		numprocessed = data->fProcessed1.size();
 		
 	}
-//	PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
-	return 0;	
+	return 0;
 }		
 
 // The function which will compute the assembly
@@ -759,7 +747,6 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 	TPZCompMesh *cmesh = data->fStrMatrix->Mesh();
 	int nel = cmesh->NElements();
     unique_lock<std::mutex> lock(data->fAccessElement);
-//	PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed2.size();
 	while(nextel < nel || numprocessed)
@@ -790,7 +777,6 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 #endif
 				// Release the mutex
                 lock.unlock();
-//				PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 				TPZManVector<int64_t,300> destindex(ek->fDestinationIndex);
 				data->PermuteScatter(destindex);
 				
@@ -805,31 +791,26 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 				}
 				// acquire the mutex
                 lock.lock();
-//				PZ_PTHREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 			}
 		}
 		if(!keeplooking)
 		  {
               lock.unlock();
-//		        PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
               if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
               // wait for a signal
               data->fAssembly2.Wait();
               if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
               lock.lock();
-//			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 		}
 		nextel = data->fNextElement;
 		numprocessed = data->fProcessed2.size();
 		
 	}
-//	PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
-	return 0;	
+	return 0;
 }		
 
 int TPZPairStructMatrix::ThreadData::NextElement()
 {
-//        PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::NextElement()");
     std::unique_lock<std::mutex> lock(fAccessElement);
 	int iel;
 	int nextel = fNextElement;
@@ -864,7 +845,6 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 		fProcessed1.insert(iel);
 		fProcessed2.insert(iel);
 	}
-//        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::NextElement()");
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -882,13 +862,11 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef)
 {
     unique_lock<std::mutex> lock(fAccessElement);
-//        PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::ComputedElementMatrix()");
 	std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek,ef);
 	fSubmitted1[iel] = el;
 	fSubmitted2[iel] = ek;
 	fAssembly1.Post();
 	fAssembly2.Post();
-//        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::ComputedElementMatrix()");
 }
 
 // Set the set of material ids which will be considered when assembling the system

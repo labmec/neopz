@@ -127,7 +127,6 @@ int TPZDohrPrecond<TVar, TSubStruct>::ClassId() const{
     return Hash("TPZDohrPrecond") ^ TPZMatrix<TVar>::ClassId() << 1 ^ TSubStruct().ClassId() << 2;
 }
 
-//#include <pthread.h>
 
 /**
  * @brief Auxiliar structure with thread to compute the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
@@ -227,21 +226,17 @@ struct TPZDohrPrecondV2SubDataList {
 	void AddItem(TPZDohrPrecondV2SubData<TVar, TSubStruct> &data)
 	{
         std::lock_guard<std::mutex> lock(fAccessLock);
-//	  PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
 	  fWork.push_back(data);
-//	  PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrPrecondV2SubData<TVar, TSubStruct> PopItem()
 	{
 		TPZDohrPrecondV2SubData<TVar, TSubStruct> result;
         std::lock_guard<std::mutex> lock(fAccessLock);
-//		PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-//		PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		return result;
 	}
 	

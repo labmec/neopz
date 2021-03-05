@@ -281,7 +281,6 @@ void* compute_decompose(void* m)
     
     if (verbose >= 2) {
         int cpuid = sched_getcpu();
-        //int tid = pthread_self();
         cout << "Thread " << idx << " at cpu " << cpuid << endl;
     }
     

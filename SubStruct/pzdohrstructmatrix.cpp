@@ -40,7 +40,6 @@ static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
 static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"));
 #endif
 
-//#include "pz_pthread.h"
 #include "clock_timer.h"
 #include "timing_analysis.h"
 #include "arglib.h"
@@ -503,15 +502,11 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             targ->thread_idx=itr;
             targ->list = &worklistAssemble;
             targ->pthread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork, targ);
-//            PZ_PTHREAD_CREATE(&targ->pthread, NULL,
-//                              ThreadDohrmanAssemblyList<STATE>::ThreadWork,
-//                              targ, __FUNCTION__);
         }
         /* Sync. */
         for(unsigned itr=0; itr<numthreads_assemble; itr++)
         {
             args[itr].pthread.join();
-//            PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
         }
     }
     dohr_ass.stop();
@@ -573,14 +568,10 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             targ.list = &worklistDecompose;
             targ.pthread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork,
                                   &targ);
-//            PZ_PTHREAD_CREATE(&targ.pthread, NULL,
-//                              ThreadDohrmanAssemblyList<STATE>::ThreadWork,
-//                              &targ, __FUNCTION__);
         }
         for(unsigned itr=0; itr<numthreads_decompose; itr++)
         {
             args[itr].pthread.join();
-//            PZ_PTHREAD_JOIN(args[itr].pthread, NULL, __FUNCTION__);
         }
     }
     dohr_dec.stop();
@@ -1289,8 +1280,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         // change the sequencing of the connects of the mesh, putting the internal connects first
         submesh->PermuteInternalFirst(permuteconnectscatter);
         
-        //	pthread_mutex_lock(&TestThread);
-        
+
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
         {
@@ -1346,8 +1336,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         
         
         
-        //	pthread_mutex_unlock(&TestThread);
-        
+
         // compute both stiffness matrices simultaneously
         substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
 #ifdef USING_PAPI

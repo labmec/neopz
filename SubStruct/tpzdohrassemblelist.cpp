@@ -5,7 +5,6 @@
 
 #include "tpzdohrassemblelist.h"
 
-//#include "pz_pthread.h"
 
 template<class TVar>
 TPZDohrAssembleList<TVar>::TPZDohrAssembleList(int numitems, TPZFMatrix<TVar> &output, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly) : fNumItems(numitems),
