@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 #endif
     
 #ifdef LOG4CXX
-    InitializePZLOG("log4cxx.cfg");
+    InitializePZLOG();
 #endif
 #ifdef USING_TBB
     task_scheduler_init init;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     {
       std::stringstream str;
       cmeshauto->Print(str);
-      LOGPZ_DEBUG(logger,str.str());
+      if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,str.str());
     }
 #endif
       
@@ -423,7 +423,11 @@ TPZGeoMesh *MalhaPredio()
 	int numnodes=-1;
 	int numelements=-1;
 	
+#ifndef MACOSX
 	string FileName = "8andares02.txt";
+#else
+    string FileName = "../8andares02.txt";
+#endif
 	{
 		bool countnodes = false;
 		bool countelements = false;

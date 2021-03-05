@@ -737,10 +737,10 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 		{
             lock.unlock();
 //			PZ_PTHREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
-			LOGPZ_DEBUG(logger, "Going to sleep within assembly")
+            if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 			// wait for a signal
 			data->fAssembly1.Wait();
-			LOGPZ_DEBUG(logger, "Waking up for assembly")
+			if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
             lock.lock();
 //			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly1()");
 		}
@@ -812,10 +812,10 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 		  {
               lock.unlock();
 //		        PZ_PTHREAD_MUTEX_UNLOCK(&(data->fAccessElement),"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
-              LOGPZ_DEBUG(logger, "Going to sleep within assembly")
+              if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
               // wait for a signal
               data->fAssembly2.Wait();
-              LOGPZ_DEBUG(logger, "Waking up for assembly")
+              if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
               lock.lock();
 //			PZ_PTHREAD_MUTEX_LOCK(&data->fAccessElement,"TPZPairStructMatrix::ThreadData::ThreadAssembly2()");
 		}

@@ -52,7 +52,10 @@ extern std::mutex glogmutex;
       std::scoped_lock lock(glogmutex);         \
       LOG4CXX_DEBUG(A,B);                       \
     }                                           \
-    else std::cout << "Coloque IsDebugEnabled em " << __FILE__ << ":" << __LINE__ << std::endl;}
+    else \
+    {\
+        std::cout << "Coloque IsDebugEnabled em " << __FILE__ << ":" << __LINE__ << std::endl;\
+    }}
 
 /// Define log for info
 #define LOGPZ_INFO(A,B) {                                       \
