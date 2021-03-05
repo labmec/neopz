@@ -601,11 +601,6 @@ if (USING_LOG4CXX)
   endif()
 endif()
 
-if (USING_OPENMP)
-  target_link_libraries(pz ${OPENMP_LIB})
-  target_include_directories(pz PUBLIC ${OPENMP_INCLUDE})
-endif()
-
 if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
   target_include_directories(pz PUBLIC ${METIS_INCLUDE})
