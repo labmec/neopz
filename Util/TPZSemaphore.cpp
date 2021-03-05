@@ -39,7 +39,7 @@ void TPZSemaphore::Wait()
 		{
 			std::stringstream sout;
 #ifdef VC
-			sout << "THREAD IN SEMAPHORE WAIT: " << pthread_self().x <<" " <<__LINE__ << std::endl;
+			sout << "THREAD IN SEMAPHORE WAIT: " << std::this_thread::get_id()  <<" " <<__LINE__ << std::endl;
 #else
 			sout << "THREAD IN SEMAPHORE WAIT: " << std::this_thread::get_id() <<" " <<__LINE__ << std::endl;
 #endif
@@ -58,9 +58,9 @@ void TPZSemaphore::Wait()
 			{
 				std::stringstream sout;
 #ifdef VC
-				sout << "THREAD IN SEMAPHORE AFTER WAIT: " << pthread_self().x <<" " << __LINE__ << std::endl;
+				sout << "THREAD IN SEMAPHORE AFTER WAIT: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
 #else
-				sout << "THREAD IN SEMAPHORE AFTER WAIT: " << pthread_self() <<" " << __LINE__ << std::endl;
+				sout << "THREAD IN SEMAPHORE AFTER WAIT: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
 #endif
 				sout << "FCOUNTER VALUE : " << fCounter << std::endl;
 				LOGPZ_DEBUG(logger,sout.str())
@@ -82,9 +82,9 @@ void TPZSemaphore::Post()
 	{
 		std::stringstream sout;
 #ifdef VC
-		sout << "THREAD IN SEMAPHORE POST: " << pthread_self().x <<" " << __LINE__ << std::endl;
+		sout << "THREAD IN SEMAPHORE POST: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
 #else
-		sout << "THREAD IN SEMAPHORE POST: " << pthread_self() <<" " << __LINE__ << std::endl;
+		sout << "THREAD IN SEMAPHORE POST: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
 #endif
 		sout << "FCOUNTER VALUE : " << fCounter << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
