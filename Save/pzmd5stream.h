@@ -178,6 +178,10 @@ public:
   virtual void Write(const int64_t *p, int size) {
     Writes<int64_t>(p,size);
   }
+  /** @brief Writes size ulongs at pointer location p */
+  virtual void Write(const uint64_t *p, int size) {
+    Writes<uint64_t>(p,size);
+  }
   /** @brief Writes size integers at pointer location p */
   virtual void Write(const unsigned int *p, int size) {
     Writes<unsigned int>(p,size);
@@ -197,6 +201,10 @@ public:
   /** @brief Writes size chars at pointer location p */
   virtual void Write(const char *p, int size) {
     Writes<char>(p,size);
+  }
+  /** @brief Writes size uchars at pointer location p */
+  virtual void Write(const unsigned char *p, int size) {
+    Writes<unsigned char>(p,size);
   }
   /** @brief Writes size strings at pointer location p */
   virtual void Write(const std::string *p, int size) {
@@ -270,6 +278,10 @@ public:
   virtual void Read(int64_t *p, int size) {
     ReadError();
   }
+  /** @brief Reads size longs from pointer location p */
+  virtual void Read(uint64_t *p, int size) {
+    ReadError();
+  }
   /** @brief Reads size integers from pointer location p */
   virtual void Read(unsigned int *p, int size) {
     ReadError();
@@ -288,6 +300,10 @@ public:
   }
   /** @brief Reads size chars from pointer location p */
   virtual void Read(char *p, int size) {
+    ReadError();
+  }
+  /** @brief Reads size chars from pointer location p */
+  virtual void Read(unsigned char *p, int size) {
     ReadError();
   }
   /** @brief Reads size strings from pointer location p */
