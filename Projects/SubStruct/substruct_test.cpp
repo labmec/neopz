@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
 		
 		//	sub.SubStructure();
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
 		{
 			std::stringstream str;
 			cmesh->Print(str);

@@ -193,15 +193,15 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
             multwork.AddItem(data);
 		}
 		std::vector<std::thread> listThreads(fNumThreads);
-    int i;
-    for (i = 0; i < fNumThreads; i++) {
-		  listThreads.emplace_back(std::thread(TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork, &multwork));
-    }
-    std::thread assembleThread(TPZDohrAssembleList<TVar>::Assemble, assemblelist.operator->());
-    assembleThread.join();
-    for (i = 0; i < fNumThreads; i++) {
-      listThreads[i].join();
-		}
+        int i;
+        for (i = 0; i < fNumThreads; i++) {
+              listThreads[i] = std::thread(TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork, &multwork);
+        }
+        std::thread assembleThread(TPZDohrAssembleList<TVar>::Assemble, assemblelist.operator->());
+        assembleThread.join();
+        for (i = 0; i < fNumThreads; i++) {
+          listThreads[i].join();
+        }
 	}
 	tempo.fMultiply.Push(mult.ReturnTimeDouble());
 }
@@ -219,9 +219,13 @@ void TPZDohrMatrix<TVar,TSubStruct>::Initialize()
         //(*iter)->Initialize();
 		TPZFMatrix<TVar> diaglocal;
         (*iter)->ContributeDiagonalLocal(diaglocal);
-		LOGPZ_DEBUG(logger,"Before assemble diagonal")
+        if(logger->isDebugEnabled())
+        {
+            LOGPZ_DEBUG(logger,"Before assemble diagonal")
+        }
 		this->fAssembly->Assemble(isub,diaglocal,diag);
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Substructure " << isub << " ";
@@ -233,6 +237,7 @@ void TPZDohrMatrix<TVar,TSubStruct>::Initialize()
         std::cout.flush();
 	}
 #ifdef LOG4CXX
+    if(logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		diag.Print("Global Diagonal matrix",sout);

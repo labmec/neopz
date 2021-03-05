@@ -1879,7 +1879,7 @@ TPZSkylMatrix<TVar>::operator()(const int64_t r) {
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-#define DECOMPOSE_CHOLESKY_OPT2
+//#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_PUTVAL_OPT1
 //#define SKYLMATRIX_GETVAL_OPT1
 

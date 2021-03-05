@@ -1732,7 +1732,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
-	LOGPZ_DEBUG(logger, "Permuting")
+	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Permuting")
 	Permute(permute);
 }
 
