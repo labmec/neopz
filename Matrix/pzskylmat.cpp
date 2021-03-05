@@ -3526,7 +3526,8 @@ template class TPZSkylMatrix<TPZFlopCounter>;
 
 #if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)
 
-pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
+#include <TPZBFileStream.h>
+std::mutex dump_matrix_mutex;
 unsigned matrix_unique_id = 0;
 clarg::argString dm_prefix("-dm_prefix", 
                            "Filename prefix for matrices dumped before decompose/subst", 
@@ -3536,7 +3537,7 @@ template<class TVar>
 void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
 {
     if (!dm_prefix.was_set()) return;
-    PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrix");
+    std::scoped_lock<std::mutex> lock(dump_matrix_mutex);
     std::stringstream fname;
     fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
     std::cout << "Dump matrix before... (file: " << fname << ")" << std::endl;
@@ -3544,14 +3545,13 @@ void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
     fs.OpenWrite(fname.str());
     m->Write(fs, 0);
     std::cout << "Dump matrix before... [Done]" << std::endl;
-    PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrix");
 }
 
 template<class TVar>
 void dump_matrices(const TPZMatrix<TVar>* a, const TPZMatrix<TVar>* b, const char* fn_annotation)
 {
     if (!dm_prefix.was_set()) return;
-    PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrices");
+    std::scoped_lock<std::mutex> lock(dump_matrix_mutex);
     std::stringstream fname;
     fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
     std::cout << "Dump matrix before... (file: " << fname << ")" << std::endl;
@@ -3560,7 +3560,6 @@ void dump_matrices(const TPZMatrix<TVar>* a, const TPZMatrix<TVar>* b, const cha
     a->Write(fs, 0);
     b->Write(fs, 0);
     std::cout << "Dump matrix before... [Done]" << std::endl;
-    PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrices");
 }
 #endif
 

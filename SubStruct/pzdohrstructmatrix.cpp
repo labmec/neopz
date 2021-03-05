@@ -56,6 +56,7 @@ using namespace tbb;
 using namespace std;
 
 #include <rcm.h>
+#include <TPZBFileStream.h>
 
 #ifdef USING_PAPI
 #include <papi.h>
@@ -1407,13 +1408,13 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 
 #ifdef DUMP_LDLT_MATRICES
 
-#include "pzbfilestream.h"
-pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
+#include <TPZBFileStream.h>
+std::mutex dump_matrix_mutex;
 unsigned matrix_unique_id = 0;
 
 void dump_matrix(TPZAutoPointer<TPZMatrix<STATE> > Stiffness)
 {
-    PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrix");
+    std::scoped_lock<std::mutex> lock(dump_matrix_mutex);
     std::cout << "Dump stiffness matrix at DecomposeBig..." << std::endl;
     std::stringstream fname;
     fname << "matrix_" << matrix_unique_id++ << ".bin";
@@ -1421,7 +1422,6 @@ void dump_matrix(TPZAutoPointer<TPZMatrix<STATE> > Stiffness)
     fs.OpenWrite(fname.str());
     Stiffness->Write(fs, 0);
     std::cout << "Dump stiffness matrix at DecomposeBig... [Done]" << std::endl;
-    PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrix");
 }
 
 #endif
