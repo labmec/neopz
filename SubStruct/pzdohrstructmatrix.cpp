@@ -416,7 +416,7 @@ struct ThreadDohrmanAssemblyList_ThreadArgs_t
     /* Thread index. */
     unsigned thread_idx;
     /* Thread descriptor. */
-    std::thread pthread;
+    std::thread thread;
     /* List of items to be assembled. */
     ThreadDohrmanAssemblyList<T>* list;
 };
@@ -501,12 +501,12 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>* targ = &(args[itr]);
             targ->thread_idx=itr;
             targ->list = &worklistAssemble;
-            targ->pthread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork, targ);
+            targ->thread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork, targ);
         }
         /* Sync. */
         for(unsigned itr=0; itr<numthreads_assemble; itr++)
         {
-            args[itr].pthread.join();
+            args[itr].thread.join();
         }
     }
     dohr_ass.stop();
@@ -566,12 +566,12 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>& targ = args[itr];
             targ.thread_idx=itr;
             targ.list = &worklistDecompose;
-            targ.pthread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork,
-                                  &targ);
+            targ.thread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork,
+                                 &targ);
         }
         for(unsigned itr=0; itr<numthreads_decompose; itr++)
         {
-            args[itr].pthread.join();
+            args[itr].thread.join();
         }
     }
     dohr_dec.stop();

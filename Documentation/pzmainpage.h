@@ -105,7 +105,6 @@
  can to be installed or copied into the indicated directory.
  
  NeoPZ uses until five external libraries:
- \li pthread - For the POSIX pthread threading.
  \li boost - It provides free portable peer-reviewed C++ libraries. We mainly was used as unit test framework.
  \li log4cxx - For efficient log messages.
  \li fad - For automatic differentiation.
