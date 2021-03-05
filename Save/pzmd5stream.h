@@ -231,17 +231,38 @@ public:
   
 #ifdef _AUTODIFF
     
-    virtual void Write(const Fad <float> *p, int size) {
-        Writes< Fad <float> >(p,size);
-    }
-    
-    virtual void Write(const Fad <double> *p, int size) {
-        Writes< Fad <double> >(p,size);
-    }
-    
-    virtual void Write(const Fad <long double> *p, int size) {
-        Writes< Fad <long double> >(p,size);
-    }
+	
+	virtual void Write(const TFad <1,REAL> *p, int howMany) {
+		Writes< TFad <1,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <6,REAL> *p, int howMany) {
+		Writes< TFad <6,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <8,REAL> *p, int howMany) {
+		Writes< TFad <8,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <9,REAL> *p, int howMany) {
+		Writes< TFad <9,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <10,REAL> *p, int howMany) {
+		Writes< TFad <10,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <14,REAL> *p, int howMany) {
+		Writes< TFad <14,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const Fad <float> *p, int howMany) {
+		Writes< Fad <float> >(p,howMany);
+	}
+	
+	virtual void Write(const Fad <double> *p, int howMany) {
+		Writes< Fad <double> >(p,howMany);
+	}
     
 #endif
 
@@ -257,17 +278,37 @@ public:
   }
 #ifdef _AUTODIFF
     
-    virtual void Read(Fad <float> *p, int size) {
-        ReadError();
-    }
-    
-    virtual void Read(Fad <double> *p, int size) {
-        ReadError();
-    }
-    
-    virtual void Read(Fad <long double> *p, int size) {
-        ReadError();
-    }
+  virtual void Read(TFad <1,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <6,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <8,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <9,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <10,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <14,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(Fad <float> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(Fad <double> *p, int howMany) {
+		ReadError();
+	}
     
 #endif
   /** @brief Reads size integers from pointer location p */
