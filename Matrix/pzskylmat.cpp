@@ -622,8 +622,7 @@ void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
             int64_t sz = Size(col);
             
             int64_t index = row + sz - 1 - col;
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
 
             
         }
@@ -658,8 +657,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             int64_t sz = Size(col);
 
             int64_t index = row + sz - 1 - col;
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
         }
     }
 }
@@ -694,9 +692,8 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             int64_t sz = Size(col);
 
             int64_t index = row + sz - 1 - col;
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
-
+            
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
             
         }
     }
@@ -1710,6 +1707,7 @@ extern "C" {
 #include <sstream>
 #include "pzlog.h"
 #include "tpzverysparsematrix.h"
+#include "TPZParallelUtils.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
@@ -2333,9 +2331,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             }
 #endif
             // executando contribuição
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
-            
+            AtomicAdd(fElem[col][index],elmat(ieqs,jeqs));            
         }
     }
 }
@@ -2375,10 +2371,8 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
                 DebugStop();
             }
 #endif
-            // executando contribuição
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
-            
+            // adding contribution
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
         }
     }
 }

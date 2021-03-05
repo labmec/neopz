@@ -23,7 +23,7 @@
 #include "TPZSavable.h"
 #include "pzvec.h"
 #include "tpzverysparsematrix.h"
-
+#include "TPZParallelUtils.h"
 #ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
@@ -256,8 +256,7 @@ void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<int64_t> &source,
     int64_t i,j;
     for(j=0; j<ncol; j++) {
         for(i=0; i<nrow; i++) {
-#pragma omp atomic
-            operator()(destination[i],j) += rhs(source[i],j);
+          AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
         }
     }
 }
@@ -274,8 +273,7 @@ void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, T
     int64_t i,j;
     for(j=0; j<ncol; j++) {
         for(i=0; i<nrow; i++) {
-#pragma omp atomic
-            operator()(destination[i],j) += rhs(source[i],j);
+          AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
         }
     }
 }
