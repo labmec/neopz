@@ -33,12 +33,11 @@
 
 /// ---- GLOBALS ----
 
+#include <cmath>
 #include <iostream>
-#include <pthread.h>
 #include <pz_gettime.h>
 #include <sstream>
-#include <cmath>
-
+#include <thread>
 #include <pzgmesh.h>
 #include <pzgeoel.h>
 #include "pzvec.h"
@@ -151,12 +150,11 @@ void *divide_parallel (void *arg)
 		}
 	}
     
-	pthread_exit(0);
 }
 
 int main_parallel ()
 {	
-    pthread_t threads[nthreads];
+    std::vector<std::thread> threads;
     
     TPZGeoMesh *gmeshes[nthreads];
     for (int i=0; i<nthreads; i++) {
@@ -172,24 +170,11 @@ int main_parallel ()
         divide_data_parallel *sdata;
         sdata = new divide_data_parallel;
         sdata->mesh = gmeshes[i];
-    
-        err = pthread_create (&threads[i], NULL, divide_parallel, (void *) sdata);
-    
-        if (err)
-        {
-            cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-            DebugStop();
-        }
+        threads.push_back(std::thread(divide_parallel,sdata));
     }
     
     for (int i=0; i<nthreads; i++) {
-        err = pthread_join (threads[i], NULL);
-        
-        if (err)
-        {
-            cout << "Could not join the threads! Return code from pthread_join is " << err;
-            DebugStop();
-        }
+      threads[i].join();        
     }
     
 	double time_end = get_time();
@@ -332,9 +317,9 @@ int main (int argc, char *argv[]) {
 #ifdef REFTHREADV3
 
 #include <queue>
-
-pthread_t threads[NTHREADS];
-pthread_mutex_t idslock = PTHREAD_MUTEX_INITIALIZER;
+#include <mutex>
+std::vector<std::thread> threads;
+std::mutex idslock;
 
 TPZVec <int> *ids;
 queue <int> *todo[NTHREADS];
@@ -387,7 +372,7 @@ TPZStack <int> getneighbours (TPZGeoMesh* mesh, int iel)
 int lockneighbours (TPZGeoMesh *mesh, int iel)
 {
 	//double lockneigh_time_start = get_time();
-	
+	std::scoped_lock<std::mutex> lck(idslock);
 	TPZStack <int> neighbours = getneighbours(mesh, iel);
 	
 	while (neighbours.size()) {
@@ -397,8 +382,6 @@ int lockneighbours (TPZGeoMesh *mesh, int iel)
 	
 	ids->Fill((int) 1, iel, 1);
 	
-	pthread_mutex_unlock(&idslock);
-	
 	//double lockneigh_time_end = get_time();
 	//cout << "lockneighbours() took "<< (lockneigh_time_end-lockneigh_time_start) << " seconds.\n\n";
 	
@@ -407,7 +390,7 @@ int lockneighbours (TPZGeoMesh *mesh, int iel)
 
 int unlockneighbours (TPZGeoMesh *mesh, int iel, int threadnumber, TPZVec <TPZGeoEl*> sons)
 {
-    pthread_mutex_lock(&idslock);
+  std::scoped_lock lck(idslock);
 	
 	TPZStack <int> neighbours = getneighbours(mesh, iel);
 	
@@ -416,9 +399,7 @@ int unlockneighbours (TPZGeoMesh *mesh, int iel, int threadnumber, TPZVec <TPZGe
 	while (neighbours.size()) {
 		int pos = neighbours.Pop();
 		ids->Fill(0, pos, 1);
-	}
-	
-	pthread_mutex_unlock(&idslock);
+	} 
 	
 	
     for (int i=0; i<sons.NElements(); i++) {
@@ -479,48 +460,45 @@ bool checkneighbours (TPZGeoMesh* mesh, int iel)
 void *divide(void *arg)
 {
     divide_data *idata = (divide_data*) arg;
-	TPZGeoMesh *imesh = idata->mesh;
-	int threadnumber = idata->threadnumber;
-	delete idata;
-    
+    TPZGeoMesh *imesh = idata->mesh;
+    int threadnumber = idata->threadnumber;
+    delete idata;
+    std::unique_lock lck(idslock);
     TPZVec <TPZGeoEl *> sons;
     
     while (todo[threadnumber]->size())
-	{
+      {
         int iel = todo[threadnumber]->front();
         todo[threadnumber]->pop();
         
-        pthread_mutex_lock(&idslock);
+        lck.lock();
         
         if (!checkneighbours(imesh, iel))
-        {
+          {
             lockneighbours(imesh, iel);
             
             imesh->ElementVec()[iel]->Divide(sons);
             
             unlockneighbours(imesh, iel, threadnumber, sons);
-        }
+          }
         
         else {
-            todo[threadnumber]->push(iel);
-            pthread_mutex_unlock(&idslock);
+          todo[threadnumber]->push(iel);
+          lck.unlock();
         }
-    }
-	
-	pthread_exit(0);
+      }
+    lck.unlock();
 }
 
 int main ()
-{ 
-	pthread_mutex_init(&idslock, NULL);
-	
+{	
 	TPZGeoMesh *gmesh = GetMesh(NX, NY);
 	
 	//ofstream bef("before_PTHREAD3.vtk");
 	//TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bef);			// Printing the initial mesh on the file
     
 	int threadnumber = 0;
-    int nelementsperthread;
+  int nelementsperthread;
 	REAL totalElements = 1;
 	REAL alevel;
 	
@@ -563,25 +541,12 @@ int main ()
         sdata = new divide_data;
         sdata->threadnumber = threadnumber;
         sdata->mesh = gmesh;
-        
-        err = pthread_create (&threads[threadnumber], NULL, divide, (void *) sdata);
-        
-        if (err)
-        {
-            cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-            DebugStop();
-        }
+        threads.push_back(std::thread(divide,sdata));
     }
     
     for (threadnumber=0; threadnumber<NTHREADS; threadnumber++)
     {
-        err = pthread_join (threads[threadnumber], NULL);
-        
-        if (err)
-        {
-            cout << "Could not join the threads! Return code from pthread_join is " << err;
-            DebugStop();
-        }
+        threads[threadnumber].join();
     }
 	
 	cout << "\n****END****\n";
@@ -595,570 +560,6 @@ int main ()
 	af.close();
     
 	return 0;
-}
-
-#endif
-
-//------------------------------------------------------------//
-
-
-#ifdef REFTHREADV2
-
-#include <queue>
-
-pthread_t threads[NTHREADS];
-pthread_mutex_t idslock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t todolock = PTHREAD_MUTEX_INITIALIZER;
-
-TPZVec <int> *ids;
-queue <int> *todo;
-
-double err;
-const int azero = 0;
-
-int globalcounter = 0;
-
-struct divide_data {
-	int el;
-	TPZGeoMesh* mesh;
-};
-
-TPZStack <int> getneighbours (TPZGeoMesh* mesh, int iel) 
-{
-	//double getneigh_time_start = get_time();
-	TPZStack <int> nbs;
-	int countneighbours=0, nneighbours=0;
-	
-	int nsides = mesh->ElementVec()[iel]->NSides();
-	for (int i=0; i<nsides; i++)
-	{
-		TPZGeoElSide neighbour = mesh->ElementVec()[iel]->Neighbour(i);
-		TPZGeoElSide thisside (mesh->ElementVec()[iel],i);
-		if (neighbour.Exists()) 
-		{
-			int count=0;
-			while (neighbour!=thisside&&count++<30)
-			{
-				countneighbours = 0;
-				nneighbours = nbs.size();
-				for (int j=0; j<nneighbours; j++)
-				{
-					if (neighbour.Element()->Id()!=nbs[j]) countneighbours++;
-				}
-				if (countneighbours==nneighbours)
-				{
-					int pos = neighbour.Element()->Id();
-					nbs.Push(pos);
-				}
-				neighbour = neighbour.Neighbour();
-			}
-		}
-	}
-	//double getneigh_time_end = get_time();
-	//cout << "getneighbours() took "<< (getneigh_time_end-getneigh_time_start) << " seconds.\n\n";
-
-	return nbs;
-}
-
-int lockneighbours (TPZGeoMesh *mesh, int iel)
-{
-	//double lockneigh_time_start = get_time();
-	
-	TPZStack <int> neighbours = getneighbours(mesh, iel);
-	
-	while (neighbours.size()) {
-		int pos = neighbours.Pop();
-		ids->Fill((int) 1, pos, 1);
-	}
-	
-	ids->Fill((int) 1, iel, 1);
-	
-	pthread_mutex_unlock(&idslock);
-	
-	//double lockneigh_time_end = get_time();
-	//cout << "lockneighbours() took "<< (lockneigh_time_end-lockneigh_time_start) << " seconds.\n\n";
-	
-	return 0;
-}
-
-int unlockneighbours (TPZGeoMesh *mesh, int iel, TPZVec <TPZGeoEl*> sons)
-{
-	//double unlockneigh_time_start = get_time();
-	
-	pthread_mutex_lock(&idslock);
-	
-	TPZStack <int> neighbours = getneighbours(mesh, iel);
-	
-	ids->Fill(0, iel, 1);
-	
-	while (neighbours.size()) {
-		int pos = neighbours.Pop();
-		ids->Fill(0, pos, 1);
-	}
-	
-	pthread_mutex_unlock(&idslock);
-	
-	pthread_mutex_lock(&todolock);
-	
-    for (int i=0; i<sons.NElements(); i++) {
-		if (sons[i]->Level()<MAXLVL) {
-			todo->push(sons[i]->Id());
-		}
-        else break;
-	}
-	pthread_mutex_unlock(&todolock);
-	
-	//double unlockneigh_time_end = get_time();
-	//cout << "unlockneighbours() took "<< (unlockneigh_time_end-unlockneigh_time_start) << " seconds.\n\n";
-	
-	return 0;
-}
-
-bool checkneighbours (TPZGeoMesh* mesh, int iel) 
-{
-	//double checkneigh_time_start = get_time();
-	
-    if (ids->operator[](iel))
-	{
-		//double checkneigh_time_end = get_time();
-		//cout << "checkneighbours("<< iel<< ")=true took "<< (checkneigh_time_end-checkneigh_time_start) << " seconds.\n\n";
-		return true;
-	}
-	
-	else
-	{
-		int countneighbours=0;
-		int nneighbours=0;
-		
-		TPZStack <int> neighbours = getneighbours(mesh, iel);
-		
-		nneighbours = neighbours.size();
-		
-		while (neighbours.size())
-		{
-			int neigh = neighbours.Pop();
-			if(!ids->operator[](neigh)) countneighbours++;
-		}
-		
-		if (countneighbours==nneighbours)
-        {
-			//double checkneigh_time_end = get_time();
-			//cout << "checkneighbours("<< iel<< ")=false took "<< (checkneigh_time_end-checkneigh_time_start) << " seconds.\n\n";
-			return false;
-		}
-		
-		else
-		{
-			//double checkneigh_time_end = get_time();
-			//cout << "checkneighbours("<< iel<< ")=true took "<< (checkneigh_time_end-checkneigh_time_start) << " seconds.\n\n";
-			return true;
-		}
-	}
-}
-
-void *divide(void *arg)
-{
-	divide_data *idata = (divide_data*) arg;
-	TPZGeoMesh *imesh = idata->mesh;
-	int iel = idata->el;
-	delete idata;
-	
-	TPZVec <TPZGeoEl *> sons;
-	
-	imesh->ElementVec()[iel]->Divide(sons);
-	
-	unlockneighbours(imesh, iel, sons);
-	
-	pthread_exit(0);
-}
-
-int main ()
-{ 
-	pthread_mutex_init(&idslock, NULL);
-	pthread_mutex_init(&todolock, NULL);
-	
-	TPZGeoMesh *gmesh = GetMesh(NX, NY);
-	
-	//ofstream bef("before_PTHREAD2.vtk");
-	//TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bef);			// Printing the initial mesh on the file
-	
-	double time_start = get_time();
-	cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS (V2)***\n";
-	
-	int threadnumber = 0;
-	REAL totalElements = 1;
-	REAL alevel;
-	
-	// start of initialization
-	for (alevel=1; alevel<=MAXLVL; alevel++)
-	{
-		totalElements+=pow(4., alevel);
-	}
-	
-	totalElements*=gmesh->NElements();
-	
-	ids = new TPZVec <int> (totalElements, azero);
-	
-	todo = new queue <int>;
-	
-	for (int i=0; i<gmesh->NElements(); i++)
-	{
-		todo->push(gmesh->ElementVec()[i]->Id());
-	}
-	// end of initialization
-	
-	while (todo->size()||threadnumber)
-	{
-        if (threadnumber==NTHREADS||!todo->size())
-		{
-			int limit=threadnumber;
-			
-			int i = 0;
-			for (;i<limit;)
-			{
-				err = pthread_join (threads[i], NULL);
-				if (err)
-				{
-					cout << "Could not join the threads! Return code from pthread_join is " << err;
-					DebugStop();
-				}
-				else
-				{
-					i++;
-				}
-			}
-			threadnumber = 0;
-		}
-        
-		else
-		{   
-			pthread_mutex_lock(&todolock);
-			int iel = todo->front();
-			todo->pop();
-			
-			pthread_mutex_lock(&idslock);
-			
-			if (!checkneighbours(gmesh, iel))
-			{
-				pthread_mutex_unlock(&todolock);
-                lockneighbours(gmesh, iel);
-                
-                divide_data *sdata;
-                sdata = new divide_data;
-                sdata->el = iel;
-                sdata->mesh = gmesh;
-                
-                err = pthread_create (&threads[threadnumber], NULL, divide, (void *) sdata);
-                
-                if (err)
-                {
-                    cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-                    DebugStop();
-                }
-                else
-                {
-                    threadnumber++;
-                }
-			}
-			
-			else {
-				todo->push(iel);
-				pthread_mutex_unlock(&idslock);
-				pthread_mutex_unlock(&todolock);
-			}
-		}
-	}
-	
-	cout << "\n****END****\n";
-	double time_end = get_time();
-	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
-	
-	ofstream af("after_PTHREAD2.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, af);
-	
-	//bef.close();
-	af.close();
-    
-    //RunTestsCompMesh(gmesh);
-    
-	return 0;
-}
-
-#endif
-
-//------------------------------------------------------------//
-
-#ifdef REFTHREADV1
-
-#include "pzstack.h"
-
-pthread_t threads[NTHREADS];
-pthread_mutex_t idslock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t todolock = PTHREAD_MUTEX_INITIALIZER;
-
-TPZVec <int> *ids;
-TPZStack <int> *todo;
-
-double err;
-const int azero = 0;
-
-struct divide_data {
-	int el;
-	TPZGeoMesh* mesh;
-};
-
-TPZStack <int> getneighbours (TPZGeoMesh* mesh, int iel) 
-{
-	TPZStack <int> nbs;
-	int countneighbours=0, nneighbours=0;
-	
-	int nsides = mesh->ElementVec()[iel]->NSides();
-	for (int i=0; i<nsides; i++)
-	{
-		TPZGeoElSide neighbour = mesh->ElementVec()[iel]->Neighbour(i);
-		TPZGeoElSide thisside (mesh->ElementVec()[iel],i);
-		if (neighbour.Exists()) 
-		{
-			int count=0;
-			while (neighbour!=thisside&&count++<30)
-			{
-				countneighbours = 0;
-				nneighbours = nbs.size();
-				for (int j=0; j<nneighbours; j++)
-				{
-					if (neighbour.Element()->Id()!=nbs[j]) countneighbours++;
-				}
-				if (countneighbours==nneighbours)
-				{
-					int pos = neighbour.Element()->Id();
-					nbs.Push(pos);
-				}
-				neighbour = neighbour.Neighbour();
-			}
-		}
-	}
-	return nbs;
-}
-
-bool checkneighbours (TPZGeoMesh* mesh, int iel) 
-{
-	if (ids->operator[](iel))
-	{
-		return true;
-	}
-	
-	else
-	{
-		int countneighbours=0;
-		int nneighbours=0;
-		
-		TPZStack <int> neighbours = getneighbours(mesh, iel);
-		
-		nneighbours = neighbours.size();
-		
-		while (neighbours.size())
-		{
-			int neigh = neighbours.Pop();
-			if(!ids->operator[](neigh)) countneighbours++;
-		}
-		
-		if (countneighbours==nneighbours)
-		{
-			return false;
-		}
-		
-		else
-		{
-			return true;
-		}
-	}
-}
-
-int lockneighbours (TPZGeoMesh *mesh, int iel)
-{
-	pthread_mutex_lock(&idslock);
-	
-	if (checkneighbours(mesh, iel)) {
-		pthread_mutex_lock(&todolock);
-		todo->Push(iel);
-		pthread_mutex_unlock(&todolock);
-	
-		pthread_mutex_unlock(&idslock);
-		
-		pthread_exit(0);
-	}
-	
-	else {
-		TPZStack <int> neighbours = getneighbours(mesh, iel);
-		
-		while (neighbours.size()) {
-			int pos = neighbours.Pop();
-			ids->Fill((int) 1, pos, 1);
-		}
-		
-		ids->Fill((int) 1, iel, 1);
-		
-		pthread_mutex_unlock(&idslock);
-		return 0;
-	}
-}
-
-int unlockneighbours (TPZGeoMesh *mesh, int iel, TPZVec <TPZGeoEl*> sons)
-{
-	pthread_mutex_lock(&idslock);
-
-	TPZStack <int> neighbours = getneighbours(mesh, iel);
-	
-	ids->Fill(0, iel, 1);
-	
-	while (neighbours.size()) {
-		int pos = neighbours.Pop();
-		ids->Fill(0, pos, 1);
-	}
-	
-	pthread_mutex_unlock(&idslock);
-	
-	pthread_mutex_lock(&todolock);
-	for (int i=0; i<sons.NElements(); i++) {
-		if (sons[i]->Level()<MAXLVL) {
-			todo->Push(sons[i]->Id());
-		}
-        else {
-            break;
-        }
-	}
-	pthread_mutex_unlock(&todolock);
-	
-	return 0;
-}
-
-void *divide(void *arg)
-{
-	divide_data *idata = (divide_data*) arg;
-	TPZGeoMesh *imesh = idata->mesh;
-	int iel = idata->el;
-	delete idata;
-	
-	TPZVec <TPZGeoEl *> sons;
-	
-	TPZGeoEl * gel = imesh->ElementVec()[iel];
-	
-#ifdef PZDEBUG
-	if(!gel)
-	{
-		DebugStop();
-	}
-#endif
-	
-	lockneighbours(imesh, iel);
-	
-	gel->Divide(sons);
-	
-	unlockneighbours(imesh, iel, sons);
-	
-	pthread_exit(0);
-}
-
-int main ()
-{ 
-	pthread_mutex_init(&idslock, NULL);
-	pthread_mutex_init(&todolock, NULL);
-	
-	TPZGeoMesh *gmesh = GetMesh(NX, NY);
-	
-	//ofstream bef("before_PTHREAD.vtk");
-	//TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bef);			// Printing the initial mesh on the file
-	
-	double time_start = get_time();
-	cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS (V1)***\n";
-	
-	int threadnumber = 0;
-	REAL totalElements = 1;
-	REAL alevel;
-	
-	for (alevel=1; alevel<=MAXLVL; alevel++)
-	{
-		totalElements+=pow(4., alevel);
-	}
-	
-	totalElements*=gmesh->NElements();
-	
-	ids = new TPZVec <int> (totalElements, azero);
-	
-	todo = new TPZStack <int>;
-	
-	for (int i=0; i<gmesh->NElements(); i++)
-	{
-		todo->Push(gmesh->ElementVec()[i]->Id());
-	}
-	
-	while (todo->size()||threadnumber)
-	{
-		int iel = -1;
-		
-		if (todo->size())
-		{
-			pthread_mutex_lock(&todolock);
-			iel = todo->Pop();
-			pthread_mutex_unlock(&todolock);
-		}
-		
-		divide_data *sdata;
-		sdata = new divide_data;
-		sdata->el = iel;
-		sdata->mesh = gmesh;
-		
-		if (threadnumber==NTHREADS||!todo->size())
-		{
-			int limit=threadnumber;
-			
-			int i = 0;
-			for (;i<limit;)
-			{
-				err = pthread_join (threads[i], NULL);
-				if (err)
-				{
-					cout << "Could not join the threads! Return code from pthread_join is " << err;
-					DebugStop();
-				}
-				else
-				{
-					i++;
-				}
-			}
-			
-			threadnumber = 0;
-		}
-		
-		if (iel!=-1)
-		{
-			err = pthread_create (&threads[threadnumber], NULL, divide, (void *) sdata);
-		
-			if (err)
-			{
-				cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-				DebugStop();
-			}
-			else
-			{
-			threadnumber++;
-			}
-		}
-	}
-	
-	cout << "\n****END****\n";
-	double time_end = get_time();
-	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
-	
-	ofstream af("after_PTHREAD.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, af);
-	
-	//bef.close();
-	af.close();
-			
-	//RunTestsCompMesh(gmesh);
-    
-    return 0;
 }
 
 #endif
@@ -1225,7 +626,7 @@ int main ()
 #define SIZEBLOCK 10
 #define NITERATIONS NTHREADS*SIZEBLOCK
 
-pthread_t threads [NTHREADS];
+std::vector<std::thread> threads;
 
 #if TEST==1
 TPZAdmChunkVectorThreadSafe <int> cpyvect[NITERATIONS];
@@ -1257,7 +658,6 @@ void *function (void *arg)
 		cpyvect[i] = *internalvect;		// copying data
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1275,7 +675,6 @@ void *function (void *arg)
 		internalvect->operator[](ind) = ind;
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1292,7 +691,6 @@ void *function (void *arg)
 		internalvect->Resize(internalvect->NElements()+1);
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1309,7 +707,6 @@ void *function (void *arg)
 		internalvect->SetFree(i);
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1326,7 +723,6 @@ void *function (void *arg)
 		internalvect->operator[](i) = i;
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1347,7 +743,6 @@ void *function (void *arg)
 		objids[(threadid*SIZEBLOCK)+i] = internalvect->FindObject(obj[i]);
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1364,7 +759,6 @@ void *function (void *arg)
 		internalvect->CompactDataStructure(2);
 	}
 	
-	pthread_exit(0);
 }
 #endif
 
@@ -1443,32 +837,15 @@ int main()
 	
 	for (threadnumber=0; threadnumber<NTHREADS;)
 	{
-		err = pthread_create (&threads[threadnumber], NULL, function, (void *) &thread_data[threadnumber]);
-		
-		if (err)
-		{
-			cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-			DebugStop();
-		}
-		else
-		{
-			threadnumber++;
-		}
+    threads.push_back(std::thread(function,&thread_data[threadnumber]));
+    threadnumber++;
 	}
 	
 #ifdef TEST
 	for  (threadnumber=0; threadnumber<NTHREADS;)
 	{
-		err = pthread_join (threads[threadnumber], NULL);
-		if (err)
-		{
-			cout << "Could not join the threads! Return code from pthread_join is " << err;
-			DebugStop();
-		}
-		else
-		{
-			threadnumber++;
-		}
+    threads[threadnumber].join();
+    threadnumber++;
 	}
 #endif
 	
