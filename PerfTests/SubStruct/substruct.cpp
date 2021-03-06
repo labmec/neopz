@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <thread>
 #include <cstdlib>
 
 #include "tpzdohrsubstruct.h"
@@ -25,7 +26,7 @@
 #include "pzbndcond.h"
 
 #include "tpzdohrassembly.h"
-
+#include "TPZParallelUtils.h"
 #include "pzlog.h"
 #include "tpzgensubstruct.h"
 #include "tpzpairstructmatrix.h"
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
     constexpr int dim{3};
     constexpr int initPOrder{2};
     constexpr int nSubMeshes{3};
-    constexpr int nThreads{4};
+    const int nThreads{std::thread::hardware_concurrency()};
     constexpr bool useTBB{false};
     constexpr int numIt{500};//CG solver
     /*CODE*/
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
     
     PERF_START(total_rst);
     
-    TPZPairStructMatrix::gNumThreads = 4;
+    TPZPairStructMatrix::gNumThreads = nThreads;
     TPZGeoMesh  *gmesh = 0;
     TPZAutoPointer<TPZCompMesh> cmeshauto = 0;
     TPZDohrStructMatrix* dohrstruct = 0;
@@ -520,7 +521,7 @@ TPZGeoMesh *MalhaPredio()
 		gMesh->BuildConnectivity();
 		// Colocando as condicoes de contorno
 		
-		for(el=0; el<numelements; el++)
+		ParallelFor(0,numelements,[&](int el)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
@@ -545,7 +546,7 @@ TPZGeoMesh *MalhaPredio()
 				TPZGeoElSide tetraSide(tetra, lado);
 				TPZGeoElBC(tetraSide,matBCid);
 			}
-		}
+		});
 	}
 	
 	ofstream arg("malhaPZ.txt");
@@ -658,7 +659,7 @@ TPZGeoMesh *MalhaCubo()
 		gMesh->BuildConnectivity();
 		
 		// Colocando as condicoes de contorno
-		for(el=0; el<numelements; el++)
+		ParallelFor(0,numelements,[&](int el)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
@@ -708,7 +709,7 @@ TPZGeoMesh *MalhaCubo()
 				TPZGeoElBC(tetraSide,neumann2);
 			}
 			
-		}
+		});
 		
 		TPZVec <REAL> xyz(3,-1.), yz(3,-1.), z(3,1.);
 		yz[0] = 1.;
