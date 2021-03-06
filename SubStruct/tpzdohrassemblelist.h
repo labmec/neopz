@@ -12,9 +12,7 @@
 #include "tpzdohrassembly.h"
 #include "TPZSemaphore.h"
 
-#include <pthread.h>
 #include <list>
-#include <semaphore.h>
 
 /**
  * @ingroup substructure
@@ -51,9 +49,9 @@ struct TPZDohrAssembleList {
 	/** @brief Semaphore (to wake up assembly thread) */
 	TPZSemaphore fSemaphore;
 	/** @brief This is the mutex which controls the access to the list */
-	pthread_mutex_t fListAccessLock;
+    std::mutex fListAccessLock;
 	/** @brief This is the mutex which controls the assembly */
-	pthread_mutex_t fAssemblyLock;
+    std::mutex fAssemblyLock;
 	/** @brief List of objects needed to be assembled */
 	std::list<TPZAutoPointer<TPZDohrAssembleItem<TVar> > > fWork;
 	/** @brief Add an item to the list in a thread safe way */

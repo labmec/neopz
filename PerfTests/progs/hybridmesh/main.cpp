@@ -23,10 +23,10 @@
 #include "pzbndcond.h"
 #include "pzanalysis.h"
 
-#include "TPZParSkylineStructMatrix.h"
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"
 #include "pzfstrmatrix.h"
+#include "pzskylstrmatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
 #include "TPBSpStructMatrix.h"
@@ -53,11 +53,9 @@
 #include <math.h>
 #include <set>
 
-#ifdef USING_BLAS
-#include "cblas.h"
-#endif
 
 #include "run_stats_table.h"
+#include "arglib.h"
 
 RunStatsTable total_rdt("-tot_rdt","Statistics for the whole application");
 RunStatsTable cond_rdt("-cond_rdt","Statistics for the static condensation step");
@@ -317,7 +315,7 @@ TPZCompMesh* MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	//material->SetInternalFlux(flux);
     
     TPZAutoPointer<TPZFunction<STATE> > force;
-    force = new TPZDummyFunction<STATE>(Forcing);
+    force = new TPZDummyFunction<STATE>(Forcing,4);
     material->SetForcingFunction(force);
     
 	material->NStateVariables();
@@ -337,7 +335,7 @@ TPZCompMesh* MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	TPZFMatrix<STATE> val12(2,2,0.), val22(2,1,0.);
     
     TPZAutoPointer<TPZFunction<STATE> > solexata;
-    solexata = new TPZDummyFunction<STATE>(SolExata); 
+    solexata = new TPZDummyFunction<STATE>(SolExata,4); 
     material->SetForcingFunctionExact(solexata);
     
 	REAL uD=0.;

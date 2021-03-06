@@ -6,6 +6,7 @@
 #include "pzbstrmatrix.h"
 #include "pzbndmat.h"
 #include "pzcmesh.h"
+#include "TPZGuiInterface.h"
 
 TPZBandStructMatrix::~TPZBandStructMatrix(){}
 

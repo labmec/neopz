@@ -10,10 +10,10 @@
 #include <memory.h>
 #include <string>
 #include <map>
-#include <pthread.h>
+#include <thread>
+#include <vector>
 
 #include "tpzverysparsematrix.h"
-#include "pz_pthread.h"
 #include "pzstack.h"
 
 // #ifdef USING_BLAS
@@ -549,12 +549,11 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	 TPZFMatrix<>*fZ;
 	 REAL fAlpha;
 	 int fOpt;
-	 */
-    int numthreads = 2;
-    if(opt) numthreads = 1;
-	TPZVec<pthread_t> allthreads(numthreads);
+  */
+  int numthreads = 2;
+  if(opt) numthreads = 1;
+  std::vector<std::thread> allthreads;
 	TPZVec<TPZMThread> alldata(numthreads);
-	TPZVec<int> res(numthreads);
 	int i;
 	int eqperthread = r/numthreads;
 	int firsteq = 0;
@@ -569,11 +568,10 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 		alldata[i].fZ = &z;
 		alldata[i].fAlpha = alpha;
 		alldata[i].fOpt = opt;
-		res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL,
-					   ExecuteMT, &alldata[i], __FUNCTION__);
+    allthreads.push_back(std::thread(ExecuteMT, &alldata[i]));
 	}
 	for(i=0;i<numthreads;i++) {
-	  PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+    allthreads[i].join();
 	}
 	
 }

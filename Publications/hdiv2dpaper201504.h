@@ -40,7 +40,6 @@
 #include "pzstack.h"
 #include "pzfmatrix.h"
 #include "pzfstrmatrix.h"
-#include "TPZParSkylineStructMatrix.h"
 #include "pzskylstrmatrix.h"
 #include "TPBSpStructMatrix.h"
 #include "pzbstrmatrix.h"

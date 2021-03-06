@@ -18,6 +18,9 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"))
 static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness"));
 #endif
 
+//this is not in header file to avoid including cmesh.h there
+TPZStructMatrixBase::~TPZStructMatrixBase(){}
+
 TPZStructMatrixBase::TPZStructMatrixBase() : fMesh(NULL), fEquationFilter(0) {
     this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }

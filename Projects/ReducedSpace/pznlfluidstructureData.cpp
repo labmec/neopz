@@ -10,6 +10,7 @@
 #include "pzreal.h"
 #include "pzcompel.h"
 #include "pzintel.h"
+#include "pzcmesh.h"
 
 
 InputDataStruct::InputDataStruct()

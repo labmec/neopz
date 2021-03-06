@@ -19,7 +19,6 @@
 
 #include "tpzdohrassemblelist.h"
 
-#include "pz_pthread.h"
 
 /**
  * @brief Implements a matrix divided into substructures. \ref matrix "Matrix" \ref substructure "Sub structure"
@@ -206,7 +205,7 @@ struct TPZDohrThreadMultList
 	/** @brief Scalar multiplication factor */
 	TVar fAlpha;
 	/** @brief Mutex which will enable the access protection of the list */
-	pthread_mutex_t fAccessLock;
+	std::mutex fAccessLock;
 	/** @brief The data structure which defines the assemble destinations */
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
 	/** @brief The list of data objects which need to treated by the threads */
@@ -215,13 +214,11 @@ struct TPZDohrThreadMultList
 	TPZAutoPointer<TPZDohrAssembleList<TVar> > fAssemblyStructure;
 	
 	TPZDohrThreadMultList(const TPZFMatrix<TVar> &x, TVar alpha, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemblestruct) : fInput(&x), fAlpha(alpha),
-	fAssembly(assembly), fAssemblyStructure(assemblestruct)
+	fAssembly(assembly), fAssemblyStructure(assemblestruct), fAccessLock()
 	{
-        PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrThreadMultList::TPZDohrThreadMultList(...)");
 	}
 	~TPZDohrThreadMultList()
 	{
-        PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrThreadMultList::TPZDohrThreadMultList()");
 	}
 	
 	/** @brief The procedure which executes the lengthy process */
@@ -229,20 +226,18 @@ struct TPZDohrThreadMultList
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
 	{
-        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
+    std::scoped_lock<std::mutex> lock(fAccessLock);
 		fWork.push_back(data);
-        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrThreadMultData<TSubStruct> PopItem()
 	{
 		TPZDohrThreadMultData<TSubStruct> result;
-        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
+    std::scoped_lock<std::mutex> lock(fAccessLock);
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		return result;
 	}
 };

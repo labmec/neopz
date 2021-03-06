@@ -10,7 +10,7 @@
 #include "StokesTest.h"
 #include "pzcheckgeom.h"
 #include "pzstack.h"
-#include "TPZParSkylineStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 
@@ -128,7 +128,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     bool optimizeBandwidth = true; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
-    //TPZParSkylineStructMatrix matskl(cmesh_m, numthreads);
+    //pzskylstrmatrix matskl(cmesh_m, numthreads);
     TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
     //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico *** //OK para discont.
     matskl.SetNumThreads(numthreads);

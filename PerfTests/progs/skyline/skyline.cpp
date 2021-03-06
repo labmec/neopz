@@ -12,7 +12,8 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "pzbfilestream.h" // TPZBFileStream, TPZFileStream
+#include "TPZFileStream.h"
+#include "TPZBFileStream.h" // TPZBFileStream, TPZFileStream
 #include "pzmd5stream.h"
 
 #include "tpzdohrsubstruct.h"

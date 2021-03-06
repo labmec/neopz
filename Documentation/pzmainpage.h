@@ -105,7 +105,6 @@
  can to be installed or copied into the indicated directory.
  
  NeoPZ uses until five external libraries:
- \li pthread - For the POSIX pthread threading.
  \li boost - It provides free portable peer-reviewed C++ libraries. We mainly was used as unit test framework.
  \li log4cxx - For efficient log messages.
  \li fad - For automatic differentiation.
@@ -159,27 +158,6 @@
  \li ./configure
  \li make check
  \li sudo make install
- 
- \section pthread Pthread library
- 
- The neopz project uses <a href="http://www.labmec.org.br/pz/libexternal/pthread/">PThread</a> library for the POSIX pthread threading.
- To install for unix or mac systems, make <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/PThread.tar.gz">download</a> of the source code. Uncompress the archive and using command line change into the uncompress directory with PThread.
- Use the following commands:
- \li ./configure
- \li make
- \li sudo make install
- 
- For windows system:
- \li download from <a href="http://www.labmec.org.br/pz/libexternal/pthread/">pthread_win</a>.
- \li unzip the code
- \li change to directory where the code was unzipped
- \li cd pthreads.2
- \li run "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" - to sets the environment variables according to your system
- \li nmake clean VC-static - to build pthread library
- \li rename pthreadVC2.lib to pthread.lib and copy to "externallibs\lib"
- \li copy include directory from Pre-built.2 to "externallibs\include"
- 
- You can also download the prebuilt lib from <a href="http://www.labmec.org.br/pz/libexternal/pthread/">pthread_win_VC10</a>.
  
  \page neopz About the PZ Library
  

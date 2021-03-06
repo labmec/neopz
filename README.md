@@ -12,12 +12,10 @@ written in C++.
 And much more!
 
 ## Requirements
-- A C++ 11 compiler
+- A C++ 17 compiler
 - [CMake](https://cmake.org/download/) 3.11.0+
 - A visualization software to display the VTK files outputted by NeoPZ.
  [Paraview](https://www.paraview.org/download/) is recommended.
-- [pthreads for Win32](http://sourceware.org/pthreads-win32/) 
-(if running on Windows)
 
 ### Optional external libraries
 The usage of NeoPZ can be improved by linking against the following libraries:

@@ -21,7 +21,7 @@
 
 #include "TPZRefPatternTools.h"
 
-#include "TPZParSkylineStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
 
 #include "pzelementgroup.h"

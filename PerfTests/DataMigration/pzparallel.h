@@ -1,6 +1,6 @@
 #include <unistd.h>
-#include <pthread.h>
-
+#include <thread>
+#include <vector>
 namespace pz {
     // util - return the number of cores on linux and macosx
     int get_number_of_cores() {
@@ -28,19 +28,18 @@ namespace pz {
         if(nthreads > n)
             nthreads = n;
         // allocate threads
-        pthread_t *threads = new pthread_t[nthreads];
+        std::vector<std::thread> threads;
         thread_arg<body_t> *args = new thread_arg<body_t>[nthreads];
         // create args and threads
         for (int t = 0; t < nthreads; t++) {
             args[t].i = t;
             args[t].obj = &obj;
-            pthread_create(&threads[t], NULL, thread_work<body_t>, (void*) &args[t]);
+            threads.push_back(std::thread(thread_work<body_t>,&args[t]));
         }
         // syncronize all threads
         for (int t = 0; t < nthreads; t++)
-            pthread_join(threads[t], NULL);
+          {threads[t].join();}
         // free memory
-        delete [] threads;
         delete [] args;
     }
     

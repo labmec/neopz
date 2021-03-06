@@ -1,12 +1,13 @@
 /**
  * @file
- * @brief Contains declaration of the TPZSemaphore class which implements semaphore to threads.
+ * @brief Contains declaration of the TPZSemaphore class which implements semaphore to threads. Check Dijkstra's semaphore for more information.
  */
 
 #ifndef TPZSEMAPHOREHPP
 #define TPZSEMAPHOREHPP
 
-#include "pz_pthread.h"
+#include <mutex>
+#include <condition_variable>
 
 /**
  * @ingroup util
@@ -18,19 +19,28 @@ private:
 	/** @brief Counter of the times the semaphore is locked */
 	int fCounter;
 	/** @brief Mutex for the thread */
-	pthread_mutex_t fMutex;
+	mutable std::mutex fMutex;
 	/** @brief Condition for the thread must to be waiting */
-	pthread_cond_t fCond;
+	mutable std::condition_variable fCond;
 	
 public:
 	/** @brief Default constructor */
-	TPZSemaphore(void);
+	TPZSemaphore() = default;
 	/** @brief Default destructor */
-	~TPZSemaphore(void);
+	~TPZSemaphore() = default;
+  /** @brief Copy constructor */
+  TPZSemaphore(const TPZSemaphore &);
+  /** @brief Move constructor */
+  TPZSemaphore(const TPZSemaphore &&) = delete;//std::mutex has no move operator
+  /** @brief Assignment (copy) operator */
+  TPZSemaphore &operator=(const TPZSemaphore &);
+  /** @brief Assignment (move) operator */
+  TPZSemaphore &operator=(TPZSemaphore &&) = delete;//std::mutex has no move operator
 	/** @brief Constructor with initial number for the counter */
 	TPZSemaphore(int initCount);
-	
+	/** @brief Consumes one resource (operation P in Dijkstra's definition) */
 	void Wait();
+  /** @brief Frees one resource (operation V in Dijkstra's definition)*/
 	void Post();
 };
 

@@ -11,6 +11,8 @@ project (PZ)
 
 #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+#this allow us to define custom FindXXX.cmake modules
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 IF (WIN32)
 	# Prevents timespec redefinition problem with Visual Studio 2015
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
@@ -25,7 +27,7 @@ ELSE (WIN32)
 	endif()
 ENDIF()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## inserting main definitions
@@ -48,7 +50,7 @@ if(${val} LESS 0)
 endif()
 
 # Location to search files or libraries
-set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/pthread ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include ./../externallibs/include/lapack /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
+set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include ./../externallibs/include/lapack /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
 
 # INSTALL part
 #To install neopz/include
@@ -57,17 +59,6 @@ set(NEOPZ_INCLUDE pzlib/include)
 set(NEOPZ_LIB pzlib/lib)
 
 #ENABLING EXTERNAL LIBRARIES
-
-#enabling pthread library
-find_path(PTHREAD_INCLUDE NAMES PThread.h pthread.h PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../externallibs/pthread ${PROJECT_SOURCE_DIR}/../externallibs/pthread/include ${PROJECT_SOURCE_DIR}/../pthread )
-find_library(PTHREAD_LIB NAMES libpthread.dylib pthread.lib pthreadVC2.lib libPThread.so libPThread.a libpthread.so libpthread.a PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../externallibs/pthread/lib  ${PROJECT_SOURCE_DIR}/../pthread/lib)
-if(PTHREAD_INCLUDE-NOTFOUND)
-	set (PTHREAD_INCLUDE "" CACHE PATH "Directory where pthread.h can be found")
-endif()
-if(PTHREAD_LIB-NOTFOUND)
-	set (PTHREAD_LIB "" CACHE PATH "Directory where the pthread library can be found")
-endif()
-include_directories(${PTHREAD_INCLUDE})
 
 IF(APPLE)
    # Mac OS X specific code
@@ -158,65 +149,12 @@ endif(USING_OPENSSL)
 #enabling TBB library
 option(USING_TBB "Whether the TBB library will be linked in" OFF)
 if(USING_TBB)
-	if(WIN32)
-		set(TBB_ROOT "C:/Program Files (x86)/IntelSWTools/TBB")
-		find_path(TBB_INCLUDE tbb.h HINTS ${TBB_ROOT}/tbb2018_20180618oss/include/tbb NO_DEFAULT_PATH)		
-		find_library(TBB_LIB_RELEASE tbb.lib HINTS ${TBB_ROOT}/tbb2018_20180618oss/lib/intel64/vc14 NO_DEFAULT_PATH)
-		find_library(TBB_LIB_DEBUG tbb_debug.lib HINTS ${TBB_ROOT}/tbb2018_20180618oss/lib/intel64/vc14 NO_DEFAULT_PATH)
-		
-		set(TBB_LIB
-      		debug ${TBB_LIB_DEBUG}
-	        optimized ${TBB_LIB_RELEASE}
-	    )	
-		
-		if(TBB_INCLUDE-NOTFOUND)
-			set (TBB_INCLUDE "" CACHE PATH "Directory where tbb header files can be found")
-		else()
-			include_directories(${TBB_INCLUDE}/..)
-		endif()
-		if(TBB_LIB-NOTFOUND)
-			set (TBB_LIB "" CACHE PATH "Directory where the tbb library can be found")
-		else()
-			link_libraries(${TBB_LIB})
-		endif()
-	else()
-		find_file(TBB_HEADER_FILE tbb.h HINTS /usr/local/TBB/*/include/tbb/ NO_DEFAULT_PATH)
-
-		if(NOT TBB_HEADER_FILE MATCHES "tbb.h")
-		  set (TBB_HEADER_FILE "" CACHE PATH "Path to 'tbb.h' file")
-		  message( FATAL_ERROR "TBB_HEADER_FILE must contain a valid path to 'tbb.h' file!")
-		else()
-		  get_filename_component(TBB_ROOT_DIR ${TBB_HEADER_FILE} DIRECTORY)
-		  get_filename_component(TBB_INCLUDE ${TBB_ROOT_DIR} DIRECTORY)
-		  get_filename_component(TBB_ROOT_DIR ${TBB_INCLUDE} DIRECTORY)
-		  if(APPLE)
-			set(TBB_LIB ${TBB_ROOT_DIR}/lib/libtbb.dylib)
-		  else() # Linux
-			set(TBB_LIB ${TBB_ROOT_DIR}/lib/intel64/gcc4.7/libtbb.so)
-		  endif()
-
-		  include_directories(${TBB_INCLUDE})
-		  link_libraries(${TBB_LIB})
-		endif()
-	endif(WIN32)
+  find_package(TBB REQUIRED)
+  if (NOT TBB_FOUND)
+		message(FATAL_ERROR "Could not find TBB. If TBB is not needed, "
+      "configure the project with -DUSING_TBB=OFF")
+	endif()
 endif(USING_TBB)
-
-#enabling OpenMP runtime and library
-option(USING_OPENMP "Whether the OpenMP library and runtime will be linked in" OFF)
-if(USING_OPENMP)
-	find_path(OPENMP_INCLUDE omp.h PATHS ${SEARCH_DIRS} /opt/local/lib/gcc5/gcc/x86_64-apple-darwin15/5.2.0/include)
-	find_library(OPENMP_LIB NAMES libgomp.dylib PATHS ${SEARCH_DIRS}  /opt/local/lib/gcc5)
-	if(OPENMP_INCLUDE-NOTFOUND)
-		set (OPENMP_INCLUDE "" CACHE PATH "Directory where omp header files can be found")
-	else()
-		include_directories(${OPENMP_INCLUDE})
-	endif()
-	if(OPENMP_LIB-NOTFOUND)
-		set (TBB_OPENMP "" CACHE PATH "Directory where the OpenMP library can be found")
-	else()
-		link_libraries(${OPENMP_LIB})
-	endif()
-endif(USING_OPENMP)
 
 #enabling LIKWID library
 option(USING_LIKWID "Whether the likwid library will be linked in" OFF)
@@ -492,7 +430,6 @@ if(WIN32)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251 /wd4244")
 	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4244")
 	#endif()
-	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
         #enabling /bigobj
         add_definitions("/bigobj")
@@ -569,10 +506,8 @@ else()
   add_library(pz)
 endif()
 
-
-target_link_libraries(pz ${PTHREAD_LIB})
-target_include_directories(pz PUBLIC ${PTHREAD_INCLUDE})
-
+find_package(Threads REQUIRED)
+target_link_libraries(pz Threads::Threads)
 IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
@@ -601,11 +536,6 @@ if (USING_LOG4CXX)
   endif()
 endif()
 
-if (USING_OPENMP)
-  target_link_libraries(pz ${OPENMP_LIB})
-  target_include_directories(pz PUBLIC ${OPENMP_INCLUDE})
-endif()
-
 if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
   target_include_directories(pz PUBLIC ${METIS_INCLUDE})
@@ -630,8 +560,8 @@ if (USING_MKL)
 endif()
 
 if (USING_TBB)
-  target_link_libraries(pz ${TBB_LIB} )
-  target_include_directories(pz PUBLIC ${TBB_INCLUDE})
+  target_link_libraries(pz TBB::tbb)
+  target_include_directories(pz PUBLIC ${TBB_INCLUDE_DIRS})
 endif()
 
 

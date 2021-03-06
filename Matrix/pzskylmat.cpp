@@ -622,8 +622,7 @@ void TPZSkylMatrix<TVar>::AddKel(TPZFMatrix<TVar>&elmat,
             int64_t sz = Size(col);
             
             int64_t index = row + sz - 1 - col;
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
 
             
         }
@@ -658,8 +657,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             int64_t sz = Size(col);
 
             int64_t index = row + sz - 1 - col;
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
         }
     }
 }
@@ -694,9 +692,8 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             int64_t sz = Size(col);
 
             int64_t index = row + sz - 1 - col;
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
-
+            
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
             
         }
     }
@@ -1710,6 +1707,7 @@ extern "C" {
 #include <sstream>
 #include "pzlog.h"
 #include "tpzverysparsematrix.h"
+#include "TPZParallelUtils.h"
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
@@ -1879,7 +1877,7 @@ TPZSkylMatrix<TVar>::operator()(const int64_t r) {
 }
 
 //EBORIN: Define these if you want to use the experimental version.
-#define DECOMPOSE_CHOLESKY_OPT2
+//#define DECOMPOSE_CHOLESKY_OPT2
 //#define SKYLMATRIX_PUTVAL_OPT1
 //#define SKYLMATRIX_GETVAL_OPT1
 
@@ -2333,9 +2331,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             }
 #endif
             // executando contribuição
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
-            
+            AtomicAdd(fElem[col][index],elmat(ieqs,jeqs));            
         }
     }
 }
@@ -2375,10 +2371,8 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
                 DebugStop();
             }
 #endif
-            // executando contribuição
-#pragma omp atomic
-            fElem[col][index] += elmat(ieqs,jeqs);
-            
+            // adding contribution
+            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
         }
     }
 }
@@ -3532,7 +3526,8 @@ template class TPZSkylMatrix<TPZFlopCounter>;
 
 #if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)
 
-pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
+#include <TPZBFileStream.h>
+std::mutex dump_matrix_mutex;
 unsigned matrix_unique_id = 0;
 clarg::argString dm_prefix("-dm_prefix", 
                            "Filename prefix for matrices dumped before decompose/subst", 
@@ -3542,7 +3537,7 @@ template<class TVar>
 void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
 {
     if (!dm_prefix.was_set()) return;
-    PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrix");
+    std::scoped_lock<std::mutex> lock(dump_matrix_mutex);
     std::stringstream fname;
     fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
     std::cout << "Dump matrix before... (file: " << fname << ")" << std::endl;
@@ -3550,14 +3545,13 @@ void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
     fs.OpenWrite(fname.str());
     m->Write(fs, 0);
     std::cout << "Dump matrix before... [Done]" << std::endl;
-    PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrix");
 }
 
 template<class TVar>
 void dump_matrices(const TPZMatrix<TVar>* a, const TPZMatrix<TVar>* b, const char* fn_annotation)
 {
     if (!dm_prefix.was_set()) return;
-    PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrices");
+    std::scoped_lock<std::mutex> lock(dump_matrix_mutex);
     std::stringstream fname;
     fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
     std::cout << "Dump matrix before... (file: " << fname << ")" << std::endl;
@@ -3566,7 +3560,6 @@ void dump_matrices(const TPZMatrix<TVar>* a, const TPZMatrix<TVar>* b, const cha
     a->Write(fs, 0);
     b->Write(fs, 0);
     std::cout << "Dump matrix before... [Done]" << std::endl;
-    PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrices");
 }
 #endif
 

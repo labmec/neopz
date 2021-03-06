@@ -178,6 +178,10 @@ public:
   virtual void Write(const int64_t *p, int size) {
     Writes<int64_t>(p,size);
   }
+  /** @brief Writes size ulongs at pointer location p */
+  virtual void Write(const uint64_t *p, int size) {
+    Writes<uint64_t>(p,size);
+  }
   /** @brief Writes size integers at pointer location p */
   virtual void Write(const unsigned int *p, int size) {
     Writes<unsigned int>(p,size);
@@ -197,6 +201,10 @@ public:
   /** @brief Writes size chars at pointer location p */
   virtual void Write(const char *p, int size) {
     Writes<char>(p,size);
+  }
+  /** @brief Writes size uchars at pointer location p */
+  virtual void Write(const unsigned char *p, int size) {
+    Writes<unsigned char>(p,size);
   }
   /** @brief Writes size strings at pointer location p */
   virtual void Write(const std::string *p, int size) {
@@ -223,17 +231,38 @@ public:
   
 #ifdef _AUTODIFF
     
-    virtual void Write(const Fad <float> *p, int size) {
-        Writes< Fad <float> >(p,size);
-    }
-    
-    virtual void Write(const Fad <double> *p, int size) {
-        Writes< Fad <double> >(p,size);
-    }
-    
-    virtual void Write(const Fad <long double> *p, int size) {
-        Writes< Fad <long double> >(p,size);
-    }
+	
+	virtual void Write(const TFad <1,REAL> *p, int howMany) {
+		Writes< TFad <1,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <6,REAL> *p, int howMany) {
+		Writes< TFad <6,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <8,REAL> *p, int howMany) {
+		Writes< TFad <8,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <9,REAL> *p, int howMany) {
+		Writes< TFad <9,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <10,REAL> *p, int howMany) {
+		Writes< TFad <10,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const TFad <14,REAL> *p, int howMany) {
+		Writes< TFad <14,REAL> >(p,howMany);
+	}
+	
+	virtual void Write(const Fad <float> *p, int howMany) {
+		Writes< Fad <float> >(p,howMany);
+	}
+	
+	virtual void Write(const Fad <double> *p, int howMany) {
+		Writes< Fad <double> >(p,howMany);
+	}
     
 #endif
 
@@ -249,17 +278,37 @@ public:
   }
 #ifdef _AUTODIFF
     
-    virtual void Read(Fad <float> *p, int size) {
-        ReadError();
-    }
-    
-    virtual void Read(Fad <double> *p, int size) {
-        ReadError();
-    }
-    
-    virtual void Read(Fad <long double> *p, int size) {
-        ReadError();
-    }
+  virtual void Read(TFad <1,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <6,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <8,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <9,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <10,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(TFad <14,REAL> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(Fad <float> *p, int howMany) {
+		ReadError();
+	}
+	
+	virtual void Read(Fad <double> *p, int howMany) {
+		ReadError();
+	}
     
 #endif
   /** @brief Reads size integers from pointer location p */
@@ -268,6 +317,10 @@ public:
   }
   /** @brief Reads size longs from pointer location p */
   virtual void Read(int64_t *p, int size) {
+    ReadError();
+  }
+  /** @brief Reads size longs from pointer location p */
+  virtual void Read(uint64_t *p, int size) {
     ReadError();
   }
   /** @brief Reads size integers from pointer location p */
@@ -288,6 +341,10 @@ public:
   }
   /** @brief Reads size chars from pointer location p */
   virtual void Read(char *p, int size) {
+    ReadError();
+  }
+  /** @brief Reads size chars from pointer location p */
+  virtual void Read(unsigned char *p, int size) {
     ReadError();
   }
   /** @brief Reads size strings from pointer location p */

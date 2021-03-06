@@ -7,7 +7,7 @@
 #define PZADMCHUNKTHREADSAFE_H
 
 #include "pzadmchunk.h"
-#include <pthread.h>
+#include <mutex>
 
 class TPZSavable;
 
@@ -43,7 +43,7 @@ class TPZAdmChunkVectorThreadSafe : public TPZAdmChunkVector<T,EXP>
 	
 private:
 
-	mutable pthread_mutex_t fAdmChunkVectorLock;
+	mutable std::mutex fAdmChunkVectorLock;
 	
 };
 
@@ -51,104 +51,91 @@ private:
 
 template< class T , int EXP>
 int TPZAdmChunkVectorThreadSafe<T,EXP>::NFreeElements() {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+  std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	int resul = TPZAdmChunkVector<T,EXP>::NFreeElements();
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	
 	return resul;
 }
 
 template< class T , int EXP>
 int TPZAdmChunkVectorThreadSafe<T,EXP>::PrintFree(int i) {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	int resul = TPZAdmChunkVector<T,EXP>::PrintFree(i);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	
 	return resul;
 }
 
 template< class T , int EXP>
 int TPZAdmChunkVectorThreadSafe<T,EXP>::NElements() const{
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	int resul = TPZChunkVector<T,EXP>::NElements();
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
-	
+		
 	return resul;
 }
 
 template< class T , int EXP>
 TPZAdmChunkVectorThreadSafe<T,EXP>::TPZAdmChunkVectorThreadSafe(int numberofchunks) : TPZAdmChunkVector<T,EXP>(numberofchunks)
 {
-	pthread_mutex_init(&fAdmChunkVectorLock, NULL);
 }
 
 template< class T, int EXP >
 TPZAdmChunkVectorThreadSafe<T,EXP>::~TPZAdmChunkVectorThreadSafe()
 {
-	pthread_mutex_destroy(&fAdmChunkVectorLock);
+ 
 }
 
 template< class T,int EXP >
 int TPZAdmChunkVectorThreadSafe<T,EXP>::AllocateNewElement()
 {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	int resul = TPZAdmChunkVector<T,EXP>::AllocateNewElement();
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	
 	return resul;
 }
 
 template< class T,int EXP >
 void TPZAdmChunkVectorThreadSafe<T,EXP>::SetFree(int index) {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	TPZAdmChunkVector<T,EXP>::SetFree(index);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 }
 
 template< class T, int EXP >
 void TPZAdmChunkVectorThreadSafe<T,EXP>::CompactDataStructure(int type) {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	TPZAdmChunkVector<T,EXP>::CompactDataStructure(type);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 }
 
 template < class T,int EXP >
 TPZAdmChunkVectorThreadSafe<T,EXP>::TPZAdmChunkVectorThreadSafe(const TPZAdmChunkVectorThreadSafe<T,EXP> &AdmCh) : TPZAdmChunkVector<T,EXP>(AdmCh)
 {
-	pthread_mutex_init(&fAdmChunkVectorLock, NULL);
 }
 
 template < class T , int EXP>
 TPZAdmChunkVectorThreadSafe<T,EXP> & TPZAdmChunkVectorThreadSafe<T,EXP>::operator=(const TPZAdmChunkVectorThreadSafe<T,EXP> &AdmCh)
 {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	TPZAdmChunkVectorThreadSafe<T,EXP> &resul = (TPZAdmChunkVectorThreadSafe<T,EXP> &) TPZAdmChunkVector<T,EXP>::operator=(AdmCh);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	return resul;
 }
 
 template< class T, int EXP >
 void TPZAdmChunkVectorThreadSafe<T,EXP>::Resize(const int newsize) {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	TPZAdmChunkVector<T,EXP>::Resize(newsize);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 }
 
 template< class T, int EXP >
 inline T &TPZAdmChunkVectorThreadSafe<T,EXP>::operator[](const int nelem) const {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	T &resul = TPZChunkVector<T,EXP>::operator[](nelem);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	
 	return resul;
 }
 
 template<class T, int EXP>
 int TPZAdmChunkVectorThreadSafe<T,EXP>::FindObject(T *obj) {
-	pthread_mutex_lock(&fAdmChunkVectorLock);
+	std::scoped_lock<std::mutex> lck(fAdmChunkVectorLock);
 	int resul = TPZChunkVector<T,EXP>::FindObject(obj);
-	pthread_mutex_unlock(&fAdmChunkVectorLock);
-	
 	return resul;
 }
 

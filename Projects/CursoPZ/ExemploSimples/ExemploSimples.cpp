@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 #include "pzgmesh.h"
+#include "pzcmesh.h"
 #include "TPZCircBufferedStream.h"
 #include "TPZContBufferedStream.h"
 #include "TPZVTKGeoMesh.h"

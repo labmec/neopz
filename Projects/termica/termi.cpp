@@ -25,7 +25,7 @@
 //#include "pzskylmat.h"
 #include "pzysmp.h"
 #include "pzskylstrmatrix.h"
-#include "TPZParSkylineStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZFrontSym.h"
 

@@ -27,8 +27,6 @@
 #include "TPZRefPatternTools.h"
 #include "TPZRefPatternDataBase.h"
 
-#include "TPZParSkylineStructMatrix.h"
-
 #include <stdio.h>
 
 #include "pzlog.h"

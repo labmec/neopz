@@ -7,14 +7,6 @@
 #define TPZSPSTRUCTMATRIX_H
 
 #include "pzstrmatrix.h"
-#include "pzysmp.h"
-
-#include "pzcmesh.h"
-#include "pzsubcmesh.h"
-#include "pzelmat.h"
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
 
 /**
  * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"

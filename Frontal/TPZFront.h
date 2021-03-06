@@ -5,11 +5,14 @@
 
 #ifndef TPZFRONT_H
 #define TPZFRONT_H
+#include <mutex>
+#include <thread>
+#include <vector>
 
 #include "pzmatrix.h"
 #include "pzstack.h"
 #include "pzvec.h"
-#include "TPZThreadTools.h"
+#include "TPZSemaphore.h"
 
 template<class TVar>
 class TPZEqnArray;
@@ -182,15 +185,15 @@ public:
 	public:
 		
 		///dados para sincronizar o thread principal
-		pz_semaphore_t fWorkDoneSem;
+		TPZSemaphore fWorkDoneSem;
 		int fWorkDoneCount;
-		pz_critical_section_t fWorkDoneCS;
+		std::mutex fMutexWorkDoneCS;
 		
 		///semaforos para sincronizar os threads de calculo
-		TPZVec<pz_semaphore_t> fWorkSem;
+		TPZVec<TPZSemaphore> fWorkSem;
 		
 		///array de threads
-		TPZVec< pz_thread_t > fThreads;
+		std::vector<std::thread> fThreads;//for now we cannot use TPZVec
 		
 		///vetores de operacao
 		TPZVec<TVar> * fAuxVecCol, * fAuxVecRow;
@@ -199,7 +202,7 @@ public:
         TVar fDiagonal;
 		
 		///num threads
-		int NThreads(){ return fThreads.NElements(); };
+		int NThreads(){ return fThreads.size(); };
 		
 		//vec to storage
 		TPZVec<STensorProductThreadData*> fThreadData;  
@@ -216,46 +219,32 @@ public:
 			this->fRunning = true;
 			
 			fWorkSem.Resize(nthreads);
-			for(int i = 0; i < nthreads; i++){
-				tht::InitializeSemaphore(fWorkSem[i]);
-			}
 			
-			fThreads.Resize(nthreads);
+      // threads must be initialised already with thread work
+			// fThreads.resize(nthreads);
 			fThreadData.Resize(nthreads);
 			for(int i = 0; i < nthreads; i++){
 				STensorProductThreadData * threadData = new STensorProductThreadData;
 				threadData->first = i;
 				threadData->second = this;
 				fThreadData[i] = threadData;
-				tht::CreateThread( fThreads[i], & Execute, threadData);
+        fThreads.push_back(std::thread(Execute, threadData));
 			}
-			
-			tht::InitializeSemaphore(fWorkDoneSem);
-			tht::InitializeCriticalSection(fWorkDoneCS);
-			
 		}///construtor
 		
 		///destrutor
 		~STensorProductMTData(){
 			
-			///finalizando a execucao dos threads
 			this->fRunning = false;
 			const int nthreads = fWorkSem.NElements();
 			for(int i = 0; i < nthreads; i++){
-				tht::SemaphorePost(fWorkSem[i]);
+        fWorkSem[i].Post();
 			}
 			for(int i = 0; i < nthreads; i++){
-				tht::ThreadWaitFor(fThreads[i]);
+        fThreads[i].join();
 				delete fThreadData[i];
 				fThreadData[i] = NULL;
 			}
-			
-			///desalocando objetos, exceto threads que, ao menos no embarcadero, morrem sozinhos
-			for(int i = 0; i < fWorkSem.NElements(); i++){
-				tht::DeleteSemaphore( fWorkSem[i] );
-			}
-			tht::DeleteSemaphore( fWorkDoneSem );
-			tht::DeleteCriticalSection(fWorkDoneCS);
 			
 		}///destrutor
 		
@@ -269,12 +258,12 @@ public:
 		}
 		
 		void WorkDone(){
-			tht::EnterCriticalSection(fWorkDoneCS);
+			std::scoped_lock<std::mutex> lck(fMutexWorkDoneCS);
+      
 			fWorkDoneCount++;
 			if(fWorkDoneCount == NThreads()){
-				tht::SemaphorePost(fWorkDoneSem);
+        fWorkDoneSem.Post();
 			}
-			tht::LeaveCriticalSection(fWorkDoneCS);
 		}
 		
 		void Run(TPZVec<TVar> &AuxVecCol, TPZVec<TVar> &AuxVecRow){
@@ -282,9 +271,9 @@ public:
 			this->fAuxVecRow = &AuxVecRow;
 			this->fWorkDoneCount = 0;
 			for(int i = 0; i < NThreads(); i++){
-				tht::SemaphorePost(fWorkSem[i]);
+				fWorkSem[i].Post();
 			}
-			tht::SemaphoreWait( fWorkDoneSem );
+      fWorkDoneSem.Wait();
 		}
 		
 	};
