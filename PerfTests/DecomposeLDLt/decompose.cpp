@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <cstdlib>
-
+#include <thread>
 #include "TPZFileStream.h"
 #include "TPZBFileStream.h" // TPZBFileStream, TPZFileStream
 #include "pzmd5stream.h"
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
         matrix.Resize(maxcol.get_value(),0);
     
     int nthreads = nmats.get_value();
-    std::vector<pthread_t> threads(nthreads);
+    std::vector<std::thread> threads;
     
     /* Duplicate matrices. */
     VERBOSE(1, "Copying matrices" << endl);
@@ -401,8 +401,7 @@ int main(int argc, char *argv[])
     total_rst.start();
     
     for(int t=1; t<nthreads; t++) {
-        PZ_PTHREAD_CREATE(&threads[t], NULL, compute_decompose,
-                          (void*) t, __FUNCTION__);
+      threads.push_back(std::thread(compute_decompose,t));
     }
     
     // Perform thread 0 at the main thread
@@ -411,7 +410,7 @@ int main(int argc, char *argv[])
     /* Sync. */
     if (nthreads>0) {
         for(int t=0; t<nthreads; t++) {
-            PZ_PTHREAD_JOIN(threads[t], NULL, __FUNCTION__);
+          threads[t].join();
         }
     }
     total_rst.stop();

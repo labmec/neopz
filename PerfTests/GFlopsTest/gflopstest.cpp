@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
-
+#include <thread>
 //#include "timing_analysis.h"
 #include "arglib.h"
 #include "run_stats_table.h"
@@ -70,7 +70,7 @@ void process_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nt
 	if (nthreads==0)
 		nthreads = 1;
 	
-	pthread_t    *allthreads  = new pthread_t[nthreads];
+	std::vector<std::thread> allthreads;
 	thread_arg_t *thread_args = new thread_arg_t[nthreads];
 	
 	unsigned chunk_sz = sz/nthreads;
@@ -87,12 +87,12 @@ void process_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nt
 	
 	/* Spaw threads */
 	for(unsigned i=0; i<nthreads; i++) {
-		pthread_create(&allthreads[i], NULL, fun, &(thread_args[i]));
+    allthreads.push_back(std::thread(fun,&(thread_args[i])));
 	}
 	
 	/* Join threads */
 	for(unsigned i=0; i<nthreads; i++) {
-		pthread_join(allthreads[i], NULL);
+    allthreads[i].join();
 	}
 }
 
@@ -122,7 +122,7 @@ void thread_map1(T* array, T (*map1)(T), unsigned sz, unsigned nthreads)
 	if (nthreads==0)
 		nthreads = 1;
 	
-	pthread_t          *allthreads  = new pthread_t[nthreads];
+	std::vector<std::thread> allthreads;
 	thread_map1_arg<T> *thread_args = new thread_map1_arg<T>[nthreads];
 	
 	unsigned chunk_sz = sz/nthreads;
@@ -136,12 +136,12 @@ void thread_map1(T* array, T (*map1)(T), unsigned sz, unsigned nthreads)
 	
 	/* Spaw threads */
 	for(unsigned i=0; i<nthreads; i++) {
-		pthread_create(&allthreads[i], NULL, thread_map1_worker<T>, &(thread_args[i]));
+    allthreads.push_back(std::thread(thread_map1_worker<T>,&(thread_args[i])));
 	}
 	
 	/* Join threads */
 	for(unsigned i=0; i<nthreads; i++) {
-		pthread_join(allthreads[i], NULL);
+    allthreads[i].join();
 	}
 }
 

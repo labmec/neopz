@@ -290,8 +290,6 @@ break
     }
 }
 
-#include <pthread.h>
-
 class thread_timer_t
 {
 public:
