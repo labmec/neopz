@@ -81,7 +81,7 @@ auto start_##obj = std::chrono::system_clock::now();
 auto end_##obj = std::chrono::system_clock::now();\
 std::chrono::duration<double> elapsed_##obj = end_##obj - start_##obj;
 #define PERF_PRINT(obj){\
-std::cout << "\ttime: " << elapsed_##obj.count() << "s\n";\
+std::cout << std::string("time_")+std::string(#obj)+std::string(": ") << elapsed_##obj.count() << "s\n";\
 }
 
 enum meshChoice {EPredio, ECubo};
@@ -163,9 +163,6 @@ int main(int argc, char *argv[])
     matptr = dohrstruct->Create();
     PERF_STOP(create_rst);
     PERF_PRINT(create_rst);
-        
-
-    std::cout << "Serial Section: " << serial.ReturnTimeString() << std::endl;
     
     TPZAutoPointer<TPZMatrix<STATE> > precond = NULL;
     
