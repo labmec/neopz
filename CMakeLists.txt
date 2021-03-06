@@ -74,6 +74,7 @@ option(USING_BOOST "Whether the Boost package will be linked with the library" O
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
+	include(cmake/add_unit_test.cmake)
 	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
 endif()
 
@@ -774,3 +775,4 @@ install(FILES
 # Install the export set for use with the install-tree
 install(EXPORT PZTargets 
         DESTINATION "${INSTALL_CMAKE_DIR}")		
+
