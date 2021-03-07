@@ -15,11 +15,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef BLAS
-extern "C" {
-#include <cblas.h>
-}
-#endif
+#include "TPZBlas.h"
 
 #include "pzfmatrix.h"
 #include "pzskylmat.h"
@@ -1618,13 +1614,8 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int64_t col, int64_t prevcol)
     TVar *lastptr = ptrprev - (prevcol-minline+1);
     TVar sum = 0;
     TVar *modify = ptrcol-(col-prevcol);
-#ifndef BLAS
     while(run1 > lastptr) 
         sum += (*run1--)*(*run2--);
-#else
-    int64_t n=lastptr-run1;
-    sum = cblas_ddot(n,run1-(n-1),1,run2-(n-1),1);
-#endif
     *modify-=sum;
     if(col != prevcol){
         *modify /= *ptrprev;
@@ -1694,12 +1685,6 @@ template class TPZSkylMatrix<TPZFlopCounter>;
 
 #include <math.h>
 #include <stdlib.h>
-
-#ifdef BLAS
-extern "C" {
-#include <cblas.h>
-}
-#endif
 
 #include "pzfmatrix.h"
 #include "pzskylmat.h"
@@ -3445,13 +3430,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int64_t col, int64_t prevcol){
     TVar *lastptr = ptrprev + prevcol-minline+1;
     TVar sum = 0;
     TVar *modify = ptrcol+(col-prevcol);
-#ifndef BLAS
     while(run1 != lastptr) sum += (*run1++)*(*run2++);
-    
-#else
-    int64_t n=lastptr-run1;
-    sum = cblas_ddot(n,run1,1,run2,1);
-#endif
     *modify-=sum;
     if(col != prevcol){
         *modify /= *ptrprev;

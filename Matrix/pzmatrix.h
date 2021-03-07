@@ -31,13 +31,6 @@ class TPZFMatrix;
 template<class TVar>
 class TPZSolver;
 
-#ifndef USING_MKL
-extern "C"{
-	/// Extern BLAS FUNCTION 
-	double ddot(int *N, double *X, int *INCX, double *Y, int *INCY);
-}
-#endif
-
 /** \addtogroup matrix
  * @{
  */

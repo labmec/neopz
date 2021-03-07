@@ -13,16 +13,6 @@
 
 using namespace std;
 
-// #ifdef USING_BLAS
-// #include "cblas.h"
-// #endif
-
-
-// #ifdef USING_ATLAS
-// void cblas_dspr(const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
-//                 const int N, const double alpha, const double *X,
-//                 const int incX, double *Ap);
-// #endif
 template<class TVar>
 DecomposeType TPZFrontSym<TVar>::GetDecomposeType() const
 {

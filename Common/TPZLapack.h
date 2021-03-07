@@ -21,7 +21,6 @@ typedef __CLPK_complex varfloatcomplex;
 typedef lapack_complex_double vardoublecomplex;
 typedef lapack_complex_float varfloatcomplex;
 
-#include "cblas.h"
 #include "lapacke.h"
 
 #endif

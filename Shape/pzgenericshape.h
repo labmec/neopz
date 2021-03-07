@@ -7,6 +7,7 @@
 #include "pzshapepiram.h"
 #include "pzshapetetra.h"
 #include "pzshapeprism.h"
+#include "TPZBlas.h"
 
 template <class TSHAPE>
 TPZTransform<REAL> GetSideTransform(int side, int trans_id);

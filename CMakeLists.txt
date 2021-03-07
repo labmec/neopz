@@ -228,21 +228,18 @@ if(USING_LAPACK)
 endif(USING_LAPACK)
 
 #enabling BLAS library
-#option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
 if(USING_BLAS)
-	if(APPLE)
-	else()
-		find_path(CBLAS_INCLUDE cblas.h PATHS ${SEARCH_DIRS})
-		find_library(CBLAS_LIB NAMES libcblas cblas libtcblas PATHS ${SEARCH_DIRS})
-		if(CBLAS_INCLUDE-NOTFOUND)
-			set (CBLAS_INCLUDE "" CACHE PATH "Directory where CBLAS header files can be found")
-		else()
-			include_directories(${CBLAS_INCLUDE})
-		endif()
-		if(CBLAS_LIB-NOTFOUND)
-			set (CBLAS_LIB "" CACHE PATH "Directory where the CBLAS library can be found")
-		endif()
-	endif(APPLE)
+  if(USING_MKL)
+    set(BLA_VENDOR "Intel10_64lp") #tries to find MKL version  
+  endif()
+  # set(BLA_VENDOR "GENERIC")
+  find_package(BLAS REQUIRED)
+  foreach(BL_LIB BLAS_LIBRARIES)
+    if(${BL_LIB} MATCHES ".*mkl.*")
+      message("Found BLAS from MKL")
+      add_definitions(-DMKLBLAS)
+    endif()
+  endforeach()
 endif(USING_BLAS)
 
 
@@ -548,7 +545,8 @@ if (USING_LAPACK)
 endif()
 
 if (USING_BLAS)
-  target_link_libraries(pz ${CBLAS_LIB} ) # lapack BLAS
+#target_link_libraries(pz BLAS::BLAS) this is ok in cmake 3.18 onwards
+  target_link_libraries(pz ${BLAS_LIBRARIES})
 endif()
 
 if (USING_PAPI)

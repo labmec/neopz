@@ -20,13 +20,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef BLAS
-extern "C"
-{
-#include <cblas.h>
-}
-#endif
-
 //const int templatedepth = 10;
 
 /**
@@ -1478,7 +1471,6 @@ REAL *run2 = ptrcol + (col - prevcol) + 1;
 REAL *lastptr = ptrprev + prevcol - minline + 1;
 REAL sum = 0;
 REAL *modify = ptrcol + (col - prevcol);
-#ifndef BLAS
 
 //  while(lastptr-run1 > templatedepth) {
 //  sum += TemplateSum<templatedepth>(run1,run2);
@@ -1491,10 +1483,6 @@ while (run1 != lastptr)
 sum += (*run1++) * (*run2++);
 
 // cout << "col " << col << " prevcol " << prevcol << " sum " << sum << " modify " << *modify << " ptrprev " << *ptrprev;
-#else
-int n = lastptr - run1;
-sum = cblas_ddot(n, run1, 1, run2, 1);
-#endif
  *modify -= sum;
 if (col != prevcol)
 {
