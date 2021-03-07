@@ -286,7 +286,7 @@ endif(USING_HWLOC)
 #enabling MKL library
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
-  add_definitions(-DMKLBLAS)
+  	target_compile_definitions(pz PRIVATE MKLBLAS)
 	if (WIN32)
 		set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
 		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
