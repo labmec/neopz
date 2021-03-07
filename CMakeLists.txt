@@ -7,7 +7,7 @@ set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMS
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING  INTERNAL FORCE )
 
-project (PZ)
+project(PZ LANGUAGES CXX)
 
 #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -29,6 +29,19 @@ ENDIF()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+#creating target pz library and installing it
+if (BUILD_PYTHON_BINDING)
+	IF (NOT WIN32)
+		#Build a shared library to be used with python binding
+		add_library(pz SHARED)
+	ELSE()
+		add_library(pz STATIC)
+	ENDIF()
+else()
+	#Build a static library (default)
+	add_library(pz)
+endif()
 
 ## inserting main definitions
 #specifying the path to neopz source code
@@ -65,7 +78,7 @@ IF(APPLE)
    add_definitions(-DMACOSX)
    set(MACOSX MACOSX)
    find_library(ACCELERATE_LIB Accelerate)
-   link_libraries(${ACCELERATE_LIB})
+   target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
 ENDIF(APPLE)
 
 #enabling Boost library
@@ -144,7 +157,7 @@ endif(USING_METIS)
 #enabling OPENSSL library (used for MD5 computation)
 option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
 if(USING_OPENSSL)
-	link_libraries(crypto)
+	target_link_libraries(pz PRIVATE crypto)
 endif(USING_OPENSSL)
 
 #enabling TBB library
@@ -170,7 +183,7 @@ if(USING_LIKWID)
 	if(LIKWID_LIB-NOTFOUND)
 		set (LIKWID_LIB "" CACHE PATH "Directory where the likwid library can be found")
 	else()
-		link_libraries(${LIKWID_LIB})
+		target_link_libraries(pz PRIVATE ${LIKWID_LIB})
 	endif()
 endif(USING_LIKWID)
 
@@ -187,7 +200,7 @@ if(USING_LIBNUMA)
 	if(LIBNUMA_LIB-NOTFOUND)
 		set (LIBNUMA_LIB "" CACHE PATH "Directory where the libnuma library can be found")
 	else()
-		link_libraries(${LIBNUMA_LIB})
+		target_link_libraries(pz PRIVATE ${LIBNUMA_LIB})
 	endif()
 endif(USING_LIBNUMA)
 
@@ -230,7 +243,7 @@ endif(USING_LAPACK)
 #enabling BLAS library
 if(USING_BLAS)
   if(USING_MKL)
-    set(BLA_VENDOR "Intel10_64lp") #tries to find MKL version  
+    set(BLA_VENDOR "Intel10_64lp") #tries to find MKL version
   endif()
   # set(BLA_VENDOR "GENERIC")
   find_package(BLAS REQUIRED)
@@ -311,10 +324,10 @@ if(USING_MKL)
         if(MKL_LIB-NOTFOUND)
                 set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
         else()
-                link_libraries(${MKL_LIB_INTEL})
-                link_libraries(${MKL_LIB_CORE})
-                link_libraries(${MKL_LIB_THREAD})
-                link_libraries(${COMPOSER_OMP})
+                target_link_libraries(pz PRIVATE ${MKL_LIB_INTEL})
+                target_link_libraries(pz PRIVATE ${MKL_LIB_CORE})
+                target_link_libraries(pz PRIVATE ${MKL_LIB_THREAD})
+                target_link_libraries(pz PRIVATE ${COMPOSER_OMP})
         endif()
 endif(USING_MKL)
 
@@ -491,57 +504,45 @@ install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of pz_config.h part
 
 
-#creating target pz library and installing it
-if (BUILD_PYTHON_BINDING)
-	IF (NOT WIN32)
-		#Build a shared library to be used with python binding
-		add_library(pz SHARED)
-	ELSE()
-		add_library(pz STATIC)
-	ENDIF()
-else()
-  #Build a static library (default)
-  add_library(pz)
-endif()
 
 find_package(Threads REQUIRED)
-target_link_libraries(pz Threads::Threads)
+target_link_libraries(pz PRIVATE Threads::Threads)
 IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
 
 if (USING_BLAZE)
-    target_link_libraries(pz blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
+    target_link_libraries(pz PRIVATE blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
     add_definitions(-DUSING_BLAZE)
 endif()
 
 if (USING_BOOST)
    if(APPLE)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
+          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
    elseif(UNIX)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
+          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
    elseif(WIN32)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib)
+          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib)
    endif()
    target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif()
 
 if (USING_LOG4CXX)
-  target_link_libraries(pz ${LOG4CXX_LIB})
+  target_link_libraries(pz PUBLIC ${LOG4CXX_LIB})
   target_include_directories(pz PUBLIC ${LOG4CXX_INCLUDE})
   if(WIN32)
-	target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
+	target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
   endif()
 endif()
 
 if (USING_METIS)
-  target_link_libraries(pz ${METIS_LIB})
-  target_include_directories(pz PUBLIC ${METIS_INCLUDE})
+  target_link_libraries(pz PRIVATE ${METIS_LIB})
+  target_include_directories(pz PRIVATE ${METIS_INCLUDE})
 endif()
 
 if (USING_LAPACK)
-  target_link_libraries(pz ${LAPACK_LIB} )
-  target_include_directories(pz PUBLIC ${LAPACK_INCLUDE})
+  target_link_libraries(pz PRIVATE ${LAPACK_LIB} )
+  target_include_directories(pz PRIVATE ${LAPACK_INCLUDE})
 endif()
 
 if (USING_BLAS)
@@ -550,22 +551,22 @@ if (USING_BLAS)
 endif()
 
 if (USING_PAPI)
-  target_link_libraries(pz ${PAPI_LIB})
+  target_link_libraries(pz PRIVATE ${PAPI_LIB})
 endif()
 
 if (USING_MKL)
-  target_link_libraries(pz ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
-  target_include_directories(pz PUBLIC ${MKL_INCLUDE})
+  target_link_libraries(pz PRIVATE ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
+  target_include_directories(pz PRIVATE ${MKL_INCLUDE})
 endif()
 
 if (USING_TBB)
-  target_link_libraries(pz TBB::tbb)
-  target_include_directories(pz PUBLIC ${TBB_INCLUDE_DIRS})
+  target_link_libraries(pz PRIVATE TBB::tbb)
+  target_include_directories(pz PRIVATE ${TBB_INCLUDE_DIRS})
 endif()
 
 
 if (USING_HWLOC)
-  target_link_libraries(pz ${HWLOC_LIB})
+  target_link_libraries(pz PRIVATE ${HWLOC_LIB})
 endif()
 
 #increment all the directories where the sources files is
