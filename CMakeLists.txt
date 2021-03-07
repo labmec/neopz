@@ -547,7 +547,7 @@ endif()
 
 if (USING_BLAS)
 #target_link_libraries(pz BLAS::BLAS) this is ok in cmake 3.18 onwards
-  target_link_libraries(pz ${BLAS_LIBRARIES})
+  target_link_libraries(pz PRIVATE ${BLAS_LIBRARIES})
 endif()
 
 if (USING_PAPI)
