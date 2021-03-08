@@ -6,15 +6,15 @@ target_include_directories(pz PUBLIC
                           )
 
 set(headers
-        arglib.h
-        clock_timer.h
-        csvtable.h
-        cycle_timer.h
-        pz_gettime.h
-        run_stats_table.h
-        stats_recorder.h
-        timing_analysis.h
-        )
+    arglib.h
+    clock_timer.h
+    csvtable.h
+    cycle_timer.h
+    pz_gettime.h
+    run_stats_table.h
+    stats_recorder.h
+    timing_analysis.h
+    )
 
 set(sources arglib.cpp)
 

@@ -83,7 +83,7 @@ set(headers
     tpzyctrescaregularized.h
     tpzycvonmises_interface.h
     tpzycvonmisescombtresca.h
-   )
+    )
 
 set(sources
     TPZDruckerPrager.cpp
@@ -152,7 +152,7 @@ set(sources
     pzporoelastoplasticmem.cpp
     pzviscoelastic.cpp
     tpzycvonmisescombtresca.cpp
-   )
+    )
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/REAL/Plasticity)
 target_sources(pz PRIVATE ${headers} ${sources})

@@ -57,7 +57,7 @@ set(sources
     pzconslaw.cpp
     pzmat1dlin.cpp
     pzpoisson3d.cpp
-   )
+    )
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material)
 

@@ -68,58 +68,58 @@ set(headers
 
 set(sources
     TPZConsLawTest.cpp
-	TPZMatDualHybridPoisson.cpp
+    TPZMatDualHybridPoisson.cpp
     TPZTracerFlow.cpp
     pzconvectionproblem.cpp
     pzgradientflux.cpp
     pzmultiphase.cpp
     pzviscoelastic.cpp
     TPZDiffusionConsLaw.cpp
-	TPZMatElasticity2D.cpp
+    TPZMatElasticity2D.cpp
     eulerdif.cpp
     pzcoupledtransportdarcy.cpp
     pzincnskeps.cpp
     pzmultplaca.cpp
-	swelling.cpp
+    swelling.cpp
     TPZDualPoisson.cpp
-	TPZMatWithMemTranslator.cpp
+    TPZMatWithMemTranslator.cpp
     mixedpoisson.cpp
     pzcoupledtransportdarcyBC.cpp
     pzmaterialcoupling.cpp
     pznlmat1d.cpp
-	tpzmultcamada.cpp
+    tpzmultcamada.cpp
     TPZElast3Dnlinear.cpp
-	TPZMixedDarcyFlow.cpp
+    TPZMixedDarcyFlow.cpp
     pzartdiff.cpp
     pzelasAXImat.cpp
     pzmathyperelastic.cpp
     pznonlinbiharmonic.cpp
     TPZElasticity2dHybrid.cpp
-	TPZMixedElasticityMaterial.cpp
+    TPZMixedElasticityMaterial.cpp
     pzausmflux.cpp
     pzelasmat.cpp
     pzmatmixedpoisson3d.cpp
     pznonlinearpoisson3d.cpp
     TPZEuler.cpp
-	TPZMixedPoissonParabolic.cpp
+    TPZMixedPoissonParabolic.cpp
     pzbctension.cpp
     pzelast3d.cpp
     pzmatorthotropic.cpp
     pzplaca.cpp
     TPZFVHybrid.cpp
-	TPZMulticamadaOrtho.cpp
+    TPZMulticamadaOrtho.cpp
     pzbiharmonic.cpp
     pzelasthybrid.cpp
     pzmatplaca2.cpp
     pzpoisson3dreferred.cpp
     TPZLinearConvecDiff.cpp
-	TPZPlacaOrthotropic.cpp
+    TPZPlacaOrthotropic.cpp
     pzblackoil2p3d.cpp
     pzeuler.cpp
     pzmattest.cpp
     pzspacetimerichardseq.cpp
     TPZLinearConvection.cpp
-	TPZPrimalPoisson.cpp
+    TPZPrimalPoisson.cpp
     pzburger.cpp
     pzeulerconslaw.cpp
     pzmattest3d.cpp
