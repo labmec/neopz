@@ -90,6 +90,10 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 target_link_libraries(pz PRIVATE Threads::Threads)
+#simple utility function for detecting if any linking is needed
+#for using functions from <atomic>
+include(cmake/check_for_atomic.cmake)
+check_for_atomic(pz)
 IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
