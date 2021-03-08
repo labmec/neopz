@@ -83,10 +83,6 @@ set(NEOPZ_INCLUDE pzlib/include)
 set(NEOPZ_LIB pzlib/lib)
 
 #ENABLING EXTERNAL LIBRARIES
-#works
-# find_package(Threads REQUIRED)
-# target_link_libraries(pz PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-#recommended, does not work
 
 #prefer pthread library when there are other options available
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
