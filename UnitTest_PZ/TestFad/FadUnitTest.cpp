@@ -16,8 +16,7 @@
 #endif
 #define BOOST_TEST_MAIN pz fad_tests tests
 
-#include "boost/test/floating_point_comparison.hpp"
-#include "boost/test/output_test_stream.hpp"
+#include "boost/test/tools/output_test_stream.hpp"
 #include "boost/test/unit_test.hpp"
 
 //#define NOISY //outputs operations' results

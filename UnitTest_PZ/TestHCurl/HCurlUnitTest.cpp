@@ -44,10 +44,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #define BOOST_TEST_MAIN pz #define BOOST_TEST_MAIN pz hcurl_tests tests
 
 #include "boost/test/unit_test.hpp"
-#include "boost/test/floating_point_comparison.hpp"
-#include "boost/test/output_test_stream.hpp"
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
+#include "boost/test/tools/output_test_stream.hpp"
 
 
 #define NOISY_HCURL //outputs useful debug info

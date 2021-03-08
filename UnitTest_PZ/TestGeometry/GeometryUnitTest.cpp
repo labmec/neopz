@@ -58,8 +58,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #define BOOST_TEST_MAIN pz geometry_tests tests
 
 #include "boost/test/unit_test.hpp"
-#include "boost/test/floating_point_comparison.hpp"
-#include "boost/test/output_test_stream.hpp"
+#include "boost/test/tools/output_test_stream.hpp"
 
 #endif
 
