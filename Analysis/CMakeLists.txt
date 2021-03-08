@@ -5,15 +5,38 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Analysis>
                           )
 
-file(GLOB headers *.h)
-file(GLOB sources *.cpp)
+set(headers
+    TPZNLMultGridAnalysis.h
+    pzanalysis.h
+    pzmganalysis.h
+    pzsmanal.h
+    pztransientanalysis.h
+    doxanalysis.h
+    pzanalysiserror.h
+    pzeuleranalysis.h
+    pznonlinanalysis.h
+    pzsmfrontalanal.h
+    )
 
-if (BUILD_COMPLEX_PROJECTS)
-file (GLOB to_remove_from_headers pzblackoilanalysis.h tpzbiharmonicestimator.h)
-list (REMOVE_ITEM headers ${to_remove_from_headers})
-file (GLOB to_remove_from_sources pzblackoilanalysis.cpp tpzbiharmonicestimator.cpp)
-list (REMOVE_ITEM sources ${to_remove_from_sources})
-endif()
+set(sources
+    TPZNLMultGridAnalysis.cpp
+    pzanalysiserror.cpp
+    pzeuleranalysis.cpp
+    pznonlinanalysis.cpp
+    pzsmfrontalanal.cpp
+    tpzbiharmonicestimator.cpp
+    pzanalysis.cpp
+    pzblackoilanalysis.cpp
+    pzmganalysis.cpp
+    pzsmanal.cpp
+    pztransientanalysis.cpp
+    )
+
+if (NOT BUILD_COMPLEX_PROJECTS)
+    list(APPEND headers pzblackoilanalysis.h tpzbiharmonicestimator.h)
+    list(APPEND sources pzblackoilanalysis.cpp tpzbiharmonicestimator.cpp)
+endif ()
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Analysis)
-set(pzanalysis_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+
+target_sources(pz PRIVATE ${headers} ${sources})

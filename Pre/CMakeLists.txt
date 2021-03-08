@@ -5,22 +5,68 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Pre>
                           )
 
-file(GLOB headers *.h)
-file(GLOB sources *.cpp)
 
-if (BUILD_COMPLEX_PROJECTS)
-file (GLOB to_remove_from_headers pzreadmeshhr.h)
-list (REMOVE_ITEM headers ${to_remove_from_headers})
-file (GLOB to_remove_from_sources pzreadmeshhr.cpp)
-list (REMOVE_ITEM sources ${to_remove_from_sources})
-endif()
+set(headers
+    MMeshType.h
+    TPZExtendGridDimension.h
+    TPZGenSpecialGrid.h
+    TPZMHMeshControl.h
+    TPZReadGIDGrid.h
+    pzhyperplane.h
+    TPZAcademicGeoMesh.h
+    TPZGMSHReadMesh.h
+    TPZGeoMeshBuilder.h
+    TPZMHMixedHybridMeshControl.h
+    doxpre.h
+    pzidentifyrefpattern.h
+    pzreadtetgen.h
+    TPZAnalyticSolution.h
+    TPZGenGrid2D.h
+    TPZGmshReader.h
+    TPZMHMixedMeshChannelControl.h
+    pzbuildmultiphysicsmesh.h
+    pzpargrid.h
+    tpzhierarquicalgrid.h
+    TPZGenGrid3D.h
+    TPZHybridizeHDiv.h
+    TPZMHMixedMeshControl.h
+    pzdatafi.h
+    pzreadmesh.h
+    )
 
-if(NOT USING_MKL OR BUILD_COMPLEX_PROJECTS)
-  file (GLOB to_remove_from_headers TPZBuildSBFem.h )
-  list (REMOVE_ITEM headers ${to_remove_from_headers})
-  file (GLOB to_remove_from_sources TPZBuildSBFem.cpp )
-  list (REMOVE_ITEM sources ${to_remove_from_sources})
-endif(NOT USING_MKL OR BUILD_COMPLEX_PROJECTS)
+set(sources
+    MMeshType.cpp
+    TPZExtendGridDimension.cpp
+    TPZGenSpecialGrid.cpp
+    TPZMHMeshControl.cpp
+    TPZReadGIDGrid.cpp
+    pzpargrid.cpp
+    TPZAcademicGeoMesh.cpp
+    TPZGMSHReadMesh.cpp
+    TPZGeoMeshBuilder.cpp
+    TPZMHMixedHybridMeshControl.cpp
+    pzbuildmultiphysicsmesh.cpp
+    TPZAnalyticSolution.cpp
+    TPZGenGrid2D.cpp
+    TPZGmshReader.cpp
+    TPZMHMixedMeshChannelControl.cpp
+    pzhyperplane.cpp
+    pzreadtetgen.cpp
+    TPZGenGrid3D.cpp
+    TPZHybridizeHDiv.cpp
+    TPZMHMixedMeshControl.cpp
+    pzidentifyrefpattern.cpp
+    tpzhierarquicalgrid.cpp
+    )
+
+if (NOT BUILD_COMPLEX_PROJECTS)
+    list(APPEND headers pzreadmeshhr.h)
+    list(APPEND sources pzreadmeshhr.cpp)
+    if (USING_MKL)
+        list(APPEND headers TPZBuildSBFem.h)
+        list(APPEND sources TPZBuildSBFem.cpp)
+    endif()
+endif ()
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Pre)
-set(pzpre_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})

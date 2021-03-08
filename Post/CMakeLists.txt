@@ -5,22 +5,67 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Post>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZDrawStyle.h
+    TPZVTKGeoMesh.h
+    pzdxmesh.h
+    pzgraphel1d.h
+    pzgraphelq2dd.h
+    pzgraphnode.h
+    pzpostprocmat.h
+    pzv3dmesh.h
+    tpzgraphelprismmapped.h
+    tpzgraphelt3d.h
+    TPZMeshSolution.h
+    doxpost.h
+    pzgraphel1dd.h
+    pzgraphelq3dd.h
+    pzmvmesh.h
+    pztrigraph.h
+    pzvisualmatrix.h
+    tpzgraphelpyramidmapped.h
+    TPZProjectEllipse.h
+    pzcompelpostproc.h
+    pzgraphel.h
+    pzgraphelq2d.h
+    pzgraphmesh.h
+    pzpostprocanalysis.h
+    pztrigraphd.h
+    pzvtkmesh.h
+    tpzgraphelt2dmapped.h
+    )
+
+set(sources
+    TPZMeshSolution.cpp
+    pzdxmesh.cpp
+    pzgraphel1d.cpp
+    pzgraphelq2dd.cpp
+    pzgraphnode.cpp
+    pzpostprocmat.cpp
+    pzv3dmesh.cpp
+    tpzgraphelprismmapped.cpp
+    tpzgraphelt3d.cpp
+    TPZProjectEllipse.cpp
+    pzgraphel1dd.cpp
+    pzgraphelq3dd.cpp
+    pzmvmesh.cpp
+    pztrigraph.cpp
+    pzvisualmatrix.cpp
+    tpzgraphelpyramidmapped.cpp
+    TPZVTKGeoMesh.cpp
+    pzgraphel.cpp
+    pzgraphelq2d.cpp
+    pzgraphmesh.cpp
+    pzpostprocanalysis.cpp
+    pztrigraphd.cpp
+    pzvtkmesh.cpp
+    tpzgraphelt2dmapped.cpp
+    )
 
 if(BUILD_COMPLEX_PROJECTS)
-    file (GLOB to_remove_from_headers pzgradientreconstruction.h)
-    list (REMOVE_ITEM headers ${to_remove_from_headers})
-endif() 
-
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Post)
-
-file(GLOB sources *.cpp)
-
-if(BUILD_COMPLEX_PROJECTS)
-    file (GLOB to_remove_from_sources pzgradientreconstruction.cpp)
-    list (REMOVE_ITEM sources ${to_remove_from_sources})
+    list(APPEND headers pzgradientreconstruction.h)
+    list(APPEND sources pzgradientreconstruction.cpp)
 endif()
 
-set(pzpost_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Post)
+target_sources(pz PRIVATE ${headers} ${sources})

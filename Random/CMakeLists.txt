@@ -4,10 +4,16 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Random>
                           )
 
+set(headers
+    TPZConstrainedNormalRandom.h
+    TPZConstrainedRandom.h
+    TPZNormalRandom.h
+    TPZRandom.h
+    TPZUniformRandom.h
+    )
 
-file(GLOB headers *.h)
+set(sources TPZUniformRandom.cpp)
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Random)
 
-file(GLOB sources *.cpp)
-
-set(pzrandom_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
