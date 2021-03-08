@@ -37,7 +37,6 @@ add_library(pz ${PZ_LIB_TYPE} "")
 ##TODO: are they ok when private?
 if (WIN32)
 	# Prevents timespec redefinition problem with Visual Studio 2015
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
   target_compile_definitions(pz
     PRIVATE
     HAVE_STRUCT_TIMESPEC)
