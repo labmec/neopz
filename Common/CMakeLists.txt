@@ -5,10 +5,33 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Common>
                                                   )
 
-file(GLOB headers *.h)
+set(headers
+        TPZBlas.h
+        TPZGuiInterface.h
+        TPZLapack.h
+        TPZReschedulableTask.h
+        TPZTask.h
+        TPZTaskGroup.h
+        TPZThreadPool.h
+        doxcommon.h
+        fpo_exceptions.h
+        pzeltype.h
+        pzerror.h
+        pzreal.h
+        pzversion.h
+        )
+
+set(sources
+        TPZGuiInterface.cpp
+        TPZReschedulableTask.cpp
+        TPZTask.cpp
+        TPZTaskGroup.cpp
+        TPZThreadPool.cpp
+        pzerror.cpp
+        pzreal.cpp
+        )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Common)
 
-file(GLOB sources *.cpp)
-
-set(pzcommon_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
 

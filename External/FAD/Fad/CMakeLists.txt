@@ -5,9 +5,7 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External/FAD/Fad>
                           )
 
-file(GLOB headers *.h)
+set(headers fad.h fadfunc.h fadlog.h fadop.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/Fad)
+target_sources(pz PRIVATE ${headers})
 
-file(GLOB sources *.cpp)
-
-set(FAD_fad_SRCS ${headers} ${sources} PARENT_SCOPE)

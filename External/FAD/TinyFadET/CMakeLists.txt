@@ -5,9 +5,6 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External/FAD/TinyFadET>
                           )
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/TinyFadET/)
-
-file(GLOB sources *.cpp)
-
-set(FAD_TinyET_SRCS ${headers} ${sources} PARENT_SCOPE)
+set(headers tfad.h tfadfunc.h tfadlog.h tfadop.h)
+install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/TinyFadET)
+target_sources(pz PRIVATE ${headers})

@@ -5,12 +5,8 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External/FAD/TinyFad>
                           )
 
-file(GLOB headers *.h)
+set(headers tinyfad.h tinyfadbin.h tinyfadfunc.h tinyfadlog.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/TinyFad)
+target_sources(pz PRIVATE ${headers})
 
-file(GLOB Specializations_headers Specializations/*.h)
-install(FILES ${Specializations_headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/TinyFad/Specializations)
-
-file(GLOB sources *.cpp)
-
-set(FAD_Tiny_SRCS ${headers} ${sources} PARENT_SCOPE)
+add_subdirectory(Specializations)
