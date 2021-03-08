@@ -17,6 +17,10 @@ function(add_unit_test testName)
         # correct (specified here by UnitTests/${testName}).
         source_group(UnitTests/${testName} FILES ${ARGN})
     endif()
-    target_link_libraries(${testName} pz Boost::unit_test_framework)
-
+    
+    target_link_libraries(${testName} PRIVATE pz Boost::unit_test_framework)
+    if(USING_LOG4CXX)
+      target_compile_definitions(${testName} PRIVATE LOG4CXX)
+      target_link_libraries(${testName} PRIVATE ${Log4cxx_LIBRARY})
+    endif()
 endfunction()

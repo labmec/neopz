@@ -127,35 +127,14 @@ endif(USING_FAD)
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
-	#Adding a variable to hold this definition
-	set(LOG4CXX LOG4CXX)
-	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../log4cxx ${PROJECT_SOURCE_DIR}/../log4cxx_src/include ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src/include)
-	find_library(LOG4CXX_LIB_RELEASE
-		         NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a
-				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Release 
-				)
-	find_library(LOG4CXX_LIB_DEBUG
-				 NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a       # Change name here if debug lib has different name.
-				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../extergallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Debug
-				)
-	set(LOG4CXX_LIB
-	    debug ${LOG4CXX_LIB_DEBUG}
-	    optimized ${LOG4CXX_LIB_RELEASE}
-	   )	
-	if(LOG4CXX_INCLUDE-NOTFOUND)
-		set (LOG4CXX_INCLUDE "" CACHE PATH "Directory where log4cxx header files can be found")
-	else()
-		include_directories(${LOG4CXX_INCLUDE})
-	endif()
-	
-	if(LOG4CXX_LIB-NOTFOUND)
-		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
-	endif()
-  target_link_libraries(pz PUBLIC ${LOG4CXX_LIB})
-  target_include_directories(pz PUBLIC ${LOG4CXX_INCLUDE})
-  if(WIN32)
-	target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
-  endif()
+  #this is the definition used in pz lib
+  set(LOG4CXX LOG4CXX)
+	find_package(Log4cxx REQUIRED)
+  target_link_libraries(pz PRIVATE ${Log4cxx_LIBRARY})
+  target_include_directories(pz PRIVATE ${Log4cxx_INCLUDE_DIR})
+  # if(WIN32) ##TODOWIN32: is it still needed?
+	# target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
+  # endif()
 endif(USING_LOG4CXX)
 
 #enabling compiler interprocedural optimizations (IPO)
