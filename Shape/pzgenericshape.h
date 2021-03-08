@@ -13,10 +13,6 @@ template <class TSHAPE>
 TPZTransform<REAL> GetSideTransform(int side, int trans_id);
 template <class TSHAPE>
 void ComputeTransforms(TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) ;
-template <class TSHAPE>
-void Shape(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) ;
-
-
 
 template <class TSHAPE>
 void ComputeTransforms(TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transvec) {
@@ -29,6 +25,57 @@ void ComputeTransforms(TPZVec<int64_t> &id,  TPZVec<TPZTransform<REAL> > &transv
         transvec[pos] = GetSideTransform<TSHAPE>(iside, trans_id); // Foi criado
     }
 }
+
+template <class TSHAPE>
+TPZTransform<REAL> GetSideTransform(int side, int trans_id) {
+    
+    MElementType type_side = TSHAPE::Type(side);
+    TPZTransform<REAL> TransElToSide = TSHAPE::TransformElementToSide(side);
+    
+    TPZTransform<REAL> TransParametric(1,1);
+    switch (type_side) {
+        case EOned:
+        {
+            TransParametric = pzshape::TPZShapeLinear::ParametricTransform(trans_id);
+        }
+            break;
+        case EQuadrilateral:
+        {
+            TransParametric = pzshape::TPZShapeQuad::ParametricTransform(trans_id);
+        }
+            break;
+        case ETriangle:
+        {
+            TransParametric = pzshape::TPZShapeTriang::ParametricTransform(trans_id);
+        }
+            break;
+        default:
+            break;
+    }
+    
+    if ((side == TSHAPE::NSides - 1) && TSHAPE::Dimension>2) {
+        
+        return TransElToSide;
+    }
+    else{
+        TPZFMatrix<REAL> resul_mult;
+        TransParametric.Mult().Multiply(TransElToSide.Mult(), resul_mult);
+        TransElToSide.Mult() = resul_mult;
+        TPZFMatrix<REAL> res1;
+        TransParametric.Mult().Multiply( TransElToSide.Sum(), res1);
+        TransElToSide.Sum() =res1;
+        TransElToSide.Sum() += TransParametric.Sum();
+        
+    }
+    
+    return TransElToSide;
+    
+}
+
+#ifdef USING_BLAS
+
+template <class TSHAPE>
+void Shape(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) ;
 
 template <class TSHAPE>
 void Shape(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
@@ -77,8 +124,6 @@ struct TParDefs
     TPZManVector<int,27> nshape;
     TPZVec<TPZTransform<REAL> > transvec;
 };
-
-#include "TPZLapack.h"
 
 template <class TSHAPE>
 void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi
@@ -171,55 +216,6 @@ void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMa
     }
     
 }
-
-
-template <class TSHAPE>
-TPZTransform<REAL> GetSideTransform(int side, int trans_id) {
-    
-    MElementType type_side = TSHAPE::Type(side);
-    TPZTransform<REAL> TransElToSide = TSHAPE::TransformElementToSide(side);
-    
-    TPZTransform<REAL> TransParametric(1,1);
-    switch (type_side) {
-        case EOned:
-        {
-            TransParametric = pzshape::TPZShapeLinear::ParametricTransform(trans_id);
-        }
-            break;
-        case EQuadrilateral:
-        {
-            TransParametric = pzshape::TPZShapeQuad::ParametricTransform(trans_id);
-        }
-            break;
-        case ETriangle:
-        {
-            TransParametric = pzshape::TPZShapeTriang::ParametricTransform(trans_id);
-        }
-            break;
-        default:
-            break;
-    }
-    
-    if ((side == TSHAPE::NSides - 1) && TSHAPE::Dimension>2) {
-        
-        return TransElToSide;
-    }
-    else{
-        TPZFMatrix<REAL> resul_mult;
-        TransParametric.Mult().Multiply(TransElToSide.Mult(), resul_mult);
-        TransElToSide.Mult() = resul_mult;
-        TPZFMatrix<REAL> res1;
-        TransParametric.Mult().Multiply( TransElToSide.Sum(), res1);
-        TransElToSide.Sum() =res1;
-        TransElToSide.Sum() += TransParametric.Sum();
-        
-    }
-    
-    return TransElToSide;
-    
-}
-
-
 template void Shape<pzshape::TPZShapeLinear>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 template void Shape<pzshape::TPZShapeTriang>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 template void Shape<pzshape::TPZShapeQuad>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
@@ -230,5 +226,5 @@ template void Shape<pzshape::TPZShapeCube>(TPZVec<REAL> &pt, TPZVec<int> orders,
 
 template void Shape<pzshape::TPZShapeCube>(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
-
+#endif
 //void Shape(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> phi,TPZFMatrix<REAL> dphi);
