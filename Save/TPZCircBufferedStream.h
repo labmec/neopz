@@ -210,6 +210,7 @@ template void TPZCircBufferedStream::ReadData(uint64_t *p, int howMany);
 template void TPZCircBufferedStream::ReadData(int64_t *p, int howMany);
 template void TPZCircBufferedStream::ReadData(float *p, int howMany);
 template void TPZCircBufferedStream::ReadData(double *p, int howMany);
+template void TPZCircBufferedStream::ReadData(long double *p, int howMany);
 template void TPZCircBufferedStream::ReadData(char *p, int howMany);
 template void TPZCircBufferedStream::ReadData(std::complex<float> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(std::complex<double> *p, int howMany);

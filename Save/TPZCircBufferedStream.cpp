@@ -263,6 +263,10 @@ void TPZCircBufferedStream::Read(double *p, int howMany) {
     ReadData<double>(p, howMany);
 }
 
+void TPZCircBufferedStream::Read(long double *p, int howMany) {
+    ReadData<long double>(p, howMany);
+}
+
 void TPZCircBufferedStream::Read(unsigned char *p, int howMany) {
     ReadData<unsigned char>(p, howMany);
 }
