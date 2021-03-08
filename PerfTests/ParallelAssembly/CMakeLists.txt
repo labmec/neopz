@@ -1,13 +1,9 @@
 ########### next target ###############
-
-file(GLOB header *.h)
-
-file(GLOB sources *.cpp)
-
-add_executable(ParallelPerformance ${sources} ${header})
-
-target_link_libraries(ParallelPerformance PRIVATE pz)
+set(targetName ParallelPerformance)
+add_pz_target(
+  NAME ${targetName}
+  SOURCES main.cpp)
+#linking additional libraries
 if(USING_LOG4CXX)
-      target_compile_definitions(ParallelPerformance PRIVATE LOG4CXX)
-      target_link_libraries(ParallelPerformance PRIVATE ${Log4cxx_LIBRARY})
+  target_link_libraries(${targetName} PRIVATE ${Log4cxx_LIBRARY})
  endif()

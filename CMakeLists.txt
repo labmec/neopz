@@ -361,6 +361,10 @@ if(USING_BLAZE)
     target_link_libraries(pz PRIVATE blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
 endif(USING_BLAZE)
 
+#the following include is for making it easier to create pz targets
+include(cmake/add_pz_target.cmake)
+
+
 #To enable Python bindings
 option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
 if (BUILD_PYTHON_BINDING)

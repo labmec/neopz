@@ -1,11 +1,9 @@
-file(GLOB source *.cpp)
+set(targetName Perf-DecomposeLDLt)
 
-file(GLOB header *.h)
-
-add_executable(Perf-DecomposeLDLt ${source} ${header})
-install(TARGETS Perf-DecomposeLDLt DESTINATION bin)
-target_link_libraries(Perf-DecomposeLDLt PRIVATE pz)
+add_pz_target(
+  NAME ${targetName}
+  SOURCES decompose.cpp)
+#linking additional libraries
 if(USING_LOG4CXX)
-      target_compile_definitions(Perf-DecomposeLDLt PRIVATE LOG4CXX)
-      target_link_libraries(Perf-DecomposeLDLt PRIVATE ${Log4cxx_LIBRARY})
+  target_link_libraries(${targetName} PRIVATE ${Log4cxx_LIBRARIES})
 endif()
