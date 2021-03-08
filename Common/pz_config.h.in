@@ -113,10 +113,6 @@
 #define @STATE_TYPE_DEF@
 #endif
 
-#ifndef HDIVPIOLA
-#cmakedefine HDIVPIOLA
-#endif
-
 #ifndef STATE_COMPLEX
 #cmakedefine STATE_COMPLEX
 #endif
