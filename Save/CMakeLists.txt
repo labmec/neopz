@@ -5,11 +5,34 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Save>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZBFileStream.h
+    TPZChunkTranslator.h
+    TPZContBufferedStream.h
+    TPZGeneralFStream.h
+    TPZRestoredInstance.h
+    TPZStream.h
+    pzmd5stream.h
+    TPZChunkInTranslation.h
+    TPZCircBufferedStream.h
+    TPZFileStream.h
+    TPZPersistenceManager.h
+    TPZSavable.h
+    doxsave.h
+    )
+
+set(sources
+    TPZBFileStream.cpp
+    TPZChunkTranslator.cpp
+    TPZContBufferedStream.cpp
+    TPZPersistenceManager.cpp
+    TPZSavable.cpp
+    TPZChunkInTranslation.cpp
+    TPZCircBufferedStream.cpp
+    TPZFileStream.cpp
+    TPZRestoredInstance.cpp
+    TPZStream.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Save)
-
-file(GLOB sources *.cpp)
-
-set(pzsave_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

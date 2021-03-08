@@ -5,12 +5,47 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/StrMatrix>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPBSpStructMatrix.h
+    TPZParFrontStructMatrix.h
+    TPZSpStructMatrix.h
+    pzbdstrmatrix.h
+    pzsbstrmatrix.h
+    pzstrmatrixflowtbb.h
+    TPZEquationFilter.h
+    TPZSSpStructMatrix.h
+    TPZStructMatrixBase.h
+    pzbstrmatrix.h
+    pzskylstrmatrix.h
+    pzstrmatrixot.h
+    TPZFrontStructMatrix.h
+    TPZSkylineNSymStructMatrix.h
+    doxstrmatrix.h
+    pzfstrmatrix.h
+    pzstrmatrix.h
+    tpzsparseblockdiagonalstructmatrix.h
+   )
+
+set(sources
+    TPBSpStructMatrix.cpp
+    TPZParFrontStructMatrix.cpp
+    TPZSpStructMatrix.cpp
+    pzbstrmatrix.cpp
+    pzskylstrmatrix.cpp
+    pzstrmatrixot.cpp
+    TPZEquationFilter.cpp
+    TPZSSpStructMatrix.cpp
+    TPZStructMatrixBase.cpp
+    pzfstrmatrix.cpp
+    pzstrmatrix.cpp
+    tpzsparseblockdiagonalstructmatrix.cpp
+    TPZFrontStructMatrix.cpp
+    TPZSkylineNSymStructMatrix.cpp
+    pzbdstrmatrix.cpp
+    pzsbstrmatrix.cpp
+    pzstrmatrixflowtbb.cpp
+   )
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/StrMatrix)
 
-file(GLOB sources *.cpp)
-
-set(pzstrmatrix_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

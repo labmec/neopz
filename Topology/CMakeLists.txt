@@ -5,12 +5,33 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Topology>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    PrismExtend.h
+    TPZTopologyUtils.h
+    doxtopology.h
+    tpzcube.h
+    tpzline.h
+    tpzpoint.h
+    tpzprism.h
+    tpzpyramid.h
+    tpzquadrilateral.h
+    tpztetrahedron.h
+    tpztriangle.h
+    )
+
+set(sources
+    PrismExtend.cpp
+    TPZTopologyUtils.cpp
+    tpzcube.cpp
+    tpzline.cpp
+    tpzpoint.cpp
+    tpzprism.cpp
+    tpzpyramid.cpp
+    tpzquadrilateral.cpp
+    tpztetrahedron.cpp
+    tpztriangle.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Topology)
 
-file(GLOB sources *.cpp)
-
-set(pztopology_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

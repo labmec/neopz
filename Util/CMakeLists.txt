@@ -5,13 +5,62 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Util>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZAssert.h
+    TPZLimitedPriorityQueue.h
+    TPZTimer.h
+    pzadmchunkthreadsafe.h
+    pzfunction.h
+    pzmanvector.h
+    pzplane.h
+    pzvec.h
+    tpzpermutation.h
+    TPZChunkVector.h
+    TPZParallelUtils.h
+    checkconv.h
+    pzaxestools.h
+    pzgradient.h
+    pznuma.h
+    pzpolynomial.h
+    pzvec_extras.h
+    TPZFunctionTranslator.h
+    TPZPriorityQueue.h
+    doxutil.h
+    pzcheckconsistency.h
+    pzline.h
+    pznumeric.h
+    pzstack.h
+    tpzautopointer.h
+    )
+
+set(sources
+    TPZAssert.cpp
+    TPZParallelUtils.cpp
+    pzcheckconsistency.cpp
+    pzline.cpp
+    pznuma.cpp
+    pzpolynomial.cpp
+    pzvecgen.cpp
+    tpzpagemigrationmanager.cpp
+    TPZFunctionTranslator.cpp
+    TPZSemaphore.cpp
+    pzfunction.cpp
+    pzlog.cpp
+    pznumeric.cpp
+    pzstackgen.cpp
+    pzvecmesh.cpp
+    tpzpermutation.cpp
+    TPZHWTools.cpp
+    TPZTimer.cpp
+    pzgradient.cpp
+    pzmanvectorgen.cpp
+    pzplane.cpp
+    pzstring.cpp
+    tpzautopointer.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Util)
 
-file(GLOB sources *.cpp)
+target_sources(pz PRIVATE ${headers} ${sources})
 
 add_subdirectory(Hash)
-
-set(pzutil_STAT_SRCS ${headers} ${sources} ${pzutil_Hash_STAT_SRCS} PARENT_SCOPE)
-
-

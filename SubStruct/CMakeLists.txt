@@ -5,11 +5,39 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/SubStruct>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZTimeTemp.h
+    doxsubstrmatrix.h
+    tpzdohrassemblelist.h
+    tpzdohrmatrix.h
+    tpzdohrsubstruct.h
+    tpzgensubstruct.h
+    tpzpairstructmatrix.h
+    TPZfTime.h
+    pzdohrstructmatrix.h
+    tpzdohrassembly.h
+    tpzdohrprecond.h
+    tpzdohrsubstructCondense.h
+    tpzmatredstructmatrix.h
+    tpzparallelenviroment.h
+    )
+
+set(sources
+    TPZTimeTemp.cpp
+    pzdohrstructmatrix.cpp
+    tpzdohrassembly.cpp
+    tpzdohrprecond.cpp
+    tpzdohrsubstructCondense.cpp
+    tpzmatredstructmatrix.cpp
+    tpzparallelenviroment.cpp
+    TPZfTime.cpp
+    tpzdohrassemblelist.cpp
+    tpzdohrmatrix.cpp
+    tpzdohrsubstruct.cpp
+    tpzgensubstruct.cpp
+    tpzpairstructmatrix.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/SubStruct)
 
-file(GLOB sources *.cpp)
-
-set(pzsubstruct_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

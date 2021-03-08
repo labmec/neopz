@@ -5,13 +5,34 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Shape>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZShapeDisc.h
+    pzgenericshape.h
+    pzshapeextend.h
+    pzshapepiram.h
+    pzshapepoint.h
+    pzshapequad.h
+    pzshapetriang.h
+    doxshape.h
+    pzshapecube.h
+    pzshapelinear.h
+    pzshapepiramHdiv.h
+    pzshapeprism.h
+    pzshapetetra.h
+    )
+
+set(sources
+    TPZShapeDisc.cpp
+    pzshapecube.cpp
+    pzshapelinear.cpp
+    pzshapepiram.cpp
+    pzshapepiramHdiv.cpp
+    pzshapeprism.cpp
+    pzshapequad.cpp
+    pzshapetetra.cpp
+    pzshapetriang.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Shape)
 
-file(GLOB sources *.cpp)
-
-set(pzshape_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

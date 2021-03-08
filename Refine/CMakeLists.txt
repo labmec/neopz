@@ -5,13 +5,38 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Refine>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZRefCube.h
+    TPZRefLinear.h
+    TPZRefPattern.h
+    TPZRefPatternDataBase.h
+    TPZRefPatternTools.h
+    doxrefine.h
+    pzrefpoint.h
+    pzrefprism.h
+    pzrefpyram.h
+    pzrefquad.h
+    pzreftetrahedra.h
+    pzreftriangle.h
+   )
+
+set(sources
+    TPZRefCube.cpp
+    TPZRefPattern.cpp
+    TPZRefPatternTools.cpp
+    pzrefprism.cpp
+    pzrefquad.cpp
+    pzreftriangle.cpp
+    TPZRefLinear.cpp
+    TPZRefPatternDataBase.cpp
+    pzrefpoint.cpp
+    pzrefpyram.cpp
+    pzreftetrahedra.cpp
+   )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Refine)
 
-file(GLOB sources *.cpp)
-
-set(pzrefine_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
 
 # files with description of the refinement patterns
-
 add_subdirectory(RefPatterns)
