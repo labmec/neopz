@@ -33,7 +33,6 @@ set(PZ_LIB_TYPE SHARED)
 
 add_library(pz ${PZ_LIB_TYPE} "")
 
-
 ##TODOWIN32: check whether these distinctions are really necessary
 ##TODO: are they ok when private?
 if (WIN32)
@@ -84,6 +83,11 @@ set(NEOPZ_INCLUDE pzlib/include)
 set(NEOPZ_LIB pzlib/lib)
 
 #ENABLING EXTERNAL LIBRARIES
+find_package(Threads REQUIRED)
+target_link_libraries(pz PRIVATE Threads::Threads)
+IF (USING_IPO)
+  set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
+ENDIF()
 
 IF(APPLE)
    # Mac OS X specific code
@@ -108,6 +112,14 @@ if(USING_BOOST)
                 set(CMAKE_PREFIX_PATH "C:/local/boost_1_72_0" ${CMAKE_PREFIX_PATH})
 	ENDIF()
 	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
+  if(APPLE)
+          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
+   elseif(UNIX)
+          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
+   elseif(WIN32)
+          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib)
+   endif()
+   target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
 endif(USING_BOOST)
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
@@ -143,6 +155,11 @@ if(USING_LOG4CXX)
 	if(LOG4CXX_LIB-NOTFOUND)
 		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
 	endif()
+  target_link_libraries(pz PUBLIC ${LOG4CXX_LIB})
+  target_include_directories(pz PUBLIC ${LOG4CXX_INCLUDE})
+  if(WIN32)
+	target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
+  endif()
 endif(USING_LOG4CXX)
 
 #enabling compiler interprocedural optimizations (IPO)
@@ -162,6 +179,8 @@ if(USING_METIS)
 	if(METIS_LIB-NOTFOUND)
 		set (METIS_LIB "" CACHE PATH "Directory where the metis library can be found")
 	endif()
+  target_link_libraries(pz PRIVATE ${METIS_LIB})
+  target_include_directories(pz PRIVATE ${METIS_INCLUDE})
 endif(USING_METIS)
 
 #enabling OPENSSL library (used for MD5 computation)
@@ -178,6 +197,8 @@ if(USING_TBB)
 		message(FATAL_ERROR "Could not find TBB. If TBB is not needed, "
       "configure the project with -DUSING_TBB=OFF")
 	endif()
+  target_link_libraries(pz PRIVATE TBB::tbb)
+  target_include_directories(pz PRIVATE ${TBB_INCLUDE_DIRS})
 endif(USING_TBB)
 
 #enabling LIKWID library
@@ -247,6 +268,8 @@ if(USING_LAPACK)
 			set (LAPACK_LIB "" CACHE PATH "Directory where the LAPACK library can be found")
 		endif()
 	endif(APPLE)
+  target_link_libraries(pz PRIVATE ${LAPACK_LIB} )
+  target_include_directories(pz PRIVATE ${LAPACK_INCLUDE})
 endif(USING_LAPACK)
 
 #enabling BLAS library
@@ -256,6 +279,14 @@ if(USING_BLAS)
   endif()
   # set(BLA_VENDOR "GENERIC")
   find_package(BLAS REQUIRED)
+  #target_link_libraries(pz BLAS::BLAS) this is ok in cmake 3.18 onwards
+  target_link_libraries(pz PRIVATE ${BLAS_LIBRARIES})
+  foreach(BL_LIB BLAS_LIBRARIES)
+    if(${BL_LIB} MATCHES ".*mkl.*")
+      message("Found BLAS from MKL")
+      target_compile_definitions(pz PRIVATE MKLBLAS)
+    endif()
+  endforeach()
 endif(USING_BLAS)
 
 
@@ -268,27 +299,29 @@ endif(USING_NEW_SKYLMAT)
 #enabling PAPI library
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)
-        find_path(PAPI_INCLUDE NAMES papi.h PATHS ${SEARCH_DIRS})
-        find_library(PAPI_LIB NAMES libpapi.a libpapi.so PATHS ${SEARCH_DIRS})
-        if(PAPI_INCLUDE-NOTFOUND)
-                set (PAPI_INCLUDE "" CACHE PATH "Directory where papi.h can be found")
-        endif()
-        if(PAPI_LIB-NOTFOUND)
-                set (PAPI_LIB "" CACHE PATH "Directory where the papi library can be found")
-        endif()
+  find_path(PAPI_INCLUDE NAMES papi.h PATHS ${SEARCH_DIRS})
+  find_library(PAPI_LIB NAMES libpapi.a libpapi.so PATHS ${SEARCH_DIRS})
+  if(PAPI_INCLUDE-NOTFOUND)
+    set (PAPI_INCLUDE "" CACHE PATH "Directory where papi.h can be found")
+  endif()
+  if(PAPI_LIB-NOTFOUND)
+    set (PAPI_LIB "" CACHE PATH "Directory where the papi library can be found")
+  endif()
+  target_link_libraries(pz PRIVATE ${PAPI_LIB})
 endif(USING_PAPI)
 
 #enabling HWLOC library
 option(USING_HWLOC "Whether the HWLOC library will be linked in" OFF)
 if(USING_HWLOC)
-        find_path(HWLOC_INCLUDE NAMES hwloc.h PATHS ${SEARCH_DIRS})
-        find_library(HWLOC_LIB NAMES hwloc.a libhwloc.so libhwloc.dylib PATHS ${SEARCH_DIRS})
-        if(HWLOC_INCLUDE-NOTFOUND)
-                set (HWLOC_INCLUDE "" CACHE PATH "Directory where hwloc.h can be found")
-        endif()
-        if(HWLOC_LIB-NOTFOUND)
-                set (HWLOC_LIB "" CACHE PATH "Directory where the hwloc library can be found")
-        endif()
+  find_path(HWLOC_INCLUDE NAMES hwloc.h PATHS ${SEARCH_DIRS})
+  find_library(HWLOC_LIB NAMES hwloc.a libhwloc.so libhwloc.dylib PATHS ${SEARCH_DIRS})
+  if(HWLOC_INCLUDE-NOTFOUND)
+    set (HWLOC_INCLUDE "" CACHE PATH "Directory where hwloc.h can be found")
+  endif()
+  if(HWLOC_LIB-NOTFOUND)
+    set (HWLOC_LIB "" CACHE PATH "Directory where the hwloc library can be found")
+  endif()
+  target_link_libraries(pz PRIVATE ${HWLOC_LIB})
 endif(USING_HWLOC)
 
 
@@ -296,43 +329,45 @@ endif(USING_HWLOC)
 #enabling MKL library
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
-  	target_compile_definitions(pz PRIVATE MKLBLAS)
+  target_compile_definitions(pz PRIVATE MKLBLAS)
 	if (WIN32)
 		set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
 		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
 		find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 		find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
 		find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-                find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
+    find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
 	else()
 		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
 		find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
-				${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
+			${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
 		find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
-				/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+			/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
 		find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
-				${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
+			${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
 		find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
-				/opt/intel/composer_xe/compiler/lib
-				/opt/intel/composerxe/lib/intel64
-				/opt/intel/lib /softwares/intel/lib/intel64
-                                /opt/intel/compilers_and_libraries/linux/lib/intel64_lin )
+			/opt/intel/composer_xe/compiler/lib
+			/opt/intel/composerxe/lib/intel64
+			/opt/intel/lib /softwares/intel/lib/intel64
+      /opt/intel/compilers_and_libraries/linux/lib/intel64_lin )
 	endif()
 
 	if(MKL_INCLUDE-NOTFOUND)
-                set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
-        else()
-                #include_directories(${MKL_INCLUDE})
-        endif()
+    set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
+  else()
+    #include_directories(${MKL_INCLUDE})
+  endif()
 
-        if(MKL_LIB-NOTFOUND)
-                set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
-        else()
-                target_link_libraries(pz PRIVATE ${MKL_LIB_INTEL})
-                target_link_libraries(pz PRIVATE ${MKL_LIB_CORE})
-                target_link_libraries(pz PRIVATE ${MKL_LIB_THREAD})
-                target_link_libraries(pz PRIVATE ${COMPOSER_OMP})
-        endif()
+  if(MKL_LIB-NOTFOUND)
+    set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
+  else()
+    target_link_libraries(pz PRIVATE ${MKL_LIB_INTEL})
+    target_link_libraries(pz PRIVATE ${MKL_LIB_CORE})
+    target_link_libraries(pz PRIVATE ${MKL_LIB_THREAD})
+    target_link_libraries(pz PRIVATE ${COMPOSER_OMP})
+  endif()
+  target_link_libraries(pz PRIVATE ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
+  target_include_directories(pz PRIVATE ${MKL_INCLUDE})  
 endif(USING_MKL)
 
 #enabling Blaze
@@ -348,8 +383,8 @@ if(USING_BLAZE)
     else()
         set (USING_BLAZE "" CACHE PATH "Directory where blaze can be found")
     endif()
-    add_definitions(-DUSING_BLAZE)
-
+    target_compile_definitions(pz PRIVATE USING_BLAZE)
+    target_link_libraries(pz PRIVATE blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
 endif(USING_BLAZE)
 
 #To enable Python bindings
@@ -506,78 +541,6 @@ include_directories("${PROJECT_BINARY_DIR}/Common")
 # add the .h file in the install target
 install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of pz_config.h part
-
-
-
-find_package(Threads REQUIRED)
-target_link_libraries(pz PRIVATE Threads::Threads)
-IF (USING_IPO)
-  set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
-ENDIF()
-
-if (USING_BLAZE)
-    target_link_libraries(pz PRIVATE blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
-    add_definitions(-DUSING_BLAZE)
-endif()
-
-if (USING_BOOST)
-   if(APPLE)
-          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
-   elseif(UNIX)
-          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
-   elseif(WIN32)
-          target_link_libraries(pz PRIVATE ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib)
-   endif()
-   target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
-endif()
-
-if (USING_LOG4CXX)
-  target_link_libraries(pz PUBLIC ${LOG4CXX_LIB})
-  target_include_directories(pz PUBLIC ${LOG4CXX_INCLUDE})
-  if(WIN32)
-	target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
-  endif()
-endif()
-
-if (USING_METIS)
-  target_link_libraries(pz PRIVATE ${METIS_LIB})
-  target_include_directories(pz PRIVATE ${METIS_INCLUDE})
-endif()
-
-if (USING_LAPACK)
-  target_link_libraries(pz PRIVATE ${LAPACK_LIB} )
-  target_include_directories(pz PRIVATE ${LAPACK_INCLUDE})
-endif()
-
-if (USING_BLAS)
-#target_link_libraries(pz BLAS::BLAS) this is ok in cmake 3.18 onwards
-  target_link_libraries(pz PRIVATE ${BLAS_LIBRARIES})
-  foreach(BL_LIB BLAS_LIBRARIES)
-    if(${BL_LIB} MATCHES ".*mkl.*")
-      message("Found BLAS from MKL")
-      target_compile_definitions(pz PRIVATE MKLBLAS)
-    endif()
-  endforeach()
-endif()
-
-if (USING_PAPI)
-  target_link_libraries(pz PRIVATE ${PAPI_LIB})
-endif()
-
-if (USING_MKL)
-  target_link_libraries(pz PRIVATE ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
-  target_include_directories(pz PRIVATE ${MKL_INCLUDE})
-endif()
-
-if (USING_TBB)
-  target_link_libraries(pz PRIVATE TBB::tbb)
-  target_include_directories(pz PRIVATE ${TBB_INCLUDE_DIRS})
-endif()
-
-
-if (USING_HWLOC)
-  target_link_libraries(pz PRIVATE ${HWLOC_LIB})
-endif()
 
 #increment all the directories where the sources files is
 if(NOT BUILD_COMPLEX_PROJECTS)
