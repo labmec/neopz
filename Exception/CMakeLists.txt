@@ -4,10 +4,19 @@ target_include_directories(pz PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DI
                                      $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Exception>
                           )
 
-file(GLOB headers *.h)
+set(headers
+        TPZConvergenceException.h
+        TPZException.h
+        TPZInconsistentStateException.h
+        )
+
+set(sources
+        TPZConvergenceException.cpp
+        TPZException.cpp
+        TPZInconsistentStateException.cpp
+        )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Exception)
 
-file(GLOB sources *.cpp)
-
-set(pzexception_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
 
