@@ -586,7 +586,6 @@ source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
 source_group("Random" FILES ${pzrandom_STAT_SRCS})
 source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
 
-add_subdirectory(lib)
 
 
 install(TARGETS pz 
