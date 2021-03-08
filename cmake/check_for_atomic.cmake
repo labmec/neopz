@@ -24,12 +24,15 @@ int main() {
 }"
   atomic)
 if(NOT atomic)
-  find_library(lib_atomic NAMES atomic libatomic)
+  message(STATUS "Failed to compile dummy program with std::atomic\n"
+    "Trying to find a lib...")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll" ".so" ".so.1")
+  find_library(lib_atomic NAMES atomic)
   if(lib_atomic)
     message("Found lib atomic: ${lib_atomic}")
     target_link_libraries(${target} PRIVATE ${lib_atomic})
   else()
-    message(FATAL_ERROR "Failed to compile dummy program with std::atomic")
+    message(FATAL_ERROR "Could not find atomic lib")
   endif()
 endif()
 cmake_pop_check_state()
