@@ -353,9 +353,13 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, T
 {
 	TPZVec<int64_t> nodegraph;
 	TPZVec<int64_t> nodegraphindex;
+#ifdef LOG4CXX
 	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "before NodeToElGraph")
+#endif
 	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
+#ifdef LOG4CXX
 	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "after NodeToElGraph")
+#endif
 	int64_t nelements = elgraphindex.NElements()-1;
 	eltoelgraphindex.Resize(nelements+1);
 	eltoelgraphindex[0] = 0;

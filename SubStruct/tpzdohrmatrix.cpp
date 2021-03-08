@@ -217,10 +217,12 @@ void TPZDohrMatrix<TVar,TSubStruct>::Initialize()
         //(*iter)->Initialize();
 		TPZFMatrix<TVar> diaglocal;
         (*iter)->ContributeDiagonalLocal(diaglocal);
+#ifdef LOG4CXX
         if(logger->isDebugEnabled())
         {
             LOGPZ_DEBUG(logger,"Before assemble diagonal")
         }
+#endif
 		this->fAssembly->Assemble(isub,diaglocal,diag);
 #ifdef LOG4CXX
         if(logger->isDebugEnabled())

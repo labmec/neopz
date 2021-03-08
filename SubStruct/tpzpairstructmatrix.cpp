@@ -727,10 +727,14 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 		if(!keeplooking)
 		{
             lock.unlock();
+#ifdef LOG4CXX
             if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
+#endif
 			// wait for a signal
 			data->fAssembly1.Wait();
-			if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
+#ifdef LOG4CXX
+            if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
+#endif
             lock.lock();
 		}
 		nextel = data->fNextElement;
@@ -796,10 +800,14 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 		if(!keeplooking)
 		  {
               lock.unlock();
+#ifdef LOG4CXX
               if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
+#endif
               // wait for a signal
               data->fAssembly2.Wait();
+#ifdef LOG4CXX
               if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
+#endif
               lock.lock();
 		}
 		nextel = data->fNextElement;
