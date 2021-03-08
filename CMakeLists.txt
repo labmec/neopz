@@ -590,8 +590,7 @@ source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
 
 install(TARGETS pz 
 		EXPORT PZTargets
-		ARCHIVE
-		DESTINATION ${NEOPZ_LIB})
+		LIBRARY DESTINATION ${NEOPZ_LIB})
 
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
 	add_subdirectory(Projects)
