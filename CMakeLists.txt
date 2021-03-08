@@ -13,34 +13,45 @@ project(PZ LANGUAGES CXX)
 
 #this allow us to define custom FindXXX.cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-IF (WIN32)
-	# Prevents timespec redefinition problem with Visual Studio 2015
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
-    if (NOT CMAKE_GENERATOR MATCHES "Ninja")
-    	set(CMAKE_INSTALL_PREFIX "C:/Program Files/PZ" CACHE PATH "Installation path, prepended onto install directories." FORCE) 
+if (WIN32)
+	if (NOT CMAKE_GENERATOR MATCHES "Ninja")
+    set(CMAKE_INSTALL_PREFIX "C:/Program Files/PZ" CACHE PATH "Installation path, prepended onto install directories." FORCE) 
 	endif()
-ELSE (WIN32)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
-	if ( NOT APPLE AND NOT CMAKE_BUILD_TYPE )
+else (WIN32)
+  if ( NOT APPLE AND NOT CMAKE_BUILD_TYPE )
 		set (CMAKE_BUILD_TYPE Release CACHE STRING "Options: Release Debug None MinSizeRel RelWithDebInfo" FORCE) 
 	endif()
-ENDIF()
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#creating target pz library and installing it
-if (BUILD_PYTHON_BINDING)
-	IF (NOT WIN32)
-		#Build a shared library to be used with python binding
-		add_library(pz SHARED)
-	ELSE()
-		add_library(pz STATIC)
-	ENDIF()
-else()
-	#Build a static library (default)
-	add_library(pz STATIC "")
+
+##TODOWIN32: should this change when on WIN32?
+set(PZ_LIB_TYPE SHARED)
+
+
+add_library(pz ${PZ_LIB_TYPE} "")
+
+
+##TODOWIN32: check whether these distinctions are really necessary
+##TODO: are they ok when private?
+if (WIN32)
+	# Prevents timespec redefinition problem with Visual Studio 2015
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
+  target_compile_definitions(pz
+    PRIVATE
+    HAVE_STRUCT_TIMESPEC)
+else (WIN32)
+  target_compile_options(pz
+    PRIVATE
+    -fPIC
+    -Wno-narrowing)
+endif()
+
+# Mac OS X specific code
+if (APPLE)
+  target_compile_definitions(pz PRIVATE MACOSX)
 endif()
 
 ## inserting main definitions
@@ -49,7 +60,8 @@ set(PZSOURCEDIR ${PROJECT_SOURCE_DIR})
 #specify where the refinement patterns can be found (default behaviour when running the code)
 set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
 
-
+##TODO: need to refactor this following section
+##maybe this could be useful https://stackoverflow.com/questions/23995019/what-is-the-modern-method-for-setting-general-compile-flags-in-cmake/23995391
 #Defining variables
 #To cmake
 string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
@@ -75,8 +87,6 @@ set(NEOPZ_LIB pzlib/lib)
 
 IF(APPLE)
    # Mac OS X specific code
-   add_definitions(-DMACOSX)
-   set(MACOSX MACOSX)
    find_library(ACCELERATE_LIB Accelerate)
    target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
 ENDIF(APPLE)
