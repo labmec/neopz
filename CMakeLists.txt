@@ -1,6 +1,6 @@
 # @file neopz/CMakeList.txt  -- First file to read for CMake
 
-cmake_minimum_required (VERSION 3.11.0)
+cmake_minimum_required (VERSION 3.13.0)
 
 #disable excessive warning messages by Microsoft VC compiler
 set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
@@ -40,7 +40,7 @@ if (BUILD_PYTHON_BINDING)
 	ENDIF()
 else()
 	#Build a static library (default)
-	add_library(pz)
+	add_library(pz STATIC "")
 endif()
 
 ## inserting main definitions
@@ -118,7 +118,7 @@ if(USING_LOG4CXX)
 				)
 	find_library(LOG4CXX_LIB_DEBUG
 				 NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a       # Change name here if debug lib has different name.
-				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Debug
+				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../extergallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Debug
 				)
 	set(LOG4CXX_LIB
 	    debug ${LOG4CXX_LIB_DEBUG}
@@ -578,14 +578,6 @@ if(NOT BUILD_COMPLEX_PROJECTS)
         add_subdirectory(Python)
     endif()
 endif()
-
-#enabling to use HDIVPIOLA the contravariant Piola Mapping
-option(USING_HDIVPIOLA "Whether the HDIVPIOLA is being used" OFF)
-if(USING_HDIVPIOLA)
-	#Adding a variable to hold this definition
-	set(HDIVPIOLA HDIVPIOLA)
-	add_definitions(-D${HDIVPIOLA})
-endif(USING_HDIVPIOLA)
 
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
