@@ -2,7 +2,7 @@
 #define TPZLapackH
 
 #ifdef USING_LAPACK
-#ifdef USING_MKL
+#ifdef MKLLAPACK
 #include <mkl.h>
 typedef MKL_Complex16 vardoublecomplex;
 typedef MKL_Complex8 varfloatcomplex;
@@ -22,7 +22,6 @@ typedef lapack_complex_double vardoublecomplex;
 typedef lapack_complex_float varfloatcomplex;
 
 #include "lapacke.h"
-
 #endif
 #endif
 
