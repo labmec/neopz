@@ -4,5 +4,5 @@ file(GLOB header *.h)
 
 add_executable(GFlopsTest ${source} ${header})
 install(TARGETS GFlopsTest DESTINATION bin)
-target_link_libraries(GFlopsTest pz)
+target_link_libraries(GFlopsTest pz Threads::Threads)
 
