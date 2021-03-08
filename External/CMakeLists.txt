@@ -6,27 +6,27 @@ target_include_directories(pz PUBLIC
                           )
 
 set(headers
-        TPZBoostGraph.h
-        TPZCutHillMcKee.h
-        TPZRenumbering.h
-        TPZSloanRenumbering.h
-        fblaswr.h
-        pzmetis.h
-        pzsloan.h
-        rcm.h
-        tpznodesetcompute.h
-        )
+    TPZBoostGraph.h
+    TPZCutHillMcKee.h
+    TPZRenumbering.h
+    TPZSloanRenumbering.h
+    fblaswr.h
+    pzmetis.h
+    pzsloan.h
+    rcm.h
+    tpznodesetcompute.h
+    )
 
 set(sources
-        TPZBoostGraph.cpp
-        TPZCutHillMcKee.cpp
-        TPZRenumbering.cpp
-        TPZSloanRenumbering.cpp
-        pzmetis.cpp
-        pzsloan.cpp
-        rcm.cpp
-        tpznodesetcompute.cpp
-        )
+    TPZBoostGraph.cpp
+    TPZCutHillMcKee.cpp
+    TPZRenumbering.cpp
+    TPZSloanRenumbering.cpp
+    pzmetis.cpp
+    pzsloan.cpp
+    rcm.cpp
+    tpznodesetcompute.cpp
+    )
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External)
 
@@ -39,7 +39,3 @@ option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 if(USING_FAD)
 	add_subdirectory(FAD)
 endif(USING_FAD)
-
-
-
-

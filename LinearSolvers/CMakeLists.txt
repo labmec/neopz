@@ -5,11 +5,21 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/LinearSolvers>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZPardisoHandler.h
+    bicg.h
+    bicgstab.h
+    cg.h
+    cgbet.h
+    cgs.h
+    cheby.h
+    gmres.h
+    ir.h
+    qmr.h
+    )
+
+set(sources TPZPardisoHandler.cpp)
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/LinearSolvers)
 
-file(GLOB sources *.cpp)
-
-set(pzlinearsolvers_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

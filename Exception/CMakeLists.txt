@@ -5,16 +5,16 @@ target_include_directories(pz PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DI
                           )
 
 set(headers
-        TPZConvergenceException.h
-        TPZException.h
-        TPZInconsistentStateException.h
-        )
+    TPZConvergenceException.h
+    TPZException.h
+    TPZInconsistentStateException.h
+    )
 
 set(sources
-        TPZConvergenceException.cpp
-        TPZException.cpp
-        TPZInconsistentStateException.cpp
-        )
+    TPZConvergenceException.cpp
+    TPZException.cpp
+    TPZInconsistentStateException.cpp
+    )
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Exception)
 

@@ -2,16 +2,16 @@
 
 set(headers sloan.h)
 set(sources
-        diamtr.cpp
-        gegra.cpp
-        iorele.cpp
-        isorti.cpp
-        label.cpp
-        number.cpp
-        profi1.cpp
-        rootls.cpp
-        vsrtp1.cpp
-        )
+    diamtr.cpp
+    gegra.cpp
+    iorele.cpp
+    isorti.cpp
+    label.cpp
+    number.cpp
+    profi1.cpp
+    rootls.cpp
+    vsrtp1.cpp
+    )
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

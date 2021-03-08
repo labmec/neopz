@@ -5,11 +5,18 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/PerfUtil>
                           )
 
-file(GLOB headers *.h)
+set(headers
+        arglib.h
+        clock_timer.h
+        csvtable.h
+        cycle_timer.h
+        pz_gettime.h
+        run_stats_table.h
+        stats_recorder.h
+        timing_analysis.h
+        )
+
+set(sources arglib.cpp)
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/PerfUtil)
-
-file(GLOB sources *.cpp)
-
-set(pzperfutil_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

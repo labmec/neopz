@@ -5,10 +5,38 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Geom>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZGeoCube.h
+    TPZGeoLinear.h
+    pzgeom_utility.h
+    pzgeoprism.h
+    pzgeoquad.h
+    pzgeotriangle.h
+    pznoderep.h.h
+    tpzgeoblend.h
+    TPZGeoExtend.h
+    doxgeometry.h
+    pzgeopoint.h
+    pzgeopyramid.h
+    pzgeotetrahedra.h
+    pznoderep.h
+    pzshapeextend.h
+    )
+
+set(sources
+    TPZGeoCube.cpp
+    TPZGeoLinear.cpp
+    pzgeom_utility.cpp
+    pzgeopoint.cpp
+    pzgeoprism.cpp
+    pzgeopyramid.cpp
+    pzgeoquad.cpp
+    pzgeotetrahedra.cpp
+    pzgeotriangle.cpp
+    pznoderep.cpp
+    tpzgeoblend.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Geom)
 
-file(GLOB sources *.cpp)
-
-set(pzgeom_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
+target_sources(pz PRIVATE ${headers} ${sources})

@@ -4,10 +4,6 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Optimization>
                           )
 
-
-file(GLOB headers *.h)
+set(headers TPZStochasticSearch.h)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Optimization)
-
-file(GLOB sources *.cpp)
-
-set(pzoptimization_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${header})

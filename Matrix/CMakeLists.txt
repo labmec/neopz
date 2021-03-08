@@ -5,10 +5,67 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Matrix>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    PZMatrixMarket.h
+    doxmatrix.h
+    pzbndmat.h
+    pzfmatrix.h
+    pzmatrix.h
+    pzsespmat.h
+    pzskylmat.h
+    pzspblockdiagpivot.h
+    pzsysmp.h
+    tpzsparseblockdiagonal.h
+    TPZCopySolve.h
+    pzblock.h
+    pzdiffmatrix.h
+    pzlink.h
+    pzsbndmat.h
+    pzsfulmat.h
+    pzskylnsymmat.h
+    pzstencil.h
+    pztrnsform.h
+    tpzverysparsematrix.h
+    TPZPardisoControl.h
+    pzblockdiag.h
+    pzespmat.h
+    pzmatred.h
+    pzseqsolver.h
+    pzshtmat.h
+    pzsolve.h
+    pzstepsolver.h
+    pzysmp.h
+    )
+
+set(sources
+    PZMatrixMarket.cpp
+    pzblockdiag.cpp
+    pzfmatrix.cpp
+    pzmatrix.cpp
+    pzsespmat.cpp
+    pzskylmat.cpp
+    pzspblockdiagpivot.cpp
+    pzsysmp.cpp
+    tpzsparseblockdiagonal.cpp
+    TPZPardisoControl.cpp
+    pzbndmat.cpp
+    pzlink.cpp
+    pzsbndmat.cpp
+    pzsfulmat.cpp
+    pzskylnsymmat.cpp
+    pzstencil.cpp
+    pztrnsform.cpp
+    tpzverysparsematrix.cpp
+    pzblock.cpp
+    pzespmat.cpp
+    pzmatred.cpp
+    pzseqsolver.cpp
+    pzshtmat.cpp
+    pzsolve.cpp
+    pzstepsolver.cpp
+    pzysmp.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Matrix)
 
-file(GLOB sources *.cpp)
-
-set(pzmatrix_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
+target_sources(pz PRIVATE ${headers} ${sources})

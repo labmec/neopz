@@ -5,10 +5,29 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Frontal>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZFileEqnStorage.h
+    TPZFront.h
+    TPZFrontMatrix.h
+    TPZFrontNonSym.h
+    TPZFrontSym.h
+    TPZParFrontMatrix.h
+    TPZStackEqnStorage.h
+    tpzeqnarray.h
+    )
+
+set(sources
+    TPZFileEqnStorage.cpp
+    TPZFront.cpp
+    TPZFrontMatrix.cpp
+    TPZFrontNonSym.cpp
+    TPZFrontSym.cpp
+    TPZParFrontMatrix.cpp
+    TPZStackEqnStorage.cpp
+    pzvecfrontal.cpp
+    tpzeqnarray.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Frontal)
 
-file(GLOB sources *.cpp)
-
-set(pzfrontal_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
+target_sources(pz PRIVATE ${headers} ${sources})

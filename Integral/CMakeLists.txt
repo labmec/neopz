@@ -5,11 +5,32 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Integral>
                           )
 
-file(GLOB headers *.h)
+set(headers
+    TPZIntQuadQuarterPoint.h
+    adapt.h
+    doxintegral.h
+    pzquad.h
+    tpzgaussrule.h
+    tpzintpoints.h
+    tpzintrulelist.h
+    tpzintrulep3d.h
+    tpzintrulet.h
+    tpzintrulet3d.h
+    tpzprinteg.h
+    )
+
+set(sources
+    TPZIntQuadQuarterPoint.cpp
+    adapt.cpp
+    pzquad.cpp
+    tpzgaussrule.cpp
+    tpzintrulelist.cpp
+    tpzintrulep3d.cpp
+    tpzintrulet.cpp
+    tpzintrulet3d.cpp
+    tpzprinteg.cpp
+    )
+
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Integral)
 
-file(GLOB sources *.cpp)
-
-set(pzintegral_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers} ${sources})

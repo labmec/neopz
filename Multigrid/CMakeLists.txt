@@ -5,10 +5,8 @@ target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Multigrid>
                           )
-file(GLOB headers *.h)
+
+set(headers pzmgsolver.h pztransfer.h)
+set(sources pzmgsolver.cpp pztransfer.cpp)
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Multigrid)
-
-file(GLOB sources *.cpp)
-
-set(pzmultigrid_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
+target_sources(pz PRIVATE ${headers} ${sources})
