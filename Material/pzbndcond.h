@@ -404,32 +404,6 @@ virtual int ClassId() const override;
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context)  override;
 	
-	void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-								   REAL weight,
-								   TPZVec<STATE> &nkL,
-								   TPZVec<STATE> &nkR,
-								   int &errorid) override;
-	
-	void  ContributeErrors(TPZMaterialData &data,// aqui
-						   REAL weight,
-						   TPZVec<REAL> &nk,
-						   int &errorid) override {
-		//nothing to be done here
-	};
-    
-
-    
-	
-	
-	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
-											 REAL weight,
-											 TPZVec<STATE> &nk,
-											 TPZBndCond &bc,
-											 int &errorid
-											 ) override {
-		//nothing to be done here
-	}
-	
 	/** @brief Calls the aggregate material correspondent function */
 	virtual void FillDataRequirements(TPZMaterialData &data) override;
     

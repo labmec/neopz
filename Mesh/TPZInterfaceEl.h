@@ -351,11 +351,6 @@ public:
     virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                TPZVec<REAL> &errors, bool store_error) override;
 	
-	/** @brief ComputeError computes the element error estimator */
-	virtual void ComputeErrorFace(int errorid,
-								  TPZVec<STATE> &errorL,
-								  TPZVec<STATE> &errorR);
-	
 	/** @brief Integrate a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<STATE> & value) override;
 	
