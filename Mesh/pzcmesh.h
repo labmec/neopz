@@ -430,13 +430,6 @@ public:
 	virtual void Skyline(TPZVec<int64_t> &skyline);
 	
 	/**
-	 * @brief Assemble the vector with errors estimators
-	 * @param estimator vector where will be assembled the errors
-	 * @param errorid index for dual or wheeler estimator
-	 */
-	void AssembleError(TPZFMatrix<REAL> &estimator, int errorid);
-	
-	/**
 	 * @brief Builds the transfer matrix from the current grid to the coarse grid
 	 * @param coarsemesh grid for where the matrix will be transfered
 	 * @param transfer transfer matrix between the current mesh and the coarse mesh

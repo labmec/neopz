@@ -286,24 +286,6 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     {
         return fNStateVariables;
     }
-	
-	
-	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-										   REAL weight,
-										   TPZVec<STATE> &nkL,
-										   TPZVec<STATE> &nkR,
-										   int &errorid)  override {
-		PZError << "Method not implemented\n";
-	}
-	
-	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
-											 REAL weight,
-											 TPZVec<STATE> &nk,
-											 TPZBndCond &bc,
-											 int &errorid)  override {
-		PZError << "Method not implemented\n";
-	}
-	
     /** @{
      * @name Save and Load methods
      */

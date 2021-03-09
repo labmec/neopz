@@ -208,26 +208,6 @@ class TPZDiscontinuousGalerkin : public TPZMaterial {
 	 * @since Mar 08, 2006
 	 */
 	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump);
-	
-		
-	
-	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-										   REAL weight,
-										   TPZVec<STATE> &nkL,
-										   TPZVec<STATE> &nkR,
-										   int &errorid) {
-		PZError << "Method not implemented\n";
-	}
-	
-	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
-											 REAL weight,
-											 TPZVec<STATE> &nk,
-											 TPZBndCond &bc,
-											 int &errorid) {
-		PZError << "Method not implemented\n";
-	}
-
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
 
     /** @{
      * @name Save and Load methods

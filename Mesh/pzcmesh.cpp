@@ -2173,53 +2173,6 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 	
 }//method
 
-void TPZCompMesh::AssembleError(TPZFMatrix<REAL> &estimator, int errorid){
-	int64_t iel, i;
-	const int64_t nelem = this->NElements();
-	TPZManVector<REAL> locerror(7);
-    TPZManVector<STATE> errorL(7), errorR(7);
-	
-	estimator.Resize(nelem, 7);
-	estimator.Zero();
-	for(iel=0; iel < nelem; iel++) {
-		TPZCompEl *el = fElementVec[iel];
-		if (!el) continue;
-		TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
-		if (face){
-			errorL.Fill(0.); errorR.Fill(0.);
-			face->ComputeErrorFace(errorid, errorL, errorR);
-			int64_t n = errorL.NElements();
-			if (errorR.NElements() > n) n = errorR.NElements();
-			//if number of errors > 1 then resize matrix.
-			//Method Resize keeps previous values and zero new values.
-			//estimator.Resize(nelem, n);
-			for(i = 0; i < errorL.NElements()-1; i++) {
-				estimator(face->LeftElement()->Index(),i) += fabs(errorL[i]);
-			}//for i
-			for(i = 0; i < errorR.NElements()-1; i++){
-				estimator(face->RightElement()->Index(),i) += fabs(errorR[i]);
-			}//for i
-		}//if
-		else{
-			locerror.Fill(0.);
-			el->ComputeError(errorid, locerror);
-			//if number of errors > 1 then resize matrix.
-			//Method Resize keeps previous values and zero new values.
-			//estimator.Resize(nelem, locerror.NElements());
-			for(i = 0; i < locerror.NElements()-1; i++){
-				estimator(iel, i) += locerror[i];
-			}//for i
-			//        estimator.Print("Estimator", std::cout, EFormatted);
-			
-		}//else
-	}
-	for(iel=0; iel < nelem; iel++) {
-		if(fabs(estimator(iel,5))>=0.0000001){  // Possivel erro ao plotar os indíces de efetividade
-            estimator(iel,6) = estimator(iel,2)/estimator(iel,5) ;
-		}
-	}
-	
-}
 
 /// Integrate the postprocessed variable name over the elements included in the set matids
 TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<int> &matids)

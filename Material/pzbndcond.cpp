@@ -117,27 +117,6 @@ void TPZBndCond::Read(TPZStream &buf, void *context){
     }
 }
 
-void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-										   REAL weight,
-										   TPZVec<STATE> &nkL,
-										   TPZVec<STATE> &nkR,
-										   int &errorid){
-	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
-	if(!mat) return;
-	
-	
-	if(dataleft.sol.NElements() < dataright.sol.NElements()){
-		//		data.InvertLeftRightData();
-        for(int i=0; i<3; i++) data.normal[i] *= -1.;
-		mat->ContributeInterfaceBCErrors(data,dataright,weight,nkR,*this, errorid);
-	}
-	else {
-		mat->ContributeInterfaceBCErrors(data,dataleft,weight,nkL,*this, errorid);
-	}
-	
-}
-
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     this->fMaterial->ContributeBC(data, weight, ek, ef, *this);
 }
