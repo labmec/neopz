@@ -75,11 +75,6 @@ endif()
 # Location to search files or libraries
 set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include ./../externallibs/include/lapack /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
 
-# INSTALL part
-#To install neopz/include
-set(NEOPZ_INCLUDE pzlib/include)
-#To install neopz library
-set(NEOPZ_LIB pzlib/lib)
 
 #ENABLING EXTERNAL LIBRARIES
 
@@ -517,6 +512,14 @@ configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 # add it to include search path
 include_directories("${PROJECT_BINARY_DIR}/Common")
 # add the .h file in the install target
+
+# INSTALL part
+set(NEOPZ_INSTALL_DIR pzlib)
+#To install neopz/include
+set(NEOPZ_INCLUDE ${NEOPZ_INSTALL_DIR}/include)
+#To install neopz library
+set(NEOPZ_LIB ${NEOPZ_INSTALL_DIR}/lib)
+
 install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
 # End of pz_config.h part
 
@@ -607,7 +610,7 @@ export(TARGETS pz  FILE "${PROJECT_BINARY_DIR}/PZTargets.cmake")
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE PZ)
 
-set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/CMake)
+set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/${NEOPZ_INSTALL_DIR}/CMake)
 
 file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}"
    "${CMAKE_INSTALL_PREFIX}/${NEOPZ_INCLUDE}")   
@@ -676,7 +679,7 @@ install(FILES
         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
         "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
         DESTINATION "${INSTALL_CMAKE_DIR}" )
-  
+
 install(FILES
         "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake"
         DESTINATION "${INSTALL_CMAKE_DIR}" 
