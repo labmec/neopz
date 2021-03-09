@@ -99,6 +99,16 @@ public:
     
     /** @brief Default destructor */
     virtual ~TPZMaterial();
+  
+    /** @brief This method is responsible for setting
+        the dimensions of the data structures used for
+        computing the exact solution at an integration point.
+        @param u_len length of the TPZVector<STATE> of the state variable
+        @param du_row number of rows of the TPZFNMatrix<STATE> containing the appropriate state variable derivative
+        @param du_col number of cols of the TPZFNMatrix<STATE> containing the appropriate state variable derivative*/
+    virtual void GetSolutionDimensions(uint64_t &u_len,
+                                       uint64_t &du_row,
+                                       uint64_t &du_col);
     
     /** 
 	 * @brief Fill material data parameter with necessary requirements for the
