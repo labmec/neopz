@@ -870,7 +870,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-                                         TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                                         TPZFMatrix<REAL> &axes,
                                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
 {
     int i, j;
