@@ -1030,8 +1030,10 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	
 	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
-	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<9,STATE> du_exact(dim+1,ndof);
+  uint64_t u_len{0}, du_row{0}, du_col{0};
+  material->GetSolutionDimensions(u_len, du_row, du_col);
+	TPZManVector<STATE,10> u_exact(u_len);
+	TPZFNMatrix<9,STATE> du_exact(du_row,du_col);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
 	TPZManVector<STATE,9> flux_el(nflux,0.);
