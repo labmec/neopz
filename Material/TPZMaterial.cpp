@@ -88,6 +88,16 @@ TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
     return *this;
 }
 
+void TPZMaterial::GetSolutionDimensions(uint64_t &u_len,
+                                       uint64_t &du_row,
+                                       uint64_t &du_col)
+{
+  PZError << __PRETTY_FUNCTION__ << std::endl;
+  PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+  DebugStop();
+  u_len = -1; du_row = -1; du_col = -1;
+}
+
 void TPZMaterial::SetLinearContext(bool IsLinear){
 	fLinearContext = IsLinear;
 }
