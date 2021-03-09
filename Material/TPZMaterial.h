@@ -294,7 +294,10 @@ public:
      * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
+      TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+      this->Contribute(data, weight, fakeek, ef);
+    }
     
 
     /**
@@ -314,8 +317,8 @@ public:
      */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
     {
-        TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows(),0.);
-        Contribute(datavec, weight, ek, ef);
+        TPZFMatrix<STATE> fakeek(ef.Rows(),ef.Rows(),0.);
+        this->Contribute(datavec, weight, fakeek, ef);
     }
     
     /**
@@ -341,9 +344,8 @@ public:
      */
     virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
     {
-        TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows(),0.);
-        ContributeBC(datavec, weight, ek, ef, bc);
-        
+        TPZFMatrix<STATE> fakeek(ef.Rows(),ef.Rows(),0.);
+        this->ContributeBC(datavec, weight, fakeek, ef, bc);
     }
     
     /**
@@ -366,7 +368,10 @@ public:
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+      TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+      this->ContributeBC(data, weight, fakeek, ef, bc);
+    }
 	
     /** @} */
 	
