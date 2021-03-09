@@ -77,17 +77,11 @@ set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/incl
 
 
 #ENABLING EXTERNAL LIBRARIES
+include(cmake/EnableThreads.cmake)
+enable_threads(pz)
 
-#prefer pthread library when there are other options available
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-#prefer -pthread compiler and linker flag
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads REQUIRED)
-target_link_libraries(pz PRIVATE Threads::Threads)
-#simple utility function for detecting if any linking is needed
-#for using functions from <atomic>
-include(cmake/check_for_atomic.cmake)
-check_for_atomic(pz)
+#enabling compiler interprocedural optimizations (IPO)
+option(USING_IPO "Whether link and assembly support for compiler IPO will be activated or not (may cause linking to be very slow)." OFF)
 IF (USING_IPO)
   set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
 ENDIF()
@@ -131,9 +125,6 @@ if(USING_LOG4CXX)
 	# target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
   # endif()
 endif(USING_LOG4CXX)
-
-#enabling compiler interprocedural optimizations (IPO)
-option(USING_IPO "Whether link and assembly support for compiler IPO will be activated or not (may cause linking to be very slow)." OFF)
 
 #enabling METIS library
 option(USING_METIS "Whether the METIS library will be linked in" OFF)
