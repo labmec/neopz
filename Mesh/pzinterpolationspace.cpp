@@ -1103,41 +1103,6 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	
 }//method
 
-void TPZInterpolationSpace::ComputeError(int errorid,
-                                         TPZVec<REAL> &error){
-	
-	TPZMaterial * material = Material();
-	if(!material){
-		std::cout << "TPZCompElDisc::ComputeError : no material for this element\n";
-		return;
-	}
-	
-	TPZMaterialData data;
-	this->InitMaterialData(data);
-	
-	REAL weight;
-	int dim = Dimension();
-	TPZVec<REAL> intpoint(dim,0.);
-	
-	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
-	
-	TPZManVector<int,3> prevorder(dim), maxorder(dim, this->MaxOrder());
-	intrule->GetOrder(prevorder);
-	intrule->SetOrder(maxorder);
-	
-	data.p = this->MaxOrder();
-	data.HSize = 2.*this->InnerRadius();
-	error.Fill(0.);
-	int npoints = intrule->NPoints(), ip;
-	for(ip=0;ip<npoints;ip++){
-		intrule->Point(ip,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.phi, data.dphix);
-		weight *= fabs(data.detjac);
-		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		material->ContributeErrors(data,weight,error,errorid);
-	}
-	intrule->SetOrder(prevorder);
-}
 
 TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 	TPZMaterial * material = Material();
