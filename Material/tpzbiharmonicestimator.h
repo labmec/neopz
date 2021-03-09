@@ -58,7 +58,7 @@ private:
 	 * where u is the current solution and Z and Z1 are the dual solution. */
 	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
 										   TPZVec<STATE> &nkL, TPZVec<STATE> &nkR,
-										   int &errorid) override
+										   int &errorid)
 	{
 		if (errorid == 0) this->ContributeInterfaceErrorsDual(data,dataleft,dataright,weight,nkL,nkR);
 		if (errorid == 2) this->ContributeInterfaceErrorsSimple(data,dataleft,dataright,weight,nkL,nkR);
@@ -83,7 +83,7 @@ private:
 											 REAL weight,
 											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
-											 int &errorid) override
+											 int &errorid)
 	{
 		if (errorid == 0) this->ContributeInterfaceBCErrorsDual(data,dataleft,weight,nk,bc);
 		if (errorid == 2) this->ContributeInterfaceBCErrorsSimple(data,dataleft,weight,nk,bc);
