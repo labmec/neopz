@@ -1,0 +1,15 @@
+function(enable_lapack target)
+    if(USING_MKL)
+        set(BLA_VENDOR "Intel10_64lp") #tries to find MKL version
+    endif()
+    find_package(LAPACK REQUIRED)
+    target_link_libraries(${target} PRIVATE ${LAPACK_LIBRARIES} )
+    foreach(LA_LIB LAPACK_LIBRARIES)
+        if(${LA_LIB} MATCHES ".*mkl.*")
+            message("Found LAPACK from MKL")
+            target_compile_definitions(${target} PRIVATE MKLLAPACK)
+            #USING_BLAS=ON if USING_LAPACK=ON in pz_config.h.in
+            target_compile_definitions(${target} PRIVATE MKLBLAS)
+        endif()
+    endforeach()
+endfunction()

@@ -1,0 +1,15 @@
+function(enable_blas target)
+    if(USING_MKL)
+        set(BLA_VENDOR "Intel10_64lp") #tries to find MKL version
+    endif()
+    # set(BLA_VENDOR "GENERIC")
+    find_package(BLAS REQUIRED)
+    #target_link_libraries(${target} BLAS::BLAS) this is ok in cmake 3.18 onwards
+    target_link_libraries(${target} PRIVATE ${BLAS_LIBRARIES})
+    foreach(BL_LIB BLAS_LIBRARIES)
+        if(${BL_LIB} MATCHES ".*mkl.*")
+            message("Found BLAS from MKL")
+            target_compile_definitions(${target} PRIVATE MKLBLAS)
+        endif()
+    endforeach()
+endfunction()
