@@ -159,16 +159,13 @@ public:
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
-  
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
 	/**
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-              TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+              TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
               TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;//Cedric
 	
 	/** @brief Returns the elasticity modulus E */

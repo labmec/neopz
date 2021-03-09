@@ -274,11 +274,6 @@ protected:
         return 1+fBCs.size();
     }
 	
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
-		flux.Fill(0.);
-	}
-	
 	void Print(std::ostream & out = std::cout) override {
 		out << " Boundary condition number = " << Id() << "\n";
 		out << " boundary condition type = " << fType << "\n";

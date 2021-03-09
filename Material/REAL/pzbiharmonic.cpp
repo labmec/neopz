@@ -107,11 +107,6 @@ void TPZBiharmonic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatr
 	}
 }
 
-void TPZBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/,
-						 TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
-						 TPZVec<STATE> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
-}
 
 void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 						   TPZFMatrix<REAL> &axes,

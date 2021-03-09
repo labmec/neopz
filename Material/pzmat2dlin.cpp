@@ -138,10 +138,6 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 	}//fim switch
 }
 
-void TPZMat2dLin::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
-	PZError << "TPZMat2dLin::Flux is called\n";
-}
-
 void TPZMat2dLin::Print(std::ostream & out) {
 	out << "Material type TPZMat2dLin -- number = " << Id() << "\n";
 	out << "Matrix Kxx ->  "; fKxx.Print("fKxx",out);

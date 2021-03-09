@@ -259,11 +259,6 @@ protected:
     
 public:
     
-    /** @brief Computes the value of the flux function to be used by ZZ error estimator */
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol,
-                      TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes,
-                      TPZVec<STATE> &flux) {}
-    
     /** @} */
 
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/

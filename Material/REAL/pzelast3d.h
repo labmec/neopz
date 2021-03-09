@@ -161,14 +161,6 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	/**
-	 * @brief Compute the value of the flux function to be used by ZZ error estimator.
-	 * @note Method not implemented.
-	 */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
-		PZError << "\nTPZElasticity3D::Flux - Method not implemented\n";
-	}
-	
 	/** @brief Evaluate error between approximate (FEM) and exact solutions */
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 						TPZFMatrix<REAL> &axes,

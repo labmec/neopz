@@ -150,17 +150,6 @@ void TPZMat1dLin::Print(std::ostream & out) {
 	out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*u*/, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &fl) {
-	
-	int row = NStateVariables();
-	for(int i=0; i<row; i++){
-		fl[i]  = 0.;
-		for(int j=0; j<row; j++) {
-			fl[i] += -fXk(i,j)*dudx(0,j);
-		}
-	}
-}
-
 void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
                          TPZFMatrix<STATE> &dudaxes,TPZFMatrix<REAL> &axes,
                          TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,

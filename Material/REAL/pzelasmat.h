@@ -196,9 +196,6 @@ public:
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
-
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     virtual int NEvalErrors() override {return 6;}
