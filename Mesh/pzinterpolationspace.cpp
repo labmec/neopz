@@ -1224,62 +1224,6 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<STATE> & value)//AQUI
 //	}//for ip
 //}//method
 
-void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-	
-	TPZMaterial * material = Material();
-	if(!material){
-		std::stringstream sout;
-		sout << "Exiting ProjectFlux: no material for this element\n";
-		Print(sout);
-		LOGPZ_ERROR(logger,sout.str());
-		ek.Reset();
-		ef.Reset();
-		return;
-	}
-	
-	int num_flux = 0;//TODOREMOVEFLUX
-	int dim = Dimension();
-	int nshape = NShapeF();
-	int ncon = NConnects();
-	const TPZIntPoints &intrule = GetIntegrationRule();
-	
-	int numeq = nshape;
-	ek.fMat.Resize(numeq,numeq);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fMat.Resize(numeq,num_flux);
-	ef.fBlock.SetNBlocks(ncon);
-	
-	for(int i=0; i<ncon; ++i){
-		(ef.fConnect)[i] = ConnectIndex(i);
-		(ek.fConnect)[i] = ConnectIndex(i);
-	}
-	
-	TPZMaterialData data;
-	this->InitMaterialData(data);
-	
-	//TPZManVector<REAL> flux(num_flux,1);
-	TPZManVector<STATE> flux(num_flux,1);
-	TPZManVector<REAL,3> intpoint(dim);
-	REAL weight = 0.;
-	for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
-		
-		intrule.Point(int_ind,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
-		weight *= fabs(data.detjac);
-		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		
-		material->Flux(data.x,data.sol[0],data.dsol[0],data.axes,flux);
-		for(int in=0; in<nshape; in++){
-			for(int ifl=0; ifl<num_flux; ifl++){
-				(ef.fMat)(in,ifl) += flux[ifl]*(STATE)data.phi(in,0)*(STATE)weight;
-			}//for ifl
-			for(int jn = 0; jn<nshape; jn++){
-				(ek.fMat)(in,jn) += data.phi(in,0)*data.phi(jn,0)*weight;
-			}//for jn
-		}//for in
-	}//for int_ind
-}//method
-
 /** Save the element data to a stream */
 void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid) const
 {
