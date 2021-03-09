@@ -317,16 +317,6 @@ TPZMaterial * TPZMaterial::NewMaterial() {
 	return 0;
 }
 
-void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
-	TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
-	this->Contribute(data, weight, fakeek, ef);
-}
-
-void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-	TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
-	this->ContributeBC(data, weight, fakeek, ef, bc);
-}
-
 void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	int nref=datavec.size();
     int ndif = 0;
