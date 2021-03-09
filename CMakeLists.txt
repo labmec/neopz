@@ -118,12 +118,8 @@ option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
   #this is the definition used in pz lib
   set(LOG4CXX LOG4CXX)
-	find_package(Log4cxx REQUIRED)
-  target_link_libraries(pz PRIVATE ${Log4cxx_LIBRARY})
-  target_include_directories(pz PRIVATE ${Log4cxx_INCLUDE_DIR})
-  # if(WIN32) ##TODOWIN32: is it still needed?
-	# target_link_libraries(pz PUBLIC odbc32.lib ws2_32.lib mswsock.lib)
-  # endif()
+  include(cmake/EnableLog4cxx.cmake)
+  enable_log4cxx(pz)
 endif(USING_LOG4CXX)
 
 #enabling METIS library
