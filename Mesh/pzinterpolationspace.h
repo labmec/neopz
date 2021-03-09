@@ -286,17 +286,6 @@ virtual int ClassId() const override;
 	/** @brief Integrate the solution over the element */
 //	virtual void IntegrateSolution(TPZVec<STATE> & value);
 	
-	/**
-	 * @brief Will project the flux associated with the variational statement onto the finite element interpolation space
-	 * @param ek projection matrix
-	 * @param ef inner product of the flux with the finite element interpolation space
-	 */
-	/**
-	 * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
-	 * for each component of the flux
-	 */
-	void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
-	
 protected:
 	
     /// Preferred polynomial order
