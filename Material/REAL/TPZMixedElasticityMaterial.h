@@ -288,7 +288,7 @@ public:
      * and the flux computed based on the derivative of the solution
      */
     void Errors(TPZVec<REAL> &x, TPZVec<STATE> &u,
-            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
             TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &values) override; //Cedric
 
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;

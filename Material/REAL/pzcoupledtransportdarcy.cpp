@@ -118,9 +118,9 @@ void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/,
 }
 
 void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-									  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+									  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 									  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-	this->GetCurrentMaterial()->Errors(x, u, dudx, axes, flux, u_exact, du_exact, values);
+	this->GetCurrentMaterial()->Errors(x, u, dudx, axes, u_exact, du_exact, values);
 }
 
 

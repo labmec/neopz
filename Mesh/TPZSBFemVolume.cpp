@@ -641,7 +641,6 @@ void TPZSBFemVolume::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TP
     TPZManVector<REAL, 10> intpoint(problemdimension), values(NErrors);
     values.Fill(0.0);
     REAL weight;
-    TPZManVector<STATE, 9> flux_el(0, 0.);
 
     TPZMaterialData data;
     data.x.Resize(3);
@@ -665,8 +664,7 @@ void TPZSBFemVolume::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TP
 
         if (fp) {
             fp(data.x, u_exact, du_exact);
-
-            material->Errors(data.x, data.sol[0], data.dsol[0], data.axes, flux_el, u_exact, du_exact, values);
+            material->Errors(data, u_exact, du_exact, values);
 
             for (int ier = 0; ier < NErrors; ier++)
                 errors[ier] += values[ier] * weight;

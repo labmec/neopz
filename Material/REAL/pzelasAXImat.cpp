@@ -1211,7 +1211,7 @@ void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMat
 	}
 }
 
-void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, 
 									  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values)
 {
 	values[0] = 0.;

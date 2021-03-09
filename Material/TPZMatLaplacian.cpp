@@ -790,7 +790,7 @@ void TPZMatLaplacian::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 }
 
 void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes, 
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
     values.Resize(3);

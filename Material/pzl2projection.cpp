@@ -220,7 +220,7 @@ int TPZL2Projection::IntegrationRuleOrder(int elPMaxOrder) const
 #include "pzaxestools.h"
 
 void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
                              TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
     
     values.Resize(NEvalErrors());
