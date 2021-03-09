@@ -500,7 +500,7 @@ public:
 	/** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
     virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const;
 	
-    virtual void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+    void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
     {
         TPZManVector<STATE,3> flux;
         Flux(data.x, data.sol[0], data.dsol[0], data.axes, flux);
