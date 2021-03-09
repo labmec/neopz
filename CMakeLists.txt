@@ -557,40 +557,10 @@ add_subdirectory("Random")
 add_subdirectory(Optimization)
 add_subdirectory(Exception)
 
-#Creating groups for organized display of files into PZ modules (subfolders)
-source_group(Common FILES ${pzcommon_STAT_SRCS})
-source_group(Exception FILES ${pzexception_STAT_SRCS})
-source_group(Save FILES ${pzsave_STAT_SRCS})
-source_group(Util FILES ${pzutil_STAT_SRCS})
-source_group(PerfUtil FILES ${pzperfutil_STAT_SRCS})
-source_group(Matrix FILES ${pzmatrix_STAT_SRCS})
-source_group("Linear Solvers" FILES ${pzlinearsolvers_STAT_SRCS})
-source_group(Topology FILES ${pztopology_STAT_SRCS})
-source_group(Geom FILES ${pzgeom_STAT_SRCS})
-source_group("Special Maps" FILES ${pzspecialmaps_STAT_SRCS})
-source_group(Mesh FILES ${pzmesh_STAT_SRCS})
-source_group(Shape FILES ${pzshape_STAT_SRCS})
-source_group(Refine FILES ${pzrefine_STAT_SRCS})
-source_group(Material FILES ${pzmaterial_STAT_SRCS})
-source_group(Analisys FILES ${pzanalysis_STAT_SRCS})
-source_group(Multigrid FILES ${pzmultigrid_STAT_SRCS})
-source_group(Post FILES ${pzpost_STAT_SRCS})
-source_group(Frontal FILES ${pzfrontal_STAT_SRCS})
-source_group("StructMatrix" FILES ${pzstrmatrix_STAT_SRCS})
-source_group(Pre FILES ${pzpre_STAT_SRCS})
-source_group("Substruct" FILES ${pzsubstruct_STAT_SRCS})
-source_group(Integral FILES ${pzintegral_STAT_SRCS})
-source_group(External FILES ${pzexternal_STAT_SRCS})
-source_group(Publications FILES ${pzpublications_STAT_SRCS})
-source_group(External\\Sloan FILES ${sloan_SRCS})
-source_group(External\\FAD FILES ${FAD_SRCS})
-source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
-source_group(External\\FAD\\TinyFad FILES ${FAD_Tiny_SRCS})
-source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
-source_group("Random" FILES ${pzrandom_STAT_SRCS})
-source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
-
-
+#TODOWIN32: Visual Studio source groups (filters) used to be generated for every subdirectory as follows:
+# source_group(Common FILES ${pzcommon_STAT_SRCS})
+# Currently, we don't have these source variables. If the source groups are really needed in Visual Studio,
+# we need to think of an alternative way of creating them.
 
 install(TARGETS pz 
 		EXPORT PZTargets
