@@ -102,7 +102,7 @@ public:
 	 * and the flux computed based on the derivative of the solution
 	 */	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override ;
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,

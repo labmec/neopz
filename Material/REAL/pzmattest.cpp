@@ -152,7 +152,7 @@ void TPZMaterialTest::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE
 }
 
 void TPZMaterialTest::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &,
+							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	TPZVec<STATE> sol(1),dsol(2);

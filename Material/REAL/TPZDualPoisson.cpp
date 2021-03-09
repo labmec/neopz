@@ -446,10 +446,4 @@ void TPZDualPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exac
     errors[2]= div_error * div_error;
 }
 
-void TPZDualPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &du, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &error){
-    
-    DebugStop();
-    
-}
-
 /** @} */

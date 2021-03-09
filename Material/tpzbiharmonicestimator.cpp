@@ -408,7 +408,7 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsSimple( TPZMaterialData 
 
 
 void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
-									TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+									TPZFMatrix<REAL> &axes,
 									TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 									TPZVec<REAL> &values) {
 	TPZVec<STATE> sol(1), dsol(9,0.);

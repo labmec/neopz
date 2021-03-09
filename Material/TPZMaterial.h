@@ -505,8 +505,7 @@ public:
     void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
     {
         TPZManVector<STATE,3> flux;
-        Flux(data.x, data.sol[0], data.dsol[0], data.axes, flux);
-        Errors(data.x, data.sol[0], data.dsol[0], data.axes, flux, u_exact, du_exact, errors );
+        Errors(data.x, data.sol[0], data.dsol[0], data.axes,  u_exact, du_exact, errors );
     }
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
         PZError << __PRETTY_FUNCTION__ << std::endl;
@@ -521,23 +520,24 @@ public:
         
     }
 
-    /**
-	 * @brief Computes the error due to the difference between the interpolated flux \n
-	 * and the flux computed based on the derivative of the solution
-	 */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
-                        TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
-                        TPZVec<REAL> &val) {
-        PZError << __PRETTY_FUNCTION__ << std::endl;
-        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-    }
 	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 		PZError << __PRETTY_FUNCTION__ << std::endl;
 		PZError << "Nao sei o q fazer." << std::endl;
 		
 	}
-    
+protected:
+  /**
+	 * @brief Computes the error due to the difference between the interpolated flux \n
+	 * and the flux computed based on the derivative of the solution
+	 */
+  virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
+                      TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
+                      TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
+                      TPZVec<REAL> &val) {
+    PZError << __PRETTY_FUNCTION__ << std::endl;
+    PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+  }
+public:
 
     
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */

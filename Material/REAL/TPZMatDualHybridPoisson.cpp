@@ -311,7 +311,7 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
 }
 
 void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                                     TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                                     TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes,
                                      TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
     values.Resize(3);
     values.Fill(0.);

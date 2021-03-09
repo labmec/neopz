@@ -173,7 +173,7 @@ void TPZMaterialTest3D::Flux( TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFM
 
 
 void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
-							   TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,TPZVec<STATE> & u_exact,
+							   TPZFMatrix<REAL> &axes, TPZVec<STATE> & u_exact,
 							   TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values)
 {
 	TPZManVector<STATE> sol(1),dsol(3);

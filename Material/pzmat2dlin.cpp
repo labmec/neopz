@@ -213,7 +213,7 @@ void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
 	else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,TPZVec<STATE> &/*flux*/,
+void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,
 						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	STATE dx = dudx(0,0)*(STATE)axes(0,0)+dudx(1,0)*(STATE)axes(1,0);

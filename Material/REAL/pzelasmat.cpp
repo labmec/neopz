@@ -1133,7 +1133,7 @@ void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix
 }
 
 void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-								   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+								   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
 								   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	values[0] = 0.;
 	TPZManVector<REAL,3> sigma(3,0.),sigma_exact(3,0.);

@@ -445,7 +445,7 @@ void TPZPlaca::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,TPZVec<STATE> &flux,
+void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,
 					  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	//ENERGY NORM

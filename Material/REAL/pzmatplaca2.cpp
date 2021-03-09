@@ -329,7 +329,7 @@ void TPZMatPlaca2::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STAT
 	PZError << "TPZMatPlaca2::Flux is called\n";
 }
 
-void TPZMatPlaca2::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*flux*/,
+void TPZMatPlaca2::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,
 						  TPZVec<STATE> &/*u_exact*/,TPZFMatrix<STATE> &/*du_exact*/,TPZVec<REAL> &/*values*/) {
 	PZError << "TPZMatPlaca2::Errors is called\n";
 }

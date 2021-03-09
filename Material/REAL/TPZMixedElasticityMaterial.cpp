@@ -1532,7 +1532,7 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
 }
 
 void TPZMixedElasticityMaterial::Errors(TPZVec<REAL> &x, TPZVec<STATE> &u,
-        TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+        TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
         TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &values) {
     values[0] = 0.;
     TPZVec<REAL> sigma(3, 0.), sigma_exact(3, 0.);
