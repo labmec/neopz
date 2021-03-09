@@ -89,9 +89,6 @@ public:
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
     }
 	
-	
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {}
-	
     /** @brief To create another material of the same type */
     virtual TPZMaterial * NewMaterial() override;
 	

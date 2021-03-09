@@ -268,10 +268,6 @@ void TPZPlaca::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
-	PZError << "TPZPlaca::Flux is called\n";
-}
-
 void TPZPlaca::Print(std::ostream & out) {
 	//out << "Material type TPZPlaca -- number = " << Id() << "\n";
 	//out << "Matrix xk ->  "; fXk.Print("fXk",out);

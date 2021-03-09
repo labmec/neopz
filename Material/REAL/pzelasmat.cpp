@@ -1124,14 +1124,6 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STAT
 	}
 }
 
-
-void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
-	if(fabs(axes(0,2)) >= 1.e-6 || fabs(axes(1,2)) >= 1.e-6) {
-		cout << "TPZElasticityMaterial::Flux only serves for xy configuration\n";
-		axes.Print("axes");
-	}
-}
-
 void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 								   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
 								   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {

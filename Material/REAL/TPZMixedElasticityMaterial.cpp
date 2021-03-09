@@ -1331,13 +1331,6 @@ void TPZMixedElasticityMaterial::FillVecShapeIndex(TPZMaterialData &data) {
     }
 }
 
-void TPZMixedElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
-    if (fabs(axes(2, 0)) >= 1.e-6 || fabs(axes(2, 1)) >= 1.e-6) {
-        cout << "TPZMixedElasticityMaterial::Flux only serves for xy configuration\n";
-        axes.Print("axes");
-    }
-}
-
 int TPZMixedElasticityMaterial::NEvalErrors() {
     return 8;
 }

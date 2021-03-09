@@ -113,9 +113,6 @@ void TPZCoupledTransportDarcy::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DS
 	return this->GetCurrentMaterial()->Solution(data, var, Solout);
 }//method
 
-void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
-}
 
 void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 									  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,

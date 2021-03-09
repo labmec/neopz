@@ -81,14 +81,6 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * the finite element approximation*/
       virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) override;
 
-      /** Compute the value of the flux function to be used by ZZ error estimator.
-       * Method not implemented.
-       */
-      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) override
-	  {
-         PZError << "TPZMatPorous<TBASEPOROUS(T, TMEM)>::Flux - Method not implemented\n";
-      }
-
       /** Evaluate error between approximate (FEM) and exact solutions.
 	   *  Method not implemented
        */
