@@ -1028,7 +1028,6 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	
 	intrule->SetOrder(maxorder);
 	
-	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
   uint64_t u_len{0}, du_row{0}, du_col{0};
   material->GetExactSolDimensions(u_len, du_row, du_col);
