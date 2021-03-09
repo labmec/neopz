@@ -45,15 +45,13 @@ set(headers
   pzreducedspace.h
   TPZCompElHDivCollapsed.h
   tpzgeoelrefpattern.h.h
-  TPZSBFemElementGroup.h
   pzcompelwithmem.h
   pzelmat.h
   pzgnode.h
   pzreferredcompel.h
   TPZCompElLagrange.h
   TPZGeoElSideAncestors.h
-  TPZSBFemVolume.h
-  pzcondensedcompel.h    
+  pzcondensedcompel.h
   pzsubcmesh.h
   tpzcompmeshreferred.h
   TPZGeoElSidePartition.h
@@ -97,13 +95,11 @@ set(sources
   pzinterpolationspace.cpp
   TPZAgglomerateMesh.cpp
   tpzgeoelmapped.cpp
-  TPZSBFemElementGroup.cpp
   pzconnect.cpp
   pzgeoel.cpp
   pzmultiphysicscompel.cpp
   TPZCompElDisc.cpp
   tpzgeoelrefpattern.cpp
-  TPZSBFemVolume.cpp
   pzcreateapproxspace.cpp
   pzgeoelrefless.cpp
   pzmultiphysicselement.cpp
