@@ -44,9 +44,6 @@ virtual int ClassId() const override;
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables() const override ;
 	
-    /** @brief Return the number of components which form the flux function */
-    virtual int NFluxes() override {return 2;}
-	
 	/**
 	 * @name Contribute methods (weak formulation)
 	 * @{

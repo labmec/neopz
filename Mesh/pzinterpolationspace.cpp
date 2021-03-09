@@ -1027,15 +1027,13 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
     }
 	
 	intrule->SetOrder(maxorder);
-	
-	int nflux = material->NFluxes();
+
   uint64_t u_len{0}, du_row{0}, du_col{0};
   material->GetExactSolDimensions(u_len, du_row, du_col);
 	TPZManVector<STATE,10> u_exact(u_len);
 	TPZFNMatrix<9,STATE> du_exact(du_row,du_col);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
-	TPZManVector<STATE,9> flux_el(nflux,0.);
 	
 	TPZMaterialData data;
 	this->InitMaterialData(data);
@@ -1073,7 +1071,7 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 			}
 			else{
 				this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-				material->Errors(data.x,data.sol[0],data.dsol[0],data.axes,flux_el,u_exact,du_exact,values);
+        material->Errors(data,u_exact,du_exact,values);
 			}
         
 			for(int ier = 0; ier < NErrors; ier++)
@@ -1239,7 +1237,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 		return;
 	}
 	
-	int num_flux = material->NFluxes();
+	int num_flux = 0;//TODOREMOVEFLUX
 	int dim = Dimension();
 	int nshape = NShapeF();
 	int ncon = NConnects();

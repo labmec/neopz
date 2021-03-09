@@ -82,8 +82,6 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	
 	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes() override { return 1;}
-	
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:

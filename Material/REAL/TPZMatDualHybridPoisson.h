@@ -85,8 +85,6 @@ public:
     
     virtual int NSolutionVariables(int var) override;
     
-    virtual int NFluxes() override { return 2;}
-    
 public:
     
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;

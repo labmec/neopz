@@ -74,8 +74,6 @@ protected:
 		return this->GetNonNullMaterial()->Dimension();
 	}
 	
-	virtual int NFluxes() override { return this->GetNonNullMaterial()->NFluxes(); }
-	
 	virtual int NStateVariables() const override { return this->GetNonNullMaterial()->NStateVariables(); }
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */

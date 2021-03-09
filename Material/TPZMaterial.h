@@ -190,9 +190,6 @@ public:
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables() const = 0;
     
-    /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes() {return 0;}
-    
     /** @brief returns the number of load cases for this material object */
     int NumLoadCases()
     {

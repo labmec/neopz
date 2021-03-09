@@ -1125,13 +1125,11 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(std::function<void(const TP
     intrule->SetOrder(maxorder);
     
     int ndof = material->NStateVariables();
-    int nflux = material->NFluxes();
     TPZManVector<STATE,10> u_exact(ndof);
     TPZFNMatrix<3,STATE> du_exact(dim,ndof);
     TPZManVector<REAL,10> intpoint(/*problemdimension*/Reference()->Dimension()), values(NErrors);
     values.Fill(0.0);
     REAL weight;
-    TPZManVector<STATE,9> flux_el(nflux,0.);
     
     if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     
@@ -1249,13 +1247,11 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     intrule->SetOrder(maxorder);
     
     int ndof = material->NStateVariables();
-    int nflux = material->NFluxes();
     TPZManVector<STATE,10> u_exact(ndof);
     TPZFNMatrix<9,STATE> du_exact(3,ndof);
     TPZManVector<REAL,10> intpoint(3), values(NErrors);
     values.Fill(0.0);
     REAL weight;
-    TPZManVector<STATE,9> flux_el(nflux,0.);
     
     if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     

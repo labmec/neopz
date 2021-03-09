@@ -79,8 +79,6 @@ protected:
 	virtual int VariableIndex(const std::string &name) override ;
 	
 	virtual int NSolutionVariables(int var) override ;
-	
-	virtual int NFluxes() override { return 0;}
         
         public:
 virtual int ClassId() const override ;

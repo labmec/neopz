@@ -161,15 +161,6 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	/** 
-	 * @brief Return the number of components which form the flux function
-	 * @note Method not implemented.
-	 */
-	virtual int NFluxes()  override {
-		PZError << "\nTPZElasticity3D::NFluxes() - Method not implemented\n";
-		return 0;
-	}
-	
 	/**
 	 * @brief Compute the value of the flux function to be used by ZZ error estimator.
 	 * @note Method not implemented.

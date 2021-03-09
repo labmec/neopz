@@ -138,8 +138,6 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 	}//fim switch
 }
 
-int TPZMat2dLin::NFluxes() {return 1;}
-
 void TPZMat2dLin::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
 	PZError << "TPZMat2dLin::Flux is called\n";
 }

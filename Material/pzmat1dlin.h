@@ -72,8 +72,6 @@ class TPZMat1dLin : public TPZMaterial{
 	
 	virtual std::string Name()  override { return "TPZMat1dLin"; }
 	
-	int NFluxes() override  { return NStateVariables(); }
-	
 	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
