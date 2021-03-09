@@ -5,25 +5,124 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Mesh>
                           )
 
-file(GLOB headers *.h)
 
-file(GLOB sources *.cpp)
+set(headers
+  doxmesh.h
+  pzconnect.h
+  pzgeoelbc.h  
+  TPZCompMeshTools.h
+  TPZGeoMeshTools.h
+  pzcheckgeom.h
+  pzcreateapproxspace.h
+  pzgeoel.h
+  pzintel.h  
+  TPZGeoElement.h
+  TPZInterfaceEl.h
+  pzcheckmesh.h
+  pzelchdivbound2.h
+  pzgeoelrefless.h
+  pzinterpolationspace.h
+  TPZCompElDisc.h
+  TPZGeoElement.h.h
+  TPZMultiphysicsCompMesh.h
+  pzcheckrestraint.h
+  pzelchdiv.h
+  pzgeoelrefless.h.h
+  pzmultiphysicscompel.h
+  TPZCompElHCurlFull.h
+  tpzgeoelmapped.h
+  TPZMultiphysicsInterfaceEl.h
+  pzcmesh.h
+  pzelctemp.h
+  pzgeoelside.h
+  pzmultiphysicselement.h
+  TPZCompElHCurl.h
+  tpzgeoelrefpattern.h
+  TPZOneShapeRestraint.h
+  pzcompel.h
+  pzelementgroup.h
+  pzgmesh.h
+  pzreducedspace.h
+  TPZCompElHDivCollapsed.h
+  tpzgeoelrefpattern.h.h
+  TPZSBFemElementGroup.h
+  pzcompelwithmem.h
+  pzelmat.h
+  pzgnode.h
+  pzreferredcompel.h
+  TPZCompElLagrange.h
+  TPZGeoElSideAncestors.h
+  TPZSBFemVolume.h
+  pzcondensedcompel.h    
+  pzsubcmesh.h
+  tpzcompmeshreferred.h
+  TPZGeoElSidePartition.h
+)
 
-if(BUILD_COMPLEX_PROJECTS)
-  file (GLOB to_remove_from_headers pzhdivpressure.h pzflowcmesh.h tpzagglomeratemesh.h TPZAgglomerateEl.h TPZSBFemElementGroup.h TPZSBFemVolume.h)
-  list (REMOVE_ITEM headers ${to_remove_from_headers})
-  file (GLOB to_remove_from_sources pzflowcmesh.cpp TPZAgglomerateEl.cpp pzhdivpressure.cpp TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp )
-  list (REMOVE_ITEM sources ${to_remove_from_sources})
-endif(BUILD_COMPLEX_PROJECTS)
-
-if(NOT USING_MKL)
-  file (GLOB to_remove_from_headers TPZSBFemElementGroup.h TPZSBFemVolume.h )
-  list (REMOVE_ITEM headers ${to_remove_from_headers})
-  file (GLOB to_remove_from_sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp )
-  list (REMOVE_ITEM sources ${to_remove_from_sources})
-endif(NOT USING_MKL)
-file (GLOB to_remove_from_headers TPZSBFemElementGroup.h TPZSBFemVolume.h )
+set(sources
+  pzcheckgeom.cpp
+  pzelchdivbound2.cpp
+  pzgeoelside.cpp
+  pzreducedspace.cpp
+  TPZCompElHCurlFull.cpp
+  TPZGeoElSidePartition.cpp
+  pzcheckmesh.cpp
+  pzelchdiv.cpp
+  pzgmesh.cpp
+  pzreferredcompel.cpp
+  TPZCompElHDivCollapsed.cpp
+  TPZGeoMeshTools.cpp
+  pzcheckrestraint.cpp
+  pzelctemp.cpp
+  pzgnode.cpp
+  pzstackmesh.cpp
+  TPZCompElLagrange.cpp
+  TPZInterfaceEl.cpp
+  pzcmesh.cpp
+  pzelementgroup.cpp  
+  pzsubcmesh.cpp
+  tpzcompmeshreferred.cpp
+  TPZMultiphysicsCompMesh.cpp
+  pzcompel.cpp
+  pzelmat.cpp  
+  pzvecmesh.cpp
+  TPZCompMeshTools.cpp
+  TPZMultiphysicsInterfaceEl.cpp
+  pzcompelwithmem.cpp  
+  pzintel.cpp  
+  TPZGeoElement.cpp
+  TPZOneShapeRestraint.cpp
+  pzcondensedcompel.cpp
+  pzgeoelbc.cpp
+  pzinterpolationspace.cpp
+  TPZAgglomerateMesh.cpp
+  tpzgeoelmapped.cpp
+  TPZSBFemElementGroup.cpp
+  pzconnect.cpp
+  pzgeoel.cpp
+  pzmultiphysicscompel.cpp
+  TPZCompElDisc.cpp
+  tpzgeoelrefpattern.cpp
+  TPZSBFemVolume.cpp
+  pzcreateapproxspace.cpp
+  pzgeoelrefless.cpp
+  pzmultiphysicselement.cpp
+  TPZCompElHCurl.cpp
+  TPZGeoElSideAncestors.cpp
+)
+if(NOT BUILD_COMPLEX_PROJETS)
+  list(APPEND headers pzflowcmesh.h pzhdivpressure.h 
+    pzhdivpressurebound.h tpzagglomeratemesh.h TPZAgglomerateEl.h)
+  list(APPEND sources pzflowcmesh.cpp pzhdivpressure.cpp
+    pzhdivpressurebound.cpp TPZAgglomerateEl.cpp)
+  
+  if(USING_MKL)
+    list(APPEND headers TPZSBFemElementGroup.h TPZSBFemVolume.h)
+    list(APPEND sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp)
+  endif()
+endif()
+  
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Mesh)
 
-set(pzmesh_STAT_SRCS ${headers} ${sources} ${pzmesh_REAL_SRCS} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
 
