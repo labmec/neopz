@@ -561,13 +561,6 @@ public:
     
     /** @brief To return a numerical flux type to apply over the interfaces of the elements */
     virtual int FluxType() { return 2; }
-	
-    virtual void ContributeErrors(TPZMaterialData &data,
-                                  REAL weight,
-                                  TPZVec<REAL> &nk,
-                                  int &errorid){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
-    }
     
     /**
      * @brief Computes square of residual of the differential equation at one integration point.
