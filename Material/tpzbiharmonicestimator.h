@@ -47,7 +47,7 @@ private:
 	virtual void ContributeErrors(TPZMaterialData &data,
 								  REAL weight,
 								  TPZVec<REAL> &nk,
-								  int &errorid) override
+								  int &errorid)
 	{
 		if (errorid == 0) this->ContributeErrorsDual(data,weight,nk);
 		if (errorid == 2) this->ContributeErrorsSimple(data,weight,nk);
