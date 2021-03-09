@@ -6,7 +6,6 @@ target_include_directories(pz PUBLIC
                           )
 
 set(headers fadType.h)
-#set(sources benchadolc.cc  benchfad.cc  benchtinyfad.cc  error.cc  simple.cc)
 
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD)
 
