@@ -71,9 +71,6 @@ class ElasticMatInterface2D  : public TPZElasticityMaterial {
 //	/** @brief Returns the number of components which form the flux function */
 //	virtual short NumberOfFluxes(){return 3;}
 //	
-//	/** @brief Returns the number of components which form the flux function */
-//	virtual int NFluxes(){ return 3;}
-//	
 //	/** @name Contribute methods */
 //	/** @{ */
 //	

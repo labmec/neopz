@@ -62,8 +62,6 @@ class TPZMatHybrid : public TPZMaterial {
 	virtual int VariableIndex(const std::string &name) override;
 	
 	virtual int NSolutionVariables(int var) override;
-	
-	virtual int NFluxes() override { return 3;}
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:

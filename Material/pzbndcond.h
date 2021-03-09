@@ -237,9 +237,7 @@ protected:
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	
 	/** @brief Returns the integrable dimension of the material*/
-	int Dimension() const override { return fMaterial->Dimension(); }
-	
-	virtual int NFluxes() override { return fMaterial->NFluxes(); }
+	int Dimension() const override { return fMaterial->Dimension(); }	
 	
 	virtual int NStateVariables() const override { return fMaterial->NStateVariables(); }
 	

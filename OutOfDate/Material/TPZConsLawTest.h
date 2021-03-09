@@ -85,9 +85,7 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	
 	virtual int VariableIndex(const std::string &name);
 	
-	virtual int NSolutionVariables(int var);
-	
-	virtual int NFluxes(){ return 1;}
+	virtual int NSolutionVariables(int var);	
 	
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);

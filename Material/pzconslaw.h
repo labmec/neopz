@@ -158,9 +158,6 @@ public:
 	
 	virtual int NSolutionVariables(int var) override = 0;
 	
-	/** @brief Returns the number of fluxes associated to this material */
-	virtual int NFluxes() override;
-	
 	/** @} */
 	
 	/** @name Solutions
@@ -308,10 +305,6 @@ inline REAL TPZConservationLaw::TimeStep()
 {
 	if(fResidualType == Residual_RT)return fTimeStep;
 	return 1.;
-}
-inline int TPZConservationLaw::NFluxes()
-{
-	return 1;
 }
 
 inline void TPZConservationLaw::SetContributionTime(TPZContributeTime time)

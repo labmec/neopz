@@ -98,9 +98,6 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Return the number of components which form the flux function */
 	virtual short NumberOfFluxes(){return 3;}
 	
-	/** @brief Return the number of components which form the flux function */
-	virtual int NFluxes() override { return 3;}
-	
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	

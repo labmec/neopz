@@ -275,8 +275,6 @@ public:
 	
 	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes() override { return 3;}
-	
 protected:
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override {
         TPZDiscontinuousGalerkin::Solution(datavec,var,Solout);

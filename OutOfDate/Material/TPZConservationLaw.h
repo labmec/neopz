@@ -98,8 +98,6 @@ class TPZConservationLawDEP  : public TPZMaterial {
 	
 	virtual int NSolutionVariables(int var);
 	
-	virtual int NFluxes(){ return 1;}
-	
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:

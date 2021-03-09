@@ -65,8 +65,6 @@ class TPZPlaca : public TPZMaterial{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual int NFluxes() override;
-	
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl) override;
 	
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,

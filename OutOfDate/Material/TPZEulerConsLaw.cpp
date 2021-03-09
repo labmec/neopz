@@ -55,7 +55,6 @@ void TPZEulerConsLawDEP::Print(std::ostream &out) {
 	out << "Difusao artificial : " << fArtificialDiffusion << endl;
 	out << "Dimensao do problema : " << Dimension() << endl;
 	out << "Numero de variaveis de estado : " << NStateVariables() << endl;
-	out << "Numero de fluxos : " << NFluxes() << endl;
 	
 	TPZMaterial::Print(out);
 }

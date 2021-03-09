@@ -107,7 +107,6 @@ void TPZEulerConsLaw::Print(std::ostream &out) {
 	out << "Artificial Diffusion: " <<
 	fArtDiff.DiffusionName().Str() << std::endl;
 	out << "Number of State Variables: " << NStateVariables() << std::endl;
-	out << "Number of Fluxes: " << NFluxes() << std::endl;
 	
 	switch(fDiff)
 	{
@@ -206,11 +205,6 @@ REAL TPZEulerConsLaw::Det(TPZFMatrix<REAL> & Mat)
 	}
 	
 	return 0.;
-}
-
-int TPZEulerConsLaw::NFluxes()
-{
-	return Dimension();
 }
 
 //-----------------Solutions

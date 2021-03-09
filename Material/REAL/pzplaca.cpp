@@ -268,8 +268,6 @@ void TPZPlaca::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-int TPZPlaca::NFluxes() {return 1;}
-
 void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
 	PZError << "TPZPlaca::Flux is called\n";
 }

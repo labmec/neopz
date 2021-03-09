@@ -185,11 +185,6 @@ public:
         return 3;
     }
 
-    /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes()  override {
-        return 3;
-    }
-
     /** @name Contribute methods */
     /** @{ */
 

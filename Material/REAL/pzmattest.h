@@ -75,8 +75,6 @@ class TPZMaterialTest : public TPZMaterial {
 	
 	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes() override { return 2;}
-	
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
 public:

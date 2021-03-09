@@ -70,9 +70,6 @@ public:
         fNState = nstate;
     }
     
-    /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes()  override {return 0;}
-    
 	
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout) override;

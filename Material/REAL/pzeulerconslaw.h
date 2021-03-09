@@ -118,8 +118,6 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	
 	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes() override;
-	
 	
 	/** @name Solutions methods */
 	/** @{ */
