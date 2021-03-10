@@ -3,34 +3,20 @@
 cmake_minimum_required (VERSION 3.13.0)
 
 #disable excessive warning messages by Microsoft VC compiler
-set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
-
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING  INTERNAL FORCE )
+#set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
 
 project(PZ LANGUAGES CXX)
-
-#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-#this allow us to define custom FindXXX.cmake modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-if (WIN32)
-	if (NOT CMAKE_GENERATOR MATCHES "Ninja")
-    set(CMAKE_INSTALL_PREFIX "C:/Program Files/PZ" CACHE PATH "Installation path, prepended onto install directories." FORCE) 
-	endif()
-else (WIN32)
-  if ( NOT APPLE AND NOT CMAKE_BUILD_TYPE )
-		set (CMAKE_BUILD_TYPE Release CACHE STRING "Options: Release Debug None MinSizeRel RelWithDebInfo" FORCE) 
-	endif()
-endif()
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#this allow us to define custom FindXXX.cmake modules
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+# Definition of build type and REAL and STATE types
+include(cmake/StandardPZSettings.cmake)
 
 ##TODOWIN32: should this change when on WIN32?
 set(PZ_LIB_TYPE SHARED)
-
-
 add_library(pz ${PZ_LIB_TYPE} "")
 
 ##TODOWIN32: check whether these distinctions are really necessary
@@ -238,49 +224,6 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
 
-#To select type of REAL
-set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
-set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
-
-if (REAL_TYPE STREQUAL "double")
-  set(REAL_TYPE_DEF "REALdouble")
-elseif (REAL_TYPE STREQUAL "float")
-  set(REAL_TYPE_DEF "REALfloat")
-elseif (REAL_TYPE STREQUAL "long double")
-  set(REAL_TYPE_DEF "REALlongdouble")
-elseif (REAL_TYPE STREQUAL "pzfpcounter")
-  set(REAL_TYPE_DEF "REALpzfpcounter")
-else()
-  message (FATAL_ERROR "ERROR: Please specify a valid type for REAL. ${REALTypesAre}")
-endif()
-message (STATUS "Using REAL type = ${REAL_TYPE}")
-
-#To select type of STATE
-set(STATETypesAre "Types are: double, float, long double, complex<float>, complex<double>, complex<long double>")
-set(STATE_TYPE "double" CACHE STRING "${STATETypesAre}")
-
-if (STATE_TYPE STREQUAL "double")
-  set(STATE_TYPE_DEF "STATEdouble")
-elseif (STATE_TYPE STREQUAL "float")
-  set(STATE_TYPE_DEF "STATEfloat")
-elseif (STATE_TYPE STREQUAL "long double")
-  set(STATE_TYPE_DEF "STATElongdouble")
-elseif (STATE_TYPE STREQUAL "complex<float>")
-  set(STATE_TYPE_DEF "STATEcomplexf")
-  set(STATE_COMPLEX "STATE_COMPLEX")
-  set (BUILD_COMPLEX_PROJECTS ON)
-elseif (STATE_TYPE STREQUAL "complex<double>")
-  set(STATE_TYPE_DEF "STATEcomplexd")
-  set(STATE_COMPLEX "STATE_COMPLEX")
-  set (BUILD_COMPLEX_PROJECTS ON)
-elseif (STATE_TYPE STREQUAL "complex<long double>")
-  set(STATE_TYPE_DEF "STATEcomplexld")
-  set(STATE_COMPLEX "STATE_COMPLEX")
-  set (BUILD_COMPLEX_PROJECTS ON)
-else()
-  message (FATAL_ERROR "ERROR: Please specify a valid type for STATE. ${STATETypesAre}")
-endif()
-message (STATUS "Using STATE type = ${STATE_TYPE}")
 
 # Some definitions for windows
 if(WIN32)
