@@ -216,18 +216,6 @@ endif(USING_BLAZE)
 #the following include is for making it easier to create pz targets
 include(cmake/add_pz_target.cmake)
 
-
-#To enable Python bindings
-option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
-if (BUILD_PYTHON_BINDING)
-  find_package(SWIG "2.0")
-  find_package(PythonLibs)
-  if (NOT SWIG_FOUND OR NOT PYTHONLIBS_FOUND)
-    message(WARNING "SWIG 2 and Python headers required for building Python API bindings. You can set proper SWIG executable with argument -DSWIG_EXECUTABLE=/path/to/swig2.0")
-    set(BUILD_PYTHON_BINDING OFF)
-  endif()
-endif()
-
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
 if(BUILD_TUTORIAL)
@@ -385,9 +373,6 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     if(BUILD_PERF_TESTS)
         add_subdirectory(PerfTests)
     endif()
-    if (BUILD_PYTHON_BINDING)
-        add_subdirectory(Python)
-    endif()
 endif()
 
 add_subdirectory(PerfUtil)
@@ -479,7 +464,6 @@ configure_file(PZConfig.cmake.in
   
 # ... for the install tree
 set(CONF_INCLUDE_DIRS "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}"
-	"/${REL_INCLUDE_DIR}/Python"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Util"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/PerfUtil"
 	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Common"
