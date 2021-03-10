@@ -314,10 +314,6 @@ private:
                                   const TPZSkylMatrix<TVar> &second, 
                                   TPZVec<int64_t> &res);
     
-    void MigratePages() {
-        fElem.MigratePages();
-        fStorage.MigratePages();
-    }
     
     void ReallocForNuma() {
         fElem.ReallocForNuma();
@@ -595,10 +591,6 @@ private:
 	 */
 	static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, const TPZSkylMatrix<TVar> &second, TPZVec<int64_t> &res);
 	
-	void MigratePages() {
-        fElem.MigratePages();
-        fStorage.MigratePages();
-	}
     
 	void ReallocForNuma() {
         fElem.ReallocForNuma();
