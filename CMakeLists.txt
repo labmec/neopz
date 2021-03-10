@@ -44,19 +44,13 @@ set(PZSOURCEDIR ${PROJECT_SOURCE_DIR})
 #specify where the refinement patterns can be found (default behaviour when running the code)
 set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
 
-##TODO: need to refactor this following section
-##maybe this could be useful https://stackoverflow.com/questions/23995019/what-is-the-modern-method-for-setting-general-compile-flags-in-cmake/23995391
-#Defining variables
-#To cmake
-string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
-if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
-endif()
 
-string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
-if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
-endif()
+# if target_compile_options should be used in the following section,
+# then maybe this could be useful:
+# https://stackoverflow.com/questions/23995019/what-is-the-modern-method-for-setting-general-compile-flags-in-cmake/23995391
+target_compile_definitions(pz PRIVATE
+  "$<$<CONFIG:RELEASE>:NODEBUG ZERO_INTERNAL_RESIDU MAKEINTERNAL>"
+  "$<$<CONFIG:DEBUG>:PZDEBUG>")
 
 # Location to search files or libraries
 set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
