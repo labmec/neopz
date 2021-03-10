@@ -13,6 +13,7 @@
 #include "TPZVTKGeoMesh.h"
 
 #include "pzbstrmatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzintel.h"
 #include "pzcompel.h"
 #include "pzcheckmesh.h"
@@ -26,8 +27,6 @@
 #include "pzstepsolver.h"
 
 #include "TPZRefPatternTools.h"
-
-#include "TPZParSkylineStructMatrix.h"
 
 #include <stdio.h>
 

@@ -22,6 +22,7 @@
 #include "pzstepsolver.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "pzcmesh.h"
 
 #include "GPUMatrix.h"
 

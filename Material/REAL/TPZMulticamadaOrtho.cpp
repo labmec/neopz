@@ -8,6 +8,7 @@
 #include "pzmatorthotropic.h"
 
 #include "pzgmesh.h"
+#include "pzcmesh.h"
 #include "pzgeoel.h"
 #include "pzgeoelbc.h"
 #include "pzintel.h"

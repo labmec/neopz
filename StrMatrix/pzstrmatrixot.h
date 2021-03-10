@@ -1,6 +1,8 @@
 /**
  * @file
- * @brief Contains the TPZStructMatrixOT class which responsible for a interface among Matrix and Finite Element classes.
+ * @brief Contains the TPZStructMatrixOT class which is a TPZStructMatrixBase using graph coloring to define the order
+to process the elements and each color is processed and 
+synchronized.
  */
 
 #ifndef TPZStructMatrixOT_H
@@ -9,6 +11,8 @@
 #include <set>
 #include <map>
 #include <semaphore.h>
+#include <mutex>
+#include <condition_variable>
 #include "pzvec.h"
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
@@ -22,10 +26,6 @@
 class TPZStructMatrixOT;
 #include "TPZStructMatrixBase.h"
 
-//#ifdef USING_TBB
-//#include "tbb/tbb.h"
-//#include "tbb/task_group.h"
-//#endif
 
 #ifdef USING_BOOST
 #include <boost/atomic.hpp>
@@ -52,8 +52,7 @@ public:
     TPZStructMatrixOT(TPZAutoPointer<TPZCompMesh> cmesh);
     
     TPZStructMatrixOT(const TPZStructMatrixOT &copy);
-    
-    virtual ~TPZStructMatrixOT(){};
+    virtual ~TPZStructMatrixOT() = default;
         
     virtual TPZMatrix<STATE> * Create() override;
     
@@ -102,13 +101,7 @@ public:
     static void OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder);
     
     /** @brief Create blocks of elements to parallel processing */
-    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);
-    
-    /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const override;
-    
-    /** @brief Set the set of material ids which will be considered when assembling the system */
-    void SetMaterialIds(const std::set<int> &materialids) override;
+    static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);    
     
     /** @brief Establish whether the element should be computed */
     bool ShouldCompute(int matid) const override
@@ -131,8 +124,6 @@ protected:
         ThreadData(TPZStructMatrixOT *strmat,int seqnum, TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
         ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
-        /** @brief Destructor: Destroy the mutex semaphores and others */
-        ~ThreadData();
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief The function which will compute the assembly */
@@ -160,9 +151,8 @@ protected:
         /** @brief vector indicating whether an element has been computed */
         TPZVec<int64_t> *fComputedElements;
         /** @brief Mutexes (to choose which element is next) */
-        pthread_mutex_t *fAccessElement;
-        
-        pthread_cond_t *fCondition;
+        std::mutex fMutexAccessElement;
+        std::condition_variable fConditionVar;
         
         int *fSomeoneIsSleeping;
         
@@ -174,19 +164,6 @@ protected:
         
         static void *ThreadWorkResidual(void *datavoid);
     };
-    
-//#ifdef USING_TBB
-//    struct WorkResidualTBB {
-//        
-//        int fElem;
-//        ThreadData *data;
-//        
-//        WorkResidualTBB(int elem, ThreadData *data);
-//        void operator()();
-//    
-//    };
-//    
-//#endif
     friend struct ThreadData;
 protected:
     
@@ -205,12 +182,6 @@ protected:
 #ifdef USING_BOOST
     boost::atomic<int64_t> fCurrentIndex;
 #endif
-
-    
-    /** @brief Mutexes (to choose which element is next) */
-    pthread_mutex_t fAccessElement;
-    
-    pthread_cond_t fCondition;
 };
 
 #endif

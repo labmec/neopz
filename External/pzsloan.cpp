@@ -3,12 +3,11 @@
  * @brief Contains the implementation of the TPZSloan methods. 
  */
 
+#include <fstream>
+#include <mutex>
 #include "pzsloan.h"
 #include "math.h"
-#include <fstream>
 using namespace std;
-
-#include "pz_pthread.h"
 
 TPZSloan::TPZSloan(int NElements, int NNodes) : TPZRenumbering(NElements,NNodes)
 {
@@ -82,14 +81,14 @@ void TPZSloan::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm)
 		cout << endl;
 	}
 #endif
-  static pthread_mutex_t Lock_clindex = PTHREAD_MUTEX_INITIALIZER;
-	PZ_PTHREAD_MUTEX_LOCK(&Lock_clindex,"TPZSloan::Resequence()");
+  static std::mutex mutex_clindex;
+  std::unique_lock<std::mutex> lck(mutex_clindex);
 //	int elementgraph_int = (int)elementgraph[1];
 //	TPZVec<int> elementgraphindex_int = ((TPZVec<int>)elementgraphindex);
 	gegra_(&fNNodes, &fNElements, &inpn, &elementgraph[1], &elementgraphindex[1], &iadj, &adj[0], &xadj[0], &nop);
 //	elementgraph[1] = elementgraph_int;
 //	elementgraphindex[1] = elementgraphindex_int;
-	PZ_PTHREAD_MUTEX_UNLOCK(&Lock_clindex,"TPZSloan::Resequence()");
+  lck.unlock();
 	//gegra_(&fNNodes, &fNElements, &inpn, npn, xnpn, &iadj, adj, xadj, &nop);
 #ifdef SLOANDEBUG
 	cout << "node index vector ";
@@ -125,10 +124,10 @@ void TPZSloan::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm)
 	int64_t old_profile=0;
 	int64_t new_profile=0;
 	perm.Resize(fNNodes+1);
-
-	PZ_PTHREAD_MUTEX_LOCK(&Lock_clindex,"TPZSloan::Resequence()");
+  
+  lck.lock();
   label_(&fNNodes , &e2, &adj[0], &xadj[0], &perm[1], &iw[1], &old_profile, &new_profile);
-	PZ_PTHREAD_MUTEX_UNLOCK(&Lock_clindex,"TPZSloan::Resequence()");
+  lck.unlock();
 
 	//label_(&fNNodes , &e2, adj, xadj, NowPerm, iw, &old_profile, &new_profile);
 	//cout << __PRETTY_FUNCTION__ << " oldprofile " << old_profile << " newprofile " << new_profile << endl;
@@ -139,4 +138,3 @@ void TPZSloan::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm)
 	iperm.Resize(perm.NElements());
 	for(i=0;i<perm.NElements();i++) iperm[perm[i]]=i;
 }
-

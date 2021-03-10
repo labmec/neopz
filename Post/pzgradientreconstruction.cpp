@@ -7,6 +7,7 @@
 //
 #ifndef STATE_COMPLEX //AQUIFRAN
 #include "pzgradientreconstruction.h"
+#include "pzelmat.h"
 #include "pzgradient.h"
 #include "tpzintpoints.h"
 #include "pzmultiphysicselement.h"

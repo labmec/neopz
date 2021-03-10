@@ -1,6 +1,7 @@
 
 #include "TPZSkylineNSymStructMatrix.h"
 #include "pzskylnsymmat.h"
+#include "pzcmesh.h"
 
 TPZSkylineNSymStructMatrix::TPZSkylineNSymStructMatrix(TPZCompMesh *cmesh)
                            : TPZSkylineStructMatrix(cmesh)

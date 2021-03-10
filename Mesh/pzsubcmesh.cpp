@@ -15,7 +15,6 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
-#include "TPZParSkylineStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "TPZFrontStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
@@ -596,10 +595,10 @@ TPZCompMesh * TPZSubCompMesh::RootMesh(int64_t local){
 }
 
 /**
- * Este m�todo deve estar errado. Primeiro tem que por os connects que tem dependencias
- * caso contrario n�s com dependencias serao duplicados
+ * Este metodo deve estar errado. Primeiro tem que por os connects que tem dependencias
+ * caso contrario nos com dependencias serao duplicados
  *
- * talvez primeiro copiar a estrutura dos n�s dependentes e DEPOIS tir� los da malha pai
+ * talvez primeiro copiar a estrutura dos nos dependentes e DEPOIS tira los da malha pai
  */
 void TPZSubCompMesh::MakeAllInternal(){
 	//	TPZStack<int> stack;
@@ -1733,7 +1732,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
-	LOGPZ_DEBUG(logger, "Permuting")
+	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Permuting")
 	Permute(permute);
 }
 

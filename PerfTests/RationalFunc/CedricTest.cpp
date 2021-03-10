@@ -21,7 +21,6 @@
 
 #include "TPZRefPatternTools.h"
 
-#include "TPZParSkylineStructMatrix.h"
 #include "TPZParFrontStructMatrix.h"
 
 #include "pzelementgroup.h"
@@ -172,7 +171,7 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
     
     analysis.Solution() = cmesh->Solution();
     
-    analysis.PostProcessError(errvec,std::cout);
+    analysis.PostProcessError(errvec);
     
 	// printing error
     out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
@@ -359,7 +358,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     UnwrapElements(cmesh);
 #endif
     
-    analysis.PostProcessError(errvec,std::cout);
+    analysis.PostProcessError(errvec);
     
     out << " ErrH1 " << errvec[0] << " ErrL2 " << errvec[1] << " ErrH1Semi " << errvec[2];
 

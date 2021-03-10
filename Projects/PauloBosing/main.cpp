@@ -29,7 +29,7 @@
 #include "pzbndcond.h"
 #include "pzanalysis.h"
 
-#include "TPZParSkylineStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzstrmatrix.h"
 #include "TPZFrontNonSym.h"

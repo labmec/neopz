@@ -12,14 +12,17 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "pzbfilestream.h" // TPZBFileStream, TPZFileStream
+#include "TPZFileStream.h"
+#include "TPZBFileStream.h" // TPZBFileStream, TPZFileStream
 #include "pzmd5stream.h"
 
 #include "pzlog.h"
 
 #include <fstream>
 #include <string>
-
+#include <mutex>
+#include <thread>
+#include <condition_variable>
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));
@@ -287,8 +290,6 @@ break
     }
 }
 
-#include <pthread.h>
-
 class thread_timer_t
 {
 public:
@@ -315,10 +316,10 @@ int nthreads_initialized;
 int nthreads;
 bool wait_for_all_init;
 std::vector<thread_timer_t> thread_timer;
-pthread_cond_t  cond=PTHREAD_COND_INITIALIZER;
-pthread_cond_t  main_cond=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t glob_mutex=PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t main_mutex=PTHREAD_MUTEX_INITIALIZER;
+std::condition_variable cond;
+std::condition_variable  main_cond;
+std::mutex glob_mutex;
+std::mutex main_mutex;
 bool run_parallel;
 
 class synchronized_threads_t
@@ -341,17 +342,17 @@ public:
     struct thread_arg_t
     {
         thread_arg_t(int t,void (*ir)(int), void (*pr)(int),
-                     pthread_mutex_t* mt, pthread_cond_t* cd,
-                     pthread_cond_t* mcd) :
+                     std::mutex* mt, std::condition_variable* cd,
+                     std::condition_variable* mcd) :
         tid(t), init_routine(ir), parallel_routine(pr),
         glob_mutex(mt), cond(cd), main_cond(mcd)
         {}
         int tid;
         void (*init_routine)(int);
         void (*parallel_routine)(int);
-        pthread_mutex_t* glob_mutex;
-        pthread_cond_t* cond;
-        pthread_cond_t* main_cond;
+        std::mutex* glob_mutex;
+        std::condition_variable* cond;
+        std::condition_variable* main_cond;
     };
     
 private:
@@ -360,7 +361,7 @@ private:
     void (*init_routine)(int);
     /** Parallel routine. Called before the cond mutex. */
     void (*parallel_routine)(int);
-    std::vector<pthread_t> threads;
+    std::vector<std::thread> threads;
     
 };
 
@@ -370,8 +371,7 @@ void *threadfunc(void *parm)
     (synchronized_threads_t::thread_arg_t*) parm;
     
     int tid = args->tid;
-    
-    pthread_mutex_lock(args->glob_mutex);
+    std::unique_lock<std::mutex> lck_global(*(args->glob_mutex));
     if (args->init_routine) {
 #ifdef _GNU_SOURCE
         VERBOSE(1,"Thread " << tid << " calling init routine on CPU "
@@ -383,19 +383,18 @@ void *threadfunc(void *parm)
     if (nthreads_initialized == nthreads) {
         wait_for_all_init = false;
         /* Release main thread */
-        pthread_cond_signal(args->main_cond);
+        args->main_cond->notify_one();
     }
     
     /* Wait for main to sync */
     while (!run_parallel) {
-        pthread_cond_wait(args->cond, args->glob_mutex);
+      args->cond->wait(lck_global);
     }
 #ifdef _GNU_SOURCE
     VERBOSE(1,"Thread " << tid << " calling parallel routine on CPU "
             << (int) sched_getcpu() << endl);
 #endif
-    
-    pthread_mutex_unlock(args->glob_mutex);
+    lck_global.unlock();
     
     thread_timer[tid].start();
     
@@ -415,37 +414,38 @@ synchronized_threads_t::execute_n_threads(unsigned n,
 {
     nthreads = n;
     nthreads_initialized = 0;
-    threads.resize(nthreads);
     thread_timer.resize(nthreads);
     
     for (int i=0; i<nthreads; i++) {
         synchronized_threads_t::thread_arg_t arg(i,init_routine,parallel_routine,
                                                  &glob_mutex, &cond, &main_cond);
-        PZ_PTHREAD_CREATE(&threads[i],NULL,threadfunc,(void*) &i, __FUNCTION__);
+        threads.push_back(std::thread(threadfunc,&i));
     }
     
     /* Wait for all to be initialized */
-    pthread_mutex_lock(&main_mutex);
+    
+    
+    std::unique_lock<std::mutex> lck_main(main_mutex);
     while (wait_for_all_init) {
-        pthread_cond_wait(&main_cond, &main_mutex);
+      main_cond.wait(lck_main);
     }
-    pthread_mutex_unlock(&main_mutex);
+    lck_main.unlock();
     
     /* Signall all to start together. */
     total_rst.start();
     run_parallel = true;
-    pthread_cond_broadcast(&cond);
+    cond.notify_all();
     
     /* Wait for all to finish. */
     for (unsigned i=0; i<nthreads; i++) {
-        PZ_PTHREAD_JOIN(threads[i], NULL, __FUNCTION__);
+      threads[i].join();
     }
     total_rst.stop();
     
     if (verbose >= 2) {
         printf("%7s,%10s,%10s,%10s\n", "thread", "elapsed", "start", "stop");
         for (unsigned i=0; i<nthreads; i++) {
-            printf("%7d,%10lld,%10lld,%10lld\n", i,
+            printf("%7d,%10lud,%10lud,%10lud\n", i,
                    thread_timer[i].get_elapsed(),
                    thread_timer[i].get_start(),
                    thread_timer[i].get_stop());

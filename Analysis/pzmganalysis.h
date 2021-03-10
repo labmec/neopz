@@ -8,6 +8,7 @@
 
 #include "pzanalysis.h"
 #include "pztransfer.h"
+#include "pztrnsform.h" //needed because of default templ params
 
 class TPZInterpolatedElement;
 template<class T>

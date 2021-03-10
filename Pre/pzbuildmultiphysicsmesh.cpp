@@ -330,7 +330,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
     
     
     // copy the solution of the submesh to father mesh
-    if(0)
+    if(1)
     {
         TPZSubCompMesh *msub = dynamic_cast<TPZSubCompMesh*>(MFMesh);
         if(msub){
@@ -361,12 +361,11 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
                     STATE valsub = blocksub.Get(seqnumsub, idf,0);
                     fathermesh->Solution()(posfather + idf) = valsub;
                 }
-                
-                
             }
             
         }
     }
+    
     int64_t nel = MFMesh->NElements();
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = MFMesh->Element(el);
@@ -901,6 +900,56 @@ static void FillAtomic(TPZMultiphysicsElement *mphys, TPZVec<atomic_index> &inde
     if(count != ncon) DebugStop();
 }
 
+static void FillAtomic(TPZMultiphysicsInterfaceElement *intface, TPZVec<atomic_index> &indexes)
+{
+    int ncon = intface->NConnects();
+    TPZCompElSide leftside, rightside;
+    intface->GetLeftRightElement(leftside, rightside);
+    TPZManVector<int64_t> leftindices, rightindices;
+    intface->GetLeftRightElementIndices(leftindices, rightindices);
+    TPZCompEl *left = leftside.Element();
+    TPZMultiphysicsElement *mphysleft = dynamic_cast<TPZMultiphysicsElement *>(left);
+    if(!mphysleft) DebugStop();
+    TPZCompEl *right = rightside.Element();
+    TPZMultiphysicsElement *mphysright = dynamic_cast<TPZMultiphysicsElement *>(right);
+    if(!mphysright) DebugStop();
+
+    int count = 0;
+    for(int64_t i = 0; i<leftindices.size(); i++)
+    {
+        int64_t imesh = leftindices[i];
+        TPZCompEl *cel = mphysleft->Element(imesh);
+        if(!cel) continue;
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        int nside_connects = intel->NSideConnects(leftside.Side());
+        for(int ic=0; ic<nside_connects; ic++)
+        {
+            int64_t atomic_conindex = intel->SideConnectIndex(ic, leftside.Side());
+            int64_t mphys_index = intface->ConnectIndex(count);
+            indexes[mphys_index] = atomic_index(cel->Mesh(),atomic_conindex);
+            count++;
+        }
+    }
+    for(int64_t i = 0; i<rightindices.size(); i++)
+    {
+        int64_t imesh = rightindices[i];
+        TPZCompEl *cel = mphysright->Element(imesh);
+        if(!cel) continue;
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        int nside_connects = intel->NSideConnects(rightside.Side());
+        for(int ic=0; ic<nside_connects; ic++)
+        {
+            int64_t atomic_conindex = intel->SideConnectIndex(ic, rightside.Side());
+            int64_t mphys_index = intface->ConnectIndex(count);
+            indexes[mphys_index] = atomic_index(cel->Mesh(),atomic_conindex);
+            count++;
+        }
+    }
+#ifdef PZDEBUG
+    if(count != intface->NConnects()) DebugStop();
+#endif
+}
+
 static void FillAtomic(TPZElementGroup *elgr, TPZVec<atomic_index> &indexes)
 {
     TPZVec<TPZCompEl *> elvec = elgr->GetElGroup();
@@ -921,6 +970,7 @@ static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
     TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
     TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
     TPZCondensedCompEl *condense = dynamic_cast<TPZCondensedCompEl *>(cel);
+    TPZMultiphysicsInterfaceElement *intface = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
     if(mphys)
     {
         FillAtomic(mphys, indexes);
@@ -932,6 +982,10 @@ static void FillAtomic(TPZCompEl *cel, TPZVec<atomic_index> &indexes)
     if(condense)
     {
         FillAtomic(condense, indexes);
+    }
+    if(intface)
+    {
+        FillAtomic(intface, indexes);
     }
 }
 
@@ -952,4 +1006,17 @@ void TPZBuildMultiphysicsMesh::ComputeAtomicIndexes(TPZCompMesh *mesh, TPZVec<at
             FillAtomic(cel, indexes);
         }
     }
+#ifdef PZDEBUG
+    {
+        int notfound = 0;
+        for (int64_t i=0; i<indexes.size(); i++) {
+            if(mesh->ConnectVec()[i].SequenceNumber() < 0) continue;
+            if(indexes[i].first == 0) notfound++;
+        }
+        if(notfound)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " number of missing connects " << notfound << std::endl;
+        }
+    }
+#endif
 }

@@ -18,6 +18,7 @@
 #include "TPZMatElastoPlastic2D.h"
 
 #include "pznlfluidstructureData.h"
+#include "pzcmesh.h"
 
 #include <iostream>
 

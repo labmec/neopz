@@ -36,7 +36,7 @@
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "TPZSkylineNSymStructMatrix.h"
-#include "TPZParSkylineStructMatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZGeoLinear.h"
 #include "tpzgeoelrefpattern.h"

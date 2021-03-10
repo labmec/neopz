@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <fstream>
 #include "tpzeqnarray.h"
-#include "TPZThreadTools.h"
 
 using namespace std;
 
@@ -274,7 +273,7 @@ void TPZFrontSym<TVar>::TensorProductIJ(int ithread,typename TPZFront<TVar>::STe
   if(matrix != this) DebugStop();
 #endif
   while(data->fRunning){
-    tht::SemaphoreWait(data->fWorkSem[ ithread ]);
+    data->fWorkSem[ithread].Wait();
     if(!data->fRunning) break;
     const int n = data->fAuxVecCol->NElements();
     const int Nthreads = data->NThreads();

@@ -23,6 +23,7 @@
 #include "pztrnsform.h"
 #include "pzintel.h"
 #include "pzfstrmatrix.h"
+#include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 
 #include "pzmultiphysicselement.h"
@@ -34,7 +35,6 @@
 #include "TPZExtendGridDimension.h"
 
 #include "pzanalysis.h"
-#include "TPZParSkylineStructMatrix.h"
 
 #include "pzlog.h"
 

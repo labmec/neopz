@@ -1,27 +1,20 @@
 /**
  * @file
- * @brief Contains the TPZStructMatrixOR class which responsible for a interface among Matrix and Finite Element classes.
+ * @brief Contains the TPZStructMatrixOR class which is a TPZStructMatrix using threads and mutexes without mesh coloring for parallelization.
  */
 
 #ifndef TPZStructMatrixOR_H
 #define TPZStructMatrixOR_H
 
-#include <set>
-#include <map>
-#include <semaphore.h>
-#include "pzvec.h"
-#include "tpzautopointer.h"
-#include "pzcmesh.h"
-#include "pzelmat.h"
-#include "TPZSemaphore.h"
-#include "TPZEquationFilter.h"
-#include "TPZGuiInterface.h"
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
+
+#include <mutex>
 
 class TPZStructMatrixOR;
 #include "TPZStructMatrixBase.h"
+#include "TPZSemaphore.h"
 
+//forward declarations
+class TPZElementMatrix;
 /**
  * @brief Refines geometrical mesh (all the elements) num times
  * @ingroup geometry
@@ -74,23 +67,29 @@ protected:
         /** @brief  Current element */
         int64_t fNextElement;
         /** @brief Mutexes (to choose which element is next) */
-        pthread_mutex_t fAccessElement;
+        std::mutex fMutexAccessElement;
         /** @brief Semaphore (to wake up assembly thread) */
+//        std::condition_variable fAssembly;
         TPZSemaphore fAssembly;
     };
     
 public:
     
-    TPZStructMatrixOR();
+    TPZStructMatrixOR() = default;
     
     TPZStructMatrixOR(TPZCompMesh *);
     
     TPZStructMatrixOR(TPZAutoPointer<TPZCompMesh> cmesh);
     
-    TPZStructMatrixOR(const TPZStructMatrixOR &copy);
+    TPZStructMatrixOR(const TPZStructMatrixOR &copy) = default;
+  //for now we delete the move ctor and assignment
+    TPZStructMatrixOR(const TPZStructMatrixOR &&copy) = delete;
     
-    virtual ~TPZStructMatrixOR(){};
-    
+    virtual ~TPZStructMatrixOR() = default;
+
+    TPZStructMatrixOR& operator=(const TPZStructMatrixOR &) = default;
+
+    TPZStructMatrixOR& operator=(const TPZStructMatrixOR &&) = delete;
     virtual TPZMatrix<STATE> * Create() override;
     
     virtual TPZStructMatrixOR * Clone() override;
@@ -98,10 +97,7 @@ public:
     using TPZStructMatrixBase::CreateAssemble;
     
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                                              unsigned numthreads_assemble, unsigned numthreads_decompose) {
-        SetNumThreads(numthreads_assemble);
-        return CreateAssemble(rhs, guiInterface);
-    }
+                                              unsigned numthreads_assemble, unsigned numthreads_decompose);
     
     //virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     

@@ -10,7 +10,6 @@
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
 
-#include "pz_pthread.h"
 
 #include "TPZStackEqnStorage.h"
 #include "pzvec.h"
@@ -54,13 +53,9 @@ int ClassId() const override;
 	TPZParFrontMatrix(int64_t globalsize);
 	
 	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZRegisterClassId(&TPZParFrontMatrix::ClassId),
-    TPZFrontMatrix<TVar, store,front>(cp), fFinish(0)
+    TPZFrontMatrix<TVar, store,front>(cp), fFinish(0), fwritelock(), fwritecond()
 	{
         fEqnStack.Resize(0);
-        pthread_mutex_t mlocal = PTHREAD_MUTEX_INITIALIZER;
-        fwritelock = mlocal;
-        pthread_cond_t clocal = PTHREAD_COND_INITIALIZER;
-        fwritecond = clocal;
 	}
 	
 	//CLONEDEF(TPZParFrontMatrix)
@@ -90,9 +85,9 @@ private:
 	/** @brief Boolean responsibility. Assumes values 0 and 1*/
 	int fFinish;
 	/** @brief Mutual exclusion locks used in management of writeing to disk and decomposition.*/
-	pthread_mutex_t fwritelock;
+	std::mutex fwritelock;
 	/** @brief Condition variable used in management of writeing to disk and decomposition.*/
-	pthread_cond_t fwritecond;
+	std::condition_variable fwritecond;
 	
 	/** @link dependency */
 	/*#  TPZFrontNonSym lnkTPZFrontNonSym; */ 

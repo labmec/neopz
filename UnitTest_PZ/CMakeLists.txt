@@ -22,6 +22,7 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestRandom)
 		add_subdirectory(TestBlend)
 		add_subdirectory(TestShape)
+                add_subdirectory(TestMultithreading)
 
 		source_group(UnitTestFad FILES ${pztestfad})
 		source_group(UnitTestTopology FILES ${pztesttopology})

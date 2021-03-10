@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	int plevel = 1;
 	
 	TPZPairStructMatrix::gNumThreads = 0; //RAUL
-	int numthreads = 2;
+	int numthreads = 0;
 	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
 		
 		//	sub.SubStructure();
 #ifdef LOG4CXX
+        if(logger->isDebugEnabled())
 		{
 			std::stringstream str;
 			cmesh->Print(str);

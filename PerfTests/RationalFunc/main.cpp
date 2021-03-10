@@ -9,6 +9,7 @@
 #include "CedricTest.h"         // TCedricTest
 #include "TPZRefPatternTools.h" // gRefDBase
 #include "pzcompel.h"           // TPZCompEl
+#include "TPZRefPatternDataBase.h"
 
 /* Command line arguments */
 clarg::argInt  nsub ("-nsub", "number of substructures", 15);

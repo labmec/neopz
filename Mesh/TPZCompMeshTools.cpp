@@ -971,39 +971,40 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
             out << "Cord = [" << xcenter;
 
             int iCon = i - firstSideToHaveConnect;
-            TPZConnect &con = cel->Connect(iCon);
+            if (cel->NConnects()) {
+                TPZConnect &con = cel->Connect(iCon);
 
-            out << "] Side = " << i;
-            if (printSeqNumber) {
-                out << " Seqnumber = " << con.SequenceNumber();
-            }
-            out << " Order = " << (int) con.Order() << " NState = " << (int) con.NState()
-                << " NShape " << con.NShape();
+                out << "] Side = " << i;
+                if (printSeqNumber) {
+                    out << " Seqnumber = " << con.SequenceNumber();
+                }
+                out << " Order = " << (int) con.Order() << " NState = " << (int) con.NState()
+                    << " NShape " << con.NShape();
 
-            if (printLagrangeMult) {
-                out << " IsLagrangeMult = " << (int)con.LagrangeMultiplier();
-            }
-            out << " IsCondensed: " << (int)con.IsCondensed();
+                if (printLagrangeMult) {
+                    out << " IsLagrangeMult = " << (int) con.LagrangeMultiplier();
+                }
+                out << " IsCondensed: " << (int) con.IsCondensed();
 
-            if (con.SequenceNumber() > -1) {
-                out << " NumElCon = " << con.NElConnected();
-                if (celmesh->Block().NBlocks()) {
-                    out << " Block size " << celmesh->Block().Size(con.SequenceNumber());
-                    if (printSolution) {
-                        out << " Solution = ";
-                        int64_t ieq;
-                        for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
-                            if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
-                                out << 0.0 << ' ';
-                            } else {
-                                out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                if (con.SequenceNumber() > -1) {
+                    out << " NumElCon = " << con.NElConnected();
+                    if (celmesh->Block().NBlocks()) {
+                        out << " Block size " << celmesh->Block().Size(con.SequenceNumber());
+                        if (printSolution) {
+                            out << " Solution = ";
+                            int64_t ieq;
+                            for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
+                                if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                                    out << 0.0 << ' ';
+                                } else {
+                                    out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                                }
                             }
                         }
                     }
                 }
+                out << '\n';
             }
-
-            out << '\n';
         }
         for (int i = nSides-firstSideToHaveConnect; i < nCon; i++)
         {

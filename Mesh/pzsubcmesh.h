@@ -6,9 +6,6 @@
 #ifndef SUBCMESH_H
 #define SUBCMESH_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif
 
 #include <stdlib.h>
 
