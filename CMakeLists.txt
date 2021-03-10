@@ -206,13 +206,6 @@ if(USING_PAPI)
     enable_papi(pz)
 endif(USING_PAPI)
 
-#enabling HWLOC library
-option(USING_HWLOC "Whether the HWLOC library will be linked in" OFF)
-if(USING_HWLOC)
-    include(cmake/EnableHWLOC.cmake)
-    enable_hwloc(pz)
-endif(USING_HWLOC)
-
 #enabling Blaze
 option(USING_BLAZE "Whether the Blaze package will be linked with the library" OFF)
 if(USING_BLAZE)
