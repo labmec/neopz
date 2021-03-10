@@ -25,7 +25,7 @@ int main() {
   atomic)
 if(NOT atomic)
   message(STATUS "Failed to compile dummy program with std::atomic\n"
-    "Trying to find a lib...")
+    "Not a problem: trying to find a lib...")
   set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib" ".dll" ".so" ".so.1")
   find_library(lib_atomic NAMES atomic)
   if(lib_atomic)
