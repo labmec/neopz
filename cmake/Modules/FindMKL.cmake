@@ -182,7 +182,9 @@ endif()
 # Core MKL
 #
 __mkl_find_library(MKL_CORE_LIB mkl_core)
-
+if(CMAKE_MKL_DEBUG)  
+  message(STATUS "MKL CORE LIB ${MKL_CORE_LIB_DYN}")
+endif()
 # Interface
 #
 __mkl_find_library(MKL_INTERFACE_INTEL_32BIT_LIB mkl_intel_lp64)
@@ -192,7 +194,7 @@ if(NOT APPLE AND CMAKE_Fortran_COMPILER_LOADED
     __mkl_find_library(MKL_INTERFACE_GF_32BIT_LIB mkl_gf_lp64)
     __mkl_find_library(MKL_INTERFACE_GF_64BIT_LIB mkl_gf_ilp64)
 endif()
-
+  message(STATUS "MKL INTERFACE LIB ${MKL_INTERFACE_INTEL_32BIT_LIB_DYN}")
 # Threading
 #
 __mkl_find_library(MKL_SEQ_LIB mkl_sequential)
@@ -204,7 +206,9 @@ else()
     __mkl_find_library(MKL_OMP_LIB mkl_intel_thread)
 endif()
 __mkl_find_library(MKL_TBB_LIB mkl_tbb_thread)
-
+if(CMAKE_MKL_DEBUG)
+  message(STATUS "MKL THREAD LIB ${MKL_OMP_LIB_DYN}")
+endif()
 # BLACS
 #
 if(APPLE)
