@@ -7,30 +7,37 @@ target_include_directories(pz PUBLIC
 
 set(headers
     TPZAssert.h
-    TPZLimitedPriorityQueue.h
-    TPZTimer.h
+    TPZHWTools.h
+    TPZPriorityQueue.h
+    checkconv.h
     pzadmchunkthreadsafe.h
-    pzfunction.h
-    pzmanvector.h
+    pzextractval.h
+    pzline.h
+    pznuma.h
     pzplane.h
+    pzstring.h
+    tpzautopointer.h
+    TPZChunkVector.h
+    TPZLimitedPriorityQueue.h
+    TPZSemaphore.h
+    doxutil.h
+    pzaxestools.h
+    pzfunction.h
+    pzlog.h
+    pznumeric.h
+    pzpolynomial.h
     pzvec.h
     tpzpermutation.h
-    TPZChunkVector.h
-    TPZParallelUtils.h
-    checkconv.h
-    pzaxestools.h
-    pzgradient.h
-    pznuma.h
-    pzpolynomial.h
-    pzvec_extras.h
     TPZFunctionTranslator.h
-    TPZPriorityQueue.h
-    doxutil.h
+    TPZParallelUtils.h
+    TPZTimer.h
+    pzadmchunk.h
     pzcheckconsistency.h
-    pzline.h
-    pznumeric.h
+    pzgradient.h
+    pzmanvector.h
+    pzpix.h
     pzstack.h
-    tpzautopointer.h
+    pzvec_extras.h
     )
 
 set(sources
