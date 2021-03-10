@@ -1,0 +1,5 @@
+function(enable_boost target)
+    find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
+  target_link_libraries(${target} PRIVATE Boost::date_time Boost::atomic)
+  mark_as_advanced(Boost_ATOMIC_LIBRARY_RELEASE Boost_DATE_TIME_LIBRARY_RELEASE Boost_UNIT_TEST_FRAMEWORK_LIBRARY_RELEASE Boost_INCLUDE_DIR)
+endfunction()

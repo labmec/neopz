@@ -102,8 +102,8 @@ if(BUILD_UNITTESTING)
 endif()
 
 if(USING_BOOST)
-	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
-  target_link_libraries(pz PRIVATE Boost::date_time Boost::atomic)
+	include(cmake/EnableBoost.cmake)
+  enable_boost(pz)
 endif()
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
