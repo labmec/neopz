@@ -62,7 +62,14 @@ set(sources
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material)
 
 target_sources(pz PRIVATE ${headers} ${sources})
-
+if (BUILD_PLASTICITY_MATERIALS)
+	if ((NOT STATE_TYPE STREQUAL "double") OR (NOT REAL_TYPE STREQUAL "double") OR (NOT USING_FAD))
+		message (FATAL_ERROR
+      "\nConflicting options for BUILD_PLASTICITY_MATERIALS\n"
+      "Set REAL_TYPE=double, STATE_TYPE=double and USING_FAD=ON to build them\n"
+      "Or set BUILD_PLASTICITY_MATERIALS=OFF")
+  endif()
+endif()
 if(BUILD_COMPLEX_PROJECTS)
   add_subdirectory(Complex)
 else()

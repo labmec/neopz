@@ -129,11 +129,7 @@ set(sources
 install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/REAL)
 
 target_sources(pz PRIVATE ${headers} ${sources})
-
-if (USING_FAD AND BUILD_PLASTICITY_MATERIALS)
-	if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-		add_subdirectory(Plasticity)
-	else()
-		message ("Plasticity materials will not be built (set REAL_TYPE=double and STATE_TYPE=double to build them) !")
-	endif()
+#check for compatible cmake options is in Material/CMakeLists.txt
+if (BUILD_PLASTICITY_MATERIALS)
+	add_subdirectory(Plasticity)
 endif()
