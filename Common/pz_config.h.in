@@ -86,10 +86,6 @@
 #cmakedefine USING_PAPI
 #endif
 
-#ifndef USING_HWLOC
-#cmakedefine USING_HWLOC
-#endif
-
 #ifndef USING_MKL
 #cmakedefine USING_MKL
 #endif

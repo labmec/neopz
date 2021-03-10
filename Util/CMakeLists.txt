@@ -41,7 +41,6 @@ set(sources
     pznuma.cpp
     pzpolynomial.cpp
     pzvecgen.cpp
-    tpzpagemigrationmanager.cpp
     TPZFunctionTranslator.cpp
     TPZSemaphore.cpp
     pzfunction.cpp
