@@ -143,9 +143,12 @@ else() # LINUX
     set(_mkl_static_lib ".a")
 endif()
 set(_mkl_search_paths "${MKL_ROOT}"
-                      "${MKL_ROOT}/lib"
-                      "${MKL_ROOT}/mkl/lib"
-                      "${MKL_ROOT}/compiler/lib")
+  "${MKL_ROOT}/lib"
+  "${MKL_ROOT}/mkl/lib"
+  "${MKL_ROOT}/compiler/lib")
+foreach (dir IN LISTS ${EXTRA_SEARCH_DIRS})
+  list(APPEND _mkl_search_paths "${dir}/mkl" "${dir}/mkl/lib" "${dir}/mkl/compiler/lib")
+endforeach ()              
 
 # Functions: finds both static and shared MKL libraries
 #

@@ -2,7 +2,7 @@ include(FindPackageHandleStandardArgs)
 
 find_path(NUMA_ROOT_DIR
   NAMES include/numa.h
-  PATHS ENV NUMA_ROOT ${SEARCH_DIRS}
+  PATHS ENV NUMA_ROOT ${EXTRA_SEARCH_DIRS}
   DOC "NUMA root dir")
 
 find_path(NUMA_INCLUDE_DIR

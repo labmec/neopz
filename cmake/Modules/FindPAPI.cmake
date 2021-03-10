@@ -2,7 +2,7 @@ include(FindPackageHandleStandardArgs)
 
 find_path(PAPI_ROOT_DIR
   NAMES include/papi.h
-  PATHS ENV PAPI_ROOT ${SEARCH_DIRS}
+  PATHS ENV PAPI_ROOT ${EXTRA_SEARCH_DIRS}
   DOC "PAPI root dir")
 
 find_path(PAPI_INCLUDE_DIR

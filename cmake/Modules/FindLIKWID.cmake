@@ -2,7 +2,7 @@ include(FindPackageHandleStandardArgs)
 
 find_path(LIKWID_ROOT_DIR
   NAMES include/likwid.h
-  PATHS ENV LIKWID_ROOT ${SEARCH_DIRS}
+  PATHS ENV LIKWID_ROOT ${EXTRA_SEARCH_DIRS}
   DOC "LIKWID root dir")
 
 find_path(LIKWID_INCLUDE_DIR

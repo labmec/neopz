@@ -54,6 +54,7 @@ if (NOT METIS_FOUND)
   endif()
 endif()
 
+set(METIS_DIR ${EXTRA_SEARCH_DIRS} ${METIS_DIR})
 # Looking for include
 # -------------------
 

@@ -16,7 +16,7 @@ if(BUILD_PERF_TESTS)
   endif()
 
   # Search for the directory containing large data sets
-  find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ${SEARCH_DIRS})
+  find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ${EXTRA_SEARCH_DIRS})
   find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ../../neopz_perftest_large_data)
   find_path(PERFTEST_LARGE_DATA_DIR libpz_large_datadir.readme PATHS ../neopz_perftest_large_data)
 
