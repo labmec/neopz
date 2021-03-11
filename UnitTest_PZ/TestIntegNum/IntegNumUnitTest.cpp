@@ -198,6 +198,12 @@ void TestingNumericIntegrationRule(int p,int type, boost::test_tools::output_tes
 }
 template <class NumInteg>
 void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
+  // Check if file exists
+  if (!input.is_open()) {
+    std::cout << "Error: Input file not found!\n";
+    DebugStop();
+  }
+
 	// Variables to computing numerical integration
 	TPZManVector<REAL,3> point(3);
 	REAL weight = 0.L;
@@ -290,7 +296,7 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 	// File with integration values calculated previously
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	std::string filename = dirname;
 	filename += "Line.txt";
 	std::ifstream MathematicaData(filename.c_str());
 
@@ -318,7 +324,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	std::string filename = dirname;
 	filename += "Triangle.txt";
 	std::ifstream MathematicaData(filename.c_str());
     // Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
