@@ -612,12 +612,6 @@ public:
         DebugStop();
         
     }
-
-	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-		PZError << __PRETTY_FUNCTION__ << std::endl;
-		PZError << "Nao sei o q fazer." << std::endl;
-		
-	}
 protected:
   /**
 	 * @brief Computes the error due to the difference between the interpolated flux \n

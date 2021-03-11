@@ -151,8 +151,6 @@ public:
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context) override;
-    
-    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 };
 

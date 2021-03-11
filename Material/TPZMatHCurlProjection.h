@@ -98,8 +98,10 @@ public:
     void Solution(TPZMaterialData &data, int var,
                   TPZVec<STATE> &Solout) override;
 
-    void ErrorsHdiv(TPZMaterialData &data, TPZVec<STATE> &u_exact,
-                    TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &values) override;
+    void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
+                TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
+                TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &curlU_exact,
+                TPZVec<REAL> &val) override;
 
     int NEvalErrors() override { return 3; } // l2 and hcurl
 };

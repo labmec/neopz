@@ -171,8 +171,5 @@ void TPZNullMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
         
 
 }
-void TPZNullMaterial::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
-    
-}
 
 template class TPZRestoreClassWithTranslator<TPZNullMaterial,TPZNullMaterialTranslator>;
