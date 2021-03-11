@@ -48,9 +48,13 @@ set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
 # if target_compile_options should be used in the following section,
 # then maybe this could be useful:
 # https://stackoverflow.com/questions/23995019/what-is-the-modern-method-for-setting-general-compile-flags-in-cmake/23995391
+
+#TODO: think if we don't need these definitions in RelWithDebugInfo builds
 target_compile_definitions(pz PRIVATE
-  "$<$<CONFIG:RELEASE>:NODEBUG ZERO_INTERNAL_RESIDU MAKEINTERNAL>"
-  "$<$<CONFIG:DEBUG>:PZDEBUG>")
+                           "$<$<CONFIG:RELEASE>:NODEBUG>"
+                           "$<$<CONFIG:RELEASE>:ZERO_INTERNAL_RESIDU>"
+                           "$<$<CONFIG:RELEASE>:MAKEINTERNAL>"
+                           "$<$<CONFIG:DEBUG>:PZDEBUG>")
 
 # Location to search files or libraries
 set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
