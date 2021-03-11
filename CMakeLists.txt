@@ -203,10 +203,11 @@ endif()
 #To building several examples for training and experimentation PZ
 option(BUILD_BROKEN "To build projects which are broken" OFF)
 
-if(BUILD_TUTORIAL)
-	####add_definitions(-DBUILD_TUTORIAL)
+#To building publication targets
+option(BUILD_PUBLICATIONS "To build publications targets" OFF)
+if(BUILD_PUBLICATIONS)
+    add_subdirectory(Publications)
 endif()
-
 
 #To building all the specific projects developed with PZ environment
 option(BUILD_PROJECTS "To build specific projects." OFF)
@@ -332,7 +333,6 @@ add_subdirectory(Frontal)
 add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
-add_subdirectory(Publications)
 add_subdirectory("Random")
 add_subdirectory(Optimization)
 add_subdirectory(Exception)
