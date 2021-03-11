@@ -827,25 +827,25 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
     
     //Exact soluion
 	if(var == 11){
-		fForcingFunctionExact->Execute(datavec[2].x, solExata,flux);
+		fExactSol->Execute(datavec[2].x, solExata,flux);
 		Solout[0] = solExata[0];
 		return;
 	}//var11
     
     if(var == 12){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fExactSol->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[1];
 		return;
 	}//var12
     
     if(var == 13){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fExactSol->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[2];
 		return;
 	}//var13
     
     if(var == 19){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fExactSol->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[1];
         Solout[1] = solExata[2];
 		return;
@@ -853,19 +853,19 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 
     
     if(var == 14){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fExactSol->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[3];
 		return;
 	}//var14
     
     if(var == 15){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fExactSol->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[4];
 		return;
 	}//var15
     
     if(var == 16){
-		fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
+		fExactSol->Execute(datavec[1].x, solExata,flux);
 		Solout[0] = flux(0,0);
         Solout[1] = flux(1,0);
 		return;

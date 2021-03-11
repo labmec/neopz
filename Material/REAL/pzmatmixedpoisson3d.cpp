@@ -634,13 +634,13 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     //Exact soluion
     if(var == 6){
-        fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
+        fExactSol->Execute(datavec[1].x, solExata,flux);
         Solout[0] = solExata[0];
         return;
     }//var6
     
     if(var == 7){
-        fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+        fExactSol->Execute(datavec[0].x, solExata,flux);
         for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = flux(ip,0);
@@ -684,7 +684,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     }
     
     if(var==11){
-        fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
+        fExactSol->Execute(datavec[0].x,solExata,flux);
         Solout[0]=flux(fDim,0);
         return;
     }

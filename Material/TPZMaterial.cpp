@@ -31,7 +31,7 @@ REAL TPZMaterial::gBigNumber = 1.e12;
 TPZMaterial::TPZMaterial() : fNumLoadCases(1), fPostProcIndex(0) {
 	this->fId = -666;
 	this->fForcingFunction = NULL;
-    this->fForcingFunctionExact = NULL;
+    this->fExactSol = NULL;
     this->fTimeDependentForcingFunction = NULL;
     this->fTimedependentFunctionExact = NULL;
     this->fBCForcingFunction = NULL;
@@ -44,7 +44,7 @@ TPZMaterial::TPZMaterial() : fNumLoadCases(1), fPostProcIndex(0) {
 TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1), fPostProcIndex(0) {
 	this->SetId(id);
     this->fForcingFunction = NULL;
-    this->fForcingFunctionExact = NULL;
+    this->fExactSol = NULL;
     this->fTimeDependentForcingFunction = NULL;
     this->fTimedependentFunctionExact = NULL;
     this->fBCForcingFunction = NULL;
@@ -63,7 +63,7 @@ TPZMaterial::~TPZMaterial()
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
 	fId = material.fId;
     fForcingFunction = material.fForcingFunction;
-    fForcingFunctionExact = material.fForcingFunctionExact;
+    fExactSol = material.fExactSol;
     fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
     fTimedependentFunctionExact = material.fTimedependentFunctionExact;
     fBCForcingFunction = material.fBCForcingFunction;
@@ -77,7 +77,7 @@ TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
 {
     fId = material.fId;
     fForcingFunction = material.fForcingFunction;
-    fForcingFunctionExact = material.fForcingFunctionExact;
+    fExactSol = material.fExactSol;
     fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
     fTimedependentFunctionExact = material.fTimedependentFunctionExact;
     fBCForcingFunction = material.fBCForcingFunction;
@@ -138,12 +138,12 @@ void TPZMaterial::Print(std::ostream & out) {
         out << "Forcing function\n";
         fForcingFunction->Print(out);
     }
-    if (!fForcingFunctionExact) {
+    if (!fExactSol) {
         out << "Has no exact forcing function\n";
     }
     else {
         out << "Forcing function exact\n";
-        fForcingFunctionExact->Print(out);
+        fExactSol->Print(out);
     }
     if (!fTimeDependentForcingFunction) {
         out << "Has no time dependent forcing function\n";
@@ -402,7 +402,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
     buf.Write(&fId, 1);
     buf.Write(&gBigNumber, 1);
     TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fForcingFunctionExact.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fExactSol.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
@@ -417,7 +417,7 @@ void TPZMaterial::Read(TPZStream &buf, void *context) {
     buf.Read(&fId, 1);
     buf.Read(&gBigNumber, 1);
     fForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fForcingFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fExactSol = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));

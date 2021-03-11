@@ -170,7 +170,7 @@ void TPZCouplingDSMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         case 3: //v_exact
         {
             TPZVec<STATE> v;
-            if(this->HasForcingFunctionExact()){
+            if(this->HasExactSol()){
             }
             Solout[0] = v[0]; // vx
             Solout[1] = v[1]; // vy
@@ -180,7 +180,7 @@ void TPZCouplingDSMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         case 4: //p_exact
         {
             TPZVec<STATE> p;
-            if(this->HasForcingFunctionExact()){
+            if(this->HasExactSol()){
                 
             }
             Solout[0] = p[0]; // px

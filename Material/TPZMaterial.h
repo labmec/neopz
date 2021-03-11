@@ -47,7 +47,7 @@ protected:
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
 	
 	/** @brief Pointer to exact solution function, needed to calculate exact error */
-    TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
+    TPZAutoPointer<TPZFunction<STATE> > fExactSol;
 	
 public:
 	/** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
@@ -508,12 +508,12 @@ public:
 	 */
 	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
-		fForcingFunctionExact = fp;
+		fExactSol = fp;
 	}
 	
     /** @brief Returns a procedure as exact solution for the problem */
     TPZAutoPointer<TPZFunction<STATE> > &ForcingFunctionExact() {
-        return fForcingFunctionExact;
+        return fExactSol;
     }
     
     /**
@@ -576,7 +576,7 @@ public:
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
     
     /** @brief Directive that gives true if the material has a function exact  */
-	virtual int HasForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+	virtual int HasExactSol() {return (fExactSol != 0);}
     
     /** @brief Directive that gives true if the material has a bc forcing function exact  */
     virtual int HasBCForcingFunction() {return (fBCForcingFunction != 0);}

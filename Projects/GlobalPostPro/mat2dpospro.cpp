@@ -220,7 +220,7 @@ void Mat2Dpospro::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout
     if(var == 4){//function (state variable p anal)
         TPZVec<STATE> solExact(fDim);
         TPZFMatrix<STATE> flux(fDim,1);
-        fForcingFunctionExact->Execute(data.x, solExact,flux);
+        fExactSol->Execute(data.x, solExact,flux);
         Solout[0] = solExact[0];
         Solout[1] = solExact[1];
         return;
