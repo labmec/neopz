@@ -803,7 +803,7 @@ TPZCompMesh *DadosMalhas::MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCom
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
     
-	mymaterial->SetForcingFunctionExact(solExata);
+	mymaterial->SetExactSol(solExata);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
@@ -865,7 +865,7 @@ TPZCompMesh *DadosMalhas::MalhaCompTerzaghi(TPZGeoMesh * gmesh, TPZVec<TPZCompMe
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
     
-	mymaterial->SetForcingFunctionExact(solExata);
+	mymaterial->SetExactSol(solExata);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<STATE> val1(3,2,0.), val2(3,1,0.);
@@ -922,13 +922,13 @@ TPZCompMesh *DadosMalhas::MalhaCompBarryMercer(TPZGeoMesh * gmesh, TPZVec<TPZCom
     mymaterial1->SetfPlaneProblem(planestress);
     mymaterial1->SetParameters(fperm, fvisc);
     mymaterial1->SetElasticityParameters(fEyoung, fpoisson, falpha, fSe, ffx, ffy);
-    mymaterial1->SetForcingFunctionExact(solExata);
+    mymaterial1->SetExactSol(solExata);
     
     mymaterial2->SetfPlaneProblem(planestress);
     mymaterial2->SetParameters(fperm, fvisc);
     mymaterial2->SetElasticityParameters(fEyoung, fpoisson, falpha, fSe, ffx, ffy);
     mymaterial2->SetForcingFunction(sourceterm);
-    mymaterial2->SetForcingFunctionExact(solExata);
+    mymaterial2->SetExactSol(solExata);
    
     
     TPZMaterial *mat1(mymaterial1);
@@ -1004,7 +1004,7 @@ TPZCompMesh *DadosMalhas::MalhaCompBarryMercerPressureSolution(TPZGeoMesh * gmes
     mymaterial->SetfPlaneProblem(planestress);
     mymaterial->SetParameters(fperm, fvisc);
     mymaterial->SetElasticityParameters(fEyoung, fpoisson, falpha, fSe, ffx, ffy);
-    mymaterial->SetForcingFunctionExact(solExata);
+    mymaterial->SetExactSol(solExata);
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);

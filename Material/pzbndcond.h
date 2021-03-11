@@ -177,10 +177,10 @@ protected:
         }
 	}
 
-//	void SetForcingFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+//	void SetExactSol(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
 //    {
 //        if (loadcase == 0) {
-//            TPZMaterial::SetForcingFunctionExact(func);
+//            TPZMaterial::SetExactSol(func);
 //        }
 //        else {
 //            fBCs[loadcase].fExactSol = func;
