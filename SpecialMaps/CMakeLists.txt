@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/SpecialMaps>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SpecialMaps>
+                           )
 
 set(headers
     TPZCylinder.h
@@ -50,6 +50,6 @@ set(sources
     tpzquadratictetra.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/SpecialMaps)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SpecialMaps)
 
 target_sources(pz PRIVATE ${headers} ${sources})

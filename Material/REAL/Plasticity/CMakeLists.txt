@@ -1,9 +1,9 @@
 # @file neopz/Material/REAL/Plasticity/CMakeLists.txt  -- CMake file for Plasticity Materials
 
-target_include_directories(pz PUBLIC 
+target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Material/REAL/Plasticity>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL/Plasticity>
+                           )
 set(headers
     TPZDruckerPrager.h
     TPZDruckerPragerTranslator.h
@@ -152,5 +152,6 @@ set(sources
     tpzycvonmisescombtresca.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/REAL/Plasticity)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL/Plasticity)
+
 target_sources(pz PRIVATE ${headers} ${sources})

@@ -2,7 +2,7 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Post>
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Post>
                           )
 
 set(headers
@@ -67,5 +67,6 @@ if(BUILD_COMPLEX_PROJECTS)
     list(APPEND sources pzgradientreconstruction.cpp)
 endif()
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Post)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Post)
+
 target_sources(pz PRIVATE ${headers} ${sources})

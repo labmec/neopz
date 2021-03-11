@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/StrMatrix>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/StrMatrix>
+                           )
 
 set(headers
     TPBSpStructMatrix.h
@@ -46,6 +46,6 @@ set(sources
     pzstrmatrixflowtbb.cpp
    )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/StrMatrix)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/StrMatrix)
 
 target_sources(pz PRIVATE ${headers} ${sources})

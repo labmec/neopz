@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Topology>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Topology>
+                           )
 
 set(headers
     PrismExtend.h
@@ -32,6 +32,6 @@ set(sources
     tpztriangle.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Topology)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Topology)
 
 target_sources(pz PRIVATE ${headers} ${sources})

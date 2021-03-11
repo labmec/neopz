@@ -1,9 +1,9 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Optimization>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Optimization>
+                           )
 
 set(headers TPZStochasticSearch.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Optimization)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Optimization)
 target_sources(pz PRIVATE ${header})

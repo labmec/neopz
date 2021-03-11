@@ -15,9 +15,9 @@ set(sources
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External/Sloan>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/External/Sloan>
+                           )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/Sloan)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External/Sloan)
 
 target_sources(pz PRIVATE ${headers} ${sources})

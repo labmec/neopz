@@ -1,8 +1,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Random>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Random>
+                           )
 
 set(headers
     TPZConstrainedNormalRandom.h
@@ -14,6 +14,6 @@ set(headers
 
 set(sources TPZUniformRandom.cpp)
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Random)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Random)
 
 target_sources(pz PRIVATE ${headers} ${sources})

@@ -2,7 +2,7 @@
 
 target_include_directories(pz PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External/FAD/TinyFad/Specializations>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/External/FAD/TinyFad/Specializations>
         )
 
 set(headers
@@ -30,6 +30,6 @@ set(headers
 
 set(sources generate.cc)
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD/TinyFad/Specializations)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External/FAD/TinyFad/Specializations)
 
 target_sources(pz PRIVATE ${headers} ${sources})

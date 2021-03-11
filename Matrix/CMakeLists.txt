@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Matrix>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Matrix>
+                           )
 
 set(headers
     PZMatrixMarket.h
@@ -66,6 +66,6 @@ set(sources
     pzysmp.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Matrix)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Matrix)
 
 target_sources(pz PRIVATE ${headers} ${sources})

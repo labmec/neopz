@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Integral>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Integral>
+                           )
 
 set(headers
     TPZIntQuadQuarterPoint.h
@@ -31,6 +31,6 @@ set(sources
     tpzprinteg.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Integral)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Integral)
 
 target_sources(pz PRIVATE ${headers} ${sources})

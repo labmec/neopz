@@ -88,3 +88,5 @@ message(STATUS "NeoPZ configuration:"
         "\n - Build type: " ${CMAKE_BUILD_TYPE}
         "\n - REAL type: " ${REAL_TYPE}
         "\n - STATE type: " ${STATE_TYPE} "\n")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

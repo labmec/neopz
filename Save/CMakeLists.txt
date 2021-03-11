@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Save>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Save>
+                           )
 
 set(headers
     TPZBFileStream.h
@@ -34,5 +34,6 @@ set(sources
     TPZStream.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Save)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Save)
+
 target_sources(pz PRIVATE ${headers} ${sources})

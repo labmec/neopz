@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Material>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material>
+                           )
 
 set(headers
     TPZBndCondWithMem.h
@@ -59,7 +59,7 @@ set(sources
     pzpoisson3d.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 if (BUILD_PLASTICITY_MATERIALS)

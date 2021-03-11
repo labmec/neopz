@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/External>
+                           )
 
 set(headers
     TPZBoostGraph.h
@@ -28,7 +28,7 @@ set(sources
     tpznodesetcompute.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 

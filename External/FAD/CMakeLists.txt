@@ -2,12 +2,12 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External/FAD>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/External/FAD>
+                           )
 
 set(headers fadType.h)
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External/FAD)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External/FAD)
 
 target_sources(pz PRIVATE ${headers})
 

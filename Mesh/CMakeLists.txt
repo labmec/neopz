@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Mesh>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Mesh>
+                           )
 
 
 set(headers
@@ -118,7 +118,7 @@ if(NOT BUILD_COMPLEX_PROJETS)
   endif()
 endif()
   
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Mesh)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mesh)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 

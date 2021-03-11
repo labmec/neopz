@@ -1,9 +1,9 @@
 # @file neopz/Common/CMakeLists.txt  -- CMake file for the Common module
 
-target_include_directories(pz PUBLIC 
+target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Common>
-                                                  )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Common>
+                           )
 
 set(headers
     TPZBlas.h
@@ -31,6 +31,6 @@ set(sources
     pzreal.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Common)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Common)
 
 target_sources(pz PRIVATE ${headers} ${sources})

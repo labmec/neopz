@@ -18,6 +18,7 @@ include(cmake/StandardPZSettings.cmake)
 ##TODOWIN32: should this change when on WIN32?
 set(PZ_LIB_TYPE SHARED)
 add_library(pz ${PZ_LIB_TYPE} "")
+add_library(PZ::pz ALIAS pz)
 
 ##TODOWIN32: check whether these distinctions are really necessary
 ##TODO: are they ok when private?
@@ -37,13 +38,6 @@ endif()
 if (APPLE)
   target_compile_definitions(pz PRIVATE MACOSX)
 endif()
-
-## inserting main definitions
-#specifying the path to neopz source code
-set(PZSOURCEDIR ${PROJECT_SOURCE_DIR})
-#specify where the refinement patterns can be found (default behaviour when running the code)
-set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
-
 
 # if target_compile_options should be used in the following section,
 # then maybe this could be useful:
@@ -92,7 +86,7 @@ endif()
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 if(USING_FAD)
-	target_compile_definitions(pz PRIVATE _AUTODIFF)
+	target_compile_definitions(pz PUBLIC _AUTODIFF)
 endif()
 
 #enabling to use LOG4CXX library
@@ -292,28 +286,44 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 # Begin of pz_config.h part
 # This file contains all definitions used to compile the library pz
 # this will be saved at include diretory in the install target
-set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
+set (CONFIG_H "${PROJECT_SOURCE_DIR}/Common/pz_config.h")
 configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 # add it to include search path
-include_directories("${PROJECT_BINARY_DIR}/Common")
-# add the .h file in the install target
 
 # INSTALL part
-set(NEOPZ_INSTALL_DIR pzlib)
-#To install neopz/include
-set(NEOPZ_INCLUDE ${NEOPZ_INSTALL_DIR}/include)
-#To install neopz library
-set(NEOPZ_LIB ${NEOPZ_INSTALL_DIR}/lib)
 
-install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
+# Provide a standard relative layout for the installation directory.
+# Documentation directory is set to share/doc/PROJECT_NAME.
+include(GNUInstallDirs)
+
+# Add-on packages should be installed in /opt/<organization>/<package> according
+# to the Filesystem Hierarchy Standard (FHS)
+if(NOT WIN32)
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        set(CMAKE_INSTALL_PREFIX "/opt/labmec/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
+    endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+endif()
+
+install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT libraries)
 # End of pz_config.h part
 
-#increment all the directories where the sources files is
-if(NOT BUILD_COMPLEX_PROJECTS)
-    if(BUILD_PERF_TESTS)
-        add_subdirectory(PerfTests)
-    endif()
-endif()
+# Set a debug suffix automatically when PZ is built in Debug mode
+set(CMAKE_DEBUG_POSTFIX "-debug")
+set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+
+install(TARGETS pz
+        EXPORT PZTargets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+
+install(EXPORT PZTargets
+        FILE PZTargets.cmake
+        NAMESPACE PZ::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PZ
+        )
 
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
@@ -337,7 +347,7 @@ add_subdirectory(Frontal)
 add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
-add_subdirectory("Random")
+add_subdirectory(Random)
 add_subdirectory(Optimization)
 add_subdirectory(Exception)
 
@@ -346,127 +356,43 @@ add_subdirectory(Exception)
 # Currently, we don't have these source variables. If the source groups are really needed in Visual Studio,
 # we need to think of an alternative way of creating them.
 
-install(TARGETS pz 
-		EXPORT PZTargets
-		LIBRARY DESTINATION ${NEOPZ_LIB})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PZConfig.cmake.in
+               "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
+               )
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PZConfigVersion.cmake.in
+               "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
+               )
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PZ
+        )
 
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
-	add_subdirectory(Projects)
+    add_subdirectory(Projects)
 endif()
 
 if(BUILD_UNITTESTING)
-	add_subdirectory(UnitTest_PZ)
+    add_subdirectory(UnitTest_PZ)
+endif()
+
+#increment all the directories where the sources files is
+if(NOT BUILD_COMPLEX_PROJECTS)
+    if(BUILD_PERF_TESTS)
+        add_subdirectory(PerfTests)
+    endif()
 endif()
 
 #Enabling tests
 ENABLE_TESTING()
+option(BUILD_TESTING "" OFF)
 include(CTest)
-
-#To insert cmakelist files as a group
-if(BUILD_TUTORIAL)
-	#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
-	file(GLOB_RECURSE makefiles *Lists.txt)
-
-	#creating text files group
-	source_group(CMakefilesPZ FILES ${makefilespz})
-	source_group(CMakefilesProjects FILES ${makefilesproject})
-	source_group(CMakefilesUnitTest FILES ${makefilesunittest})
-	add_custom_target(CMAKE_Files SOURCES ${makefiles})
-endif(BUILD_TUTORIAL)
 
 #To insert doxygen documentation files
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
 
-#To force XCode to use standard library c++ = libstdc++ (Required after upgrading to XCode 5)
-#SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
-
 set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
 
-
-# Add all targets to the build-tree export set
-export(TARGETS pz  FILE "${PROJECT_BINARY_DIR}/PZTargets.cmake")
- 
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
-export(PACKAGE PZ)
-
-set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/${NEOPZ_INSTALL_DIR}/CMake)
-
-file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}"
-   "${CMAKE_INSTALL_PREFIX}/${NEOPZ_INCLUDE}")   
-   
-# ... for the build tree
-set(CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
-configure_file(PZConfig.cmake.in
-  "${PROJECT_BINARY_DIR}/PZConfig.cmake" @ONLY)
-  
-# ... for the install tree
-set(CONF_INCLUDE_DIRS "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Util"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/PerfUtil"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Common"
-    "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Save"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Matrix"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Topology"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Geom"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/SpecialMaps"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Refine"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Shape"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material/REAL"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material/REAL/Plasticity"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material/Complex"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Multigrid"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Mesh"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/StrMatrix"
-    "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Integral"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Frontal"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Pre"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Post"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Random"	
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Optimization"	
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Analysis"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/SubStruct"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/LinearSolvers"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/sloan"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Publications"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Exception"
-)
-
-if(USING_FAD)
-	set(CONF_INCLUDE_DIRS ${CONF_INCLUDE_DIRS} 
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD"
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/Fad"
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/TinyFad"
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/TinyFadET"
-        )
-endif(USING_FAD)
-
-configure_file(PZConfig.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)
-  
-configure_file(PZConfig_Debug.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake" COPYONLY)
-   
-# ... for both
-configure_file(PZConfigVersion.cmake.in
-  "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake" @ONLY)
- 
-# Install the PZConfig.cmake and PZConfigVersion.cmake
-install(FILES
-        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
-        "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
-        DESTINATION "${INSTALL_CMAKE_DIR}" )
-
-install(FILES
-        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake"
-        DESTINATION "${INSTALL_CMAKE_DIR}" 
-        CONFIGURATIONS Debug )  
- 
-# Install the export set for use with the install-tree
-install(EXPORT PZTargets 
-        DESTINATION "${INSTALL_CMAKE_DIR}")		
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

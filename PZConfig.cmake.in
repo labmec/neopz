@@ -3,25 +3,20 @@
 #  PZ_INCLUDE_DIRS - include directories for using PZ
 #  PZ_LIBRARIES    - PZ library to link against
 
-# In the future, if project executables are to be installed, their names should also be defined here:
-#  <exec01_name>_EXECUTABLE   
-#  <exec02_name>_EXECUTABLE  
-#  ...
-#
-# so that they can be used below
- 
-# Compute paths
-get_filename_component(PZ_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(PZ_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+@PACKAGE_INIT@
+
+include(${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/PZ/PZTargets.cmake)
+
+set(PZ_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set(PZ_SYSCONFIG_DIR "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+
+## Compute paths
+#get_filename_component(PZ_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+#set(PZ_INCLUDE_DIRS ${CMAKE_INSTALL_INCLUDEDIR})
 set(PZ_BRANCH "@PZ_BRANCH@")
 set(PZ_REVISION "@PZ_REVISION@")
 set(PZ_REVISION_DATE "@PZ_REVISION_DATE@")
- 
-# Our library dependencies (contains definitions for IMPORTED targets)
-if(NOT TARGET pz AND NOT PZ_BINARY_DIR)
-  include("${PZ_CMAKE_DIR}/PZTargets.cmake")
-endif()
- 
+
 # These are IMPORTED targets created by PZTargets.cmake
 set(PZ_LIBRARIES pz)
 
@@ -42,11 +37,3 @@ set(PZ_USING_LAPACK @USING_LAPACK@)
 set(PZ_USING_BLAS @USING_BLAS@)
 set(PZ_USING_PAPI @USING_PAPI@)
 set(PZ_USING_MKL @USING_MKL@)
-
-if( EXISTS "${PZ_CMAKE_DIR}/PZConfig_Debug.cmake" )
-	include("${PZ_CMAKE_DIR}/PZConfig_Debug.cmake")
-endif()
-
-#(for future decision!)
-#set(<exec01_name>_EXECUTABLE <name> )   
-

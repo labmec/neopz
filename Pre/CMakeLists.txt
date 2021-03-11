@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Pre>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Pre>
+                           )
 
 
 set(headers
@@ -68,5 +68,6 @@ if (NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif ()
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Pre)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Pre)
+
 target_sources(pz PRIVATE ${headers} ${sources})

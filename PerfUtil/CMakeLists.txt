@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/PerfUtil>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/PerfUtil>
+                           )
 
 set(headers
     arglib.h
@@ -18,5 +18,6 @@ set(headers
 
 set(sources arglib.cpp)
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/PerfUtil)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PerfUtil)
+
 target_sources(pz PRIVATE ${headers} ${sources})

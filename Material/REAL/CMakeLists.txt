@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Material/REAL>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL>
+                           )
 
 set(headers
     TPZConsLawTest.h
@@ -126,7 +126,7 @@ set(sources
     pzthermicelast3d.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/REAL)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 #check for compatible cmake options is in Material/CMakeLists.txt

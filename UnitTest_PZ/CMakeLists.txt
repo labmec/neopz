@@ -2,8 +2,6 @@
 
 enable_testing()
 
-set(RUNTIME_OUTPUT_DIRECTORY pz PARENT_SCOPE)
-
 add_subdirectory(TestFad)
 add_subdirectory(TestHCurl)
 add_subdirectory(TestTopology)

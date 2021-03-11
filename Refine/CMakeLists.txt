@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Refine>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Refine>
+                           )
 
 set(headers
     TPZRefCube.h
@@ -34,7 +34,7 @@ set(sources
     pzreftetrahedra.cpp
    )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Refine)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Refine)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 

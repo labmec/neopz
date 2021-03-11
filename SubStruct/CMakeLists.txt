@@ -2,8 +2,8 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/SubStruct>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SubStruct>
+                           )
 
 set(headers
     TPZTimeTemp.h
@@ -38,6 +38,6 @@ set(sources
     tpzpairstructmatrix.cpp
     )
 
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/SubStruct)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SubStruct)
 
 target_sources(pz PRIVATE ${headers} ${sources})
