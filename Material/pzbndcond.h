@@ -41,34 +41,36 @@ protected:
         /** @brief Pointer to forcing function, it is the right member at differential equation */
         TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
         
-        /** @brief Pointer to exact solution function, needed to calculate exact error */
+//        /** @brief Pointer to exact solution function, needed to calculate exact error */
         TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
         
-        /** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
-        TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
+//        /** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
+//        TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
         
-        /** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
-        TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
+//        /** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
+//        TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
         
-        /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
-        TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
+//        /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
+//        TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
         
         /** @brief Pointer to time dependent bc forcing function, it is a variable boundary condition at differential equation */
-        TPZAutoPointer<TPZFunction<STATE> > fTimedependentBCForcingFunction;            
+//        TPZAutoPointer<TPZFunction<STATE> > fTimedependentBCForcingFunction;
 
-        TPZ_BCDefine() : fBCVal2(), fForcingFunction(NULL), fForcingFunctionExact(NULL),fTimeDependentForcingFunction(NULL),
-                        fTimedependentFunctionExact(NULL), fBCForcingFunction(NULL),fTimedependentBCForcingFunction(NULL)
+        TPZ_BCDefine() : fBCVal2(), fForcingFunction(NULL), fForcingFunctionExact(NULL)
+//                        ,fTimeDependentForcingFunction(NULL),
+//                        fTimedependentFunctionExact(NULL), fBCForcingFunction(NULL),fTimedependentBCForcingFunction(NULL)
         {
             
         }
-        TPZ_BCDefine(TPZFMatrix<STATE> Val2) : fBCVal2(), fForcingFunction(NULL), fForcingFunctionExact(NULL),fTimeDependentForcingFunction(NULL),
-                fTimedependentFunctionExact(NULL), fBCForcingFunction(NULL),fTimedependentBCForcingFunction(NULL)
+        TPZ_BCDefine(TPZFMatrix<STATE> Val2) : fBCVal2(), fForcingFunction(NULL), fForcingFunctionExact(NULL)
+//        ,fTimeDependentForcingFunction(NULL),
+//                fTimedependentFunctionExact(NULL), fBCForcingFunction(NULL),fTimedependentBCForcingFunction(NULL)
         {
             
         }
-        TPZ_BCDefine(const TPZ_BCDefine &cp) : fBCVal2(cp.fBCVal2), fForcingFunction(cp.fForcingFunction),fForcingFunctionExact(cp.fForcingFunctionExact),
-                fTimeDependentForcingFunction(cp.fTimeDependentForcingFunction), fTimedependentFunctionExact(cp.fTimedependentFunctionExact),
-                fBCForcingFunction(cp.fBCForcingFunction),fTimedependentBCForcingFunction(cp.fTimedependentBCForcingFunction)
+        TPZ_BCDefine(const TPZ_BCDefine &cp) : fBCVal2(cp.fBCVal2), fForcingFunction(cp.fForcingFunction),fForcingFunctionExact(cp.fForcingFunctionExact)
+//        ,fTimeDependentForcingFunction(cp.fTimeDependentForcingFunction), fTimedependentFunctionExact(cp.fTimedependentFunctionExact),
+//                fBCForcingFunction(cp.fBCForcingFunction),fTimedependentBCForcingFunction(cp.fTimedependentBCForcingFunction)
         {
             
         }
@@ -77,16 +79,17 @@ protected:
             fBCVal2 = cp.fBCVal2;
             fForcingFunction = cp.fForcingFunction;
             fForcingFunctionExact = cp.fForcingFunctionExact;
-            fTimeDependentForcingFunction = cp.fTimeDependentForcingFunction;
-            fTimedependentFunctionExact = cp.fTimedependentFunctionExact;
-            fBCForcingFunction = cp.fBCForcingFunction;
-            fTimedependentBCForcingFunction = cp.fTimedependentBCForcingFunction;
+//            fTimeDependentForcingFunction = cp.fTimeDependentForcingFunction;
+//            fTimedependentFunctionExact = cp.fTimedependentFunctionExact;
+//            fBCForcingFunction = cp.fBCForcingFunction;
+//            fTimedependentBCForcingFunction = cp.fTimedependentBCForcingFunction;
             return *this;
         }
         ~TPZ_BCDefine()
         {
             
-        }        int ClassId() const override;
+        }
+        int ClassId() const override;
         void Read(TPZStream &buf, void *context) override;
         void Write(TPZStream &buf, int withclassid) const override;
 
@@ -115,10 +118,10 @@ protected:
 		fType = bc.fType;
         fForcingFunction = bc.fForcingFunction;
         fForcingFunctionExact = bc.fForcingFunctionExact;
-        fTimeDependentForcingFunction = bc.fTimeDependentForcingFunction;
-        fTimedependentFunctionExact = bc.fTimedependentFunctionExact;
-        fBCForcingFunction = bc.fBCForcingFunction;
-        fTimedependentBCForcingFunction = bc.fTimedependentBCForcingFunction;
+//        fTimeDependentForcingFunction = bc.fTimeDependentForcingFunction;
+//        fTimedependentFunctionExact = bc.fTimedependentFunctionExact;
+//        fBCForcingFunction = bc.fBCForcingFunction;
+//        fTimedependentBCForcingFunction = bc.fTimedependentBCForcingFunction;
 	}
 	/** @brief Default constructor */
 	TPZBndCond() : TPZRegisterClassId(&TPZBndCond::ClassId),
@@ -152,10 +155,10 @@ protected:
     
         fForcingFunction = copy.fForcingFunction;
         fForcingFunctionExact = copy.fForcingFunctionExact;
-        fTimeDependentForcingFunction = copy.fTimeDependentForcingFunction;
-        fTimedependentFunctionExact = copy.fTimedependentFunctionExact;
-        fBCForcingFunction = copy.fBCForcingFunction;
-        fTimedependentBCForcingFunction = copy.fTimedependentBCForcingFunction;
+//        fTimeDependentForcingFunction = copy.fTimeDependentForcingFunction;
+//        fTimedependentFunctionExact = copy.fTimedependentFunctionExact;
+//        fBCForcingFunction = copy.fBCForcingFunction;
+//        fTimedependentBCForcingFunction = copy.fTimedependentBCForcingFunction;
         
     }
 	
@@ -174,65 +177,65 @@ protected:
         }
 	}
 
-	void SetForcingFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetForcingFunctionExact(func);
-        }
-        else {
-            fBCs[loadcase].fForcingFunctionExact = func;
-        }
-    }
+//	void SetForcingFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+//    {
+//        if (loadcase == 0) {
+//            TPZMaterial::SetForcingFunctionExact(func);
+//        }
+//        else {
+//            fBCs[loadcase].fForcingFunctionExact = func;
+//        }
+//    }
 
-    void SetTimeDependentForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetTimeDependentForcingFunction(func);
-        }
-        else {
-            fBCs[loadcase].fTimeDependentForcingFunction = func;
-        }
-    }
+//    void SetTimeDependentForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+//    {
+//        if (loadcase == 0) {
+//            TPZMaterial::SetTimeDependentForcingFunction(func);
+//        }
+//        else {
+//            fBCs[loadcase].fTimeDependentForcingFunction = func;
+//        }
+//    }
 
-    void SetTimeDependentFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetTimeDependentFunctionExact(func);
-        }
-        else {
-            fBCs[loadcase].fTimedependentFunctionExact = func;
-        }
-    }     
+//    void SetTimeDependentFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+//    {
+//        if (loadcase == 0) {
+//            TPZMaterial::SetTimeDependentFunctionExact(func);
+//        }
+//        else {
+//            fBCs[loadcase].fTimedependentFunctionExact = func;
+//        }
+//    }
 
-    void SetBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetBCForcingFunction(func);
-        }
-        else {
-            fBCs[loadcase].fBCForcingFunction = func;
-        }
-    }
+//    void SetBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+//    {
+//        if (loadcase == 0) {
+//            TPZMaterial::SetBCForcingFunction(func);
+//        }
+//        else {
+//            fBCs[loadcase].fBCForcingFunction = func;
+//        }
+//    }
 
-    void SetTimedependentBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetTimedependentBCForcingFunction(func);
-        }
-        else {
-            fBCs[loadcase].fTimedependentBCForcingFunction = func;
-        }
-    }
+//    void SetTimedependentBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+//    {
+//        if (loadcase == 0) {
+//            TPZMaterial::SetTimedependentBCForcingFunction(func);
+//        }
+//        else {
+//            fBCs[loadcase].fTimedependentBCForcingFunction = func;
+//        }
+//    }
     
-    TPZAutoPointer<TPZFunction<STATE> > GetTimedependentBCForcingFunction(int loadcase)
-    {
-        if (loadcase == 0) {
-            return this->fTimedependentBCForcingFunction;
-        }
-        else {
-            return fBCs[loadcase].fTimedependentBCForcingFunction;
-        }
-    }
+//    TPZAutoPointer<TPZFunction<STATE> > GetTimedependentBCForcingFunction(int loadcase)
+//    {
+//        if (loadcase == 0) {
+//            return this->fTimedependentBCForcingFunction;
+//        }
+//        else {
+//            return fBCs[loadcase].fTimedependentBCForcingFunction;
+//        }
+//    }
 	
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	
