@@ -375,7 +375,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
 								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
-  
+  virtual void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
+  [[deprecated("Use or implement TPZSubCMesh::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                      TPZVec<REAL> &errors, bool store_error) override;
 	

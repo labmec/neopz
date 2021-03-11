@@ -1449,6 +1449,34 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 		}
 	}
 }
+void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
+	
+	errorSum.Resize(3);
+	errorSum.Fill(0.);
+	
+	TPZManVector<REAL,3> true_error(3);
+	true_error.Fill(0.);
+	
+
+	TPZCompEl *cel;
+	
+	//soma de erros sobre os elementos
+	for(int64_t el=0;el< fElementVec.NElements();el++) {
+		cel = fElementVec[el];
+		if(!cel  || cel->Material()->Id() < 0) continue;
+		cel->EvaluateError(true_error,store_error);
+		
+		int64_t nerrors = true_error.NElements();
+		errorSum.Resize(nerrors,0.);
+		for(int64_t ii = 0; ii < nerrors; ii++)
+			errorSum[ii] += true_error[ii]*true_error[ii];
+	}
+	
+	int64_t nerrors = errorSum.NElements();
+	for(int64_t ii = 0; ii < nerrors; ii++)
+		errorSum[ii] = sqrt(errorSum[ii]);
+}
+
 
 void TPZCompMesh::EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp, bool store_error, TPZVec<REAL> &errorSum) {
 	

@@ -324,7 +324,9 @@ public:
      */
     virtual void ComputeSolution(TPZVec<REAL> &qsi,
                                  TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
-    
+
+    void EvaluateError(TPZVec<REAL> &errors,bool store_error);
+[[deprecated("Use or implement TPZSBFemVolume::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                        TPZVec<REAL> &errors,bool store_error);
     

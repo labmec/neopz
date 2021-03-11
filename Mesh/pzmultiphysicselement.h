@@ -87,9 +87,11 @@ public:
 	 * @param errors (output) each norm or true error of the error of the solution at each physics
 	 * @param flux (input) value of the interpolated flux values
 	 */
+  virtual void EvaluateError(TPZVec<STATE> &errors, bool store_error);
+  [[deprecated("Use or implement TPZMultiphysicsElement::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     virtual void EvaluateError( std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                TPZVec<REAL> &errors, bool store_error ) override;
-
+  [[deprecated("Use or implement TPZMultiphysicsElement::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     virtual void EvaluateError(TPZFunction<STATE> &func,
                                TPZVec<STATE> &errors, bool store_error);
 
