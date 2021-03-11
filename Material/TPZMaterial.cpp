@@ -22,7 +22,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.material"));
 #endif
 
-TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;
+//TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;
 
 using namespace std;
 REAL TPZMaterial::gBigNumber = 1.e12;
@@ -35,7 +35,7 @@ TPZMaterial::TPZMaterial() : fNumLoadCases(1), fPostProcIndex(0) {
     this->fTimeDependentForcingFunction = NULL;
     this->fTimedependentFunctionExact = NULL;
     this->fBCForcingFunction = NULL;
-    this->fTimedependentBCForcingFunction = NULL;
+//    this->fTimedependentBCForcingFunction = NULL;
 	this->fLinearContext = true;
     this->fBCForcingFunction = NULL;
     
@@ -48,7 +48,7 @@ TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1), fPostProcIndex(0) 
     this->fTimeDependentForcingFunction = NULL;
     this->fTimedependentFunctionExact = NULL;
     this->fBCForcingFunction = NULL;
-    this->fTimedependentBCForcingFunction = NULL;
+//    this->fTimedependentBCForcingFunction = NULL;
     this->fLinearContext = true;
     this->fBCForcingFunction = NULL;
 
@@ -67,7 +67,7 @@ TPZMaterial::TPZMaterial(const TPZMaterial &material) {
     fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
     fTimedependentFunctionExact = material.fTimedependentFunctionExact;
     fBCForcingFunction = material.fBCForcingFunction;
-    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
+//    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
     fLinearContext = material.fLinearContext;
     fNumLoadCases = material.fNumLoadCases;
     fPostProcIndex = material.fPostProcIndex;
@@ -81,7 +81,7 @@ TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
     fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
     fTimedependentFunctionExact = material.fTimedependentFunctionExact;
     fBCForcingFunction = material.fBCForcingFunction;
-    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
+//    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
     fLinearContext = material.fLinearContext;
     fNumLoadCases = material.fNumLoadCases;
     fPostProcIndex = material.fPostProcIndex;
@@ -406,7 +406,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
+//    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
     buf.Write(fLinearContext);
     buf.Write(&fNumLoadCases);
     buf.Write(&fPostProcIndex);
@@ -421,9 +421,109 @@ void TPZMaterial::Read(TPZStream &buf, void *context) {
     fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+//    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     buf.Read(fLinearContext);
     buf.Read(&fNumLoadCases);
     buf.Read(&fPostProcIndex);
 }
 
+void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
+                                                   REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
+    DebugStop();
+}
+
+void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
+                                                   REAL weight, TPZFMatrix<STATE> &ef){
+    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+    this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
+}
+
+void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright,
+                                                   REAL weight, TPZFMatrix<STATE> &ef){
+    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+    this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
+}
+
+void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
+    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+    this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
+
+}
+void TPZMaterial::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+                                 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
+    DebugStop();
+}
+
+void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    
+    DebugStop();
+}
+/**
+ * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point to multiphysics simulation
+ * @param data [in]
+ * @param dataleft [in]
+ * @param weight [in]
+ * @param ek [out] is the stiffness matrix
+ * @param ef [out] is the load vector
+ * @param bc [in] is the boundary condition object
+ * @since February 21, 2013
+ */
+void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows());
+    this->ContributeBCInterface(data, dataleft, weight, ek, ef, bc);
+}
+
+void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    
+    DebugStop();
+}
+
+
+void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+    this->ContributeBCInterface(data, dataleft, weight, fakeek, ef, bc);
+}
+
+int TPZMaterial::IsInterfaceConservative(){
+    return 0;
+}
+
+void TPZMaterial::InterfaceJump(TPZVec<REAL> &x,
+                                             TPZSolVec &leftu,
+                                             TPZSolVec &rightu,
+                                             TPZSolVec &jump){
+    int numbersol = leftu.size();
+    for (int is=0; is<numbersol; is++) {
+        const int n = leftu[is].NElements();
+        jump[is].Resize(n);
+        for(int i = 0; i < n; i++){
+            jump[is][i] = leftu[is][i] - rightu[is][i];
+        }
+    }
+}
+
+
+void TPZMaterial::BCInterfaceJump(TPZVec<REAL> &x,
+                                               TPZSolVec &leftu,
+                                               TPZBndCond &bc,
+                                               TPZSolVec & jump){
+    PZError << __PRETTY_FUNCTION__ << " - method not implemented in derived class" << std::endl;
+    DebugStop();
+}
+
+/// return the integration order as a function of interpolation orders of the left and right elements
+int TPZMaterial::GetIntegrationOrder(TPZVec<int> &porder_left, TPZVec<int> &porder_right) const
+{
+    int maxl = 0, maxr = 0;
+    for (auto porder: porder_left) {
+        maxl = std::max(maxl,porder);
+    }
+    for (auto porder: porder_right) {
+        maxr = std::max(maxr,porder);
+    }
+    return maxl+maxr;
+}

@@ -483,7 +483,7 @@ void TPZdifureac::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMa
 }
 
 void TPZdifureac::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 
