@@ -1066,7 +1066,7 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
       if (data.fVecShapeIndex.NElements()) {
         this->ComputeSolution(intpoint, data);
 
-        material->ErrorsHdiv(data, u_exact, du_exact, values);
+        material->Errors(data, u_exact, du_exact, values);
 
       } else {
         this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes,
