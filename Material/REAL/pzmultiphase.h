@@ -10,8 +10,6 @@
 #define PZ_pzmultiphase_h
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
-#include "pzstack.h"
 #ifdef _AUTODIFF
 #include "fad.h"
 #endif
@@ -27,7 +25,7 @@
  */
 
 
-class TPZMultiphase : public TPZDiscontinuousGalerkin {
+class TPZMultiphase : public TPZMaterial {
     
 protected:
     
@@ -133,7 +131,7 @@ public:
     
     virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) override
     {
-        TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
+        TPZMaterial::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
     }
     
     

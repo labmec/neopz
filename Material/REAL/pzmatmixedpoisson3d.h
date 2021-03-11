@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <iostream>
-#include "pzdiscgal.h"
+
 #include "TPZMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 

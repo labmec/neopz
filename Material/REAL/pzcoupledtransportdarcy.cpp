@@ -25,7 +25,7 @@ int TPZCoupledTransportDarcy::CurrentEquation(){ return TPZCoupledTransportDarcy
 
 TPZCoupledTransportDarcy::TPZCoupledTransportDarcy(int nummat, int nummat0, int nummat1, int dim) : 
 TPZRegisterClassId(&TPZCoupledTransportDarcy::ClassId),
-TPZDiscontinuousGalerkin(nummat), fAlpha(1.) {
+TPZMaterial(nummat), fAlpha(1.) {
 	this->fMaterials[0] = new TPZMatPoisson3d(nummat0, dim);
 	fMaterialRefs[0] = fMaterials[0];
 	this->fMaterials[1] = new TPZMatPoisson3d(nummat1, dim);
@@ -158,5 +158,5 @@ void TPZCoupledTransportDarcy::UpdateConvectionDirInterface(TPZFMatrix<STATE> &d
 }
 
 int TPZCoupledTransportDarcy::ClassId() const{
-    return Hash("TPZCoupledTransportDarcy") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZCoupledTransportDarcy") ^ TPZMaterial::ClassId() << 1;
 }

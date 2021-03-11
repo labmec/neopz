@@ -23,7 +23,7 @@ using namespace std;
 
 TPZElasticityMaterial::TPZElasticityMaterial() : 
 TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
-TPZDiscontinuousGalerkin(0), ff(3,0.) {
+TPZMaterial(0), ff(3,0.) {
 	fE_def	= -1.;  // Young modulus
 	fnu_def	= -1.;   // poisson coefficient
 	ff[0]	= 0.; // X component of the body force
@@ -43,7 +43,7 @@ TPZDiscontinuousGalerkin(0), ff(3,0.) {
 }
 
 TPZElasticityMaterial::TPZElasticityMaterial(int id) : TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
-TPZDiscontinuousGalerkin(id), ff(3,0.) {
+TPZMaterial(id), ff(3,0.) {
 	fE_def	= -1.;  // Young modulus
 	fnu_def	= -1.;   // poisson coefficient
 	ff[0]	= 0.; // X component of the body force
@@ -64,7 +64,7 @@ TPZDiscontinuousGalerkin(id), ff(3,0.) {
 
 TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : 
 TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
-TPZDiscontinuousGalerkin(num), ff(3,0.) {
+TPZMaterial(num), ff(3,0.) {
 	
 	fE_def	= E;  // Young modulus
 	fnu_def	= nu;   // poisson coefficient
@@ -1225,7 +1225,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 
 TPZElasticityMaterial::TPZElasticityMaterial(const TPZElasticityMaterial &copy) :
 TPZRegisterClassId(&TPZElasticityMaterial::ClassId),
-TPZDiscontinuousGalerkin(copy),
+TPZMaterial(copy),
 fE_def(copy.fE_def),
 fnu_def(copy.fnu_def),
 fElasticity(copy.fElasticity),
@@ -1243,7 +1243,7 @@ fPreStressZZ(copy.fPreStressZZ)
 
 
 int TPZElasticityMaterial::ClassId() const{
-    return Hash("TPZElasticityMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZElasticityMaterial") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND

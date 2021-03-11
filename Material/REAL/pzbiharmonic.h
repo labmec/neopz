@@ -7,7 +7,7 @@
 #define TPZBIHARMONICHPP
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 /**
@@ -16,7 +16,7 @@
  * @since Nov 27, 2003
  * @author Igor Mozolevski e Paulo Bosing
  */
-class TPZBiharmonic : public TPZDiscontinuousGalerkin {
+class TPZBiharmonic : public TPZMaterial {
 	
 protected:
 	REAL  fXf;
@@ -58,7 +58,7 @@ protected:
                             REAL weight,
 							TPZFMatrix<STATE> &ef) override 
 	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	/** @brief Implements boundary conditions for continuous Galerkin */
 	virtual void ContributeBC(TPZMaterialData &data,
@@ -73,7 +73,7 @@ protected:
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc) override 
 	{
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	virtual int VariableIndex(const std::string &name) override ;
@@ -91,7 +91,7 @@ public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
 	{
-		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
+		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 	
     /**
@@ -118,7 +118,7 @@ public:
 									 REAL weight,
 									 TPZFMatrix<STATE> &ef) override 
 	{
-		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
+		TPZMaterial::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
@@ -126,7 +126,7 @@ public:
 									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc) override 
 	{
-		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
+		TPZMaterial::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 
 };

@@ -286,7 +286,7 @@ void TPZBlackOil2P3D::K(TPZFMatrix<REAL> &K){
 
 //Programa
 
-TPZBlackOil2P3D::TPZBlackOil2P3D(int id, double deltaT):TPZDiscontinuousGalerkin(id){
+TPZBlackOil2P3D::TPZBlackOil2P3D(int id, double deltaT):TPZMaterial(id){
 	this->fDeltaT = deltaT;
 }
 
@@ -294,7 +294,7 @@ TPZBlackOil2P3D::~TPZBlackOil2P3D(){
 	//nothing to be done
 }
 
-TPZBlackOil2P3D::TPZBlackOil2P3D(const TPZBlackOil2P3D &cp):TPZDiscontinuousGalerkin(cp){
+TPZBlackOil2P3D::TPZBlackOil2P3D(const TPZBlackOil2P3D &cp):TPZMaterial(cp){
 	
 }
 

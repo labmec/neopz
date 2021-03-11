@@ -9,18 +9,18 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 
-//#include "pzdiscgal.h"
+//
 //#include "pzmaterialdata.h"
 //#include "pzmaterialid.h"
 
 using namespace std;
 
-TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado():TPZDiscontinuousGalerkin(), fXf1(0.), fXf2(0.),fDim(1){
+TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado():TPZMaterial(), fXf1(0.), fXf2(0.),fDim(1){
 	fK1 = 1.;
 	fK2 = 1.;
 }
 
-TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado(int matid, int dim):TPZDiscontinuousGalerkin(matid), fXf1(0.), fXf2(0.),fDim(dim){
+TPZMatPoissonDesacoplado::TPZMatPoissonDesacoplado(int matid, int dim):TPZMaterial(matid), fXf1(0.), fXf2(0.),fDim(dim){
 	fK1 = 1.;
 	fK2 = 1.;
 }

@@ -7,14 +7,14 @@
 #define PZL2PROJECTION_H
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 /**
  * @ingroup material
  * @brief Implements an L2 projection to constant solution values.
  * @since April 23, 2007
  */
-class TPZL2Projection : public TPZDiscontinuousGalerkin{
+class TPZL2Projection : public TPZMaterial{
 	
 protected:
 	
@@ -78,7 +78,7 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	/** @brief To satisfy base class interface. */
@@ -121,7 +121,7 @@ public:
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override ;
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override {
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc) ;
+		TPZMaterial::ContributeBC(data,weight,ef,bc) ;
 	}
 	
 	/** @brief Define if material is referred or not */
@@ -149,7 +149,7 @@ public:
     /** @brief Returns the solution associated with the var index based on the finite element approximation*/
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
 	{
-		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
+		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
     
     virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,

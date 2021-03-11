@@ -5,7 +5,7 @@
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
-#include "pzdiscgal.h"
+
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
@@ -394,128 +394,7 @@ void TPZAgglomerateElement::IndexesDiscSubEls(TPZStack<int64_t> &elvec){
 	}
 }
 
-/*
- void TPZAgglomerateElement::CreateMaterialCopy(TPZCompMesh &aggcmesh){
- 
- //criando copias dos materiais
- int nmats = fMotherMesh->MaterialVec().NElements(),i;
- for(i=0;i<nmats;i++){//achando material de volume
- TPZMaterial *mat = fMotherMesh->MaterialVec()[i];
- if(!mat) continue;
- if(mat->Id() > 0){
- //       if( !strcmp(mat->Name(),"TPZEulerConsLaw") ){
- // 	TPZEulerConsLaw *euler = dynamic_cast<TPZEulerConsLaw *>(mat);
- // 	mat = euler->NewMaterial();//mat = new TPZEulerConsLaw(*euler);//copia
- // 	aggcmesh.InsertMaterialObject(mat);
- //       }
- TPZDiscontinuousGalerkin * consmat = dynamic_cast<TPZDiscontinuousGalerkin *>(mat);
- if ( consmat ){
- mat = consmat->NewMaterial();
- aggcmesh.InsertMaterialObject(mat);
- } else {
- PZError << "TPZAgglomerateElement::CreateMaterialCopy material not defined, implement now (Tiago)!\n";
- }
- }
- }
- for(i=0;i<nmats;i++){//achando material de CC
- TPZMaterial *mat = fMotherMesh->MaterialVec()[i];
- if(!mat) continue;
- if(mat->Id() < 0){//CC: id < 0
- TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
- if(!bc) PZError << "TPZCompElDisc::CreateAgglomerateMesh null bc material\n";
- int nummat = bc->Material()->Id();//mat. vol.
- TPZMaterial *material = aggcmesh.FindMaterial(nummat);
- if(!material) PZError << "TPZCompElDisc::CreateAgglomerateMesh volume material not exists"
- << " (implement Tiago)\n";
- TPZBndCond *copy = new TPZBndCond(*bc,material);
- aggcmesh.InsertMaterialObject(copy);
- }
- }
- }
- */
 
-/*
- TPZGeoEl *TPZAgglomerateElement::CalculateReference(){
- 
- //return TPZCompElDisc::Reference();
- //porenquanto interfaces n� s� aglomeradas
- //if(Dimension() == gInterfaceDimension) return NULL;
- 
- TPZStack<TPZCompEl *> elvec;
- ListOfDiscEl(elvec);
- int size = elvec.NElements(),i,nlevels = 1;
- TPZGeoEl *ref0 = elvec[0]->Reference();
- if(size == 1) return ref0;
- 
- TPZGeoEl *fat = FatherN(ref0,nlevels);
- while(fat){
- for(i=1;i<size;i++){
- TPZGeoEl *ref = elvec[i]->Reference();
- if( FatherN(ref,nlevels) != fat ) break;
- }
- if( i < size ){
- nlevels++;
- fat = FatherN(ref0,nlevels);
- } else {
- break;//o pai maior foi achado
- }
- }
- if( fat && size == NSubCompEl(fat) ) return fat;
- return NULL;
- }
- 
- int TPZAgglomerateElement::NSubsOfLevels(TPZGeoEl *father,int nlevels){
- 
- //quantos sub-elementos father cont� at�nlevels n�eis abaixo dele
- if(!father) return 0;
- if(nlevels == 1) return father->NSubElements();
- int numberels = 0,i,lev = 1;
- while(lev < nlevels){
- int nsubs = father->NSubElements();
- numberels = nsubs;
- for(i=0;i<nsubs;i++){
- TPZGeoEl *sub = father->SubElement(i);
- if(!sub->Reference()) NSubsOfLevels(sub,lev);//s�computacionais
- numberels += NSubsOfLevels(sub,nlevels-1);
- }
- lev++;
- }
- return numberels;
- }
- 
- int TPZAgglomerateElement::NSubCompEl(TPZGeoEl *father){
- 
- //quantos sub-elementos computacionais father aglomera
- if(!father) return 0;
- int numberels = 0,i,nsubs = father->NSubElements();
- for(i=0;i<nsubs;i++){
- TPZGeoEl *sub = father->SubElement(i);
- if(!sub) return 0;
- if(!sub->Reference()){
- numberels += NSubCompEl(sub);//s�computacionais
- } else {
- numberels++;
- }
- }
- return numberels;
- }
- 
- TPZGeoEl *TPZAgglomerateElement::FatherN(TPZGeoEl *sub,int n){
- 
- //procura-se o ancestral n n�eis acima de sub
- if(!sub) return NULL;
- if(n == 0) return sub;
- int niv = 1;
- TPZGeoEl *fat;
- while( niv < (n+1) ){
- fat = sub->Father();
- if(!fat) return NULL;
- sub = fat;
- niv++;
- }
- return fat;
- }
- */
 
 //int Level(TPZGeoEl *gel);
 void TPZAgglomerateElement::ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int64_t> &accumlist,

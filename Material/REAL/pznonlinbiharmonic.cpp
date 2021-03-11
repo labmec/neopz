@@ -29,7 +29,7 @@ int TPZNonLinBiharmonic::NorP = 1; // Constante. Se for 1, entao Metodo de Newto
 using namespace std;
 
 TPZNonLinBiharmonic::TPZNonLinBiharmonic(int nummat, STATE f) : TPZRegisterClassId(&TPZNonLinBiharmonic::ClassId),
-TPZDiscontinuousGalerkin(nummat),
+TPZMaterial(nummat),
 fXf(f){}
 
 TPZNonLinBiharmonic::~TPZNonLinBiharmonic() {
@@ -708,5 +708,5 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 }
 
 int TPZNonLinBiharmonic::ClassId() const{
-    return Hash("TPZNonLinBiharmonic") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZNonLinBiharmonic") ^ TPZMaterial::ClassId() << 1;
 }

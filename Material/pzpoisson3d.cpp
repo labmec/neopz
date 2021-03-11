@@ -24,7 +24,7 @@ using namespace std;
 STATE TPZMatPoisson3d::gAlfa = 0.5;
 
 TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
-TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
+TPZMaterial(nummat), fXf(0.), fDim(dim), fSD(0.) {
     if(dim < 1)
     {
         DebugStop();
@@ -43,7 +43,7 @@ TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fSD(0.) {
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d():TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
-TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
+TPZMaterial(), fXf(0.), fDim(1), fSD(0.){
 	fC = 0.;
     fTensorPerm ={{1,0,0},{0,1,0},{0,0,1}};
     fInvPerm ={{1,0,0},{0,1,0},{0,0,1}};
@@ -58,12 +58,12 @@ TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fSD(0.){
 }
 
 TPZMatPoisson3d::TPZMatPoisson3d(const TPZMatPoisson3d &copy):TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
-TPZDiscontinuousGalerkin(copy){
+TPZMaterial(copy){
 	this->operator =(copy);
 }
 
 TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
-	TPZDiscontinuousGalerkin::operator = (copy);
+	TPZMaterial::operator = (copy);
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fTensorPerm = copy.fTensorPerm;
@@ -1568,7 +1568,7 @@ STATE TPZMatPoisson3d::AVGK(){
 }
 
 void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid) const{
-	TPZDiscontinuousGalerkin::Write(buf, withclassid);
+	TPZMaterial::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
 
@@ -1591,7 +1591,7 @@ void TPZMatPoisson3d::Write(TPZStream &buf, int withclassid) const{
 }
 
 void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
-	TPZDiscontinuousGalerkin::Read(buf, context);
+	TPZMaterial::Read(buf, context);
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);
 
@@ -1614,7 +1614,7 @@ void TPZMatPoisson3d::Read(TPZStream &buf, void *context){
 }
 
 int TPZMatPoisson3d::ClassId() const{
-    return Hash("TPZMatPoisson3d") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZMatPoisson3d") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND

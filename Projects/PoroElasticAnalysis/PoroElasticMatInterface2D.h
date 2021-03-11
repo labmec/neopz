@@ -18,7 +18,7 @@
 #include <iostream>
 #include "TPZMaterial.h"
 #include "pzelmat.h"
-#include "pzdiscgal.h"
+
 #include "pzelasmat.h"
 #include "pzporoelastic2d.h"
 #include "TPZMultiphysicsInterfaceEl.h"
@@ -85,7 +85,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 //	/** @brief Calculates the element stiffness matrix */
 //	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ef)
 //	{
-//		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+//		TPZMaterial::Contribute(data,weight,ef);
 //	}
 //	
 //	/** @brief Applies the element boundary conditions */
@@ -96,7 +96,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 //	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 //							  TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 //	{
-//		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+//		TPZMaterial::ContributeBC(data,weight,ef,bc);
 //	}
 //	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
@@ -129,7 +129,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
 //	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 //	{
-//		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
+//		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 //	}
 	
 //	/** @brief Computes the value of the flux function to be used by ZZ error estimator */

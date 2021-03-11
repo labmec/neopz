@@ -11,7 +11,7 @@
 #include "TPZMaterial.h"
 #include "pzmultiphysicselement.h"
 #include "tpzintpoints.h"
-#include "pzdiscgal.h"
+
 #include "pzmultiphysicscompel.h"
 #include "pzgeoel.h"
 
@@ -312,12 +312,8 @@ int64_t TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 #include "pzmultiphysicscompel.h"
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
-    TPZMaterial *locmat = this->Material();
-    if(!locmat)
-    {
-        DebugStop();
-    }
-	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (locmat);
+   TPZMaterial *material = this->Material();
+	
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ek.Reset();
@@ -409,7 +405,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
 {
-    TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
+    TPZMaterial  * material = this->Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         ef.Reset();
@@ -519,7 +515,7 @@ void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
         delete fIntegrationRule;
     }
     
-    TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (this->Material());
+    TPZMaterial  * material = this->Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         DebugStop();

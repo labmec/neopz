@@ -10,13 +10,13 @@
 
 
 /** @brief Default constructor */
-TRMBiotPoroelasticity::TRMBiotPoroelasticity() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
+TRMBiotPoroelasticity::TRMBiotPoroelasticity() : TPZMatWithMem<TRMMemory, TPZMaterial>()
 {
     fdimension = 0;
 }
 
 /** @brief Constructor based on a material id */
-TRMBiotPoroelasticity::TRMBiotPoroelasticity(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
+TRMBiotPoroelasticity::TRMBiotPoroelasticity(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZMaterial>(matid)
 {
     fdimension = dimension;
 }
@@ -132,14 +132,14 @@ int TRMBiotPoroelasticity::ClassId() const{
 
 void TRMBiotPoroelasticity::Write(TPZStream &buf, int withclassid) const{
     
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     
 }
 
 // -------------------------------------------------------------------------------------------
 
 void TRMBiotPoroelasticity::Read(TPZStream &buf, void *context) {
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     
 }
 

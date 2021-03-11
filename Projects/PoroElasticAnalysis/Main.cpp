@@ -21,7 +21,7 @@
 #include "ElasticMatInterface2D.h"
 #include "PoroElasticMatInterface2D.h"
 #include "TPZInterfaceEl.h"
-#include "pzdiscgal.h"
+
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"

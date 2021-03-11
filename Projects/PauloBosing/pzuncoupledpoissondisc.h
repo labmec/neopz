@@ -9,7 +9,7 @@
 #ifndef __PZ__pzuncoupledpoissondisc__
 #define __PZ__pzuncoupledpoissondisc__
 
-#include "pzdiscgal.h"
+
 #include "pzfmatrix.h"
 
 #include <iostream>
@@ -28,7 +28,7 @@
  */
 
 
-class TPZMatUncoupledPoissonDisc : public TPZDiscontinuousGalerkin {
+class TPZMatUncoupledPoissonDisc : public TPZMaterial {
     
 protected:
 	/** @brief Forcing function value */

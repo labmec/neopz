@@ -6,7 +6,7 @@
 #define POISSONDESACOPLADOSH
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 #include <iostream>
 
@@ -24,7 +24,7 @@
  */
 
 
-class TPZMatPoissonDesacoplado : public TPZDiscontinuousGalerkin {
+class TPZMatPoissonDesacoplado : public TPZMaterial {
 
 protected:
 	/** @brief Forcing function value */

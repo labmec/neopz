@@ -25,7 +25,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 
 TPZNLFluidStructure2d::EState TPZNLFluidStructure2d::gState = ECurrentState;
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin()
+TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZMaterial()
 {
 	fmatId = 0;
 	fE = 0.;
@@ -39,7 +39,7 @@ TPZNLFluidStructure2d::TPZNLFluidStructure2d() : TPZDiscontinuousGalerkin()
 	ff[1] = 0.;
 }
 
-TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc): TPZDiscontinuousGalerkin(matid)
+TPZNLFluidStructure2d::TPZNLFluidStructure2d(int matid, int dim, REAL young, REAL poiss, REAL visc): TPZMaterial(matid)
 {
 	fmatId = matid;
 	fE = young;

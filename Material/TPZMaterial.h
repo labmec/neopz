@@ -235,17 +235,20 @@ public:
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
     virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * right);
-    
-protected:
-    /** @deprecated Deprecated interface for Solution method which must use material data. */
-    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
-    
-    /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
-    {
-        std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
+
+    /** @deprecated Deprecated interface for Solution method which must use
+     * material data. */
+    virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
+                          TPZFMatrix<REAL> &axes, int var,
+                          TPZVec<STATE> &Solout);
+
+    /** @brief Returns the solution associated with the var index based on the
+     * finite element approximation */
+    void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft,
+                      TPZMaterialData &dataright, int var,
+                      TPZVec<STATE> &Solout) {
+      std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     }
-    
 
 public:
     
@@ -729,9 +732,5 @@ int ClassId() const override;
     /** @} */
 	
 };
-
-/** @brief Extern variable - Vector of force values */
-//extern TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;
-
 #endif
 

@@ -53,36 +53,6 @@ class TPZElasticity2DHybrid : public TPZElasticityMaterial {
 	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
-    
-    /**
-     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
-     * to multiphysics simulation.
-     * @param datavec [in]  stores all input data
-     * @param weight [in] is the weight of the integration rule
-     * @param ek [out] is the stiffness matrix
-     * @param ef [out] is the load vector
-     * @param bc [in] is the boundary condition material
-     * @since October 18, 2011
-     */
-  //  virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
-    
-
-	/** @} */
-	
-    /** @name Post processing methods
-     * @{
-     */
-    
-
-    /** @brief Returns the solution associated with the var index based on the finite element approximation */
-  //  virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
-    /** @} */
-    
-//    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
-//    {
-//        TPZDiscontinuousGalerkin::Errors(data[0],u_exact,du_exact,errors);
-//    }
 
 public:
 

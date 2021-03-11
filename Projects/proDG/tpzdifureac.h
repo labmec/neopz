@@ -7,7 +7,6 @@
 #define DIFUREACDH
 
 #include <iostream>
-#include "pzdiscgal.h"
 #include "pzfmatrix.h"
 
 /**
@@ -17,7 +16,7 @@
 /**
  * \f$ -Div (fK grad(u)) = falpha u = fXf  \f$
  */
-class TPZdifureac : public TPZDiscontinuousGalerkin {
+class TPZdifureac : public TPZMaterial {
 	
 	protected :
 	
@@ -80,7 +79,7 @@ public:
 	
 	TPZdifureac(int nummat, int dim);
 
-  TPZdifureac(int matid) : TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fK(0.),   //aqui precisa o parametro alfa
+  TPZdifureac(int matid) : TPZMaterial(matid), fXf(0.), fDim(-1), fK(0.),   //aqui precisa o parametro alfa
      fSymmetry(0.), fPenaltyType(ENoPenalty)
   {
 

@@ -8,7 +8,7 @@
 
 
 #include <iostream>
-#include "pzdiscgal.h"
+
 #include "TPZMaterial.h"
 
 
@@ -26,7 +26,7 @@
  */
 
 
-class TPZMatPoissonControl : public TPZDiscontinuousGalerkin {
+class TPZMatPoissonControl : public TPZMaterial {
     
 protected:
     /** Material Id */

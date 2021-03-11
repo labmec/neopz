@@ -10,14 +10,15 @@
 #define __PZ__TRMPhaseTransport__
 
 #include <stdio.h>
+#include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
 #include "TRMPhaseMemory.h"
 #include "TRMPhaseTransport.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
-#include "pzdiscgal.h"
 
-class TRMPhaseTransport : public TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> {
+
+class TRMPhaseTransport : public TPZMatWithMem<TRMPhaseMemory,TPZMaterial> {
     
 private:
     

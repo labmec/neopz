@@ -8,7 +8,7 @@
 
 #include "TRMPhaseTransport.h"
 
-TRMPhaseTransport::TRMPhaseTransport() : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>()
+TRMPhaseTransport::TRMPhaseTransport() : TPZMatWithMem<TRMPhaseMemory, TPZMaterial>()
 {
     
     /** @brief define the simulation data */
@@ -22,7 +22,7 @@ TRMPhaseTransport::TRMPhaseTransport() : TPZMatWithMem<TRMPhaseMemory, TPZDiscon
     
 }
 
-TRMPhaseTransport::TRMPhaseTransport(int matid, int dimension) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(matid)
+TRMPhaseTransport::TRMPhaseTransport(int matid, int dimension) : TPZMatWithMem<TRMPhaseMemory, TPZMaterial>(matid)
 {
     
     /** @brief define the simulation data */
@@ -37,7 +37,7 @@ TRMPhaseTransport::TRMPhaseTransport(int matid, int dimension) : TPZMatWithMem<T
 }
 
 
-TRMPhaseTransport::TRMPhaseTransport(const TRMPhaseTransport &mat) : TPZMatWithMem<TRMPhaseMemory, TPZDiscontinuousGalerkin>(mat)
+TRMPhaseTransport::TRMPhaseTransport(const TRMPhaseTransport &mat) : TPZMatWithMem<TRMPhaseMemory, TPZMaterial>(mat)
 {
     this->fSimulationData   = mat.fSimulationData;
     this->fTransfer         = mat.fTransfer;
@@ -617,14 +617,14 @@ int TRMPhaseTransport::ClassId() const{
 
 void TRMPhaseTransport::Write(TPZStream &buf, int withclassid) const{
     
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     
 }
 
 // -------------------------------------------------------------------------------------------
 
 void TRMPhaseTransport::Read(TPZStream &buf, void *context) {
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     
 }
 

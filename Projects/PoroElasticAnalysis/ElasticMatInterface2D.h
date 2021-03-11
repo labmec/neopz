@@ -18,7 +18,7 @@
 #include <iostream>
 #include "TPZMaterial.h"
 #include "pzelmat.h"
-#include "pzdiscgal.h"
+
 #include "pzelasmat.h"
 
 #ifndef ElasticMatInterface2DH
@@ -56,44 +56,6 @@ class ElasticMatInterface2D  : public TPZElasticityMaterial {
 	
 	void SetPenalty(REAL kn, REAL kt);
 	
-//	/** @brief Returns the model dimension */
-//	int Dimension() { return 2;}
-//	
-//	/** @brief Returns the number of state variables associated with the material */
-//	virtual  int NStateVariables();
-	
-//	/** @brief Print the material data*/
-//	virtual void Print(std::ostream & out = std::cout);
-//	
-//	/** @brief Returns the material name*/
-//	std::string Name() { return "ElasticMatInterface2D"; }
-	
-//	/** @brief Returns the number of components which form the flux function */
-//	virtual short NumberOfFluxes(){return 3;}
-//	
-//	/** @name Contribute methods */
-//	/** @{ */
-//	
-//	/** @brief Calculates the element stiffness matrix */
-//	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-//	
-//	/** @brief Calculates the element stiffness matrix */
-//	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ef)
-//	{
-//		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
-//	}
-//	
-//	/** @brief Applies the element boundary conditions */
-//	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-//							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-//	
-//	/** @brief Applies the element boundary conditions */
-//	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-//							  TPZFMatrix<STATE> &ef,TPZBndCond &bc)
-//	{
-//		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
-//	}
-//	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
@@ -117,7 +79,7 @@ class ElasticMatInterface2D  : public TPZElasticityMaterial {
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
 //	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 //	{
-//		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
+//		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 //	}
 	
 //	/** @brief Computes the value of the flux function to be used by ZZ error estimator */

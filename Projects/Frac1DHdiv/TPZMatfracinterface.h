@@ -1,7 +1,7 @@
 #ifndef TPZMatfrac1dhdiv_H
 #define TPZMatfrac1dhdiv_H
 
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
 
@@ -14,7 +14,7 @@
  * @brief It only implements ContributeInterface
  * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
  */
-class TPZMatfracinterface : public TPZDiscontinuousGalerkin {
+class TPZMatfracinterface : public TPZMaterial {
   
 protected:
   
