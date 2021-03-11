@@ -594,17 +594,36 @@ public:
 	
 	/** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
     virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const;
-	
+
+  void Errors(TPZMaterialData &data,TPZVec<REAL> &errors)
+    {
+        TPZManVector<STATE,3> flux;
+        Errors(data.x, data.sol[0], data.dsol[0], data.axes, errors );
+    }
+
+  virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
+        PZError << __PRETTY_FUNCTION__ << std::endl;
+        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+    }
+  virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
+    
+            PZError << __PRETTY_FUNCTION__ << std::endl;
+            PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+        DebugStop();
+        
+    }
+	[[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZMaterialData,TPZVec<REAL>) instead")]]
     void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
     {
         TPZManVector<STATE,3> flux;
         Errors(data.x, data.sol[0], data.dsol[0], data.axes,  u_exact, du_exact, errors );
     }
+  [[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZVec<TPZMaterialData>,TPZVec<REAL>) instead")]]
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-    
+  [[deprecated("Use OR IMPLEMENT TPZMaterial::ErrorsBC(TPZVec<TPZMaterialData>,TPZVec<REAL>,TPZBndCond &) instead")]]
     virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
     
             PZError << __PRETTY_FUNCTION__ << std::endl;
@@ -614,9 +633,16 @@ public:
     }
 protected:
   /**
-	 * @brief Computes the error due to the difference between the interpolated flux \n
-	 * and the flux computed based on the derivative of the solution
+	 * @brief Computes the error between the exact and the approximated
+   solutions
 	 */
+virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
+                      TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
+                      TPZVec<REAL> &val) {
+    PZError << __PRETTY_FUNCTION__ << std::endl;
+    PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+  }
+  [[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZVec<REAL> &, TPZVec<STATE> &, TPZFMatrix<STATE> &, TPZMatrix<REAL> &, TPZVec<REAL>&) instead")]]
   virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
                       TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
                       TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
