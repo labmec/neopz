@@ -5,7 +5,11 @@ function(enable_mkl target)
 
   set(MKL_THREAD_MODEL_TYPES "Options are: seq, tbb or omp(default)"
     "\nseq: Sequential\ntbb:TBB\nOMP:OpenMP")
-  set(MKL_THREAD_MODEL "omp" CACHE STRING "${MKL_THREAD_MODEL_TYPES}")
+  if(NOT MKL_THREAD_MODEL AND TARGET mkl::mkl_intel_32bit_tbb_dyn)
+    set(MKL_THREAD_MODEL "tbb" CACHE STRING "${MKL_THREAD_MODEL_TYPES}")
+  else()
+    set(MKL_THREAD_MODEL "omp" CACHE STRING "${MKL_THREAD_MODEL_TYPES}")
+    endif()
   
   if(NOT MKL_THREAD_MODEL STREQUAL "tbb" AND
       NOT MKL_THREAD_MODEL STREQUAL "omp" AND
