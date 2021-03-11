@@ -287,7 +287,7 @@ void TPZVecL2::Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
                 TPZVec<REAL> &values) {
   PZError<< "This method needs to be updated!" << std::endl;   
   DebugStop();
-  values.Fill(0.0);
+  // values.Fill(0.0);
     
 // #ifdef LOG4CXX
 //     if(logger->isDebugEnabled()){
@@ -305,17 +305,17 @@ void TPZVecL2::Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
 // #endif
     
     
-    //values[1] : flux error using L2 norm
-    for(int id=0; id<fDim; id++) {
-        REAL diffFlux = fabs(dsol[id] - du_exact(id,0));
-        values[0]  += diffFlux*diffFlux;
-    }
-    if(du_exact.Rows()>fDim){
-        //values[2] : divergence using L2 norm
-        REAL diffDiv = fabs(div[0] - du_exact(fDim,0));
-        values[1]=diffDiv*diffDiv;
-        //values[3] : Hdiv norm => values[1]+values[2];
-        values[2]= values[0]+values[1];
-    }
+    // //values[1] : flux error using L2 norm
+    // for(int id=0; id<fDim; id++) {
+    //     REAL diffFlux = fabs(dsol[id] - du_exact(id,0));
+    //     values[0]  += diffFlux*diffFlux;
+    // }
+    // if(du_exact.Rows()>fDim){
+    //     //values[2] : divergence using L2 norm
+    //     REAL diffDiv = fabs(div[0] - du_exact(fDim,0));
+    //     values[1]=diffDiv*diffDiv;
+    //     //values[3] : Hdiv norm => values[1]+values[2];
+    //     values[2]= values[0]+values[1];
+    // }
 }
 
