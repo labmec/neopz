@@ -444,10 +444,13 @@ inline void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int inte
     subindex.Resize(0);
     LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
-
+void TPZCompEl::EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) {
+    LOGPZ_WARN(logger, "EvaluateError is called.");
+    DebugStop();
+}
 void TPZCompEl::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                               TPZVec<REAL> &/*errors*/, bool store_error) {
-    LOGPZ_WARN(logger, "EvaluateError is called.");
+    LOGPZ_WARN(logger, "EvaluateError OLD is called.");
     DebugStop();
 }
 

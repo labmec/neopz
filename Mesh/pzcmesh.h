@@ -625,15 +625,11 @@ public:
      */
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
 
-	
-	/**
-	 * @brief Evaluates the error given the two vectors of the analised parameters
-	 * @param fp pointer for the function with following arguments:
-	 * @note Parameter loc - local vector of the analised parameter
-	 * @note Parameter val - given vector to compare
-	 * @note Parameter deriv - ????
-	 * @param errorSum - return the L1 error
-	 */
+
+    void EvaluateError(bool store_error,
+					   TPZVec<REAL> &errorSum);
+
+  [[deprecated("Use TPZCompMesh::EvaluateError(bool,TPZVec<REAL>")]]
     void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp, bool store_error,
 					   TPZVec<REAL> &errorSum);
 	
