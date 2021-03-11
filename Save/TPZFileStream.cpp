@@ -93,3 +93,10 @@ template<class T>
         }
 #endif
     }
+
+template void TPZFileStream::ReadData<double>(double *p, int howMany);
+template void TPZFileStream::WriteData<double>(double const* p, int howMany);
+template void TPZFileStream::WriteData<int>(int const* p, int howMany);
+template void TPZFileStream::WriteData<long const>(long const* p, int howMany);
+template void TPZFileStream::ReadData<int>(int* p, int howMany);
+template void TPZFileStream::ReadData<long>(long* p, int howMany);
