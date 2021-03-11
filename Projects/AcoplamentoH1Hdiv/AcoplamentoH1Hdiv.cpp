@@ -563,8 +563,8 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 	  mat1->SetForcingFunction(force);
 		mat2->SetForcingFunction(force);
 		TPZAutoPointer<TPZFunction<STATE> > exata = new TPZDummyFunction<STATE>(SolExata, 5);
-		mat1->SetForcingFunctionExact(exata);
-		mat2->SetForcingFunctionExact(exata);
+		mat1->SetExactSol(exata);
+		mat2->SetExactSol(exata);
 		
 		TPZFMatrix<STATE> k(1,1,0.),f(1,1,0.);
 		//k(0,0)=BIG;

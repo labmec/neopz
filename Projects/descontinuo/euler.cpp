@@ -1389,7 +1389,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 	
 	TPZAutoPointer<TPZFunction<STATE> > exata = new TPZDummyFunction<STATE>(Function, 5);
-	mat->SetForcingFunctionExact(exata);
+	mat->SetExactSol(exata);
 	TPZMaterial *matauto(mat);
 	cmesh->InsertMaterialObject(matauto);
 	

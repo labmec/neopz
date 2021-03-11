@@ -113,7 +113,7 @@ class TPZGradientReconstruction
          * @brief Sets a procedure as exact solution for the problem
          * @param fp pointer of exact solution function
          */
-        void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+        void SetExactSol(TPZAutoPointer<TPZFunction<STATE> > fp)
         {
             fExactSol = fp;
         }

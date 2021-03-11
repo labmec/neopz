@@ -344,7 +344,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
     dum->SetPolynomialOrder(20);
     solExata = dum;
-    material->SetForcingFunctionExact(solExata);
+    material->SetExactSol(solExata);
     
     //Inserir condicoes de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -413,7 +413,7 @@ TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId)
     cmesh->SetDimModel(dim);
     
     TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
-    material->SetForcingFunctionExact(solExata);
+    material->SetExactSol(solExata);
     
     //Inserir condicoes de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
@@ -593,10 +593,10 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     if (dim ==2) {
         solExata = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
-        mymaterial->SetForcingFunctionExact(solExata);
+        mymaterial->SetExactSol(solExata);
     }else{
         solExata = new TPZDummyFunction<STATE>(SolExata3D, 5);
-        mymaterial->SetForcingFunctionExact(solExata);
+        mymaterial->SetExactSol(solExata);
         
         TPZAutoPointer<TPZFunction<STATE>> source = new TPZDummyFunction<STATE> (f_3D, 5);
         mymaterial->SetForcingFunction(source);
@@ -1555,7 +1555,7 @@ TPZCompMesh *MalhaCompH1QP(TPZGeoMesh * gmesh,int ordem){
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklov, 5);
     dum->SetPolynomialOrder(20);
     solExata = dum;
-    material->SetForcingFunctionExact(solExata);
+    material->SetExactSol(solExata);
     
     //Inserir condicoes de contorno
     TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);

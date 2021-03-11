@@ -635,7 +635,7 @@ TPZCompMesh *Hdiv2dPaper201504::CMeshH1(TPZGeoMesh *gmesh, int pOrder, int dim)
     //    //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     solexata = new TPZDummyFunction<STATE>(SolExataH1, 5);
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
     
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(ForcingH1,5);
@@ -851,7 +851,7 @@ TPZCompMesh *Hdiv2dPaper201504::CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMes
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     
     solexata = new TPZDummyFunction<STATE>(SolExata,5);
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
     mphysics->SetDimModel(dim);
     //funcao do lado direito da equacao do problema
     TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(Forcing,5);

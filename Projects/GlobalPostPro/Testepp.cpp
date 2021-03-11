@@ -335,7 +335,7 @@ TPZCompMesh *ComputationalMesh(TPZGeoMesh * gmesh, int pOrder)
 // Setting up the exact function     
     TPZAutoPointer<TPZFunction<STATE> > SigmaExact;
     SigmaExact = new TPZDummyFunction<STATE>(ExactSigma, 5);
-    material->SetForcingFunctionExact(SigmaExact);    
+    material->SetExactSol(SigmaExact);    
 
     cmesh->SetDimModel(dim);
     cmesh->SetAllCreateFunctionsHDiv();

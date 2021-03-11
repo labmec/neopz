@@ -58,10 +58,6 @@ protected:
     
     /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
     TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
-    
-    /** @brief Pointer to time dependent bc forcing function, it is a variable boundary condition at differential equation */
-//    TPZAutoPointer<TPZFunction<STATE> > fTimedependentBCForcingFunction;
-    
 
     /**
 	 * @brief Defines whether the equation context is linear solver or non linear
@@ -166,13 +162,7 @@ public:
     virtual int Dimension() const = 0;
     
     int Id() const { return fId; }
-    void SetId(int id) {
-/*        if(id == 0) {
-            std::cout << "\n*** Material Id can't be ZERO! ***\n";
-            std::cout << "*** This Will Be a Disaster!!! ***\n";
-            DebugStop();
-        }*/
-        fId = id; }
+    void SetId(int id) {fId = id; }
     
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables() const = 0;
@@ -506,13 +496,13 @@ public:
 	 * @brief Sets a procedure as exact solution for the problem
 	 * @param fp pointer of exact solution function
 	 */
-	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+	void SetExactSol(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
 		fExactSol = fp;
 	}
 	
     /** @brief Returns a procedure as exact solution for the problem */
-    TPZAutoPointer<TPZFunction<STATE> > &ForcingFunctionExact() {
+    TPZAutoPointer<TPZFunction<STATE> > &GetExactSol() {
         return fExactSol;
     }
     
@@ -543,34 +533,6 @@ public:
     TPZAutoPointer<TPZFunction<STATE> > &TimedependentFunctionExact() {
         return fTimedependentFunctionExact;
     }
-	
-    /** 
-     * @brief Sets a procedure as variable boundary condition
-     * @param fp pointer of exact solution function
-     */
-//    void SetBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
-//    {
-//        fBCForcingFunction = fp;
-//    }
-    
-    /** @brief Returns a procedure as variable boundary condition */
-//    TPZAutoPointer<TPZFunction<STATE> > &BCForcingFunction() {
-//        return fBCForcingFunction;
-//    }
-    
-    /** 
-     * @brief Sets a procedure as time variable boundary condition
-     * @param fp pointer of exact solution function
-     */
-//    void SetTimedependentBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
-//    {
-//        fTimedependentBCForcingFunction = fp;
-//    }
-    
-    /** @brief Returns a procedure as time variable boundary condition */
-//    TPZAutoPointer<TPZFunction<STATE> > &TimedependentBCForcingFunction() {
-//        return fTimedependentBCForcingFunction;
-//    }
     
     /** @brief Directive that gives true if the material has a forcing function   */
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
