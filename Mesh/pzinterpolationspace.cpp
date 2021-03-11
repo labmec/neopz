@@ -1057,28 +1057,28 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		//this->ComputeSolution(intpoint, data);
 		//contribuicoes dos erros
-        TPZGeoEl * ref = this->Reference();
-        ref->X(intpoint, data.x);
-		if(fp) {
-			fp(data.x,u_exact,du_exact);
-            
-			if(data.fVecShapeIndex.NElements())
-			{
-				this->ComputeSolution(intpoint, data);
-                				
-				material->ErrorsHdiv(data,u_exact,du_exact,values);
-                
-			}
-			else{
-				this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-        material->Errors(data,u_exact,du_exact,values);
-			}
-        
-			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += weight*values[ier];
-		}
-		
-	}//fim for : integration rule
+    TPZGeoEl * ref = this->Reference();
+    ref->X(intpoint, data.x);
+    
+    if (fp) {
+      fp(data.x, u_exact, du_exact);
+
+      if (data.fVecShapeIndex.NElements()) {
+        this->ComputeSolution(intpoint, data);
+
+        material->ErrorsHdiv(data, u_exact, du_exact, values);
+
+      } else {
+        this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes,
+                              data.sol, data.dsol);
+        material->Errors(data, u_exact, du_exact, values);
+      }
+
+      for (int ier = 0; ier < NErrors; ier++)
+        errors[ier] += weight * values[ier];
+    }
+
+  }//fim for : integration rule
 
     //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
