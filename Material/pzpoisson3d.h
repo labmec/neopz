@@ -60,8 +60,6 @@ class TPZMatPoisson3d : public TPZMaterial {
 	
 	/** @brief Penalty term definition */
 	EPenaltyType fPenaltyType;
-    
-    bool fShapeHdiv;
    
 	
 public:
@@ -107,9 +105,6 @@ public:
 	void SetSymmetric(){
 		this->fSymmetry = -1.0;
 	}
-    void SetTrueFShapeHdiv(){
-        fShapeHdiv=true;
-    }
     
     void SetNeumannProblem(){
         fNeumann=true;
@@ -225,9 +220,6 @@ public:
         TPZMaterial::ContributeBC(datavec,weight,ek,ef,bc);
     }
 
-	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
-								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
    virtual void LocalNeumanContribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
 #ifdef _AUTODIFF
@@ -297,7 +289,6 @@ public:
         TPZMaterial::Errors(data,u_exact,du_exact,errors);
     }
     
-	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 	
 	virtual int NEvalErrors()  override {return 6;}
