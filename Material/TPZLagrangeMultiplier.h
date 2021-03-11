@@ -10,10 +10,10 @@
 #define __PZ__TPZLagrangeMultiplier__
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 
 /// Material which implements a Lagrange Multiplier
-class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
+class TPZLagrangeMultiplier : public TPZMaterial
 {
     
     /// Number of state variables
@@ -27,27 +27,27 @@ class TPZLagrangeMultiplier : public TPZDiscontinuousGalerkin
     public :
 	/** @brief Simple constructor */
 	TPZLagrangeMultiplier() : TPZRegisterClassId(&TPZLagrangeMultiplier::ClassId),
-    TPZDiscontinuousGalerkin()
+    TPZMaterial()
     {
         
     }
 	/** @brief Constructor with the index of the material object within the vector */
 	TPZLagrangeMultiplier(int nummat, int dimension, int nstate) : TPZRegisterClassId(&TPZLagrangeMultiplier::ClassId),
-    TPZDiscontinuousGalerkin(nummat), fNStateVariables(nstate), fDimension(dimension), fMultiplier(1.)
+    TPZMaterial(nummat), fNStateVariables(nstate), fDimension(dimension), fMultiplier(1.)
     {
         
     }
 	
 	/** @brief Copy constructor */
 	TPZLagrangeMultiplier(const TPZLagrangeMultiplier &copy) : TPZRegisterClassId(&TPZLagrangeMultiplier::ClassId),
-    TPZDiscontinuousGalerkin(copy), fNStateVariables(copy.fNStateVariables), fDimension(copy.fDimension), fMultiplier(copy.fMultiplier)
+    TPZMaterial(copy), fNStateVariables(copy.fNStateVariables), fDimension(copy.fDimension), fMultiplier(copy.fMultiplier)
     {
         
     }
     
     TPZLagrangeMultiplier &operator=(const TPZLagrangeMultiplier &copy)
     {
-        TPZDiscontinuousGalerkin::operator=(copy);
+        TPZMaterial::operator=(copy);
         fNStateVariables = copy.fNStateVariables;
         fDimension = copy.fDimension;
         fMultiplier = copy.fMultiplier;

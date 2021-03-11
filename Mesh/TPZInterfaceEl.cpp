@@ -291,7 +291,7 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int64_t &in
 }
 
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
+	TPZMaterial *mat = Material();
 	
 #ifdef PZDEBUG
 	if(!mat || mat->Name() == "no_name"){
@@ -1060,7 +1060,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 #endif
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
+	TPZMaterial *mat = Material();
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
 		ek.Reset();
@@ -1246,7 +1246,7 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 
 void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
+	TPZMaterial *mat = Material();
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::EvaluateInterfaceJump interface material null, do nothing\n";
 		DebugStop();
@@ -1362,7 +1362,6 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		DebugStop();
 		return;
 	}
-    TPZDiscontinuousGalerkin *discgal = dynamic_cast<TPZDiscontinuousGalerkin *>(material);
 	
 	//local variables
 	REAL weight;
@@ -1403,7 +1402,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 //		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		this->NeighbourSolution(this->LeftElementSide(), intpoint, datal.sol, datal.dsol, datal.axes);
 		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
-		discgal->SolutionDisc(data, datal, datar, variable, locval);
+		material->SolutionDisc(data, datal, datar, variable, locval);
 		for(iv = 0; iv < varsize; iv++) {
 #ifdef STATE_COMPLEX
 			value[iv] += locval[iv].real()*weight;
@@ -1519,8 +1518,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 }//method
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *elem){
-	TPZMaterial *matorig = Material();
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(matorig);
+	TPZMaterial *mat = Material();
 	if (!mat){
 		PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
 		DebugStop();

@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 #include <vector>
 #include <math.h>
@@ -18,7 +18,7 @@
  * @ingroup material
  * @brief Implements a two dimensional elastic material in plane stress or strain
  */
-class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
+class TPZElasticityAxiMaterial : public TPZMaterial {
 	
 	public :
 

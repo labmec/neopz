@@ -10,7 +10,7 @@
 #define PZ_mixedpoisson_h
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "pzpoisson3d.h"
 #include "TPZMaterial.h"
 

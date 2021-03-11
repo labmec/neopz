@@ -21,7 +21,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic2d.data"));
 
 TPZPoroElasticMF2d::EState TPZPoroElasticMF2d::gState = ECurrentState;
 
-TPZPoroElasticMF2d::TPZPoroElasticMF2d():TPZDiscontinuousGalerkin(){
+TPZPoroElasticMF2d::TPZPoroElasticMF2d():TPZMaterial(){
     fE = 0.;
     fnu = 0.;
     flambda = 0;
@@ -49,7 +49,7 @@ TPZPoroElasticMF2d::TPZPoroElasticMF2d():TPZDiscontinuousGalerkin(){
     fReturnSolutionDimension = false;
 }
 
-TPZPoroElasticMF2d::TPZPoroElasticMF2d(int matid, int dim):TPZDiscontinuousGalerkin(matid){
+TPZPoroElasticMF2d::TPZPoroElasticMF2d(int matid, int dim):TPZMaterial(matid){
     
     fE = 0.;
     fnu = 0.;

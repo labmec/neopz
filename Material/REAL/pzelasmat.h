@@ -9,14 +9,14 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 
 /**
  * @ingroup material
  * @brief This class implements a two dimensional elastic material in plane stress or strain
  */
-class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
+class TPZElasticityMaterial : public TPZMaterial {
 	
 	public :
 
@@ -112,7 +112,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
     
@@ -139,7 +139,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
 	{
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
     
     //virtual void FillDataRequirements(TPZMaterialData &data);
@@ -194,7 +194,7 @@ public:
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
 	{
-		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
+		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 	
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */

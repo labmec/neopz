@@ -25,7 +25,7 @@ static LoggerPtr logger(Logger::getLogger("pz.material.TPZMatLaplacian"));
 using namespace std;
 
 TPZMatLaplacian::TPZMatLaplacian(int nummat, int dim) :
-TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(nummat), fXf(0.), fDim(dim), fTensorK(dim,dim,0.), fInvK(dim,dim,0.)
+TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZMaterial(nummat), fXf(0.), fDim(dim), fTensorK(dim,dim,0.), fInvK(dim,dim,0.)
 {
 	fK = 1.;
     for (int i=0; i<dim; i++) {
@@ -38,7 +38,7 @@ TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(nummat),
 }
 
 TPZMatLaplacian::TPZMatLaplacian()
-: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(), fXf(0.), fDim(1), fTensorK(1,1,1.), fInvK(1,1,1.){
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZMaterial(), fXf(0.), fDim(1), fTensorK(1,1,1.), fInvK(1,1,1.){
 	fK = 1.;
 	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
@@ -46,13 +46,13 @@ TPZMatLaplacian::TPZMatLaplacian()
 }
 
 TPZMatLaplacian::TPZMatLaplacian(const TPZMatLaplacian &copy)
-: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZDiscontinuousGalerkin(copy)
+: TPZRegisterClassId(&TPZMatLaplacian::ClassId), TPZMaterial(copy)
 {
 	this->operator =(copy);
 }
 
 TPZMatLaplacian & TPZMatLaplacian::operator=(const TPZMatLaplacian &copy){
-	TPZDiscontinuousGalerkin::operator = (copy);
+	TPZMaterial::operator = (copy);
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fK   = copy.fK;
@@ -128,13 +128,6 @@ void TPZMatLaplacian::Print(std::ostream &out) {
 
 void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-	
-    if(data.numberdualfunctions)
-    {
-        ContributeHDiv(data , weight , ek, ef);
-        
-        return;
-    }
     
     TPZFMatrix<REAL>  &phi = data.phi;
     TPZFMatrix<REAL> &dphi = data.dphix;
@@ -183,14 +176,6 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight, TPZFMatrix<STATE> &ef)
 {
     
-    if(data.numberdualfunctions)
-    {
-        DebugStop();
-//        ContributeHDiv(data , weight , ef);
-        
-        return;
-    }
-    
     TPZFMatrix<REAL>  &phi = data.phi;
     TPZFMatrix<REAL> &dphi = data.dphix;
     TPZVec<REAL>  &x = data.x;
@@ -217,129 +202,6 @@ void TPZMatLaplacian::Contribute(TPZMaterialData &data,REAL weight, TPZFMatrix<S
         }
     }
 }
-/// Compute the contribution at an integration point to the stiffness matrix of the HDiv formulation
-void TPZMatLaplacian::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
-{
-	/** monta a matriz
-	 |A B^T |  = |0 |
-	 |B 0   |    |f |
-     
-	 **/
-    
-    //TPZVec<REAL>  &x = data.x;
-	STATE fXfLoc = fXf;
-	if(fForcingFunction) {                           // phi(in, 0) = phi_in
-		TPZManVector<STATE> res(1);
-		fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
-		fXfLoc = res[0];
-	}
-	int numvec = data.fVecShapeIndex.NElements();
-	int numdual = data.numberdualfunctions;
-	int numprimalshape = data.phi.Rows()-numdual;
-    
-	int i,j;
-    REAL kreal = 0.;
-#ifdef STATE_COMPLEX
-    kreal = fK.real();
-#else
-    kreal = fK;
-#endif
-    REAL ratiok = 1./kreal;
-	for(i=0; i<numvec; i++)
-	{
-		int ivecind = data.fVecShapeIndex[i].first;
-		int ishapeind = data.fVecShapeIndex[i].second;
-		for (j=0; j<numvec; j++) {
-			int jvecind = data.fVecShapeIndex[j].first;
-			int jshapeind = data.fVecShapeIndex[j].second;
-			REAL prod = data.fDeformedDirections(0,ivecind)*data.fDeformedDirections(0,jvecind)+
-			data.fDeformedDirections(1,ivecind)*data.fDeformedDirections(1,jvecind)+
-			data.fDeformedDirections(2,ivecind)*data.fDeformedDirections(2,jvecind);//faz o produto escalar entre u e v--> Matriz A
-			ek(i,j) += weight*ratiok*data.phi(ishapeind,0)*data.phi(jshapeind,0)*prod;
-            
-			
-			
-		}
-		TPZFNMatrix<3> ivec(3,1);
-		ivec(0,0) = data.fDeformedDirections(0,ivecind);
-		ivec(1,0) = data.fDeformedDirections(1,ivecind);
-		ivec(2,0) = data.fDeformedDirections(2,ivecind);
-		TPZFNMatrix<3> axesvec(3,1);
-		data.axes.Multiply(ivec,axesvec);
-		int iloc;
-		REAL divwq = 0.;
-		for(iloc=0; iloc<fDim; iloc++)
-		{
-			divwq += axesvec(iloc,0)*data.dphix(iloc,ishapeind);
-		}
-		for (j=0; j<numdual; j++) {
-			REAL fact = (-1.)*weight*data.phi(numprimalshape+j,0)*divwq;//calcula o termo da matriz B^T  e B
-			ek(i,numvec+j) += fact;
-			ek(numvec+j,i) += fact;//-div
-		}
-	}
-	for(i=0; i<numdual; i++)
-	{
-		ef(numvec+i,0) += (STATE)(weight*data.phi(numprimalshape+i,0))*fXfLoc;//calcula o termo da matriz f
-	}
-    
-}
-
-void TPZMatLaplacian::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
-									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
-	int numvec = data.phi.Rows();
-    
-	TPZFMatrix<REAL>  &phi = data.phi;
-	TPZManVector<STATE,1> v2(1);
-	v2[0] = bc.Val2()(0,0);
-    if (bc.HasForcingFunction()) {
-        bc.ForcingFunction()->Execute(data.x, v2);
-    }
-	
-	switch (bc.Type()) {
-		case 1 :			// Neumann condition
-			int i,j;
-			for(i=0; i<numvec; i++)
-			{
-				//int ishapeind = data.fVecShapeIndex[i].second;
-				ef(i,0)+= (STATE)(gBigNumber * phi(i,0) * weight) * v2[0];
-				for (j=0; j<numvec; j++) {
-					//int jshapeind = data.fVecShapeIndex[j].second;
-					ek(i,j) += gBigNumber * phi(i,0) * phi(j,0) * weight; 
-				}
-			}
-			break;
-		case 0 :	
-		{// Dirichlet condition
-			int in;
-			for(in = 0 ; in < numvec; in++) {
-				ef(in,0) +=  (STATE)((-1.)* phi(in,0) * weight)*v2[0];
-			}
-		}
-			break;
-		case 2 :		// mixed condition
-		{
-			int in,jn;
-			for(in = 0 ; in < numvec; in++) {
-				//int ishapeind = data.fVecShapeIndex[in].second;
-				ef(in,0) += v2[0] * (STATE)(phi(in,0) * weight);
-				for (jn = 0; jn < numvec; jn++) {
-					//	int jshapeind = data.fVecShapeIndex[jn].second;
-					ek(in,jn) += (STATE)(weight*phi(in,0)*phi(jn,0)) *bc.Val1()(0,0);
-				}
-			}
-		}
-			break;
-		case 3: // outflow condition
-			break;
-	}
-    
-	if (this->IsSymetric()) {//only 1.e-3 because of bignumbers.
-		if ( !ek.VerifySymmetry( 1.e-3 ) ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
-	}
-	
-	
-}
 
 void TPZMatLaplacian::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 
@@ -348,15 +210,6 @@ void TPZMatLaplacian::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 
 void TPZMatLaplacian::ContributeBC(TPZMaterialData &data,REAL weight,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
-	
-	if(data.fShapeType == TPZMaterialData::EVecandShape || data.fShapeType == TPZMaterialData::EVecShape)
-	{
-		
-		ContributeBCHDiv(data , weight , ek, ef, bc);
-		
-		
-		return;
-	}
 	
 	TPZFMatrix<REAL>  &phi = data.phi;
     //	TPZFMatrix<REAL> &axes = data.axes;
@@ -714,78 +567,6 @@ void TPZMatLaplacian::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
 	
 }//method
-
-
-void TPZMatLaplacian::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
-	
-	TPZVec<STATE> sol(1),dsol(fDim),div(1);
-	if(data.numberdualfunctions) Solution(data,11,sol);//pressao
-	Solution(data,21,dsol);//fluxo
-	Solution(data,14,div);//divergente
-    
-    TPZFNMatrix<18,STATE> perm(2*fDim,fDim);
-    if (fPermeabilityFunction) {
-        TPZManVector<STATE,3> dumf(3,0.);
-        fPermeabilityFunction->Execute(data.x, dumf, perm);
-    }
-    else
-    {
-        for (int i=0; i<fDim; i++) {
-            perm(i,i) = fK;
-            perm(i+fDim,i) = 1./fK;
-        }
-    }
-    
-
-#ifdef LOG4CXX
-    {
-		std::stringstream sout;
-		sout<< "\n";
-		sout << " Pto  " << data.x << std::endl;
-		sout<< " pressao exata " <<u_exact <<std::endl;
-		sout<< " pressao aprox " <<sol <<std::endl;
-		sout<< " ---- "<<std::endl;
-		sout<< " fluxo exato " <<du_exact<<std::endl;
-		sout<< " fluxo aprox " <<dsol<<std::endl;
-		sout<< " ---- "<<std::endl;
-		if(du_exact.Rows()>fDim) sout<< " div exato " <<du_exact(2,0)<<std::endl;
-		sout<< " div aprox " <<div<<std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-    
-    
-	//values[0] : pressure error using L2 norm
-	if(data.numberdualfunctions){
-		REAL diffP = abs(u_exact[0]-sol[0]);
-		values[0]  = diffP*diffP;
-	}	
-	//values[1] : flux error using L2 norm
-	for(int id=0; id<fDim; id++) {
-        REAL diffFlux = abs(dsol[id] - du_exact(id,0));
-		values[1]  += abs(fK)*diffFlux*diffFlux;
-	}
-    
-    if(du_exact.Rows()>fDim){
-        //values[2] : divergence using L2 norm
-        REAL diffDiv = abs(div[0] - du_exact(2,0));
-        values[2]=diffDiv*diffDiv;
-        //values[3] : Hdiv norm => values[1]+values[2];
-        values[3]= values[1]+values[2];
-    }
-    
-#ifdef LOG4CXX
-    {
-		std::stringstream sout;
-		sout << " Erro pressao  " << values[0]<< std::endl;
-		sout<< "Erro fluxo  " <<values[1]<<std::endl;
-		sout<< " Erro div " <<values[2] <<std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-    }
-#endif
-	
-    
-}
 
 void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes, 
@@ -1188,7 +969,7 @@ REAL TPZMatLaplacian::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 }
 
 void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const {
-	TPZDiscontinuousGalerkin::Write(buf, withclassid);
+	TPZMaterial::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
 	buf.Write(&fK, 1);
@@ -1197,7 +978,7 @@ void TPZMatLaplacian::Write(TPZStream &buf, int withclassid) const {
 }
 
 void TPZMatLaplacian::Read(TPZStream &buf, void *context) {
-	TPZDiscontinuousGalerkin::Read(buf, context);
+	TPZMaterial::Read(buf, context);
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);
 	buf.Read(&fK, 1);
@@ -1206,7 +987,7 @@ void TPZMatLaplacian::Read(TPZStream &buf, void *context) {
 }
 
 int TPZMatLaplacian::ClassId() const{
-    return Hash("TPZMatLaplacian") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZMatLaplacian") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND

@@ -29,7 +29,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 
 TPZPoroElastic2d::EState TPZPoroElastic2d::gState = ECurrentState;
 
-TPZPoroElastic2d::TPZPoroElastic2d():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.), fPlaneStress(0) {
+TPZPoroElastic2d::TPZPoroElastic2d():TPZMaterial(), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.), fPlaneStress(0) {
 	fE = 0.;
 	fDim = 2;
 	fmatId = 0;
@@ -41,7 +41,7 @@ TPZPoroElastic2d::TPZPoroElastic2d():TPZDiscontinuousGalerkin(), ff(0), fnu(0.),
 	
 }
 
-TPZPoroElastic2d::TPZPoroElastic2d(int matid, int dim):TPZDiscontinuousGalerkin(matid), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.),fPlaneStress(0) {
+TPZPoroElastic2d::TPZPoroElastic2d(int matid, int dim):TPZMaterial(matid), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.),fPlaneStress(0) {
 	fE = 0.;
 	fDim = dim;
 	ff.resize(2);
@@ -56,7 +56,7 @@ TPZPoroElastic2d::~TPZPoroElastic2d(){
 }
 
 int TPZPoroElastic2d::ClassId() const{
-    return Hash("TPZPoroElastic2d") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZPoroElastic2d") ^ TPZMaterial::ClassId() << 1;
 }
 
 

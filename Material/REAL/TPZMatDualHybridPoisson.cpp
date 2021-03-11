@@ -7,12 +7,12 @@
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero)
 : TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), 
-TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
+TPZMaterial(nummat),fXf(f), fBetaZero(betaZero){
    mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int matid) :
-TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(matid),
+TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZMaterial(matid),
 fXf(0.), fBetaZero(0.)
 {
     mydim = 0;
@@ -20,12 +20,12 @@ fXf(0.), fBetaZero(0.)
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson():
-TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(){
+TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZMaterial(){
     mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(const TPZMatDualHybridPoisson &copy)
-: TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(copy){
+: TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZMaterial(copy){
     mydim = copy.mydim;
     fXf = copy.fXf;
     fBetaZero = copy.fBetaZero;
@@ -39,7 +39,7 @@ void TPZMatDualHybridPoisson::Print(std::ostream & out){
     out << "\n" << this->Name() << "\n";
     out << "fXf = " << fXf << "\n";
     out << "fBetaZero = " << fBetaZero << "\n";
-    TPZDiscontinuousGalerkin::Print(out);
+    TPZMaterial::Print(out);
 }
 
 void TPZMatDualHybridPoisson::Contribute(TPZMaterialData &data,
@@ -333,5 +333,5 @@ void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 }
 
 int TPZMatDualHybridPoisson::ClassId() const{
-    return Hash("TPZMatDualHybridPoisson") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZMatDualHybridPoisson") ^ TPZMaterial::ClassId() << 1;
 }

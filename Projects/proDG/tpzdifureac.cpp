@@ -25,7 +25,7 @@ static LoggerPtr logger(Logger::getLogger("pz.material.tpzdifureac"));// esto no
 
 using namespace std;
 
-TPZdifureac::TPZdifureac(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat), fXf(1.), fDim(dim){ //constructor
+TPZdifureac::TPZdifureac(int nummat, int dim) : TPZMaterial(nummat), fXf(1.), fDim(dim){ //constructor
   fK = 0.; /////////////////////
   falpha = 0;
   fPenaltyConstant = 1000.;
@@ -33,7 +33,7 @@ TPZdifureac::TPZdifureac(int nummat, int dim) : TPZDiscontinuousGalerkin(nummat)
   this->SetNoPenalty();
 }
 
-TPZdifureac::TPZdifureac():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
+TPZdifureac::TPZdifureac():TPZMaterial(), fXf(0.), fDim(1){
 	fK = 0.;
 	falpha = 0;
 	fPenaltyConstant = 1000.;
@@ -41,13 +41,13 @@ TPZdifureac::TPZdifureac():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1){
 	this->SetNoPenalty();
 }
 
-TPZdifureac::TPZdifureac(const TPZdifureac &copy):TPZDiscontinuousGalerkin(copy){
+TPZdifureac::TPZdifureac(const TPZdifureac &copy):TPZMaterial(copy){
 	this->operator =(copy);//const. de copia
 }
 
 
 TPZdifureac & TPZdifureac::operator=(const TPZdifureac &copy){
-	TPZDiscontinuousGalerkin::operator = (copy);
+	TPZMaterial::operator = (copy);
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fK   = copy.fK;
@@ -866,7 +866,7 @@ REAL TPZdifureac::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZ
 }
 
 void TPZdifureac::Write(TPZStream &buf, int withclassid) const{
-	TPZDiscontinuousGalerkin::Write(buf, withclassid);
+	TPZMaterial::Write(buf, withclassid);
 	buf.Write(&fXf, 1);
 	buf.Write(&fDim, 1);
 	buf.Write(&fK, 1);
@@ -875,7 +875,7 @@ void TPZdifureac::Write(TPZStream &buf, int withclassid) const{
 }
 
 void TPZdifureac::Read(TPZStream &buf, void *context){
-	TPZDiscontinuousGalerkin::Read(buf, context);
+	TPZMaterial::Read(buf, context);
 	buf.Read(&fXf, 1);
 	buf.Read(&fDim, 1);
 	buf.Read(&fK, 1);
@@ -884,7 +884,7 @@ void TPZdifureac::Read(TPZStream &buf, void *context){
 }
 
 int TPZdifureac::ClassId() const{
-    return Hash("TPZdifureac") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZdifureac") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND

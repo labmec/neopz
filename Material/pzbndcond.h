@@ -10,7 +10,7 @@
 #include <map>
 
 #include "pzreal.h"
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
@@ -26,7 +26,7 @@ class TPZManVector;
 /**
  * This class redirects the call to Contribute to calls ContributeBC of the referring material object
  */
-class TPZBndCond : public TPZDiscontinuousGalerkin {
+class TPZBndCond : public TPZMaterial {
 	
 	friend class TPZMaterial;
     
@@ -112,7 +112,7 @@ protected:
 	public :
 	/** @brief Copy constructor */
     TPZBndCond(TPZBndCond & bc) : TPZRegisterClassId(&TPZBndCond::ClassId),
-    TPZDiscontinuousGalerkin(bc), fBCs(bc.fBCs), fType(-1), fBCVal1(bc.fBCVal1),
+    TPZMaterial(bc), fBCs(bc.fBCs), fType(-1), fBCVal1(bc.fBCVal1),
     fBCVal2(bc.fBCVal2), fMaterial(0), fValFunction(NULL){
 		fMaterial = bc.fMaterial;
 		fType = bc.fType;
@@ -125,19 +125,19 @@ protected:
 	}
 	/** @brief Default constructor */
 	TPZBndCond() : TPZRegisterClassId(&TPZBndCond::ClassId),
-    TPZDiscontinuousGalerkin(), fBCs(), fType(-1), fBCVal1(),
+    TPZMaterial(), fBCs(), fType(-1), fBCVal1(),
     fBCVal2(), fMaterial(0), fValFunction(NULL){
 	}
 	/** @brief Default constructor */
 	TPZBndCond(int matid) : TPZRegisterClassId(&TPZBndCond::ClassId),
-    TPZDiscontinuousGalerkin(matid), fBCs(0), fType(-1), fBCVal1(),
+    TPZMaterial(matid), fBCs(0), fType(-1), fBCVal1(),
     fBCVal2(), fMaterial(0), fValFunction(NULL){
 	}
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
 	TPZBndCond(TPZMaterial * material,int id,int type,const TPZFMatrix<STATE> &val1,const TPZFMatrix<STATE> &val2) :
-    TPZRegisterClassId(&TPZBndCond::ClassId), TPZDiscontinuousGalerkin(id), fBCs(), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
+    TPZRegisterClassId(&TPZBndCond::ClassId), TPZMaterial(id), fBCs(), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
 		{
@@ -150,7 +150,7 @@ protected:
 	}
 	
 	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZRegisterClassId(&TPZBndCond::ClassId), 
-    TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
+    TPZMaterial(copy), fBCs(copy.fBCs), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {
     
         fForcingFunction = copy.fForcingFunction;

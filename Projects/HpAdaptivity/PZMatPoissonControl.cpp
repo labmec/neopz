@@ -45,7 +45,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.TPZMatPoissonControl.data"));
 
 using namespace std;
 
-TPZMatPoissonControl::TPZMatPoissonControl():TPZDiscontinuousGalerkin(){
+TPZMatPoissonControl::TPZMatPoissonControl():TPZMaterial(){
 	
     /** Valor da funcao de carga */
     fF = 0.; //fF
@@ -64,7 +64,7 @@ TPZMatPoissonControl::TPZMatPoissonControl():TPZDiscontinuousGalerkin(){
     
 }
 
-TPZMatPoissonControl::TPZMatPoissonControl(int matid, int dim):TPZDiscontinuousGalerkin(matid){
+TPZMatPoissonControl::TPZMatPoissonControl(int matid, int dim):TPZMaterial(matid){
 	
     if(dim<0 || dim >3){
         DebugStop();
@@ -88,14 +88,14 @@ TPZMatPoissonControl::TPZMatPoissonControl(int matid, int dim):TPZDiscontinuousG
 TPZMatPoissonControl::~TPZMatPoissonControl(){
 }
 
-TPZMatPoissonControl::TPZMatPoissonControl(const TPZMatPoissonControl &copy):TPZDiscontinuousGalerkin(copy){
+TPZMatPoissonControl::TPZMatPoissonControl(const TPZMatPoissonControl &copy):TPZMaterial(copy){
     
     this->operator=(copy);
 }
 
 TPZMatPoissonControl & TPZMatPoissonControl::operator=(const TPZMatPoissonControl &copy){
     
-    TPZDiscontinuousGalerkin::operator = (copy);
+    TPZMaterial::operator = (copy);
     this->fF = copy.fF; //fF
     this->fDim = copy.fDim;
     this->fMatId = copy.fMatId;

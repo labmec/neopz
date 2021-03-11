@@ -8,7 +8,7 @@
  */
 
 #include "PoroElasticMatInterface2D.h"
-#include "pzdiscgal.h"
+
 #include "pzelasmat.h"
 #include "pzporoelastic2d.h"
 #include "pzlog.h"

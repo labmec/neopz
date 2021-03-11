@@ -19,7 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.data"));
 
 using namespace std;
 
-TPZTracerFlow::TPZTracerFlow():TPZDiscontinuousGalerkin(){
+TPZTracerFlow::TPZTracerFlow():TPZMaterial(){
 	
     fDim = 1;
     fConvDir.resize(fDim);
@@ -36,7 +36,7 @@ TPZTracerFlow::TPZTracerFlow():TPZDiscontinuousGalerkin(){
     fRungeKuttaTwo = false;
 }
 
-TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZDiscontinuousGalerkin(matid){
+TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZMaterial(matid){
 	
     if(dim<0 || dim >2){
         DebugStop();
@@ -59,14 +59,14 @@ TPZTracerFlow::TPZTracerFlow(int matid, int dim):TPZDiscontinuousGalerkin(matid)
 TPZTracerFlow::~TPZTracerFlow(){
 }
 
-TPZTracerFlow::TPZTracerFlow(const TPZTracerFlow &copy):TPZDiscontinuousGalerkin(copy){
+TPZTracerFlow::TPZTracerFlow(const TPZTracerFlow &copy):TPZMaterial(copy){
     
     this->operator=(copy);
 }
 
 TPZTracerFlow & TPZTracerFlow::operator=(const TPZTracerFlow &copy){
     
-    TPZDiscontinuousGalerkin::operator = (copy);
+    TPZMaterial::operator = (copy);
 	fxfPQ  = copy.fxfPQ;
     fxfS = copy.fxfS;
 	fDim = copy.fDim;

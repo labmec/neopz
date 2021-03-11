@@ -9,7 +9,7 @@
 
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 /**
@@ -20,7 +20,7 @@
  * \f$ -Laplac(u) = fXf  \f$
  */
 
-class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
+class TPZMatDualHybridPoisson : public TPZMaterial {
     
     protected :
     

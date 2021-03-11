@@ -26,7 +26,7 @@ using namespace std;
 
 
 TPZBiharmonic::TPZBiharmonic(int nummat, REAL f) 
-: TPZRegisterClassId(&TPZBiharmonic::ClassId), TPZDiscontinuousGalerkin(nummat),
+: TPZRegisterClassId(&TPZBiharmonic::ClassId), TPZMaterial(nummat),
 fXf(f){}
 
 TPZBiharmonic::~TPZBiharmonic() {
@@ -432,5 +432,5 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
 }
 
 int TPZBiharmonic::ClassId() const{
-    return Hash("TPZBiharmonic") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZBiharmonic") ^ TPZMaterial::ClassId() << 1;
 }

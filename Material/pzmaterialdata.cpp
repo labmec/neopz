@@ -10,7 +10,7 @@
 #include <sstream>
 #include "pzerror.h"
 #include "TPZInterfaceEl.h"
-#include "pzdiscgal.h"
+
 #include "pzaxestools.h"
 #include "pzlog.h"
 

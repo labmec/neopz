@@ -23,7 +23,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedelasticity"));
 #include <fstream>
 using namespace std;
 
-TPZMixedElasticityMaterial::TPZMixedElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
+TPZMixedElasticityMaterial::TPZMixedElasticityMaterial() : TPZMaterial(0) {
     fE_const = -1.; // Young modulus
     fnu_const = -1.; // Poisson coefficient
     fForce[0] = 0.; // X component of the body force
@@ -37,7 +37,7 @@ TPZMixedElasticityMaterial::TPZMixedElasticityMaterial() : TPZDiscontinuousGaler
     fMatrixA = 0.;
 }
 
-TPZMixedElasticityMaterial::TPZMixedElasticityMaterial(int id) : TPZDiscontinuousGalerkin(id) {
+TPZMixedElasticityMaterial::TPZMixedElasticityMaterial(int id) : TPZMaterial(id) {
     fE_const = -1.; // Young modulus
     fnu_const = -1.; // Poisson coefficient
     fForce[0] = 0.; // X component of the body force
@@ -51,7 +51,7 @@ TPZMixedElasticityMaterial::TPZMixedElasticityMaterial(int id) : TPZDiscontinuou
     fMatrixA = 0.;
 }
 
-TPZMixedElasticityMaterial::TPZMixedElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int planestress, int fdimension) : TPZDiscontinuousGalerkin(num), fDimension(fdimension) {
+TPZMixedElasticityMaterial::TPZMixedElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int planestress, int fdimension) : TPZMaterial(num), fDimension(fdimension) {
     this->SetElasticity(E, nu);
     fForce[0] = fx; // X component of the body force
     fForce[1] = fy; // Y component of the body force
@@ -1583,7 +1583,7 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<REAL> &x, TPZVec<STATE> &u,
 }
 
 TPZMixedElasticityMaterial::TPZMixedElasticityMaterial(const TPZMixedElasticityMaterial &copy) :
-TPZDiscontinuousGalerkin(copy),
+TPZMaterial(copy),
 fE_const(copy.fE_const),
 fnu_const(copy.fnu_const),
 flambda_const(copy.flambda_const),
@@ -1597,7 +1597,7 @@ fAxisSymmetric(copy.fAxisSymmetric){
 }
 
 int TPZMixedElasticityMaterial::ClassId() const {
-    return Hash("TPZMixedElasticityMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZMixedElasticityMaterial") ^ TPZMaterial::ClassId() << 1;
 }
 
 void TPZMixedElasticityMaterial::Read(TPZStream &buf, void *context) {

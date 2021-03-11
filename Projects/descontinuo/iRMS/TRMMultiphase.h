@@ -13,7 +13,7 @@
 #include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 
-#include "pzdiscgal.h"
+
 #include "pzfmatrix.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
@@ -22,7 +22,7 @@
 #include "pzlog.h"
 
 
-class TRMMultiphase : public TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> {
+class TRMMultiphase : public TPZMatWithMem<TRMMemory,TPZMaterial> {
     
     
 private:

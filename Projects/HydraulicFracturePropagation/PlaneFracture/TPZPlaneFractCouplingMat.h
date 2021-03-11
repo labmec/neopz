@@ -14,7 +14,7 @@
 
 #include <iostream>
 #include "TPZElast3Dnlinear.h"
-#include "pzdiscgal.h"
+
 #include "pzfunction.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -209,7 +209,7 @@ private:
 
 
 /*
-class TPZPlaneFractBulletMat : public TPZDiscontinuousGalerkin
+class TPZPlaneFractBulletMat : public TPZMaterial
 {
 public:
     TPZPlaneFractBulletMat();
@@ -249,7 +249,7 @@ public:
         DebugStop();
     }
     
-    using TPZDiscontinuousGalerkin::FillDataRequirementsInterface;
+    using TPZMaterial::FillDataRequirementsInterface;
     
     virtual void FillDataRequirementsInterface(TPZVec<TPZMaterialData> &datavec);
     

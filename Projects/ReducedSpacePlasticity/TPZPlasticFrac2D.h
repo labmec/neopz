@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #include "TPZMatElastoPlastic2D.h"

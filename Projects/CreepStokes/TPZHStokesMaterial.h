@@ -8,7 +8,7 @@
  */
 
 #include "TPZMatWithMem.h"
-#include "pzdiscgal.h"
+
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include "pzlog.h"

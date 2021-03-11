@@ -10,7 +10,7 @@
 #define __PZ__PZMatPoissonD3__
 
 #include <iostream>
-#include "pzdiscgal.h"
+
 #include "TPZMaterial.h"
 
 
@@ -28,7 +28,7 @@
  */
 
 
-class TPZMatPoissonD3 : public TPZDiscontinuousGalerkin {
+class TPZMatPoissonD3 : public TPZMaterial {
     
 protected:
 	/** Material Id */

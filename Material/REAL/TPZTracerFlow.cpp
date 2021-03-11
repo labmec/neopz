@@ -7,7 +7,7 @@ TPZTracerFlow::TPZTracerFlow(){
 }
 
 /** @brief Constructor based on a material id */
-TPZTracerFlow::TPZTracerFlow(int matid, int dimension) : TPZDiscontinuousGalerkin(matid) {
+TPZTracerFlow::TPZTracerFlow(int matid, int dimension) : TPZMaterial(matid) {
     
     m_mat_id = matid;
     m_dimension = dimension;
@@ -19,7 +19,7 @@ TPZTracerFlow::TPZTracerFlow(int matid, int dimension) : TPZDiscontinuousGalerki
 }
 
 /** @brief Constructor based on a TRMMultiphase object */
-TPZTracerFlow::TPZTracerFlow(const TPZTracerFlow &other) : TPZDiscontinuousGalerkin(other) {
+TPZTracerFlow::TPZTracerFlow(const TPZTracerFlow &other) : TPZMaterial(other) {
     m_mat_id = other.m_mat_id;
     m_dimension = other.m_dimension;
     m_mass_matrix_Q = other.m_mass_matrix_Q;

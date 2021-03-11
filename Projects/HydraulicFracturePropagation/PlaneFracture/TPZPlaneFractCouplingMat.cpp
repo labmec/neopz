@@ -427,7 +427,7 @@ TPZPlaneFractBulletMat::TPZPlaneFractBulletMat()
 TPZPlaneFractBulletMat::TPZPlaneFractBulletMat(int nummat,
                                                REAL Diameter,
                                                REAL visc,
-                                               REAL Qinj_hbullet) : TPZDiscontinuousGalerkin(nummat)
+                                               REAL Qinj_hbullet) : TPZMaterial(nummat)
 {
     this->fDiameter = Diameter;
     this->fvisc = visc;

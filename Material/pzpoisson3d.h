@@ -7,9 +7,9 @@
 #define MATPOISSON3DH
 
 #include <iostream>
-#include "pzdiscgal.h"
-#include "pzfmatrix.h"
 
+#include "pzfmatrix.h"
+#include "TPZMaterial.h"
 
 #ifdef _AUTODIFF
 #include "fadType.h"
@@ -23,7 +23,7 @@
 /**
  * \f$ -fK Laplac(u) + fC * div(fConvDir*u) = - fXf  \f$
  */
-class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
+class TPZMatPoisson3d : public TPZMaterial {
 	
 	protected :
 	
@@ -89,7 +89,7 @@ public:
 	TPZMatPoisson3d(int nummat, int dim);
     
     TPZMatPoisson3d(int matid) : TPZRegisterClassId(&TPZMatPoisson3d::ClassId),
-    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(-1), fC(0.), fSymmetry(0.), fSD(0.)
+    TPZMaterial(matid), fXf(0.), fDim(-1), fC(0.), fSymmetry(0.), fSD(0.)
         ,fPenaltyType(ENoPenalty)
     {
     
@@ -214,15 +214,15 @@ public:
 	 */
 	 
 	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef) override {
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
-        TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);
+        TPZMaterial::Contribute(datavec,weight,ek,ef);
     }
 	
     virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
-        TPZDiscontinuousGalerkin::ContributeBC(datavec,weight,ek,ef,bc);
+        TPZMaterial::ContributeBC(datavec,weight,ek,ef,bc);
     }
 
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
@@ -240,7 +240,7 @@ public:
 #endif
 	
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
@@ -253,13 +253,13 @@ public:
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data,TPZMaterialData &dataleft,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
 	{
-		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
+		TPZMaterial::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,REAL weight,
 									 TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
+		TPZMaterial::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 
 #ifdef _AUTODIFF
@@ -277,11 +277,11 @@ public:
 	
 protected:
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override {
-        TPZDiscontinuousGalerkin::Solution(datavec,var,Solout);
+        TPZMaterial::Solution(datavec,var,Solout);
     }
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec)  override {
-        TPZDiscontinuousGalerkin::FillDataRequirements(datavec);
+        TPZMaterial::FillDataRequirements(datavec);
     }
     
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
@@ -294,7 +294,7 @@ public:
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override {
-        TPZDiscontinuousGalerkin::Errors(data,u_exact,du_exact,errors);
+        TPZMaterial::Errors(data,u_exact,du_exact,errors);
     }
     
 	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
