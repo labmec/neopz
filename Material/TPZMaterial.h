@@ -8,24 +8,20 @@
 #define PZMATERIALHPP
 
 #include "pzreal.h"
-#include "pzvec.h"
-#include "pzmatrix.h"
+//vvvvv need not be included once we create interface for erros
 #include "pzfmatrix.h"
-#include "pzadmchunk.h"
+//vvvvv need not be included once we create interface for errors
+#include "pzmaterialdata.h"
 #include "tpzautopointer.h"
 #include "TPZSavable.h"
-#include "pzmaterialdata.h"
 #include "pzfunction.h"
-#include "pzcompel.h"
 
 #include <iostream>
 #include <string>
 
 class TPZBndCond;
-class TPZMaterial;
-class TPZMaterialData;
 class TPZIntPoints;
-
+class TPZCompEl;
 /**
  * @ingroup material
  * @brief This abstract class defines the behaviour which each derived class needs to implement

@@ -11,13 +11,13 @@
 
 #include "TPZMaterial.h"
 #include "pzdiscgal.h"
+#include "pzstack.h"
 #ifdef _AUTODIFF
 #include "fad.h"
 #endif
 #include <iostream>
 #include <fstream>
 #include <string>
-
 /**
  * @ingroup material
  * @author Omar Duran

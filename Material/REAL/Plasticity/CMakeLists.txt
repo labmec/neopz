@@ -79,7 +79,6 @@ set(headers
     pzplasticdiagnostic.h
     pzporoanalysis.h
     pzporoelastoplasticmem.h
-    pzviscoelastic.h
     tpzyctrescaregularized.h
     tpzycvonmises_interface.h
     tpzycvonmisescombtresca.h
@@ -150,7 +149,6 @@ set(sources
     pzplasticdiagnostic.cpp
     pzporoanalysis.cpp
     pzporoelastoplasticmem.cpp
-    pzviscoelastic.cpp
     tpzycvonmisescombtresca.cpp
     )
 

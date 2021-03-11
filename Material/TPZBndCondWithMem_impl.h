@@ -6,7 +6,6 @@
 //
 
 #include "TPZBndCondWithMem.h"
-
 template <class TMEM>
 void TPZBndCondWithMem<TMEM>::Print(std::ostream &out)
 {

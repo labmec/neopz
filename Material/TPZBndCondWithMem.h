@@ -12,6 +12,7 @@
 #include <memory>
 #include "TPZMaterial.h"
 #include "pzbndcond.h"
+#include "pzadmchunk.h"
 
 template <class TMEM>
 class TPZBndCondWithMem : public TPZBndCond {
