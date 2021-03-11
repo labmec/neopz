@@ -88,17 +88,16 @@ endif()
 
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 if(USING_FAD)
-	#Adding a variable to hold this definition
-	set(_AUTODIFF _AUTODIFF)
+	target_compile_definitions(pz PRIVATE _AUTODIFF)
 endif()
 
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
   #this is the definition used in pz lib
-  set(LOG4CXX LOG4CXX)
   include(cmake/EnableLog4cxx.cmake)
   enable_log4cxx(pz)
+  target_compile_definitions(pz PRIVATE LOG4CXX)
 endif()
 
 #enabling METIS library
