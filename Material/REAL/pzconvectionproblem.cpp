@@ -377,7 +377,7 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<ST
     
     if(var == 5){
         
-        fForcingFunctionExact->Execute(data.x, ExactSol, deriv);
+        fExactSol->Execute(data.x, ExactSol, deriv);
 		Solout[0] = ExactSol[0];
 		return;
 	}

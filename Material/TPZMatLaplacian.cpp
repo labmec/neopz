@@ -391,12 +391,12 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 			break;
             
 		case 12:
-            fForcingFunctionExact->Execute(data.x,pressure,flux);
+            fExactSol->Execute(data.x,pressure,flux);
             
             Solout[0]=pressure[0];
 			break;
 		case 13: //ExactFlux
-		    fForcingFunctionExact->Execute(data.x, pressure, flux);
+		    fExactSol->Execute(data.x, pressure, flux);
 
             Solout[0]=-flux(0,0);
             Solout[1]=-flux(1,0);
@@ -404,9 +404,9 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
 
         case 23: //ExactFluxShiftedOrigin
             if(data.x[0] == 0. && data.x[1] == 0.) {
-                fForcingFunctionExact->Execute(inf, pressure, flux);
+                fExactSol->Execute(inf, pressure, flux);
             } else {
-                fForcingFunctionExact->Execute(data.x, pressure, flux);
+                fExactSol->Execute(data.x, pressure, flux);
             }
 
             if (std::isnan(flux(0, 0))) {
@@ -433,7 +433,7 @@ void TPZMatLaplacian::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &So
             
         case 15:
         {
-            fForcingFunctionExact->Execute(data.x,pressure,flux);
+            fExactSol->Execute(data.x,pressure,flux);
             Solout[0]=flux(2,0);
         }
             break;

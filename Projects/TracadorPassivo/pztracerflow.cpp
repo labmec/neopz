@@ -676,7 +676,7 @@ void TPZTracerFlow::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<S
     }
     
     if(var == 6){
-		fForcingFunctionExact->Execute(datavec[0].x, ExactSol, deriv);
+		fExactSol->Execute(datavec[0].x, ExactSol, deriv);
 		Solout[0] = ExactSol[0];
 		return;
 	}

@@ -283,7 +283,7 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
     
     //Exact soluion
     if(var == 2){
-        fForcingFunctionExact->Execute(data.x, solExata,flux);
+        fExactSol->Execute(data.x, solExata,flux);
         Solout[0] = solExata[0];
         return;
     }//var6
@@ -300,7 +300,7 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
     
     if(var == 4) {
         int id;
-        fForcingFunctionExact->Execute(data.x, solExata,flux);
+        fExactSol->Execute(data.x, solExata,flux);
         for(id=0 ; id<mydim; id++) {
             Solout[id] = flux(id,0);
         }

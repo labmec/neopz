@@ -371,8 +371,8 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     if(var == 3){
         TPZManVector<STATE,1> f(1,0.0);
         TPZFNMatrix<4,STATE> df(4,1,0.0);
-        if (this->HasForcingFunctionExact()) {
-            this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
+        if (this->HasExactSol()) {
+            this->fExactSol->Execute(datavec[ub].x, f, df);
         }
 
         for (int i=0; i < this->Dimension(); i++)
@@ -385,8 +385,8 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     if(var == 4){
         TPZManVector<STATE,1> f(1,0.0);
         TPZFNMatrix<4,STATE> df(4,1,0.0);
-        if (this->HasForcingFunctionExact()) {
-            this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
+        if (this->HasExactSol()) {
+            this->fExactSol->Execute(datavec[ub].x, f, df);
         }
         Solout[0] = f[0];
         return;
@@ -395,8 +395,8 @@ void TPZDualPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<
     if(var == 5){
         TPZManVector<STATE,1> f(1,0.0);
         TPZFNMatrix<4,STATE> df(4,1,0.0);
-        if (this->HasForcingFunctionExact()) {
-            this->fForcingFunctionExact->Execute(datavec[ub].x, f, df);
+        if (this->HasExactSol()) {
+            this->fExactSol->Execute(datavec[ub].x, f, df);
         }
         Solout[0] = df(3,0);
         return;
