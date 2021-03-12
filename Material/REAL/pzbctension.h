@@ -35,8 +35,6 @@ private:
 	
 	TPZBCTension(TPZMaterial * &material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
 	
-	virtual int NFluxes() override { return Material()->NFluxes(); }
-	
 	virtual int NStateVariables() const override { return Material()->NStateVariables(); }
 	
 	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)  override {

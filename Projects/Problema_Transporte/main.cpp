@@ -357,7 +357,7 @@ int mainestacionario(int argc, char *argv[])
             {
                 TPZGradientReconstruction *gradreconst = new TPZGradientReconstruction(false,1.);
                 TPZAutoPointer<TPZFunction<STATE> > forcef = new TPZDummyFunction<STATE>(ForcingInicial2, 5);
-                gradreconst->fGradData->SetForcingFunctionExact(forcef);
+                gradreconst->fGradData->SetExactSol(forcef);
                 gradreconst->fGradData->EnableForcinFucnction();
                 gradreconst-> ProjectionL2GradientReconstructed(cmesh, matIdL2Proj);
                 an.Solution().Zero();
@@ -669,7 +669,7 @@ TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh, int pOrder,TPZMatConvectionProblem * 
 	///Inserir condicao de contorno
     TPZAutoPointer<TPZFunction<STATE> > solExata;
     solExata = new TPZDummyFunction<STATE>(SolExata, 5);
-    material->SetForcingFunctionExact(solExata);
+    material->SetExactSol(solExata);
     
 	TPZFMatrix<STATE> val1(1,1,0.), val2(2,1,0.);
     TPZMaterial * BCond0 = material->CreateBC(mat, bc0,neumann, val1, val2);
@@ -1420,7 +1420,7 @@ TPZCompMesh *MalhaComp2(TPZGeoMesh * gmesh, int pOrder/*,TPZMatConvectionProblem
     material->SetForcingFunction(myforce);
     
     TPZAutoPointer<TPZFunction<STATE> > solExata = new TPZDummyFunction<STATE>(SolucaoExata, 5);
-	material->SetForcingFunctionExact(solExata);
+	material->SetExactSol(solExata);
     
     cmesh->InsertMaterialObject(mat);
     cmesh->SetDimModel(dim);

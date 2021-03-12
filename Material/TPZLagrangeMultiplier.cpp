@@ -13,20 +13,20 @@
 
 /** @brief Unique identifier for serialization purposes */
 int TPZLagrangeMultiplier::ClassId() const{
-    return Hash("TPZLagrangeMultiplier") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZLagrangeMultiplier") ^ TPZMaterial::ClassId() << 1;
 }
 
 /** @brief Saves the element data to a stream */
 void TPZLagrangeMultiplier::Write(TPZStream &buf, int withclassid) const
 {
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     buf.Write(&fNStateVariables);
 }
 
 /** @brief Reads the element data from a stream */
 void TPZLagrangeMultiplier::Read(TPZStream &buf, void *context)
 {
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     buf.Read(&fNStateVariables);
     
 }

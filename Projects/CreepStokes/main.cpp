@@ -663,7 +663,7 @@ TPZCompMesh *CMesh_m(TPZGeoMesh *gmesh, int pOrder)
     // Inserindo material na malha
     TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (sol_exact1);
     
-    material->SetForcingFunctionExact(solp);
+    material->SetExactSol(solp);
     
     cmesh->InsertMaterialObject(material);
     

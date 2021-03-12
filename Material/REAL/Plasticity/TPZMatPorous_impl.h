@@ -337,10 +337,10 @@ void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
 
 template <class T, class TMEM>
 void TPZMatPorous<T, TMEM >::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-                                    TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                                    TPZFMatrix<REAL> &axes,
                                     TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
 {
-    TBASEPOROUS(T, TMEM)::Errors(x,u,dudx, axes, flux, u_exact, du_exact, values);
+    TBASEPOROUS(T, TMEM)::Errors(x,u,dudx, axes, u_exact, du_exact, values);
     
 }
 

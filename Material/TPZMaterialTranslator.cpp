@@ -28,7 +28,7 @@ void TPZMaterialTranslator::UpdateAttributes(TPZChunkInTranslation& chunk, const
     chunk.mOldStream.Read(&gBigNumber, 1);
     chunk.mNewStream.Write(&gBigNumber, 1);
     TPZPersistenceManager::TranslateNextPointer(chunk, toVersion); // fForcingFunction 
-    TPZPersistenceManager::TranslateNextPointer(chunk, toVersion); // fForcingFunctionExact 
+    TPZPersistenceManager::TranslateNextPointer(chunk, toVersion); // fExactSol 
     TPZPersistenceManager::TranslateNextPointer(chunk, toVersion); // fTimeDependentForcingFunction 
     TPZPersistenceManager::TranslateNextPointer(chunk, toVersion); // fTimedependentFunctionExact 
     TPZPersistenceManager::TranslateNextPointer(chunk, toVersion); // fBCForcingFunction 

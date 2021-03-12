@@ -70,9 +70,6 @@ public:
         fNState = nstate;
     }
     
-    /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes()  override {return 0;}
-    
 	
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout) override;
@@ -194,18 +191,20 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
     /** @} */
-	
-    
-    /** @brief To create another material of the same type*/
-    virtual TPZMaterial * NewMaterial() override;
-    
+    void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
+                TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
+                TPZFMatrix<STATE> &curlU_exact, TPZVec<REAL> &val) override;
+
+        /** @brief To create another material of the same type*/
+        virtual TPZMaterial *NewMaterial() override;
+
     /** @{
      * @name Save and Load methods
      */
     
     /** @brief Unique identifier for serialization purposes */
     public:
-virtual int ClassId() const override;
+  virtual int ClassId() const override;
 
     
     /** @brief Saves the element data to a stream */
@@ -213,8 +212,6 @@ virtual int ClassId() const override;
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context) override;
-    
-    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     
     /** @} */
 	

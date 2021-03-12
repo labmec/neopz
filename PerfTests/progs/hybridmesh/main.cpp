@@ -336,7 +336,7 @@ TPZCompMesh* MalhaComp(TPZGeoMesh * gmesh, int pOrder)
     
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     solexata = new TPZDummyFunction<STATE>(SolExata,4); 
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
     
 	REAL uD=0.;
 	val22(0,0)=uD;

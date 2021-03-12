@@ -278,9 +278,6 @@ virtual int ClassId() const override;
     virtual void EvaluateError(  std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                TPZVec<REAL> &errors, bool store_error ) override;
 	
-	/** @brief Computes the element error estimator */
-	virtual void ComputeError(int errorid, TPZVec<REAL> &error) override;
-	
 	/** @brief Integrate a variable over the element. */
 	virtual TPZVec<STATE> IntegrateSolution(int variable) const override;
     
@@ -288,17 +285,6 @@ virtual int ClassId() const override;
     
 	/** @brief Integrate the solution over the element */
 //	virtual void IntegrateSolution(TPZVec<STATE> & value);
-	
-	/**
-	 * @brief Will project the flux associated with the variational statement onto the finite element interpolation space
-	 * @param ek projection matrix
-	 * @param ef inner product of the flux with the finite element interpolation space
-	 */
-	/**
-	 * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
-	 * for each component of the flux
-	 */
-	void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 protected:
 	

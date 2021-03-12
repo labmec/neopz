@@ -828,7 +828,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     if(teste==1){
         solExata = new TPZDummyFunction<STATE>(SolExata1, 5);
-        mymaterial->SetForcingFunctionExact(solExata);
+        mymaterial->SetExactSol(solExata);
         
         force = new TPZDummyFunction<STATE>(Forcing1, 5);
         mymaterial->SetForcingFunction(force);
@@ -852,7 +852,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     }
     else if(teste==2){
         solExata = new TPZDummyFunction<STATE>(SolExata2, 5);
-        mymaterial->SetForcingFunctionExact(solExata);
+        mymaterial->SetExactSol(solExata);
         
         TPZAutoPointer<TPZFunction<STATE> > fCC23;
         REAL fxy=8.;
@@ -875,12 +875,12 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     }
     else{
 //        solExata = new TPZDummyFunction<STATE>(SolExataSteklov);
-//        mymaterial->SetForcingFunctionExact(solExata);
+//        mymaterial->SetExactSol(solExata);
         
         TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExataSteklovSuave, 5);
         dum->SetPolynomialOrder(20);
         solExata = dum;
-        mymaterial->SetForcingFunctionExact(solExata);
+        mymaterial->SetExactSol(solExata);
         
 
         
@@ -1063,14 +1063,14 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
         solExata = new TPZDummyFunction<STATE>(SolExata1, 5);
         force1 = new TPZDummyFunction<STATE>(Forcing1, 5);
         material->SetForcingFunction(force1);
-        material->SetForcingFunctionExact(solExata);
+        material->SetExactSol(solExata);
         // fCC0 = new TPZDummyFunction<STATE>(ForcingBC, 5);
     }
     else{
         solExata = new TPZDummyFunction<STATE>(SolExata2, 5);
         REAL fxy=8.;
         material->SetInternalFlux(fxy);
-        material->SetForcingFunctionExact(solExata);
+        material->SetExactSol(solExata);
         fCC23 = new TPZDummyFunction<STATE>(ForcingBC2, 5);
     }
     

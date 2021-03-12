@@ -7,7 +7,7 @@
 #define MATCOUPLEDTRANSPDARCY
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzpoisson3d.h"
 
@@ -26,7 +26,7 @@ class TPZCoupledTransportDarcyBC;
  * like the second equation. \n In the latter case beta value is set when Contribute
  * is called by processing the solution of the previous equation.
  */
-class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
+class TPZCoupledTransportDarcy : public TPZMaterial {
 	
 	protected :
 	
@@ -97,7 +97,7 @@ public:
 	
 	virtual ~TPZCoupledTransportDarcy();
 	
-	TPZCoupledTransportDarcy(TPZCoupledTransportDarcy &copy) : TPZRegisterClassId(&TPZCoupledTransportDarcy::ClassId),TPZDiscontinuousGalerkin(copy),
+	TPZCoupledTransportDarcy(TPZCoupledTransportDarcy &copy) : TPZRegisterClassId(&TPZCoupledTransportDarcy::ClassId),TPZMaterial(copy),
     fAlpha(copy.fAlpha){
 		this->fMaterialRefs[0] = copy.fMaterialRefs[0];
 		this->fMaterialRefs[1] = copy.fMaterialRefs[1];
@@ -136,21 +136,19 @@ public:
 							REAL weight,
 							TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc) override
 	{
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	virtual int VariableIndex(const std::string &name) override;
 	
 	virtual int NSolutionVariables(int var) override;
-	
-	virtual int NFluxes() override { return 3;}
 	
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
@@ -161,15 +159,11 @@ public:
 	 */
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
 	{
-		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
+		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 	
-	
-	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
-	
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;//Cedric
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
@@ -182,21 +176,6 @@ public:
 									   TPZFMatrix<STATE> &ek,
 									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc) override;
-	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-									 REAL weight,
-									 TPZFMatrix<STATE> &ef) override
-	{
-		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
-	}
-	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
-									   REAL weight,
-									   TPZFMatrix<STATE> &ef,
-									   TPZBndCond &bc) override
-	{
-		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
-	}
 	
 	void InterfaceErrors(TPZVec<REAL> &/*x*/,
 						 TPZVec<STATE> &leftu, TPZFMatrix<STATE> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/

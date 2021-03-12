@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 const int TPZNLElasticityMaterialID = 560;
 
@@ -17,7 +17,7 @@ const int TPZNLElasticityMaterialID = 560;
  * @ingroup material
  * @brief This class implements a two dimensional elastic material in plane stress or strain
  */
-class TPZNLElasticityMaterial : public TPZDiscontinuousGalerkin {
+class TPZNLElasticityMaterial : public TPZMaterial {
 	
 	public :
   
@@ -76,9 +76,6 @@ class TPZNLElasticityMaterial : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Returns the number of components which form the flux function */
 	virtual short NumberOfFluxes(){return 3;}
-	
-	/** @brief Returns the number of components which form the flux function */
-	virtual int NFluxes() override { return 3;}
   
 	/** @name Contribute methods */
 	/** @{ */
@@ -91,7 +88,7 @@ class TPZNLElasticityMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	/** @brief Applies the element boundary conditions */
@@ -105,7 +102,7 @@ class TPZNLElasticityMaterial : public TPZDiscontinuousGalerkin {
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
                             TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
 	{
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
   
   //virtual void FillDataRequirements(TPZMaterialData &data);
@@ -156,22 +153,13 @@ public:
   
   /** @brief Returns the solution associated with the var index based on the finite element approximation */
   virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
-  
-  /** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
-	{
-		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
-	}
-  
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
 	
 	/**
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-              TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+              TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
               TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;//Cedric
 	
 	/** @brief Returns the elasticity modulus E */

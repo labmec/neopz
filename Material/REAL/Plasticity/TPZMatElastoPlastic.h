@@ -75,28 +75,11 @@ public:
     * the finite element approximation*/
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) override;
 
-    /** Return the number of components which form the flux function
-    * Method not implemented.
-    */
-    virtual int NFluxes() override
-    {
-         PZError << "TPZMatElastoPlastic::NFluxes() - Method not implemented\n";
-         return 0;
-    }
-
-    /** Compute the value of the flux function to be used by ZZ error estimator.
-    * Method not implemented.
-    */
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) override
-    {
-        PZError << "TPZMatElastoPlastic::Flux - Method not implemented\n";
-    }
-
     /** Evaluate error between approximate (FEM) and exact solutions.
     *  Method not implemented
     */
     virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-                      TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                      TPZFMatrix<REAL> &axes,
                       TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) override;
     /**
     * Returns the number of norm errors: 3 (Semi H1, L2 and H1)

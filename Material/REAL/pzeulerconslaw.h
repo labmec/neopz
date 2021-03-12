@@ -118,8 +118,6 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	
 	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes() override;
-	
 	
 	/** @name Solutions methods */
 	/** @{ */
@@ -347,7 +345,7 @@ public:
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc) override
 	{
-    	TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+    	TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,

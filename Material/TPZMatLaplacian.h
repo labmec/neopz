@@ -7,9 +7,8 @@
 #define MATLAPLACDH
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
-
 /**
  * @ingroup material
  * @brief \f$ -fK Laplac(u) = fXf  \f$
@@ -17,7 +16,7 @@
 /**
  * \f$ -fK Laplac(u) = fXf  \f$
  */
-class TPZMatLaplacian : public TPZDiscontinuousGalerkin {
+class TPZMatLaplacian : public TPZMaterial {
 	
 	protected :
 	
@@ -70,7 +69,7 @@ public:
     
   TPZMatLaplacian(int matid)
     : TPZRegisterClassId(&TPZMatLaplacian::ClassId), 
-    TPZDiscontinuousGalerkin(matid), fXf(0.), fDim(1), fK(1.), fTensorK(1,1,1.),
+    TPZMaterial(matid), fXf(0.), fDim(1), fK(1.), fTensorK(1,1,1.),
     fInvK(1,1,1.),
      fSymmetry(0.), fPenaltyType(ENoPenalty), fPenaltyConstant(0.)
   {
@@ -215,14 +214,8 @@ public:
     virtual void Contribute(TPZMaterialData &data,REAL weight, TPZFMatrix<STATE> &ef) override;
     
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
-        TPZDiscontinuousGalerkin::Contribute(datavec,weight,ek,ef);
+        TPZMaterial::Contribute(datavec,weight,ek,ef);
     }
-
-
-	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
-								  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
-
-	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
@@ -240,8 +233,6 @@ public:
 
 	virtual int NSolutionVariables(int var) override;
 
-	virtual int NFluxes() override { return 3;}
-
 protected:
 
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) override;
@@ -253,13 +244,9 @@ protected:
         DebugStop();
     }
 
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
-
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
-    
-	void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 
 
 	virtual int NEvalErrors()  override {return 3;}

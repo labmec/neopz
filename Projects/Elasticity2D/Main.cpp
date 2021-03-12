@@ -19,7 +19,7 @@
 #include <TPZGenGrid2D.h>
 #include "TPZMatElasticity2D.h"
 #include "TPZInterfaceEl.h"
-#include "pzdiscgal.h"
+
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"

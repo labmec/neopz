@@ -47,7 +47,7 @@ protected:
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
 	
 	/** @brief Pointer to exact solution function, needed to calculate exact error */
-    TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
+    TPZAutoPointer<TPZFunction<STATE> > fExactSol;
 	
 public:
 	/** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
@@ -55,13 +55,6 @@ public:
 protected:
 	/** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
-    
-    /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
-    TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
-    
-    /** @brief Pointer to time dependent bc forcing function, it is a variable boundary condition at differential equation */
-    TPZAutoPointer<TPZFunction<STATE> > fTimedependentBCForcingFunction;    
-    
 
     /**
 	 * @brief Defines whether the equation context is linear solver or non linear
@@ -99,6 +92,16 @@ public:
     
     /** @brief Default destructor */
     virtual ~TPZMaterial();
+  
+    /** @brief This method is responsible for setting
+        the dimensions of the data structures used for
+        computing the exact solution at an integration point.
+        @param u_len length of the TPZVector<STATE> of the state variable
+        @param du_row number of rows of the TPZFNMatrix<STATE> containing the appropriate state variable derivative
+        @param du_col number of cols of the TPZFNMatrix<STATE> containing the appropriate state variable derivative*/
+    virtual void GetExactSolDimensions(uint64_t &u_len,
+                                            uint64_t &du_row,
+                                            uint64_t &du_col);
     
     /** 
 	 * @brief Fill material data parameter with necessary requirements for the
@@ -120,24 +123,11 @@ public:
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
     {
-        // default is no specific data requirements
-        if(type == 50)
-        {
-            data.fNeedsSol = true;
-        }
     }
     
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
     {
-        // default is no specific data requirements
-        int nref = datavec.size();
-        if(type == 50)
-        {
-            for(int iref = 0; iref<nref; iref++){
-                datavec[iref].fNeedsSol = true;
-            }
-        }
     }
 
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
@@ -169,19 +159,10 @@ public:
     virtual int Dimension() const = 0;
     
     int Id() const { return fId; }
-    void SetId(int id) {
-/*        if(id == 0) {
-            std::cout << "\n*** Material Id can't be ZERO! ***\n";
-            std::cout << "*** This Will Be a Disaster!!! ***\n";
-            DebugStop();
-        }*/
-        fId = id; }
+    void SetId(int id) {fId = id; }
     
     /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables() const = 0;
-    
-    /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes() {return 0;}
     
     /** @brief returns the number of load cases for this material object */
     int NumLoadCases()
@@ -244,18 +225,23 @@ public:
     virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * ritgh);	
-    
-protected:
-    /** @deprecated Deprecated interface for Solution method which must use material data. */
-    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
-    
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * right);
+
+    /** @deprecated Deprecated interface for Solution method which must use
+     * material data. */
+    virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
+                          TPZFMatrix<REAL> &axes, int var,
+                          TPZVec<STATE> &Solout);
+
+    /** @brief Returns the solution associated with the var index based on the
+     * finite element approximation */
+    void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft,
+                      TPZMaterialData &dataright, int var,
+                      TPZVec<STATE> &Solout) {
+      std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
+    }
+
 public:
-    
-    /** @brief Computes the value of the flux function to be used by ZZ error estimator */
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol,
-                      TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes,
-                      TPZVec<STATE> &flux) {}
     
     /** @} */
 
@@ -284,7 +270,10 @@ public:
      * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
+      TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+      this->Contribute(data, weight, fakeek, ef);
+    }
     
 
     /**
@@ -304,8 +293,8 @@ public:
      */
     virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef)
     {
-        TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows(),0.);
-        Contribute(datavec, weight, ek, ef);
+        TPZFMatrix<STATE> fakeek(ef.Rows(),ef.Rows(),0.);
+        this->Contribute(datavec, weight, fakeek, ef);
     }
     
     /**
@@ -331,9 +320,8 @@ public:
      */
     virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
     {
-        TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows(),0.);
-        ContributeBC(datavec, weight, ek, ef, bc);
-        
+        TPZFMatrix<STATE> fakeek(ef.Rows(),ef.Rows(),0.);
+        this->ContributeBC(datavec, weight, fakeek, ef, bc);
     }
     
     /**
@@ -356,8 +344,110 @@ public:
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+      TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+      this->ContributeBC(data, weight, fakeek, ef, bc);
+    }
 	
+    /**
+     * @brief It computes a contribution to stiffness matrix and load vector at one integration point
+     * @param data [in]
+     * @param dataleft [in]
+     * @param dataright [in]
+     * @param weight [in]
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @since April 16, 2007
+     */
+    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+    /**
+     * @brief Computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
+     * @param data [in]
+     * @param dataleft [in]
+     * @param dataright [in]
+     * @param weight [in]
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @since June 5, 2012
+     */
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+
+    
+    /**
+     * @brief It computes a contribution to residual vector at one integration point
+     * @param data [in]
+     * @param dataleft [in]
+     * @param dataright [in]
+     * @param weight [in]
+     * @param ef [out] is the load vector
+     * @since April 16, 2007
+     */
+    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+    
+    
+    /**
+     * @brief Computes a contribution to residual vector at one integration point
+     * @param data [in]
+     * @param dataleft [in]
+     * @param dataright [in]
+     * @param weight [in]
+     * @param ef [out] is the load vector
+     * @since June 5, 2012
+     */
+    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+    
+    
+    
+    /**
+     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point to multiphysics simulation
+     * @param data [in]
+     * @param dataleft [in]
+     * @param weight [in]
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition object
+     * @since February 21, 2013
+     */
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    
+    
+    /**
+     * @brief It computes a contribution to residual vector at one BC integration point
+     * @param data [in]
+     * @param dataleft [in]
+     * @param weight [in]
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition object
+     * @since April 16, 2007
+     */
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    /**
+     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point to multiphysics simulation
+     * @param data [in]
+     * @param dataleft [in]
+     * @param weight [in]
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition object
+     * @since February 21, 2013
+     */
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    
+    /**
+     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point to multiphysics simulation
+     * @param data [in]
+     * @param dataleft [in]
+     * @param weight [in]
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition object
+     * @since February 21, 2013
+     */
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+
     /** @} */
 	
     /** 
@@ -371,16 +461,16 @@ public:
 			fForcingFunction = fp;
     }
     void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result), int porder )
-		{
-				if(fp)
-                {
-                    TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp, porder);
-                    loc->SetPolynomialOrder(porder);
-                    fForcingFunction = loc;
-                }
-            
-				else fForcingFunction = NULL;
-		}
+    {
+        if(fp)
+        {
+            TPZDummyFunction<STATE> *loc = new TPZDummyFunction<STATE>(fp, porder);
+            loc->SetPolynomialOrder(porder);
+            fForcingFunction = loc;
+        }
+    
+        else fForcingFunction = NULL;
+    }
     
     void SetForcingFunction(void (*fp)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &gradu), int porder )
     {
@@ -403,14 +493,14 @@ public:
 	 * @brief Sets a procedure as exact solution for the problem
 	 * @param fp pointer of exact solution function
 	 */
-	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+	void SetExactSol(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
-		fForcingFunctionExact = fp;
+		fExactSol = fp;
 	}
 	
     /** @brief Returns a procedure as exact solution for the problem */
-    TPZAutoPointer<TPZFunction<STATE> > &ForcingFunctionExact() {
-        return fForcingFunctionExact;
+    TPZAutoPointer<TPZFunction<STATE> > &GetExactSol() {
+        return fExactSol;
     }
     
     /**
@@ -440,43 +530,13 @@ public:
     TPZAutoPointer<TPZFunction<STATE> > &TimedependentFunctionExact() {
         return fTimedependentFunctionExact;
     }
-	
-    /** 
-     * @brief Sets a procedure as variable boundary condition
-     * @param fp pointer of exact solution function
-     */
-    void SetBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
-    {
-        fBCForcingFunction = fp;
-    }
-    
-    /** @brief Returns a procedure as variable boundary condition */
-    TPZAutoPointer<TPZFunction<STATE> > &BCForcingFunction() {
-        return fBCForcingFunction;
-    }
-    
-    /** 
-     * @brief Sets a procedure as time variable boundary condition
-     * @param fp pointer of exact solution function
-     */
-    void SetTimedependentBCForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
-    {
-        fTimedependentBCForcingFunction = fp;
-    }
-    
-    /** @brief Returns a procedure as time variable boundary condition */
-    TPZAutoPointer<TPZFunction<STATE> > &TimedependentBCForcingFunction() {
-        return fTimedependentBCForcingFunction;
-    }
     
     /** @brief Directive that gives true if the material has a forcing function   */
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
     
     /** @brief Directive that gives true if the material has a function exact  */
-	virtual int HasForcingFunctionExact() {return (fForcingFunctionExact != 0);}
+	virtual int HasExactSol() {return (fExactSol != 0);}
     
-    /** @brief Directive that gives true if the material has a bc forcing function exact  */
-    virtual int HasBCForcingFunction() {return (fBCForcingFunction != 0);}
     
     /** @brief Directive that gives true if the material has a time dependent function exact  */
     virtual int HasTimedependentFunctionExact() {return (fTimedependentFunctionExact != 0);}
@@ -485,26 +545,46 @@ public:
     virtual int HasTimedependentForcingFunction() {return (fTimeDependentForcingFunction != 0);}
     
     /** @brief Directive that gives true if the material has a time dependent bc forcing function   */
-    virtual int HasTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}
+//    virtual int HasTimedependentBCForcingFunction() {return (fTimedependentBCForcingFunction != 0);}
     
+    /// return the integration order as a function of interpolation orders of the left and right elements
+    virtual int GetIntegrationOrder(TPZVec<int> &porder_left, TPZVec<int> &porder_right) const;
     
     /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
 	
 	/** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
     virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const;
-	
-    virtual void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+
+  void Errors(TPZMaterialData &data,TPZVec<REAL> &errors)
     {
         TPZManVector<STATE,3> flux;
-        Flux(data.x, data.sol[0], data.dsol[0], data.axes, flux);
-        Errors(data.x, data.sol[0], data.dsol[0], data.axes, flux, u_exact, du_exact, errors );
+        Errors(data.x, data.sol[0], data.dsol[0], data.axes, errors );
     }
+
+  virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
+        PZError << __PRETTY_FUNCTION__ << std::endl;
+        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+    }
+  virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
+    
+            PZError << __PRETTY_FUNCTION__ << std::endl;
+            PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+        DebugStop();
+        
+    }
+	[[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZMaterialData,TPZVec<REAL>) instead")]]
+    void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+    {
+        TPZManVector<STATE,3> flux;
+        Errors(data.x, data.sol[0], data.dsol[0], data.axes,  u_exact, du_exact, errors );
+    }
+  [[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZVec<TPZMaterialData>,TPZVec<REAL>) instead")]]
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-    
+  [[deprecated("Use OR IMPLEMENT TPZMaterial::ErrorsBC(TPZVec<TPZMaterialData>,TPZVec<REAL>,TPZBndCond &) instead")]]
     virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
     
             PZError << __PRETTY_FUNCTION__ << std::endl;
@@ -512,24 +592,26 @@ public:
         DebugStop();
         
     }
-
-    /**
-	 * @brief Computes the error due to the difference between the interpolated flux \n
-	 * and the flux computed based on the derivative of the solution
+protected:
+  /**
+	 * @brief Computes the error between the exact and the approximated
+   solutions
 	 */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
-                        TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
-                        TPZVec<REAL> &val) {
-        PZError << __PRETTY_FUNCTION__ << std::endl;
-        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-    }
-	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-		PZError << __PRETTY_FUNCTION__ << std::endl;
-		PZError << "Nao sei o q fazer." << std::endl;
-		
-	}
-    
+virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
+                      TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
+                      TPZVec<REAL> &val) {
+    PZError << __PRETTY_FUNCTION__ << std::endl;
+    PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+  }
+  [[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZVec<REAL> &, TPZVec<STATE> &, TPZFMatrix<STATE> &, TPZMatrix<REAL> &, TPZVec<REAL>&) instead")]]
+  virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
+                      TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
+                      TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
+                      TPZVec<REAL> &val) {
+    PZError << __PRETTY_FUNCTION__ << std::endl;
+    PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+  }
+public:
 
     
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
@@ -544,15 +626,8 @@ public:
     /** @brief Creates a copy of the material object and put it in the vector which is passed on */
     virtual void Clone(std::map<int, TPZMaterial * > &matvec);
     
-    /** @brief To return a numerical flux type to apply over the interfaces of the elements */
-    virtual int FluxType() { return 2; }
-	
-    virtual void ContributeErrors(TPZMaterialData &data,
-                                  REAL weight,
-                                  TPZVec<REAL> &nk,
-                                  int &errorid){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
-    }
+//    /** @brief To return a numerical flux type to apply over the interfaces of the elements */
+//    virtual int FluxType() { return 2; }
     
     /**
      * @brief Computes square of residual of the differential equation at one integration point.
@@ -564,7 +639,42 @@ public:
         PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
         return -1.;
     }
+    /** @name Discontinuous Galerkin interface declaration
+     * @{
+     */
+
+    /**
+     * Interfaces may be conservative or not conservative. It is important to agglomeration techniques
+     * when using multigrid pre-conditioner. \n Conservative interfaces into agglomerate elements do not
+     * need to be computed. However non-conservative interfaces must be computed in all multigrid levels.\n
+     * Default is non-conservative, because of the computation of a conservative interface into an agglomerate
+     * does not ruin the solution.
+     */
+    virtual int IsInterfaceConservative();
     
+    /**
+     * @brief Computes interface jump = leftu - rightu
+     * @since Feb 14, 2006
+     */
+    virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump);
+    
+    
+    /**
+     * @brief Computes interface jump from element to Dirichlet boundary condition.
+     * It has to reimplemented
+     * @since Mar 08, 2006
+     */
+    virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump);
+
+    /** @name Discontinuous Galerkin interface declaration
+     * @}
+     */
+
+    /** @name Integration point memory interface
+     *  @{
+     */
+
+
     /**
      * @brief Pushes a new entry in the context of materials with memory,
      * returning its index at the internal storage stack.
@@ -582,7 +692,9 @@ public:
     bool GetLinearContext() const {
         return fLinearContext;
     }
-    
+    /** @}
+     */
+
     /** @{
      * @name Save and Load methods
      */
@@ -601,9 +713,5 @@ int ClassId() const override;
     /** @} */
 	
 };
-
-/** @brief Extern variable - Vector of force values */
-extern TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;
-
 #endif
 

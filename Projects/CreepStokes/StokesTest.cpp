@@ -922,7 +922,7 @@ TPZCompMesh *StokesTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     ((TPZDummyFunction<STATE>*)solp.operator->())->SetPolynomialOrder(1);
     
     material->SetForcingFunction(fp);
-    material->SetForcingFunctionExact(solp);
+    material->SetExactSol(solp);
 
     cmesh->InsertMaterialObject(material);
     

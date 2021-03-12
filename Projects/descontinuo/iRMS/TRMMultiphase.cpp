@@ -10,20 +10,20 @@
 
 
 
-TRMMultiphase::TRMMultiphase() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
+TRMMultiphase::TRMMultiphase() : TPZMatWithMem<TRMMemory, TPZMaterial>()
 {
 
     fdimension = 0;
     
 }
 
-TRMMultiphase::TRMMultiphase(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
+TRMMultiphase::TRMMultiphase(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZMaterial>(matid)
 {
     fdimension = dimension;
 }
 
 
-TRMMultiphase::TRMMultiphase(const TRMMultiphase &mat) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(mat)
+TRMMultiphase::TRMMultiphase(const TRMMultiphase &mat) : TPZMatWithMem<TRMMemory, TPZMaterial>(mat)
 {
     this->fdimension = mat.fdimension;
 }
@@ -3258,14 +3258,14 @@ int TRMMultiphase::ClassId() const{
 
 void TRMMultiphase::Write(TPZStream &buf, int withclassid) const{
     
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     
 }
 
 // -------------------------------------------------------------------------------------------
 
 void TRMMultiphase::Read(TPZStream &buf, void *context) {
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     
 }
 

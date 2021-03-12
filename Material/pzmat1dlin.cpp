@@ -9,7 +9,8 @@
 #include "pzbndcond.h"
 #include "pzerror.h"
 #include "pzvec.h"
-
+#include "pzaxestools.h"
+#include "pzextractval.h"
 #include <math.h>
 using namespace std;
 
@@ -149,49 +150,22 @@ void TPZMat1dLin::Print(std::ostream & out) {
 	out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*u*/, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &fl) {
+void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
+                         TPZFMatrix<STATE> &dudaxes,TPZFMatrix<REAL> &axes,
+                         TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
+                         TPZVec<REAL> &values) {
+	TPZFNMatrix<3,STATE> dudx(3,1,0.);
+  TPZAxesTools<STATE>::Axes2XYZ(dudaxes, dudx, axes);
+  ///L2 norm
+	values[1] = TPZExtractVal::val((u[0] - u_exact[0])*(u[0] - u_exact[0]));
 	
-	int row = NStateVariables();
-	for(int i=0; i<row; i++){
-		fl[i]  = 0.;
-		for(int j=0; j<row; j++) {
-			fl[i] += -fXk(i,j)*dudx(0,j);
-		}
+	//H1 seminorm
+  values[2] = 0;
+  for(int i = 0; i < du_exact.Rows(); i++){
+		values[2] += TPZExtractVal::val( (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0)));
 	}
-}
-
-void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &flux,
-						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-	
-	TPZVec<STATE> udif(u);
-	int nelem= udif.NElements(),i;
-	for(i=0; i<nelem; i++) udif[i] -= u_exact[i];
-	TPZFMatrix<STATE> dudif(dudx);
-	
-	int r = NStateVariables();
-	TPZVec<STATE> flux_el( r );
-	short idf;
-	for(idf=0; idf<r; idf++) {
-		dudif(0,idf) -= du_exact(0,idf);
-	}
-	
-	values.Fill(0.);
-	
-	for (idf=0; idf<r; idf++) {
-		values[1] += fabs(udif[idf]*udif[idf]);
-		for (short jdf=0; jdf<r; jdf++) {
-			values[0] += fabs(dudif(0,idf)*fXk(idf,jdf)*dudif(0,jdf) + udif[idf]*fXb(idf,jdf)*udif[jdf]);
-			flux_el[idf] -= fXk(idf,jdf)*dudx(0,jdf);
-		}
-	}
-	
-	for (idf=0; idf<r; idf++) {
-		STATE dif = flux[idf]-flux_el[idf];
-		if(std::abs(fXk(idf,idf)) >= 1.e-10)
-		{
-			values[2] += fabs(dif*dif/sqrt(std::abs( fXk(idf,idf) )));
-		}	
-	}
+  //H1 norm
+  values[0] = values[1]+values[2];
 }
 
 

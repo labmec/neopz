@@ -430,13 +430,6 @@ public:
 	virtual void Skyline(TPZVec<int64_t> &skyline);
 	
 	/**
-	 * @brief Assemble the vector with errors estimators
-	 * @param estimator vector where will be assembled the errors
-	 * @param errorid index for dual or wheeler estimator
-	 */
-	void AssembleError(TPZFMatrix<REAL> &estimator, int errorid);
-	
-	/**
 	 * @brief Builds the transfer matrix from the current grid to the coarse grid
 	 * @param coarsemesh grid for where the matrix will be transfered
 	 * @param transfer transfer matrix between the current mesh and the coarse mesh
@@ -632,15 +625,11 @@ public:
      */
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
 
-	
-	/**
-	 * @brief Evaluates the error given the two vectors of the analised parameters
-	 * @param fp pointer for the function with following arguments:
-	 * @note Parameter loc - local vector of the analised parameter
-	 * @note Parameter val - given vector to compare
-	 * @note Parameter deriv - ????
-	 * @param errorSum - return the L1 error
-	 */
+
+    void EvaluateError(bool store_error,
+					   TPZVec<REAL> &errorSum);
+
+  [[deprecated("Use TPZCompMesh::EvaluateError(bool,TPZVec<REAL>")]]
     void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp, bool store_error,
 					   TPZVec<REAL> &errorSum);
 	

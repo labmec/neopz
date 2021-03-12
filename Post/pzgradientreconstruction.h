@@ -107,15 +107,15 @@ class TPZGradientReconstruction
         }
         
         /** @brief Pointer to exact solution function, needed to calculate exact error */
-        TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
+        TPZAutoPointer<TPZFunction<STATE> > fExactSol;
         
         /**
          * @brief Sets a procedure as exact solution for the problem
          * @param fp pointer of exact solution function
          */
-        void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+        void SetExactSol(TPZAutoPointer<TPZFunction<STATE> > fp)
         {
-            fForcingFunctionExact = fp;
+            fExactSol = fp;
         }
         
         bool fUseForcinfFuncion;
@@ -126,12 +126,12 @@ class TPZGradientReconstruction
         void DisableForcinFucnction(){
             fUseForcinfFuncion=false;
         }
-        int HasForcingFunctionExact() {
+        int HasExactSol() {
             if(fUseForcinfFuncion){
-                return (fForcingFunctionExact != 0);
+                return (fExactSol != 0);
             }
             else{
-                fForcingFunctionExact = 0;
+                fExactSol = 0;
                 return 0;
             }
         }

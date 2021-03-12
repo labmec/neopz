@@ -10,7 +10,7 @@
 #define __PZ__TPZMatDarcy2dhdiv__
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
 
@@ -22,7 +22,7 @@
  * @brief Here is used Hdiv for flux and L2 for pressure
  * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
  */
-class TPZMatDarcy2dhdiv : public TPZDiscontinuousGalerkin {
+class TPZMatDarcy2dhdiv : public TPZMaterial {
     
 protected:
     
@@ -99,12 +99,6 @@ public:
     
     /** @brief Calculates a solution given datavec*/    
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
-    
-    
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
-    {
-        TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
-    }
     
 private:
     

@@ -883,7 +883,7 @@ TPZCompMesh *CMeshMixed(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec){
         TPZDummyFunction<STATE> *dum = new TPZDummyFunction<STATE>(SolExata, 5);
         dum->SetPolynomialOrder(10);
         solExata = dum;
-        material1->SetForcingFunctionExact(solExata);
+        material1->SetExactSol(solExata);
     }
     
     TPZMaterial *mat1(material1);

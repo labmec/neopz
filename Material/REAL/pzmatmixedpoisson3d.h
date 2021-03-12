@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <iostream>
-#include "pzdiscgal.h"
+
 #include "TPZMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 
@@ -308,10 +308,8 @@ public:
     void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
     // metodo para computar erros Pressao
     void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
                 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
-    // metodo para computar erros Hdiv
-    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     
     void UseSecondIntegrationByParts(){
         fSecondIntegration=true;

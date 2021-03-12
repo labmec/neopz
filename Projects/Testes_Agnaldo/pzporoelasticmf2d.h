@@ -17,7 +17,7 @@
 
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "pzvec.h"
 
 #include <iostream>
@@ -38,7 +38,7 @@
  *
  */
 
-class TPZPoroElasticMF2d : public TPZDiscontinuousGalerkin {
+class TPZPoroElasticMF2d : public TPZMaterial {
 	
 protected:
 	

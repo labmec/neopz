@@ -10,7 +10,7 @@
 #include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
-#include "pzdiscgal.h"
+
 
 #include "pzausmflux.h"
 #include "pzgradientflux.h"
@@ -49,7 +49,7 @@ class TPZCompMesh;
  *
  * @note For tests we used \f$ \gamma = 1.4 \f$ .
  */
-class TPZEulerEquation : public TPZDiscontinuousGalerkin{
+class TPZEulerEquation : public TPZMaterial{
 	
 public:
 	/** @brief Type of boundary condition */

@@ -99,8 +99,6 @@ class TPZEulerConsLawDEP  : public TPZConservationLawDEP {
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int var);
-	
-	virtual int NFluxes(){ return Dimension();}
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:

@@ -15,12 +15,12 @@
 
 using namespace std;
 
-TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc():TPZDiscontinuousGalerkin(), fXf1(0.), fXf2(0.),fDim(1){
+TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc():TPZMaterial(), fXf1(0.), fXf2(0.),fDim(1){
 	fK1 = 1.;
 	fK2 = 1.;
 }
 
-TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc(int matid, int dim):TPZDiscontinuousGalerkin(matid), fXf1(0.), fXf2(0.),fDim(dim){
+TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc(int matid, int dim):TPZMaterial(matid), fXf1(0.), fXf2(0.),fDim(dim){
 	fK1 = 1.;
 	fK2 = 1.;
 }
@@ -28,14 +28,14 @@ TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc(int matid, int dim):TPZDi
 TPZMatUncoupledPoissonDisc::~TPZMatUncoupledPoissonDisc(){
 }
 
-TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc(const TPZMatUncoupledPoissonDisc &copy):TPZDiscontinuousGalerkin(copy){
+TPZMatUncoupledPoissonDisc::TPZMatUncoupledPoissonDisc(const TPZMatUncoupledPoissonDisc &copy):TPZMaterial(copy){
     
     this->operator=(copy);
 }
 
 TPZMatUncoupledPoissonDisc & TPZMatUncoupledPoissonDisc::operator=(const TPZMatUncoupledPoissonDisc &copy){
     
-    TPZDiscontinuousGalerkin::operator = (copy);
+    TPZMaterial::operator = (copy);
 	fXf1  = copy.fXf1;
     fXf2  = copy.fXf2;
 	fDim = copy.fDim;

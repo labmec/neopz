@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-#include "pzdiscgal.h"
+
 
 /**
  * @ingroup material
@@ -28,7 +28,7 @@
  */
 
 
-class TPZTracerFlow : public TPZDiscontinuousGalerkin {
+class TPZTracerFlow : public TPZMaterial {
     
 protected:
 	/** @brief Forcing function value, like source term, to flux-pressure equation */

@@ -20,21 +20,13 @@ int TPZBndCond::TPZ_BCDefine::ClassId() const {
 void TPZBndCond::TPZ_BCDefine::Read(TPZStream& buf, void* context) {
     fBCVal2.Read(buf, context);
     fForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fForcingFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
+    fExactSol = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
 void TPZBndCond::TPZ_BCDefine::Write(TPZStream& buf, int withclassid) const {
     fBCVal2.Write(buf, withclassid);
     TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fForcingFunctionExact.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
+    TPZPersistenceManager::WritePointer(fExactSol.operator ->(), &buf);
 }
 
 void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {
@@ -58,7 +50,7 @@ void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {
 }
 
 void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
+	TPZMaterial *mat = dynamic_cast<TPZMaterial *>(this->fMaterial);
 	
 	if(!mat) return;
 	if(fForcingFunction) {
@@ -86,7 +78,7 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &righ
 }//InterfaceJump
 
 int TPZBndCond::ClassId() const{
-    return Hash("TPZBndCond") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZBndCond") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND
@@ -94,7 +86,7 @@ template class TPZRestoreClass<TPZBndCond>;
 #endif
 
 void TPZBndCond::Write(TPZStream &buf, int withclassid) const {
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     buf.Write(fBCs);
     buf.Write(&fType);
     fBCVal1.Write(buf, withclassid);
@@ -103,7 +95,7 @@ void TPZBndCond::Write(TPZStream &buf, int withclassid) const {
 }
 
 void TPZBndCond::Read(TPZStream &buf, void *context){
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     buf.Read(fBCs);
     buf.Read(&fType);
     fBCVal1.Read(buf, context);
@@ -115,27 +107,6 @@ void TPZBndCond::Read(TPZStream &buf, void *context){
         LOGPZ_FATAL(logger, "reading a boundary condition without material object!!");
 #endif
     }
-}
-
-void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-										   REAL weight,
-										   TPZVec<STATE> &nkL,
-										   TPZVec<STATE> &nkR,
-										   int &errorid){
-	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
-	if(!mat) return;
-	
-	
-	if(dataleft.sol.NElements() < dataright.sol.NElements()){
-		//		data.InvertLeftRightData();
-        for(int i=0; i<3; i++) data.normal[i] *= -1.;
-		mat->ContributeInterfaceBCErrors(data,dataright,weight,nkR,*this, errorid);
-	}
-	else {
-		mat->ContributeInterfaceBCErrors(data,dataleft,weight,nkL,*this, errorid);
-	}
-	
 }
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
@@ -170,7 +141,7 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STA
 }
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+	TPZMaterial *mat = dynamic_cast<TPZMaterial *>(fMaterial);
 	if(!mat) DebugStop();
 
 	
@@ -188,7 +159,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dat
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
-    TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+    TPZMaterial *mat = dynamic_cast<TPZMaterial *>(fMaterial);
     if(!mat) DebugStop();
 	
     int nel = dataleft.size();
@@ -210,7 +181,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialDa
 }
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
+	TPZMaterial *mat = dynamic_cast<TPZMaterial *>(fMaterial);
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
         for(int i=0; i<3; i++) data.normal[i] *= -1.;

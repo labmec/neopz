@@ -354,19 +354,20 @@ public:
 	/** This method needs to be implemented in the derived classes */
 	virtual void Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate = 0);
 	
-	/**
-	 * @brief Projects the flux function on the finite element space
-	 * @param ek element stiffness matrix
-	 * @param ef element loads matrix
+
+  /**
+	 * @brief Performs an error estimate on the element based on materials solution
+	 * @param errors [out] the L2 norm of the error of the solution
+	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef);
-	
+    virtual void EvaluateError(TPZVec<REAL> &errors, bool store_error);
 	/**
 	 * @brief Performs an error estimate on the elemen
 	 * @param fp function pointer which computes the exact solution
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
+[[deprecated("Use or implement TPZCompEl::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
 							   TPZVec<REAL> &errors, bool store_error);
 	
@@ -814,10 +815,6 @@ inline void TPZCompEl::Assemble(){
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
 	std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
-}
-
-inline void TPZCompEl::ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef) {
-	std::cout << "TPZCompEl::ProjectFlux is called." << std::endl;
 }
 
 inline bool TPZCompElSide::operator != (const TPZCompElSide &other)

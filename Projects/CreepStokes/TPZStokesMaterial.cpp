@@ -15,7 +15,7 @@
 
 using namespace std;
 
-TPZStokesMaterial::TPZStokesMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(){
+TPZStokesMaterial::TPZStokesMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >(){
     //fDim = 1;
     TPZFNMatrix<3,STATE> Vl(1,1,0.);
     this->SetDefaultMem(Vl);
@@ -25,7 +25,7 @@ TPZStokesMaterial::TPZStokesMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDis
 
 ////////////////////////////////////////////////////////////////////
 
-TPZStokesMaterial::TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta, STATE Sigma) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fDimension(dimension),fSpace(space),fViscosity(viscosity),fTheta(theta),fSigma(Sigma)
+TPZStokesMaterial::TPZStokesMaterial(int matid, int dimension, int space, STATE viscosity, STATE theta, STATE Sigma) : TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >(matid),fDimension(dimension),fSpace(space),fViscosity(viscosity),fTheta(theta),fSigma(Sigma)
 {
     // symmetric version
     //fTheta = -1;
@@ -39,7 +39,7 @@ TPZStokesMaterial::TPZStokesMaterial(int matid, int dimension, int space, STATE 
 
 ////////////////////////////////////////////////////////////////////
 
-TPZStokesMaterial::TPZStokesMaterial(const TPZStokesMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat),fDimension(mat.fDimension),fSpace(mat.fSpace), fViscosity(mat.fViscosity), fTheta(mat.fTheta), fSigma(mat.fSigma)
+TPZStokesMaterial::TPZStokesMaterial(const TPZStokesMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >(mat),fDimension(mat.fDimension),fSpace(mat.fSpace), fViscosity(mat.fViscosity), fTheta(mat.fTheta), fSigma(mat.fSigma)
 {
     fk= mat.fk;
     
@@ -182,8 +182,8 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         case 3: //v_exact
         {
             TPZVec<STATE> sol(3,0.0);
-            if(this->HasForcingFunctionExact()){
-                this->fForcingFunctionExact->Execute(datavec[vindex].x, sol, gradu); // @omar::check it!
+            if(this->HasExactSol()){
+                this->fExactSol->Execute(datavec[vindex].x, sol, gradu); // @omar::check it!
             }
             Solout[0] = sol[0]; // vx
             Solout[1] = sol[1]; // vy
@@ -193,8 +193,8 @@ void TPZStokesMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZV
         case 4: //p_exact
         {
             TPZVec<STATE> sol(3,0.0);
-            if(this->HasForcingFunctionExact()){
-                this->fForcingFunctionExact->Execute(datavec[pindex].x, sol, gradu); // @omar::check it!
+            if(this->HasExactSol()){
+                this->fExactSol->Execute(datavec[pindex].x, sol, gradu); // @omar::check it!
             }
             Solout[0] = sol[2]; // px
             
@@ -282,7 +282,7 @@ void TPZStokesMaterial::ComputeDivergenceOnMaster(TPZVec<TPZMaterialData> &datav
 
 void TPZStokesMaterial::Write(TPZStream &buf, int withclassid) const{
     
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     
     
 }
@@ -291,7 +291,7 @@ void TPZStokesMaterial::Write(TPZStream &buf, int withclassid) const{
 
 void TPZStokesMaterial::Read(TPZStream &buf, void *context) {
     
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     
 }
 

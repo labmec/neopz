@@ -8,7 +8,7 @@
  */
 
 #include "TPZMatWithMem.h"
-#include "pzdiscgal.h"
+
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include "pzlog.h"
@@ -21,7 +21,7 @@
 
 
 
-class TPZStokesMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >  {
+class TPZStokesMaterial : public TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >  {
     
 protected:
     

@@ -291,7 +291,7 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int64_t &in
 }
 
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
+	TPZMaterial *mat = Material();
 	
 #ifdef PZDEBUG
 	if(!mat || mat->Name() == "no_name"){
@@ -771,12 +771,11 @@ void TPZInterfaceElement::Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
 	return this->ComputeNormal(qsi, normal);
 }
 
-/**
- * @brief Performs an error estimate on the elemen
- * @param fp function pointer which computes the exact solution
- * @param errors [out] the L2 norm of the error of the solution
- * @param flux [in] value of the interpolated flux values
- */
+void TPZInterfaceElement::EvaluateError(TPZVec<REAL> &errors, bool store_error)
+{
+	errors.Fill(0.0);
+}
+
 void TPZInterfaceElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                            TPZVec<REAL> &errors, bool store_error)
 {
@@ -1060,7 +1059,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 #endif
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
+	TPZMaterial *mat = Material();
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
 		ek.Reset();
@@ -1246,7 +1245,7 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 
 void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
+	TPZMaterial *mat = Material();
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::EvaluateInterfaceJump interface material null, do nothing\n";
 		DebugStop();
@@ -1331,102 +1330,6 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	
 }//method
 
-void TPZInterfaceElement::ComputeErrorFace(int errorid,
-										   TPZVec<STATE> &errorL,
-										   TPZVec<STATE> &errorR){
-	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
-	if(!mat){
-		PZError << "TPZInterfaceElement::ComputeErrorFace interface material null, do nothing\n";
-		DebugStop();
-		return;
-	}
-	
-	
-	TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
-	TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
-	
-	if (!left || !right){
-		PZError << "\nError at TPZInterfaceElement::ComputeErrorFace null neighbour\n";
-		DebugStop();
-		return;
-	}
-	if(!left->Material() || !right->Material()){
-		PZError << "\n Error at TPZInterfaceElement::ComputeErrorFace null material\n";
-		DebugStop();
-		return;
-	}
-	
-	TPZMaterialData data, datal, datar;
-	data.SetAllRequirements(true);
-	datal.SetAllRequirements(true);
-	datar.SetAllRequirements(true);
-	this->InitMaterialData(datal,left);
-	this->InitMaterialData(datar,right);
-	this->InitMaterialData(data);
-   
-	const int dim = this->Dimension();
-	const int diml = left->Dimension();
-	const int dimr = right->Dimension();
-	
-	//LOOKING FOR MAX INTERPOLATION ORDER
-	datal.p = left->MaxOrder();
-	datar.p = right->MaxOrder();
-	//Max interpolation order
-	const int p = (datal.p > datar.p) ? datal.p : datar.p;
-	
-	TPZGeoEl *ref = Reference();
-    int intorder = mat->IntegrationRuleOrder(p);
-	TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, intorder );
-    if(mat->HasForcingFunction())
-    {
-        intorder = intrule->GetMaxOrder();
-        TPZManVector<int,3> order(ref->Dimension(),intorder);
-        intrule->SetOrder(order);
-    }
-	//   mat->SetIntegrationRule(intrule, p, dim);
-	const int npoints = intrule->NPoints();
-	
-	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform<> TransfLeft, TransfRight;
-	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
-	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
-	
-	TPZManVector<REAL,3> intpoint(dim), LeftIntPoint(diml), RightIntPoint(dimr);
-	REAL weight;
-	//LOOP OVER INTEGRATION POINTS
-	for(int ip = 0; ip < npoints; ip++){
-		
-		intrule->Point(ip,intpoint,weight);
-		ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
-		weight *= fabs(data.detjac);
-		
-		this->Normal(data.axes,data.normal);
-		
-		TransfLeft.Apply( intpoint, LeftIntPoint );
-		TransfRight.Apply( intpoint, RightIntPoint );
-		
-#ifdef PZDEBUG
-		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
-		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
-#endif
-		
-		//left->ComputeShape(LeftIntPoint, datal.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
-		//right->ComputeShape(RightIntPoint, datar.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
-		
-		this->ComputeRequiredData(datal, left, LeftIntPoint);
-		this->ComputeRequiredData(datar, right, RightIntPoint);
-        //data.SetAllRequirements(true);
-        data.fNeedsHSize=true;
-        data.intLocPtIndex=ip;
-		this->ComputeRequiredData(data,intpoint);
-		
-		mat->ContributeInterfaceErrors(data, datal, datar, weight,errorL,errorR,errorid);
-		
-	}//loop over integration points
-	
-}
-
 void TPZInterfaceElement::Integrate(int variable, TPZVec<STATE> & value){
 	const int varsize = this->Material()->NSolutionVariables(variable);
 	value.Resize(varsize);
@@ -1458,7 +1361,6 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		DebugStop();
 		return;
 	}
-    TPZDiscontinuousGalerkin *discgal = dynamic_cast<TPZDiscontinuousGalerkin *>(material);
 	
 	//local variables
 	REAL weight;
@@ -1499,7 +1401,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 //		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		this->NeighbourSolution(this->LeftElementSide(), intpoint, datal.sol, datal.dsol, datal.axes);
 		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
-		discgal->SolutionDisc(data, datal, datar, variable, locval);
+		material->SolutionDisc(data, datal, datar, variable, locval);
 		for(iv = 0; iv < varsize; iv++) {
 #ifdef STATE_COMPLEX
 			value[iv] += locval[iv].real()*weight;
@@ -1615,8 +1517,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 }//method
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *elem){
-	TPZMaterial *matorig = Material();
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(matorig);
+	TPZMaterial *mat = Material();
 	if (!mat){
 		PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
 		DebugStop();

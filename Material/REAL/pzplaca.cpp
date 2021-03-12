@@ -268,12 +268,6 @@ void TPZPlaca::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-int TPZPlaca::NFluxes() {return 1;}
-
-void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
-	PZError << "TPZPlaca::Flux is called\n";
-}
-
 void TPZPlaca::Print(std::ostream & out) {
 	//out << "Material type TPZPlaca -- number = " << Id() << "\n";
 	//out << "Matrix xk ->  "; fXk.Print("fXk",out);
@@ -447,7 +441,7 @@ void TPZPlaca::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,TPZVec<STATE> &flux,
+void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,
 					  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	//ENERGY NORM

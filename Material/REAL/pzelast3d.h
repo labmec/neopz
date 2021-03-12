@@ -161,26 +161,9 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	/** 
-	 * @brief Return the number of components which form the flux function
-	 * @note Method not implemented.
-	 */
-	virtual int NFluxes()  override {
-		PZError << "\nTPZElasticity3D::NFluxes() - Method not implemented\n";
-		return 0;
-	}
-	
-	/**
-	 * @brief Compute the value of the flux function to be used by ZZ error estimator.
-	 * @note Method not implemented.
-	 */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
-		PZError << "\nTPZElasticity3D::Flux - Method not implemented\n";
-	}
-	
 	/** @brief Evaluate error between approximate (FEM) and exact solutions */
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
-						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+						TPZFMatrix<REAL> &axes,
 						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	/** @brief Returns the number of norm errors: 3 (Semi H1, L2 and H1) */
 	virtual int NEvalErrors() override {return 3;}

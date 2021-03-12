@@ -14,9 +14,9 @@
 #include "TRMPhaseInterfaceMemory.h"
 #include "TRMSimulationData.h"
 #include "TRMBuildTransfers.h"
-#include "pzdiscgal.h"
 
-class TRMPhaseInterfaceTransport : public TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> {
+
+class TRMPhaseInterfaceTransport : public TPZMatWithMem<TRMPhaseInterfaceMemory,TPZMaterial> {
     
 private:
     

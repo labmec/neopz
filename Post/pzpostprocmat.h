@@ -6,7 +6,7 @@
 #define PZPOSTPROCMAT_H
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "tpzautopointer.h"
 #include "pzvec.h"
 
@@ -48,7 +48,7 @@ public: //members
 	  int64_t fNumEq;
 };
 
-class  TPZPostProcMat : public TPZDiscontinuousGalerkin
+class  TPZPostProcMat : public TPZMaterial
 {
    public:
 		

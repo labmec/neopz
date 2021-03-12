@@ -8,7 +8,7 @@
  */
 
 #include "ElasticMatInterface2D.h"
-#include "pzdiscgal.h"
+
 #include "pzelasmat.h"
 #include "pzlog.h"
 #include "pzaxestools.h"

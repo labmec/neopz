@@ -305,8 +305,6 @@ TPZFMatrix &phi = data.phi;
   }
 }
 
-int TPZPlaca2::NFluxes() {return 1;}
-
 void TPZPlaca2::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*fl*/) {
   PZError << "TPZPlaca2::Flux is called\n";
 }

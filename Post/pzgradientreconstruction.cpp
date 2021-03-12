@@ -211,7 +211,7 @@ TPZGradientReconstruction::TPZGradientData::TPZGradientData()
     fCelAndNeighbors.resize(0);
     fCenterPointInterface.resize(0);
     
-    this->fForcingFunctionExact = NULL;
+    this->fExactSol = NULL;
     this->fUseForcinfFuncion = false;
     fGhostNeighbor = false;
     
@@ -248,7 +248,7 @@ TPZGradientReconstruction::TPZGradientData::TPZGradientData(const TPZGradientDat
     fGradient = cp.fGradient;
     fSlopeLimiter = cp.fSlopeLimiter;
     
-    fForcingFunctionExact = cp.fForcingFunctionExact;
+    fExactSol = cp.fExactSol;
     fUseForcinfFuncion = cp.fUseForcinfFuncion;
     
     fGhostNeighbor = cp.fGhostNeighbor;
@@ -272,7 +272,7 @@ TPZGradientReconstruction::TPZGradientData & TPZGradientReconstruction::TPZGradi
     fGradient = copy.fGradient;
     fSlopeLimiter = copy.fSlopeLimiter;
     
-    fForcingFunctionExact = copy.fForcingFunctionExact;
+    fExactSol = copy.fExactSol;
     fUseForcinfFuncion = copy.fUseForcinfFuncion;
     
     fGhostNeighbor = copy.fGhostNeighbor;
@@ -434,9 +434,9 @@ void TPZGradientReconstruction::TPZGradientData::GetCenterPointAndCellAveraged(T
 		cel->Reference()->X(point,xpoint);
         
         TPZVec<STATE> sol;
-        if (this->HasForcingFunctionExact()){
+        if (this->HasExactSol()){
             sol.Resize(1, 0.);
-            this->fForcingFunctionExact->Execute(xpoint, sol);
+            this->fExactSol->Execute(xpoint, sol);
         }
         else{
             cel->Solution(xpoint, 1, sol);

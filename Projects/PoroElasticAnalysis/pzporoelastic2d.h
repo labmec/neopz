@@ -12,7 +12,7 @@
 #define POISSONDESACOPLADOS_HH
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "pzvec.h"
 #include <iostream>
 
@@ -35,7 +35,7 @@
  *
  */
 
-class TPZPoroElastic2d : public TPZDiscontinuousGalerkin {
+class TPZPoroElastic2d : public TPZMaterial {
 	
 protected:
 	
@@ -223,7 +223,7 @@ public:
 	//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
 	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)  override {
-        TPZDiscontinuousGalerkin::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
+        TPZMaterial::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
     }
 //	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
 	
@@ -239,10 +239,10 @@ public:
 							 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
 									 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
-        TPZDiscontinuousGalerkin::ContributeInterface(data,dataleftvec,datarightvec,weight,ek,ef);
+        TPZMaterial::ContributeInterface(data,dataleftvec,datarightvec,weight,ek,ef);
     }
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef) override {
-        TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
+        TPZMaterial::ContributeInterface(data,dataleft,dataright,weight,ef);
     }
 	
 	/**

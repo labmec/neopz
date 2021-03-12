@@ -7,12 +7,12 @@
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int nummat, REAL f, REAL betaZero)
 : TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), 
-TPZDiscontinuousGalerkin(nummat),fXf(f), fBetaZero(betaZero){
+TPZMaterial(nummat),fXf(f), fBetaZero(betaZero){
    mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(int matid) :
-TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(matid),
+TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZMaterial(matid),
 fXf(0.), fBetaZero(0.)
 {
     mydim = 0;
@@ -20,12 +20,12 @@ fXf(0.), fBetaZero(0.)
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson():
-TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(){
+TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZMaterial(){
     mydim = 0;
 }
 
 TPZMatDualHybridPoisson::TPZMatDualHybridPoisson(const TPZMatDualHybridPoisson &copy)
-: TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZDiscontinuousGalerkin(copy){
+: TPZRegisterClassId(&TPZMatDualHybridPoisson::ClassId), TPZMaterial(copy){
     mydim = copy.mydim;
     fXf = copy.fXf;
     fBetaZero = copy.fBetaZero;
@@ -39,7 +39,7 @@ void TPZMatDualHybridPoisson::Print(std::ostream & out){
     out << "\n" << this->Name() << "\n";
     out << "fXf = " << fXf << "\n";
     out << "fBetaZero = " << fBetaZero << "\n";
-    TPZDiscontinuousGalerkin::Print(out);
+    TPZMaterial::Print(out);
 }
 
 void TPZMatDualHybridPoisson::Contribute(TPZMaterialData &data,
@@ -283,7 +283,7 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
     
     //Exact soluion
     if(var == 2){
-        fForcingFunctionExact->Execute(data.x, solExata,flux);
+        fExactSol->Execute(data.x, solExata,flux);
         Solout[0] = solExata[0];
         return;
     }//var6
@@ -300,7 +300,7 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
     
     if(var == 4) {
         int id;
-        fForcingFunctionExact->Execute(data.x, solExata,flux);
+        fExactSol->Execute(data.x, solExata,flux);
         for(id=0 ; id<mydim; id++) {
             Solout[id] = flux(id,0);
         }
@@ -311,7 +311,7 @@ void TPZMatDualHybridPoisson::Solution(TPZMaterialData &data, int var, TPZVec<ST
 }
 
 void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                                     TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                                     TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes,
                                      TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
     values.Resize(3);
     values.Fill(0.);
@@ -333,5 +333,5 @@ void TPZMatDualHybridPoisson::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 }
 
 int TPZMatDualHybridPoisson::ClassId() const{
-    return Hash("TPZMatDualHybridPoisson") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZMatDualHybridPoisson") ^ TPZMaterial::ClassId() << 1;
 }

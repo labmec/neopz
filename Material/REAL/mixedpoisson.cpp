@@ -764,8 +764,8 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     if (var == 36) {
         TPZVec<STATE> exactSol(1);
         TPZFNMatrix<3, STATE> flux(3, 1);
-        if (fForcingFunctionExact) {
-            fForcingFunctionExact->Execute(datavec[0].x, exactSol, flux);
+        if (fExactSol) {
+            fExactSol->Execute(datavec[0].x, exactSol, flux);
         }
         Solout[0] = exactSol[0];
         return;
@@ -776,8 +776,8 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         TPZVec<STATE> exactSol(1);
         TPZFNMatrix<3, STATE> gradu(3, 1);
 
-        if (fForcingFunctionExact) {
-            fForcingFunctionExact->Execute(datavec[0].x, exactSol, gradu);
+        if (fExactSol) {
+            fExactSol->Execute(datavec[0].x, exactSol, gradu);
         }
 
         TPZFNMatrix<3, REAL> flux(3, 1);
@@ -827,7 +827,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
     if(var==41){
         TPZVec<STATE> exactSol(1);
         TPZFNMatrix<3, STATE> flux(3, 1);
-        fForcingFunctionExact->Execute(datavec[0].x, exactSol, flux);
+        fExactSol->Execute(datavec[0].x, exactSol, flux);
         Solout[0]=flux(2,0);
         return;
     }
@@ -874,11 +874,11 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         TPZVec<STATE> exactSol(1);
         TPZFNMatrix<3, STATE> gradu(3, 1);
 
-        if (fForcingFunctionExact) {
+        if (fExactSol) {
             if (datavec[0].x[0] == 0. && datavec[0].x[1] == 0.) {
-                fForcingFunctionExact->Execute(inf, exactSol, gradu);
+                fExactSol->Execute(inf, exactSol, gradu);
             } else {
-                fForcingFunctionExact->Execute(datavec[0].x, exactSol, gradu);
+                fExactSol->Execute(datavec[0].x, exactSol, gradu);
             }
         }
         TPZFNMatrix<3, REAL> flux(3, 1);
@@ -937,9 +937,9 @@ TPZGradSolVec &dsol=data[1].dsol;
 
 TPZVec<STATE> divsigma(1);
 
-if(this->fForcingFunctionExact){
+if(this->fExactSol){
    
-   this->fForcingFunctionExact->Execute(data[0].x,u_exact,du_exact);
+   this->fExactSol->Execute(data[0].x,u_exact,du_exact);
    this->fForcingFunction->Execute(data[0].x,divsigma);
 }
 
@@ -1020,9 +1020,9 @@ void TPZMixedPoisson::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
 
 
 
-    if(this->fForcingFunctionExact){
+    if(this->fExactSol){
 
-       this->fForcingFunctionExact->Execute(data[0].x,u_exact,du_exact);
+       this->fExactSol->Execute(data[0].x,u_exact,du_exact);
     }
 
 

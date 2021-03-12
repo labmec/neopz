@@ -566,7 +566,7 @@ void TRMBuildTransfers::u_To_Mixed_Memory(TPZCompMesh * cmesh_flux, TPZCompMesh 
     
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+    TPZMatWithMem<TRMMemory,TPZMaterial> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZMaterial> *>(material);
     int np_cmesh = associated_material->GetMemory().NElements();
     
     // Step one
@@ -617,7 +617,7 @@ void TRMBuildTransfers::p_To_Mixed_Memory(TPZCompMesh * cmesh_pressure, TPZCompM
 
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+    TPZMatWithMem<TRMMemory,TPZMaterial> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZMaterial> *>(material);
     int np_cmesh = associated_material->GetMemory().NElements();
     
     // Step one
@@ -665,7 +665,7 @@ void TRMBuildTransfers::s_To_Transport_Memory(TPZCompMesh * cmesh_saturation, TP
     
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * material = cmesh_multiphysics->FindMaterial(rockid);
-    TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(material);
+    TPZMatWithMem<TRMPhaseMemory,TPZMaterial> * associated_material = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZMaterial> *>(material);
     int np_cmesh = associated_material->GetMemory().NElements();
     
     // Step one
@@ -739,10 +739,10 @@ void TRMBuildTransfers::Reciprocal_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed,
     
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * mixed_material = cmesh_mf_mixed->FindMaterial(rockid);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(mixed_material);
+    TPZMatWithMem<TRMMemory,TPZMaterial> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZMaterial> *>(mixed_material);
     
     TPZMaterial * trans_material = cmesh_mf_trans->FindMaterial(rockid);
-    TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> * trans_memory = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZDiscontinuousGalerkin> *>(trans_material);
+    TPZMatWithMem<TRMPhaseMemory,TPZMaterial> * trans_memory = dynamic_cast<TPZMatWithMem<TRMPhaseMemory,TPZMaterial> *>(trans_material);
     
     TPZManVector<int64_t,30> p_point_indexes;
     TPZManVector<int64_t,30> s_point_indexes;
@@ -892,7 +892,7 @@ void TRMBuildTransfers::p_avg_Memory_Transfer(TPZCompMesh * cmesh_mf_mixed){
     
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * mixed_material = cmesh_mf_mixed->FindMaterial(rockid);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(mixed_material);
+    TPZMatWithMem<TRMMemory,TPZMaterial> * mixed_memory = dynamic_cast<TPZMatWithMem<TRMMemory,TPZMaterial> *>(mixed_material);
     
     TPZManVector<int64_t,30> p_point_indexes;
     int64_t nvolumes = fmixed_transport_cindexes.size();
@@ -1326,7 +1326,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
     int rock_id = this->SimulationData()->RawData()->fOmegaIds[0];
     //  Getting the total integration point of the destination cmesh
     TPZMaterial * rock_material = cmesh_flux->FindMaterial(rock_id);
-    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(rock_material);
+    TPZMatWithMem<TRMMemory,TPZMaterial>  * material_mixe_mem = dynamic_cast<TPZMatWithMem<TRMMemory,TPZMaterial> *>(rock_material);
 
     
     if (IsBoundaryQ) {
@@ -1419,7 +1419,7 @@ void TRMBuildTransfers::un_To_Transport_Mesh(TPZCompMesh * cmesh_flux, TPZCompMe
         //  Getting the total integration point of the destination cmesh
         TPZMaterial * material = cmesh_transport->FindMaterial(material_id);
         
-        TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin>  * material_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZDiscontinuousGalerkin> *>(material);
+        TPZMatWithMem<TRMPhaseInterfaceMemory,TPZMaterial>  * material_mem = dynamic_cast<TPZMatWithMem<TRMPhaseInterfaceMemory,TPZMaterial> *>(material);
         
         if (!material_mem) {
             DebugStop();

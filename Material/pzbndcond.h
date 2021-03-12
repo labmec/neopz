@@ -10,7 +10,7 @@
 #include <map>
 
 #include "pzreal.h"
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
@@ -26,7 +26,7 @@ class TPZManVector;
 /**
  * This class redirects the call to Contribute to calls ContributeBC of the referring material object
  */
-class TPZBndCond : public TPZDiscontinuousGalerkin {
+class TPZBndCond : public TPZMaterial {
 	
 	friend class TPZMaterial;
     
@@ -41,34 +41,19 @@ protected:
         /** @brief Pointer to forcing function, it is the right member at differential equation */
         TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
         
-        /** @brief Pointer to exact solution function, needed to calculate exact error */
-        TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
-        
-        /** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
-        TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
-        
-        /** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
-        TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
-        
-        /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
-        TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
-        
-        /** @brief Pointer to time dependent bc forcing function, it is a variable boundary condition at differential equation */
-        TPZAutoPointer<TPZFunction<STATE> > fTimedependentBCForcingFunction;            
+//        /** @brief Pointer to exact solution function, needed to calculate exact error */
+        TPZAutoPointer<TPZFunction<STATE> > fExactSol;
 
-        TPZ_BCDefine() : fBCVal2(), fForcingFunction(NULL), fForcingFunctionExact(NULL),fTimeDependentForcingFunction(NULL),
-                        fTimedependentFunctionExact(NULL), fBCForcingFunction(NULL),fTimedependentBCForcingFunction(NULL)
+
+        TPZ_BCDefine() : fBCVal2(), fForcingFunction(NULL), fExactSol(NULL)
         {
             
         }
-        TPZ_BCDefine(TPZFMatrix<STATE> Val2) : fBCVal2(), fForcingFunction(NULL), fForcingFunctionExact(NULL),fTimeDependentForcingFunction(NULL),
-                fTimedependentFunctionExact(NULL), fBCForcingFunction(NULL),fTimedependentBCForcingFunction(NULL)
+        TPZ_BCDefine(TPZFMatrix<STATE> Val2) : fBCVal2(), fForcingFunction(NULL), fExactSol(NULL)
         {
             
         }
-        TPZ_BCDefine(const TPZ_BCDefine &cp) : fBCVal2(cp.fBCVal2), fForcingFunction(cp.fForcingFunction),fForcingFunctionExact(cp.fForcingFunctionExact),
-                fTimeDependentForcingFunction(cp.fTimeDependentForcingFunction), fTimedependentFunctionExact(cp.fTimedependentFunctionExact),
-                fBCForcingFunction(cp.fBCForcingFunction),fTimedependentBCForcingFunction(cp.fTimedependentBCForcingFunction)
+        TPZ_BCDefine(const TPZ_BCDefine &cp) : fBCVal2(cp.fBCVal2), fForcingFunction(cp.fForcingFunction),fExactSol(cp.fExactSol)
         {
             
         }
@@ -76,17 +61,14 @@ protected:
         {
             fBCVal2 = cp.fBCVal2;
             fForcingFunction = cp.fForcingFunction;
-            fForcingFunctionExact = cp.fForcingFunctionExact;
-            fTimeDependentForcingFunction = cp.fTimeDependentForcingFunction;
-            fTimedependentFunctionExact = cp.fTimedependentFunctionExact;
-            fBCForcingFunction = cp.fBCForcingFunction;
-            fTimedependentBCForcingFunction = cp.fTimedependentBCForcingFunction;
+            fExactSol = cp.fExactSol;
             return *this;
         }
         ~TPZ_BCDefine()
         {
             
-        }        int ClassId() const override;
+        }
+        int ClassId() const override;
         void Read(TPZStream &buf, void *context) override;
         void Write(TPZStream &buf, int withclassid) const override;
 
@@ -109,32 +91,28 @@ protected:
 	public :
 	/** @brief Copy constructor */
     TPZBndCond(TPZBndCond & bc) : TPZRegisterClassId(&TPZBndCond::ClassId),
-    TPZDiscontinuousGalerkin(bc), fBCs(bc.fBCs), fType(-1), fBCVal1(bc.fBCVal1),
+    TPZMaterial(bc), fBCs(bc.fBCs), fType(-1), fBCVal1(bc.fBCVal1),
     fBCVal2(bc.fBCVal2), fMaterial(0), fValFunction(NULL){
 		fMaterial = bc.fMaterial;
 		fType = bc.fType;
         fForcingFunction = bc.fForcingFunction;
-        fForcingFunctionExact = bc.fForcingFunctionExact;
-        fTimeDependentForcingFunction = bc.fTimeDependentForcingFunction;
-        fTimedependentFunctionExact = bc.fTimedependentFunctionExact;
-        fBCForcingFunction = bc.fBCForcingFunction;
-        fTimedependentBCForcingFunction = bc.fTimedependentBCForcingFunction;
+        fExactSol = bc.fExactSol;
 	}
 	/** @brief Default constructor */
 	TPZBndCond() : TPZRegisterClassId(&TPZBndCond::ClassId),
-    TPZDiscontinuousGalerkin(), fBCs(), fType(-1), fBCVal1(),
+    TPZMaterial(), fBCs(), fType(-1), fBCVal1(),
     fBCVal2(), fMaterial(0), fValFunction(NULL){
 	}
 	/** @brief Default constructor */
 	TPZBndCond(int matid) : TPZRegisterClassId(&TPZBndCond::ClassId),
-    TPZDiscontinuousGalerkin(matid), fBCs(0), fType(-1), fBCVal1(),
+    TPZMaterial(matid), fBCs(0), fType(-1), fBCVal1(),
     fBCVal2(), fMaterial(0), fValFunction(NULL){
 	}
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
 	TPZBndCond(TPZMaterial * material,int id,int type,const TPZFMatrix<STATE> &val1,const TPZFMatrix<STATE> &val2) :
-    TPZRegisterClassId(&TPZBndCond::ClassId), TPZDiscontinuousGalerkin(id), fBCs(), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
+    TPZRegisterClassId(&TPZBndCond::ClassId), TPZMaterial(id), fBCs(), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
 		{
@@ -147,15 +125,11 @@ protected:
 	}
 	
 	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZRegisterClassId(&TPZBndCond::ClassId), 
-    TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
+    TPZMaterial(copy), fBCs(copy.fBCs), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {
     
         fForcingFunction = copy.fForcingFunction;
-        fForcingFunctionExact = copy.fForcingFunctionExact;
-        fTimeDependentForcingFunction = copy.fTimeDependentForcingFunction;
-        fTimedependentFunctionExact = copy.fTimedependentFunctionExact;
-        fBCForcingFunction = copy.fBCForcingFunction;
-        fTimedependentBCForcingFunction = copy.fTimedependentBCForcingFunction;
+        fExactSol = copy.fExactSol;
         
     }
 	
@@ -174,72 +148,11 @@ protected:
         }
 	}
 
-	void SetForcingFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetForcingFunctionExact(func);
-        }
-        else {
-            fBCs[loadcase].fForcingFunctionExact = func;
-        }
-    }
-
-    void SetTimeDependentForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetTimeDependentForcingFunction(func);
-        }
-        else {
-            fBCs[loadcase].fTimeDependentForcingFunction = func;
-        }
-    }
-
-    void SetTimeDependentFunctionExact(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetTimeDependentFunctionExact(func);
-        }
-        else {
-            fBCs[loadcase].fTimedependentFunctionExact = func;
-        }
-    }     
-
-    void SetBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetBCForcingFunction(func);
-        }
-        else {
-            fBCs[loadcase].fBCForcingFunction = func;
-        }
-    }
-
-    void SetTimedependentBCForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
-    {
-        if (loadcase == 0) {
-            TPZMaterial::SetTimedependentBCForcingFunction(func);
-        }
-        else {
-            fBCs[loadcase].fTimedependentBCForcingFunction = func;
-        }
-    }
-    
-    TPZAutoPointer<TPZFunction<STATE> > GetTimedependentBCForcingFunction(int loadcase)
-    {
-        if (loadcase == 0) {
-            return this->fTimedependentBCForcingFunction;
-        }
-        else {
-            return fBCs[loadcase].fTimedependentBCForcingFunction;
-        }
-    }
 	
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	
 	/** @brief Returns the integrable dimension of the material*/
-	int Dimension() const override { return fMaterial->Dimension(); }
-	
-	virtual int NFluxes() override { return fMaterial->NFluxes(); }
+	int Dimension() const override { return fMaterial->Dimension(); }	
 	
 	virtual int NStateVariables() const override { return fMaterial->NStateVariables(); }
 	
@@ -275,11 +188,6 @@ protected:
     {
         return 1+fBCs.size();
     }
-	
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override {
-		flux.Fill(0.);
-	}
 	
 	void Print(std::ostream & out = std::cout) override {
 		out << " Boundary condition number = " << Id() << "\n";
@@ -371,7 +279,7 @@ protected:
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 	
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val) override {
 		val.Fill(0.);
 	}
@@ -403,32 +311,6 @@ virtual int ClassId() const override;
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context)  override;
-	
-	void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
-								   REAL weight,
-								   TPZVec<STATE> &nkL,
-								   TPZVec<STATE> &nkR,
-								   int &errorid) override;
-	
-	void  ContributeErrors(TPZMaterialData &data,// aqui
-						   REAL weight,
-						   TPZVec<REAL> &nk,
-						   int &errorid) override {
-		//nothing to be done here
-	};
-    
-
-    
-	
-	
-	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
-											 REAL weight,
-											 TPZVec<STATE> &nk,
-											 TPZBndCond &bc,
-											 int &errorid
-											 ) override {
-		//nothing to be done here
-	}
 	
 	/** @brief Calls the aggregate material correspondent function */
 	virtual void FillDataRequirements(TPZMaterialData &data) override;

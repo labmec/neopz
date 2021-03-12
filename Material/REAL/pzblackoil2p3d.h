@@ -7,7 +7,7 @@
 #define PZBLACKOIL2P3D_H
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 #ifdef _AUTODIFF
 
@@ -19,7 +19,7 @@
  * @brief Implements a 3D two-phase (oil-water) black-oil flow.
  * @since November 11, 2008
  */
-class TPZBlackOil2P3D : public TPZDiscontinuousGalerkin{
+class TPZBlackOil2P3D : public TPZMaterial{
 	
 public:
 	

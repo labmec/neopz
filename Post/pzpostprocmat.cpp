@@ -12,19 +12,19 @@ static LoggerPtr postprocLogger(Logger::getLogger("material.pzPostProcMat"));
 #endif
 
 
-TPZPostProcMat::TPZPostProcMat() :TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZDiscontinuousGalerkin()
+TPZPostProcMat::TPZPostProcMat() :TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZMaterial()
 {
 	fVars.Resize(0);	
 	fDimension = -1;
 }
 
-TPZPostProcMat::TPZPostProcMat(int64_t id) : TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZDiscontinuousGalerkin(id)
+TPZPostProcMat::TPZPostProcMat(int64_t id) : TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZMaterial(id)
 {
 	fVars.Resize(0);	
 	fDimension = -1;
 }
 
-TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZDiscontinuousGalerkin(mat), fVars(mat.fVars), fDimension(mat.fDimension)
+TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : TPZRegisterClassId(&TPZPostProcMat::ClassId),TPZMaterial(mat), fVars(mat.fVars), fDimension(mat.fDimension)
 {
 }
 
@@ -40,7 +40,7 @@ void TPZPostProcMat::Print(std::ostream &out)
 {
 	out << this->Name();
 	out << "\n Base material Data:\n";
-	TPZDiscontinuousGalerkin::Print(out);
+	TPZMaterial::Print(out);
 	out << "Dimension " << fDimension << std::endl;
 	int64_t nVars = fVars.NElements();
 	out << "\n Post Process Variables\n";
@@ -160,7 +160,7 @@ void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDat
 }
 
 int TPZPostProcMat::ClassId() const{
-    return Hash("TPZPostProcMat") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZPostProcMat") ^ TPZMaterial::ClassId() << 1;
 }
 
 std::string TPZPostProcMat::Name() {
@@ -170,14 +170,14 @@ std::string TPZPostProcMat::Name() {
 void TPZPostProcMat::Write(TPZStream &buf, int withclassid) const
 {
 	
-	TPZDiscontinuousGalerkin::Write(buf, withclassid);
+	TPZMaterial::Write(buf, withclassid);
 	buf.Write(fVars);
 	buf.Write(&fDimension);
 }
 
 void TPZPostProcMat::Read(TPZStream &buf, void *context)
 {
-    	TPZDiscontinuousGalerkin::Read(buf, context);
+    	TPZMaterial::Read(buf, context);
 	
 	buf.Read(fVars);
 	buf.Read(&fDimension);
