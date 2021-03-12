@@ -284,8 +284,14 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 # this will be saved at include diretory in the install target
 set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
 configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
-# add it to include search path
 
+# Provide a standard relative layout for the installation directory.
+# Documentation directory is set to share/doc/PROJECT_NAME.
+
+#this needs to be before add_subdirectory calls so
+#the INSTALL_INTERFACE is correctly set
+include(GNUInstallDirs)
+# add it to include search path
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
 add_subdirectory(Common)
@@ -321,10 +327,7 @@ if(NOT WIN32)
         set(CMAKE_INSTALL_PREFIX "/opt/labmec/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
     endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
-
-# Provide a standard relative layout for the installation directory.
-# Documentation directory is set to share/doc/PROJECT_NAME.
-include(GNUInstallDirs)
+  
 
 install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT libraries)
 # End of pz_config.h part
