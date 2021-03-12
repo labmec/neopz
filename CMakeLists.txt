@@ -286,7 +286,7 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 # Begin of pz_config.h part
 # This file contains all definitions used to compile the library pz
 # this will be saved at include diretory in the install target
-set (CONFIG_H "${PROJECT_SOURCE_DIR}/Common/pz_config.h")
+set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
 configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 # add it to include search path
 
@@ -322,7 +322,7 @@ install(TARGETS pz
 install(EXPORT PZTargets
         FILE PZTargets.cmake
         NAMESPACE PZ::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PZ
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
         )
 
 add_subdirectory(PerfUtil)
@@ -356,18 +356,18 @@ add_subdirectory(Exception)
 # Currently, we don't have these source variables. If the source groups are really needed in Visual Studio,
 # we need to think of an alternative way of creating them.
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PZConfig.cmake.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfig.cmake.in
                "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
                )
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/PZConfigVersion.cmake.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfigVersion.cmake.in
                "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
                )
 
 install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PZ
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
         )
 
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
