@@ -21,20 +21,12 @@ void TPZBndCond::TPZ_BCDefine::Read(TPZStream& buf, void* context) {
     fBCVal2.Read(buf, context);
     fForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fExactSol = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-//    fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-//    fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-//    fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-//    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
 void TPZBndCond::TPZ_BCDefine::Write(TPZStream& buf, int withclassid) const {
     fBCVal2.Write(buf, withclassid);
     TPZPersistenceManager::WritePointer(fForcingFunction.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fExactSol.operator ->(), &buf);
-//    TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
-//    TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
-//    TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
-//    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
 }
 
 void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {

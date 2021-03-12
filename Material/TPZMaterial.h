@@ -55,9 +55,6 @@ public:
 protected:
 	/** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;
-    
-    /** @brief Pointer to bc forcing function, it is a variable boundary condition at differential equation */
-    TPZAutoPointer<TPZFunction<STATE> > fBCForcingFunction;
 
     /**
 	 * @brief Defines whether the equation context is linear solver or non linear
@@ -540,8 +537,6 @@ public:
     /** @brief Directive that gives true if the material has a function exact  */
 	virtual int HasExactSol() {return (fExactSol != 0);}
     
-    /** @brief Directive that gives true if the material has a bc forcing function exact  */
-    virtual int HasBCForcingFunction() {return (fBCForcingFunction != 0);}
     
     /** @brief Directive that gives true if the material has a time dependent function exact  */
     virtual int HasTimedependentFunctionExact() {return (fTimedependentFunctionExact != 0);}
