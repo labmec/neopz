@@ -1,9 +1,10 @@
 # @file neopz/Common/CMakeLists.txt  -- CMake file for the Common module
-
+# BINARY_DIR is needed for pz_config.h
 target_include_directories(pz PUBLIC
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Common>
-                           )
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Common>
+  )
 
 set(headers
     TPZBlas.h
