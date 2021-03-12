@@ -18,7 +18,6 @@ include(cmake/StandardPZSettings.cmake)
 ##TODOWIN32: should this change when on WIN32?
 set(PZ_LIB_TYPE SHARED)
 add_library(pz ${PZ_LIB_TYPE} "")
-add_library(PZ::pz ALIAS pz)
 
 ##TODOWIN32: check whether these distinctions are really necessary
 ##TODO: are they ok when private?
@@ -324,43 +323,42 @@ add_subdirectory(Exception)
 # to the Filesystem Hierarchy Standard (FHS)
 if(NOT WIN32)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX "/opt/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
+        set(CMAKE_INSTALL_PREFIX "/opt/neopz/pz" CACHE PATH "Directory where PZ will be installed" FORCE)
     endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
   
 
-install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT libraries)
+install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # End of pz_config.h part
 
 # Set a debug suffix automatically when PZ is built in Debug mode
 set(CMAKE_DEBUG_POSTFIX "-debug")
 set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-
-set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/PZ)
 install(TARGETS pz
-        EXPORT PZTargets
+        EXPORT NeoPZTargets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
+#where cmake config files are going to be set
+set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/../lib/cmake/neopz)
 
-install(EXPORT PZTargets
-        FILE PZTargets.cmake
-        NAMESPACE PZ::
+install(EXPORT NeoPZTargets
+        FILE NeoPZTargets.cmake
+        NAMESPACE NeoPZ::
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
+      
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NeoPZConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfig.cmake" @ONLY)
 
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfig.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake" @ONLY)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfigVersion.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake" @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NeoPZConfigVersion.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfigVersion.cmake" @ONLY)
 
 install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfigVersion.cmake"
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
 #############EXTRA TARGETS#############
