@@ -4,7 +4,10 @@ target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Analysis>
                            )
-
+set(public_headers
+  pzanalysis.h
+  pznonlinanalysis.h
+  )
 set(headers
     TPZNLMultGridAnalysis.h
     pzanalysis.h
@@ -36,6 +39,6 @@ if (NOT BUILD_COMPLEX_PROJECTS)
     list(APPEND sources pzblackoilanalysis.cpp)
 endif ()
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Analysis)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Analysis)
 
 target_sources(pz PRIVATE ${headers} ${sources})

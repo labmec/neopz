@@ -5,7 +5,15 @@ target_include_directories(pz PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Common>
   )
-
+set(public_headers
+  TPZBlas.h
+  TPZGuiInterface.h
+  TPZLapack.h
+  pzeltype.h
+  pzerror.h
+  pzreal.h
+  fpo_exceptions.h
+  )
 set(headers
     TPZBlas.h
     TPZGuiInterface.h
@@ -32,6 +40,6 @@ set(sources
     pzreal.cpp
     )
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Common)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Common)
 
 target_sources(pz PRIVATE ${headers} ${sources})

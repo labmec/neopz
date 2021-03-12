@@ -4,7 +4,24 @@ target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Util>
                            )
-
+set(public_headers
+  #containers
+  pzvec.h
+  pzmanvector.h
+  TPZChunkVector.h
+  pzadmchunk.h
+  pzstack.h
+  #parallel
+  TPZParallelUtils.h
+  TPZSemaphore.h
+  #other
+  tpzpermutation.h
+  pzaxestools.h
+  pzlog.h
+  pzextractval.h
+  tpzautopointer.h  
+  pzfunction.h
+  )
 set(headers
     TPZAssert.h
     TPZHWTools.h
@@ -65,7 +82,7 @@ set(sources
     tpzautopointer.cpp
     )
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 
