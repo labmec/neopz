@@ -3,7 +3,7 @@
 cmake_minimum_required (VERSION 3.13.0)
 
 #disable excessive warning messages by Microsoft VC compiler
-#set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
+#set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerOptionsMSVC.cmake")
 
 project(PZ LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
@@ -324,7 +324,7 @@ add_subdirectory(Exception)
 # to the Filesystem Hierarchy Standard (FHS)
 if(NOT WIN32)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX "/opt/labmec/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
+        set(CMAKE_INSTALL_PREFIX "/opt/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
     endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
   
