@@ -31,6 +31,7 @@ function(add_pz_target)
   target_sources(${PARSED_ARGS_NAME} PRIVATE ${PARSED_ARGS_SOURCES})
   
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE NeoPZ::pz)
+  target_include_directories(${PARSED_ARGS_NAME} PRIVATE ${PZ_INCLUDE_DIRS})
   foreach(extlib ${PARSED_ARGS_EXTRA_LIBS})
     target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${extlib})
   endforeach(extlib)  
