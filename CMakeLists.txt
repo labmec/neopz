@@ -333,7 +333,16 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
   endif()
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  
+if(UNIX)
+  message("Checking for write permissions in install directory...")
+  execute_process(COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX})
+  execute_process(COMMAND test -w ${CMAKE_INSTALL_PREFIX} RESULT_VARIABLE res)
+  if(res)
+    message(WARNING "No write access at install directory\n ${CMAKE_INSTALL_PREFIX}\nPlease set correct permissions")
+  else()
+    message(STATUS "PZ suite will be installed at\n ${CMAKE_INSTALL_PREFIX}")
+  endif()
+endif(UNIX)
 
 install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # End of pz_config.h part
