@@ -24,7 +24,6 @@ set(sources
     pzeuleranalysis.cpp
     pznonlinanalysis.cpp
     pzsmfrontalanal.cpp
-    tpzbiharmonicestimator.cpp
     pzanalysis.cpp
     pzblackoilanalysis.cpp
     pzmganalysis.cpp
@@ -33,8 +32,8 @@ set(sources
     )
 
 if (NOT BUILD_COMPLEX_PROJECTS)
-    list(APPEND headers pzblackoilanalysis.h tpzbiharmonicestimator.h)
-    list(APPEND sources pzblackoilanalysis.cpp tpzbiharmonicestimator.cpp)
+    list(APPEND headers pzblackoilanalysis.h)
+    list(APPEND sources pzblackoilanalysis.cpp)
 endif ()
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Analysis)

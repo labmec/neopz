@@ -23,12 +23,10 @@ set(headers
     pzconslaw.h
     pzmat1dlin.h
     pzpoisson3d.h
-    TPZDiscontinuousGalerkinTranslator.h
     TPZMatHelmholtz.h
     TPZMaterialTranslator.h
     TPZPorousElasticity.h
     doxmaterial.h
-    pzdiscgal.h
     pzmat2dlin.h
     pztransientmat.h
     )
@@ -39,10 +37,8 @@ set(sources
     TPZMaterial.cpp
     TPZNullMaterialTranslator.cpp
     TPZVecL2.cpp
-    pzdiscgal.cpp
     pzmat2dlin.cpp
     pztransientmat.cpp
-    TPZDiscontinuousGalerkinTranslator.cpp
     TPZMatHelmholtz.cpp
     TPZMaterialTranslator.cpp
     TPZPorousElasticity.cpp

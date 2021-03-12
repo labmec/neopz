@@ -13,6 +13,7 @@
 #ifdef _AUTODIFF
 #include "fad.h"
 #endif
+#include "pzstack.h"
 #include <iostream>
 #include <fstream>
 #include <string>

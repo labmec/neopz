@@ -12,7 +12,6 @@
 #include "pzfmatrix.h"
 #include "pzaxestools.h"
 #include <math.h> 
-
 #include <iostream>
 
 #ifdef LOG4CXX
