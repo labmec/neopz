@@ -357,12 +357,10 @@ add_subdirectory(Exception)
 # we need to think of an alternative way of creating them.
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfig.cmake.in
-               "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
-               )
+  "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake" @ONLY)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfigVersion.cmake.in
-               "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
-               )
+  "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake" @ONLY)
 
 install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
