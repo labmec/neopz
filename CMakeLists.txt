@@ -336,6 +336,7 @@ install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT lib
 set(CMAKE_DEBUG_POSTFIX "-debug")
 set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 
+set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/PZ)
 install(TARGETS pz
         EXPORT PZTargets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -347,7 +348,7 @@ install(TARGETS pz
 install(EXPORT PZTargets
         FILE PZTargets.cmake
         NAMESPACE PZ::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+        DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
 
 
@@ -360,7 +361,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfigVersion.cmake.in
 install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+        DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
 #############EXTRA TARGETS#############
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
