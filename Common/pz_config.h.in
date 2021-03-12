@@ -78,10 +78,6 @@
 #define USING_BLAS
 #endif
 
-#ifndef USING_NEW_SKYLMAT
-#cmakedefine USING_NEW_SKYLMAT
-#endif
-
 #ifndef USING_PAPI
 #cmakedefine USING_PAPI
 #endif

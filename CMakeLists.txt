@@ -169,12 +169,6 @@ if(USING_BLAS)
     enable_blas(pz)
 endif(USING_BLAS)
 
-#enabling the new skyline matrix format
-option(USING_NEW_SKYLMAT "Enable the new skyline matrix format" OFF)
-if(USING_NEW_SKYLMAT)
-		set(USING_NEW_SKYLMAT DUSING_NEW_SKYLMAT)
-endif(USING_NEW_SKYLMAT)
-
 #enabling PAPI library
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)
