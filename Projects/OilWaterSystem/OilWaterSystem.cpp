@@ -719,10 +719,7 @@ TPZCompMesh *ComputationalMeshMultiphase(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh 
     TPZMaterial *mat1(material1);
     mphysics->InsertMaterialObject(mat1);
     mphysics->SetDimModel(dim);
-    
-//    TPZAutoPointer<TPZFunction<STATE> > HydroP;
-//    HydroP = new TPZDummyFunction<STATE>(HydroStaticPressure);    
-//    material1->SetfBCForcingFunction(HydroP);
+
     
 	TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact;
     TimeDepFExact = new TPZDummyFunction<STATE>(ExactSolution, 5);

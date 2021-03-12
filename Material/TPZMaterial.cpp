@@ -31,14 +31,10 @@ REAL TPZMaterial::gBigNumber = 1.e12;
 TPZMaterial::TPZMaterial() : fNumLoadCases(1), fPostProcIndex(0) {
 	this->fId = -666;
 	this->fForcingFunction = NULL;
-    this->fExactSol = NULL;
-    this->fTimeDependentForcingFunction = NULL;
-    this->fTimedependentFunctionExact = NULL;
-    this->fBCForcingFunction = NULL;
-//    this->fTimedependentBCForcingFunction = NULL;
-	this->fLinearContext = true;
-    this->fBCForcingFunction = NULL;
-    
+  this->fExactSol = NULL;
+  this->fTimeDependentForcingFunction = NULL;
+  this->fTimedependentFunctionExact = NULL;
+  this->fLinearContext = true;
 }
 
 TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1), fPostProcIndex(0) {
@@ -47,10 +43,7 @@ TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1), fPostProcIndex(0) 
     this->fExactSol = NULL;
     this->fTimeDependentForcingFunction = NULL;
     this->fTimedependentFunctionExact = NULL;
-    this->fBCForcingFunction = NULL;
-//    this->fTimedependentBCForcingFunction = NULL;
     this->fLinearContext = true;
-    this->fBCForcingFunction = NULL;
 
 }
 
@@ -66,8 +59,6 @@ TPZMaterial::TPZMaterial(const TPZMaterial &material) {
     fExactSol = material.fExactSol;
     fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
     fTimedependentFunctionExact = material.fTimedependentFunctionExact;
-    fBCForcingFunction = material.fBCForcingFunction;
-//    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
     fLinearContext = material.fLinearContext;
     fNumLoadCases = material.fNumLoadCases;
     fPostProcIndex = material.fPostProcIndex;
@@ -80,8 +71,6 @@ TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
     fExactSol = material.fExactSol;
     fTimeDependentForcingFunction = material.fTimeDependentForcingFunction;
     fTimedependentFunctionExact = material.fTimedependentFunctionExact;
-    fBCForcingFunction = material.fBCForcingFunction;
-//    fTimedependentBCForcingFunction = material.fTimedependentBCForcingFunction;
     fLinearContext = material.fLinearContext;
     fNumLoadCases = material.fNumLoadCases;
     fPostProcIndex = material.fPostProcIndex;
@@ -410,8 +399,6 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fExactSol.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fTimeDependentForcingFunction.operator ->(), &buf);
     TPZPersistenceManager::WritePointer(fTimedependentFunctionExact.operator ->(), &buf);
-    TPZPersistenceManager::WritePointer(fBCForcingFunction.operator ->(), &buf);
-//    TPZPersistenceManager::WritePointer(fTimedependentBCForcingFunction.operator ->(), &buf);
     buf.Write(fLinearContext);
     buf.Write(&fNumLoadCases);
     buf.Write(&fPostProcIndex);
@@ -425,8 +412,6 @@ void TPZMaterial::Read(TPZStream &buf, void *context) {
     fExactSol = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTimeDependentForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     fTimedependentFunctionExact = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
-//    fTimedependentBCForcingFunction = TPZAutoPointerDynamicCast<TPZFunction<STATE>>(TPZPersistenceManager::GetAutoPointer(&buf));
     buf.Read(fLinearContext);
     buf.Read(&fNumLoadCases);
     buf.Read(&fPostProcIndex);

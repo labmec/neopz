@@ -4211,12 +4211,6 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         v2[5] = bc.Val2()(5,0);         //  Saturation
 //        REAL qN = (v2[2]*n1 + v2[3]*n2);    // Normal Flux         
         
-        if(fBCForcingFunction) 
-        {
-            TPZManVector<STATE> PValue(1);
-            fBCForcingFunction->Execute(dataleft[2].x,PValue);
-            v2[4] = PValue[0];
-        }          
         
         //  This block was verified
         //  First Block (Equation One) constitutive law
