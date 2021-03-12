@@ -49,7 +49,9 @@ target_compile_definitions(pz PRIVATE
                            "$<$<CONFIG:RELEASE>:ZERO_INTERNAL_RESIDU>"
                            "$<$<CONFIG:RELEASE>:MAKEINTERNAL>"
                            "$<$<CONFIG:DEBUG>:PZDEBUG>")
-
+if(APPLE)                         
+  set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
+endif()
 # Location to search files or libraries
 set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
 
@@ -284,41 +286,6 @@ set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
 configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 # add it to include search path
 
-# INSTALL part
-
-# Provide a standard relative layout for the installation directory.
-# Documentation directory is set to share/doc/PROJECT_NAME.
-include(GNUInstallDirs)
-
-# Add-on packages should be installed in /opt/<organization>/<package> according
-# to the Filesystem Hierarchy Standard (FHS)
-if(NOT WIN32)
-    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX "/opt/labmec/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
-    endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-endif()
-
-install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT libraries)
-# End of pz_config.h part
-
-# Set a debug suffix automatically when PZ is built in Debug mode
-set(CMAKE_DEBUG_POSTFIX "-debug")
-set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-
-install(TARGETS pz
-        EXPORT PZTargets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        )
-
-install(EXPORT PZTargets
-        FILE PZTargets.cmake
-        NAMESPACE PZ::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
-        )
-
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
 add_subdirectory(Common)
@@ -345,10 +312,41 @@ add_subdirectory(Random)
 add_subdirectory(Optimization)
 add_subdirectory(Exception)
 
-#TODOWIN32: Visual Studio source groups (filters) used to be generated for every subdirectory as follows:
-# source_group(Common FILES ${pzcommon_STAT_SRCS})
-# Currently, we don't have these source variables. If the source groups are really needed in Visual Studio,
-# we need to think of an alternative way of creating them.
+#############INSTALL#############
+
+# Add-on packages should be installed in /opt/<organization>/<package> according
+# to the Filesystem Hierarchy Standard (FHS)
+if(NOT WIN32)
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        set(CMAKE_INSTALL_PREFIX "/opt/labmec/${PROJECT_NAME}" CACHE PATH "Directory where PZ will be installed" FORCE)
+    endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+endif()
+
+# Provide a standard relative layout for the installation directory.
+# Documentation directory is set to share/doc/PROJECT_NAME.
+include(GNUInstallDirs)
+
+install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT libraries)
+# End of pz_config.h part
+
+# Set a debug suffix automatically when PZ is built in Debug mode
+set(CMAKE_DEBUG_POSTFIX "-debug")
+set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+
+install(TARGETS pz
+        EXPORT PZTargets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+
+install(EXPORT PZTargets
+        FILE PZTargets.cmake
+        NAMESPACE PZ::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+        )
+
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PZConfig.cmake.in
   "${CMAKE_CURRENT_BINARY_DIR}/PZConfig.cmake" @ONLY)
@@ -361,7 +359,7 @@ install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/PZConfigVersion.cmake"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
         )
-
+#############EXTRA TARGETS#############
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
     add_subdirectory(Projects)
 endif()
@@ -370,7 +368,6 @@ if(BUILD_UNITTESTING)
     add_subdirectory(UnitTest_PZ)
 endif()
 
-#increment all the directories where the sources files is
 if(NOT BUILD_COMPLEX_PROJECTS)
     if(BUILD_PERF_TESTS)
         add_subdirectory(PerfTests)
@@ -385,6 +382,4 @@ include(CTest)
 #To insert doxygen documentation files
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
-
-set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
 
