@@ -11,7 +11,6 @@
 #include "pzreal.h"
 #include "TPZSavable.h"
 #include "Hash/TPZHash.h"
-#include "pzlog.h"
 
 #include <list>
 #include <sstream>

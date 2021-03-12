@@ -6,6 +6,7 @@
 #include "tpzprism.h"
 
 #include "pzmanvector.h"
+#include "pznumeric.h"
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"

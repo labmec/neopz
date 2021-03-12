@@ -8,7 +8,6 @@
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
-#include "pzlog.h"
 #include <iostream>
 #include <set>
 

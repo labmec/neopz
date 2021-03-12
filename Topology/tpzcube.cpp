@@ -10,6 +10,7 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 #include "tpzquadrilateral.h"
+#include "pznumeric.h"
 
 
 #ifdef _AUTODIFF

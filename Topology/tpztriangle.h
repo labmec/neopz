@@ -10,7 +10,6 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "pzeltype.h"
-#include "pznumeric.h"
 #include "pzaxestools.h"
 
 #include "TPZTopologyUtils.h"

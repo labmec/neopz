@@ -14,6 +14,7 @@
 #include "pzshapeprism.h"
 #include "pzstepsolver.h"
 #include "pzcheckrestraint.h"
+#include "pzlog.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));

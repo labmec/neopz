@@ -5,7 +5,7 @@
 
 #include "tpztriangle.h"
 #include "pzquad.h"
-
+#include "pznumeric.h"
 //#include "pzshapetriang.h"
 
 #ifdef _AUTODIFF
