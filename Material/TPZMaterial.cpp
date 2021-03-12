@@ -92,10 +92,15 @@ void TPZMaterial::GetExactSolDimensions(uint64_t &u_len,
                                              uint64_t &du_row,
                                              uint64_t &du_col)
 {
-  PZError << __PRETTY_FUNCTION__ << std::endl;
-  PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-  DebugStop();
-  u_len = -1; du_row = -1; du_col = -1;
+  static bool firstTime = true;
+  if(firstTime)
+    {
+      firstTime = false;
+      std::cout << "Using default implementation of " << std::endl;
+      std::cout << __PRETTY_FUNCTION__ << std::endl;
+      std::cout << "If needed, override this method" << std::endl;
+    }
+  u_len = 1; du_row = 3; du_col = 1;
 }
 
 void TPZMaterial::SetLinearContext(bool IsLinear){
