@@ -290,6 +290,13 @@ configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 #this needs to be before add_subdirectory calls so
 #the INSTALL_INTERFACE is correctly set
 include(GNUInstallDirs)
+
+#the PZ library itself will be installed one level after
+#CMAKE_INSTALL_PREFIX, so these changes are needed
+set(PZLIB_INSTALL_PREFIX "pz")
+set(CMAKE_INSTALL_LIBDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_INSTALL_INCLUDEDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+set(CMAKE_INSTALL_BINDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 # add it to include search path
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
@@ -319,13 +326,13 @@ add_subdirectory(Exception)
 
 #############INSTALL#############
 
-# Add-on packages should be installed in /opt/<organization>/<package> according
-# to the Filesystem Hierarchy Standard (FHS)
-if(NOT WIN32)
-    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX "/opt/neopz/pz" CACHE PATH "Directory where PZ will be installed" FORCE)
-    endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-endif()
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  if(WIN32)
+    set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
+  else()
+    set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
+  endif()
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   
 
 install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -342,7 +349,7 @@ install(TARGETS pz
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
 #where cmake config files are going to be set
-set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/../lib/cmake/neopz)
+set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/neopz)
 
 install(EXPORT NeoPZTargets
         FILE NeoPZTargets.cmake
