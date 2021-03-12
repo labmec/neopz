@@ -1,6 +1,6 @@
 set(targetName Perf-SubStruct)
 
-add_pz_target(
+add_pz_internal_target(
   NAME ${targetName}
   SOURCES substruct.cpp
   FILES cube1.txt 8andares02.txt)

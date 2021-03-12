@@ -1,6 +1,6 @@
 set(targetName Perf-DecomposeLDLt)
 
-add_pz_target(
+add_pz_internal_target(
   NAME ${targetName}
   SOURCES decompose.cpp)
 #linking additional libraries

@@ -1,6 +1,6 @@
 ########### next target ###############
 set(targetName ParallelPerformance)
-add_pz_target(
+add_pz_internal_target(
   NAME ${targetName}
   SOURCES main.cpp)
 #linking additional libraries

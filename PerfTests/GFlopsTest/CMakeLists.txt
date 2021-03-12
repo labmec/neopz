@@ -1,5 +1,5 @@
 set(targetName GFlopsTest)
-add_pz_target(
+add_pz_internal_target(
   NAME ${targetName}
   SOURCES gflopstest.cpp)
 #linking additional libraries

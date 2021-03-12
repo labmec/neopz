@@ -1,6 +1,6 @@
 set(targetName Perf-NumaTst)
 
-add_pz_target(
+add_pz_internal_target(
   NAME ${targetName}
   SOURCES numatst.cpp)
 #linking additional libraries

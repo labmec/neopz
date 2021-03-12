@@ -1,7 +1,7 @@
 # @file neopz/Projects/RationalFunction/CMakeLists.txt  -- Simple project to test implementation of rational functions on pyramidal finite element with performance evaluation
 set(targetName RationalFunc-Perf)
 
-add_pz_target(
+add_pz_internal_target(
   NAME ${targetName}
   SOURCES main.cpp CedricTest.cpp CedricTest.h)
 

@@ -185,7 +185,7 @@ if(USING_BLAZE)
 endif(USING_BLAZE)
 
 #the following include is for making it easier to create pz targets
-include(cmake/add_pz_target.cmake)
+include(cmake/add_pz_internal_target.cmake)
 
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)

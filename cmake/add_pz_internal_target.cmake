@@ -1,8 +1,9 @@
 #
 # Create a target dependent on NeoPZ with possible linkage to extra libraries, copied files to binary dir variable number of sources.
+# This function is meant to be used for targets IN THIS PROJECT.
 #
 # Usage:
-#     add_pz_target(
+#     add_pz_internal_target(
 #       NAME myTarget
 #       SOURCES source.cpp header.h
 #       FILES [optional] files that will be copied to target binary dir
@@ -11,7 +12,7 @@
 
 include (CMakeParseArguments)
 
-function(add_pz_target)
+function(add_pz_internal_target)
   cmake_parse_arguments(
     PARSED_ARGS # prefix of output variables
     "" # list of names of the boolean arguments (only defined ones will be true)
