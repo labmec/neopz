@@ -6,7 +6,7 @@
 @PACKAGE_INIT@
 
 include(@PZ_CMAKE_INSTALL_DIR@/NeoPZTargets.cmake)
-
+include(@PZ_CMAKE_INSTALL_DIR@/add_pz_target.cmake)
 set(PZ_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@")
 
 ## Compute paths

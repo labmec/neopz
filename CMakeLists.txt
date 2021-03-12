@@ -359,6 +359,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NeoPZConfigVersion.cmake.in
 install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfigVersion.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_pz_target.cmake"
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
 #############EXTRA TARGETS#############

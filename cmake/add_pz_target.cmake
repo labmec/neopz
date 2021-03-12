@@ -29,8 +29,6 @@ function(add_pz_target)
   endif(N_SOURCES LESS 1)
   add_executable(${PARSED_ARGS_NAME} "")
   target_sources(${PARSED_ARGS_NAME} PRIVATE ${PARSED_ARGS_SOURCES})
-
-  find_package(NeoPZ REQUIRED)
   
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE NeoPZ::pz)
   foreach(extlib ${PARSED_ARGS_EXTRA_LIBS})
