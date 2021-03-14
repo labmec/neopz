@@ -14,6 +14,7 @@
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
 #include "pzgenericshape.h"
+#include "pzlog.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));

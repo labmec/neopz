@@ -16,7 +16,7 @@
 // #include "pzeltype.h"
 // #include "tpzpermutation.h"
 // #include "pzgeoel.h"
-// #include "pzlog.h"
+#include "pzlog.h"
 
 // #include <set>
 
