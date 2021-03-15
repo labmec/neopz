@@ -35,11 +35,11 @@ namespace pztopology {
 
     friend void pztopology::GetPermutation<TPZTetrahedron>(const int permute, TPZVec<int> &permutation);
 		/** @brief Topological characteristics */
-    static constexpr uint64_t NSides = 15;
-		static constexpr uint64_t NCornerNodes = 4;
-    static constexpr uint64_t Dimension = 3;
-    static constexpr uint64_t NFacets = 4;
-    static constexpr uint64_t NPermutations = 24;
+    static constexpr int64_t NSides = 15;
+		static constexpr int64_t NCornerNodes = 4;
+    static constexpr int64_t Dimension = 3;
+    static constexpr int64_t NFacets = 4;
+    static constexpr int64_t NPermutations = 24;
       
 		
     int ClassId() const override;

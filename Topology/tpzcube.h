@@ -39,11 +39,11 @@ namespace pztopology {
 	public:
     friend void pztopology::GetPermutation<TPZCube>(const int permute, TPZVec<int> &permutation);
 		/** @brief Topological characteristics */
-    static constexpr uint64_t NSides = 27;
-    static constexpr uint64_t NCornerNodes = 8;
-    static constexpr uint64_t Dimension = 3;
-    static constexpr uint64_t NFacets = 6;
-    static constexpr uint64_t NPermutations = 48;
+    static constexpr int64_t NSides = 27;
+    static constexpr int64_t NCornerNodes = 8;
+    static constexpr int64_t Dimension = 3;
+    static constexpr int64_t NFacets = 6;
+    static constexpr int64_t NPermutations = 48;
       
 		
     int ClassId() const override;

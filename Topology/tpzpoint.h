@@ -36,11 +36,11 @@ namespace pztopology {
 
     friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
 		/** @brief Topological characteristics */
-    static constexpr uint64_t NSides = 1;
-		static constexpr uint64_t NCornerNodes = 1;
-    static constexpr uint64_t Dimension = 0;
-    static constexpr uint64_t NFacets = 0;
-    static constexpr uint64_t NPermutations = 1;
+    static constexpr int64_t NSides = 1;
+		static constexpr int64_t NCornerNodes = 1;
+    static constexpr int64_t Dimension = 0;
+    static constexpr int64_t NFacets = 0;
+    static constexpr int64_t NPermutations = 1;
 
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;

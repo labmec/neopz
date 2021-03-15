@@ -39,11 +39,11 @@ namespace pztopology {
 
     friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
 		/** @brief Topological characteristics */
-		static constexpr uint64_t NSides = 9;
-    static constexpr uint64_t NCornerNodes = 4;
-    static constexpr uint64_t Dimension = 2;
-    static constexpr uint64_t NFacets = 4;
-    static constexpr uint64_t NPermutations = 8;
+		static constexpr int64_t NSides = 9;
+    static constexpr int64_t NCornerNodes = 4;
+    static constexpr int64_t Dimension = 2;
+    static constexpr int64_t NFacets = 4;
+    static constexpr int64_t NPermutations = 8;
       
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
