@@ -153,7 +153,7 @@ namespace pztopology {
 		 * @{ */
 		
 		/** @brief Returns the type of the element as specified in file pzeltype.h */
-		static MElementType Type();// { return ECube;}
+		static constexpr MElementType Type() { return ECube;}
 		
 		/** @brief Returns the type of the element side as specified in file pzeltype.h */
 		static MElementType Type(int side);

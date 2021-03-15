@@ -826,11 +826,6 @@ namespace pztopology {
 	}
 	
 	
-	MElementType TPZCube::Type()
-	{
-		return ECube;
-	}
-	
 	MElementType TPZCube::Type(int side)
 	{
 		switch(side) {

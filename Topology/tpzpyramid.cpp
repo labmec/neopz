@@ -838,11 +838,6 @@ namespace pztopology {
 		return 0;
 	}
 
-	MElementType TPZPyramid::Type()
-	{
-		return EPiramide;
-	}
-
 	MElementType TPZPyramid::Type(int side)
 	{
 		switch(side) {

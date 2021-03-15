@@ -868,11 +868,6 @@ namespace pztopology {
 	}
 	
 	
-	MElementType TPZPrism::Type()
-	{
-		return EPrisma;
-	}
-	
 	MElementType TPZPrism::Type(int side)
 	{
 		switch(side) {

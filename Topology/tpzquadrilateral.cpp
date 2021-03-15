@@ -416,11 +416,6 @@ namespace pztopology {
         }
     }
 	
-	MElementType TPZQuadrilateral::Type()
-	{
-		return EQuadrilateral;
-	}
-	
 	MElementType TPZQuadrilateral::Type(int side)
 	{
 		switch(side) {

@@ -33,12 +33,6 @@ namespace pztopology {
 		return new IntruleType(order);
 	}
 	
-	
-	MElementType TPZPoint::Type()
-	{
-		return EPoint;
-	}
-	
 	MElementType TPZPoint::Type(int side)
 	{
 		switch(side) {

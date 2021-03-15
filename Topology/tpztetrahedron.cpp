@@ -742,11 +742,6 @@ namespace pztopology {
 	}
 	
 	
-	MElementType TPZTetrahedron::Type()
-	{
-		return ETetraedro;
-	}
-	
 	MElementType TPZTetrahedron::Type(int side)
 	{
 		switch(side) {

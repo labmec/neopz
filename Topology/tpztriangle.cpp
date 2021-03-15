@@ -533,11 +533,6 @@ namespace pztopology {
 	}
 	
 	
-	MElementType TPZTriangle::Type()
-	{
-		return ETriangle;
-	}
-	
 	MElementType TPZTriangle::Type(int side)
 	{
 		switch(side) {

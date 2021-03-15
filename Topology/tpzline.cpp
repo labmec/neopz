@@ -346,13 +346,6 @@ namespace pztopology {
 		
 		
 	}
-	
-	
-	MElementType TPZLine::Type()
-	{
-		return EOned;
-	}
-	
 	MElementType TPZLine::Type(int side)
 	{
 		switch(side) {
