@@ -1,5 +1,6 @@
 #include "TPZBFileStream.h"
 #include "fad.h"
+#include "tfad.h"
 
 TPZBFileStream::TPZBFileStream() {}
 
