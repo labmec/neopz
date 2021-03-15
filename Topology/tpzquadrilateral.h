@@ -290,11 +290,6 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
-
-        
-        enum EHdivType {HdivConform = 0, HdivFull=1};
-
-        static void SetHdivType(EHdivType val);
 	protected:
         /** @brief Valid permutations between nodes*/
         static int fPermutations [8][9];
