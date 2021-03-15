@@ -16,6 +16,7 @@
 #include "TPZSBFemVolume.h"
 #include "pzcmesh.h"
 #include "TPZMaterial.h"
+#include "pzlog.h"
 #include <algorithm>
 #include <thread>
 #ifdef USING_MKL

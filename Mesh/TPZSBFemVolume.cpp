@@ -18,6 +18,7 @@
 #include "pzbndcond.h"
 #include "pzvec_extras.h"
 #include "pzcmesh.h"
+#include "pzlog.h"
 
 #include <algorithm>
 
