@@ -495,7 +495,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			errors.Fill(0.0);
       TPZGeoEl *gel = el->Reference();
       if(gel->Dimension() != fCompMesh->Dimension()) continue;
-      if (el->Material()->HasExactSol()) {
+      if (el->Material() && el->Material()->HasExactSol()) {
         el->EvaluateError(errors, 0);
       } else {
         el->EvaluateError(fExact, errors, 0);
@@ -644,7 +644,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     if ( iel >= nelem ) continue;
     
     TPZCompEl *cel = data->fElvec[iel];
-    if (cel->Material()->HasExactSol()) {
+    if (cel->Material() && cel->Material()->HasExactSol()) {
       cel->EvaluateError(errors, data->fStoreError);
     } else {
       cel->EvaluateError(data->fExact, errors, data->fStoreError);
@@ -781,7 +781,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
             if(bc) continue;
-            if(!mat || mat->Dimension() == dim)
+            if(mat != nullptr && mat->Dimension() == dim)
             {
                 errors.Fill(0.0);
                 if(mat->HasExactSol())
