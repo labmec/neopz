@@ -5,10 +5,8 @@
 #include "TPZGeneralFStream.h"  // for TPZGeneralFStream
 #include <stdint.h>              // for uint64_t and int64_t
 
-#ifdef _AUTODIFF
 template <class T> class Fad;
 template <int Num, class T> class TFad;
-#endif
 
 class TPZBFileStream : public TPZGeneralFStream {
   private:
@@ -50,7 +48,6 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(std::complex<float> *p, int howMany) { ReadData<std::complex<float>>(p, howMany); }
     /** @brief Reads howMany complex-double from pointer location p */
     virtual void Read(std::complex<double> *p, int howMany) { ReadData<std::complex<double>>(p, howMany); }
-#ifdef _AUTODIFF
     virtual void Read(TFad<1,REAL> *p, int howMany) { ReadData<TFad<1,REAL>>(p, howMany); }
     virtual void Read(TFad<6,REAL> *p, int howMany) { ReadData<TFad<6,REAL>>(p, howMany); }
     virtual void Read(TFad<8,REAL> *p, int howMany) { ReadData<TFad<8,REAL>>(p, howMany); }
@@ -63,7 +60,6 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Read(Fad<float> *p, int howMany) { ReadData<Fad<float>>(p, howMany); }
     /** @brief Reads howMany fad-double from pointer location p */
     virtual void Read(Fad<double> *p, int howMany) { ReadData<Fad<double>>(p, howMany); }
-#endif
 
 	using TPZStream::Write;
     /** @brief Writes howMany integers at pointer location p */
@@ -87,7 +83,6 @@ class TPZBFileStream : public TPZGeneralFStream {
     /** @brief Writes howMany complex-double at pointer location p */
     virtual void Write(const std::complex <double> *p, int howMany) { WriteData< std::complex <double> >(p,howMany); }
     
-#ifdef _AUTODIFF
     /** @brief Writes howMany TFad-REAL at pointer location p */
     virtual void Write(const TFad <1,REAL> *p, int howMany) { WriteData< TFad <1,REAL> >(p,howMany); }
     /** @brief Writes howMany TFad-REAL at pointer location p */
@@ -104,7 +99,6 @@ class TPZBFileStream : public TPZGeneralFStream {
     virtual void Write(const Fad <float> *p, int howMany) { WriteData< Fad <float> >(p,howMany); }
     /** @brief Writes howMany fad-double at pointer location p */
     virtual void Write(const Fad <double> *p, int howMany) { WriteData< Fad <double> >(p,howMany); }
-#endif
   private:
     template <class T> void ReadData(T *p, int howMany);
     template <class T> void WriteData(const T *p, int howMany);

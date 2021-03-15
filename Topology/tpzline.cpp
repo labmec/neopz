@@ -11,9 +11,7 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 
 #include "pzlog.h"
@@ -565,7 +563,6 @@ template void pztopology::TPZLine::BlendFactorForSide<REAL>(const int &, const T
 template void pztopology::TPZLine::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 template void pztopology::TPZLine::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-#ifdef _AUTODIFF
 
 template bool pztopology::TPZLine::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -576,4 +573,3 @@ template void pztopology::TPZLine::BlendFactorForSide<Fad<REAL>>(const int &, co
 template void pztopology::TPZLine::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
 template void pztopology::TPZLine::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-#endif

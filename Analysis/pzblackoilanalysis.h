@@ -16,7 +16,6 @@
 class TPZCompMesh;
 class TPZFStructMatrix;
 
-#ifdef _AUTODIFF
 
 /**
  * @brief Derived from TPZNonLinearAnalysis class. \ref analysis "Analysis"
@@ -120,4 +119,3 @@ protected:
 
 #endif
 
-#endif

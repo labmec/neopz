@@ -4,10 +4,8 @@
 #include <complex>              // for complex, operator<<, operator>>
 #include <sstream>              // for basic_stringbuf<>::int_type, basic_st...
 #include "TPZGeneralFStream.h"  // for TPZGeneralFStream
-#ifdef _AUTODIFF
 template <class T> class Fad;
 template <int Num, class T> class TFad;
-#endif//_AUTODIFF
 /**
  * @ingroup save
  * @brief Implements reading from and writing to an ascii file. \ref save "Persistency"
@@ -82,8 +80,7 @@ class TPZFileStream : public TPZGeneralFStream {
 		WriteData< std::complex <double> >(p,howMany);
 	}
 	
-#ifdef _AUTODIFF
-	
+
 	virtual void Write(const TFad <1,REAL> *p, int howMany) {
 		WriteData< TFad <1,REAL> >(p,howMany);
 	}
@@ -116,7 +113,6 @@ class TPZFileStream : public TPZGeneralFStream {
 		WriteData< Fad <double> >(p,howMany);
 	}
 		
-#endif
 
 	using TPZStream::Read;
 
@@ -160,8 +156,7 @@ class TPZFileStream : public TPZGeneralFStream {
 		ReadData< std::complex <double> >(p,howMany);
 	}
 	
-#ifdef _AUTODIFF
-	
+
 	virtual void Read(TFad <1,REAL> *p, int howMany) {
 		ReadData< TFad <1,REAL> >(p,howMany);
 	}
@@ -195,6 +190,5 @@ class TPZFileStream : public TPZGeneralFStream {
 	}
 	
 	
-#endif
 };
 #endif// TPZFILESTREAM_H

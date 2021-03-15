@@ -16,10 +16,8 @@
 #include <list>
 #include <sstream>
 
-#ifdef _AUTODIFF
 #include "fad.h"
 #include "tfad.h"
-#endif
 
 template<class TVar>
 class TPZFMatrix;
@@ -816,7 +814,6 @@ std::ostream & operator<<(std::ostream& out, const TPZMatrix<TVar> & A);
 /******** Inline ********/
 
 
-#ifdef _AUTODIFF
 template<class TVar>
 inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
 	DebugStop();
@@ -828,7 +825,7 @@ inline void TPZMatrix<double>::Residual(const TPZFMatrix<double>& x,const TPZFMa
 	MultAdd( x, rhs, res, ((double)-1.0), ((double)1.0) );
 }
 
-#else
+#ifdef NOT_FAD
 template<class TVar>
 inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
 	MultAdd( x, rhs, res, ((TVar)-1.0), ((TVar)1.0) );

@@ -71,7 +71,6 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 		fXf[1] = res[1];
 		fXf[2] = res[2];
 	}
-#ifdef _AUTODIFF
 	TFad<9, TFad<9,STATE> > U;
 	ComputeEnergy(fLambda,fNu,dsol,U);
 	int nshape = phi.Rows();
@@ -100,7 +99,7 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
             fK8[ii][jj] = (STATE)0.;
         }
 */
-#else
+#ifdef NOT_FAD
 	int i;
 	STATE global[3][3][9];
 	STATE ux,uy,uz,vx,vy,vz,wx,wy,wz;
@@ -616,7 +615,6 @@ void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data,
 //	}//fim switch
 //}
 
-#ifdef _AUTODIFF
 
 /** The function below makes the correspondence between the dsol vector and a matrix ordered F operator */
 inline int ith(const int i, const int j)
@@ -748,7 +746,6 @@ void TPZMatHyperElastic::ComputeEnergy(STATE lambda, STATE mu,  TPZFMatrix<STATE
 	*/
 }
 
-#endif
 
 int TPZMatHyperElastic::ClassId() const{
     return Hash("TPZMatHyperElastic") ^ TPZMaterial::ClassId() << 1;

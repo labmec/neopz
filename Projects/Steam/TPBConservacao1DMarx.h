@@ -17,7 +17,6 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
-#ifdef _AUTODIFF
 using namespace std;
 #include "fadType.h"
 
@@ -584,8 +583,5 @@ void  TPBrCellMarx::RazaoVexpVcel(TPZVec<T> &state, REAL &razao){
 	
 	razao = VexpAgua/Vcel;
 }
-
-// nothing is compiled if _AUTODIFF isnt defined
-#endif
 
 #endif

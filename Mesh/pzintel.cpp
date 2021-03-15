@@ -32,9 +32,7 @@ static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.div
 #endif
 
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 #include <sstream>
 using namespace std;

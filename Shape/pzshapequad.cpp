@@ -494,8 +494,7 @@ namespace pzshape {
 	
 	
 	
-#ifdef _AUTODIFF
-	
+
 	void TPZShapeQuad::Shape2dQuadInternal(TPZVec<FADREAL> &x, int order,
 										   TPZVec<FADREAL> &phi,int quad_transformation_index) {
 		
@@ -556,8 +555,7 @@ namespace pzshape {
 	 }
 	 */
 	
-#endif
-	
+
 };
 
 

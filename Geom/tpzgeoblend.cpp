@@ -1095,7 +1095,6 @@ template class pzgeom::TPZGeoBlend<TPZGeoQuad>;
 template class pzgeom::TPZGeoBlend<TPZGeoLinear>;
 template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 
-#ifdef _AUTODIFF
 
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
@@ -1121,7 +1120,7 @@ IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
 
 #undef IMPLEMENTBLEND
 
-#else
+#ifdef NOT_FAD
 
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \

@@ -45,9 +45,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
@@ -159,7 +157,6 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 
 BOOST_AUTO_TEST_SUITE(geometry_tests)
 
-#ifdef _AUTODIFF
 BOOST_AUTO_TEST_CASE(gradx_tests) {
     InitializePZLOG();
     TPZGeoMesh gmesh;
@@ -246,7 +243,6 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
 
 }
 
-#endif
 
 
 

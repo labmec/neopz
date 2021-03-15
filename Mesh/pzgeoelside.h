@@ -16,9 +16,7 @@
 #include "tpzintpoints.h"
 #include <set>
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 class TPZCompElSide;
 
@@ -129,13 +127,11 @@ public:
 
     bool ResetBlendConnectivity(const int64_t &index);
 	
-#ifdef _AUTODIFF
     /** @brief X coordinate of a point loc of the side */
     void X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const;
     
     /** @brief X coordinate of a point loc of the side */
     void GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &gradx) const;
-#endif
 
     /** @brief Jacobian associated with the side of the element */
 	void Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;

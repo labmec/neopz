@@ -18,9 +18,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticpyramid"));
 #endif
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 using namespace pzshape;
 using namespace pzgeom;
@@ -423,9 +421,7 @@ namespace pzgeom {
     template void TPZQuadraticPyramid::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
     template void TPZQuadraticPyramid::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
 
-#ifdef _AUTODIFF
     template void TPZQuadraticPyramid::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
     template void TPZQuadraticPyramid::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
-#endif
 
 }

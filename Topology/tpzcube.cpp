@@ -12,9 +12,7 @@
 #include "tpzquadrilateral.h"
 
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 #include "pzlog.h"
 
@@ -1760,7 +1758,6 @@ template void pztopology::TPZCube::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatr
 template void pztopology::TPZCube::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 
 template void pztopology::TPZCube::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
-#ifdef _AUTODIFF
 
 template bool pztopology::TPZCube::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -1773,4 +1770,3 @@ template void pztopology::TPZCube::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &lo
 template void pztopology::TPZCube::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 
 template void pztopology::TPZCube::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
-#endif

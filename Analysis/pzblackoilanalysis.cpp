@@ -14,7 +14,6 @@
 
 using namespace std;
 
-#ifdef _AUTODIFF
 
 TPZBlackOilAnalysis::TPZBlackOilAnalysis(TPZCompMesh *mesh, double TimeStep, std::ostream &out):TPZNonLinearAnalysis(mesh,out){
 	this->fTimeStep = TimeStep;
@@ -383,4 +382,3 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
 	}//iel
 }//method
 
-#endif

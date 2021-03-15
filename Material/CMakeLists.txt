@@ -59,10 +59,10 @@ install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 if (BUILD_PLASTICITY_MATERIALS)
-	if ((NOT STATE_TYPE STREQUAL "double") OR (NOT REAL_TYPE STREQUAL "double") OR (NOT USING_FAD))
+	if ((NOT STATE_TYPE STREQUAL "double") OR (NOT REAL_TYPE STREQUAL "double"))
 		message (FATAL_ERROR
       "\nConflicting options for BUILD_PLASTICITY_MATERIALS\n"
-      "Set REAL_TYPE=double, STATE_TYPE=double and USING_FAD=ON to build them\n"
+      "Set REAL_TYPE=double and STATE_TYPE=double to build them\n"
       "Or set BUILD_PLASTICITY_MATERIALS=OFF")
   endif()
 endif()

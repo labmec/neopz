@@ -42,9 +42,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #endif
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
@@ -1002,7 +1000,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 outVTK.close();
             }
 #endif
-            #ifdef _AUTODIFF
             {
                 TPZManVector<REAL,3> xiReal;
                 TPZManVector<Fad<REAL>,3> xiFad;
@@ -1058,7 +1055,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                     }
                 }
             }
-            #endif
 
 
             {
@@ -1269,7 +1265,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 outVTK.close();
             }
 #endif
-#ifdef _AUTODIFF
             {
                 TPZManVector<REAL,3> xiReal;
                 TPZManVector<Fad<REAL>,3> xiFad;
@@ -1322,7 +1317,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                     }
                 }
             }
-#endif
             {
                 TPZVec<TPZGeoEl *> sons;
                 std::vector<std::string> loading = {"-","/","|","\\"};

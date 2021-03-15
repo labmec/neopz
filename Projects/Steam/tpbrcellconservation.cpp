@@ -14,7 +14,6 @@
 //WaterDataInStateOfSaturation waterdata;
 static OilData oildata;
 
-#ifdef _AUTODIFF
 
 #include "fadType.h"
 
@@ -344,5 +343,3 @@ REAL TPBrCellConservation::Energy(TPZVec<REAL> &cellstate, REAL volume)
     
 }
 
-
-#endif

@@ -13,7 +13,6 @@
 #include "pzfmatrix.h"
 #include "ThermalMethodsTables.h"
 
-#ifdef _AUTODIFF
 
 using namespace std;
 #include "fadType.h"
@@ -122,7 +121,5 @@ inline T TPBrCellConservation::TemperatureSaturation(T pressuresteam)//[Celsius]
 }
 
 
-// Nothing is compiled if _AUTODIFF isnt defined
-#endif
 
 #endif

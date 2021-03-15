@@ -16,31 +16,20 @@ using namespace std;
 
 #include <cmath>
 
-#ifdef _AUTODIFF
 REAL TPZSwelling::gFaraday = 96.4853;
 REAL TPZSwelling::gVPlus = 2.3;
 REAL TPZSwelling::gVMinus = 15.17;
 REAL TPZSwelling::gRGas = 8.3145;
 REAL TPZSwelling::gTemp = 293.;
 REAL TPZSwelling::gMuRef[3] = {0.,0.,0.};
-#else
-STATE TPZSwelling::gFaraday = 96.4853;
-STATE TPZSwelling::gVPlus = 2.3;
-STATE TPZSwelling::gVMinus = 15.17;
-STATE TPZSwelling::gRGas = 8.3145;
-STATE TPZSwelling::gTemp = 293.;
-STATE TPZSwelling::gMuRef[3] = {0.,0.,0.};
-#endif
 
 TPZFMatrix<STATE> TPZSwelling::gState;
 TPZFMatrix<REAL> TPZSwelling::gphi(1,1,1.);
 TPZFMatrix<REAL> TPZSwelling::gdphi(3,1,0.34);
 
-#ifdef _AUTODIFF
 
 void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<STATE> &ek);
 
-#endif
 
 TPZSwelling::TPZSwelling(int matindex, STATE lambda, STATE shear, STATE alfa, STATE M, STATE Gamma, STATE Kperm, STATE DPlus, STATE DMinus,
 						 STATE rHinder, STATE Cfc, STATE Nf0, STATE NPlus0, STATE NMinus0) : 
@@ -195,7 +184,6 @@ void TPZSwelling::ContributeBC(TPZMaterialData &data,
 	}//fim switch
 }
 
-#ifdef _AUTODIFF
 
 /* The function below makes the correspondence between the dsol vector
  and a matrix ordered F operator
@@ -745,7 +733,6 @@ void TPZSwelling::Residual(TPZFMatrix<STATE> &res, int cases) {
 	}
 }
 
-#endif
 
 void TPZSwelling::ComputeInitialGuess(TPZVec<STATE> &mu, STATE J, STATE &pres, STATE &ksi, TPZVec<STATE> &N) {
 	
@@ -790,7 +777,6 @@ void TPZSwelling::ExactSolution(TPZVec<STATE> &mu, STATE ksi, STATE pres, TPZVec
 	
 }
 
-#ifdef _AUTODIFF
 
 void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
 	
@@ -837,7 +823,6 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 	N[2] = N0Gamma*expc2*gVMinus;
 }
 
-#endif
 
 int TPZSwelling::ClassId() const{
     return Hash("TPZSwelling") ^ TPZMaterial::ClassId() << 1;

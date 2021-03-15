@@ -3,10 +3,8 @@
 #include "TPZStream.h"
 #include <sstream>
 
-#ifdef _AUTODIFF
 #include "fad.h"
 #include "tfad.h"
-#endif
 
 /**
  * @brief      Class for creating a bidirectional circular buffer
@@ -85,7 +83,6 @@ class TPZCircBufferedStream : public TPZStream {
     virtual void Write(const std::complex<float> *p, int howMany);
     virtual void Write(const std::complex<double> *p, int howMany);
 
-#ifdef _AUTODIFF
     virtual void Write(const TFad<1,REAL> *p, int howMany);
     virtual void Write(const TFad<6,REAL> *p, int howMany);
     virtual void Write(const TFad<8,REAL> *p, int howMany);
@@ -94,7 +91,6 @@ class TPZCircBufferedStream : public TPZStream {
     virtual void Write(const TFad<14,REAL> *p, int howMany);
     virtual void Write(const Fad<float> *p, int howMany);
     virtual void Write(const Fad<double> *p, int howMany);
-#endif
 
 	using TPZStream::Read;
     virtual void Read(int *p, int howMany);
@@ -109,7 +105,6 @@ class TPZCircBufferedStream : public TPZStream {
     virtual void Read(std::complex<float> *p, int howMany);
     virtual void Read(std::complex<double> *p, int howMany);
 
-#ifdef _AUTODIFF
     virtual void Read(TFad<1,REAL> *p, int howMany);
     virtual void Read(TFad<6,REAL> *p, int howMany);
     virtual void Read(TFad<8,REAL> *p, int howMany);
@@ -118,7 +113,6 @@ class TPZCircBufferedStream : public TPZStream {
     virtual void Read(TFad<14,REAL> *p, int howMany);
     virtual void Read(Fad<float> *p, int howMany);
     virtual void Read(Fad<double> *p, int howMany);
-#endif
 
   protected:
     /**
@@ -193,7 +187,6 @@ template void TPZCircBufferedStream::WriteData(const char *p, int howMany);
 template void TPZCircBufferedStream::WriteData(const std::complex<float> *p, int howMany);
 template void TPZCircBufferedStream::WriteData(const std::complex<double> *p, int howMany);
 
-#ifdef _AUTODIFF
 template void TPZCircBufferedStream::WriteData(const TFad<1,REAL> *p, int howMany);
 template void TPZCircBufferedStream::WriteData(const TFad<6,REAL> *p, int howMany);
 template void TPZCircBufferedStream::WriteData(const TFad<8,REAL> *p, int howMany);
@@ -202,7 +195,6 @@ template void TPZCircBufferedStream::WriteData(const TFad<10,REAL> *p, int howMa
 template void TPZCircBufferedStream::WriteData(const TFad<14,REAL> *p, int howMany);
 template void TPZCircBufferedStream::WriteData(const Fad<float> *p, int howMany);
 template void TPZCircBufferedStream::WriteData(const Fad<double> *p, int howMany);
-#endif
 
 template void TPZCircBufferedStream::ReadData(int *p, int howMany);
 template void TPZCircBufferedStream::ReadData(unsigned int *p, int howMany);
@@ -215,7 +207,6 @@ template void TPZCircBufferedStream::ReadData(char *p, int howMany);
 template void TPZCircBufferedStream::ReadData(std::complex<float> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(std::complex<double> *p, int howMany);
 
-#ifdef _AUTODIFF
 template void TPZCircBufferedStream::ReadData(TFad<1,REAL> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(TFad<6,REAL> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(TFad<8,REAL> *p, int howMany);
@@ -224,6 +215,5 @@ template void TPZCircBufferedStream::ReadData(TFad<10,REAL> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(TFad<14,REAL> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(Fad<float> *p, int howMany);
 template void TPZCircBufferedStream::ReadData(Fad<double> *p, int howMany);
-#endif 
 
 #endif // TPZCIRCBUFFEREDSTREAM_H

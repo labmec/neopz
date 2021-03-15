@@ -256,12 +256,10 @@ int ClassId() const override;
 		
 	}//method
 	
-#ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const  {
         DebugStop();
     }
-#endif
 //    /** @brief Return the Jacobian matrix at the point*/
 //    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
 //
@@ -300,12 +298,10 @@ int ClassId() const override;
     void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
-#ifdef _AUTODIFF
     void GradX(TPZVec<Fad<REAL>> &qsi, TPZFMatrix<Fad<REAL>> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
-#endif
-	
+
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
 //	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 //	{
@@ -360,11 +356,9 @@ int ClassId() const override;
     void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const override {
 	        return TX(ksi,result);
 	}
-#ifdef _AUTODIFF
     void X(TPZVec<Fad<REAL>> &ksi,TPZVec<Fad<REAL>> &result) const override {
         return TX(ksi,result);
     }
-#endif
 
 	virtual void Print(std::ostream & out = std::cout) override
 	{
@@ -475,12 +469,10 @@ private:
         return TKsiBar(ksi,ksibar);
     }
 
-    #ifdef _AUTODIFF
     void KsiBar(TPZVec<Fad<REAL>> &ksi, TPZVec<Fad<REAL>> &ksibar) const{
         return TKsiBar(ksi,ksibar);
     }
-    #endif
-	
+
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) override {
 		int ns = this->NSideNodes(side);
 		TPZManVector<int64_t> nodeindices(ns);

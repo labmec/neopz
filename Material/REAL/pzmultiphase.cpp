@@ -466,7 +466,6 @@ void TPZMultiphase::fstar(REAL &fStar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfsta
 
 // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef _AUTODIFF
 
 /** Capilar pressure \f$ pc = pc( Sw ) \f$ */
 void TPZMultiphase::CapillaryPressure(BFadREAL So, BFadREAL &pc){
@@ -574,7 +573,6 @@ void TPZMultiphase::fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw)
     
 }
 
-#endif
 
 // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
 

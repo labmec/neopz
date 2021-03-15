@@ -258,10 +258,8 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.phi.Resize(nscalar+nscalartop+nscalarbottom, 1);
     data.dphi.Resize(dim+1,nscalar+nscalartop+nscalarbottom);
     data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
-#ifdef _AUTODIFF
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
-#endif
-    
+
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{

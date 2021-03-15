@@ -229,8 +229,7 @@ public:
     Writes< std::complex <long double> >(p,size);
   }
   
-#ifdef _AUTODIFF
-    
+
 	
 	virtual void Write(const TFad <1,REAL> *p, int howMany) {
 		Writes< TFad <1,REAL> >(p,howMany);
@@ -264,7 +263,6 @@ public:
 		Writes< Fad <double> >(p,howMany);
 	}
     
-#endif
 
   /** @brief Writes size objects of the class T at pointer location p */
   template<class T>
@@ -276,8 +274,7 @@ public:
     std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
 #endif
   }
-#ifdef _AUTODIFF
-    
+
   virtual void Read(TFad <1,REAL> *p, int howMany) {
 		ReadError();
 	}
@@ -310,7 +307,6 @@ public:
 		ReadError();
 	}
     
-#endif
   /** @brief Reads size integers from pointer location p */
   virtual void Read(int *p, int size) {
     ReadError();

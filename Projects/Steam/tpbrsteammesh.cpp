@@ -20,7 +20,6 @@
 static LoggerPtr logger(Logger::getLogger("br.steammesh"));
 #endif
 
-#ifdef _AUTODIFF
 
 //WaterDataInStateOfSaturation waterdata;
 
@@ -1104,4 +1103,3 @@ void TPBrSteamMesh::UpdateConfinementLayer()
     
 }
 
-#endif

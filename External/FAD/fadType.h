@@ -1,7 +1,6 @@
 #ifndef FADTYPE_H
 #define FADTYPE_H
 
-#ifdef _AUTODIFF
 
 
 //using namespace std;
@@ -25,7 +24,6 @@ typedef FADREAL_ FADREAL;
 typedef Fad< Fad<REAL> > FADFADREAL;
 typedef Fad< Fad<STATE> > FADFADSTATE;
 
-//#define _AUTODIFF
 
 #include "pzfmatrix.h"
 
@@ -101,7 +99,6 @@ template class Fad<float>;
 template class Fad<double>;
 template class Fad<long double>;
 
-#endif   // End of _AUTODIFF define
 
 #endif
 

@@ -11,9 +11,7 @@
 
 #include "pzreal.h"
 
-#ifdef _AUTODIFF
 #include "tfad.h"
-#endif
 
 class TPZExtractVal {
 public:
@@ -75,14 +73,12 @@ public:
         return number;
     }
 
-#ifdef _AUTODIFF
-    
+
     template <int Num, class T>
     static typename TFad<Num,T>::arithmetic_type& ref(TFad<Num,T> &number) {
         return TPZExtractVal::ref(number.val());
     }
     
-#endif
 
     template<class T>
     static bool IsZero(const T & a) {
