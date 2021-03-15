@@ -292,9 +292,31 @@ namespace pztopology {
        
 
 	protected:
-        /** @brief Valid permutations between nodes*/
-        static int fPermutations [6][7];
-        static REAL fTangentVectors [12][2];
+    /** @brief Valid permutations between nodes*/
+    static constexpr int fPermutations [6][7]=
+      {
+        {0,1,2,3,4,5,6}, // id 0
+        {0,2,1,5,4,3,6}, // id 1
+        {1,2,0,4,5,3,6}, // id 2
+        {1,0,2,3,5,4,6}, // id 3
+        {2,0,1,5,3,4,6}, // id 4
+        {2,1,0,4,3,5,6}  // id 5
+      };
+    static constexpr REAL fTangentVectors [12][2] =
+      {
+        {2,0}, // id 0
+        {0,2}, // id 0
+        {0,2}, // id 1
+        {2,0}, // id 1
+        {0,2}, // id 2
+        {-2,-2}, //id 2
+        {-2,-2},// id 3
+        {0,2},// id 3
+        {-2,-2},// id 4
+        {2,0}, //id 4
+        {2,0}, //id 5
+        {-2,-2}, //id 5
+      };
     };
 	
 }

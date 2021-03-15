@@ -51,12 +51,6 @@ namespace pztopology {
 	
 	static int nsidenodes[3] = {1,1,2};
     
-    int TPZLine::fPermutations [2][3] =
-    {
-        {0,1,2},
-        {1,0,2}
-    };
-    
     int TPZLine::NBilinearSides()
     {return 0;}
 	

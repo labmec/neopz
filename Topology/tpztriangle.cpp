@@ -210,32 +210,6 @@ namespace pztopology {
     static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1};//P*k Pk
     
     static int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    
-    int TPZTriangle::fPermutations [6][7] =
-    {
-        {0,1,2,3,4,5,6}, // id 0
-        {0,2,1,5,4,3,6}, // id 1
-        {1,2,0,4,5,3,6}, // id 2
-        {1,0,2,3,5,4,6}, // id 3
-        {2,0,1,5,3,4,6}, // id 4
-        {2,1,0,4,3,5,6}  // id 5
-    };
-
-    REAL TPZTriangle::fTangentVectors [12][2] =
-            {
-                    {2,0}, // id 0
-                    {0,2}, // id 0
-                    {0,2}, // id 1
-                    {2,0}, // id 1
-                    {0,2}, // id 2
-                    {-2,-2}, //id 2
-                    {-2,-2},// id 3
-                    {0,2},// id 3
-                    {-2,-2},// id 4
-                    {2,0}, //id 4
-                    {2,0}, //id 5
-                    {-2,-2}, //id 5
-            };
 
 	int TPZTriangle::NBilinearSides()
     {
