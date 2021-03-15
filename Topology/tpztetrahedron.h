@@ -274,13 +274,13 @@ namespace pztopology {
 		/** @{ */
 		
 		/** @brief Nodes over quadrilateral sides (2d - faces). */
-		static int FaceNodes[4][3];
+    static constexpr int FaceNodes[4][3]  = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
 
 		/** @brief Nodes over lines sides (1d) */
-		static int SideNodes[6][2];
+    static constexpr int SideNodes[6][2]  = { {0,1},{1,2},{2,0},{0,3},{1,3},{2,3} };
 
 		/** @brief Ids of the shape face */
-		static int ShapeFaceId[4][3];
+    static constexpr int ShapeFaceId[4][3] = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };	
 
     /** @brief Valid permutations between nodes*/
     static constexpr int fPermutations[24][15] = {

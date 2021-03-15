@@ -286,8 +286,8 @@ namespace pztopology {
          */
         static int NBilinearSides();
         
-        static int SideNodes[3][2];
-        static int FaceNodes[1][3];
+        static constexpr int SideNodes[3][2] = { {0,1},{1,2},{2,0} };
+        static constexpr int FaceNodes[1][3] =  { {0,1,2} };
        
 
 	protected:

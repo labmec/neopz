@@ -262,23 +262,19 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
-        
-        /** @brief Nodes over quadrilateral sides (2d - faces). */
-        static int FaceNodes[6][4]; //protected
-        
-        
-        /** @brief Nodes over lines sides (1d) */
-        static int SideNodes[12][2]; //PROTECTED
 	
 	protected:
 		/** @name Data structure which defines the hexahedral transformations */
 		/** @{ */
-		
+		/** @brief For each face was enumerated the pontoal sides (vertices) */
+    static constexpr int FaceNodes[6][4]  = { {0,1,2,3},{0,1,5,4},{1,2,6,5},{3,2,6,7},{0,3,7,4},{4,5,6,7} };
 	
-
-		
-		/** @brief Ids of the shape face */
-		static int ShapeFaceId[6][2];
+	/** @brief For each edge was enumerated the pontoal sides (vertices) */
+	static constexpr int SideNodes[12][2]  = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,5},
+		{2,6},{3,7},{4,5},{5,6},{6,7},{7,4} };
+	
+	/** @brief For each face was enumerated the vertice sides on its main diagonal */
+	static constexpr int ShapeFaceId[6][2] = { {0,2},{0,5},{1,6},{3,6},{0,7},{4,6} };
 
     /** @brief Valid permutations between nodes*/
     static constexpr int fPermutations[48][27] = {

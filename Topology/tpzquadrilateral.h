@@ -320,8 +320,8 @@ namespace pztopology {
       {0.25, 0.0},  // id 7
       {0.0, -0.25}  // id 7
     };
-    static int FaceNodes[1][4]; // Denise e Jose: dim =2
-    static int SideNodes[4][2]; // Denise e Jose: dim = 1
+    static constexpr int FaceNodes[1][4]  = { {0,1,2,3} }; // Denise e Jose: dim =2
+    static constexpr int SideNodes[4][2]  = { {0,1},{1,2},{2,3},{3,0} }; // Denise e Jose: dim = 1
 	};
 	
 }

@@ -29,23 +29,20 @@ using namespace std;
 
 namespace pztopology {
 
-	static int nsidenodes[9] = {
+	static constexpr int nsidenodes[9] = {
 		1,1,1,1,2,2,2,2,4};
-    
-    int TPZQuadrilateral::SideNodes[4][2]  = { {0,1},{1,2},{2,3},{3,0} };
-    int TPZQuadrilateral::FaceNodes[1][4]  = { {0,1,2,3} };
-	
+    	
 	int TPZQuadrilateral::NSideNodes(int side)
 	{
 		return nsidenodes[side];
 	}
 	
-	static int nhighdimsides[9] = {3,3,3,3,1,1,1,1,0};
+	static constexpr int nhighdimsides[9] = {3,3,3,3,1,1,1,1,0};
 	
 	
-	static int sidedimension[9] = {0,0,0,0,1,1,1,1,2};
+	static constexpr int sidedimension[9] = {0,0,0,0,1,1,1,1,2};
 	
-	static REAL sidetosidetransforms[9][3][4][3] = {
+	static constexpr REAL sidetosidetransforms[9][3][4][3] = {
 		{
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
@@ -84,7 +81,7 @@ namespace pztopology {
 	};
 	
 	
-	static int highsides[9][3] = {
+	static constexpr int highsides[9][3] = {
 		{4,7,8},
 		{4,5,8},
 		{5,6,8},
@@ -96,12 +93,12 @@ namespace pztopology {
 		{-999}
 	};
 	
-	static REAL MidSideNode[9][3] = {
+	static constexpr REAL MidSideNode[9][3] = {
 		/*00*/{-1.,-1.},/*01*/{ 1.,-1.},/*02*/{1.,1.},
 		/*03*/{-1., 1.},/*04*/{ 0.,-1.},/*05*/{1.,0.},
 		/*06*/{ 0., 1.},/*07*/{-1., 0.},/*08*/{0.,0.} };
     
-    static REAL bQuad[18][2] = 
+    static constexpr REAL bQuad[18][2] = 
     {
         {0,-1},
         {0,-1},
@@ -124,7 +121,7 @@ namespace pztopology {
         
     };
     
-    static REAL tQuad[18][2] = 
+    static constexpr REAL tQuad[18][2] = 
     {
         {-1,0},
         {-1,0},
@@ -146,12 +143,12 @@ namespace pztopology {
         {1,0}
     };
     
-    static int vectorsideorder [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
+    static constexpr int vectorsideorder [18] = {0,1,4,1,2,5,2,3,6,3,0,7,4,5,6,7,8,8};
     
-  static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
+  static constexpr int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1};
 //static int bilinearounao [18] =   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};//full hdiv
 
-    static int direcaoksioueta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+    static constexpr int direcaoksioueta [18] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 
     template<class T>
     inline void TPZQuadrilateral::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {

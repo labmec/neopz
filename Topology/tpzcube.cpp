@@ -29,33 +29,23 @@ namespace pztopology {
 	 * @brief For each face (quadrilateral sides) was enumerated in sequence the sides contained in the closure of them.
 	 * For example: First face (side 20) in its closure contains side 0, 1, 2, 3 (vertices), 8, 9, 10, 11, (edges) and it self 
 	 */
-	static int FaceConnectLocId[6][9] = { {0,1,2,3,8,9,10,11,20},{0,1,5,4,8,13,16,12,21},
+	static constexpr int FaceConnectLocId[6][9] = { {0,1,2,3,8,9,10,11,20},{0,1,5,4,8,13,16,12,21},
 		{1,2,6,5,9,14,17,13,22},{3,2,6,7,10,14,18,15,23},//{2,3,7,6,10,15,18,14,23}
 		{0,3,7,4,11,15,19,12,24},{4,5,6,7,16,17,18,19,25} };
-	
-	/** @brief For each face was enumerated the pontoal sides (vertices) */
-	int TPZCube::FaceNodes[6][4]  = { {0,1,2,3},{0,1,5,4},{1,2,6,5},{3,2,6,7},{0,3,7,4},{4,5,6,7} };
-	
-	/** @brief For each edge was enumerated the pontoal sides (vertices) */
-	int TPZCube::SideNodes[12][2]  = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,5},
-		{2,6},{3,7},{4,5},{5,6},{6,7},{7,4} };
-	
-	/** @brief For each face was enumerated the vertice sides on its main diagonal */
-	int TPZCube::ShapeFaceId[6][2] = { {0,2},{0,5},{1,6},{3,6},{0,7},{4,6} };
 
 
 	/** @brief Vector of the dimension for each side */
-	static int sidedimension[27] = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,3};
+	static constexpr int sidedimension[27] = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,3};
 	
 	/** @brief Vector with the number of vertices contained in the closure of the side */
-	static int nsidenodes[27] = {1,1,1,1,1,1,1,1,
+	static constexpr int nsidenodes[27] = {1,1,1,1,1,1,1,1,
 		2,2,2,2,2,2,2,2,2,2,2,2,
 		4,4,4,4,4,4,
 		8};
 	
 
 	/** @brief For each side was stored the sides connected with it but of the higher dimension */ 
-	static int highsides[27][7] = {
+	static constexpr int highsides[27][7] = {
 		{8,11,12,20,21,24,26},
 		{8,9,13,20,21,22,26},
 		{9,10,14,20,22,23,26},
@@ -88,10 +78,10 @@ namespace pztopology {
 	/**
 	 * @brief For each side was stored the number of sides connected of the higher dimension than it self 
 	 * For example: First side (side 0 - vertice) was connected with the sides 8, 11, 12 (edges) 20, 21, 24 (faces) and 26 (the hexahedra). At total 7 sides */
-	static int nhighdimsides[27] = {7,7,7,7,7,7,7,7,3,3,3,3,3,3,3,3,3,3,3,3,1,1,1,1,1,1,0};
+	static constexpr int nhighdimsides[27] = {7,7,7,7,7,7,7,7,3,3,3,3,3,3,3,3,3,3,3,3,1,1,1,1,1,1,0};
 
 	/** @brief The transformations for each side over neighboard side with higher dimension */
-	static REAL sidetosidetransforms[27][7][4][3] = {
+	static constexpr REAL sidetosidetransforms[27][7][4][3] = {
 		{
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
@@ -248,7 +238,7 @@ namespace pztopology {
 	};
 	
 	/** @brief For each side the vector related the coordinates of the point considered middle of the side */
-	static REAL MidSideNode[27][3] = {
+	static constexpr REAL MidSideNode[27][3] = {
 		/*00*/{-1.,-1.,-1.},/*01*/{1.,-1.,-1.},/*02*/{1.,1.,-1.},/*03*/{-1.,1.,-1.},
 		/*04*/{-1.,-1., 1.},/*05*/{1.,-1., 1.},/*06*/{1.,1., 1.},/*07*/{-1.,1., 1.},
 		/*08*/{ 0.,-1.,-1.},/*09*/{1., 0.,-1.},/*10*/{0.,1.,-1.},/*11*/{-1.,0.,-1.},
@@ -257,7 +247,7 @@ namespace pztopology {
 		/*20*/{ 0., 0.,-1.},/*21*/{0.,-1., 0.},/*22*/{1.,0., 0.},/*23*/{ 0.,1., 0.},
 		/*24*/{-1., 0., 0.},/*25*/{0., 0., 1.},/*26*/{0.,0., 0.} };
     
-    static REAL bCubo[81][3] = // direcao perpendicular ao lado
+    static constexpr REAL bCubo[81][3] = // direcao perpendicular ao lado
     {
         {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1},// face 0
         {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0},// face 1
@@ -281,7 +271,7 @@ namespace pztopology {
         {0,0,1}  // volume
     };
     
-    static REAL t1Cubo[81][3] = // diretor da aresta (escolhido para formar uma base positivamente orientada)
+    static constexpr REAL t1Cubo[81][3] = // diretor da aresta (escolhido para formar uma base positivamente orientada)
     {
         {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},//face 0
         {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, //face 1
@@ -306,7 +296,7 @@ namespace pztopology {
         {1,0,0}   // volume
         
     };
-    static REAL t2Cubo[81][3] = // diretor da aresta (escolhido para formar uma base positivamente orientada)
+    static constexpr REAL t2Cubo[81][3] = // diretor da aresta (escolhido para formar uma base positivamente orientada)
     {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 0
         {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1},// face 1
@@ -329,7 +319,7 @@ namespace pztopology {
         {0,1,0}   // volume
     };
     
-	static int vectorsideorderC [81] =
+	static constexpr int vectorsideorderC [81] =
     {
         0,1,2,3,8,9,10,11,20, //face 0
         0,1,5,4,8,13,16,12,21,//face 1
@@ -350,7 +340,7 @@ namespace pztopology {
         26,26,26
     };
 
-    static int bilinearounao [81] =   {
+    static constexpr int bilinearounao [81] =   {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -362,7 +352,7 @@ namespace pztopology {
         1
     };
     
-    static int direcaoksioueta [81] = {
+    static constexpr int direcaoksioueta [81] = {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,

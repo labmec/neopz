@@ -26,21 +26,15 @@ using namespace std;
 
 namespace pztopology {
 
-	static int nhighdimsides[15] = {7,7,7,7,3,3,3,3,3,3,1,1,1,1,0};
-	
-	int TPZTetrahedron::FaceNodes[4][3]  = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
-	
-	int TPZTetrahedron::SideNodes[6][2]  = { {0,1},{1,2},{2,0},{0,3},{1,3},{2,3} };
-	
-	int TPZTetrahedron::ShapeFaceId[4][3] = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
+	static constexpr int nhighdimsides[15] = {7,7,7,7,3,3,3,3,3,3,1,1,1,1,0};
 
-	static int sidedimension[15] = {0,0,0,0,1,1,1,1,1,1,2,2,2,2,3};
+	static constexpr int sidedimension[15] = {0,0,0,0,1,1,1,1,1,1,2,2,2,2,3};
 	
 	
-	static int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
+	static constexpr int FaceConnectLocId[4][7] = { {0,1,2,4,5,6,10},{0,1,3,4,8,7,11},
 		{1,2,3,5,9,8,12},{0,2,3,6,9,7,13} };
 	
-	static int highsides[15][7] = {
+	static constexpr int highsides[15][7] = {
 		{4,6,7,10,11,13,14},
 		{4,5,8,10,11,12,14},
 		{5,6,9,10,12,13,14},
@@ -58,14 +52,14 @@ namespace pztopology {
 		{-999}
 	};
 	
-	static int nsidenodes[15] = 
+	static constexpr int nsidenodes[15] = 
 	{
 		1,1,1,1,
 		2,2,2,2,2,2,
 		3,3,3,3,
 		4};
 	
-	static REAL sidetosidetransforms[15][7][4][3] = {
+	static constexpr REAL sidetosidetransforms[15][7][4][3] = {
 		{
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
@@ -149,13 +143,13 @@ namespace pztopology {
 		}
 	};
 	
-	static REAL MidSideNode[15][3] = {
+	static constexpr REAL MidSideNode[15][3] = {
 		/*00*/{.0,.0,.0},/*01*/{1.,.0,.0},/*02*/{0.,1.,.0},/*03*/{.0,0.,1.0},/*04*/{.5,.0,.0},
 		/*05*/{.5,.5,.0},/*06*/{0.,.5,.0},/*07*/{0.,0.,.5},/*08*/{.5,0.,0.5},/*09*/{.0,.5,.5},
 		/*10*/{1./3.,1./3., 0.  }  ,/*11*/{1./3., .0  ,1./3.},
 		/*12*/{1./3.,1./3.,1./3.}  ,/*13*/{ 0.  ,1./3.,1./3.},/*14*/{1./4.,1./4.,1./4.} };
     
-    static REAL bTetra[45][3] = // direcao perpendicular ao lado
+    static constexpr REAL bTetra[45][3] = // direcao perpendicular ao lado
     {
         {0,0,-1}, {1,0,-1}, {0,1,-1}, {0,0,-1}, {0.5,0.5,-1}, {0,0,-1}, {0,0,-1},// face 0
         {0,-1,0}, {1,-1,0},  {0,-1,1}, {0,-1,0}, {0.5,-1,0.5}, {0,-1,0}, {0,-1,0},// face 1
@@ -174,7 +168,7 @@ namespace pztopology {
         {0,1,0} ,
         {0,0,1}
     };
-    static REAL t1Tetra[45][3] =
+    static const REAL t1Tetra[45][3] =
     {
         {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},//face 0
         {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, //face 1
@@ -194,7 +188,7 @@ namespace pztopology {
         {1,0,0}
         
     };
-    static REAL t2Tetra[45][3] =
+    static const REAL t2Tetra[45][3] =
     {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, // face 0
         {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1},// face 1
@@ -214,7 +208,7 @@ namespace pztopology {
         {0,1,0}
     };
 
-    static int vectorsideorderTe [45] =
+    static constexpr int vectorsideorderTe [45] =
     {
         0,1,2,4,5,6,10, //face 0
         0,1,3,4,8,7,11,//face 1
@@ -229,7 +223,7 @@ namespace pztopology {
         14,14,14
     };
     
-    static int bilinearounao [45] =
+    static constexpr int bilinearounao [45] =
     {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -240,7 +234,7 @@ namespace pztopology {
 
 //    static int bilinearounao [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; //Pk Pk-1
 
-    static int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
+    static constexpr int direcaoksioueta [45] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,2};
 
     template<class T>
     inline void TPZTetrahedron::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {

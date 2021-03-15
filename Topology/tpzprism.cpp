@@ -28,24 +28,14 @@ using namespace std;
 
 namespace pztopology {
 
-	static int FaceConnectLocId[5][9] = { {0,1,2,6,7,8,15,-1,-1},{0,1,4,3,6,10,12,9,16},
+	static constexpr int FaceConnectLocId[5][9] = { {0,1,2,6,7,8,15,-1,-1},{0,1,4,3,6,10,12,9,16},
 		{1,2,5,4,7,11,13,10,17},{0,2,5,3,8,11,14,9,18},{3,4,5,12,13,14,19,-1,-1} };
-	
-	
-	int TPZPrism::FaceNodes[5][4]  = { {0,1,2,-1},{0,1,4,3},{1,2,5,4},{0,2,5,3},{3,4,5,-1} };
-	//F15        F16       F17       F18        F19
-	
-	int TPZPrism::SideNodes[9][2]  = { {0,1},{1,2},{2,0},{0,3},{1,4},{2,5},{3,4},{4,5},{5,3} };
-	//arestas   6     7      8    9     10    11    12    13    14
-	
-	int TPZPrism::ShapeFaceId[5][4] = { {0,1,2,-1},{0,1,4,3},{1,2,5,4},{0,2,5,3},{3,4,5,-1} };
-	//F15        F16       F17       F18       F19
 
-	static int sidedimension[21] = {0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3};
+	static constexpr int sidedimension[21] = {0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3};
 	
-	static int nhighdimsides[21] = {7,7,7,7,7,7,3,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
+	static constexpr int nhighdimsides[21] = {7,7,7,7,7,7,3,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
 	
-	static int highsides[21][7] = {
+	static constexpr int highsides[21][7] = {
 		{6,8,9,15,16,18,20},
 		{6,7,10,15,16,17,20},
 		{7,8,11,15,17,18,20},
@@ -69,7 +59,7 @@ namespace pztopology {
 		{-999}
 	};
 	
-	static REAL sidetosidetransforms[21][7][4][3] = {
+	static constexpr REAL sidetosidetransforms[21][7][4][3] = {
 		{
 			//0
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
@@ -211,7 +201,7 @@ namespace pztopology {
 		}
 	};
 	
-	static REAL MidSideNode[21][3] = {
+	static constexpr REAL MidSideNode[21][3] = {
 		/*00*/{0.,.0,-1.},/*01*/{1.,0.,-1.},/*02*/{.0,1.,-1.},/*03*/{.0,.0, 1.},
 		/*04*/{1.,.0, 1.},/*05*/{0.,1., 1.},/*06*/{.5,.0,-1.},/*07*/{.5,.5,-1.},
 		/*08*/{.0,.5,-1.},/*09*/{0.,.0, 0.},/*10*/{1.,.0, 0.},/*11*/{.0,1., 0.},
@@ -219,7 +209,7 @@ namespace pztopology {
 		/*16*/{.5,.0, 0.},/*17*/{.5,.5, 0.},/*18*/{0.,.5, 0.},/*19*/{1./3.,1./3., 1.},
 		/*20*/{1./3.,1./3.,0.} };
     
-    static REAL bPrism[63][3] =
+    static constexpr REAL bPrism[63][3] =
     {
         {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1}, {0,0,-1},   // face 0
         {0,-1,0}, {1,-1,0}, {1,-1,0}, {0,-1,0}, {0,-1,0},  {1,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0},// face 1
@@ -240,7 +230,7 @@ namespace pztopology {
         {0,1,0} ,
         {0,0,1}
     };
-    static REAL t1Prism[63][3] =
+    static constexpr REAL t1Prism[63][3] =
     {
         {1,0,0},{1,0,0},{1,0,0},{1,0,0},{1,0,0},{1,0,0},{1,0,0},  // face 0
         {1,0,0}, {1,0,0},{1,0,0},{1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0},{1,0,0},// face 1
@@ -263,7 +253,7 @@ namespace pztopology {
         {1,0,0}
     };
     
-    static REAL t2Prism[63][3] =
+    static constexpr REAL t2Prism[63][3] =
     {
         {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0}, {0,-1,0},// face 0
         {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1},{0,0,1},{0,0,1}, // face 1
@@ -285,7 +275,7 @@ namespace pztopology {
         {0,1,0}
     };
     
-    static int vectorsideorderPr[63] =
+    static constexpr int vectorsideorderPr[63] =
     {
         0,1,2,6,7,8,15,
         0,1,4,3,6,10,12,9,16,
@@ -310,7 +300,7 @@ namespace pztopology {
 //        0,0,1,1,1,1,1,1,0,0,
 //        1,1,1//1,1,1
 //    };
-    static int bilinearounao [63] =   {
+    static constexpr int bilinearounao [63] =   {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -320,7 +310,7 @@ namespace pztopology {
         0,0,1
     };
     
-    static int direcaoksioueta [63] = {
+    static constexpr int direcaoksioueta [63] = {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
