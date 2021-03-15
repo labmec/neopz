@@ -37,13 +37,18 @@ namespace pztopology {
 	 */
 	class TPZCube : public TPZSavable {
 	public:
-        friend void pztopology::GetPermutation<TPZCube>(const int permute, TPZVec<int> &permutation);
-		/** @brief enumerate for topological characteristics */
-		enum {NSides = 27, NCornerNodes = 8, Dimension = 3, NFacets = 6, NPermutations = 48};
+    friend void pztopology::GetPermutation<TPZCube>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+    static constexpr uint64_t NSides = 27;
+    static constexpr uint64_t NCornerNodes = 8;
+    static constexpr uint64_t Dimension = 3;
+    static constexpr uint64_t NFacets = 6;
+    static constexpr uint64_t NPermutations = 48;
+      
 		
-                int ClassId() const override;
-                void Read(TPZStream &buf, void *context) override;
-                void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
                 
 		/** @brief Default constructor */
         TPZCube() : TPZRegisterClassId(&TPZCube::ClassId) {

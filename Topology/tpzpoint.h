@@ -34,13 +34,17 @@ namespace pztopology {
 	class TPZPoint : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFacets = 0, NPermutations = 1};
+    friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+    static constexpr uint64_t NSides = 1;
+		static constexpr uint64_t NCornerNodes = 1;
+    static constexpr uint64_t Dimension = 0;
+    static constexpr uint64_t NFacets = 0;
+    static constexpr uint64_t NPermutations = 1;
 
-                int ClassId() const override;
-                void Read(TPZStream &buf, void *context) override;
-                void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Default constructor */

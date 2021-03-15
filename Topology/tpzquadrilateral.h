@@ -37,12 +37,17 @@ namespace pztopology {
 	class TPZQuadrilateral : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFacets = 4, NPermutations = 8};
-        int ClassId() const override;
-            void Read(TPZStream &buf, void *context) override;
-            void Write(TPZStream &buf, int withclassid) const override;
+    friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+		static constexpr uint64_t NSides = 9;
+    static constexpr uint64_t NCornerNodes = 4;
+    static constexpr uint64_t Dimension = 2;
+    static constexpr uint64_t NFacets = 4;
+    static constexpr uint64_t NPermutations = 8;
+      
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Default constructor */

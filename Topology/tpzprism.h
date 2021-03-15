@@ -33,13 +33,18 @@ namespace pztopology {
 	 */
 	class TPZPrism : public TPZSavable {
 	public:
-        friend void pztopology::GetPermutation<TPZPrism>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFacets = 5, NPermutations = 12};
+    friend void pztopology::GetPermutation<TPZPrism>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+    static constexpr uint64_t NSides = 21;
+    static constexpr uint64_t NCornerNodes = 6;
+    static constexpr uint64_t Dimension = 3;
+    static constexpr uint64_t NFacets = 5;
+    static constexpr uint64_t NPermutations = 12;
+      
 		
-                virtual int ClassId() const override;
-                void Read(TPZStream& buf, void* context) override;
-                void Write(TPZStream& buf, int withclassid) const override;
+    virtual int ClassId() const override;
+    void Read(TPZStream& buf, void* context) override;
+    void Write(TPZStream& buf, int withclassid) const override;
 
 
                 
