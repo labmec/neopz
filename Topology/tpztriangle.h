@@ -288,7 +288,6 @@ namespace pztopology {
         
         static int SideNodes[3][2];
         static int FaceNodes[1][3];
-        static REAL gTrans2dT[6][2][2] ;
        
 
 	protected:

@@ -38,17 +38,6 @@ namespace pztopology {
     int TPZTriangle::SideNodes[3][2]  = { {0,1},{1,2},{2,0} };
     int TPZTriangle::FaceNodes[1][3]  = { {0,1,2} };
     
-    
-    /**Transformation of the point within a triangular face */
-    REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
-        { { 1., 0.},{ 0., 1.} },
-        { { 0., 1.},{ 1., 0.} },
-        { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
-        { {-1.,-1.},{ 0., 1.} },
-        { {-1.,-1.},{ 1., 0.} },
-        { { 1., 0.},{-1.,-1.} }
-    };
-    
     template<class T>
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
