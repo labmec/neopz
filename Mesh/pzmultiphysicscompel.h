@@ -76,13 +76,15 @@ public:
     
     virtual void EvaluateError(TPZFunction<STATE> &func,
                                TPZVec<STATE> &errors, bool store_error) override;
-    
 
-	/**
-	 * @brief Method to obtain an reference index set of multiphysics computational elements.
-	 * @param cmeshVec Vector of computational meshes
-	 * @param refIndexVec
-	 **/
+  virtual void
+  EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
+
+  /**
+   * @brief Method to obtain an reference index set of multiphysics computational elements.
+   * @param cmeshVec Vector of computational meshes
+   * @param refIndexVec
+   **/
 	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int64_t> &refIndexVec);
 
 	/** @brief Method for creating a copy of the element */
