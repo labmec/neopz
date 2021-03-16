@@ -18,8 +18,6 @@
 #include "checkconv.h"
 #endif
 
-using namespace std;
-
 #include "tfad.h"
 #include "fadType.h"
 #include "pzlog.h"

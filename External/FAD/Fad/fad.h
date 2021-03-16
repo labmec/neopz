@@ -31,7 +31,6 @@
 
 #include <Hash/TPZHash.h>
 
-using namespace std;
 
 template <class T> class FadExpr;
 template <class T> class FadCst;
@@ -55,7 +54,7 @@ template <class T> class Fad : public FadSuper {
 public:
   typedef T value_type;
   
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   inline void copy(const Fad<R>& rhs)
   {
     const Vector<R> &xdx = rhs.dx();
@@ -77,18 +76,18 @@ public:
 
   Fad() : val_( T(0.f)), dx_(), defaultVal(T(0)) {;}
   
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   Fad(const R & x) : val_(x), dx_(), defaultVal(T(0)) {;}
   Fad(const int sz, const T & x) : val_(x), dx_(sz,T(0)), defaultVal(T(0)) {;}
   Fad(const int sz, const int i, const T & x) : val_(x), dx_(sz,T(0)), defaultVal(T(0))
     {dx_[i]=1.;}
   Fad(const int sz, const T & x, const T & dx) : val_(x), dx_(sz, dx), defaultVal(T(0)) {;}
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   Fad(const Fad<R> & rhs) : defaultVal(T(0))
   {
     copy(rhs);
   }
-  //template <class ExprT, typename enable_if<is_convertible<typename ExprT::value_type,T>::value,int>::type * = nullptr> 
+  //template <class ExprT, typename std::enable_if<std::is_convertible<typename ExprT::value_type,T>::value,int>::type * = nullptr> 
   template <class ExprT> 
     inline Fad(const FadExpr<ExprT>& fadexpr) : 
     val_(fadexpr.val()), 
@@ -136,7 +135,7 @@ public:
   Fad<T>& operator*= (const T& x);
   Fad<T>& operator/= (const T& x);
 
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   inline Fad<T>& operator+= (const Fad<R>& x){
     int xsz = x.size(), sz = dx_.size();
 
@@ -160,7 +159,7 @@ public:
     return *this;
   }
   
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   inline Fad<T>& operator-= (const Fad<R>& x){
     int xsz = x.size(), sz = dx_.size();
 
@@ -184,7 +183,7 @@ public:
     return *this;
   }
   
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   inline Fad<T>& operator*= (const Fad<R>& x){
     int xsz = x.size(), sz = dx_.size();
     R xval = x.val();
@@ -216,7 +215,7 @@ public:
     return *this;
   }
   
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
   inline Fad<T>& operator/= (const Fad<R>& x){
     int xsz = x.size(), sz = dx_.size();
     R xval = x.val();
@@ -248,7 +247,7 @@ public:
     return *this;
   }
 
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
     inline Fad<T> &operator=(const R& val) 
     {
       val_ = val;
@@ -258,7 +257,7 @@ public:
       return *this;
     }
 
-  template<typename R, typename enable_if<is_convertible<R,T>::value,int>::type * = nullptr>
+  template<typename R, typename std::enable_if<std::is_convertible<R,T>::value,int>::type * = nullptr>
     inline Fad<T> &operator=(const Fad<R>& rhs) 
     {
       if ( this != (Fad<T>*)(&rhs) ) copy(rhs);
@@ -273,7 +272,7 @@ public:
   template <class ExprT> Fad<T>& operator+= (const FadExpr<ExprT>& fadexpr);
   template <class ExprT> Fad<T>& operator-= (const FadExpr<ExprT>& fadexpr);
     
-  friend ostream& operator<< (ostream& stream, const Fad<T>& x)
+  friend std::ostream& operator<< (std::ostream& stream, const Fad<T>& x)
   {
       const int VAL_WIDTH = 8;
       stream << std::setw(VAL_WIDTH)<<std::right<<x.val()<<" dx: ";
@@ -283,7 +282,7 @@ public:
       return stream;
   }
     
-  friend istream& operator>> (istream& stream, Fad<T>& x)
+  friend std::istream& operator>> (std::istream& stream, Fad<T>& x)
   {
       return stream >> x.val();
   }
@@ -535,9 +534,9 @@ template <class T> template <class ExprT> inline  Fad<T> & Fad<T>::operator/= (c
 
 
 //------------------------------- Fad ostream operator ------------------------------------------
-template <class T> inline ostream& operator << (ostream& os, const Fad<T>& a)
+template <class T> inline std::ostream& operator << (std::ostream& os, const Fad<T>& a)
 {
-  os.setf(ios::fixed,ios::floatfield);
+  os.setf(std::ios::fixed,std::ios::floatfield);
   os.width(12);
   os << a.val() << "  [";
 

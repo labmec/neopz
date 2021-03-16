@@ -23,7 +23,6 @@
 #include <iostream>
 #include <string>
 
-//using namespace std;
 
 inline void error(const std::string &msg)
 {

@@ -3,8 +3,6 @@
 
 
 
-//using namespace std;
-
 #include "fad.h"
 #include "tinyfad.h"
 #include "tfad.h" // tinyFadET

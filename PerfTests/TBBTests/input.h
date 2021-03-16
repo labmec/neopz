@@ -44,8 +44,6 @@
 
 #include <string>
 
-using namespace std;
-
 namespace Input {
     /// Generate a boundary geometric element at the indicated node
     void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)

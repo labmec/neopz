@@ -21,8 +21,6 @@
 // ANSI C++ include
 #include <complex>
 
-using namespace std;
-
 template <class T> class ADPromote {
   const T& x_; 
 public:
@@ -159,30 +157,30 @@ template <> class NumericalTraits<type2,type1> { \
 public:                                          \
     typedef type3 promote;                       \
 };
-NT_SPE(complex<double>,complex<long double>,complex<long double>)
-NT_SPE(complex<float>,complex<long double>,complex<long double>)
-NT_SPE(complex<float>,complex<double>,complex<double>)
-NT_SPE(long double,complex<long double>,complex<long double>)
-NT_SPE(long double,complex<double>,complex<long double>)
-NT_SPE(long double,complex<float>,complex<long double>)
-NT_SPE(double,complex<long double>,complex<long double>)
-NT_SPE(double,complex<double>,complex<double>)
-NT_SPE(double,complex<float>,complex<double>)
+NT_SPE(std::complex<double>,std::complex<long double>,std::complex<long double>)
+NT_SPE(std::complex<float>,std::complex<long double>,std::complex<long double>)
+NT_SPE(std::complex<float>,std::complex<double>,std::complex<double>)
+NT_SPE(long double,std::complex<long double>,std::complex<long double>)
+NT_SPE(long double,std::complex<double>,std::complex<long double>)
+NT_SPE(long double,std::complex<float>,std::complex<long double>)
+NT_SPE(double,std::complex<long double>,std::complex<long double>)
+NT_SPE(double,std::complex<double>,std::complex<double>)
+NT_SPE(double,std::complex<float>,std::complex<double>)
 NT_SPE(double,long double,long double)
-NT_SPE(float,complex<long double>,complex<long double>)
-NT_SPE(float,complex<double>,complex<double>)
-NT_SPE(float,complex<float>,complex<float>)
+NT_SPE(float,std::complex<long double>,std::complex<long double>)
+NT_SPE(float,std::complex<double>,std::complex<double>)
+NT_SPE(float,std::complex<float>,std::complex<float>)
 NT_SPE(float,long double,long double)
 NT_SPE(float,double,double)
-NT_SPE(int64_t,complex<long double>,complex<long double>)
-NT_SPE(int64_t,complex<double>,complex<double>)
-NT_SPE(int64_t,complex<float>,complex<float>)
+NT_SPE(int64_t,std::complex<long double>,std::complex<long double>)
+NT_SPE(int64_t,std::complex<double>,std::complex<double>)
+NT_SPE(int64_t,std::complex<float>,std::complex<float>)
 NT_SPE(int64_t,long double,long double)
 NT_SPE(int64_t,double,double)
 NT_SPE(int64_t,float,float)
-NT_SPE(int,complex<long double>,complex<long double>)
-NT_SPE(int,complex<double>,complex<double>)
-NT_SPE(int,complex<float>,complex<float>)
+NT_SPE(int,std::complex<long double>,std::complex<long double>)
+NT_SPE(int,std::complex<double>,std::complex<double>)
+NT_SPE(int,std::complex<float>,std::complex<float>)
 NT_SPE(int,long double,long double)
 NT_SPE(int,double,double)
 NT_SPE(int,float,float)

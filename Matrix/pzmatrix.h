@@ -832,16 +832,16 @@ inline void TPZMatrix<double>::Residual(const TPZFMatrix<double>& x,const TPZFMa
 
 template<>
 inline void
-TPZMatrix<complex<float>>::Residual(const TPZFMatrix<complex<float>> &x, const TPZFMatrix<complex<float>> &rhs,
-                                    TPZFMatrix<complex<float>> &res) {
-    MultAdd(x, rhs, res, ((complex<float>) -1.0), ((complex<float>) 1.0));
+TPZMatrix<std::complex<float>>::Residual(const TPZFMatrix<std::complex<float>> &x, const TPZFMatrix<std::complex<float>> &rhs,
+                                    TPZFMatrix<std::complex<float>> &res) {
+    MultAdd(x, rhs, res, ((std::complex<float>) -1.0), ((std::complex<float>) 1.0));
 }
 
 template<>
 inline void
-TPZMatrix<complex<double>>::Residual(const TPZFMatrix<complex<double>> &x, const TPZFMatrix<complex<double>> &rhs,
-                                     TPZFMatrix<complex<double>> &res) {
-    MultAdd(x, rhs, res, ((complex<double>) -1.0), ((complex<double>) 1.0));
+TPZMatrix<std::complex<double>>::Residual(const TPZFMatrix<std::complex<double>> &x, const TPZFMatrix<std::complex<double>> &rhs,
+                                     TPZFMatrix<std::complex<double>> &res) {
+    MultAdd(x, rhs, res, ((std::complex<double>) -1.0), ((std::complex<double>) 1.0));
 }
 
 /***********/

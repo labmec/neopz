@@ -34,8 +34,6 @@ class TPZMaterialData;
 static LoggerPtr CompElPostProclogger(Logger::getLogger("pz.mesh.TPZCompElPostProc"));
 #endif
 
-using namespace std;
-
 
 /**
  * @brief This class implements the TPZCompEl structure to enable copying the solution

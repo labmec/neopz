@@ -67,7 +67,7 @@ public:
      case 12 : dx12_ = T(1.);break;
      case 13 : dx13_ = T(1.);break;
      case 14 : dx14_ = T(1.);break;
-     default : cout << "ith = " << ith << "  out of definition set" << endl;exit(1);
+     default : std::cout << "ith = " << ith << "  out of definition set" << std::endl;exit(1);
      }
   }
 
@@ -104,7 +104,7 @@ public:
      case 12 : dx12_ = T(1.);break;
      case 13 : dx13_ = T(1.);break;
      case 14 : dx14_ = T(1.);break;
-     default : cout << "ini = " << ini << "  out of definition set" << endl;exit(1);
+     default : std::cout << "ini = " << ini << "  out of definition set" << std::endl;exit(1);
      }
   }
   TinyFad() : n(0), val_(0.) {
@@ -229,7 +229,7 @@ public:
      case 12 : return dx12_;
      case 13 : return dx13_;
      case 14 : return dx14_;
-     default : cout << "i out of bounds" << endl;exit(1);
+     default : std::cout << "i out of bounds" << std::endl;exit(1);
      }
   }
   const T& dx(int i) const {
@@ -249,7 +249,7 @@ public:
      case 12 : return dx12_;
      case 13 : return dx13_;
      case 14 : return dx14_;
-     default : cout << "i out of bounds" << endl;exit(1);
+     default : std::cout << "i out of bounds" << std::endl;exit(1);
      }
   }
   T& d(int i){
@@ -269,7 +269,7 @@ public:
      case 12 : return dx12_;
      case 13 : return dx13_;
      case 14 : return dx14_;
-     default : cout << "i out of bounds" << endl;exit(1);
+     default : std::cout << "i out of bounds" << std::endl;exit(1);
      }
   }
   const T& d(int i) const {
@@ -289,7 +289,7 @@ public:
      case 12 : return dx12_;
      case 13 : return dx13_;
      case 14 : return dx14_;
-     default : cout << "i out of bounds" << endl;exit(1);
+     default : std::cout << "i out of bounds" << std::endl;exit(1);
      }
   }
 

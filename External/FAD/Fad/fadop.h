@@ -20,7 +20,6 @@
 #ifndef _fadop_h_
 #define _fadop_h_
 
-using namespace std;
 //------------------------------- Fad binary operators ------------------------------------------
 
 
@@ -46,7 +45,7 @@ public:
   const value_type dx(int i) const {return left_.dx(i) + right_.dx(i);}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -129,7 +128,7 @@ public:
   const value_type dx(int i) const {return left_.dx(i) - right_.dx(i);}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -207,7 +206,7 @@ template <typename L, typename R> class FadBinaryMul {
   const value_type dx(int i) const {return  left_.dx(i) * right_.val() + right_.dx(i) * left_.val();}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -283,7 +282,7 @@ template <typename L, typename R> class FadBinaryDiv {
   const value_type dx(int i) const {return  (left_.dx(i) * right_.val() - right_.dx(i) * left_.val() ) / (right_.val() * right_.val()) ;}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -368,7 +367,7 @@ public:
     }
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -477,8 +476,8 @@ public:
 #define FAD_BIN_MACRO(OP, TYPE)                                                \
   /*A1 (a FadSuper object) vs A2 (another FadSuper object)*/                   \
   template <typename A1, typename A2,                                          \
-            typename enable_if<is_convertible<A1*,FadSuper*>::value            \
-                                 && is_convertible<A2*,FadSuper*>::value,      \
+            typename std::enable_if<std::is_convertible<A1*,FadSuper*>::value            \
+                                 && std::is_convertible<A2*,FadSuper*>::value,      \
                                      int>::type * = nullptr>                   \
   inline FadExpr<TYPE<A1, A2>> OP(const A1 &v, const A2 &w) {    \
     typedef TYPE<A1, A2> expr_t;                             \
@@ -486,8 +485,8 @@ public:
   }                                                                            \
   /*B1 (an arithmetic value) vs B2 (a FadSuper object) */                      \
   template <typename B1, typename B2,                                          \
-            typename enable_if<(is_arithmetic_pz<B1>::value && \
-                                     (is_convertible<B2*, FadSuper*>::value)), \
+            typename std::enable_if<(is_arithmetic_pz<B1>::value && \
+                                     (std::is_convertible<B2*, FadSuper*>::value)), \
                                     int>::type * = nullptr>                    \
   inline FadExpr<TYPE<FadCst<B1>, B2>> OP(const B1 a, const B2 &e) {             \
     typedef TYPE<FadCst<B1>, B2> expr_t;                                  \
@@ -495,7 +494,7 @@ public:
   }                                                                            \
   /*C1 (a FadSuper object) vs C2 (an arithmetic value) */                                  \
   template <typename C1, typename C2,                                          \
-            typename enable_if<((is_convertible<C1*, FadSuper*>::value) && \
+            typename std::enable_if<((std::is_convertible<C1*, FadSuper*>::value) && \
                                      is_arithmetic_pz<C2>::value), \
                                     int>::type * = nullptr>                    \
   inline FadExpr<TYPE<C1, FadCst<C2>>> OP(const C1 &e, const C2 a) {                  \

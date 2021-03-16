@@ -47,7 +47,7 @@ public:
   const value_type dx(int i) const {return left_.dx(i) + right_.dx(i);}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -128,7 +128,7 @@ public:
   const value_type dx(int i) const {return left_.dx(i) - right_.dx(i);}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -204,7 +204,7 @@ template <class L, class R> class TFadBinaryMul {
   const value_type dx(int i) const {return  left_.dx(i) * right_.val() + right_.dx(i) * left_.val();}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -278,7 +278,7 @@ template <class L, class R> class TFadBinaryDiv {
   const value_type dx(int i) const {return  (left_.dx(i) * right_.val() - right_.dx(i) * left_.val() ) / (right_.val() * right_.val()) ;}
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
@@ -361,7 +361,7 @@ public:
     }
   int size() const {
     int lsz = left_.size(), rsz = right_.size();
-    return max(lsz, rsz);
+    return std::max(lsz, rsz);
   }
 
   bool hasFastAccess() const { return left_.hasFastAccess() && right_.hasFastAccess();}
