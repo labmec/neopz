@@ -23,7 +23,6 @@
 
 #include "pzlog.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
 
 
@@ -2652,4 +2651,3 @@ void TStokesAnalytic::Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMa
 
 }
 
-#endif

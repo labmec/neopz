@@ -171,7 +171,6 @@ struct TPZAnalyticSolution
     virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const = 0;
 };
 
-#ifdef _AUTODIFF
 
 struct TElasticity2DAnalytic : public TPZAnalyticSolution
 {
@@ -516,4 +515,3 @@ struct TStokesAnalytic : public TPZAnalyticSolution
 
 #endif
 
-#endif

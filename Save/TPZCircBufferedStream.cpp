@@ -203,7 +203,6 @@ void TPZCircBufferedStream::Write(const std::complex<double> *p, int howMany) {
     WriteData<std::complex<double>>(p, howMany);
 }
 
-#ifdef _AUTODIFF
 
 void TPZCircBufferedStream::Write(const TFad<1,REAL> *p, int howMany) {
     WriteData<TFad<1,REAL>>(p, howMany);
@@ -237,7 +236,6 @@ void TPZCircBufferedStream::Write(const Fad<double> *p, int howMany) {
     WriteData<Fad<double>>(p, howMany);
 }
 
-#endif
 
 void TPZCircBufferedStream::Read(int *p, int howMany) {
     ReadData<int>(p, howMany);
@@ -283,7 +281,6 @@ void TPZCircBufferedStream::Read(std::complex<double> *p, int howMany) {
     ReadData<std::complex<double>>(p, howMany);
 }
 
-#ifdef _AUTODIFF
 
 void TPZCircBufferedStream::Read(TFad<1,REAL> *p, int howMany) {
     ReadData<TFad<1,REAL>>(p, howMany);
@@ -316,4 +313,3 @@ void TPZCircBufferedStream::Read(Fad<float> *p, int howMany) {
 void TPZCircBufferedStream::Read(Fad<double> *p, int howMany) {
     ReadData<Fad<double>>(p, howMany);
 }
-#endif

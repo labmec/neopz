@@ -160,7 +160,6 @@ void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
     
 }
 
-#ifdef _AUTODIFF
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
 {
@@ -190,7 +189,6 @@ void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &grad
     fGeoEl->GradX(locElement, gradx);
 }
 
-#endif
 
 
 

@@ -24,10 +24,8 @@
 #include "pzvec.h"
 #include "tpzverysparsematrix.h"
 #include "TPZParallelUtils.h"
-#ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
-#endif
 
 class TPZStream;
 
@@ -325,7 +323,6 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
     DebugStop();
 }
 
-#ifdef _AUTODIFF
 template <>
 void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
 {
@@ -338,7 +335,6 @@ void TPZFMatrix<Fad<double> >::GramSchmidt(TPZFMatrix<Fad<double> > &Orthog, TPZ
     DebugStop();
 }
 
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
@@ -1308,14 +1304,6 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 }
 
 
-//#ifdef _AUTODIFF
-//template <class TVar>
-//int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B) {
-//    std::cout << __PRETTY_FUNCTION__ << " bailing out\n";
-//    DebugStop();
-//    return 1;
-//}
-//#else
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B)
 {
@@ -1351,9 +1339,7 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVa
 }
 //#endif
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /****************/
 /*** Substitution ***/
@@ -2124,7 +2110,6 @@ int64_t Dot(const TPZFMatrix<int64_t> &A, const TPZFMatrix<int64_t> &B);
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 
-#ifdef _AUTODIFF
 template
 Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B);
 
@@ -2133,7 +2118,6 @@ Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> 
 
 template
 Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B);
-#endif
 
 template
 TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
@@ -2176,7 +2160,6 @@ int TPZFMatrix<TVar>::Clear() {
     return( 1 );
 }
 
-#ifdef _AUTODIFF
 template <>
 void TPZFMatrix<TFad<6,REAL> >::Read( TPZStream &buf, void *context ){
     DebugStop();
@@ -2196,7 +2179,6 @@ template <>
 void TPZFMatrix<Fad<REAL> >::Write( TPZStream &buf, int withclassid ) const {
     DebugStop();
 }
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
@@ -2306,13 +2288,11 @@ bool TPZFMatrix<TVar>::Compare(TPZSavable *copy, bool override) const
     return matresult;
 }
 
-#ifdef _AUTODIFF
 template <>
 void TPZFMatrix<TFad<6,REAL> >::PrintStatic(const TFad<6,REAL> *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form)
 {
     DebugStop();
 }
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form){
@@ -3142,7 +3122,6 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
 
 #endif // USING_LAPACK
 
-#ifdef _AUTODIFF
 /** @brief Returns the norm of the matrix A */
 template<>
 TFad<6,REAL> Norm(const TPZFMatrix<TFad<6,REAL> > &A)
@@ -3159,7 +3138,6 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     return res;
 }
 
-#endif
 
 #include <complex>
 
@@ -3186,8 +3164,6 @@ template class TPZRestoreClass< TPZFMatrix<std::complex<double> > >;
 template class TPZRestoreClass< TPZFMatrix<std::complex<long double> > >;
 template class TPZRestoreClass< TPZFMatrix<TPZFlopCounter > >;
 
-#ifdef _AUTODIFF
-#include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
 template class TPZFMatrix<Fad<double> >;
 template class TPZFMatrix<Fad<float> >;
@@ -3197,4 +3173,3 @@ template class TPZRestoreClass<TPZFMatrix<TFad<6,REAL> >>;
 template class TPZRestoreClass<TPZFMatrix<Fad<double> >>;
 template class TPZRestoreClass<TPZFMatrix<Fad<float> >>;
 template class TPZRestoreClass<TPZFMatrix<Fad<long double> >>;
-#endif

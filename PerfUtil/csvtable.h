@@ -10,7 +10,6 @@
 #include<vector>  // vector
 #include <stdlib.h>
 
-using namespace std;
 
 /** Template class to create CSVTable columns where the cell values are of type T. */
 template<class T>
@@ -18,25 +17,25 @@ class CSVTableColumn {
 
  public:
 
-  CSVTableColumn(const string& header)
+  CSVTableColumn(const std::string& header)
   {
     setHeader(header);
   }
 
   /* Gets the column name. */
-  const string& getHeader() const
+  const std::string& getHeader() const
   {
     return header;
   }
 
   /* Sets the column name. */
-  void setHeader(const string& h)
+  void setHeader(const std::string& h)
   {
     header = h;
   }
 
   /* Checks whether the header name is equal to h. */
-  bool isHeader(const string& h) const
+  bool isHeader(const std::string& h) const
   {
     return (header == h);
   }
@@ -60,8 +59,8 @@ class CSVTableColumn {
   T& operator[](unsigned i)
   {
     if (i >= data.size()) {
-      cerr << "Error(" __FILE__ ":" << __LINE__ << "): Trying to access row " << i
-	   << " but column has only " << data.size() << " rows." << endl;
+      std::cerr << "Error(" __FILE__ ":" << __LINE__ << "): Trying to access row " << i
+	   << " but column has only " << data.size() << " rows." << std::endl;
       exit(1);
     }
     return data[i];
@@ -71,8 +70,8 @@ class CSVTableColumn {
   const T& operator[](unsigned i) const
   {
     if (i >= data.size()) {
-      cerr << "Error(" __FILE__ ":" << __LINE__ << "): Trying to access row " << i
-	   << " but column has only " << data.size() << " rows." << endl;
+      std::cerr << "Error(" __FILE__ ":" << __LINE__ << "): Trying to access row " << i
+	   << " but column has only " << data.size() << " rows." << std::endl;
       exit(1);
     }
     return data[i];
@@ -80,8 +79,8 @@ class CSVTableColumn {
 
  protected:
 
-  string header;
-  vector<T> data;
+  std::string header;
+  std::vector<T> data;
     
 };
 
@@ -97,7 +96,7 @@ class CSVTable
    */
   unsigned addRows(unsigned n=1)
   {
-    typename vector<CSVTableColumn<Tvar> >::iterator it;
+    typename std::vector<CSVTableColumn<Tvar> >::iterator it;
     nrows += n;
     for (it = columns.begin(); it != columns.end(); it++) {
       CSVTableColumn<Tvar>& col = *it;
@@ -108,10 +107,10 @@ class CSVTable
   }
 
   /** Returns the index of the column named "column_name". */
-  int getColIdx(const string& column_name)
+  int getColIdx(const std::string& column_name)
   {
     int colidx = 0;
-    typename vector<CSVTableColumn<Tvar> >::iterator it;
+    typename std::vector<CSVTableColumn<Tvar> >::iterator it;
     for (it = columns.begin(); it != columns.end(); it++, colidx++) {
       if (it->isHeader(column_name))
 	return colidx;
@@ -119,7 +118,7 @@ class CSVTable
     return -1;
   }
 
-  unsigned addColumn(const string& col_name)
+  unsigned addColumn(const std::string& col_name)
   {
     CSVTableColumn<Tvar> col(col_name);
     columns.push_back(col);
@@ -133,7 +132,7 @@ class CSVTable
    * Error code: -1 : Invalid row
    *             -2 : Invalid column and createNewCol == false
    */
-  int setCell(unsigned row_idx, string col_name, string value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, std::string value, bool createNewCol = false)
   {
     if (nrows <= row_idx) return -1; // Return -1 row idx is out of bounds.
 
@@ -150,34 +149,34 @@ class CSVTable
     col[row_idx] = value;
     return 0;
   }
-  int setCell(unsigned row_idx, string col_name, int value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, int value, bool createNewCol = false)
   {
-    stringstream str; str << value;
+    std::stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, long value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, long value, bool createNewCol = false)
   {
-    stringstream str; str << value;
+    std::stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, bool value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, bool value, bool createNewCol = false)
   {
-    stringstream str; str << value;
+    std::stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, unsigned value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, unsigned value, bool createNewCol = false)
   {
-    stringstream str; str << value;
+    std::stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, double value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, double value, bool createNewCol = false)
   {
-    stringstream str; str.precision(6); str << std::fixed << value;
+    std::stringstream str; str.precision(6); str << std::fixed << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
-  int setCell(unsigned row_idx, string col_name, float value, bool createNewCol = false)
+  int setCell(unsigned row_idx, std::string col_name, float value, bool createNewCol = false)
   {
-    stringstream str; str << value;
+    std::stringstream str; str << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
 
@@ -186,10 +185,10 @@ class CSVTable
     return nrows;
   }
 
-  void write(ostream& os) const
+  void write(std::ostream& os) const
   {
     const char* comma = "";
-    typename vector<CSVTableColumn<Tvar> >::const_iterator it;
+    typename std::vector<CSVTableColumn<Tvar> >::const_iterator it;
 
     for (it = columns.begin(); it != columns.end(); it++) {
       os << comma << it->getHeader();
@@ -198,7 +197,7 @@ class CSVTable
 
     for (unsigned i=0; i < nrows; i++) {
       comma = "";
-      os << endl;
+      os << std::endl;
       for (it = columns.begin(); it != columns.end(); it++) {
 	os << comma << (*it)[i];
 	comma = ",";
@@ -211,10 +210,10 @@ class CSVTable
    *           -1 if could not read headers.
    *           1  if number of cells in one or more rows does not match the number of column headers
    */
-  int read(istream& is)
+  int read(std::istream& is)
   {
-    string line;
-    vector<string> tokens;
+    std::string line;
+    std::vector<std::string> tokens;
     int ret = 0;
 
     /* reset table */
@@ -231,9 +230,9 @@ class CSVTable
     if(tokens.size() == 0) return -1;
     
     /* Build columns. */ 
-    vector<string>::iterator tit;
+    std::vector<std::string>::iterator tit;
     for (tit = tokens.begin(); tit != tokens.end(); tit++) {
-      string hd = *tit;
+      std::string hd = *tit;
       trim(hd);
       addColumn(hd);
     }
@@ -241,8 +240,8 @@ class CSVTable
     unsigned ncols = columns.size();
 
     while(!is.eof()) {
-      string line;
-      vector<string> tokens;
+      std::string line;
+      std::vector<std::string> tokens;
       /* read the row. */
       getline(is, line);
       //cout << "Reading line " << nrows << ": " << line << endl;
@@ -256,7 +255,7 @@ class CSVTable
 	CSVTableColumn<Tvar>& col = columns[i];
 	col.addRows(1);
 	if (i < ntokens) {
-	  string& v = tokens[i]; 
+	  std::string& v = tokens[i]; 
 	  col[nrows] = v;
 	}
       }
@@ -268,28 +267,28 @@ class CSVTable
 
  protected:
 
-  void split( vector<string> & theStringVector,
-	      const  string  & theString,
-	      const  string  & theDelimiter)
+  void split( std::vector<std::string> & theStringVector,
+	      const  std::string  & theString,
+	      const  std::string  & theDelimiter)
   {
     size_t  start = 0, end = 0;
-    while ( end != string::npos)
+    while ( end != std::string::npos)
     {
         end = theString.find( theDelimiter, start);
         // If at end, use length=maxLength.  Else use length=end-start.
         theStringVector.push_back( theString.substr( start,
-                       (end == string::npos) ? string::npos : end - start));
+                       (end == std::string::npos) ? std::string::npos : end - start));
         // If at end, use start=maxSize.  Else use start=end+delimiter.
-        start = (   ( end > (string::npos - theDelimiter.size()) )
-                  ?  string::npos  :  end + theDelimiter.size());
+        start = (   ( end > (std::string::npos - theDelimiter.size()) )
+                  ?  std::string::npos  :  end + theDelimiter.size());
     }
   }
 
   // trim from both ends
-  static inline string &trim(string &s) {
+  static inline std::string &trim(std::string &s) {
     
     /* If first is space, eat the consecutive spaces. */
-    string::iterator first = s.begin();
+    std::string::iterator first = s.begin();
     while((first != s.end()) && isspace(*first)) first++;
     if (first != s.begin()) s.erase(s.begin(), first-1);
 
@@ -297,7 +296,7 @@ class CSVTable
 
     /* If we reach this point, there is at least one non-space character. */
     /* If last is space, eat the consecutive spaces. */
-    string::iterator last = s.end()-1;
+    std::string::iterator last = s.end()-1;
     /* If first is space, eat the consecutive spaces. */
     while(isspace(*last)) last--;
     if (last != s.end()) s.erase(++last, s.end());
@@ -306,13 +305,13 @@ class CSVTable
   }
 
   /** Array of columns. */
-  vector<CSVTableColumn<Tvar> > columns;
+  std::vector<CSVTableColumn<Tvar> > columns;
   
   unsigned nrows;
 };
 
 /** CSV String table. */ 
-typedef CSVTable<string> CSVStringTable;
+typedef CSVTable<std::string> CSVStringTable;
 
 #endif // CSVTABLE_H
 

@@ -9,9 +9,7 @@
 #include <ostream>
 #include "pzmatrix.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /** @ingroup matrix */
  enum EStatus {EOk = 0, EIncompDim, EZeroPivot};

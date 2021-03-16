@@ -1525,7 +1525,7 @@ void TPZTensor<T>::ComputeEigenvector1(const TPZManVector<T, 3> &eigenvector0, c
     REAL absM11 = fabs(TPZExtractVal::val(m11));
     REAL maxAbsComp;
     if (absM00 >= absM11) {
-        maxAbsComp = max(absM00, absM01);
+        maxAbsComp = std::max(absM00, absM01);
         if (IsZeroVal(maxAbsComp)) {
             eigenvector1 = U;
         } else {
@@ -1592,10 +1592,10 @@ void TPZTensor<T>::Precondition(REAL &conditionFactor, TPZTensor<T>& A, TPZDecom
     // Precondition the matrix by factoring out the maximum absolute value
     // of the components.  This guards against floating-point overflow when
     // computing the eigenvalues.
-    REAL max0 = max(fabs(TPZExtractVal::val(XX())), fabs(TPZExtractVal::val(XY())));
-    REAL max1 = max(fabs(TPZExtractVal::val(XZ())), fabs(TPZExtractVal::val(YY())));
-    REAL max2 = max(fabs(TPZExtractVal::val(YZ())), fabs(TPZExtractVal::val(ZZ())));
-    conditionFactor = max(max(max0, max1), max2);
+    REAL max0 = std::max(fabs(TPZExtractVal::val(XX())), fabs(TPZExtractVal::val(XY())));
+    REAL max1 = std::max(fabs(TPZExtractVal::val(XZ())), fabs(TPZExtractVal::val(YY())));
+    REAL max2 = std::max(fabs(TPZExtractVal::val(YZ())), fabs(TPZExtractVal::val(ZZ())));
+    conditionFactor = std::max(std::max(max0, max1), max2);
 
     REAL invMaxAbsElement = 1. / conditionFactor;
     for (unsigned int i = 0; i < 6; ++i) {
@@ -1631,7 +1631,7 @@ void TPZTensor<T>::DirectEigenValues(TPZDecomposed &eigensystem, bool compute_ei
     T c02 = A.XY() * A.YZ() - b11 * A.XZ();
     T det = (b00 * c00 - A.XY() * c01 + A.XZ() * c02) / (denom * denom * denom);
     T halfDet = det * T(0.5);
-    halfDet = min(max(TPZExtractVal::val(halfDet), -1.), 1.);
+    halfDet = std::min(std::max(TPZExtractVal::val(halfDet), -1.), 1.);
 
     // The eigenvalues of B are ordered as beta0 <= beta1 <= beta2.  The
     // number of digits in twoThirdsPi is chosen so that, whether float or
@@ -1768,11 +1768,11 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval, TPZTensor<T> &dSigma1, TPZ
     T tempCosPlusLode = cos(Lode + pi23) * TwoOverSqrThreeJ2;
 
     if (TPZExtractVal::val(Lode) < 0.) {
-        cout << "Lode angle é Menor que ZERO. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " << endl;
+        std::cout << "Lode angle é Menor que ZERO. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " << std::endl;
         DebugStop();
     }
     if (TPZExtractVal::val(Lode) > M_PI / 3.) {
-        cout << "Lode angle é Maior que Pi/3. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " << endl;
+        std::cout << "Lode angle é Maior que Pi/3. Valido somente para sig1 > sig2 > sig3 -> 0 < theta < Pi/3 " << std::endl;
         DebugStop();
     }
 

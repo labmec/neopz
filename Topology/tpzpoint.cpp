@@ -7,9 +7,7 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 namespace pztopology {
     int TPZPoint::fPermutations[1][1]={
@@ -154,7 +152,6 @@ template void pztopology::TPZPoint::BlendFactorForSide<REAL>(const int &, const 
 template void pztopology::TPZPoint::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 template void pztopology::TPZPoint::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-#ifdef _AUTODIFF
 
 template bool pztopology::TPZPoint::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -165,4 +162,3 @@ template void pztopology::TPZPoint::BlendFactorForSide<Fad<REAL>>(const int &, c
 template void pztopology::TPZPoint::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
 template void pztopology::TPZPoint::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-#endif

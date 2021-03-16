@@ -6,9 +6,7 @@
 #include "pztrnsform.h"
 #include "pzvec.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 using namespace std;
 
@@ -177,6 +175,4 @@ int TPZTransform<T>::CompareTransform(TPZTransform<T> &t,REAL tol){
 }
 
 template class TPZTransform<REAL>;
-#ifdef _AUTODIFF
 template class TPZTransform<Fad<REAL> >;
-#endif

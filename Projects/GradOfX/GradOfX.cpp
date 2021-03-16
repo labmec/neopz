@@ -32,9 +32,7 @@
 
 #include "pzgmesh.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 #include "TPZVTKGeoMesh.h"
 

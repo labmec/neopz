@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-using namespace std;
-
 #include "pzlog.h"
 
 #ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.

@@ -32,7 +32,6 @@ int main()
 	InitializePZLOG("../log4cxx.cfg");
 #endif
     MobilidadeRelativa();
-#ifdef _AUTODIFF
     //    TPBrSteamMesh::TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL WellRadius, REAL ReservoirRadius, REAL oilsaturation)
     REAL wellradius = 0.15;
     REAL ReservoirRadius = 300;
@@ -109,8 +108,7 @@ int main()
         }
     }
 //    mesh.Print();
-#endif
-     
+
     return 0;
 }
 

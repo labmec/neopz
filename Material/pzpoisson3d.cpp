@@ -773,7 +773,6 @@ void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCo
     }
 }//method
 
-#ifdef _AUTODIFF
 void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
 									   TPZVec<FADFADREAL> &sol,
 									   TPZVec<FADFADREAL> &dsol,
@@ -854,7 +853,6 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 	}
 }
 
-#endif
 
 
 void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,

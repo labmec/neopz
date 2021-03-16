@@ -17,7 +17,6 @@
 #include "pzseqsolver.h"
 #include <math.h>
 
-#ifdef _AUTODIFF
 
 void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
 void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &statescalevalues );
@@ -211,4 +210,3 @@ void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &statescaleva
 	}	
 }
 
-#endif

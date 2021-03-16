@@ -29,9 +29,7 @@
 #include <complex>
 #include "fpo_exceptions.h"
 
-#ifdef _AUTODIFF
 template <int Num, class T> class TFad;
-#endif
 
 template <typename Enumeration>
 typename std::underlying_type<Enumeration>::type as_integer(const Enumeration value) {
@@ -649,20 +647,16 @@ inline void ZeroTolerance(T &tol) {
     tol = (T)pow(10,(-1 * (dbl::max_digits10- 5)));
 }
 
-#ifdef _AUTODIFF
-template<int Num, typename T> 
+template<int Num, typename T>
 inline void ZeroTolerance(TFad<Num,T> &Tol) {
     ZeroTolerance(Tol.val());
 }
-#endif
 
-#ifdef _AUTODIFF
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 template<class T>
 inline bool IsZero( T a ) {
 	return ( std::abs( a.val() ) < ZeroTolerance() );
 }
-#endif
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 //template<>
 inline bool IsZero( long double a ) {

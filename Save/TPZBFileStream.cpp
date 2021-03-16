@@ -1,8 +1,6 @@
 #include "TPZBFileStream.h"
-#ifdef _AUTODIFF
 #include "fad.h"
 #include "tfad.h"
-#endif
 
 TPZBFileStream::TPZBFileStream() {}
 

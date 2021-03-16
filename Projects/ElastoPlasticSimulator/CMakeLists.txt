@@ -1,7 +1,6 @@
 
 if ( STATE_TYPE STREQUAL "double" AND
      REAL_TYPE STREQUAL "double" AND 
-     USING_FAD AND 
      BUILD_PLASTICITY_MATERIALS )
 
      file(GLOB headers *.h)

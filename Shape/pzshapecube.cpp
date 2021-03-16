@@ -589,8 +589,7 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
 		return res;
 	}
 	
-#ifdef _AUTODIFF
-	
+
 	void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<int64_t> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi)
 	{
 		const int ndim = 3;
@@ -754,6 +753,5 @@ void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZVec<int> &nshape, TPZFMa
 		}
 	}
 	
-#endif
-	
+
 };

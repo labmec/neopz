@@ -118,7 +118,6 @@ template
 REAL TPZNumeric::Norm(const TPZVec<REAL> &vetor);
 
 
-#ifdef _AUTODIFF
 template
 void TPZNumeric::SortArray3<Fad<REAL>>(const TPZVec<Fad<REAL>> &array, int ordem[3]);
 template
@@ -131,5 +130,4 @@ template
 void TPZNumeric::NormalizeVetor<Fad<REAL>>(TPZVec<Fad<REAL>> &vetor);
 template
 Fad<REAL> TPZNumeric::Norm(const TPZVec<Fad<REAL>> &vetor);
-#endif
 

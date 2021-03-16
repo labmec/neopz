@@ -17,7 +17,6 @@
 #include "tpbrsolutionlist.h"
 #include <math.h>
 
-#ifdef _AUTODIFF
 
 TPBrCellMarx::TPBrCellMarx() : fInitialState(NUMVARS,0.)
 {
@@ -256,11 +255,3 @@ T TPBrCellMarx::TemperatureSaturatedSteam(T pressuresteam){
 	
 	return temp_de_saturac;
 }
-
-#else
-int main()
-{
-    return 0;
-}
-// Nothing is compiled if _AUTODIFF isnt defined
-#endif

@@ -14,9 +14,7 @@
 #include "TPZCompElDisc.h"
 #include "TPZSavable.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 
 /** @brief Returns value of the variable */ 
@@ -166,8 +164,7 @@ int ClassId() const override;
 				   TPZVec<STATE> & Div,
 				   TPZDiffMatrix<STATE> * dDiv);
 	
-#ifdef _AUTODIFF
-	
+
 	/**
 	 * @brief Evaluates the divergent of F
 	 * @param[in] dsol Vector of solution values derived with respect to the spatial variables
@@ -199,7 +196,6 @@ int ClassId() const override;
 	void Divergent(TPZVec<FADREAL> &dsol,
 				   TPZVec<TPZDiffMatrix<FADREAL> > & Ai,
 				   TPZVec<FADREAL> & Div);
-#endif
 	/** @} */
 	
 	/** Tau tensor */
@@ -293,7 +289,6 @@ public:
 						 TPZVec<TPZVec<STATE> > & TauDiv,
 						 TPZVec<TPZDiffMatrix<STATE> > * pTaudDiv = NULL);
 	
-#ifdef _AUTODIFF
 	/**
 	 * @brief Prepares the data to compute the diffusive term as fast as possible, sparing operations
 	 * @param[in] dim Spatial dimension
@@ -316,8 +311,7 @@ public:
 							TPZVec<TPZDiffMatrix<STATE> > & dTauDiv);
 	/** @} */
 	
-#endif
-	
+
 	/** @name Contribute methods
 	 * @{
 	 */
@@ -363,8 +357,7 @@ public:
 							REAL weight, REAL timeStep,
 							REAL deltaX);
 	
-#ifdef _AUTODIFF
-	
+
 	/**
 	 * @brief Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef)
 	 * @param[in] dim Spatial dimension
@@ -414,7 +407,6 @@ public:
 									   REAL weight, REAL timeStep,
 									   REAL deltaX);
 
-#endif
 	/** @} */
 	
 private:

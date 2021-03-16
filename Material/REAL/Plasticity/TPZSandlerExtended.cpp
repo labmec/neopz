@@ -2677,7 +2677,7 @@ void TPZSandlerExtended::CheckCoordinateTransformation(TPZVec<STATE> &cart) {
     TPZHWTools::FromHWCylToPrincipal(HWCyl, Cart2);
     REAL dist1 = dist(cart, Cart2);
     REAL dist2 = dist(HWCart, HWCart2);
-    cout << __FUNCTION__ << " dist1 = " << dist1 << " dist2 = " << dist2 << endl;
+    std::cout << __FUNCTION__ << " dist1 = " << dist1 << " dist2 = " << dist2 << std::endl;
 
 }
 
@@ -3071,7 +3071,7 @@ void TPZSandlerExtended::TaylorCheckDtbkDsigtrial(const TPZVec<STATE> &sigtrial,
         errnorm[i - 1] = Norm(resid - residguess);
         for (int a = 0; a < 3; a++) erros(a, i - 1) = fabs(resid[a] - residguess[a]);
     }
-    erros.Print(cout);
+    erros.Print(std::cout);
 
 }
 

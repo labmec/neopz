@@ -110,7 +110,7 @@ virtual int ClassId() const override;
 	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) override;
     
     
-    void SetOutFile(string outfile);
+    void SetOutFile(std::string outfile);
 	
 	typedef YC_t fNYields;
 	
@@ -622,7 +622,7 @@ protected:
 	
     
     
-    //ofstream fOutfile(string &str);
+    //ofstream fOutfile(std::string &str);
 	
 public:
 	

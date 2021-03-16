@@ -12,11 +12,7 @@
 #include "tpztriangle.h"
 #include "pzlog.h"
 #include "pzextractval.h"
-
-#ifdef _AUTODIFF
-
 #include "fad.h"
-#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.topology.pzpyramid"));
@@ -1904,7 +1900,6 @@ template void pztopology::TPZPyramid::TShape<REAL>(const TPZVec<REAL> &loc,TPZFM
 template void pztopology::TPZPyramid::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 
 template void pztopology::TPZPyramid::AdjustTopDirections<REAL>(int ConstrainedFace, TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-#ifdef _AUTODIFF
 
 template bool pztopology::TPZPyramid::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -1917,4 +1912,3 @@ template void pztopology::TPZPyramid::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> 
 template void pztopology::TPZPyramid::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 
 template void pztopology::TPZPyramid::AdjustTopDirections<Fad<REAL> >(int ConstrainedFace, TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-#endif

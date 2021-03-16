@@ -870,7 +870,7 @@ protected:
         REAL error = sqrt(restheta * restheta + resdeltaL * resdeltaL);
         int64_t count = 0;
         REAL diagTheta = 1., diagL = 1.;
-        REAL maxres = max(fabs(restheta / diagTheta), fabs(resdeltaL / diagL));
+        REAL maxres = std::max(fabs(restheta / diagTheta), fabs(resdeltaL / diagL));
         REAL maxresprev = maxres + 1.;
         while ((maxres > 1.e-10 || maxres < maxresprev) && count < 150) {
             maxresprev = maxres;
@@ -917,7 +917,7 @@ protected:
                 error = sqrt(restheta * restheta + resdeltaL * resdeltaL);
                 iline++;
             }
-            maxres = max(fabs(restheta / diagTheta), fabs(resdeltaL / diagL));
+            maxres = std::max(fabs(restheta / diagTheta), fabs(resdeltaL / diagL));
             count++;
             if (count > 9 && maxres < 1.e-10) {
                 break;

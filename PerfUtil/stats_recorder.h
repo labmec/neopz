@@ -97,8 +97,6 @@
  
  */
 
-using namespace std;
-
 #include<csvtable.h>
 
 /**
@@ -119,7 +117,7 @@ public:
     /**
      * Print the statistics
      */
-    virtual void print(ostream& os) const = 0;
+    virtual void print(std::ostream& os) const = 0;
     /**
      * Append metrics to the statistics table.  The idea is to keep one
      * table for each segment of code. New runs are appended to the
@@ -167,7 +165,7 @@ public:
      * Print the statistics.
      * TODO: create a table, update it, and print the table.
      */
-    void print(ostream& os) const
+    void print(std::ostream& os) const
     {
         os << "HEADERS,PAPI_RTIME,PAPI_PTIME,PAPI_FLPOPS,PAPI_MFLOPS" << endl;
         os << "VALUES,"
@@ -358,10 +356,10 @@ total_children.fld.tv_usec += (children.fld.tv_usec - lap_children.fld.tv_usec)
      * Print the statistics.
      * TODO: create a table, update it, and print the table.
      */
-    void print(ostream& os) const
+    void print(std::ostream& os) const
     {
-        stringstream header;
-        stringstream values;
+        std::stringstream header;
+        std::stringstream values;
         
 #define PRINT_FLD(hd,fld) header << ",SELF_" << hd << ",CHD_" << hd; values << "," << total_self.fld << "," << total_children.fld
         
@@ -387,8 +385,8 @@ values << "," << TIMEVAL_TO_DOUBLE_MS(total_self.fld) << "," << TIMEVAL_TO_DOUBL
         PRINT_FLD("RU_NSIGNAL",ru_nsignals);        /* signals received */
         PRINT_FLD("RU_NVCSW",ru_nvcsw);           /* voluntary context switches */
         PRINT_FLD("RU_NIVSW",ru_nivcsw);          /* involuntary context switches */
-        os << "HEADERS" << header.str() << endl;
-        os << "VALUES" << values.str() << endl;
+        os << "HEADERS" << header.str() << std::endl;
+        os << "VALUES" << values.str() << std::endl;
     }
     
     /**
@@ -403,7 +401,7 @@ values << "," << TIMEVAL_TO_DOUBLE_MS(total_self.fld) << "," << TIMEVAL_TO_DOUBL
         if (st.nRows() <= row) return -1;
         
 #define APPEND_LONG_FLD(hd,fld)						\
-{ int ret; string header("SELF_"); header += hd;			\
+{ int ret; std::string header("SELF_"); header += hd;			\
 if ((ret = st.setCell(row, header, total_self.fld, true)))	\
 return ret;							\
 header = "CHD_"; header += hd;					\
@@ -412,7 +410,7 @@ return ret;							\
 }
         
 #define APPEND_TIMEVAL_FLD(hd,fld)						\
-{ int ret; string header("SELF_"); header += hd;			\
+{ int ret; std::string header("SELF_"); header += hd;			\
 if ((ret = st.setCell(row, header, TIMEVAL_TO_DOUBLE_MS(total_self.fld), true))) \
 return ret;							\
 header = "CHD_"; header += hd;					\
@@ -576,8 +574,8 @@ public:
             //    PRINT_FLD("RU_NSIGNAL",ru_nsignals);        /* signals received */
             //    PRINT_FLD("RU_NVCSW",ru_nvcsw);           /* voluntary context switches */
             //    PRINT_FLD("RU_NIVSW",ru_nivcsw);          /* involuntary context switches */
-            //    os << "HEADERS" << header.str() << endl;
-            //    os << "VALUES" << values.str() << endl;
+            //    os << "HEADERS" << header.str() << std::endl;
+            //    os << "VALUES" << values.str() << std::endl;
         }
         
         /**
@@ -668,10 +666,10 @@ public:
         /**
          * Print the statistics
          */
-        void print(ostream& os) const
+        void print(std::ostream& os) const
         {
-            os << "HEADERS,ELAPSED_MS" << endl;
-            os << "VALUES," << getElapsedMS() << endl;
+            os << "HEADERS,ELAPSED_MS" << std::endl;
+            os << "VALUES," << getElapsedMS() << std::endl;
         }
         
         /**
@@ -738,7 +736,7 @@ public:
         /** Destructor. */
         ~RunStatsRecorder()
         {
-            vector<RunStat*>::iterator it;
+            std::vector<RunStat*>::iterator it;
             for (it=stat_items.begin(); it!=stat_items.end(); it++) {
                 RunStat* i = *it;
                 delete i;
@@ -750,7 +748,7 @@ public:
         /** Starts recording the execution statistics. */
         void start()
         {
-            vector<RunStat*>::iterator it;
+            std::vector<RunStat*>::iterator it;
             for (it=stat_items.begin(); it!=stat_items.end(); it++)
                 (*it)->start();
         }
@@ -758,7 +756,7 @@ public:
         /** Stops recording the execution statistics. */
         void stop()
         {
-            vector<RunStat*>::reverse_iterator rit;
+            std::vector<RunStat*>::reverse_iterator rit;
             for (rit=stat_items.rbegin(); rit!=stat_items.rend(); rit++)
                 (*rit)->stop();
             n_laps++;
@@ -768,9 +766,9 @@ public:
         void lap() { stop(); start(); }
         
         /** Prints the statistics */
-        void print(ostream& os) const
+        void print(std::ostream& os) const
         {
-            vector<RunStat*>::const_iterator it;
+            std::vector<RunStat*>::const_iterator it;
             for (it=stat_items.begin(); it!=stat_items.end(); it++)
                 (*it)->print(os);
         }
@@ -802,7 +800,7 @@ public:
         {
             int ret;
             
-            vector<RunStat*>::const_iterator it;
+            std::vector<RunStat*>::const_iterator it;
             for (it=stat_items.begin(); it!=stat_items.end(); it++) {
                 if ((ret=(*it)->setCellValues(st,row))) {
                     return ret;
@@ -814,7 +812,7 @@ public:
         
         void clear() {
             
-            vector<RunStat*>::iterator it;
+            std::vector<RunStat*>::iterator it;
             for (it=stat_items.begin(); it!=stat_items.end(); it++)
                 (*it)->clearStats();
             n_laps = 0;
@@ -823,7 +821,7 @@ public:
     private:
         
         /** Array of statistics items. */ 
-        vector<RunStat*> stat_items;
+        std::vector<RunStat*> stat_items;
         
         unsigned n_laps;  //N_LAPS
         

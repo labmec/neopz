@@ -21,11 +21,9 @@
 #include "tpzautopointer.h"  // for TPZAutoPointer
 #include <cstdlib>
 
-#ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
 #include "pzextractval.h"
-#endif
 
 class TPZSavable;
 class TPZStream;
@@ -707,7 +705,6 @@ inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
     return sqrt(Dot(A,A).real());
 }
 
-#ifdef _AUTODIFF
 inline float Norm(const TPZFMatrix< Fad <float> > &A) {
     return (float)TPZExtractVal::val(sqrt(Dot(A,A)));
 }
@@ -719,7 +716,6 @@ inline double Norm(const TPZFMatrix< Fad <double> > &A) {
 inline long double Norm(const TPZFMatrix< Fad <long double> > &A) {
     return TPZExtractVal::val(sqrt(Dot(A,A)));
 }
-#endif
 
 inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
 {

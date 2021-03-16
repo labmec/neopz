@@ -20,9 +20,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
 #endif
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 #include "TPZGenGrid2D.h"
 #include "TPZGenGrid3D.h"

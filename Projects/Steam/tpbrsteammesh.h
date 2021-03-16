@@ -11,7 +11,6 @@
 #include "pzfmatrix.h"
 #include "pzstack.h"
 
-#ifdef _AUTODIFF
 
 #include "tpbrsteamflux.h"
 #include "tpbrcellconservation.h"
@@ -284,7 +283,5 @@ public:
     void PrintAll(REAL time);
 };
 
-// Nothing is compiled if _AUTODIFF isnt defined
-#endif
 
 #endif

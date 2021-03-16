@@ -11,9 +11,7 @@
 #include "pzfmatrix.h"
 #include "TPZMaterial.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 
 /**
@@ -222,15 +220,13 @@ public:
 
    virtual void LocalNeumanContribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
-#ifdef _AUTODIFF
 	/** @brief Computes contribution to the energy at an integration point */
 	void ContributeEnergy(TPZVec<REAL> &x,
 						  TPZVec<FADFADREAL> &sol,
 						  TPZVec<FADFADREAL> &dsol,
 						  FADFADREAL &U,
 						  REAL weight);
-#endif
-	
+
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override {
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
@@ -254,10 +250,8 @@ public:
 		TPZMaterial::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 
-#ifdef _AUTODIFF
 	virtual void ContributeBCEnergy(TPZVec<REAL> &x,TPZVec<FADFADREAL> &sol, FADFADREAL &U,
 									REAL weight, TPZBndCond &bc);
-#endif
 
 	/** @} */
     

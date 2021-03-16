@@ -13,7 +13,6 @@
 #include "ThermalMethodsTables.h"
 #include "PropertiesTable.h"
 
-#ifdef _AUTODIFF
 
 #include "pzlog.h"
 
@@ -745,5 +744,3 @@ REAL TPBrSteamFlux::LimitRange(REAL scale,TPZVec<REAL> &interfacestate,TPZVec<RE
 }
 
 
-
-#endif

@@ -12,9 +12,7 @@
 #include "tpzcube.h"
 #include "pzshtmat.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /** @brief Groups all classes dedicated to the computation of shape functions */
 namespace pzshape {
@@ -58,7 +56,6 @@ namespace pzshape {
         static void SideShapeOrder(int side,  TPZVec<int64_t> &id, int order, TPZGenMatrix<int> &shapeorders);
         
 		
-#ifdef _AUTODIFF
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a hexahedral element
 		 * @param point (input) point where the shape functions are computed
@@ -91,8 +88,7 @@ namespace pzshape {
 		 * determined by the transformation index
 		 */
 		static void Shape3dCubeInternal(TPZVec<FADREAL> &x, int order,TPZVec<FADREAL> &phi);//,int quad_transformation_index
-#endif
-		
+
 		/**
 		 * @brief Computes the corner shape functions for a hexahedral element
 		 * @param pt (input) point where the shape function is computed
@@ -195,7 +191,6 @@ namespace pzshape {
 		 */
 		static void ProjectPoint3dCubeToRib(int face, TPZVec<REAL> &in, REAL &outval);
 		
-#ifdef _AUTODIFF
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
 		 * @param face rib index to which the point should be projected
@@ -211,8 +206,7 @@ namespace pzshape {
 		 * @param outval coordinates of the point on the face (with derivatives)
 		 */
 		static void ProjectPoint3dCubeToFace(int face, TPZVec<FADREAL> &in, TPZVec<FADREAL> &outval);
-#endif
-		
+
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
 		 * @param face rib index to which the point should be projected

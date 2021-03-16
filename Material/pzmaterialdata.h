@@ -9,9 +9,7 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 
 /**
@@ -105,12 +103,10 @@ public:
     TPZFNMatrix<180> fDeformedDirections;
     /** @} */
     
-#ifdef _AUTODIFF
     /// Directions on the deformed element using Fad
     TPZFNMatrix<180,Fad<REAL>> fDeformedDirectionsFad;
     /** @} */
-#endif
-    
+
     /** @brief Index of the current integration point being evaluated **/
     /** Needed for materials with memory **/
     int intLocPtIndex;

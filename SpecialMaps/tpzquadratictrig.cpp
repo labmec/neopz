@@ -24,9 +24,7 @@
 
 #include "tpzgeomid.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 using namespace std;
 using namespace pzshape;
@@ -280,9 +278,7 @@ namespace pzgeom {
     template void TPZQuadraticTrig::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
     template void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
 
-#ifdef _AUTODIFF
     template void TPZQuadraticTrig::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
     template void TPZQuadraticTrig::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
-#endif
 
 }

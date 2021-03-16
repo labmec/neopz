@@ -8,9 +8,7 @@
 
 #include "pzfmatrix.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 template<class T>
 class TPZVec;
@@ -51,10 +49,8 @@ public:
 	
     friend class TPZTransform<REAL>;
     
-#ifdef _AUTODIFF
     friend class TPZTransform<Fad<REAL> >;
-#endif
-    
+
 	/** @brief Overloading equal operator for transformation */
 	TPZTransform<T> &operator=(const TPZTransform<T> &t);
 	

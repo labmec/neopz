@@ -13,5 +13,5 @@ target_sources(pz PRIVATE ${headers})
 
 add_subdirectory(utils)
 add_subdirectory(Fad)
-add_subdirectory(TinyFadET)
 add_subdirectory(TinyFad)
+add_subdirectory(TinyFadET)

@@ -12,9 +12,7 @@
 #include "tpzquadrilateral.h"
 #include "pzshtmat.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape{
@@ -109,7 +107,6 @@ namespace pzshape{
         static void ShapeInternal(TPZVec<REAL> &x, int order,
                                   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-#ifdef _AUTODIFF
 		/**
 		 * @brief Compute the internal functions of the quadrilateral shape function at a point
 		 * @param x coordinate of the point (already setup with derivatives)
@@ -127,7 +124,6 @@ namespace pzshape{
 		 */
 		static void Shape2dQuadInternal(TPZVec<FADREAL> &x, int order,
 										TPZVec<FADREAL> &phi,int quad_transformation_index);
-#endif
 
 		/**
 		 * @brief Transform the derivatives of num shapefunctions in place for a quadrilateral
@@ -147,8 +143,7 @@ namespace pzshape{
 		 */
 		static void TransformPoint2dQ(int transid,TPZVec<REAL> &in,TPZVec<REAL> &out);
 		
-#ifdef _AUTODIFF
-		
+
 		/**
 		 * @brief Transform the coordinates of the point in the space of the quadrilateral
 		 * master element based on the transformation id
@@ -158,7 +153,6 @@ namespace pzshape{
 		 */
 		static void TransformPoint2dQ(int transid,TPZVec<FADREAL> &in,TPZVec<FADREAL> &out);
 		
-#endif
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
 		 * @param rib rib index to which the point should be projected

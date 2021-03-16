@@ -11,9 +11,7 @@
 #include <iostream>
 #include <string>
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 class TPZBndCond;
 

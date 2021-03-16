@@ -35,7 +35,4 @@ target_sources(pz PRIVATE ${headers} ${sources})
 add_subdirectory(sloan)
 
 #enabling FAD library
-option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-if(USING_FAD)
-	add_subdirectory(FAD)
-endif(USING_FAD)
+add_subdirectory(FAD)

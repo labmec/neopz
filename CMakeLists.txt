@@ -85,11 +85,6 @@ if(USING_BOOST)
   enable_boost(pz)
 endif()
 
-option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-if(USING_FAD)
-	target_compile_definitions(pz PUBLIC _AUTODIFF)
-endif()
-
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)

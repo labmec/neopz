@@ -375,7 +375,6 @@ namespace pzshape {
 		return res;
 	}
 	
-#ifdef _AUTODIFF
 	void TPZShapeLinear::ShapeInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index){
 		// Quadratic or higher shape functions
 		if(num <= 0) return;
@@ -413,6 +412,5 @@ namespace pzshape {
 	
 	void (*TPZShapeLinear::FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &) =  TPZShapeLinear::Chebyshev/*(FADREAL&, int, TPZVec<FADREAL>&)*/;//Chebyshev;
 
-#endif
-	
+
 };

@@ -26,10 +26,6 @@
 #cmakedefine LOG4CXX
 #endif
 
-#ifndef _AUTODIFF
-#cmakedefine _AUTODIFF
-#endif
-
 #ifndef USING_BOOST
 #cmakedefine USING_BOOST
 #endif
