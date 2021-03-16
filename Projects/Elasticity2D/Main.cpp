@@ -85,12 +85,6 @@ int main(int argc, char *argv[])
 {
 
     std::string dirname = PZSOURCEDIR;
-#ifdef LOG4CXX
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/Elasticity2D/";
-    FileName += "Elasticity2DLog.cfg";
-    InitializePZLOG(FileName);
-#endif
 
     std::string GridFileName;
     GridFileName = dirname + "/Projects/Elasticity2D/";

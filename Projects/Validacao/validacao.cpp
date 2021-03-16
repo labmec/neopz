@@ -309,15 +309,6 @@ void PrintMesh(TPZCompMesh *cmesh)
 using namespace std;
 int main()
 {
-	
-#ifdef LOG4CXX
-	{
-		InitializePZLOG();
-		std::stringstream sout;
-		sout<< "Validacoes do codigo Hdiv"<<endl;
-		LOGPZ_DEBUG(logger, sout.str().c_str());
-	}
-#endif
 	std::ofstream erro("Caulotaxa.txt");
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");

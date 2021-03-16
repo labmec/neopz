@@ -282,7 +282,6 @@ int main()
 #ifdef MAIN3
 int main()
 {
-	InitializePZLOG();
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
 	int porder = 1;
@@ -727,7 +726,6 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 
 void Teste()
 {
-	InitializePZLOG();
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
 	int porder = 1;

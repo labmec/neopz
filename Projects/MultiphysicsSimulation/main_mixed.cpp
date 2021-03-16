@@ -103,11 +103,6 @@ bool l2proj = false;
 bool calcerroglobal = true;
 int main5(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-////	std::string logs("../logmixedproblem.cfg");
-////	InitializePZLOG("../logmixedproblem.cfg");
-    InitializePZLOG();
-#endif
     //gRefDBase.InitializeAllUniformRefPatterns();
     
     TPZVec<REAL> erros;

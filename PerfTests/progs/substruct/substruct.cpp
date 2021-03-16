@@ -223,10 +223,6 @@ int main(int argc, char *argv[])
     likwid_manager_t likwid_manager;
 #endif
     
-#ifdef LOG4CXX
-    InitializePZLOG("log4cxx.cfg");
-#endif
-    
 #ifdef USING_BLAS
     setenv("VECLIB_MAXIMUM_THREADS", "1", true);
 #endif

@@ -63,7 +63,6 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
 int main()
 {
-	InitializePZLOG();
   CurvaFig12PlasticPV();
 //	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 //	TPZElasticResponse ER;

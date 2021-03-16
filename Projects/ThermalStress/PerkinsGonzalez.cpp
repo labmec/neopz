@@ -44,7 +44,6 @@ void TemperatureFunction(const TPZVec<REAL> &rz, REAL &temp)
 
 int main()
 {
-    InitializePZLOG();
 //    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 
     const int nel=2;

@@ -99,18 +99,8 @@ REAL angle = 0.0*M_PI/4.0;
 int main()
 {   
 	std::string dirname = PZSOURCEDIR;
-#ifdef LOG4CXX
-     std::string FileName = dirname;
-    FileName = dirname + "/Projects/OilWaterSystem/";
-    FileName += "OilWaterLog4cxx.cfg";
-    InitializePZLOG(FileName);
-//     InitializePZLOG();
-#endif
     
-//  
-//#ifdef LOG4CXX
-//  InitializePZLOG();
-//#endif        
+
     
     //      gRefDBase.InitializeAllUniformRefPatterns();
     

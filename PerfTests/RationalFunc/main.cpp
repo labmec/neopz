@@ -36,12 +36,6 @@ RunStatsTable cedric_rst ("-ced_rdt", "TCedric::Run statistics raw data table.")
 
 int main (int argc, char **argv)
 {
-    
-
-    /* Log initialization */
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
         cerr << "Error when parsing the arguments!" << endl;

@@ -36,7 +36,11 @@ inline void InitializePZLOG(const std::string &configfile)
 void InitializePZLOG()
 {
   static bool firstTime{true};
-  if(firstTime){
+  if(!firstTime){
+    std::cout << "Are you calling InitializePZLOG()?"<< std::endl;
+    std::cout << "This is not needed anymore"<<std::endl;
+  }
+  else{
     std::string path;
     std::string configfile;
 #ifdef PZSOURCEDIR
@@ -72,7 +76,12 @@ void InitializePZLOG()
 /**@orlandini: The following is an attempt to call
 InitializePZLOG() at some point before main() is called.
 If anybody comes up with a better solution, it would be great.
-Taken from: https://stackoverflow.com/questions/19227664/whats-the-c-idiom-equivalent-to-the-java-static-block*/
+Taken from: https://stackoverflow.com/questions/19227664/whats-the-c-idiom-equivalent-to-the-java-static-block
+
+Apparently, constructors of namespace-scope variables
+are guaranteed to run before main. It could be
+an alternative... See:
+https://stackoverflow.com/questions/9439871/can-you-print-anything-in-c-before-entering-into-the-main-function*/
 
 
 #define M_CON(A, B) M_CON_(A, B)

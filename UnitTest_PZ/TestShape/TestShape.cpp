@@ -30,7 +30,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testshape"));
 
 struct SuiteInitializer {
     SuiteInitializer() {
-        InitializePZLOG();
     }
 };
 

@@ -75,9 +75,6 @@ static LoggerPtr logger(Logger::getLogger("PiraHP.main"));
 
 int mainOld(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     
     
     

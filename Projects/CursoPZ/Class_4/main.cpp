@@ -36,7 +36,6 @@ std::string DirectorioCorriente = PZSOURCEDIR;
 
 int main() {
 
-    InitializePZLOG();
     gRefDBase.InitializeRefPatterns();
 
 	DirectorioCorriente += "/Projects/CursoPZ/Class_4/";

@@ -263,9 +263,6 @@ const int matElId = 1;
 
 int main(int argc, char * const argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     

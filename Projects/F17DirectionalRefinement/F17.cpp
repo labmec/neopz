@@ -35,10 +35,6 @@ void  FilterBoundingBox(TPZGeoMesh *geomesh);
 int main()
 {
     static const std::chrono::time_point<std::chrono::system_clock> wall_time_start = std::chrono::system_clock::now();
-
-#ifdef LOG4CXX
-  InitializePZLOG();
-#endif
 	
     gRefDBase.InitializeRefPatterns();
 

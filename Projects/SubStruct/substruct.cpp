@@ -81,9 +81,6 @@ int main(int argc, char *argv[])
 
 int main1(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	TPZTimer total;
 	total.start();
@@ -371,9 +368,6 @@ int main1(int argc, char *argv[])
 
 int main3(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     int numthreads = 0;
     int dim = 2;
 
@@ -906,9 +900,6 @@ int main5(int argc, char *argv[])
 
 int main2(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	/*
 	 TPZFMatrix<STATE> teste(2,2);

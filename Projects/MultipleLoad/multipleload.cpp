@@ -44,7 +44,6 @@ TPZAutoPointer<TPZCompMesh> GenerateCMesh(TPZAutoPointer<TPZGeoMesh> gmesh);
 
 int main()
 {
-    InitializePZLOG();
 
     TPZAutoPointer<TPZGeoMesh> gmesh = GenerateGMesh();
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateCMesh(gmesh);

@@ -57,10 +57,6 @@ void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, con
 
 int main()
 {
-    
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
     /*
 	int numcells = 1;
 	REAL temperature = 98.;

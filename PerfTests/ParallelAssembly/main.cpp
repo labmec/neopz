@@ -88,9 +88,6 @@ TPZAutoPointer<TPZCompMesh> CreateCompMesh(int dimension, int porder, int64_t ne
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     
     int porder = 1;
     int dimension = 2;

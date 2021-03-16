@@ -104,7 +104,6 @@ void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017
 
 int main(int argc, char *argv[])
 {
-    InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -288,7 +287,6 @@ int main22(int argc, char *argv[])
 
 //int main(int argc, char *argv[])
 //{
-//    InitializePZLOG();
 //    gRefDBase.InitializeUniformRefPattern(EOned);
 //    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 //    gRefDBase.InitializeUniformRefPattern(ETriangle);

@@ -173,9 +173,7 @@ bool runhdiv = true;//hibrido ou hdiv
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+
     
     bool QuarterPoint = false; //geometria qp
     bool QuarterPointRule = false; //para regra de integracao qp

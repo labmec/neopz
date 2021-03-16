@@ -182,16 +182,6 @@
 //    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 //    gRefDBase.InitializeUniformRefPattern(ETriangle);
 //    
-//#ifdef PZDEBUG
-//    #ifdef LOG4CXX
-//        
-//        std::string FileName = dirname;
-//        FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-//        FileName += "DarcyFlowLog.cfg";
-//        InitializePZLOG(FileName);
-//        
-//    #endif
-//#endif
 //    
 //    //  Reading mesh
 //    std::string GridFileName;

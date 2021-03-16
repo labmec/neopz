@@ -103,10 +103,7 @@ int main(int argc, char *argv[])
 #ifdef USING_LIKWID
     likwid_manager_t likwid_manager;
 #endif
-    
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+
 #ifdef USING_TBB
     task_scheduler_init init;
 #endif

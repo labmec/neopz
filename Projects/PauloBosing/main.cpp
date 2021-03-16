@@ -97,9 +97,6 @@ bool disc_functions = true;
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
 
     // example log statement
 #ifdef LOG4CXX

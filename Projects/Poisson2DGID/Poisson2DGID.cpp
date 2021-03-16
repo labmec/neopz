@@ -47,9 +47,6 @@ void Run(int PolynomialOrder, int  Href, std::string GeoGridFile, int div);
 
 int main()
 {
-	#ifdef LOG4CXX
-		InitializePZLOG();
-	#endif
     
 	//	Files to read
 	std::string GeoGridFile;

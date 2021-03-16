@@ -51,7 +51,6 @@ BOOST_AUTO_TEST_SUITE(meshcondensetests)
 
 BOOST_AUTO_TEST_CASE(verifystiff)
 {
-    InitializePZLOG();
     std::cout << "Verifying creating and undoing condensed elements\n";
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     cmesh->ComputeNodElCon();
@@ -69,7 +68,6 @@ BOOST_AUTO_TEST_CASE(verifystiff)
 
 BOOST_AUTO_TEST_CASE(globalcompute)
 {
-    InitializePZLOG();
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     cmesh->ComputeNodElCon();
     TPZCreateApproximationSpace::CondenseLocalEquations(cmesh);

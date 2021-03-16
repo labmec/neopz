@@ -50,10 +50,6 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
 // bi-dimensional problem for elasticity
 int main() {
 	
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
-	
 	// Creating geometric mesh
 	TPZGeoMesh *gmesh = CreateGeoMesh();
 

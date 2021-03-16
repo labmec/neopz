@@ -81,9 +81,6 @@ void ResetMesh(TPZCompMesh *cmesh);
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	int  p=1;
 	int  NRefUnif=1;

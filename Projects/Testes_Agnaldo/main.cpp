@@ -89,11 +89,6 @@ static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 int main(int argc, char *argv[])
 {
     
-#ifdef LOG4CXX
-	std::string logs("../logporoelastc2d.cfg");
-	InitializePZLOG("../logporoelastc2d.cfg");
-#endif
-    
     bool triang=false;
     bool dimensionless = true;
     
@@ -545,10 +540,6 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 
 //problema de Terzaghi com Se!=0
 int main_Terzaghi(int argc, char *argv[]){
-#ifdef LOG4CXX
-	std::string logs("../logporoelastc2d.cfg");
-	InitializePZLOG("../logporoelastc2d.cfg");
-#endif
     
     int nthreads = 0;
     
@@ -970,10 +961,6 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
 
 //Problema Barry and Mercer
 int main_BarryMercer(int argc, char *argv[]){
-
-    #ifdef LOG4CXX
-        InitializePZLOG();
-    #endif
     
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -2133,10 +2120,6 @@ void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 
 //Problema Barry and Mercer: pressure solution
 int main_BarryMercerPressureSolution(int argc, char *argv[]){
-    
-    //    #ifdef LOG4CXX
-    //        InitializePZLOG();
-    //    #endif
     
     int nthreads = 8;
     

@@ -92,7 +92,6 @@ int main1(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	std::string logs("log4cxx.doubleprojection1d");
-	InitializePZLOG();
 #endif
 	gRefDBase.InitializeAllUniformRefPatterns();
 	

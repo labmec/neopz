@@ -114,10 +114,6 @@ int main(int argc, char *argv[])
         return 1;
     }
  
-
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
     REAL Lx=1.;
     REAL Ly=1.;

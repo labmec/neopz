@@ -85,7 +85,6 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
     }
 
     BOOST_AUTO_TEST_CASE(geoblend_tests) {
-        InitializePZLOG();
         gRefDBase.InitializeUniformRefPattern(EOned);
         gRefDBase.InitializeUniformRefPattern(ETriangle);
         gRefDBase.InitializeUniformRefPattern(EQuadrilateral);

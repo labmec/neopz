@@ -28,9 +28,6 @@ void MobilidadeRelativa();
 
 int main()
 {
-#ifdef LOG4CXX
-	InitializePZLOG("../log4cxx.cfg");
-#endif
     MobilidadeRelativa();
     //    TPBrSteamMesh::TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL WellRadius, REAL ReservoirRadius, REAL oilsaturation)
     REAL wellradius = 0.15;

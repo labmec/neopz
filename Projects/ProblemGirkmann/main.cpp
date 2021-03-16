@@ -22,9 +22,6 @@ static LoggerPtr logger(Logger::getLogger("pz.girkmannproblem"));
 ofstream outfile("Resultados.txt");
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	gRefDBase.InitializeAllUniformRefPatterns();
 	gRefDBase.InitializeRefPatterns(2);

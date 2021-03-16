@@ -131,16 +131,6 @@ int main()
 {
     
     std::ofstream myerrorfile("erros.txt");
-//	
-//#ifdef LOG4CXX
-//    if (logger->isDebugEnabled())
-//	{
-//		InitializePZLOG();
-//		std::stringstream sout;
-//		sout<< "Problema Hibrido do Abimael"<<endl;
-//		LOGPZ_DEBUG(logger, sout.str());
-//	}
-//#endif
 	
 	for (int porder= 4; porder<5; porder++) {
 		

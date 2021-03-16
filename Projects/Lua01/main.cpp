@@ -41,10 +41,6 @@ void InsertElasticity(TPZCompMesh *cmesh);
 
 int main(){
 	
-//#ifdef log4cxx
-//	InitializePZLOG("../Luanlog4cxx.cfg")
-//#endif
-	
 	
 	//  RegisterMeshClasses();
 	//  RegisterMatrixClasses();

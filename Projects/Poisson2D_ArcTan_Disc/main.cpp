@@ -130,9 +130,6 @@ static LoggerPtr logger(Logger::getLogger("pz.Poisson2D_ArcTan_Disc"));
 /** Laplace equation on square - Volker John article 2000 */
 
 int main() {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     
     // Initializing uniform refinements for reference elements
     gRefDBase.InitializeAllUniformRefPatterns();

@@ -56,17 +56,6 @@ int main()
     std::string dirname = PZSOURCEDIR;
     gRefDBase.InitializeUniformRefPattern(EOned);
     
-#ifdef PZDEBUG
-#ifdef LOG4CXX
-    
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/MonophasicWell/";
-    FileName += "WellFlowLog.cfg";
-    InitializePZLOG(FileName);
-    
-#endif
-#endif
-    
     // Geometry of well
     REAL s= 0.0;
     REAL ds = 10.0;

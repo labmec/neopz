@@ -158,7 +158,6 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 BOOST_AUTO_TEST_SUITE(geometry_tests)
 
 BOOST_AUTO_TEST_CASE(gradx_tests) {
-    InitializePZLOG();
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
     

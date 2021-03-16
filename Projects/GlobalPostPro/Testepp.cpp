@@ -77,7 +77,6 @@ int main() {
     std::string FileName = dirname;
     FileName = dirname + "/Projects/GlobalPostPro/";
     FileName += "MarguiLog.cfg";
-    InitializePZLOG(FileName);
 #endif  
     
     REAL t=0.0;

@@ -150,7 +150,6 @@ int main()
 //Rodar Metodo Hibrido
 int mainHybrid()
 {
-    //InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -327,7 +326,6 @@ int mainHybrid()
 //Rodar H1 ou DG
 int mainH1()
 {
-    //InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -471,7 +469,6 @@ int mainMixed()
 {
     bool SecondIntegration = false;//Rodar false
     
-    //InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -2425,9 +2422,6 @@ bool MyDoubleComparer(REAL a, REAL b)
 //
 //int main(int argc, char *argv[])
 //{
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
 //
 //    ///Refinamento
 //    gRefDBase.InitializeUniformRefPattern(EOned);
@@ -2734,9 +2728,6 @@ bool MyDoubleComparer(REAL a, REAL b)
 //
 //int main2(int argc, char *argv[])
 //{
-//    //#ifdef LOG4CXX
-//    //    InitializePZLOG();
-//    //#endif
 //    
 //    ///Refinamento
 //    gRefDBase.InitializeUniformRefPattern(EOned);
@@ -2940,9 +2931,6 @@ bool MyDoubleComparer(REAL a, REAL b)
 //////MUDANCAS DO PHIL
 ////int main(int argc, char *argv[])
 ////{
-////#ifdef LOG4CXX
-////    InitializePZLOG();
-////#endif
 ////    
 ////    ///Refinamento
 ////    gRefDBase.InitializeUniformRefPattern(EOned);

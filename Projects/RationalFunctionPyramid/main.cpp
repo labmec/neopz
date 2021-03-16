@@ -59,9 +59,6 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 // MAIN FUNCTION FOR NUMERICAL TESTS TO CEDRIC CLASS
 int main(int argc, char *argv[]) {
 	
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
     
     // launch arguments
     // porderinit porderend  gcaseinit(meshtype)  gcaseend nsubdivisoninit nsubdivisionend nsubdivisioninterval

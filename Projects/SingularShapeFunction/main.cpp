@@ -212,7 +212,6 @@ int main1(){
 
   const bool ApenasPolinomial = false;
 
-  InitializePZLOG("log4cxx.cfg");
   TPZShapeDisc::fOrthogonal = TPZShapeDisc::Legendre;
 
   const int64_t nnodes = 20;

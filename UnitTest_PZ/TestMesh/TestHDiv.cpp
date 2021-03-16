@@ -241,7 +241,6 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
 /// Check that the Div of the vector functions can be represented
 BOOST_AUTO_TEST_CASE(bilinearsolution_check)
 {
-    InitializePZLOG();
     std::cout << "Initializing solution check\n";
     RunBilinear(EPiramide);
     RunBilinear(ETetraedro);

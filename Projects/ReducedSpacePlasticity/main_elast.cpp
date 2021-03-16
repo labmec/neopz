@@ -36,10 +36,6 @@ int main(int argc, char *argv[])
 }
 int mainFrac(int argc, char *argv[])
 {
- 
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
   //Propagation criterion
   
   REAL Lx = 4;

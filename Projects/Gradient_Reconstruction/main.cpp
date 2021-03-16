@@ -151,9 +151,6 @@ int InitRefs = 5;
 
 int main(int argc, char *argv[]) {
 
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
 	
 	// Initializing uniform refinements for quadrilaterals and triangles
     //gRefDBase.InitializeRefPatterns();

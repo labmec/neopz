@@ -129,9 +129,6 @@ REAL teta =0.;// M_PI/6.;
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
     
     TPZVec<REAL> erros;
     ofstream arg0("Erro.txt");
@@ -304,9 +301,6 @@ int main(int argc, char *argv[])
 //problema estacionario
 int mainestacionario(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     
     TPZVec<REAL> erros;
     ofstream arg0("Erro.txt");

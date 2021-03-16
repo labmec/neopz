@@ -58,9 +58,6 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	TPZTimer total;
 	total.start();

@@ -11,14 +11,6 @@ static LoggerPtr logdata(Logger::getLogger("pz.frac"));
 int main()
 {
     
-#ifdef LOG4CXX
-    std::string dirname = PZSOURCEDIR;
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/Frac1DHdiv/";
-    FileName += "FracLog.cfg";
-    InitializePZLOG(FileName);
-#endif
-    
     TPZMaterial::gBigNumber = 1.e7; // so flow imposition in fracture can have low residuum
     
     // ---------- Parameters ----------
