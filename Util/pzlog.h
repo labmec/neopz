@@ -92,28 +92,6 @@ extern std::mutex glogmutex;
 
 #endif
 
-/** \} */
-
-/**
- * @ingroup util
- * @brief Initialize a log file adequated to use log4cxx lib
- */
-inline void InitializePZLOG(const std::string &configfile)
-{
-#ifdef LOG4CXX
-	log4cxx::PropertyConfigurator::configure(configfile);
-	{
-		log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-		logger->setAdditivity(false);
-		//    logger->setLevel(log4cxx::Level::getDebug());
-	}
-	{
-		log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
-		logger->setAdditivity(false);
-		//  logger->setLevel(log4cxx::Level::getDebug());
-	}
-#endif
-}
 
 /**
  * @brief Initializes log file for log4cxx with commom name log4cxx.cfg
