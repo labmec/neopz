@@ -41,40 +41,25 @@ extern std::mutex glogmutex;
 ///PHIL : PERFORMANCE NOTE : most of the time is spent composing the string for logging
 ///        Check on the loglevel before composing the log string
 
+void LogPzDebugImpl(log4cxx::LoggerPtr lg, std::string msg, const char *fileName, const std::size_t lineN);
+void LogPzInfoImpl(log4cxx::LoggerPtr lg, std::string msg, const char *fileName, const std::size_t lineN);
+void LogPzWarnImpl(log4cxx::LoggerPtr lg, std::string msg, const char *fileName, const std::size_t lineN);
+void LogPzErrorImpl(log4cxx::LoggerPtr lg, std::string msg, const char *fileName, const std::size_t lineN);
+void LogPzFatalImpl(log4cxx::LoggerPtr lg, std::string msg, const char *fileName, const std::size_t lineN);
+
 /// Define log for debug
-#define LOGPZ_DEBUG(A,B) {                      \
-    if(A->isDebugEnabled()){                    \
-      std::scoped_lock lock(glogmutex);         \
-      LOG4CXX_DEBUG(A,B);                       \
-    }                                           \
-    else \
-    {\
-        std::cout << "Coloque IsDebugEnabled em " << __FILE__ << ":" << __LINE__ << std::endl;\
-    }}
+#define LOGPZ_DEBUG(A,B) LogPzDebugImpl(A,B,__FILE__,__LINE__);
 
 /// Define log for info
-#define LOGPZ_INFO(A,B) {                                       \
-    if(A->isInfoEnabled()) {                                    \
-      std::scoped_lock lock(glogmutex);                         \
-      LOG4CXX_INFO(A,B);}}
-
+#define LOGPZ_INFO(A,B) LogPzInfoImpl(A,B,__FILE__,__LINE__);
 /// Define log for warnings
-#define LOGPZ_WARN(A,B) {                                               \
-    if(A->isWarnEnabled()) {                                            \
-      std::scoped_lock lock(glogmutex);                                 \
-      LOG4CXX_WARN(A,B);}}
+#define LOGPZ_WARN(A,B) LogPzWarnImpl(A,B,__FILE__,__LINE__);
 /// Define log for errors
 
-#define LOGPZ_ERROR(A,B) {                                      \
-    if(A->isErrorEnabled()) {                                   \
-      std::scoped_lock lock(glogmutex);                         \
-      LOG4CXX_ERROR(A,B); DebugStop();}}
+#define LOGPZ_ERROR(A,B) LogPzErrorImpl(A,B,__FILE__,__LINE__);
 
 /// Define log for fatal errors
-#define LOGPZ_FATAL(A,B) {                                  \
-    if(A->isFatalEnabled()) {                               \
-      std::scoped_lock lock(glogmutex);                     \
-      LOG4CXX_FATAL(A,B);}}
+#define LOGPZ_FATAL(A,B) LogPzFatalImpl(A,B,__FILE__,__LINE__);
 
 #else
 
