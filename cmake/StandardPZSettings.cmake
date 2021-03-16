@@ -88,5 +88,8 @@ message(STATUS "NeoPZ configuration:"
         "\n - Build type: " ${CMAKE_BUILD_TYPE}
         "\n - REAL type: " ${REAL_TYPE}
         "\n - STATE type: " ${STATE_TYPE} "\n")
-
+#specifying the path to neopz source code
+set(PZSOURCEDIR ${PROJECT_SOURCE_DIR})
+#specify where the refinement patterns can be found (default behaviour when running the code)
+set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
