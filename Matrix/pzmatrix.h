@@ -819,18 +819,30 @@ inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix
 	DebugStop();
 }
 
+template<>
+inline void
+TPZMatrix<float>::Residual(const TPZFMatrix<float> &x, const TPZFMatrix<float> &rhs, TPZFMatrix<float> &res) {
+    MultAdd(x, rhs, res, ((float) -1.0), ((float) 1.0));
+}
 
 template<>
 inline void TPZMatrix<double>::Residual(const TPZFMatrix<double>& x,const TPZFMatrix<double>& rhs, TPZFMatrix<double>& res )  {
 	MultAdd( x, rhs, res, ((double)-1.0), ((double)1.0) );
 }
 
-#ifdef NOT_FAD
-template<class TVar>
-inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
-	MultAdd( x, rhs, res, ((TVar)-1.0), ((TVar)1.0) );
+template<>
+inline void
+TPZMatrix<complex<float>>::Residual(const TPZFMatrix<complex<float>> &x, const TPZFMatrix<complex<float>> &rhs,
+                                    TPZFMatrix<complex<float>> &res) {
+    MultAdd(x, rhs, res, ((complex<float>) -1.0), ((complex<float>) 1.0));
 }
-#endif
+
+template<>
+inline void
+TPZMatrix<complex<double>>::Residual(const TPZFMatrix<complex<double>> &x, const TPZFMatrix<complex<double>> &rhs,
+                                     TPZFMatrix<complex<double>> &res) {
+    MultAdd(x, rhs, res, ((complex<double>) -1.0), ((complex<double>) 1.0));
+}
 
 /***********/
 /*** Put ***/
