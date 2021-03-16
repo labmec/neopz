@@ -15,11 +15,6 @@
 
 #include <pz_config.h>
 
-inline void StopError()
-{
-	std::cout << "Ponto de parada\n";
-}
-
 
 #ifdef LOG4CXX
 
@@ -73,7 +68,7 @@ extern std::mutex glogmutex;
 #define LOGPZ_ERROR(A,B) {                                      \
     if(A->isErrorEnabled()) {                                   \
       std::scoped_lock lock(glogmutex);                         \
-      LOG4CXX_ERROR(A,B); StopError();}}
+      LOG4CXX_ERROR(A,B); DebugStop();}}
 
 /// Define log for fatal errors
 #define LOGPZ_FATAL(A,B) {                                  \
