@@ -521,10 +521,7 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 		PrepareFAD(sol, dsol, phi, dphi, FADsol, FADdsol);
 	    ContributeImplDiff(x, jacinv, FADsol,FADdsol, weight, ek, ef);
 #endif
-#ifdef NOT_FAD
-		std::cout << "TPZEulerConsLaw::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
-		ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
-#endif
+
 	}else
 	{
 		if (fDiff == ApproxImplicit_TD)
@@ -602,12 +599,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
         }
 #endif
 #endif
-#ifdef NOT_FAD
-		// forcing explicit contribution and issueing an warning
-		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-		//         ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
-		ContributeExplConvFace(data.x,dataleft.sol[0],dataright.sol[0],weight,data.normal,dataleft.phi,dataright.phi,ef);
-#endif
+
 	}
 	else if(fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 	{
@@ -740,12 +732,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
         }
 #endif
 #endif
-#ifdef NOT_FAD
-		// forcint explicit contribution and issueing an warning
-		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-		//         ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
-		//         ContributeApproxImplConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef,entropyFix);
-#endif
+
 	}
 	else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 	{
@@ -761,10 +748,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 			LOGPZ_DEBUG(fluxappr,sout.str().c_str());
 		}
 #endif
-#ifdef NOT_FAD
-		//    ComputeGhostState(solL, solR, normal, bc, entropyFix);
-		//    ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
-#endif
+
 	}
 	
 	if(fConvFace == Explicit_TD && fContributionTime == Last_CT)

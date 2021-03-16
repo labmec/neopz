@@ -73,22 +73,6 @@ class TPZSwelling : public TPZMaterial {
 	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
 	static REAL gMuRef[3];
 
-#ifdef NOT_FAD
-	/** @brief Faraday constant [C/mmol] */
-	static STATE gFaraday;
-	/** @brief Molar volume cation [mm^3/mmol] */
-	static STATE gVPlus;
-	/** @brief Molar volume anions [mm^3/mmol] */
-	static STATE gVMinus;
-	/** @brief gas constant [Nmm/(mmol K)] */
-	static STATE gRGas;
-	/** @brief Absolute temperature [K] */
-	static STATE gTemp;
-	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
-	static STATE gMuRef[3];
-	
-#endif
-
 	public :
 	
 	
