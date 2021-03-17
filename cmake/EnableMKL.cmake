@@ -21,7 +21,7 @@ function(enable_mkl target)
   
   #do NOT change this lib unless you know what you are doing
   target_link_libraries(${target} PRIVATE mkl::mkl_intel_32bit_${MKL_THREAD_MODEL}_dyn)
-  target_include_directories(${target} PRIVATE ${MKL_INCLUDE})
+  target_include_directories(${target} PRIVATE ${MKL_INCLUDE_DIR})
   target_compile_definitions(${target} PRIVATE MKLBLAS)
   target_compile_definitions(${target} PRIVATE MKLLAPACK)
   #TODOWIN32: should we do something with mkl_rt on windows?
