@@ -194,7 +194,6 @@ if(NOT APPLE AND CMAKE_Fortran_COMPILER_LOADED
     __mkl_find_library(MKL_INTERFACE_GF_32BIT_LIB mkl_gf_lp64)
     __mkl_find_library(MKL_INTERFACE_GF_64BIT_LIB mkl_gf_ilp64)
 endif()
-  message(STATUS "MKL INTERFACE LIB ${MKL_INTERFACE_INTEL_32BIT_LIB_DYN}")
 # Threading
 #
 __mkl_find_library(MKL_SEQ_LIB mkl_sequential)
