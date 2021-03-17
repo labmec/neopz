@@ -1966,7 +1966,7 @@ void TPZCompMesh::ComputeFillIn(int64_t resolution, TPZFMatrix<REAL> &fillin){
 	
 	TPZStack<int64_t> graphelindex, graphel, graphnodeindex, graphnode;
 	this->ComputeElGraph(graphel,graphelindex);
-	TPZMetis renum(fElementVec.NElements(),fConnectVec.NElements());
+	TPZRenumbering renum(fElementVec.NElements(),fConnectVec.NElements());
 	renum.ConvertGraph(graphel,graphelindex,graphnode,graphnodeindex);
 	std::map<int64_t,TPZConnect *> seqtoconnect;
 	int ic,ncon = fConnectVec.NElements();
