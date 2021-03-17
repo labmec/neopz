@@ -20,7 +20,6 @@
 #include "pzelmat.h"
 
 #include "pzysmp.h"
-#include "pzmetis.h"
 #include "pzbndcond.h"
 #include "TPZTimer.h"
 
@@ -88,7 +87,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     //    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
-    TPZMetis metis;
+    TPZRenumbering metis;
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
 	

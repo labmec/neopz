@@ -37,7 +37,6 @@
 #include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
 #include "pzmanvector.h"                   // for TPZManVector
 #include "TPZMaterial.h"                    // for TPZMaterial
-#include "pzmetis.h"                       // for TPZMetis
 #include "pzmvmesh.h"                      // for TPZMVGraphMesh
 #include "pzseqsolver.h"                   // for TPZSequenceSolver
 #include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
@@ -1271,7 +1270,7 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 		int64_t neq = fCompMesh->NEquations();
 		fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 		int64_t nel = elementgraphindex.NElements()-1;
-		TPZMetis renum(nel,nindep);
+		TPZRenumbering renum(nel,nindep);
 		renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
 		nodeset.AnalyseGraph();
 

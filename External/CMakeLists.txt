@@ -11,7 +11,6 @@ set(headers
     TPZRenumbering.h
     TPZSloanRenumbering.h
     fblaswr.h
-    pzmetis.h
     pzsloan.h
     rcm.h
     tpznodesetcompute.h
@@ -22,11 +21,15 @@ set(sources
     TPZCutHillMcKee.cpp
     TPZRenumbering.cpp
     TPZSloanRenumbering.cpp
-    pzmetis.cpp
     pzsloan.cpp
     rcm.cpp
     tpznodesetcompute.cpp
     )
+
+if(USING_METIS)
+    LIST(APPEND headers pzmetis.h)
+    LIST(APPEND sources pzmetis.cpp)
+endif()
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External)
 

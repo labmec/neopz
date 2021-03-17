@@ -20,7 +20,6 @@
 #include "pzelmat.h"
 
 #include "pzsysmp.h"
-#include "pzmetis.h"
 #include "pzbndcond.h"
 #include "TPZTimer.h"
 
@@ -93,7 +92,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::SetupMatrixData(TPZStack<int64_t> 
     TPZSYsmpMatrix<STATE> * mat = new TPZSYsmpMatrix<STATE>(neq,neq);
     
     /**Creates a element graph*/
-    TPZMetis metis;
+    TPZRenumbering metis;
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
     

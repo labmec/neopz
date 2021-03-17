@@ -42,7 +42,6 @@
 #include "TPZMaterial.h"                    // for TPZMaterial
 #include "pzmaterialdata.h"                // for TPZSolVec
 #include "pzmatrix.h"                      // for TPZFMatrix, TPZMatrix
-#include "pzmetis.h"                       // for TPZMetis
 #include "pzmultiphysicselement.h"         // for TPZMultiphysicsElement
 #include "pzsubcmesh.h"                    // for TPZSubCompMesh
 #include "pztransfer.h"                    // for TPZTransfer
@@ -1672,7 +1671,7 @@ void  TPZCompMesh::GetNodeToElGraph(TPZVec<int64_t> &nodtoelgraph, TPZVec<int64_
 	//   cout << endl;
 	//  }
 	
-	TPZMetis renum(elgraphindex.NElements() -1 ,NIndependentConnects());
+	TPZRenumbering renum(elgraphindex.NElements() -1 ,NIndependentConnects());
 	renum.SetElementGraph(elgraph,elgraphindex);
 	renum.NodeToElGraph(elgraph,elgraphindex,nodtoelgraph, nodtoelgraphindex);
 	/*   TPZRenumbering *re = &renum; */

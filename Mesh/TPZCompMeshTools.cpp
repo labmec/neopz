@@ -20,7 +20,6 @@
 
 #include <algorithm>
 
-#include "pzmetis.h"
 #include "pzsloan.h"
 #include "TPZSloanRenumbering.h"
 #include "TPZCutHillMcKee.h"

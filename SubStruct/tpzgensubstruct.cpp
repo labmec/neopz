@@ -14,7 +14,6 @@
 #include "pzsubcmesh.h"
 
 #include "tpznodesetcompute.h"
-#include "pzmetis.h"
 
 #include "tpzdohrmatrix.h"
 #include "tpzdohrsubstruct.h"
@@ -310,7 +309,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 	//  int neq = fCMesh->NEquations();
 	fCMesh->ComputeElGraph(elementgraph,elementgraphindex);
 	int nel = elementgraphindex.NElements()-1;
-	TPZMetis renum(nel,nindep);
+	TPZRenumbering renum(nel,nindep);
     //nodeset.Print(file,elementgraphindex,elementgraph);
 	std::cout << "Convert Graph ";
 	TPZfTime convertgraph;

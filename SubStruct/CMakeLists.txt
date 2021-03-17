@@ -14,7 +14,6 @@ set(headers
     tpzgensubstruct.h
     tpzpairstructmatrix.h
     TPZfTime.h
-    pzdohrstructmatrix.h
     tpzdohrassembly.h
     tpzdohrprecond.h
     tpzdohrsubstructCondense.h
@@ -24,7 +23,6 @@ set(headers
 
 set(sources
     TPZTimeTemp.cpp
-    pzdohrstructmatrix.cpp
     tpzdohrassembly.cpp
     tpzdohrprecond.cpp
     tpzdohrsubstructCondense.cpp
@@ -37,6 +35,11 @@ set(sources
     tpzgensubstruct.cpp
     tpzpairstructmatrix.cpp
     )
+
+if(USING_METIS)
+    LIST(APPEND headers pzdohrstructmatrix.h)
+    LIST(APPEND sources pzdohrstructmatrix.cpp)
+endif()
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SubStruct)
 
