@@ -105,9 +105,9 @@ class TPZAutoPointer {
         bool Increment()
         {
             std::mutex *mut = get_ap_mutex((void*) this);
-            mut->lock();
+            std::unique_lock<std::mutex> lck(*mut);//already locks
             (*fCounter)++;
-            mut->unlock();
+            lck.unlock();
             return true;
         }
         /** @brief Decrease the counter. If the counter is zero, delete myself */
@@ -115,12 +115,12 @@ class TPZAutoPointer {
         {
             bool should_delete = false;
             std::mutex *mut = get_ap_mutex((void*) this);
-            mut->lock();
+            std::unique_lock<std::mutex> lck(*mut);//already locks
             (*fCounter)--;
             
             if((*fCounter) <= 0) should_delete = true;
             
-            mut->unlock();
+            lck.unlock();
             if(should_delete)
             {
                 delete this;
