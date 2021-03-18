@@ -29,6 +29,7 @@ set(headers
     doxmaterial.h
     pzmat2dlin.h
     pztransientmat.h
+    tpzbiharmonicestimator.h
     )
 
 set(sources
@@ -53,6 +54,7 @@ set(sources
     pzconslaw.cpp
     pzmat1dlin.cpp
     pzpoisson3d.cpp
+    tpzbiharmonicestimator.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)

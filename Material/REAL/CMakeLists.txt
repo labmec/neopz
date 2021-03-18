@@ -63,8 +63,7 @@ set(headers
     pzelasAXImat.h
     pzmaterialcoupling.h
     pzmultplaca.h
-    pzviscoelastic.h
-    tpzbiharmonicestimator.h
+    pzviscoelastic.h    
     )
 
 set(sources
@@ -124,8 +123,7 @@ set(sources
     pzburger.cpp
     pzeulerconslaw.cpp
     pzmattest3d.cpp
-    pzthermicelast3d.cpp
-    tpzbiharmonicestimator.cpp
+    pzthermicelast3d.cpp    
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL)
