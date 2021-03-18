@@ -41,7 +41,7 @@ inline std::mutex* get_ap_mutex(void* obj)
 }
 
 #include <stdlib.h>
-
+#include <atomic>
 
 
 /**
@@ -57,19 +57,19 @@ class TPZAutoPointer {
     {
         /** @brief Pointer to T2 object */
         T2 *fPointer;
-        int *fCounter;
+        std::atomic_uint *fCounter;
         
         TPZReference()
         {
             fPointer = nullptr;
-            fCounter = new int;
+            fCounter = new std::atomic_uint;
             (*fCounter) = 1;
         }
         
         TPZReference(T2 *pointer)
         {
             fPointer = pointer;
-            fCounter = new int;
+            fCounter = new std::atomic_uint;
             (*fCounter) = 1;
         }
         
@@ -104,23 +104,23 @@ class TPZAutoPointer {
         /** @brief Increment the counter */
         bool Increment()
         {
-            std::mutex *mut = get_ap_mutex((void*) this);
-            std::unique_lock<std::mutex> lck(*mut);//already locks
+//            std::mutex *mut = get_ap_mutex((void*) this);
+//            std::unique_lock<std::mutex> lck(*mut);//already locks
             (*fCounter)++;
-            lck.unlock();
+//            lck.unlock();
             return true;
         }
         /** @brief Decrease the counter. If the counter is zero, delete myself */
         bool Decrease()
         {
             bool should_delete = false;
-            std::mutex *mut = get_ap_mutex((void*) this);
-            std::unique_lock<std::mutex> lck(*mut);//already locks
+//            std::mutex *mut = get_ap_mutex((void*) this);
+//            std::unique_lock<std::mutex> lck(*mut);//already locks
             (*fCounter)--;
             
             if((*fCounter) <= 0) should_delete = true;
             
-            lck.unlock();
+//            lck.unlock();
             if(should_delete)
             {
                 delete this;
@@ -216,25 +216,23 @@ public:
     
 	/** @brief Returns if pointer was attributed */
 	operator bool() const{
-		return (this->fRef->fPointer != nullptr);
+		return (fRef && this->fRef->fPointer != nullptr);
 	}
 	operator bool() {
-		return fRef->fPointer != nullptr;
+		return (fRef && fRef->fPointer != nullptr);
 	}
     
 	/** @brief Returns the counter value */
 	int Count() const
 	{
-		return *(fRef->fCounter);
-	}
-	int Count()
-	{
+        if(!fRef) return 0;
 		return *(fRef->fCounter);
 	}
     template<typename R, typename T2>
     friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
 };
-        
+
+// this is the reason why the counter is dynamically allocated
 template<typename R, typename T>
 TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
     TPZAutoPointer<R> rv;
