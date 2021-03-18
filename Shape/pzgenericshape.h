@@ -1,4 +1,5 @@
-
+#ifndef PZGENERICSHAPE_H
+#define PZGENERICSHAPE_H
 
 #include "pzshapequad.h"
 #include "pzshapelinear.h"
@@ -236,4 +237,5 @@ IMPLEMENTSHAPE(pzshape::TPZShapePiram)
 //@orlandini: no idea about these next lines
 //template void Shape<pzshape::TPZShapeCube>(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
+#endif
 #endif
