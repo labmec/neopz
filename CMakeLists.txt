@@ -128,6 +128,7 @@ option(USING_LIBNUMA "Whether the Lib NUMA library will be linked in" OFF)
 if(USING_LIBNUMA)
     include(cmake/EnableNUMA.cmake)
     enable_numa(pz)
+    target_compile_definitions(pz PRIVATE USING_LIBNUMA)
 endif()
 
 #enabling MKL library

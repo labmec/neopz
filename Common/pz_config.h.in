@@ -38,10 +38,6 @@
 #cmakedefine USING_TBB
 #endif
 
-#ifndef USING_LIBNUMA
-#cmakedefine USING_LIBNUMA
-#endif
-
 #ifndef USING_BLAS
 #cmakedefine USING_BLAS
 #endif
