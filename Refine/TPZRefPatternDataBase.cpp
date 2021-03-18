@@ -32,14 +32,21 @@ TPZRefPatternDataBase gRefDBase;
 //.........................................................................................................................................
 TPZRefPatternDataBase::TPZRefPatternDataBase()
 {
-	this->clear();
+
 }
 
 //.........................................................................................................................................
 TPZRefPatternDataBase::~TPZRefPatternDataBase()
 {
-	//TODO: This destructor must be implemented!!!
+    this->clear();
 }
+
+void TPZRefPatternDataBase::clear()
+{
+    fElTypeRefPatterns.clear();
+    fIdRefPatterns.clear();
+}
+
 
 //.........................................................................................................................................
 int TPZRefPatternDataBase::ReturnUniqueId()
