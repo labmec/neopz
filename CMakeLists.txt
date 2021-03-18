@@ -233,7 +233,7 @@ if(WIN32)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  find_package(Git)
+  find_package(Git QUIET)
   if(GIT_FOUND)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
