@@ -168,11 +168,11 @@ namespace pztopology {
         {0,1,0} ,
         {0,0,1}
     };
-    static const REAL t1Tetra[45][3] =
+    static constexpr REAL t1Tetra[45][3] =
     {
         {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},//face 0
         {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, {1,0,0}, //face 1
-        {1/sqrt(2),0,-1/sqrt(2)},{1/sqrt(2),0,-1/sqrt(2)},{1/sqrt(2),0,-1/sqrt(2)},{1/sqrt(2),0,-1/sqrt(2)},{1/sqrt(2),0,-1/sqrt(2)},{1/sqrt(2),0,-1/sqrt(2)},{1/sqrt(2),0,-1/sqrt(2)},//face 2
+        {M_SQRT1_2,0,-M_SQRT1_2},{M_SQRT1_2,0,-M_SQRT1_2},{M_SQRT1_2,0,-M_SQRT1_2},{M_SQRT1_2,0,-M_SQRT1_2},{M_SQRT1_2,0,-M_SQRT1_2},{M_SQRT1_2,0,-M_SQRT1_2},{M_SQRT1_2,0,-M_SQRT1_2},//face 2
         {0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,{0,0,1} ,//face 3
         //interior
         //aresta
@@ -188,11 +188,11 @@ namespace pztopology {
         {1,0,0}
         
     };
-    static const REAL t2Tetra[45][3] =
+    static constexpr REAL t2Tetra[45][3] =
     {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, // face 0
         {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1}, {0,0,1},// face 1
-        {-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},{-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},{-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},{-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},{-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},{-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},{-1/sqrt(6),2/sqrt(6),-1/sqrt(6)},// face 2
+        {-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},{-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},{-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},{-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},{-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},{-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},{-M_SQRT1_6,2*M_SQRT1_6,-M_SQRT1_6},// face 2
         {0,1,0},{0,1,0},{0,1,0},{0,1,0},{0,1,0},{0,1,0},{0,1,0},// face 3
         //interior
         //aresta

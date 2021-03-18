@@ -518,7 +518,7 @@ namespace pztopology {
 		
 	}
 	
-	static int nsidenodes[21] = {
+	static constexpr int nsidenodes[21] = {
 		1,1,1,1,1,1,
 		2,2,2,2,2,2,2,2,2,
 		3,4,4,4,3,

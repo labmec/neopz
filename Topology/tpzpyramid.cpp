@@ -181,7 +181,7 @@ namespace pztopology {
 		/*13*/{0.,  0. ,  0. },/*14*/{  0.  ,-2./3.,1./3.},/*15*/{2./3.,0.,1./3.},
 		/*16*/{0.,2./3.,1./3.},/*17*/{-2./3.,  0.  ,1./3.},/*18*/{  0. ,0.,1./5.} };
 
-    static const REAL bPiram[58][3] =
+    static constexpr REAL bPiram[58][3] =
     {
         {-1,-1,-1}, {1,-1,-1}, {1,1,-1}, {-1,1,-1}, {0,-1,-1}, {1,0,-1}, {0,1,-1}, {-1,0,-1}, {0,0,-1},// face 0
         {0,-1,0}, {0,-1,0}, {-1,1,1}, {0,-1,0}, {-1,-3,1}, {1,-3,1}, {0,-1,1},// face 1
@@ -191,10 +191,10 @@ namespace pztopology {
         //internos
         //faces
         {-1,0,0}, {0,1,0}, // tang da face 0
-        {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)},{sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, //face 1
-        {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, //face 2
-        {1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, //face 3
-        {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))}, //face 4
+        {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3},{M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, //face 1
+        {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, //face 2
+        {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, //face 3
+        {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, //face 4
         // arestas
         {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {1,1,1},  {-1,1,1},  {-1,-1,1},  {1,-1,1},
         //interior
@@ -202,20 +202,20 @@ namespace pztopology {
         {0,1,0} ,
         {0,0,1}
     };
-    static const REAL t1Piram[58][3] =
+    static constexpr REAL t1Piram[58][3] =
     {
         {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},// face 0
-        {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // face 1
-        {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // face 2
-        {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // fsce 3
-        {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, // face 4
+        {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, // face 1
+        {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, // face 2
+        {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, // fsce 3
+        {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, // face 4
         //internos
         //faces
         {0,1,0}, {1,0,0}, //face 0
-        {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))},    {1/sqrt(3),1/sqrt(3),1/sqrt(3)}, //face 1
-        {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},      {-1/sqrt(3),1/sqrt(3),1/sqrt(3)}, //face 2
-        {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))},    {-1/sqrt(3),-1/sqrt(3),1/sqrt(3)}, //face 3
-        {-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},   {1/sqrt(3),-1/sqrt(3),1/sqrt(3)}, //face 4
+        {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)},    {M_SQRT1_3,M_SQRT1_3,M_SQRT1_3}, //face 1
+        {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},      {-M_SQRT1_3,M_SQRT1_3,M_SQRT1_3}, //face 2
+        {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)},    {-M_SQRT1_3,-M_SQRT1_3,M_SQRT1_3}, //face 3
+        {-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},   {M_SQRT1_3,-M_SQRT1_3,M_SQRT1_3}, //face 4
         // arestas
         {0,-1,0},{1,0,0},{0,1,0},{0,0,-1},  {-1,0,1},{0-1,1},{1,0,1},{0,1,1},
         //interior
@@ -224,13 +224,13 @@ namespace pztopology {
         {1,0,0}
     };
     
-    static const REAL t2Piram[58][3] =
+    static constexpr REAL t2Piram[58][3] =
     {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 0
-        {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, // face 1
-        {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},  {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, // face 2
-        {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))},{-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, // face 3
-        {-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))}, // face 4
+        {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, // face 1
+        {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},  {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, // face 2
+        {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)},{-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, // face 3
+        {-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, // face 4
         //internos
         //faces
         {0,0,-1}, {0,0,-1}, //face 0
