@@ -254,7 +254,7 @@ void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<int64_t> &source,
     int64_t i,j;
     for(j=0; j<ncol; j++) {
         for(i=0; i<nrow; i++) {
-          AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
         }
     }
 }
@@ -271,7 +271,7 @@ void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, T
     int64_t i,j;
     for(j=0; j<ncol; j++) {
         for(i=0; i<nrow; i++) {
-          AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
         }
     }
 }

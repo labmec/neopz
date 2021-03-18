@@ -518,7 +518,7 @@ TPZGeoMesh *MalhaPredio()
 		gMesh->BuildConnectivity();
 		// Colocando as condicoes de contorno
 		
-		ParallelFor(0,numelements,[&](int el)
+		pzutils::ParallelFor(0,numelements,[&](int el)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
@@ -656,7 +656,7 @@ TPZGeoMesh *MalhaCubo()
 		gMesh->BuildConnectivity();
 		
 		// Colocando as condicoes de contorno
-		ParallelFor(0,numelements,[&](int el)
+		pzutils::ParallelFor(0,numelements,[&](int el)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);

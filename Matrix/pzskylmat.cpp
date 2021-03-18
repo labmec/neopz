@@ -642,7 +642,7 @@ void TPZSkylMatrix<double>::AddKel(TPZFMatrix<double>&elmat,
             }
 #endif
             // executando contribuição
-            AtomicAdd(fElem[col][index],elmat(ieqs,jeqs));            
+            pzutils::AtomicAdd(fElem[col][index],elmat(ieqs,jeqs));            
         }
     }
 }
@@ -683,7 +683,7 @@ void TPZSkylMatrix<float>::AddKel(TPZFMatrix<float>&elmat,
             }
 #endif
             // adding contribution
-            AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
+            pzutils::AtomicAdd(fElem[col][index], elmat(ieqs,jeqs));
         }
     }
 }
