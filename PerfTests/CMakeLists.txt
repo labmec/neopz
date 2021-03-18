@@ -38,7 +38,9 @@ if(BUILD_PERF_TESTS)
 
   # Old structure -- TODO: Move these to progs
   # Add perf test applications here
-  add_subdirectory(SubStruct)
+  if(USING_METIS)
+    add_subdirectory(SubStruct)
+  endif()
   add_subdirectory(DecomposeLDLt)
   add_subdirectory(NumaTests)
   add_subdirectory(GFlopsTest)
