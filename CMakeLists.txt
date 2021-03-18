@@ -119,6 +119,7 @@ option(USING_LIKWID "Whether the likwid library will be linked in" OFF)
 if(USING_LIKWID)
     include(cmake/EnableLIKWID.cmake)
     enable_likwid(pz)
+    target_compile_definitions(pz PRIVATE USING_LIKWID)
 endif()
 
 #enabling numa library

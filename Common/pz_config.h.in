@@ -42,10 +42,6 @@
 #cmakedefine USING_TBB
 #endif
 
-#ifndef USING_LIKWID
-#cmakedefine USING_LIKWID
-#endif
-
 #ifndef USING_LIBNUMA
 #cmakedefine USING_LIBNUMA
 #endif
