@@ -30,15 +30,15 @@ addr = (addr >> 8)  ^ addr;   \
 addr = (addr >> 4)  ^ addr;   \
 i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
 
-extern std::mutex gAutoPointerMutexArray[];
-inline std::mutex* get_ap_mutex(void* obj)
-{
-	unsigned i;
-	uint64_t addr = (uint64_t) obj;
-	 // AP_MUTEX_HASH_1;
-	AP_MUTEX_HASH_2;
-	return &(gAutoPointerMutexArray[i]);
-}
+//extern std::mutex gAutoPointerMutexArray[];
+//inline std::mutex* get_ap_mutex(void* obj)
+//{
+//	unsigned i;
+//	uint64_t addr = (uint64_t) obj;
+//	 // AP_MUTEX_HASH_1;
+//	AP_MUTEX_HASH_2;
+//	return &(gAutoPointerMutexArray[i]);
+//}
 
 #include <stdlib.h>
 #include <atomic>
