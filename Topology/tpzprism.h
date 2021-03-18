@@ -33,13 +33,18 @@ namespace pztopology {
 	 */
 	class TPZPrism : public TPZSavable {
 	public:
-        friend void pztopology::GetPermutation<TPZPrism>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 21, NCornerNodes = 6, Dimension = 3, NFacets = 5, NPermutations = 12};
+    friend void pztopology::GetPermutation<TPZPrism>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+    static constexpr int64_t NSides = 21;
+    static constexpr int64_t NCornerNodes = 6;
+    static constexpr int64_t Dimension = 3;
+    static constexpr int64_t NFacets = 5;
+    static constexpr int64_t NPermutations = 12;
+      
 		
-                virtual int ClassId() const override;
-                void Read(TPZStream& buf, void* context) override;
-                void Write(TPZStream& buf, int withclassid) const override;
+    virtual int ClassId() const override;
+    void Read(TPZStream& buf, void* context) override;
+    void Write(TPZStream& buf, int withclassid) const override;
 
 
                 
@@ -149,7 +154,7 @@ namespace pztopology {
 		 * @{ */
 		
 		/** @brief Returns the type of the element as specified in file pzeltype.h */
-		static MElementType Type();
+		static constexpr MElementType Type() {return EPrisma;}
 		
 		/** @brief Returns the type of the element side as specified in file pzeltype.h */
 		static MElementType Type(int side);
@@ -264,16 +269,29 @@ namespace pztopology {
 		/** @{ */
 		
 		/** @brief Nodes over quadrilateral sides (2d - faces). */
-		static int FaceNodes[5][4];
+		static constexpr int FaceNodes[5][4]  = { {0,1,2,-1},{0,1,4,3},{1,2,5,4},{0,2,5,3},{3,4,5,-1} };
 
 		/** @brief Nodes over lines sides (1d) */
-		static int SideNodes[9][2];
+		static constexpr int SideNodes[9][2]  = { {0,1},{1,2},{2,0},{0,3},{1,4},{2,5},{3,4},{4,5},{5,3} };
 
 		/** @brief Ids of the shape face */
-		static int ShapeFaceId[5][4];
+		static constexpr int ShapeFaceId[5][4] = { {0,1,2,-1},{0,1,4,3},{1,2,5,4},{0,2,5,3},{3,4,5,-1} };
 
-        /** @brief Valid permutations between nodes*/
-        static int fPermutations[12][21];
+    /** @brief Valid permutations between nodes*/
+    static constexpr int fPermutations[12][21] = {
+      {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20},/*000*/
+      {0,2,1,3,5,4,8,7,6,9,11,10,14,13,12,15,18,17,16,19,20},/*001*/
+      {1,0,2,4,3,5,6,8,7,10,9,11,12,14,13,15,16,18,17,19,20},/*002*/
+      {1,2,0,4,5,3,7,8,6,10,11,9,13,14,12,15,17,18,16,19,20},/*003*/
+      {2,0,1,5,3,4,8,6,7,11,9,10,14,12,13,15,18,16,17,19,20},/*004*/
+      {2,1,0,5,4,3,7,6,8,11,10,9,13,12,14,15,17,16,18,19,20},/*005*/
+      {3,4,5,0,1,2,12,13,14,9,10,11,6,7,8,19,16,17,18,15,20},/*006*/
+      {3,5,4,0,2,1,14,13,12,9,11,10,8,7,6,19,18,17,16,15,20},/*007*/
+      {4,3,5,1,0,2,12,14,13,10,9,11,6,8,7,19,16,18,17,15,20},/*008*/
+      {4,5,3,1,2,0,13,14,12,10,11,9,7,8,6,19,17,18,16,15,20},/*009*/
+      {5,3,4,2,0,1,14,12,13,11,9,10,8,6,7,19,18,16,17,15,20},/*010*/
+      {5,4,3,2,1,0,13,12,14,11,10,9,7,6,8,19,17,16,18,15,20} /*011*/
+    };
 		/** @} */
 		
 	};

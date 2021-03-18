@@ -26,33 +26,15 @@ using namespace std;
 
 namespace pztopology {	
 
-	static int FaceConnectLocId[5][9] = { {0,1,2,3,5,6,7,8,13},{0,1,4,5,10,9,14,-1,-1},
+	static constexpr int FaceConnectLocId[5][9] = { {0,1,2,3,5,6,7,8,13},{0,1,4,5,10,9,14,-1,-1},
 		{1,2,4,6,11,10,15,-1,-1},{3,2,4,7,11,12,16,-1,-1},{0,3,4,8,12,9,17,-1,-1} };
 	
 	
-	static int nhighdimsides[19] = {7,7,7,7,9,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
-	                                     //5   //6   //7   //8   //9   //10  //11  //12
-	int TPZPyramid::SideNodes[8][2]  = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,4},{2,4},{3,4} };
-	                                     //13      //14       //15       //16       //17
-	int TPZPyramid::FaceNodes[5][4]  = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
-	
-	int TPZPyramid::ShapeFaceId[5][4] = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
+	static constexpr int nhighdimsides[19] = {7,7,7,7,9,3,3,3,3,3,3,3,3,1,1,1,1,1,0};
 
-    int TPZPyramid::fPermutations[8][19] =
-            {
-                    {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18},/*00*/
-                    {0,3,2,1,4,8,7,6,5,9,12,11,10,13,17,16,15,14,18},/*01*/
-                    {1,0,3,2,4,5,8,7,6,10,9,12,11,13,14,17,16,15,18},/*02*/
-                    {1,2,3,0,4,6,7,8,5,10,11,12,9,13,15,16,17,14,18},/*03*/
-                    {2,1,0,3,4,6,5,8,7,11,10,9,12,13,15,14,17,16,18},/*04*/
-                    {2,3,0,1,4,7,8,5,6,11,12,9,10,13,16,17,14,15,18},/*05*/
-                    {3,0,1,2,4,8,5,6,7,12,9,10,11,13,17,14,15,16,18},/*06*/
-                    {3,2,1,0,4,7,6,5,8,12,11,10,9,13,16,15,14,17,18} /*07*/
-            };
-
-	static int sidedimension[19] = {0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,3};
+	static constexpr int sidedimension[19] = {0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,3};
 	
-	static int highsides[19][9] = {
+	static constexpr int highsides[19][9] = {
 		{5,8,9,13,14,17,18},
 		{5,6,10,13,14,15,18},
 		{6,7,11,13,15,16,18},
@@ -84,7 +66,7 @@ namespace pztopology {
 		return nsidenodes[side];
 	}
 	
-	static REAL sidetosidetransforms[19][9][4][3] = {
+	static constexpr REAL sidetosidetransforms[19][9][4][3] = {
 		{
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
@@ -192,14 +174,14 @@ namespace pztopology {
 		}
 	};
 	
-	static REAL MidSideNode[19][3] = {
+	static constexpr  REAL MidSideNode[19][3] = {
 		/*00*/{-1.,-1.},   /*01*/{1.,-1.},   /*02*/{1.,1.},/*03*/{-1.,1.},/*04*/{0.,0.,1.},
 		/*05*/{ 0.,-1.},   /*06*/{1., 0.},   /*07*/{0.,1.},/*08*/{-1.,0.},
 		/*09*/{-.5,-.5,.5},/*10*/{.5,-.5,.5},/*11*/{.5,.5,.5},/*12*/{-.5,.5,.5},
 		/*13*/{0.,  0. ,  0. },/*14*/{  0.  ,-2./3.,1./3.},/*15*/{2./3.,0.,1./3.},
 		/*16*/{0.,2./3.,1./3.},/*17*/{-2./3.,  0.  ,1./3.},/*18*/{  0. ,0.,1./5.} };
-    
-    static REAL bPiram[58][3] =
+
+    static constexpr REAL bPiram[58][3] =
     {
         {-1,-1,-1}, {1,-1,-1}, {1,1,-1}, {-1,1,-1}, {0,-1,-1}, {1,0,-1}, {0,1,-1}, {-1,0,-1}, {0,0,-1},// face 0
         {0,-1,0}, {0,-1,0}, {-1,1,1}, {0,-1,0}, {-1,-3,1}, {1,-3,1}, {0,-1,1},// face 1
@@ -209,10 +191,10 @@ namespace pztopology {
         //internos
         //faces
         {-1,0,0}, {0,1,0}, // tang da face 0
-        {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)},{sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, //face 1
-        {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, //face 2
-        {1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, //face 3
-        {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))}, //face 4
+        {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3},{M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, //face 1
+        {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, //face 2
+        {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, //face 3
+        {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, //face 4
         // arestas
         {1,0,0},{0,1,0},{-1,0,0},{0,-1,0},  {1,1,1},  {-1,1,1},  {-1,-1,1},  {1,-1,1},
         //interior
@@ -220,20 +202,20 @@ namespace pztopology {
         {0,1,0} ,
         {0,0,1}
     };
-    static REAL t1Piram[58][3] =
+    static constexpr REAL t1Piram[58][3] =
     {
         {-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},{-1,0,0},// face 0
-        {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // face 1
-        {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // face 2
-        {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {1/sqrt(3),-1/sqrt(3),-1/sqrt(3)}, // fsce 3
-        {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, {-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)},{-1/sqrt(3),1/sqrt(3),-1/sqrt(3)}, // face 4
+        {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, // face 1
+        {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, // face 2
+        {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {M_SQRT1_3,-M_SQRT1_3,-M_SQRT1_3}, // fsce 3
+        {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, {-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3},{-M_SQRT1_3,M_SQRT1_3,-M_SQRT1_3}, // face 4
         //internos
         //faces
         {0,1,0}, {1,0,0}, //face 0
-        {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))},    {1/sqrt(3),1/sqrt(3),1/sqrt(3)}, //face 1
-        {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},      {-1/sqrt(3),1/sqrt(3),1/sqrt(3)}, //face 2
-        {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))},    {-1/sqrt(3),-1/sqrt(3),1/sqrt(3)}, //face 3
-        {-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},   {1/sqrt(3),-1/sqrt(3),1/sqrt(3)}, //face 4
+        {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)},    {M_SQRT1_3,M_SQRT1_3,M_SQRT1_3}, //face 1
+        {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},      {-M_SQRT1_3,M_SQRT1_3,M_SQRT1_3}, //face 2
+        {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)},    {-M_SQRT1_3,-M_SQRT1_3,M_SQRT1_3}, //face 3
+        {-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},   {M_SQRT1_3,-M_SQRT1_3,M_SQRT1_3}, //face 4
         // arestas
         {0,-1,0},{1,0,0},{0,1,0},{0,0,-1},  {-1,0,1},{0-1,1},{1,0,1},{0,1,1},
         //interior
@@ -242,13 +224,13 @@ namespace pztopology {
         {1,0,0}
     };
     
-    static REAL t2Piram[58][3] =
+    static constexpr REAL t2Piram[58][3] =
     {
         {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0}, {0,1,0},// face 0
-        {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, {sqrt(2/3), -(1/sqrt(6)), -(1/sqrt(6))}, // face 1
-        {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},  {(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))},{(1/sqrt(6)), sqrt(2/3), -(1/sqrt(6))}, // face 2
-        {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))},{-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, {-sqrt(2/3), (1/sqrt(6)), -(1/sqrt(6))}, // face 3
-        {-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))},{-(1/sqrt(6)), -sqrt(2/3), -(1/sqrt(6))}, // face 4
+        {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, {M_SQRT2*M_SQRT1_3, -(M_SQRT1_6), -(M_SQRT1_6)}, // face 1
+        {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},  {(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{(M_SQRT1_6), M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, // face 2
+        {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)},{-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, {-M_SQRT2*M_SQRT1_3, (M_SQRT1_6), -(M_SQRT1_6)}, // face 3
+        {-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)},{-(M_SQRT1_6), -M_SQRT2*M_SQRT1_3, -(M_SQRT1_6)}, // face 4
         //internos
         //faces
         {0,0,-1}, {0,0,-1}, //face 0
@@ -264,7 +246,7 @@ namespace pztopology {
         {0,1,0}
     };
     
-    static int vectorsideorderPi [58] =
+    static constexpr int vectorsideorderPi [58] =
     {
         0,1,2,3,5,6,7,8,13, //face 0
         0,1,4,5,10,9,14,//face 1
@@ -281,7 +263,7 @@ namespace pztopology {
         18,18,18
     };
     
-    static int bilinearounao [58] =   {
+    static constexpr int bilinearounao [58] =   {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -289,7 +271,7 @@ namespace pztopology {
         1,1,1,1,1,1,1,1,1,1,
         1,1,1,1,1,1,1,0};
     
-    static int direcaoksioueta [58] = {
+    static constexpr int direcaoksioueta [58] = {
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
@@ -854,11 +836,6 @@ namespace pztopology {
 			return new IntruleType(order);               // integration of the element
 		}
 		return 0;
-	}
-
-	MElementType TPZPyramid::Type()
-	{
-		return EPiramide;
 	}
 
 	MElementType TPZPyramid::Type(int side)

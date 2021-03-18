@@ -35,20 +35,6 @@ namespace pztopology {
         dphi(1,1) = dphi(0,2) =  qsi;
     }
     
-    int TPZTriangle::SideNodes[3][2]  = { {0,1},{1,2},{2,0} };
-    int TPZTriangle::FaceNodes[1][3]  = { {0,1,2} };
-    
-    
-    /**Transformation of the point within a triangular face */
-    REAL TPZTriangle::gTrans2dT[6][2][2] = {//s* , t*
-        { { 1., 0.},{ 0., 1.} },
-        { { 0., 1.},{ 1., 0.} },
-        { { 0., 1.},{-1.,-1.} },//s* = t   t* = -s-t-1 ,  etc
-        { {-1.,-1.},{ 0., 1.} },
-        { {-1.,-1.},{ 1., 0.} },
-        { { 1., 0.},{-1.,-1.} }
-    };
-    
     template<class T>
     void TPZTriangle::BlendFactorForSide(const int &side, const TPZVec<T> &xi, T &blendFactor,
                                            TPZVec<T> &blendFactorDxi){
@@ -116,11 +102,11 @@ namespace pztopology {
 
     }
 
-	static int sidedimension[7] = {0,0,0,1,1,1,2};
+	static constexpr int sidedimension[7] = {0,0,0,1,1,1,2};
 	
-	static int nhighdimsides[7] = {3,3,3,1,1,1,0};
+	static constexpr int nhighdimsides[7] = {3,3,3,1,1,1,0};
 	
-	static int highsides[7][3] = {
+	static constexpr int highsides[7][3] = {
 		{3,5,6},
 		{3,4,6},
 		{4,5,6},
@@ -130,7 +116,7 @@ namespace pztopology {
 		{-999}
 	};
 	
-	static REAL sidetosidetransforms[7][3][4][3] = {
+	static constexpr REAL sidetosidetransforms[7][3][4][3] = {
 		{
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{-1,-99,-99}},
 			{{-99,-99,-99},{-99,-99,-99},{-99,-99,-99},{1,-99,-99}},
@@ -160,14 +146,14 @@ namespace pztopology {
 		}
 	};
 	
-	static REAL MidSideNode[7][3] = {
+	static constexpr REAL MidSideNode[7][3] = {
 		/*00*/{.0,0.},/*01*/{1.0,.0},/*02*/{0.,1.0},
 		/*03*/{.5,0.},/*04*/{0.5,.5},/*05*/{0.,0.5},
 		/*06*/{ 1./3.,1./3.} };
 	
-	static int nsidenodes[7] = {1,1,1,2,2,2,3};
+	static constexpr int nsidenodes[7] = {1,1,1,2,2,2,3};
     
-    static REAL bTriang[14][2] = 
+    static constexpr REAL bTriang[14][2] = 
     {
         {0,-1},//0
         {1,-1},
@@ -186,7 +172,7 @@ namespace pztopology {
         
     };
     
-    static REAL tTriang[14][2] = 
+    static constexpr REAL tTriang[14][2] = 
     {
         {-1,0},
         {-1,0},
@@ -204,38 +190,12 @@ namespace pztopology {
         {1,0}
     };
 
-    static int vectorsideorder [14] = {0,1,3,1,2,4,2,0,5,3,4,5,6,6};
+    static constexpr int vectorsideorder [14] = {0,1,3,1,2,4,2,0,5,3,4,5,6,6};
     
     //static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};//Pk Pk-1
-    static int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1};//P*k Pk
+    static constexpr int bilinearounao [14] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1};//P*k Pk
     
-    static int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    
-    int TPZTriangle::fPermutations [6][7] =
-    {
-        {0,1,2,3,4,5,6}, // id 0
-        {0,2,1,5,4,3,6}, // id 1
-        {1,2,0,4,5,3,6}, // id 2
-        {1,0,2,3,5,4,6}, // id 3
-        {2,0,1,5,3,4,6}, // id 4
-        {2,1,0,4,3,5,6}  // id 5
-    };
-
-    REAL TPZTriangle::fTangentVectors [12][2] =
-            {
-                    {2,0}, // id 0
-                    {0,2}, // id 0
-                    {0,2}, // id 1
-                    {2,0}, // id 1
-                    {0,2}, // id 2
-                    {-2,-2}, //id 2
-                    {-2,-2},// id 3
-                    {0,2},// id 3
-                    {-2,-2},// id 4
-                    {2,0}, //id 4
-                    {2,0}, //id 5
-                    {-2,-2}, //id 5
-            };
+    static constexpr int direcaoksioueta [14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 
 	int TPZTriangle::NBilinearSides()
     {
@@ -572,11 +532,6 @@ namespace pztopology {
 		return 0;
 	}
 	
-	
-	MElementType TPZTriangle::Type()
-	{
-		return ETriangle;
-	}
 	
 	MElementType TPZTriangle::Type(int side)
 	{
