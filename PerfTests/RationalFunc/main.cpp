@@ -21,7 +21,7 @@ void usage (char *prg)
 {
     std::cout << "\nUsage: " << prg << std::endl;
     std::cout << "Arguments: "<< std::endl;
-    clarg::arguments_descriptions (cout, "   ", "\n");
+    clarg::arguments_descriptions (std::cout, "   ", "\n");
 }
 
 #ifdef LOG4CXX
@@ -38,7 +38,7 @@ int main (int argc, char **argv)
 {
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
-        cerr << "Error when parsing the arguments!" << endl;
+        std::cerr << "Error when parsing the arguments!" << std::endl;
         return 1;
     }
     /* Help message */
@@ -56,7 +56,7 @@ int main (int argc, char **argv)
     /* Setting interpolation order */
     TPZCompEl::SetgOrder(porder.get_value());
     /* Output file to store errors */
-    std::ofstream arq("Errors.txt", ios::app);
+    std::ofstream arq("Errors.txt", std::ios::app);
     /* Create Cedric test instance */
     TCedricTest cedric;
     /* CedridTest stats */
