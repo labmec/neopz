@@ -128,22 +128,6 @@ if(USING_LIBNUMA)
     enable_numa(pz)
 endif()
 
-# ----------------------- enabling MatLab library -----------------------
-option(USING_MATLAB_ENGINE "Whether MatLab Engine will be linked in" OFF)
-if(USING_MATLAB_ENGINE)
-	find_package(MATLAB REQUIRED)
-	if (NOT MATLAB_FOUND)
-		message(FATAL_ERROR "This project requires the MATLAB library. Please inform the path to your matlab application")
-	endif()
-
-	if(NOT EXISTS "/usr/bin/matlab")
-		message(FATAL_ERROR "Error! Please create matlab symlink on /usr/bin by typing on terminal:\nsudo ln -sf PATH_TO_YOUR_MATLAB/bin/matlab /usr/bin/matlab")
-	endif()
-
-	include_directories(${Matlab_ROOT_DIR}/extern/include)
-
-endif(USING_MATLAB_ENGINE)
-
 #enabling MKL library
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)

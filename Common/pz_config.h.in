@@ -50,10 +50,6 @@
 #cmakedefine USING_LIBNUMA
 #endif
 
-#ifndef USING_MATLAB_ENGINE
-#cmakedefine USING_MATLAB_ENGINE
-#endif
-
 #ifndef USING_BLAS
 #cmakedefine USING_BLAS
 #endif
