@@ -26,10 +26,6 @@
 #cmakedefine USING_BOOST
 #endif
 
-#ifndef USING_OPENSSL
-#cmakedefine USING_OPENSSL
-#endif
-
 #ifndef USING_TBB
 #cmakedefine USING_TBB
 #endif

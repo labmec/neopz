@@ -27,6 +27,7 @@ set(sources
     TPZContBufferedStream.cpp
     TPZPersistenceManager.cpp
     TPZSavable.cpp
+    pzmd5stream.cpp
     TPZChunkInTranslation.cpp
     TPZCircBufferedStream.cpp
     TPZFileStream.cpp

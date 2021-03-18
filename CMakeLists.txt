@@ -100,6 +100,7 @@ endif()
 option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
 if(USING_OPENSSL)
 	target_link_libraries(pz PRIVATE crypto)
+    target_compile_definitions(pz PRIVATE USING_OPENSSL)
 endif()
 
 #enabling TBB library
