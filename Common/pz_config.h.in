@@ -30,10 +30,6 @@
 #cmakedefine USING_IPO
 #endif
 
-#ifndef USING_METIS
-#cmakedefine USING_METIS
-#endif
-
 #ifndef USING_OPENSSL
 #cmakedefine USING_OPENSSL
 #endif

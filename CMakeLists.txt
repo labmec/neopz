@@ -99,6 +99,7 @@ option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)
     include(cmake/EnableMetis.cmake)
     enable_metis(pz)
+    target_compile_definitions(pz PRIVATE USING_METIS)
 endif()
 
 #enabling OPENSSL library (used for MD5 computation)
