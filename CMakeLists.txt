@@ -58,12 +58,6 @@ set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
 include(cmake/EnableThreads.cmake)
 enable_threads(pz)
 
-#enabling compiler interprocedural optimizations (IPO)
-option(USING_IPO "Whether link and assembly support for compiler IPO will be activated or not (may cause linking to be very slow)." OFF)
-IF (USING_IPO)
-  set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
-ENDIF()
-
 IF(APPLE)
    # Mac OS X specific code
    find_library(ACCELERATE_LIB Accelerate)
