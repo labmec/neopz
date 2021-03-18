@@ -26,7 +26,6 @@
 
 #endif
 
-static std::string dirname = PZSOURCEDIR;
 static unsigned int NDigitsPrec = 13;
 static int NTypes = 2;
 // For cubature rules
@@ -296,8 +295,7 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 	// File with integration values calculated previously
-	std::string filename = dirname;
-	filename += "Line.txt";
+	std::string filename = "Line.txt";
 	std::ifstream MathematicaData(filename.c_str());
 
 	// Testing over Linbo Zhang rule and over all order < 13
@@ -324,8 +322,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	
-	std::string filename = dirname;
-	filename += "Triangle.txt";
+	std::string filename = "Triangle.txt";
 	std::ifstream MathematicaData(filename.c_str());
     // Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
     const int type = 0;// triangle has only one integration rule
