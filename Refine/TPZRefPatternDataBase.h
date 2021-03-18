@@ -82,11 +82,7 @@ public:
 	
 	void Print(std::ostream &out = std::cout);	
 	
-	void clear()
-	{
-		fElTypeRefPatterns.clear();
-		fIdRefPatterns.clear();
-	}
+    void clear();
 	
 protected:
 	

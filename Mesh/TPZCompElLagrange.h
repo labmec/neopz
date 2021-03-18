@@ -169,7 +169,7 @@ public:
     void EvaluateError(TPZVec<REAL> & errors, bool store_error) override {
         return;
     }
-  [[deprecated("Use or implement TPZCompElLagrange::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
+  //TOBEREMOVED [[deprecated("Use or implement TPZCompElLagrange::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                                   TPZVec<REAL> &/*errors*/, bool store_error) override {
         return;

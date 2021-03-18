@@ -780,10 +780,11 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
             if(bc) continue;
-            if(mat != nullptr && mat->Dimension() == dim)
+            TPZSubCompMesh * submesh = dynamic_cast<TPZSubCompMesh*>(el);
+            if(submesh || (mat != nullptr && mat->Dimension() == dim))
             {
                 errors.Fill(0.0);
-                if(mat->HasExactSol())
+                if((mat != nullptr && mat->HasExactSol()) || submesh)
                   {el->EvaluateError(errors,store_error);}
                 else
                   {el->EvaluateError(fExact, errors, store_error);}

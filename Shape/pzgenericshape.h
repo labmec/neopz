@@ -216,15 +216,24 @@ void inline Shape(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMa
     }
     
 }
-template void Shape<pzshape::TPZShapeLinear>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-template void Shape<pzshape::TPZShapeTriang>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-template void Shape<pzshape::TPZShapeQuad>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-template void Shape<pzshape::TPZShapePrism>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-template void Shape<pzshape::TPZShapePiram>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-template void Shape<pzshape::TPZShapeTetra>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
-template void Shape<pzshape::TPZShapeCube>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
-template void Shape<pzshape::TPZShapeCube>(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+
+
+#define IMPLEMENTSHAPE(TSHAPE)\
+template void Shape<TSHAPE>(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);\
+template TPZTransform<REAL> GetSideTransform<TSHAPE>(int side, int trans_id);
+
+IMPLEMENTSHAPE(pzshape::TPZShapeLinear)
+IMPLEMENTSHAPE(pzshape::TPZShapeTriang)
+IMPLEMENTSHAPE(pzshape::TPZShapeQuad)
+IMPLEMENTSHAPE(pzshape::TPZShapeTetra)
+IMPLEMENTSHAPE(pzshape::TPZShapeCube)
+IMPLEMENTSHAPE(pzshape::TPZShapePrism)
+IMPLEMENTSHAPE(pzshape::TPZShapePiram)
+
+#undef IMPLEMENTSHAPE
+
+//@orlandini: no idea about these next lines
+//template void Shape<pzshape::TPZShapeCube>(TPZVec<REAL> &pt, TParDefs &par, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 #endif
-//void Shape(TPZVec<REAL> &pt, TPZVec<int> orders,TPZVec<TPZTransform<REAL> > &transvec, TPZFMatrix<REAL> phi,TPZFMatrix<REAL> dphi);

@@ -34,13 +34,18 @@ namespace pztopology {
 	 */
 	class TPZPyramid : public TPZSavable{
 	public:
-        friend void pztopology::GetPermutation<TPZPyramid>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 19, NCornerNodes = 5, Dimension = 3, NFacets = 5, NPermutations = 8};
+    friend void pztopology::GetPermutation<TPZPyramid>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+		static constexpr int64_t NSides = 19;
+    static constexpr int64_t NCornerNodes = 5;
+    static constexpr int64_t Dimension = 3;
+    static constexpr int64_t NFacets = 5;
+    static constexpr int64_t NPermutations = 8;
+      
 		
-                int ClassId() const override;
-                void Read(TPZStream &buf, void *context) override;
-                void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
 		/** @brief Default constructor */
         TPZPyramid() : TPZRegisterClassId(&TPZPyramid::ClassId) {
@@ -143,7 +148,7 @@ namespace pztopology {
 		 * @{ */
 		
 		/** @brief Returns the type of the element as specified in file pzeltype.h */
-		static MElementType Type();
+		static constexpr MElementType Type() {return EPiramide;}
 		
 		/** @brief Returns the type of the element side as specified in file pzeltype.h */
 		static MElementType Type(int side);
@@ -250,28 +255,31 @@ namespace pztopology {
          * @param dphi (output) value of the derivatives of the (5) shape functions holding the derivatives in a column
          */
         static void CornerShape(const TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-        
-        
-        
-        /** @brief Nodes over quadrilateral sides (2d - faces). */
-        static int FaceNodes[5][4];
-        
-        /** @brief Nodes over lines sides (1d) */
-        static int SideNodes[8][2];
 
 	protected:
 		/** @name Data structure which defines the pyramid transformations */
 		/** @{ */
-
-
+    /** @brief Nodes over quadrilateral sides (2d - faces). */
+    static constexpr int FaceNodes[5][4]  = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
+        
+    /** @brief Nodes over lines sides (1d) */
+    static constexpr int SideNodes[8][2]  = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,4},{2,4},{3,4} };
 
 		/** @brief Ids of the shape face */
-		static int ShapeFaceId[5][4];
-
+    static constexpr int ShapeFaceId[5][4] = { {0,1,2,3},{0,1,4,-1},{1,2,4,-1},{3,2,4,-1},{0,3,4,-1} };
+	
 		/** @brief Valid permutations between nodes*/
-		static int fPermutations[8][19];
-		
-		/** @} */
+    static constexpr int fPermutations[8][19] = {
+      {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18},/*00*/
+      {0,3,2,1,4,8,7,6,5,9,12,11,10,13,17,16,15,14,18},/*01*/
+      {1,0,3,2,4,5,8,7,6,10,9,12,11,13,14,17,16,15,18},/*02*/
+      {1,2,3,0,4,6,7,8,5,10,11,12,9,13,15,16,17,14,18},/*03*/
+      {2,1,0,3,4,6,5,8,7,11,10,9,12,13,15,14,17,16,18},/*04*/
+      {2,3,0,1,4,7,8,5,6,11,12,9,10,13,16,17,14,15,18},/*05*/
+      {3,0,1,2,4,8,5,6,7,12,9,10,11,13,17,14,15,16,18},/*06*/
+      {3,2,1,0,4,7,6,5,8,12,11,10,9,13,16,15,14,17,18} /*07*/
+    };
+                /** @} */
 		
 	};
 	

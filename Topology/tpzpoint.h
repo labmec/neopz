@@ -34,13 +34,17 @@ namespace pztopology {
 	class TPZPoint : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NCornerNodes = 1, NSides = 1, Dimension = 0, NFacets = 0, NPermutations = 1};
+    friend void pztopology::GetPermutation<TPZPoint>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+    static constexpr int64_t NSides = 1;
+		static constexpr int64_t NCornerNodes = 1;
+    static constexpr int64_t Dimension = 0;
+    static constexpr int64_t NFacets = 0;
+    static constexpr int64_t NPermutations = 1;
 
-                int ClassId() const override;
-                void Read(TPZStream &buf, void *context) override;
-                void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Default constructor */
@@ -155,7 +159,7 @@ namespace pztopology {
 		 * @{ */
 
 		/** @brief Returns the type of the element as specified in file pzeltype.h */
-		static MElementType Type();
+		static constexpr MElementType Type() {return EPoint;}
 		/** @brief Returns the type of the element side as specified in file pzeltype.h */
 		static MElementType Type(int side) ;
 
@@ -270,7 +274,7 @@ namespace pztopology {
         static int NBilinearSides();
 	protected:
         /** @brief Valid permutations between nodes*/
-        static int fPermutations [1][1];
+        static constexpr int fPermutations [1][1]={{0}};
 	};
 	
 }

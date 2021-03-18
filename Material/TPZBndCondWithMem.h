@@ -102,10 +102,6 @@ public:
         }
     }
     
-    void UpdateBCValues(TPZVec<TPZMaterialData> &datavec){
-        DebugStop();
-    }
-    
     /// Contribute methods
 
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;

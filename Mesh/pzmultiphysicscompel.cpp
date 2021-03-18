@@ -1309,6 +1309,105 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
     
     intrule->SetOrder(prevorder);
 }
+
+template<class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZVec<REAL> &errors, bool store_errors) {
+  TPZMaterial *material = this->Material();
+  //TPZMaterial * matptr = material.operator->();
+  if (!material) {
+    PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
+    Print(PZError);
+    return;
+  }
+  TPZMaterial *mat = this->Material();
+  int NErrors = mat->NEvalErrors();
+  errors.Resize(NErrors);
+  errors.Fill(0.);
+
+  // Return if BC
+  if (this->NConnects() == 0) return;
+
+  // Adjust the order of the integration rule
+  int dim = Dimension();
+  TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
+  int maxIntOrder = intrule->GetMaxOrder();
+  TPZManVector<int, 3> prevorder(dim), maxorder(dim, maxIntOrder);
+  intrule->GetOrder(prevorder);
+  const int order_limit = 15;
+  if (maxIntOrder > order_limit) {
+    if (prevorder[0] > order_limit) {
+      maxIntOrder = prevorder[0];
+    } else {
+      maxIntOrder = order_limit;
+    }
+  }
+
+  intrule->SetOrder(maxorder);
+
+  int ndof = material->NStateVariables();
+  TPZManVector<STATE, 10> u_exact(ndof);
+  TPZFNMatrix<3, STATE> du_exact(dim, ndof);
+  TPZManVector<REAL, 10> intpoint(Reference()->Dimension()), values(NErrors);
+  values.Fill(0.0);
+  REAL weight;
+
+  TPZManVector<TPZMaterialData, 5> datavec;
+  const int64_t nref = fElementVec.size();
+  datavec.resize(nref);
+  InitMaterialData(datavec);
+  int iactive = -1;
+  for (unsigned int i = 0; i < nref; ++i) {
+    if (datavec[i].fShapeType != TPZMaterialData::EEmpty) {
+      datavec[i].fNeedsSol = true;
+      iactive = i;
+    }
+  }
+
+  if (iactive == -1) DebugStop();
+
+  TPZManVector<TPZTransform<> > trvec;
+  AffineTransform(trvec);
+
+  int nintpoints = intrule->NPoints();
+  TPZFNMatrix<9, REAL> jac, axe, jacInv;
+  REAL detJac;
+  TPZGeoEl *ref = this->Reference();
+
+  for (int nint = 0; nint < nintpoints; nint++) {
+
+    intrule->Point(nint, intpoint, weight);
+
+    ref->Jacobian(intpoint, jac, axe, detJac, jacInv);
+    this->ComputeRequiredData(intpoint, trvec, datavec);
+
+    weight *= fabs(detJac);
+    material->Errors(datavec, values);
+
+    for (int ier = 0; ier < NErrors; ier++) {
+      errors[ier] += values[ier] * weight;
+    }
+
+  }//fim for : integration rule
+  //Norma sobre o elemento
+  for (int ier = 0; ier < NErrors; ier++) {
+    errors[ier] = sqrt(errors[ier]);
+  }//for ier
+
+  if (store_errors) {
+    int64_t index = Index();
+    TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+    if (elvals.Cols() < NErrors) {
+      std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+      DebugStop();
+    }
+    for (int ier = 0; ier < NErrors; ier++) {
+      elvals(index, ier) = errors[ier];
+    }
+  }
+  intrule->SetOrder(prevorder);
+}
+
+
 /** Returns the maximum interpolation order of all connected elements */
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::PolynomialOrder(TPZVec<int> &order) const {

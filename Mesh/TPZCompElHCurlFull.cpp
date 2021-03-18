@@ -90,7 +90,7 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
             for(int iFace = 0; iFace < nFaces; iFace++){
                 switch(TSHAPE::Type(TSHAPE::NCornerNodes+nEdges + iFace)){
                     case ETriangle://triangular face
-                        count += 0.5 * (sideOrder - 1) * ( sideOrder - 2);
+                        count +=  (sideOrder - 1) * ( sideOrder - 2)/2;
                         break;
                     case EQuadrilateral://quadrilateral face
                         count +=  (sideOrder - 1) * ( sideOrder - 1);
@@ -100,7 +100,39 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
                         DebugStop();
                 }
             }
-            count += 3 * (TSHAPE::NConnectShapeF(side, sideOrder) );
+            //number of H1 funcs
+            const auto nFuncsK = TSHAPE::NConnectShapeF(side, sideOrder);
+            if constexpr (TSHAPE::Type() == ECube){
+              //make sure there are no negative vals
+              const int nFuncsKminusOne =
+                TSHAPE::NConnectShapeF(side, sideOrder-1) >= 0 ? 
+                TSHAPE::NConnectShapeF(side, sideOrder-1) : 
+                0;
+              //include all internal functions of k-1 (3*(k-2)^2 funcs)
+              count += 3 * (nFuncsKminusOne);
+              //shapeorders[k] contains the polynomial orders
+              //in xi, eta and zeta for each of the internal funcs
+              TPZGenMatrix<int> shapeorders(nFuncsK,3);
+              //not really used since we are interested in internal funcs
+              TPZManVector<int64_t,0> idvec(0);
+              TSHAPE::SideShapeOrder(side,idvec,sideOrder,shapeorders);
+              /*for compatibility, we need the spaces
+                Q^{k-1,k,k} \times Q^{k,k-1,k} \times Q^{k,k,k-1}
+               */
+              int countIntK = 0;
+              /*i am supposing that #funcs in xi-dir is equal to 
+                #funcs in eta-dir and in zeta-dir. So I will just
+                see how many we will have in xi-dir afte rskipping
+                internals that were included in the k-1 set of funcs*/
+              for(int ifunc = nFuncsKminusOne; ifunc < nFuncsK; ifunc++){
+                if(shapeorders(ifunc,0) < sideOrder) {countIntK++;}
+              }
+              count += 3* countIntK;
+                
+            }
+            else{
+              count += 3 * nFuncsK;
+            }
             return count;
         }
     }();
@@ -412,15 +444,35 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
                 shapeCountVec[iCon]++;
             }
         }
+        const auto sideOrder = connectOrder[iCon];
         //now the phi Ki funcs
         const int firstInternalVec = firstVfOrthVec + nFaces;
-        const auto nInternalFuncs = 3 * TSIDESHAPE::NConnectShapeF(TSIDESHAPE::NSides - 1, connectOrder[iCon]);
+        //ALL H1 internal functions
+        const auto nH1Internal = TSIDESHAPE::NConnectShapeF(TSIDESHAPE::NSides - 1, sideOrder);
+        const auto nInternalFuncs = 3 * nH1Internal;
+        //only for hexahedron
+        TPZGenMatrix<int> shapeorders(nH1Internal,3);
+        if constexpr(TSIDESHAPE::Type() == ECube)
+          {
+            //not really used since we are interested in internal funcs
+            TPZManVector<int64_t,0> idvec(0);
+            TSHAPE::SideShapeOrder(TSIDESHAPE::NSides-1,idvec,
+                                   sideOrder,shapeorders);
+          }
         for(auto iFunc = 0; iFunc < nInternalFuncs; iFunc++ ){
-            const auto vecIndex = firstInternalVec + iFunc % 3;//it should alternate between them
-            const auto shapeIndex = firstH1ShapeFunc[iCon] + iFunc / 3;
-            indexVecShape[shapeCount] = std::make_pair(vecIndex,shapeIndex);
-            shapeCount++;
-            shapeCountVec[iCon]++;
+          //it should alternate between them
+          const auto dir = iFunc % 3;
+          const auto vecIndex = firstInternalVec + dir;
+          const auto intShapeIndex = iFunc/3;
+          const auto shapeIndex = firstH1ShapeFunc[iCon] + intShapeIndex;
+          if constexpr(TSIDESHAPE::Type() == ECube)
+            {
+              if(shapeorders(intShapeIndex,dir) >= sideOrder)
+                {continue;}
+            }
+          indexVecShape[shapeCount] = std::make_pair(vecIndex, shapeIndex);
+          shapeCount++;
+          shapeCountVec[iCon]++;
         }
     }
 }

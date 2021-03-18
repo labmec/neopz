@@ -65,7 +65,8 @@ TPZRefPattern::TPZRefPattern(const TPZRefPattern &copy, const TPZPermutation &pe
     GenerateSideRefPatterns();
 }
 
-TPZRefPattern::TPZRefPattern(TPZGeoMesh &gmesh){
+TPZRefPattern::TPZRefPattern(TPZGeoMesh &gmesh) : fId(fNonInitializedId), fName(fNonInitializedName),
+fSideRefPattern(0), fPermutedRefPatterns(0), fNSubEl(0){
     fRefPatternMesh = gmesh;
     CreateRefinementPattern();
 }

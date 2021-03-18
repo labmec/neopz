@@ -24,17 +24,17 @@ using namespace std;
 
 namespace pztopology {
 
-	static int nhighdimsides[3] = {1,1,0};
+	static constexpr int nhighdimsides[3] = {1,1,0};
 	
-	static int sidedimension[3] = {0,0,1};
+	static constexpr int sidedimension[3] = {0,0,1};
 	
-	static int highsides[3][1] = {
+	static constexpr int highsides[3][1] = {
 		{2},
 		{2},
 		{0}
 	};
 	
-	static REAL sidetosidetransforms[3][1][4][3] = {
+	static constexpr REAL sidetosidetransforms[3][1][4][3] = {
 		{
 			{{0,0,0},{0,0,0},{0,0,0},{-1,0,0}}
 		},
@@ -45,23 +45,17 @@ namespace pztopology {
 			{{0,0,0},{0,0,0},{0,0,0},{0,0,0}}}
 	};
 	
-	static REAL MidSideNode[3][1] = {{-1.},{1.},{0.}};
+	static constexpr REAL MidSideNode[3][1] = {{-1.},{1.},{0.}};
 	
-	static int nsidenodes[3] = {1,1,2};
-    
-    int TPZLine::fPermutations [2][3] =
-    {
-        {0,1,2},
-        {1,0,2}
-    };
+	static constexpr int nsidenodes[3] = {1,1,2};
     
     int TPZLine::NBilinearSides()
     {return 0;}
 	
-    static int vectorsideorder [3] = {0,1,2};
+    static constexpr int vectorsideorder [3] = {0,1,2};
     
-    static int bilinearounao [3] =   {0,0,1};
-    static int direcaoksioueta [3] = {0,0,0};
+    static constexpr int bilinearounao [3] =   {0,0,1};
+    static constexpr int direcaoksioueta [3] = {0,0,0};
 
     template<class T>
     inline void TPZLine::TShape(const TPZVec<T> &loc,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi) {
@@ -350,13 +344,6 @@ namespace pztopology {
 		
 		
 	}
-	
-	
-	MElementType TPZLine::Type()
-	{
-		return EOned;
-	}
-	
 	MElementType TPZLine::Type(int side)
 	{
 		switch(side) {
