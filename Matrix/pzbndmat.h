@@ -57,13 +57,11 @@ public:
         for (int64_t el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];
         }
-#ifdef USING_LAPACK
         fPivot = orig.fPivot;
         int64_t nwork = orig.fWork.size();
         for (int64_t el=0; el<nwork; el++) {
             fWork[el] = orig.fWork[el];
         }
-#endif
         
     }
     
@@ -134,10 +132,8 @@ public:
 	
 	void Transpose(TPZMatrix<TVar> *const T) const override;
     
-#ifdef USING_LAPACK
 	int       Decompose_LU(std::list<int64_t> &singular) override;
 	int       Decompose_LU() override;
-#endif
 	
     public:
 int ClassId() const override;
@@ -153,11 +149,10 @@ private:
 	
 	TPZVec<TVar> fElem;
 	int64_t  fBandLower, fBandUpper;
-#ifdef USING_LAPACK
+
     TPZManVector<int,5> fPivot;
     
     TPZVec<TVar> fWork;
-#endif
 
 };
 

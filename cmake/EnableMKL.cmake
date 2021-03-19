@@ -26,6 +26,8 @@ function(enable_mkl target)
   target_compile_definitions(${target} PRIVATE MKLBLAS)
   target_compile_definitions(${target} PRIVATE USING_LAPACK)
   target_compile_definitions(${target} PRIVATE MKLLAPACK)
+  target_compile_definitions(${target} INTERFACE PZ_USING_BLAS)
+  target_compile_definitions(${target} INTERFACE PZ_USING_LAPACK)
   #TODOWIN32: should we do something with mkl_rt on windows?
   mark_as_advanced(MKL_THREAD_MODEL)
 endfunction()

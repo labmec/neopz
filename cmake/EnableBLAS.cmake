@@ -7,6 +7,7 @@ function(enable_blas target)
     #target_link_libraries(${target} BLAS::BLAS) this is ok in cmake 3.18 onwards
     target_link_libraries(${target} PRIVATE ${BLAS_LIBRARIES})
     target_compile_definitions(${target} PRIVATE USING_BLAS)
+    target_compile_definitions(${target} INTERFACE PZ_USING_BLAS)
     mark_as_advanced(BLAS_LIBRARIES)
     foreach(BL_LIB ${BLAS_LIBRARIES})
         if(${BL_LIB} MATCHES ".*mkl.*")

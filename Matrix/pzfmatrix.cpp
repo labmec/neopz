@@ -39,7 +39,7 @@ static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 #ifdef USING_LAPACK
-/** CBlas Math Library */
+/** Maybe some calls just need BLAS. We need to check it. */
 #include "TPZLapack.h"
 #define BLAS_MULT
 #endif
@@ -514,7 +514,6 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
     for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
 }
 
-#ifdef USING_LAPACK
 
 template <class TVar>
 /** @brief Initialize pivot with i = i  */
@@ -525,8 +524,6 @@ void TPZFMatrix<TVar>::InitializePivot()
         fPivot[i] = i+1; // Fortran based indexing
     }
 }
-
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
@@ -3138,7 +3135,33 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     return res;
 }
 
+#ifndef USING_LAPACK    
+#define NON_LAPACK \
+  PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";\
+  PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";\
+  PZError<<" when configuring NeoPZ library"<<std::endl;\
+  DebugStop();
 
+    int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+
+    int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+
+    int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+
+    int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+
+    int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+
+    int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+    int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w){NON_LAPACK}
+
+    int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+    int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}    
+    /** @} */
+#undef NON_LAPACK
+#endif
 #include <complex>
 
 template class TPZFMatrix<int >;

@@ -299,11 +299,8 @@ public:
     /** @brief Makes Zero all the elements */
     int Zero() override;
     
-#ifdef USING_LAPACK
     /** @brief Initialize pivot with i = i  */
     void InitializePivot();
-#endif
-
     
     /**
      * @brief This method implements a Gram Schimidt method. \n this = Orthog.TransfToOrthog
@@ -353,7 +350,7 @@ public:
     /** @brief LU substitution using pivot. Static version. */
     static int Substitution(const TVar *ptr, int64_t rows,  TPZFMatrix<TVar> *B, const TPZVec<int> &index );
     
-#ifdef USING_LAPACK
+
     /**
      * @brief Computes B = Y, where A*Y = B, A is lower triangular.
      * @param b right hand side and result after all
@@ -383,11 +380,9 @@ public:
      * @param b right hand side and result after all
      */
     virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
-#endif
     
     /** @} */
     
-#ifdef USING_LAPACK
     /*** @name Solve eigenvalues ***/
     /** @{ */
     /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
@@ -410,7 +405,7 @@ public:
      */
     virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w);    
     /** @} */
-#endif
+
     
     /** @brief Routines to send and receive messages */
     public:
@@ -447,11 +442,9 @@ private:
     TVar *fGiven;
     int64_t fSize;
     
-#ifdef USING_LAPACK
     TPZManVector<int,5> fPivot;
     
     TPZVec<TVar> fWork;
-#endif
 };
 
 /** @} */

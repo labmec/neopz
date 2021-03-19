@@ -1984,7 +1984,32 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
 }
 
 /** @} */
+#else
+#define NON_LAPACK \
+  PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";\
+  PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";\
+  PZError<<" when configuring NeoPZ library"<<std::endl;\
+  DebugStop();
+template<class TVar>
+int TPZSBMatrix<TVar>::Decompose_Cholesky(){NON_LAPACK}
+
+template<class TVar>
+int TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular){NON_LAPACK}
+
+template<class TVar>
+int TPZSBMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+template<class TVar>
+int TPZSBMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w){NON_LAPACK}
+
+template<class TVar>
+int TPZSBMatrix<TVar>::SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+template<class TVar>
+int TPZSBMatrix<TVar>::SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}
+#undef NON_LAPACK
 #endif
+
 template<class TVar>
 int TPZSBMatrix<TVar>::ClassId() const{
     return Hash("TPZSBMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;

@@ -102,10 +102,8 @@ public:
     
     /// To solve linear systems
     // @{
-#ifdef USING_LAPACK
     int Decompose_Cholesky() override;  // Faz A = GGt.
     int Decompose_Cholesky(std::list<int64_t> &singular) override;
-#endif
     
     int Subst_Forward( TPZFMatrix<TVar>*B ) const override;
     int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
@@ -120,7 +118,6 @@ public:
     
     // @}
     
-#ifdef USING_LAPACK
     /*** @name Solve eigenvalues ***/
     /** @{ */
     
@@ -146,7 +143,7 @@ public:
     int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w);
     
     /** @} */
-#endif
+
     public:
 int ClassId() const override;
 

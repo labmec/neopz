@@ -280,7 +280,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
     BOOST_CHECK(check);
 }
 
-#ifdef USING_LAPACK
+#ifdef PZ_USING_LAPACK
 
 /**
  * @brief Tests the Eigenvalues/eigenvectors of the generalised eigenproblem Av=wBv to any matrix types. It uses the AutoFill method to create a square matrix with
@@ -412,7 +412,7 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric) {
 
 BOOST_AUTO_TEST_SUITE(matrix_tests)
 
-#ifdef USING_LAPACK
+#ifdef PZ_USING_LAPACK
 
 
 BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
