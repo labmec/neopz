@@ -24,7 +24,7 @@ elif /usr/bin/time --verbose ls &> /dev/null; then
 fi
 echo "TIMEARGS = $TIMEARGS"
 
-APP="/SubStruct/Perf-SubStruct"
+APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "perf01 - substruct performance test: cubo1 p1 1st step."
@@ -39,18 +39,18 @@ OKS=0
 echo "Start at checkpoint 1, dump checkpoint 3 and stop"
 for ns in 1 2 4 8; do
 
-  BASEOUT="cubo1.double.txt.ckpt1.p1.nsub$ns"
+  BASEOUT="cubo1.@REAL_TYPE@.txt.ckpt1.p1.nsub$ns"
 
-  IF="cubo1.p1.nsub$ns.t.double.txt.ckpt1"
-  OF="cubo1.p1.nsub$ns.t.double.txt.ckpt3"
-  CMD="$APP -cf1 PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
+  OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
+  CMD="$APP -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
 
   verbose 1 "cmd: $CMD"
 
   rm -f "$OF"
   /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
   
-  GOLDEN="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF"
+  GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"

@@ -48,8 +48,8 @@ import resource
 import sys
 
 # Variables to be defined by cmake
-builddir="/home/orlandini/git/pzsuite/neopz-src/PerfTests"
-datadir="/home/orlandini/git/pzsuite/neopz-src/PerfTests/small_data"
+builddir="@PERFTEST_BASE_DIR@"
+datadir="@PERFTEST_SMALL_DATA_DIR@"
 
 def error(message, status):
 	sys.stderr.write('ERROR (test.py): '+message+'\n')

@@ -32,17 +32,17 @@ function run_cfg
 
     local EXTRAARGS=$8
 
-    BASEOUT="pthread_vs_tbb.$NAME.double.p$P.nsub$NS.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
+    BASEOUT="pthread_vs_tbb.$NAME.@REAL_TYPE@.p$P.nsub$NS.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
     
-    IF="cubo1.p$P.nsub$NS.t.double.bin.ckpt1"
-    OF="cubo1.p$P.nsub$NS.t.double.bin.ckpt3"
-    GOLDEN="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF"
-    MD5F="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF.md5"
+    IF="cubo1.p$P.nsub$NS.t.@REAL_TYPE@.bin.ckpt1"
+    OF="cubo1.p$P.nsub$NS.t.@REAL_TYPE@.bin.ckpt3"
+    GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
+    MD5F="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF.md5"
 
     ASSRDT="$BASEOUT.ass.rdt"
     CRERDT="$BASEOUT.cre.rdt"
 
-    ICHKF="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/inputs/$IF"
+    ICHKF="@PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF"
 
     CMD="$APP -bc -cf1 $ICHKF -dc3 $OF -st3 -ass_rdt $ASSRDT -cre_rdt $CRERDT" 
     CMD="$CMD -chk_c3_md5 $MD5F"
@@ -82,7 +82,7 @@ function run_cfg
 }
 
 # ==================================
-APP="/SubStruct/Perf-SubStruct"
+APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
 
 # Select the time command arguments
 if /usr/bin/time -l ls &> /dev/null; then

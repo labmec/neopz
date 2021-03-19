@@ -36,18 +36,18 @@ function run_cfg
 
     for ns in 2 4 8 16 32 64; do
 
-        BASEOUT="cubo1.double.txt.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
+        BASEOUT="cubo1.@REAL_TYPE@.txt.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
 
-        IF="cubo1.p$P.nsub$ns.t.double.txt.ckpt1"
-        OF="cubo1.p$P.nsub$ns.t.double.txt.ckpt3"
-        CMD="$APP -cf1 PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        IF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
+        OF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
+        CMD="$APP -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         
         rm -f "$OF"
         /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
         
-        GOLDEN="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF"
+        GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
         
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"
@@ -67,7 +67,7 @@ function run_cfg
 
 PLEVEL=2
 VERBOSE_LEVEL=1
-APP="/SubStruct/Perf-SubStruct"
+APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "perf01 - substruct performance test: cubo1 step."

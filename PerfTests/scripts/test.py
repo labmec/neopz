@@ -26,7 +26,7 @@ import shutil
 # Try to import rdt and stats modules, if available.
 import sys
 # Add the perf_base_dir/scripts/misc to the system path to enable importing misc modules
-sys.path.append("/home/orlandini/git/pzsuite/neopz-src/PerfTests/scripts/misc_modules/")
+sys.path.append("@PERFTEST_SCRIPTS_SRC_DIR@/misc_modules/")
 try:
 	import rdt, stats
 	summarize_results=True

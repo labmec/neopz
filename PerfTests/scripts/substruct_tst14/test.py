@@ -27,7 +27,7 @@ import resource
 # Try to import rdt and stats modules, if available.
 import sys
 # Add the perf_base_dir/scripts/misc to the system path to enable importing misc modules
-sys.path.append("/home/orlandini/git/pzsuite/neopz-src/PerfTests/scripts/misc_modules/")
+sys.path.append("@PERFTEST_SCRIPTS_SRC_DIR@/misc_modules/")
 try:
 	import rdt, stats
 	summarize_results=True
@@ -36,8 +36,8 @@ except ImportError, e:
 	summarize_results=False
 
 # Variables to be defined by cmake
-builddir="/home/orlandini/git/pzsuite/neopz-src/PerfTests"
-datadir="/home/orlandini/git/pzsuite/neopz-src/PerfTests/small_data"
+builddir="@PERFTEST_BASE_DIR@"
+datadir="@PERFTEST_SMALL_DATA_DIR@"
 
 def error(message, status):
 	sys.stderr.write('ERROR (test.py): '+message+'\n')
