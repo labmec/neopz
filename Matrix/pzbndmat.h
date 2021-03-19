@@ -1,6 +1,11 @@
 /**
  * @file
- * @brief Contains TPZFBMatrix class which defines a non symmetric banded matrix.
+ * @brief Contains TPZFBMatrix class which defines a non symmetric banded matrix. Some functionalities depend on LAPACK.
+
+ The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to 
+ know which functions are affected by this dependency.
+ LAPACK can be linked by setting USING_LAPACK=ON or USING_MKL=ON on CMake
+when configuring the library.
  */
 
 #ifndef _TBNDMATHH_
@@ -131,8 +136,9 @@ public:
 	int Zero() override;
 	
 	void Transpose(TPZMatrix<TVar> *const T) const override;
-    
+    //Depends on LAPACK
 	int       Decompose_LU(std::list<int64_t> &singular) override;
+    //Depends on LAPACK
 	int       Decompose_LU() override;
 	
     public:

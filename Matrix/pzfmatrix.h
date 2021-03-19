@@ -1,6 +1,11 @@
 /**
  * @file
- * @brief Contains TPZMatrixclass which implements full matrix (using column major representation).
+ * @brief Contains TPZMatrixclass which implements full matrix (using column major representation). Some functionalities depend on LAPACK.
+
+ The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to 
+ know which functions are affected by this dependency.
+ LAPACK can be linked by setting USING_LAPACK=ON or USING_MKL=ON on CMake
+when configuring the library.
  */
 
 
@@ -352,55 +357,55 @@ public:
     
 
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular. DEPENDS ON LAPACK.
      * @param b right hand side and result after all
      */
     virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular. DEPENDS ON LAPACK.
      * @param b right hand side and result after all
      */
     virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1. DEPENDS ON LAPACK.
      * @param b right hand side and result after all
      */
     virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1. DEPENDS ON LAPACK.
      * @param b right hand side and result after all
      */
     virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix. DEPENDS ON LAPACK.
      * @param b right hand side and result after all
      */
     virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
     
     /** @} */
     
-    /*** @name Solve eigenvalues ***/
+    /*** @name Solve eigenvalues DEPENDS ON LAPACK.***/
     /** @{ */
-    /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
+    /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
      */
     virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
-    /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors
+    /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      */
     virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w);
 
-    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors
+    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
      */
     virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
-    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors
+    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      */
     virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w);    
