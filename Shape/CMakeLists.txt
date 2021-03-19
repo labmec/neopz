@@ -23,6 +23,7 @@ set(headers
 
 set(sources
     TPZShapeDisc.cpp
+    pzgenericshape.cpp
     pzshapecube.cpp
     pzshapelinear.cpp
     pzshapepiram.cpp
