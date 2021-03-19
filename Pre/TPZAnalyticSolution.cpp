@@ -1989,9 +1989,6 @@ template
 void TLaplaceExample1::DivSigma<STATE>(const TPZVec<REAL> &x, STATE &divsigma) const;
 
 template
-void TLaplaceExample1::graduxy<Fad<STATE>>(const TPZVec<Fad<STATE>> &x, TPZVec<Fad<STATE>> &grad) const;
-
-template
 void TLaplaceExample1::graduxy<STATE>(const TPZVec<STATE> &x, TPZVec<STATE> &grad) const;
 
 
