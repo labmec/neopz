@@ -13,7 +13,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzconnect"));
+static PZLogger logger("pz.mesh.tpzconnect");
 #endif
 
 using namespace std;

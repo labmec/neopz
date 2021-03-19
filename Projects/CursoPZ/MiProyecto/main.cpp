@@ -36,7 +36,7 @@
 
 /** Initialiazing file for Log4CXX for this project */
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
+static PZLogger logger("pz.Cedric");
 #endif
 
 // output files  -> Because it has many energy faults

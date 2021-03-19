@@ -12,7 +12,7 @@
 #include "pzgeoel.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.poisson3d.materialcoupling"));
+static PZLogger logger("pz.material.poisson3d.materialcoupling");
 #endif
 
 TPZMaterialCoupling::TPZMaterialCoupling(int nummat, int dim):
@@ -58,7 +58,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 						
 						
 #ifdef LOG4CXX
-               if (logger->isDebugEnabled())
+               if (logger.isDebugEnabled())
 					{
 							std::stringstream sout;
 								sout << "prod phiHdiv[ " <<ishapeind << "]= " << phiHdiv(ishapeind,0)<< " phiH1[ "<< jcol << "] = " << phiH1(jcol,0)<< std::endl;
@@ -69,7 +69,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 						ek(ilinha,numdual+ numvec+jcol) += weight  * (prod1);
 						
 #ifdef LOG4CXX
-                    if (logger->isDebugEnabled())
+                    if (logger.isDebugEnabled())
 					{
 				std::stringstream sout;
 				sout << "-- PosJ " << numdual+ numvec+jcol<< std::endl;
@@ -109,7 +109,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 	std::cout << "numero de funcoes de de pressao(direita) " << numdual<<std::endl;
 	std::cout << "numero de funcoes de H1 (esquerda ) " << nrowL<<std::endl;
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << "numero de funcoes de Hdiv( direita ) " << nrowR<<std::endl;
@@ -124,7 +124,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 		for(int jl=0; jl<nrowL; jl++) {
 			REAL prod1 =	phixR(ishapeind,0)* phixL(jl);
 #ifdef LOG4CXX
-                    if (logger->isDebugEnabled())
+                    if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "produto das phis " << prod1<<std::endl;
@@ -138,7 +138,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 		
 		
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				ek.Print("Matriz de Acoplamento",sout);

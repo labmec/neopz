@@ -27,7 +27,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+static PZLogger logger("pz.analysis");
 #endif
 
 #ifdef USING_BOOST

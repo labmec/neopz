@@ -25,7 +25,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
+static PZLogger logger("pz.StrMatrix");
 #endif
 
 using namespace std;
@@ -37,7 +37,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
     }
@@ -57,7 +57,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
 //    std::cout << "Assembling\n";
     before.start();
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
+    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
 #endif
 	Assemble(*stiff,rhs,guiInterface);
     mat->ComputeDiagonal();
@@ -69,7 +69,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
+    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
 #endif
     return stiff;
 }

@@ -18,7 +18,7 @@
 #include "tpzchangeel.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticcube"));
+static PZLogger logger("pz.specialmaps.quadraticcube");
 #endif
 
 #include "fad.h"

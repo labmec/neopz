@@ -45,8 +45,8 @@
 #include <string>
 
 #ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+static PZLogger loggerconverge("pz.converge");
+static PZLogger logger("main");
 #endif
 
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 		
 		//	sub.SubStructure();
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
 		{
 			std::stringstream str;
 			cmesh->Print(str);

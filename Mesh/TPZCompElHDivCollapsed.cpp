@@ -15,7 +15,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivCollapsed"));
+static PZLogger logger("pz.mesh.TPZCompElHDivCollapsed");
 #endif
 
 template<class TSHAPE>
@@ -34,7 +34,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index), fBottom(mesh,gel,index), fTop(mesh,gel,in
     
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	 {
          std::stringstream sout;
          sout << "Finalizando criacao do elemento ";
@@ -261,7 +261,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
         std::stringstream sout;
         sout << "After InitMaterialData\n";
@@ -435,7 +435,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         data.fDeformedDirections.Print("Normal Vectors " , sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())

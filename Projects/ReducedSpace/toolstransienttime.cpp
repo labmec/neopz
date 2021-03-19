@@ -38,7 +38,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
+static PZLogger logdata("pz.toolstransienttime");
 #endif
 
 

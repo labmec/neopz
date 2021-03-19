@@ -21,7 +21,7 @@
 #include "TPZThreadPool.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.renumbering"));
+static PZLogger logger("pz.renumbering");
 #endif
 
 using namespace std;
@@ -354,11 +354,11 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, T
 	TPZVec<int64_t> nodegraph;
 	TPZVec<int64_t> nodegraphindex;
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "before NodeToElGraph")
+	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "before NodeToElGraph")
 #endif
 	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "after NodeToElGraph")
+	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "after NodeToElGraph")
 #endif
 	int64_t nelements = elgraphindex.NElements()-1;
 	eltoelgraphindex.Resize(nelements+1);
@@ -483,7 +483,7 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, int64_t nelconsider, std
         {
             std::stringstream sout;
             sout << "Element " << element << " First stage corner nodes " << corners;
-			if (logger->isDebugEnabled())
+			if (logger.isDebugEnabled())
 			{
 				LOGPZ_DEBUG(logger, sout.str())
 			}
@@ -523,7 +523,7 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, int64_t nelconsider, std
         {
             std::stringstream sout;
             sout << "Element " << element << " cornernodes.size " << elcornernodes.size() << " Second stage corner nodes " << corners;
-			if (logger->isDebugEnabled())
+			if (logger.isDebugEnabled())
 			{
 				LOGPZ_DEBUG(logger, sout.str())
 			}
@@ -560,7 +560,7 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, int64_t nelconsider, std
         {
             std::stringstream sout;
             sout << "Element " << element << " sub " << sub << " Final stage corner nodes " << corners;
-			if (logger->isDebugEnabled())
+			if (logger.isDebugEnabled())
 			{
 				LOGPZ_DEBUG(logger, sout.str())
 			}

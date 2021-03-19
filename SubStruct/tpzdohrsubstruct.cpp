@@ -8,7 +8,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
+static PZLogger logger("substruct.dohrsubstruct");
 #endif
 
 using namespace std;
@@ -211,7 +211,7 @@ void TPZDohrSubstruct<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_loca
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		Lambda_star.Print("Lambda_star ",sout);
@@ -225,7 +225,7 @@ void TPZDohrSubstruct<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_loca
 	temp2 *= -1.;
 	temp2.Add(KWeightedResidual,zi);
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		zi.Print("zi ",sout);
@@ -373,7 +373,7 @@ void TPZDohrSubstruct<TVar>::SolveSystemPhi() {
 	finv.Solve(I_lambda, Lambda_star);
 	
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		Lambda_star.Print("matrix lambda star",sout );
@@ -432,7 +432,7 @@ void TPZDohrSubstruct<TVar>::ComputeCoarseStiffness() {
 	fKCi.Resize(fCoarseIndex.NElements(),fCoarseIndex.NElements());
 	fStiffness->Multiply(fPhiC,temp1);
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		temp1.Print("stiffness matrix times phi",sout);
@@ -441,7 +441,7 @@ void TPZDohrSubstruct<TVar>::ComputeCoarseStiffness() {
 #endif
 	fPhiC.MultAdd(temp1,temp1,fKCi,1,0,1);
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		fKCi.Print("Coarse stiffness matrix",sout);

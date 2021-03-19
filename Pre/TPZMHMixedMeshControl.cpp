@@ -35,7 +35,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mhmixedmeshcontrol"));
+static PZLogger logger("pz.mhmixedmeshcontrol");
 #endif
 
 /*
@@ -1087,7 +1087,7 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         ConnectedElements(elindex, it->second, subels);
 
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Interface elindex " << elindex << " left " << it->second.first << " right " << it->second.second << std::endl;
@@ -1284,7 +1284,7 @@ void TPZMHMixedMeshControl::CreateMultiPhysicsInterfaceElements(int dim, int pre
         new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcleft.CreatedElement(),index1,celstack[0],celside);
         new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcright.CreatedElement(),index2,celstack[1],celside);
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Created an interface skeleton element index " << index1 << " between mphys " << celstack[0].Element()->Index() << " and pressure mphyx " << celside.Element()->Index()
@@ -1309,7 +1309,7 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         subcmesh->ComputeNodElCon();
         
 #ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             subcmesh->Print(sout);
@@ -1323,7 +1323,7 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         int numthreads = 0;
         int preconditioned = 0;
 #ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             subcmesh->Print(sout);
@@ -1419,7 +1419,7 @@ void TPZMHMixedMeshControl::BuildMultiPhysicsMesh()
         }
     }
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Geometric indices for which we will create multiphysics elements" << std::endl;

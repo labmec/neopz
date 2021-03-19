@@ -39,6 +39,9 @@
 #cmakedefine VC
 #endif
 
+#ifndef PZ_LOG
+#cmakedefine PZ_LOG
+#endif
 //Type defs
 #ifndef @REAL_TYPE_DEF@
 #define @REAL_TYPE_DEF@

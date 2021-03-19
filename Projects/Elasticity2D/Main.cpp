@@ -61,7 +61,7 @@
 #include <set>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+static PZLogger logger("pz.elasticity");
 #endif
 
 static bool oldmat = true;
@@ -342,7 +342,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     while(!converged && iter < numiter) {
         
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             matK=an->Solver().Matrix();
@@ -361,7 +361,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         REAL NormOfDeltaU = Norm(DeltaU);
         
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             DeltaU.Print("DeltaU = ", sout,EMathematicaInput);
@@ -375,7 +375,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         an->Rhs() *= -1.0; //- [R(U0)];
         
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             an->Rhs().Print("Res = ", sout,EMathematicaInput);

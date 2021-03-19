@@ -19,7 +19,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pzprism"));
+static PZLogger logger("pz.topology.pzprism");
 #endif
 
 using namespace std;

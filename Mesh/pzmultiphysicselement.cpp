@@ -16,7 +16,7 @@
 #include "pzcompelwithmem.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZMultiPhysicsElement"));
+static PZLogger logger("pz.mesh.TPZMultiPhysicsElement");
 #endif
 
 TPZMultiphysicsElement::TPZMultiphysicsElement(TPZCompMesh &mesh, const TPZMultiphysicsElement &copy) : TPZCompEl(mesh,copy)
@@ -154,7 +154,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		if(!gel){
 			DebugStop();
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "CreateBCGeoEl devolveu zero!@@@@";
@@ -265,7 +265,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
 #ifdef LOG4CXX_KEEP
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << __PRETTY_FUNCTION__ << " left element";
@@ -382,7 +382,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << " no interface element found\n";
@@ -396,7 +396,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	TPZCompEl *cel = list[i].Element();
 #ifdef LOG4CXX
 	TPZGeoEl *gel = cel->Reference();
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " element index " << Index() << " side " << std::endl;

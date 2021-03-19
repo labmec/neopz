@@ -10,7 +10,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelmat"));
+static PZLogger logger("pz.mesh.tpzelmat");
 #endif
 
 using namespace std;
@@ -163,7 +163,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
         this->fSourceIndex.Resize(destindex);
         this->fDestinationIndex.Resize(destindex);		
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout<<"fSourceIndex " <<fSourceIndex<< "\nfDestinationIndex "<<fDestinationIndex<<std::endl;
@@ -415,7 +415,7 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
         }
         count++;
     }
-    if (count && logger->isDebugEnabled()) {
+    if (count && logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Element matrix before ApplyOneShapeConstraint\n";
         fConstrMat.Print("EKBefore = ",sout,EMathematicaInput);
@@ -483,7 +483,7 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
 
     }
 #ifdef LOG4CXX
-    if (count && logger->isDebugEnabled()) {
+    if (count && logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Element matrix after ApplyOneShapeConstraint\n";
         fConstrMat.Print("EKAfter = ",sout,EMathematicaInput);
@@ -526,7 +526,7 @@ void TPZElementMatrix::PermuteGather(TPZVec<int64_t> &permute)
     }
     fBlock.Resequence();
 #ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         cp.fBlock.Print("cp.fBlock ",sout);
         fBlock.Print("fBlock ",sout);

@@ -113,9 +113,6 @@ ENABLE_TESTING()
 			endif()
 			##########################
 
-			#Testes Douglas
-			add_subdirectory(dactests)
-
 			#Testes padroes de refinamento
 			add_subdirectory(F17DirectionalRefinement)
 

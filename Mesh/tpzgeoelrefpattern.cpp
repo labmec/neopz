@@ -43,7 +43,7 @@ using namespace pzshape;
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+static PZLogger logger("pz.mesh.tpzgeoelrefpattern");
 #endif
 TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
                                   TPZVec<int64_t>& nodeindexes,

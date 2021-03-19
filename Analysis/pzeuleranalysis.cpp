@@ -20,7 +20,7 @@
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("pz.converge"));
+static PZLogger logger("pz.converge");
 #endif
 
 using namespace std;
@@ -403,7 +403,7 @@ void TPZEulerAnalysis::Run(std::ostream &out, const std::string & dxout, int dxR
 		CFLControl(lastEpsilon, epsilon, epsilon_Newton,  nextTimeStep);
 		
 #ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "iteration " << i << "Du/Dt " << epsilon << " Total Newton " << fTotalNewton;

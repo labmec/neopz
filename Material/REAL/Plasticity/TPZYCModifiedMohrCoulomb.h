@@ -11,7 +11,7 @@
 #endif
 
 #ifdef LOG4CXX_PLASTICITY
-//static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
+//static PZLogger logMohr("TPZYCMohrOriginal");
 #endif
 
 class TPZYCModifiedMohrCoulomb : public TPZPlasticCriterion {

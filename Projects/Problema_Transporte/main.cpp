@@ -62,7 +62,7 @@
 using namespace std;
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+static PZLogger logdata("pz.material");
 #endif
 
 #ifdef USING_BOOST
@@ -838,7 +838,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     TPZAutoPointer <TPZMatrix<STATE> > matMAux = MassMatrix(mymaterial, cmesh);
     
 #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+	if(logdata.isDebugEnabled())
 	{
             std::stringstream sout;
         	matM->Print("matM = ", sout,EMathematicaInput);
@@ -856,7 +856,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     fvec = an.Rhs();
     
 #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+	if(logdata.isDebugEnabled())
 	{
 
         std::stringstream sout;
@@ -1000,7 +1000,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mymaterial, cmesh);
     
 //#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        matM->Print("matM = ", sout,EMathematicaInput);
@@ -1018,7 +1018,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     fvec = an.Rhs();
     
 //#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//	if(logdata.isDebugEnabled())
 //	{
 //        
 //        std::stringstream sout;
@@ -1055,7 +1055,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
 //#ifdef LOG4CXX
-//        if(logdata->isDebugEnabled())
+//        if(logdata.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            sout<< " tempo = " << cent;
@@ -1359,7 +1359,7 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
 	gmesh->BuildConnectivity();
     
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);

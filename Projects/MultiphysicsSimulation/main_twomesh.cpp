@@ -57,7 +57,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an, std::string plotfile);
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
+static PZLogger logdata("pz.mixedpoisson.data");
 #endif
 
 
@@ -204,7 +204,7 @@ TPZGeoMesh *GMesh(int triang_elements, int nh){
 	gmesh->BuildConnectivity();
     
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -277,7 +277,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->CleanUpUnconnectedNodes();
         
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Computacional_2 pressure\n ";

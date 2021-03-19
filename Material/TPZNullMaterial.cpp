@@ -20,7 +20,7 @@
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static LoggerPtr logger(Logger::getLogger("pz.material"));
+static PZLogger logger("pz.material");
 #endif
 
 

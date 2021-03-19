@@ -19,7 +19,7 @@
 #ifdef LOG4CXX
 #include "pzlog.h"
 
-static LoggerPtr loggerSM(Logger::getLogger("material.plasticity.SM"));
+static PZLogger loggerSM("material.plasticity.SM");
 
 #endif
 
@@ -1633,7 +1633,7 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
         sigproj = sigtrial;
         delgamma.Fill(0.);
 #ifdef LOG4CXX
-        if (loggerSM->isDebugEnabled()) {
+        if (loggerSM.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Deformation elastic yield = " << yield;
             sout << "delgamma condition " << (delgamma[0] > 0.) << " " << (delgamma[1] > 0.) << std::endl;
@@ -1679,7 +1679,7 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
     }
     Compute(sigproj, epspproj, yield, 0);
 #ifdef LOG4CXX
-    if (loggerSM->isDebugEnabled()) {
+    if (loggerSM.isDebugEnabled()) {
         std::stringstream sout;
         sout << "After projecting the point yield = " << yield;
         sout << "\ndelgamma = " << delgamma;

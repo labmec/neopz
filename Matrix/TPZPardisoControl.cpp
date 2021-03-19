@@ -16,7 +16,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.pardisocontrol"));
+static PZLogger logger("pz.matrix.pardisocontrol");
 #endif
 //#define Release_Memory_Q
 
@@ -271,7 +271,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
     }
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "The pardiso control vector is\n";

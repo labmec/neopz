@@ -16,7 +16,7 @@ using namespace std;
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotetrahedra"));
+static PZLogger logger("pz.geom.pzgeotetrahedra");
 #endif
 
 namespace pzgeom {

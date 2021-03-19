@@ -10,7 +10,7 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr porousLogger(Logger::getLogger("material.pzPoro"));
+static PZLogger porousLogger("material.pzPoro");
 #endif
 
 

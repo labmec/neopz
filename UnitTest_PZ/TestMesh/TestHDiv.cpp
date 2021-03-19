@@ -70,7 +70,7 @@ using namespace pzshape;
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
+static PZLogger logger("pz.mesh.testhdiv");
 #endif
 
 #ifdef USING_BOOST
@@ -340,7 +340,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     }
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"Malha Geo FINAl \n\n";
@@ -543,7 +543,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
 //    mphysics->Print(arq4);
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
 //        gmesh->Print(sout);
@@ -967,7 +967,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
         intel->ComputeRequiredData(dataA, pos);
         intelP->ComputeShape(pos, dataB);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
 				{
 						std::stringstream sout;
 						sout << "Phi's " << dataA.phi<< " dphix's "<< dataA.dphix<<std::endl;
@@ -1011,7 +1011,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             // the divergence of the vector function should be equal to the value of projected pressure space
             STATE diff = phival-divphi;
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "phi: " << phival<<" dphi: "<< divphi <<"\n";
@@ -1560,7 +1560,7 @@ void RunBilinear(MElementType eltype)
     
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Reference()->Print(sout);
@@ -1724,7 +1724,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(int64_t nelem,int MaterialId)
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
 #ifdef LOG4CXX
-                if(logger->isDebugEnabled())
+                if(logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Tetrahedral nodes " << nodes;

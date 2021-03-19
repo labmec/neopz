@@ -16,7 +16,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.tpzmattest3d"));
+static PZLogger logger("pz.material.tpzmattest3d");
 #endif
 using namespace std;
 int TPZMaterialTest3D::geq3 = -1;//Cedric : para testes no programa main 3dmaterial.c

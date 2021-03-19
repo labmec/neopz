@@ -15,7 +15,7 @@ extern "C" {
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.metis"));
+static PZLogger logger("pz.metis");
 #endif
 
 #include <iostream>
@@ -155,7 +155,7 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	{
 		std::stringstream sout;
 		TPZRenumbering::Print(Adjacency,AdjacencyIndex,"Element to element graph",sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str())
 		}

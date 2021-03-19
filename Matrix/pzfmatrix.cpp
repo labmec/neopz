@@ -34,8 +34,8 @@ class TPZStream;
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+static PZLogger logger("pz.matrix.tpzfmatrix");
+static PZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 #ifdef USING_LAPACK
@@ -340,7 +340,7 @@ template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
 #ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print("GrSchmidt Entrada",sout);
@@ -428,7 +428,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             else
             {
 #ifdef LOG4CXX2
-                if (logger->isDebugEnabled())
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "dotdown = " << dotDown << " dotup = " << dotUp;
@@ -477,7 +477,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     TransfToOrthog.operator*= ( 1./scale );
     
 #ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << endl;

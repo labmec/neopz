@@ -10,7 +10,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mulptiphysicscompmesh"));
+static PZLogger logger("pz.mulptiphysicscompmesh");
 #endif
 
 
@@ -447,7 +447,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         }
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Solutions of the referred meshes";
     }

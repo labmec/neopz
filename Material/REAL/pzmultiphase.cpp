@@ -15,11 +15,11 @@
 #include <iostream>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
+static PZLogger logger("pz.multiphase");
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
+static PZLogger logdata("pz.material.multiphase.data");
 #endif
 
 TPZMultiphase::TPZMultiphase(): 
@@ -3092,7 +3092,7 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
         }
         
 // #ifdef LOG4CXX
-//             if(logdata->isDebugEnabled())
+//             if(logdata.isDebugEnabled())
 //             {
 //                 std::stringstream sout;
 //                 sout <<  "SLeft =" << sol_sL[VecPos] << " bulkfStarl =" << bulkfStarl << " Gravitydotnl =" << Gravitydotnl << std::endl;

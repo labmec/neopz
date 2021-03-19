@@ -18,7 +18,7 @@
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static LoggerPtr logger(Logger::getLogger("pz.material"));
+static PZLogger logger("pz.material");
 #endif
 
 
@@ -290,7 +290,7 @@ void TPZVecL2::Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
   // values.Fill(0.0);
     
 // #ifdef LOG4CXX
-//     if(logger->isDebugEnabled()){
+//     if(logger.isDebugEnabled()){
 //         std::stringstream sout;
 //         sout<< "\n";
 //         sout << " Pto  " << x << std::endl;

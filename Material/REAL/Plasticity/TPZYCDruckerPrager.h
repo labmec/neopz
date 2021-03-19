@@ -19,7 +19,7 @@
 #endif
 
 #ifdef LOG4CXX_PLASTICITY
-static LoggerPtr loggerDP(Logger::getLogger("plasticity.DruckerPrager"));
+static PZLogger loggerDP("plasticity.DruckerPrager");
 #endif
 
 /**

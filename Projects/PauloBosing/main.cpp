@@ -90,7 +90,7 @@ void SolExataP(const TPZVec<REAL> &pt, TPZVec<STATE> &solP, TPZFMatrix<STATE> &G
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.tutorial.multiphysics"));
+static PZLogger logdata("pz.tutorial.multiphysics");
 #endif
 
 bool disc_functions = true;
@@ -320,7 +320,7 @@ TPZGeoMesh *GMesh(bool triang_elements){
     gmesh->BuildConnectivity();
     
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Geometrica Inicial\n ";

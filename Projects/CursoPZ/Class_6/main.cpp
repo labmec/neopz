@@ -35,9 +35,9 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.adaptivity"));
-static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
-static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
+static PZLogger logger("pz.adaptivity");
+static PZLogger loggerconv("pz.adaptivity.conv");
+static PZLogger loggerpoint("pz.adaptivity.points");
 #endif
 
 #include <time.h>
@@ -179,7 +179,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     cmesh->CleanUpUnconnectedNodes();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);

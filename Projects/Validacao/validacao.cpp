@@ -52,7 +52,7 @@
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("HdivTestes.main"));
+static PZLogger logger("HdivTestes.main");
 
 #endif
 

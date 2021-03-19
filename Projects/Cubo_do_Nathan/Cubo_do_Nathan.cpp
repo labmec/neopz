@@ -32,7 +32,7 @@
 #include <cstdlib>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("main"));
+static PZLogger logger("main");
 #endif
 
 #define MAIN3
@@ -309,7 +309,7 @@ int main()
 	//an.Solution().Print("Solution");
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		an.Solution().Print("Solution",str);
@@ -771,7 +771,7 @@ void Teste()
 	//an.Solution().Print("Solution");
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		an.Solution().Print("Solution",str);
@@ -780,7 +780,7 @@ void Teste()
 #endif
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		an2.Solution().Print("Solution",str);
@@ -834,7 +834,7 @@ void Teste()
 	}
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		sub.Print("Subtracao",str);

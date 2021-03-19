@@ -25,8 +25,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+static PZLogger loggerconverge("pz.converge");
+static PZLogger logger("main");
 #endif
 
 #include "pzskylmat.h"

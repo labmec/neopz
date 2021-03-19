@@ -11,7 +11,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.dohrassembly"));
+static PZLogger logger("substruct.dohrassembly");
 #endif
 
 // sum the values in the local matrix into the global matrix
@@ -35,7 +35,7 @@ void TPZDohrAssembly<TVar>::Assemble(int isub, const TPZFMatrix<TVar> &local, TP
 		sout << "Assembling destination indices " << avec << std::endl;
 		local.Print("Input vector",sout);
 		global.Print("Resulting vector",sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}
@@ -65,7 +65,7 @@ void TPZDohrAssembly<TVar>::Extract(int isub, const TPZFMatrix<TVar> &global, TP
 		sout << "sub structure " << isub << " Extracting destination indices " << avec << std::endl;
 		local.Print("extracted vector",sout);
 		global.Print("Global vector",sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}
@@ -94,7 +94,7 @@ void TPZDohrAssembly<TVar>::AssembleCoarse(int isub, const TPZFMatrix<TVar> &loc
 		sout << "Assembling destination indices " << avec << std::endl;
 		local.Print("Input vector",sout);
 		global.Print("Resulting vector",sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}

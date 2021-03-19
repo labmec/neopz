@@ -12,9 +12,8 @@
 #include "pzvec.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr loggerrefpattern(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-#endif
+static PZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
+
 
 class TPZGeoElSide;
 class TPZCompMesh;
@@ -468,7 +467,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	this->SetSubElementConnectivities();
 #ifdef LOG4CXX
     {
-        if (loggerrefpattern->isDebugEnabled())
+        if (loggerrefpattern.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Dividing element " << this->Index() << std::endl;

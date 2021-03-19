@@ -10,7 +10,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
+static PZLogger logger("pz.StrMatrix");
 #endif
 
 using namespace std;
@@ -74,7 +74,7 @@ template<class TVar>
 void TRMIrregularBlockDiagonal<TVar>::Initialize(TPZVec< std::pair<int64_t, int64_t> > &blocksize){
     int64_t nblock = blocksize.NElements();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Number of blocks \t" << nblock;
@@ -115,7 +115,7 @@ template<class TVar>
 void TRMIrregularBlockDiagonal<TVar>::Initialize(int64_t nblock){
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Number of blocks \t" << nblock;
@@ -495,7 +495,7 @@ int TRMIrregularBlockDiagonal<TVar>::Decompose_LU()
         }
         
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream mess;
             mess << "TRMIrregularBlockDiagonal::Decompose_LU() - b_isize = " << b_isize << ", b_isize*b_jsize = " << b_isize*b_jsize;

@@ -54,8 +54,8 @@
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.analysis"));
-static LoggerPtr loggerError(Logger::getLogger("pz.analysis.error"));
+static PZLogger logger("pz.analysis");
+static PZLogger loggerError("pz.analysis.error");
 #endif
 
 #ifdef USING_BOOST
@@ -237,7 +237,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	fRenumber->SetElementsNodes(nel,nindep);
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
 #ifdef LOG4CXX2
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         fRenumber->Print(elgraph, elgraphindex, "Elgraph of submesh", sout);
@@ -338,7 +338,7 @@ void TPZAnalysis::Assemble()
 		//aqui TPZFMatrix<STATE> nao eh nula
 	}
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         PrintVectorByElement(sout, fRhs, 1.e-6);
@@ -364,7 +364,7 @@ void TPZAnalysis::Solve() {
         //      STATE normres  = Norm(residual);
         //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             TPZFMatrix<STATE> res2(fRhs);
             fSolver->Matrix()->Residual(fSolution,fRhs,res2);
@@ -383,7 +383,7 @@ void TPZAnalysis::Solve() {
         fSolver->Solve(residual, delu);
         fSolution = delu;
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             if(!fSolver->Matrix()->IsDecomposed())
             {
@@ -412,7 +412,7 @@ void TPZAnalysis::Solve() {
     TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *> (fSolver);
     if(!step) DebugStop();
     int64_t nsing = step->Singular().size();
-	if(nsing && logger->isWarnEnabled()) {
+	if(nsing && logger.isWarnEnabled()) {
 		sout << "Number of singular equations " << nsing;
 		std::list<int64_t>::iterator it = step->Singular().begin();
 		if(nsing) sout << "\nSingular modes ";
@@ -426,7 +426,7 @@ void TPZAnalysis::Solve() {
 	}
 #endif
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Solution norm " << Norm(fSolution) << std::endl;
@@ -793,7 +793,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
                 elvalues.Resize(nelgeom, nerrors);
 
 #ifdef LOG4CXX
-                if (loggerError->isDebugEnabled()) {
+                if (loggerError.isDebugEnabled()) {
                     std::stringstream sout;
                     sout << "Values: ";
                     for (int ierr = 0; ierr < nerrors; ierr++) {
@@ -848,7 +848,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
 #endif
     }
 //#ifdef LOG4CXX
-//    if(loggerError->isDebugEnabled())
+//    if(loggerError.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        elvalues.Print("Errors = ",sout,EMathematicaInput);
@@ -1295,7 +1295,7 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 		nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
 #ifdef LOG4CXX
 #ifdef PZDEBUG2
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::map<int64_t,int64_t> blocksizes;
             int64_t i;

@@ -8,7 +8,7 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr postprocLogger(Logger::getLogger("material.pzPostProcMat"));
+static PZLogger postprocLogger("material.pzPostProcMat");
 #endif
 
 

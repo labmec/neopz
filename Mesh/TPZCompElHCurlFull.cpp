@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
+static PZLogger logger("pz.mesh.TPZCompElHCurl");
 #endif
 
 template<class TSHAPE>
@@ -138,7 +138,7 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
     }();
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__<<std::endl;
@@ -167,7 +167,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     ******************************************************************************************************************/
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << std::endl;
         sout << "ELEMENT ID: " << this->Reference()->Id() << std::endl;
@@ -205,7 +205,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     }
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << "first H1 shape function:" << std::endl;
         for (auto &iShape : firstH1ShapeFunc) {
@@ -322,7 +322,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
     const int firstFaceShape = shapeCount;
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << "vec shape index (edge connects):" << std::endl;
         for (int iShape = 0; iShape < firstFaceShape; iShape++) {
@@ -381,7 +381,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
             return perm;
         }();
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::ostringstream sout;
             sout << "face :"<< iSide <<" permutation:"<< std::endl;
             for (auto i = 0; i < permutedSideSides.size(); i++) sout << permutedSideSides[i]<<"\t";
@@ -418,7 +418,7 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
     const int firstInternalShape = shapeCount;
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << "vec shape index (face connects):" << std::endl;
         for (int iShape = firstFaceShape; iShape < firstInternalShape; iShape++) {
@@ -603,7 +603,7 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
         }
 
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::ostringstream sout;
             sout << __PRETTY_FUNCTION__ << std::endl;
             sout << "side :"<< side <<std::endl;

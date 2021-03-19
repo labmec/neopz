@@ -8,7 +8,7 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+static PZLogger logger("pz.reducedspace.data");
 #endif
 
 TPZCohesiveBC::TPZCohesiveBC() : TPZMatWithMem<TPZFMatrix<REAL> >(), fSigmaT(0.), fDeltaC(0.), fDeltaT(0.)
@@ -288,7 +288,7 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 	}
 	
 #ifdef LOG4CXX
-	if (logger->isDebugEnabled()) {
+	if (logger.isDebugEnabled()) {
 		std::stringstream str;
 		str << "\n------- Contribute do Cohesive -------" << std::endl;
 		str << "GeoElId = " << datavec[0].gelElId << std::endl; 

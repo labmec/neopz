@@ -32,7 +32,7 @@
 int gDebug;
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multipleload.main"));
+static PZLogger logger("pz.multipleload.main");
 #endif
 
 /**

@@ -31,7 +31,7 @@
 //
 //#ifdef PZDEBUG
 //    #ifdef LOG4CXX
-//    static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
+//    static PZLogger logger("pz.DarcyFlow");
 //    #endif
 //#endif
 //
@@ -88,7 +88,7 @@
 //    
 //    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
@@ -109,7 +109,7 @@
 //    
 //    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
@@ -127,7 +127,7 @@
 //    
 //    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
@@ -162,7 +162,7 @@
 //    
 //    // #ifdef PZDEBUG
 //    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
@@ -347,7 +347,7 @@
 //    
 //#ifdef PZDEBUG
 //    #ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
+//        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            KGlobal->Print("KGlobal = ", sout,EMathematicaInput);
@@ -473,7 +473,7 @@
 //        
 ////#ifdef PZDEBUG
 ////    #ifdef LOG4CXX
-////            if(logger->isDebugEnabled())
+////            if(logger.isDebugEnabled())
 ////            {
 ////                std::stringstream sout;
 ////                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
@@ -553,7 +553,7 @@
 //        
 //#ifdef PZDEBUG
 //#ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
+//        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
@@ -602,7 +602,7 @@
 //        }
 //#ifdef PZDEBUG
 //#ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
+//        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
@@ -643,7 +643,7 @@
 //        
 //        
 //        //#ifdef LOG4CXX
-//        //        if(logger->isDebugEnabled())
+//        //        if(logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
 //        //            an->Solver().Matrix().operator->()->Print("*an->Solver().Matrix().operator->() = ", sout,EMathematicaInput);
@@ -669,7 +669,7 @@
 //        
 //        
 //        //#ifdef LOG4CXX
-//        //        if(logger->isDebugEnabled())
+//        //        if(logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
 //        //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
@@ -699,7 +699,7 @@
 //    g.Multiply(dT, RankOne);
 //    
 //    //#ifdef LOG4CXX
-//    //    if(logger->isDebugEnabled())
+//    //    if(logger.isDebugEnabled())
 //    //    {
 //    //        std::stringstream sout;
 //    //        g.Print("g = ", sout,EMathematicaInput);
@@ -1441,7 +1441,7 @@
 ////    gmesh->BuildConnectivity();
 ////
 ////#ifdef LOG4CXX
-////    if (logger->isDebugEnabled())
+////    if (logger.isDebugEnabled())
 ////    {
 ////        std::stringstream sout;
 ////        sout<<"gmesh depois de refinar direcionalmente\n";
@@ -1508,7 +1508,7 @@
 //    
 //#ifdef PZDEBUG
 //#ifdef LOG4CXX
-//    if(logger->isDebugEnabled())
+//    if(logger.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        sout << "Is decomposed=  " << MatG->IsDecomposed() << std::endl;

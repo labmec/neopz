@@ -19,7 +19,7 @@
 #include "TPZPlasticState.h"
 
 #ifdef LOG4CXX
-static LoggerPtr loggerMohrCoulomb(Logger::getLogger("pz.plasticity.mohrcoulombneto"));
+static PZLogger loggerMohrCoulomb("pz.plasticity.mohrcoulombneto");
 #endif
 
 
@@ -208,7 +208,7 @@ public:
         sigma.EigenSystem(sigma_trial);
         
 #ifdef LOG4CXX
-        if (loggerMohrCoulomb->isDebugEnabled()) {
+        if (loggerMohrCoulomb.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Input stress tensor ";
             sigma.Print(sout);

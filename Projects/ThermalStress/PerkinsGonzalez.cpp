@@ -26,7 +26,7 @@ TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh);
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.project.perkinsgonzalez"));
+static PZLogger logger("pz.project.perkinsgonzalez");
 #endif
 
 void forceX(TPZVec<REAL> &x, TPZVec<REAL> &force)
@@ -62,7 +62,7 @@ int main()
     std::ofstream gmeshfile("gmesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), gmeshfile,true);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);

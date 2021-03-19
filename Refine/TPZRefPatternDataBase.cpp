@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.refpattern.TPZRefPatternDataBase"));
+static PZLogger logger("pz.refpattern.TPZRefPatternDataBase");
 #endif
 
 #ifdef BORLAND
@@ -377,7 +377,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 			}
 			refpat->InsertPermuted();
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 refpat->PrintMore(sout);
                 LOGPZ_DEBUG(logger, sout.str())

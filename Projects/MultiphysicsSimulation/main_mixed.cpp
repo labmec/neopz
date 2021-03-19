@@ -94,7 +94,7 @@ void NeumannAcimaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
+static PZLogger logdata("pz.mixedpoisson.data");
 #endif
 
 const bool triang = true;
@@ -142,7 +142,7 @@ int main5(int argc, char *argv[])
 //                cmesh1->Print(arg2);
 
         #ifdef LOG4CXX
-                            if(logdata->isDebugEnabled())
+                            if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
                                 sout << "Flux mesh\n";
@@ -160,7 +160,7 @@ int main5(int argc, char *argv[])
                 //ofstream arg3("cmesh2_inicial.txt");
                 //cmesh2->Print(arg3);
         #ifdef LOG4CXX
-                            if(logdata->isDebugEnabled())
+                            if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
                                 sout << "Pressure mesh\n";
@@ -193,7 +193,7 @@ int main5(int argc, char *argv[])
                 //ofstream arg6("mphysic.txt");
                 //mphysics->Print(arg6);
         #ifdef LOG4CXX
-                            if(logdata->isDebugEnabled())
+                            if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
                                 sout << "Multiphysics mesh\n";
@@ -421,7 +421,7 @@ TPZGeoMesh *GMesh(bool triang_elements){
 	gmesh->BuildConnectivity();
     
 //#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -464,7 +464,7 @@ TPZGeoMesh *GMesh2(bool triang_elements)
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc0);
     
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
       std::stringstream sout;
       gmesh->Print(sout);
@@ -639,7 +639,7 @@ TPZGeoMesh *GMesh3(){
 	gmesh->BuildConnectivity();
     
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -691,7 +691,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->AutoBuild();
     
 //#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
@@ -781,7 +781,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 #endif
     
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Computacional_2 pressure\n ";
@@ -1632,7 +1632,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
     }
     
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nResultados com SideToSideTransform\n";
@@ -1645,7 +1645,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
 #endif
     
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nSolSideToSide = {";
@@ -1734,7 +1734,7 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
     }
     
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nResultados com elemento 1D\n";
@@ -1748,7 +1748,7 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
     
     
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nSol1D = {";

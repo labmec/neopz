@@ -32,7 +32,7 @@ const std::string TPZRefPattern::fNonInitializedName = "noname";
 std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
 
  #ifdef LOG4CXX
- static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZRefPattern"));
+ static PZLogger logger("pz.mesh.TPZRefPattern");
  #endif
 
 
@@ -751,7 +751,7 @@ void TPZRefPattern::InsertPermuted()
         TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refp);
 
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Permutation " << it->fPermute;

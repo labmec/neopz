@@ -16,7 +16,7 @@
 #ifdef LOG4CXX
 #include "pzlog.h"
 
-static LoggerPtr loggerSML2(Logger::getLogger("material.plasticity.SML2"));
+static PZLogger loggerSML2("material.plasticity.SML2");
 
 #endif
 
@@ -169,7 +169,7 @@ inline void TPZYCSandlerDimaggioL2::Compute(const TPZTensor<T> & sigma, const T 
         }
         res[0] = I1 - T(lmax);
 #ifdef LOG4CXX
-        if (loggerSML->isDebugEnabled()) {
+        if (loggerSML.isDebugEnabled()) {
             std::stringstream sout;
 
             T sqj2 = J2;
@@ -307,7 +307,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
         Ndir[0].XZ() = sigma.XZ() * Temp3;
         Ndir[0].XY() = sigma.XY() * Temp3;
 #ifdef LOG4CXX
-        if (loggerSML->isDebugEnabled()) {
+        if (loggerSML.isDebugEnabled()) {
             std::stringstream sout;
             Ndir[0].Print(sout);
             LOGPZ_DEBUG(loggerSML, sout.str())
@@ -373,7 +373,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
 #ifdef LOG4CXX
     {
         LoggerPtr logger(Logger::getLogger("pz.plasticity.SandlerDimaggio.main"));
-        if (0 && logger->isDebugEnabled()) {
+        if (0 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "<< TPZYCSandlerDimaggioL2::N *** \n sigma = \n" << sigma
                     << "\nI1 = " << I1
@@ -477,7 +477,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
     Compute(sigtrial, L, yield, 0);
     int surfaceprojected = -1;
 #ifdef LOG4CXX
-    if (loggerSML->isDebugEnabled()) {
+    if (loggerSML.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Value of fIsonCap " << fIsonCap;
         if (fIsonCap) {
@@ -739,7 +739,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
     }
     Compute(sigproj, Lproj, yield, 0);
 #ifdef LOG4CXX
-    if (loggerSM->isDebugEnabled()) {
+    if (loggerSM.isDebugEnabled()) {
         std::stringstream sout;
         sout << "After projecting the point yield = " << yield;
         sout << "\ndelgamma = " << delgamma;

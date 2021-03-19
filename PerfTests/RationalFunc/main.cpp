@@ -26,7 +26,7 @@ void usage (char *prg)
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr logger(Logger::getLogger("pz.Cedric-Perf"));
+static PZLogger logger("pz.Cedric-Perf");
 #endif
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);

@@ -21,8 +21,8 @@
 #include "pzshtmat.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDiv"));
-static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+static PZLogger logger("pz.mesh.TPZCompElHDiv");
+static PZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 
 using namespace std;
@@ -46,7 +46,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
         int sideaux= facesides[i];
 		this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "After creating last flux connect " << i << std::endl;
@@ -206,7 +206,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 #endif
 	this-> fConnectIndexes[i] = connectindex;
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
@@ -331,7 +331,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
      //FirstIndex.Print();
 
 #ifdef LOG4CXX
-     if (logger->isDebugEnabled())
+     if (logger.isDebugEnabled())
      {
          std::stringstream sout;
          sout << "FirstIndex "<<FirstIndex << std::endl;
@@ -635,7 +635,7 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index) const {
 	}
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "First  Index " << Index;
         LOGPZ_DEBUG(logger,sout.str())
@@ -737,7 +737,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     //FirstIndex.Print();
 
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "FirstIndex "<<FirstIndex << std::endl;
@@ -1185,7 +1185,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                     }
 
 #ifdef LOG4CXX
-                    if(logger->isDebugEnabled() && abs(meshsol) > 1.e-6)
+                    if(logger.isDebugEnabled() && abs(meshsol) > 1.e-6)
                     {
                         std::stringstream sout;
                         sout << "meshsol = " << meshsol << " ivec " << ivec << " ishape " << ishape << " x " << data.x << std::endl;
@@ -1221,7 +1221,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 
 
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "x " << data.x << " sol " << data.sol[0] << std::endl;
@@ -1396,7 +1396,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t
 	}
 	shapeindex.Resize(count);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "count = " << count << " nshape " << nshape;
@@ -1465,7 +1465,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         data.fDeformedDirections.Print("Normal Vectors " , sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
@@ -1496,7 +1496,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
     }
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
 		{
 				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHDiv")
 		}
@@ -1547,7 +1547,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 
 
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		data.fDeformedDirections.Print("Normal vector ", sout,EMathematicaInput);
@@ -1648,7 +1648,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
         side= ConnectSideLocId(icon);
 
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
                 std::stringstream sout;
                 sout << "side " << side << " order " << this->PreferredSideOrder(side)<<std::endl;
@@ -1659,7 +1659,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
         this->IdentifySideOrder(side);
     }
     #ifdef LOG4CXX
-    if (loggerdiv->isDebugEnabled()) {
+    if (loggerdiv.isDebugEnabled()) {
         std::stringstream sout;
         sout << (void*) this->Mesh() << "PRefine elindex " << this->Index() << " gel index " << this->Reference()->Index() << " " << order;
         sout << "\nPRefine connect orders ";

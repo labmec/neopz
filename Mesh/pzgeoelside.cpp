@@ -25,7 +25,7 @@ using namespace std;
 #include <sstream>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelside"));
+static PZLogger logger("pz.mesh.tpzgeoelside");
 #endif
 
 // Implementation of the TPZGeoElSideIndex methods
@@ -607,7 +607,7 @@ int TPZGeoElSide::Dimension() const {
 void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 	//t : atual -> neighbour
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << __FUNCTION__ << " this = \n";
         Print(sout);
@@ -653,7 +653,7 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 			t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
 		}
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "neighbourwithfather\n";
             neighbourwithfather.Print(sout);

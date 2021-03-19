@@ -32,7 +32,7 @@
 #include "pzcompelwithmem.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcreateapproximationspace"));
+static PZLogger logger("pz.mesh.tpzcreateapproximationspace");
 #endif
 
 /** @brief Creates computational point element */
@@ -57,7 +57,7 @@ using namespace pzshape;
 
 TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 #ifdef LOG4CXX
-    if (logger->isWarnEnabled()) {
+    if (logger.isWarnEnabled()) {
         std::stringstream sout;
         sout << "Mesh dimension " << mesh.Dimension() << " gel dimension " << gel->Dimension() << " will not create a computational element\n";
         LOGPZ_WARN(logger, sout.str())
@@ -223,7 +223,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
                 cmesh.ElementVec()[index]->Reference()->ResetReference();
             }
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
             {
 
                 std::stringstream sout;
@@ -301,7 +301,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
 #ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+                if (logger.isDebugEnabled())
                 {
                     
                     std::stringstream sout;

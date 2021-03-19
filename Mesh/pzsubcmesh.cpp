@@ -40,8 +40,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.subcmesh"));
-static LoggerPtr logger2(Logger::getLogger("pz.mesh.tpzcompmesh"));
+static PZLogger logger("pz.mesh.subcmesh");
+static PZLogger logger2("pz.mesh.tpzcompmesh");
 #endif
 
 /// Number of elements to test 
@@ -484,7 +484,7 @@ int64_t TPZSubCompMesh::GetFromSuperMesh(int64_t superind, TPZCompMesh *super){
 		j = it->second;
 		
 #ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Connect in fathermesh " << superind << "  existing connect found : corresponds to connect " << j << " in subcompmesh";
@@ -609,7 +609,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 	//father->ComputeNodElCon();
 #endif
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Connect indexes " << fConnectIndex;
@@ -673,7 +673,7 @@ void TPZSubCompMesh::MakeAllInternal(){
             }
 		}
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << " connect indexes that will be transferred ";
@@ -687,7 +687,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++)
 		{
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
             {
 				std::stringstream sout;
                 int64_t localindex = fExternalLocIndex[*itset];
@@ -1288,7 +1288,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		
 	}
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Substructure stiffness matrix\n";
@@ -1347,7 +1347,7 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
     
     SaddlePermute();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print(sout);
@@ -1384,7 +1384,7 @@ void TPZSubCompMesh::SetAnalysisNonSymSparse(int numThreads)
 
     SaddlePermute();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print(sout);
@@ -1422,7 +1422,7 @@ void TPZSubCompMesh::SetAnalysisFStruct(int numThreads)
 
     SaddlePermute();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print(sout);
@@ -1459,7 +1459,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     
     SaddlePermute();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print(sout);
@@ -1527,7 +1527,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     
     SaddlePermute();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print(sout);
@@ -1639,7 +1639,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 		{
 			sout << *it << "/" << ConnectVec()[*it].SequenceNumber() << " ";
 		}
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str())
 		}
@@ -1676,7 +1676,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 		{
 			sout << "[" << mapit->first << " , " << mapit->second << "] ";
 		}
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str())
 		}
@@ -1695,7 +1695,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 1 " << permute;
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str())
 		}
@@ -1717,7 +1717,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 2 " << permute;
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str())
 		}
@@ -1733,7 +1733,7 @@ void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Permuting")
+	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "Permuting")
 #endif
 	Permute(permute);
 }
@@ -1786,7 +1786,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		permute[*it] = seqnum++;
 	}
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << " numinternal " << numinternal << " numconstraints " << numconstraints << " numexternal " << numexternal << std::endl;
@@ -1826,7 +1826,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 		}
 	}
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Index = " << " Permutations " << permute << std::endl;
@@ -1882,7 +1882,7 @@ void TPZSubCompMesh::TransferMultiphysicsElementSolution()
 {
     int64_t nel = this->NElements();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         fSolution.Print("SubMeshSol",sout);
         LOGPZ_DEBUG(logger, sout.str())

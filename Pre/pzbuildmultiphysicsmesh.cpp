@@ -23,7 +23,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzbuildmultiphysicsmesh"));
+static PZLogger logger("pz.mesh.tpzbuildmultiphysicsmesh");
 #endif
 
 

@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("br.steammesh"));
+static PZLogger logger("br.steammesh");
 #endif
 
 

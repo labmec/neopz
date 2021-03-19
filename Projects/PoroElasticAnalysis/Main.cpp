@@ -72,11 +72,11 @@
 
 //	// Using Log4cXX as logging tool
 //#ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
+//static PZLogger logger("pz.poroelastic2d");
 //#endif
 //
 //#ifdef LOG4CXX
-//static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
+//static PZLogger logdata("pz.material.poroelastic.data");
 //#endif
 
 //#undef PZ_REFPATTERN_DIR

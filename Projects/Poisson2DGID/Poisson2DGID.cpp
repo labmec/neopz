@@ -29,11 +29,11 @@
 // Using Log4cXX as logging tool
 //
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.poisson3d"));
+static PZLogger logger("pz.poisson3d");
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.poisson3d.data"));
+static PZLogger logdata("pz.material.poisson3d.data");
 #endif
 //
 // End Using Log4cXX as logging tool

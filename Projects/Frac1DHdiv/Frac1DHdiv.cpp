@@ -5,7 +5,7 @@
 #include "pzshapelinear.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.frac"));
+static PZLogger logdata("pz.frac");
 #endif
 
 int main()

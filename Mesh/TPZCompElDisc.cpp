@@ -47,7 +47,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompeldisc"));
+static PZLogger logger("pz.mesh.tpzcompeldisc");
 #endif
 
 

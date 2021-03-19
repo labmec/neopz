@@ -21,7 +21,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.pzgradientreconstruction"));
+static PZLogger logger("pz.pzgradientreconstruction");
 #endif
 
 

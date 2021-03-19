@@ -20,7 +20,7 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+static PZLogger logger("pz.reducedspace.data");
 #endif
 
 
@@ -254,7 +254,7 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
   
   
 #ifdef LOG4CXX
-  if(logger->isDebugEnabled())
+  if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
@@ -338,7 +338,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
 
   
 #ifdef LOG4CXX
-  if(logger->isDebugEnabled())
+  if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -435,7 +435,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
   
 	
 #ifdef LOG4CXX
-  if(logger->isDebugEnabled())
+  if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "<<< TPZPlasticFrac2D<T,TMEM>::ContributePlastic ***";
@@ -534,7 +534,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 	}
 	
 #ifdef LOG4CXX
-	if (logger->isDebugEnabled()) {
+	if (logger.isDebugEnabled()) {
 		std::stringstream str;
 		str << "\n------- Contribute da Pressure -------" << std::endl;
 		str << "GeoElId = " << datavec[1].gelElId << std::endl; 

@@ -8,7 +8,7 @@
 #include "pzgeom_utility.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeom_util"));
+static PZLogger logger("pz.geom.pzgeom_util");
 #endif
 
 

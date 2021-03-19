@@ -11,18 +11,18 @@
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/propertyconfigurator.h>
 
-static LoggerPtr plasticIntegrLogger(Logger::getLogger("plasticity.plasticIntegr"));
+static PZLogger plasticIntegrLogger("plasticity.plasticIntegr");
 #endif
 
 
 #ifdef LOG4CXX_PLASTICITY
-static LoggerPtr testLogger(Logger::getLogger("plasticity.test"));
+static PZLogger testLogger("plasticity.test");
 #endif
 
 
 
 #ifdef LOG4CXX_PLASTICITY
-static LoggerPtr MaterialPoint(Logger::getLogger("MaterialPointTest"));
+static PZLogger MaterialPoint("MaterialPointTest");
 #endif
 
 #include "pzvec.h"

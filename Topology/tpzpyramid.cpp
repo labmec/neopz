@@ -15,7 +15,7 @@
 #include "fad.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pzpyramid"));
+static PZLogger logger("pz.topology.pzpyramid");
 #endif
 
 using namespace std;

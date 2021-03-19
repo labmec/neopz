@@ -15,8 +15,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+static PZLogger logger("pz.matrix.tpzfmatrix");
+static PZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty),

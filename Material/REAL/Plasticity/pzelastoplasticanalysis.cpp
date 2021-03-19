@@ -30,8 +30,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr EPAnalysisLogger(Logger::getLogger("pz.analysis.elastoplastic"));
-static LoggerPtr loggertest(Logger::getLogger("testing"));
+static PZLogger EPAnalysisLogger("pz.analysis.elastoplastic");
+static PZLogger loggertest("testing");
 #endif
 
 using namespace std;
@@ -59,7 +59,7 @@ TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis()
 	
 #ifdef LOG4CXX
 {
-    if(EPAnalysisLogger->isDebugEnabled()){
+    if(EPAnalysisLogger.isDebugEnabled()){
         std::stringstream sout;
         sout << "<<< TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis() *** Killing Object\n";
         LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
@@ -352,7 +352,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
     REAL RhsNormPrev = Norm(fRhs);
     
 #ifdef LOG4CXX
-    if (EPAnalysisLogger->isDebugEnabled()) {
+    if (EPAnalysisLogger.isDebugEnabled()) {
         std::stringstream sout;
         PrintVectorByElement(sout, fRhs,1.e-5);
         LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
@@ -555,7 +555,7 @@ REAL TPZElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacements
 
 	#ifdef LOG4CXX
 	{
-            if (EPAnalysisLogger->isDebugEnabled()){
+            if (EPAnalysisLogger.isDebugEnabled()){
                std::stringstream sout;
                sout << ">>> TTPZElastoPlasticAnalysis::AcceptSolution *** "
                     << " with Norm(fCumSol) = " << Norm(fCumSol);
@@ -1066,7 +1066,7 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
     }
 #ifdef LOG4CXX
     {
-        if(EPAnalysisLogger->isDebugEnabled())
+        if(EPAnalysisLogger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Equations to zero ";

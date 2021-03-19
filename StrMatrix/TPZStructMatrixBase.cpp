@@ -9,12 +9,12 @@
 #include "pzshtmat.h"
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixOR"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
-static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
-static LoggerPtr loggerelmat(Logger::getLogger("pz.strmatrix.elementmat"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"));
-static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness"));
+static PZLogger logger("pz.strmatrix.TPZStructMatrixOR");
+static PZLogger loggerel("pz.strmatrix.element");
+static PZLogger loggerel2("pz.strmatrix.elementinterface");
+static PZLogger loggerelmat("pz.strmatrix.elementmat");
+static PZLogger loggerCheck("pz.strmatrix.checkconsistency");
+static PZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 #endif
 
 //this is not in header file to avoid including cmesh.h there
@@ -69,7 +69,7 @@ TPZMatrix<STATE> *TPZStructMatrixBase::CreateAssemble(
     Assemble(*stiff, rhs, guiInterface);
 
 #ifdef LOG4CXX2
-    if (loggerel->isDebugEnabled()) {
+    if (loggerel.isDebugEnabled()) {
         std::stringstream sout;
         stiff->Print("Stiffness matrix", sout);
         rhs.Print("Right hand side", sout);
@@ -90,7 +90,7 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
 {
     fMaterialIds = materialids;
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::set<int>::const_iterator it;
         std::stringstream sout;

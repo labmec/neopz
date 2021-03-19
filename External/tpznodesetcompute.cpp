@@ -24,7 +24,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.nodesetcompute"));
+static PZLogger logger("pz.mesh.nodesetcompute");
 #endif
 
 //static std::ofstream out("nodeset.txt");

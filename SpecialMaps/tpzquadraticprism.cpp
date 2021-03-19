@@ -15,7 +15,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticprism"));
+static PZLogger logger("pz.specialmaps.quadraticprism");
 #endif
 
 #include "fad.h"

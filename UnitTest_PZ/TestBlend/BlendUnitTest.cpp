@@ -39,7 +39,7 @@
 #include "TPZTriangleSphere.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
+static PZLogger logger("pz.mesh.testgeom");
 #endif
 
 #include "fad.h"

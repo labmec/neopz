@@ -11,8 +11,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzfstructmatrix"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
+static PZLogger logger("pz.strmatrix.tpzfstructmatrix");
+static PZLogger loggerel("pz.strmatrix.element");
 #endif
 
 

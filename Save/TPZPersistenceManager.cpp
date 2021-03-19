@@ -14,7 +14,7 @@
 //#define VerboseMode_Q
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.persistencemanager"));
+static PZLogger logger("pz.persistencemanager");
 #endif
 
 
@@ -239,7 +239,7 @@ void TPZPersistenceManager::PopulateClassIdMap()
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
             TPZSavable *savable = restoreClass->Restore();
 #ifdef LOG4CXX
-            if(logger->isDebugEnabled())
+            if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Class : " << savable->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;

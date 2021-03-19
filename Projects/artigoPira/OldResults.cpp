@@ -59,7 +59,7 @@ using namespace std;
 //#define SmoothSol
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("PiraHP.main"));
+static PZLogger logger("PiraHP.main");
 #endif
 
 
@@ -345,7 +345,7 @@ int mainOld(int argc, char *argv[])
             
             
             //#ifdef LOG4CXX
-            //            if(logger->isDebugEnabled())
+            //            if(logger.isDebugEnabled())
             //            {
             //                std::stringstream sout;
             //                matF->Print("MatFlux = ", sout,EMathematicaInput);
@@ -418,7 +418,7 @@ int mainOld(int argc, char *argv[])
             
             
             //#ifdef LOG4CXX
-            //        if(logger->isDebugEnabled())
+            //        if(logger.isDebugEnabled())
             //        {
             //            std::stringstream sout;
             //            anMP.Solver().Matrix()->Print("MatAposTransfer = ", sout,EMathematicaInput);

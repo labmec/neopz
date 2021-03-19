@@ -25,7 +25,7 @@
 #include "tpzgeoelrefpattern.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid2d"));
+static PZLogger logger("pz.gengrid.tpzgengrid2d");
 #endif
 
 using namespace std;

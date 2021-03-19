@@ -16,10 +16,6 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-extern LoggerPtr fluxroe;
-extern LoggerPtr fluxappr;
-#endif
 
 #include "fadType.h"
 #define _TFAD

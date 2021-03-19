@@ -13,7 +13,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoprism"));
+static PZLogger logger("pz.geom.pzgeoprism");
 #endif
 using namespace pzshape;
 using namespace std;

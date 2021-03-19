@@ -18,7 +18,7 @@
 // iRMS (i rise for / innovatory Reservoir Muli-scale Simulator)
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
+static PZLogger logdata("pz.iRMS");
 #endif
 
 #ifdef USING_BOOST

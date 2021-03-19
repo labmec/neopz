@@ -53,7 +53,7 @@
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("Bima.main"));
+static PZLogger logger("Bima.main");
 
 #endif
 static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
@@ -201,7 +201,7 @@ int main()
 				
             cmesh->SetName("Malha depois de Analysis-----");
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				cmesh->Print(sout);
@@ -303,7 +303,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
     comp->ApproxSpace().CreateInterfaceElements(comp,true);
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		comp->Print(sout);
@@ -326,7 +326,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	comp->SetName("Malha Computacional Original");
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		comp->Print(sout);
@@ -424,7 +424,7 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
     
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
@@ -482,7 +482,7 @@ void GroupElements(TPZCompMesh *cmesh)
             }
         }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -505,7 +505,7 @@ void GroupElements(TPZCompMesh *cmesh)
         TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel);
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);

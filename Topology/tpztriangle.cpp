@@ -14,7 +14,7 @@
 #include <cmath>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pztriangle"));
+static PZLogger logger("pz.topology.pztriangle");
 #endif
 
 using namespace std;

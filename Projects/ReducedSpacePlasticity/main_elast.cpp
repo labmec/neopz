@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+static PZLogger logger("pz.reducedspace.data");
 #endif
 
 

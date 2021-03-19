@@ -53,7 +53,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+static PZLogger logger("pz.reducedspace.data");
 #endif
 
 REAL uglyGlobTol = 1.e-10;
@@ -2314,7 +2314,7 @@ REAL ToolsTransient::IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int max
 	std::cout << "iter = " << nit << "\t||res|| = " << res << std::endl;
 	
 #ifdef LOG4CXX
-	if (logger->isDebugEnabled()) {
+	if (logger.isDebugEnabled()) {
 		std::stringstream totout;
 		totout << "************** Comecando as iteracoes do metodo de Newton *************** " << std::endl;
 		totout << "iter = " << nit << "\t||res|| = " << res << std::endl;
@@ -2361,7 +2361,7 @@ REAL ToolsTransient::IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int max
 		res_total = fres + fmat;
 		
 #ifdef LOG4CXX
-		if (logger->isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 			std::stringstream totout;
       /*
 			totout << "iter = " << nit+1 << "\t||res|| = " << res << std::endl;

@@ -12,7 +12,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.shape.TPZShapeQuad"));
+static PZLogger logger("pz.shape.TPZShapeQuad");
 #endif
 
 using namespace std;

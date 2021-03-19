@@ -15,8 +15,8 @@
 #include <iostream>
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
-static LoggerPtr logerror(Logger::getLogger("pz.mixedpoisson.error"));
+static PZLogger logdata("pz.mixedpoisson.data");
+static PZLogger logerror("pz.mixedpoisson.error");
 #endif
 
 TPZMixedPoisson::TPZMixedPoisson(): TPZRegisterClassId(&TPZMixedPoisson::ClassId), TPZMatPoisson3d() {
@@ -324,7 +324,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
     }
     //
 //    #ifdef LOG4CXX
-//        if(logdata->isDebugEnabled())
+//        if(logdata.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            sout<<"\n\n Matriz ek e vetor fk \n ";
@@ -503,7 +503,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //    }
 ////
 ////#ifdef LOG4CXX
-////    if(logdata->isDebugEnabled())
+////    if(logdata.isDebugEnabled())
 ////	{
 ////        std::stringstream sout;
 ////        sout<<"\n\n Matriz ek e vetor fk \n ";

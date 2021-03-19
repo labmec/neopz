@@ -13,7 +13,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.frontal.tpzfileeqnstorage"));
+static PZLogger logger("pz.frontal.tpzfileeqnstorage");
 #endif
 #include <fstream>
 using namespace std;
@@ -34,7 +34,7 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 		int64_t basepos = ftell(fIOStream);
 		fBlockPos.Push(basepos);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "basepos = " << basepos;
@@ -50,7 +50,7 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	//if (fCurrentBlock) firstpos = 
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Writing the position of the headers, numheaders " << fNumHeaders << " position ";
@@ -68,7 +68,7 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	fseek(fIOStream,firstpos,SEEK_SET);
 	fwrite(&firstaddress,sizeof(int64_t),1,fIOStream);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "At position " << firstpos << " writing the first address " << firstaddress;
@@ -80,7 +80,7 @@ void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	
 	/** Return the pointer to the actual position */
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Setting the file position at " << firstaddress;
@@ -206,7 +206,7 @@ template<class TVar>
 void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 {
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "fCurrentBlock "<< fCurrentBlock << " fNumHeaders " << fNumHeaders;
@@ -216,7 +216,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
   	
 	if(fCurrentBlock%(fNumHeaders-1)==0) {
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             LOGPZ_DEBUG(logger,"writing headers")
         }
 #endif
@@ -225,7 +225,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 		
 	}else if(fCurrentBlock!=0){
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
 		{
             std::stringstream sout;
             sout << "fCurrentBlock " << fCurrentBlock << " fBlockPos[fCurrentBlock-1] "<< fBlockPos[fCurrentBlock-1] << fBlockPos;
@@ -249,7 +249,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
   	fCurBlockPosition=ftell(fIOStream);
   	fwrite(&nextaddress,sizeof(int64_t),1,fIOStream);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "nextaddress " << nextaddress << " fCurBlockPosition " << fCurBlockPosition;
@@ -471,7 +471,7 @@ template<class TVar>
 void TPZFileEqnStorage<TVar>::ReOpen()
 {
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"reopening the file")
+    if (logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"reopening the file")
 #endif
 	fIOStream = fopen(fFileName.c_str(),"rb"); //open for reading
 	/**
@@ -533,7 +533,7 @@ template<class TVar>
 void TPZFileEqnStorage<TVar>::FinishWriting()
 {
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"Closing the binary file")
+	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"Closing the binary file")
 #endif
 	fseek(fIOStream,sizeof(int),SEEK_SET);
 	//cout << "Second fseek " << ftell(fIOStream) << endl;
@@ -547,7 +547,7 @@ template<class TVar>
 void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 {
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled() ) LOGPZ_DEBUG(logger,"Reading block positions")
+	if(logger.isDebugEnabled() ) LOGPZ_DEBUG(logger,"Reading block positions")
 #endif
 	int aux = fNumBlocks * (fNumHeaders-1);
 	fBlockPos.Resize(aux);

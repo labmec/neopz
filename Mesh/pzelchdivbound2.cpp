@@ -15,7 +15,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
+static PZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
 template<class TSHAPE>
@@ -32,7 +32,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		
     this->fConnectIndexes[0] = this->CreateMidSideConnect(TSHAPE::NSides-1);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << "After creating boundary flux connect " << this->fConnectIndexes[0] << std::endl;
@@ -46,7 +46,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 		
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		
@@ -68,7 +68,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 	this->fIntRule.SetOrder(order);
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	 {
          std::stringstream sout;
          sout << "Finalizando criacao do elemento ";
@@ -357,7 +357,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.fShapeType = TPZMaterialData::EScalarShape;
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 	}
@@ -474,7 +474,7 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index){
     }
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << " FirsShapeIndex result " << Index;

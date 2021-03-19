@@ -16,7 +16,7 @@
 using namespace std;
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.girkmannproblem"));
+static PZLogger logger("pz.girkmannproblem");
 #endif
 
 ofstream outfile("Resultados.txt");

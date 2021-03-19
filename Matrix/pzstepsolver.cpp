@@ -12,7 +12,7 @@ using namespace std;
 #include "TPZPersistenceManager.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.converge"));
+static PZLogger logger("pz.converge");
 #endif
 
 template <class TVar>
@@ -111,7 +111,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
             fNumIterations = numiterations;
             fTol = tol;
 #ifdef LOG4CXX
-            if(logger->isDebugEnabled())
+            if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Number of equations " << mat->Rows() << std::endl;
@@ -134,7 +134,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			{
 				std::stringstream sout;
 				sout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
-				if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,sout.str().c_str());
+				if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,sout.str().c_str());
 			}
 #endif
 		}

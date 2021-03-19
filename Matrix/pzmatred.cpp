@@ -19,7 +19,7 @@ using namespace std;
 #include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
+static PZLogger logger("pz.matrix.tpzmatred");
 #endif
 
 /*************************** Public ***************************/
@@ -157,7 +157,7 @@ void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 		}
 	}
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         F.Print("F Input",sout);
         fF0.Print("fF0 Initialized",sout);
@@ -176,7 +176,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
         return;
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "fF0 input " << std::endl;
         fF0.Print("fF0",sout);
@@ -191,7 +191,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
         fF0IsComputed = true;
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "After computing F0Invert" << std::endl;
         fF0.Print("F0Invert",sout);
@@ -200,7 +200,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
 #endif
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Input fF1" << std::endl;
         fF1.Print("fF1",sout);
@@ -210,7 +210,7 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
 	//make [F1]=[F1]-[K10][F0Invert]
 	fK10.MultAdd((fF0),fF1,(F1Red),-1,1);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         F1Red.Print("F1 Reduced", sout);
         LOGPZ_DEBUG(logger, sout.str())
@@ -355,7 +355,7 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 	
 	//compute result
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
         U1.Print("U1 = ",sout,EMathematicaInput);
@@ -410,7 +410,7 @@ void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TV
 	
 	//compute result
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		fF0.Print("fF0 ",sout);
@@ -535,7 +535,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		fK01.Multiply(x,l_Res,0);
 		//fSolver->Solve(l_Res,l_Res);
 #ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			l_Res.Print("Internal solution",sout);
@@ -545,7 +545,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		TPZFMatrix<TVar> l_ResFinal(fK11.Rows(), x.Cols(), 0);
 		fK11.Multiply(x,l_ResFinal,0);
 #ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			l_ResFinal.Print("Intermediate product l_ResFinal",sout);
@@ -554,7 +554,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 #endif
 		fK10.MultAdd(l_Res,l_ResFinal,z,-alpha,alpha,opt);
 #ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			z.Print("Final result z ",sout);

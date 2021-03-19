@@ -26,8 +26,8 @@ using namespace std;
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("agnaldo.integrate"));
-static LoggerPtr loggertensoes(Logger::getLogger("agnaldo.tensoes"));
+//static PZLogger logger("agnaldo.integrate");
+static PZLogger loggertensoes("agnaldo.tensoes");
 #endif
 
 

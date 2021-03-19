@@ -22,7 +22,7 @@
 #include <fstream>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.nonlinearanalysis"));
+static PZLogger logger("pz.nonlinearanalysis");
 #endif
 
 using namespace std;

@@ -17,7 +17,7 @@
 
 #ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr elastoplastic2dLogger(Logger::getLogger("material.pzElastoPlastic2D"));
+static PZLogger elastoplastic2dLogger("material.pzElastoPlastic2D");
 #endif
 
 
@@ -37,7 +37,7 @@ template <class T, class TMEM>
 TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D(const TPZMatElastoPlastic2D<T,TMEM> &mat) : TPZMatElastoPlastic<T,TMEM>(mat), fPlaneStrain(mat.fPlaneStrain)
 {
 #ifdef LOG4CXX
-    if(elastoplastic2dLogger->isDebugEnabled())
+    if(elastoplastic2dLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic2D<T,TMEM>() copy constructor called ***";
@@ -133,7 +133,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
 #endif
     
 #ifdef LOG4CXX
-    if (elastoplastic2dLogger->isDebugEnabled()) {
+    if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
@@ -214,7 +214,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     }
     
 #ifdef LOG4CXX
-    if (elastoplastic2dLogger->isDebugEnabled()) {
+    if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
         sout << " Resultant rhs vector:\n" << ef;
@@ -268,7 +268,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
 #endif
     
 #ifdef LOG4CXX
-    if (elastoplastic2dLogger->isDebugEnabled()) {
+    if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
@@ -307,7 +307,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     
     
 #ifdef LOG4CXX
-    if (elastoplastic2dLogger->isDebugEnabled()) {
+    if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
         sout << " Resultant rhs vector:\n" << ef;
@@ -492,7 +492,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             
         default:
 #ifdef LOG4CXX
-            if (elastoplastic2dLogger->isDebugEnabled()) {
+            if (elastoplastic2dLogger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::ContributeBC *** WRONG BOUNDARY CONDITION TYPE = " << bc.Type();
                 LOGPZ_ERROR(elastoplastic2dLogger, sout.str().c_str());
@@ -636,7 +636,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
             
         default:
 #ifdef LOG4CXX
-            if (elastoplastic2dLogger->isDebugEnabled()) {
+            if (elastoplastic2dLogger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::ContributeBC *** WRONG BOUNDARY CONDITION TYPE = " << bc.Type();
                 LOGPZ_ERROR(elastoplastic2dLogger, sout.str().c_str());

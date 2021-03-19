@@ -38,7 +38,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeomesh"));
+static PZLogger logger("pz.mesh.tpzgeomesh");
 #endif
 
 
@@ -257,7 +257,7 @@ void TPZGeoMesh::GetBoundaryElements(int64_t NodFrom, int64_t NodTo,TPZStack<TPZ
 		//	from elmap which do not contain the node
 		BuildElementsAroundNode(currentnode,elmap);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			std::map<int64_t, TPZGeoEl *>::iterator it;
@@ -511,7 +511,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
             geldist = dist(x,xcenter);
         }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "FindClosestElement Tried element index " << gel->Index() << std::endl;
             sout << "Distance from the center " << geldist << std::endl;
@@ -523,7 +523,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
         // if the center node is closer than the cornernode, return the element
         if (geldist < closestcorner || closestcorner < 1.e-15) {
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Distance from the closest corner " << closestcorner << "bailing out " << std::endl;
                 LOGPZ_DEBUG(logger, sout.str())
@@ -559,7 +559,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
             gelnextdist = distneigh.begin()->first;
         }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Closest element index " << gelnext->Index() << std::endl;
             sout << "Distance from the center " << gelnextdist << std::endl;
@@ -705,7 +705,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int6
         }
         
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             TPZManVector<REAL,3> par(neighSide.Dimension()),xloc(3,0.);
@@ -749,7 +749,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
  
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "x coordinate " << x << std::endl;
         sout << "element index " << gel->Index() << std::endl;
@@ -785,7 +785,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     if(memberQ)
     {
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             LOGPZ_DEBUG(logger, "Going into the FindSubElement alternative")
         }
@@ -795,7 +795,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     }
     tested.insert(gel);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Looking for x = " << x << std::endl;
@@ -844,14 +844,14 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
         if(locgel->ComputeXInverse(x, qsi, zero*100.) == true)
         {
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())LOGPZ_DEBUG(logger, "FOUND ! Going into the FindSubElement alternative")
+            if (logger.isDebugEnabled())LOGPZ_DEBUG(logger, "FOUND ! Going into the FindSubElement alternative")
 #endif
             gel = FindSubElement(locgel, x, qsi, InitialElIndex);
             return gel;
         }
         
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Looking for x = " << x << std::endl;
@@ -1504,7 +1504,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context) { //ok
 
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         LOGPZ_DEBUG(logger, __PRETTY_FUNCTION__);
     }
 #endif

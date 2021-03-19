@@ -54,7 +54,7 @@
 
 #ifdef LOG4CXX
 
-static LoggerPtr logger(Logger::getLogger("Acoplamento.main"));
+static PZLogger logger("Acoplamento.main");
 
 #endif
 
@@ -514,7 +514,7 @@ TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 				return new TPZInterfaceElement(mesh,gel,index);
 		
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout<<"elemento de interface "<<std::endl;
@@ -745,7 +745,7 @@ void PrintInterface(TPZCompMesh *malha)
 void SaddlePermute(TPZCompMesh * cmesh){
 		
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout<< "Implementando permutacao para problemas de ponto de sela"<< std::endl;
@@ -808,7 +808,7 @@ void SaddlePermute(TPZCompMesh * cmesh){
 				}
 				/*
 				 #ifdef LOG4CXX
-                 if (logger->isDebugEnabled())
+                 if (logger.isDebugEnabled())
 				 {
 				 std::stringstream sout;
 				 sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;
@@ -968,7 +968,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		
 		
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				gmesh->Print(sout);

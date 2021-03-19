@@ -36,8 +36,8 @@ using namespace std;
 using namespace pzgeom;
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoel"));
-static LoggerPtr loggerorient(Logger::getLogger("pz.mesh.tpzgeoel.orient"));
+static PZLogger logger("pz.mesh.tpzgeoel");
+static PZLogger loggerorient("pz.mesh.tpzgeoel.orient");
 #endif
 
 
@@ -1145,7 +1145,7 @@ void TPZGeoEl::Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL>
     TPZFNMatrix<9,REAL> gradx;
     GradX(qsi, gradx);
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         gradx.Print("gradx",sout);
@@ -2010,7 +2010,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	TPZManVector<REAL,3> dir(3,0.);
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<< "Centro de LC "<<XLC<< " Centro de LS "<<XLS<<std::endl;
@@ -2031,7 +2031,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	LS.Jacobian(LSCenter,jacobian,axes,detjac,jacinv);
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<< "vetor axes "<<axes<<std::endl;
@@ -2054,7 +2054,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
     
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
 	{
         std::stringstream sout;
 		sout << "axtrans = ";
@@ -2070,7 +2070,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
     
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
 	{
         std::stringstream sout;
 		sout << "Vetr Apos GramSchmidt = ";
@@ -2093,7 +2093,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 {
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<< "Normalize..u.n=1 "<<std::endl;
@@ -2259,7 +2259,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 //        TPZManVector<int,9> sidepermutationgather(nlowdim);
 //        HDivPermutation(side,sidepermutationgather);
 //#ifdef LOG4CXX
-//        if(logger->isDebugEnabled()){
+//        if(logger.isDebugEnabled()){
 //            std::stringstream sout;
 //            sout << "Permutation for side " << side << " is " << sidepermutationgather;
 //            LOGPZ_DEBUG(logger, sout.str())
@@ -2377,7 +2377,7 @@ int TPZGeoEl::NormalOrientation(int side)
 		return 0;
 	}
 #ifdef LOG4CXX
-    if (loggerorient->isDebugEnabled())
+    if (loggerorient.isDebugEnabled())
     {
         std::stringstream sout;
         TPZCompEl *cel = Reference();
@@ -2398,7 +2398,7 @@ int TPZGeoEl::NormalOrientation(int side)
 	}
 
 #ifdef LOG4CXX
-    if (loggerorient->isDebugEnabled())
+    if (loggerorient.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "largest father index " << thisside.Element()->Index() << " id = " << thisside.Element()->Id() << std::endl;
@@ -2435,7 +2435,7 @@ int TPZGeoEl::NormalOrientation(int side)
 	}
 #endif
 #ifdef LOG4CXX
-    if (loggerorient->isDebugEnabled())
+    if (loggerorient.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Element index " << Index() << std::endl;

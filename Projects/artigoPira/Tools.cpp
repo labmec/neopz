@@ -73,7 +73,7 @@ int const dirichlet =0;
 int const neumann = 1;
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("Tools.main"));
+static PZLogger logger("Tools.main");
 #endif
 
 TPZGeoMesh *GMesh(){
@@ -183,7 +183,7 @@ TPZGeoMesh *GMesh(){
     //    }
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -279,7 +279,7 @@ TPZGeoMesh *GMeshTeste(){
     gmesh->BuildConnectivity();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -309,7 +309,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
     gmesh->BuildConnectivity();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"gmesh depois de refinar uniformemente\n";
@@ -383,7 +383,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
     cmesh->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"malha computacional fluxo\n";
@@ -466,7 +466,7 @@ TPZCompMesh *CMeshFluxL2(TPZGeoMesh *gmesh, int pOrder, int nodeAtOriginId)
     cmesh->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"malha computacional fluxo\n";
@@ -547,7 +547,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     cmesh->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"malha computacional pressao\n";
@@ -733,7 +733,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"malha computacional multifisica\n";
@@ -810,7 +810,7 @@ void DirectionalRef(TPZGeoMesh *gmesh, int nodeAtOriginId, int divide){
     gmesh->BuildConnectivity();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"gmesh depois de refinar direcionalmente\n";
@@ -869,7 +869,7 @@ void DirectUniRef(TPZGeoMesh *gmesh, int nodeAtOriginId, int divide){
     gmesh->BuildConnectivity();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"gmesh depois de refinar direcionalmente\n";
@@ -919,7 +919,7 @@ void QuarterPointRef(TPZGeoMesh *gmesh, int nodeAtOriginId)
     }
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"gmesh com quarterpoint\n";
@@ -982,7 +982,7 @@ void Prefinamento(TPZCompMesh * cmesh, int ndiv, int porder){
     cmesh->ExpandSolution();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"malha computacional apos pRefinamento\n";
@@ -1315,7 +1315,7 @@ void ErrorL2(TPZCompMesh *l2mesh, std::ostream &out)
         int nerr = elerror.size();
         // globalerrors.resize(nerr);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
             LOGPZ_DEBUG(logger, sout.str())
@@ -1409,7 +1409,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     comp->ApproxSpace().CreateInterfaceElements(comp,true);
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         comp->Print(sout);
@@ -1429,7 +1429,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     
     comp->SetName("Malha Computacional Original");
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         comp->Print(sout);
@@ -1492,7 +1492,7 @@ void GroupElements(TPZCompMesh *cmesh)
             }
         }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -1523,7 +1523,7 @@ void GroupElements(TPZCompMesh *cmesh)
     cmesh->CleanUpUnconnectedNodes();
     cmesh->ExpandSolution();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);
@@ -1597,7 +1597,7 @@ TPZCompMesh *MalhaCompH1QP(TPZGeoMesh * gmesh,int ordem){
     cmesh->CleanUpUnconnectedNodes();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"malha computacional H1\n";

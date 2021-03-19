@@ -7,7 +7,7 @@
 #include <sstream>
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelement"));
+static PZLogger logger("pz.mesh.tpzgeoelement");
 #endif
 
 template<class TGeo, class TRef>

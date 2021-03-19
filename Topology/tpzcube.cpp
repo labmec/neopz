@@ -18,7 +18,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pzcube"));
+static PZLogger logger("pz.topology.pzcube");
 #endif
 using namespace std;
 

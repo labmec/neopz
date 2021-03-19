@@ -17,7 +17,7 @@
 #endif
 
 #ifdef LOG4CXX_PLASTICITY
-static LoggerPtr loggerYCLadeKim(Logger::getLogger("plasticity.LadeKim"));
+static PZLogger loggerYCLadeKim("plasticity.LadeKim");
 #endif
 
 /**

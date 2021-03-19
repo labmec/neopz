@@ -27,7 +27,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testmultithread"));
+static PZLogger logger("pz.mesh.testmultithread");
 #endif
 
 #include "boost/test/unit_test.hpp"

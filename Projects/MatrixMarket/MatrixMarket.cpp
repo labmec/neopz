@@ -18,7 +18,7 @@
 #include <set>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+static PZLogger logger("pz.elasticity");
 #endif
 
 #ifdef USING_BOOST

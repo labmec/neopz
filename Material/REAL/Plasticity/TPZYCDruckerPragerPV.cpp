@@ -10,7 +10,7 @@
 #include "TPZHWTools.h"
 
 #ifdef LOG4CXX
-static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+static PZLogger loggerConvTest("ConvTest");
 #endif
 
 TPZYCDruckerPragerPV::TPZYCDruckerPragerPV() : fER(fCap.fER), fM(fCap.fM), fPt(fCap.fPt), fLogHardening(fCap.fLogHardening), fLogBulkModulus(fCap.fLogBulkModulus), fA0(fCap.fA0), fE0(fCap.fE0) {
@@ -205,7 +205,7 @@ void TPZYCDruckerPragerPV::ProjectToSurfaceF1(const TPZVec<REAL> &sigma_trial_pv
         residual_norm = Norm(sol);
 
 #ifdef LOG4CXX
-        if (loggerConvTest->isDebugEnabled()) {
+        if (loggerConvTest.isDebugEnabled()) {
             std::stringstream outfile; //("convergencF1.txt");
             outfile << i << " " << log(residual_norm) << endl;
             //jac.Print(outfile);

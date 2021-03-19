@@ -32,7 +32,7 @@
 #include "TPZFracAnalysis.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.frac"));
+static PZLogger logger("pz.frac");
 #endif
 
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<TPZFracData> Data)
@@ -651,7 +651,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
   while(notconverged && iter < numiter) {
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
       std::stringstream sout;
       matK=an->Solver().Matrix();
@@ -670,7 +670,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     REAL NormOfDeltaU = Norm(DeltaU);
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
       std::stringstream sout;
       DeltaU.Print("DeltaU = ", sout,EMathematicaInput);
@@ -695,7 +695,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     an->Rhs() *= -1.0; //- [R(U0)];
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
       std::stringstream sout;
       an->Rhs().Print("Res = ", sout,EMathematicaInput);

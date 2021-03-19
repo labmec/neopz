@@ -27,8 +27,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
-static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+static PZLogger logger("pz.mesh.tpzinterpolatedelement");
+static PZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 
 
@@ -923,7 +923,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         }
     }
 #ifdef LOG4CXX_keep
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         M->Print("MSS = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
@@ -1374,7 +1374,7 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
     TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[0].Element());
     int minorder = cel->PreferredSideOrder(smallset[0].Side());
 #ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Order of first side " << minorder;
         LOGPZ_DEBUG(logger, sout.str())
@@ -1629,7 +1629,7 @@ void TPZInterpolatedElement::PRefine(int order) {
     SetPreferredOrder(order);
 
 #ifdef LOG4CXX
-    if (loggerdiv->isDebugEnabled()) {
+    if (loggerdiv.isDebugEnabled()) {
         std::stringstream sout;
         sout << (void*) Mesh() << " PRefine elindex " << Index() << " gel index " << Reference()->Index() << " " << order;
         LOGPZ_DEBUG(loggerdiv, sout.str())
@@ -1641,7 +1641,7 @@ void TPZInterpolatedElement::PRefine(int order) {
         IdentifySideOrder(is);
     }
 #ifdef LOG4CXX
-    if (loggerdiv->isDebugEnabled()) {
+    if (loggerdiv.isDebugEnabled()) {
         std::stringstream sout;
         sout << " PRefine connect orders ";
         int nc = NConnects();

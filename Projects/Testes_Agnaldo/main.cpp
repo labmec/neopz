@@ -82,7 +82,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
 
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
+static PZLogger logdata("pz.porolasticmf2d.data");
 #endif
 
 //problema murad e Loula
@@ -2506,7 +2506,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
         int nerr = elerror.size();
         //globerrors.resize(nerr);
 //#ifdef LOG4CXX
-//        if (logger->isDebugEnabled()) {
+//        if (logger.isDebugEnabled()) {
 //            std::stringstream sout;
 //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
 //            LOGPZ_DEBUG(logger, sout.str())

@@ -35,7 +35,7 @@
 
 /** Initialiazing file for Log4CXX for this project */
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
+static PZLogger logger("pz.Cedric");
 #endif
 
 #define DEFORM
@@ -116,7 +116,7 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
 #endif
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -264,7 +264,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
 #endif
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -294,7 +294,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     TPZAnalysis analysis(cmesh);
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);
@@ -629,7 +629,7 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(int64_t nelem,int MaterialId)
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
 #ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Cube nodes " << nodes;

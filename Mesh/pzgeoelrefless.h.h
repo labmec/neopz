@@ -15,7 +15,7 @@
 
 #include "pzlog.h" // test 
 #ifdef LOG4CXX
-static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
+static PZLogger loggerrefless("pz.mesh.tpzgeoelrefless");
 #endif
 
 #include "fadType.h"
@@ -764,7 +764,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
             break;
     }
 #ifdef LOG4CXX
-    if (loggerrefless->isDebugEnabled()) {
+    if (loggerrefless.isDebugEnabled()) {
         std::stringstream sout;
         sout << "side = " << side << " transform id " << transformid << " permutegather " << permutegather;
         LOGPZ_DEBUG(loggerrefless, sout.str())

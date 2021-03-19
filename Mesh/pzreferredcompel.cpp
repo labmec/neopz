@@ -43,7 +43,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
+static PZLogger logger("pz.mesh.tpzcompel");
 #endif
 
 using namespace std;

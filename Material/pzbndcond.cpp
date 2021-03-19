@@ -10,7 +10,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.bndcond"));
+static PZLogger logger("pz.material.bndcond");
 #endif
 
 int TPZBndCond::TPZ_BCDefine::ClassId() const {

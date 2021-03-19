@@ -11,7 +11,7 @@
 #include "pzcmesh.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
+static PZLogger logger("pz.mesh.tpzintelgen");
 #endif
 
 template<class TSHAPE>

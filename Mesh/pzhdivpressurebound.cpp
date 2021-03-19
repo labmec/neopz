@@ -16,7 +16,7 @@
 #include "pzhdivpressure.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivPressureBound"));
+static PZLogger logger("pz.mesh.TPZCompElHDivPressureBound");
 #endif
 
 

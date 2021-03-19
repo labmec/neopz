@@ -60,7 +60,7 @@
 #include "TPZVTKGeoMesh.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+static PZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;
@@ -459,7 +459,7 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     cmesh->AutoBuild();
     
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
@@ -533,7 +533,7 @@ TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
 //#endif
 
 //#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        sout<<"\n\n Malha Computacional_2 pressure\n ";
@@ -961,7 +961,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
         int nerr = elerror.size();
         //globerrors.resize(nerr);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
             LOGPZ_DEBUG(logger, sout.str())

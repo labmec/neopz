@@ -14,7 +14,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoquad0"));
+static PZLogger logger("pz.geom.pzgeoquad0");
 #endif
 
 namespace pzgeom {

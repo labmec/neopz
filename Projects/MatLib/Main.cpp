@@ -64,7 +64,7 @@ USING_MATLIB_NAMESPACE
 #include <set>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+static PZLogger logger("pz.elasticity");
 #endif
 
 // Dummy Boundary Conditions

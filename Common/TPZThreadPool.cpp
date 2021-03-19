@@ -2,7 +2,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
+static PZLogger logger("TPZThreadPool");
 #endif
 
 #include "TPZThreadPool.h"

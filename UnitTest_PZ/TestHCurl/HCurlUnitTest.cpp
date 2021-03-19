@@ -17,7 +17,7 @@
 
 #include "pzgeoelrefless.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testhcurl"));
+static PZLogger logger("pz.mesh.testhcurl");
 #endif
 
 #include "fad.h"

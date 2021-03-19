@@ -15,8 +15,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.axisymetric"));
-static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
+static PZLogger logger("pz.material.axisymetric");
+static PZLogger logdata("pz.material.axisymetric.data");
 #endif
 
 #include <fstream>
@@ -293,7 +293,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	}
 	
 #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		ek.Print("ek = ",sout,EMathematicaInput);
@@ -354,7 +354,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 			}      // ou deslocamento nulo  v2 = 0
 			accum1 += v2[1] * R2PI *weight;
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Accumulated force 1 " << accum1;
@@ -405,7 +405,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 			}      // ou deslocamento nulo  v2 = 0
 			accum2 += v2[0] * Nrz[1] * R2PI *weight;
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Accumulated force 2 " << accum2;
@@ -437,7 +437,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	REAL &faceSize=data.HSize;
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		dataleft.phi.Print("phil",sout);
@@ -447,7 +447,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 #endif
 	
 #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Origin = { " << f_Origin << "};" << std::endl;
@@ -505,7 +505,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
     }
 
 #ifdef LOG4CXX
-    if (logdata->isDebugEnabled())
+    if (logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout.precision(16);
@@ -559,7 +559,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	}
 	normalCompL = TensorL(1,0)*normal[0]+TensorL(1,1)*normal[1];
 	normalCompR = TensorR(1,0)*normal[0]+TensorR(1,1)*normal[1];
-	if (logdata->isDebugEnabled() && TrDeformL != 0.)
+	if (logdata.isDebugEnabled() && TrDeformL != 0.)
 	{
 		std::stringstream sout;
 		sout.precision(15);
@@ -831,7 +831,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 		}
 	}
 #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		ek.Print("ek = ",sout,EMathematicaInput);
@@ -940,7 +940,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Point " << data.x << std::endl;
@@ -960,7 +960,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	Einf.PutVal(2,2,data.sol[0][0]/R);
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		Einf.Print("Deformation tensor",sout);
@@ -973,7 +973,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	double trE = Einf(0,0) + Einf(1,1) + Einf(2,2);
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "E = " << fE << " fnu = " << fnu << " mi = " << mi << " lambda = " << lambda << " trE = " << trE;
@@ -1000,7 +1000,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	T.PutVal(2,2,cte + 2.*mi*Einf(2,2)-TensorThermico);
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		T.Print("Stress tensor",sout);
@@ -1025,7 +1025,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			}
 			else cout << "TPZElasticityAxiMaterial::Solution Error -> case 0\n";
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "First eigenvector " << std::endl;
@@ -1051,7 +1051,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			}
 			else cout << "TPZElasticityAxiMaterial::Solution Error -> case 1\n";
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Second eigenvector " << std::endl;
@@ -1077,7 +1077,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			}
 			else cout << "TPZElasticityAxiMaterial::Solution Error -> case 2\n";
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Third eigenvector " << std::endl;
@@ -1093,7 +1093,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			Solout.Resize(1);
 			Solout[0] = T(0,0);
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Sigma r " << T(0,0);
@@ -1108,7 +1108,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			Solout.Resize(1);
 			Solout[0] = T(1,1);
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Sigma z " << T(1,1);
@@ -1123,7 +1123,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			Solout.Resize(1);
 			Solout[0] = T(2,2);
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Sigma theta " << T(2,2);
@@ -1138,7 +1138,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			Solout.Resize(1);
 			Solout[0] = T(0,1);
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Sigma rz " << T(0,1);
@@ -1180,7 +1180,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 			
 			Solout[0] = 1./3.*i1*sin(f_phi) + sqrt(i2)*sin(theta + M_PI/3.) + sqrt(i2/3.)*cos(theta + M_PI/3.)*sin(f_phi) - f_c*cos(f_phi);
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Criterio de Mohr Coulomb \ni1 " << i1 << " i2 " << i2 <<

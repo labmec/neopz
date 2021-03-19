@@ -50,7 +50,7 @@
 #include <set>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+static PZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;

@@ -15,14 +15,14 @@
 #include "TPZYCDruckerPragerPV.h"
 
 //#ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("pz.material.TPZPlasticStepPV"));
+//static PZLogger logger("pz.material.TPZPlasticStepPV");
 //#endif
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic2"));
+static PZLogger logger("plasticity.poroelastoplastic2");
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logger2(Logger::getLogger("plasticity.poroelastoplastic"));
+static PZLogger logger2("plasticity.poroelastoplastic");
 #endif
 
 #define NewTangetQ
@@ -81,7 +81,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL>
     fN.m_m_type = m_type;
     
 #ifdef LOG4CXX_KEEP
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Sig Trial " << sigtrvec << "\nSig Project " << sigprvec << std::endl;
@@ -151,7 +151,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStressComputeStrain(const TPZTensor<REAL
     fN.m_m_type = m_type;
     
 #ifdef LOG4CXX_KEEP
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Sig Trial " << sigtrvec << "\nSig Project " << sigprvec << std::endl;
@@ -229,7 +229,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     TPZManVector<REAL, 3> sigtrvec(sig_eigen_system.fEigenvalues), sigprvec(3, 0.);
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
 		sig_eigen_system.Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
@@ -244,7 +244,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
     fN.m_hardening = nextalpha;
 
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Sig Trial " << sigtrvec << "\nSig Project " << sigprvec << std::endl;
         GradSigma.Print("GradSigma", sout, EMathematicaInput);
@@ -265,7 +265,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
 
 
 #ifdef LOG4CXX
-    if (logger2->isDebugEnabled()) {
+    if (logger2.isDebugEnabled()) {
         if (fabs(printPlastic - fN.m_hardening) > 1.e-4) {
             std::stringstream sout;
             TPZVec<STATE> phi;
@@ -451,7 +451,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
 
         TPZFNMatrix<6> error1(6, 1, 0.), error2(6, 1, 0.);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sigprMat.Print("sigprMat", sout);
             sigpr1Mat.Print("sigpr1Mat", sout);
@@ -466,7 +466,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::TaylorCheck(TPZTensor<REAL> &EpsIni, TPZTenso
             error2(i, 0) = sigpr2Mat(i, 0) - sigprMat(i, 0) - tanmult2(i, 0);
         }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             error1.Print("error1:", sout);
             error2.Print("error2:", sout);
@@ -563,7 +563,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
 
     ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         Dep.Print("Dep = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
@@ -589,7 +589,7 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & GivenStress
 
             ApplyStrainComputeSigma(epsTotal, GuessStress, &Dep);
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 Dep.Print("Dep = ", sout, EMathematicaInput);
                 LOGPZ_DEBUG(logger, sout.str())

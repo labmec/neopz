@@ -28,7 +28,7 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.WellFlow"));
+static PZLogger logdata("pz.WellFlow");
 #endif
 
 void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<REAL> &X);
@@ -170,7 +170,7 @@ void PrintLS(TPZAnalysis *an)
     
 #ifdef PZDEBUG
 #ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         KGlobal->Print("KGlobal = ", sout,EMathematicaInput);
@@ -524,7 +524,7 @@ void NewtonIterations(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, T
         
 #ifdef PZDEBUG
     #ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 ResidualAtn.Print("ResidualAtn = ", sout,EMathematicaInput);

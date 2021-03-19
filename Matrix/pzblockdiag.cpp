@@ -16,7 +16,7 @@
 #include "pzstack.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
+static PZLogger logger("pz.StrMatrix");
 #endif
 
 using namespace std;
@@ -64,7 +64,7 @@ template<class TVar>
 void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	int64_t nblock = blocksize.NElements();
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Number of blocks \t" << nblock;
@@ -443,7 +443,7 @@ int TPZBlockDiagonal<TVar>::Decompose_LU()
 		if(!bsize) continue;
 		
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream mess;
             mess << "TPZBlockDiagonal::Decompose_LU() - bsize = " << bsize << ", bsize*bsize = " << bsize*bsize;

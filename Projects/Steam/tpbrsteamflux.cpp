@@ -17,8 +17,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("br.steam.steamflux"));
-static LoggerPtr logger2(Logger::getLogger("br.steam.steamflux"));
+static PZLogger logger("br.steam.steamflux");
+static PZLogger logger2("br.steam.steamflux");
 #endif
 
 //WaterDataInStateOfSaturation waterdata;

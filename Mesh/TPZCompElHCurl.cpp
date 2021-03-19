@@ -17,8 +17,8 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
-static LoggerPtr loggercurl(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+static PZLogger logger("pz.mesh.TPZCompElHCurl");
+static PZLogger loggercurl("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 /*********************************************************************************************************
                                        TPZHCurlAuxClass methods
@@ -290,7 +290,7 @@ void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 #endif
     this-> fConnectIndexes[i] = connectindex;
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << std::endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
@@ -377,7 +377,7 @@ template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
+    if(logger.isDebugEnabled()){
         LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
     }
 #endif
@@ -396,7 +396,7 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 
 
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
+    if(logger.isDebugEnabled()){
 		std::stringstream sout;
 		sout << "Vector/Shape indexes \n";
         for (int i = 0; i < data.fVecShapeIndex.size(); i++) {
@@ -480,7 +480,7 @@ void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
         const int sideId = nNodes + i;
         this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "After creating last HCurl connect " << i << std::endl;
@@ -593,7 +593,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
     }
 
 #ifdef LOG4CXX_keep
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         M->Print("MSS = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())

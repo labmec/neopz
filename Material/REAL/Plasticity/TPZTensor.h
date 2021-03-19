@@ -32,7 +32,7 @@
 #define _ZZ_ 5
 
 #ifdef LOG4CXX
-static LoggerPtr loggerr(Logger::getLogger("logtensor"));
+static PZLogger loggerr("logtensor");
 #endif
 
 /**
@@ -1097,7 +1097,7 @@ void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const {
 
 #ifdef PZDEBUG
 #ifdef LOG4CXX
-    if (loggerr->isDebugEnabled()) {
+    if (loggerr.isDebugEnabled()) {
         std::stringstream str;
         str << "\n-------------AUTOVETORES JACOBI--------------" << std::endl;
         str << "Tensor:" << std::endl;

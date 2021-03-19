@@ -13,7 +13,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
+static PZLogger logdata("pz.material.elasticity.data");
 #endif
 
 #include <fstream>

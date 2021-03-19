@@ -47,8 +47,8 @@
 
 
 #ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+static PZLogger loggerconverge("pz.converge");
+static PZLogger logger("main");
 #endif
 
 //#include "timing_analysis.h"
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     {
       std::stringstream str;
       cmeshauto->Print(str);
-      if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,str.str());
+      if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,str.str());
     }
 #endif
       

@@ -673,7 +673,7 @@ void GroupElements(TPZCompMesh *cmesh, int dimproblema)
         }
         
         //#ifdef LOG4CXX
-        //        if (logger->isDebugEnabled())
+        //        if (logger.isDebugEnabled())
         //        {
         //            std::stringstream sout;
         //            for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -700,7 +700,7 @@ void GroupElements(TPZCompMesh *cmesh, int dimproblema)
     cmesh->CleanUpUnconnectedNodes();
     cmesh->ExpandSolution();
 //#ifdef LOG4CXX
-//    if (logger->isDebugEnabled())
+//    if (logger.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        cmesh->Print(sout);
@@ -904,7 +904,7 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
     
     //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
@@ -1555,7 +1555,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out, TPZVec<STATE> &errorL2)
         int nerr = elerror.size();
         globerrors.resize(nerr);
         //#ifdef LOG4CXX
-        //        if (logger->isDebugEnabled()) {
+        //        if (logger.isDebugEnabled()) {
         //            std::stringstream sout;
         //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
         //            LOGPZ_DEBUG(logger, sout.str())
@@ -2416,7 +2416,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //REAL alpha_param = 200.;
 //
 //#ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("pz.hibridoprimal"));
+//static PZLogger logger("pz.hibridoprimal");
 //#endif
 //void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 //
@@ -4544,7 +4544,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //        }
 //        
 //        //#ifdef LOG4CXX
-//        //        if (logger->isDebugEnabled())
+//        //        if (logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
 //        //            for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -4571,7 +4571,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    cmesh->CleanUpUnconnectedNodes();
 //    cmesh->ExpandSolution();
 //#ifdef LOG4CXX
-//    if (logger->isDebugEnabled())
+//    if (logger.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        cmesh->Print(sout);
@@ -4631,7 +4631,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    //            }
 //    //        }
 //    //#ifdef LOG4CXX
-//    //        if (logger->isDebugEnabled())
+//    //        if (logger.isDebugEnabled())
 //    //        {
 //    //            std::stringstream sout;
 //    //            for (std::set<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -4657,7 +4657,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    //    cmesh->CleanUpUnconnectedNodes();
 //    //    cmesh->ExpandSolution();
 //    //#ifdef LOG4CXX
-//    //    if (logger->isDebugEnabled())
+//    //    if (logger.isDebugEnabled())
 //    //    {
 //    //        std::stringstream sout;
 //    //        cmesh->Print(sout);
@@ -5346,7 +5346,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
 //    
 //    //#ifdef LOG4CXX
-//    //	if(logdata->isDebugEnabled())
+//    //	if(logdata.isDebugEnabled())
 //    //	{
 //    //        std::stringstream sout;
 //    //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";

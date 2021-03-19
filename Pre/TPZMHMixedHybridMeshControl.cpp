@@ -36,7 +36,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mhmixedhybridmeshcontrol"));
+static PZLogger logger("pz.mhmixedhybridmeshcontrol");
 #endif
 
 using namespace std;
@@ -278,7 +278,7 @@ void TPZMHMixedHybridMeshControl::CreatePressureInterfaces()
                 int64_t index;
                 TPZCompEl *sidecel = fPressureFineMesh->CreateCompEl(pressure_gelbc.CreatedElement(), index);
 #ifdef LOG4CXX
-                if(logger->isDebugEnabled())
+                if(logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Created a pressure interface element " << index << " with gel index " << pressure_gelbc.CreatedElement()->Index()
@@ -494,7 +494,7 @@ void TPZMHMixedHybridMeshControl::CreateHDivWrappers()
                 TPZCompEl *sidecel = fFluxMesh->CreateCompEl(gelbc.CreatedElement(), index);
                 // all the elements have normal pointing outwards
 #ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Creating cap on element " << intel->Index() << " side " << neighbour.Side() << " element created " << sidecel->Index();
@@ -639,7 +639,7 @@ void TPZMHMixedHybridMeshControl::CreateMultiPhysicsInterfaceElements(int dim)
                 DebugStop();
             }
 #ifdef LOG4CXX
-            if(logger->isDebugEnabled())
+            if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Investigating pressure element " << mphys->Index() << " dim " << dim;
@@ -671,7 +671,7 @@ void TPZMHMixedHybridMeshControl::CreateMultiPhysicsInterfaceElements(int dim)
                 
                 TPZCompEl *intface = new TPZMultiphysicsInterfaceElement(fCMesh,gbc.CreatedElement(),index,gelpressureside.Reference(),connected[icon]);
 #ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Created an interface element index " << intface->Index() << " with cap mfys index " << mphyscon->Index() << " flux cap element " << mphyscon->Element(0)->Index();
@@ -696,7 +696,7 @@ void TPZMHMixedHybridMeshControl::GroupandCondenseElements()
         GroupElements(subcmesh);
         subcmesh->InitializeBlock();
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             subcmesh->Print(sout);
@@ -752,7 +752,7 @@ void TPZMHMixedHybridMeshControl::GroupElements(TPZCompMesh *cmesh)
         std::set<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "cel " << cel->Index() << " connects ";
@@ -785,7 +785,7 @@ void TPZMHMixedHybridMeshControl::GroupElements(TPZCompMesh *cmesh)
                     TPZCompEl *left = mphys->LeftElement();
                     if (right->NConnects() == 1 && right->ConnectIndex(0)== cindex) {
 #ifdef LOG4CXX
-                        if (logger->isDebugEnabled())
+                        if (logger.isDebugEnabled())
                         {
                             std::stringstream sout;
                             sout << "Adding interface " << mphys->Index() << " right connect index " << right->ConnectIndex(0);
@@ -796,7 +796,7 @@ void TPZMHMixedHybridMeshControl::GroupElements(TPZCompMesh *cmesh)
                     }
                     if (left->NConnects() == 1 && left->ConnectIndex(0)== cindex) {
 #ifdef LOG4CXX
-                        if (logger->isDebugEnabled())
+                        if (logger.isDebugEnabled())
                         {
                             std::stringstream sout;
                             sout << "Adding interface " << mphys->Index() << " left connect index " << left->ConnectIndex(0);
@@ -833,7 +833,7 @@ void TPZMHMixedHybridMeshControl::GroupElements(TPZCompMesh *cmesh)
                 {
                     //                    std::cout << "Is included\n";
 #ifdef LOG4CXX
-                    if (logger->isDebugEnabled())
+                    if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
                         sout << "Adding connected element " << celsidelement->Index() << " connects are ";
@@ -1248,7 +1248,7 @@ void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement 
     TPZInterpolatedElement *fluxcel = dynamic_cast<TPZInterpolatedElement *>(fFluxMesh->Element(fluxindex));
     SetSubdomain(fluxcel, subdomain);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Created a " << meshdim-1 << " dimensional flux element on interface index " << gel->Index() << " and material id " << gelfrac->MaterialId();
         LOGPZ_DEBUG(logger, sout.str())
@@ -1275,7 +1275,7 @@ void TPZMHMixedHybridMeshControl::CreateAxialFluxElement(TPZInterpolatedElement 
             DebugStop();
         }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Created a " << meshdim-2 << "-dimensional cap with fluxmesh index " << celcapindex << " connect index " << celcap->ConnectIndex(0);
             LOGPZ_DEBUG(logger, sout.str())

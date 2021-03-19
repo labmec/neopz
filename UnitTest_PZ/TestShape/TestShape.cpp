@@ -15,7 +15,7 @@
 #include "pzgeopyramid.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testshape"));
+static PZLogger logger("pz.mesh.testshape");
 #endif
 
 #ifdef USING_BOOST

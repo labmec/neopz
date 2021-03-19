@@ -20,7 +20,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.integral.pzquad"));
+static PZLogger logger("pz.integral.pzquad");
 #endif
 
 using namespace std;

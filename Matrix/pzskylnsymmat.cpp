@@ -37,7 +37,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
+static PZLogger logger("pz.matrix.tpzskylmatrix");
 #endif
 
 using namespace std;

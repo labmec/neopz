@@ -28,11 +28,11 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixTBBFlow"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
-static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
-static LoggerPtr loggerelmat(Logger::getLogger("pz.strmatrix.elementmat"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"));
+static PZLogger logger("pz.strmatrix.TPZStructMatrixTBBFlow");
+static PZLogger loggerel("pz.strmatrix.element");
+static PZLogger loggerel2("pz.strmatrix.elementinterface");
+static PZLogger loggerelmat("pz.strmatrix.elementmat");
+static PZLogger loggerCheck("pz.strmatrix.checkconsistency");
 #endif
 
 #ifdef CHECKCONSISTENCY
@@ -149,7 +149,7 @@ TPZMatrix<STATE> * TPZStructMatrixTBBFlow::CreateAssemble(TPZFMatrix<STATE> &rhs
     Assemble(*stiff,rhs,guiInterface);
     
 #ifdef LOG4CXX2
-    if(loggerel->isDebugEnabled())
+    if(loggerel.isDebugEnabled())
     {
         std::stringstream sout;
         stiff->Print("Stiffness matrix",sout);
@@ -401,7 +401,7 @@ void TPZStructMatrixTBBFlow::TPZFlowNode::operator()(tbb::flow::continue_msg) co
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Computing element " << iel;
         LOGPZ_DEBUG(logger, sout.str())
@@ -474,7 +474,7 @@ void TPZStructMatrixTBBFlow::TPZFlowNode::operator()(tbb::flow::continue_msg) co
     
 #ifdef LOG4CXX
     timeforel.stop();
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << timeforel.processName() <<  timeforel;
@@ -514,7 +514,7 @@ void TPZStructMatrixTBBFlow::TPZFlowGraph::CreateGraph()
                 // in order to compute only once
                 if (fromwhere.find(elorig) == fromwhere.end()) {
 #ifdef LOG4CXX
-                    if (logger->isDebugEnabled()) {
+                    if (logger.isDebugEnabled()) {
                         std::stringstream sout;
                         sout << "Adding edge from " << elorig << " to " << graphindex;
                         LOGPZ_DEBUG(logger, sout.str())
@@ -528,7 +528,7 @@ void TPZStructMatrixTBBFlow::TPZFlowGraph::CreateGraph()
         }
         if (ngraphs == 0) {
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Setting start element " << graphindex;
                 LOGPZ_DEBUG(logger, sout.str())

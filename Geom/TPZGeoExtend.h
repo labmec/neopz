@@ -18,7 +18,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr loggernoderep2(Logger::getLogger("pz.geom.extend"));
+static PZLogger loggernoderep2("pz.geom.extend");
 #endif
 
 class TPZGeoEl;

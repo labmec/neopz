@@ -19,9 +19,8 @@
 #include "tpzcube.h"
 #include "tpzprism.h"
 
-#ifdef LOG4CXX
-static LoggerPtr loggernoderep(Logger::getLogger("pz.geom.noderep"));
-#endif
+static PZLogger loggernoderep("pz.geom.noderep");
+
 
 namespace pzgeom {
 	

@@ -24,8 +24,8 @@
 #include <complex>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatrix"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+static PZLogger logger("pz.matrix.tpzmatrix");
+static PZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 #ifdef PZDEBUG
@@ -1999,7 +1999,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
         return result;
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         B->Print("On input " , sout);
@@ -2008,7 +2008,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
 #endif
     Subst_LForward( B );
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         B->Print("Only forward " , sout);
@@ -2017,7 +2017,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
 #endif
     Subst_Diag( B );
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         B->Print("After forward and diagonal " , sout);
@@ -2026,7 +2026,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
 #endif
     result = Subst_LBackward( B );
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         B->Print("Final result " , sout);

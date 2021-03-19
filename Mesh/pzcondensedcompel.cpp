@@ -10,7 +10,7 @@
 #include "pzcmesh.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcondensedcompel"));
+static PZLogger logger("pz.mesh.tpzcondensedcompel");
 #endif
 
 #ifdef USING_LAPACK
@@ -336,7 +336,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     
     fReferenceCompEl->CalcStiff(ek,ef);
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         Print(sout);
         sout << "Connect indices of element stiffness" << ek.fConnect << std::endl;
@@ -351,7 +351,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         ef.PermuteGather(fIndexes);
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Element connects\n";
         int nc = NConnects();
@@ -472,7 +472,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     }
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         fCondensed.Print("Condensed = ",sout);
@@ -496,7 +496,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     fCondensed.SetF(ef.fMat);
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "BEFORE CONDENSING THE EQUATIONS\n";
@@ -524,7 +524,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     }
 #endif
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Index = " << Index() << std::endl;
@@ -563,7 +563,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     
     
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << std::endl;
@@ -750,7 +750,7 @@ void TPZCondensedCompEl::LoadSolution()
         }
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Computing UGlobal Index " << Index();
         sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;
@@ -772,7 +772,7 @@ void TPZCondensedCompEl::LoadSolution()
         }
     }
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "After Computing UGlobal Index " << Index() ;
         sout << " Norm fK01 " << Norm(fCondensed.K01()) << std::endl;

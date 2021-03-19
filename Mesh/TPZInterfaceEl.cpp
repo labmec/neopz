@@ -21,8 +21,8 @@
 using namespace std;
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
-static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
+static PZLogger logger("pz.mesh.tpzinterfacelement");
+static PZLogger logdata("pz.material.axisymetric.data");
 #endif
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right) {
@@ -1034,7 +1034,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 #ifdef PZDEBUG
 #ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout.precision(15);
@@ -1050,7 +1050,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "elemento de interface " << Index() << " Indice deste Material--> " <<this->Material()->Id()<< std::endl;
@@ -1114,9 +1114,9 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int rightmaxp = right->MaxOrder();
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled()) 
+    if (logger.isDebugEnabled()) 
 	{
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
@@ -1189,9 +1189,9 @@ void TPZInterfaceElement::InitializeIntegrationRule(){
     int rightmaxp = right->MaxOrder();
     
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
@@ -1420,7 +1420,7 @@ void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTrans
 	TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
 	TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "thisgeoside = \n";

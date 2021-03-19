@@ -143,7 +143,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+static PZLogger logdata("pz.material");
 #endif
 
 int MaxRefs = 6;
@@ -1365,7 +1365,7 @@ void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix 
         rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
                 
 #ifdef LOG4CXX
-        if(logdata->isDebugEnabled())
+        if(logdata.isDebugEnabled())
         {
             std::stringstream sout;
             ek.Print(sout);

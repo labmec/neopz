@@ -17,7 +17,7 @@
 #include <sstream>
 
 #ifdef LOG4CXX
-static LoggerPtr loggermapped(Logger::getLogger("pz.mesh.geoelmapped"));
+static PZLogger loggermapped("pz.mesh.geoelmapped");
 #endif
 
 /**
@@ -524,7 +524,7 @@ protected:
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
 #ifdef LOG4CXX
-        if(loggermapped->isDebugEnabled())
+        if(loggermapped.isDebugEnabled())
         {
             std::stringstream sout;
             gradxfather.Print("gradx father",sout);

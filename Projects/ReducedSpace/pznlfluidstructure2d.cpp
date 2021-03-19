@@ -19,7 +19,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
+static PZLogger logdata("pz.material.elastpressure");
 #endif
 
 

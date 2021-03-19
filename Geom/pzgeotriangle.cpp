@@ -14,7 +14,7 @@
 #include "fad.h"
 
 #ifdef LOG4CXX
-static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotriangle"));
+static PZLogger logger("pz.geom.pzgeotriangle");
 #endif
 
 using namespace pzshape;

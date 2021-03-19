@@ -44,8 +44,8 @@ using namespace std;
 #include <iterator>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
-static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
+static PZLogger logger("pz.mesh.tpzcompel");
+static PZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
 
 void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
@@ -655,14 +655,14 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
     }
 #ifdef LOG4CXX
     std::stringstream sout;
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         sout << "Obtendo elemento geometrico de referencia para elemento " << Index() << endl;
         sout << "Impressao dos ancestrais\n";
         Print(sout);
     }
     
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         ref->Print(sout);
     }

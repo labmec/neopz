@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelementgroup"));
+static PZLogger logger("pz.mesh.tpzelementgroup");
 #endif
 
 TPZElementGroup::TPZElementGroup() : 
@@ -71,7 +71,7 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
         fRestraints[cindex] = *it;
     }
 #ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Hiding element index " << elindex << " from the mesh data structure";
@@ -215,7 +215,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         locindex[fConnectIndexes[ic]] = ic;
     }
 #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Calcstiff Element Group Index " << Index();
@@ -229,7 +229,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         TPZCompEl *cel = fElGroup[el];
         
 #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Assembling element " << el << " out of " << nel;
@@ -244,7 +244,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         
         cel->CalcStiff(ekloc, efloc);
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled() ) {
+        if (logger.isDebugEnabled() ) {
             TPZGeoEl *gel = cel->Reference();
             
             int matid = 0;
@@ -296,7 +296,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         }
     }
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;
             //ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);

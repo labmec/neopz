@@ -51,11 +51,11 @@
 
 // Using Log4cXX as logging tool
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
+static PZLogger logger("pz.multiphase");
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
+static PZLogger logdata("pz.material.multiphase.data");
 #endif
 //
 // End Using Log4cXX as logging tool
@@ -1015,7 +1015,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //      NormValueT = Norm(ResidualT);
 
 #ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 mphysics->Solution().Print("Sol = ",sout,EMathematicaInput);
@@ -1032,7 +1032,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     fvec = NonLinearAn->Rhs();
     
 #ifdef LOG4CXX
-   if(logdata->isDebugEnabled())
+   if(logdata.isDebugEnabled())
    {
        std::stringstream sout;
        matK->Print("matK = ", sout,EMathematicaInput);
@@ -1065,7 +1065,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
 #ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout.precision(20);
@@ -1076,7 +1076,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 #endif          
             
 //#ifdef LOG4CXX
-//          if(logdata->isDebugEnabled())
+//          if(logdata.isDebugEnabled())
 //          {
 //              std::stringstream sout;
 //              Uatk.Print("Uatk = ",sout,EMathematicaInput);           
@@ -1115,7 +1115,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
                 
             
 #ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout.precision(15);             
@@ -1127,7 +1127,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 
             
 //#ifdef LOG4CXX
-//          if(logdata->isDebugEnabled())
+//          if(logdata.isDebugEnabled())
 //          {
 //              std::stringstream sout;
 //              sout.precision(20);

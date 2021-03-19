@@ -11,7 +11,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.util.semaphore"));
+static PZLogger logger("pz.util.semaphore");
 #endif
 
 
@@ -35,7 +35,7 @@ void TPZSemaphore::Wait()
 	{
 		fCounter--;
 #ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 #ifdef VC
@@ -54,7 +54,7 @@ void TPZSemaphore::Wait()
 		if (fCounter > 0) {
 			fCounter--;
 #ifdef LOG4CXX
-			if(logger->isDebugEnabled())
+			if(logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 #ifdef VC
@@ -78,7 +78,7 @@ void TPZSemaphore::Post()
         
 	fCounter++;
 #ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 #ifdef VC

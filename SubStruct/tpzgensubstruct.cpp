@@ -37,7 +37,7 @@
 #include <sstream>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.gensubstruct"));
+static PZLogger logger("substruct.gensubstruct");
 #endif
 
 TPZGenSubStruct::TPZGenSubStruct(int dimension, int numlevels, int substructlevel) : fMatDist(DistMaterial),fK(8,1.),

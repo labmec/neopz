@@ -16,7 +16,7 @@
 #include <iostream>
 
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.hybridpoisson"));
+static PZLogger logdata("pz.hybridpoisson");
 #endif
 
 TPZHybridPoisson::TPZHybridPoisson(): TPZMatPoisson3d(){

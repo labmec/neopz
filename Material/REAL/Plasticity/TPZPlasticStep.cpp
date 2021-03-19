@@ -33,16 +33,16 @@ using namespace std;
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr pointloadconfig(Logger::getLogger("plasticity.loadconfig"));
-static LoggerPtr plasticIntegrLogger(Logger::getLogger("plasticity.plasticIntegr"));
+static PZLogger pointloadconfig("plasticity.loadconfig");
+static PZLogger plasticIntegrLogger("plasticity.plasticIntegr");
 #endif
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.PLASTIC_STEP.main"));
-static LoggerPtr loggerx(Logger::getLogger("pz.PLASTIC_STEP.main"));
-static LoggerPtr loggerPlasticResidual(Logger::getLogger("PLASTIC_RESIDUAL"));
-static LoggerPtr loggerDEP1(Logger::getLogger("pz.PLASTIC_STEP.DEP1"));
-static LoggerPtr loggerDEP2(Logger::getLogger("pz.PLASTIC_STEP.DEP2"));
+static PZLogger logger("pz.PLASTIC_STEP.main");
+static PZLogger loggerx("pz.PLASTIC_STEP.main");
+static PZLogger loggerPlasticResidual("PLASTIC_RESIDUAL");
+static PZLogger loggerDEP1("pz.PLASTIC_STEP.DEP1");
+static PZLogger loggerDEP2("pz.PLASTIC_STEP.DEP2");
 #endif
 
 template <class YC_t, class TF_t, class ER_t>
@@ -599,7 +599,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep2(TPZTensor<REAL> & sigma, TPZF
     if(n < 2)
     {
 #ifdef LOG4CXX
-        if(plasticIntegrLogger->isDebugEnabled())
+        if(plasticIntegrLogger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << ">>> ComputeDep *** Insufficient Plastic Mem Entries: " << n << ".";
@@ -909,7 +909,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 
     if (n < 2) {
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << ">>> ComputeDep2 *** Insufficient Plastic Mem Entries: " << n << ".";
             LOGPZ_ERROR(plasticIntegrLogger, sout.str().c_str());
@@ -1348,7 +1348,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
         fYC.Compute(sigma_FAD, A_FAD, phi_FAD, 0);
 
 #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "State at yield " << stateAtYield_FAD << std::endl;
             sout << "Sigma " << sigma_FAD << std::endl;
@@ -1388,7 +1388,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
             fYC.Compute(sigma_FAD, A_FAD, phi_FAD, 0);
 
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "State at yield " << stateAtYield_FAD << std::endl;
                 sout << "Sigma " << sigma_FAD << std::endl;
@@ -1505,7 +1505,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     const REAL Tol = fResTol;
 
 #ifdef LOG4CXX
-    if (pointloadconfig->isDebugEnabled()) {
+    if (pointloadconfig.isDebugEnabled()) {
         std::stringstream sout;
         sout << "alpha = " << NN.m_hardening << std::endl;
         TPZFNMatrix<6, REAL> Ep(NN.m_eps_p), EpsT(Np1.m_eps_t);
@@ -1743,7 +1743,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 
 #endif
 #ifdef LOG4CXX
-    if (pointloadconfig->isDebugEnabled()) {
+    if (pointloadconfig.isDebugEnabled()) {
         std::stringstream sout;
         sout << "alphanp1 = " << Np1.m_hardening << std::endl;
         TPZFNMatrix<6, REAL> Ep(Np1.m_eps_p);
@@ -2295,7 +2295,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
 
 
 #ifdef LOG4CXX
-    if (plasticIntegrLogger->isDebugEnabled()) {
+    if (plasticIntegrLogger.isDebugEnabled()) {
         std::stringstream sout;
         /*  sout << "\n res_T2 = " << res_T2 <<endl;
          sout << "\n K1N_T2 = " << K1N_T2 <<endl;
@@ -2433,7 +2433,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
     TPZTensor<REAL> epsTotal(fN.m_eps_t), EEpsilon;
 
 #ifdef LOG4CXX
-    if (plasticIntegrLogger->isDebugEnabled()) {
+    if (plasticIntegrLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> ProcessLoad *** Evaluating Sigma to compute the resultant stress for the guess strain - Preparing starting tangent matrix for Newton's scheme";
         sout << "\n sigma << " << sigma;
@@ -2530,7 +2530,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 
 #ifdef LOG4CXX
 
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             Dep_mat.Print("Derivative", sout);
             sout << "EEpsilon " << EEpsilon << std::endl;
@@ -2560,7 +2560,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 
 #ifdef LOG4CXX
 
-            if (logger->isDebugEnabled()) {
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Next epsTotal " << epsTotal << std::endl;
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2587,7 +2587,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
         //cout << "\nresidual = " << resnorm;
 
 #ifdef LOG4CXX
-        if (plasticIntegrLogger->isDebugEnabled()) {
+        if (plasticIntegrLogger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "*** ProcessLoad *** " << k << "-th iteration of Newton's scheme with residual = " << resnorm;
             LOGPZ_DEBUG(plasticIntegrLogger, sout.str().c_str());
@@ -2660,7 +2660,7 @@ template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) {
 
 #ifdef LOG4CXX
-    if (plasticIntegrLogger->isDebugEnabled()) {
+    if (plasticIntegrLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> ApplyLoad_Internal ***"
                 << " Imposed sigma << " << sigma;
@@ -2669,7 +2669,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> 
 #endif
 
 #ifdef LOG4CXX
-    if (pointloadconfig->isDebugEnabled()) {
+    if (pointloadconfig.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> ApplyLoad_Internal ***"
                 << " Imposed sigma << " << sigma;

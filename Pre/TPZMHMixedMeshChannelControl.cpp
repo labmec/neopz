@@ -28,7 +28,7 @@
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mhmixedmeshcontrol"));
+static PZLogger logger("pz.mhmixedmeshcontrol");
 #endif
 
 

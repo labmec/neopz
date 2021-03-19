@@ -203,7 +203,7 @@ namespace pzgeom {
             return false;
         }
 #ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "side " << side << std::endl;
@@ -231,7 +231,7 @@ namespace pzgeom {
         tr.Mult().Multiply(JacSide, JacNeighSide);
 
 #ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             
