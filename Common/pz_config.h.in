@@ -30,29 +30,12 @@
 #cmakedefine USING_TBB
 #endif
 
-#ifndef USING_BLAS
-#cmakedefine USING_BLAS
-#endif
-
-#ifndef USING_LAPACK
-#cmakedefine USING_LAPACK
-#endif
-
-#ifdef USING_LAPACK
-#define USING_BLAS
-#endif
-
 #ifndef USING_PAPI
 #cmakedefine USING_PAPI
 #endif
 
 #ifndef USING_MKL
 #cmakedefine USING_MKL
-#endif
-
-#ifdef USING_MKL
-#define USING_LAPACK
-#define USING_BLAS
 #endif
 
 //WIN32 defs
