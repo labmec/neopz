@@ -62,7 +62,7 @@
 using namespace std;
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material");
+static TPZLogger logdata("pz.material");
 #endif
 
 #ifdef USING_BOOST

@@ -17,7 +17,7 @@
 #endif
 
 #ifdef PZ_LOG_PLASTICITY
-static PZLogger loggerYCLadeKim("plasticity.LadeKim");
+static TPZLogger loggerYCLadeKim("plasticity.LadeKim");
 #endif
 
 /**

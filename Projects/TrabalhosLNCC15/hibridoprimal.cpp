@@ -2416,7 +2416,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //REAL alpha_param = 200.;
 //
 //#ifdef PZ_LOG
-//static PZLogger logger("pz.hibridoprimal");
+//static TPZLogger logger("pz.hibridoprimal");
 //#endif
 //void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 //

@@ -47,7 +47,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzcompeldisc");
+static TPZLogger logger("pz.mesh.tpzcompeldisc");
 #endif
 
 

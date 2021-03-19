@@ -10,7 +10,7 @@
 #include "TPZfTime.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("substruct.dohrsubstructcondense");
+static TPZLogger logger("substruct.dohrsubstructcondense");
 #endif
 
 using namespace std;

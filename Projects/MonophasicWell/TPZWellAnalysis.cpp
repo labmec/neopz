@@ -31,7 +31,7 @@
 //
 //#ifdef PZDEBUG
 //    #ifdef PZ_LOG
-//    static PZLogger logger("pz.DarcyFlow");
+//    static TPZLogger logger("pz.DarcyFlow");
 //    #endif
 //#endif
 //

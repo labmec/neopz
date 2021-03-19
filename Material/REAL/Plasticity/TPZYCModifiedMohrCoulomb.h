@@ -11,7 +11,7 @@
 #endif
 
 #ifdef PZ_LOG_PLASTICITY
-//static PZLogger logMohr("TPZYCMohrOriginal");
+//static TPZLogger logMohr("TPZYCMohrOriginal");
 #endif
 
 class TPZYCModifiedMohrCoulomb : public TPZPlasticCriterion {

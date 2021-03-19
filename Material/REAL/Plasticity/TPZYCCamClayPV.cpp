@@ -12,7 +12,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger loggerConvTest("ConvTest");
+static TPZLogger loggerConvTest("ConvTest");
 #endif
 
 using namespace std;

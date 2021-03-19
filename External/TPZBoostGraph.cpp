@@ -16,7 +16,7 @@
 #include <stdio.h>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.external.boostgraph");
+static TPZLogger logger("pz.external.boostgraph");
 #endif
 
 using namespace boost;

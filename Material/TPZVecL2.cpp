@@ -18,7 +18,7 @@
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static PZLogger logger("pz.material");
+static TPZLogger logger("pz.material");
 #endif
 
 

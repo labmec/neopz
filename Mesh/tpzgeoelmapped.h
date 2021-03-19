@@ -17,7 +17,7 @@
 #include <sstream>
 
 #ifdef PZ_LOG
-static PZLogger loggermapped("pz.mesh.geoelmapped");
+static TPZLogger loggermapped("pz.mesh.geoelmapped");
 #endif
 
 /**

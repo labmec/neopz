@@ -30,8 +30,8 @@
 #include <numeric>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mhmeshcontrol");
-static PZLogger loggerWRAP("pz.mhmeshwrap");
+static TPZLogger logger("pz.mhmeshcontrol");
+static TPZLogger loggerWRAP("pz.mhmeshwrap");
 #endif
 
 // toto

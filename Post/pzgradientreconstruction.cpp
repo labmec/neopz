@@ -21,7 +21,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.pzgradientreconstruction");
+static TPZLogger logger("pz.pzgradientreconstruction");
 #endif
 
 

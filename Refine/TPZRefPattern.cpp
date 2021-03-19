@@ -32,7 +32,7 @@ const std::string TPZRefPattern::fNonInitializedName = "noname";
 std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
 
  #ifdef PZ_LOG
- static PZLogger logger("pz.mesh.TPZRefPattern");
+ static TPZLogger logger("pz.mesh.TPZRefPattern");
  #endif
 
 

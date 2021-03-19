@@ -20,7 +20,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.integral.pzquad");
+static TPZLogger logger("pz.integral.pzquad");
 #endif
 
 using namespace std;

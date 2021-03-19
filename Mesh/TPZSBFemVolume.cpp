@@ -23,10 +23,10 @@
 #include <algorithm>
 
 #ifdef PZ_LOG
-static PZLogger loggercoefmatrices("pz.mesh.sbfemvolume.coefmatrices");
-static PZLogger logger("pz.mesh.sbfemvolume");
-static PZLogger loggerLBF("pz.mesh.sbfemvolume.bodyloads");
-static PZLogger loggerEvaluateError("pz.mesh.sbfemvolume.error");
+static TPZLogger loggercoefmatrices("pz.mesh.sbfemvolume.coefmatrices");
+static TPZLogger logger("pz.mesh.sbfemvolume");
+static TPZLogger loggerLBF("pz.mesh.sbfemvolume.bodyloads");
+static TPZLogger loggerEvaluateError("pz.mesh.sbfemvolume.error");
 #endif
 
 TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZInterpolationSpace(mesh, gel, index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {

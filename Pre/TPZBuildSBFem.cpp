@@ -16,7 +16,7 @@
 #include "tpzgeoelrefpattern.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzbuildsbfem");
+static TPZLogger logger("pz.mesh.tpzbuildsbfem");
 #endif
 
 /// standard configuration means each element is a partition and a center node is created

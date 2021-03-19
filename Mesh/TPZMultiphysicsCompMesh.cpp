@@ -10,7 +10,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mulptiphysicscompmesh");
+static TPZLogger logger("pz.mulptiphysicscompmesh");
 #endif
 
 

@@ -20,7 +20,7 @@ class TPZGeoEl;
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger lognoderep("pz.geom.tpznoderep");
+static TPZLogger lognoderep("pz.geom.tpznoderep");
 #endif
 
 namespace pzgeom {

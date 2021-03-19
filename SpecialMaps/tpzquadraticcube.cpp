@@ -18,7 +18,7 @@
 #include "tpzchangeel.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.specialmaps.quadraticcube");
+static TPZLogger logger("pz.specialmaps.quadraticcube");
 #endif
 
 #include "fad.h"

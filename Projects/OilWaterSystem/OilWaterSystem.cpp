@@ -51,11 +51,11 @@
 
 // Using Log4cXX as logging tool
 #ifdef PZ_LOG
-static PZLogger logger("pz.multiphase");
+static TPZLogger logger("pz.multiphase");
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.multiphase.data");
+static TPZLogger logdata("pz.material.multiphase.data");
 #endif
 //
 // End Using Log4cXX as logging tool

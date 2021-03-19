@@ -14,7 +14,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.geom.pzgeoquad0");
+static TPZLogger logger("pz.geom.pzgeoquad0");
 #endif
 
 namespace pzgeom {

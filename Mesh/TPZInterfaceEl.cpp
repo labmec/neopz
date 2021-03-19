@@ -21,8 +21,8 @@
 using namespace std;
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzinterfacelement");
-static PZLogger logdata("pz.material.axisymetric.data");
+static TPZLogger logger("pz.mesh.tpzinterfacelement");
+static TPZLogger logdata("pz.material.axisymetric.data");
 #endif
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right) {

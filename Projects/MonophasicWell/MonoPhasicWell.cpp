@@ -28,7 +28,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.WellFlow");
+static TPZLogger logdata("pz.WellFlow");
 #endif
 
 void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<REAL> &X);

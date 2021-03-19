@@ -9,7 +9,7 @@
 
 #include "pzlog.h"
 
-static PZLogger logger("pz.StrMatrix");
+static TPZLogger logger("pz.StrMatrix");
 
 
 using namespace std;

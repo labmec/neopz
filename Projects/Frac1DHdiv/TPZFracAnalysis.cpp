@@ -12,7 +12,7 @@
 #include "pzmatred.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.frac");
+static TPZLogger logger("pz.frac");
 #endif
 
 TPZFracAnalysis::TPZFracAnalysis(TPZAutoPointer<TPZFracData> Data)

@@ -23,7 +23,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzbuildmultiphysicsmesh");
+static TPZLogger logger("pz.mesh.tpzbuildmultiphysicsmesh");
 #endif
 
 

@@ -27,8 +27,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzinterpolatedelement");
-static PZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
+static TPZLogger logger("pz.mesh.tpzinterpolatedelement");
+static TPZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 
 

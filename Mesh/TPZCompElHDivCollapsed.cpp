@@ -15,7 +15,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHDivCollapsed");
+static TPZLogger logger("pz.mesh.TPZCompElHDivCollapsed");
 #endif
 
 template<class TSHAPE>

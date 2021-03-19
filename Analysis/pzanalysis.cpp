@@ -54,8 +54,8 @@
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.analysis");
-static PZLogger loggerError("pz.analysis.error");
+static TPZLogger logger("pz.analysis");
+static TPZLogger loggerError("pz.analysis.error");
 #endif
 
 #ifdef USING_BOOST

@@ -11,7 +11,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("substruct.dohrassembly");
+static TPZLogger logger("substruct.dohrassembly");
 #endif
 
 // sum the values in the local matrix into the global matrix

@@ -6,7 +6,7 @@
 #include "pzsolve.h" 
 
 #ifdef PZ_LOG
-static PZLogger PoroAnalysisLogger("analysis.poro");
+static TPZLogger PoroAnalysisLogger("analysis.poro");
 #endif
 
 using namespace std;

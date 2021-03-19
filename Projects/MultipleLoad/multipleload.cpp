@@ -32,7 +32,7 @@
 int gDebug;
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.multipleload.main");
+static TPZLogger logger("pz.multipleload.main");
 #endif
 
 /**

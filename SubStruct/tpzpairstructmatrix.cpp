@@ -25,8 +25,8 @@ using namespace tbb;
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.strmatrix.tpzpairstructmatrix");
-static PZLogger loggerel("pz.strmatrix.element");
+static TPZLogger logger("pz.strmatrix.tpzpairstructmatrix");
+static TPZLogger loggerel("pz.strmatrix.element");
 #endif
 
 int TPZPairStructMatrix::gNumThreads = 0;

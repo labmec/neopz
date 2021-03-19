@@ -24,16 +24,16 @@
 
 /// External variable to mutex which controls write log
 #ifdef PZ_LOG
-class PZLogger;
-void LogPzDebugImpl([[maybe_unused]] PZLogger lg, [[maybe_unused]] std::string msg,
+class TPZLogger;
+void LogPzDebugImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
                     [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzInfoImpl([[maybe_unused]] PZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzInfoImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzWarnImpl([[maybe_unused]] PZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzWarnImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzErrorImpl([[maybe_unused]] PZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzErrorImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
                     [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzFatalImpl([[maybe_unused]] PZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzFatalImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
                     [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
 
 namespace log4cxx{
@@ -47,27 +47,27 @@ namespace log4cxx{
 
 
 
-class PZLogger{
+class TPZLogger{
 public:
-  PZLogger() = delete;
+  TPZLogger() = delete;
   
-  PZLogger(const std::string &&);
-  ~PZLogger();
+  TPZLogger(const std::string &&);
+  ~TPZLogger();
   bool isDebugEnabled() const;
   bool isWarnEnabled() const;
   bool isInfoEnabled() const;
 private:
   log4cxx::LoggerPtr * fLogPtr;
 
-  friend void LogPzDebugImpl( PZLogger lg,  std::string msg,
+  friend void LogPzDebugImpl( TPZLogger lg,  std::string msg,
                      const char *fileName,  const std::size_t lineN);
-  friend void LogPzInfoImpl( PZLogger lg,  std::string msg,
+  friend void LogPzInfoImpl( TPZLogger lg,  std::string msg,
                     const char *fileName,  const std::size_t lineN);
-  friend void LogPzWarnImpl( PZLogger lg,  std::string msg,
+  friend void LogPzWarnImpl( TPZLogger lg,  std::string msg,
                     const char *fileName,  const std::size_t lineN);
-  friend void LogPzErrorImpl( PZLogger lg,  std::string msg,
+  friend void LogPzErrorImpl( TPZLogger lg,  std::string msg,
                      const char *fileName,  const std::size_t lineN);
-  friend void LogPzFatalImpl( PZLogger lg,  std::string msg,
+  friend void LogPzFatalImpl( TPZLogger lg,  std::string msg,
                      const char *fileName,  const std::size_t lineN);
 };
 extern std::mutex glogmutex;
@@ -88,11 +88,11 @@ extern std::mutex glogmutex;
 #else
 
 //dummy class. log is not enabled.
-class PZLogger{
+class TPZLogger{
 public:
-  PZLogger() = delete;
+  TPZLogger() = delete;
   
-  inline PZLogger(const std::string &&) {};
+  inline TPZLogger(const std::string &&) {};
   bool isDebugEnabled() const {return false;}
   bool isWarnEnabled() const {return false;}
   bool isInfoEnabled() const {return false;}

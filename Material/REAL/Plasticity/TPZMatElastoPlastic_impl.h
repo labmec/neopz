@@ -10,9 +10,9 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger elastoplasticLogger("pz.material.pzElastoPlastic");
-static PZLogger updatelogger("pz.material.pzElastoPlastic.update");
-static PZLogger ceckconvlogger("checkconvmaterial");
+static TPZLogger elastoplasticLogger("pz.material.pzElastoPlastic");
+static TPZLogger updatelogger("pz.material.pzElastoPlastic.update");
+static TPZLogger ceckconvlogger("checkconvmaterial");
 #endif
 
 

@@ -57,7 +57,7 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an, std::string plotfile);
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.mixedpoisson.data");
+static TPZLogger logdata("pz.mixedpoisson.data");
 #endif
 
 

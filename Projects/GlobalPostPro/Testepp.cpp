@@ -67,7 +67,7 @@ int neumann = 1;
 REAL const Pi = 4.*atan(1.);
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.Margui");
+static TPZLogger logdata("pz.Margui");
 #endif
 
 int main() {

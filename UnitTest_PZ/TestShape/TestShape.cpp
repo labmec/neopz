@@ -15,7 +15,7 @@
 #include "pzgeopyramid.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.testshape");
+static TPZLogger logger("pz.mesh.testshape");
 #endif
 
 #ifdef USING_BOOST

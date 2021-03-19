@@ -14,7 +14,7 @@
 #include "TPZPlasticStepID.h"
 
 #ifdef PZ_LOG_PLASTICITY
-static PZLogger loggerDrucker("plasticity.Drucker");
+static TPZLogger loggerDrucker("plasticity.Drucker");
 #endif
 
 #define DRUCKERPARENT TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse>

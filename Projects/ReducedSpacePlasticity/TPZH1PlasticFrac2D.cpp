@@ -20,7 +20,7 @@
 
 #ifdef PZ_LOG
 #include "pzlog.h"
-static PZLogger logger("pz.reducedspace.data");
+static TPZLogger logger("pz.reducedspace.data");
 #endif
 
 

@@ -13,7 +13,7 @@
 #include <sstream>
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.tpzsspmatrix");
+static TPZLogger logger("pz.matrix.tpzsspmatrix");
 #endif
 
 using namespace std;

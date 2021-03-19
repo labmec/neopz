@@ -14,7 +14,7 @@
 //#define VerboseMode_Q
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.persistencemanager");
+static TPZLogger logger("pz.persistencemanager");
 #endif
 
 

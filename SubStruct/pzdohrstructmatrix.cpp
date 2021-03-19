@@ -36,8 +36,8 @@
 #include <stdlib.h>
 
 #ifdef PZ_LOG
-static PZLogger logger("structmatrix.dohrstructmatrix");
-static PZLogger loggerasm("structmatrix.dohrstructmatrix.asm");
+static TPZLogger logger("structmatrix.dohrstructmatrix");
+static TPZLogger loggerasm("structmatrix.dohrstructmatrix.asm");
 #endif
 
 #include "clock_timer.h"

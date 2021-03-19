@@ -36,7 +36,7 @@
 
 /** Initialiazing file for Log4CXX for this project */
 #ifdef PZ_LOG
-static PZLogger logger("pz.Cedric");
+static TPZLogger logger("pz.Cedric");
 #endif
 
 // output files  -> Because it has many energy faults

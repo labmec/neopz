@@ -12,7 +12,7 @@
 #include "pzgeoel.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.material.poisson3d.materialcoupling");
+static TPZLogger logger("pz.material.poisson3d.materialcoupling");
 #endif
 
 TPZMaterialCoupling::TPZMaterialCoupling(int nummat, int dim):

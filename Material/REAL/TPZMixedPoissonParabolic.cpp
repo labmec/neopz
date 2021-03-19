@@ -15,8 +15,8 @@
 #include <iostream>
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.mixedpoisson.data");
-static PZLogger logerror("pz.mixedpoisson.error");
+static TPZLogger logdata("pz.mixedpoisson.data");
+static TPZLogger logerror("pz.mixedpoisson.error");
 #endif
 
 TPZMixedPoissonParabolic::TPZMixedPoissonParabolic(): TPZMixedPoisson(), fRho(1.), fDeltaT(1.)

@@ -50,7 +50,7 @@
 #include <set>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.multiphysics");
+static TPZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;

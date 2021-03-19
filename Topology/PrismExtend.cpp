@@ -9,7 +9,7 @@ using namespace std;
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.topology.prismextend");
+static TPZLogger logger("pz.topology.prismextend");
 #endif
 
 namespace pztopology {

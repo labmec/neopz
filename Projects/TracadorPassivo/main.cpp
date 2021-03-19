@@ -147,7 +147,7 @@ REAL fpref = 1.e7;//1.96133e7;//pa
 REAL fvisref = 1.e-3;
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material");
+static TPZLogger logdata("pz.material");
 #endif
 
 int main(int argc, char *argv[])

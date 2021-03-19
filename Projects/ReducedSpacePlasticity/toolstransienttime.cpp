@@ -53,7 +53,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.reducedspace.data");
+static TPZLogger logger("pz.reducedspace.data");
 #endif
 
 REAL uglyGlobTol = 1.e-10;

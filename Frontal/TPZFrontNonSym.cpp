@@ -29,7 +29,7 @@ using namespace std;
 
 #ifdef PZ_LOG
 
-static PZLogger logger("pz.frontstrmatrix.frontnonsym");
+static TPZLogger logger("pz.frontstrmatrix.frontnonsym");
 #endif
 
 

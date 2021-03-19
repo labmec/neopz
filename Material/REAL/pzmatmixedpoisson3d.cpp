@@ -17,7 +17,7 @@
 #include <iostream>
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.TPZMatMixedPoisson3D.data");
+static TPZLogger logdata("pz.TPZMatMixedPoisson3D.data");
 #endif
 
 using namespace std;

@@ -16,7 +16,7 @@
 #include "pzcompelwithmem.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZMultiPhysicsElement");
+static TPZLogger logger("pz.mesh.TPZMultiPhysicsElement");
 #endif
 
 TPZMultiphysicsElement::TPZMultiphysicsElement(TPZCompMesh &mesh, const TPZMultiphysicsElement &copy) : TPZCompEl(mesh,copy)

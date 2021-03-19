@@ -16,7 +16,7 @@
 #include <cmath>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.material.poisson3d");
+static TPZLogger logger("pz.material.poisson3d");
 #endif
 
 

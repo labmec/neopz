@@ -17,7 +17,7 @@
 
 #ifdef PZ_LOG
 #include "pzlog.h"
-static PZLogger elastoplastic2dLogger("material.pzElastoPlastic2D");
+static TPZLogger elastoplastic2dLogger("material.pzElastoPlastic2D");
 #endif
 
 

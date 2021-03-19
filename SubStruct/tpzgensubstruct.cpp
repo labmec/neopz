@@ -37,7 +37,7 @@
 #include <sstream>
 
 #ifdef PZ_LOG
-static PZLogger logger("substruct.gensubstruct");
+static TPZLogger logger("substruct.gensubstruct");
 #endif
 
 TPZGenSubStruct::TPZGenSubStruct(int dimension, int numlevels, int substructlevel) : fMatDist(DistMaterial),fK(8,1.),

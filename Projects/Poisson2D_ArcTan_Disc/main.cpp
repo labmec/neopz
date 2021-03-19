@@ -122,7 +122,7 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs);
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.Poisson2D_ArcTan_Disc");
+static TPZLogger logger("pz.Poisson2D_ArcTan_Disc");
 
 #endif
 

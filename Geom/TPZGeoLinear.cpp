@@ -12,7 +12,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.geom.pzgeolinear");
+static TPZLogger logger("pz.geom.pzgeolinear");
 #endif
 
 using namespace pzshape;

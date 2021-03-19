@@ -17,7 +17,7 @@
 //#include "meshgen.h"
 #include "TPZAnalyticSolution.h"
 #ifdef PZ_LOG
-static PZLogger logdata("pz.mixedelasticity");
+static TPZLogger logdata("pz.mixedelasticity");
 #endif
 
 #include <fstream>

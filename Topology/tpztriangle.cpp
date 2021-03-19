@@ -14,7 +14,7 @@
 #include <cmath>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.topology.pztriangle");
+static TPZLogger logger("pz.topology.pztriangle");
 #endif
 
 using namespace std;

@@ -23,8 +23,8 @@ using namespace std;
 
 #ifdef PZ_LOG
 
-static PZLogger fluxroe("pz.fluxroe");
-static PZLogger fluxappr("pz.fluxappr");
+static TPZLogger fluxroe("pz.fluxroe");
+static TPZLogger fluxappr("pz.fluxappr");
 
 #endif
 

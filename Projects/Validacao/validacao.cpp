@@ -52,7 +52,7 @@
 
 #ifdef PZ_LOG
 
-static PZLogger logger("HdivTestes.main");
+static TPZLogger logger("HdivTestes.main");
 
 #endif
 

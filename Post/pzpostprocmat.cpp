@@ -8,7 +8,7 @@
 
 #ifdef PZ_LOG
 #include "pzlog.h"
-static PZLogger postprocLogger("material.pzPostProcMat");
+static TPZLogger postprocLogger("material.pzPostProcMat");
 #endif
 
 

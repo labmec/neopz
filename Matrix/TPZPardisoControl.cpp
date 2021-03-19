@@ -16,7 +16,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.pardisocontrol");
+static TPZLogger logger("pz.matrix.pardisocontrol");
 #endif
 //#define Release_Memory_Q
 

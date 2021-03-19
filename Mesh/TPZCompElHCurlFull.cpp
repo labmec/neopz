@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHCurl");
+static TPZLogger logger("pz.mesh.TPZCompElHCurl");
 #endif
 
 template<class TSHAPE>

@@ -11,7 +11,7 @@
 #include "tpzgeomid.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.specialmaps.quadratictetra");
+static TPZLogger logger("pz.specialmaps.quadratictetra");
 #endif
 
 #include "fad.h"

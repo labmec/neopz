@@ -32,7 +32,7 @@
 #include "TPZFracAnalysis.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.frac");
+static TPZLogger logger("pz.frac");
 #endif
 
 TPZDarcyAnalysis::TPZDarcyAnalysis(TPZAutoPointer<TPZFracData> Data)

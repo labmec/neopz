@@ -17,7 +17,7 @@
 #include <sstream>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.pre.pzhyperplane");
+static TPZLogger logger("pz.pre.pzhyperplane");
 #endif
 
 // verify if the element is not warped

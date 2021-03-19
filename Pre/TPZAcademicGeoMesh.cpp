@@ -34,7 +34,7 @@
 
 /** Initialiazing file for Log4CXX for this project */
 #ifdef PZ_LOG
-static PZLogger logger("pz.academicmesh");
+static TPZLogger logger("pz.academicmesh");
 #endif
 
 

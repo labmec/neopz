@@ -10,7 +10,7 @@
 #include "TPZHWTools.h"
 
 #ifdef PZ_LOG
-static PZLogger loggerConvTest("ConvTest");
+static TPZLogger loggerConvTest("ConvTest");
 #endif
 
 TPZYCDruckerPragerPV::TPZYCDruckerPragerPV() : fER(fCap.fER), fM(fCap.fM), fPt(fCap.fPt), fLogHardening(fCap.fLogHardening), fLogBulkModulus(fCap.fLogBulkModulus), fA0(fCap.fA0), fE0(fCap.fE0) {

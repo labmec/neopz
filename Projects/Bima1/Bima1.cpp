@@ -53,7 +53,7 @@
 
 #ifdef PZ_LOG
 
-static PZLogger logger("Bima.main");
+static TPZLogger logger("Bima.main");
 
 #endif
 static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){

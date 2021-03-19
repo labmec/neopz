@@ -33,11 +33,11 @@ using namespace std;
 #include <thread>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.strmatrix.TPZStructMatrixOT");
-static PZLogger loggerel("pz.strmatrix.element");
-static PZLogger loggerel2("pz.strmatrix.elementinterface");
-static PZLogger loggerelmat("pz.strmatrix.elementmat");
-static PZLogger loggerCheck("pz.strmatrix.checkconsistency");
+static TPZLogger logger("pz.strmatrix.TPZStructMatrixOT");
+static TPZLogger loggerel("pz.strmatrix.element");
+static TPZLogger loggerel2("pz.strmatrix.elementinterface");
+static TPZLogger loggerelmat("pz.strmatrix.elementmat");
+static TPZLogger loggerCheck("pz.strmatrix.checkconsistency");
 #endif
 
 #ifdef CHECKCONSISTENCY

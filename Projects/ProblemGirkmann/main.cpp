@@ -16,7 +16,7 @@
 using namespace std;
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.girkmannproblem");
+static TPZLogger logger("pz.girkmannproblem");
 #endif
 
 ofstream outfile("Resultados.txt");

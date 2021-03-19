@@ -32,8 +32,8 @@ using namespace std;
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.strmatrix.frontstructmatrix");
-static PZLogger loggerel("pz.strmatrix.element");
+static TPZLogger logger("pz.strmatrix.frontstructmatrix");
+static TPZLogger loggerel("pz.strmatrix.element");
 #endif
 
 

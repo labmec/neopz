@@ -14,11 +14,11 @@
 #include "pzaxestools.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.poroelastic2d");
+static TPZLogger logger("pz.poroelastic2d");
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.poroelastic.data");
+static TPZLogger logdata("pz.material.poroelastic.data");
 #endif
 
 ElasticMatInterface2D::ElasticMatInterface2D() : TPZElasticityMaterial(){

@@ -23,7 +23,7 @@ class TPZMaterialData;
 
 
 #ifdef PZ_LOG
-static PZLogger CompElWMemlogger("mesh.TPZCompElWithMem");
+static TPZLogger CompElWMemlogger("mesh.TPZCompElWithMem");
 #endif
 
 /**

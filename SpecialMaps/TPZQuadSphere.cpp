@@ -15,7 +15,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.geom.pzgeoquad");
+static TPZLogger logger("pz.geom.pzgeoquad");
 #endif
 
 TPZFMatrix<REAL> TensorProd(TPZFMatrix<REAL> &mat1, TPZFMatrix<REAL> &mat2);

@@ -94,7 +94,7 @@ void NeumannAcimaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.mixedpoisson.data");
+static TPZLogger logdata("pz.mixedpoisson.data");
 #endif
 
 const bool triang = true;

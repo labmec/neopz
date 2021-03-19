@@ -143,7 +143,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material");
+static TPZLogger logdata("pz.material");
 #endif
 
 int MaxRefs = 6;

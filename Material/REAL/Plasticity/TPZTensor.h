@@ -32,7 +32,7 @@
 #define _ZZ_ 5
 
 #ifdef PZ_LOG
-static PZLogger loggerr("logtensor");
+static TPZLogger loggerr("logtensor");
 #endif
 
 /**

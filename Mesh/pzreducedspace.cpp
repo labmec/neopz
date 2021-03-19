@@ -15,7 +15,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZInterpolationSpace");
+static TPZLogger logger("pz.mesh.TPZInterpolationSpace");
 #endif
 
 /** @brief Default constructor */

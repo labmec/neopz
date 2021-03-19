@@ -61,7 +61,7 @@
 #include <set>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.elasticity");
+static TPZLogger logger("pz.elasticity");
 #endif
 
 static bool oldmat = true;

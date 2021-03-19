@@ -47,8 +47,8 @@
 #include "pzfstrmatrix.h"
 
 #ifdef PZ_LOG
-static PZLogger loggerconverge("pz.converge");
-static PZLogger logger("main");
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);

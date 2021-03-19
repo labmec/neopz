@@ -19,7 +19,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.topology.pzprism");
+static TPZLogger logger("pz.topology.pzprism");
 #endif
 
 using namespace std;

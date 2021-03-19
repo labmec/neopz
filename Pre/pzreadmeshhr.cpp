@@ -19,7 +19,7 @@
 #include <sstream>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.pre.tpzmeshreaderhr");
+static TPZLogger logger("pz.pre.tpzmeshreaderhr");
 #endif
 
 TPZReadMeshHR::TPZReadMeshHR(const char* infInputFile): TPZReadMesh(infInputFile)

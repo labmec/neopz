@@ -15,7 +15,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.specialmaps.quadraticpyramid");
+static TPZLogger logger("pz.specialmaps.quadraticpyramid");
 #endif
 
 #include "fad.h"

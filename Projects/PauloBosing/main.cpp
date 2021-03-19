@@ -90,7 +90,7 @@ void SolExataP(const TPZVec<REAL> &pt, TPZVec<STATE> &solP, TPZFMatrix<STATE> &G
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.tutorial.multiphysics");
+static TPZLogger logdata("pz.tutorial.multiphysics");
 #endif
 
 bool disc_functions = true;

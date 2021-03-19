@@ -13,7 +13,7 @@
 #include <sstream>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.geoblend");
+static TPZLogger logger("pz.mesh.geoblend");
 #endif
 
 template<class TGeo>

@@ -26,7 +26,7 @@ TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh);
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.project.perkinsgonzalez");
+static TPZLogger logger("pz.project.perkinsgonzalez");
 #endif
 
 void forceX(TPZVec<REAL> &x, TPZVec<REAL> &force)

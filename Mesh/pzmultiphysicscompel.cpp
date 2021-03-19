@@ -34,7 +34,7 @@ using namespace pzgeom;
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzmultiphysiccompEl");
+static TPZLogger logger("pz.mesh.tpzmultiphysiccompEl");
 #endif
 
 template <class TGeometry>

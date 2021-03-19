@@ -20,7 +20,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.topology.pzquadrilateral");
+static TPZLogger logger("pz.topology.pzquadrilateral");
 #endif
 
 using namespace std;

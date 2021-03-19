@@ -23,7 +23,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG_PLASTICITY
-static PZLogger loggerPlasticity("plasticity.plasticstep");
+static TPZLogger loggerPlasticity("plasticity.plasticstep");
 #endif
 
 /**

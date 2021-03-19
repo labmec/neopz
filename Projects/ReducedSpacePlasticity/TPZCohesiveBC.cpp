@@ -8,7 +8,7 @@
 
 #ifdef PZ_LOG
 #include "pzlog.h"
-static PZLogger logger("pz.reducedspace.data");
+static TPZLogger logger("pz.reducedspace.data");
 #endif
 
 TPZCohesiveBC::TPZCohesiveBC() : TPZMatWithMem<TPZFMatrix<REAL> >(), fSigmaT(0.), fDeltaC(0.), fDeltaT(0.)

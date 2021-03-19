@@ -19,7 +19,7 @@
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static PZLogger logger("pz.material");
+static TPZLogger logger("pz.material");
 #endif
 
 //TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;

@@ -62,7 +62,7 @@
 #include "pzelctemp.h"
 
 #ifdef PZ_LOG
-static PZLogger PPAnalysisLogger("pz.analysis.postproc");
+static TPZLogger PPAnalysisLogger("pz.analysis.postproc");
 #endif
 
 using namespace std;

@@ -11,8 +11,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.strmatrix.tpzfstructmatrix");
-static PZLogger loggerel("pz.strmatrix.element");
+static TPZLogger logger("pz.strmatrix.tpzfstructmatrix");
+static TPZLogger loggerel("pz.strmatrix.element");
 #endif
 
 

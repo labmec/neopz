@@ -15,8 +15,8 @@
 #include "TPZChunkTranslator.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.savable");
-static PZLogger loggerCheck("pz.checkconsistency");
+static TPZLogger logger("pz.savable");
+static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {

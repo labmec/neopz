@@ -15,14 +15,14 @@
 #include "TPZYCDruckerPragerPV.h"
 
 //#ifdef PZ_LOG
-//static PZLogger logger("pz.material.TPZPlasticStepPV");
+//static TPZLogger logger("pz.material.TPZPlasticStepPV");
 //#endif
 #ifdef PZ_LOG
-static PZLogger logger("plasticity.poroelastoplastic2");
+static TPZLogger logger("plasticity.poroelastoplastic2");
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logger2("plasticity.poroelastoplastic");
+static TPZLogger logger2("plasticity.poroelastoplastic");
 #endif
 
 #define NewTangetQ

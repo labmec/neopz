@@ -12,7 +12,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-PZLogger logger("pz.geom.tpzgeocube");
+TPZLogger logger("pz.geom.tpzgeocube");
 #endif
 
 using namespace pzshape;

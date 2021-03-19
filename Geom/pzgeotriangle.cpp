@@ -14,7 +14,7 @@
 #include "fad.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.geom.pzgeotriangle");
+static TPZLogger logger("pz.geom.pzgeotriangle");
 #endif
 
 using namespace pzshape;

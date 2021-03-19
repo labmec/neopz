@@ -16,7 +16,7 @@
 #include "pzhdivpressure.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHDivPressureBound");
+static TPZLogger logger("pz.mesh.TPZCompElHDivPressureBound");
 #endif
 
 

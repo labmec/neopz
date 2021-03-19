@@ -20,7 +20,7 @@
 
 #ifdef PZ_LOG
 
-static PZLogger logger("pz.converge");
+static TPZLogger logger("pz.converge");
 #endif
 
 using namespace std;

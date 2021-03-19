@@ -54,7 +54,7 @@
 
 #ifdef PZ_LOG
 
-static PZLogger logger("Acoplamento.main");
+static TPZLogger logger("Acoplamento.main");
 
 #endif
 

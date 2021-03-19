@@ -15,7 +15,7 @@
 
 #include "pzlog.h" // test 
 #ifdef PZ_LOG
-static PZLogger loggerrefless("pz.mesh.tpzgeoelrefless");
+static TPZLogger loggerrefless("pz.mesh.tpzgeoelrefless");
 #endif
 
 #include "fadType.h"

@@ -8,7 +8,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("substruct.dohrsubstruct");
+static TPZLogger logger("substruct.dohrsubstruct");
 #endif
 
 using namespace std;

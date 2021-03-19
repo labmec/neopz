@@ -14,7 +14,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("br.steamsimulation");
+static TPZLogger logger("br.steamsimulation");
 #endif
 
 WaterDataInStateOfSaturation waterdata;

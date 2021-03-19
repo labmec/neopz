@@ -34,8 +34,8 @@ class TPZStream;
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.tpzfmatrix");
-static PZLogger loggerCheck("pz.checkconsistency");
+static TPZLogger logger("pz.matrix.tpzfmatrix");
+static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 #ifdef USING_LAPACK

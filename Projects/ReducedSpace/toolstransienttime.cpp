@@ -38,7 +38,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logdata("pz.toolstransienttime");
+static TPZLogger logdata("pz.toolstransienttime");
 #endif
 
 

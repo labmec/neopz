@@ -27,8 +27,8 @@
 #include <thread>
 
 #ifdef PZ_LOG
-static PZLogger logger("substruct.dohrprecond");
-static PZLogger loggerv1v2("substruct.v1v2");
+static TPZLogger logger("substruct.dohrprecond");
+static TPZLogger loggerv1v2("substruct.v1v2");
 #endif
 
 using namespace std;

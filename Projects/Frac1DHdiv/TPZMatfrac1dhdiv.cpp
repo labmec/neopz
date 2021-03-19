@@ -7,11 +7,11 @@
 #include <iostream>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.multiphase");
+static TPZLogger logger("pz.multiphase");
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.multiphase.data");
+static TPZLogger logdata("pz.material.multiphase.data");
 #endif
 
 TPZMatfrac1dhdiv::TPZMatfrac1dhdiv(): TPZMatWithMem<TPZFMatrix<REAL>, TPZMaterial >()

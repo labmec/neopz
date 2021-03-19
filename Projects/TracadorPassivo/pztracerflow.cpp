@@ -14,7 +14,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.data");
+static TPZLogger logdata("pz.material.data");
 #endif
 
 using namespace std;

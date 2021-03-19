@@ -15,7 +15,7 @@
 #include "pzmaterialdata.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHDivPressure");
+static TPZLogger logger("pz.mesh.TPZCompElHDivPressure");
 #endif
 
 using namespace std;

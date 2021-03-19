@@ -23,8 +23,8 @@ using namespace std;
 
 #ifdef PZ_LOG
 
-static PZLogger logger("pz.strmatrix.frontstructmatrix");
-static PZLogger loggerfw("pz.frontal.frontmatrix.fw");
+static TPZLogger logger("pz.strmatrix.frontstructmatrix");
+static TPZLogger loggerfw("pz.frontal.frontmatrix.fw");
 
 #endif
 

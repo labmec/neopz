@@ -12,7 +12,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.geom.pzgeoquad");
+static TPZLogger logger("pz.geom.pzgeoquad");
 #endif
 
 using namespace std;

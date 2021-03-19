@@ -5,7 +5,7 @@
 #include "pzshapelinear.h"
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.frac");
+static TPZLogger logdata("pz.frac");
 #endif
 
 int main()

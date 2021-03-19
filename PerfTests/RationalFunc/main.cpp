@@ -26,7 +26,7 @@ void usage (char *prg)
 
 #ifdef PZ_LOG
 #include "pzlog.h"
-static PZLogger logger("pz.Cedric-Perf");
+static TPZLogger logger("pz.Cedric-Perf");
 #endif
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);

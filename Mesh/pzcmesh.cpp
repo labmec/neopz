@@ -53,8 +53,8 @@
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzcompmesh");
-static PZLogger aloclogger("pz.allocate");
+static TPZLogger logger("pz.mesh.tpzcompmesh");
+static TPZLogger aloclogger("pz.allocate");
 #endif
 using namespace std;
 

@@ -14,11 +14,11 @@
 #include "TPZInconsistentStateException.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("plasticity.poroelastoplastic");
+static TPZLogger logger("plasticity.poroelastoplastic");
 #endif
 
 #ifdef PZ_LOG
-static PZLogger loggerConvTest("ConvTest");
+static TPZLogger loggerConvTest("ConvTest");
 #endif
 
 TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-8), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {

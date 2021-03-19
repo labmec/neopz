@@ -15,7 +15,7 @@ extern "C" {
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.metis");
+static TPZLogger logger("pz.metis");
 #endif
 
 #include <iostream>

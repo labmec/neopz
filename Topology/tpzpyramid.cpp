@@ -15,7 +15,7 @@
 #include "fad.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.topology.pzpyramid");
+static TPZLogger logger("pz.topology.pzpyramid");
 #endif
 
 using namespace std;

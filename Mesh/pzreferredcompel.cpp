@@ -43,7 +43,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzcompel");
+static TPZLogger logger("pz.mesh.tpzcompel");
 #endif
 
 using namespace std;

@@ -19,7 +19,7 @@
 #include "tpzcube.h"
 #include "tpzprism.h"
 
-static PZLogger loggernoderep("pz.geom.noderep");
+static TPZLogger loggernoderep("pz.geom.noderep");
 
 
 namespace pzgeom {

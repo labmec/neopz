@@ -19,7 +19,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.elastpressure");
+static TPZLogger logdata("pz.material.elastpressure");
 #endif
 
 

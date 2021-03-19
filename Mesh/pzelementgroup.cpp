@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzelementgroup");
+static TPZLogger logger("pz.mesh.tpzelementgroup");
 #endif
 
 TPZElementGroup::TPZElementGroup() : 

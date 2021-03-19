@@ -19,7 +19,7 @@ using namespace std;
 #include <sstream>
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.tpzmatred");
+static TPZLogger logger("pz.matrix.tpzmatred");
 #endif
 
 /*************************** Public ***************************/

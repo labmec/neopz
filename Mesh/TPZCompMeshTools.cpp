@@ -27,7 +27,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.analysis");
+static TPZLogger logger("pz.analysis");
 #endif
 
 #ifdef USING_BOOST

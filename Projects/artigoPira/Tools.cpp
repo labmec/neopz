@@ -73,7 +73,7 @@ int const dirichlet =0;
 int const neumann = 1;
 
 #ifdef PZ_LOG
-static PZLogger logger("Tools.main");
+static TPZLogger logger("Tools.main");
 #endif
 
 TPZGeoMesh *GMesh(){

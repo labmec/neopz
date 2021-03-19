@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.refpattern.TPZRefPatternDataBase");
+static TPZLogger logger("pz.refpattern.TPZRefPatternDataBase");
 #endif
 
 #ifdef BORLAND

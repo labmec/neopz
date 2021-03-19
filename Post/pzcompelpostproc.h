@@ -31,7 +31,7 @@ class TPZMaterialData;
 #include "pzmultiphysicselement.h"
 
 #ifdef PZ_LOG
-static PZLogger pzcompelpostproclogger("pz.mesh.TPZCompElPostProc");
+static TPZLogger pzcompelpostproclogger("pz.mesh.TPZCompElPostProc");
 #endif
 
 

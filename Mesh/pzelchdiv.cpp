@@ -21,8 +21,8 @@
 #include "pzshtmat.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHDiv");
-static PZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
+static TPZLogger logger("pz.mesh.TPZCompElHDiv");
+static TPZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 
 using namespace std;

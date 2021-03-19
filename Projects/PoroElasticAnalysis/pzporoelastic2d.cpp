@@ -24,7 +24,7 @@ const int StateVarPressure = 2;
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.poroelastic.data");
+static TPZLogger logdata("pz.material.poroelastic.data");
 #endif
 
 TPZPoroElastic2d::EState TPZPoroElastic2d::gState = ECurrentState;

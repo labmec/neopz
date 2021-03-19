@@ -12,7 +12,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.analysis.pzsmanalysis");
+static TPZLogger logger("pz.analysis.pzsmanalysis");
 
 #endif
 

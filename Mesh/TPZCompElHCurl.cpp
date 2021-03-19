@@ -17,8 +17,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHCurl");
-static PZLogger loggercurl("pz.mesh.tpzinterpolatedelement.divide");
+static TPZLogger logger("pz.mesh.TPZCompElHCurl");
+static TPZLogger loggercurl("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 /*********************************************************************************************************
                                        TPZHCurlAuxClass methods

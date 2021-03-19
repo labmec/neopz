@@ -15,7 +15,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.TPZCompElHDivBound2");
+static TPZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
 template<class TSHAPE>

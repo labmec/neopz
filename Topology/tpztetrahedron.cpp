@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.topology.pztetrahedron");
+static TPZLogger logger("pz.topology.pztetrahedron");
 #endif
 
 using namespace std;

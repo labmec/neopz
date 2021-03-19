@@ -10,7 +10,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzelmat");
+static TPZLogger logger("pz.mesh.tpzelmat");
 #endif
 
 using namespace std;

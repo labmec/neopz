@@ -10,7 +10,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.StrMatrix");
+static TPZLogger logger("pz.StrMatrix");
 #endif
 
 using namespace std;

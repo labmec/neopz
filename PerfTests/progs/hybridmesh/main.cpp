@@ -68,7 +68,7 @@ clarg::argInt  n_uref("-nuref", "Number of uniform refinements",1);
 clarg::argInt  n_threads("-nthreads", "Number of threads",1);
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.multiphysics");
+static TPZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;

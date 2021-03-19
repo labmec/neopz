@@ -43,7 +43,7 @@
 
 #ifdef PZ_LOG
 
-static PZLogger logger("pz.strmatrix.frontstructmatrix");
+static TPZLogger logger("pz.strmatrix.frontstructmatrix");
 
 #endif
 /// Semaphore which controls threads assembling elements

@@ -51,11 +51,11 @@ using blaze::DynamicMatrix;
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.sbfemelementgroup");
-static PZLogger loggercoefmatrices("pz.mesh.sbfemcoefmatrices");
-static PZLogger loggerMT("pz.mesh.sbfemelementgroupMT");
-static PZLogger loggerBF("pz.mesh.sbfemelementgroupBF");
-static PZLogger loggerbubble("pz.mesh.sbfembubbleparam");
+static TPZLogger logger("pz.mesh.sbfemelementgroup");
+static TPZLogger loggercoefmatrices("pz.mesh.sbfemcoefmatrices");
+static TPZLogger loggerMT("pz.mesh.sbfemelementgroupMT");
+static TPZLogger loggerBF("pz.mesh.sbfemelementgroupBF");
+static TPZLogger loggerbubble("pz.mesh.sbfembubbleparam");
 #endif
 
 

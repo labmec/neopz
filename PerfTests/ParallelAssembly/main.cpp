@@ -79,7 +79,7 @@ void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> 
 TPZAutoPointer<TPZCompMesh> CreatePressureMesh(TPZAutoPointer<TPZGeoMesh> gmesh, int porder);
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mainskeleton");
+static TPZLogger logger("pz.mainskeleton");
 #endif
 
 enum MRegular {EUniform,EUnbalanced};

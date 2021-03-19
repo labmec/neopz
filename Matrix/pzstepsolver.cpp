@@ -12,7 +12,7 @@ using namespace std;
 #include "TPZPersistenceManager.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.converge");
+static TPZLogger logger("pz.converge");
 #endif
 
 template <class TVar>

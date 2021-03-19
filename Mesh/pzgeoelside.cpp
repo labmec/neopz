@@ -25,7 +25,7 @@ using namespace std;
 #include <sstream>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzgeoelside");
+static TPZLogger logger("pz.mesh.tpzgeoelside");
 #endif
 
 // Implementation of the TPZGeoElSideIndex methods

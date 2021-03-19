@@ -12,7 +12,7 @@
 #include "pzvec.h"
 #include "pzlog.h"
 
-static PZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
+static TPZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
 
 
 class TPZGeoElSide;

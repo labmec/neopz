@@ -19,8 +19,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.frontal.frontmerda");
-static PZLogger loggerfw("pz.frontal.frontmerdatotal");
+static TPZLogger logger("pz.frontal.frontmerda");
+static TPZLogger loggerfw("pz.frontal.frontmerdatotal");
 #endif
 
 using namespace std;

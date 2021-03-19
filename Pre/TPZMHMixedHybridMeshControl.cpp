@@ -36,7 +36,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mhmixedhybridmeshcontrol");
+static TPZLogger logger("pz.mhmixedhybridmeshcontrol");
 #endif
 
 using namespace std;

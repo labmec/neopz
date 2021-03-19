@@ -10,7 +10,7 @@
 #include "pzcmesh.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzcondensedcompel");
+static TPZLogger logger("pz.mesh.tpzcondensedcompel");
 #endif
 
 #ifdef USING_LAPACK

@@ -15,8 +15,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.material.axisymetric");
-static PZLogger logdata("pz.material.axisymetric.data");
+static TPZLogger logger("pz.material.axisymetric");
+static TPZLogger logdata("pz.material.axisymetric.data");
 #endif
 
 #include <fstream>

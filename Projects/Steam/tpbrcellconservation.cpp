@@ -20,7 +20,7 @@ static OilData oildata;
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("br.steam.cell");
+static TPZLogger logger("br.steam.cell");
 #endif
 
 

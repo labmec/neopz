@@ -16,7 +16,7 @@
 #include <iostream>
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.hybridpoisson");
+static TPZLogger logdata("pz.hybridpoisson");
 #endif
 
 TPZHybridPoisson::TPZHybridPoisson(): TPZMatPoisson3d(){

@@ -24,8 +24,8 @@
 #include <complex>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.tpzmatrix");
-static PZLogger loggerCheck("pz.checkconsistency");
+static TPZLogger logger("pz.matrix.tpzmatrix");
+static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 #ifdef PZDEBUG

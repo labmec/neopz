@@ -26,8 +26,8 @@ using namespace std;
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-//static PZLogger logger("agnaldo.integrate");
-static PZLogger loggertensoes("agnaldo.tensoes");
+//static TPZLogger logger("agnaldo.integrate");
+static TPZLogger loggertensoes("agnaldo.tensoes");
 #endif
 
 

@@ -32,7 +32,7 @@
 #include "pzcompelwithmem.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzcreateapproximationspace");
+static TPZLogger logger("pz.mesh.tpzcreateapproximationspace");
 #endif
 
 /** @brief Creates computational point element */

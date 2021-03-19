@@ -16,7 +16,7 @@
 #ifdef PZ_LOG
 #include "pzlog.h"
 
-static PZLogger loggerSML("material.plasticity.SML");
+static TPZLogger loggerSML("material.plasticity.SML");
 
 #endif
 

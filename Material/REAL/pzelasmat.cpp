@@ -15,7 +15,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.elasticity.data");
+static TPZLogger logdata("pz.material.elasticity.data");
 #endif
 
 #include <fstream>

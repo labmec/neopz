@@ -17,7 +17,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("br.steammesh");
+static TPZLogger logger("br.steammesh");
 #endif
 
 

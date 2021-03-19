@@ -38,7 +38,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzgeomesh");
+static TPZLogger logger("pz.mesh.tpzgeomesh");
 #endif
 
 

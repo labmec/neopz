@@ -21,7 +21,7 @@
 #include "TPZThreadPool.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.renumbering");
+static TPZLogger logger("pz.renumbering");
 #endif
 
 using namespace std;

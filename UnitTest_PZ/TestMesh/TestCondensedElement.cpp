@@ -31,7 +31,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.testmesh");
+static TPZLogger logger("pz.mesh.testmesh");
 #endif
 
 #ifdef USING_BOOST

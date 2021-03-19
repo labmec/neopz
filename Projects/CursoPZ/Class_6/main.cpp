@@ -35,9 +35,9 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.adaptivity");
-static PZLogger loggerconv("pz.adaptivity.conv");
-static PZLogger loggerpoint("pz.adaptivity.points");
+static TPZLogger logger("pz.adaptivity");
+static TPZLogger loggerconv("pz.adaptivity.conv");
+static TPZLogger loggerpoint("pz.adaptivity.points");
 #endif
 
 #include <time.h>

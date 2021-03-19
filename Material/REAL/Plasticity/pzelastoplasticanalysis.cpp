@@ -30,8 +30,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger EPAnalysisLogger("pz.analysis.elastoplastic");
-static PZLogger loggertest("testing");
+static TPZLogger EPAnalysisLogger("pz.analysis.elastoplastic");
+static TPZLogger loggertest("testing");
 #endif
 
 using namespace std;

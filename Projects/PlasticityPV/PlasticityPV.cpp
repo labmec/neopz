@@ -33,8 +33,8 @@
 
 
 #ifdef PZ_LOG
-static PZLogger loggerconverge("pz.converge");
-static PZLogger logger("main");
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 REAL NormVec(TPZManVector<REAL,3> &vec1);

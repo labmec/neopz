@@ -10,7 +10,7 @@
 
 #ifdef PZ_LOG
 #include "pzlog.h"
-static PZLogger porousLogger("material.pzPoro");
+static TPZLogger porousLogger("material.pzPoro");
 #endif
 
 

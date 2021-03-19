@@ -16,7 +16,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.tpzfbmatrix");
+static TPZLogger logger("pz.matrix.tpzfbmatrix");
 #endif
 
 using namespace std;

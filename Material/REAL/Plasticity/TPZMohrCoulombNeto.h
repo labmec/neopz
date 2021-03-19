@@ -19,7 +19,7 @@
 #include "TPZPlasticState.h"
 
 #ifdef PZ_LOG
-static PZLogger loggerMohrCoulomb("pz.plasticity.mohrcoulombneto");
+static TPZLogger loggerMohrCoulomb("pz.plasticity.mohrcoulombneto");
 #endif
 
 

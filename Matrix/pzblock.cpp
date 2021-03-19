@@ -12,7 +12,7 @@
 #include <sstream>
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logger("pz.matrix.tpzblock");
+static TPZLogger logger("pz.matrix.tpzblock");
 #endif
 
 using namespace std;

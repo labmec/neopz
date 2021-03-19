@@ -44,8 +44,8 @@ using namespace std;
 #include <iterator>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzcompel");
-static PZLogger loggerSide("pz.mesh.tpzcompelside");
+static TPZLogger logger("pz.mesh.tpzcompel");
+static TPZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
 
 void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {

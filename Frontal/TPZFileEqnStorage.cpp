@@ -13,7 +13,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.frontal.tpzfileeqnstorage");
+static TPZLogger logger("pz.frontal.tpzfileeqnstorage");
 #endif
 #include <fstream>
 using namespace std;

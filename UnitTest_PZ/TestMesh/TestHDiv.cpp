@@ -70,7 +70,7 @@ using namespace pzshape;
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.testhdiv");
+static TPZLogger logger("pz.mesh.testhdiv");
 #endif
 
 #ifdef USING_BOOST

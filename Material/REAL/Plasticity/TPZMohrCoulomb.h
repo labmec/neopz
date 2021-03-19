@@ -22,7 +22,7 @@
 #include "TPZPlasticStepID.h"
 
 #ifdef PZ_LOG_PLASTICITY
-static PZLogger loggerMohrCoulomb("MCC");
+static TPZLogger loggerMohrCoulomb("MCC");
 #endif
 
 #define MOHRCOULOMBPARENT TPZPlasticStep<TPZYCMohrCoulomb, TPZThermoForceA, TPZElasticResponse>

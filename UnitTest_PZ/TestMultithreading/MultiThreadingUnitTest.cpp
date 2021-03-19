@@ -27,7 +27,7 @@
 
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.testmultithread");
+static TPZLogger logger("pz.mesh.testmultithread");
 #endif
 
 #include "boost/test/unit_test.hpp"

@@ -19,7 +19,7 @@
 #endif
 
 #ifdef PZ_LOG_PLASTICITY
-static PZLogger loggerDP("plasticity.DruckerPrager");
+static TPZLogger loggerDP("plasticity.DruckerPrager");
 #endif
 
 /**

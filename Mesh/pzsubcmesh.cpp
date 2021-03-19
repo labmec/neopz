@@ -40,8 +40,8 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.subcmesh");
-static PZLogger logger2("pz.mesh.tpzcompmesh");
+static TPZLogger logger("pz.mesh.subcmesh");
+static TPZLogger logger2("pz.mesh.tpzcompmesh");
 #endif
 
 /// Number of elements to test 

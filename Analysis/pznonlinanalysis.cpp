@@ -22,7 +22,7 @@
 #include <fstream>
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.nonlinearanalysis");
+static TPZLogger logger("pz.nonlinearanalysis");
 #endif
 
 using namespace std;

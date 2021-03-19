@@ -11,7 +11,7 @@
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.util.semaphore");
+static TPZLogger logger("pz.util.semaphore");
 #endif
 
 

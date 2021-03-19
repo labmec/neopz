@@ -16,7 +16,7 @@
 
 #include "pzlog.h"
 #ifdef PZ_LOG
-static PZLogger logdata("pz.material.poroelastic2d.data");
+static TPZLogger logdata("pz.material.poroelastic2d.data");
 #endif
 
 TPZPoroElasticMF2d::EState TPZPoroElasticMF2d::gState = ECurrentState;

@@ -32,7 +32,7 @@
 #include <cstdlib>
 
 #ifdef PZ_LOG
-static PZLogger logger("main");
+static TPZLogger logger("main");
 #endif
 
 #define MAIN3

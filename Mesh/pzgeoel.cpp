@@ -36,8 +36,8 @@ using namespace std;
 using namespace pzgeom;
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.mesh.tpzgeoel");
-static PZLogger loggerorient("pz.mesh.tpzgeoel.orient");
+static TPZLogger logger("pz.mesh.tpzgeoel");
+static TPZLogger loggerorient("pz.mesh.tpzgeoel.orient");
 #endif
 
 

@@ -82,7 +82,7 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
 
 
 #ifdef PZ_LOG
-static PZLogger logdata("pz.porolasticmf2d.data");
+static TPZLogger logdata("pz.porolasticmf2d.data");
 #endif
 
 //problema murad e Loula

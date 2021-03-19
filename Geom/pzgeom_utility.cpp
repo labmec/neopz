@@ -8,7 +8,7 @@
 #include "pzgeom_utility.h"
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.geom.pzgeom_util");
+static TPZLogger logger("pz.geom.pzgeom_util");
 #endif
 
 

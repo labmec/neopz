@@ -33,16 +33,16 @@ using namespace std;
 #include "pzlog.h"
 
 #ifdef PZ_LOG
-static PZLogger pointloadconfig("plasticity.loadconfig");
-static PZLogger plasticIntegrLogger("plasticity.plasticIntegr");
+static TPZLogger pointloadconfig("plasticity.loadconfig");
+static TPZLogger plasticIntegrLogger("plasticity.plasticIntegr");
 #endif
 
 #ifdef PZ_LOG
-static PZLogger logger("pz.PLASTIC_STEP.main");
-static PZLogger loggerx("pz.PLASTIC_STEP.main");
-static PZLogger loggerPlasticResidual("PLASTIC_RESIDUAL");
-static PZLogger loggerDEP1("pz.PLASTIC_STEP.DEP1");
-static PZLogger loggerDEP2("pz.PLASTIC_STEP.DEP2");
+static TPZLogger logger("pz.PLASTIC_STEP.main");
+static TPZLogger loggerx("pz.PLASTIC_STEP.main");
+static TPZLogger loggerPlasticResidual("PLASTIC_RESIDUAL");
+static TPZLogger loggerDEP1("pz.PLASTIC_STEP.DEP1");
+static TPZLogger loggerDEP2("pz.PLASTIC_STEP.DEP2");
 #endif
 
 template <class YC_t, class TF_t, class ER_t>
