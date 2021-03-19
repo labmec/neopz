@@ -30,10 +30,6 @@
 #cmakedefine USING_TBB
 #endif
 
-#ifndef USING_PAPI
-#cmakedefine USING_PAPI
-#endif
-
 #ifndef USING_MKL
 #cmakedefine USING_MKL
 #endif
