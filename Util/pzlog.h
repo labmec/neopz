@@ -14,8 +14,6 @@
 
 
 #include <pz_config.h>
-
-
 #include <mutex>
 #include <iostream>
 
@@ -25,17 +23,23 @@
 /// External variable to mutex which controls write log
 #ifdef PZ_LOG
 class TPZLogger;
-void LogPzDebugImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
-                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzInfoImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzDebugImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *fileName,[[maybe_unused]] const std::size_t lineN);
+void LogPzInfoImpl(TPZLogger lg, std::string msg,
                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzWarnImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzWarnImpl(TPZLogger lg, std::string msg,
                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzErrorImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzErrorImpl(TPZLogger lg, std::string msg,
                     [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzFatalImpl([[maybe_unused]] TPZLogger lg, [[maybe_unused]] std::string msg,
+void LogPzFatalImpl(TPZLogger lg, std::string msg, 
                     [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
 
+
+
+/*@TODO:Check if we cannot call getlogger in the functions called by
+ the macros. If there are no considerable performance issues,
+ then we could eliminate this forward declaration and the attribute
+ in the TPZLogger class, storing just the name of the logger instead.*/
 namespace log4cxx{
   namespace helpers{
     template<class T>
@@ -50,12 +54,14 @@ namespace log4cxx{
 class TPZLogger{
 public:
   TPZLogger() = delete;
-  
+  //get logger name as input param
   TPZLogger(const std::string &&);
   ~TPZLogger();
   bool isDebugEnabled() const;
   bool isWarnEnabled() const;
   bool isInfoEnabled() const;
+  bool isErrorEnabled() const;
+  bool isFatalEnabled() const;
 private:
   log4cxx::LoggerPtr * fLogPtr;
 
@@ -96,6 +102,8 @@ public:
   bool isDebugEnabled() const {return false;}
   bool isWarnEnabled() const {return false;}
   bool isInfoEnabled() const {return false;}
+  bool isErrorEnabled() const {return false;}
+  bool isFatalEnabled() const {return false;}
 };
 // Just to allow the macros being called regardless
 // of whether the log is enabled or not

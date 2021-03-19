@@ -40,13 +40,21 @@ bool TPZLogger::isInfoEnabled() const{
   return (*fLogPtr)->isInfoEnabled();
 }
 
+bool TPZLogger::isErrorEnabled() const{
+  return (*fLogPtr)->isErrorEnabled();
+}
+
+bool TPZLogger::isFatalEnabled() const{
+  return (*fLogPtr)->isFatalEnabled();
+}
+
 void LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = *(pzlg.fLogPtr);
   if (lg->isDebugEnabled()) {
     std::scoped_lock lock(glogmutex);
     LOG4CXX_DEBUG(lg,msg);
   } else {
-    std::cout << "Please set IsDebugEnabled at " << fileName << ":" << lineN
+    std::cout << "Please set isDebugEnabled at " << fileName << ":" << lineN
               << std::endl;
   }
 }
@@ -56,6 +64,9 @@ void LogPzInfoImpl(TPZLogger pzlg, std::string msg, const char *fileName, const 
   if (lg->isInfoEnabled()) {
     std::scoped_lock lock(glogmutex);
     LOG4CXX_INFO(lg, msg);
+  } else {
+    std::cout << "Please set isInfoEnabled at " << fileName << ":" << lineN
+              << std::endl;
   }
 }
 void LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
@@ -63,6 +74,9 @@ void LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const 
   if (lg->isWarnEnabled()) {
     std::scoped_lock lock(glogmutex);
     LOG4CXX_WARN(lg, msg);
+  }else {
+    std::cout << "Please set isWarnEnabled at " << fileName << ":" << lineN
+              << std::endl;
   }
 }
 
@@ -72,6 +86,9 @@ void LogPzErrorImpl(TPZLogger pzlg, std::string msg, const char *fileName, const
     std::scoped_lock lock(glogmutex);
     LOG4CXX_ERROR(lg, msg);
     DebugStop();
+  }else {
+    std::cout << "Please set isErrorEnabled at " << fileName << ":" << lineN
+              << std::endl;
   }
 }
 
@@ -80,6 +97,9 @@ void LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fileName, const
   if (lg->isFatalEnabled()) {
     std::scoped_lock lock(glogmutex);
     LOG4CXX_FATAL(lg, msg);
+  }else {
+    std::cout << "Please set isFatalEnabled at " << fileName << ":" << lineN
+              << std::endl;
   }
 }
 
