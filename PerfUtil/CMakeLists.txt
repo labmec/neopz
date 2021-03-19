@@ -16,8 +16,13 @@ set(headers
     timing_analysis.h
     )
 
-set(sources arglib.cpp)
+  set(sources
+    arglib.cpp
+    stats_recorder.cpp
+    )
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PerfUtil)
+
+#@orlandini: until we make sure that they are actually still useful i guess we dont need to install them  
+# install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PerfUtil)
 
 target_sources(pz PRIVATE ${headers} ${sources})

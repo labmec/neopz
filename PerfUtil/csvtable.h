@@ -4,9 +4,9 @@
  */
 #ifndef CSVTABLE_H
 
-//#include<sstream> // stringstream
 #include<cctype>
-#include<istream>// istream
+#include<iostream>// istream
+#include <sstream> //stringstream
 #include<vector>  // vector
 #include <stdlib.h>
 
