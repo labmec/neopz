@@ -311,7 +311,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   endif()
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-install (FILES ${CONFIG_H} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # End of pz_config.h part
 
 # Set a debug suffix automatically when PZ is built in Debug mode
@@ -345,6 +344,9 @@ install(FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_pz_target.cmake"
         DESTINATION ${PZ_CMAKE_INSTALL_DIR}
         )
+
+include(cmake/InstallPZConfigFile.cmake)
+
 #############EXTRA TARGETS#############
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
     add_subdirectory(Projects)

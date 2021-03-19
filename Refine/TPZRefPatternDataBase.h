@@ -41,27 +41,18 @@ public:
 	void ReadRefPatternDBase(std::ifstream &filein);
 	
 	void WriteRefPatternDBase(std::ofstream &fileout);
-	
-	/**
-	 * @brief Import a library of refinement patterns from the install directory
-	 * @return Return the number of refpatterns imported
-	 */
-	int ImportRefPatterns(int maxdim = 3);
-	
-	/**
-	 * @brief Import a library of refinement patterns from the given directory
-	 * @return Return the number of refpatterns imported
-	 */
-	int ImportRefPatterns(std::string &Path, int maxdim = 3);
-	
-	/** @brief Retrieves the uniform refinement pattern for given element type */ 
+
+	/** @brief Retrieves the uniform refinement pattern for given element type */
 	TPZAutoPointer<TPZRefPattern> GetUniformRefPattern(MElementType type);
 	
 	/** @brief Initialize the uniform refinement pattern from hard coaded data for an specific geometric element */
 	void InitializeUniformRefPattern(MElementType elType);
-	
-	void InitializeRefPatterns(int maxdim = 3);
-	
+
+    void InitializeRefPatterns(int maxdim = 3) {
+        std::string path = PZ_REFPATTERN_DIR;
+        ImportRefPatterns(path, maxdim);
+    }
+
 	/** @brief Initialize the uniform refinement pattern from hard coaded data for all linear geometric elements */
 	void InitializeAllUniformRefPatterns();
 	
@@ -91,6 +82,18 @@ protected:
 	
 	/** @brief Maps all refinement pattern objects in the mesh, indexed by refpattern Id */
 	std::map< int , TPZAutoPointer<TPZRefPattern> > fIdRefPatterns;
+
+    /**
+     * @brief Import a library of refinement patterns from the given directory
+     * @return Return the number of refpatterns imported
+     */
+    int ImportRefPatterns(std::string &Path, int maxdim = 3);
+
+    /**
+     * @brief Import a library of refinement patterns from the install directory
+     * @return Return the number of refpatterns imported
+     */
+    [[deprecated("Use TPZRefPatternDataBase::InitializeRefPatterns instead!")]]int ImportRefPatterns(int maxdim = 3);
 
 };
 

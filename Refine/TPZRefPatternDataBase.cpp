@@ -595,13 +595,6 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 	InitializeUniformRefPattern(ECube);
 }
 
-
-void TPZRefPatternDataBase::InitializeRefPatterns(int maxdim)
-{
-    std::string path = REFPATTERNDIR;
-	ImportRefPatterns(path, maxdim);
-}
-
 //.........................................................................................................................................
 void TPZRefPatternDataBase::InsertRefPattern(TPZAutoPointer<TPZRefPattern> &refpat)
 {

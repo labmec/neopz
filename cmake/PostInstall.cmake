@@ -1,0 +1,3 @@
+set(PZ_REFPATTERN_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/Refine/RefPatterns)
+set(CONFIG_DEST ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/Common/pz_config.h)
+configure_file (${PZSOURCEDIR}/Common/pz_config.h.in ${CONFIG_DEST})
