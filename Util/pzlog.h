@@ -2,8 +2,10 @@
  * @file pzlog.h
  * @brief Contains definitions of TPZLogger class, InitializePZLOG()  and auxiliary macros.
 
-  The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL. The functions
-  TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called before writing the log messages, as most of the time is spent composing the messages.
+  TPZLogger is a wrapper for the logging library used in NeoPZ.
+  The log config file is available at PZ_INSTALL_INCLUDE__DIR/Util/log4cxx.cfg, and the log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
+  The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL.
+  The functions TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called before writing the log messages, as most of the execution time is spent writing the messages to the stream.
  */
 
 
@@ -14,19 +16,11 @@
 #ifndef PZLOGH
 #define PZLOGH
 
-#include <string>
-#include <sstream>
-#include <iostream>           
-
-
 #include <pz_config.h>
-#include <mutex>
-#include <iostream>
 
 
-
-/// External variable to mutex which controls write log
 #ifdef PZ_LOG
+#include <string>
 class TPZLogger;
 void LogPzDebugImpl(TPZLogger lg, std::string msg,
                     [[maybe_unused]] const char *fileName,[[maybe_unused]] const std::size_t lineN);
@@ -40,6 +34,15 @@ void LogPzFatalImpl(TPZLogger lg, std::string msg,
                     [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
 
 
+/*The TPZLogger is a wrapper for the Log4cxx library. Once the
+ log is setup, the expected usage is (in .cpp file):
+ static TPZLogger logger("log_name");
+ //do your stuff
+ if(logger.isDebugEnabled()){
+   //compose message
+   LOGPZ_DEBUG(logger,message)
+ }
+ }*/
 
 class TPZLogger{
 public:
@@ -70,7 +73,7 @@ private:
   friend void LogPzFatalImpl( TPZLogger lg,  std::string msg,
                      const char *fileName,  const std::size_t lineN);
 };
-extern std::mutex glogmutex;
+
 /// Define log for debug
 #define LOGPZ_DEBUG(A,B) LogPzDebugImpl(A,B,__FILE__,__LINE__);
 
@@ -86,7 +89,7 @@ extern std::mutex glogmutex;
 #define LOGPZ_FATAL(A,B) LogPzFatalImpl(A,B,__FILE__,__LINE__);
 
 #else
-
+#include <iostream>
 //dummy class. log is not enabled.
 class TPZLogger{
 public:

@@ -16,7 +16,7 @@ create_post_install_var(USING_BOOST)
 create_post_install_var(USING_TBB)
 create_post_install_var(USING_MKL)
 create_post_install_var(VC)
-
+create_post_install_var(PZ_LOG)
 create_post_install_var(CMAKE_INSTALL_PREFIX)
 create_post_install_var(CMAKE_INSTALL_INCLUDEDIR)
 create_post_install_var(PZSOURCEDIR)

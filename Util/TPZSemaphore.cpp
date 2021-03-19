@@ -6,6 +6,7 @@
 #include "TPZSemaphore.h"
 
 #include <fstream>
+#include <sstream>
 #include <thread>
 
 #include "pzlog.h"

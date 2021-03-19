@@ -9,10 +9,10 @@
 #include <iostream>
 
 
-std::mutex glogmutex;
 
 #ifdef PZ_LOG
-
+#include <mutex>
+static std::mutex glogmutex;
 
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
