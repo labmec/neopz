@@ -13,7 +13,7 @@
 #include "pzlog.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material.data");
 #endif
 
@@ -290,7 +290,7 @@ void TPZTracerFlow::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
         }
     }//end stiffness matrix at ELastState
     
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //	if(logdata.isDebugEnabled())
 //	{
 //		std::stringstream sout;
@@ -466,7 +466,7 @@ void TPZTracerFlow::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 		}
 	}
     
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //	if(logdata.isDebugEnabled())
 //	{
 //		std::stringstream sout;

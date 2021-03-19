@@ -34,7 +34,7 @@
 #include "TPZNullMaterial.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mhmixedmeshcontrol");
 #endif
 
@@ -1086,7 +1086,7 @@ void TPZMHMixedMeshControl::CreateSkeleton()
         // find the connected computational elements in function of the index of the geometric element
         ConnectedElements(elindex, it->second, subels);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1283,7 +1283,7 @@ void TPZMHMixedMeshControl::CreateMultiPhysicsInterfaceElements(int dim, int pre
 //        celstack[1].Element()->Print();
         new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcleft.CreatedElement(),index1,celstack[0],celside);
         new TPZMultiphysicsInterfaceElement(*MixedFluxPressureCmesh,gbcright.CreatedElement(),index2,celstack[1],celside);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1308,7 +1308,7 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         TPZCompMeshTools::GroupElements(subcmesh);
         subcmesh->ComputeNodElCon();
         
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1322,7 +1322,7 @@ void TPZMHMixedMeshControl::GroupandCondenseElements()
         subcmesh->CleanUpUnconnectedNodes();
         int numthreads = 0;
         int preconditioned = 0;
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1418,7 +1418,7 @@ void TPZMHMixedMeshControl::BuildMultiPhysicsMesh()
             gelindexes.Push(el);
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;

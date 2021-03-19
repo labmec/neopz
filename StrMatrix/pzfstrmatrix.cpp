@@ -10,7 +10,7 @@
 #include <sstream>
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.strmatrix.tpzfstructmatrix");
 static PZLogger loggerel("pz.strmatrix.element");
 #endif

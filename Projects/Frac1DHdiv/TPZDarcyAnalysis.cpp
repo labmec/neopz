@@ -31,7 +31,7 @@
 
 #include "TPZFracAnalysis.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.frac");
 #endif
 
@@ -650,7 +650,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
   bool notconverged = true;
   while(notconverged && iter < numiter) {
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;
@@ -669,7 +669,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     //Computing ||DeltaU||
     REAL NormOfDeltaU = Norm(DeltaU);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;
@@ -694,7 +694,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     an->Rhs() += fLastStepRhs;
     an->Rhs() *= -1.0; //- [R(U0)];
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;

@@ -31,7 +31,7 @@
 
 int gDebug;
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.multipleload.main");
 #endif
 
@@ -55,7 +55,7 @@ int main()
     step.SetDirect(ECholesky);
     an.SetSolver(step);
     an.Run();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         cmesh->Solution().Print("Solution",sout);
@@ -108,7 +108,7 @@ TPZAutoPointer<TPZCompMesh> GenerateCMesh(TPZAutoPointer<TPZGeoMesh> gmesh)
     
     cmesh->AutoBuild();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         cmesh->Print(sout);
@@ -153,7 +153,7 @@ TPZAutoPointer<TPZGeoMesh> GenerateGMesh()
     x1[1] = 0.;
     gengrid.SetBC(gmesh, x0, x1, -5);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         gmesh->Print(sout);

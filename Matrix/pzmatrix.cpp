@@ -23,7 +23,7 @@
 #include "pzlog.h"
 #include <complex>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzmatrix");
 static PZLogger loggerCheck("pz.checkconsistency");
 #endif
@@ -1688,7 +1688,7 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int64_t &numiterations, REAL & tol,
         if(count > NumIt-1)// O metodo nao convergiu !!!
         {
             PZError << __PRETTY_FUNCTION__ << endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 Print("Matrix for SolveEigensystemJacobi did not converge",sout);
@@ -1998,7 +1998,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
     if (result == 0) {
         return result;
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2007,7 +2007,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
     }
 #endif
     Subst_LForward( B );
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2016,7 +2016,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
     }
 #endif
     Subst_Diag( B );
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2025,7 +2025,7 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
     }
 #endif
     result = Subst_LBackward( B );
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;

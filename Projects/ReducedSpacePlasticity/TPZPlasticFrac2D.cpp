@@ -18,7 +18,7 @@
 #include "pzintel.h"
 #include "TPZElasticResponse.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
 static PZLogger logger("pz.reducedspace.data");
 #endif
@@ -253,7 +253,7 @@ void TPZPlasticFrac2D<T,TMEM>::Contribute(TPZVec<TPZMaterialData> &datavec, REAL
    */
   
   
-#ifdef LOG4CXX
+#ifdef PZ_LOG
   if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -337,7 +337,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
 	
 
   
-#ifdef LOG4CXX
+#ifdef PZ_LOG
   if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -434,7 +434,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL wei
 	}
   
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
   if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -533,7 +533,7 @@ void TPZPlasticFrac2D<T,TMEM>::ContributePressure(TPZVec<TPZMaterialData> &datav
 		}
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if (logger.isDebugEnabled()) {
 		std::stringstream str;
 		str << "\n------- Contribute da Pressure -------" << std::endl;

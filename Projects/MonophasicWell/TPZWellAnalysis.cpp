@@ -30,7 +30,7 @@
 //#include "math.h"
 //
 //#ifdef PZDEBUG
-//    #ifdef LOG4CXX
+//    #ifdef PZ_LOG
 //    static PZLogger logger("pz.DarcyFlow");
 //    #endif
 //#endif
@@ -87,7 +87,7 @@
 //    fResidualAtn = an->Rhs();
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
+//    //     #ifdef PZ_LOG
 //    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
@@ -108,7 +108,7 @@
 //    fResidualAtnplusOne = an->Rhs();
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
+//    //     #ifdef PZ_LOG
 //    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
@@ -126,7 +126,7 @@
 //    falphaAtnplusOne = alpha;
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
+//    //     #ifdef PZ_LOG
 //    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
@@ -161,7 +161,7 @@
 //    falphaAtnplusOne = fcmeshdarcy->Solution();
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
+//    //     #ifdef PZ_LOG
 //    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
@@ -346,7 +346,7 @@
 //    FGlobal =   an->Rhs();
 //    
 //#ifdef PZDEBUG
-//    #ifdef LOG4CXX
+//    #ifdef PZ_LOG
 //        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
@@ -472,7 +472,7 @@
 //        iterations++;
 //        
 ////#ifdef PZDEBUG
-////    #ifdef LOG4CXX
+////    #ifdef PZ_LOG
 ////            if(logger.isDebugEnabled())
 ////            {
 ////                std::stringstream sout;
@@ -552,7 +552,7 @@
 //        D.operator->()->Multiply(*DInverse, Identity);
 //        
 //#ifdef PZDEBUG
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
@@ -601,7 +601,7 @@
 //            break;
 //        }
 //#ifdef PZDEBUG
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
@@ -642,7 +642,7 @@
 //        
 //        
 //        
-//        //#ifdef LOG4CXX
+//        //#ifdef PZ_LOG
 //        //        if(logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
@@ -668,7 +668,7 @@
 //        X += DeltaX;                // Xk+1
 //        
 //        
-//        //#ifdef LOG4CXX
+//        //#ifdef PZ_LOG
 //        //        if(logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
@@ -698,7 +698,7 @@
 //    TPZFMatrix<STATE> RankOne;
 //    g.Multiply(dT, RankOne);
 //    
-//    //#ifdef LOG4CXX
+//    //#ifdef PZ_LOG
 //    //    if(logger.isDebugEnabled())
 //    //    {
 //    //        std::stringstream sout;
@@ -1440,7 +1440,7 @@
 ////
 ////    gmesh->BuildConnectivity();
 ////
-////#ifdef LOG4CXX
+////#ifdef PZ_LOG
 ////    if (logger.isDebugEnabled())
 ////    {
 ////        std::stringstream sout;
@@ -1507,7 +1507,7 @@
 //    oldmat.Multiply(*PreInverse, Identity);
 //    
 //#ifdef PZDEBUG
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    if(logger.isDebugEnabled())
 //    {
 //        std::stringstream sout;

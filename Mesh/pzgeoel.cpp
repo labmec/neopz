@@ -35,7 +35,7 @@
 using namespace std;
 using namespace pzgeom;
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzgeoel");
 static PZLogger loggerorient("pz.mesh.tpzgeoel.orient");
 #endif
@@ -456,7 +456,7 @@ int TPZGeoEl::WhichSubel() const{
 	for(son=0;son<nsub;son++) if(father->SubElement(son) == this) break;
 	if(son > (nsub-1)){
 		PZError << "TPZGeoEl::WhichSubel son does not exist\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Father element\n";
@@ -802,7 +802,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol) {
             NodePtr(i)->Print();
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
 	}
@@ -1144,7 +1144,7 @@ void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int64_t> &indices) const {
 void TPZGeoEl::Jacobian(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const{
     TPZFNMatrix<9,REAL> gradx;
     GradX(qsi, gradx);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1739,7 +1739,7 @@ bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 			mess << "FATAL ERROR AT " << __PRETTY_FUNCTION__ << " - Node coordinate differs from mapped node.\n";
 			this->Print(mess);
 			PZError << mess.str() << "\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			LOGPZ_ERROR(logger,mess.str().c_str());
 #endif
 			DebugStop();
@@ -1791,7 +1791,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //void TPZGeoEl::ComputeNormals(TPZMatrix<REAL> &normals)
 //{
 //    
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    {
 //		std::stringstream sout;
 //		sout<< "Metodo Compute normal \n";
@@ -1824,7 +1824,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //            
 //		{
 //            
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //            {
 //                std::stringstream sout;
 //                sout<< "Side "<<is<<std::endl;
@@ -1837,7 +1837,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //			TPZStack<int> lowdim;
 //			LowerDimensionSides(is,lowdim);
 //            lowdim.Push(is);
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //            {
 //                std::stringstream sout;
 //                sout<< "LowerDimensionSides "<<lowdim<<std::endl;
@@ -1853,7 +1853,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
 //				TPZGeoElSide LC(this,conj_side);
 //				TPZGeoElSide LS(this,lowdim[lowis]);
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //                {
 //                    std::stringstream sout;
 //                    sout<< "Side "<<is << " Conjugate Side "<< conj_side<< " Ls side "<< lowdim[lowis]<<std::endl;
@@ -1864,7 +1864,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //				TPZManVector<REAL> normal(3,0.);
 //				NormalVector(LC,LS,normal);
 //                
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //                {
 //                    std::stringstream sout;
 //                    sout<< "Vetores do NormalVector "<<normal<<std::endl;
@@ -1878,7 +1878,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //				counter++;
 //			}
 //            
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //            {
 //                std::stringstream sout;
 //                sout<< "A partir daqui sera um processo de normalizacao dos vetores normals"<<std::endl;
@@ -1900,7 +1900,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 //		}
 //	}
 //    
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    {
 //        std::stringstream sout;
 //        sout<< "Vetores Normais normalizados "<<normals<<std::endl;
@@ -2009,7 +2009,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	LS.X(LSCenter,XLS);
 	TPZManVector<REAL,3> dir(3,0.);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2030,7 +2030,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	REAL detjac;
 	LS.Jacobian(LSCenter,jacobian,axes,detjac,jacinv);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2053,7 +2053,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	}
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
         std::stringstream sout;
@@ -2069,7 +2069,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	axtrans.GramSchmidt(ortho,transf);
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
         std::stringstream sout;
@@ -2092,7 +2092,7 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2258,7 +2258,7 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 //        
 //        TPZManVector<int,9> sidepermutationgather(nlowdim);
 //        HDivPermutation(side,sidepermutationgather);
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //        if(logger.isDebugEnabled()){
 //            std::stringstream sout;
 //            sout << "Permutation for side " << side << " is " << sidepermutationgather;
@@ -2376,7 +2376,7 @@ int TPZGeoEl::NormalOrientation(int side)
 		LOGPZ_ERROR(logger,"NormalOrientation called with wrong side")
 		return 0;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerorient.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2397,7 +2397,7 @@ int TPZGeoEl::NormalOrientation(int side)
 		fatherside = fatherside.Father2();
 	}
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerorient.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2427,14 +2427,14 @@ int TPZGeoEl::NormalOrientation(int side)
 	if(!thisside.NeighbourExists(neighbour))//inclui agora esta verificacao
 	{
 		std::stringstream sout;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
 		DebugStop();
 		
 	}
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerorient.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2515,7 +2515,7 @@ void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
 	{
 		std::stringstream sout;
 		sout << "HDivPermutation called with wrong side parameter " << side;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str())
 #endif
 		cout << sout.str() << std::endl;

@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.material.TPZMatLaplacian");
 #endif
 

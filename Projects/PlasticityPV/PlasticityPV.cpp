@@ -32,7 +32,7 @@
 #include "TPZPlasticStepPV.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerconverge("pz.converge");
 static PZLogger logger("main");
 #endif
@@ -165,7 +165,7 @@ void DepPlasticPVMC()
 	//eps.XY() = 0.01;
 	//eps.XZ() = -24. * 0.001;
 	//eps.YZ() = -65. * 0.001;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream str;
 		str << "\n-------------------------- BEGINING OF TAYLORCHECK TEST USING PRINCIPAL VALUES --------------------------" << endl;

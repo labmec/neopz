@@ -12,13 +12,13 @@
 #include "TPZSavable.h"
 #include "TPZPlasticCriterion.h"
 
-#ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.
+#ifdef PZ_LOG // PZ_LOG may be defined alone or with PZ_LOG_PLASTICITY. The latter shall not be used alone.
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/propertyconfigurator.h>
 #endif
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 static PZLogger loggerDP("plasticity.DruckerPrager");
 #endif
 
@@ -249,7 +249,7 @@ void TPZYCDruckerPrager::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<
 		
     res[0] =  sqrt( J2 ) + p * T(fEta) - A * T(fKsi);
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << "\nJ2 = " << J2;

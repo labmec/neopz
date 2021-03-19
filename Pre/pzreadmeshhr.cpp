@@ -18,7 +18,7 @@
 #include <iostream>
 #include <sstream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.pre.tpzmeshreaderhr");
 #endif
 
@@ -121,7 +121,7 @@ void TPZReadMeshHR::ReadElements (int64_t NElem, TPZGeoMesh & GMesh)
 				sout << __PRETTY_FUNCTION__;
 #endif
 				sout << "Nao sei que elemento " << type << " eh esse indicado para o elemento " << id;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 				LOGPZ_WARN (logger,sout.str().c_str());
 #else
 				std::cout << sout.str().c_str() << std::endl;
@@ -197,7 +197,7 @@ void TPZReadMeshHR::ReadMaterials(int NMat, TPZCompMesh & CMesh) {
             std::stringstream sout;
             sout << "Could not identify material of type: " << classId
                     << " check material identifier for material " << i;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             LOGPZ_FATAL(logger, sout.str().c_str());
 #endif
             std::cout << sout.str().c_str() << std::endl;
@@ -218,7 +218,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 		sout << __PRETTY_FUNCTION__ << " no materials " << std::endl;
 #endif
 		sout << "\tN� encontrei material na malha!";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR (logger, sout.str().c_str());
 #else
 		std::cout << sout.str().c_str() << std::endl;
@@ -268,7 +268,7 @@ int64_t TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int64_t Id)
 	sout << __PRETTY_FUNCTION__;
 #endif
 	sout << " N�" << Id << " n� encontrado!";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	LOGPZ_WARN (logger, sout.str().c_str());
 #else
 	std::cout << sout.str().c_str() << std::endl;

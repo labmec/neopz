@@ -14,7 +14,7 @@
 #include <math.h>
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material.elasticity.data");
 #endif
 
@@ -232,7 +232,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		}
 	}
 	
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //	if(logdata.isDebugEnabled())
 //	{
 //		std::stringstream sout;
@@ -400,7 +400,7 @@ void TPZElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &data,REAL weight
     }
 
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //		std::stringstream sout;

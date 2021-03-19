@@ -17,7 +17,7 @@
 #include "TPZElasticResponse.h"
 #include "TPZPlasticCriterion.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerMohrCoulombPV("pz.plasticity.mohrcoulombpv");
 #endif
 

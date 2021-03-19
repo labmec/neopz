@@ -203,7 +203,7 @@ protected:
 			
 			Dep.ZAXPY(0.01, D);
 			
-			#ifdef LOG4CXX_PLASTICITY
+			#ifdef PZ_LOG_PLASTICITY
 				{
 				  LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
 				  std::stringstream sout;
@@ -227,7 +227,7 @@ public:
 
 static void McCormicRanchSand(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;
@@ -252,7 +252,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 
     static void McCormicRanchSandMod(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;
@@ -274,7 +274,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 
     static void McCormicRanchSandMod2(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;
@@ -304,7 +304,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 	
    static void UncDeepSandRes(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;
@@ -330,7 +330,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 	
     static void UncDeepSandTest(TPZSandlerDimaggio & material)
     {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
         LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
         {
             std::stringstream sout;
@@ -357,7 +357,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 	
 	static void UncDeepSandResPSI(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;
@@ -383,7 +383,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 
 	static void UncDeepSandResMPa(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;
@@ -409,7 +409,7 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
 	
 	static void PRSMatMPa(TPZSandlerDimaggio & material)
     {
-       #ifdef LOG4CXX_PLASTICITY
+       #ifdef PZ_LOG_PLASTICITY
        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
        {
           std::stringstream sout;

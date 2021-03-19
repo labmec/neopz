@@ -24,7 +24,7 @@ using namespace std;
 
 #include <sstream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzgeoelside");
 #endif
 
@@ -606,7 +606,7 @@ int TPZGeoElSide::Dimension() const {
 
 void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 	//t : atual -> neighbour
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << __FUNCTION__ << " this = \n";
@@ -652,7 +652,7 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 			secondcase++;
 			t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
 		}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "neighbourwithfather\n";
@@ -1185,7 +1185,7 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 			if(normalize == 0.0)
 			{
 				PZError << __PRETTY_FUNCTION__ << " null normal vetor\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 				{
 					std::stringstream sout;
 					Print(sout);

@@ -30,7 +30,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.testmesh");
 #endif
 
@@ -114,7 +114,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     cmesh->SetDefaultOrder(2);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         cmesh->Print(sout);

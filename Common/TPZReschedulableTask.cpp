@@ -5,7 +5,7 @@
 #include "pzlog.h"
 #include <mutex>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("TPZThreadPool");
 #endif
 

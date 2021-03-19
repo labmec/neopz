@@ -43,7 +43,7 @@ using namespace std;
 #include <algorithm>
 #include <iterator>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzcompel");
 static PZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
@@ -653,7 +653,7 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
         LOGPZ_ERROR(logger, "reached a null reference");
         return (0);
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     std::stringstream sout;
     if (logger.isDebugEnabled())
     {
@@ -673,7 +673,7 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
     while(ref->Father()){
         ancestors.Push(ref->Father());
         ref = ref->Father();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         ref->Print(sout);
 #endif
     }

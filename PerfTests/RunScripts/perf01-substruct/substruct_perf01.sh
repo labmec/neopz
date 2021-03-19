@@ -24,7 +24,7 @@ elif /usr/bin/time --verbose ls &> /dev/null; then
 fi
 echo "TIMEARGS = $TIMEARGS"
 
-APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
+APP="/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "perf01 - substruct performance test: cubo1 p1 1st step."
@@ -39,14 +39,14 @@ OKS=0
 echo "Start at checkpoint 1 and dump checkpoint 2"
 for ns in 1 2 4 16 32 64; do
 
-  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
-  OF1="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt2"
-  OF2="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
-  CMD="$APP -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc2 $OF1 -dc3 $OF2 " 
+  IF="cubo1.p1.nsub$ns.t.double.txt.ckpt1"
+  OF1="cubo1.p1.nsub$ns.t.double.txt.ckpt2"
+  OF2="cubo1.p1.nsub$ns.t.double.txt.ckpt3"
+  CMD="$APP -cf1 PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/inputs/$IF -dc2 $OF1 -dc3 $OF2 " 
   verbose 1 "cmd: $CMD"
-  /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.txt.ckpt1.p1.nsub$ns.output.txt"
-  GOLDEN1="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF1"
-  GOLDEN2="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF2"
+  /usr/bin/time $TIMEARGS $CMD &> "cubo1.double.txt.ckpt1.p1.nsub$ns.output.txt"
+  GOLDEN1="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF1"
+  GOLDEN2="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF2"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"
@@ -75,12 +75,12 @@ done
 echo "Start at checkpoint 2 and dump checkpoint 3"
 for ns in 1 2 4 16 32 64; do
 
-  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt2"
-  OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
-  CMD="$APP -cf2 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF " 
+  IF="cubo1.p1.nsub$ns.t.double.txt.ckpt2"
+  OF="cubo1.p1.nsub$ns.t.double.txt.ckpt3"
+  CMD="$APP -cf2 PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/inputs/$IF -dc3 $OF " 
   verbose 1 "cmd: $CMD"
-  /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.txt.ckpt2.p1.nsub$ns.output.txt"
-  GOLDEN="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF"
+  /usr/bin/time $TIMEARGS $CMD &> "cubo1.double.txt.ckpt2.p1.nsub$ns.output.txt"
+  GOLDEN="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"

@@ -16,7 +16,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.topology.pztetrahedron");
 #endif
 
@@ -276,7 +276,7 @@ namespace pztopology {
 
         if(!sout.str().empty()){
             PZError<<std::endl<<sout.str()<<std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             LOGPZ_FATAL(logger,sout.str().c_str());
 #endif
             DebugStop();

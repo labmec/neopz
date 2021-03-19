@@ -32,7 +32,7 @@ using namespace std;
 #include "run_stats_table.h"
 #include <thread>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.strmatrix.TPZStructMatrixOT");
 static PZLogger loggerel("pz.strmatrix.element");
 static PZLogger loggerel2("pz.strmatrix.elementinterface");
@@ -187,7 +187,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         LOGPZ_ERROR(logger,"Serial_Assemble called without mesh")
         DebugStop();
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(dynamic_cast<TPZSubCompMesh * >(fMesh))
     {
         std::stringstream sout;
@@ -205,7 +205,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     int64_t iel;
     int64_t nelem = fMesh->NElements();
     TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     bool globalresult = true;
     bool writereadresult = true;
 #endif
@@ -253,7 +253,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             return;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(dynamic_cast<TPZSubCompMesh * >(fMesh))
         {
             std::stringstream objname;
@@ -310,7 +310,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             //			test.Print("matriz de rigidez diference",std::cout);
             //			test2.Print("matriz de rigidez interface",std::cout);
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(loggerel.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -339,7 +339,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(loggerel.isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
             {
                 std::stringstream sout;
@@ -359,7 +359,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     }//fim for iel
     if(count > 20) std::cout << std::endl;
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(loggerCheck.isDebugEnabled())
     {
         std::stringstream sout;
@@ -427,7 +427,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
         assemble.stop();
         
     }//fim for iel
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         if(logger.isDebugEnabled())
         {
@@ -450,7 +450,7 @@ TPZMatrix<STATE> * TPZStructMatrixOT::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZ
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
     Assemble(*stiff,rhs,guiInterface);
     
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if(loggerel.isDebugEnabled())
     {
         std::stringstream sout;
@@ -519,7 +519,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         delete allthreaddata[itr];
     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(loggerCheck.isDebugEnabled())
     {
         std::stringstream sout;
@@ -577,7 +577,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
     }
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(loggerCheck.isDebugEnabled())
     {
         std::stringstream sout;
@@ -681,7 +681,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 #else
     int64_t index = data->fThreadSeqNum;
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
@@ -707,14 +707,14 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
     {
         
         int64_t iel = data->fElSequenceColor->operator[](index);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Computing element " << index;
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         std::stringstream sout;
         sout << "Element " << index << " elapsed time ";
         TPZTimer timeforel(sout.str());
@@ -740,7 +740,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 ek.ComputeDestinationIndices();
                 data->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
                 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if(loggerel.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -758,7 +758,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
             }
 #endif
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             timeforel.stop();
             if (logger.isDebugEnabled())
             {
@@ -775,7 +775,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 localupdated = true;
             }
             int64_t needscomputed = ElBlocked[index];
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -804,7 +804,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
                 std::cout.flush();
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -820,7 +820,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                     localcompleted++;
                     localupdated = true;
                 }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -877,7 +877,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 *data->fElementCompleted = localcompleted;
                 elementcompletedupdate = true;
             }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -900,7 +900,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
                 std::cout.flush();
 #endif
                 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     LOGPZ_DEBUG(logger, "condition broadcast")
@@ -939,7 +939,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
         elementcompletedupdate = true;
     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger, "Finishing up")
@@ -980,7 +980,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 #else
     int64_t index = data->fThreadSeqNum;
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
@@ -1005,14 +1005,14 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
         {
             
             int64_t iel = data->fElSequenceColor->operator[](index);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Computing element " << index;
                 LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             std::stringstream sout;
             sout << "Element " << index << " elapsed time ";
             TPZTimer timeforel(sout.str());
@@ -1037,7 +1037,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                     ef.ComputeDestinationIndices();
                     data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
                     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if(loggerel.isDebugEnabled())
                     {
                         std::stringstream sout;
@@ -1053,7 +1053,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                 }
 #endif
                 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 timeforel.stop();
                 if (logger.isDebugEnabled())
                 {
@@ -1070,7 +1070,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                     localupdated = true;
                 }
                 int64_t needscomputed = ElBlocked[index];
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -1090,7 +1090,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 #endif
                 
                 bool hadtowait = false;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isInfoEnabled() && needscomputed > localcompleted)
                 {
                     std::stringstream sout;
@@ -1107,7 +1107,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                     std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
                     std::cout.flush();
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
@@ -1123,7 +1123,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                         localcompleted++;
                         localupdated = true;
                     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
@@ -1139,7 +1139,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                 }
                 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isInfoEnabled() && hadtowait)
                 {
                     std::stringstream sout;
@@ -1189,7 +1189,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                     *data->fElementCompleted = localcompleted;
                     elementcompletedupdate = true;
                 }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -1212,7 +1212,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                     std::cout.flush();
 #endif
                     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled())
                     {
                         LOGPZ_DEBUG(logger, "condition broadcast")
@@ -1251,7 +1251,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
         elementcompletedupdate = true;
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger, "Finishing up")

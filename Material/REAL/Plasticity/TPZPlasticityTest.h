@@ -6,7 +6,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.
+#ifdef PZ_LOG // PZ_LOG may be defined alone or with PZ_LOG_PLASTICITY. The latter shall not be used alone.
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/propertyconfigurator.h>
@@ -15,13 +15,13 @@ static PZLogger plasticIntegrLogger("plasticity.plasticIntegr");
 #endif
 
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 static PZLogger testLogger("plasticity.test");
 #endif
 
 
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 static PZLogger MaterialPoint("MaterialPointTest");
 #endif
 
@@ -1269,7 +1269,7 @@ inline void LKBiaxialTest()
 
 inline void TPZPlasticTest::InitializeLOG()
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	
 	std::string path;
 	std::string configfile;
@@ -1287,12 +1287,12 @@ inline void TPZPlasticTest::InitializeLOG()
 	log4cxx::PropertyConfigurator::configure(configfile.c_str());
 	
 	std::stringstream sout;
-	sout << __PRETTY_FUNCTION__ << "\nLOG4CXX configured.\n"
-	<< "LOG4CXX config file:" << configfile;
+	sout << __PRETTY_FUNCTION__ << "\nPZ_LOG configured.\n"
+	<< "PZ_LOG config file:" << configfile;
 	
 	LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	LOGPZ_INFO(testLogger,sout.str().c_str());
 #endif
 	
@@ -1315,7 +1315,7 @@ inline void TPZPlasticTest::ReciprocityTest(T & plasticModel, TPZTensor<REAL> st
 	
 	plasticModel.Phi(strain1,phi);
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ 
@@ -1332,7 +1332,7 @@ inline void TPZPlasticTest::ReciprocityTest(T & plasticModel, TPZTensor<REAL> st
 	
 	plasticModel.Phi(strain1,phi);
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1350,7 +1350,7 @@ inline void TPZPlasticTest::ReciprocityTest(T & plasticModel, TPZTensor<REAL> st
 	
 	plasticModelCopy.Phi(strain2,phi2);
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1373,7 +1373,7 @@ inline void TPZPlasticTest::StressTest(T & plasticModel, const char * filename, 
 	
 	TPZPlasticTest::InitializeLOG();
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1401,7 +1401,7 @@ inline void TPZPlasticTest::StressTest(T & plasticModel, const char * filename, 
 	strncpy(outfilename, filename, 120);
 	strcpy(outfilename+strlen(outfilename), ".out");
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1446,7 +1446,7 @@ inline void TPZPlasticTest::StressTest(T & plasticModel, const char * filename, 
 		outputLine << "\nfN:/n" << plasticModel.GetState() << endl; 
 		
 		outFile << outputLine.str();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		outFile.flush();
@@ -1467,7 +1467,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 	
 	TPZPlasticTest::InitializeLOG();
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1495,7 +1495,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 	strncpy(outfilename, filename, 120);
 	strcpy(outfilename+strlen(outfilename), ".out");
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1560,7 +1560,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 		<< ", alpha= " << alpha << endl; 
 		
 		outFile << outputLine.str();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		outFile.flush();
@@ -1582,7 +1582,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 	
 	TPZPlasticTest::InitializeLOG();
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1612,7 +1612,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 	////strcpy(outfilename+strlen(outfilename), ".out");
     strcpy(outfilename+strlen(outfilename), ".txt");
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1638,7 +1638,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 	{
 		std::stringstream sout;
 		sout << "Could not create plastic model named " << line;
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		{
 			LOGPZ_INFO(testLogger,sout.str().c_str());
 		}
@@ -1697,7 +1697,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
             
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 			j++;
@@ -1751,7 +1751,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 			j++;
@@ -1766,7 +1766,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1780,7 +1780,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1795,7 +1795,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1810,7 +1810,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1920,7 +1920,7 @@ inline void TPZPlasticTest::GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & 
 	
 	//TPZPlasticTest::InitializeLOG();
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1967,7 +1967,7 @@ inline void TPZPlasticTest::GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & 
 			 }
 			 */
 			
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			{
 				std::stringstream sout;
 				sout << "\nCase " << k
@@ -2028,7 +2028,7 @@ inline void TPZPlasticTest::GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & 
 		output << "\n" ;
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
         //		LOGPZ_INFO(testLogger,output.str().c_str());
         LOGPZ_INFO(plasticIntegrLogger,output.str().c_str());
@@ -2239,7 +2239,7 @@ inline void TPZPlasticTest::ModifiedMohrCoulombTest()
 			Pstep.ApplyLoad(stress, strain);
 		}
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "\nMOHRCOULOMB\n";
@@ -2317,7 +2317,7 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 		stress += deltastress;
         //		strain+=deltastrain;
 		WW.ApplyLoad(stress,strain);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "\n *********************************** STEP LOAD IN WILLANWERNAKE  = "<< step << "*********************************** \n";
@@ -2438,7 +2438,7 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel, REAL dirMult)
         
         bool Plastifica = false;
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             
             std::stringstream sout;
@@ -2463,7 +2463,7 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel, REAL dirMult)
             plasticModel.ApplyLoad(DiagonalStress,epst);
             
             //   Dep.VerifySymmetry();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			{
 				
 				std::stringstream sout;
@@ -2497,7 +2497,7 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel, REAL dirMult)
             
         }while(Plastifica==false);
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             
             std::stringstream sout;
@@ -2579,7 +2579,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(T mat)
             
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             
             std::stringstream sout;

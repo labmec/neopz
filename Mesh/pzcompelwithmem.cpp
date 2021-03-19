@@ -29,7 +29,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     
     if(fIntPtIndices.NElements())
     {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
@@ -91,7 +91,7 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     
     if(fIntPtIndices.NElements())
     {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";

@@ -46,7 +46,7 @@
 #include "TPZfTime.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerconverge("pz.converge");
 static PZLogger logger("main");
 #endif
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     dohrstruct->IdentifyExternalConnectIndexes();
     dohrstruct->SubStructure(nSubMeshes);
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
       std::stringstream str;
       cmeshauto->Print(str);
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
       it++;
     }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
       std::stringstream sout;
       diag.Print("Resultado do processo iterativo",sout);

@@ -14,7 +14,7 @@
 #include "TPZGeoCube.h"
 #include "pzgeopyramid.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.testshape");
 #endif
 

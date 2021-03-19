@@ -9,7 +9,7 @@
 #include "pzcmesh.h"
 #include <algorithm>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzelementgroup");
 #endif
 
@@ -70,7 +70,7 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
         int64_t cindex = it->fFaces[0].first;
         fRestraints[cindex] = *it;
     }
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -214,7 +214,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -228,7 +228,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -243,7 +243,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
         
         cel->CalcStiff(ekloc, efloc);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled() ) {
             TPZGeoEl *gel = cel->Reference();
             
@@ -295,7 +295,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;

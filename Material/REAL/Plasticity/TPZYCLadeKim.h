@@ -16,7 +16,7 @@
 #include "TPZPlasticCriterion.h"
 #endif
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 static PZLogger loggerYCLadeKim("plasticity.LadeKim");
 #endif
 
@@ -349,7 +349,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 	
 	if(checkForcedYield && fForceYield)
 	{
-		#ifdef LOG4CXX_PLASTICITY
+		#ifdef PZ_LOG_PLASTICITY
     	{
 			std::stringstream sout;
 			sout << "*** Compute *** Imposing S = 1.0 (when it's " << S_real 
@@ -394,7 +394,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 	
 		if(output)
 		{
-			#ifdef LOG4CXX_PLASTICITY
+			#ifdef PZ_LOG_PLASTICITY
    		 	{
 				std::stringstream sout;
 				sout << "** Compute *** Forcing S = " << TPZExtractVal::val(S) << " when S = " << S_real
@@ -424,7 +424,7 @@ inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec
 		
     if( output )
 	{
-		#ifdef LOG4CXX_PLASTICITY
+		#ifdef PZ_LOG_PLASTICITY
     	{
 			std::stringstream sout;
 			sout << "** Compute *** Forcing q = " << q << " when q = " << q_real
@@ -531,7 +531,7 @@ inline void TPZYCLadeKim::SetYieldStatusMode(const TPZTensor<REAL> & sigma, cons
 	if( I1 < 0.)
 	{
 		fForceYield = 1;
-		#ifdef LOG4CXX_PLASTICITY
+		#ifdef PZ_LOG_PLASTICITY
     	{
 			std::stringstream sout;
 			sout << "<<< SetYieldStatusMode *** Imposing fForceYield = TRUE because proposed S = " << S;
@@ -550,7 +550,7 @@ inline void TPZYCLadeKim::SetYieldStatusMode(const TPZTensor<REAL> & sigma, cons
 	if(S < -1.e-10 || S > 1.)
 	{
 		fForceYield = 1;
-		#ifdef LOG4CXX_PLASTICITY
+		#ifdef PZ_LOG_PLASTICITY
     	{
 			std::stringstream sout;
 			sout << "<<< SetYieldStatusMode *** Imposing fForceYield = TRUE because proposed S = " << S;
@@ -560,7 +560,7 @@ inline void TPZYCLadeKim::SetYieldStatusMode(const TPZTensor<REAL> & sigma, cons
 		return;
 	}
 	
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
     {
 		std::stringstream sout;
 		sout << "<<< SetYieldStatusMode *** Leaving fForceYield = FALSE because proposed S = " << S;
@@ -579,12 +579,12 @@ inline int TPZYCLadeKim::NumCases()
 
 inline void TPZYCLadeKim::LoadState(TPZFMatrix<REAL> &state)
 {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));
 #endif
   int i;
   for(i=0; i<6; i++) gRefTension[i] = state(i,0);
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
   std::stringstream sout;
   sout << "Tension " << state;
   LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -593,7 +593,7 @@ inline void TPZYCLadeKim::LoadState(TPZFMatrix<REAL> &state)
 
 inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
 {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));
 #endif
 
@@ -629,7 +629,7 @@ inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL>
     break;
 
   }
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
   std::stringstream sout;
   sout << "Matriz tangent " << tangent;
   LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -638,7 +638,7 @@ inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL>
 
 inline void TPZYCLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
 {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));
 #endif
   int i;
@@ -664,7 +664,7 @@ inline void TPZYCLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
          res(i,0) = N_Dir[0][i];
     break;
   }
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
   std::stringstream sout;
   sout << "Residual vector " << res;
   LOGPZ_DEBUG(logger,sout.str().c_str());

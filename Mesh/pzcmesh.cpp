@@ -16,7 +16,7 @@
 #include <utility>                         // for pair
 #include "TPZCompElDisc.h"                 // for TPZCompElDisc
 #include "TPZInterfaceEl.h"                // for TPZInterfaceElement
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "log4cxx/helpers/objectptr.h"     // for ObjectPtrT
 #include "log4cxx/logger.h"                // for Logger
 #include "log4cxx/propertyconfigurator.h"  // for LoggerPtr
@@ -52,7 +52,7 @@
 	#include "TPZAgglomerateEl.h" // for TPZAgglomerateElement
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzcompmesh");
 static PZLogger aloclogger("pz.allocate");
 #endif
@@ -64,7 +64,7 @@ fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1) {
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Allocate TPZCompMesh this = " << (void *)this;
@@ -100,7 +100,7 @@ fGMesh(gmesh),fElementVec(0),
 fConnectVec(0),fMaterialVec(),
 fSolution(0,1)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Allocate TPZCompMesh this = " << (void *)this;
@@ -132,7 +132,7 @@ fSolution(0,1)
 
 TPZCompMesh::~TPZCompMesh() {
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Delete TPZCompMesh this = " << (void *)this;
@@ -140,7 +140,7 @@ TPZCompMesh::~TPZCompMesh() {
     }
 #endif
 
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         Print(sout);
@@ -636,7 +636,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			}
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(need)
         if (logger.isDebugEnabled())
     {
@@ -675,7 +675,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 #endif
 		Permute(permute);
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled() && nblocks < 50)
         {
             if(nblocks < 50)
@@ -1369,7 +1369,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 	
 }//method
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzsubcmesh.h"
 #endif
 
@@ -1381,7 +1381,7 @@ void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
 	//   if (permute.NElements() != fBlock.NBlocks()) {
 	//     PZError << "TPZCompMesh::Permute : permute vector size not equal to fBlock size\n";
 	//   }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1546,7 +1546,7 @@ void TPZCompMesh::AdjustBoundaryElements() {
 					// fatherside is a neighbour of the current element
 					// I wouldnt know when this test could fail
 					if(fatherside.Exists()) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                         if(logger.isDebugEnabled())
 						{
 							std::stringstream sout;
@@ -1576,7 +1576,7 @@ void TPZCompMesh::AdjustBoundaryElements() {
 					}
 					// set the order to the largest order of all connecting elements
 					if(porder < maxorder) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                         if(logger.isDebugEnabled())
 						{
 							std::stringstream sout;
@@ -1620,7 +1620,7 @@ void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol) {
 		cout << "TPZCompMesh::SetElementSolution size of the vector doesn't match\n";
 	}
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1712,7 +1712,7 @@ fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fSolution(copy.fSolution), fBlock(copy.fBlock),
 fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Allocate TPZCompMesh this = " << (void *)this;
@@ -1734,7 +1734,7 @@ fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 		if(cel && !dynamic_cast<TPZInterfaceElement* >(cel) )
 		{
 			/*TPZCompEl *clone  = */ cel->Clone(*this);
-			/*#ifdef LOG4CXX
+			/*#ifdef PZ_LOG
 			 {
 			 std::stringstream sout;
 			 sout << "original\n";
@@ -1750,7 +1750,7 @@ fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 	ComputeNodElCon();
 //	int nconn = fConnectVec.NElements();
 //	for(iel=0;
-	/*#ifdef LOG4CXX
+	/*#ifdef PZ_LOG
 	 {
 	 std::stringstream sout;
 	 Print(sout);
@@ -2278,7 +2278,7 @@ TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<
 void TPZCompMesh::SaddlePermute()
 {
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout<< "Implementando permutacao para problemas de ponto de sela"<< std::endl;
@@ -2341,7 +2341,7 @@ void TPZCompMesh::SaddlePermute()
             
         }
         
-//         #ifdef LOG4CXX
+//         #ifdef PZ_LOG
 //         {
 //         std::stringstream sout;
 //         sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;
@@ -2416,7 +2416,7 @@ void TPZCompMesh::SaddlePermute()
                 continue;
             }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -2463,7 +2463,7 @@ void TPZCompMesh::SaddlePermute()
             int64_t count = 0;
             for (it = seteq.rbegin(); it != seteq.rend(); it++) {
                 int64_t eq = *it;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled()) {
                     std::stringstream sout;
                     sout << "Switch ceq = " << eq << " with maxeq = " << maxseq-count;
@@ -2508,7 +2508,7 @@ void TPZCompMesh::SaddlePermute()
                 }
             }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -2526,7 +2526,7 @@ void TPZCompMesh::SaddlePermute()
         }
         
     }
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -2549,7 +2549,7 @@ void TPZCompMesh::SaddlePermute()
     Permute(permutescatter);
 #ifdef PZDEBUG
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         LOGPZ_DEBUG(logger, "******************* AFTER PERMUTATION **************************")
     }
@@ -2568,7 +2568,7 @@ void TPZCompMesh::SaddlePermute()
         if (nc == 0) {
             continue;
         }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -2695,7 +2695,7 @@ void TPZCompMesh::SaddlePermute2()
             for (it = lagrangeseqnum.rbegin(); it != lagrangeseqnum.rend(); it++) {
                 int64_t ceq = permute[*it];
                 ModifyPermute(permute, ceq, maxeq-count);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if(logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -2706,7 +2706,7 @@ void TPZCompMesh::SaddlePermute2()
 #endif
                 count++;
             }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -2727,7 +2727,7 @@ void TPZCompMesh::SaddlePermute2()
 #endif
         }
     }
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if(logger.isDebugEnabled())
     {
         for (int64_t el=0L; el<nel; el++) {
@@ -2749,7 +2749,7 @@ void TPZCompMesh::SaddlePermute2()
         }
     }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;

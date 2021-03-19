@@ -16,7 +16,7 @@ function verbose
     fi
 }
 
-APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
+APP="/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "Generate the substruct checkpoints."
@@ -26,7 +26,7 @@ verbose 1 "cmd: $CMD"
 # Check if application binary exists
 [ -f $APP ] || fail "Application $APP is not a file"
 
-DATADIR="@PERFTEST_LARGE_DATA_DIR@"
+DATADIR="PERFTEST_LARGE_DATA_DIR-NOTFOUND"
 
 function gen_ckpts
 {

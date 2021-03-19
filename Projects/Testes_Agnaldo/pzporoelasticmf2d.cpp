@@ -15,7 +15,7 @@
 #include "pzaxestools.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material.poroelastic2d.data");
 #endif
 
@@ -298,7 +298,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
         }
     }
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;

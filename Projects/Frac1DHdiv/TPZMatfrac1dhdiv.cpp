@@ -6,11 +6,11 @@
 
 #include <iostream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.multiphase");
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material.multiphase.data");
 #endif
 

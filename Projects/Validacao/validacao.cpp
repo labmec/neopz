@@ -50,7 +50,7 @@
 #include "TPZRefPattern.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("HdivTestes.main");
 
@@ -234,7 +234,7 @@ void PrintMesh(TPZCompMesh *cmesh)
     int iel;
     for(iel=0; iel<nel; iel++){
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout<<"\n Elemento computacional " << iel <<std::endl;
@@ -265,7 +265,7 @@ void PrintMesh(TPZCompMesh *cmesh)
                 int ordinterp = intel->EffectiveSideOrder(mlado);
                 
                 intel->SetSideOrder(mlado, ordinterp+i);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 int indexcon = intel->ConnectIndex(i);
                 int preforder = intel->PreferredSideOrder(mlado);
                 int nshape = intel->NConnectShapeF(i,preforder);
@@ -285,7 +285,7 @@ void PrintMesh(TPZCompMesh *cmesh)
             intel->GetInterpolationOrder(ord);
          
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			//            TPZManVector<REAL> xi(dim,0.);
 			//            TPZFNMatrix<100> phi(nshape,1,0.),dphi(2,nshape,0.);
 			//            intel->Shape(xi,phi,dphi);
@@ -388,7 +388,7 @@ int main()
 			/*
 			 int nelem=cmesh->ElementVec().NElements();
 			 for (int jel=0; jel<nelem; jel++) {
-			 #ifdef LOG4CXX
+			 #ifdef PZ_LOG
 			 {
 			 std::stringstream sout;
 			 sout<< "El 0"<<jel<< std::endl;
@@ -403,7 +403,7 @@ int main()
 			 for (int icon=0; icon< ncon; icon++) {
 			 TPZConnect &coel=elvec->Connect(icon);
 			 int eqflux=coel.SequenceNumber();
-			 #ifdef LOG4CXX
+			 #ifdef PZ_LOG
 			 {
 			 std::stringstream sout;
 			 sout<< " connect "<<icon<< " seq number "<< eqflux<<std::endl;
@@ -523,7 +523,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 		comp->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
 		comp->SetName("Malha Computacional Original");
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 				std::stringstream sout;
 				comp->Print(sout);
@@ -582,7 +582,7 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	comp->CleanUpUnconnectedNodes();//deleta os nos que nao tem elemntos conectados
 	comp->SetName("Malha Computacional Original");
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		comp->Print(sout);
@@ -727,7 +727,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		
 		
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
@@ -945,7 +945,7 @@ TPZGeoMesh * MalhaGeoQ(const int h){//malha quadrilatera
 		
 	
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
@@ -1039,7 +1039,7 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera com 2 elementos
 	}
 	
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
@@ -1163,7 +1163,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
  auxNormaFexact=p[0]*p[0];//(fluxo[0])*(fluxo[0])+(fluxo[1])*(fluxo[1])+(fluxo[2])*(fluxo[2]);
  
  
- #ifdef LOG4CXX
+ #ifdef PZ_LOG
  {
  std::stringstream sout;
  //		sout<<"pto "<<xco<< " pressao "<< p<< " pressao aprox "<< solP<<" erro "<< erroP<<std::endl;
@@ -1251,7 +1251,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 
 void SaddlePermute(TPZCompMesh * cmesh){
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout<< "Implementando permutacao para problemas de ponto de sela"<< std::endl;
@@ -1309,7 +1309,7 @@ void SaddlePermute(TPZCompMesh * cmesh){
 			
 		}
 		/*
-		 #ifdef LOG4CXX
+		 #ifdef PZ_LOG
 		 {
 		 std::stringstream sout;
 		 sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;
@@ -1459,7 +1459,7 @@ TPZGeoMesh * MalhaGeoQ2(const int h){//malha triangulo
 	 }}
 	 */
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
@@ -1493,7 +1493,7 @@ int64_t SubStructure(TPZCompMesh *cmesh, int materialid)
 	
 	//	submesh->SetAnalysisSkyline(numThreads4Assemble, guiInterface);
 	// submesh->SetAnalysis();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Mesh after substructuring\n";

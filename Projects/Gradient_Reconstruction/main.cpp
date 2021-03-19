@@ -142,7 +142,7 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &
 //Trocar todos os elementos do cmesh apontando para o material TPZL2ProjectionFromGradient
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material");
 #endif
 
@@ -1364,7 +1364,7 @@ void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix 
         stiffmatrix.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
         rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
                 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logdata.isDebugEnabled())
         {
             std::stringstream sout;

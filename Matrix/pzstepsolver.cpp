@@ -11,7 +11,7 @@ using namespace std;
 
 #include "TPZPersistenceManager.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.converge");
 #endif
 
@@ -110,7 +110,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			cout << "Number of CG iterations " << numiterations << " tol = " << tol << endl;
             fNumIterations = numiterations;
             fTol = tol;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -130,7 +130,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 				std::cout << "GMRes tolerance was not achieved : numiter " << numiterations <<
 				" tol " << tol << endl;
 			}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			{
 				std::stringstream sout;
 				sout << "Number of GMRES iterations " << numiterations << " tol = " << tol;
@@ -148,7 +148,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 				std::cout << "BiCGStab tolerance was not achieved : numiter " << numiterations <<
 				" tol " << tol << endl;
 			}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Number of BiCGStab iterations " << numiterations << " tol = " << tol;

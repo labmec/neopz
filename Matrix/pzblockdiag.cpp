@@ -15,7 +15,7 @@
 #include <sstream>
 #include "pzstack.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.StrMatrix");
 #endif
 
@@ -63,7 +63,7 @@ void TPZBlockDiagonal<TVar>::GetBlock(int64_t i, TPZFMatrix<TVar> &block){
 template<class TVar>
 void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	int64_t nblock = blocksize.NElements();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -83,7 +83,7 @@ void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 		ndata += bsize*bsize;
 		neq += bsize;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(ndata > 10000000)
 	{
 		std::stringstream sout;
@@ -442,7 +442,7 @@ int TPZBlockDiagonal<TVar>::Decompose_LU()
 		bsize = fBlockSize[b];
 		if(!bsize) continue;
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream mess;

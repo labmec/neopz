@@ -30,7 +30,7 @@ class TPZMaterialData;
 
 #include "pzmultiphysicselement.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger pzcompelpostproclogger("pz.mesh.TPZCompElPostProc");
 #endif
 
@@ -352,7 +352,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         data.sol[0].Resize(stackedVarSize,0.);
         int64_t index = 0;
         // stacking the solutions to post process.
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(pzcompelpostproclogger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -374,7 +374,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
                 pCompElRef->Solution(intpointRef, variableindex, Sol);
             }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(pzcompelpostproclogger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -421,7 +421,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
             ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh);
     }
 
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     {
         std::stringstream sout;
         sout << "Element index " << this->fIndex << std::endl;

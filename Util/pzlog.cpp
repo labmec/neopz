@@ -11,7 +11,7 @@
 
 std::mutex glogmutex;
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 
 #include <log4cxx/logger.h>
@@ -92,7 +92,7 @@ void LogPzFatalImpl(PZLogger pzlg, std::string msg, const char *fileName, const 
  */
 inline void InitializePZLOG(const std::string &configfile)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	log4cxx::PropertyConfigurator::configure(configfile);
 	{
 		log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));

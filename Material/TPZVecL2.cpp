@@ -14,7 +14,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
@@ -289,7 +289,7 @@ void TPZVecL2::Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
   DebugStop();
   // values.Fill(0.0);
     
-// #ifdef LOG4CXX
+// #ifdef PZ_LOG
 //     if(logger.isDebugEnabled()){
 //         std::stringstream sout;
 //         sout<< "\n";

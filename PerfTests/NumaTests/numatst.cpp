@@ -23,7 +23,7 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerconverge("pz.converge");
 static PZLogger logger("main");
 #endif

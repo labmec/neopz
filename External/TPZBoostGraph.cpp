@@ -15,7 +15,7 @@
 //#include <sys/time.h>
 #include <stdio.h>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.external.boostgraph");
 #endif
 
@@ -114,7 +114,7 @@ void TPZBoostGraph::CompressedResequence(TPZVec<int64_t> &perm, TPZVec<int64_t> 
 }
 void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inverseperm)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -163,7 +163,7 @@ void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inversepe
     for (boost::tie(ui, ui_end) = vertices(G); ui != ui_end; ++ui)
         deg[*ui] = degree(*ui, G);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -205,7 +205,7 @@ void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inversepe
             //reverse cuthill_mckee_ordering
             cuthill_mckee_ordering(G, s, inv_perm.begin(), get(vertex_color, G),
                                    get(vertex_degree, G));
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled())
             {
                 LOGPZ_DEBUG(logger,"Reverse Cuthill-McKee ordering:")
@@ -219,7 +219,7 @@ void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inversepe
         {
             cuthill_mckee_ordering(G, inv_perm.begin(), get(vertex_color, G),
                                    get(vertex_degree, G));
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 LOGPZ_DEBUG(logger, "Reverse Expensive Cuthill-McKee ordering:")
             }
@@ -229,7 +229,7 @@ void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inversepe
             break;
         case Sloan:
         {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 LOGPZ_DEBUG(logger,  "Sloan ordering:")
             }
@@ -241,7 +241,7 @@ void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inversepe
             
             //Calculating the pseudoeperipheral node and radius
             Vertex e = pseudo_peripheral_pair(G, s, ecc, get(vertex_color, G), get(vertex_degree, G) );
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -312,7 +312,7 @@ void TPZBoostGraph::Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &inversepe
         perm[i] = l_perm[i];
         inverseperm[i] = inv_perm[i];
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         LOGPZ_DEBUG(logger, "TPZBoostGraph::Resequence finished")
     }

@@ -17,7 +17,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.topology.pzcube");
 #endif
 using namespace std;
@@ -432,7 +432,7 @@ namespace pztopology {
             sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
+            #ifdef PZ_LOG
             LOGPZ_FATAL(logger,sout.str().c_str());
             #endif
             DebugStop();

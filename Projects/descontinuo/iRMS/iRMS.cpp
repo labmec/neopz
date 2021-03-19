@@ -17,7 +17,7 @@
 
 // iRMS (i rise for / innovatory Reservoir Muli-scale Simulator)
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.iRMS");
 #endif
 

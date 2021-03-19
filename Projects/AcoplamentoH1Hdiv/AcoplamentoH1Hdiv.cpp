@@ -52,7 +52,7 @@
 #include "pzfunction.h"
 #include <algorithm>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("Acoplamento.main");
 
@@ -513,7 +513,7 @@ TPZCompEl *CreateInterfaceEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
 		if(!gel->Reference() && gel->NumInterfaces() == 0)
 				return new TPZInterfaceElement(mesh,gel,index);
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
@@ -744,7 +744,7 @@ void PrintInterface(TPZCompMesh *malha)
 
 void SaddlePermute(TPZCompMesh * cmesh){
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
@@ -807,7 +807,7 @@ void SaddlePermute(TPZCompMesh * cmesh){
 						
 				}
 				/*
-				 #ifdef LOG4CXX
+				 #ifdef PZ_LOG
                  if (logger.isDebugEnabled())
 				 {
 				 std::stringstream sout;
@@ -967,7 +967,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 				}}
 		
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;

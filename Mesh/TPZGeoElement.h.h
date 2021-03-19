@@ -6,7 +6,7 @@
 #include "TPZGeoElement.h"
 #include <sstream>
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzgeoelement");
 #endif
 

@@ -31,7 +31,7 @@
 
 #include "pzcompelwithmem.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzcreateapproximationspace");
 #endif
 
@@ -56,7 +56,7 @@ TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 using namespace pzshape;
 
 TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isWarnEnabled()) {
         std::stringstream sout;
         sout << "Mesh dimension " << mesh.Dimension() << " gel dimension " << gel->Dimension() << " will not create a computational element\n";
@@ -222,7 +222,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
             if (fCreateHybridMesh) {
                 cmesh.ElementVec()[index]->Reference()->ResetReference();
             }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
 
@@ -300,7 +300,7 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
                 if (fCreateHybridMesh) {
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     

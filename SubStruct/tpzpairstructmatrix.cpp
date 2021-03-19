@@ -24,7 +24,7 @@ using namespace std;
 using namespace tbb;
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.strmatrix.tpzpairstructmatrix");
 static PZLogger loggerel("pz.strmatrix.element");
 #endif
@@ -482,7 +482,7 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 			rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 			PermuteScatter(ek.fDestinationIndex);
 			second->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			if(loggerel.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -507,7 +507,7 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 		
 		assemble.stop();
 	}//fim for iel
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Number of equations " << first->Rows() << std::endl;
@@ -622,7 +622,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadWork(void *datavoid)
 			ek->ComputeDestinationIndices();
 			
             data->fStrMatrix->FilterEquations(ek->fSourceIndex,ek->fDestinationIndex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			if(loggerel.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -698,7 +698,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 				TPZAutoPointer<TPZElementMatrix> ek = itavail->second.first;
 				TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;
 				data->fSubmitted1.erase(itavail);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 				int iel = *itprocess;
 				std::stringstream sout;
 				sout << "Assembling element " << iel;
@@ -727,12 +727,12 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 		if(!keeplooking)
 		{
             lock.unlock();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 #endif
 			// wait for a signal
 			data->fAssembly1.Wait();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
 #endif
             lock.lock();
@@ -770,7 +770,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 				data->fProcessed2.erase(itprocess);
 				TPZAutoPointer<TPZElementMatrix> ek = itavail->second;
 				data->fSubmitted2.erase(itavail);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 				int iel = *itprocess;
 				std::stringstream sout;
 				sout << "Assembling element " << iel;
@@ -800,12 +800,12 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 		if(!keeplooking)
 		  {
               lock.unlock();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
               if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "Going to sleep within assembly")
 #endif
               // wait for a signal
               data->fAssembly2.Wait();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
               if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "Waking up for assembly")
 #endif
               lock.lock();
@@ -853,7 +853,7 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 		fProcessed1.insert(iel);
 		fProcessed2.insert(iel);
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
@@ -881,7 +881,7 @@ void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPoin
 void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 {
 	fStrMatrix.SetMaterialIds(materialids);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::set<int>::const_iterator it;
 		std::stringstream sout;

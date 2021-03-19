@@ -23,8 +23,8 @@
 #ifndef NODEBUG
 #error "PERF_ANALYSIS require the code to be compiled with NODEBUG"
 #endif
-#if (defined LOG4CXX) && !(defined PERF_DEBUG)
-#error "PERF_ANALYSIS require the code to be compiled without LOG4CXX"
+#if (defined PZ_LOG) && !(defined PERF_DEBUG)
+#error "PERF_ANALYSIS require the code to be compiled without PZ_LOG"
 #endif
 
 #include<string>
@@ -37,13 +37,13 @@
     ta.add(timer.getUnits(), ostr.str()); }
 
 #define TIME_SEC_BEG_LOG(logger,timer, ...)		   \
-  LOG4CXX_INFO(logger, __VA_ARGS__ << " started")	   \
+  PZ_LOG_INFO(logger, __VA_ARGS__ << " started")	   \
   timer.start()
 
 #define TIME_SEC_END_LOG(logger,ta,timer, ...)				\
   timer.stop();                                                         \
   TIME_ANALYSIS_ADD(ta,timer, __VA_ARGS__)                              \
-  LOG4CXX_INFO(logger, __VA_ARGS__ << " ended in " << timer.getTime())
+  PZ_LOG_INFO(logger, __VA_ARGS__ << " ended in " << timer.getTime())
 
 #define TIME_SEC_BEG(timer, ...)                   \
   timer.start()

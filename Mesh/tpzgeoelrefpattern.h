@@ -386,7 +386,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	if(HasSubElement()) {
 		SubElVec.Resize(NSubEl);
 		for(i=0;i<NSubEl;i++) SubElVec[i] = SubElement(i);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Trying to divide element which has subelements " << this->Index() << std::endl;
@@ -465,7 +465,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	}
 	
 	this->SetSubElementConnectivities();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         if (loggerrefpattern.isDebugEnabled())
         {

@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.pardisocontrol");
 #endif
 //#define Release_Memory_Q
@@ -270,7 +270,7 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         n = fNonSymmetricSystem->Rows();
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;

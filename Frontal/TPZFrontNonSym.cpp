@@ -27,7 +27,7 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("pz.frontstrmatrix.frontnonsym");
 #endif
@@ -188,7 +188,7 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int64_t ieq, TPZEqnArray<TVar> &
 	int64_t i, ilocal;
 	ilocal = Local(ieq);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
        	double diagonal=fabs(Element(ilocal,ilocal));
 		std::stringstream sout;

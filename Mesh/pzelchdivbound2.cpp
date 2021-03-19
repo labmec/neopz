@@ -14,7 +14,7 @@
 #include "pzelchdiv.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.TPZCompElHDivBound2");
 #endif
 
@@ -31,7 +31,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
     TPZIntelGen<TSHAPE>::fConnectIndexes.resize(1);
 		
     this->fConnectIndexes[0] = this->CreateMidSideConnect(TSHAPE::NSides-1);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
@@ -45,7 +45,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
     
 		
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -67,7 +67,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(1){
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	 {
          std::stringstream sout;
@@ -287,7 +287,7 @@ void TPZCompElHDivBound2<TSHAPE>::SetSideOrder(int side, int order) {
 	int connectaux= SideConnectLocId(0,side);
 	if(connectaux<0 || connectaux > this-> NConnects()) {
 		PZError << "TPZCompElHDiv::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
 		LOGPZ_DEBUG(logger,sout.str())
@@ -319,7 +319,7 @@ int TPZCompElHDivBound2<TSHAPE>::ConnectOrder(int connect) const
 	
 	if (connect < 0 || connect >= this->NConnects())
 	{
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Connect index out of range connect " << connect <<
@@ -334,7 +334,7 @@ int TPZCompElHDivBound2<TSHAPE>::ConnectOrder(int connect) const
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " connect " << connect
 		<< " is not initialized" << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str());
 		DebugStop();
 #else
@@ -356,7 +356,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
     data.fShapeType = TPZMaterialData::EScalarShape;
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		LOGPZ_DEBUG(logger,"Initializing normal vectors")
@@ -379,7 +379,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	TPZManVector<int,9> normalsides;
 //    TPZFNMatrix<100,REAL> normalvec;
 	neighel->ComputeNormals(neighbour.Side(),data.fDeformedDirections, normalsides);
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //	{
 //		std::stringstream sout;
 //		sout << "normal side depois do ComputeNormals " << normalsides << std::endl;
@@ -393,7 +393,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	for(ivec=0; ivec<nvec; ivec++)
 	{
 		TPZGeoElSide neigh(neighel,normalsides[ivec]);
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //		{
 //			std::stringstream sout;
 //			sout << "normal side depois do TPZGeoElSide " << normalsides << std::endl;
@@ -410,7 +410,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	}
 	IndexShapeToVec(normalsides,data.fVecShapeIndex);
 	data.numberdualfunctions = 0;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		data.fDeformedDirections.Print("Normal vectors", sout);
@@ -442,7 +442,7 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<i
 		}
 	}
 	shapeindex.Resize(count);
-    #ifdef LOG4CXXTPZCompElHDivBound2
+    #ifdef PZ_LOGTPZCompElHDivBound2
 	{
 		std::stringstream sout;
 		sout << "count = " << count << " nshape " << nshape;
@@ -473,7 +473,7 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index){
         }
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -631,7 +631,7 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 	TPZVec<int64_t> FirstIndex;
 	// the first index of the shape functions
 	FirstShapeIndex(FirstIndex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 				std::stringstream sout;
 				sout << "FirstIndex of shape functions " << FirstIndex;
@@ -652,7 +652,7 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 		for (int64_t ishape=fshape1; ishape<fshape2; ishape++)
 		{
 			
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			std::stringstream sout;
 			sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
 			LOGPZ_DEBUG(logger,sout.str())
@@ -664,7 +664,7 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 		
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     std::stringstream sout;
     sout << "VecShapeIndex " << ShapeAndVec;
     LOGPZ_DEBUG(logger,sout.str())

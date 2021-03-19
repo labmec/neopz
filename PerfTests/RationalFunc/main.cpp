@@ -24,7 +24,7 @@ void usage (char *prg)
     clarg::arguments_descriptions (std::cout, "   ", "\n");
 }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
 static PZLogger logger("pz.Cedric-Perf");
 #endif

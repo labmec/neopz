@@ -41,7 +41,7 @@
 #include <condition_variable> // std::condition_variable
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("pz.strmatrix.frontstructmatrix");
 
@@ -108,7 +108,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 			 cout << "    Waiting" << endl;
 			 cout.flush();*/
 			//cout << "Mutex unlocked on Condwait" << endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -133,7 +133,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		 return 0;
 		 }
 		 */
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -173,7 +173,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
             parfront->fekstack.Push(ek);
             parfront->fefstack.Push(ef);
             
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -210,7 +210,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		}
 	}//fim for iel
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -288,7 +288,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		TPZElementMatrix *ekaux = 0, *efaux = 0;
         {
             std::unique_lock<std::mutex> global_lock(mutex_global_assemble);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -321,7 +321,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                 }
                 if(aux!=local_element){
                     i=0;
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
                     if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
@@ -332,7 +332,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                     condassemble.wait(global_lock);
                 }
             }
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -352,7 +352,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
             
 #endif
 			mat->FinishWriting();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -378,7 +378,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		
 		
 	}//fim for iel
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -439,7 +439,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	
 //	this->AdjustSequenceNumbering();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         this->fMesh->Print(sout);

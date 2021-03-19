@@ -138,11 +138,11 @@ public:
     */
     void LoadState(TPZFMatrix<REAL> &state)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
     #endif
       gRefThermoForce = state(0,0);
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Plastic Work " << state;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -151,7 +151,7 @@ public:
 
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
     #endif
 
@@ -165,7 +165,7 @@ public:
 
           break;
       }
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Matriz tangent " << tangent;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -174,7 +174,7 @@ public:
 
     void Residual(TPZFMatrix<REAL> &res,int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
     #endif
       switch(icase)
@@ -186,7 +186,7 @@ public:
         break;
 
       }
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Residual vector " << res;
       LOGPZ_DEBUG(logger,sout.str().c_str());

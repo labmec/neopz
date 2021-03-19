@@ -16,7 +16,7 @@
 #include <iostream>
 #include <sstream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.pre.pzhyperplane");
 #endif
 
@@ -129,7 +129,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
         }
         else if (sidenodepair.size() == 4)
         {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Corner coords\n";
@@ -148,7 +148,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
             Reorder(gel, targetmesh, sidenodepair);
             
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 // identify the X coordinates in the new order
@@ -172,7 +172,7 @@ void TPZHyperPlaneIntersect::Intersect(TPZGeoMesh &inputmesh, const TPZHyperPlan
         }
         else {
             int centerindex = ReorderGeneral(targetmesh, sidenodepair);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "cornercoordinates\n";
@@ -245,7 +245,7 @@ void TPZHyperPlaneIntersect::Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<s
         // the methodology could be extended - ask me (philippe)
         DebugStop();
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         gel->Print(sout);
@@ -290,7 +290,7 @@ void TPZHyperPlaneIntersect::Reorder(TPZGeoEl *gel, TPZGeoMesh &target, TPZVec<s
         REAL normvecedge1 = TPZNumeric::Norm(vecedge1);
         if (inner > 1.e-10 || normvecpoint3 < 1.e-8 || normvecedge1 < 1.e-8) {
             // FOUND the orientation!!!
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Permutation = " << perm << std::endl;
@@ -360,7 +360,7 @@ void CheckElement(TPZGeoEl *gel)
 int TPZHyperPlaneIntersect::ReorderGeneral(TPZGeoMesh &target, TPZVec<std::pair<int64_t,int64_t> > &sidenodepair)
 {
     int64_t numnodes = sidenodepair.size();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         // identify the X coordinates in the new order

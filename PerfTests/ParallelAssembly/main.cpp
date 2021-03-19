@@ -78,7 +78,7 @@ void RefinamentoUniforme(TPZAutoPointer<TPZGeoMesh> gmesh, int nref,TPZVec<int> 
 
 TPZAutoPointer<TPZCompMesh> CreatePressureMesh(TPZAutoPointer<TPZGeoMesh> gmesh, int porder);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mainskeleton");
 #endif
 

@@ -17,7 +17,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggernoderep2("pz.geom.extend");
 #endif
 
@@ -181,7 +181,7 @@ namespace pzgeom {
 	template<class TFather, class Topology>
 	void GPr<TFather, Topology>::Diagnostic(TPZFMatrix<REAL> & coord)
 	{
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoextend"));
 		
 		TPZIntPoints *integ = Top::CreateSideIntegrationRule(Top::NSides-1,3);

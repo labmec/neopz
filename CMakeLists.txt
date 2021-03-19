@@ -85,7 +85,6 @@ if(USING_LOG4CXX)
   #this is the definition used in pz lib
   include(cmake/EnableLog4cxx.cmake)
   enable_log4cxx(pz)
-  target_compile_definitions(pz PRIVATE LOG4CXX)
   set(PZ_LOG "#Will add a define PZ_LOG on pz_config.h")
 endif()
 
@@ -200,8 +199,8 @@ if(WIN32)
 	#disabling VC warnings
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	#disabling STL warning for std::_Vector_alloc when LOG4CXX is enabled
-	#if (USING_LOG4CXX)
+	#disabling STL warning for std::_Vector_alloc when PZ_LOG is enabled
+	#if (USING_PZ_LOG)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251 /wd4244")
 	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4244")
 	#endif()

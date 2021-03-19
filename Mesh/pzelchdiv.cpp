@@ -20,7 +20,7 @@
 
 #include "pzshtmat.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.TPZCompElHDiv");
 static PZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
 #endif
@@ -45,7 +45,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
 	{
         int sideaux= facesides[i];
 		this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -205,7 +205,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
 	}
 #endif
 	this-> fConnectIndexes[i] = connectindex;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -330,7 +330,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
      FirstShapeIndex(FirstIndex);
      //FirstIndex.Print();
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
      if (logger.isDebugEnabled())
      {
          std::stringstream sout;
@@ -420,7 +420,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect, int order)const
     return count;
 
 
- #ifdef LOG4CXX
+ #ifdef PZ_LOG
      {
          std::stringstream sout;
          sout <<__PRETTY_FUNCTION__<< "unhandled case ";
@@ -450,7 +450,7 @@ int TPZCompElHDiv<TSHAPE>::NSideConnects(int side) const{
         int ncon = 1;
         return ncon;
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "Side: " << side <<"unhandled case ";
@@ -555,7 +555,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
 	int connectaux= SideConnectLocId(0,side);
 	if(connectaux<0 || connectaux > this-> NConnects()) {
 		PZError << "TPZCompElHDiv::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
 		LOGPZ_DEBUG(logger,sout.str())
@@ -578,7 +578,7 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order){
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::ConnectOrder(int connect) const{
 	if (connect < 0 || connect >= this->NConnects()){
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Connect index out of range connect " << connect <<
@@ -593,7 +593,7 @@ int TPZCompElHDiv<TSHAPE>::ConnectOrder(int connect) const{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " connect " << connect
 		<< " is not initialized" << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str());
 #else
 		std::cout << sout.str() << std::endl;
@@ -634,7 +634,7 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int64_t> &Index) const {
         Index[iside+1] = temp;
 	}
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "First  Index " << Index;
@@ -649,7 +649,7 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
     int nn=TPZCompElHDiv::NConnects();
     for(in=0;in<nn;in++){
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //				std::stringstream sout;
 //				sout << "conect " << in<< " seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
 //				LOGPZ_DEBUG(logger,sout.str())
@@ -659,7 +659,7 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     }
 
 
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    std::stringstream sout;
 //    sout << "Num funcoes associada ao fluxo " << result;
 //    LOGPZ_DEBUG(logger,sout.str())
@@ -736,7 +736,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     FirstShapeIndex(FirstIndex);
     //FirstIndex.Print();
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1184,7 +1184,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
                         }
                     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if(logger.isDebugEnabled() && abs(meshsol) > 1.e-6)
                     {
                         std::stringstream sout;
@@ -1220,7 +1220,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1355,7 +1355,7 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NShapeContinuous(TPZVec<int> &order ){
 
     return TSHAPE::NShapeF(order);
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //		{
 //				std::stringstream sout;
 //				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;
@@ -1395,7 +1395,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t
 		}
 	}
 	shapeindex.Resize(count);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1464,7 +1464,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     }
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         data.fDeformedDirections.Print("Normal Vectors " , sout,EMathematicaInput);
@@ -1495,7 +1495,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         data.dphi.Resize(TSHAPE::Dimension, nshapescalar);
         data.dphix.Resize(TSHAPE::Dimension, nshapescalar);
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
 		{
 				LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHDiv")
@@ -1546,7 +1546,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 //    cout << data.fVecShapeIndex << endl;;
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1647,7 +1647,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 //        con.SetOrder(order);
         side= ConnectSideLocId(icon);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
                 std::stringstream sout;
@@ -1658,7 +1658,7 @@ void TPZCompElHDiv<TSHAPE>::PRefine(int order)
 
         this->IdentifySideOrder(side);
     }
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
     if (loggerdiv.isDebugEnabled()) {
         std::stringstream sout;
         sout << (void*) this->Mesh() << "PRefine elindex " << this->Index() << " gel index " << this->Reference()->Index() << " " << order;

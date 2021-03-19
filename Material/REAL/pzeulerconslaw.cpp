@@ -21,7 +21,7 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger fluxroe("pz.fluxroe");
 static PZLogger fluxappr("pz.fluxappr");
@@ -565,7 +565,7 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
                                           REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(fluxroe.isDebugEnabled()){
 		std::stringstream sout;
 		sout << "solL " << dataleft.sol << std::endl << "solR " << dataright.sol << std::endl;
@@ -590,7 +590,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 		TPZVec<FADREAL> FADsolL, FADsolR;
 		PrepareInterfaceFAD(dataleft.sol[0], dataright.sol[0], dataleft.phi, dataright.phi, FADsolL, FADsolR);
 		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(fluxroe.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
@@ -606,7 +606,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 		TPZVec<FADREAL> FADsolL, FADsolR;
 		PrepareInterfaceFAD(dataleft.sol[0], dataright.sol[0], dataleft.phi, dataright.phi, FADsolL, FADsolR);
 		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(fluxappr.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
@@ -723,7 +723,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		PrepareInterfaceFAD(dataleft.sol[0], solR, dataleft.phi, phiR, FADsolL, FADsolR);
 		ComputeGhostState(FADsolL, FADsolR, data.normal, bc, entropyFix);
 		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, phiR, ek, ef, entropyFix);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(fluxroe.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
@@ -740,7 +740,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		PrepareInterfaceFAD(dataleft.sol[0], solR, dataleft.phi, phiR, FADsolL, FADsolR);
 		ComputeGhostState(FADsolL, FADsolR, data.normal, bc, entropyFix);
 		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, phiR, ek, ef, entropyFix);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(fluxappr.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);

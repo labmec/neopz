@@ -26,7 +26,7 @@
 #define BOOST_TEST_MAIN pz #define BOOST_TEST_MAIN pz multithreading_tests tests
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.testmultithread");
 #endif
 

@@ -143,7 +143,7 @@ using namespace std;
 
 //#define SmoothSol
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("PiraHP.main");
 #endif
 

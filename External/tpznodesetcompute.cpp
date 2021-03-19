@@ -23,7 +23,7 @@
 #include <fstream>
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.nodesetcompute");
 #endif
 
@@ -106,7 +106,7 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
 		fIsIncluded[othernode] = 1;
       AnalyseNode(othernode,nodeset);
       minlevel = minlevel < fLevel[othernode]+1 ? fLevel[othernode]+1 : minlevel;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(fLevel[othernode] >= 0)
 		{
 			std::stringstream sout;
@@ -141,7 +141,7 @@ void TPZNodesetCompute::AnalyseNode(int64_t node, TPZVec< std::set<int64_t> > &n
   // assign a sequence number to the node
   fMaxSeqNum++;
   fSeqNumber[node] = fMaxSeqNum;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Assigning Seq Number " << fMaxSeqNum << " and level " << minlevel << " to nodes " << node << " " << equalnodes;
@@ -309,7 +309,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
     // the influence zone of the vertex includes other vertices
     if(diffset.size())
     {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Difference after taking the intersection with " << *intit;
@@ -331,7 +331,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
       diffset.clear();
       // diffset will now contain only vertex nodes
       set_intersection(unionset.begin(),unionset.end(),vertices.begin(),vertices.end(),inserter(diffset,diffset.begin()));
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			Print(sout,diffset,"First set to be reanalised");
@@ -339,7 +339,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 		}
 #endif
       set_intersection(vertices.begin(),vertices.end(),locset.begin(),locset.end(),inserter(interset,interset.begin()));
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			Print(sout,interset,"Second set to be reanalised");
@@ -366,7 +366,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   }
   if(vertices != elem)
   {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	  {
 		  std::stringstream sout;
 		  sout << "Discarding a vertex set as incomplete";
@@ -377,7 +377,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
   }
   else if(elem.size())
   {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	  {
 		  std::stringstream sout;
 		  Print(sout,elem,"Inserted element");
@@ -390,7 +390,7 @@ void TPZNodesetCompute::AnalyseForElements(std::set<int64_t> &vertices, std::set
 
 void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStack<int64_t> &blockgraphindex)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " entering build element graph\n";
@@ -407,7 +407,7 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
   {
     std::set< std::set<int64_t> > elements;
     BuildNodeSet(in,nodeset);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	  {
 		  std::stringstream sout;
 		  sout << "Nodeset for " << in << ' ';
@@ -416,7 +416,7 @@ void TPZNodesetCompute::BuildElementGraph(TPZStack<int64_t> &blockgraph, TPZStac
 	  }
 #endif
     SubstractLowerNodes(in,nodeset);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		  {
 			  std::stringstream sout;
 			  Print(sout,nodeset,"LowerNodes result");
@@ -441,7 +441,7 @@ void TPZNodesetCompute::SubstractLowerNodes(int64_t node, std::set<int64_t> &nod
 {
   std::set<int64_t> lownode,lownodeset,unionset;
   std::set<int64_t>::iterator it;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__;
@@ -457,7 +457,7 @@ void TPZNodesetCompute::SubstractLowerNodes(int64_t node, std::set<int64_t> &nod
   }
   set_difference(nodeset.begin(),nodeset.end(),unionset.begin(),unionset.end(),
     inserter(lownode,lownode.begin()));
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		Print(sout,lownode," What is left after substracting the influence of lower numbered nodes ");
@@ -474,7 +474,7 @@ void TPZNodesetCompute::SubstractLowerNodes(int64_t node, std::set<int64_t> &nod
   lownode.clear();
   set_intersection(unionset.begin(),unionset.end(),nodeset.begin(),nodeset.end(),
     inserter(lownode,lownode.begin()));
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		Print(sout,lownode," Resulting lower nodeset");

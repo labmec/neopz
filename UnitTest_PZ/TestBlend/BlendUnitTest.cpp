@@ -38,7 +38,7 @@
 #include "TPZQuadSphere.h"
 #include "TPZTriangleSphere.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.testgeom");
 #endif
 

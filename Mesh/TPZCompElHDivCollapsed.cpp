@@ -14,7 +14,7 @@
 #include "pzelchdiv.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.TPZCompElHDivCollapsed");
 #endif
 
@@ -33,7 +33,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index), fBottom(mesh,gel,index), fTop(mesh,gel,in
     this->Reference()->SetReference(this);
     
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	 {
          std::stringstream sout;
@@ -260,7 +260,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
     data.divphi.Resize(nvecshape+nscalartop+nscalarbottom,1);
     if(data.fNeedsDeformedDirectionsFad) DebugStop();
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
         std::stringstream sout;
@@ -434,7 +434,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
     }
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         data.fDeformedDirections.Print("Normal Vectors " , sout,EMathematicaInput);

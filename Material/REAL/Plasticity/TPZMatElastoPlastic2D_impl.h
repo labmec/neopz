@@ -15,7 +15,7 @@
 #include <fenv.h>//NAN DETECTOR
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
 static PZLogger elastoplastic2dLogger("material.pzElastoPlastic2D");
 #endif
@@ -36,7 +36,7 @@ TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D(int id , int PlaneStrainOrP
 template <class T, class TMEM>
 TPZMatElastoPlastic2D<T,TMEM>::TPZMatElastoPlastic2D(const TPZMatElastoPlastic2D<T,TMEM> &mat) : TPZMatElastoPlastic<T,TMEM>(mat), fPlaneStrain(mat.fPlaneStrain)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(elastoplastic2dLogger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -132,7 +132,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     }
 #endif
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -213,7 +213,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         }
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
@@ -267,7 +267,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     }
 #endif
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -306,7 +306,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
     }
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (elastoplastic2dLogger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::Contribute ***";
@@ -491,7 +491,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
         }
             
         default:
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (elastoplastic2dLogger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::ContributeBC *** WRONG BOUNDARY CONDITION TYPE = " << bc.Type();
@@ -635,7 +635,7 @@ void TPZMatElastoPlastic2D<T, TMEM>::ContributeBC(TPZMaterialData &data, REAL we
         }
             
         default:
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (elastoplastic2dLogger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "<<< TPZMatElastoPlastic2D<T,TMEM>::ContributeBC *** WRONG BOUNDARY CONDITION TYPE = " << bc.Type();

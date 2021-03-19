@@ -13,11 +13,11 @@
 #include "TPZConvergenceException.h"
 #include "TPZInconsistentStateException.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("plasticity.poroelastoplastic");
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerConvTest("ConvTest");
 #endif
 
@@ -466,7 +466,7 @@ void TPZSandlerExtended::DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE LP
     T x = (I1 - (L + Fk * fR * cos(theta)));
     ddistf2[0] = T(2.) * x * Fk * fR * sin(theta) / T(9. * fK) - T(2.) * y * Fk * cos(theta);
     ddistf2[1] = ResLF2IJ(sigtrialIJ, theta, L, LPrev);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "x = " << x << " y = " << y << " theta = " << theta << " res = " << ddistf2[0];
@@ -1179,7 +1179,7 @@ void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kpre
 }
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> & projected_stress, STATE &kproj) const {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerConvTest.isDebugEnabled()) {
         std::stringstream outfile;
         outfile << "\n projection over F1 " << endl;
@@ -1521,7 +1521,7 @@ void TPZSandlerExtended::ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, S
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if (loggerConvTest.isDebugEnabled()) {
 		std::stringstream outfile;
 		outfile << "\n projection over Ring " << endl;
@@ -1568,7 +1568,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         xn1(1, 0) = xn(1, 0) - sol(1, 0);
         xn1(2, 0) = xn(2, 0) - sol(2, 0);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if (loggerConvTest.isDebugEnabled()) {
 			std::stringstream outfile; //("convergencF1.txt");
 			outfile << counter << " " << log(resnorm) << endl;
@@ -1607,7 +1607,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 }
 
 void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //    {
     //        std::stringstream outfile;
     //        outfile << "\n projection over F2 " <<endl;
@@ -2223,7 +2223,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     // kprev corresponde a L do artigo
     if (I1 < kprev) {
         if (yield[1] > 0. && !threeEigEqual) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Projecting on F2, distinct eigenvalues " << sigtrial;
@@ -2242,7 +2242,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             DF2cart.Multiply(dbetadsigtrial, GradSigma);
             GradSigma *= -1.;
         } else if (yield[1] > 0. && threeEigEqual) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Projecting on F2, equal eigenvalues " << sigtrial;
@@ -2256,7 +2256,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             SurfaceParamF2(sigproj, kproj, theta, beta);
             // theta should be Pi
             // for hydrostatic stress beta doesn't mean anything
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Surface parameters for sigproj = " << sigproj << " kproj " << kproj << " theta " << theta;
@@ -2266,7 +2266,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             TPZManVector<STATE, 2> sigtrialIJ(2, 0.), sigprojIJ(2), ddistf2(2);
             sigtrialIJ[0] = sigtrial[0] + sigtrial[1] + sigtrial[2];
             DDistF2IJ(sigtrialIJ, theta, kproj, kprev, ddistf2);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Derivative of the distance function (should be zero) = " << ddistf2;
@@ -2308,7 +2308,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 JacSigprojThetaK(1, 0) = sigprojIJFAD[1].d(0);
                 JacSigprojThetaK(1, 1) = sigprojIJFAD[1].d(1);
             }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Derivative of the distanceIJ " << ddistf2 << std::endl;
@@ -2321,7 +2321,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 #endif
             std::list<int64_t> singular;
             JacThetaK.Solve_LU(&JacSigtrIJ, singular);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Negative of derivative of Theta,K with respect to sigtrIJ" << std::endl;
@@ -2332,7 +2332,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             TPZFNMatrix<4, STATE> dsigprojdsigtr(2, 2);
             JacSigprojThetaK.Multiply(JacSigtrIJ, dsigprojdsigtr);
             dsigprojdsigtr *= -1.;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 dsigprojdsigtr.Print("Derivative of SigprojIJ with respect to SigtrialIJ", sout);
@@ -2357,7 +2357,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
         }
     } else {
         if (yield[0] > 0.) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Projecting on F1";
@@ -2420,7 +2420,7 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 
             }
         } else {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 if (logger.isDebugEnabled()) {
                     std::stringstream sout;

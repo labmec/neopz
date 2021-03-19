@@ -33,7 +33,7 @@ class TPZStream;
 #define DEBUG2
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzfmatrix");
 static PZLogger loggerCheck("pz.checkconsistency");
 #endif
@@ -339,7 +339,7 @@ void TPZFMatrix<Fad<double> >::GramSchmidt(TPZFMatrix<Fad<double> > &Orthog, TPZ
 template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -427,7 +427,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
             else
             {
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -458,7 +458,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
         }
         else {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             std::stringstream sout;
             sout << "Linearly dependent columns dotUp = " << dotUp;
             LOGPZ_ERROR(logger,sout.str())
@@ -476,7 +476,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     this->operator*= ( 1./scale );
     TransfToOrthog.operator*= ( 1./scale );
     
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;

@@ -21,7 +21,7 @@
 #include "pzvec_extras.h"
 #include "TPZPlasticStepID.h"
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 static PZLogger loggerMohrCoulomb("MCC");
 #endif
 

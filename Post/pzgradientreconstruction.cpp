@@ -20,7 +20,7 @@
 #include <cmath>
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.pzgradientreconstruction");
 #endif
 
@@ -103,7 +103,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
         TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
         
         fGradData->SetCel(cel, useweight, paramK);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             fGradData->Print(sout);

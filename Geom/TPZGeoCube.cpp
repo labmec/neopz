@@ -11,7 +11,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 PZLogger logger("pz.geom.tpzgeocube");
 #endif
 

@@ -27,7 +27,7 @@
 
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.WellFlow");
 #endif
 
@@ -169,7 +169,7 @@ void PrintLS(TPZAnalysis *an)
     FGlobal =   an->Rhs();
     
 #ifdef PZDEBUG
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
@@ -523,7 +523,7 @@ void NewtonIterations(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, T
         iterations++;
         
 #ifdef PZDEBUG
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
             if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;

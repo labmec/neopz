@@ -21,7 +21,7 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("pz.strmatrix.frontstructmatrix");
 static PZLogger loggerfw("pz.frontal.frontmatrix.fw");
@@ -57,7 +57,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 	
 	// message #1.3 to fFront:TPZFront
 	this->fFront.AddKel(elmat, destinationindex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
@@ -91,7 +91,7 @@ template<class TVar, class store, class front>
 void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerfw.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -135,7 +135,7 @@ void TPZParFrontMatrix<TVar, store, front>::FinishWriting(){
 template<class TVar, class store, class front>
 void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	TPZParFrontMatrix<TVar, store, front> *parfront = (TPZParFrontMatrix<TVar, store, front>*) t;    
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -149,7 +149,7 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 		TPZStack<TPZEqnArray<TVar> *> local;
         {
             std::unique_lock<std::mutex> lock(parfront->fwritelock);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -159,7 +159,7 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 #endif
             if(parfront->fEqnStack.NElements() == 0){
                 if(parfront->fFinish == 1) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
@@ -171,7 +171,7 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
                     cout.flush();
                     break;
                 }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
@@ -184,7 +184,7 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
             
             local = parfront->fEqnStack;
             parfront->fEqnStack.Resize(0);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -205,7 +205,7 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	parfront->fStorage.FinishWriting();
 	parfront->fStorage.ReOpen();
 	parfront->fFinish = 0;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -214,7 +214,7 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	}
 #endif
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;

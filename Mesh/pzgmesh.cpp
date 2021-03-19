@@ -37,7 +37,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzgeomesh");
 #endif
 
@@ -256,7 +256,7 @@ void TPZGeoMesh::GetBoundaryElements(int64_t NodFrom, int64_t NodTo,TPZStack<TPZ
 		// put all elements connected to currentnode in elmap, eliminate the elements
 		//	from elmap which do not contain the node
 		BuildElementsAroundNode(currentnode,elmap);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -402,7 +402,7 @@ void TPZGeoMesh::FindElement(std::map<int64_t,TPZGeoEl *> &elmap,int64_t current
 		}
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "No neighbour found for node " << currentnode << " elmap \n";
@@ -510,7 +510,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
             gelside.CenterX(xcenter);
             geldist = dist(x,xcenter);
         }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "FindClosestElement Tried element index " << gel->Index() << std::endl;
@@ -522,7 +522,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
         REAL closestcorner = cornerdist.begin()->first;
         // if the center node is closer than the cornernode, return the element
         if (geldist < closestcorner || closestcorner < 1.e-15) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Distance from the closest corner " << closestcorner << "bailing out " << std::endl;
@@ -558,7 +558,7 @@ TPZGeoEl * TPZGeoMesh::FindCloseElement(TPZVec<REAL> &x, int64_t & InitialElInde
             gelnext = ElementVec()[distneigh.begin()->second];
             gelnextdist = distneigh.begin()->first;
         }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Closest element index " << gelnext->Index() << std::endl;
@@ -704,7 +704,7 @@ TPZGeoEl * TPZGeoMesh::FindElementCaju(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int6
             }
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -748,7 +748,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     FindCloseElement(x, InitialElIndex, targetDim);
     TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
  
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "x coordinate " << x << std::endl;
@@ -784,7 +784,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
     bool memberQ = gel->ComputeXInverse(x, qsi,zero);
     if(memberQ)
     {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             LOGPZ_DEBUG(logger, "Going into the FindSubElement alternative")
@@ -794,7 +794,7 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
         return gel;
     }
     tested.insert(gel);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -843,14 +843,14 @@ TPZGeoEl *TPZGeoMesh::FindApproxElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int
         qsi.Fill(0.);
         if(locgel->ComputeXInverse(x, qsi, zero*100.) == true)
         {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())LOGPZ_DEBUG(logger, "FOUND ! Going into the FindSubElement alternative")
 #endif
             gel = FindSubElement(locgel, x, qsi, InitialElIndex);
             return gel;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1503,7 +1503,7 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context) { //ok
 }
 
 void TPZGeoMesh::Write(TPZStream &buf, int withclassid) const { //ok
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         LOGPZ_DEBUG(logger, __PRETTY_FUNCTION__);
     }

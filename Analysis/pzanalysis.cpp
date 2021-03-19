@@ -53,7 +53,7 @@
 #include "pzsloan.h"                       // for TPZSloan
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.analysis");
 static PZLogger loggerError("pz.analysis.error");
 #endif
@@ -236,7 +236,7 @@ void TPZAnalysis::OptimizeBandwidth() {
 	}
 	fRenumber->SetElementsNodes(nel,nindep);
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -315,7 +315,7 @@ void TPZAnalysis::Assemble()
 #else
 		sout << " TPZAnalysis::Assemble() " ;
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #else
 		std::cout << sout.str().c_str() << std::endl;
@@ -337,7 +337,7 @@ void TPZAnalysis::Assemble()
 		fSolver->SetMatrix(mat);
 		//aqui TPZFMatrix<STATE> nao eh nula
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -363,7 +363,7 @@ void TPZAnalysis::Solve() {
         TPZFMatrix<STATE> delu(numeq,1,0.);
         //      STATE normres  = Norm(residual);
         //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             TPZFMatrix<STATE> res2(fRhs);
@@ -382,7 +382,7 @@ void TPZAnalysis::Solve() {
 //        }
         fSolver->Solve(residual, delu);
         fSolution = delu;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             if(!fSolver->Matrix()->IsDecomposed())
@@ -407,7 +407,7 @@ void TPZAnalysis::Solve() {
         fSolution.Redim(numeq,1);
         fStructMatrix->EquationFilter().Scatter(delu,fSolution);
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     std::stringstream sout;
     TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *> (fSolver);
     if(!step) DebugStop();
@@ -425,7 +425,7 @@ void TPZAnalysis::Solve() {
 		LOGPZ_WARN(logger,sout.str())
 	}
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -792,7 +792,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
                 values.Resize(nerrors, 0.);
                 elvalues.Resize(nelgeom, nerrors);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (loggerError.isDebugEnabled()) {
                     std::stringstream sout;
                     sout << "Values: ";
@@ -847,7 +847,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             out << "other norms = " << sqrt(values[ier]) << endl;
 #endif
     }
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    if(loggerError.isDebugEnabled())
 //    {
 //        std::stringstream sout;
@@ -1293,7 +1293,7 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 		TPZStack<int64_t> expblockgraph,expblockgraphindex;
 		
 		nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #ifdef PZDEBUG2
         if (logger.isDebugEnabled())
         {

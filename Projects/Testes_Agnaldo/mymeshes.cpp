@@ -214,7 +214,7 @@ TPZGeoMesh *DadosMalhas::GMesh(bool triang_elements, REAL L, REAL w){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -324,7 +324,7 @@ TPZGeoMesh * DadosMalhas::GMesh2(REAL L, REAL w, REAL La){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -395,7 +395,7 @@ TPZGeoMesh *DadosMalhas::GMesh3(REAL L, REAL w){
     TPZGeoElBC gbc7(elvec[3], 7,fbcLeft);
     TPZGeoElBC gbc8(elvec[0], 7,fbcLeft);
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -499,7 +499,7 @@ TPZGeoMesh *DadosMalhas::GMesh4(REAL L, REAL w, int h, int nrefdir){
     }
 
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -1220,7 +1220,7 @@ void DadosMalhas::SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mymaterial, mphysics, 8);
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //            std::stringstream sout;
@@ -1234,7 +1234,7 @@ void DadosMalhas::SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2
 	TPZFMatrix<STATE> fvec;
     StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec,8);
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //
@@ -1268,7 +1268,7 @@ void DadosMalhas::SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2
 		mymaterial->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-        //#ifdef LOG4CXX
+        //#ifdef PZ_LOG
         //        if(logdata.isDebugEnabled())
         //        {
         //            std::stringstream sout;
@@ -1409,7 +1409,7 @@ void DadosMalhas::SolveSistBarryMercert(REAL deltaT,REAL maxTime,TPZVec<TPZCompM
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mphysics,8);
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //            std::stringstream sout;
@@ -1423,7 +1423,7 @@ void DadosMalhas::SolveSistBarryMercert(REAL deltaT,REAL maxTime,TPZVec<TPZCompM
 	TPZFMatrix<STATE> fvec;
     StiffMatrixLoadVec(mphysics, an, matK, fvec,8);
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //
@@ -1457,7 +1457,7 @@ void DadosMalhas::SolveSistBarryMercert(REAL deltaT,REAL maxTime,TPZVec<TPZCompM
 		matM->Multiply(Lastsolution,TotalRhstemp);
         StiffMatrixLoadVec(mphysics, an, matK, fvec,8);
         
-        //#ifdef LOG4CXX
+        //#ifdef PZ_LOG
         //        if(logdata.isDebugEnabled())
         //        {
         //            std::stringstream sout;

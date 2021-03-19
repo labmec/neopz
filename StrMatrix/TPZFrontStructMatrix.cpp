@@ -31,7 +31,7 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.strmatrix.frontstructmatrix");
 static PZLogger loggerel("pz.strmatrix.element");
 #endif
@@ -116,7 +116,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 #ifdef PZDEBUG
     TPZVec<int64_t> firstel_copy(firstelconnect);
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -153,7 +153,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		}
   	}
 	//  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -168,7 +168,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 	//cout << "elconnect\n";
 	//  int no;
 	for(int64_t no=0; no< fMesh->ConnectVec().NElements(); no++) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -219,7 +219,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		if(elorderinv[seq] == -1) continue;
   		fElementOrder[elorderinv[seq]] = seq;
   	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -259,7 +259,7 @@ TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE>
 	
 	Assemble(*mat,rhs,guiInterface);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -388,7 +388,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 		
 		std::cout<< " assemblando elemento frontal " << iel <<std::endl;
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -398,7 +398,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 #endif
 		
 		AssembleElement(el, ek, ef, stiffness, rhs);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(loggerel.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -432,7 +432,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
 		//test.flush();
 		ek.ComputeDestinationIndices();
 		this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
             std::stringstream sout;
@@ -450,7 +450,7 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
         ef.ApplyConstraints();
         ek.ComputeDestinationIndices();
         FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
 			std::stringstream sout;
@@ -694,7 +694,7 @@ void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 			DebugStop();
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;

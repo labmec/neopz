@@ -26,7 +26,7 @@
 
 #include <thread>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("substruct.dohrprecond");
 static PZLogger loggerv1v2("substruct.v1v2");
 #endif
@@ -205,7 +205,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	int64_t cols = this->Cols();
 	int64_t c;
 	this->PrepareZ(y,z,beta,opt);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		x.Print("x entry vector",sout);
@@ -285,7 +285,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 			std::pair<int,int> ind = (*it)->fGlobalEqs[i];
 			v3_local(i,0) += v3Expand(ind.first,0);
 		}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			v2Expand.Print("v1+v2 Expand",sout);
@@ -386,7 +386,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 		(*it)->Contribute_rc_local(xloc,CoarseResidual_local);
 		fAssemble->AssembleCoarse(isub,CoarseResidual_local,CoarseResidual);
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		CoarseResidual.Print("Coarse Residual",sout);
@@ -401,7 +401,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 	//Dado global
 	TPZFMatrix<TVar> CoarseSolution(fNumCoarse,x.Cols());
 	fCoarse->Solve(CoarseResidual,CoarseSolution);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		CoarseSolution.Print("CoarseSolution",sout);
@@ -424,7 +424,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV1(const TPZFMatrix<TVar> &x, TPZF
 		
 		fAssemble->Assemble(isub,v1_local,v1);
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		v1.Print("v1 vector",sout);
@@ -450,7 +450,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV2(const TPZFMatrix<TVar> &x, TPZF
 		TPZFNMatrix<100,TVar> Residual_local,v2_local;
 		fAssemble->Extract(isub,x,Residual_local);
 		(*it)->Contribute_v2_local(Residual_local,v2_local);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "Substructure " << isub << std::endl;
@@ -465,7 +465,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV2(const TPZFMatrix<TVar> &x, TPZF
 		//		v2_local += v1_local;
 		fAssemble->Assemble(isub,v2_local,v2);
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		v2.Print("v2 vector",sout);

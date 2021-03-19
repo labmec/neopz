@@ -24,7 +24,7 @@
 #include "tpzquadraticline.h"
 #include "tpzgeoelrefpattern.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.gengrid.tpzgengrid2d");
 #endif
 
@@ -438,7 +438,7 @@ bool TPZGenGrid2D::GenerateNodes(TPZGeoMesh *grid) {
 	int64_t i;
 	// grid can not to contain other nodes and elements
 	if(grid->NNodes()) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_DEBUG(logger, "Mesh is not empty");
 #endif
         return false;
@@ -469,7 +469,7 @@ bool TPZGenGrid2D::GenerateElements(TPZGeoMesh *grid, int matid) {
 
     // grid can not to contain other elements
     if (grid->NElements()) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_DEBUG(logger, "Mesh is not empty");
 #endif
         return false;
@@ -515,7 +515,7 @@ bool TPZGenGrid2D::GenerateElementsZigZag(TPZGeoMesh *grid, int matid) {
 
     // grid can not to contain other elements
     if (grid->NElements()) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_DEBUG(logger, "Mesh is not empty");
 #endif
         DebugStop();

@@ -14,7 +14,7 @@
 #include "pzaxestools.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzfmatrix");
 static PZLogger loggerCheck("pz.checkconsistency");
 #endif

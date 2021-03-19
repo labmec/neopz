@@ -31,7 +31,7 @@
 #define _YZ_ 4
 #define _ZZ_ 5
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerr("logtensor");
 #endif
 
@@ -1096,7 +1096,7 @@ void TPZTensor<T>::EigenSystemJacobi(TPZDecomposed &eigensystem)const {
     }
 
 #ifdef PZDEBUG
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerr.isDebugEnabled()) {
         std::stringstream str;
         str << "\n-------------AUTOVETORES JACOBI--------------" << std::endl;
@@ -1789,7 +1789,7 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval, TPZTensor<T> &dSigma1, TPZ
 
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "\n  TPZTENSOR \n" << endl;

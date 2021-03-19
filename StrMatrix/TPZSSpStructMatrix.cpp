@@ -24,7 +24,7 @@
 #include "TPZTimer.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.StrMatrix");
 #endif
 
@@ -36,7 +36,7 @@ TPZStructMatrix * TPZSymetricSpStructMatrix::Clone(){
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
@@ -56,7 +56,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     TPZTimer before("Assembly of a sparse matrix");
 //    std::cout << "Assembling\n";
     before.start();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
 #endif
 	Assemble(*stiff,rhs,guiInterface);
@@ -68,7 +68,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     //std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
 #endif
     return stiff;

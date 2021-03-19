@@ -19,7 +19,7 @@
 #include "pzlog.h"
 #include "tpzverysparsematrix.h"
 #include "TPZParallelUtils.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzskylmatrix");
 #endif
 
@@ -1300,7 +1300,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
             *elj -= sum;
             if(ell != elj) *elj /= *ell;
             else if(IsZero(*elj)) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 std::stringstream sout;
                 sout << "col = " << j << " diagonal " << *elj;
                 LOGPZ_DEBUG(logger,sout.str())
@@ -1689,7 +1689,7 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(int64_t col, int64_t prevcol,std::list
     }else{
         TVar pivot = *run2;
         if ( fabs(pivot) < fabs((TVar)1.e-10) ) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             std::stringstream sout;
             sout << "equation " << col << " is singular pivot " << pivot;
             LOGPZ_WARN(logger,sout.str())

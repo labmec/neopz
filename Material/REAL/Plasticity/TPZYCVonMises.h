@@ -130,12 +130,12 @@ public:
     */
     void LoadState(TPZFMatrix<REAL> &state)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ycvonmises"));
     #endif
       int i;
       for(i=0; i<6; i++) gRefTension[i] = state(i,0);
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Tensao " << state;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -144,7 +144,7 @@ public:
 
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ycvonmises"));
     #endif
       TPZTensor<REAL> dj2;
@@ -173,7 +173,7 @@ public:
           tangent.Redim(1,6);
           for(i=0; i<6; i++) tangent(0,i) = ndir[0][i];
       }
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Matriz tangent " << tangent;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -182,7 +182,7 @@ public:
 
     void Residual(TPZFMatrix<REAL> &res,int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ycvonmises"));
     #endif
       TPZTensor<REAL> gradtheta;
@@ -206,7 +206,7 @@ public:
           res(0,0) = phivec[0];
           break;
       }
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "valor phi " << res(0,0);
       LOGPZ_DEBUG(logger,sout.str().c_str());

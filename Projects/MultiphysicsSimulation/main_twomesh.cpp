@@ -56,7 +56,7 @@ void Forcingf(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an, std::string plotfile);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.mixedpoisson.data");
 #endif
 
@@ -203,7 +203,7 @@ TPZGeoMesh *GMesh(int triang_elements, int nh){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -276,7 +276,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
         
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;

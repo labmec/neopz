@@ -16,7 +16,7 @@
 #include "TPZGenGrid2D.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("br.steammesh");
 #endif
 
@@ -140,7 +140,7 @@ void TPBrSteamMesh::AssembleCell(int cell, TPZFMatrix<REAL> &ekcell, TPZFMatrix<
     TPBrCellConservation::Scales(eqscale, cellstatescale);
     int neq = ekcell.Rows();
     int nstate = ekcell.Cols();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "eqscale " << eqscale << std::endl;
@@ -163,7 +163,7 @@ void TPBrSteamMesh::AssembleCell(int cell, TPZFMatrix<REAL> &ekcell, TPZFMatrix<
         }
         efcell(ieq,0) /= eqscale[ieq];
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         ekcell.Print("Cell Stiffness",sout);
@@ -206,7 +206,7 @@ void TPBrSteamMesh::AssembleInterface(int interface1, TPZFMatrix<REAL> &ekinterf
         }
         efinterface(ieq,0) /= eqscales[ieq];
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         ekinterface.Print("Interface Stiffness",sout);
@@ -354,7 +354,7 @@ void TPBrSteamMesh::ComputeTangent(TPZMatrix<REAL> &tangent, TPZFMatrix<REAL> &r
 	REAL coord = NodeCoord(0);
 	area = 2.*M_PI*coord*fHeight;
 	delx = fFirstCellSize*(1.+1./fGeometricProgression)/2.;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "before computing the inlet calcstiff\n";
@@ -427,7 +427,7 @@ void TPBrSteamMesh::ComputeTangent2(TPZMatrix<REAL> &tangent, TPZFMatrix<REAL> &
 	REAL coord = NodeCoord(0);
 	area = 2.*M_PI*coord*fHeight;
 	delx = fFirstCellSize*(1.+1./fGeometricProgression)/2.;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "before computing the inlet calcstiff\n";
@@ -492,7 +492,7 @@ void TPBrSteamMesh::TimeStep(REAL delt)
     fThermal.SetDelt(fDelt);
 	REAL resnorm;
 	resnorm = Iterate();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Residual norm " << resnorm;
@@ -501,7 +501,7 @@ void TPBrSteamMesh::TimeStep(REAL delt)
 #endif
 	while (resnorm > 1.e-5) {
 		resnorm = Iterate();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "Residual norm " << resnorm;
@@ -531,7 +531,7 @@ REAL TPBrSteamMesh::Iterate()
     TPZStack<REAL> scales;
     StateScales(scales);
 	ComputeTangent(bnd, rhs,scales);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         rhs.Print("rhs after ComputeTangent",sout);
@@ -541,7 +541,7 @@ REAL TPBrSteamMesh::Iterate()
 	REAL residual = Norm(rhs);
     std::list<int64_t> singular;
 	bnd.SolveDirect(rhs,ELU,singular);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         rhs.Print("solution correction before scaling",sout);
@@ -552,7 +552,7 @@ REAL TPBrSteamMesh::Iterate()
     for (ieq=0; ieq<neq; ieq++) {
         rhs(ieq,0) *= -scales[ieq];
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         rhs.Print("solution correction",sout);
@@ -561,7 +561,7 @@ REAL TPBrSteamMesh::Iterate()
 #endif
     
     REAL scale = LimitRange(fNextState, rhs);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "scale factor applied to the solution correction = " << scale;
@@ -575,7 +575,7 @@ REAL TPBrSteamMesh::Iterate()
     }
     
 	fNextState += rhs;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         fNextState.Print("solution after correction",sout);
@@ -583,7 +583,7 @@ REAL TPBrSteamMesh::Iterate()
     }
 #endif
     ProjectSolution(fNextState);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         fNextState.Print("solution after projection",sout);
@@ -767,7 +767,7 @@ void TPBrSteamMesh::SetWaterInjection(REAL massflux, REAL temperature)
     SetWaterSaturation(1.);
     REAL energyflux = TPBrSteamFlux::EnthalpyWater(temperature)*massflux;
     TPBrSteamFlux::fInletEnergyFlux = energyflux;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Enthalpy water " << TPBrSteamFlux::EnthalpyWater(temperature) << std::endl;
@@ -787,7 +787,7 @@ void TPBrSteamMesh::SetWaterInjection(REAL massflux, REAL temperature)
         fNextState(eqenergyflux,0) = energyflux;
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         Print(sout);
@@ -857,7 +857,7 @@ void TPBrSteamMesh::SetWaterInjection(REAL massflux, REAL temperature)
     fNextState(eqpress,0) = pressure;
     fPrevState(eqpress,0) = pressure;
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         fNextState.Print("Initialized state",sout);
@@ -876,7 +876,7 @@ void TPBrSteamMesh::SetSteamQuality(REAL quality, REAL referencepressure)
     REAL masswater = (1.-quality)*massflux;
     REAL masssteam = quality*massflux;
     REAL energyflux = enthalpywater*masswater+enthalpysteam*masssteam;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Inlet pressure " << referencepressure;
@@ -973,7 +973,7 @@ void TPBrSteamMesh::VerifyTangent(TPZFMatrix<REAL> &direction)
 	TPZFNMatrix<100> rhsref(neq,1),rhs(neq,1),result(neq,1);
 	TPZManVector<REAL> scales(neq,1.);
 	ComputeTangent2(bnd, rhsref,scales);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         bnd.Print("VerifyTangent matrix ",sout);

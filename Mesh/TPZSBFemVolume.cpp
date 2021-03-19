@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggercoefmatrices("pz.mesh.sbfemvolume.coefmatrices");
 static PZLogger logger("pz.mesh.sbfemvolume");
 static PZLogger loggerLBF("pz.mesh.sbfemvolume.bodyloads");
@@ -125,7 +125,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         if (dim2 == 3) {
             //            TPZFNMatrix<9,REAL> jacorig(data2d.jacobian);
             AdjustAxes3D(axes, data2d.axes, data2d.jacobian, data2d.jacinv, data2d.detjac);
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "x 2d " << data1d.x << std::endl;
@@ -138,7 +138,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
             }
 #endif
         }
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
         if (logger.isDebugEnabled()) {
             std::stringstream sout;
             TPZFNMatrix<9> axest, gradx(3, dim2);
@@ -325,7 +325,7 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
         DebugStop();
     }
 #endif
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled()) {
         TPZManVector<std::complex<double> > coefcol(fCoeficients.Rows());
         for (int i = 0; i < fCoeficients.Rows(); i++) {
@@ -359,7 +359,7 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
                 Duh_xi[i] += -fCoeficients(c, s)*(fEigenvalues[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhi(i, c);
             }
         }
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
         if (s == 0 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
@@ -421,7 +421,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     TPZCompEl *celgroup = cmesh->Element(fElementGroupIndex);
     TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *> (celgroup);
     TPZFMatrix<std::complex<double> > &CoefficientLoc = elgr->PhiInverse();
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         CoefficientLoc.Print("Coefficients = ", sout, EMathematicaInput);
@@ -477,7 +477,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     }
 #endif
     phi.Zero();
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled()) {
         int eq = 1;
         TPZManVector<std::complex<double> > coefcol(CoefficientLoc.Rows());
@@ -512,7 +512,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
                 Duh_xi[i] += -CoefficientLoc(c, s)*(fEigenvalues[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhi(i, c);
             }
         }
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
         if (s == 1 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
@@ -1010,7 +1010,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         }
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerLBF.isDebugEnabled()) {
         std::stringstream sout;
         eflocal.Print("eflocal = ", sout, EMathematicaInput);
@@ -1084,7 +1084,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
         DebugStop();
     }
 #endif
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled()) {
         TPZManVector<std::complex<double> > coefcol(fCoeficients.Rows());
         for (int i = 0; i < fCoeficients.Rows(); i++) {
@@ -1151,7 +1151,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
             }
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (s == 0 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
@@ -1186,7 +1186,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
     }
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
    if (loggerEvaluateError.isDebugEnabled()) {
         TPZFNMatrix<200, std::complex<double> > sbfemmat(numeig,numeig,0.);
         for (int i=0; i<numeig; i++) {

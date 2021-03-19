@@ -50,11 +50,11 @@
 #include <stdio.h>
 
 // Using Log4cXX as logging tool
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.multiphase");
 #endif
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material.multiphase.data");
 #endif
 //
@@ -1014,7 +1014,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //      ResidualT= RhsAtnT + RhsAtnPlusOneT;        
 //      NormValueT = Norm(ResidualT);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -1031,7 +1031,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     matK=NonLinearAn->Solver().Matrix();
     fvec = NonLinearAn->Rhs();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
    if(logdata.isDebugEnabled())
    {
        std::stringstream sout;
@@ -1064,7 +1064,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             mphysics->LoadSolution(Uatn + DeltaX);          
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -1075,7 +1075,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             }
 #endif          
             
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //          if(logdata.isDebugEnabled())
 //          {
 //              std::stringstream sout;
@@ -1114,7 +1114,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             std::cout << "Time for Assemble and computing norm: " << time2 << std::endl;	    
                 
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -1126,7 +1126,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 #endif      
 
             
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //          if(logdata.isDebugEnabled())
 //          {
 //              std::stringstream sout;

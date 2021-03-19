@@ -121,7 +121,7 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 
 void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.Poisson2D_ArcTan_Disc");
 
 #endif
@@ -153,7 +153,7 @@ int main() {
     TPZCompMesh *cmesh = CreateMesh(gmesh, p, dim, true);
     cmesh->ComputeNodElCon();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         cmesh->Print(sout);

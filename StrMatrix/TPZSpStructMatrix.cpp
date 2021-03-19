@@ -24,7 +24,7 @@
 #include "TPZTimer.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.StrMatrix");
 #endif
 
@@ -36,7 +36,7 @@ TPZStructMatrix * TPZSpStructMatrix::Clone(){
 TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble starting")
@@ -54,7 +54,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     TPZTimer before("Assembly of a sparse matrix");
     before.start();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble calling Assemble()");
@@ -66,7 +66,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
 //    mat->ComputeDiagonal();
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble exiting");
 #endif
     return stiff;
@@ -99,7 +99,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
      */
     metis.ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
     
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if(logger.isDebugEnabled()){
         std::stringstream sout;
         sout << "Node graph \n";
@@ -138,7 +138,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 		}
     }
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Number of equations " << totaleq << " number of nonzero s " << totalvar;

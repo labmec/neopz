@@ -34,7 +34,7 @@
 #include "pzgeoelbc.h"
 
 /** Initialiazing file for Log4CXX for this project */
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.Cedric");
 #endif
 
@@ -115,7 +115,7 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
     out << "Regular ";
 #endif
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -263,7 +263,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     CheckConsistency(gmesh);
 #endif
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -293,7 +293,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     
     TPZAnalysis analysis(cmesh);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -468,7 +468,7 @@ TPZGeoMesh *TCedricTest::PyramidalAndTetrahedralMesh(int64_t nelem,int MaterialI
                 nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 {
                     std::stringstream sout;
                     sout << "Pyramid and tetrahedral nodes " << nodes;
@@ -513,7 +513,7 @@ TPZGeoMesh *TCedricTest::TetrahedralMesh(int64_t nelem,int MaterialId)
                 nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 {
                     std::stringstream sout;
                     sout << "Tetrahedral nodes " << nodes;
@@ -628,7 +628,7 @@ TPZGeoMesh *TCedricTest::HexahedralMesh(int64_t nelem,int MaterialId)
                 nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;

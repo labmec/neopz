@@ -15,7 +15,7 @@
 
 #include "tpzgeoelrefpattern.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzbuildsbfem");
 #endif
 
@@ -556,7 +556,7 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                 if (subgelside.IsLinearMapping())
                 {
                     gmesh->CreateGeoElement(targettype, Nodes, matid, index);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if(logger.isDebugEnabled())
                     {
                         std::stringstream sout;
@@ -586,7 +586,7 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                             DebugStop();
                             break;
                     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if(logger.isDebugEnabled())
                     {
                         std::stringstream sout;

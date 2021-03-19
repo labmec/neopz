@@ -10,7 +10,7 @@
 #include "pzvec.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("substruct.dohrassembly");
 #endif
 
@@ -29,7 +29,7 @@ void TPZDohrAssembly<TVar>::Assemble(int isub, const TPZFMatrix<TVar> &local, TP
             global(avec[ieq],ic) += local.GetVal(ieq,ic);
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Assembling destination indices " << avec << std::endl;
@@ -59,7 +59,7 @@ void TPZDohrAssembly<TVar>::Extract(int isub, const TPZFMatrix<TVar> &global, TP
             local(ieq,ic) = global.GetVal(avec[ieq],ic);
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "sub structure " << isub << " Extracting destination indices " << avec << std::endl;
@@ -88,7 +88,7 @@ void TPZDohrAssembly<TVar>::AssembleCoarse(int isub, const TPZFMatrix<TVar> &loc
             global(avec[ieq],ic) += local.GetVal(ieq,ic);
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Assembling destination indices " << avec << std::endl;

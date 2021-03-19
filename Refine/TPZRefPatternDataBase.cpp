@@ -16,7 +16,7 @@
 #include "pzgeoelside.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.refpattern.TPZRefPatternDataBase");
 #endif
 
@@ -376,7 +376,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 refpat->PrintMore(sout);

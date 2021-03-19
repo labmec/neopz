@@ -16,7 +16,7 @@
 #include "pzlog.h"
 //#include "meshgen.h"
 #include "TPZAnalyticSolution.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.mixedelasticity");
 #endif
 
@@ -266,7 +266,7 @@ void TPZMixedElasticityMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, RE
     force[1] = this->fForce[1];
     if (this->HasForcingFunction()) {
         this->ForcingFunction()->Execute(datavec[0].x, force);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logdata.isDebugEnabled()) {
             std::stringstream sout;
             sout << " x = " << datavec[0].x << " force = " << force << std::endl;
@@ -1364,7 +1364,7 @@ void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<ST
         disp[i] = data[1].sol[0][i];
     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logdata.isDebugEnabled())
  {
         std::stringstream sout;

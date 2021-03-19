@@ -69,7 +69,7 @@
 using namespace pzshape;
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.testhdiv");
 #endif
 
@@ -339,7 +339,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile2, true);
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -542,7 +542,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
 //    ofstream arq4("mphysics.txt");
 //    mphysics->Print(arq4);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -586,7 +586,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     cmesh->SetDefaultOrder(fluxorder);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -966,7 +966,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
 //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
         intel->ComputeRequiredData(dataA, pos);
         intelP->ComputeShape(pos, dataB);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 				{
 						std::stringstream sout;
@@ -993,7 +993,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             for (d=0; d<dim; d++) {
                 divphi += dataA.dphix(d,phiindex)*vecinner[d];                
             }
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //						{
 //								std::stringstream sout;
 //								sout << "Div " << divphi<< std::endl;
@@ -1010,7 +1010,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             }
             // the divergence of the vector function should be equal to the value of projected pressure space
             STATE diff = phival-divphi;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
@@ -1559,7 +1559,7 @@ void RunBilinear(MElementType eltype)
     an.PostProcess(div,dim);
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1723,7 +1723,7 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(int64_t nelem,int MaterialId)
                 nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 if(logger.isDebugEnabled())
                 {
                     std::stringstream sout;

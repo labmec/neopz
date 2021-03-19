@@ -13,7 +13,7 @@
 #include "TPZGenGrid2D.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("br.steamsimulation");
 #endif
 
@@ -50,7 +50,7 @@ int main()
     TPZFMatrix<REAL> tangent(neq,neq),residual(neq,1);
 /*    TPZStack<REAL> scales;
     mesh.StateScales(scales);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Statescales " << scales;

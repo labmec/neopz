@@ -31,7 +31,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("main");
 #endif
 
@@ -308,7 +308,7 @@ int main()
 	
 	//an.Solution().Print("Solution");
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
@@ -770,7 +770,7 @@ void Teste()
 	
 	//an.Solution().Print("Solution");
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
@@ -779,7 +779,7 @@ void Teste()
 	}
 #endif
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
@@ -833,7 +833,7 @@ void Teste()
 		sub(is,0) = Ku(is,0) - carga(is,0);
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream str;

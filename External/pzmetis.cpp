@@ -14,7 +14,7 @@ extern "C" {
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.metis");
 #endif
 
@@ -151,7 +151,7 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	TPZManVector<int> AdjacencyWeight;
 	ConvertToElementoToElementGraph(fElementGraph,fElementGraphIndex,Adjacency,AdjacencyWeight,AdjacencyIndex);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		TPZRenumbering::Print(Adjacency,AdjacencyIndex,"Element to element graph",sout);

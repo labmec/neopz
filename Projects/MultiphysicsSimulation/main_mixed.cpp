@@ -93,7 +93,7 @@ void NeumannDireitaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannAcimaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.mixedpoisson.data");
 #endif
 
@@ -141,7 +141,7 @@ int main5(int argc, char *argv[])
 //                ofstream arg2("cmesh1_inicial.txt");
 //                cmesh1->Print(arg2);
 
-        #ifdef LOG4CXX
+        #ifdef PZ_LOG
                             if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
@@ -159,7 +159,7 @@ int main5(int argc, char *argv[])
                 else cmesh2 = CMeshPressure(gmesh, p);
                 //ofstream arg3("cmesh2_inicial.txt");
                 //cmesh2->Print(arg3);
-        #ifdef LOG4CXX
+        #ifdef PZ_LOG
                             if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
@@ -192,7 +192,7 @@ int main5(int argc, char *argv[])
                 TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
                 //ofstream arg6("mphysic.txt");
                 //mphysics->Print(arg6);
-        #ifdef LOG4CXX
+        #ifdef PZ_LOG
                             if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
@@ -420,7 +420,7 @@ TPZGeoMesh *GMesh(bool triang_elements){
     
 	gmesh->BuildConnectivity();
     
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
@@ -463,7 +463,7 @@ TPZGeoMesh *GMesh2(bool triang_elements)
     secondpoint[0] = 0.5;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc0);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logdata.isDebugEnabled())
     {
       std::stringstream sout;
@@ -638,7 +638,7 @@ TPZGeoMesh *GMesh3(){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -690,7 +690,7 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
     
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
@@ -780,7 +780,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     }
 #endif
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
@@ -1631,7 +1631,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
 
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1644,7 +1644,7 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
     }
 #endif
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1733,7 +1733,7 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
         intrule->SetOrder(prevorder);
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1747,7 +1747,7 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
 #endif
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logdata.isDebugEnabled())
     {
         std::stringstream sout;

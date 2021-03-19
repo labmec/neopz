@@ -15,7 +15,7 @@
 #include "pzinterpolationspace.h"
 #include "pzcompelwithmem.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.TPZMultiPhysicsElement");
 #endif
 
@@ -153,7 +153,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
 		if(!gel){
 			DebugStop();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -264,7 +264,7 @@ TPZMultiphysicsInterfaceElement * TPZMultiphysicsElement::CreateInterface(int si
 		} else {
 			TPZCompElSide thiscompelside(this, thisside.Side());
 			TPZCompElSide lowcelcompelside(lower);
-#ifdef LOG4CXX_KEEP
+#ifdef PZ_LOG_KEEP
             if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -381,7 +381,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	int64_t size = list.NElements(), i=-1;
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -394,7 +394,7 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	}
 	// aqui existe a interface
 	TPZCompEl *cel = list[i].Element();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	TPZGeoEl *gel = cel->Reference();
     if (logger.isDebugEnabled())
 	{

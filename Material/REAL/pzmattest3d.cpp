@@ -15,7 +15,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.material.tpzmattest3d");
 #endif
 using namespace std;

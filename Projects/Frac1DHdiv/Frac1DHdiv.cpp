@@ -4,7 +4,7 @@
 #include "TPZFracAnalysis.h"
 #include "pzshapelinear.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.frac");
 #endif
 

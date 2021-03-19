@@ -34,7 +34,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.adaptivity");
 static PZLogger loggerconv("pz.adaptivity.conv");
 static PZLogger loggerpoint("pz.adaptivity.points");
@@ -178,7 +178,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;

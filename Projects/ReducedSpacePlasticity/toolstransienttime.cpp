@@ -52,7 +52,7 @@
 #include "pzgeoquad.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.reducedspace.data");
 #endif
 
@@ -2313,7 +2313,7 @@ REAL ToolsTransient::IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int max
 	an->Solution().Print("sol");
 	std::cout << "iter = " << nit << "\t||res|| = " << res << std::endl;
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if (logger.isDebugEnabled()) {
 		std::stringstream totout;
 		totout << "************** Comecando as iteracoes do metodo de Newton *************** " << std::endl;
@@ -2360,7 +2360,7 @@ REAL ToolsTransient::IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int max
 		
 		res_total = fres + fmat;
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if (logger.isDebugEnabled()) {
 			std::stringstream totout;
       /*
@@ -3218,7 +3218,7 @@ void ToolsTransient::IdentifyEquationsToZero()
       }
     }
   }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
   {
     std::stringstream sout;
     sout << "Equations to zero ";

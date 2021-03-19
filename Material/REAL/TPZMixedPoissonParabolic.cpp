@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.mixedpoisson.data");
 static PZLogger logerror("pz.mixedpoisson.error");
 #endif

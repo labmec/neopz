@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.girkmannproblem");
 #endif
 

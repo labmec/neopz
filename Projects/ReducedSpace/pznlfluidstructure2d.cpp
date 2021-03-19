@@ -18,7 +18,7 @@
 #include "pzintel.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.material.elastpressure");
 #endif
 

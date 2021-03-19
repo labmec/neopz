@@ -8,7 +8,7 @@
 using namespace std;
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.topology.prismextend");
 #endif
 
@@ -321,7 +321,7 @@ namespace pztopology {
 	template<class TFather>
 	void Pr<TFather>::Diagnostic()
 	{
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;

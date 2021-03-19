@@ -63,7 +63,7 @@ USING_MATLIB_NAMESPACE
 #include <cmath>
 #include <set>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.elasticity");
 #endif
 

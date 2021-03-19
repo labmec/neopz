@@ -89,7 +89,7 @@ void SolExataP(const TPZVec<REAL> &pt, TPZVec<STATE> &solP, TPZFMatrix<STATE> &G
 
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<STATE> &disp);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.tutorial.multiphysics");
 #endif
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 {
 
     // example log statement
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout<<"Starting up " << std::endl;
@@ -319,7 +319,7 @@ TPZGeoMesh *GMesh(bool triang_elements){
     
     gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;

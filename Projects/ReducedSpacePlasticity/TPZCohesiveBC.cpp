@@ -6,7 +6,7 @@
 #include "TPZCohesiveBC.h"
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
 static PZLogger logger("pz.reducedspace.data");
 #endif
@@ -287,7 +287,7 @@ void TPZCohesiveBC::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 		}
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if (logger.isDebugEnabled()) {
 		std::stringstream str;
 		str << "\n------- Contribute do Cohesive -------" << std::endl;

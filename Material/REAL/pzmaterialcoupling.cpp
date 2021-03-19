@@ -11,7 +11,7 @@
 #include "pzpoisson3d.h"
 #include "pzgeoel.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.material.poisson3d.materialcoupling");
 #endif
 
@@ -57,7 +57,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 						REAL prod1 =	phiHdiv(ishapeind,0)*phiH1(jcol,0)*prod;
 						
 						
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                if (logger.isDebugEnabled())
 					{
 							std::stringstream sout;
@@ -68,7 +68,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 						ekCouple(ilinha,jcol)+= weight  * prod1;
 						ek(ilinha,numdual+ numvec+jcol) += weight  * (prod1);
 						
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled())
 					{
 				std::stringstream sout;
@@ -81,7 +81,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
     }
 	
 	ekCouple.Print("Matriz teste Acoplamento",std::cout);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		ekCouple.Print("Matriz teste Acoplamento",sout);
@@ -108,7 +108,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 	std::cout << "numero de funcoes de Hdiv( direita ) " << nrowR<<std::endl;
 	std::cout << "numero de funcoes de de pressao(direita) " << numdual<<std::endl;
 	std::cout << "numero de funcoes de H1 (esquerda ) " << nrowL<<std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;
@@ -123,7 +123,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 		int ishapeind = dataright.fVecShapeIndex[ir].second;
 		for(int jl=0; jl<nrowL; jl++) {
 			REAL prod1 =	phixR(ishapeind,0)* phixL(jl);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -137,7 +137,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
     }
 		
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 		{
 				std::stringstream sout;

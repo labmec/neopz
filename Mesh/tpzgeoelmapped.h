@@ -16,7 +16,7 @@
 #include "pzlog.h"
 #include <sstream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggermapped("pz.mesh.geoelmapped");
 #endif
 
@@ -238,7 +238,7 @@ int ClassId() const override;
 					sout << "\nfatherXaux:\n";
 					for(int i = 0; i < fatherXaux.NElements(); i++) sout << fatherXaux[i] << "\t";
 					std::cout << sout.str();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 					father->Mesh()->Print(sout);
 					LOGPZ_ERROR(loggermapped,sout.str())
 #endif
@@ -523,7 +523,7 @@ protected:
 
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(loggermapped.isDebugEnabled())
         {
             std::stringstream sout;

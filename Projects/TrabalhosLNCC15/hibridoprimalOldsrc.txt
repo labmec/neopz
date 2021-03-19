@@ -152,7 +152,7 @@ bool rodarH1 = false;
 bool rodarSIPGD = false;
 bool rodarHdiv = true;
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.hibridoprimal");
 #endif
 void ChangeInternalConnectOrder(TPZCompMesh *mesh);
@@ -161,7 +161,7 @@ void ChangeInternalConnectOrder(TPZCompMesh *mesh);
 
 //int main(int argc, char *argv[])
 //{
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    InitializePZLOG();
 //#endif
 //
@@ -457,7 +457,7 @@ int main(int argc, char *argv[])
     }
     
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //    InitializePZLOG();
     //#endif
     
@@ -1817,7 +1817,7 @@ void GroupElements(TPZCompMesh *cmesh, int dimproblema)
     //            }
     //        }
     //
-    //        //#ifdef LOG4CXX
+    //        //#ifdef PZ_LOG
     //        //        if (logger->isDebugEnabled())
     //        //        {
     //        //            std::stringstream sout;
@@ -1894,7 +1894,7 @@ void GroupElements(TPZCompMesh *cmesh, int dimproblema)
                 }
             }
         }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger->isDebugEnabled())
         {
             std::stringstream sout;
@@ -1920,7 +1920,7 @@ void GroupElements(TPZCompMesh *cmesh, int dimproblema)
     
     cmesh->CleanUpUnconnectedNodes();
     cmesh->ExpandSolution();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger->isDebugEnabled())
     {
         std::stringstream sout;
@@ -2562,7 +2562,7 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     
     cmesh->AutoBuild();//Ajuste da estrutura de dados computacional
     //
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata->isDebugEnabled())
     //	{
     //        std::stringstream sout;

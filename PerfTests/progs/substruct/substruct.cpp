@@ -47,7 +47,7 @@
 #include <fstream>
 #include <string>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerconverge("pz.converge");
 static PZLogger logger("main");
 #endif
@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
         
         dohrstruct->SubStructure(nsub.get_value());
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream str;
             cmeshauto->Print(str);
@@ -710,7 +710,7 @@ int main(int argc, char *argv[])
             it++;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);

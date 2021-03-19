@@ -19,7 +19,7 @@
 #endif
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.integral.pzquad");
 #endif
 
@@ -233,7 +233,7 @@ void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
 	if(ord[0] < 0 || ord[0] > TPZIntRuleT::NRULESTRIANGLE_ORDER || ord[1] < 0 || ord[1] > TPZIntRuleT::NRULESTRIANGLE_ORDER) 
 	{
 #ifdef PZDEBUG
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger,"Integration rule for triangle - Order is bigger than NRULESTRIANGLE_ORDER (Max)");
 #endif
 #endif
@@ -335,7 +335,7 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER) {
 #ifdef PZDEBUG
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger->isWarnEnabled())
             {
                 std::stringstream sout;
@@ -388,7 +388,7 @@ void TPZIntPyram3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleP3D::NRULESPYRAMID_ORDER) {
 #ifdef PZDEBUG
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger,"Integration rule for pyramid - Order is bigger than NRULESPYRAMID_ORDER (Max)");
 #endif
 #endif

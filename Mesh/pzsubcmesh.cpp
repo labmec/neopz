@@ -39,7 +39,7 @@
 #include <iterator>
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.subcmesh");
 static PZLogger logger2("pz.mesh.tpzcompmesh");
 #endif
@@ -483,7 +483,7 @@ int64_t TPZSubCompMesh::GetFromSuperMesh(int64_t superind, TPZCompMesh *super){
 		int64_t j;
 		j = it->second;
 		
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
         if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -608,7 +608,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 #ifdef PZDEBUG
 	//father->ComputeNodElCon();
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -672,7 +672,7 @@ void TPZSubCompMesh::MakeAllInternal(){
                 }
             }
 		}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -686,7 +686,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 #endif
 		for (itset=cantransfer.begin(); itset!=cantransfer.end(); itset++)
 		{
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
             {
 				std::stringstream sout;
@@ -728,7 +728,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 	 // if the node upon which locind is dependent is already on the stack, no further analysis required
 	 if (listdepend->HasDepend(fConnectIndex[fExternalLocIndex[locind]])) 
 	 {
-	 #ifdef LOG4CXX
+	 #ifdef PZ_LOG
 	 {
 	 std::stringstream sout;
 	 sout << "Connect " << locind << " cannot be made internal because of " << jlocind;
@@ -756,7 +756,7 @@ void TPZSubCompMesh::MakeAllInternal(){
 	 if(can && RootMesh(locind) != FatherMesh()) can = 0;
 	 if (can) 
 	 {
-	 #ifdef LOG4CXX
+	 #ifdef PZ_LOG
 	 {
 	 std::stringstream sout;
 	 sout << "Making the connect index " << locind << " internal";
@@ -1287,7 +1287,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		}
 		
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1346,7 +1346,7 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
     }
     
     SaddlePermute();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1383,7 +1383,7 @@ void TPZSubCompMesh::SetAnalysisNonSymSparse(int numThreads)
     }
 
     SaddlePermute();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1421,7 +1421,7 @@ void TPZSubCompMesh::SetAnalysisFStruct(int numThreads)
     }
 
     SaddlePermute();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1458,7 +1458,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	}
     
     SaddlePermute();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1526,7 +1526,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     }
     
     SaddlePermute();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1630,7 +1630,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	std::map<int64_t,int64_t> independent;
 	std::list<int64_t> internal;
 	this->PotentialInternal(internal);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Internal connects ic/seqnum";
@@ -1667,7 +1667,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 			independent[ConnectVec()[locind].SequenceNumber()] = locind;
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Mesh Address " << (void *) this << " Index = " << Index() << " \nIndependent connect sequence numbers and indices ";
@@ -1691,7 +1691,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		permute[mapit->first] = count++;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 1 " << permute;
@@ -1713,7 +1713,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 	{
 		if(permute[mapit->first] == -1) permute[mapit->first] = count++;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Index = " << Index() << " Permutation vector 2 " << permute;
@@ -1732,7 +1732,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "Permuting")
 #endif
 	Permute(permute);
@@ -1785,7 +1785,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	{
 		permute[*it] = seqnum++;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1825,7 +1825,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 			// end loop
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1881,7 +1881,7 @@ TPZVec<STATE> TPZSubCompMesh::IntegrateSolution(const std::string &varname, cons
 void TPZSubCompMesh::TransferMultiphysicsElementSolution()
 {
     int64_t nel = this->NElements();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         fSolution.Print("SubMeshSol",sout);

@@ -13,7 +13,7 @@
 
 #include "fadType.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
 
 static PZLogger loggerSML2("material.plasticity.SML2");
@@ -140,7 +140,7 @@ inline void TPZYCSandlerDimaggioL2::Compute(const TPZTensor<T> & sigma, const T 
     // shear and hardening cap yield criteria / plastic potential.
     // It is first evaluated as REAL type to avoid unnecessary
     // derivatives evaluation.
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
     {
         LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggioL"));
         std::stringstream sout;
@@ -168,7 +168,7 @@ inline void TPZYCSandlerDimaggioL2::Compute(const TPZTensor<T> & sigma, const T 
             res[1] = sqrt(J2) - FI1;
         }
         res[0] = I1 - T(lmax);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (loggerSML.isDebugEnabled()) {
             std::stringstream sout;
 
@@ -198,7 +198,7 @@ inline void TPZYCSandlerDimaggioL2::Compute(const TPZTensor<T> & sigma, const T 
         //	SolveL(X, L); // evaluating the derivatives of L
         ComputeF(L, FL);
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
         if (fabs((REAL) TPZExtractVal::val(FL)) < 1.e-5) {
             {
                 LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
@@ -235,7 +235,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
     // derivatives evaluation.
 
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
     {
         LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggioL"));
         std::stringstream sout;
@@ -282,7 +282,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
 
             if ((REAL) TPZExtractVal::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
             {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
                 {
                     LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
                     std::stringstream sout;
@@ -306,7 +306,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
         Ndir[0].YZ() = sigma.YZ() * Temp3;
         Ndir[0].XZ() = sigma.XZ() * Temp3;
         Ndir[0].XY() = sigma.XY() * Temp3;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (loggerSML.isDebugEnabled()) {
             std::stringstream sout;
             Ndir[0].Print(sout);
@@ -341,7 +341,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
             T Temp = (I1 - L) / T(fR * fR) - I1 / T(6.);
             Temp = Temp / FL2 * T(2.);
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
             {
                 LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
                 std::stringstream sout;
@@ -370,7 +370,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
         }
     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         LoggerPtr logger(Logger::getLogger("pz.plasticity.SandlerDimaggio.main"));
         if (0 && logger.isDebugEnabled()) {
@@ -399,7 +399,7 @@ inline void TPZYCSandlerDimaggioL2::H(const TPZTensor<T> & sigma, const T & A, T
     // It is first evaluated as REAL type to avoid unnecessary
     // derivatives evaluation.
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
     {
         LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
         std::stringstream sout;
@@ -476,7 +476,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
     sigtrialIJkeep = sigtrialIJ;
     Compute(sigtrial, L, yield, 0);
     int surfaceprojected = -1;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerSML.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Value of fIsonCap " << fIsonCap;
@@ -532,7 +532,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
             sigtrial.Adjust(sigtrialIJ, sigproj);
             L = LMax();
             Lproj = Lextern;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 sout << "Projecting on the cap after projection on F2 : sigtrialIJ " << sigtrialIJ << " L " << L << " Lproj " << Lproj;
@@ -738,7 +738,7 @@ inline void TPZYCSandlerDimaggioL2::InitialGuess(const TPZElasticResponse &ER, R
         }
     }
     Compute(sigproj, Lproj, yield, 0);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (loggerSM.isDebugEnabled()) {
         std::stringstream sout;
         sout << "After projecting the point yield = " << yield;

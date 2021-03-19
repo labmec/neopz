@@ -36,7 +36,7 @@
 #include <sstream>
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzskylmatrix");
 #endif
 
@@ -1417,7 +1417,7 @@ else
 REAL pivot = *run2;
 if (pivot < 1.e-10)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 std::stringstream sout;
 sout << "equation " << col << " is singular pivot " << pivot;
 LOGPZ_WARN(logger, sout.str())

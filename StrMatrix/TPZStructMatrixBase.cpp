@@ -8,7 +8,7 @@
 #include "TPZThreadPool.h"
 #include "pzshtmat.h"
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.strmatrix.TPZStructMatrixOR");
 static PZLogger loggerel("pz.strmatrix.element");
 static PZLogger loggerel2("pz.strmatrix.elementinterface");
@@ -68,7 +68,7 @@ TPZMatrix<STATE> *TPZStructMatrixBase::CreateAssemble(
     rhs.Redim(fEquationFilter.NEqExpand(), cols);
     Assemble(*stiff, rhs, guiInterface);
 
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (loggerel.isDebugEnabled()) {
         std::stringstream sout;
         stiff->Print("Stiffness matrix", sout);
@@ -89,7 +89,7 @@ void TPZStructMatrixBase::FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int
 void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
 {
     fMaterialIds = materialids;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::set<int>::const_iterator it;

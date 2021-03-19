@@ -4,7 +4,7 @@
  */
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzmatred");
 #endif
 
@@ -63,7 +63,7 @@ void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
 
 template <class TVar>
 void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Entering " << __PRETTY_FUNCTION__;
@@ -72,7 +72,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
 #endif
     TPZSolver<TVar>::Write(buf, withclassid);
     if (fContainer) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "fContainer AutoPointer valid on " << __PRETTY_FUNCTION__;
@@ -83,7 +83,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fContainer.operator->(), &buf);
     
     if (fReferenceMatrix) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "fReferenceMatrix AutoPointer valid! It Shouldn't ! Expect Trouble " << __PRETTY_FUNCTION__;
@@ -93,7 +93,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
     }
     TPZPersistenceManager::WritePointer(fReferenceMatrix.operator->(), &buf);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Leaving" << __PRETTY_FUNCTION__;

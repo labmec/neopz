@@ -18,7 +18,7 @@
 #include "pzlog.h"
 #include "TPZFileStream.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("pz.converge");
 #endif
@@ -290,7 +290,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 		i++;
 	}
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Numero de iteracoes de Newton " << i;
@@ -402,7 +402,7 @@ void TPZEulerAnalysis::Run(std::ostream &out, const std::string & dxout, int dxR
 		
 		CFLControl(lastEpsilon, epsilon, epsilon_Newton,  nextTimeStep);
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -426,7 +426,7 @@ void TPZEulerAnalysis::Run(std::ostream &out, const std::string & dxout, int dxR
 		}
 		i++;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Total number of newton iterations " << this->fTotalNewton;

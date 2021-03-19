@@ -16,7 +16,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #ifdef PZDEBUG
 #define DEBUG2
 #endif

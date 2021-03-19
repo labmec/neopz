@@ -12,7 +12,7 @@
 
 #include <sstream>
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.matrix.tpzsfmatrix");
 #endif
 

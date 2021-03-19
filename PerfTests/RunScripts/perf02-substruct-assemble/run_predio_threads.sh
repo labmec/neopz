@@ -36,11 +36,11 @@ function run_cfg
 
     for ns in 2 4 8 16 32 64; do
 
-        BASEOUT="predio.@REAL_TYPE@.bin.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
+        BASEOUT="predio.double.bin.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
 
-        IF="predio.p$P.nsub$ns.t.@REAL_TYPE@.bin.ckpt1"
-        MD5F="@PERFTEST_LARGE_DATA_DIR@/SubStruct/outputs/$OF.md5"
-        CMD="$APP -bc -cf1 @PERFTEST_LARGE_DATA_DIR@/SubStruct/inputs/$IF -chk_c3_md5 $MD5F -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        IF="predio.p$P.nsub$ns.t.double.bin.ckpt1"
+        MD5F="PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/outputs/$OF.md5"
+        CMD="$APP -bc -cf1 PERFTEST_LARGE_DATA_DIR-NOTFOUND/SubStruct/inputs/$IF -chk_c3_md5 $MD5F -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         
@@ -60,7 +60,7 @@ function run_cfg
 
 PLEVEL=2
 VERBOSE_LEVEL=1
-APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
+APP="/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "perf01 - substruct performance test: predio step."

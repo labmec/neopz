@@ -27,7 +27,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.strmatrix.TPZStructMatrixTBBFlow");
 static PZLogger loggerel("pz.strmatrix.element");
 static PZLogger loggerel2("pz.strmatrix.elementinterface");
@@ -148,7 +148,7 @@ TPZMatrix<STATE> * TPZStructMatrixTBBFlow::CreateAssemble(TPZFMatrix<STATE> &rhs
     
     Assemble(*stiff,rhs,guiInterface);
     
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if(loggerel.isDebugEnabled())
     {
         std::stringstream sout;
@@ -400,14 +400,14 @@ void TPZStructMatrixTBBFlow::TPZFlowNode::operator()(tbb::flow::continue_msg) co
     TPZAutoPointer<TPZGuiInterface> guiInterface = myGraph->fGuiInterface;
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Computing element " << iel;
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     std::stringstream sout;
     sout << "Element " << iel << " elapsed time ";
     TPZTimer timeforel(sout.str());
@@ -472,7 +472,7 @@ void TPZStructMatrixTBBFlow::TPZFlowNode::operator()(tbb::flow::continue_msg) co
         
     } // outsided if
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     timeforel.stop();
     if (logger.isDebugEnabled())
     {
@@ -513,7 +513,7 @@ void TPZStructMatrixTBBFlow::TPZFlowGraph::CreateGraph()
                 int64_t elorig = elementloaded[c];
                 // in order to compute only once
                 if (fromwhere.find(elorig) == fromwhere.end()) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                     if (logger.isDebugEnabled()) {
                         std::stringstream sout;
                         sout << "Adding edge from " << elorig << " to " << graphindex;
@@ -527,7 +527,7 @@ void TPZStructMatrixTBBFlow::TPZFlowGraph::CreateGraph()
             }
         }
         if (ngraphs == 0) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Setting start element " << graphindex;

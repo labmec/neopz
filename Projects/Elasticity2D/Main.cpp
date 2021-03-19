@@ -60,7 +60,7 @@
 #include <cmath>
 #include <set>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.elasticity");
 #endif
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     int PElasticity = 2;
 	UniformRefinement(gmesh, Href);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		//	Print Geometrical refined Base Mesh
         std::ofstream argument("RefinedGeometricMesh.txt");
@@ -341,7 +341,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     bool converged = false;
     while(!converged && iter < numiter) {
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -360,7 +360,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         //Computing ||DeltaU||
         REAL NormOfDeltaU = Norm(DeltaU);
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -374,7 +374,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         an->Assemble();
         an->Rhs() *= -1.0; //- [R(U0)];
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;

@@ -51,7 +51,7 @@
 
 #include "TPZMatDualHybridPoisson.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
 static PZLogger logger("Bima.main");
 
@@ -200,7 +200,7 @@ int main()
 
 				
             cmesh->SetName("Malha depois de Analysis-----");
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
@@ -302,7 +302,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
     comp->LoadReferences();
     comp->ApproxSpace().CreateInterfaceElements(comp,true);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -325,7 +325,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	
 	comp->SetName("Malha Computacional Original");
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -423,7 +423,7 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
 	}
     
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -481,7 +481,7 @@ void GroupElements(TPZCompMesh *cmesh)
                 }
             }
         }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -504,7 +504,7 @@ void GroupElements(TPZCompMesh *cmesh)
         TPZCompEl *cel = cmesh->ElementVec()[*it];
         TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel);
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;

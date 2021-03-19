@@ -67,7 +67,7 @@ clarg::argInt  p_order("-p", "polynomial order",1);
 clarg::argInt  n_uref("-nuref", "Number of uniform refinements",1);
 clarg::argInt  n_threads("-nthreads", "Number of threads",1);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.multiphysics");
 #endif
 
@@ -411,7 +411,7 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
             int64_t index;
             TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
             elgroup[el] = elgr;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 sout << "Creating an element group around element index " << el;

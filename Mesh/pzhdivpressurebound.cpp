@@ -15,7 +15,7 @@
 #include "pzmaterialdata.h"
 #include "pzhdivpressure.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.TPZCompElHDivPressureBound");
 #endif
 
@@ -172,7 +172,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::SetSideOrder(int side, int order)
 	int connectaux= SideConnectLocId(0,side);
 	if(connectaux<0 || connectaux > this-> NConnects()) {
 		PZError << "TPZCompElHDivPressureBound::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
 		LOGPZ_DEBUG(logger,sout.str())
@@ -245,7 +245,7 @@ void TPZCompElHDivPressureBound<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, T
 		}
 	}
 	shapeindex.Resize(count);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "count = " << count << " nshape " << nshape;

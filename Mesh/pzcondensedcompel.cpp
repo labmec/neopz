@@ -9,7 +9,7 @@
 #include "pzelementgroup.h"
 #include "pzcmesh.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzcondensedcompel");
 #endif
 
@@ -335,7 +335,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     TPZElementMatrix ek, ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         Print(sout);
@@ -350,7 +350,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         ek.PermuteGather(fIndexes);
         ef.PermuteGather(fIndexes);
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Element connects\n";
@@ -471,7 +471,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         }
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -495,7 +495,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     
     fCondensed.SetF(ef.fMat);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -523,7 +523,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         }
     }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -562,7 +562,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
 #endif
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -749,7 +749,7 @@ void TPZCondensedCompEl::LoadSolution()
             u1(count++,0) = bl(seqnum,0,ibl,0);
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Computing UGlobal Index " << Index();
@@ -771,7 +771,7 @@ void TPZCondensedCompEl::LoadSolution()
             bl(seqnum,0,ibl,0) = elsol(count++,0);
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "After Computing UGlobal Index " << Index() ;

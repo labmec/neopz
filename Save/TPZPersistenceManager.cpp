@@ -13,7 +13,7 @@
 #include "pzlog.h"
 //#define VerboseMode_Q
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.persistencemanager");
 #endif
 
@@ -238,7 +238,7 @@ void TPZPersistenceManager::PopulateClassIdMap()
         //@TODO parallelize
         for (const auto &restoreClass : TPZSavable::RestoreClassSet()) {
             TPZSavable *savable = restoreClass->Restore();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             if(logger.isDebugEnabled())
             {
                 std::stringstream sout;

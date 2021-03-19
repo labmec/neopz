@@ -9,7 +9,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzelmat");
 #endif
 
@@ -162,7 +162,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
 		}//for in
         this->fSourceIndex.Resize(destindex);
         this->fDestinationIndex.Resize(destindex);		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -407,7 +407,7 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
     int64_t dfnindex = this->fConstrConnect[constraintindex];
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     int count = 0;
     for (std::list<TPZOneShapeRestraint>::iterator it = fOneRestraints.begin(); it != fOneRestraints.end(); it++) {
         if (it->fFaces[0].first != dfnindex) {
@@ -482,7 +482,7 @@ void TPZElementMatrix::ApplyOneShapeConstraints(int constraintindex)
         }
 
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (count && logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Element matrix after ApplyOneShapeConstraint\n";
@@ -525,7 +525,7 @@ void TPZElementMatrix::PermuteGather(TPZVec<int64_t> &permute)
         fBlock.Set(i, cp.fBlock.Size(permute[i]));
     }
     fBlock.Resequence();
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
         cp.fBlock.Print("cp.fBlock ",sout);

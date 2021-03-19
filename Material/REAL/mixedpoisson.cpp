@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logdata("pz.mixedpoisson.data");
 static PZLogger logerror("pz.mixedpoisson.error");
 #endif
@@ -323,7 +323,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         ek(phrq+phrp,phrp+phrq+1) += -weight;
     }
     //
-//    #ifdef LOG4CXX
+//    #ifdef PZ_LOG
 //        if(logdata.isDebugEnabled())
 //        {
 //            std::stringstream sout;
@@ -502,7 +502,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
 //        }
 //    }
 ////
-////#ifdef LOG4CXX
+////#ifdef PZ_LOG
 ////    if(logdata.isDebugEnabled())
 ////	{
 ////        std::stringstream sout;

@@ -46,7 +46,7 @@
 
 #include "pzfstrmatrix.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger loggerconverge("pz.converge");
 static PZLogger logger("main");
 #endif
@@ -164,7 +164,7 @@ int main1(int argc, char *argv[])
 		//	std::cout << tempo.ft0sub << std::endl;
 		
 		//	sub.SubStructure();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(logger.isDebugEnabled())
 		{
 			std::stringstream str;
@@ -310,7 +310,7 @@ int main1(int argc, char *argv[])
 			it++;
 		}
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		if(loggerconverge->isInfoEnabled())
 		{
 			std::stringstream sout;
@@ -470,7 +470,7 @@ int main3(int argc, char *argv[])
             DebugStop();
         }
         
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo antes do ajuste",sout);
@@ -509,7 +509,7 @@ int main3(int argc, char *argv[])
             it++;
         }
         
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);
@@ -649,7 +649,7 @@ int main4(int argc, char *argv[])
             DebugStop();
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo antes do ajuste",sout);
@@ -688,7 +688,7 @@ int main4(int argc, char *argv[])
             it++;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);
@@ -807,7 +807,7 @@ int main5(int argc, char *argv[])
             DebugStop();
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo antes do ajuste",sout);
@@ -846,7 +846,7 @@ int main5(int argc, char *argv[])
             it++;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);
@@ -961,7 +961,7 @@ int main2(int argc, char *argv[])
 	 
 	 
 	 dohrptr->Initialize();
-	 #ifdef LOG4CXX
+	 #ifdef PZ_LOG
 	 {
 	 std::stringstream sout;
 	 dohrptr->Print("DohrMatrix without condensation", sout);
@@ -980,7 +980,7 @@ int main2(int argc, char *argv[])
 	TPZAutoPointer<TPZMatrix<STATE> > dohr2(dohrptr2);
 	sub.InitializeDohrCondense(dohr2,dohrassembly2);
 	dohrptr2->Initialize();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -989,7 +989,7 @@ int main2(int argc, char *argv[])
 	}
 #endif
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(loggerconverge.isDebugEnabled())
 	{
 			std::stringstream sout;
@@ -1005,7 +1005,7 @@ int main2(int argc, char *argv[])
 	precondptr2->Initialize();
 	
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1022,7 +1022,7 @@ int main2(int argc, char *argv[])
 	
 	TPZFMatrix<STATE> diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
 	precondptr2->Multiply(diag,produto);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1032,7 +1032,7 @@ int main2(int argc, char *argv[])
 #endif
 	
 	precondptr2->Multiply(diag,produto2);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1075,7 +1075,7 @@ int main2(int argc, char *argv[])
 	dohr2->Multiply(diag,produto);
 	dohrptr2->AdjustResidual(produto);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -1092,7 +1092,7 @@ int main2(int argc, char *argv[])
 	
 	cg.SetCG(500,pre,1.e-8,0);
 	cg.Solve(produto,diag);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		diag.Print("Resultado do processo antes do ajuste",sout);
@@ -1101,7 +1101,7 @@ int main2(int argc, char *argv[])
 #endif
 	
 	dohrptr2->AddInternalSolution(diag);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		diag.Print("Resultado do processo iterativo",sout);

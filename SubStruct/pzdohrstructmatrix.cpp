@@ -35,7 +35,7 @@
 #include "TPZVTKGeoMesh.h"
 #include <stdlib.h>
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("structmatrix.dohrstructmatrix");
 static PZLogger loggerasm("structmatrix.dohrstructmatrix.asm");
 #endif
@@ -520,7 +520,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
     printf("Assemble Stiffness : %.2f seconds\n", stiff_sum);
     
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         int isub = 0;
@@ -753,7 +753,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
     //	nel = elementgraphindex.NElements()-1;
     TPZRenumbering renum(nel,nindep);
     renum.SetElementGraph(expelementgraph, expelementgraphindex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         renum.Print(expelementgraph, expelementgraphindex,"Expanded graph",sout);
@@ -766,7 +766,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
     //	renum.SetElementGraph(elementgraph, elementgraphindex);
     std::set<int> othercornereqs;
     renum.CornerEqs(3,nelprev,cornerconnseq,othercornereqs);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream str;
@@ -879,7 +879,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
     TPZVTKGeoMesh::PrintGMeshVTK(pointgmesh.operator->(),arquivo,true);
 #endif
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream str;
@@ -921,7 +921,7 @@ void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,in
     // ncon is the number of connects of the subcompmesh
     TPZCompMesh *super = fMesh;
     int64_t ic;
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
     std::stringstream sout;
     sout << "total submesh connects/glob/loc ";
 #endif
@@ -939,14 +939,14 @@ void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,in
         int ieq;
         for(ieq =0; ieq<locsize; ieq++)
         {
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
             sout << ic << "/" << globpos+ieq << "/" << locpos+ieq << " ";
 #endif
             global[locpos+ieq] = globpos+ieq;
             globinv[globpos+ieq] = locpos+ieq;
         }
     }
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	if (logger.isDebugEnabled())
 	{
 		LOGPZ_DEBUG(logger, sout.str())
@@ -1015,7 +1015,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
     scatterpermute.Fill(-1);
     gatherpermute.Fill(-1);
     int64_t ncon = sub->ConnectVec().NElements();
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
     std::stringstream sout;
     sout << "internal submesh connects/glob/loc ";
 #endif
@@ -1036,7 +1036,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
         int ieq;
         for(ieq =0; ieq<size; ieq++)
         {
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
             sout << ic << "/" << locpos+ieq << "/" << destpos+ieq << " ";
 #endif
             scatterpermute[locpos+ieq] = destpos+ieq;
@@ -1047,7 +1047,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
     {
         gatherpermute[scatterpermute[ieq]] = ieq;
     }
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	if (logger.isDebugEnabled())
 	{
 		LOGPZ_DEBUG(logger, sout.str())
@@ -1060,7 +1060,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
 void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
                                                TPZVec<int> &coarseindex)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1146,7 +1146,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         nsub = ClusterIslands(domain_index,nsub,meshdim-1);
     }
     CorrectNeighbourDomainIndex(fMesh, domain_index);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1265,7 +1265,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         
         substruct->fNumInternalEquations = submesh->NumInternalEquations();
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1282,7 +1282,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         submesh->PermuteInternalFirst(permuteconnectscatter);
         
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1295,7 +1295,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
             LOGPZ_DEBUG(logger,sout.str())
         }
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
             std::stringstream sout;
@@ -1515,7 +1515,7 @@ void ThreadDohrmanAssembly<TVar>::AssembleMatrices(mutex &threadtest, int numa_n
             DebugStop();
             break;
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (fTask == EComputeMatrix)
         if (logger.isDebugEnabled())
         {
@@ -1760,7 +1760,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
         }
     }
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1850,7 +1850,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
             }
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1936,7 +1936,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
             domain_dest[isub] = count++;
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;
@@ -1958,7 +1958,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
     for (d=0; d<domsize; d++) {
         domain_index[d] = domain_dest[domain_index[d]];
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
         std::stringstream sout;

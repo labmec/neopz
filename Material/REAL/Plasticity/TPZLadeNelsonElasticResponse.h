@@ -22,7 +22,7 @@
 #include "fadType.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 static PZLogger loggerPlasticity("plasticity.plasticstep");
 #endif
 
@@ -159,12 +159,12 @@ public:
     */
     void LoadState(TPZFMatrix<REAL> &state)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
     #endif
       int i;
       for(i=0; i<6; i++) gRefDeform[i] = state(i,0);
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "State " << state;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -173,7 +173,7 @@ public:
 
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
     #endif
 
@@ -209,7 +209,7 @@ public:
               tangent(i,j) = sigma_FAD[i].dx(j);
           break;
       }
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Matriz tangent " << tangent;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -218,7 +218,7 @@ public:
 
     void Residual(TPZFMatrix<REAL> &res,int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef PZ_LOG_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
     #endif
       int i;
@@ -245,7 +245,7 @@ public:
               res(i,0) = sigma[i];
         break;
       }
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
       std::stringstream sout;
       sout << "Residual vector " << res;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -404,7 +404,7 @@ inline void TPZLadeNelsonElasticResponse::
          // to numerical instability (very large stress forecasts
          // in the Newton scheme at TPZPlasticStep::Sigma.
          Base = TBASE(BaseParameter);
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
         {
             std::stringstream sout;
             sout << "*** ComputeYoung *** Too small Elastic Modulus - Constraining it.";

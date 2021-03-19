@@ -16,7 +16,7 @@
 #include "tpzprism.h"
 
 #include "pzgeoelrefless.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.testhcurl");
 #endif
 

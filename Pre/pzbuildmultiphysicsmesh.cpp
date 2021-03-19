@@ -22,7 +22,7 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.mesh.tpzbuildmultiphysicsmesh");
 #endif
 
@@ -445,7 +445,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
     cmesh->ApproxSpace().CreateDisconnectedElements(false);
     cmesh->ApproxSpace().BuildMesh(*cmesh, BCMaterialIds);
     
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    {
 //        std::stringstream sout;
 //        cmesh->Reference()->Print(sout);
@@ -533,7 +533,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	
 	cmesh->LoadReferences();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         cmesh->Reference()->Print(sout);

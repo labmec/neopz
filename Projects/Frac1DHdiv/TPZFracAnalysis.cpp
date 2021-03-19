@@ -11,7 +11,7 @@
 #include "pzstepsolver.h"
 #include "pzmatred.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("pz.frac");
 #endif
 
@@ -457,7 +457,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
   
   while(error > tol && iter < numiter) {
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;
@@ -473,7 +473,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
     SoliterK = prevsol - DeltaU;
     REAL normDeltaSol = Norm(DeltaU);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;
@@ -488,7 +488,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
     an->Assemble();
     an->Rhs() += fLastStepRhs;
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;

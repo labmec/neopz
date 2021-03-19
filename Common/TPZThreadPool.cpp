@@ -1,7 +1,7 @@
 #include "pzerror.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 static PZLogger logger("TPZThreadPool");
 #endif
 

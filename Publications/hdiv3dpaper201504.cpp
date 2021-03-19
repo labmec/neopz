@@ -587,7 +587,7 @@ TPZGeoMesh *Hdiv3dPaper201504::GMeshWithPrism( int ndiv)
     }
     
     
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //	if(logdata->isDebugEnabled())
     //	{
     //        std::stringstream sout;

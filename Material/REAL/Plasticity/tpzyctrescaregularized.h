@@ -141,7 +141,7 @@ public:
 template < class T>
 void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &result, int checkForcedYield) const
 {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	LoggerPtr logger(Logger::getLogger("plasticity.yctresca"));
 #endif
 	
@@ -155,7 +155,7 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 	REAL aux = (1. - tol);
 	if (fabs(TPZExtractVal::val(invangle)) < aux)
 	{
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " O angulo nao corresponde " << invangle;
 		LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -168,7 +168,7 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 		T tayext = ((T)fabs(TPZExtractVal::val(invangle)) - T(1.-tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
 		invangle = (tayext + T(asineps)) / 3.;
 		//invangle = alpha * (1./3.) * (asin(1. - 1.e-6) + ( fabs(alpha)-(1.-1.e-6))*(1./(sqrt(1.-(1.-1.e-6)*(1.-1.e-6)))));
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		std::stringstream sout;
 		T small = cos(invangle)*2.-T(sqrt(3.));
 		
@@ -184,7 +184,7 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 template <class T>
 void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZTensor<T> & gradtheta) const
 {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	LoggerPtr logger(Logger::getLogger("plasticity.yctresca"));
 #endif
 	
@@ -200,7 +200,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 	
 	if (fabs(TPZExtractVal::val(invangle)) < (1. - 1.e-6))
 	{
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		{
 			std::stringstream sout;
 			sout << "calling GradTheta from father... invangle " << invangle;
@@ -209,7 +209,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 #endif
 		
 		TPZYCTresca::GradTheta(sigma,theta,gradtheta);
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 		{
 			std::stringstream sout;
 			sout << "sigma "  << sigma << std::endl;
@@ -255,7 +255,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 template <class T> 
 void TPZYCTrescaRegularized::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG_PLASTICITY
 	LoggerPtr logger(Logger::getLogger("plasticity.yctresca"));
 #endif
 	
