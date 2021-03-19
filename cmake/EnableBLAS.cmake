@@ -13,26 +13,8 @@ function(enable_blas target)
             target_compile_definitions(${target} PRIVATE MKLBLAS)
             #trying to find include directory for MKL BLAS.
             get_filename_component(BL_LIB_DIR ${BL_LIB} DIRECTORY)
-            if(WIN32)
-              set(SEARCH_ROOT_DIR "C:")
-            else()
-              set(SEARCH_ROOT_DIR "/")
-            endif()
-            while(NOT ${BL_LIB_DIR} STREQUAL ${SEARCH_ROOT_DIR})
-              find_path(BLAS_INCLUDE_DIR
-                NAMES mkl_cblas.h
-                PATHS ${BL_LIB_DIR}
-                PATH_SUFFIXES include
-                NO_DEFAULT_PATH #let us try not to mix BLAS installs
-                )
-              if(NOT BLAS_INCLUDE_DIR)
-                #one level up...
-                get_filename_component(BL_LIB_DIR_DIR ${BL_LIB_DIR} DIRECTORY)
-                set(BL_LIB_DIR ${BL_LIB_DIR_DIR})
-              else()
-                break()
-              endif()
-            endwhile()
+            include(cmake/FindIncludeFromMKL.cmake)
+            find_include_from_mkl(BLAS_INCLUDE_DIR ${BL_LIB_DIR} mkl_cblas.h)
             if(NOT BLAS_INCLUDE_DIR)
               message(FATAL_ERROR "Could not find BLAS include directory")
             else()
