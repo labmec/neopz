@@ -79,8 +79,8 @@
 //static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 //#endif
 
-//#undef REFPATTERNDIR
-//#define REFPATTERNDIR "RefPatterns/fgfchghghg"
+//#undef PZ_REFPATTERN_DIR
+//#define PZ_REFPATTERN_DIR "RefPatterns/fgfchghghg"
 
 using namespace std;
 using namespace pzgeom;	

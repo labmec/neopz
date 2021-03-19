@@ -8,7 +8,7 @@
 using namespace std;
 
 
-std::string path = REFPATTERNDIR;
+std::string path = PZ_REFPATTERN_DIR;
 
 
 int main(int argc, char * const argv[])
