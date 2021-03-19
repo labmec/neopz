@@ -6,9 +6,7 @@ target_include_directories(pz PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Common>
   )
 set(public_headers
-  TPZBlas.h
   TPZGuiInterface.h
-  TPZLapack.h
   pzeltype.h
   pzerror.h
   pzreal.h
