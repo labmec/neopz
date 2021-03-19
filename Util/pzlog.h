@@ -1,9 +1,15 @@
 /**
- * @file
- * @brief Contains definitions to LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL,
- * and the implementation of the inline InitializePZLOG(string) function using log4cxx library or not.\n
- * It must to be called out of "#ifdef PZ_LOG" scope.
+ * @file pzlog.h
+ * @brief Contains definitions of TPZLogger class, InitializePZLOG()  and auxiliary macros.
+
+  The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL. The functions
+  TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called before writing the log messages, as most of the time is spent composing the messages.
  */
+
+
+/**
+ * \addtogroup util
+ * \{ */
 
 #ifndef PZLOGH
 #define PZLOGH
@@ -99,11 +105,11 @@ public:
   TPZLogger() = delete;
   
   inline TPZLogger(const std::string &&) {};
-  bool isDebugEnabled() const {return false;}
-  bool isWarnEnabled() const {return false;}
-  bool isInfoEnabled() const {return false;}
-  bool isErrorEnabled() const {return false;}
-  bool isFatalEnabled() const {return false;}
+  inline bool isDebugEnabled() const {return false;}
+  inline bool isWarnEnabled() const {return false;}
+  inline bool isInfoEnabled() const {return false;}
+  inline bool isErrorEnabled() const {return false;}
+  inline bool isFatalEnabled() const {return false;}
 };
 // Just to allow the macros being called regardless
 // of whether the log is enabled or not
