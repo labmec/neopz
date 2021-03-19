@@ -23,7 +23,7 @@
 #include <mutex>
 #include <iostream>
 
-
+#define PZ_LOG
 
 
 /// External variable to mutex which controls write log
@@ -42,34 +42,23 @@ void LogPzFatalImpl(TPZLogger lg, std::string msg,
 
 
 
-/*@TODO:Check if we cannot call getlogger in the functions called by
- the macros. If there are no considerable performance issues,
- then we could eliminate this forward declaration and the attribute
- in the TPZLogger class, storing just the name of the logger instead.*/
-namespace log4cxx{
-  namespace helpers{
-    template<class T>
-    class ObjectPtrT;
-  }
-  class Logger;
-  typedef log4cxx::helpers::ObjectPtrT<Logger> LoggerPtr;
-}
-
-
-
 class TPZLogger{
 public:
   TPZLogger() = delete;
   //get logger name as input param
   TPZLogger(const std::string &&);
-  ~TPZLogger();
-  bool isDebugEnabled() const;
-  bool isWarnEnabled() const;
-  bool isInfoEnabled() const;
-  bool isErrorEnabled() const;
-  bool isFatalEnabled() const;
+  bool isDebugEnabled() const {return fIsDebugEnabled;}
+  bool isWarnEnabled() const {return fIsWarnEnabled;}
+  bool isInfoEnabled() const {return fIsInfoEnabled;}
+  bool isErrorEnabled() const {return fIsErrorEnabled;}
+  bool isFatalEnabled() const {return fIsFatalEnabled;}
 private:
-  log4cxx::LoggerPtr * fLogPtr;
+  const std::string fLogName;
+  bool fIsDebugEnabled;
+  bool fIsWarnEnabled;
+  bool fIsInfoEnabled;
+  bool fIsErrorEnabled;
+  bool fIsFatalEnabled;
 
   friend void LogPzDebugImpl( TPZLogger lg,  std::string msg,
                      const char *fileName,  const std::size_t lineN);
