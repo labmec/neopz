@@ -23,7 +23,6 @@
 #include <mutex>
 #include <iostream>
 
-#define PZ_LOG
 
 
 /// External variable to mutex which controls write log
