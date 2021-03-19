@@ -215,7 +215,7 @@ public:
 	 */
 	//virtual void CalcResidual(TPZElementMatrix &ef);
 	
-    void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
     public:
 int ClassId() const override;
 

@@ -897,6 +897,8 @@ static TPZInterpolatedElement *FindPressureSkeleton(TPZGeoEl *InternalWrap, int 
     else
     {
         DebugStop();
+        //silencing warning
+        return nullptr;
     }
 }
 #ifdef MACOSX

@@ -76,6 +76,7 @@ public :
         {
             DebugStop();
         }
+        return 0;
     }
     
     /** @brief Fill matrix storage with randomic values */

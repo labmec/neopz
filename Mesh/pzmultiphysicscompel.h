@@ -303,10 +303,10 @@ public:
     virtual void CalcResidual(TPZElementMatrix &ef) override;
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
-	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
     /** @brief Initialize element matrix in which is computed CalcStiff */
-    void InitializeElementMatrix(TPZElementMatrix &ef);
+    void InitializeElementMatrix(TPZElementMatrix &ef) override;
     
 	/**
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
