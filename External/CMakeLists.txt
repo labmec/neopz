@@ -17,6 +17,7 @@ set(headers
     pzsloan.h
     rcm.h
     tpznodesetcompute.h
+    pzmetis.h
     )
 
 set(sources
@@ -27,12 +28,8 @@ set(sources
     pzsloan.cpp
     rcm.cpp
     tpznodesetcompute.cpp
+    pzmetis.cpp
     )
-
-if(USING_METIS)
-    LIST(APPEND headers pzmetis.h)
-    LIST(APPEND sources pzmetis.cpp)
-endif()
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External)
 

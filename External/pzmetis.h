@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains TPZMetis class which implements the renumbering for elements of a mesh to minimize the band.
+ * @brief Contains TPZMetis class which implements the renumbering for elements of a mesh to minimize the band using Metis library. It depends on NeoPZ being configured with USING_METIS=ON
  */
 
 #ifndef TPZMETIS_H

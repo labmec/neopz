@@ -4,7 +4,19 @@ target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/SubStruct>
                            )
-
+set(public_headers
+    doxsubstrmatrix.h
+    tpzdohrassemblelist.h
+    tpzdohrmatrix.h
+    tpzdohrsubstruct.h
+    tpzgensubstruct.h
+    tpzpairstructmatrix.h
+    tpzdohrassembly.h
+    tpzdohrprecond.h
+    tpzdohrsubstructCondense.h
+    tpzmatredstructmatrix.h
+    pzdohrstructmatrix.h
+    )
 set(headers
     TPZTimeTemp.h
     doxsubstrmatrix.h
@@ -19,6 +31,7 @@ set(headers
     tpzdohrsubstructCondense.h
     tpzmatredstructmatrix.h
     tpzparallelenviroment.h
+    pzdohrstructmatrix.h
     )
 
 set(sources
@@ -34,13 +47,9 @@ set(sources
     tpzdohrsubstruct.cpp
     tpzgensubstruct.cpp
     tpzpairstructmatrix.cpp
+    pzdohrstructmatrix.cpp
     )
 
-if(USING_METIS)
-    LIST(APPEND headers pzdohrstructmatrix.h)
-    LIST(APPEND sources pzdohrstructmatrix.cpp)
-endif()
-
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SubStruct)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/SubStruct)
 
 target_sources(pz PRIVATE ${headers} ${sources})

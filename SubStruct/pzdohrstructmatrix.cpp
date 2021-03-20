@@ -76,20 +76,34 @@ static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubs
 static void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
 
+#define NOMETIS \
+    PZError<<"TPZDohrStructMatrix requires Metis library\n";\
+    PZError<<"Please reconfigure NeoPZ library with:\n";\
+    PZError<<"USING_METIS=ON"<<std::endl;\
+    DebugStop();
 TPZDohrStructMatrix::TPZDohrStructMatrix() :
 TPZStructMatrix(), fDohrAssembly(0), fDohrPrecond(0), fAccessElement()
 {
+#ifndef USING_METIS
+    NOMETIS
+#endif
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) :
 TPZStructMatrix(cmesh), fDohrAssembly(0),
 fDohrPrecond(0), fAccessElement()
 {
+#ifndef USING_METIS
+    NOMETIS
+#endif
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
 TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fAccessElement()
 {
+#ifndef USING_METIS
+    NOMETIS
+#endif
 }
 
 TPZDohrStructMatrix::~TPZDohrStructMatrix()
@@ -100,7 +114,9 @@ TPZDohrStructMatrix::~TPZDohrStructMatrix()
 // this will create a DohrMatrix
 TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 {
-    
+#ifndef USING_METIS
+    NOMETIS
+#endif    
 	TPZfTime timeforcopute; // init of timer for compute
 	fMesh->ComputeNodElCon();
 	TPZAutoPointer<TPZDohrAssembly<STATE> > assembly = new TPZDohrAssembly<STATE>;
@@ -2040,3 +2056,4 @@ void TPZDohrStructMatrix::CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec
     }
 }
 
+#undef NOMETIS

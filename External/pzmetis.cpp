@@ -23,6 +23,10 @@ using namespace std;
 
 TPZMetis::TPZMetis() : TPZRenumbering()
 {
+    PZError<<"TPZMetis depends on the Metis library\n";
+    PZError<<"Please reconfigure NeoPZ library using:\n";
+    PZError<<"USING_METIS=ON"<<std::endl;
+    DebugStop();
 }
 
 void TPZMetis::Print(std::ostream &out,char * title) {
