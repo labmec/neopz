@@ -3137,29 +3137,39 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
 
 #ifndef USING_LAPACK    
 #define NON_LAPACK \
-  PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";\
-  PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";\
-  PZError<<" when configuring NeoPZ library"<<std::endl;\
-  DebugStop();
+    PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";             \
+    PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";   \
+    PZError<<" when configuring NeoPZ library"<<std::endl;              \
+    DebugStop();\
+    return -1;
 
-    int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
-    int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
-    int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
-    int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
-    int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
-    int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
-    int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w){NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
 
-    int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+template<class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w){NON_LAPACK}
 
-    int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}    
-    /** @} */
+template<class TVar>
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+template<class TVar>
+int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
 #undef NON_LAPACK
 #endif
 #include <complex>
