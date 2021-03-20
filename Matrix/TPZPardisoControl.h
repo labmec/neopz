@@ -11,11 +11,7 @@
 
 #include "pz_config.h"
 
-#ifdef USING_MKL
 
-#include <stdio.h>
-
-//#include "mkl_pardiso.h"
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
 #include "pzfmatrix.h"
@@ -27,6 +23,8 @@ class TPZFYsmpMatrix;
 
 /// class to control the pardiso solution process
 // inspired by PardisoSolver by Armando Duarte
+// it has no use unless USING_MKL=ON is set during
+// CMake configuration of the NeoPZ library.
 template<class TVar>
 class TPZPardisoControl
 {
@@ -125,5 +123,4 @@ protected:
     
 };
 
-#endif
 #endif /* TPZPardisoControl_hpp */
