@@ -21,7 +21,7 @@
 #include "pzquad.h"
 
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -153,7 +153,7 @@ REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) 
 /** @} */
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 /**
  * @brief Tests the numerical integration rules implemented in Neopz

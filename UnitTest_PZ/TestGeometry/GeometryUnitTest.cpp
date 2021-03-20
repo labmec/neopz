@@ -48,7 +48,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 #include "fad.h"
 
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -152,7 +152,7 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 /** @} */
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 
 BOOST_AUTO_TEST_SUITE(geometry_tests)

@@ -34,7 +34,7 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZGeoCube.h"
 #include "TPZVTKGeoMesh.h"
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK

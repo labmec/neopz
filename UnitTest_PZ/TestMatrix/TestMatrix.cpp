@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzsysmp.h"
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -51,7 +51,7 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 }
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 /**
  * @brief Tests the Inverse method of the matrix to any matrix types. It uses the AutoFill method to create a square matrix with

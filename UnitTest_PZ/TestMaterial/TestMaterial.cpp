@@ -9,7 +9,7 @@
 #include "fstream"
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -69,7 +69,7 @@ TPZFMatrix<STATE> readStressStrain(std::string &FileName)
 	return RightStiff;
 }
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 BOOST_AUTO_TEST_SUITE(material_tests)
 

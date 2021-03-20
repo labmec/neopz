@@ -18,7 +18,7 @@
 
 
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 
 #include "boost/test/unit_test.hpp"
@@ -145,7 +145,7 @@ static REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL L
 /** @} */
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 /**
  * @brief Tests the numerical integration rules implemented in Neopz

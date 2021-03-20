@@ -5,6 +5,9 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/External>
                            )
 
+set(public_headers
+    TPZRenumbering.h
+    )
 set(headers
     TPZBoostGraph.h
     TPZCutHillMcKee.h
@@ -31,7 +34,7 @@ if(USING_METIS)
     LIST(APPEND sources pzmetis.cpp)
 endif()
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External)
 
 target_sources(pz PRIVATE ${headers} ${sources})
 

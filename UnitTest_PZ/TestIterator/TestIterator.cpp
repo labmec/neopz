@@ -5,7 +5,7 @@
 
 #include "pzadmchunk.h"
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -17,7 +17,7 @@
 
 #endif
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #define EXP 2
 #define N_CHUNKS 15
