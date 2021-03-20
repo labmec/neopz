@@ -76,7 +76,7 @@ endif()
 
 if(USING_BOOST)
 	include(cmake/EnableBoost.cmake)
-  enable_boost(pz)
+    enable_boost(pz)
 endif()
 
 #enabling to use LOG4CXX library
@@ -93,7 +93,6 @@ option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)
     include(cmake/EnableMetis.cmake)
     enable_metis(pz)
-    target_compile_definitions(pz PRIVATE USING_METIS)
 endif()
 
 #enabling OPENSSL library (used for MD5 computation)
@@ -115,7 +114,6 @@ option(USING_LIKWID "Whether the likwid library will be linked in" OFF)
 if(USING_LIKWID)
     include(cmake/EnableLIKWID.cmake)
     enable_likwid(pz)
-    target_compile_definitions(pz PRIVATE USING_LIKWID)
 endif()
 
 #enabling numa library
@@ -123,7 +121,6 @@ option(USING_LIBNUMA "Whether the Lib NUMA library will be linked in" OFF)
 if(USING_LIBNUMA)
     include(cmake/EnableNUMA.cmake)
     enable_numa(pz)
-    target_compile_definitions(pz PRIVATE USING_LIBNUMA)
 endif()
 
 #enabling MKL library
