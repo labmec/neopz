@@ -82,11 +82,7 @@ void TPZSemaphore::Post()
 	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
-#ifdef VC
 		sout << "THREAD IN SEMAPHORE POST: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
-#else
-		sout << "THREAD IN SEMAPHORE POST: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
-#endif
 		sout << "FCOUNTER VALUE : " << fCounter << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
