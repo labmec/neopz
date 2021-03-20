@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the TPZStructMatrixTBBFlow class which responsible for a interface among Matrix and Finite Element classes.
+ * @brief Contains the TPZStructMatrixTBBFlow class which responsible for a interface among Matrix and Finite Element classes using TBB library. Usage of this class without USING_TBB=ON when configuring the NeoPZ library will result in runtime errors.
  */
 
 #ifndef TPZStructMatrixTBBFlow_H
@@ -21,17 +21,8 @@
 
 class TPZStructMatrixTBBFlow;
 #include "TPZStructMatrixBase.h"
-#ifdef USING_TBB
-#include "tbb/tbb.h"
-#include "tbb/flow_graph.h"
-#endif
 
-
-/**
- * @brief Refines geometrical mesh (all the elements) num times
- * @ingroup geometry
- */
-//void UniformRefine(int num, TPZGeoMesh &m);
+class TPZFlowGraph;
 
 /**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
@@ -42,7 +33,7 @@ class TPZStructMatrixTBBFlow : public TPZStructMatrixBase
     
 public:
     
-    TPZStructMatrixTBBFlow(): TPZStructMatrixBase() {}
+    TPZStructMatrixTBBFlow();
     
     TPZStructMatrixTBBFlow(TPZCompMesh *);
     
@@ -96,106 +87,14 @@ protected:
     
 protected:
     
-#ifdef USING_TBB
-    
-    class TPZFlowGraph {
-    public:
-        TPZFlowGraph(TPZStructMatrixTBBFlow *strmat);
-        ~TPZFlowGraph();
-        TPZFlowGraph(TPZFlowGraph const &copy);
-        
-        // vectors for mesh coloring
-        TPZVec<int> fnextBlocked, felSequenceColor, felSequenceColorInv;
-        TPZManVector<int> fElementOrder;
-        
-        TPZCompMesh *cmesh;
-        
-        tbb::flow::graph fGraph;
-        tbb::flow::broadcast_node<tbb::flow::continue_msg> fStartNode;
-        std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>* > fNodes;
-        
-        void OrderElements();
-        void ElementColoring();
-        void CreateGraph();
-        void ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix = 0);
-        
-        /// current structmatrix object
-        TPZStructMatrixTBBFlow *fStruct;
-        /// gui interface object
-        TPZAutoPointer<TPZGuiInterface> fGuiInterface;
-        /// global matrix
-        TPZMatrix<STATE> *fGlobMatrix;
-        /// global rhs vector
-        TPZFMatrix<STATE> *fGlobRhs;
-    };
-    
-    class TPZFlowNode {
-    public:
-        TPZFlowNode(TPZFlowGraph *graph, int el):
-        myGraph(graph), iel(el) {};
-        
-        ~TPZFlowNode() {};
-        
-        void operator()(tbb::flow::continue_msg) const;
-        
-        TPZFlowGraph *myGraph;
-        
-        /// element to be processed by this node
-        int iel;
-        
-        
-    };
-    
-    
-    struct TPZGraphThreadData {
-        // copy constructor
-        TPZGraphThreadData(TPZCompMesh *cmesh, TPZVec<int> &fnextBlocked, TPZVec<int> &felSequenceColor, TPZVec<int> &felSequenceColorInv);
-        // destructor
-        ~TPZGraphThreadData();
-        // tbb tasks graph
-        tbb::flow::graph fAssembleGraph;
-        // initial node
-        tbb::flow::broadcast_node<tbb::flow::continue_msg> fStart;
-        // store all the nodes
-        std::vector<tbb::flow::continue_node<tbb::flow::continue_msg>* > fGraphNodes;
-        // vector for coloring mesh
-        TPZVec<int> felSequenceColor;
-        
-        
-        
-        /// current structmatrix object
-        TPZStructMatrixTBBFlow *fStruct;
-        /// gui interface object
-        TPZAutoPointer<TPZGuiInterface> fGuiInterface;
-        /// global matrix
-        TPZMatrix<STATE> *fGlobMatrix;
-        /// global rhs vector
-        TPZFMatrix<STATE> *fGlobRhs;
-    };
-    
-    struct TPZGraphThreadNode {
-        TPZGraphThreadData *data;
-        int iel;
-        TPZGraphThreadNode(TPZGraphThreadData *data, int el)
-        : data(data), iel(el) {}
-        void operator()(tbb::flow::continue_msg) const;
-    };
-    
-#endif
-    
-    
-protected:
-    
     /** @brief Pointer to the computational mesh from which the matrix will be generated */
     TPZCompMesh * fMesh;
     /** @brief Autopointer control of the computational mesh */
     TPZAutoPointer<TPZCompMesh> fCompMesh;
     /** @brief Object which will determine which equations will be assembled */
     TPZEquationFilter fEquationFilter;
-    
-#ifdef USING_TBB
+
     TPZFlowGraph *fFlowGraph;
-#endif
     
 protected:
     
