@@ -622,7 +622,8 @@ int TPZFBMatrix<double>::Substitution( TPZFMatrix<double> *B ) const{
   PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";\
   PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";\
   PZError<<" when configuring NeoPZ library"<<std::endl;\
-  DebugStop();
+  DebugStop();\
+  return -1;
 template<class TVar>
 int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
 {
@@ -630,9 +631,8 @@ int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
 }
 
 
-template<>
-int
-TPZFBMatrix<float>::Decompose_LU()
+template<class TVar>
+int TPZFBMatrix<TVar>::Decompose_LU()
 {
   NON_LAPACK
 }

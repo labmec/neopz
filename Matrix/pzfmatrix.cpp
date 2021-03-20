@@ -3169,7 +3169,7 @@ template<class TVar>
 int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
 
 template<class TVar>
-int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
 #undef NON_LAPACK
 #endif
 #include <complex>
