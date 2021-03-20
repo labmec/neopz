@@ -58,16 +58,18 @@ static TPZLogger logger("pz.analysis");
 static TPZLogger loggerError("pz.analysis.error");
 #endif
 
-#ifdef USING_BOOST
+//@orlandini: does anyone know if boost renumbering still works?
+#undef USE_BOOST_RENUMBERING
+#if defined(USING_BOOST) && defined(USE_BOOST_RENUMBERING)
 #include "TPZBoostGraph.h"
 /**
- * @brief To renumbering will use boost library.
+ * @brief Renumbering will use boost library.
  * @ingroup analysis
  */
-#define RENUMBER TPZSloanRenumbering()
+#define RENUMBER TPZBoostGraph(TPZBoostGraph::KMCExpensive))
 #else
 /**
- * @brief To renumbering will use sloan library.
+ * @brief Renumbering will use sloan library.
  * @ingroup analysis
  */
 #define RENUMBER TPZSloanRenumbering()
