@@ -30,7 +30,7 @@ TPZLogger::TPZLogger(const std::string &&loggerName) : fLogName(loggerName){
    fIsFatalEnabled = logPtr->isFatalEnabled();
 }
 
-void LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
   if (lg->isDebugEnabled()) {
     std::scoped_lock lock(glogmutex);
@@ -41,7 +41,7 @@ void LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fileName, const
   }
 }
 
-void LogPzInfoImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzInfoImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
   if (lg->isInfoEnabled()) {
     std::scoped_lock lock(glogmutex);
@@ -51,7 +51,7 @@ void LogPzInfoImpl(TPZLogger pzlg, std::string msg, const char *fileName, const 
               << std::endl;
   }
 }
-void LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
   if (lg->isWarnEnabled()) {
     std::scoped_lock lock(glogmutex);
@@ -62,7 +62,7 @@ void LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const 
   }
 }
 
-void LogPzErrorImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzErrorImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
   if (lg->isErrorEnabled()) {
     std::scoped_lock lock(glogmutex);
@@ -74,7 +74,7 @@ void LogPzErrorImpl(TPZLogger pzlg, std::string msg, const char *fileName, const
   }
 }
 
-void LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
+void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
   log4cxx::LoggerPtr lg = log4cxx::LoggerPtr(log4cxx::Logger::getLogger(pzlg.fLogName));
   if (lg->isFatalEnabled()) {
     std::scoped_lock lock(glogmutex);

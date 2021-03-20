@@ -1,11 +1,16 @@
 /**
  * @file pzlog.h
  * @brief Contains definitions of TPZLogger class, InitializePZLOG()  and auxiliary macros.
-
-  TPZLogger is a wrapper for the logging library used in NeoPZ.
-  The log config file is available at PZ_INSTALL_INCLUDE__DIR/Util/log4cxx.cfg, and the log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
+ *
+ * TPZLogger is a wrapper for the logging library used in NeoPZ.
+ *The log config file is available at PZ_SOURCE_DIR/Util/log4cxx.cfg. The log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
   The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL.
   The functions TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called before writing the log messages, as most of the execution time is spent writing the messages to the stream.
+If you are extremely worried about performance, you can use 
+#ifdef PZ_LOG
+//your log code here
+#endif
+on the log calls. However, it is really not necessary. Most compilers are probably able to optimise the if(logger.isXXXenabled()) condition when PZ_LOG is not set.
  */
 
 
@@ -22,17 +27,26 @@
 #ifdef PZ_LOG
 #include <string>
 class TPZLogger;
-void LogPzDebugImpl(TPZLogger lg, std::string msg,
-                    [[maybe_unused]] const char *fileName,[[maybe_unused]] const std::size_t lineN);
-void LogPzInfoImpl(TPZLogger lg, std::string msg,
-                   [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzWarnImpl(TPZLogger lg, std::string msg,
-                   [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzErrorImpl(TPZLogger lg, std::string msg,
-                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
-void LogPzFatalImpl(TPZLogger lg, std::string msg, 
-                    [[maybe_unused]] const char *fileName, [[maybe_unused]] const std::size_t lineN);
 
+//the following are functions for internal usage
+
+namespace pzinternal{
+void LogPzDebugImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *fileName,
+                    [[maybe_unused]] const std::size_t lineN);
+void LogPzInfoImpl(TPZLogger lg, std::string msg,
+                   [[maybe_unused]] const char *fileName,
+                   [[maybe_unused]] const std::size_t lineN);
+void LogPzWarnImpl(TPZLogger lg, std::string msg,
+                   [[maybe_unused]] const char *fileName,
+                   [[maybe_unused]] const std::size_t lineN);
+void LogPzErrorImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *fileName,
+                    [[maybe_unused]] const std::size_t lineN);
+void LogPzFatalImpl(TPZLogger lg, std::string msg,
+                    [[maybe_unused]] const char *fileName,
+                    [[maybe_unused]] const std::size_t lineN);
+}
 
 /*The TPZLogger is a wrapper for the Log4cxx library. Once the
  log is setup, the expected usage is (in .cpp file):
@@ -49,6 +63,7 @@ public:
   TPZLogger() = delete;
   //get logger name as input param
   TPZLogger(const std::string &&);
+  //the following functions are getters for logger lvls
   bool isDebugEnabled() const {return fIsDebugEnabled;}
   bool isWarnEnabled() const {return fIsWarnEnabled;}
   bool isInfoEnabled() const {return fIsInfoEnabled;}
@@ -62,31 +77,36 @@ private:
   bool fIsErrorEnabled;
   bool fIsFatalEnabled;
 
-  friend void LogPzDebugImpl( TPZLogger lg,  std::string msg,
-                     const char *fileName,  const std::size_t lineN);
-  friend void LogPzInfoImpl( TPZLogger lg,  std::string msg,
-                    const char *fileName,  const std::size_t lineN);
-  friend void LogPzWarnImpl( TPZLogger lg,  std::string msg,
-                    const char *fileName,  const std::size_t lineN);
-  friend void LogPzErrorImpl( TPZLogger lg,  std::string msg,
-                     const char *fileName,  const std::size_t lineN);
-  friend void LogPzFatalImpl( TPZLogger lg,  std::string msg,
-                     const char *fileName,  const std::size_t lineN);
+  friend void pzinternal::LogPzDebugImpl(TPZLogger lg, std::string msg,
+                                         const char *fileName,
+                                         const std::size_t lineN);
+  friend void pzinternal::LogPzInfoImpl(TPZLogger lg, std::string msg,
+                                        const char *fileName,
+                                        const std::size_t lineN);
+  friend void pzinternal::LogPzWarnImpl(TPZLogger lg, std::string msg,
+                                        const char *fileName,
+                                        const std::size_t lineN);
+  friend void pzinternal::LogPzErrorImpl(TPZLogger lg, std::string msg,
+                                         const char *fileName,
+                                         const std::size_t lineN);
+  friend void pzinternal::LogPzFatalImpl(TPZLogger lg, std::string msg,
+                                         const char *fileName,
+                                         const std::size_t lineN);
 };
 
 /// Define log for debug
-#define LOGPZ_DEBUG(A,B) LogPzDebugImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_DEBUG(A,B) pzinternal::LogPzDebugImpl(A,B,__FILE__,__LINE__);
 
 /// Define log for info
-#define LOGPZ_INFO(A,B) LogPzInfoImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_INFO(A,B) pzinternal::LogPzInfoImpl(A,B,__FILE__,__LINE__);
 
 /// Define log for warnings
-#define LOGPZ_WARN(A,B) LogPzWarnImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_WARN(A,B) pzinternal::LogPzWarnImpl(A,B,__FILE__,__LINE__);
 
 /// Define log for errors
-#define LOGPZ_ERROR(A,B) LogPzErrorImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_ERROR(A,B) pzinternal::LogPzErrorImpl(A,B,__FILE__,__LINE__);
 /// Define log for fatal errors
-#define LOGPZ_FATAL(A,B) LogPzFatalImpl(A,B,__FILE__,__LINE__);
+#define LOGPZ_FATAL(A,B) pzinternal::LogPzFatalImpl(A,B,__FILE__,__LINE__);
 
 #else
 #include <iostream>
