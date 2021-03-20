@@ -30,10 +30,6 @@
 #cmakedefine USING_TBB
 #endif
 
-#ifndef USING_MKL
-#cmakedefine USING_MKL
-#endif
-
 //WIN32 defs
 #ifndef VC
 #cmakedefine VC
