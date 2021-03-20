@@ -189,8 +189,7 @@ option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
 # Some definitions for windows
 if(WIN32)
 	#add a define saying it is a VC compiler
-	set(VC "#Will add a define VC on pz_config.h")
-	add_definitions(-DVC)
+	set(VC ON) # Will add a define VC on pz_config.h
 	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
 	#disabling VC warnings
