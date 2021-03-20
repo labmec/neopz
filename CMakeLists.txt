@@ -85,7 +85,7 @@ if(USING_LOG4CXX)
   #this is the definition used in pz lib
   include(cmake/EnableLog4cxx.cmake)
   enable_log4cxx(pz)
-  set(PZ_LOG "#Will add a define PZ_LOG on pz_config.h")
+  set(PZ_LOG ON) # Will add a define PZ_LOG on pz_config.h
 endif()
 
 #enabling METIS library
