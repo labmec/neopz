@@ -477,9 +477,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
         }
     }
 
-#ifdef USING_BOOST
     this->fCurrentIndex = 0;
-#endif
     
     fElementCompleted = -1;
     fElementsComputed.Resize(fMesh->NElements());
@@ -544,9 +542,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPoin
     }
     
 
-#ifdef USING_BOOST
     this->fCurrentIndex = 0;
-#endif
     fElementCompleted = -1;
     fElementsComputed.Resize(fMesh->NElements());
     fElementsComputed.Fill(0);
@@ -597,9 +593,7 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
-#ifdef USING_BOOST
     fCurrentIndex = &strmat->fCurrentIndex;
-#endif
     
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
@@ -632,9 +626,7 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
                                           TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
-#ifdef USING_BOOST
     this->fCurrentIndex = &strmat->fCurrentIndex;
-#endif
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -676,11 +668,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
     int64_t numelements = data->fElSequenceColor->size();
-#ifdef USING_BOOST
     int64_t index = data->fCurrentIndex->fetch_add(1);
-#else
-    int64_t index = data->fThreadSeqNum;
-#endif
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
@@ -698,12 +686,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
     data->fMutexAccessElement.unlock();
 #endif
     
-#ifndef USING_BOOST
-    int nthreads = data->fStruct->GetNumThreads();
-    for (index = data->fThreadSeqNum; index < numelements; index += nthreads)
-#else
     while (index < numelements)
-#endif
     {
         
         int64_t iel = data->fElSequenceColor->operator[](index);
@@ -916,9 +899,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
             std::cout << "the element in ElColorSequence is negative???\n";
             DebugStop();
         }
-#ifdef USING_BOOST
         index = data->fCurrentIndex->fetch_add(1);
-#endif
         
     }
     // just make sure threads that were accidentally blocked get woken up
@@ -975,11 +956,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
     int64_t numelements = data->fElSequenceColor->size();
-#ifdef USING_BOOST
     int64_t index = data->fCurrentIndex->fetch_add(1);
-#else
-    int64_t index = data->fThreadSeqNum;
-#endif
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
@@ -996,12 +973,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
     data->fMutexAccessElement.unlock();
 #endif
     
-#ifndef USING_BOOST
-    int nthreads = data->fStruct->GetNumThreads();
-    for (index = data->fThreadSeqNum; index < numelements; index += nthreads)
-#else
         while (index < numelements)
-#endif
         {
             
             int64_t iel = data->fElSequenceColor->operator[](index);
@@ -1228,9 +1200,7 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
                 std::cout << "the element in ElColorSequence is negative???\n";
                 DebugStop();
             }
-#ifdef USING_BOOST
             index = data->fCurrentIndex->fetch_add(1);
-#endif
             
         }
     // just make sure threads that were accidentally blocked get woken up
@@ -1528,11 +1498,9 @@ void TPZStructMatrixOT::Read(TPZStream& buf, void* context) {
     buf.Read(fElSequenceColor);
     buf.Read(&fElementCompleted);
     buf.Read(&fSomeoneIsSleeping);
-#ifdef USING_BOOST
     int64_t fCurrentIndexLong;
     buf.Read(&fCurrentIndexLong);
     fCurrentIndex = fCurrentIndexLong;
-#endif
 }
 
 void TPZStructMatrixOT::Write(TPZStream& buf, int withclassid) const {
@@ -1542,11 +1510,9 @@ void TPZStructMatrixOT::Write(TPZStream& buf, int withclassid) const {
     buf.Write(fElSequenceColor);
     buf.Write(&fElementCompleted);
     buf.Write(&fSomeoneIsSleeping);
-#ifdef USING_BOOST
     int64_t fCurrentIndexLong;
     fCurrentIndexLong = fCurrentIndex;
     buf.Write(&fCurrentIndexLong);
-#endif
 }
 
 template class TPZRestoreClass<TPZStructMatrixOT>;

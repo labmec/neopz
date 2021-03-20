@@ -26,11 +26,6 @@ synchronized.
 class TPZStructMatrixOT;
 #include "TPZStructMatrixBase.h"
 
-
-#ifdef USING_BOOST
-#include <boost/atomic.hpp>
-#endif
-
 /**
  * @brief Refines geometrical mesh (all the elements) num times
  * @ingroup geometry
@@ -141,10 +136,7 @@ protected:
         /** @brief Global rhs vector */
         TPZFMatrix<STATE> *fGlobRhs;
         
-#ifdef USING_BOOST
-        boost::atomic<int64_t> *fCurrentIndex;
-#else
-#endif
+        std::atomic<int64_t> *fCurrentIndex;
         /** @brief sequence number of the thread */
         int fThreadSeqNum;
 
@@ -179,9 +171,7 @@ protected:
     /// variable indicating if a thread is sleeping
     int fSomeoneIsSleeping;
     
-#ifdef USING_BOOST
-    boost::atomic<int64_t> fCurrentIndex;
-#endif
+    std::atomic<int64_t> fCurrentIndex;
 };
 
 #endif
