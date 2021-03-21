@@ -16,7 +16,7 @@ function(add_pz_target)
     PARSED_ARGS # prefix of output variables
     "" # list of names of the boolean arguments (only defined ones will be true)
     "NAME" # list of names of mono-valued arguments
-    "SOURCES;FILES" # list of names of multi-valued arguments (output variables are lists)
+    "SOURCES;FILES;REQUIRED" # list of names of multi-valued arguments (output variables are lists)
     ${ARGN} # arguments of the function to parse, here we take the all original ones
     )
   # note: if it remains unparsed arguments, here, they can be found in variable PARSED_ARGS_UNPARSED_ARGUMENTS
@@ -34,5 +34,10 @@ function(add_pz_target)
   target_include_directories(${PARSED_ARGS_NAME} PRIVATE ${PZ_INCLUDE_DIRS})
   foreach(file ${PARSED_ARGS_FILES})
     configure_file(${file} ${file} COPYONLY)
-  endforeach(file)  
+  endforeach(file)
+  foreach(reqr ${PARSED_ARGS_REQUIRED})
+      if(NOT ${reqr})
+          message(FATAL_ERROR "This target requires option ${reqr} in the NeoPZ library and it is not set")
+      endif()
+  endforeach(reqr)  
 endfunction(add_pz_target)

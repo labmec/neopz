@@ -102,13 +102,14 @@ add_subdirectory(MySubDirectory)
 add_pz_target(
   NAME MyTarget
   SOURCES MySources.cpp
-  FILES file_to_be_copied_to_binary_dir.abc)
+  FILES file_to_be_copied_to_binary_dir.abc
+  REQUIRED PZ_USING_MKL)
   
   target_link_libraries(MyTarget PRIVATE OtherDep::OtherDep)
   target_include_directories(MyTarget PRIVATE ${OTHERDEP_INCLUDE_DIRS})
 ```
 
-The CMake options defined when configuring NeoPZ will be available to the external targets with the `PZ` prefix (`USING_MKL` becomes `PZ_USING_MKL`). *Note:* `PZ_LOG` is used both internally and externally for identifying if there is support for logging.
+The CMake options defined when configuring NeoPZ will be available to the external targets with the `PZ` prefix (`USING_MKL` becomes `PZ_USING_MKL`). So, if a certain option is needed in an external project, the `REQUIRED` field in `add_pz_targets` can be used. *Note:* `PZ_LOG` is used both internally and externally for identifying if there is support for logging.
 
 ## NeoPZ documentation
 
