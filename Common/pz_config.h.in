@@ -30,6 +30,11 @@
 #ifndef PZ_LOG
 #cmakedefine PZ_LOG
 #endif
+
+#ifndef PZ_LOG4CXX_CONFIG_FILE
+#define PZ_LOG4CXX_CONFIG_FILE "@PZ_LOG4CXX_CONFIG_FILE@"
+#endif
+
 //Type defs
 #ifndef @REAL_TYPE_DEF@
 #define @REAL_TYPE_DEF@
