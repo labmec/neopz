@@ -83,6 +83,9 @@ set(sources
     )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
+if(USING_LOG4CXX)
+    install(FILES log4cxx.cfg DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
+endif()
 
 target_sources(pz PRIVATE ${headers} ${sources})
 
