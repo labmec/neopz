@@ -71,7 +71,7 @@ The following options are listed for completeness:
 - `BUILD_PUBLICATIONS`: build legacy projects with code used to generate results that were published.
 
 
-May any problems arise during the installation of NeoPZ library, please contact us on `neopz@googlegroups.com`.
+Should any problems arise during the installation of NeoPZ library, please contact us on <neopz@googlegroups.com>.
 
 ## Using NeoPZ in your C++ project
 The installation of NeoPZ will provide the `add_pz_target` function to be used in the CMake files of your project. A minimal example of the `CMakeLists.txt` files for a project using the NeoPZ library follows:
