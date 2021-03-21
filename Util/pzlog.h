@@ -26,6 +26,7 @@ on the log calls. However, it is really not necessary. Most compilers are probab
 
 #ifdef PZ_LOG
 #include <string>
+
 class TPZLogger;
 
 //the following are functions for internal usage
@@ -46,6 +47,12 @@ void LogPzErrorImpl(TPZLogger lg, std::string msg,
 void LogPzFatalImpl(TPZLogger lg, std::string msg,
                     [[maybe_unused]] const char *fileName,
                     [[maybe_unused]] const std::size_t lineN);
+
+/**
+ * @brief Initializes log file for log4cxx with common name log4cxx.cfg
+ * @ingroup util
+ */
+void InitializePZLOG(const std::string &configfile);
 }
 
 /*The TPZLogger is a wrapper for the Log4cxx library. Once the
@@ -140,10 +147,29 @@ DebugStop();
 
 #endif
 
-/**
- * @brief Initializes log file for log4cxx with commom name log4cxx.cfg
- * @ingroup util
+static void InitializePZLOG() {
+  std::string path = PZ_LOG4CXX_CONFIG_FILE;
+  pzinternal::InitializePZLOG(path);
+}
+
+/*
+ * @orlandini & @gustavobat:
+ * The following is an attempt to call InitializePZLOG() automatically before main() is called.
+ * If anybody comes up with a better solution, it would be great.
+ * Taken from: https://stackoverflow.com/questions/3370004/what-is-static-block-in-c-or-c
  */
-void InitializePZLOG();
+
+namespace pzinternal {
+struct InitLogStaticBlock {
+  InitLogStaticBlock() noexcept {
+    static bool firstTime{true};
+    if (firstTime) {
+      ::InitializePZLOG();
+    }
+    firstTime = false;
+  }
+};
+}
+[[maybe_unused]] static pzinternal::InitLogStaticBlock staticBlock;
 
 #endif

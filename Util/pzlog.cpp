@@ -92,24 +92,7 @@ void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fil
  * @ingroup util
  * @brief Initialize a log file adequated to use log4cxx lib
  */
-inline void InitializePZLOG(const std::string &configfile)
-{
-#ifdef PZ_LOG
-	log4cxx::PropertyConfigurator::configure(configfile);
-	{
-		log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-		logger->setAdditivity(false);
-		//    logger->setLevel(log4cxx::Level::getDebug());
-	}
-	{
-		log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
-		logger->setAdditivity(false);
-		//  logger->setLevel(log4cxx::Level::getDebug());
-	}
-#endif
-}
-
-void InitializePZLOG()
+void pzinternal::InitializePZLOG(const std::string &configfile)
 {
   static bool firstTime{true};
   if(!firstTime){
@@ -117,60 +100,32 @@ void InitializePZLOG()
     std::cout << "This is not needed anymore"<<std::endl;
   }
   else{
-    std::string path;
-    std::string configfile;
-#ifdef PZSOURCEDIR
-    path = PZSOURCEDIR;
-    path += "/Util/";
-#else
-    path = "";
-#endif
-    configfile = path;
-    configfile += "log4cxx.cfg";
-
 #ifndef WIN32
-    int res = mkdir("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
-    // Wether the error happen again, the problem can to be permission, then a
-    // message is printed
-    if (res) {
-      struct stat result;
-      res = stat("LOG", &result);
-      if (res)
-        std::cout << "Error in mkdir : " << res << " permission denied."
-                  << std::endl;
-    }
+  int res = mkdir("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
+  // Wether the error happen again, the problem can to be permission, then a
+  // message is printed
+  if (res) {
+    struct stat result;
+    res = stat("LOG", &result);
+    if (res)
+      std::cout << "Error in mkdir : " << res << " permission denied."
+                << std::endl;
+  }
 #endif
 
-    std::cout << "Logfile " << configfile << std::endl;
-    InitializePZLOG(configfile);
-    firstTime = false;
+  std::cout << "Logfile " << configfile << std::endl;
+
+  log4cxx::PropertyConfigurator::configure(configfile);
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+    logger->setAdditivity(false);
+    //    logger->setLevel(log4cxx::Level::getDebug());
   }
-	
+  {
+    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
+    logger->setAdditivity(false);
+    //  logger->setLevel(log4cxx::Level::getDebug());
+  }
+  firstTime = false;
+  }
 }
-
-
-/**@orlandini: The following is an attempt to call
-InitializePZLOG() at some point before main() is called.
-If anybody comes up with a better solution, it would be great.
-Taken from: https://stackoverflow.com/questions/19227664/whats-the-c-idiom-equivalent-to-the-java-static-block
-
-Apparently, constructors of namespace-scope variables
-are guaranteed to run before main. It could be
-an alternative... See:
-https://stackoverflow.com/questions/9439871/can-you-print-anything-in-c-before-entering-into-the-main-function*/
-
-
-#define M_CON(A, B) M_CON_(A, B)
-#define M_CON_(A, B) A##B
-
-#define STATIC_BLOCK \
-        [[maybe_unused]] static const auto M_CON(_static_block,__LINE__) = []()
-
-STATIC_BLOCK {
-    InitializePZLOG();
-    return 0;
-}();
-
-#undef M_CON
-#undef M_CON_
-#undef STATIC_BLOCK
