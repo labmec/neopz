@@ -13,14 +13,7 @@
 static TPZLogger logger("pz.mesh.tpzcondensedcompel");
 #endif
 
-#ifdef USING_LAPACK
-//#define USING_DGER
-#ifdef USING_MKL
-#include <mkl.h>
-#elif MACOSX
-#include <Accelerate/Accelerate.h>
-#endif
-#endif
+#include "TPZLapack.h"
 
 TPZCondensedCompEl::TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix) :
 TPZRegisterClassId(&TPZCondensedCompEl::ClassId)
