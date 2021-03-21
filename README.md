@@ -54,8 +54,13 @@ where some CMake options were given as an illustration. The following CMake opti
 - `CMAKE_BUILD_TYPE`: `Release`, `Debug` or `RelWithDebugInfo`.
 - `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials.
 
+*Note:* See [here](https://scc.ustc.edu.cn/zlsc/sugon/intel/mkl/mkl_userguide/GUID-390867EA-9DD8-4CBE-93B6-CE11251C050D.htm) how to set up MKL for usage with NeoPZ. In UNIX systems, running
+```
+source MKL_DIR/bin/compilervars.sh intel64
+```
+on your `.bashrc`, `.zshrc`, *etc* should suffice.
 
-*Internal options/deprecated options*
+### Internal options/deprecated options
 The remaining `USING_XXX` CMake options are for internal usage only.
 The following options are listed for completeness:
 
@@ -68,6 +73,42 @@ The following options are listed for completeness:
 
 For more info on how to install NeoPZ, please refer to the tutorial for [Linux](http://www.labmec.org.br/wiki/howto/roteiro_pzlinux_eng), [Windows](http://www.labmec.org.br/wiki/howto/pz_windows) or [MacOS](http://www.labmec.org.br/wiki/howto/pz_no_ubuntu_macosx_mavericks).
 
+## Using NeoPZ in your C++ project
+The installation of NeoPZ will provide the `add_pz_target` function to be used in the CMake files of your project. A minimal example of the `CMakeLists.txt` files for a project using the NeoPZ library follows:
+
+`proj_root/CMakelists.txt`
+
+```
+cmake_minimum_required(VERSION 3.13)
+
+project (MySuperProject LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Finding the pz package
+find_package(NeoPZ REQUIRED)
+# Finding other packages
+# Let us assume that the following call will define
+# OtherDep::OtherDep
+# OTHERDEP_INCLUDE_DIRS
+find_package(OtherDep REQUIRED)
+add_subdirectory(MySubDirectory)
+```
+
+`proj_root/MySubDirectory/CMakeLists.txt`
+
+```
+add_pz_target(
+  NAME MyTarget
+  SOURCES MySources.cpp
+  FILES file_to_be_copied_to_binary_dir.abc)
+  
+  target_link_libraries(MyTarget PRIVATE OtherDep::OtherDep)
+  target_include_directories(MyTarget PRIVATE ${OTHERDEP_INCLUDE_DIRS})
+```
+
+The CMake options defined when configuring NeoPZ will be available to the external targets with the `PZ` prefix (`USING_MKL` becomes `PZ_USING_MKL`). *Note:* `PZ_LOG` is used both internally and externally for identifying if there is support for logging.
 
 ## NeoPZ documentation
 
