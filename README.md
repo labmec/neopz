@@ -40,8 +40,8 @@ make -j && sudo make install
 ```
 where some CMake options were given as an illustration. The following CMake options are available:
 
-- `REAL_TYPE`: which floating point type to use for real data types (geometry)
-- `STATE_TYPE`: which floating point type to use for the Finite Element matrices. It can be real or complex.
+- `REAL_TYPE`: which floating point type to use for real data types (geometry). It can be set as `float`, `double`, `long double`, `pzfpcounter` (last option is for internal usage)
+- `STATE_TYPE`: which floating point type to use for the Finite Element matrices. It can be set as `float`, `double`, `long double`, `complex<float>`, `complex<double>`, `complex<long double>`.
 - `CMAKE_INSTALL_PREFIX`: where to install the NeoPZ library. Defaulted to `/opt/neopz` on UNIX systems.
 - `USING_BLAZE`: Enable blaze library support
 - `USING_BOOST`: Enable Boost libraries (`Boost::date_time`, `Boost::graph` and `Boost::unit_test_framework`) support
@@ -49,8 +49,8 @@ where some CMake options were given as an illustration. The following CMake opti
 - `USING_MKL`: Enable MKL library support
 - `USING_LOG4CXX`: Enable logging information through log4cxx support.
 - `USING_METIS`: Enable Metis library support.
-- `CMAKE_BUILD_TYPE`: `Release`, `Debug` or `RelWithDebugInfo`.
-- `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials.
+- `CMAKE_BUILD_TYPE`: `Release`, `Debug`, `RelWithDebugInfo` or `Profile` (last option only available on linux systems)
+- `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials. *Note:* This option conflicts with complex `STATE_TYPE`.
 
 *Note:* See [here](https://scc.ustc.edu.cn/zlsc/sugon/intel/mkl/mkl_userguide/GUID-390867EA-9DD8-4CBE-93B6-CE11251C050D.htm) how to set up MKL for usage with NeoPZ. In UNIX systems, running
 ```
