@@ -609,8 +609,6 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
 #include "TPZLapack.h"
 #endif
 
-#include "TPZBlas.h"
-
 void TPZGradientReconstruction::TPZGradientData::ComputeGradient()
 {
     if (fCenterPointInterface.size()<1 || fSolCellAndNeighbors.size()<1)

@@ -13,7 +13,6 @@ set(public_headers
   fpo_exceptions.h
   )
 set(headers
-    TPZBlas.h
     TPZGuiInterface.h
     TPZLapack.h
     TPZReschedulableTask.h

@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
     likwid_manager_t likwid_manager;
 #endif
     
-#ifdef USING_BLAS
+#ifdef USING_LAPACK
     setenv("VECLIB_MAXIMUM_THREADS", "1", true);
 #endif
     

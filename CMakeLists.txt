@@ -138,13 +138,6 @@ if(USING_LAPACK)
     enable_lapack(pz)
 endif(USING_LAPACK)
 
-#enabling BLAS library
-option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
-if(USING_BLAS)
-    include(cmake/EnableBLAS.cmake)
-    enable_blas(pz)
-endif(USING_BLAS)
-
 #enabling PAPI library
 option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
 if(USING_PAPI)

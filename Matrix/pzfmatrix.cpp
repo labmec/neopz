@@ -2064,15 +2064,6 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
     int64_t size = (A.Rows())*A.Cols();
     TVar result = 0.;
     if(!size) return result;
-    // #ifdef USING_ATLAS
-    // 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-    // 	return result;
-    //
-    // #elif USING_BLAS
-    // 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-    // 	return result;
-    //
-    // #else
     const TVar *fpA = &A.g(0,0), *fpB = &B.g(0,0);
     const TVar *fpLast = fpA+size;
     while(fpA < fpLast)
