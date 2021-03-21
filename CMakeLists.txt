@@ -360,7 +360,6 @@ endif()
 
 #Enabling tests
 ENABLE_TESTING()
-option(BUILD_TESTING "" OFF)
 include(CTest)
 
 #To insert doxygen documentation files
