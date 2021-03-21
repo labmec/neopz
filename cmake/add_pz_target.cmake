@@ -16,7 +16,7 @@ function(add_pz_target)
     PARSED_ARGS # prefix of output variables
     "" # list of names of the boolean arguments (only defined ones will be true)
     "NAME" # list of names of mono-valued arguments
-    "SOURCES;EXTRA_LIBS;FILES" # list of names of multi-valued arguments (output variables are lists)
+    "SOURCES;FILES" # list of names of multi-valued arguments (output variables are lists)
     ${ARGN} # arguments of the function to parse, here we take the all original ones
     )
   # note: if it remains unparsed arguments, here, they can be found in variable PARSED_ARGS_UNPARSED_ARGUMENTS
@@ -32,9 +32,6 @@ function(add_pz_target)
   
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE NeoPZ::pz)
   target_include_directories(${PARSED_ARGS_NAME} PRIVATE ${PZ_INCLUDE_DIRS})
-  foreach(extlib ${PARSED_ARGS_EXTRA_LIBS})
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${extlib})
-  endforeach(extlib)  
   foreach(file ${PARSED_ARGS_FILES})
     configure_file(${file} ${file} COPYONLY)
   endforeach(file)  
