@@ -8,13 +8,15 @@
 
 #include "TPZPardisoControl.h"
 
-#include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
 #include "pzlog.h"
 
 
 #ifdef USING_MKL
+
+#include "mkl_pardiso.h"
+
 #ifdef PZ_LOG
 static TPZLogger logger("pz.matrix.pardisocontrol");
 #endif
