@@ -33,7 +33,7 @@ The usage of NeoPZ can be improved by linking against the following libraries:
 
 ## Configuration and Install
 The NeoPZ library uses CMake for configuring and installing the library. As a simple example, on UNIX systems, this could be done as:
-```
+```sh
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Debug -DUSING_LOG4CXX=ON -DUSING_MKL=ON ..
 make -j && sudo make install
@@ -53,13 +53,13 @@ where some CMake options were given as an illustration. The following CMake opti
 - `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials. *Note:* This option conflicts with complex `STATE_TYPE`.
 
 *Note:* MKL has recently changed how they distribute their libraries, using the [oneAPI](https://software.intel.com/content/www/us/en/develop/tools/oneapi.html) programming model. See [here](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-base-linux/top/before-you-begin.html) how to set up oneAPI MKL for usage with NeoPZ. In UNIX systems, adding the 
-```
+```sh
 source /opt/intel/oneapi/setvars.sh intel64
 ```
 command to your shell startup file (`~/.bashrc_profile`, `~/.zshenv`, *etc*) should suffice.
 
 For older MKL distributions, the script is located in:
-```
+```sh
 source MKL_DIR/bin/compilervars.sh intel64
 ```
 
@@ -81,7 +81,7 @@ The installation of NeoPZ will provide the `add_pz_target` function to be used i
 
 `proj_root/CMakelists.txt`
 
-```
+```cmake
 cmake_minimum_required(VERSION 3.13)
 
 project (MySuperProject LANGUAGES CXX)
@@ -101,7 +101,7 @@ add_subdirectory(MySubDirectory)
 
 `proj_root/MySubDirectory/CMakeLists.txt`
 
-```
+```cmake
 add_pz_target(
   NAME MyTarget
   SOURCES MySources.cpp
@@ -126,7 +126,7 @@ for scientific programming. Computer Methods in Applied Mechanics
 and Engineering 150, 133–153.
 https://doi.org/10.1016/s0045-7825(97)00097-2
 
-```
+```bibtex
 @article{neopz97,
 author = {Devloo, Philippe Remy Bernard},
 year = {1997},
