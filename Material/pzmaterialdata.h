@@ -22,12 +22,16 @@
  * @since April 10, 2007
  */
 
+const int MatDataNumSol = 1;
+const int MatDataNumPhi = 20;
+const int MatDataNumDPhi = 60;
+const int MatDataNumDir = 81;
 /// Represent the state variables of a finite element approximation
 typedef TPZManVector<STATE, 10> TPZFemSol;
 /// Represents the gradient of a state variable of a finite element approximation
-typedef TPZFNMatrix<15, STATE> TPZFemGradSol;
-typedef TPZManVector<TPZFemSol,20> TPZSolVec;
-typedef TPZManVector<TPZFemGradSol,20> TPZGradSolVec;
+typedef TPZFNMatrix<30, STATE> TPZFemGradSol;
+typedef TPZManVector<TPZFemSol,MatDataNumSol> TPZSolVec;
+typedef TPZManVector<TPZFemGradSol,MatDataNumSol> TPZGradSolVec;
 
 
 class TPZMaterialData : public TPZSavable {
@@ -52,18 +56,18 @@ public:
     /** @{ */
     
     /// vector of shapefunctions (format is dependent on the value of shapetype)
-    TPZFNMatrix<220, REAL> phi;
+    TPZFNMatrix<MatDataNumPhi, REAL> phi;
     /// values of the derivative of the shape functions over the master element
-    TPZFNMatrix<660, REAL> dphi;
+    TPZFNMatrix<MatDataNumDPhi, REAL> dphi;
     /// values of the derivative of the shape functions
-    TPZFNMatrix<660, REAL> dphix;
+    TPZFNMatrix<MatDataNumDPhi, REAL> dphix;
     /// values of the divergence of the shape functions in the mapped element (only applicable to H(div) spaces)
     /// number of dual function (e.g. pressure in HDiv approximations)
     int numberdualfunctions;
     
-    TPZFNMatrix<220, REAL> divphi;
+    TPZFNMatrix<MatDataNumPhi, REAL> divphi;
     /// values of the curl of the shape functions in the mapped element (only applicable to H(curl) spaces)
-    TPZFNMatrix<220, REAL> curlphi;
+    TPZFNMatrix<MatDataNumPhi, REAL> curlphi;
     /// axes indicating the directions of the derivatives of the shapefunctions
     TPZFNMatrix<9,REAL> axes;
     /// value of the jacobian at the integration point
@@ -93,21 +97,21 @@ public:
     /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
     /// Directions on the master element
-    TPZFNMatrix<180> fMasterDirections;
+    TPZFNMatrix<MatDataNumDir> fMasterDirections;
     
     
     //Id of associated geo element
     int gelElId;
     
     /// correspondence between direction vector index and index of the shape functions
-    TPZManVector<std::pair<int,int64_t> > fVecShapeIndex;
+    TPZManVector<std::pair<int,int64_t>, MatDataNumPhi > fVecShapeIndex;
     /// Directions on the deformed element
-    TPZFNMatrix<180> fDeformedDirections;
+    TPZFNMatrix<MatDataNumDir> fDeformedDirections;
     /** @} */
     
 #ifdef _AUTODIFF
     /// Directions on the deformed element using Fad
-    TPZFNMatrix<180,Fad<REAL>> fDeformedDirectionsFad;
+    TPZFNMatrix<MatDataNumDir,Fad<REAL>> fDeformedDirectionsFad;
     /** @} */
 #endif
     

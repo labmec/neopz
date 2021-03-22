@@ -93,10 +93,10 @@ void TPZPrimalPoisson::Read(TPZStream &buf, void *context){
 /** @brief Volumetric contribute with jacobian matrix */
 void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 
-    TPZFNMatrix<220,REAL> &phi     = data.phi;
-    TPZFNMatrix<660,REAL> &dphix   = data.dphix;
+    TPZMatrix<REAL> &phi     = data.phi;
+    TPZFMatrix<REAL> &dphix   = data.dphix;
     
-    TPZFNMatrix<15,STATE> &dpdx    = data.dsol[0];
+    TPZFMatrix<STATE> &dpdx    = data.dsol[0];
     
     int nphi_p = phi.Rows();
 
@@ -135,10 +135,10 @@ void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<S
 /** @brief Volumetric contribute */
 void TPZPrimalPoisson::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ef){
 
-    TPZFNMatrix<220,REAL> &phi     = data.phi;
-    TPZFNMatrix<660,REAL> &dphix   = data.dphix;
+    TPZFMatrix<REAL> &phi     = data.phi;
+    TPZFMatrix<REAL> &dphix   = data.dphix;
     
-    TPZFNMatrix<15,STATE> &dpdx    = data.dsol[0];
+    TPZFMatrix<STATE> &dpdx    = data.dsol[0];
     
     int nphi_p = phi.Rows();
     
