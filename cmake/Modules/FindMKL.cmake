@@ -127,17 +127,17 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
 endif()
 
 if(WIN32)
-    string(APPEND _mkl_libpath_suffix "_win")
+    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix}_win")
     set(_mkl_libname_prefix "")
     set(_mkl_shared_lib "_dll.lib")
     set(_mkl_static_lib ".lib")
 elseif(APPLE)
-    string(APPEND _mkl_libpath_suffix "_mac")
+    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix}_mac")
     set(_mkl_libname_prefix "lib")
     set(_mkl_shared_lib ".dylib")
     set(_mkl_static_lib ".a")
 else() # LINUX
-    string(APPEND _mkl_libpath_suffix "_lin")
+    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix}_lin")
     set(_mkl_libname_prefix "lib")
     set(_mkl_shared_lib ".so")
     set(_mkl_static_lib ".a")
@@ -150,6 +150,9 @@ foreach (dir IN LISTS ${EXTRA_SEARCH_DIRS})
   list(APPEND _mkl_search_paths "${dir}/mkl" "${dir}/mkl/lib" "${dir}/mkl/compiler/lib")
 endforeach ()              
 
+if(CMAKE_MKL_DEBUG)
+message(STATUS "MKL_LIBPATH_SUFFIX: ${_mkl_libpath_suffix}")
+endif(CMAKE_MKL_DEBUG)
 # Functions: finds both static and shared MKL libraries
 #
 function(__mkl_find_library _varname _libname)

@@ -52,11 +52,16 @@ where some CMake options were given as an illustration. The following CMake opti
 - `CMAKE_BUILD_TYPE`: `Release`, `Debug`, `RelWithDebugInfo` or `Profile` (last option only available on linux systems)
 - `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials. *Note:* This option conflicts with complex `STATE_TYPE`.
 
-*Note:* See [here](https://scc.ustc.edu.cn/zlsc/sugon/intel/mkl/mkl_userguide/GUID-390867EA-9DD8-4CBE-93B6-CE11251C050D.htm) how to set up MKL for usage with NeoPZ. In UNIX systems, running
+*Note:* MKL has recently changed how they distribute their libraries, using the [oneAPI](https://software.intel.com/content/www/us/en/develop/tools/oneapi.html) programming model. See [here](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-base-linux/top/before-you-begin.html) how to set up oneAPI MKL for usage with NeoPZ. In UNIX systems, adding the 
+```
+source /opt/intel/oneapi/setvars.sh intel64
+```
+command to your shell startup file (`~/.bashrc_profile`, `~/.zshenv`, *etc*) should suffice.
+
+For older MKL distributions, the script is located in:
 ```
 source MKL_DIR/bin/compilervars.sh intel64
 ```
-on your `.bashrc`, `.zshrc`, *etc* should suffice.
 
 ### Internal options/deprecated options
 The remaining `USING_XXX` CMake options are for internal usage only.
