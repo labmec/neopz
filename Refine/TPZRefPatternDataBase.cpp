@@ -376,13 +376,6 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
-#ifdef PZ_LOG
-            if (logger.isDebugEnabled()) {
-                std::stringstream sout;
-                refpat->PrintMore(sout);
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
 			
 			break;
 		}
