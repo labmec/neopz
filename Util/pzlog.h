@@ -3,14 +3,20 @@
  * @brief Contains definitions of TPZLogger class, InitializePZLOG()  and auxiliary macros.
  *
  * TPZLogger is a wrapper for the logging library used in NeoPZ.
- *The log config file is available at PZ_SOURCE_DIR/Util/log4cxx.cfg. The log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
-  The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL.
-  The functions TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called before writing the log messages, as most of the execution time is spent writing the messages to the stream.
-If you are extremely worried about performance, you can use 
-#ifdef PZ_LOG
-//your log code here
-#endif
-on the log calls. However, it is really not necessary. Most compilers are probably able to optimise the if(logger.isXXXenabled()) condition when PZ_LOG is not set.
+ * The log config file is available at PZ_SOURCE_DIR/Util/log4cxx.cfg.
+ * The log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
+ * Once the NeoPZ library is installed, the log config file to be used is the one in PZ_INSTALL_DIR/include/Util/log4cxx.cfg.
+ * The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL.
+ * The functions TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called
+ * before writing the log messages, as most of the execution time is spent writing the messages to the stream.
+ * If you are extremely worried about performance, you can use 
+ * 
+ * #ifdef PZ_LOG
+ * //your log code here
+ * #endif
+ * 
+ * on the log calls. However, it is really not necessary.
+ * Most compilers are probably able to optimise the if(logger.isXXXenabled()) condition when PZ_LOG is not set.
  */
 
 
