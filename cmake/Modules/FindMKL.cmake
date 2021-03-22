@@ -198,7 +198,11 @@ endfunction()
 #
 find_path(MKL_INCLUDE_DIR mkl.h
     PATHS ${_mkl_search_paths}
-    PATH_SUFFIXES "include" "latest/include")
+    PATH_SUFFIXES
+    "include" #older versions
+    "latest/include" #newer (2021) oneAPI version
+    "include/mkl" #when installed by apt-get on debian
+    )
 mark_as_advanced(MKL_INCLUDE_DIR)
 
 if(CMAKE_MKL_DEBUG)  
