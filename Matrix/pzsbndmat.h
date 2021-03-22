@@ -107,9 +107,9 @@ public:
     
     /// To solve linear systems
     // @{
-    //Depends on LAPACK
+    //If LAPACK is available, it will use its implementation.
     int Decompose_Cholesky() override;  // Faz A = GGt.
-    //Depends on LAPACK
+    //If LAPACK is available, it will use its implementation.
     int Decompose_Cholesky(std::list<int64_t> &singular) override;
     
     int Subst_Forward( TPZFMatrix<TVar>*B ) const override;

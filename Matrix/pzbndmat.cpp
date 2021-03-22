@@ -492,7 +492,6 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
     }
 }
 
-#ifdef USING_LAPACK
 
 template<class TVar>
 int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
@@ -501,7 +500,18 @@ int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
 	return ELU;
 }
 
+template<class TVar>
+int TPZFBMatrix<TVar>::Decompose_LU()
+{
+    if (  this->fDecomposed && this->fDecomposed == ELU) {
+        return ELU;
+    } else if(this->fDecomposed) {
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+    }
+    return TPZMatrix<TVar>::Decompose_LU();
+}
 
+#ifdef USING_LAPACK
 template<>
 int
 TPZFBMatrix<float>::Decompose_LU()
@@ -565,18 +575,6 @@ TPZFBMatrix<double>::Decompose_LU()
 }
 
 
-
-template<class TVar>
-int TPZFBMatrix<TVar>::Decompose_LU()
-{
-    if (  this->fDecomposed && this->fDecomposed == ELU) {
-        return ELU;
-    } else if(this->fDecomposed) {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
-    }
-    return TPZMatrix<TVar>::Decompose_LU();
-}
-
 template<>
 int TPZFBMatrix<float>::Substitution( TPZFMatrix<float> *B ) const{
     
@@ -617,26 +615,6 @@ int TPZFBMatrix<double>::Substitution( TPZFMatrix<double> *B ) const{
     return( 1 );
 }
 
-#else
-#define NON_LAPACK \
-  PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";\
-  PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";\
-  PZError<<" when configuring NeoPZ library"<<std::endl;\
-  DebugStop();\
-  return -1;
-template<class TVar>
-int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
-{
-    NON_LAPACK
-}
-
-
-template<class TVar>
-int TPZFBMatrix<TVar>::Decompose_LU()
-{
-  NON_LAPACK
-}
-#undef NON_LAPACK
 #endif
 
 template<class TVar>

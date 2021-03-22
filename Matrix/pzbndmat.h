@@ -63,10 +63,6 @@ public:
             fElem[el] = orig.fElem[el];
         }
         fPivot = orig.fPivot;
-        int64_t nwork = orig.fWork.size();
-        for (int64_t el=0; el<nwork; el++) {
-            fWork[el] = orig.fWork[el];
-        }
         
     }
     
@@ -136,9 +132,9 @@ public:
 	int Zero() override;
 	
 	void Transpose(TPZMatrix<TVar> *const T) const override;
-    //Depends on LAPACK
+    //If LAPACK is available, it will use its implementation.
 	int       Decompose_LU(std::list<int64_t> &singular) override;
-    //Depends on LAPACK
+    //If LAPACK is available, it will use its implementation.
 	int       Decompose_LU() override;
 	
     public:
@@ -157,8 +153,6 @@ private:
 	int64_t  fBandLower, fBandUpper;
 
     TPZManVector<int,5> fPivot;
-    
-    TPZVec<TVar> fWork;
 
 };
 

@@ -357,31 +357,31 @@ public:
     
 
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular. DEPENDS ON LAPACK.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular. DEPENDS ON LAPACK.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1. DEPENDS ON LAPACK.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1. DEPENDS ON LAPACK.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix. DEPENDS ON LAPACK.
+     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;

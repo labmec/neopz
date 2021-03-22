@@ -1853,7 +1853,7 @@ int TPZFMatrix<double>::Subst_Forward( TPZFMatrix<double>* b ) const
         return TPZMatrix<double>::Subst_Forward(b);
     }
 }
-
+#endif 
 /**
  * @brief Computes B = Y, where A*Y = B, A is lower triangular.
  * @param b right hand side and result after all
@@ -1874,7 +1874,7 @@ int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
     return TPZMatrix<TVar>::Subst_Backward(b);
 }
 
-
+#ifdef USING_LAPACK
 template<>
 int TPZFMatrix<float>::Subst_Backward( TPZFMatrix<float>* b ) const
 {
@@ -1985,18 +1985,6 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
-
-/**
- * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
- * @param b right hand side and result after all
- */
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
-{
-    //    ssytrs2
-    return TPZMatrix<TVar>::Subst_LForward(b);
-}
-
 /**
  * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
  * @param b right hand side and result after all
@@ -2015,16 +2003,6 @@ template<>
 int TPZFMatrix<double>::Subst_LBackward( TPZFMatrix<double>* b ) const
 {
     return 1;
-}
-
-/**
- * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
- * @param b right hand side and result after all
- */
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
-{
-    return TPZMatrix<TVar>::Subst_LBackward(b);
 }
 
 /**
@@ -2047,6 +2025,28 @@ int TPZFMatrix<double>::Subst_Diag( TPZFMatrix<double>* b ) const
     return 1;
 }
 
+#endif
+/**
+ * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+{
+    //    ssytrs2
+    return TPZMatrix<TVar>::Subst_LForward(b);
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+{
+    return TPZMatrix<TVar>::Subst_LBackward(b);
+}
+
 /**
  * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
  * @param b right hand side and result after all
@@ -2056,7 +2056,6 @@ int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
 {
     return TPZMatrix<TVar>::Subst_Diag(b);
 }
-#endif //USING_LAPACK
 
 /** @brief Implement dot product for matrices */
 template<class TVar>
@@ -3133,22 +3132,6 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     PZError<<" when configuring NeoPZ library"<<std::endl;              \
     DebugStop();\
     return -1;
-
-
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
-
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
-
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
-
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
-
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const{NON_LAPACK}
 
 template<class TVar>
 int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}

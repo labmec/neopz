@@ -624,7 +624,7 @@ TPZSBMatrix<TVar>::SetBand(int64_t newBand )
 /********************* Resolucao de sistemas *********************/
 
 
-#ifdef USING_LAPACK
+
 /**************************/
 /*** Decompose Cholesky ***/
 template<class TVar>
@@ -634,6 +634,14 @@ TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
     return Decompose_Cholesky();
 }
 
+template<class TVar>
+int
+TPZSBMatrix<TVar>::Decompose_Cholesky()
+{
+    return TPZMatrix<TVar>::Decompose_Cholesky();
+}
+
+#ifdef USING_LAPACK
 template<>
 int
 TPZSBMatrix<std::complex< float > >::Decompose_Cholesky()
@@ -748,13 +756,6 @@ int TPZSBMatrix<double>::Decompose_Cholesky()
     }
     fDecomposed = ECholesky;
     return 1;
-}
-
-template<class TVar>
-int
-TPZSBMatrix<TVar>::Decompose_Cholesky()
-{
-    return TPZMatrix<TVar>::Decompose_Cholesky();
 }
 #endif
 
@@ -1991,11 +1992,7 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
   PZError<<" when configuring NeoPZ library"<<std::endl;\
   DebugStop();\
   return -1;
-template<class TVar>
-int TPZSBMatrix<TVar>::Decompose_Cholesky(){NON_LAPACK}
 
-template<class TVar>
-int TPZSBMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular){NON_LAPACK}
 
 template<class TVar>
 int TPZSBMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
