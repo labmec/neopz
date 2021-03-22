@@ -28,8 +28,6 @@ void TPZBiharmonicEstimator::SetExactSolutions(
 }
 
 //static STATE Pi = 4.*atan(1.);
-/** @brief Output file to contribute erros. */
-std::ofstream CE ( "debugContributeErros.txt" );
 // std::ofstream CoutPontual ( "solPontual.txt" );
 void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 												  REAL weight,
@@ -60,10 +58,7 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 		this->fForcingFunction->Execute(x, result);
 		this->fXf = result[0];
 	}
-	CE << "x: "<< x[0]<<","<<x[1]<<std::endl;
-	CE << "sol: "<< sol[0]<<","<<sol[1]<<","<<sol[2]<<","<<sol[3]<<std::endl;
-	CE << "weight: "<< weight <<std::endl;
-	CE << "LaplacLaplac: "<< LaplacLaplac <<std::endl;
+	
 	
 	// std::cout.precision(16);
 	// if(fabs(x[0]-0.5)<0.001 && fabs(x[1]-0.5)<0.001){
@@ -71,8 +66,7 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 	// CoutPontual << "sol: "<< sol[0]<<std::endl;
 	// }
 	STATE f = this->fXf;
-	CE << "f: "<<f <<std::endl;
-	CE << " "<<std::endl; 
+	
 	STATE Z  = sol[2];
 	STATE Z1 = sol[3];
 	nk[0] += weight *( f -  LaplacLaplac )*(Z1-Z);
