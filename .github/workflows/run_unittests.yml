@@ -15,15 +15,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download and install Boost for unit testing
-      uses: MarkusJx/install-boost@v1.0.1
-      id: install-boost
-      with:
-      # The boost version to install, e.g. "1.73.0"
-          boost_version: 1.73.0
-          
     - uses: actions/checkout@v2
-
+    - name: Cache boost
+      uses: actions/cache@v1.0.3
+      id: cache-boost
+      with:
+        path: "~/boost"
+        key: libboost1.71-dev
+    - name: Install boost
+      env:
+        CACHE_HIT: ${{steps.cache-boost.outputs.cache-hit}}
+      run: |
+        if [[ "$CACHE_HIT" == 'true' ]]; then
+          sudo cp --force --recursive ~/boost/* /
+        else
+          sudo apt-get update && sudo apt-get install -yq libboost1.71-dev
+          mkdir -p ~/boost
+          for dep in libboost1.71-dev; do
+              dpkg -L $dep | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/boost/
+          done
+        fi
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
@@ -38,14 +49,13 @@ jobs:
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_UNITTESTING=ON
-      env:
-        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
-
+      env:
+        MAKEFLAGS: "-j"
     - name: Test
       working-directory: ${{github.workspace}}/build
       shell: bash
