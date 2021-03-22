@@ -1,6 +1,6 @@
 # NeoPZ
 
-NeoPZ is a open-source, cross-platform, finite element library
+NeoPZ is an open-source, cross-platform, finite element library
 written in C++ with support for many advanced finite element techniques.
 
 ## Features
@@ -40,8 +40,8 @@ make -j && sudo make install
 ```
 where some CMake options were given as an illustration. The following CMake options are available:
 
-- `REAL_TYPE`: which floating point type to use for real data types (geometry). It can be set as `float`, `double`, `long double`, `pzfpcounter` (last option is for internal usage)
-- `STATE_TYPE`: which floating point type to use for the Finite Element matrices. It can be set as `float`, `double`, `long double`, `complex<float>`, `complex<double>`, `complex<long double>`.
+- `REAL_TYPE`: which floating point type to use for real data types (geometry). It can be set as `float`, `double`, `long double`, `pzfpcounter` (last option is for internal usage). Default value: `double`.
+- `STATE_TYPE`: which floating point type to use for the Finite Element matrices. It can be set as `float`, `double`, `long double`, `complex<float>`, `complex<double>`, `complex<long double>`. Default value: `double`.
 - `CMAKE_INSTALL_PREFIX`: where to install the NeoPZ library. Defaulted to `/opt/neopz` on UNIX systems.
 - `USING_BLAZE`: Enable blaze library support
 - `USING_BOOST`: Enable Boost libraries (`Boost::date_time`, `Boost::graph` and `Boost::unit_test_framework`) support
