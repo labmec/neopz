@@ -336,12 +336,12 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 #endif
     struct materialdata_block
     {
-        TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
+        TPZVec<TPZMaterialData> datavecleft,datavecright;
         TPZMaterialData datavec;
     };
-    TPZAutoPointer<materialdata_block> datablock = new materialdata_block;
-    TPZManVector<TPZMaterialData,6> &datavecleft = datablock->datavecleft;
-    TPZManVector<TPZMaterialData,6> &datavecright = datablock->datavecright;
+    std::unique_ptr<materialdata_block> datablock = std::make_unique<materialdata_block>();
+    TPZVec<TPZMaterialData> &datavecleft = datablock->datavecleft;
+    TPZVec<TPZMaterialData> &datavecright = datablock->datavecright;
     TPZMaterialData &data = datablock->datavec;
     InitMaterialData(data, datavecleft, datavecright);
     
