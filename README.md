@@ -46,7 +46,7 @@ where some CMake options were given as an illustration. The following CMake opti
 - `USING_BLAZE`: Enable blaze library support
 - `USING_BOOST`: Enable Boost libraries (`Boost::date_time`, `Boost::graph` and `Boost::unit_test_framework`) support
 - `USING_LAPACK`: Enable LAPACK library support
-- `USING_MKL`: Enable MKL library support
+- `USING_MKL`: Enable MKL library support. It will also enable usage of LAPACK functions.
 - `USING_LOG4CXX`: Enable logging information through log4cxx support.
 - `USING_METIS`: Enable Metis library support.
 - `CMAKE_BUILD_TYPE`: `Release`, `Debug`, `RelWithDebugInfo` or `Profile` (last option only available on linux systems)
