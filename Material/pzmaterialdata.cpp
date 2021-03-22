@@ -20,21 +20,21 @@ static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty),
-    numberdualfunctions(0),normal(3,0.),x(3,0.),p(-1), fUserData(0){
+    numberdualfunctions(0),normal(3,0.),x(3,0.),p(-1), fUserData(0), sol(1), dsol(1),
+    gelElId(-1) {
     this->SetAllRequirements(false);
     this->fNeedsDeformedDirectionsFad = false;
-    this->intLocPtIndex = -1;
-    this->intGlobPtIndex = -1;
-    this->NintPts = -1;
-    this->sol.Resize(1);
-    this->dsol.Resize(1);
-    this->gelElId = -1;
-    this->HSize = 0.;
-    this->detjac = 0.;
-    this->numberdualfunctions = 0;
-    this->gelElId = -1;
-    this->fMasterDirections = 0;
-    this->fDeformedDirectionsFad = 0;
+//    this->intLocPtIndex = -1;
+//    this->intGlobPtIndex = -1;
+//    this->NintPts = -1;
+//    this->sol.Resize(1);
+//    this->dsol.Resize(1);
+//    this->gelElId = -1;
+//    this->HSize = 0.;
+//    this->detjac = 0.;
+//    this->numberdualfunctions = 0;
+//    this->fMasterDirections = 0;
+//    this->fDeformedDirectionsFad = 0;
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : 
