@@ -107,6 +107,8 @@ private:
                                          const std::size_t lineN);
 };
 
+//the following macros are for internal usage
+
 /// Define log for debug
 #define LOGPZ_DEBUG(A,B) pzinternal::LogPzDebugImpl(A,B,__FILE__,__LINE__);
 
@@ -120,6 +122,8 @@ private:
 #define LOGPZ_ERROR(A,B) pzinternal::LogPzErrorImpl(A,B,__FILE__,__LINE__);
 /// Define log for fatal errors
 #define LOGPZ_FATAL(A,B) pzinternal::LogPzFatalImpl(A,B,__FILE__,__LINE__);
+
+//the following function is for internal usage.
 
 static void InitializePZLOG() {
   std::string path = PZ_LOG4CXX_CONFIG_FILE;
