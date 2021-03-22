@@ -201,6 +201,9 @@ find_path(MKL_INCLUDE_DIR mkl.h
     PATH_SUFFIXES "include" "latest/include")
 mark_as_advanced(MKL_INCLUDE_DIR)
 
+if(CMAKE_MKL_DEBUG)  
+  message(STATUS "MKL INCLUDE DIR ${MKL_INCLUDE_DIR}")
+endif()
 # Group flags for static libraries on Linux (GNU, PGI, ICC -> same linker)
 #
 if(UNIX AND NOT APPLE)
