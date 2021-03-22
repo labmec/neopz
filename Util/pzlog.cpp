@@ -85,9 +85,6 @@ void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fil
   }
 }
 
-#endif
-
-
 /**
  * @ingroup util
  * @brief Initialize a log file adequated to use log4cxx lib
@@ -129,3 +126,5 @@ void pzinternal::InitializePZLOG(const std::string &configfile)
   firstTime = false;
   }
 }
+
+#endif

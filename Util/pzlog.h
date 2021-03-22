@@ -115,6 +115,30 @@ private:
 /// Define log for fatal errors
 #define LOGPZ_FATAL(A,B) pzinternal::LogPzFatalImpl(A,B,__FILE__,__LINE__);
 
+static void InitializePZLOG() {
+  std::string path = PZ_LOG4CXX_CONFIG_FILE;
+  pzinternal::InitializePZLOG(path);
+}
+
+/*
+ * @orlandini & @gustavobat:
+ * The following is an attempt to call InitializePZLOG() automatically before main() is called.
+ * If anybody comes up with a better solution, it would be great.
+ * Taken from: https://stackoverflow.com/questions/3370004/what-is-static-block-in-c-or-c
+ */
+
+namespace pzinternal {
+struct InitLogStaticBlock {
+  InitLogStaticBlock() noexcept {
+    static bool firstTime{true};
+    if (firstTime) {
+      ::InitializePZLOG();
+    }
+    firstTime = false;
+  }
+};
+}
+[[maybe_unused]] static pzinternal::InitLogStaticBlock staticBlock;
 #else
 #include <iostream>
 //dummy class. log is not enabled.
@@ -146,30 +170,5 @@ std::cout<<B<<std::endl;\
 DebugStop();
 
 #endif
-
-static void InitializePZLOG() {
-  std::string path = PZ_LOG4CXX_CONFIG_FILE;
-  pzinternal::InitializePZLOG(path);
-}
-
-/*
- * @orlandini & @gustavobat:
- * The following is an attempt to call InitializePZLOG() automatically before main() is called.
- * If anybody comes up with a better solution, it would be great.
- * Taken from: https://stackoverflow.com/questions/3370004/what-is-static-block-in-c-or-c
- */
-
-namespace pzinternal {
-struct InitLogStaticBlock {
-  InitLogStaticBlock() noexcept {
-    static bool firstTime{true};
-    if (firstTime) {
-      ::InitializePZLOG();
-    }
-    firstTime = false;
-  }
-};
-}
-[[maybe_unused]] static pzinternal::InitLogStaticBlock staticBlock;
 
 #endif
