@@ -8,7 +8,7 @@ function(find_include_from_mkl incvar dirname incname)
     find_path(${incvar}
       NAMES ${incname}
       PATHS ${dirname}
-      PATH_SUFFIXES include
+      PATH_SUFFIXES "include" "latest/include" "include/mkl"
       NO_DEFAULT_PATH #let us try not to mix installs
       )
     if(NOT tmp_incvar)
