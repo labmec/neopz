@@ -94,7 +94,7 @@ int ClassId() const override;
         }
 
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "TorusQuad";}
+		static std::string TypeName() { return "QuadTorus";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         

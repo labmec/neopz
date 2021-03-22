@@ -222,7 +222,7 @@ namespace pzgeom
 //        }
 
 		
-        static std::string TypeName() { return "Linear";}
+        static std::string TypeName() { return "Arc3D";}
         
         static bool IsLinearMapping(int side)
         {
