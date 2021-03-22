@@ -1,12 +1,14 @@
-#
-# CMake recipes
-# https://github.com/eth-cscs/cmake-recipes
-#
-# Copyright (c) 2018-2019, ETH Zurich
-# BSD 3-Clause License. All rights reserved.
-#
-# Author: Teodor Nikolov (teodor.nikolov22@gmail.com)
-#
+#[[
+The following CMake module has been based in two different FindMKL.cmake modules.
+
+First, it was based on
+https://gitlab.kitware.com/cmake/cmake/-/blob/34b308ec0b9616cdf273d697f0ef78f335c28511/Modules/FindMKL.cmake
+by Teodor Nikolov
+
+and subsequentely the search paths idea has been taken from:
+https://github.com/projectchrono/chrono/blob/f33021edaad37746c3093150c8e3c69e1f000074/cmake/FindMKL.cmake
+by Radu Serban and Dario Mongoni
+]]
 #[=======================================================================[.rst:
 FindMKL
 -------
@@ -30,6 +32,7 @@ configuration will not be available if there are missing library files or a
 missing dependency.
 
 MKL Link line advisor:
+  https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-base-linux/top/before-you-begin.html
   https://software.intel.com/en-us/articles/intel-mkl-link-line-advisor
 
 Note: Mixing GCC and Intel OpenMP backends is a bad idea.
@@ -119,35 +122,58 @@ if(NOT DEFINED MKL_ROOT)
     set(MKL_ROOT $ENV{MKLROOT} CACHE PATH "MKL's root directory.")
 endif()
 
-# Determine MKL's library folder
-#
-set(_mkl_libpath_suffix "lib/intel64")
-if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
-    set(_mkl_libpath_suffix "lib/ia32")
+set(_mkl_search_paths ${MKL_ROOT})
+
+# Add the default install location to the search path
+if (WIN32)
+	set(PROGRAM_FILE_ENVVAR "PROGRAMFILES(x86)")
+	file(TO_CMAKE_PATH "$ENV{${PROGRAM_FILE_ENVVAR}}" PRG_FOLD)
+	list(APPEND _mkl_search_paths "${PRG_FOLD}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
+	list(APPEND _mkl_search_paths "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
+	list(APPEND _mkl_search_paths "${PRG_FOLD}/Intel/oneAPI/mkl") # default for oneAPI (2020 and later)
+elseif(UNIX AND NOT APPLE)
+	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
+		list(APPEND _mkl_search_paths "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
+		list(APPEND _mkl_search_paths "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
+	endforeach()
+	list(APPEND _mkl_search_paths "/opt/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (root permissions)
+	list(APPEND _mkl_search_paths "/opt/intel/oneapi/mkl") # default for oneAPI (2020) and later (root permissions)
+    list(APPEND _mkl_search_paths "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+    list(APPEND _mkl_search_paths "$ENV{HOME}/intel/oneapi/mkl") # default for oneAPI (2020) and later (no root permissions)
 endif()
 
+
+# Determine MKL's library folder
+#
+set(_mkl_libpath_suffix_orig "lib/intel64")
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
+    set(_mkl_libpath_suffix_orig "lib/ia32")
+endif()
+
+set(_mkl_libpath_suffix ${_mkl_libpath_suffix_orig})
+list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}")
 if(WIN32)
-    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix}_win")
+    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_win")
+    list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_win")
     set(_mkl_libname_prefix "")
     set(_mkl_shared_lib "_dll.lib")
     set(_mkl_static_lib ".lib")
 elseif(APPLE)
-    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix}_mac")
+    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_mac")
+    list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_mac")
     set(_mkl_libname_prefix "lib")
     set(_mkl_shared_lib ".dylib")
     set(_mkl_static_lib ".a")
 else() # LINUX
-    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix}_lin")
+    list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_lin")
+    list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_lin")
     set(_mkl_libname_prefix "lib")
     set(_mkl_shared_lib ".so")
     set(_mkl_static_lib ".a")
 endif()
-set(_mkl_search_paths "${MKL_ROOT}"
-  "${MKL_ROOT}/lib"
-  "${MKL_ROOT}/mkl/lib"
-  "${MKL_ROOT}/compiler/lib")
+
 foreach (dir IN LISTS ${EXTRA_SEARCH_DIRS})
-  list(APPEND _mkl_search_paths "${dir}/mkl" "${dir}/mkl/lib" "${dir}/mkl/compiler/lib")
+  list(APPEND _mkl_search_paths "${dir}" "${dir}/mkl" "${dir}/mkl/compiler")
 endforeach ()              
 
 if(CMAKE_MKL_DEBUG)
@@ -171,8 +197,8 @@ endfunction()
 # Find MKL headers
 #
 find_path(MKL_INCLUDE_DIR mkl.h
-    HINTS ${MKL_ROOT}/include
-          ${MKL_ROOT}/mkl/include)
+    PATHS ${_mkl_search_paths}
+    PATH_SUFFIXES "include" "latest/include")
 mark_as_advanced(MKL_INCLUDE_DIR)
 
 # Group flags for static libraries on Linux (GNU, PGI, ICC -> same linker)
