@@ -19,6 +19,7 @@
 #include "TPZGeoLinear.h"
 #include "pzgeopyramid.h"
 #include "TPZMaterial.h"
+#include "TPZNullMaterial.h"
 #include "pzelmat.h"
 #include "pzconnect.h"
 #include "pzmaterialdata.h"
@@ -741,6 +742,13 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         return;
     }
     
+    TPZNullMaterial *nullmat = dynamic_cast<TPZNullMaterial *>(material);
+    if(nullmat)
+    {
+        ek.Reset();
+        ef.Reset();
+        return;
+    }
     InitializeElementMatrix(ek,ef);
     
     if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
