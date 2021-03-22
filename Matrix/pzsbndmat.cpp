@@ -1989,7 +1989,8 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
   PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";\
   PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";\
   PZError<<" when configuring NeoPZ library"<<std::endl;\
-  DebugStop();
+  DebugStop();\
+  return -1;
 template<class TVar>
 int TPZSBMatrix<TVar>::Decompose_Cholesky(){NON_LAPACK}
 
