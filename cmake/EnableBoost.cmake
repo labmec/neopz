@@ -1,4 +1,7 @@
 function(enable_boost target)
+    if (NOT "$ENV{BOOST_ROOT}" STREQUAL "")
+        message(STATUS "Looking for boost in $ENV{BOOST_ROOT}")
+    endif()
     find_package( Boost COMPONENTS graph unit_test_framework date_time  REQUIRED )
     target_link_libraries(${target} PRIVATE Boost::date_time Boost::graph)
     target_include_directories(${target} PRIVATE ${Boost_INCLUDE_DIRS})
