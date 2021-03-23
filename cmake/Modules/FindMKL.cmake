@@ -173,6 +173,7 @@ if(WIN32)
     set(_mkl_shared_lib "_dll.lib")
     set(_mkl_static_lib ".lib")
 elseif(APPLE)
+    list(APPEND _mkl_libpath_suffix "lib")
     list(APPEND _mkl_libpath_suffix "${_mkl_libpath_suffix_orig}_mac")
     list(APPEND _mkl_libpath_suffix "latest/${_mkl_libpath_suffix_orig}_mac")
     set(_mkl_libname_prefix "lib")
@@ -324,6 +325,9 @@ foreach(_libtype "ST" "DYN")
                     set_target_properties(${_mkl_tgt} PROPERTIES
                       INTERFACE_INCLUDE_DIRECTORIES "${MKL_INCLUDE_DIR}"
                       INTERFACE_LINK_LIBRARIES "${_mkl_libs}")
+                    if(CMAKE_MKL_DEBUG)
+                        message(STATUS "MKL_TGT: ${_mkl_tgt}")
+                    endif(CMAKE_MKL_DEBUG)
                 endif()
 
                 foreach(_mpi_impl "MPICH" "OMPI")
