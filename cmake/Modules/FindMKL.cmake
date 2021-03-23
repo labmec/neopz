@@ -142,7 +142,11 @@ elseif(UNIX)#we need to test if we need sth different for apple
         list(APPEND _mkl_search_paths "/opt/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (root permissions)
     endif()
 	list(APPEND _mkl_search_paths "/opt/intel/oneapi/mkl") # default for oneAPI (2020) and later (root permissions)
-    list(APPEND _mkl_search_paths "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+    if(APPLE)
+	    list(APPEND _mkl_search_paths "$ENV{HOME}/intel/compilers_and_libraries/mac/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+    else()
+        list(APPEND _mkl_search_paths "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl") # default for ParallelStudioXE2016 and later (no root permissions)
+    endif()
     list(APPEND _mkl_search_paths "$ENV{HOME}/intel/oneapi/mkl") # default for oneAPI (2020) and later (no root permissions)
 endif()
 
