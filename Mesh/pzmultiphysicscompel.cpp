@@ -747,6 +747,8 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
     {
         ek.Reset();
         ef.Reset();
+        ek.fType = TPZElementMatrix::EK;
+        ef.fType = TPZElementMatrix::EF;
         return;
     }
     InitializeElementMatrix(ek,ef);
