@@ -142,6 +142,12 @@ elseif(UNIX)#we need to test if we need sth different for apple
     list(APPEND _mkl_search_paths "$ENV{HOME}/intel/oneapi/mkl") # default for oneAPI (2020) and later (no root permissions)
 endif()
 
+if(CMAKE_MKL_DEBUG)
+    message(STATUS "Searching for MKL in:")
+    foreach (dir IN LISTS ${_mkl_search_paths})
+        message(${dir})
+    endforeach ()         
+endif(CMAKE_MKL_DEBUG)
 
 # Determine MKL's library folder
 #
