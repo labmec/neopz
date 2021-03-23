@@ -132,17 +132,6 @@ void TPZLogger::InitializePZLOG(const std::string &configfile)
   std::cout  << configfile << std::endl;
 
   log4cxx::PropertyConfigurator::configure(configfile);
-  {
-    log4cxx::LoggerPtr logger(
-        log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-    logger->setAdditivity(false);
-    //    logger->setLevel(log4cxx::Level::getDebug());
-  }
-  {
-    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
-    logger->setAdditivity(false);
-    //  logger->setLevel(log4cxx::Level::getDebug());
-  }
 }
 
 #endif
