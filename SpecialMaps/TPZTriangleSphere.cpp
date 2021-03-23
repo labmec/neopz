@@ -57,7 +57,7 @@ namespace pzgeom {
         for (int i=0; i<3; i++) {
             sz[i] = 2.*radius;
         }
-        REAL coords[4][3] = {
+        REAL coords[3][3] = {
             {-1,-1,-0.1},
             { 1,-1,-0.1},
             { 1, 1,-0.1}
