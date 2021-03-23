@@ -131,7 +131,7 @@ if (WIN32)
 	list(APPEND _mkl_search_paths "${PRG_FOLD}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
 	list(APPEND _mkl_search_paths "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
 	list(APPEND _mkl_search_paths "${PRG_FOLD}/Intel/oneAPI/mkl") # default for oneAPI (2020 and later)
-elseif(UNIX AND NOT APPLE)
+elseif(UNIX)#we need to test if we need sth different for apple
 	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
 		list(APPEND _mkl_search_paths "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
 		list(APPEND _mkl_search_paths "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
