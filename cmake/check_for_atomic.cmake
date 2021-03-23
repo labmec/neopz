@@ -10,8 +10,8 @@ include(CheckCXXSourceCompiles)
 function(check_for_atomic target)
 cmake_push_check_state()
 
-if(CMAKE_CXX11_STANDARD_COMPILE_OPTION)
-  set(CMAKE_REQUIRED_FLAGS ${CMAKE_CXX11_STANDARD_COMPILE_OPTION})
+if(CMAKE_CXX17_STANDARD_COMPILE_OPTION)
+  set(CMAKE_REQUIRED_FLAGS ${CMAKE_CXX17_STANDARD_COMPILE_OPTION})
 endif()
 
 check_cxx_source_compiles("

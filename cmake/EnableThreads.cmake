@@ -7,7 +7,10 @@ function(enable_threads target)
     #Public linkage due to ParallelFor function
     target_link_libraries(${target} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
     #simple utility function for detecting if any linking is needed
-    #for using functions from <atomic>
-    include(cmake/check_for_atomic.cmake)
-    check_for_atomic(${target})
+    #for using functions from <atomic>.
+    # apparently it is not needed on macos
+    if(NOT APPLE)
+        include(cmake/check_for_atomic.cmake)
+        check_for_atomic(${target})
+    endif()
 endfunction()
