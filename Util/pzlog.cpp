@@ -36,8 +36,13 @@ void pzinternal::LogPzDebugImpl(TPZLogger pzlg, std::string msg, const char *fil
     std::scoped_lock lock(glogmutex);
     LOG4CXX_DEBUG(lg,msg);
   } else {
-    std::cout << "Please set isDebugEnabled at " << fileName << ":" << lineN
-              << std::endl;
+    static bool firstTime{true};
+      if (firstTime) {
+        std::cout << "Please set isDebugEnabled at ";
+        std::cout << fileName << ":" << lineN;
+        std::cout << std::endl;
+        firstTime = false;
+      }
   }
 }
 
@@ -47,8 +52,13 @@ void pzinternal::LogPzInfoImpl(TPZLogger pzlg, std::string msg, const char *file
     std::scoped_lock lock(glogmutex);
     LOG4CXX_INFO(lg, msg);
   } else {
-    std::cout << "Please set isInfoEnabled at " << fileName << ":" << lineN
-              << std::endl;
+      static bool firstTime{true};
+      if (firstTime) {
+        std::cout << "Please set isInfoEnabled at ";
+        std::cout << fileName << ":" << lineN;
+        std::cout << std::endl;
+        firstTime = false;
+      }
   }
 }
 void pzinternal::LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *fileName, const std::size_t lineN){
@@ -57,8 +67,13 @@ void pzinternal::LogPzWarnImpl(TPZLogger pzlg, std::string msg, const char *file
     std::scoped_lock lock(glogmutex);
     LOG4CXX_WARN(lg, msg);
   }else {
-    std::cout << "Please set isWarnEnabled at " << fileName << ":" << lineN
-              << std::endl;
+    static bool firstTime{true};
+    if (firstTime) {
+      std::cout << "Please set isWarnEnabled at ";
+      std::cout << fileName << ":" << lineN;
+      std::cout << std::endl;
+      firstTime = false;
+    }
   }
 }
 
@@ -69,8 +84,13 @@ void pzinternal::LogPzErrorImpl(TPZLogger pzlg, std::string msg, const char *fil
     LOG4CXX_ERROR(lg, msg);
     DebugStop();
   }else {
-    std::cout << "Please set isErrorEnabled at " << fileName << ":" << lineN
-              << std::endl;
+    static bool firstTime{true};
+    if (firstTime) {
+      std::cout << "Please set isErrorEnabled at ";
+      std::cout << fileName << ":" << lineN;
+      std::cout << std::endl;
+      firstTime = false;
+    }
   }
 }
 
@@ -80,8 +100,13 @@ void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fil
     std::scoped_lock lock(glogmutex);
     LOG4CXX_FATAL(lg, msg);
   }else {
-    std::cout << "Please set isFatalEnabled at " << fileName << ":" << lineN
-              << std::endl;
+    static bool firstTime{true};
+    if (firstTime) {
+      std::cout << "Please set isFatalEnabled at ";
+      std::cout << fileName << ":" << lineN;
+      std::cout << std::endl;
+      firstTime = false;
+    }
   }
 }
 
