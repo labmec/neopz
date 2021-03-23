@@ -1,11 +1,13 @@
 #
-# Create a target dependent on NeoPZ with possible linkage to extra libraries, copied files to binary dir variable number of sources.
+# Create a target dependent on NeoPZ giving its name, its source files, files to be copied to the binary dir 
+# and required NeoPZ CMake options.
 # Usage:
 #     add_pz_target(
 #       NAME myTarget
 #       SOURCES source.cpp header.h
-#       EXTRA_LIBS [optional] extra libraries to be LINKED, not found
-#       FILES [optional] files that will be copied to target binary dir
+#       FILES [optional] files that will be copied to target binary dir, e.g.: QuadMesh.msh, input.json, etc
+#       REQUIRED [optional] compile definitions that NeoPZ in order to run 'myTarget', e.g.: PZ_USING_MKL, PZ_LOG, etc
+#       )
 #
 
 
