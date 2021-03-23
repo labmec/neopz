@@ -518,3 +518,5 @@ void TPZPardisoControl<TVar>::Error_check([[maybe_unused]]int error) const
 template class TPZPardisoControl<double>;
 template class TPZPardisoControl<long double>;
 template class TPZPardisoControl<float>;
+template class TPZPardisoControl<std::complex<float>>;
+template class TPZPardisoControl<std::complex<double>>;
