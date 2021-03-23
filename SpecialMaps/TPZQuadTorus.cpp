@@ -139,27 +139,35 @@ namespace pzgeom {
         size[1] = 2.;
         size[2] = 1.;
         TPZManVector<REAL,3> origin(lowercorner);
-        origin[0] += 1.;
+        origin[0] += 1.;        
         TPZFNMatrix<12,REAL> phitheta(2,4,0.);
         phitheta(0,0) = 0.;
-        phitheta(0,1) = M_PI/5.;
-        phitheta(0,2) = M_PI;
-        phitheta(0,3) = M_PI+M_PI/3.;
+        phitheta(1,0) = 0;
         
-        phitheta(1,0) = M_PI;
-        phitheta(1,1) = 2*M_PI;
-        phitheta(1,2) = 2*M_PI-M_PI/5.;
+        phitheta(0,1) = M_PI/3;
+        phitheta(1,1) = 0;
+        
+        phitheta(0,2) = M_PI/3;
+        phitheta(1,2) = M_PI;
+        
+        phitheta(0,3) = 0.;
         phitheta(1,3) = M_PI;
+
+        TPZQuadTorus torus;
+        torus.SetOrigin(origin);
+        torus.SetDataRadius(R, r);
+        torus.SetDataPhiTheta(phitheta);
         TPZManVector<int64_t,4> indexes(4);
-        constexpr REAL coords[4][3] = {
-            {-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}
+        constexpr REAL coords[4][2] = {
+            {-1,-1},{1,-1},{1,1},{-1,1}
         };
         for (int i=0; i<4; i++) {
             indexes[i] = gmesh.NodeVec().AllocateNewElement();
             TPZManVector<REAL,3> xco(3);
-            for(int j = 0; j < 3; j++){
-                xco[j] = coords[i][j];
-            }
+            TPZManVector<REAL, 2>loc(2);
+            loc[0] = coords[i][0];
+            loc[1] = coords[i][1];
+            torus.X(phitheta, loc, xco);
             gmesh.NodeVec()[indexes[i]].Initialize(xco, gmesh);
         }
         TPZGeoElRefPattern<pzgeom::TPZQuadTorus> *gel = new TPZGeoElRefPattern<pzgeom::TPZQuadTorus>(indexes,matid,gmesh);
