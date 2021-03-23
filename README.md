@@ -114,6 +114,21 @@ add_pz_target(
 
 The CMake options defined when configuring NeoPZ will be available to the external targets with the `PZ` prefix (`USING_MKL` becomes `PZ_USING_MKL`). So, if a certain option is needed in an external project, the `REQUIRED` field in `add_pz_targets` can be used. *Note:* `PZ_LOG` is used both internally and externally for identifying if there is support for logging.
 
+*Note:* NeoPZ will be installed in UNIX systems in `/opt/neopz` by default. If `/opt` or `/opt/bin` is not on your `PATH`, the CMake variable `NEOPZ_DIR` can be used in your project using NeoPZ:
+
+```sh
+mkdir build && cd build
+cmake -DNEOPZ_DIR=pz_install_dir ..
+```
+
+or, if you prefer, the following line
+
+```sh
+export PATH=pz_install_dir:$PATH
+```
+
+can be added to a startup file of your shell. In both examples, `pz_install_dir` is `/opt/neopz`.
+
 ## NeoPZ documentation
 
 A Doxygen documentation can be found 
