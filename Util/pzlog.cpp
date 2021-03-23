@@ -89,14 +89,9 @@ void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fil
  * @ingroup util
  * @brief Initialize a log file adequated to use log4cxx lib
  */
-void pzinternal::InitializePZLOG(const std::string &configfile)
+void TPZLogger::InitializePZLOG(const std::string &configfile)
 {
-  static bool firstTime{true};
-  if(!firstTime){
-    std::cout << "Are you calling InitializePZLOG()?"<< std::endl;
-    std::cout << "This is not needed anymore"<<std::endl;
-  }
-  else{
+  std::cout << "Using the following  NeoPZ log config file" << std::endl;
 #ifndef WIN32
   int res = mkdir("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
   // Wether the error happen again, the problem can to be permission, then a
@@ -109,12 +104,12 @@ void pzinternal::InitializePZLOG(const std::string &configfile)
                 << std::endl;
   }
 #endif
-
   std::cout << "Logfile " << configfile << std::endl;
 
   log4cxx::PropertyConfigurator::configure(configfile);
   {
-    log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+    log4cxx::LoggerPtr logger(
+        log4cxx::Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
     logger->setAdditivity(false);
     //    logger->setLevel(log4cxx::Level::getDebug());
   }
@@ -122,8 +117,6 @@ void pzinternal::InitializePZLOG(const std::string &configfile)
     log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pz.mesh.refpattern"));
     logger->setAdditivity(false);
     //  logger->setLevel(log4cxx::Level::getDebug());
-  }
-  firstTime = false;
   }
 }
 

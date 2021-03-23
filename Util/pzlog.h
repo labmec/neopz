@@ -3,9 +3,11 @@
  * @brief Contains definitions of TPZLogger class, InitializePZLOG()  and auxiliary macros.
  *
  * TPZLogger is a wrapper for the logging library used in NeoPZ.
- * The log config file is available at PZ_SOURCE_DIR/Util/log4cxx.cfg.
- * The log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
- * Once the NeoPZ library is installed, the log config file to be used is the one in PZ_INSTALL_DIR/include/Util/log4cxx.cfg.
+ * The default log output is at a folder LOG at **your executable** directory, not the directory of NeoPZ library.
+ * Once the NeoPZ library is installed, the default log config file to be used is the one in PZ_INSTALL_DIR/include/Util/log4cxx.cfg.
+ * The logger can be initialized with any custom config through the 
+ * function TPZLogger:InitializePZLOG(const std::string&) receiving
+ * the name (and path, obviously) of the config file.
  * The auxiliary macros are LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL.
  * The functions TPZLogger::isXXXEnabled, with XXX=Info,Debug,Warn,Error and False should ALWAYS be called
  * before writing the log messages, as most of the execution time is spent writing the messages to the stream.
@@ -28,7 +30,6 @@
 #define PZLOGH
 
 #include <pz_config.h>
-
 
 #ifdef PZ_LOG
 #include <string>
@@ -53,12 +54,6 @@ void LogPzErrorImpl(TPZLogger lg, std::string msg,
 void LogPzFatalImpl(TPZLogger lg, std::string msg,
                     [[maybe_unused]] const char *fileName,
                     [[maybe_unused]] const std::size_t lineN);
-
-/**
- * @brief Initializes log file for log4cxx with common name log4cxx.cfg
- * @ingroup util
- */
-void InitializePZLOG(const std::string &configfile);
 }
 
 /*The TPZLogger is a wrapper for the Log4cxx library. Once the
@@ -82,6 +77,13 @@ public:
   bool isInfoEnabled() const {return fIsInfoEnabled;}
   bool isErrorEnabled() const {return fIsErrorEnabled;}
   bool isFatalEnabled() const {return fIsFatalEnabled;}
+  //initializes loggger using custom config in configfile.
+  static void InitializePZLOG(const std::string &configfile);
+  //initializes logger using default NeoPZ config
+  static void InitializePZLOG(){
+    std::string path = PZ_LOG4CXX_CONFIG_FILE;
+    TPZLogger::InitializePZLOG(path);
+  }
 private:
   const std::string fLogName;
   bool fIsDebugEnabled;
@@ -123,32 +125,7 @@ private:
 /// Define log for fatal errors
 #define LOGPZ_FATAL(A,B) pzinternal::LogPzFatalImpl(A,B,__FILE__,__LINE__);
 
-//the following function is for internal usage.
 
-static void InitializePZLOG() {
-  std::string path = PZ_LOG4CXX_CONFIG_FILE;
-  pzinternal::InitializePZLOG(path);
-}
-
-/*
- * @orlandini & @gustavobat:
- * The following is an attempt to call InitializePZLOG() automatically before main() is called.
- * If anybody comes up with a better solution, it would be great.
- * Taken from: https://stackoverflow.com/questions/3370004/what-is-static-block-in-c-or-c
- */
-
-namespace pzinternal {
-struct InitLogStaticBlock {
-  InitLogStaticBlock() noexcept {
-    static bool firstTime{true};
-    if (firstTime) {
-      ::InitializePZLOG();
-    }
-    firstTime = false;
-  }
-};
-}
-[[maybe_unused]] static pzinternal::InitLogStaticBlock staticBlock;
 #else
 #include <iostream>
 //dummy class. log is not enabled.
@@ -162,6 +139,10 @@ public:
   inline bool isInfoEnabled() const {return false;}
   inline bool isErrorEnabled() const {return false;}
   inline bool isFatalEnabled() const {return false;}
+  //initializes loggger using custom config in configfile.
+  static void InitializePZLOG(const std::string &configfile){}
+  //initializes logger using default NeoPZ config
+  static void InitializePZLOG(){}
 };
 // Just to allow the macros being called regardless
 // of whether the log is enabled or not
