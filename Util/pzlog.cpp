@@ -116,7 +116,7 @@ void pzinternal::LogPzFatalImpl(TPZLogger pzlg, std::string msg, const char *fil
  */
 void TPZLogger::InitializePZLOG(const std::string &configfile)
 {
-  std::cout << "Using the following  NeoPZ log config file" << std::endl;
+  std::cout << "Using the following NeoPZ log config file:" << std::endl;
 #ifndef WIN32
   int res = mkdir("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
   // Wether the error happen again, the problem can to be permission, then a
@@ -129,7 +129,7 @@ void TPZLogger::InitializePZLOG(const std::string &configfile)
                 << std::endl;
   }
 #endif
-  std::cout << "Logfile " << configfile << std::endl;
+  std::cout  << configfile << std::endl;
 
   log4cxx::PropertyConfigurator::configure(configfile);
   {
