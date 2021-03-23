@@ -27,7 +27,10 @@ namespace pzgeom {
 
         public:
 int ClassId() const override;
-
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
         
         /** @brief Constructor with list of nodes */
 		TPZTriangleTorus(TPZVec<int64_t> &nodeindexes) : TPZGeoTriangle(nodeindexes), fR(0), fr(0), fOrigin(3,0), fPhiTheta(2,3,0.)
