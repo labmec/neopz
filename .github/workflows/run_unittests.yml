@@ -28,7 +28,7 @@ jobs:
            done
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew update
-          brew cask install boost
+          brew install boost
         fi
     - uses: actions/checkout@v2
     
