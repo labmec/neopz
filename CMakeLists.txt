@@ -362,9 +362,18 @@ include(CTest)
 
 #To build the documentation using doxygen
 option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)
+#To build the documentation using doxygen+breathe+sphynx
+option(BUILD_SPHINX_DOCS "Whether to build the documentation using Doxygen+Breathe+Sphinx" OFF)
 if(BUILD_DOCS)
     list(APPEND PZ_PUBLIC_HEADERS "docs_doxygen/pzmainpage.h")
     string(REPLACE ";" " " DOXYGEN_INPUT_FILES "${PZ_PUBLIC_HEADERS}")
 	include(cmake/EnableDoxygen.cmake)
     enable_doxygen(pz)
+endif()
+if(BUILD_SPHINX_DOCS)
+    if(NOT BUILD_DOCS)
+        message(FATAL_ERROR "For building sphinx docu BUILD_DOCS needs to be enabled")
+    endif()
+    include(cmake/EnableSphinx.cmake)
+    enable_sphinx(pz)
 endif()
