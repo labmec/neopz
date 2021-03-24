@@ -25,10 +25,10 @@ jobs:
       uses: actions/checkout@1.0.0
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
-     - name: Configure CMake
+    - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_DOCS=ON -DBUILD_DOCS_SPHINX=ON
+      run: cmake $GITHUB_WORKSPACE -DBUILD_DOCS=ON -DBUILD_DOCS_SPHINX=ON
     - name: Build docs
       working-directory: ${{github.workspace}}/build
       shell: bash
