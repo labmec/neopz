@@ -4,6 +4,7 @@ CMakeLists.txt.user
 cmake-build-debug
 cmake-build-release
 .idea
+build
 NeoPZ_CMake
 .vscode
 *.icloud
