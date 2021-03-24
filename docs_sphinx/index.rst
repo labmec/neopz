@@ -10,6 +10,8 @@ Welcome to NeoPZ's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+This page is (obviously) under construction.
+
 .. doxygenclass:: TPZGeoEl
    :project: NeoPZ
 
