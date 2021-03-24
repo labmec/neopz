@@ -360,7 +360,11 @@ endif()
 ENABLE_TESTING()
 include(CTest)
 
-#To insert doxygen documentation files
-file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
-add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
-
+#To build the documentation using doxygen
+option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)
+if(BUILD_DOCS)
+    list(APPEND PZ_PUBLIC_HEADERS "docs_doxygen/pzmainpage.h")
+    string(REPLACE ";" " " DOXYGEN_INPUT_FILES "${PZ_PUBLIC_HEADERS}")
+	include(cmake/EnableDoxygen.cmake)
+    enable_doxygen(pz)
+endif()
