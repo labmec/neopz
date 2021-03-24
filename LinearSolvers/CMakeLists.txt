@@ -6,7 +6,6 @@ target_include_directories(pz PUBLIC
                            )
 
 set(headers
-    TPZPardisoHandler.h
     bicg.h
     bicgstab.h
     cg.h
@@ -18,8 +17,6 @@ set(headers
     qmr.h
     )
 
-set(sources TPZPardisoHandler.cpp)
-
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LinearSolvers)
 
-target_sources(pz PRIVATE ${headers} ${sources})
+target_sources(pz PRIVATE ${headers})
