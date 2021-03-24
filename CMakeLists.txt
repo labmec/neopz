@@ -264,6 +264,9 @@ set(PZLIB_INSTALL_PREFIX "pz")
 set(CMAKE_INSTALL_LIBDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 set(CMAKE_INSTALL_INCLUDEDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 set(CMAKE_INSTALL_BINDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+
+#this variable will contain all the public headers from neopz
+set(PZ_PUBLIC_HEADERS "")
 # add it to include search path
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
@@ -290,7 +293,8 @@ add_subdirectory(SubStruct)
 add_subdirectory(Random)
 add_subdirectory(Optimization)
 add_subdirectory(Exception)
-
+#uncomment the following line to be scared
+#message(${PZ_PUBLIC_HEADERS})
 #############INSTALL#############
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

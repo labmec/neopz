@@ -86,7 +86,10 @@ install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
 if(USING_LOG4CXX)
     install(FILES log4cxx.cfg DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)
 endif()
-
 target_sources(pz PRIVATE ${headers} ${sources})
-
 add_subdirectory(Hash)
+#for doxygen
+foreach(header ${public_headers})
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+endforeach()
+set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
