@@ -3,7 +3,6 @@ function(enable_doxygen target)
         message(STATUS "Looking for doxygen in $ENV{BOOST_ROOT}")
     endif()
     find_package(Doxygen
-        REQUIRED dot
         REQUIRED)
     # set input and output files
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs_doxygen/Doxyfile.in)

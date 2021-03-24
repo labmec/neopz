@@ -17,7 +17,6 @@ jobs:
     steps:
     - name: Requirements
       run: brew install doxygen
-        && brew install graphviz
         && brew install sphinx-doc
         && pip3 install sphinx-rtd-theme
         && pip3 install breathe
