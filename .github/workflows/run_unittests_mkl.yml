@@ -37,7 +37,7 @@ jobs:
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
       env:
-        MAKEFLAGS: "-j"
+        MAKEFLAGS: "-j4"
     - name: Run Unit Tests
       working-directory: ${{github.workspace}}/build
       shell: bash
