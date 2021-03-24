@@ -54,6 +54,7 @@ where some CMake options were given as an illustration. The following CMake opti
 - `USING_METIS`: Enable Metis library support.
 - `CMAKE_BUILD_TYPE`: `Release`, `Debug` and `RelWithDebugInfo`
 - `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials. *Note:* This option conflicts with complex `STATE_TYPE`.
+- `BUILD_DOCS`: build documentation using [Doxygen](https://www.doxygen.nl/index.html). It requires Doxygen and [Graphviz](https://graphviz.org/).
 
 *Note:* MKL has recently changed how they distribute their libraries, using the [oneAPI](https://software.intel.com/content/www/us/en/develop/tools/oneapi.html) programming model. See [here](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-intel-oneapi-base-linux/top/before-you-begin.html) how to set up oneAPI MKL for usage with NeoPZ. In UNIX systems, adding the 
 ```sh
