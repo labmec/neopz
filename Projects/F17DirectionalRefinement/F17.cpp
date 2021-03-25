@@ -35,7 +35,7 @@ void  FilterBoundingBox(TPZGeoMesh *geomesh);
 int main()
 {
     static const std::chrono::time_point<std::chrono::system_clock> wall_time_start = std::chrono::system_clock::now();
-	
+
     gRefDBase.InitializeRefPatterns();
 
     TPZGeoMesh *geomesh = CreateF17Mesh();
@@ -43,58 +43,37 @@ int main()
     FilterBoundingBox(geomesh);
 
     const int nref = 5;
-    std::cout << "Number of refinement steps: "<<nref<<"\n";
+    std::cout << "Number of refinement steps: "<<nref<<std::endl;
     //cin >> nref;
-    std::cout << std::endl;
     const std::string meshFileName("F17model_");
     std::ofstream outt(meshFileName+std::to_string(0)+".vtk");
     std::set<int> matids;
     matids.insert(-1);//material id associated with the F17 shell
 
     TPZVTKGeoMesh::PrintGMeshVTK(geomesh, outt, 1);
-    
-    ///seting up functions for timing the refinement
-    auto WallTime = [] () noexcept
-    {
-        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = now-wall_time_start;
-        return elapsed_seconds.count();
-    };
 
-    double seconds_per_tick = [WallTime] () noexcept
-    {
-        auto tick_start = __rdtsc();
-        double tstart = WallTime();
-        double tend = WallTime()+0.001;
-
-        // wait for 1ms and compare wall time with time counter
-        while(WallTime()<tend);
-
-        auto tick_end = __rdtsc();
-        tend = WallTime();
-
-        return (tend-tstart)/static_cast<double>(tick_end-tick_start);
-    }();
 
     int destMatId = 1;
     for(auto i=0; i<nref; i++)
     {
         int nelements = geomesh->NElements();
-        std::cout << "\tEntering refinement step: " << i << " number of elements = " << nelements << std::endl;
-        std::cout << "\tRefining...\n";
+        std::cout << "\tEntering refinement step: " << i << " number of elements = " << nelements << '\n';
+        std::cout << "\tRefining..."<<std::endl;
         //directional refinement will be performed in the direction of elements with material ids
         //contained in the set matids. elements that are refined will have the material id set to destmatid
 
-        const auto reftimer_b = __rdtsc();
+        const auto reftimer_b = std::chrono::system_clock::now();
         for (auto el=0; el<nelements; el++)
         {
-          TPZGeoEl *element = geomesh->ElementVec()[el];
-          if(!element || element->MaterialId() != destMatId) continue;
-          TPZRefPatternTools::RefineDirectional(element, matids, destMatId);
+            TPZGeoEl *element = geomesh->ElementVec()[el];
+            if(!element || element->MaterialId() != destMatId) continue;
+            TPZRefPatternTools::RefineDirectional(element, matids, destMatId);
         }
-        const auto reftimer_e = __rdtsc();
-        std::cout<<"\tRefined!"<<std::endl;
-        std::cout <<"\tTotal time: "<<((double)(reftimer_e-reftimer_b))*seconds_per_tick<<std::endl;
+        const auto reftimer_e = std::chrono::system_clock::now();
+        std::cout<<"\tRefined!"<<'\n';
+        std::cout <<"\tTotal time: ";
+        std::cout<<std::chrono::duration_cast<std::chrono::milliseconds>(reftimer_e-reftimer_b).count();
+        std::cout<<std::endl;
         //we want to differentiate which elements are refined in which round
         destMatId += 1;
         std::ofstream out(meshFileName+std::to_string(i+1)+".vtk");
@@ -120,7 +99,7 @@ TPZGeoMesh * CreateF17Mesh()
               << "\n\t\t\tprocessing nodes...\n";
     std::ifstream nodesFile (nodesFileName.c_str());
     if(!nodesFile.is_open()){
-        std::cout<<"Could not find nodes at file "<<nodesFileName.c_str()<<std::endl;
+        std::cout<<"Could not find nodes at file "<<nodesFileName.c_str()<<'\n';
         std::cout<<"Aborting..."<<std::endl;
         DebugStop();
     }
@@ -144,7 +123,7 @@ TPZGeoMesh * CreateF17Mesh()
               << "\n\t\t\tprocessing faces...\n";
     std::ifstream facesFile (faceFileName.c_str());
     if(!facesFile.is_open()){
-        std::cout<<"Could not find triangles at file "<<faceFileName.c_str()<<std::endl;
+        std::cout<<"Could not find triangles at file "<<faceFileName.c_str()<<'\n';
         std::cout<<"Aborting..."<<std::endl;
         DebugStop();
     }
@@ -170,7 +149,7 @@ TPZGeoMesh * CreateF17Mesh()
     std::ifstream tetraFile (tetraFileName.c_str());
     TPZManVector<int64_t,4> indices2(4);
     if(!tetraFile.is_open()){
-        std::cout<<"Could not find volumes at file "<<tetraFileName.c_str()<<std::endl;
+        std::cout<<"Could not find volumes at file "<<tetraFileName.c_str()<<'\n';
         std::cout<<"Aborting..."<<std::endl;
         DebugStop();
     }
@@ -214,8 +193,8 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
         }
         for(auto idf=0; idf<3; idf++)
         {
-          if(geomesh->NodeVec()[no].Coord(idf) < xminmax(idf,0)) xminmax(idf,0) = geomesh->NodeVec()[no].Coord(idf);
-          if(geomesh->NodeVec()[no].Coord(idf) > xminmax(idf,1)) xminmax(idf,1) = geomesh->NodeVec()[no].Coord(idf);
+            if(geomesh->NodeVec()[no].Coord(idf) < xminmax(idf,0)) xminmax(idf,0) = geomesh->NodeVec()[no].Coord(idf);
+            if(geomesh->NodeVec()[no].Coord(idf) > xminmax(idf,1)) xminmax(idf,1) = geomesh->NodeVec()[no].Coord(idf);
         }
     }
 
@@ -323,5 +302,5 @@ void FilterBoundingBox(TPZGeoMesh *geomesh)
 //            }
         }
     }
-	std::cout << "Number of elements with -4 condition " << num4 << " with -1 condition " << num1 << std::endl;
+    std::cout << "Number of elements with -4 condition " << num4 << " with -1 condition " << num1 << std::endl;
 }
