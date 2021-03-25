@@ -271,4 +271,6 @@ namespace pzgeom {
     template void TPZQuadraticQuad::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
     template void TPZQuadraticQuad::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
 
+    template void TPZQuadraticQuad::TShape(const TPZVec<REAL> &param, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+
 }
