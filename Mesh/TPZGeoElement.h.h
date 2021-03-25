@@ -193,7 +193,7 @@ TPZGeoElRefLess<TGeo>(DestMesh, cp, gl2lcNdMap, gl2lcElMap)
 		if (gl2lcElMap.find(cp.fSubEl[i]) == gl2lcElMap.end())
 		{
 #ifdef PZ_LOG
-            static TPZLogger logger("pz.mesh.tpzgeoelement");
+            TPZLogger logger("pz.mesh.tpzgeoelement");
 
             if (logger.isDebugEnabled()) {
               std::stringstream sout;

@@ -16,10 +16,6 @@
 #include "pzlog.h"
 #include <sstream>
 
-#ifdef PZ_LOG
-static TPZLogger loggermapped("pz.mesh.geoelmapped");
-#endif
-
 /**
  * @ingroup geometry
  * @brief This class implements a geometric element which uses its ancestral to compute its jacobian. \ref geometry "Geometry"
@@ -218,29 +214,38 @@ int ClassId() const override;
 
 				error = sqrt(error);
 				if(error > 1e-8){
-					std::stringstream sout;
-					
-					sout.precision(16);
-					sout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
-					sout << "this->Index = " << this->Index() << "\n";
-					sout << "Node number " << in << std::endl;
-					sout << "Node index " << this->NodeIndex(in) << std::endl;
-					sout << "Father side " << this->FatherSide(in,0) << std::endl;
-					sout << "aux:\n";
-					for(int i = 0; i < aux.NElements(); i++) sout << aux[i] << "\t";
-					sout << "\nptancestor:\n";
-					for(int i = 0; i < ptancestor.NElements(); i++) sout << ptancestor[i] << "\t";
-					sout << "\n";
-					sout << "nodeX:\n";
-					for(int i = 0; i < nodeX.NElements(); i++) sout << nodeX[i] << "\t";
-					sout << "\nfatherX:\n";
-					for(int i = 0; i < fatherX.NElements(); i++) sout << fatherX[i] << "\t";
-					sout << "\nfatherXaux:\n";
-					for(int i = 0; i < fatherXaux.NElements(); i++) sout << fatherXaux[i] << "\t";
-					std::cout << sout.str();
 #ifdef PZ_LOG
-					father->Mesh()->Print(sout);
-					LOGPZ_ERROR(loggermapped,sout.str())
+                    TPZLogger loggermapped("pz.mesh.geoelmapped");
+                    if(loggermapped.isErrorEnabled()){
+                        std::stringstream sout;
+					
+                        sout.precision(16);
+                        sout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
+                        sout << "this->Index = " << this->Index() << "\n";
+                        sout << "Node number " << in << std::endl;
+                        sout << "Node index " << this->NodeIndex(in)
+                             << std::endl;
+                        sout << "Father side " << this->FatherSide(in, 0)
+                             << std::endl;
+                        sout << "aux:\n";
+                        for (int i = 0; i < aux.NElements(); i++)
+                          sout << aux[i] << "\t";
+                        sout << "\nptancestor:\n";
+                        for (int i = 0; i < ptancestor.NElements(); i++)
+                          sout << ptancestor[i] << "\t";
+                        sout << "\n";
+                        sout << "nodeX:\n";
+                        for (int i = 0; i < nodeX.NElements(); i++)
+                          sout << nodeX[i] << "\t";
+                        sout << "\nfatherX:\n";
+                        for (int i = 0; i < fatherX.NElements(); i++)
+                          sout << fatherX[i] << "\t";
+                        sout << "\nfatherXaux:\n";
+                        for (int i = 0; i < fatherXaux.NElements(); i++)
+                          sout << fatherXaux[i] << "\t";
+                        std::cout << sout.str();
+                        LOGPZ_ERROR(loggermapped, sout.str())
+                    }
 #endif
 					DebugStop();
 				}
@@ -524,6 +529,7 @@ protected:
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
 #ifdef PZ_LOG
+        TPZLogger loggermapped("pz.mesh.geoelmapped");
         if(loggermapped.isDebugEnabled())
         {
             std::stringstream sout;

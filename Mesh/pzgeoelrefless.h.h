@@ -14,9 +14,6 @@
 #include <sstream>
 
 #include "pzlog.h" // test 
-#ifdef PZ_LOG
-static TPZLogger loggerrefless("pz.mesh.tpzgeoelrefless");
-#endif
 
 #include "fadType.h"
 
@@ -648,8 +645,10 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVe
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " called with wrong side parameter " << side;
 #ifdef PZ_LOG
+        TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
+        DebugStop();
         std::cout << sout.str() << std::endl;
 	}
 	permutegather.Resize(3);
@@ -681,6 +680,7 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, T
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " called with wrong side parameter " << side;
 #ifdef PZ_LOG
+        TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
         std::cout << sout.str() << std::endl;
@@ -715,6 +715,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 		std::stringstream sout;
 		sout << "HDivPermutation called with wrong side parameter " << side;
 #ifdef PZ_LOG
+        TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
 	}
@@ -764,6 +765,7 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
             break;
     }
 #ifdef PZ_LOG
+    TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
     if (loggerrefless.isDebugEnabled()) {
         std::stringstream sout;
         sout << "side = " << side << " transform id " << transformid << " permutegather " << permutegather;

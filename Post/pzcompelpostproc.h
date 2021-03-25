@@ -30,9 +30,6 @@ class TPZMaterialData;
 
 #include "pzmultiphysicselement.h"
 
-#ifdef PZ_LOG
-static TPZLogger pzcompelpostproclogger("pz.mesh.TPZCompElPostProc");
-#endif
 
 
 /**
@@ -353,6 +350,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         int64_t index = 0;
         // stacking the solutions to post process.
 #ifdef PZ_LOG
+        TPZLogger pzcompelpostproclogger("pz.mesh.TPZCompElPostProc");
         if(pzcompelpostproclogger.isDebugEnabled())
         {
             std::stringstream sout;

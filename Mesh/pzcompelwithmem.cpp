@@ -13,6 +13,10 @@
 #include "pzshapeprism.h"
 #include "pzshapepiram.h"
 
+#ifdef PZ_LOG
+static TPZLogger CompElWMemlogger("mesh.TPZCompElWithMem");
+#endif
+
 bool gSinglePointMemory = false;
 
 template<class TBASE>
