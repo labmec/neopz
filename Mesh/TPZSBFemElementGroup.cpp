@@ -601,7 +601,6 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         }
 #endif
     }
-    }
 #endif
 }
 
