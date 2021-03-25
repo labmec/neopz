@@ -10,7 +10,7 @@
 #include <fenv.h>//NAN DETECTOR
 #endif
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 static TPZLogger logMohr("TPZYCMohrOriginal");
 #endif
 

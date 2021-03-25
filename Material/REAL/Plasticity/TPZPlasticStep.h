@@ -645,8 +645,8 @@ public:
 	
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
     {
-#ifdef PZ_LOG_PLASTICITY
-		LoggerPtr logger(Logger::getLogger("plasticity.plasticstep"));
+#ifdef PZ_LOG
+		TPZLogger logger("plasticity.plasticstep");
 #endif
 		TPZTensor<REAL> sigma;
 		switch(icase)
@@ -659,7 +659,7 @@ public:
 				ComputeDep(sig, tangent);
 			}
 				//Sigma(gRefDeform,sig,tangent);
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 				std::stringstream sout;
 				sout << "matriz tangent for checkconv " << tangent;
 				LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -670,8 +670,8 @@ public:
 	
     void Residual(TPZFMatrix<REAL> &res,int icase)
     {
-#ifdef PZ_LOG_PLASTICITY
-		LoggerPtr logger(Logger::getLogger("plasticity.plasticstep"));
+#ifdef PZ_LOG
+		TPZLogger logger("plasticity.plasticstep");
 #endif
 		TPZTensor<REAL> sigma;
 		switch(icase)
@@ -685,7 +685,7 @@ public:
 				ComputeDep(sig, tangent);
 			}
 				//Sigma(gRefDeform,sig,tangent);
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 				std::stringstream sout;
 				sout << "sigma for residual " << sig;
 				LOGPZ_DEBUG(logger,sout.str().c_str());

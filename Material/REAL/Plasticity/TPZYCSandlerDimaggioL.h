@@ -186,9 +186,9 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
 	// shear and hardening cap yield criteria / plastic potential.
 	// It is first evaluated as REAL type to avoid unnecessary
 	// derivatives evaluation.
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
-        LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggioL"));
+        TPZLogger logger("plasticity.SandlerDimaggioL");
         std::stringstream sout;
         sout << ">>> TPZYCSandlerDimaggio::Compute *** - Plastic Potential / Yield - associative";
         LOGPZ_INFO(logger,sout.str().c_str());
@@ -226,9 +226,9 @@ inline void TPZYCSandlerDimaggioL::Compute(const TPZTensor<T> & sigma,const T & 
         
         if(fabs( (REAL)TPZExtractVal::val(FL) ) < 0.00001)
         {
-    #ifdef PZ_LOG_PLASTICITY
+    #ifdef PZ_LOG
             {
-                LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+                TPZLogger logger("plasticity.SandlerDimaggio");
                 std::stringstream sout;
                 sout << "*** TPZYCSandlerDimaggio::ComputePlasticPotential ***";
                 sout << "\nDivision by F=" << TPZExtractVal::val(L) << " at f2 - ellipsoidal hardening/softening cap";
@@ -286,9 +286,9 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 	// derivatives evaluation.
 
 	
-    #ifdef PZ_LOG_PLASTICITY
+    #ifdef PZ_LOG
         {
-          LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggioL"));
+          TPZLogger logger("plasticity.SandlerDimaggioL");
           std::stringstream sout;
           sout << ">>> TPZYCSandlerDimaggio::N *** - Plastification direction - associative";
           LOGPZ_INFO(logger,sout.str().c_str());
@@ -326,9 +326,9 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 		
             if((REAL)TPZExtractVal::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
             {
-                #ifdef PZ_LOG_PLASTICITY
+                #ifdef PZ_LOG
                 {
-                   LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+                   TPZLogger logger("plasticity.SandlerDimaggio");
                    std::stringstream sout;
                    sout << "*** TPZYCSandlerDimaggio::N *** - SQRT(J2) = " << TPZExtractVal::val(SQRTJ2) <<  " < 1.e-6 causes error in 0-th yield function. Imposing J2 = 1.e-6 instead";
                    LOGPZ_WARN(logger,sout.str().c_str());
@@ -393,9 +393,9 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 		T Temp = (I1-L)/ T(fR * fR) - I1 / T(6.);
 		Temp = Temp / FL2 * T(2.);
 
-			#ifdef PZ_LOG_PLASTICITY
+			#ifdef PZ_LOG
             {
-               LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+               TPZLogger logger("plasticity.SandlerDimaggio");
                std::stringstream sout;
                sout << "*** TPZYCSandlerDimaggio::N *** X = " << X
 					<< "\n L = " << L << " L_REAL = " << L_REAL
@@ -460,9 +460,9 @@ inline void TPZYCSandlerDimaggioL::H(const TPZTensor<T> & sigma,const T & A, TPZ
 	// It is first evaluated as REAL type to avoid unnecessary
 	// derivatives evaluation.
 	
-    #ifdef PZ_LOG_PLASTICITY
+    #ifdef PZ_LOG
         {
-          LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+          TPZLogger logger("plasticity.SandlerDimaggio");
           std::stringstream sout;
           sout << ">>> TPZYCSandlerDimaggio::H *** - Hardening modulus";
           LOGPZ_INFO(logger,sout.str().c_str());

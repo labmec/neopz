@@ -10,6 +10,11 @@
 #define CHECKCONV
 #include "checkconv.h"
 #endif
+
+#ifdef PZ_LOG
+#include "pzlog.h"
+#endif
+
 /**
 Classe que implementa o calculo da forca termodinamica (Souza Neto p. 144) e suas derivadas
 Neste caso utiliza-se encruamento linear
@@ -138,11 +143,11 @@ public:
     */
     void LoadState(TPZFMatrix<REAL> &state)
     {
-    #ifdef PZ_LOG_PLASTICITY
-        LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
+    #ifdef PZ_LOG
+        TPZLogger logger("plasticity.ladekimthermoforce");
     #endif
       gRefThermoForce = state(0,0);
-	#ifdef PZ_LOG_PLASTICITY
+	#ifdef PZ_LOG
       std::stringstream sout;
       sout << "Plastic Work " << state;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -151,8 +156,8 @@ public:
 
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
     {
-    #ifdef PZ_LOG_PLASTICITY
-        LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
+    #ifdef PZ_LOG
+        TPZLogger logger("plasticity.ladekimthermoforce");
     #endif
 
       switch(icase)
@@ -165,7 +170,7 @@ public:
 
           break;
       }
-	#ifdef PZ_LOG_PLASTICITY
+	#ifdef PZ_LOG
       std::stringstream sout;
       sout << "Matriz tangent " << tangent;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -174,8 +179,8 @@ public:
 
     void Residual(TPZFMatrix<REAL> &res,int icase)
     {
-    #ifdef PZ_LOG_PLASTICITY
-        LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
+    #ifdef PZ_LOG
+        TPZLogger logger("plasticity.ladekimthermoforce");
     #endif
       switch(icase)
       {
@@ -186,7 +191,7 @@ public:
         break;
 
       }
-    #ifdef PZ_LOG_PLASTICITY
+    #ifdef PZ_LOG
       std::stringstream sout;
       sout << "Residual vector " << res;
       LOGPZ_DEBUG(logger,sout.str().c_str());

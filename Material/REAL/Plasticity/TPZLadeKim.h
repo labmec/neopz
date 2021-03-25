@@ -10,8 +10,8 @@
 #include "pzvec_extras.h"
 #include "TPZPlasticStepID.h"
 
-//#ifdef PZ_LOG_PLASTICITY
-//    LoggerPtr loggerLadeKim(Logger::getLogger("plasticity.LadeKim"));
+//#ifdef PZ_LOG
+//    TPZLogger loggerLadeKim("plasticity.LadeKim");
 //#endif
 
 #define LADEKIMPARENT TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>
@@ -573,7 +573,7 @@ inline void TPZLadeKim::LoadState(TPZFMatrix<REAL> &state)
   const int nVars = 6+6+1+TPZYCLadeKim::NYield;
   for(i=0; i<nVars; i++) gRefResidual[i] = state(i,0);
 
-//#ifdef PZ_LOG_PLASTICITY
+//#ifdef PZ_LOG
 //  {
 //    std::stringstream sout;
 //    sout << "Tension " << state;
@@ -629,7 +629,7 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &
       }
       break;
   }
-//#ifdef PZ_LOG_PLASTICITY
+//#ifdef PZ_LOG
 //  std::stringstream sout;
 //  sout << "Matriz tangent " << tangent;
 //  LOGPZ_DEBUG(loggerLadeKim,sout.str().c_str());
@@ -667,7 +667,7 @@ inline void TPZLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
       }
       break;
   }
-//#ifdef PZ_LOG_PLASTICITY
+//#ifdef PZ_LOG
 //  std::stringstream sout;
 //  sout << "Residual vector " << res;
 //  LOGPZ_DEBUG(loggerLadeKim,sout.str().c_str());

@@ -6,22 +6,8 @@
 
 #include "pzlog.h"
 
-#ifdef PZ_LOG // PZ_LOG may be defined alone or with PZ_LOG_PLASTICITY. The latter shall not be used alone.
-#include <log4cxx/logger.h>
-#include <log4cxx/basicconfigurator.h>
-#include <log4cxx/propertyconfigurator.h>
-
-static TPZLogger plasticIntegrLogger("plasticity.plasticIntegr");
-#endif
-
-
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 static TPZLogger testLogger("plasticity.test");
-#endif
-
-
-
-#ifdef PZ_LOG_PLASTICITY
 static TPZLogger MaterialPoint("MaterialPointTest");
 #endif
 
@@ -1292,7 +1278,7 @@ inline void TPZPlasticTest::InitializeLOG()
 	
 	LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	LOGPZ_INFO(testLogger,sout.str().c_str());
 #endif
 	
@@ -1315,7 +1301,7 @@ inline void TPZPlasticTest::ReciprocityTest(T & plasticModel, TPZTensor<REAL> st
 	
 	plasticModel.Phi(strain1,phi);
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ 
@@ -1332,7 +1318,7 @@ inline void TPZPlasticTest::ReciprocityTest(T & plasticModel, TPZTensor<REAL> st
 	
 	plasticModel.Phi(strain1,phi);
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1350,7 +1336,7 @@ inline void TPZPlasticTest::ReciprocityTest(T & plasticModel, TPZTensor<REAL> st
 	
 	plasticModelCopy.Phi(strain2,phi2);
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1373,7 +1359,7 @@ inline void TPZPlasticTest::StressTest(T & plasticModel, const char * filename, 
 	
 	TPZPlasticTest::InitializeLOG();
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1401,7 +1387,7 @@ inline void TPZPlasticTest::StressTest(T & plasticModel, const char * filename, 
 	strncpy(outfilename, filename, 120);
 	strcpy(outfilename+strlen(outfilename), ".out");
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1446,7 +1432,7 @@ inline void TPZPlasticTest::StressTest(T & plasticModel, const char * filename, 
 		outputLine << "\nfN:/n" << plasticModel.GetState() << endl; 
 		
 		outFile << outputLine.str();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 		LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		outFile.flush();
@@ -1467,7 +1453,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 	
 	TPZPlasticTest::InitializeLOG();
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1495,7 +1481,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 	strncpy(outfilename, filename, 120);
 	strcpy(outfilename+strlen(outfilename), ".out");
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1560,7 +1546,7 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
 		<< ", alpha= " << alpha << endl; 
 		
 		outFile << outputLine.str();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 		LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		outFile.flush();
@@ -1582,7 +1568,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 	
 	TPZPlasticTest::InitializeLOG();
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1612,7 +1598,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 	////strcpy(outfilename+strlen(outfilename), ".out");
     strcpy(outfilename+strlen(outfilename), ".txt");
 	
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
@@ -1638,7 +1624,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 	{
 		std::stringstream sout;
 		sout << "Could not create plastic model named " << line;
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 		{
 			LOGPZ_INFO(testLogger,sout.str().c_str());
 		}
@@ -1697,7 +1683,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
             
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 			j++;
@@ -1751,7 +1737,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 			j++;
@@ -1766,7 +1752,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1780,7 +1766,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1795,7 +1781,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}
@@ -1810,7 +1796,7 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			outFile << outputLine.str();
 			outFile.flush();
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 			LOGPZ_INFO(testLogger,outputLine.str().c_str());
 #endif
 		}

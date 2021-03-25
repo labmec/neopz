@@ -182,7 +182,7 @@ namespace pzgeom {
 	void GPr<TFather, Topology>::Diagnostic(TPZFMatrix<REAL> & coord)
 	{
 #ifdef PZ_LOG
-		LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoextend"));
+		TPZLogger logger("pz.geom.pzgeoextend");
 		
 		TPZIntPoints *integ = Top::CreateSideIntegrationRule(Top::NSides-1,3);
 		int np = integ->NPoints();

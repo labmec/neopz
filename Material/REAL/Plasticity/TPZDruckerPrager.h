@@ -13,7 +13,7 @@
 #include "pzvec_extras.h"
 #include "TPZPlasticStepID.h"
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
 static TPZLogger loggerDrucker("plasticity.Drucker");
 #endif
 

@@ -144,12 +144,12 @@ inline TPZYCVonMisesCombTresca::TPZYCVonMisesCombTresca() : fVonMises(), fTresca
 template < class T>
 void TPZYCVonMisesCombTresca::Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &res, int checkForcedYield) const
 {
-#ifdef PZ_LOG_PLASTICITY
-  LoggerPtr logger(Logger::getLogger("plasticity.ycvonmisescombtresca"));
+#ifdef PZ_LOG
+  TPZLogger logger("plasticity.ycvonmisescombtresca");
 #endif
   if (res.NElements()!=2)
   {
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " wrong vector size: res has dimension = " << res.NElements()
           << " waiting for size = 2";
@@ -164,7 +164,7 @@ void TPZYCVonMisesCombTresca::Compute(const TPZTensor<T> & sigma, const T & A, T
   res[0] = aux[0];
   fTresca.Compute(sigma,A,aux,checkForcedYield);
   res[1] = aux[0];
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
   {
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " valores dos phi " << res;
@@ -179,12 +179,12 @@ void TPZYCVonMisesCombTresca::Compute(const TPZTensor<T> & sigma, const T & A, T
 template <class T>
 void TPZYCVonMisesCombTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & NDir, int checkForcedYield) const
 {
-#ifdef PZ_LOG_PLASTICITY
-  LoggerPtr logger(Logger::getLogger("plasticity.ycvonmisescombtresca"));
+#ifdef PZ_LOG
+  TPZLogger logger("plasticity.ycvonmisescombtresca");
 #endif
   if (NDir.NElements()!=2)
   {
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " wrong vector size: Ndir has dimension = " << NDir.NElements()
           << " waiting for size = 2";
@@ -203,12 +203,12 @@ void TPZYCVonMisesCombTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<
 template <class T>
 void TPZYCVonMisesCombTresca::H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield) const
 {
-#ifdef PZ_LOG_PLASTICITY
-  LoggerPtr logger(Logger::getLogger("plasticity.ycvonmisescombtresca"));
+#ifdef PZ_LOG
+  TPZLogger logger("plasticity.ycvonmisescombtresca");
 #endif
   if (h.NElements()!=2)
   {
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     std::stringstream sout;
     sout << __PRETTY_FUNCTION__ << " wrong vector size: h has dimension = " << h.NElements()
           << " waiting for size = 2";

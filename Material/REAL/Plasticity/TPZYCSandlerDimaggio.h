@@ -1016,9 +1016,9 @@ inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma, const T & 
     // It is first evaluated as REAL type to avoid unnecessary
     // derivatives evaluation.
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
-        LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+        TPZLogger logger("plasticity.SandlerDimaggio");
         std::stringstream sout;
         sout << ">>> TPZYCSandlerDimaggio::Compute *** - Plastic Potential / Yield - associative";
         LOGPZ_INFO(logger, sout.str().c_str());
@@ -1049,9 +1049,9 @@ inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma, const T & 
     ComputeF(L, FL);
 
     if (fabs((REAL) TPZExtractVal::val(FL)) < 0.00001) {
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
         {
-            LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+            TPZLogger logger("plasticity.SandlerDimaggio");
             std::stringstream sout;
             sout << "*** TPZYCSandlerDimaggio::ComputePlasticPotential ***";
             sout << "\nDivision by F=" << TPZExtractVal::val(L) << " at f2 - ellipsoidal hardening/softening cap";
@@ -1083,9 +1083,9 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
     // derivatives evaluation.
 
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
-        LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+        TPZLogger logger("plasticity.SandlerDimaggio");
         std::stringstream sout;
         sout << ">>> TPZYCSandlerDimaggio::N *** - Plastification direction - associative";
         LOGPZ_INFO(logger, sout.str().c_str());
@@ -1118,9 +1118,9 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 
             if ((REAL) TPZExtractVal::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
             {
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
                 {
-                    LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+                    TPZLogger logger("plasticity.SandlerDimaggio");
                     std::stringstream sout;
                     sout << "*** TPZYCSandlerDimaggio::N *** - SQRT(J2) = " << TPZExtractVal::val(SQRTJ2) << " < 1.e-6 causes error in 0-th yield function. Imposing J2 = 1.e-6 instead";
                     LOGPZ_WARN(logger, sout.str().c_str());
@@ -1162,9 +1162,9 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
         T Temp = (I1 - L) / T(fR * fR) - I1 / T(6.);
         Temp = Temp / FL2 * T(2.);
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
         {
-            LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+            TPZLogger logger("plasticity.SandlerDimaggio");
             std::stringstream sout;
             sout << "*** TPZYCSandlerDimaggio::N *** X = " << X
                     << "\n L = " << L << " L_REAL = " << L_REAL
@@ -1211,9 +1211,9 @@ inline void TPZYCSandlerDimaggio::H(const TPZTensor<T> & sigma, const T & A, TPZ
     // It is first evaluated as REAL type to avoid unnecessary
     // derivatives evaluation.
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
-        LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+        TPZLogger logger("plasticity.SandlerDimaggio");
         std::stringstream sout;
         sout << ">>> TPZYCSandlerDimaggio::H *** - Hardening modulus";
         LOGPZ_INFO(logger, sout.str().c_str());
@@ -1320,9 +1320,9 @@ inline void TPZYCSandlerDimaggio::ComputeX(const T & A, T & X) const {
         T dXdep = T(fW / (ep + fW) / fD);
         X = T(log(ep / fW + 1.) / fD);
         X = X + dXdep * (A - T(ep));
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
         {
-            LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+            TPZLogger logger("plasticity.SandlerDimaggio");
             std::stringstream sout;
             sout << "*** TPZYCSandlerDimaggio::ComputeX *** ##### Changing hardening equation to adjusted linear - Excessive volumetric plastic strain - Please check aftwerwards if alpha = epsP.I1() to verify if results are consistent! ######";
             LOGPZ_WARN(logger, sout.str().c_str());
@@ -1349,9 +1349,9 @@ inline void TPZYCSandlerDimaggio::LoadState(TPZFMatrix<REAL> &state) {
     int i;
     for (i = 0; i < 6; i++) gRefTension.fData[i] = state(i, 0);
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
-        LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+        TPZLogger logger("plasticity.SandlerDimaggio");
 
         std::stringstream sout;
         sout << ">>> LoadState *** Tension " << state;
@@ -1395,8 +1395,8 @@ inline void TPZYCSandlerDimaggio::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZV
             break;
 
     }
-#ifdef PZ_LOG_PLASTICITY
-    LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+#ifdef PZ_LOG
+    TPZLogger logger("plasticity.SandlerDimaggio");
     std::stringstream sout;
     sout << ">>> ComputeTangent *** " << tangent;
     LOGPZ_DEBUG(logger, sout.str().c_str());
@@ -1430,8 +1430,8 @@ inline void TPZYCSandlerDimaggio::Residual(TPZFMatrix<REAL> &res, int icase) {
             break;
     }
 
-#ifdef PZ_LOG_PLASTICITY
-    LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+#ifdef PZ_LOG
+    TPZLogger logger("plasticity.SandlerDimaggio");
     std::stringstream sout;
     sout << ">>> Residual *** " << res;
     LOGPZ_DEBUG(logger, sout.str().c_str());
@@ -1469,8 +1469,8 @@ inline void TPZYCSandlerDimaggio::CheckConv() {
 //////////////////Internal routines verification/////////////////
 
 inline void TPZYCSandlerDimaggio::TestSolveL() {
-#ifdef PZ_LOG_PLASTICITY
-    LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
+#ifdef PZ_LOG
+    TPZLogger loggerSandlerDimaggio("plasticity.SandlerDimaggio");
     {
         std::stringstream sout;
         sout << "<<< TPZYCSandlerDimaggio::TestSolveL ***";
@@ -1501,7 +1501,7 @@ inline void TPZYCSandlerDimaggio::TestSolveL() {
     YCSandlerDimaggio.ComputeF(L_FAD, F_FAD);
     YCSandlerDimaggio.ComputedF((REAL) TPZExtractVal::val(L_FAD), dF);
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "*** TPZYCSandlerDimaggio::TestSolveL ***";
@@ -1513,7 +1513,7 @@ inline void TPZYCSandlerDimaggio::TestSolveL() {
 #endif
 
     YCSandlerDimaggio.SolveL(X, L);
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "*** TPZYCSandlerDimaggio::TestSolveL ***";
@@ -1566,7 +1566,7 @@ inline void TPZYCSandlerDimaggio::TestSolveL() {
     YCSandlerDimaggio.H(sigma, epsVP, h, 0);
     YCSandlerDimaggio.Compute(sigma_FAD, epsVP_FAD, PlasticPot, 0);
 
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "*** TPZYCSandlerDimaggio::TestSolveL ***";
@@ -1591,8 +1591,8 @@ inline void TPZYCSandlerDimaggio::TestSolveL() {
 //////////////////Internal routines verification/////////////////
 
 inline void TPZYCSandlerDimaggio::McCormicRanchSand(TPZYCSandlerDimaggio & material) {
-#ifdef PZ_LOG_PLASTICITY
-    LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
+#ifdef PZ_LOG
+    TPZLogger loggerSandlerDimaggio("plasticity.SandlerDimaggio");
     {
         std::stringstream sout;
         sout << ">>> TPZYCSandlerDimaggio::McCormicRanchSand ***";

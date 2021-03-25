@@ -267,8 +267,8 @@ void TPZYCTresca::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &res
 template <class T> 
 void TPZYCTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
-#ifdef PZ_LOG_PLASTICITY
-  LoggerPtr logger(Logger::getLogger("plasticity.yctresca"));
+#ifdef PZ_LOG
+  TPZLogger logger("plasticity.yctresca");
 #endif
 
 /*  T invangle = InverseAngle(sigma);
@@ -281,7 +281,7 @@ void TPZYCTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T>
   TPZTensor<T> gradtheta;
   //T derivasin;
   //GradASinInvAngle (sigma,invangle,theta,gradinvangle,derivasin);
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
   {
     std::stringstream sout;
     sout << "A  " << A << "    N: sigma " << sigma;
@@ -289,7 +289,7 @@ void TPZYCTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T>
   }
 #endif
   GradTheta<T> (sigma,theta,gradtheta);
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
   {
     std::stringstream sout;
     sout << "N: theta " << theta;
@@ -308,7 +308,7 @@ void TPZYCTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T>
   resultdj2.Multiply(cos(theta)/sqj2,T(1.));
   TPZTensor<T> result(resultdtheta);
   result.Add(resultdj2,1.);
-#ifdef PZ_LOG_PLASTICITY
+#ifdef PZ_LOG
   {
     std::stringstream sout;
     sout << "sqj2 " << sqj2;
@@ -360,8 +360,8 @@ template <class T>
 void TPZYCTresca::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZTensor<T> & gradtheta) const
 {
 
-#ifdef PZ_LOG_PLASTICITY
-  LoggerPtr logger(Logger::getLogger("plasticity.yctresca"));
+#ifdef PZ_LOG
+  TPZLogger logger("plasticity.yctresca");
 
   {
     LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
