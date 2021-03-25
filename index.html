@@ -86,7 +86,14 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Welcome to NeoPZ’s documentation!</a></li>
+<li><a class="reference internal" href="#">Welcome to NeoPZ’s documentation!</a><ul>
+<li><a class="reference internal" href="#about">About</a></li>
+<li><a class="reference internal" href="#motivation-why-develop-a-finite-element-library">Motivation: Why develop a finite element library?</a></li>
+<li><a class="reference internal" href="#objectives">Objectives</a></li>
+<li><a class="reference internal" href="#authors">Authors</a></li>
+<li><a class="reference internal" href="#class-example">Class Example</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 </div>
@@ -159,7 +166,79 @@
 <h1>Welcome to NeoPZ’s documentation!<a class="headerlink" href="#welcome-to-neopz-s-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<p>This page is (obviously) under construction.</p>
+<div class="section" id="about">
+<h2>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h2>
+<p>The NeoPZ environment is a object oriented environment for the development
+finite element simulations.</p>
+<p>The NeoPZ environment (in the future quoted as simply NeoPZ) incorporates
+several advanced finite element technologies in a single coherent structure,
+allowing its user to develop sophisticated simulations in a short period of
+time.</p>
+</div>
+<div class="section" id="motivation-why-develop-a-finite-element-library">
+<h2>Motivation: Why develop a finite element library?<a class="headerlink" href="#motivation-why-develop-a-finite-element-library" title="Permalink to this headline">¶</a></h2>
+<p>During my PhD work (late 1980’s) I developed hp-adaptive finite element
+algorithms applied to the simulation of compressible fluid flow. The first
+version of the adaptive mesh datastructure dates back to 1984.</p>
+<p>I soon noticed that adaptivity is a universal concept which can be applied to
+virtually any finite element simulation. During the time I studied in Texas,
+adaptivity was applied to the Stokes equations,to plasticity, to thermal
+problems, convection problems etc.</p>
+<p>On the other hand, It was obvious that writing an hp-adaptive code requires a
+major investment. It takes at least two years to write and validate a three
+dimensional adaptive finite element code.</p>
+<p>At that time I imagined it would be possible to write a finite element
+framework that would be allow its user to apply hp-adaptive strategies to
+different systems of differential equations in a single framework.</p>
+<p>More recently, the concept of generality has been extended in that the NeoPZ
+library allows its user to choose the approximation space as well. One can
+approximate a differential equation with continuous or discontinuous
+approximation spaces. Denise Siqueira implemented two dimensional HDiv spaces
+in the library.</p>
+</div>
+<div class="section" id="objectives">
+<h2>Objectives<a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h2>
+<p>The objective of the NeoPZ environment is to provide its user access to
+advanced finite element technologies within a coherent framework. Wherever
+possible those technologies should be able to interact with each other.</p>
+</div>
+<div class="section" id="authors">
+<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Philippe Remy Bernard Devloo (<a class="reference external" href="http://lattes.cnpq.br/6051486998967925">Lattes</a>)</p></td>
+<td><p>Jorge Lizardo Diaz Calle (<a class="reference external" href="http://lattes.cnpq.br/2049910703027682">Lattes</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Edimar Cesar Rylo (<a class="reference external" href="http://lattes.cnpq.br/7462096912445959">Lattes</a>)</p></td>
+<td><p>Gustavo Camargo Longhin (<a class="reference external" href="http://lattes.cnpq.br/9121612523149859">Lattes</a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Erick Raggio Slis dos Santos (<a class="reference external" href="http://lattes.cnpq.br/6586851137916033">Lattes</a>)</p></td>
+<td><p>Tiago Luis Duarte Forti (<a class="reference external" href="http://lattes.cnpq.br/9586074227742751">Lattes</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Paulo Cesar de Alvarenga Lucci (<a class="reference external" href="http://lattes.cnpq.br/5381087404504911">Lattes</a>)</p></td>
+<td><p>Denise de Siqueira (<a class="reference external" href="http://lattes.cnpq.br/8437756334087793">Lattes</a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Agnaldo Monteiro Farias (<a class="reference external" href="http://lattes.cnpq.br/2401725550781559">Lattes</a>)</p></td>
+<td><p>Joao Luis Gonçalves (<a class="reference external" href="http://lattes.cnpq.br/2719190119956611">Lattes</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Diogo Lira Cecilio (<a class="reference external" href="http://lattes.cnpq.br/2594284000782489">Lattes</a>)</p></td>
+<td><p>Nathan Shauer (<a class="reference external" href="http://lattes.cnpq.br/5762871737832497">Lattes</a>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cedric Marcelo Augusto Ayala Bravo (<a class="reference external" href="http://lattes.cnpq.br/3642648349492905">Lattes</a>)</p></td>
+<td><p>Renato Gomes Damas (<a class="reference external" href="http://lattes.cnpq.br/9705909592533525">Lattes</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Misael Luis Santana Mandujano</p></td>
+<td><p>Others</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="class-example">
+<h2>Class Example<a class="headerlink" href="#class-example" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
 <dt id="_CPPv48TPZGeoEl">
 <span id="_CPPv38TPZGeoEl"></span><span id="_CPPv28TPZGeoEl"></span><span id="TPZGeoEl"></span><span class="target" id="classTPZGeoEl"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZGeoEl</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">TPZSavable</span><a class="headerlink" href="#_CPPv48TPZGeoEl" title="Permalink to this definition">¶</a><br /></dt>
@@ -1217,6 +1296,7 @@
 </div>
 </dd></dl>
 
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
