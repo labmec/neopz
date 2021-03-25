@@ -53,7 +53,13 @@ public:
         ImportRefPatterns(path, maxdim);
     }
 
-	/** @brief Initialize the uniform refinement pattern from hard coaded data for all linear geometric elements */
+    /**
+     * @brief Import a library of refinement patterns from the given directory
+     * @return Return the number of refpatterns imported
+     */
+    int ImportRefPatterns(std::string &Path, int maxdim = 3);
+
+    /** @brief Initialize the uniform refinement pattern from hard coaded data for all linear geometric elements */
 	void InitializeAllUniformRefPatterns();
 	
 	/** @brief Insert the refinement pattern in the list of availabe refinement patterns assigns an Id to refPattern */
@@ -82,12 +88,6 @@ protected:
 	
 	/** @brief Maps all refinement pattern objects in the mesh, indexed by refpattern Id */
 	std::map< int , TPZAutoPointer<TPZRefPattern> > fIdRefPatterns;
-
-    /**
-     * @brief Import a library of refinement patterns from the given directory
-     * @return Return the number of refpatterns imported
-     */
-    int ImportRefPatterns(std::string &Path, int maxdim = 3);
 
     /**
      * @brief Import a library of refinement patterns from the install directory
