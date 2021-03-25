@@ -12,18 +12,11 @@
 #include "fad.h"
 
 
-/**
- * @ingroup material
- * @brief This class implements an interface between TPZCompEl::CalcStiff and TPZMaterial::Contribute methods. \n
- * It request to the material which attributes must be computed by the computational element and trigger their computation.\n
- * Attributes are solution and its derivatives, X coordinate, etc.
- * @since April 10, 2007
- */
 
-const int MatDataNumSol = 1;
-const int MatDataNumPhi = 20;
-const int MatDataNumDPhi = 60;
-const int MatDataNumDir = 81;
+#define MatDataNumSol 1
+#define MatDataNumPhi 20
+#define MatDataNumDPhi 60
+#define MatDataNumDir 81
 /// Represent the state variables of a finite element approximation
 typedef TPZManVector<STATE, 10> TPZFemSol;
 /// Represents the gradient of a state variable of a finite element approximation
@@ -31,7 +24,13 @@ typedef TPZFNMatrix<30, STATE> TPZFemGradSol;
 typedef TPZManVector<TPZFemSol,MatDataNumSol> TPZSolVec;
 typedef TPZManVector<TPZFemGradSol,MatDataNumSol> TPZGradSolVec;
 
-
+/**
+ * @ingroup material
+ * @brief This class implements an interface between TPZCompEl::CalcStiff and TPZMaterial::Contribute methods. \n
+ * It request to the material which attributes must be computed by the computational element and trigger their computation.\n
+ * Attributes are solution and its derivatives, X coordinate, etc.
+ * @since April 10, 2007
+ */
 class TPZMaterialData : public TPZSavable {
     
 public:
@@ -179,6 +178,11 @@ public:
     int ClassId() const override;
     
 };
+
+#undef MatDataNumSol
+#undef MatDataNumDPhi
+#undef MatDataNumPhi
+#undef MatDataNumDir
 
 #endif
 
