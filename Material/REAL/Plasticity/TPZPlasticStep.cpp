@@ -1417,6 +1417,8 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
             sout << "*** FindPointAtYield *** multiplication factor= ";
             sout << multiplN << " such that yield of function ";
             sout << i << " = " << phi_FAD[i].val();
+            // TODO @gustavobat: I created the variable 'count' here to be able to compile the code, please fix this.
+            int count = 0;
             if (count >= fMaxNewton) {
                 sout << "\n#### Truncated Newton after "
                         << fMaxNewton << " steps with phi[" << i << "] = "

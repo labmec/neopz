@@ -295,7 +295,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
         }
     #endif
 	
-//	REAL ResTol = 1.e-6;
+	REAL ResTol = 1.e-6;
 	
 	REAL L_REAL;
 //  REAL X_REAL;
@@ -357,7 +357,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
             LOGPZ_DEBUG(loggerSML, sout.str())
         }
 #endif
-	}
+    }
     else {
 		Ndir[0].XX() = 1.;
 		Ndir[0].YY() = 1.;
@@ -371,14 +371,14 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
         
     }
 	
-    if (fIsonCap == false) 
-	{//f2 - ellipsoidal hardening/softening cap
+    if (fIsonCap == false)
+    {//f2 - ellipsoidal hardening/softening cap
 
-		T FL;
-        T L = A;
-//        T X;
+    T FL;
+    T L = A;
+    T X;
 //        T L(L_REAL * 1.- ResTol); // guaranteeing that the function will be evaluated
-//	   	ComputeX(A, X);
+    ComputeX(A, X);
 //		SolveL(X, L, ResTol); // evaluating the derivatives of L
 		
 		ComputeF(L, FL);
@@ -393,7 +393,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
 		T Temp = (I1-L)/ T(fR * fR) - I1 / T(6.);
 		Temp = Temp / FL2 * T(2.);
 
-			#ifdef PZ_LOG
+#ifdef PZ_LOG
             {
                TPZLogger logger("plasticity.SandlerDimaggio");
                std::stringstream sout;
@@ -405,7 +405,7 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
                 
                LOGPZ_DEBUG(logger,sout.str().c_str());
             }
-            #endif
+#endif
 		
 		Ndir[1].XX() = Temp + sigma.XX() / FL2;
 		Ndir[1].YY() = Temp + sigma.YY() / FL2;
