@@ -19,9 +19,6 @@ class TPZGeoElSide;
 class TPZGeoEl;
 
 #include "pzlog.h"
-#ifdef PZ_LOG
-static TPZLogger lognoderep("pz.geom.tpznoderep");
-#endif
 
 namespace pzgeom {
     
@@ -112,11 +109,8 @@ namespace pzgeom {
             {
                 std::stringstream sout;
                 sout << __PRETTY_FUNCTION__ << " Nodeindexes have wrong size " << nodeindexes.NElements() << " but should be " << N;
-#ifdef PZ_LOG
-                LOGPZ_ERROR(lognoderep,sout.str().c_str());
-#else
                 std::cout << sout.str().c_str() << std::endl;
-#endif
+                DebugStop();
             }
 #endif
             memcpy(fNodeIndexes,&nodeindexes[0],nn*sizeof(int64_t));

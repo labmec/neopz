@@ -7,9 +7,9 @@
 #include "tpzgeoblend.h"
 #include "tpzgeoelmapped.h"
 
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-#include "pznoderep.h.h"
+#include "pzgeoelrefless.h"
+#include "tpzgeoelrefpattern.h"
+#include "pznoderep.h"
 
 #include "tpzgeomid.h"
 

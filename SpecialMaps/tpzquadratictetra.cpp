@@ -228,9 +228,9 @@ int TPZQuadraticTetra::ClassId() const{
     return Hash("TPZQuadraticTetra") ^ TPZNodeRep<10,pztopology::TPZTetrahedron>::ClassId() << 1;
 }
 
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-#include "pznoderep.h.h"
+#include "pzgeoelrefless.h"
+#include "tpzgeoelrefpattern.h"
+#include "pznoderep.h"
 
 template class TPZRestoreClass< TPZGeoElRefPattern<TPZQuadraticTetra>>;
 

@@ -16,9 +16,8 @@
 #include "pzgnode.h"
 #include "pzreal.h"
 
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-#include "pznoderep.h.h"
+#include "pzgeoelrefless.h"
+#include "tpzgeoelrefpattern.h"
 
 using namespace std;
 using namespace pzgeom;

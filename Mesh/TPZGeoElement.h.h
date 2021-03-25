@@ -6,9 +6,6 @@
 #include "TPZGeoElement.h"
 #include <sstream>
 #include "pzlog.h"
-#ifdef PZ_LOG
-static TPZLogger logger("pz.mesh.tpzgeoelement");
-#endif
 
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<int64_t> &nodeindices,int matind,TPZGeoMesh &mesh) :
@@ -195,13 +192,20 @@ TPZGeoElRefLess<TGeo>(DestMesh, cp, gl2lcNdMap, gl2lcElMap)
 		}
 		if (gl2lcElMap.find(cp.fSubEl[i]) == gl2lcElMap.end())
 		{
-			std::stringstream sout;
-			sout << "ERROR in - " << __PRETTY_FUNCTION__
-			<< " subelement index is not in map from original to clone indexes! Son index = "
-			<<  fSubEl[i];
-			LOGPZ_ERROR(logger,sout.str().c_str());
-			exit(-1);
-		}
+#ifdef PZ_LOG
+            static TPZLogger logger("pz.mesh.tpzgeoelement");
+
+            if (logger.isDebugEnabled()) {
+              std::stringstream sout;
+              sout << "ERROR in - " << __PRETTY_FUNCTION__
+                   << " subelement index is not in map from original to "
+                      "clone indexes! Son index = "
+                   << fSubEl[i];
+              LOGPZ_ERROR(logger, sout.str().c_str());
+            }
+#endif
+            DebugStop();
+        }
 		this->fSubEl[i] = gl2lcElMap[cp.fSubEl[i]];
 	}
 }

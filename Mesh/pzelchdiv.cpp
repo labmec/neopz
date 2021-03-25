@@ -15,7 +15,8 @@
 #include "pzmaterialdata.h"
 #include "pzhdivpressure.h"
 #include "pzshapepiram.h"
-
+#include "tpzline.h"
+#include "tpztriangle.h"
 
 
 #include "pzshtmat.h"

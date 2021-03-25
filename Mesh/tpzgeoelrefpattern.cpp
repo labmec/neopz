@@ -4,7 +4,6 @@
  */
 
 #include "tpzgeoelrefpattern.h"
-#include "tpzgeoelrefpattern.h.h"
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"

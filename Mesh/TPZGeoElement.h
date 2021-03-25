@@ -126,4 +126,6 @@ template <class TGeo, class TRef>
 int TPZGeoElement<TGeo, TRef> ::ClassId() const{
     return Hash("TPZGeoElement") ^ TPZGeoElRefLess<TGeo>::ClassId() << 1 ^ TRef().ClassId() << 2;
 }
+
+#include "TPZGeoElement.h.h"
 #endif
