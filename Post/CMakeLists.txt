@@ -62,7 +62,7 @@ set(sources
     tpzgraphelt2dmapped.cpp
     )
 
-if(BUILD_COMPLEX_PROJECTS)
+if(NOT BUILD_COMPLEX_PROJECTS)
     list(APPEND headers pzgradientreconstruction.h)
     list(APPEND sources pzgradientreconstruction.cpp)
 endif()
