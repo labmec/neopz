@@ -32,13 +32,13 @@ jobs:
     - name: Build docs
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: make docs
-        && make sphinx
-        && cd docs_sphinx
+      run: make run-doxygen
+        && make run-sphinx
+        && cd docs/sphinx
         && touch .nojekyll
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: ${{github.workspace}}/build/docs_sphinx # The folder the action should deploy.
+        FOLDER: ${{github.workspace}}/build/docs/sphinx # The folder the action should deploy.
