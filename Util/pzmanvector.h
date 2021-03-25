@@ -49,12 +49,6 @@ public:
      */
     TPZManVector(const int64_t size, const T& copy);
 
-    /**
-     * @brief Copy constructor.
-     * @param copy Original vector.
-     */
-    /** It will call the empty constructor on all objects of type T created. */
-    TPZManVector(const TPZManVector< T, NumExtAlloc >& copy);
 
     TPZManVector(const TPZVec<T> & copy);
 
@@ -65,7 +59,19 @@ public:
 	TPZManVector(const std::initializer_list<T>& list);
 
     /**
-     * @brief Assignment operator.
+     * @brief Copy constructor.
+     */
+    TPZManVector(const TPZManVector< T, NumExtAlloc >& copy);
+    /**
+     * @brief Move constructor.
+     */
+    TPZManVector(TPZManVector< T, NumExtAlloc >&& copy);
+    /** @brief Destructor. */
+    /** Deletes the storage allocated. */
+    virtual ~TPZManVector();
+    
+    /**
+     * @brief Copy assignment operator.
      * @param copy Vector which will be copied.
      * @return Reference to the current object.
      */
@@ -76,7 +82,10 @@ public:
      * the copied vector
      */
     TPZManVector< T, NumExtAlloc >& operator=(const TPZManVector< T, NumExtAlloc >& copy);
-
+    /**
+     * @brief Move assignment operator.
+     */
+    TPZManVector< T, NumExtAlloc >& operator=(TPZManVector< T, NumExtAlloc >&& copy);
 	/**
 	 * @brief initializer list assignment operator
 	 * @param list: list which will be assigned, usually wrapped in curly brackets
@@ -84,9 +93,7 @@ public:
 	 */
 	TPZManVector< T, NumExtAlloc >& operator=(const std::initializer_list<T>& list);
 
-    /** @brief Destructor. */
-    /** Deletes the storage allocated. */
-    virtual ~TPZManVector();
+    
 
     /** @brief Returns number of elements allocated for this object. */
     inline int NAlloc() const {
@@ -199,32 +206,6 @@ TPZVec<T>(0)
     }
 }
 
-template< class T, int NumExtAlloc>
-inline TPZManVector< T, NumExtAlloc >::TPZManVector(const TPZManVector< T, NumExtAlloc >& copy) {
-    const int64_t size = copy.NElements();
-
-    /* If the size requested fits inside the size already provided
-     * statically, provides access to that space, by setting some
-     * TPZVec data.
-     */
-    if (size <= (int64_t) (sizeof (fExtAlloc) / sizeof (T))) {
-        // Needed to make TPZVec::operator[] work properly.
-        this->fStore = fExtAlloc;
-        this->fNElements = size;
-        // No memory was allocated by the constructor.
-        fNAlloc = 0;
-    } else // The size requested is bigger than the size already provided.
-    {
-        // Executes the allocation that would be done by TPZVec<T>(size).
-        this->fStore = new T[ size ];
-        this->fNElements = size;
-        fNAlloc = size;
-    }
-
-    for (int64_t i = 0; i < size; i++) {
-        this->fStore[i] = copy.fStore[i];
-    }
-}
 
 template< class T, int NumExtAlloc>
 inline TPZManVector< T, NumExtAlloc >::TPZManVector(
@@ -280,41 +261,129 @@ inline TPZManVector< T, NumExtAlloc >::TPZManVector(const std::initializer_list<
 		*aux = *it;
 }
 
+template< class T, int NumExtAlloc>
+inline TPZManVector< T, NumExtAlloc >::TPZManVector(const TPZManVector< T, NumExtAlloc >& copy) {
+    const int64_t size = copy.NElements();
+
+    /* If the size requested fits inside the size already provided
+     * statically, provides access to that space, by setting some
+     * TPZVec data.
+     */
+    if (size <= NumExtAlloc) {
+        // Needed to make TPZVec::operator[] work properly.
+        this->fStore = fExtAlloc;
+        this->fNElements = size;
+        // No memory was allocated by the constructor.
+        fNAlloc = 0;
+    } else // The size requested is bigger than the size already provided.
+    {
+        // Executes the allocation that would be done by TPZVec<T>(size).
+        this->fStore = new T[ size ];
+        this->fNElements = size;
+        fNAlloc = size;
+    }
+
+    for (int64_t i = 0; i < size; i++) {
+        this->fStore[i] = copy.fStore[i];
+    }
+}
+
+template< class T, int NumExtAlloc>
+inline TPZManVector< T, NumExtAlloc >::TPZManVector(TPZManVector< T, NumExtAlloc >&& rval) {
+
+    /* If the size requested fits inside the size already provided
+     * statically, provides access to that space, by setting some
+     * TPZVec data.
+     */
+    if (auto size = rval.NElements();size <= NumExtAlloc){
+        //we need to copy, unfortunately
+        int i = 0;
+        for(; i < size; i++) {fExtAlloc[i] = rval.fExtAlloc[i];}
+        for(; i < NumExtAlloc; i++){fExtAlloc[i] = T();}
+        this->fStore = fExtAlloc;
+        this->fNElements = size;
+        // No memory was allocated by the constructor.
+        fNAlloc = 0;
+    } else {// The size requested is bigger than the size already provided.
+        this->fStore = std::move(rval.fStore);
+        this->fNElements = size;
+        fNAlloc = size;
+    }
+    rval.fStore = nullptr;
+    rval.fNAlloc = 0;
+    rval.fNElements = 0;
+}
+
+template< class T, int NumExtAlloc >
+TPZManVector< T, NumExtAlloc >::~TPZManVector() {
+    if (this->fStore == fExtAlloc) {
+        this->fStore = nullptr;
+    }
+    fNAlloc = 0;
+}
 
 template< class T, int NumExtAlloc >
 TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(const TPZManVector< T, NumExtAlloc >& copy) {
     // Checking auto assignment.
-    if (this == &copy) {
-        return *this;
-    }
+    if (this != &copy) {
+      const int64_t nel = copy.NElements();
 
-    const int64_t nel = copy.NElements();
-
-    if (nel > fNAlloc && this->fStore && this->fStore != fExtAlloc) {
-        delete [] this->fStore;
+      if (nel > fNAlloc && this->fStore && this->fStore != fExtAlloc) {
+        delete[] this->fStore;
         this->fStore = 0;
         fNAlloc = 0;
-    }
+      }
 
-    if (nel <= NumExtAlloc) {
+      if (nel <= NumExtAlloc) {
         if (this->fStore != fExtAlloc) {
-            delete []this->fStore;
+          delete[] this->fStore;
         }
         this->fNAlloc = 0;
         this->fStore = fExtAlloc;
         this->fNElements = nel;
-    } else if (fNAlloc >= nel) {
+      } else if (fNAlloc >= nel) {
         this->fNElements = nel;
-    } else {
-        this->fStore = new T[ nel ];
+      } else {
+        this->fStore = new T[nel];
         fNAlloc = nel;
         this->fNElements = nel;
-    }
+      }
 
-    for (int64_t i = 0; i < nel; i++) {
+      for (int64_t i = 0; i < nel; i++) {
         this->fStore[i] = copy.fStore[i];
+      }
     }
+    return *this;
+}
 
+template< class T, int NumExtAlloc >
+TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(TPZManVector< T, NumExtAlloc >&& rval) {
+    // Checking auto assignment.
+    if (this != &rval) {
+      const int64_t nel = rval.NElements();
+      //let us dispose of previously allocated memory
+      if (this->fStore && this->fStore != fExtAlloc) {
+        delete[] this->fStore;
+        this->fStore = nullptr;
+        fNAlloc = 0;
+      }
+      if (nel <= NumExtAlloc) {
+        //we need to copy, unfortunately
+        int i = 0;
+        for(; i < nel; i++) {fExtAlloc[i] = rval.fExtAlloc[i];}
+        for(; i < NumExtAlloc; i++){fExtAlloc[i] = T();}
+        this->fStore = fExtAlloc;
+        this->fNAlloc = 0;
+        this->fNElements = nel;
+      } else {
+        this->fStore = std::move(rval.fStore);
+        this->fNAlloc = nel;
+        this->fNElements = nel;
+      }
+    }
+    rval.fStore = nullptr;
+    rval.fNAlloc = 0;
+    rval.fNElements = 0;
     return *this;
 }
 
@@ -351,16 +420,6 @@ TPZManVector< T, NumExtAlloc >& TPZManVector< T, NumExtAlloc >::operator=(const 
 		*aux = *it;
 
 	return *this;
-}
-
-template< class T, int NumExtAlloc >
-TPZManVector< T, NumExtAlloc >::~TPZManVector() {
-    if (this->fStore == fExtAlloc) {
-        this->fStore = 0;
-    }
-
-    //   fNExtAlloc = 0;
-    fNAlloc = 0;
 }
 
 template< class T, int NumExtAlloc >
