@@ -13,7 +13,7 @@ std::string path = PZ_REFPATTERN_DIR;
 
 int main(int argc, char * const argv[])
 {
-    std::string desiredPath = REFPATTERNDIR;
+    std::string desiredPath = PZ_REFPATTERN_DIR;
     desiredPath.erase(desiredPath.length()-18,desiredPath.length());
     desiredPath.append("Projects/HydraulicFracturePropagation/PlaneFracture/RefPatternsUsed.txt");
     gRefDBase.ReadRefPatternDBase(desiredPath);
