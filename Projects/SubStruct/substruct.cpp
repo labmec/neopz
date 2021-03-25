@@ -311,7 +311,7 @@ int main1(int argc, char *argv[])
 		}
 		
 #ifdef PZ_LOG
-		if(loggerconverge->isInfoEnabled())
+		if(loggerconverge.isInfoEnabled())
 		{
 			std::stringstream sout;
 			diag.Print("Resultado do processo iterativo",sout);
