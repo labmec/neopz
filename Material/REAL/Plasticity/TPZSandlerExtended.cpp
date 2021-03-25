@@ -372,7 +372,7 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
 }
 
 void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta, STATE k, TPZVec<STATE> &f2cyl) const {
-    const STATE M_SQRT3 = sqrt(3.);
+
     const STATE gamma = 0.5 * (1.0 + sin(3.0 * beta) + (1.0 - sin(3.0 * beta)) / fPsi);
     const STATE Fk = F(k);
     const STATE var = fR * Fk * cos(theta);
@@ -1182,7 +1182,7 @@ void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kpre
 #ifdef PZ_LOG
     if (loggerConvTest.isDebugEnabled()) {
         std::stringstream outfile;
-        outfile << "\n projection over F1 " << endl;
+        outfile << "\n projection over F1 \n";
         LOGPZ_DEBUG(loggerConvTest, outfile.str());
     }
 #endif
@@ -1524,7 +1524,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 #ifdef PZ_LOG
 	if (loggerConvTest.isDebugEnabled()) {
 		std::stringstream outfile;
-		outfile << "\n projection over Ring " << endl;
+		outfile << "\n projection over Ring \n";
 		LOGPZ_DEBUG(loggerConvTest, outfile.str());
 	}
 #endif
@@ -1571,7 +1571,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 #ifdef PZ_LOG
 		if (loggerConvTest.isDebugEnabled()) {
 			std::stringstream outfile; //("convergencF1.txt");
-			outfile << counter << " " << log(resnorm) << endl;
+			outfile << counter << " " << log(resnorm) << '\n';
 			//jac.Print(outfile);
 			//outfile<< "\n xn " << " "<<fxnvec <<endl;
 			//outfile<< "\n res " << " "<<fxnvec <<endl;

@@ -68,7 +68,7 @@ ENABLE_TESTING()
 			# Simple project to test rational function defined by Cedric on pyramids
 			add_subdirectory(RationalFunctionPyramid)
 
-			add_subdirectory(proDG)
+			# add_subdirectory(proDG)
 
 		endif(BUILD_COMPLEX_PROJECTS)
 
@@ -227,7 +227,7 @@ ENABLE_TESTING()
 			add_subdirectory(MatLib)
 
 			if(USING_MKL)
-				add_subdirectory(PardisoSample)
+				#add_subdirectory(PardisoSample)
 			endif(USING_MKL)
 
 		endif(BUILD_COMPLEX_PROJECTS)

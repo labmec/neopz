@@ -139,15 +139,15 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
-        sout << "\nDep " << endl;
+        sout << "\nDep " << '\n';
         sout << Dep(_XX_, _XX_) << "\t" << Dep(_XX_, _YY_) << "\t" << Dep(_XX_, _XY_) << "\n";
         sout << Dep(_YY_, _XX_) << "\t" << Dep(_YY_, _YY_) << "\t" << Dep(_YY_, _XY_) << "\n";
         sout << Dep(_XY_, _XX_) << "\t" << Dep(_XY_, _YY_) << "\t" << Dep(_XY_, _XY_) << "\n";
         
-        sout << "\nStress " << endl;
+        sout << "\nStress " << '\n';
         sout << Stress(_XX_, 0) << "\t" << Stress(_YY_, 0) << "\t" << Stress(_XY_, 0) << "\n";
         
-        sout << "\nDELTA STRAIN " << endl;
+        sout << "\nDELTA STRAIN \n";
         sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
         sout << "data.phi" << data.phi;
         
@@ -274,9 +274,9 @@ void TPZMatElastoPlastic2D<T, TMEM>::Contribute(TPZMaterialData &data, REAL weig
         sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
         sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
         sout << "\ndata.axes = " << data.axes;
-        sout << "\nStress " << endl;
+        sout << "\nStress \n";
         sout << Stress(_XX_, 0) << "\t" << Stress(_YY_, 0) << "\t" << Stress(_XY_, 0) << "\n";
-        sout << "\nDELTA STRAIN " << endl;
+        sout << "\nDELTA STRAIN \n";
         sout << DeltaStrain(0, 0) << "\t" << DeltaStrain(1, 0) << "\t" << DeltaStrain(2, 0) << "\n";
         sout << "data.phi" << data.phi<< std::endl;
         TPZMatWithMem<TMEM>::MemItem(ptindex).Print(sout);

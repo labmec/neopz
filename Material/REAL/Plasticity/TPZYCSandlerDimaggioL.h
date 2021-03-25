@@ -421,15 +421,16 @@ inline void TPZYCSandlerDimaggioL::N(const TPZTensor<T> & sigma, const T & A, TP
     }
 	
     #ifdef PZ_LOG
+    TPZLogger logger("pz.plasticity.SandlerDimaggio.main");
+    if(logger.isDebugEnabled())
     {
-        LoggerPtr logger(Logger::getLogger("pz.plasticity.SandlerDimaggio.main"));
         std::stringstream sout;
         sout << "<< TPZYCSandlerDimaggio::N *** \n sigma = \n" << sigma
 			 << "\nI1 = " << I1 
 			 << "\nJ2 = " << J2
 			 << "\nSQRTJ2 = " << SQRTJ2
 			 << "\nNdir = \n" << Ndir;
-        //LOGPZ_DEBUG(logger,sout.str().c_str());
+        LOGPZ_DEBUG(logger,sout.str().c_str());
     }
     #endif
 	

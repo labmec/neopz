@@ -1792,10 +1792,10 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval, TPZTensor<T> &dSigma1, TPZ
 #ifdef PZ_LOG
     {
         std::stringstream sout;
-        sout << "\n  TPZTENSOR \n" << endl;
-        sout << "\n  LodeAngle = \n" << Lode << endl;
-        sout << "\n  dLodeAngle= " << dLode << endl;
-        sout << "\n\n";
+        sout << "\n  TPZTENSOR";
+        sout << "\n  LodeAngle = \n" << Lode;
+        sout << "\n  dLodeAngle= " << dLode;
+        sout << "\n";
         LOGPZ_INFO(loggerr, sout.str());
     }
 #endif

@@ -207,7 +207,7 @@ void TPZYCDruckerPragerPV::ProjectToSurfaceF1(const TPZVec<REAL> &sigma_trial_pv
 #ifdef PZ_LOG
         if (loggerConvTest.isDebugEnabled()) {
             std::stringstream outfile; //("convergencF1.txt");
-            outfile << i << " " << log(residual_norm) << endl;
+            outfile << i << " " << log(residual_norm) << '\n';
             //jac.Print(outfile);
             //outfile<< "\n xn " << " "<< fxn <<endl;
             //outfile<< "\n res " << " "<< residual_norm <<endl;

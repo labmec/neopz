@@ -45,6 +45,8 @@ void Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, int method, T
 TPZCompMesh *CreateMesh();
 TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh);
 
+using namespace std;
+
 int main()
 {
 

@@ -277,14 +277,14 @@ void TPZPlasticStepPV<YC_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &
                 sout << phi[i] << " ";
             }
 
-            sout << " ] " << endl;
+            sout << " ] " << std::endl;
 
             sout << " \n eigenvalues Sigma = [";
             for (int i = 0; i < 3; i++) {
                 sout << sig_eigen_system.fEigenvalues[i] << " ";
             }
 
-            sout << " ] " << endl;
+            sout << " ] " << std::endl;
 
 
 

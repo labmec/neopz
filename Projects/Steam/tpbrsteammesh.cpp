@@ -49,7 +49,12 @@ TPBrSteamMesh::TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL
 	for (ic=0; ic<numcells; ic++) {
 		TPZManVector<int> equation,state;
 		CellDestination(ic, equation, state);
-        LOGPZ_DEBUG(logger, state[TPBrSteamFlux::EDarcyVelocityWater])
+        if(logger.isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << state[TPBrSteamFlux::EDarcyVelocityWater];
+            LOGPZ_DEBUG(logger, sout.str());
+        }
         fPrevState(state[TPBrSteamFlux::EDarcyVelocityWater],0) = 1.;
 		fPrevState(state[TPBrSteamFlux::NumFluxEq+TPBrCellConservation::ESaturationWater],0) = 1.-oilsaturation;
 		fPrevState(state[TPBrSteamFlux::NumFluxEq+TPBrCellConservation::ESaturationOil],0) = oilsaturation;

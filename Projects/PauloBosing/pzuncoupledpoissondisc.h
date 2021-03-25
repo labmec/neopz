@@ -13,8 +13,8 @@
 #include "pzfmatrix.h"
 
 #include <iostream>
-
-
+#include "TPZMaterial.h"
+class TPZMaterialData;
 /**
  * @ingroup material
  * @author Agnaldo de Farias

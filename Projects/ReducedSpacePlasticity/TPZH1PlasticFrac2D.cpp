@@ -23,7 +23,7 @@
 static TPZLogger logger("pz.reducedspace.data");
 #endif
 
-
+using namespace std;
 
 
 template<class T,class TMEM>
@@ -334,7 +334,7 @@ void TPZH1PlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL w
     DebugStop();
   }
 #endif
-	
+
 #ifdef PZ_LOG
   if(logger.isDebugEnabled())
 	{
@@ -343,15 +343,15 @@ void TPZH1PlasticFrac2D<T,TMEM>::ContributePlastic(TPZMaterialData &data, REAL w
 		sout << "\nIntegration Local Point index = " << data.intGlobPtIndex;
 		sout << "\nIntegration Global Point index = " << data.intGlobPtIndex;
 		sout << "\ndata.axes = " << data.axes;
-		sout << "\nDep " <<endl;
+		sout << "\nDep \n";
 		sout << Dep(0,0) << "\t" << Dep(0,1) << "\t" << Dep(0,2) <<"\n";
 		sout << Dep(1,0) << "\t" << Dep(1,1) << "\t" << Dep(1,2) <<"\n";
 		sout << Dep(2,0) << "\t" << Dep(2,1) << "\t" << Dep(2,2) <<"\n";
 		
-		sout << "\nStress " <<endl;
+		sout << "\nStress \n";
 		sout << Stress(0,0) << "\t" << Stress(1,0) << "\t" << Stress(2,0) <<"\n";
 		
-		sout << "\nDELTA STRAIN " <<endl;
+		sout << "\nDELTA STRAIN \n";
 		sout << DeltaStrain(0,0) << "\t" << DeltaStrain(1,0) << "\t" << DeltaStrain(2,0) <<"\n";
 		sout << "data.phi" << data.phi;
 		

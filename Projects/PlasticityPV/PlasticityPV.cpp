@@ -37,6 +37,8 @@ static TPZLogger loggerconverge("pz.converge");
 static TPZLogger logger("main");
 #endif
 
+using namespace std;
+
 REAL NormVec(TPZManVector<REAL,3> &vec1);
 
 REAL mypow(REAL a, int n);

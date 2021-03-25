@@ -372,7 +372,7 @@ inline void TPZYCSandlerDimaggioL2::N(const TPZTensor<T> & sigma, const T & A, T
 
 #ifdef PZ_LOG
     {
-        LoggerPtr logger(Logger::getLogger("pz.plasticity.SandlerDimaggio.main"));
+        TPZLogger logger("pz.plasticity.SandlerDimaggio.main");
         if (0 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "<< TPZYCSandlerDimaggioL2::N *** \n sigma = \n" << sigma

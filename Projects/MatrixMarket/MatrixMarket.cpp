@@ -7,6 +7,7 @@
 #include "pzfmatrix.h"
 #include "pzfstrmatrix.h"
 #include "pzsysmp.h"
+#include "pzskylmat.h"
 #include "pzlog.h"
 
 #include "pzstepsolver.h"
