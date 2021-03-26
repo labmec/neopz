@@ -69,8 +69,7 @@ jobs:
       with:
         path: ${{github.workspace}}/NeoPZExamples
         repository: labmec/NeoPZExamples
-      working-directory: ${{github.workspace}}/NeoPZExamples
-     - name: Set up build environment for External Projects
+    - name: Set up build environment for External Projects
       shell: bash
       working-directory: ${{github.workspace}}/NeoPZExamples
       run: cmake -E make_directory build
