@@ -64,14 +64,20 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE --target install
       env:
         MAKEFLAGS: "-j4"
-    - name: Clone and build external projects
+    - name: Clone External Projects
       uses: actions/checkout@master
       with:
-        path: ./NeoPZExamples
+        path: ${{github.workspace}}/NeoPZExamples
         repository: labmec/NeoPZExamples
       working-directory: ${{github.workspace}}/NeoPZExamples
+      run: cmake -E make_directory build
+    - name: Configure CMake External Projects
       shell: bash
-      run: cmake -E make_directory ${{github.workspace}}/build &&
-      cd build &&
-      cmake .. &&
-      cmake --build . --config $BUILD_TYPE      
+      working-directory: ${{github.workspace}}/NeoPZExamples/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+    - name: Build External Projects
+      working-directory: ${{github.workspace}}/NeoPZExamples/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+      env:
+        MAKEFLAGS: "-j4"     
