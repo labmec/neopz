@@ -3,7 +3,7 @@ name: Run Unit Tests
 on:
   push:
     branches: [refactor-cmake]
-  pull-request:
+  pull_request:
     branches: [refactor-cmake]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
