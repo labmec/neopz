@@ -578,4 +578,20 @@ int64_t TPZManVector < T, NumExtAlloc >::ExpandSize(const int64_t proposed) cons
             static_cast<int64_t> (this->fNAlloc * 1.2));
 }
 
+
+//this three are often used
+extern template class TPZManVector< float,3 >;
+extern template class TPZManVector< double,3 >;
+extern template class TPZManVector< long double,3 >;
+
+extern template class TPZManVector< int >;
+extern template class TPZManVector< int64_t >;
+extern template class TPZManVector< int *>;
+extern template class TPZManVector< char *>;
+extern template class TPZManVector< float >;
+extern template class TPZManVector< float * >;
+extern template class TPZManVector< double >;
+extern template class TPZManVector< double * >;
+extern template class TPZManVector< long double >;
+extern template class TPZManVector< long double * >;
 #endif

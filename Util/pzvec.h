@@ -593,4 +593,36 @@ extern template class TPZVec<int *>;
 extern template class TPZVec<char *>;
 extern template class TPZVec<void *>;
 extern template class TPZVec<char>;
+
+class TPZGeoEl;
+class TPZGeoNode;
+struct TPZGeoNodeBC;
+struct TPZGeoElBC;
+extern template class TPZVec<TPZGeoEl *>;
+extern template class TPZVec<TPZGeoNode *>;
+extern template class TPZVec<TPZGeoNodeBC *>;
+extern template class TPZVec<TPZGeoElBC *>;
+
+
+class TPZCompEl;
+class TPZConnect;
+struct TPZConnectBC;
+extern template class TPZVec<TPZCompEl *>;
+extern template class TPZVec<TPZConnect *>;
+extern template class TPZVec<TPZConnectBC *>;
+
+class TPZMaterial;
+class TPZBndCond;
+extern template class TPZVec<TPZMaterial *>;
+extern template class TPZVec<TPZBndCond *>;
+
+struct TPZElementMatrix;
+extern template class TPZVec<TPZElementMatrix *>;
+
+class TPZGraphEl;
+class TPZGraphNode;
+class TPZCompMesh;
+extern template class TPZVec<TPZGraphEl *>;
+extern template class TPZVec<TPZGraphNode *>;
+extern template class TPZVec<TPZCompMesh *>;
 #endif

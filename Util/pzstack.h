@@ -106,5 +106,19 @@ T & TPZStack<T, NumExtAlloc>::Peek() const {
 	return this->operator[](this->NElements()-1);
 }
 
+extern template class TPZStack<int>;
+extern template class TPZStack<float>;
+extern template class TPZStack<double>;
+extern template class TPZStack<long double>;
+extern template class TPZStack<char *>;
+extern template class TPZStack<int64_t>;
+extern template class TPZStack<char>;
+#include <complex>
+extern template class TPZStack<std::complex<float> >;
+extern template class TPZStack<std::complex<double> >;
+class TPZCompEl;
+class TPZGeoEl;
+extern template class TPZStack<TPZCompEl *>;
+extern template class TPZStack<TPZGeoEl *>;
 #endif // PZSTACK_H
 
