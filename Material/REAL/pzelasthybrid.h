@@ -18,7 +18,7 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "pzelasmat.h" 
 
 /**

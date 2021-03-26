@@ -1,10 +1,11 @@
 #ifndef TPZMatfrac1dhdiv_H
 #define TPZMatfrac1dhdiv_H
 
+#include "TPZMaterial.h"
 #include "TPZMatWithMem.h"
 #include "tpzautopointer.h"
 #include "TPZFracData.h"
-#include "pzdiscgal.h"
+
 
 /**
  * @ingroup material
@@ -15,7 +16,7 @@
  * @brief Memory is used to store leak-off
  * @brief DOCUMENTATION OF WEAK FORMULATION IN LYX LOCATED AT THE SVN REPOSITORY
  */
-class TPZMatfrac1dhdiv : public TPZMatWithMem<TPZFMatrix<REAL>, TPZDiscontinuousGalerkin >   {
+class TPZMatfrac1dhdiv : public TPZMatWithMem<TPZFMatrix<REAL>, TPZMaterial >   {
   
 protected:
   

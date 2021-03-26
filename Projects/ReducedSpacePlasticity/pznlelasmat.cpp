@@ -19,7 +19,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
 #include <fstream>
 using namespace std;
 
-TPZNLElasticityMaterial::TPZNLElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
+TPZNLElasticityMaterial::TPZNLElasticityMaterial() : TPZMaterial(0) {
 	fE	= -1.;  // Young modulus
 	fnu	= -1.;   // poisson coefficient
 	ff[0]	= 0.; // X component of the body force
@@ -40,7 +40,7 @@ TPZNLElasticityMaterial::TPZNLElasticityMaterial() : TPZDiscontinuousGalerkin(0)
   fPostProcIndex = 0;
 }
 
-TPZNLElasticityMaterial::TPZNLElasticityMaterial(int id) : TPZDiscontinuousGalerkin(id) {
+TPZNLElasticityMaterial::TPZNLElasticityMaterial(int id) : TPZMaterial(id) {
 	fE	= -1.;  // Young modulus
 	fnu	= -1.;   // poisson coefficient
 	ff[0]	= 0.; // X component of the body force
@@ -61,7 +61,7 @@ TPZNLElasticityMaterial::TPZNLElasticityMaterial(int id) : TPZDiscontinuousGaler
   fPostProcIndex = 0;
 }
 
-TPZNLElasticityMaterial::TPZNLElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZDiscontinuousGalerkin(num) {
+TPZNLElasticityMaterial::TPZNLElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZMaterial(num) {
 	
 	fE	= E;  // Young modulus
 	fnu	= nu;   // poisson coefficient
@@ -902,16 +902,8 @@ void TPZNLElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<ST
 	}
 }
 
-
-void TPZNLElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
-	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
-		cout << "TPZNLElasticityMaterial::Flux only serves for xy configuration\n";
-		axes.Print("axes");
-	}
-}
-
 void TPZNLElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                                     TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                                     TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
                                      TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	values[0] = 0.;
 	TPZVec<REAL> sigma(3,0.),sigma_exact(3,0.);
@@ -955,7 +947,7 @@ void TPZNLElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 
 
 TPZNLElasticityMaterial::TPZNLElasticityMaterial(const TPZNLElasticityMaterial &copy) :
-TPZDiscontinuousGalerkin(copy),
+TPZMaterial(copy),
 fE(copy.fE),
 fnu(copy.fnu),
 fEover21PlusNu(copy.fEover21PlusNu),
@@ -976,7 +968,7 @@ fPreStressZZ(copy.fPreStressZZ)
 
 
 int TPZNLElasticityMaterial::ClassId() const{
-    return Hash("TPZNLElasticityMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZNLElasticityMaterial") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND

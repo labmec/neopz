@@ -23,13 +23,13 @@ static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
 static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
 #endif
 
-TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(): TPZDiscontinuousGalerkin()
+TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(): TPZMaterial()
 {
     fDim = 2;
     fNotContribute = false;
 }
 
-TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(int matid): TPZDiscontinuousGalerkin(matid)
+TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(int matid): TPZMaterial(matid)
 {
     fDim = 2;
     fNotContribute = false;

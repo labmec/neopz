@@ -144,15 +144,9 @@ void TPZMaterialTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMaterialTest::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
-	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
-		cout << "TPZMaterialTest::Flux only serves for xy configuration\n";
-		axes.Print("axes");
-	}
-}
 
 void TPZMaterialTest::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &,
+							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	TPZVec<STATE> sol(1),dsol(2);

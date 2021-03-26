@@ -892,7 +892,7 @@ TPZCompMesh *DarcyPTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STATE
     TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     material->SetForcingFunction(fp);
-    material->SetForcingFunctionExact(solp);
+    material->SetExactSol(solp);
     cmesh->InsertMaterialObject(material);
     
     //Condições de contorno:

@@ -82,19 +82,19 @@ TPZEulerEquation::~TPZEulerEquation(){
 
 TPZEulerEquation::TPZEulerEquation(int nummat, STATE gamma) : 
 TPZRegisterClassId(&TPZEulerEquation::ClassId),
-TPZDiscontinuousGalerkin(nummat),fAUSMFlux(gamma),fGradientFlux(){
+TPZMaterial(nummat),fAUSMFlux(gamma),fGradientFlux(){
 	gGamma = gamma;
 }
 
 TPZEulerEquation::TPZEulerEquation():
 TPZRegisterClassId(&TPZEulerEquation::ClassId),
-TPZDiscontinuousGalerkin(),fAUSMFlux(-1.),fGradientFlux() {
+TPZMaterial(),fAUSMFlux(-1.),fGradientFlux() {
 	
 }
 
 TPZEulerEquation::TPZEulerEquation(const TPZEulerEquation &cp) : 
 TPZRegisterClassId(&TPZEulerEquation::ClassId),
-TPZDiscontinuousGalerkin(cp),fAUSMFlux(cp.fAUSMFlux),fGradientFlux(cp.fGradientFlux) {
+TPZMaterial(cp),fAUSMFlux(cp.fAUSMFlux),fGradientFlux(cp.fGradientFlux) {
 	
 }
 
@@ -111,7 +111,7 @@ int TPZEulerEquation::Dimension() const {
 }
 
 void TPZEulerEquation::Print(std::ostream &out) {
-	TPZDiscontinuousGalerkin::Print(out);
+	TPZMaterial::Print(out);
 	out << "gGamma = " << gGamma << "\n";
 }
 
@@ -392,5 +392,5 @@ void TPZEulerEquation::ComputeEulerFlux(TPZVec<STATE> &sol, TPZFMatrix<STATE> & 
 
 
 int TPZEulerEquation::ClassId() const{
-    return Hash("TPZEulerEquation") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZEulerEquation") ^ TPZMaterial::ClassId() << 1;
 }

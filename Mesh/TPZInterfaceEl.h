@@ -344,17 +344,13 @@ public:
 	
     /**
      * @brief Performs an error estimate on the elemen
-     * @param fp function pointer which computes the exact solution
      * @param errors [out] the L2 norm of the error of the solution
      * @param flux [in] value of the interpolated flux values
      */
+virtual void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
+  //TOBEREMOVED [[deprecated("Use or implement TPZInterfaceEl::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                TPZVec<REAL> &errors, bool store_error) override;
-	
-	/** @brief ComputeError computes the element error estimator */
-	virtual void ComputeErrorFace(int errorid,
-								  TPZVec<STATE> &errorL,
-								  TPZVec<STATE> &errorR);
 	
 	/** @brief Integrate a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<STATE> & value) override;

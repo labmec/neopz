@@ -264,7 +264,11 @@ public:
                                   TPZVec<REAL> &errors, bool store_errors) override {
         fReferenceCompEl->EvaluateError(func, errors, store_errors);
     }
-    
+
+  void EvaluateError(TPZVec<REAL> &errors, bool store_errors) override {
+    fReferenceCompEl->EvaluateError(errors, store_errors);
+  }
+
     /**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files

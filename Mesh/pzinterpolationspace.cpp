@@ -1027,14 +1027,13 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
     }
 	
 	intrule->SetOrder(maxorder);
-	
-	int ndof = material->NStateVariables();
-	int nflux = material->NFluxes();
-	TPZManVector<STATE,10> u_exact(ndof);
-	TPZFNMatrix<9,STATE> du_exact(dim+1,ndof);
+
+  uint64_t u_len{0}, du_row{0}, du_col{0};
+  material->GetExactSolDimensions(u_len, du_row, du_col);
+	TPZManVector<STATE,10> u_exact(u_len);
+	TPZFNMatrix<9,STATE> du_exact(du_row,du_col);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
-	TPZManVector<STATE,9> flux_el(nflux,0.);
 	
 	TPZMaterialData data;
 	this->InitMaterialData(data);
@@ -1058,28 +1057,28 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		//this->ComputeSolution(intpoint, data);
 		//contribuicoes dos erros
-        TPZGeoEl * ref = this->Reference();
-        ref->X(intpoint, data.x);
-		if(fp) {
-			fp(data.x,u_exact,du_exact);
-            
-			if(data.fVecShapeIndex.NElements())
-			{
-				this->ComputeSolution(intpoint, data);
-                				
-				material->ErrorsHdiv(data,u_exact,du_exact,values);
-                
-			}
-			else{
-				this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-				material->Errors(data.x,data.sol[0],data.dsol[0],data.axes,flux_el,u_exact,du_exact,values);
-			}
-        
-			for(int ier = 0; ier < NErrors; ier++)
-				errors[ier] += weight*values[ier];
-		}
-		
-	}//fim for : integration rule
+    TPZGeoEl * ref = this->Reference();
+    ref->X(intpoint, data.x);
+    
+    if (fp) {
+      fp(data.x, u_exact, du_exact);
+
+      if (data.fVecShapeIndex.NElements()) {
+        this->ComputeSolution(intpoint, data);
+
+        material->Errors(data, u_exact, du_exact, values);
+
+      } else {
+        this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes,
+                              data.sol, data.dsol);
+        material->Errors(data, u_exact, du_exact, values);
+      }
+
+      for (int ier = 0; ier < NErrors; ier++)
+        errors[ier] += weight * values[ier];
+    }
+
+  }//fim for : integration rule
 
     //Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
@@ -1101,41 +1100,6 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	
 }//method
 
-void TPZInterpolationSpace::ComputeError(int errorid,
-                                         TPZVec<REAL> &error){
-	
-	TPZMaterial * material = Material();
-	if(!material){
-		std::cout << "TPZCompElDisc::ComputeError : no material for this element\n";
-		return;
-	}
-	
-	TPZMaterialData data;
-	this->InitMaterialData(data);
-	
-	REAL weight;
-	int dim = Dimension();
-	TPZVec<REAL> intpoint(dim,0.);
-	
-	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
-	
-	TPZManVector<int,3> prevorder(dim), maxorder(dim, this->MaxOrder());
-	intrule->GetOrder(prevorder);
-	intrule->SetOrder(maxorder);
-	
-	data.p = this->MaxOrder();
-	data.HSize = 2.*this->InnerRadius();
-	error.Fill(0.);
-	int npoints = intrule->NPoints(), ip;
-	for(ip=0;ip<npoints;ip++){
-		intrule->Point(ip,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.phi, data.dphix);
-		weight *= fabs(data.detjac);
-		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		material->ContributeErrors(data,weight,error,errorid);
-	}
-	intrule->SetOrder(prevorder);
-}
 
 TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 	TPZMaterial * material = Material();
@@ -1259,62 +1223,6 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<STATE> & value)//AQUI
 //		}//for iv
 //	}//for ip
 //}//method
-
-void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-	
-	TPZMaterial * material = Material();
-	if(!material){
-		std::stringstream sout;
-		sout << "Exiting ProjectFlux: no material for this element\n";
-		Print(sout);
-		LOGPZ_ERROR(logger,sout.str());
-		ek.Reset();
-		ef.Reset();
-		return;
-	}
-	
-	int num_flux = material->NFluxes();
-	int dim = Dimension();
-	int nshape = NShapeF();
-	int ncon = NConnects();
-	const TPZIntPoints &intrule = GetIntegrationRule();
-	
-	int numeq = nshape;
-	ek.fMat.Resize(numeq,numeq);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fMat.Resize(numeq,num_flux);
-	ef.fBlock.SetNBlocks(ncon);
-	
-	for(int i=0; i<ncon; ++i){
-		(ef.fConnect)[i] = ConnectIndex(i);
-		(ek.fConnect)[i] = ConnectIndex(i);
-	}
-	
-	TPZMaterialData data;
-	this->InitMaterialData(data);
-	
-	//TPZManVector<REAL> flux(num_flux,1);
-	TPZManVector<STATE> flux(num_flux,1);
-	TPZManVector<REAL,3> intpoint(dim);
-	REAL weight = 0.;
-	for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
-		
-		intrule.Point(int_ind,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
-		weight *= fabs(data.detjac);
-		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		
-		material->Flux(data.x,data.sol[0],data.dsol[0],data.axes,flux);
-		for(int in=0; in<nshape; in++){
-			for(int ifl=0; ifl<num_flux; ifl++){
-				(ef.fMat)(in,ifl) += flux[ifl]*(STATE)data.phi(in,0)*(STATE)weight;
-			}//for ifl
-			for(int jn = 0; jn<nshape; jn++){
-				(ek.fMat)(in,jn) += data.phi(in,0)*data.phi(jn,0)*weight;
-			}//for jn
-		}//for in
-	}//for int_ind
-}//method
 
 /** Save the element data to a stream */
 void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid) const

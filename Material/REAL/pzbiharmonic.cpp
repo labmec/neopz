@@ -26,7 +26,7 @@ using namespace std;
 
 
 TPZBiharmonic::TPZBiharmonic(int nummat, REAL f) 
-: TPZRegisterClassId(&TPZBiharmonic::ClassId), TPZDiscontinuousGalerkin(nummat),
+: TPZRegisterClassId(&TPZBiharmonic::ClassId), TPZMaterial(nummat),
 fXf(f){}
 
 TPZBiharmonic::~TPZBiharmonic() {
@@ -107,14 +107,9 @@ void TPZBiharmonic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatr
 	}
 }
 
-void TPZBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/,
-						 TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
-						 TPZVec<STATE> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
-}
 
 void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
-						   TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+						   TPZFMatrix<REAL> &axes,
 						   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 						   TPZVec<REAL> &values) {
 	TPZVec<STATE> sol(1), dsol(8,0.);
@@ -437,5 +432,5 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
 }
 
 int TPZBiharmonic::ClassId() const{
-    return Hash("TPZBiharmonic") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZBiharmonic") ^ TPZMaterial::ClassId() << 1;
 }

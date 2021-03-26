@@ -129,15 +129,11 @@ void TPZMatHCurlProjection::Solution(TPZMaterialData &data, int var,
     }
 }
 
-void TPZMatHCurlProjection::ErrorsHdiv(TPZMaterialData &data,
-                                 TPZVec<STATE> &u_exact,
-                                 TPZFMatrix<STATE> &curlU_exact,
-                                 TPZVec<REAL> &values) {
+void TPZMatHCurlProjection::Errors(TPZVec<REAL> &x, TPZVec<STATE> &u,
+                TPZFMatrix<STATE> &curlU, TPZFMatrix<REAL> &axes,
+                TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &curlU_exact,
+                TPZVec<REAL> &values) {
     values.Fill(0.0);
-    TPZVec<STATE> u(3, 0.), curlU(fCurlDim, 0.);
-
-    Solution(data, 0, u);     // E
-    Solution(data, 1, curlU); // curlE
 
     // values[0] : E error using HCurl norm (values[1]+values[2])
     // values[1] : E error using L2 norm

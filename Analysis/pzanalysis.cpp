@@ -493,10 +493,14 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 		TPZCompEl *el = (TPZCompEl *) elvec[i];
 		if(el) {
 			errors.Fill(0.0);
-            TPZGeoEl *gel = el->Reference();
-            if(gel->Dimension() != fCompMesh->Dimension()) continue;
-			el->EvaluateError(fExact, errors, 0);
-			if(matId0==el->Material()->Id()){
+      TPZGeoEl *gel = el->Reference();
+      if(gel->Dimension() != fCompMesh->Dimension()) continue;
+      if (el->Material() && el->Material()->HasExactSol()) {
+        el->EvaluateError(errors, 0);
+      } else {
+        el->EvaluateError(fExact, errors, 0);
+      }
+      if(matId0==el->Material()->Id()){
 				for(int ier = 0; ier < errors.NElements(); ier++) 	values[ier] += errors[ier] * errors[ier];
 				lastEl=false;
 			}
@@ -640,8 +644,11 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     if ( iel >= nelem ) continue;
     
     TPZCompEl *cel = data->fElvec[iel];
-    
-    cel->EvaluateError(data->fExact, errors, data->fStoreError);
+    if (cel->Material() && cel->Material()->HasExactSol()) {
+      cel->EvaluateError(errors, data->fStoreError);
+    } else {
+      cel->EvaluateError(data->fExact, errors, data->fStoreError);
+    }
     
     const int nerrors = errors.NElements();
     data->fvalues[myid].Resize(nerrors, 0.);
@@ -774,11 +781,14 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
             TPZMaterial *mat = el->Material();
             TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
             if(bc) continue;
-            if(!mat || mat->Dimension() == dim)
+            TPZSubCompMesh * submesh = dynamic_cast<TPZSubCompMesh*>(el);
+            if(submesh || (mat != nullptr && mat->Dimension() == dim))
             {
                 errors.Fill(0.0);
-            
-                el->EvaluateError(fExact, errors, store_error);
+                if((mat != nullptr && mat->HasExactSol()) || submesh)
+                  {el->EvaluateError(errors,store_error);}
+                else
+                  {el->EvaluateError(fExact, errors, store_error);}
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
                 elvalues.Resize(nelgeom, nerrors);

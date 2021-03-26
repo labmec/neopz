@@ -10,7 +10,7 @@
 #include "TPZMaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
-#include "pzdiscgal.h"
+
 #include "Hash/TPZHash.h"
 
 /** @addtogroup material
@@ -68,13 +68,13 @@ enum TPZResidualType
 /**
  * Defines the aditional interface necessary to compute contributions over the interfaces between elements
  */
-class TPZConservationLaw  : public TPZDiscontinuousGalerkin
+class TPZConservationLaw  : public TPZMaterial
 {
 public:
 	/** @brief Simple constructor with material id, time step (dt) and dimension of the spatial domain */
 	TPZConservationLaw(int nummat,REAL timeStep,int dim);
 	/** @brief Copy constructor */
-	TPZConservationLaw(const TPZConservationLaw &cp) : TPZDiscontinuousGalerkin(cp), TPZRegisterClassId(&TPZConservationLaw::ClassId),
+	TPZConservationLaw(const TPZConservationLaw &cp) : TPZMaterial(cp), TPZRegisterClassId(&TPZConservationLaw::ClassId),
 	fDim(cp.fDim),fTimeStep(cp.fTimeStep),fCFL(cp.fCFL), fGamma(cp.fGamma),fContributionTime(cp.fContributionTime)
 	,fResidualType(cp.fResidualType)
 	{
@@ -158,9 +158,6 @@ public:
 	
 	virtual int NSolutionVariables(int var) override = 0;
 	
-	/** @brief Returns the number of fluxes associated to this material */
-	virtual int NFluxes() override;
-	
 	/** @} */
 	
 	/** @name Solutions
@@ -180,7 +177,7 @@ public:
 	 */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override
 	{
-		TPZDiscontinuousGalerkin::Solution(data,var,Solout);
+		TPZMaterial::Solution(data,var,Solout);
 	}
 	
 	/** @} */
@@ -198,7 +195,7 @@ public:
 							REAL weight,
 							TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
+		TPZMaterial::Contribute(data,weight,ef);
 	}
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
@@ -209,7 +206,7 @@ public:
 									 REAL weight,
 									 TPZFMatrix<STATE> &ef) override
 	{
-		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
+		TPZMaterial::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
@@ -222,13 +219,13 @@ public:
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc) override
 	{
-		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
+		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	/** @} */
 	
         int ClassId() const override{
-            return Hash("TPZConservationLaw") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+            return Hash("TPZConservationLaw") ^ TPZMaterial::ClassId() << 1;
         }
 	
 	/** @brief Save the element data to a stream */
@@ -308,10 +305,6 @@ inline REAL TPZConservationLaw::TimeStep()
 {
 	if(fResidualType == Residual_RT)return fTimeStep;
 	return 1.;
-}
-inline int TPZConservationLaw::NFluxes()
-{
-	return 1;
 }
 
 inline void TPZConservationLaw::SetContributionTime(TPZContributeTime time)

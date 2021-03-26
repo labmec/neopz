@@ -203,7 +203,6 @@ ENABLE_TESTING()
 
 			#Projeto Denise
 			#add_subdirectory(HdivPressureTeste)
-			add_subdirectory(HpAdaptivity)
 			add_subdirectory(AcoplamentoH1Hdiv)
 			add_subdirectory(Validacao)
 

@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 #include "pzvec.h"
 #include "pzfmatrix.h"
 
@@ -34,7 +34,7 @@
  */
 
 
-class TPZNLFluidStructure2d : public TPZDiscontinuousGalerkin
+class TPZNLFluidStructure2d : public TPZMaterial
 {
     
 protected:

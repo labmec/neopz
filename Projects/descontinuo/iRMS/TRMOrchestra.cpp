@@ -740,7 +740,7 @@ void TRMOrchestra::ComputationalMeshUniformRefinement(TPZCompMesh  *cmesh, int n
 //    
 //    // Getting the total integration point of the destination cmesh
 //    TPZMaterial * material = cmesh_multiphysics->FindMaterial(_ReservMatId);
-//    TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> *>(material);
+//    TPZMatWithMem<TRMMemory,TPZMaterial> * associated_material = dynamic_cast<TPZMatWithMem<TRMMemory,TPZMaterial> *>(material);
 //    TPZAdmChunkVector<TRMMemory> material_memory =  associated_material->GetMemory();
 //
 //    

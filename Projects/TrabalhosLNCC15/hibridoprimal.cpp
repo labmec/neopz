@@ -742,7 +742,7 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder, bool ismultiplie
     //sol exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     solexata = new TPZDummyFunction<STATE>(SolProblema, 5);
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
     
     //vetor de carga: lada direita da equacao
     TPZAutoPointer<TPZFunction<STATE> > force;
@@ -1024,7 +1024,7 @@ TPZCompMesh *MalhaCompH1(TPZGeoMesh * gmesh,int ordem, REAL penaltyConst){
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     solexata = new TPZDummyFunction<STATE>(SolProblema, 5);
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
     
     int int_order = 4;
     //funcao do lado direito da equacao do problema
@@ -1179,7 +1179,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata;
     solexata = new TPZDummyFunction<STATE>(SolProblema, 5);
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
     
     int int_order = 4;
     //funcao do lado direito da equacao do problema
@@ -4410,7 +4410,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    //solucao exata
 //    TPZAutoPointer<TPZFunction<STATE> > solexata;
 //    solexata = new TPZDummyFunction<STATE>(SolShockProblem);
-//    mymaterial->SetForcingFunctionExact(solexata);
+//    mymaterial->SetExactSol(solexata);
 //    
 //    
 //    //bc1
@@ -4915,7 +4915,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    //solucao exata
 //    TPZAutoPointer<TPZFunction<STATE> > solexata;
 //    solexata = new TPZDummyFunction<STATE>(SolShockProblem);
-//    material->SetForcingFunctionExact(solexata);
+//    material->SetExactSol(solexata);
 //    
 //    int int_order = 20;
 //    if(ndiv > 3 || dim_problema==3){
@@ -5070,7 +5070,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //    //solucao exata
 //    TPZAutoPointer<TPZFunction<STATE> > solexata;
 //    solexata = new TPZDummyFunction<STATE>(ExactSolution);
-//    material->SetForcingFunctionExact(solexata);
+//    material->SetExactSol(solexata);
 //    
 //    //funcao do lado direito da equacao do problema
 //    TPZAutoPointer<TPZFunction<STATE> > force;

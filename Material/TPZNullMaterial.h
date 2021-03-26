@@ -79,9 +79,6 @@ public:
         fNState = nstate;
     }
     
-    /** @brief Returns the number of components which form the flux function */
-    virtual int NFluxes() override{return 0;}
-    
 	
     /** @brief Prints out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout)override;
@@ -154,8 +151,6 @@ public:
     
     /** @brief Reads the element data from a stream */
     virtual void Read(TPZStream &buf, void *context) override;
-    
-    void ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 };
 

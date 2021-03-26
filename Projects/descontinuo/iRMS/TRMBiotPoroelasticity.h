@@ -13,7 +13,7 @@
 #include "TPZMatWithMem.h"
 #include "TRMMemory.h"
 
-#include "pzdiscgal.h"
+
 #include "pzfmatrix.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
@@ -21,7 +21,7 @@
 #include "TRMSimulationData.h"
 #include "pzlog.h"
 
-class TRMBiotPoroelasticity : public TPZMatWithMem<TRMMemory,TPZDiscontinuousGalerkin> {
+class TRMBiotPoroelasticity : public TPZMatWithMem<TRMMemory,TPZMaterial> {
     
 private:
     

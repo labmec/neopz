@@ -9,19 +9,19 @@
 #include "TRMMixedDarcy.h"
 
 
-TRMMixedDarcy::TRMMixedDarcy() : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>()
+TRMMixedDarcy::TRMMixedDarcy() : TPZMatWithMem<TRMMemory, TPZMaterial>()
 {
     fdimension = 0;
     fnon_symetric = 0.0;
 }
 
-TRMMixedDarcy::TRMMixedDarcy(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(matid)
+TRMMixedDarcy::TRMMixedDarcy(int matid, int dimension) : TPZMatWithMem<TRMMemory, TPZMaterial>(matid)
 {
     fdimension = dimension;
 }
 
 
-TRMMixedDarcy::TRMMixedDarcy(const TRMMixedDarcy &mat) : TPZMatWithMem<TRMMemory, TPZDiscontinuousGalerkin>(mat)
+TRMMixedDarcy::TRMMixedDarcy(const TRMMixedDarcy &mat) : TPZMatWithMem<TRMMemory, TPZMaterial>(mat)
 {
     this->fdimension    = mat.fdimension;
     this->fnon_symetric = mat.fnon_symetric;
@@ -1973,14 +1973,14 @@ int TRMMixedDarcy::ClassId() const{
 
 void TRMMixedDarcy::Write(TPZStream &buf, int withclassid) const{
     
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
     
 }
 
 // -------------------------------------------------------------------------------------------
 
 void TRMMixedDarcy::Read(TPZStream &buf, void *context) {
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
     
 }
 

@@ -67,8 +67,6 @@ private:
 	
 	virtual int NSolutionVariables(int var) override;
 	
-	virtual int NFluxes() override { return 3;}
-	
 protected:
 	virtual void Solution( TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,
 						  int var,TPZVec<STATE> &Solout ) override;
@@ -84,12 +82,8 @@ public:
 	
 	virtual TPZMaterial * NewMaterial() override;
 	
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux( TPZVec<REAL> &x, TPZVec<STATE> &Sol,
-					  TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux ) override;
-	
 	virtual void Errors( TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
-						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,
+						TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
 						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values ) override;
 	
 	public:

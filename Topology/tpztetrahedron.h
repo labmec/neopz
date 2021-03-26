@@ -33,13 +33,18 @@ namespace pztopology {
 	class TPZTetrahedron : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZTetrahedron>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 15, NCornerNodes = 4, Dimension = 3, NFacets = 4, NPermutations = 24};
+    friend void pztopology::GetPermutation<TPZTetrahedron>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+    static constexpr int64_t NSides = 15;
+		static constexpr int64_t NCornerNodes = 4;
+    static constexpr int64_t Dimension = 3;
+    static constexpr int64_t NFacets = 4;
+    static constexpr int64_t NPermutations = 24;
+      
 		
-            int ClassId() const override;
-            void Read(TPZStream &buf, void *context) override;
-            void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
                 
 		/** @brief Default constructor */
         TPZTetrahedron() : TPZRegisterClassId(&TPZTetrahedron::ClassId){
@@ -154,7 +159,7 @@ namespace pztopology {
 		 * @{ */
 		
 		/** @brief Returns the type of the element as specified in file pzeltype.h */
-		static MElementType Type();
+		static constexpr MElementType Type(){return ETetraedro;}
 		
 		/** @brief Returns the type of the element side as specified in file pzeltype.h */
 		static MElementType Type(int side) ;
@@ -269,19 +274,43 @@ namespace pztopology {
 		/** @{ */
 		
 		/** @brief Nodes over quadrilateral sides (2d - faces). */
-		static int FaceNodes[4][3];
+    static constexpr int FaceNodes[4][3]  = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
 
 		/** @brief Nodes over lines sides (1d) */
-		static int SideNodes[6][2];
+    static constexpr int SideNodes[6][2]  = { {0,1},{1,2},{2,0},{0,3},{1,3},{2,3} };
 
 		/** @brief Ids of the shape face */
-		static int ShapeFaceId[4][3];
+    static constexpr int ShapeFaceId[4][3] = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };	
 
-        /** @brief Valid permutations between nodes*/
-        static int fPermutations[24][15];
-		/** @} */
-        
-	};
+    /** @brief Valid permutations between nodes*/
+    static constexpr int fPermutations[24][15] = {
+      {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},/*000*/
+      {0,1,3,2,4,8,7,6,5,9,11,10,12,13,14},/*001*/
+      {0,2,1,3,6,5,4,7,9,8,10,13,12,11,14},/*002*/
+      {0,2,3,1,6,9,7,4,5,8,13,10,12,11,14},/*003*/
+      {0,3,1,2,7,8,4,6,9,5,11,13,12,10,14},/*004*/
+      {0,3,2,1,7,9,6,4,8,5,13,11,12,10,14},/*005*/
+      {1,0,2,3,4,6,5,8,7,9,10,11,13,12,14},/*006*/
+      {1,0,3,2,4,7,8,5,6,9,11,10,13,12,14},/*007*/
+      {1,2,0,3,5,6,4,8,9,7,10,12,13,11,14},/*008*/
+      {1,2,3,0,5,9,8,4,6,7,12,10,13,11,14},/*009*/
+      {1,3,0,2,8,7,4,5,9,6,11,12,13,10,14},/*010*/
+      {1,3,2,0,8,9,5,4,7,6,12,11,13,10,14},/*011*/
+      {2,0,1,3,6,4,5,9,7,8,10,13,11,12,14},/*012*/
+      {2,0,3,1,6,7,9,5,4,8,13,10,11,12,14},/*013*/
+      {2,1,0,3,5,4,6,9,8,7,10,12,11,13,14},/*014*/
+      {2,1,3,0,5,8,9,6,4,7,12,10,11,13,14},/*015*/
+      {2,3,0,1,9,7,6,5,8,4,13,12,11,10,14},/*016*/
+      {2,3,1,0,9,8,5,6,7,4,12,13,11,10,14},/*017*/
+      {3,0,1,2,7,4,8,9,6,5,11,13,10,12,14},/*018*/
+      {3,0,2,1,7,6,9,8,4,5,13,11,10,12,14},/*019*/
+      {3,1,0,2,8,4,7,9,5,6,11,12,10,13,14},/*020*/
+      {3,1,2,0,8,5,9,7,4,6,12,11,10,13,14},/*021*/
+      {3,2,0,1,9,6,7,8,5,4,13,12,10,11,14},/*022*/
+      {3,2,1,0,9,5,8,7,6,4,12,13,10,11,14}  /*023*/
+    };
+    /** @} */
+  };
 	
 }
 

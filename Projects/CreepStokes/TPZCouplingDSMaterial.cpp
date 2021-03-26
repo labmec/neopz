@@ -14,7 +14,7 @@
 #include "pzfmatrix.h"
 
 
-TPZCouplingDSMaterial::TPZCouplingDSMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(){
+TPZCouplingDSMaterial::TPZCouplingDSMaterial() : TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >(){
 
     TPZFNMatrix<3,STATE> Vl(1,1,0.);
     this->SetDefaultMem(Vl);
@@ -24,7 +24,7 @@ TPZCouplingDSMaterial::TPZCouplingDSMaterial() : TPZMatWithMem<TPZFMatrix<STATE>
 
 ////////////////////////////////////////////////////////////////////
 
-TPZCouplingDSMaterial::TPZCouplingDSMaterial(int matid, int dimension, STATE viscosity,STATE permeability, STATE theta) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(matid),fViscosity(viscosity),fTheta(theta),fDimension(dimension)
+TPZCouplingDSMaterial::TPZCouplingDSMaterial(int matid, int dimension, STATE viscosity,STATE permeability, STATE theta) : TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >(matid),fViscosity(viscosity),fTheta(theta),fDimension(dimension)
 {
 
     TPZFNMatrix<3,STATE> Vl(1,1,0.);
@@ -35,7 +35,7 @@ TPZCouplingDSMaterial::TPZCouplingDSMaterial(int matid, int dimension, STATE vis
 
 ////////////////////////////////////////////////////////////////////
 
-TPZCouplingDSMaterial::TPZCouplingDSMaterial(const TPZCouplingDSMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZDiscontinuousGalerkin >(mat), fViscosity(mat.fViscosity), fTheta(mat.fTheta),fDimension(mat.fDimension)
+TPZCouplingDSMaterial::TPZCouplingDSMaterial(const TPZCouplingDSMaterial &mat) : TPZMatWithMem<TPZFMatrix<STATE>, TPZMaterial >(mat), fViscosity(mat.fViscosity), fTheta(mat.fTheta),fDimension(mat.fDimension)
 {
        fk= mat.fk;
     
@@ -170,7 +170,7 @@ void TPZCouplingDSMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         case 3: //v_exact
         {
             TPZVec<STATE> v;
-            if(this->HasForcingFunctionExact()){
+            if(this->HasExactSol()){
             }
             Solout[0] = v[0]; // vx
             Solout[1] = v[1]; // vy
@@ -180,7 +180,7 @@ void TPZCouplingDSMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
         case 4: //p_exact
         {
             TPZVec<STATE> p;
-            if(this->HasForcingFunctionExact()){
+            if(this->HasExactSol()){
                 
             }
             Solout[0] = p[0]; // px
@@ -263,7 +263,7 @@ void TPZCouplingDSMaterial::ComputeDivergenceOnDeformed(TPZVec<TPZMaterialData> 
 
 void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) const{
     
-    TPZDiscontinuousGalerkin::Write(buf, withclassid);
+    TPZMaterial::Write(buf, withclassid);
  
     
 }
@@ -272,7 +272,7 @@ void TPZCouplingDSMaterial::Write(TPZStream &buf, int withclassid) const{
 
 void TPZCouplingDSMaterial::Read(TPZStream &buf, void *context) {
     
-    TPZDiscontinuousGalerkin::Read(buf, context);
+    TPZMaterial::Read(buf, context);
 
 }
 

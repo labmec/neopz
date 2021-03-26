@@ -434,12 +434,8 @@ void TPZMatHyperElastic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZ
 		else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMatHyperElastic::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
-}
-
 void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
-								TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+								TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 								TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	//TPZVec<REAL> sol(1),dsol(3);

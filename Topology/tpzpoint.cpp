@@ -12,9 +12,6 @@
 #endif
 
 namespace pztopology {
-    int TPZPoint::fPermutations[1][1]={
-            {0}
-    };
     template<class T>
     void TPZPoint::TShape(const TPZVec<T> &pt,TPZFMatrix<T> &phi,TPZFMatrix<T> &dphi)
     {
@@ -34,12 +31,6 @@ namespace pztopology {
 	TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)
 	{
 		return new IntruleType(order);
-	}
-	
-	
-	MElementType TPZPoint::Type()
-	{
-		return EPoint;
 	}
 	
 	MElementType TPZPoint::Type(int side)

@@ -492,7 +492,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1, 5);
 		mat->SetForcingFunction(force1);
 		TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata, 5);
-		mat->SetForcingFunctionExact(exata1);
+		mat->SetExactSol(exata1);
 		
 		comp->SetAllCreateFunctionsHDivPressure();
 		
@@ -558,7 +558,7 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
     TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1, 5);
 	mat->SetForcingFunction(force1);
 	TPZAutoPointer<TPZFunction<STATE> > exata1 = new TPZDummyFunction<STATE>(SolExata, 5);
-	mat->SetForcingFunctionExact(exata1);
+	mat->SetExactSol(exata1);
 	///Inserir condicoes de contorno
 	
 	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);

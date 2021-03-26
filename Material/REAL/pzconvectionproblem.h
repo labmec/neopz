@@ -9,11 +9,11 @@
 #ifndef __PZ__pzconvectionproblem__
 #define __PZ__pzconvectionproblem__
 
-#include "pzdiscgal.h"
+
 //#include "pzfmatrix.h"
 //#include "pzmaterial.h"
 //#include "pzvec.h"
-
+#include "TPZMaterial.h"
 #include <iostream>
 
 
@@ -29,7 +29,7 @@
  */
 
 
-class TPZMatConvectionProblem : public TPZDiscontinuousGalerkin {
+class TPZMatConvectionProblem : public TPZMaterial {
     
 protected:
 	/** @brief Forcing function value */
@@ -178,7 +178,7 @@ public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
     
     void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     public:
 virtual int ClassId() const override;

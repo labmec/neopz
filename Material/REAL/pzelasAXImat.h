@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "TPZMaterial.h"
-#include "pzdiscgal.h"
+
 
 #include <vector>
 #include <math.h>
@@ -18,7 +18,7 @@
  * @ingroup material
  * @brief Implements a two dimensional elastic material in plane stress or strain
  */
-class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
+class TPZElasticityAxiMaterial : public TPZMaterial {
 	
 	public :
 
@@ -98,9 +98,6 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Return the number of components which form the flux function */
 	virtual short NumberOfFluxes(){return 3;}
 	
-	/** @brief Return the number of components which form the flux function */
-	virtual int NFluxes() override { return 3;}
-	
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
 	
@@ -127,15 +124,12 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
 	
-	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override;
-	
 	/**
 	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed based \n
      * on the derivative of the solution
 	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;//Cedric
 	
 	/** @brief Returns the elasticity modulus E */

@@ -165,7 +165,11 @@ public:
     void CreateGraphicalElement(TPZGraphMesh &, int) override
     {
     }
-    
+
+    void EvaluateError(TPZVec<REAL> & errors, bool store_error) override {
+        return;
+    }
+  //TOBEREMOVED [[deprecated("Use or implement TPZCompElLagrange::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
     void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                                   TPZVec<REAL> &/*errors*/, bool store_error) override {
         return;

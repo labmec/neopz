@@ -25,7 +25,7 @@ int TPZCoupledTransportDarcy::CurrentEquation(){ return TPZCoupledTransportDarcy
 
 TPZCoupledTransportDarcy::TPZCoupledTransportDarcy(int nummat, int nummat0, int nummat1, int dim) : 
 TPZRegisterClassId(&TPZCoupledTransportDarcy::ClassId),
-TPZDiscontinuousGalerkin(nummat), fAlpha(1.) {
+TPZMaterial(nummat), fAlpha(1.) {
 	this->fMaterials[0] = new TPZMatPoisson3d(nummat0, dim);
 	fMaterialRefs[0] = fMaterials[0];
 	this->fMaterials[1] = new TPZMatPoisson3d(nummat1, dim);
@@ -113,14 +113,11 @@ void TPZCoupledTransportDarcy::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DS
 	return this->GetCurrentMaterial()->Solution(data, var, Solout);
 }//method
 
-void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
-}
 
 void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-									  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+									  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
 									  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-	this->GetCurrentMaterial()->Errors(x, u, dudx, axes, flux, u_exact, du_exact, values);
+	this->GetCurrentMaterial()->Errors(x, u, dudx, axes, u_exact, du_exact, values);
 }
 
 
@@ -161,5 +158,5 @@ void TPZCoupledTransportDarcy::UpdateConvectionDirInterface(TPZFMatrix<STATE> &d
 }
 
 int TPZCoupledTransportDarcy::ClassId() const{
-    return Hash("TPZCoupledTransportDarcy") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZCoupledTransportDarcy") ^ TPZMaterial::ClassId() << 1;
 }

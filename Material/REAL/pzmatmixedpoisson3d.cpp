@@ -634,13 +634,13 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     
     //Exact soluion
     if(var == 6){
-        fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
+        fExactSol->Execute(datavec[1].x, solExata,flux);
         Solout[0] = solExata[0];
         return;
     }//var6
     
     if(var == 7){
-        fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+        fExactSol->Execute(datavec[0].x, solExata,flux);
         for (int ip = 0; ip<fDim; ip++)
         {
             Solout[ip] = flux(ip,0);
@@ -684,7 +684,7 @@ void TPZMatMixedPoisson3D::Solution(TPZVec<TPZMaterialData> &datavec, int var, T
     }
     
     if(var==11){
-        fForcingFunctionExact->Execute(datavec[0].x,solExata,flux);
+        fExactSol->Execute(datavec[0].x,solExata,flux);
         Solout[0]=flux(fDim,0);
         return;
     }
@@ -760,25 +760,10 @@ void TPZMatMixedPoisson3D::FillDataRequirements(TPZVec<TPZMaterialData > &datave
     }
 }
 
-void TPZMatMixedPoisson3D::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
-    
-    values.Fill(0.0);
-    TPZVec<STATE> primal(1),dual(3),div(1);
-    Solution(data,1,dual);//fluxo
-    //Solution(data,14,div);//divergente
-    
-    for(int id=0; id<3; id++) {
-        REAL diffFlux = abs(dual[id] - du_exact(id,0));
-
-        values[1]  += diffFlux*diffFlux;
-    }
-
-}
-
 
 
 void TPZMatMixedPoisson3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                                  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                                  TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
                                   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
     
     values.Resize(NEvalErrors());

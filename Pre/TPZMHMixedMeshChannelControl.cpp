@@ -7,7 +7,6 @@
 #include "TPZMHMixedMeshChannelControl.h"
 #include "TPZVecL2.h"
 #include "pzbndcond.h"
-#include "TPZMatLaplacian.h"
 #include "TPZLagrangeMultiplier.h"
 
 

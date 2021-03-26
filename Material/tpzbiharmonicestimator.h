@@ -47,7 +47,7 @@ private:
 	virtual void ContributeErrors(TPZMaterialData &data,
 								  REAL weight,
 								  TPZVec<REAL> &nk,
-								  int &errorid) override
+								  int &errorid)
 	{
 		if (errorid == 0) this->ContributeErrorsDual(data,weight,nk);
 		if (errorid == 2) this->ContributeErrorsSimple(data,weight,nk);
@@ -58,7 +58,7 @@ private:
 	 * where u is the current solution and Z and Z1 are the dual solution. */
 	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
 										   TPZVec<STATE> &nkL, TPZVec<STATE> &nkR,
-										   int &errorid) override
+										   int &errorid)
 	{
 		if (errorid == 0) this->ContributeInterfaceErrorsDual(data,dataleft,dataright,weight,nkL,nkR);
 		if (errorid == 2) this->ContributeInterfaceErrorsSimple(data,dataleft,dataright,weight,nkL,nkR);
@@ -83,7 +83,7 @@ private:
 											 REAL weight,
 											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
-											 int &errorid) override
+											 int &errorid)
 	{
 		if (errorid == 0) this->ContributeInterfaceBCErrorsDual(data,dataleft,weight,nk,bc);
 		if (errorid == 2) this->ContributeInterfaceBCErrorsSimple(data,dataleft,weight,nk,bc);
@@ -110,7 +110,7 @@ private:
 	 * and the flux computed based on the derivative of the solution
 	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
-				TPZFMatrix<REAL> &axes, TPZVec<STATE> & /*flux*/ ,
+				TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 				TPZVec<REAL> &values) override;
 	

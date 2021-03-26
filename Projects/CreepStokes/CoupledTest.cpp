@@ -914,7 +914,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     TPZAutoPointer<TPZFunction<STATE> > solp = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     materialDarcy->SetForcingFunction(fp);
-    materialDarcy->SetForcingFunctionExact(solp);
+    materialDarcy->SetExactSol(solp);
     cmesh->InsertMaterialObject(materialDarcy);
     
     
@@ -963,7 +963,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     TPZAutoPointer<TPZFunction<STATE> > solp2 = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     materialStokes->SetForcingFunction(fp2);
-    materialStokes->SetForcingFunctionExact(solp2);
+    materialStokes->SetExactSol(solp2);
     cmesh->InsertMaterialObject(materialStokes);
     
     
@@ -1012,7 +1012,7 @@ TPZCompMesh *CoupledTest::CMesh_m(TPZGeoMesh *gmesh, int Space, int pOrder, STAT
     TPZAutoPointer<TPZFunction<STATE> > solp3 = new TPZDummyFunction<STATE> (Sol_exact, 5);
     
     //materialCoupling->SetForcingFunction(fp3);
-    materialCoupling->SetForcingFunctionExact(solp3);
+    materialCoupling->SetExactSol(solp3);
     cmesh->InsertMaterialObject(materialCoupling);
     
     

@@ -10,7 +10,7 @@
 TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<STATE> &sol,
                                  int IntegrationOrder) :
 TPZRegisterClassId(&TPZL2Projection::ClassId),
-TPZDiscontinuousGalerkin(id) , fScale(1.)
+TPZMaterial(id) , fScale(1.)
 {
     this->fDim = dim;
     this->fNStateVars = nstate;
@@ -20,7 +20,7 @@ TPZDiscontinuousGalerkin(id) , fScale(1.)
 }
 
 TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZRegisterClassId(&TPZL2Projection::ClassId),
-TPZDiscontinuousGalerkin(cp), fScale(cp.fScale)
+TPZMaterial(cp), fScale(cp.fScale)
 {
     this->fDim = cp.fDim;
     this->fNStateVars = cp.fNStateVars;
@@ -208,7 +208,7 @@ void TPZL2Projection::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 int TPZL2Projection::IntegrationRuleOrder(int elPMaxOrder) const
 {
     if (this->fIntegrationOrder == -1) {
-        return TPZDiscontinuousGalerkin::IntegrationRuleOrder(elPMaxOrder);
+        return TPZMaterial::IntegrationRuleOrder(elPMaxOrder);
     }
     else
     {
@@ -220,7 +220,7 @@ int TPZL2Projection::IntegrationRuleOrder(int elPMaxOrder) const
 #include "pzaxestools.h"
 
 void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                             TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
                              TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
     
     values.Resize(NEvalErrors());
@@ -256,5 +256,5 @@ void TPZL2Projection::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 }
 
 int TPZL2Projection::ClassId() const{
-    return Hash("TPZL2Projection") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZL2Projection") ^ TPZMaterial::ClassId() << 1;
 }

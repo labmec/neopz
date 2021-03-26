@@ -24,7 +24,7 @@ using namespace std;
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : 
 TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
-TPZDiscontinuousGalerkin(0),
+TPZMaterial(0),
 fIntegral(0.),
 fAlpha(1.e-5),
 f_AxisR(3,0.),
@@ -50,7 +50,7 @@ fTemperatureFunction(0) {
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) :
 TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
-TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fTemperatureFunction(0)
+TPZMaterial(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fTemperatureFunction(0)
 {
 	
     f_AxisZ[1] = 1.;
@@ -72,7 +72,7 @@ TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.)
 //--------------------------------------------------------------------------------------------------------------------------------------
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTheta, REAL coefAlpha) : 
 TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
-TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.),
+TPZMaterial(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.),
 fTemperatureFunction(0)
 {
 	
@@ -93,7 +93,7 @@ fTemperatureFunction(0)
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) : 
 TPZRegisterClassId(&TPZElasticityAxiMaterial::ClassId),
-TPZDiscontinuousGalerkin(copy), fIntegral(copy.fIntegral),f_phi(copy.f_phi),f_c(copy.f_c), fE(copy.fE),
+TPZMaterial(copy), fIntegral(copy.fIntegral),f_phi(copy.f_phi),f_c(copy.f_c), fE(copy.fE),
 fnu(copy.fnu), fAlpha(copy.fAlpha), fDelTemperature(copy.fDelTemperature), fEover21PlusNu(copy.fEover21PlusNu),
 fEover1MinNu2(copy.fEover1MinNu2),f_AxisR(copy.f_AxisR),f_AxisZ(copy.f_AxisZ),
 f_Origin(copy.f_Origin),fSymmetric(copy.fSymmetric),fPenaltyConstant(copy.fPenaltyConstant),fTemperatureFunction(copy.fTemperatureFunction)
@@ -1202,16 +1202,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 	}
 }
 
-void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux)
-{
-	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6)
-	{
-		cout << "TPZElasticityAxiMaterial::Flux only serves for xy configuration\n";
-		axes.Print("axes");
-	}
-}
-
-void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, 
 									  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values)
 {
 	values[0] = 0.;
@@ -1267,7 +1258,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 
 
 int TPZElasticityAxiMaterial::ClassId() const{
-    return Hash("TPZElasticityAxiMaterial") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZElasticityAxiMaterial") ^ TPZMaterial::ClassId() << 1;
 }
 
 #ifndef BORLAND

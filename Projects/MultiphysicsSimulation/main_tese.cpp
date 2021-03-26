@@ -573,7 +573,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
     
     //solucao exata
     TPZAutoPointer<TPZFunction<STATE> > solexata = new TPZDummyFunction<STATE>(SolSuave,5);
-    material->SetForcingFunctionExact(solexata);
+    material->SetExactSol(solexata);
         
     //funcao do lado direito da equacao do problema
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(ForcingF,20);

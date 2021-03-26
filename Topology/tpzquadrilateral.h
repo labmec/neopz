@@ -37,12 +37,17 @@ namespace pztopology {
 	class TPZQuadrilateral : public TPZSavable {
 	public:
 
-        friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
-		/** @brief Enumerate for topological characteristics */
-		enum {NSides = 9, NCornerNodes = 4, Dimension = 2, NFacets = 4, NPermutations = 8};
-        int ClassId() const override;
-            void Read(TPZStream &buf, void *context) override;
-            void Write(TPZStream &buf, int withclassid) const override;
+    friend void pztopology::GetPermutation<TPZQuadrilateral>(const int permute, TPZVec<int> &permutation);
+		/** @brief Topological characteristics */
+		static constexpr int64_t NSides = 9;
+    static constexpr int64_t NCornerNodes = 4;
+    static constexpr int64_t Dimension = 2;
+    static constexpr int64_t NFacets = 4;
+    static constexpr int64_t NPermutations = 8;
+      
+    int ClassId() const override;
+    void Read(TPZStream &buf, void *context) override;
+    void Write(TPZStream &buf, int withclassid) const override;
 
                 
 		/** @brief Default constructor */
@@ -161,7 +166,7 @@ namespace pztopology {
 		 * @{ */
 		
 		/** @brief Returns the type of the element as specified in file pzeltype.h */
-		static MElementType Type();
+		static constexpr MElementType Type() {return EQuadrilateral;}
 		
 		/** @brief Returns the type of the element side as specified in file pzeltype.h */
 		static MElementType Type(int side);
@@ -285,17 +290,38 @@ namespace pztopology {
          * Returns the number of bilinear sides to this shape. Needed to compute the number shapefunctions( NConnectShapeF )
          */
         static int NBilinearSides();
-
-        
-        enum EHdivType {HdivConform = 0, HdivFull=1};
-
-        static void SetHdivType(EHdivType val);
 	protected:
-        /** @brief Valid permutations between nodes*/
-        static int fPermutations [8][9];
-        static REAL fTangentVectors [16][2];
-        static int FaceNodes[1][4]; // Denise e Jose: dim =2
-        static int SideNodes[4][2]; // Denise e Jose: dim = 1
+    /** @brief Valid permutations between nodes*/
+    static constexpr int fPermutations[8][9] = {
+      {0, 1, 2, 3, 4, 5, 6, 7, 8}, // id 0
+      {0, 3, 2, 1, 7, 6, 5, 4, 8}, // id 1
+      {1, 2, 3, 0, 5, 6, 7, 4, 8}, // id 2
+      {1, 0, 3, 2, 4, 7, 6, 5, 8}, // id 3
+      {2, 3, 0, 1, 6, 7, 4, 5, 8}, // id 4
+      {2, 1, 0, 3, 5, 4, 7, 6, 8}, // id 5
+      {3, 0, 1, 2, 7, 4, 5, 6, 8}, // id 6
+      {3, 2, 1, 0, 6, 5, 4, 7, 8}  // id 7
+    };
+    static constexpr REAL fTangentVectors[16][2] = {
+      {0.25, 0.0},  // id 0
+      {0.0, 0.25},  // id 0
+      {0.0, 0.25},  // id 1
+      {0.25, 0.0},  // id 1
+      {-0.25, 0.0}, // id 3
+      {0.0, 0.25},  // id 3
+      {0.0, 0.25},  // id 2
+      {-0.25, 0.0}, // id 2
+      {0.0, -0.25}, // id 5
+      {-0.25, 0.0}, // id 5
+      {-0.25, 0.0}, // id 4
+      {0.0, -0.25}, // id 4
+      {0.0, -0.25}, // id 6
+      {0.25, 0.0},  // id 6
+      {0.25, 0.0},  // id 7
+      {0.0, -0.25}  // id 7
+    };
+    static constexpr int FaceNodes[1][4]  = { {0,1,2,3} }; // Denise e Jose: dim =2
+    static constexpr int SideNodes[4][2]  = { {0,1},{1,2},{2,3},{3,0} }; // Denise e Jose: dim = 1
 	};
 	
 }

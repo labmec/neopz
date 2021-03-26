@@ -9,7 +9,7 @@
 
 
 #include <iostream>
-#include "pzdiscgal.h"
+#include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
 /**
@@ -20,7 +20,7 @@
  * \f$ -Laplac(u) = fXf  \f$
  */
 
-class TPZMatDualHybridPoisson : public TPZDiscontinuousGalerkin {
+class TPZMatDualHybridPoisson : public TPZMaterial {
     
     protected :
     
@@ -85,19 +85,12 @@ public:
     
     virtual int NSolutionVariables(int var) override;
     
-    virtual int NFluxes() override { return 2;}
-    
 public:
     
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
     
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) override
-    {
-        DebugStop();
-    }
-    
     void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
                 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
     
     virtual int NEvalErrors()  override {return 3;}

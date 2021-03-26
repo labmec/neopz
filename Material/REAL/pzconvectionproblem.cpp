@@ -16,7 +16,7 @@
 using namespace std;
 
 TPZMatConvectionProblem::TPZMatConvectionProblem():
-TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin(){
+TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZMaterial(){
 	
     fDim = 1;
     fConvDir.resize(fDim);
@@ -30,7 +30,7 @@ TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin()
 }
 
 TPZMatConvectionProblem::TPZMatConvectionProblem(int matid, int dim):
-TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin(matid){
+TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZMaterial(matid){
 	
     if(dim<0 || dim >2){
         DebugStop();
@@ -50,14 +50,14 @@ TPZMatConvectionProblem::~TPZMatConvectionProblem(){
 }
 
 TPZMatConvectionProblem::TPZMatConvectionProblem(const TPZMatConvectionProblem &copy):
-TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZDiscontinuousGalerkin(copy){
+TPZRegisterClassId(&TPZMatConvectionProblem::ClassId),TPZMaterial(copy){
     
     this->operator=(copy);
 }
 
 TPZMatConvectionProblem & TPZMatConvectionProblem::operator=(const TPZMatConvectionProblem &copy){
     
-    TPZDiscontinuousGalerkin::operator = (copy);
+    TPZMaterial::operator = (copy);
 	fXf  = copy.fXf;
 	fDim = copy.fDim;
 	fConvDir  = copy.fConvDir;
@@ -377,14 +377,14 @@ void TPZMatConvectionProblem::Solution(TPZMaterialData &data, int var, TPZVec<ST
     
     if(var == 5){
         
-        fForcingFunctionExact->Execute(data.x, ExactSol, deriv);
+        fExactSol->Execute(data.x, ExactSol, deriv);
 		Solout[0] = ExactSol[0];
 		return;
 	}
 }
 
 void TPZMatConvectionProblem::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-                            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+                            TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
                             TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
     
     int dim = Dimension();
@@ -411,5 +411,5 @@ void TPZMatConvectionProblem::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 }
 
 int TPZMatConvectionProblem::ClassId() const{
-    return Hash("TPZMatConvectionProblem") ^ TPZDiscontinuousGalerkin::ClassId() << 1;
+    return Hash("TPZMatConvectionProblem") ^ TPZMaterial::ClassId() << 1;
 }

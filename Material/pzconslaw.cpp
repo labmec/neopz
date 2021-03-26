@@ -15,7 +15,7 @@ using namespace std;
 
 
 TPZConservationLaw::TPZConservationLaw(int nummat,REAL timeStep,int dim) :
-TPZDiscontinuousGalerkin(nummat),
+TPZMaterial(nummat),
 fDim(dim),
 fTimeStep(0),
 fCFL(0),

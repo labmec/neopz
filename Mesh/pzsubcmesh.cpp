@@ -1732,7 +1732,9 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int64_t> &permute) c
 void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int64_t> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
+#ifdef LOG4CXX
 	if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger, "Permuting")
+#endif
 	Permute(permute);
 }
 
@@ -2263,6 +2265,25 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
     }
     return fFatherToLocal[IndexinFather];
 }
+
+void TPZSubCompMesh::EvaluateError(TPZVec<REAL> &errors, bool store_errors){
+  fAnalysis->PostProcessError(errors,store_errors);
+    int NErrors = errors.size();
+    if(store_errors)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+
+}
+
 
 void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
                                           TPZVec<REAL> &errors, bool store_errors){

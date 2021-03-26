@@ -1072,7 +1072,7 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 }//Solution
 
 void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes,
-							 TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+							 TPZFMatrix<REAL> &axes,
 							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 	int i, j;
     TPZFNMatrix<9,STATE> dudx(3,3);

@@ -5,4 +5,6 @@
 
 #include "tpzautopointer.h"
 
-std::mutex gAutoPointerMutexArray[AP_MUTEX_ARRAY_SZ];
+//std::mutex gAutoPointerMutexArray[AP_MUTEX_ARRAY_SZ];
+//
+//std::mutex gAutoPointerMutex;
