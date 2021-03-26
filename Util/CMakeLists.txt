@@ -15,6 +15,7 @@ set(public_headers
   TPZParallelUtils.h
   TPZSemaphore.h
   #other
+  TPZTimer.h
   tpzpermutation.h
   pzaxestools.h
   pzlog.h
