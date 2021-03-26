@@ -45,6 +45,9 @@ public:
 	/** @brief Constructor */
 	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right);
     
+    /** @brief Constructor */
+    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index);
+    
     /** @brief create a copy of the given element */
     TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy);
     

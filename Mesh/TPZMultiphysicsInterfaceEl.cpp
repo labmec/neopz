@@ -36,6 +36,20 @@ TPZCompEl(),fLeftElSide(0), fRightElSide(0)
 {
 }
 
+TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index) :
+TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref, index),fLeftElSide(0), fRightElSide(0)
+{
+    
+    ref->SetReference(this);
+#ifdef PZDEBUG
+    TPZMaterial *mat = mesh.FindMaterial(ref->MaterialId());
+    if (!mat) {
+        DebugStop();
+    }
+#endif
+    ref->IncrementNumInterfaces();
+}
+
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index,
                                                                     TPZCompElSide leftside, TPZCompElSide rightside) : 
 TPZRegisterClassId(&TPZMultiphysicsInterfaceElement::ClassId),TPZCompEl(mesh, ref, index)
