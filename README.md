@@ -5,6 +5,7 @@ written in C++ with support for many advanced finite element techniques.
 
 [![Run Unit Tests](https://github.com/labmec/neopz/actions/workflows/run_unittests.yml/badge.svg)](https://github.com/labmec/neopz/actions/workflows/run_unittests.yml)
 [![Publish Docs](https://github.com/labmec/neopz/actions/workflows/publish_docs.yml/badge.svg)](https://github.com/labmec/neopz/actions/workflows/publish_docs.yml)
+[![Compile External Projects](https://github.com/labmec/neopz/actions/workflows/compile_externalprojects.yml/badge.svg)](https://github.com/labmec/neopz/actions/workflows/compile_externalprojects.yml)
 
 ## Features
 - Discontinuous, *H1, H(div)* and *H(curl)* conforming approximation spaces
