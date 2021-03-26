@@ -19,12 +19,13 @@
 
 BOOST_AUTO_TEST_CASE(tpzvec_tests) {
 
-    TPZVec<REAL> vec1(TPZVec<REAL>(3,0.));
+    TPZVec<REAL> vec1(std::move(TPZVec<REAL>(3,0.)));//mv ctor
     BOOST_CHECK(true);
-    TPZVec<REAL> vec2(vec1);
+    TPZVec<REAL> vec2(vec1);//cp ctor
     BOOST_CHECK(true);
-    TPZVec<REAL> vec3 = std::move(vec2);
+    vec2= std::move(vec1);//mv assignment
     BOOST_CHECK(true);
+    TPZVec<REAL> vec3(std::move(TPZManVector<REAL,3>(3,0)));
 }
 
 
@@ -62,10 +63,12 @@ BOOST_AUTO_TEST_CASE(tpzmanvector_tests) {
         BOOST_CHECK(true);
         vec.Resize(5);
         TPZManVector<REAL,3> manvec3(vec);
-        TPZManVector<REAL,3> manvec4(TPZManVector<REAL,3>(2,0.));
-        TPZManVector<REAL,3> manvec5(TPZManVector<REAL,3>(3,0.));
-        TPZManVector<REAL,3> manvec6(TPZManVector<REAL,3>(4,0.));
+        TPZManVector<REAL,3> manvec4(std::move(TPZManVector<REAL,3>(2,0.)));
+        TPZManVector<REAL,3> manvec5(std::move(TPZManVector<REAL,3>(3,0.)));
+        TPZManVector<REAL,3> manvec6(std::move(TPZManVector<REAL,3>(4,0.)));
         BOOST_CHECK(true);
+        TPZManVector<REAL,3> manvec7(3,1);
+        manvec7 = std::move(vec);
     }
     //N1>N2
     {
