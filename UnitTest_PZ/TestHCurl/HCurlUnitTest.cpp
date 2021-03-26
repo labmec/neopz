@@ -39,19 +39,20 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
 #endif
-#define BOOST_TEST_MAIN pz #define BOOST_TEST_MAIN pz hcurl_tests tests
+#define BOOST_TEST_MAIN pz hcurl_tests tests
 
 #include "boost/test/unit_test.hpp"
 #include "boost/test/tools/output_test_stream.hpp"
 
 
-#define NOISY_HCURL //outputs useful debug info
-#define NOISY_HCURL_VTK
+//#define VERBOSE_HCURL //outputs useful debug info
+//#define HCURL_OUTPUT_TXT//export mesh in .txt file (for debugging)
+//#define HCURL_OUTPUT_VTK//export mesh in .vtk file (for debugging)
 
 
 struct SuiteInitializer{
     SuiteInitializer(){
-        boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_warnings );
+        boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_all_errors );
     }
 };
 BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
@@ -108,8 +109,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
         void TestVectorTracesUniformMesh(MMeshType type, const int dim){
             static std::string testName = __PRETTY_FUNCTION__;
-            std::cout << testName << std::endl;
+#ifdef VERBOSE_HCURL
+            std::cout << testName << '\n';
             std::cout<<"\t"<<type<<std::endl;
+#endif
             constexpr int pOrder{4};//testing all vectors
             constexpr int ndiv{1};
             TPZManVector<int,2> matIds(2,-1);
@@ -125,12 +128,12 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 return nullptr;
             }();
 
-#ifdef NOISY_HCURL
+#ifdef HCURL_OUTPUT_TXT
             std::ofstream outTXT("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
             gmesh->Print(outTXT);
             outTXT.close();
 #endif
-#ifdef NOISY_HCURL_VTK
+#ifdef HCURL_OUTPUT_VTK
             std::ofstream outVTK("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".vtk");
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK);
             outVTK.close();
@@ -148,7 +151,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
 
-#ifdef NOISY_HCURL
+#ifdef VERBOSE_HCURL
             {
                 std::ofstream outTXT("cmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
                 cmesh->Print(outTXT);
@@ -409,8 +412,10 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
         void TestFunctionTracesUniformMesh(MMeshType type, const int pOrder, const int dim){
             static std::string testName = __PRETTY_FUNCTION__;
-            std::cout << testName << std::endl;
+#ifdef VERBOSE_HCURL
+            std::cout << testName << '\n';
             std::cout<<"\t"<<MMeshType_Name(type)<<" p = "<<pOrder<<std::endl;
+#endif
             constexpr int ndiv{1};
             TPZManVector<int,2> matIds(2,-1);
             TPZGeoMesh *gmesh = [&]() -> TPZGeoMesh* {
@@ -428,12 +433,12 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 //                TPZVec<TPZGeoEl*> sons;
 //                gmesh->Element(0)->Divide(sons);
 //            }
-#ifdef NOISY_HCURL
+#ifdef VERBOSE_HCURL
             std::ofstream outTXT("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
             gmesh->Print(outTXT);
             outTXT.close();
 #endif
-#ifdef NOISY_HCURL_VTK
+#ifdef HCURL_OUTPUT_VTK
             std::ofstream outVTK("gmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".vtk");
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK);
             outVTK.close();
@@ -451,7 +456,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
 
-#ifdef NOISY_HCURL
+#ifdef VERBOSE_HCURL
             {
                 std::ofstream outTXT("cmesh_"+MMeshType_Name(type)+"_ndiv_"+std::to_string(ndiv)+ ".txt");
                 cmesh->Print(outTXT);
@@ -905,8 +910,8 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                 REAL detJac = 0;
                 gel->Jacobian(xiCenter, jacobian, axes, detJac, jacInv);
 
-#ifdef NOISY_HCURL
-                std::cout << std::endl;
+#ifdef VERBOSE_HCURL
+                std::cout << '\n';
                 jacobian.Print("Original Jacobian:");
                 axes.Print("Original Axes:");
 #endif
@@ -1014,12 +1019,14 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-#ifdef NOISY_HCURL
-#undef NOISY_HCURL
+#ifdef VERBOSE_HCURL
+#undef VERBOSE_HCURL
 #endif
-#ifdef NOISYVTK_HCURL
-#undef NOISYVTK_HCURL
+#ifdef HCURL_OUTPUT_TXT
+#undef HCURL_OUTPUT_TXT
 #endif
-
+#ifdef HCURL_OUTPUT_VTK
+#undef HCURL_OUTPUT_VTK
+#endif
 #endif
 
