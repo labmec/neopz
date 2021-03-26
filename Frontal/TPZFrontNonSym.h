@@ -21,32 +21,6 @@ class TPZEqnArray;
 #include "TPZStackEqnStorage.h"
 #include "TPZFileEqnStorage.h"
 
-#ifdef USING_BLAS
-#ifdef USING_MKL
-#include <mkl.h>
-#elif MACOSX
-#include <Accelerate/Accelerate.h>
-#else
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#else
-extern "C"{
-#include "cblas.h"
-	//#include "g2c.h"
-	//#include "fblaswr.h"
-};
-#endif
-#endif
-#endif
-
-#ifdef USING_ATLAS
-extern "C"{
-#include <cblas.h>
-	//#include "g2c.h"
-	//#include "fblaswr.h"
-};
-#endif
-
 
 /** 
  * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics. \ref frontal "Frontal"

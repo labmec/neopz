@@ -12,9 +12,6 @@
 #include "pzvec.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr loggerrefpattern(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
-#endif
 
 class TPZGeoElSide;
 class TPZCompMesh;
@@ -387,7 +384,9 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	if(HasSubElement()) {
 		SubElVec.Resize(NSubEl);
 		for(i=0;i<NSubEl;i++) SubElVec[i] = SubElement(i);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
+        TPZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
+        if(loggerrefpattern.isWarnEnabled())
 		{
 			std::stringstream sout;
 			sout << "Trying to divide element which has subelements " << this->Index() << std::endl;
@@ -466,9 +465,10 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	}
 	
 	this->SetSubElementConnectivities();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
-        if (loggerrefpattern->isDebugEnabled())
+        TPZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
+        if (loggerrefpattern.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Dividing element " << this->Index() << std::endl;
@@ -527,7 +527,10 @@ void TPZGeoElRefPattern<TGeo>::SetRefPattern (TPZAutoPointer<TPZRefPattern> refp
 	}
 	else if(this->HasSubElement())
 	{
+#ifdef PZ_LOG
+        TPZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
 		LOGPZ_ERROR ( loggerrefpattern, "\nTrying to set an refPattern to geoEl that is already refined!\nThis try was skipped!\n\n" );
+#endif
 		std::cout << "Trying to set an refPattern to geoEl that is already refined!\nThis try was skipped!\n\n";
 		
 		return;

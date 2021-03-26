@@ -24,8 +24,8 @@ using namespace std;
 
 #include <sstream>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelside"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzgeoelside");
 #endif
 
 // Implementation of the TPZGeoElSideIndex methods
@@ -160,7 +160,6 @@ void TPZGeoElSide::GradX(TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx) const{
     
 }
 
-#ifdef _AUTODIFF
 /** @brief X coordinate of a point loc of the side */
 void TPZGeoElSide::X(TPZVec< Fad<REAL> > &loc, TPZVec< Fad<REAL> > &result) const
 {
@@ -190,7 +189,6 @@ void TPZGeoElSide::GradX(TPZVec< Fad<REAL> > &loc, TPZFMatrix< Fad<REAL> > &grad
     fGeoEl->GradX(locElement, gradx);
 }
 
-#endif
 
 
 
@@ -608,8 +606,8 @@ int TPZGeoElSide::Dimension() const {
 
 void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 	//t : atual -> neighbour
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << __FUNCTION__ << " this = \n";
         Print(sout);
@@ -654,8 +652,8 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform<> &t)	{
 			secondcase++;
 			t = start.NeighbourSideTransform(neighbourwithfather).Multiply(t);
 		}
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "neighbourwithfather\n";
             neighbourwithfather.Print(sout);
@@ -1187,7 +1185,7 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 			if(normalize == 0.0)
 			{
 				PZError << __PRETTY_FUNCTION__ << " null normal vetor\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 				{
 					std::stringstream sout;
 					Print(sout);

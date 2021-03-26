@@ -8,7 +8,6 @@
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
-#include "pzlog.h"
 #include <iostream>
 #include <set>
 
@@ -185,7 +184,7 @@ public:
 //            std::cout << "Connect index " << index << " set to order " << order << std::endl;
 //            if(order == 5)
 //            {
-//                StopError();
+//                DebugStop();
 //            }
 //        }
 #endif

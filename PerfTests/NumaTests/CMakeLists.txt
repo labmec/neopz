@@ -1,8 +1,10 @@
-file(GLOB source *.cpp)
+set(targetName Perf-NumaTst)
 
-file(GLOB header *.h)
-
-add_executable(Perf-NumaTst ${source} ${header})
-install(TARGETS Perf-NumaTst DESTINATION bin)
-target_link_libraries(Perf-NumaTst pz)
-
+add_pz_internal_target(
+  NAME ${targetName}
+  SOURCES numatst.cpp)
+#linking additional libraries
+target_link_libraries(${targetName} PRIVATE Threads::Threads)
+if(USING_PZ_LOG)
+  target_link_libraries(${targetName} PRIVATE ${Log4cxx_LIBRARY})
+endif()

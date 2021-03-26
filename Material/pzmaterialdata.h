@@ -9,10 +9,20 @@
 #include "pzmanvector.h"
 #include "pzfmatrix.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
+
+
+#define MatDataNumSol 1
+#define MatDataNumPhi 20
+#define MatDataNumDPhi 60
+#define MatDataNumDir 81
+/// Represent the state variables of a finite element approximation
+typedef TPZManVector<STATE, 10> TPZFemSol;
+/// Represents the gradient of a state variable of a finite element approximation
+typedef TPZFNMatrix<30, STATE> TPZFemGradSol;
+typedef TPZManVector<TPZFemSol,MatDataNumSol> TPZSolVec;
+typedef TPZManVector<TPZFemGradSol,MatDataNumSol> TPZGradSolVec;
 
 /**
  * @ingroup material
@@ -21,19 +31,6 @@
  * Attributes are solution and its derivatives, X coordinate, etc.
  * @since April 10, 2007
  */
-
-const int MatDataNumSol = 1;
-const int MatDataNumPhi = 20;
-const int MatDataNumDPhi = 60;
-const int MatDataNumDir = 81;
-/// Represent the state variables of a finite element approximation
-typedef TPZManVector<STATE, 10> TPZFemSol;
-/// Represents the gradient of a state variable of a finite element approximation
-typedef TPZFNMatrix<30, STATE> TPZFemGradSol;
-typedef TPZManVector<TPZFemSol,MatDataNumSol> TPZSolVec;
-typedef TPZManVector<TPZFemGradSol,MatDataNumSol> TPZGradSolVec;
-
-
 class TPZMaterialData : public TPZSavable {
     
 public:
@@ -109,12 +106,10 @@ public:
     TPZFNMatrix<MatDataNumDir> fDeformedDirections;
     /** @} */
     
-#ifdef _AUTODIFF
     /// Directions on the deformed element using Fad
     TPZFNMatrix<MatDataNumDir,Fad<REAL>> fDeformedDirectionsFad;
     /** @} */
-#endif
-    
+
     /** @brief Index of the current integration point being evaluated **/
     /** Needed for materials with memory **/
     int intLocPtIndex;
@@ -183,6 +178,11 @@ public:
     int ClassId() const override;
     
 };
+
+#undef MatDataNumSol
+#undef MatDataNumDPhi
+#undef MatDataNumPhi
+#undef MatDataNumDir
 
 #endif
 

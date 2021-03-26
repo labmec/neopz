@@ -21,10 +21,10 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
-LoggerPtr fluxroe(Logger::getLogger("pz.fluxroe"));
-LoggerPtr fluxappr(Logger::getLogger("pz.fluxappr"));
+static TPZLogger fluxroe("pz.fluxroe");
+static TPZLogger fluxappr("pz.fluxappr");
 
 #endif
 
@@ -270,7 +270,6 @@ void TPZEulerConsLaw::SetDelta(REAL delta)
 
 //------------------Differentiable variables setup
 
-#ifdef _AUTODIFF
 
 void TPZEulerConsLaw::PrepareFAD(
 								 TPZVec<STATE> & sol, TPZFMatrix<STATE> & dsol,
@@ -379,7 +378,6 @@ void TPZEulerConsLaw::PrepareFastestInterfaceFAD(
 	}
 }
 
-#endif
 
 //----------------Contributions
 
@@ -515,7 +513,6 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 	{
 		// if diffusive term is implicit
 		// then the FAD classes must be initialized
-#ifdef _AUTODIFF
 #ifdef FASTEST_IMPLICIT
 		ContributeFastestImplDiff(fDim, x, jacinv, sol, dsol,
 								  phi, dphi, weight, ek, ef);
@@ -524,10 +521,7 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 		PrepareFAD(sol, dsol, phi, dphi, FADsol, FADdsol);
 	    ContributeImplDiff(x, jacinv, FADsol,FADdsol, weight, ek, ef);
 #endif
-#else
-		std::cout << "TPZEulerConsLaw::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
-		ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
-#endif
+
 	}else
 	{
 		if (fDiff == ApproxImplicit_TD)
@@ -571,8 +565,8 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
                                           REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-#ifdef LOG4CXX
-    if(fluxroe->isDebugEnabled()){
+#ifdef PZ_LOG
+    if(fluxroe.isDebugEnabled()){
 		std::stringstream sout;
 		sout << "solL " << dataleft.sol << std::endl << "solR " << dataright.sol << std::endl;
 		LOGPZ_DEBUG(fluxroe,sout.str().c_str());
@@ -589,7 +583,6 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	{
 		// if face contribution is implicit,
 		// then the FAD classes must be initialized
-#ifdef _AUTODIFF
 #ifdef FASTEST_IMPLICIT
 		ContributeFastestImplConvFace(fDim, data.x, dataleft.sol[0], dataright.sol[0],
 									  weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
@@ -597,8 +590,8 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 		TPZVec<FADREAL> FADsolL, FADsolR;
 		PrepareInterfaceFAD(dataleft.sol[0], dataright.sol[0], dataleft.phi, dataright.phi, FADsolL, FADsolR);
 		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
-#ifdef LOG4CXX
-        if(fluxroe->isDebugEnabled()){
+#ifdef PZ_LOG
+        if(fluxroe.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
 			ef.Print("computed rhs",sout);
@@ -606,22 +599,15 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
         }
 #endif
 #endif
-#else
-		// forcing explicit contribution and issueing an warning
-		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-		//         ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
-		ContributeExplConvFace(data.x,dataleft.sol[0],dataright.sol[0],weight,data.normal,dataleft.phi,dataright.phi,ef);
-#endif
+
 	}
 	else if(fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 	{
-#ifdef _AUTODIFF
 		TPZVec<FADREAL> FADsolL, FADsolR;
 		PrepareInterfaceFAD(dataleft.sol[0], dataright.sol[0], dataleft.phi, dataright.phi, FADsolL, FADsolR);
 		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
-#endif
-#ifdef LOG4CXX
-		if(fluxappr->isDebugEnabled()){
+#ifdef PZ_LOG
+		if(fluxappr.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
 			ef.Print("computed rhs",sout);
@@ -714,8 +700,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	{
 		// if face contribution is implicit,
 		// then the FAD classes must be initialized
-#ifdef _AUTODIFF
-		
+
 		//          if(bc.Type() ==5 && fDim == 2)
 		//           {
 		//             int entropyFix2;
@@ -738,8 +723,8 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		PrepareInterfaceFAD(dataleft.sol[0], solR, dataleft.phi, phiR, FADsolL, FADsolR);
 		ComputeGhostState(FADsolL, FADsolR, data.normal, bc, entropyFix);
 		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, phiR, ek, ef, entropyFix);
-#ifdef LOG4CXX
-        if(fluxroe->isDebugEnabled()){
+#ifdef PZ_LOG
+        if(fluxroe.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
 			ef.Print("computed rhs",sout);
@@ -747,32 +732,23 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
         }
 #endif
 #endif
-#else
-		// forcint explicit contribution and issueing an warning
-		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-		//         ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
-		//         ContributeApproxImplConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef,entropyFix);
-#endif
+
 	}
 	else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 	{
-#ifdef _AUTODIFF
 		TPZVec<FADREAL> FADsolL, FADsolR;
 		PrepareInterfaceFAD(dataleft.sol[0], solR, dataleft.phi, phiR, FADsolL, FADsolR);
 		ComputeGhostState(FADsolL, FADsolR, data.normal, bc, entropyFix);
 		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, phiR, ek, ef, entropyFix);
-#ifdef LOG4CXX
-		if(fluxappr->isDebugEnabled()){
+#ifdef PZ_LOG
+		if(fluxappr.isDebugEnabled()){
 			std::stringstream sout;
 			ek.Print("computed tangent matrix",sout);
 			ef.Print("computed rhs",sout);
 			LOGPZ_DEBUG(fluxappr,sout.str().c_str());
 		}
 #endif
-#else
-		//    ComputeGhostState(solL, solR, normal, bc, entropyFix);
-		//    ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef, entropyFix);
-#endif
+
 	}
 	
 	if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
@@ -841,7 +817,6 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	}
 }
 
-#ifdef _AUTODIFF
 
 void TPZEulerConsLaw::ContributeFastestBCInterface(int dim,
 												   TPZVec<REAL> &x,
@@ -875,7 +850,7 @@ void TPZEulerConsLaw::ContributeFastestBCInterface(int dim,
 			PZError << "\nTPZEulerConsLaw::ContributeFastestBCInterface unhandled dimension\n";
 			exit(-1);
 	}
-};
+}
 
 
 template <int dim>
@@ -925,7 +900,6 @@ void TPZEulerConsLaw::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 									entropyFix);
 };
 
-#endif
 
 template <class T>
 void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix)
@@ -1297,7 +1271,6 @@ void TPZEulerConsLaw::ContributeExplDiff(TPZVec<REAL> &x,
 }
 
 
-#ifdef _AUTODIFF
 void TPZEulerConsLaw::ContributeImplDiff(TPZVec<REAL> &x,
 										 TPZFMatrix<REAL> &jacinv,
 										 TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
@@ -1336,7 +1309,6 @@ void TPZEulerConsLaw::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMa
 									   );
 }
 
-#endif
 
 void TPZEulerConsLaw::ContributeExplConvFace(TPZVec<REAL> &x,
 											 TPZVec<STATE> &solL,TPZVec<STATE> &solR,
@@ -1373,7 +1345,6 @@ void TPZEulerConsLaw::ContributeExplConvFace(TPZVec<REAL> &x,
 			flux[i_state] * phiR(i_shape,0) * constant;
 }
 
-#ifdef _AUTODIFF
 
 void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 												   TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
@@ -1440,7 +1411,6 @@ void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSiz
 	
 }
 
-#endif
 
 void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 												   TPZVec<STATE> &solL,TPZVec<STATE> &solR,
@@ -1550,7 +1520,6 @@ void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSiz
 		}
 }
 
-#ifdef _AUTODIFF
 
 void TPZEulerConsLaw::ContributeImplConvFace(TPZVec<REAL> &x,
 											 TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
@@ -1752,7 +1721,6 @@ void TPZEulerConsLaw::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 	
 }
 
-#endif
 
 void TPZEulerConsLaw::ContributeExplConvVol(TPZVec<REAL> &x,
 											TPZVec<STATE> &sol,
@@ -2017,7 +1985,6 @@ void TPZEulerConsLaw::ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
 	}
 }
 
-#ifdef _AUTODIFF
 /**
  * Flux of Roe (MOUSE program)
  */
@@ -2502,7 +2469,6 @@ void TPZEulerConsLaw::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 		}
 	}
 }
-#endif
 /**
  Class identificator
  */

@@ -7,21 +7,19 @@
 #include "tpzgeoblend.h"
 #include "tpzgeoelmapped.h"
 
-#include "pzgeoelrefless.h.h"
-#include "tpzgeoelrefpattern.h.h"
-#include "pznoderep.h.h"
+#include "pzgeoelrefless.h"
+#include "tpzgeoelrefpattern.h"
+#include "pznoderep.h"
 
 #include "tpzgeomid.h"
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticline"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.specialmaps.quadraticline");
 #endif
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 using namespace pzshape;
 using namespace pzgeom;
@@ -214,9 +212,7 @@ namespace pzgeom {
     template void TPZQuadraticLine::X(const TPZFMatrix<REAL>&, TPZVec<REAL>&, TPZVec<REAL>&);
     template void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc, TPZFMatrix<REAL> &gradx);
 
-#ifdef _AUTODIFF
     template void TPZQuadraticLine::X(const TPZFMatrix<REAL>&, TPZVec<Fad<REAL> >&, TPZVec<Fad<REAL> >&);
     template void TPZQuadraticLine::GradX(const TPZFMatrix<REAL> &nodes,TPZVec<Fad<REAL> > &loc, TPZFMatrix<Fad<REAL> > &gradx);
-#endif
 
 }

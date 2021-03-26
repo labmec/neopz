@@ -20,13 +20,12 @@
 #include "pzelmat.h"
 
 #include "pzsysmp.h"
-#include "pzmetis.h"
 #include "pzbndcond.h"
 #include "TPZTimer.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.StrMatrix");
 #endif
 
 using namespace std;
@@ -37,8 +36,8 @@ TPZStructMatrix * TPZSymetricSpStructMatrix::Clone(){
 TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
     }
@@ -57,8 +56,8 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     TPZTimer before("Assembly of a sparse matrix");
 //    std::cout << "Assembling\n";
     before.start();
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
 #endif
 	Assemble(*stiff,rhs,guiInterface);
     mat->ComputeDiagonal();
@@ -69,8 +68,8 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
     //std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
 #endif
     return stiff;
 }
@@ -93,7 +92,7 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::SetupMatrixData(TPZStack<int64_t> 
     TPZSYsmpMatrix<STATE> * mat = new TPZSYsmpMatrix<STATE>(neq,neq);
     
     /**Creates a element graph*/
-    TPZMetis metis;
+    TPZRenumbering metis;
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
     

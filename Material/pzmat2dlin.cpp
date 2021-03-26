@@ -266,7 +266,7 @@ int TPZMat2dLin::ClassId() const{
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid) const
 {
 #ifdef PZDEBUG2
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " before write material ";
@@ -275,7 +275,7 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid) const
 #endif
 	TPZMaterial::Write(buf,withclassid);
 #ifdef PZDEBUG2
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " after write material ";

@@ -19,7 +19,7 @@
 #include "TPZPlasticStepPV.h" // Plastic Integrator
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -1427,7 +1427,7 @@ void LEMCCompareStressStrainTangent() {
     return;
 }
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 BOOST_AUTO_TEST_SUITE(plasticity_tests)
 

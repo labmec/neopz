@@ -1,6 +1,11 @@
 /**
  * @file
- * @brief Contains TPZMatrixclass which implements full matrix (using column major representation).
+ * @brief Contains TPZMatrixclass which implements full matrix (using column major representation). Some functionalities depend on LAPACK.
+
+ The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to 
+ know which functions are affected by this dependency.
+ LAPACK can be linked by setting USING_LAPACK=ON or USING_MKL=ON on CMake
+when configuring the library.
  */
 
 
@@ -21,11 +26,9 @@
 #include "tpzautopointer.h"  // for TPZAutoPointer
 #include <cstdlib>
 
-#ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
 #include "pzextractval.h"
-#endif
 
 class TPZSavable;
 class TPZStream;
@@ -301,11 +304,8 @@ public:
     /** @brief Makes Zero all the elements */
     int Zero() override;
     
-#ifdef USING_LAPACK
     /** @brief Initialize pivot with i = i  */
     void InitializePivot();
-#endif
-
     
     /**
      * @brief This method implements a Gram Schimidt method. \n this = Orthog.TransfToOrthog
@@ -355,64 +355,62 @@ public:
     /** @brief LU substitution using pivot. Static version. */
     static int Substitution(const TVar *ptr, int64_t rows,  TPZFMatrix<TVar> *B, const TPZVec<int> &index );
     
-#ifdef USING_LAPACK
+
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix. If LAPACK is available, it will use its implementation.
      * @param b right hand side and result after all
      */
     virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
-#endif
     
     /** @} */
     
-#ifdef USING_LAPACK
-    /*** @name Solve eigenvalues ***/
+    /*** @name Solve eigenvalues DEPENDS ON LAPACK.***/
     /** @{ */
-    /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
+    /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
      */
     virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
-    /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors
+    /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      */
     virtual int SolveEigenProblem(TPZVec < std::complex<double> > &w);
 
-    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors
+    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
      */
     virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
-    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors
+    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. DEPENDS ON LAPACK.
      * @param w Stores the eigenvalues
      */
     virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w);    
     /** @} */
-#endif
+
     
     /** @brief Routines to send and receive messages */
     public:
@@ -449,11 +447,9 @@ private:
     TVar *fGiven;
     int64_t fSize;
     
-#ifdef USING_LAPACK
     TPZManVector<int,5> fPivot;
     
     TPZVec<TVar> fWork;
-#endif
 };
 
 /** @} */
@@ -707,7 +703,6 @@ inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
     return sqrt(Dot(A,A).real());
 }
 
-#ifdef _AUTODIFF
 inline float Norm(const TPZFMatrix< Fad <float> > &A) {
     return (float)TPZExtractVal::val(sqrt(Dot(A,A)));
 }
@@ -719,7 +714,6 @@ inline double Norm(const TPZFMatrix< Fad <double> > &A) {
 inline long double Norm(const TPZFMatrix< Fad <long double> > &A) {
     return TPZExtractVal::val(sqrt(Dot(A,A)));
 }
-#endif
 
 inline TPZFlopCounter Norm(const TPZFMatrix<TPZFlopCounter> &A)
 {

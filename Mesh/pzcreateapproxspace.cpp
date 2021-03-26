@@ -31,8 +31,8 @@
 
 #include "pzcompelwithmem.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcreateapproximationspace"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzcreateapproximationspace");
 #endif
 
 /** @brief Creates computational point element */
@@ -56,8 +56,8 @@ TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index);
 using namespace pzshape;
 
 TPZCompEl *CreateNoElement(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-#ifdef LOG4CXX
-    if (logger->isWarnEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isWarnEnabled()) {
         std::stringstream sout;
         sout << "Mesh dimension " << mesh.Dimension() << " gel dimension " << gel->Dimension() << " will not create a computational element\n";
         LOGPZ_WARN(logger, sout.str())
@@ -222,8 +222,8 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const TPZVec<int
             if (fCreateHybridMesh) {
                 cmesh.ElementVec()[index]->Reference()->ResetReference();
             }
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
 
                 std::stringstream sout;
@@ -300,8 +300,8 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
                 if (fCreateHybridMesh) {
                     cmesh.ElementVec()[index]->Reference()->ResetReference();
                 }
-#ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+                if (logger.isDebugEnabled())
                 {
                     
                     std::stringstream sout;
@@ -611,7 +611,13 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
             break;
     }
 }
-
+#else
+void TPZCreateApproximationSpace::SetAllCreateFunctionsSBFem(int dimension){
+    PZError<<__PRETTY_FUNCTION__<<" depends on MKL!\n";
+    PZError<<"Please configure NeoPZ with USING_MKL=ON\n";
+    PZError<<"Aborting..."<<std::endl;
+    DebugStop();
+}
 #endif
 
 ////#include "pzhdivfull.h"

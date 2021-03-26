@@ -13,8 +13,8 @@
 
 #include <sstream>
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzspmatrix"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzspmatrix");
 #endif
 
 using namespace std;

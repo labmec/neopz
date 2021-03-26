@@ -44,9 +44,9 @@
 #include <fstream>
 #include <string>
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 
@@ -58,9 +58,6 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	TPZTimer total;
 	total.start();
@@ -110,8 +107,8 @@ int main(int argc, char *argv[])
 		//	std::cout << tempo.ft0sub << std::endl;
 		
 		//	sub.SubStructure();
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
 		{
 			std::stringstream str;
 			cmesh->Print(str);
@@ -170,7 +167,7 @@ int main(int argc, char *argv[])
 			it++;
 		}
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			diag.Print("Resultado do processo iterativo",sout);

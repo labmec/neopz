@@ -8,9 +8,9 @@
 #include "TPZMatPorous.h"
 #include "TPZMatElastoPlastic_impl.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
-static LoggerPtr porousLogger(Logger::getLogger("material.pzPoro"));
+static TPZLogger porousLogger("material.pzPoro");
 #endif
 
 
@@ -19,7 +19,7 @@ TPZMatPorous<T, TMEM >::TPZMatPorous() : TBASEPOROUS(T, TMEM)(), fk(0.), fMu(1.)
 {
     fDeltaT = 1.;
     fTime = Advanced_CT;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << ">>> TPZMatPorous<TBASEPOROUS(T, TMEM)>() constructor called ***";
@@ -34,7 +34,7 @@ TPZMatPorous<T, TMEM >::TPZMatPorous(int id) : TBASEPOROUS(T, TMEM)(id), fk(0.),
 {
     fDeltaT = 1.;
     fTime = Advanced_CT;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << ">>> TPZMatPorous<TBASEPOROUS(T, TMEM)>(int id) constructor called with id = " << id << " ***";
@@ -52,7 +52,7 @@ fRhof(mat.fRhof)
 {
     fDeltaT = mat.fDeltaT;
     fTime = mat.fTime;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << ">>> TPZMatPorous<T>() copy constructor called ***";
@@ -111,7 +111,7 @@ void TPZMatPorous<T, TMEM >::Solution(TPZMaterialData &data, int var, TPZVec<REA
     TBASEPOROUS(T, TMEM)::Solution(data, var, Solout);
     
     /*
-     #ifdef LOG4CXX
+     #ifdef PZ_LOG
      {
      std::stringstream sout;
      sout << "<<< TPZMatPorous<T>::Solution() *** Sol = " << Solout;
@@ -147,7 +147,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
         UpdatePorePressure(data);
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << ">>> TPZMatPorous<T, TMEM >::Contribute ***";
@@ -235,7 +235,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
         
     }//in
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "*** TPZMatPorous<T>::Contribute ***";
@@ -247,7 +247,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
     
     TBASEPOROUS(T, TMEM)::Contribute(data, weight, ek, ef);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "<<< TPZMatPorous<T>::Contribute ***";
@@ -266,7 +266,7 @@ void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
                                           TPZBndCond &bc)
 {
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << ">>> TPZMatPorous<T>::ContributeBC *** with bc.Type()=" << bc.Type();
@@ -305,7 +305,7 @@ void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
         default:
             break;
             
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "<<< TPZMatPorous<T>::ContributeBC *** No Flow BC of Type " << bc.Type()

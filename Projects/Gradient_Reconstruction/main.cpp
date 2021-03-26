@@ -142,8 +142,8 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients,int ref,int typeel,ofstream &
 //Trocar todos os elementos do cmesh apontando para o material TPZL2ProjectionFromGradient
 void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material");
 #endif
 
 int MaxRefs = 6;
@@ -151,9 +151,6 @@ int InitRefs = 5;
 
 int main(int argc, char *argv[]) {
 
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
 	
 	// Initializing uniform refinements for quadrilaterals and triangles
     //gRefDBase.InitializeRefPatterns();
@@ -1367,8 +1364,8 @@ void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix 
         stiffmatrix.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
         rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
                 
-#ifdef LOG4CXX
-        if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logdata.isDebugEnabled())
         {
             std::stringstream sout;
             ek.Print(sout);

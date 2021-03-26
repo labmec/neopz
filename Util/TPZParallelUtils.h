@@ -16,6 +16,8 @@
 #include <thread>
 #include <atomic>
 
+
+namespace pzutils{
 /**based on: https://ideone.com/Z7zldb and netgen source code*/
 
 /** This function aims to enable parallel for loops from first <= i < last
@@ -69,5 +71,5 @@ inline T AtomicAdd( T & sum, T val )
     ;
   return current;
 }
-
+}//namespace
 #endif

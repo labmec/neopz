@@ -43,9 +43,9 @@ using namespace std;
 #include <algorithm>
 #include <iterator>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
-static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzcompel");
+static TPZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
 
 void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
@@ -440,7 +440,7 @@ void TPZCompEl::PrintTitle(const char *varname,std::ostream &s) {
     for(int i=0; i<numvar; i++) s << varname << '_' << i << '\t';
 }
 
-inline void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate) {
+void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate) {
     subindex.Resize(0);
     LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
@@ -653,16 +653,16 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
         LOGPZ_ERROR(logger, "reached a null reference");
         return (0);
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     std::stringstream sout;
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         sout << "Obtendo elemento geometrico de referencia para elemento " << Index() << endl;
         sout << "Impressao dos ancestrais\n";
         Print(sout);
     }
     
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
     {
         ref->Print(sout);
     }
@@ -673,7 +673,7 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
     while(ref->Father()){
         ancestors.Push(ref->Father());
         ref = ref->Father();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         ref->Print(sout);
 #endif
     }

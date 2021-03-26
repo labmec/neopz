@@ -8,9 +8,9 @@
 #include "pzfmatrix.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
-#endif
+
+static TPZLogger logger("pz.StrMatrix");
+
 
 using namespace std;
 

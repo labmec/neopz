@@ -1,4 +1,5 @@
-#taken from: https://github.com/Kitware/VTK/blob/master/CMake/FindTBB.cmake
+# ORIGINALLY FROM: https://github.com/Kitware/VTK/blob/master/CMake/FindTBB.cmake
+# MODIFICATIONS BY orlandini
 # - Find ThreadingBuildingBlocks include dirs and libraries
 # Use this module by invoking find_package with the form:
 #  find_package(TBB
@@ -220,6 +221,14 @@ getenv_path(TBB_ROOT)
 set(TBB_PREFIX_PATH ${TBB_ROOT} ${ENV_TBB_ROOT})
 set(TBB_INC_SEARCH_PATH "")
 set(TBB_LIB_SEARCH_PATH "")
+
+#ADDING OUR CUSTOM PATHS FOR EXTERNAL LIBRARIES
+foreach (dir IN LISTS ${EXTRA_SEARCH_DIRS})
+  list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib ${dir}/Lib ${dir}/lib/tbb
+    ${dir}/Libs)
+  list(APPEND TBB_INC_SEARCH_PATH ${dir}/include ${dir}/Include
+    ${dir}/include/tbb)
+endforeach ()
 
 
 # If user built from sources

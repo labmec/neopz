@@ -21,7 +21,6 @@
 #include "pzysmp.h"
 
 #include "pzbndcond.h"
-#include "pzmetis.h"
 
 
 using namespace std;
@@ -248,7 +247,7 @@ TPZMatrix<STATE> * TPBSpStructMatrix::Create(){
 	//    int nnodes = 0;
     fMesh->ComputeElGraph(elgraph,elgraphindex);
     /**Creates a element graph*/
-    TPZMetis metis;
+    TPZRenumbering metis;
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
     metis.SetElementGraph(elgraph,elgraphindex);
 	

@@ -18,14 +18,12 @@
 #include "checkconv.h"
 #endif
 
-using namespace std;
-
 #include "tfad.h"
 #include "fadType.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX_PLASTICITY
-static LoggerPtr loggerPlasticity(Logger::getLogger("plasticity.plasticstep"));
+#ifdef PZ_LOG
+static TPZLogger loggerPlasticity("plasticity.plasticstep");
 #endif
 
 /**
@@ -161,12 +159,12 @@ public:
     */
     void LoadState(TPZFMatrix<REAL> &state)
     {
-    #ifdef LOG4CXX_PLASTICITY
-        LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
+    #ifdef PZ_LOG
+        TPZLogger logger("plasticity.erladenelson");
     #endif
       int i;
       for(i=0; i<6; i++) gRefDeform[i] = state(i,0);
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG
       std::stringstream sout;
       sout << "State " << state;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -175,8 +173,8 @@ public:
 
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
-        LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
+    #ifdef PZ_LOG
+        TPZLogger logger("plasticity.erladenelson");
     #endif
 
       const int nVars = 6;
@@ -211,7 +209,7 @@ public:
               tangent(i,j) = sigma_FAD[i].dx(j);
           break;
       }
-	#ifdef LOG4CXX_PLASTICITY
+	#ifdef PZ_LOG
       std::stringstream sout;
       sout << "Matriz tangent " << tangent;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -220,8 +218,8 @@ public:
 
     void Residual(TPZFMatrix<REAL> &res,int icase)
     {
-    #ifdef LOG4CXX_PLASTICITY
-        LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
+    #ifdef PZ_LOG
+        TPZLogger logger("plasticity.erladenelson");
     #endif
       int i;
       const int nVars = 6;
@@ -247,7 +245,7 @@ public:
               res(i,0) = sigma[i];
         break;
       }
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG
       std::stringstream sout;
       sout << "Residual vector " << res;
       LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -406,7 +404,7 @@ inline void TPZLadeNelsonElasticResponse::
          // to numerical instability (very large stress forecasts
          // in the Newton scheme at TPZPlasticStep::Sigma.
          Base = TBASE(BaseParameter);
-#ifdef LOG4CXX_PLASTICITY
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "*** ComputeYoung *** Too small Elastic Modulus - Constraining it.";

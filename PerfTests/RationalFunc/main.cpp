@@ -21,12 +21,12 @@ void usage (char *prg)
 {
     std::cout << "\nUsage: " << prg << std::endl;
     std::cout << "Arguments: "<< std::endl;
-    clarg::arguments_descriptions (cout, "   ", "\n");
+    clarg::arguments_descriptions (std::cout, "   ", "\n");
 }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
-static LoggerPtr logger(Logger::getLogger("pz.Cedric-Perf"));
+static TPZLogger logger("pz.Cedric-Perf");
 #endif
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=false, const int matidtodivided=1);
@@ -36,15 +36,9 @@ RunStatsTable cedric_rst ("-ced_rdt", "TCedric::Run statistics raw data table.")
 
 int main (int argc, char **argv)
 {
-    
-
-    /* Log initialization */
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
-        cerr << "Error when parsing the arguments!" << endl;
+        std::cerr << "Error when parsing the arguments!" << std::endl;
         return 1;
     }
     /* Help message */
@@ -62,7 +56,7 @@ int main (int argc, char **argv)
     /* Setting interpolation order */
     TPZCompEl::SetgOrder(porder.get_value());
     /* Output file to store errors */
-    std::ofstream arq("Errors.txt", ios::app);
+    std::ofstream arq("Errors.txt", std::ios::app);
     /* Create Cedric test instance */
     TCedricTest cedric;
     /* CedridTest stats */

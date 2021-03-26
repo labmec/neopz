@@ -14,14 +14,13 @@
 //WaterDataInStateOfSaturation waterdata;
 static OilData oildata;
 
-#ifdef _AUTODIFF
 
 #include "fadType.h"
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("br.steam.cell"));
+#ifdef PZ_LOG
+static TPZLogger logger("br.steam.cell");
 #endif
 
 
@@ -43,7 +42,7 @@ void TPBrCellConservation::CalcStiff(TPZVec<REAL> &leftflux, TPZVec<REAL> &cells
 	TPBrSteamFlux::Initialize<totaleq>(leftflux,leftfad,0);
 	TPBrCellConservation::Initialize<totaleq>(cellstate,cellfad,TPBrSteamFlux::NumFluxEq);
 	TPBrSteamFlux::Initialize<totaleq>(rightflux,rightfad,TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "left flux " << leftfad << std::endl;
@@ -66,7 +65,7 @@ void TPBrCellConservation::CalcStiff(TPZVec<REAL> &leftflux, TPZVec<REAL> &cells
 			ek(i,j) = cellresidualfad[i].d(j);
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		ek.Print("Cell stiffness",sout);
@@ -102,7 +101,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	// [m3]*[Kg/m3] -> [kg]
 	cellresidual[EMassOil] = 
 		volume*fPorosityRock*(DensityOil(cellstate[ETemperature])*cellstate[ESaturationOil]-DensityOil(initialstate[ETemperature])*initialstate[ESaturationOil]);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Cell residual Mass Oil first part " << cellresidual[EMassOil];
@@ -110,7 +109,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
     }
 #endif
 	cellresidual[EMassOil] -= delt*(leftflux[TPBrSteamFlux::EMassFluxOil]-rightflux[TPBrSteamFlux::EMassFluxOil]);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Cell residual Mass Oil accumulated " << cellresidual[EMassOil];
@@ -120,7 +119,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	// conservation of mass of water in the cell ->ESaturationWater
 	// [m3]*[Kg/m3] -> [kg]
 	cellresidual[EMassWater] = volume*fPorosityRock*(DensityWater(cellstate[ETemperature])*cellstate[ESaturationWater]-DensityWater(initialstate[ETemperature])*initialstate[ESaturationWater])+cellstate[EPhaseChange];
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Cell residual Mass Water first part " << cellresidual[EMassWater] << std::endl;
@@ -142,7 +141,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 #endif
 	cellresidual[EMassWater] -= delt*(leftflux[TPBrSteamFlux::EMassFluxWater]-rightflux[TPBrSteamFlux::EMassFluxWater]);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Cell residual Mass Water accumulated " << cellresidual[EMassWater];
@@ -197,7 +196,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	
 	// conservation of energy internal contribution -> ETemperature -> EPhaseChange
 	//[kJ]
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Initial total energy " << InitialTotalEnergy << std::endl;
@@ -344,5 +343,3 @@ REAL TPBrCellConservation::Energy(TPZVec<REAL> &cellstate, REAL volume)
     
 }
 
-
-#endif

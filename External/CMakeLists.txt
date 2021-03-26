@@ -1,31 +1,44 @@
 # @file neopz/External/CMakeLists.txt  -- CMake file for the External module
 
-target_include_directories(pz PUBLIC 
+target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/External>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/External>
+                           )
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/External)
+set(public_headers
+    TPZRenumbering.h
+    )
+set(headers
+    TPZBoostGraph.h
+    TPZCutHillMcKee.h
+    TPZRenumbering.h
+    TPZSloanRenumbering.h
+    fblaswr.h
+    pzsloan.h
+    rcm.h
+    tpznodesetcompute.h
+    pzmetis.h
+    )
 
-file(GLOB sources *.cpp)
+set(sources
+    TPZBoostGraph.cpp
+    TPZCutHillMcKee.cpp
+    TPZRenumbering.cpp
+    TPZSloanRenumbering.cpp
+    pzsloan.cpp
+    rcm.cpp
+    tpznodesetcompute.cpp
+    pzmetis.cpp
+    )
 
-set(pzexternal_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/External)
+
+target_sources(pz PRIVATE ${headers} ${sources})
 
 add_subdirectory(sloan)
-set(sloan_SRCS ${sloan_SRCS} PARENT_SCOPE)
 
-#enabling FAD library
-option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-if(USING_FAD)
-	#Adding a variable to hold this definition
-	add_subdirectory(FAD)
-	set(FAD_SRCS ${FAD_SRCS} PARENT_SCOPE)
-	set(FAD_fad_SRCS ${FAD_fad_SRCS} PARENT_SCOPE)
-	set(FAD_Tiny_SRCS ${FAD_Tiny_SRCS} PARENT_SCOPE)
-	set(FAD_TinyET_SRCS ${FAD_TinyET_SRCS} PARENT_SCOPE)
-endif(USING_FAD)
-
-
-
-
+#for doxygen
+foreach(header ${public_headers})
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+endforeach()
+set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

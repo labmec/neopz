@@ -26,7 +26,18 @@ TPZMatrix<TVar>() {
     cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
 }
-
+template<class TVar>
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
+    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
+    TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
+#ifdef USING_MKL
+    , fPardisoControl(cp.fPardisoControl)
+#endif
+    {
+#ifdef USING_MKL
+        fPardisoControl.SetMatrix(this);
+#endif
+    }
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
 TPZMatrix<TVar>(rows,cols) {
@@ -63,6 +74,14 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar>
     return *this;
 }
 
+template <class TVar> int TPZSYsmpMatrix<TVar>::Zero() {
+  fA.Fill(0.);
+  fDiag.Fill(0.);
+#ifndef USING_MKL
+  TPZMatrix<TVar>::fDecomposed = ENoDecompose;
+#endif
+  return 0;
+}
 
 // ****************************************************************************
 //
@@ -129,7 +148,7 @@ void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	int64_t  r = (opt) ? this->Cols() : this->Rows();
 	
 	// Determine how to initialize z
-	if(beta != 0) {
+	if(IsZero(beta)) {
         z = y*beta;
 	} else {
         z.Zero();
@@ -245,26 +264,13 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
 
 #ifdef USING_MKL
 
-#include "TPZPardisoControl.h"
-/**
- * @name Factorization
- * @brief Those member functions perform the matrix factorization
- * @{
- */
-
-
-/**
- * @brief Decomposes the current matrix using LDLt. \n
- * The current matrix has to be symmetric.
- * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
- */
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
 {
     Decompose_LDLt();
     return 1;
 }
-/** @brief Decomposes the current matrix using LDLt. */
+
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
 {
@@ -279,7 +285,6 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
     
 }
 
-/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
 {
@@ -294,25 +299,14 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
     this->SetIsDecomposed(ECholesky);
     return 1;
 }
-/**
- * @brief Decomposes the current matrix using Cholesky method.
- * @param singular
- */
+
+
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 {
     return Decompose_Cholesky();
 }
 
-
-
-/** @} */
-
-
-/**
- * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
- * @param b right hand side and result after all
- */
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
@@ -322,30 +316,19 @@ int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
     return 1;
 }
 
-/**
- * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
- * @param b right hand side and result after all
- */
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
 {
     return 1;
 }
 
-/**
- * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
- * @param b right hand side and result after all
- */
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
 {
     return 1;
 }
 
-/**
- * @brief Computes B = Y, where A*Y = B, A is lower triangular.
- * @param b right hand side and result after all
- */
+
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
 {
@@ -355,17 +338,80 @@ int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
     return 1;
 }
 
-/**
- * @brief Computes B = Y, where A*Y = B, A is upper triangular.
- * @param b right hand side and result after all
- */
+
 template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
 {
     return 1;
 }
 
+#else
+//perhaps we could default to a less eficient implementation for
+//solving. Perhaps removing the DebugStop() on PutVal() would be enough?
+#define NOMKL \
+    PZError<<__PRETTY_FUNCTION__<<" is not available if NeoPZ ";\
+    PZError<<"was not configured with MKL. Aborting..."<<std::endl;\
+    DebugStop();\
+    return -1;
 
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt(std::list<int64_t> &singular)
+{    
+    NOMKL
+}
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
+{
+    NOMKL
+    
+}
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
+{
+    NOMKL
+}
+
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
+{
+    NOMKL
+}
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+{
+    NOMKL
+}
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+{
+    NOMKL
+}
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
+{
+    NOMKL
+}
+
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
+{
+    NOMKL
+}
+
+
+template<class TVar>
+int TPZSYsmpMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
+{
+    NOMKL
+}
 #endif
 
 
@@ -376,3 +422,5 @@ int TPZSYsmpMatrix<TVar>::ClassId() const{
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
 template class TPZSYsmpMatrix<long double>;
+template class TPZSYsmpMatrix<std::complex<double>>;
+template class TPZSYsmpMatrix<std::complex<float>>;

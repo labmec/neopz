@@ -4,8 +4,8 @@
  */
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzmatred");
 #endif
 
 #include "pzsolve.h"
@@ -63,7 +63,7 @@ void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
 
 template <class TVar>
 void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Entering " << __PRETTY_FUNCTION__;
@@ -72,7 +72,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
 #endif
     TPZSolver<TVar>::Write(buf, withclassid);
     if (fContainer) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "fContainer AutoPointer valid on " << __PRETTY_FUNCTION__;
@@ -83,7 +83,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
     TPZPersistenceManager::WritePointer(fContainer.operator->(), &buf);
     
     if (fReferenceMatrix) {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "fReferenceMatrix AutoPointer valid! It Shouldn't ! Expect Trouble " << __PRETTY_FUNCTION__;
@@ -93,7 +93,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
     }
     TPZPersistenceManager::WritePointer(fReferenceMatrix.operator->(), &buf);
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Leaving" << __PRETTY_FUNCTION__;
@@ -109,6 +109,16 @@ void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 	fContainer = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 	fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
+
+template class TPZSolver<float>;
+template class TPZSolver<std::complex<float> >;
+
+template class TPZSolver<double>;
+template class TPZSolver<std::complex<double> >;
+
+template class TPZSolver<long double>;
+template class TPZSolver<std::complex<long double> >;
+
 
 template class TPZMatrixSolver<float>;
 template class TPZMatrixSolver<std::complex<float> >;

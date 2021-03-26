@@ -9,8 +9,8 @@
 #include "pzcmesh.h"
 #include <algorithm>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzelementgroup"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzelementgroup");
 #endif
 
 TPZElementGroup::TPZElementGroup() : 
@@ -70,8 +70,8 @@ void TPZElementGroup::AddElement(TPZCompEl *cel)
         int64_t cindex = it->fFaces[0].first;
         fRestraints[cindex] = *it;
     }
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Hiding element index " << elindex << " from the mesh data structure";
@@ -214,8 +214,8 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t ic=0; ic<ncon ; ic++) {
         locindex[fConnectIndexes[ic]] = ic;
     }
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Calcstiff Element Group Index " << Index();
@@ -228,8 +228,8 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Assembling element " << el << " out of " << nel;
@@ -243,8 +243,8 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
         
         cel->CalcStiff(ekloc, efloc);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled() ) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled() ) {
             TPZGeoEl *gel = cel->Reference();
             
             int matid = 0;
@@ -295,8 +295,8 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 
         }
     }
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Connect indices " << fConnectIndexes << std::endl;
             //ek.fBlock.Print("EKBlockAssembled = ",sout,&ek.fMat);

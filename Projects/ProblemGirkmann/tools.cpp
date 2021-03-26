@@ -25,9 +25,9 @@ using namespace std;
 
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("agnaldo.integrate"));
-static LoggerPtr loggertensoes(Logger::getLogger("agnaldo.tensoes"));
+#ifdef PZ_LOG
+//static TPZLogger logger("agnaldo.integrate");
+static TPZLogger loggertensoes("agnaldo.tensoes");
 #endif
 
 
@@ -752,7 +752,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 //	REAL T1zL = 0.;
 //	REAL T1z = 0.;
 	std::string estr1,estr2;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		static int count = 0;
 		std::stringstream sout1, sout2,sout;
@@ -860,7 +860,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 						r = xco2[0];
 						z = xco2[1];
 						
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 						{
 							std::stringstream outfile;
 							outfile.precision(15);
@@ -971,7 +971,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 						r = xco2[0];
 						z = xco2[1];
 						
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 						{
 							std::stringstream outfile;
 							outfile.precision(15);

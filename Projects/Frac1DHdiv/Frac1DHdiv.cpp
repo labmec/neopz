@@ -4,20 +4,12 @@
 #include "TPZFracAnalysis.h"
 #include "pzshapelinear.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.frac"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.frac");
 #endif
 
 int main()
 {
-    
-#ifdef LOG4CXX
-    std::string dirname = PZSOURCEDIR;
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/Frac1DHdiv/";
-    FileName += "FracLog.cfg";
-    InitializePZLOG(FileName);
-#endif
     
     TPZMaterial::gBigNumber = 1.e7; // so flow imposition in fracture can have low residuum
     

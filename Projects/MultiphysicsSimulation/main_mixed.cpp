@@ -93,8 +93,8 @@ void NeumannDireitaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void NeumannAcimaSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &result);
 void SolExataSteklovSuave(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du);
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.mixedpoisson.data");
 #endif
 
 const bool triang = true;
@@ -103,11 +103,6 @@ bool l2proj = false;
 bool calcerroglobal = true;
 int main5(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-////	std::string logs("../logmixedproblem.cfg");
-////	InitializePZLOG("../logmixedproblem.cfg");
-    InitializePZLOG();
-#endif
     //gRefDBase.InitializeAllUniformRefPatterns();
     
     TPZVec<REAL> erros;
@@ -146,8 +141,8 @@ int main5(int argc, char *argv[])
 //                ofstream arg2("cmesh1_inicial.txt");
 //                cmesh1->Print(arg2);
 
-        #ifdef LOG4CXX
-                            if(logdata->isDebugEnabled())
+        #ifdef PZ_LOG
+                            if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
                                 sout << "Flux mesh\n";
@@ -164,8 +159,8 @@ int main5(int argc, char *argv[])
                 else cmesh2 = CMeshPressure(gmesh, p);
                 //ofstream arg3("cmesh2_inicial.txt");
                 //cmesh2->Print(arg3);
-        #ifdef LOG4CXX
-                            if(logdata->isDebugEnabled())
+        #ifdef PZ_LOG
+                            if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
                                 sout << "Pressure mesh\n";
@@ -197,8 +192,8 @@ int main5(int argc, char *argv[])
                 TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
                 //ofstream arg6("mphysic.txt");
                 //mphysics->Print(arg6);
-        #ifdef LOG4CXX
-                            if(logdata->isDebugEnabled())
+        #ifdef PZ_LOG
+                            if(logdata.isDebugEnabled())
                             {
                                 std::stringstream sout;
                                 sout << "Multiphysics mesh\n";
@@ -425,8 +420,8 @@ TPZGeoMesh *GMesh(bool triang_elements){
     
 	gmesh->BuildConnectivity();
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -468,8 +463,8 @@ TPZGeoMesh *GMesh2(bool triang_elements)
     secondpoint[0] = 0.5;
     gengrid.SetBC(gmesh,firstpoint,secondpoint,bc0);
     
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
       std::stringstream sout;
       gmesh->Print(sout);
@@ -643,8 +638,8 @@ TPZGeoMesh *GMesh3(){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -695,8 +690,8 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
@@ -785,8 +780,8 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     }
 #endif
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Computacional_2 pressure\n ";
@@ -1636,8 +1631,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
 
     }
     
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nResultados com SideToSideTransform\n";
@@ -1649,8 +1644,8 @@ REAL Compute_dudnQuadradoError(int ndiv, TPZCompMesh *cmesh, bool isquadradofech
     }
 #endif
     
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nSolSideToSide = {";
@@ -1738,8 +1733,8 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
         intrule->SetOrder(prevorder);
     }
     
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nResultados com elemento 1D\n";
@@ -1752,8 +1747,8 @@ REAL Compute_dudnQuadradoError(TPZCompMesh *cmesh){
 #endif
     
     
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "\nSol1D = {";

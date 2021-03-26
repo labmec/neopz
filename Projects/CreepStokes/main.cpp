@@ -61,9 +61,6 @@ int main(int argc, char *argv[])
     
     TPZMaterial::gBigNumber = 1.e12;
     
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     //Dados do problema:
     
     int h_level = 8;
@@ -206,9 +203,6 @@ int main(int argc, char *argv[])
     
     TPZMaterial::gBigNumber = 1.e16;
     
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     //Dados do problema:
     
     int h_level = 16;

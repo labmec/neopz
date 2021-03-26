@@ -15,14 +15,12 @@
 
 #include "pznumeric.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pzquadrilateral"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.topology.pzquadrilateral");
 #endif
 
 using namespace std;
@@ -191,7 +189,7 @@ namespace pztopology {
             sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
+            #ifdef PZ_LOG
             LOGPZ_FATAL(logger,sout.str().c_str());
             #endif
             DebugStop();
@@ -1266,7 +1264,6 @@ template void pztopology::TPZQuadrilateral::ComputeHDivDirections<REAL>(TPZFMatr
 template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
 
 template void pztopology::TPZQuadrilateral::ComputeHCurlFaceDirections<REAL>(TPZVec<REAL> &v1, TPZVec<REAL> &v2, int transformationId);
-#ifdef _AUTODIFF
 template bool pztopology::TPZQuadrilateral::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
 template void pztopology::TPZQuadrilateral::MapToSide<Fad<REAL> >(int side, TPZVec<Fad<REAL> > &InternalPar, TPZVec<Fad<REAL> > &SidePar, TPZFMatrix<Fad<REAL> > &JacToSide);
@@ -1280,4 +1277,3 @@ template void pztopology::TPZQuadrilateral::ComputeHDivDirections<Fad<REAL>>(TPZ
 template void pztopology::TPZQuadrilateral::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
 
 template void pztopology::TPZQuadrilateral::ComputeHCurlFaceDirections<Fad<REAL>>(TPZVec<Fad<REAL>> &v1, TPZVec<Fad<REAL>> &v2, int transformationId);
-#endif

@@ -86,8 +86,6 @@
 
 #include "pzreal.h" // PRETTY_FUNCTION for WIN32 Macro definition
 
-using namespace std;
-
 namespace clarg 
 {
 
@@ -101,25 +99,25 @@ namespace clarg
    * Dump the arguments to file.
    * Returns 0 if ok, != 0 otherwise.
    */
-  int dump_arguments_to_file(ostream& os);
+  int dump_arguments_to_file(std::ostream& os);
 
   /**
    * Read the arguments from file.
    * Returns 0 if ok, != 0 otherwise.
    */
-  int parse_arguments_from_file(istream& is);
+  int parse_arguments_from_file(std::istream& is);
 
   /**
    * Print the arguments descriptions. Very usefull when printing usage
    * messages.
    */
-  void arguments_descriptions(ostream& os, string prefix, string suffix);
+  void arguments_descriptions(std::ostream& os, std::string prefix, std::string suffix);
 
   /** 
    * Print the arguments values. If defined_only is true, only the arguments set
    * at the command line are printed.
    */
-  void values(ostream& os, bool defined_only=true);
+  void values(std::ostream& os, bool defined_only=true);
 
   class args_container;
 
@@ -130,9 +128,9 @@ namespace clarg
 
     arg_base(const char* name, const char* desc);
 
-    const string& get_name() const { return arg_name; }
+    const std::string& get_name() const { return arg_name; }
 
-    const string& get_desc() const { return arg_desc; }
+    const std::string& get_desc() const { return arg_desc; }
 
     /* Return true if the argument was set, false otherwise. */
     bool was_set() const { return arg_set; }
@@ -152,14 +150,14 @@ namespace clarg
     /**
      * write the argument parameters into the output stream.
      */
-    virtual void write_parameters (ostream& os, bool def=false) const = 0;
+    virtual void write_parameters (std::ostream& os, bool def=false) const = 0;
 
     /** True if the argument was set */
     bool   arg_set;
     /** The argument name. */
-    string arg_name;
+    std::string arg_name;
     /** The argument description. */
-    string arg_desc;
+    std::string arg_desc;
 
     friend class args_container;
   };
@@ -190,11 +188,11 @@ namespace clarg
   /** 
    * String argument class.
    */
-  class argString : public argT<string>
+  class argString : public argT<std::string>
   {
   public:
-  argString(const char* arg, const char* desc, string v) :
-    argT<string>(arg,desc)
+  argString(const char* arg, const char* desc, std::string v) :
+    argT<std::string>(arg,desc)
   {
     def_value = v;
     value = def_value;
@@ -203,10 +201,10 @@ namespace clarg
     int parse_parameters (int argc, char* argv [])
     {
       if (argc <= 0) return -1;
-      value = string(argv[0]);
+      value = std::string(argv[0]);
       return 1;
     }
-    void write_parameters (ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const
     {
       if (def)
 	os << def_value;
@@ -235,10 +233,10 @@ namespace clarg
       try {
 	std::stringstream(argv[0]) >> value;
       }
-      catch (const exception& ) {return -1;}
+      catch (const std::exception& ) {return -1;}
       return 1;
     }
-    void write_parameters (ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const
     {
       if (def)
 	os << def_value;
@@ -266,10 +264,10 @@ namespace clarg
       try {
 	std::stringstream(argv[0]) >> value;
       }
-      catch (const exception& ) {return -1;}
+      catch (const std::exception& ) {return -1;}
       return 1;
     }
-    void write_parameters (ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const
     {
       if (def)
 	os << def_value;
@@ -293,7 +291,7 @@ namespace clarg
   protected:
     int parse_parameters (int argc, char* argv [])
     { value = true; return 0; }
-    void write_parameters (ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const
     {}
   };
 

@@ -28,12 +28,12 @@
 
 // Using Log4cXX as logging tool
 //
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.poisson3d"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.poisson3d");
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.poisson3d.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.poisson3d.data");
 #endif
 //
 // End Using Log4cXX as logging tool
@@ -47,9 +47,6 @@ void Run(int PolynomialOrder, int  Href, std::string GeoGridFile, int div);
 
 int main()
 {
-	#ifdef LOG4CXX
-		InitializePZLOG();
-	#endif
     
 	//	Files to read
 	std::string GeoGridFile;
@@ -135,7 +132,7 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 		}
 	}
 //	End: This part depends on Material parameters	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         cmesh->Print(sout);
@@ -151,7 +148,7 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 
 	TPZAnalysis MyAnalysis (cmesh);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		cmesh->Print(sout);

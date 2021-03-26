@@ -23,10 +23,8 @@
 
 #include "TPZPersistenceManager.h"
 
-#ifdef _AUTODIFF
 template <class T> class Fad;
 template <int Num, class T> class TFad;
-#endif
 
 static uint64_t fCurrentVersion = 1; //TODO:AQUIFRANTake this away
 
@@ -92,7 +90,6 @@ public:
 
     virtual void Write(const std::complex< long double > *p, int howMany = 1);
 
-#ifdef _AUTODIFF
 
     virtual void Write(const TFad< 1, REAL > *p, int howMany = 1) = 0;
     
@@ -118,7 +115,6 @@ public:
 
     virtual void Write(const Fad<std::complex< long double >> *p, int howMany = 1);
 
-#endif
 
     void Write(const TPZFlopCounter *p, int howMany = 1);
 
@@ -159,8 +155,7 @@ public:
 
     virtual void Read(std::complex< long double > *p, int howMany = 1);
 
-#ifdef _AUTODIFF
-    
+
     virtual void Read(TFad< 1, REAL > *p, int howMany = 1) = 0;
     
     virtual void Read(TFad< 6, REAL > *p, int howMany = 1) = 0;
@@ -186,7 +181,6 @@ public:
     virtual void Read(Fad<std::complex< long double >> *p, int howMany = 1);
 
 
-#endif
 
     void Read(TPZFlopCounter *p, int howMany = 1);
 

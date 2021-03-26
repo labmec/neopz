@@ -12,8 +12,8 @@
 #include "pzlog.h"
 #include <sstream>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.geoblend");
 #endif
 
 template<class TGeo>
@@ -63,8 +63,8 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 	}
 	else
 	{
-#ifdef LOG4CXX
-        if(logger->isWarnEnabled())
+#ifdef PZ_LOG
+        if(logger.isWarnEnabled())
         {
         
             std::stringstream mess;
@@ -85,10 +85,10 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
 
     TPZGeoEl &gel = *fGeoEl;
     TPZGeoMesh *gmesh = gel.Mesh();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     const auto VAL_WIDTH = 10;
     std::ostringstream soutLogDebug;
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {   soutLogDebug<<"======================_______REF_1"<<std::endl;
         soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::GradX"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
@@ -104,8 +104,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         TPZManVector<T, 3> neighXi;
         TPZFNMatrix<9, T> dNeighXiDXi;
         if (!MapToNeighSide(TGeo::NSides-1, TGeo::Dimension, xiInterior, neighXi, dNeighXiDXi)) {
-#ifdef LOG4CXX2
-            if(logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+            if(logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "MapToNeighSide is singular for par " << xi << " and side " << TGeo::NSides-1 << ". Aborting...";
                 LOGPZ_DEBUG(logger,sout.str())
@@ -142,10 +142,10 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         }
     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     soutLogDebug<<"FIRST TERM"<<std::endl;
     soutLogDebug << "gradient of linear mapping:\n";
-    if (logger->isDebugEnabled()) {
+    if (logger.isDebugEnabled()) {
         for (int i = 0; i < gradXLin.Rows(); i++) {
             for (int j = 0; j < gradXLin.Cols(); j++) {
                 soutLogDebug << std::setw(VAL_WIDTH) << std::right << gradXLin(i, j);
@@ -177,24 +177,24 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
 
         int side = TGeo::NNodes + sideIndex;
         TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
-        #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        #ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             soutLogDebug << "================================" << std::endl;
             soutLogDebug << "side: " << side << " is linear: ";
         }
         #endif
         if (IsLinearMapping(side) || !gelside.Exists()) {
             blendFactor[sideIndex] = 0;
-            #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            #ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 if (IsLinearMapping(side)) soutLogDebug << "true" << std::endl;
                 else soutLogDebug << "false (no gelside) " << std::endl;
             }
             #endif
             continue;
         }
-        #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        #ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             soutLogDebug << "false (gelside exists) " << std::endl;
         }
         #endif
@@ -205,8 +205,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         TPZFNMatrix<9, T> transfXiToSideXi;
         bool regularMap = TGeo::CheckProjectionForSingularity(side, xiInterior);
         if (!regularMap) {
-            #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            #ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 soutLogDebug << "mapping is not regular. skipping side... ";
 
             }
@@ -258,8 +258,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         gradLinSideXiSide.Multiply(transfXiToSideXi,gradLinSide);//gradLinSideTemp = gradLinSideXiSide.transfXiToSideXi
         dXprojDxiSide.Multiply(transfXiToSideXi,dXiProjectedOverSideDxi);//dXprojDxiTemp = dXprojDxiSide.transfXiToSideXi
 
-        #ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+        #ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             soutLogDebug << "xi projection over side: ";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug << xiProjectedOverSide[x] << "\t";
             soutLogDebug << "\nGrad of projected point to side:\n";
@@ -307,8 +307,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
         TPZManVector<T, 3> neighXi;
         TPZFNMatrix<9, T> dNeighXiDXi;
         if (!MapToNeighSide(side, sidedim, xiInterior, neighXi, dNeighXiDXi)) {
-#ifdef LOG4CXX2
-            if(logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+            if(logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
                 LOGPZ_DEBUG(logger,sout.str())
@@ -335,8 +335,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
              subSideIndex < allContainedSides.NElements(); subSideIndex++) {
 //            TPZFNMatrix<9, T> gradNonLinSubSide(3,TGeo::Dimension,(T)0);
             const int subSide = allContainedSides[subSideIndex];
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 soutLogDebug << "\tSubside " << subSideIndex << " (global: " << subSide << ") is linear: ";
                 if (IsLinearMapping(subSide)) soutLogDebug << "true" << std::endl;
                 else soutLogDebug << "false" << std::endl;
@@ -349,8 +349,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
             TPZFNMatrix<3, T> dCorrFactorSideDxi(TGeo::Dimension,1,(T)0);
             TGeo::BlendFactorForSide(subSide, xiProjectedOverSide, blendFactorSide, dCorrFactorSideDxiProj);
 
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 soutLogDebug << "\tSubside influence :" << blendFactorSide << std::endl;
             }
 #endif
@@ -364,8 +364,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
 
 //                dCorrFactorSideDxi = dCorrFactorSideDxiProjMat . dXiProjectedOverSideDxi;
             dCorrFactorSideDxiProjMat.Multiply(dXiProjectedOverSideDxi,dCorrFactorSideDxi);
-            #ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+            #ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 soutLogDebug << "\n\tGrad of correction factor of point projected to side:\n";
                 for(int i = 0; i < dCorrFactorSideDxi.Rows(); i++){
                     soutLogDebug<<"\t";
@@ -393,8 +393,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
             }
         }
 //        }
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             soutLogDebug << "Non-linear mapping: ";
             for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\t";
             soutLogDebug << "\nGrad of non-linear mapping:\n";
@@ -450,8 +450,8 @@ void pzgeom::TPZGeoBlend<TGeo>::GradX(TPZFMatrix<REAL> &coord, TPZVec<T> &xiInte
             }
         }
     }
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()){
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;
@@ -490,9 +490,9 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
     TPZFNMatrix<9,T> notUsedHereMat(TGeo::NSides, TGeo::NSides,(T)0);//since some methods dont resize the matrix, it is
     // bigger than needed.
 
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
     std::ostringstream soutLogDebug;
-    if(logger->isDebugEnabled())
+    if(logger.isDebugEnabled())
     {
         soutLogDebug << "TPZGeoBlend<" <<MElementType_Name(TGeo::Type())<<">::X2_______REF_1"<<std::endl;
         soutLogDebug << "element id " <<gel.Id()<<std::endl;
@@ -508,8 +508,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
     if (fNeighbours[TGeo::NSides - 1 -TGeo::NNodes].ElementIndex() != -1){
         TPZManVector<T, 3> neighXi;
         if (!MapToNeighSide(TGeo::NSides-1, TGeo::Dimension, xi, neighXi, notUsedHereMat)) {
-#ifdef LOG4CXX2
-            if(logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+            if(logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "MapToNeighSide is singular for par " << xi << " and side " << TGeo::NSides-1 << ". Aborting...";
                 LOGPZ_DEBUG(logger,sout.str())
@@ -535,8 +535,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
             result[x] += coord(x, iNode) * phi(iNode, 0);
         }
     }
-    #ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+    #ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         soutLogDebug << "Linear mapping:\n"<<std::endl;
         for(int i = 0; i < result.size(); i++) soutLogDebug<<result[i]<<"\n";
@@ -560,8 +560,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
     for (int sideIndex = 0; sideIndex < TGeo::NSides - TGeo::NNodes - 1; sideIndex++) {
         int side = TGeo::NNodes + sideIndex;
         if(!isRegularMapping[sideIndex]) {
-            #ifdef LOG4CXX
-            if(logger->isDebugEnabled()){
+            #ifdef PZ_LOG
+            if(logger.isDebugEnabled()){
                 soutLogDebug <<"mapping is not regular. skipping side... ";
 
             }
@@ -569,8 +569,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
             continue;
         }
         TPZGeoElSide gelside(fNeighbours[sideIndex], gmesh);
-        #ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+        #ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             soutLogDebug << "================================" <<std::endl;
             soutLogDebug << "side: "<<side<<" is linear: ";
@@ -578,16 +578,16 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
         #endif
         if (IsLinearMapping(side) || !gelside.Exists()) {
             blendFactor[sideIndex] = 0;
-            #ifdef LOG4CXX
-            if(logger->isDebugEnabled()){
+            #ifdef PZ_LOG
+            if(logger.isDebugEnabled()){
                 if( IsLinearMapping(side) )  soutLogDebug <<"true"<<std::endl;
                 else    soutLogDebug <<"false (no gelside) "<<std::endl;
             }
             #endif
             continue;
         }
-        #ifdef LOG4CXX
-        if(logger->isDebugEnabled()){
+        #ifdef PZ_LOG
+        if(logger.isDebugEnabled()){
             soutLogDebug <<"false (gelside exists) "<<std::endl;
         }
         #endif
@@ -619,8 +619,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
         /**
          * Calculates the non-linear mapping of the side sideIndex
          */
-        #ifdef LOG4CXX
-        if(logger->isDebugEnabled()){
+        #ifdef PZ_LOG
+        if(logger.isDebugEnabled()){
             soutLogDebug <<"xi projection over side:\n";
             for (int x = 0; x < TGeo::Dimension; x++) soutLogDebug<<projectedPointOverSide(sideIndex,x)<<"\n";
             soutLogDebug<<std::endl<<"xi projection in side domain:\n";
@@ -634,8 +634,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
         int sidedim = gelside.Dimension();
         TPZManVector<T, 3> neighXi;
         if (!MapToNeighSide(side, sidedim, xi, neighXi, notUsedHereMat)) {
-#ifdef LOG4CXX2
-            if(logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+            if(logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "MapToNeighSide is singular for par " << par << " and side " << byside << " skipping the side ";
                 LOGPZ_DEBUG(logger,sout.str())
@@ -658,16 +658,16 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
         for (int subSideIndex = containedNodesInSide.NElements();
              subSideIndex < allContainedSides.NElements(); subSideIndex++) {
             const int subSide = allContainedSides[subSideIndex];
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 soutLogDebug << "\tSubside " << subSideIndex << " (global: " << subSide << ") is linear: ";
                 if (IsLinearMapping(subSide)) soutLogDebug << "true" << std::endl;
                 else soutLogDebug << "false" << std::endl;
             }
 #endif
             if(!isRegularMapping[subSide - TGeo::NNodes]) {
-                #ifdef LOG4CXX
-                if(logger->isDebugEnabled()){
+                #ifdef PZ_LOG
+                if(logger.isDebugEnabled()){
                     soutLogDebug <<"mapping of subside is not regular. skipping side... ";
 
                 }
@@ -683,8 +683,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
             T blendFactorSide = -1;
             TGeo::BlendFactorForSide(subSide, projectedPoint, blendFactorSide,notUsedHereVec);
 
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 soutLogDebug << "\tSubside influence :" << blendFactorSide << std::endl;
             }
 #endif
@@ -697,8 +697,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
 
         }
 //        }
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             soutLogDebug << "Non-linear mapping\n";
             for (int x = 0; x < 3; x++) soutLogDebug << nonLinearSideMappings(sideIndex, x) << "\n";
             soutLogDebug << std::endl;
@@ -714,8 +714,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix<REAL> &coord, TPZVec<T> &xi, TPZVec
                          (nonLinearSideMappings(sideIndex, x) - linearSideMappings(sideIndex, x));
         }
     }
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()){
         soutLogDebug << "================================" <<std::endl;
         soutLogDebug << "=============result=============" <<std::endl;
         soutLogDebug <<"================================"<<std::endl;
@@ -740,8 +740,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
     TPZManVector<REAL> SidesCounter(TGeo::NSides,0);
     TPZStack<int> LowNodeSides, LowAllSides;
 	
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "input parameter par " << par;
@@ -774,8 +774,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
             Ax.Transpose(); 
             Ax.Multiply(J1,J2);
 			
-#ifdef LOG4CXX
-			if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+			if(logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "byside " << byside << std::endl;
@@ -793,8 +793,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
 			
             J2.Multiply(Jneighbourhood,J1);
 			
-#ifdef LOG4CXX
-			if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+			if(logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "acumulated jacobian(J1) " << J1 << std::endl;
@@ -830,8 +830,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
         }
     }
 	
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		JacTemp.Print("Jabobian before contributing the nodes",sout);
@@ -898,8 +898,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL>& 
         
         if(IsZero(detjac))
 		{
-#ifdef LOG4CXX
-            if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Singular Jacobian " << detjac;
@@ -1095,7 +1095,6 @@ template class pzgeom::TPZGeoBlend<TPZGeoQuad>;
 template class pzgeom::TPZGeoBlend<TPZGeoLinear>;
 template class pzgeom::TPZGeoBlend<TPZGeoPoint>;
 
-#ifdef _AUTODIFF
 
 ///CreateGeoElement -> TPZGeoBlend
 #define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
@@ -1120,40 +1119,3 @@ IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
 IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
 
 #undef IMPLEMENTBLEND
-
-#else
-
-///CreateGeoElement -> TPZGeoBlend
-#define IMPLEMENTBLEND(TGEO,CREATEFUNCTION) \
-\
-template void pzgeom::TPZGeoBlend<TGEO>::X(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZVec<REAL> &result) const; \
-template void pzgeom::TPZGeoBlend<TGEO>::GradX(TPZFMatrix<REAL> &coord, TPZVec<REAL> &xiInterior, TPZFMatrix<REAL> &gradx) const;\
-template class \
-TPZRestoreClass< TPZGeoElRefPattern<TPZGeoBlend<TGEO> >>; \
-\
-template class TPZGeoElRefLess<TPZGeoBlend<TGEO> >;\
-template class TPZGeoElRefPattern<TPZGeoBlend<TGEO> >;
-
-IMPLEMENTBLEND(pzgeom::TPZGeoPoint,CreatePointEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoLinear,CreateLinearEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoQuad,CreateQuadEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoTriangle,CreateTriangleEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoCube,CreateCubeEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoPrism,CreatePrismEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoPyramid,CreatePyramEl)
-IMPLEMENTBLEND(pzgeom::TPZGeoTetrahedra,CreateTetraEl)
-
-#undef IMPLEMENTBLEND
-
-
-#endif
-
-
-
-/*@orlandini : I REALLY dont know why is this here, so I have commented the following lines.
-If it breaks something, I am sorry.*/
-
-//#include "pznoderep.h.h"
-//template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
-//template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
-

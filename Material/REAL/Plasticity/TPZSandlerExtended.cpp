@@ -13,12 +13,12 @@
 #include "TPZConvergenceException.h"
 #include "TPZInconsistentStateException.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("plasticity.poroelastoplastic"));
+#ifdef PZ_LOG
+static TPZLogger logger("plasticity.poroelastoplastic");
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr loggerConvTest(Logger::getLogger("ConvTest"));
+#ifdef PZ_LOG
+static TPZLogger loggerConvTest("ConvTest");
 #endif
 
 TPZSandlerExtended::TPZSandlerExtended() : ftol(1e-8), fA(0), fB(0), fC(0), fD(0), fW(0), fK(0), fR(0), fG(0), fPhi(0), fN(0), fPsi(0), fE(0), fnu(0), fkappa_0(0) {
@@ -372,7 +372,7 @@ void TPZSandlerExtended::SurfaceParamF1(TPZVec<STATE> &sigproj, STATE &xi, STATE
 }
 
 void TPZSandlerExtended::F2Cyl(STATE theta, STATE beta, STATE k, TPZVec<STATE> &f2cyl) const {
-    const STATE M_SQRT3 = sqrt(3.);
+
     const STATE gamma = 0.5 * (1.0 + sin(3.0 * beta) + (1.0 - sin(3.0 * beta)) / fPsi);
     const STATE Fk = F(k);
     const STATE var = fR * Fk * cos(theta);
@@ -466,8 +466,8 @@ void TPZSandlerExtended::DDistF2IJ(TPZVec<T> &sigtrialIJ, T theta, T L, STATE LP
     T x = (I1 - (L + Fk * fR * cos(theta)));
     ddistf2[0] = T(2.) * x * Fk * fR * sin(theta) / T(9. * fK) - T(2.) * y * Fk * cos(theta);
     ddistf2[1] = ResLF2IJ(sigtrialIJ, theta, L, LPrev);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "x = " << x << " y = " << y << " theta = " << theta << " res = " << ddistf2[0];
         LOGPZ_DEBUG(logger, sout.str())
@@ -1179,10 +1179,10 @@ void TPZSandlerExtended::ProjectApex(const TPZVec<STATE> &sigmatrial, STATE kpre
 }
 
 void TPZSandlerExtended::ProjectF1(const TPZVec<STATE> &trial_stress, STATE kprev, TPZVec<STATE> & projected_stress, STATE &kproj) const {
-#ifdef LOG4CXX
-    if (loggerConvTest->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerConvTest.isDebugEnabled()) {
         std::stringstream outfile;
-        outfile << "\n projection over F1 " << endl;
+        outfile << "\n projection over F1 \n";
         LOGPZ_DEBUG(loggerConvTest, outfile.str());
     }
 #endif
@@ -1521,10 +1521,10 @@ void TPZSandlerExtended::ProjectCapCoVertex(const TPZVec<STATE> &trial_stress, S
 }
 
 void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
-#ifdef LOG4CXX
-	if (loggerConvTest->isDebugEnabled()) {
+#ifdef PZ_LOG
+	if (loggerConvTest.isDebugEnabled()) {
 		std::stringstream outfile;
-		outfile << "\n projection over Ring " << endl;
+		outfile << "\n projection over Ring \n";
 		LOGPZ_DEBUG(loggerConvTest, outfile.str());
 	}
 #endif
@@ -1568,10 +1568,10 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
         xn1(1, 0) = xn(1, 0) - sol(1, 0);
         xn1(2, 0) = xn(2, 0) - sol(2, 0);
 
-#ifdef LOG4CXX
-		if (loggerConvTest->isDebugEnabled()) {
+#ifdef PZ_LOG
+		if (loggerConvTest.isDebugEnabled()) {
 			std::stringstream outfile; //("convergencF1.txt");
-			outfile << counter << " " << log(resnorm) << endl;
+			outfile << counter << " " << log(resnorm) << '\n';
 			//jac.Print(outfile);
 			//outfile<< "\n xn " << " "<<fxnvec <<endl;
 			//outfile<< "\n res " << " "<<fxnvec <<endl;
@@ -1607,7 +1607,7 @@ void TPZSandlerExtended::ProjectRing(const TPZVec<STATE> &sigmatrial, STATE kpre
 }
 
 void TPZSandlerExtended::ProjectBetaConstF2(const TPZVec<STATE> &sigmatrial, STATE kprev, TPZVec<STATE> &sigproj, STATE &kproj) const {
-    //#ifdef LOG4CXX
+    //#ifdef PZ_LOG
     //    {
     //        std::stringstream outfile;
     //        outfile << "\n projection over F2 " <<endl;
@@ -2223,8 +2223,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
     // kprev corresponde a L do artigo
     if (I1 < kprev) {
         if (yield[1] > 0. && !threeEigEqual) {
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Projecting on F2, distinct eigenvalues " << sigtrial;
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2242,8 +2242,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             DF2cart.Multiply(dbetadsigtrial, GradSigma);
             GradSigma *= -1.;
         } else if (yield[1] > 0. && threeEigEqual) {
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Projecting on F2, equal eigenvalues " << sigtrial;
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2256,8 +2256,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             SurfaceParamF2(sigproj, kproj, theta, beta);
             // theta should be Pi
             // for hydrostatic stress beta doesn't mean anything
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Surface parameters for sigproj = " << sigproj << " kproj " << kproj << " theta " << theta;
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2266,8 +2266,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             TPZManVector<STATE, 2> sigtrialIJ(2, 0.), sigprojIJ(2), ddistf2(2);
             sigtrialIJ[0] = sigtrial[0] + sigtrial[1] + sigtrial[2];
             DDistF2IJ(sigtrialIJ, theta, kproj, kprev, ddistf2);
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Derivative of the distance function (should be zero) = " << ddistf2;
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2308,8 +2308,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
                 JacSigprojThetaK(1, 0) = sigprojIJFAD[1].d(0);
                 JacSigprojThetaK(1, 1) = sigprojIJFAD[1].d(1);
             }
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Derivative of the distanceIJ " << ddistf2 << std::endl;
                 JacThetaK.Print("Derivative of distanceIJ with respect to theta, K", sout);
@@ -2321,8 +2321,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 #endif
             std::list<int64_t> singular;
             JacThetaK.Solve_LU(&JacSigtrIJ, singular);
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Negative of derivative of Theta,K with respect to sigtrIJ" << std::endl;
                 JacSigtrIJ.Print("Derivative = ", sout);
@@ -2332,8 +2332,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
             TPZFNMatrix<4, STATE> dsigprojdsigtr(2, 2);
             JacSigprojThetaK.Multiply(JacSigtrIJ, dsigprojdsigtr);
             dsigprojdsigtr *= -1.;
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 dsigprojdsigtr.Print("Derivative of SigprojIJ with respect to SigtrialIJ", sout);
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2357,8 +2357,8 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
         }
     } else {
         if (yield[0] > 0.) {
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Projecting on F1";
                 LOGPZ_DEBUG(logger, sout.str())
@@ -2420,9 +2420,9 @@ void TPZSandlerExtended::ProjectSigmaDep(const TPZVec<STATE> &sigtrial, STATE kp
 
             }
         } else {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
-                if (logger->isDebugEnabled()) {
+                if (logger.isDebugEnabled()) {
                     std::stringstream sout;
                     sout << "Elastic Behaviour";
                     LOGPZ_DEBUG(logger, sout.str())
@@ -2677,7 +2677,7 @@ void TPZSandlerExtended::CheckCoordinateTransformation(TPZVec<STATE> &cart) {
     TPZHWTools::FromHWCylToPrincipal(HWCyl, Cart2);
     REAL dist1 = dist(cart, Cart2);
     REAL dist2 = dist(HWCart, HWCart2);
-    cout << __FUNCTION__ << " dist1 = " << dist1 << " dist2 = " << dist2 << endl;
+    std::cout << __FUNCTION__ << " dist1 = " << dist1 << " dist2 = " << dist2 << std::endl;
 
 }
 
@@ -3071,7 +3071,7 @@ void TPZSandlerExtended::TaylorCheckDtbkDsigtrial(const TPZVec<STATE> &sigtrial,
         errnorm[i - 1] = Norm(resid - residguess);
         for (int a = 0; a < 3; a++) erros(a, i - 1) = fabs(resid[a] - residguess[a]);
     }
-    erros.Print(cout);
+    erros.Print(std::cout);
 
 }
 

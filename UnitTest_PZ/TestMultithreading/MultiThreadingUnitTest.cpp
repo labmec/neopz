@@ -26,8 +26,8 @@
 #define BOOST_TEST_MAIN pz #define BOOST_TEST_MAIN pz multithreading_tests tests
 
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testmultithread"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.testmultithread");
 #endif
 
 #include "boost/test/unit_test.hpp"
@@ -36,7 +36,6 @@ struct SuiteInitializer
   {
     SuiteInitializer()
     {
-      InitializePZLOG();
       boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_warnings );
     }
 };

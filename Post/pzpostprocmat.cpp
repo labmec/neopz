@@ -6,9 +6,9 @@
 //#include "poroelastoplasticid.h"
 #include "pzbndcond.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #include "pzlog.h"
-static LoggerPtr postprocLogger(Logger::getLogger("material.pzPostProcMat"));
+static TPZLogger postprocLogger("material.pzPostProcMat");
 #endif
 
 
@@ -90,7 +90,7 @@ int TPZPostProcMat::NStateVariables() const
 void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 {
 	
-#ifdef LOG4CXX_keep
+#ifdef PZ_LOG_keep
   {
     std::stringstream sout;
     sout << ">>> TPZPostProcMat::Solution() *** called for variable index = " << var;

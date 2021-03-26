@@ -30,11 +30,11 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testmesh"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.testmesh");
 #endif
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -51,7 +51,6 @@ BOOST_AUTO_TEST_SUITE(meshcondensetests)
 
 BOOST_AUTO_TEST_CASE(verifystiff)
 {
-    InitializePZLOG();
     std::cout << "Verifying creating and undoing condensed elements\n";
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     cmesh->ComputeNodElCon();
@@ -69,7 +68,6 @@ BOOST_AUTO_TEST_CASE(verifystiff)
 
 BOOST_AUTO_TEST_CASE(globalcompute)
 {
-    InitializePZLOG();
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     cmesh->ComputeNodElCon();
     TPZCreateApproximationSpace::CondenseLocalEquations(cmesh);
@@ -116,7 +114,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     cmesh->SetDefaultOrder(2);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         cmesh->Print(sout);

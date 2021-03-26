@@ -32,9 +32,7 @@
 
 #include "pzgmesh.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 #include "TPZVTKGeoMesh.h"
 
@@ -64,10 +62,6 @@ void ComputeGradofX(TPZGeoMesh * mesh, std::string file_name, TPZFMatrix<REAL> &
 
 int main()
 {
-    
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     std::string file_name;
     TPZFMatrix<REAL> triplets;
     

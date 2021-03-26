@@ -9,7 +9,6 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
-#include "pzgenericshape.h"
 
 using namespace std;
 

@@ -52,8 +52,8 @@
 #include "pzgeoquad.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.reducedspace.data");
 #endif
 
 REAL uglyGlobTol = 1.e-10;
@@ -2313,8 +2313,8 @@ REAL ToolsTransient::IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int max
 	an->Solution().Print("sol");
 	std::cout << "iter = " << nit << "\t||res|| = " << res << std::endl;
 	
-#ifdef LOG4CXX
-	if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+	if (logger.isDebugEnabled()) {
 		std::stringstream totout;
 		totout << "************** Comecando as iteracoes do metodo de Newton *************** " << std::endl;
 		totout << "iter = " << nit << "\t||res|| = " << res << std::endl;
@@ -2360,8 +2360,8 @@ REAL ToolsTransient::IterativeProcess(bool IsFirstTime, TPZAnalysis *an, int max
 		
 		res_total = fres + fmat;
 		
-#ifdef LOG4CXX
-		if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+		if (logger.isDebugEnabled()) {
 			std::stringstream totout;
       /*
 			totout << "iter = " << nit+1 << "\t||res|| = " << res << std::endl;
@@ -3218,7 +3218,7 @@ void ToolsTransient::IdentifyEquationsToZero()
       }
     }
   }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
   {
     std::stringstream sout;
     sout << "Equations to zero ";

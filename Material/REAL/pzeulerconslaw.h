@@ -16,15 +16,9 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-extern LoggerPtr fluxroe;
-extern LoggerPtr fluxappr;
-#endif
 
-#ifdef _AUTODIFF
 #include "fadType.h"
 #define _TFAD
-#endif
 
 /**
  * @ingroup material
@@ -273,7 +267,6 @@ public:
 							   T &flux_rhoE, int entropyFix = 1);
 	/** @} */
 	
-#ifdef _AUTODIFF
 	/** @name Differentiable variables setup */
 	/** @{ */
 	
@@ -322,8 +315,7 @@ public:
 									TPZVec<T> & FADsolR);
 	/** @} */
 	
-#endif
-	
+
 	/** @name Contributions methods */
 	/** @{ */
 	
@@ -410,7 +402,6 @@ public:
 							TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
 							TPZFMatrix<STATE> &ef);
 	
-#ifdef _AUTODIFF
 	void ContributeImplDiff(TPZVec<REAL> &x,
 							TPZFMatrix<REAL> &jacinv,
 							TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
@@ -425,8 +416,7 @@ public:
 								   REAL weight,
 								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
-#endif
-	
+
 	void ContributeExplConvFace(TPZVec<REAL> &x,
 								TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 								REAL weight,TPZVec<REAL> &normal,
@@ -440,8 +430,7 @@ public:
 									  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef, int entropyFix = 1
 									  );
 	
-#ifdef _AUTODIFF
-	
+
 	void ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 									  TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 									  REAL weight,TPZVec<REAL> &normal,
@@ -477,8 +466,7 @@ public:
 										 TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,int entropyFix = 1);
 	
-#endif
-	
+
 	void ContributeImplConvVol(TPZVec<REAL> &x,
 							   TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 							   REAL weight,
@@ -491,13 +479,11 @@ public:
 							   TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
 							   TPZFMatrix<STATE> &ef);
 	
-#ifdef _AUTODIFF
 	void ContributeImplConvVol(TPZVec<REAL> &x,
 							   TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 							   REAL weight,
 							   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
-#endif
-	
+
 	void ContributeExplT1(TPZVec<REAL> &x,
 						  TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 						  REAL weight,
@@ -803,13 +789,11 @@ inline void TPZEulerConsLaw::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec
 }
 
 
-#ifdef _AUTODIFF
 template <class T>
 inline REAL val(T & number)
 {
 	return number.val();
 }
-#endif
 
 template< class T >
 inline void TPZEulerConsLaw::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)

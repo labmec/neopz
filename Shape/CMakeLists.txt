@@ -2,16 +2,44 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Shape>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Shape>
+                           )
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Shape)
+set(headers
+    TPZShapeDisc.h
+    pzgenericshape.h
+    pzshapeextend.h
+    pzshapepiram.h
+    pzshapepoint.h
+    pzshapequad.h
+    pzshapetriang.h
+    doxshape.h
+    pzshapecube.h
+    pzshapelinear.h
+    pzshapepiramHdiv.h
+    pzshapeprism.h
+    pzshapetetra.h
+    )
 
-file(GLOB sources *.cpp)
+set(sources
+    TPZShapeDisc.cpp
+    pzgenericshape.cpp
+    pzshapecube.cpp
+    pzshapelinear.cpp
+    pzshapepiram.cpp
+    pzshapepiramHdiv.cpp
+    pzshapeprism.cpp
+    pzshapequad.cpp
+    pzshapetetra.cpp
+    pzshapetriang.cpp
+    )
 
-set(pzshape_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Shape)
 
+target_sources(pz PRIVATE ${headers} ${sources})
 
-
-
+#for doxygen
+foreach(header ${headers})
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+endforeach()
+set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

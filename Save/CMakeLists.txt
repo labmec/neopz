@@ -2,14 +2,45 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Save>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Save>
+                           )
+#@TODO: define public interface
+set(headers
+    TPZBFileStream.h
+    TPZChunkTranslator.h
+    TPZContBufferedStream.h
+    TPZGeneralFStream.h
+    TPZRestoredInstance.h
+    TPZStream.h
+    pzmd5stream.h
+    TPZChunkInTranslation.h
+    TPZCircBufferedStream.h
+    TPZFileStream.h
+    TPZPersistenceManager.h
+    TPZSavable.h
+    doxsave.h
+    )
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Save)
+set(sources
+    TPZBFileStream.cpp
+    TPZChunkTranslator.cpp
+    TPZContBufferedStream.cpp
+    TPZPersistenceManager.cpp
+    TPZSavable.cpp
+    pzmd5stream.cpp
+    TPZChunkInTranslation.cpp
+    TPZCircBufferedStream.cpp
+    TPZFileStream.cpp
+    TPZRestoredInstance.cpp
+    TPZStream.cpp
+    )
 
-file(GLOB sources *.cpp)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Save)
 
-set(pzsave_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
 
-
+#for doxygen
+foreach(header ${headers})
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+endforeach()
+set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

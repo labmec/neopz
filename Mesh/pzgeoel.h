@@ -18,9 +18,7 @@
 #include "Hash/TPZHash.h"
 
 #include "pzgeoelside.h"
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 class TPZGeoNode;
 class TPZCompMesh;
@@ -82,11 +80,9 @@ public:
     /** Returns the directions of this geoel */
     virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &directions)  = 0;
 
-#ifdef _AUTODIFF
     /** Returns the directions of this geoel */
     virtual void HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL> > &directions)  = 0;
-#endif
-    
+
     /** Returns the eldest ancestor of this geoel */
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform<REAL> &trans) = 0;
 	
@@ -551,14 +547,12 @@ public:
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const = 0;
     
-#ifdef _AUTODIFF
     /** @brief Return the coordinate in real space of the point coordinate in the master element space*/
     virtual void X(TPZVec<Fad<REAL> > &qsi,TPZVec<Fad<REAL> > &result) const = 0;
     
     /** @brief Return the gradient of the transformation at the given coordinate */
     virtual void GradX(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const = 0;
-#endif
-    
+
 //	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
 	/** @brief To test continuity */

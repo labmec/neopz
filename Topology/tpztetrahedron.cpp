@@ -12,14 +12,12 @@
 #include "pzeltype.h"
 #include "tpztriangle.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pztetrahedron"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.topology.pztetrahedron");
 #endif
 
 using namespace std;
@@ -278,7 +276,7 @@ namespace pztopology {
 
         if(!sout.str().empty()){
             PZError<<std::endl<<sout.str()<<std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             LOGPZ_FATAL(logger,sout.str().c_str());
 #endif
             DebugStop();
@@ -1632,7 +1630,6 @@ template void pztopology::TPZTetrahedron::TShape<REAL>(const TPZVec<REAL> &loc,T
 template void pztopology::TPZTetrahedron::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
 
 template void pztopology::TPZTetrahedron::ComputeHCurlDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions, const TPZVec<int> &transformationIds);
-#ifdef _AUTODIFF
 
 template bool pztopology::TPZTetrahedron::CheckProjectionForSingularity<Fad<REAL> >(const int &side, const TPZVec<Fad<REAL> > &xiInterior);
 
@@ -1645,4 +1642,3 @@ template void pztopology::TPZTetrahedron::TShape<Fad<REAL>>(const TPZVec<Fad<REA
 template void pztopology::TPZTetrahedron::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
 
 template void pztopology::TPZTetrahedron::ComputeHCurlDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions, const TPZVec<int> &transformationIds);
-#endif

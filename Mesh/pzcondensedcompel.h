@@ -11,18 +11,6 @@
 #include "pzmanvector.h"
 #include "pzelmat.h"
 
-#ifdef USING_BLAS
-//#define USING_DGER
-#ifdef USING_MKL
-#include <mkl.h>
-#elif MACOSX
-#include <Accelerate/Accelerate.h>
-#else
-#include "cblas.h"
-#endif
-#endif
-
-
 
 /**
  * @brief Class which implements an element which condenses the internal connects

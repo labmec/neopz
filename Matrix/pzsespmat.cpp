@@ -12,8 +12,8 @@
 
 #include <sstream>
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsspmatrix"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzsspmatrix");
 #endif
 
 using namespace std;

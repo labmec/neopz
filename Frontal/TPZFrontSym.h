@@ -8,12 +8,6 @@ class TPZEqnArray;
 #ifndef TPZFRONTSYM_H
 #define TPZFRONTSYM_H
 
-#ifdef USING_ATLAS
-extern "C"{
-#include <cblas.h>
-};
-#endif
-
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>

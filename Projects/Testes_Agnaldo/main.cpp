@@ -81,18 +81,13 @@ void ErrorHDiv2(TPZCompMesh *hdivmesh, std::ostream &out,void (*fp)(const TPZVec
 void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STATE> &deriv));
 
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.porolasticmf2d.data");
 #endif
 
 //problema murad e Loula
 int main(int argc, char *argv[])
 {
-    
-#ifdef LOG4CXX
-	std::string logs("../logporoelastc2d.cfg");
-	InitializePZLOG("../logporoelastc2d.cfg");
-#endif
     
     bool triang=false;
     bool dimensionless = true;
@@ -545,10 +540,6 @@ void SolucaoPQMurad(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<STAT
 
 //problema de Terzaghi com Se!=0
 int main_Terzaghi(int argc, char *argv[]){
-#ifdef LOG4CXX
-	std::string logs("../logporoelastc2d.cfg");
-	InitializePZLOG("../logporoelastc2d.cfg");
-#endif
     
     int nthreads = 0;
     
@@ -970,10 +961,6 @@ void SolucaoPQTerzaghi(const TPZVec<REAL> &ptx, TPZVec<STATE> &sol, TPZFMatrix<S
 
 //Problema Barry and Mercer
 int main_BarryMercer(int argc, char *argv[]){
-
-    #ifdef LOG4CXX
-        InitializePZLOG();
-    #endif
     
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -2134,10 +2121,6 @@ void ForcingBCDeslocamento(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 //Problema Barry and Mercer: pressure solution
 int main_BarryMercerPressureSolution(int argc, char *argv[]){
     
-    //    #ifdef LOG4CXX
-    //        InitializePZLOG();
-    //    #endif
-    
     int nthreads = 8;
     
     bool triang = true;
@@ -2522,8 +2505,8 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out,void (*fp)(const TPZVec<REAL
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);
-//#ifdef LOG4CXX
-//        if (logger->isDebugEnabled()) {
+//#ifdef PZ_LOG
+//        if (logger.isDebugEnabled()) {
 //            std::stringstream sout;
 //            sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
 //            LOGPZ_DEBUG(logger, sout.str())

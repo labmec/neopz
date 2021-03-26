@@ -46,9 +46,9 @@
 
 #include "pzfstrmatrix.h"
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
@@ -81,9 +81,6 @@ int main(int argc, char *argv[])
 
 int main1(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	TPZTimer total;
 	total.start();
@@ -167,8 +164,8 @@ int main1(int argc, char *argv[])
 		//	std::cout << tempo.ft0sub << std::endl;
 		
 		//	sub.SubStructure();
-#ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream str;
 			cmesh->Print(str);
@@ -313,8 +310,8 @@ int main1(int argc, char *argv[])
 			it++;
 		}
 		
-#ifdef LOG4CXX
-		if(loggerconverge->isInfoEnabled())
+#ifdef PZ_LOG
+		if(loggerconverge.isInfoEnabled())
 		{
 			std::stringstream sout;
 			diag.Print("Resultado do processo iterativo",sout);
@@ -371,9 +368,6 @@ int main1(int argc, char *argv[])
 
 int main3(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     int numthreads = 0;
     int dim = 2;
 
@@ -476,7 +470,7 @@ int main3(int argc, char *argv[])
             DebugStop();
         }
         
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo antes do ajuste",sout);
@@ -515,7 +509,7 @@ int main3(int argc, char *argv[])
             it++;
         }
         
-    #ifdef LOG4CXX
+    #ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);
@@ -655,7 +649,7 @@ int main4(int argc, char *argv[])
             DebugStop();
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo antes do ajuste",sout);
@@ -694,7 +688,7 @@ int main4(int argc, char *argv[])
             it++;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);
@@ -813,7 +807,7 @@ int main5(int argc, char *argv[])
             DebugStop();
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo antes do ajuste",sout);
@@ -852,7 +846,7 @@ int main5(int argc, char *argv[])
             it++;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);
@@ -906,9 +900,6 @@ int main5(int argc, char *argv[])
 
 int main2(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	/*
 	 TPZFMatrix<STATE> teste(2,2);
@@ -970,7 +961,7 @@ int main2(int argc, char *argv[])
 	 
 	 
 	 dohrptr->Initialize();
-	 #ifdef LOG4CXX
+	 #ifdef PZ_LOG
 	 {
 	 std::stringstream sout;
 	 dohrptr->Print("DohrMatrix without condensation", sout);
@@ -989,8 +980,8 @@ int main2(int argc, char *argv[])
 	TPZAutoPointer<TPZMatrix<STATE> > dohr2(dohrptr2);
 	sub.InitializeDohrCondense(dohr2,dohrassembly2);
 	dohrptr2->Initialize();
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		dohr2->Print("The dohr matrix condensed",sout);
@@ -998,8 +989,8 @@ int main2(int argc, char *argv[])
 	}
 #endif
 	
-#ifdef LOG4CXX
-	if(loggerconverge->isDebugEnabled())
+#ifdef PZ_LOG
+	if(loggerconverge.isDebugEnabled())
 	{
 			std::stringstream sout;
 			sout << "Three dimensional substructures, maxlevel " << maxlevel << " level of substructures " << sublevel << std::endl;
@@ -1014,8 +1005,8 @@ int main2(int argc, char *argv[])
 	precondptr2->Initialize();
 	
 	
-#ifdef LOG4CXX
-	if(loggerconverge->isDebugEnabled())
+#ifdef PZ_LOG
+	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Printing after creating the preconditioner\n";
@@ -1031,8 +1022,8 @@ int main2(int argc, char *argv[])
 	
 	TPZFMatrix<STATE> diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
 	precondptr2->Multiply(diag,produto);
-#ifdef LOG4CXX
-	if(loggerconverge->isDebugEnabled())
+#ifdef PZ_LOG
+	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
 		produto.Print("O valor do produto", sout );
@@ -1041,8 +1032,8 @@ int main2(int argc, char *argv[])
 #endif
 	
 	precondptr2->Multiply(diag,produto2);
-#ifdef LOG4CXX
-	if(loggerconverge->isDebugEnabled())
+#ifdef PZ_LOG
+	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
 		produto2.Print("O valor do produto2", sout );
@@ -1084,8 +1075,8 @@ int main2(int argc, char *argv[])
 	dohr2->Multiply(diag,produto);
 	dohrptr2->AdjustResidual(produto);
 	
-#ifdef LOG4CXX
-	if(loggerconverge->isDebugEnabled())
+#ifdef PZ_LOG
+	if(loggerconverge.isDebugEnabled())
 	{
 		std::stringstream sout;
 		produto.Print("O valor do produto", sout );
@@ -1101,7 +1092,7 @@ int main2(int argc, char *argv[])
 	
 	cg.SetCG(500,pre,1.e-8,0);
 	cg.Solve(produto,diag);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		diag.Print("Resultado do processo antes do ajuste",sout);
@@ -1110,7 +1101,7 @@ int main2(int argc, char *argv[])
 #endif
 	
 	dohrptr2->AddInternalSolution(diag);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		diag.Print("Resultado do processo iterativo",sout);

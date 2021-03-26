@@ -2,12 +2,6 @@
  * @file
  * @brief Contains the TPZReadMeshHR class which reads a mesh in a "human readable" format.
  */
-/*****************************************************************************
- * O contedo desse arquivo �de propriedade do LabMeC-DES-FEC-UNICAMP e do
- * CENPES-Petrobras. 
- * O uso de qualquer parte ou do todo est�condicionado �expressa autoriza�o
- * dos propriet�ios.
- *****************************************************************************/
 
 #ifndef PZREADMESHHR_H
 #define PZREADMESHHR_H

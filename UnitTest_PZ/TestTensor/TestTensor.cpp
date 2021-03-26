@@ -16,7 +16,7 @@
 #include "pzsysmp.h"
 #include "TPZTensor.h"
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -28,7 +28,7 @@
 
 #endif
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 /// Testing Eigenvalues of a tensor
 

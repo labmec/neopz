@@ -50,12 +50,12 @@
 #include <stdio.h>
 
 // Using Log4cXX as logging tool
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphase");
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.multiphase.data");
 #endif
 //
 // End Using Log4cXX as logging tool
@@ -99,18 +99,8 @@ REAL angle = 0.0*M_PI/4.0;
 int main()
 {   
 	std::string dirname = PZSOURCEDIR;
-#ifdef LOG4CXX
-     std::string FileName = dirname;
-    FileName = dirname + "/Projects/OilWaterSystem/";
-    FileName += "OilWaterLog4cxx.cfg";
-    InitializePZLOG(FileName);
-//     InitializePZLOG();
-#endif
     
-//  
-//#ifdef LOG4CXX
-//  InitializePZLOG();
-//#endif        
+
     
     //      gRefDBase.InitializeAllUniformRefPatterns();
     
@@ -1024,8 +1014,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 //      ResidualT= RhsAtnT + RhsAtnPlusOneT;        
 //      NormValueT = Norm(ResidualT);
 
-#ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 mphysics->Solution().Print("Sol = ",sout,EMathematicaInput);
@@ -1041,8 +1031,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
     matK=NonLinearAn->Solver().Matrix();
     fvec = NonLinearAn->Rhs();
     
-#ifdef LOG4CXX
-   if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+   if(logdata.isDebugEnabled())
    {
        std::stringstream sout;
        matK->Print("matK = ", sout,EMathematicaInput);
@@ -1074,8 +1064,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             mphysics->LoadSolution(Uatn + DeltaX);          
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
-#ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout.precision(20);
@@ -1085,8 +1075,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             }
 #endif          
             
-//#ifdef LOG4CXX
-//          if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//          if(logdata.isDebugEnabled())
 //          {
 //              std::stringstream sout;
 //              Uatk.Print("Uatk = ",sout,EMathematicaInput);           
@@ -1124,8 +1114,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
             std::cout << "Time for Assemble and computing norm: " << time2 << std::endl;	    
                 
             
-#ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout.precision(15);             
@@ -1136,8 +1126,8 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 #endif      
 
             
-//#ifdef LOG4CXX
-//          if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//          if(logdata.isDebugEnabled())
 //          {
 //              std::stringstream sout;
 //              sout.precision(20);

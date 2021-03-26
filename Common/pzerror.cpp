@@ -1,6 +1,6 @@
 #include "pzerror.h"
 
-void DebugStopImpl(const char *fileName, const std::size_t lineN)
+void pzinternal::DebugStopImpl(const char *fileName, const std::size_t lineN)
 {
 #ifdef WIN32
 	//ShowMessage("Erro encontrado! Entre em contato com o suporte do programa!");

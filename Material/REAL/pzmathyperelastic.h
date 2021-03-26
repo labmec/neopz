@@ -9,9 +9,7 @@
 #include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /**
  * @ingroup material
@@ -20,11 +18,7 @@
 class TPZMatHyperElastic : public TPZMaterial {
 	
     STATE fXf[3];
-#ifndef _AUTODIFF
-	STATE fK2[3][3], fK3[3][3], fK4[3][3], fK6[3][3], fK7[3][3], fK8[3][3];
-	STATE fL1[3][3],fL2[3][3],fL3[3][3],fL4[3][3],fL5[3][3],fL6[3][3],fL7[3][3],fL8[3][3],fL9[3][3],fGradtrC[3][3];
-    STATE fGradDetF[3][3];
-#endif
+
 	STATE fE1[3],fE5[3],fE9[3];
 
     
@@ -64,8 +58,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-#ifdef _AUTODIFF
-	
+
 	/** @brief Computes contribution to the energy at an integration point*/
 	virtual void ContributeEnergy(TPZVec<REAL> &x,
 								  TPZVec<FADFADREAL> &sol,
@@ -80,8 +73,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 									TPZVec<FADFADREAL> & sol, FADFADREAL &U,
 									REAL weight, TPZBndCond &bc);
 	
-#endif
-	
+
 	virtual int VariableIndex(const std::string &name) override;
 	
 	virtual int NSolutionVariables(int var) override;

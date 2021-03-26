@@ -2,7 +2,7 @@
 
 #include "TPZElastoPlasticMem.h"
 #include "TPZElastoPlasticMemTranslator.h"
-
+#include "pzadmchunk.h"
 
 TPZElastoPlasticMem::TPZElastoPlasticMem(): m_sigma(), m_elastoplastic_state(), m_plastic_steps(0),m_phi(0.), m_u(3,0.)
 {

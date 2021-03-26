@@ -9,10 +9,10 @@
 #include "pzbndcond.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr elastoplasticLogger(Logger::getLogger("pz.material.pzElastoPlastic"));
-static LoggerPtr updatelogger(Logger::getLogger("pz.material.pzElastoPlastic.update"));
-static LoggerPtr ceckconvlogger(Logger::getLogger("checkconvmaterial"));
+#ifdef PZ_LOG
+static TPZLogger elastoplasticLogger("pz.material.pzElastoPlastic");
+static TPZLogger updatelogger("pz.material.pzElastoPlastic.update");
+static TPZLogger ceckconvlogger("checkconvmaterial");
 #endif
 
 
@@ -25,8 +25,8 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic() : TPZMatWithMem<TMEM>(), m_fo
     m_PostProcessDirection[0] = 1.;
     m_use_non_linear_elasticity_Q = false;
     
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>() constructor called ***";
@@ -47,8 +47,8 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(int id) : TPZMatWithMem<TMEM>(i
     TPZPlasticState<STATE> def;
     
     
-#ifdef LOG4CXX
-    if (elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>(int id) constructor called with id = " << id << " ***";
@@ -63,8 +63,8 @@ TPZMatElastoPlastic<T,TMEM>::TPZMatElastoPlastic(const TPZMatElastoPlastic &othe
 m_force(other.m_force), m_rho_bulk(other.m_rho_bulk), m_PostProcessDirection(other.m_PostProcessDirection),
 m_plasticity_model(other.m_plasticity_model), m_tol(other.m_tol), m_PER(other.m_PER)
 {
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>() copy constructor called ***";
@@ -78,8 +78,8 @@ m_plasticity_model(other.m_plasticity_model), m_tol(other.m_tol), m_PER(other.m_
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::SetPlasticityModel(T & plasticity)
 {
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::SetPlasticityModel " << std::endl;
@@ -95,8 +95,8 @@ void TPZMatElastoPlastic<T,TMEM>::SetPlasticityModel(T & plasticity)
     memory.m_elastoplastic_state = plastloc.GetState();
     plastloc.ApplyStrainComputeSigma(memory.m_elastoplastic_state.m_eps_t, memory.m_sigma);
     this->SetDefaultMem(memory);
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "<< TPZMatElastoPlastic<T,TMEM>::SetPlasticityModel " << std::endl;
@@ -433,8 +433,8 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
     
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -630,8 +630,8 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
         }//jn
     }//in
     
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -648,8 +648,8 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
                                                TPZFMatrix<REAL> &ef,
                                                TPZBndCond &bc)
 {
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::ContributeBC *** with bc.Type()=" << bc.Type();
@@ -769,7 +769,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
             break;
             
         default:
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "<<< TPZMatElastoPlastic<T,TMEM>::ContributeBC *** WRONG BOUNDARY CONDITION TYPE = " << bc.Type();
@@ -784,8 +784,8 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << ">>> TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -848,8 +848,8 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
         
     }//in
     
-#ifdef LOG4CXX
-    if(elastoplasticLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(elastoplasticLogger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute ***";
@@ -913,7 +913,7 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & dat
 {
     TPZFNMatrix<9> DSolXYZ(3,3,0.);
     data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
-    cout << "\n data dsol \n";
+    std::cout << "\n data dsol \n";
     data.dsol[0].Print("data.sol");
     DeltaStrain.Redim(6,1);
     DeltaStrain(_XX_,0) = DSolXYZ(0,0);
@@ -988,8 +988,8 @@ void TPZMatElastoPlastic<T,TMEM>::CheckConvergence(TPZMaterialData & data, TPZFM
     e2-=part3;
     REAL n = (log10(Norm(e1))-log10(Norm(e2)))/(log10(alfa)-log10(alfa2));
     
-#ifdef LOG4CXX
-    if(ceckconvlogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(ceckconvlogger.isDebugEnabled())
     {
         std::stringstream sout;
         TPZManVector<REAL,3> phi(3,1);
@@ -1108,7 +1108,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenValues(TPZFMatrix<REAL> & vectorTensor, T
     bool result = Tensor.SolveEigenvaluesJacobi(numiterations, m_tol, &ev);
     if (result == false){
         PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << m_tol << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "<<< TPZMatElastoPlastic<T,TMEM>::EigenValues *** not solved within " << numiterations << " iterations";
@@ -1136,7 +1136,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenVectors(TPZFMatrix<REAL> &vectorTensor, T
     bool result = Tensor.SolveEigensystemJacobi(numiterations, m_tol, Eigenvalues, Eigenvectors);
     if (result == false){
         PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << m_tol << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "<<< TPZMatElastoPlastic<T,TMEM>::EigenVectors *** not solved within " << numiterations << " iterations";

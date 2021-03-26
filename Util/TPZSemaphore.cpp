@@ -6,12 +6,13 @@
 #include "TPZSemaphore.h"
 
 #include <fstream>
+#include <sstream>
 #include <thread>
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.util.semaphore"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.util.semaphore");
 #endif
 
 
@@ -34,8 +35,8 @@ void TPZSemaphore::Wait()
 	if (fCounter > 0)
 	{
 		fCounter--;
-#ifdef LOG4CXX
-		if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+		if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 #ifdef VC
@@ -53,8 +54,8 @@ void TPZSemaphore::Wait()
     fCond.wait(lck);
 		if (fCounter > 0) {
 			fCounter--;
-#ifdef LOG4CXX
-			if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+			if(logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 #ifdef VC
@@ -77,15 +78,11 @@ void TPZSemaphore::Post()
 	std::unique_lock lck(fMutex);
         
 	fCounter++;
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
-#ifdef VC
 		sout << "THREAD IN SEMAPHORE POST: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
-#else
-		sout << "THREAD IN SEMAPHORE POST: " << std::this_thread::get_id() << " " << __LINE__ << std::endl;
-#endif
 		sout << "FCOUNTER VALUE : " << fCounter << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}

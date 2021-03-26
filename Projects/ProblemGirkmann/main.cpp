@@ -15,16 +15,13 @@
 
 using namespace std;
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.girkmannproblem"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.girkmannproblem");
 #endif
 
 ofstream outfile("Resultados.txt");
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	gRefDBase.InitializeAllUniformRefPatterns();
 	gRefDBase.InitializeRefPatterns(2);

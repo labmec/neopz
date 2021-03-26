@@ -35,8 +35,8 @@
 #include "pzgeoelbc.h"
 
 /** Initialiazing file for Log4CXX for this project */
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.Cedric"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.Cedric");
 #endif
 
 // output files  -> Because it has many energy faults
@@ -259,7 +259,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	
 	cmesh->AutoBuild();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         TPZCheckMesh tst(cmesh,&sout);
@@ -302,7 +302,7 @@ TPZCompMesh *CreateMeshToLaplace(TPZGeoMesh *gmesh,int dim,int hasforcingfunctio
 	
 	cmesh->AutoBuild();
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         TPZCheckMesh tst(cmesh,&sout);

@@ -14,9 +14,9 @@
 #include "pzaxestools.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzfmatrix");
+static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassId), fShapeType(EEmpty),
@@ -34,9 +34,7 @@ TPZMaterialData::TPZMaterialData() : TPZRegisterClassId(&TPZMaterialData::ClassI
 //    this->detjac = 0.;
 //    this->numberdualfunctions = 0;
 //    this->fMasterDirections = 0;
-//#ifdef _AUTODIFF
 //    this->fDeformedDirectionsFad = 0;
-//#endif
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : 
@@ -77,9 +75,7 @@ TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
     this->fMasterDirections = cp.fMasterDirections;
     this->fVecShapeIndex = cp.fVecShapeIndex;
     this->fDeformedDirections = cp.fDeformedDirections;
-#ifdef _AUTODIFF
     this->fDeformedDirectionsFad = cp.fDeformedDirectionsFad;
-#endif
     this->numberdualfunctions = cp.numberdualfunctions;
     this->gelElId = cp.gelElId;
     this->fUserData = cp.fUserData;
@@ -203,7 +199,6 @@ void TPZMaterialData::Print(std::ostream &out) const
     out << "XCenter " << XCenter << std::endl;
     out << "fMasterDirections" << fMasterDirections << std::endl;
     out << "fDeformedDirections" << fDeformedDirections << std::endl;
-#ifdef _AUTODIFF
     if(fNeedsDeformedDirectionsFad){
         fDeformedDirectionsFad.Print(out);
     }
@@ -211,7 +206,6 @@ void TPZMaterialData::Print(std::ostream &out) const
     {
         out << "No need for directions FAD\n";
     }
-#endif
     out << "gelElId " << gelElId << std::endl;
     if (fVecShapeIndex.size()) {
         out << "VecShapeIndex: ";

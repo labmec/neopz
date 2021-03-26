@@ -23,9 +23,9 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 #include "pzskylmat.h"
@@ -48,15 +48,15 @@ using namespace tbb;
 
 void help(const char* prg)
 {
-    cout << "Compute the Decompose_LDLt method for the matrix" << endl;
-    cout << endl;
-    cout << "Usage: " << prg << "-if file [-v verbose_level] [-b] "
-    << "[-tot_rdt rdt_file] [-op matrix_operation] [-h]" << endl << endl;
-    cout << "matrix_operation:" << endl;
-    cout << " 0: Decompose_LDLt()" << endl;
-    cout << " 1: Decompose_LDLt2() -- deprecated (not working)" << endl;
-    cout << " 2: Decompose_Cholesky()" << endl;
-    clarg::arguments_descriptions(cout, "  ", "\n");
+    std::cout << "Compute the Decompose_LDLt method for the matrix" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Usage: " << prg << "-if file [-v verbose_level] [-b] "
+              << "[-tot_rdt rdt_file] [-op matrix_operation] [-h]" << std::endl << std::endl;
+    std::cout << "matrix_operation:" << std::endl;
+    std::cout << " 0: Decompose_LDLt()" << std::endl;
+    std::cout << " 1: Decompose_LDLt2() -- deprecated (not working)" << std::endl;
+    std::cout << " 2: Decompose_Cholesky()" << std::endl;
+    clarg::arguments_descriptions(std::cout, "  ", "\n");
 }
 
 clarg::argString ifn("-ifn", "input matrix file name (use -bi to read from binary files)", "matrix.txt");
@@ -64,7 +64,7 @@ clarg::argInt affinity("-af", "affinity mode (0=no affinity, 1=heuristi 1)", 0);
 clarg::argInt verb_level("-v", "verbosity level", 0);
 int verbose = 0;
 /* Verbose macro. */
-#define VERBOSE(level,...) if (level <= verbose) cout << __VA_ARGS__
+#define VERBOSE(level,...) if (level <= verbose) std::cout << __VA_ARGS__
 
 clarg::argInt mop("-op", "Matrix operation", 1);
 clarg::argBool br("-br", "binary reference. Reference decomposed matrix file format == binary.", false);
@@ -375,7 +375,7 @@ void *threadfunc(void *parm)
     if (args->init_routine) {
 #ifdef _GNU_SOURCE
         VERBOSE(1,"Thread " << tid << " calling init routine on CPU "
-                << (int) sched_getcpu() << endl);
+                << (int) sched_getcpu() << std::endl);
 #endif
         (*args->init_routine)(tid);
     }
@@ -392,7 +392,7 @@ void *threadfunc(void *parm)
     }
 #ifdef _GNU_SOURCE
     VERBOSE(1,"Thread " << tid << " calling parallel routine on CPU "
-            << (int) sched_getcpu() << endl);
+            << (int) sched_getcpu() << std::endl);
 #endif
     lck_global.unlock();
     
@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
     
     /* Parse the arguments */
     if (clarg::parse_arguments(argc, argv)) {
-        cerr << "Error when parsing the arguments!" << endl;
+        std::cerr << "Error when parsing the arguments!" << std::endl;
         return 1;
     }
     
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
     }
     
     if (nmats.get_value() < 1) {
-        cerr << "Error, nmats must be >= 1" << endl;
+        std::cerr << "Error, nmats must be >= 1" << std::endl;
         return 1;
     }
     
@@ -510,25 +510,24 @@ int main(int argc, char *argv[])
         for (unsigned i=0; i<n; i++) {
             unsigned height = matrix.SkyHeight(i);
             if (mstats.get_value() > 1) {
-                cout << "col " << i << " height = " << height << endl;
+                std::cout << "col " << i << " height = " << height << std::endl;
             }
             n_sky_items += height;
             if (height > max_height) max_height = height;
         }
         uint64_t n2 = n * n;
         double av_height = (double) n_sky_items / (double) n;
-        cout << "N         = " << n << endl;
-        cout << "N^2       = " << n2 << endl;
-        cout << "Sky items = " << n_sky_items << endl;
-        cout << "N^2 / Sky items = " << (double) n2 / (double) n_sky_items << endl;
-        cout << "Avg. Height = " << av_height << endl;
-        cout << "Max. Height = " << max_height << endl;
+        std::cout << "N         = " << n << std::endl;
+        std::cout << "N^2       = " << n2 << std::endl;
+        std::cout << "Sky items = " << n_sky_items << std::endl;
+        std::cout << "N^2 / Sky items = " << (double) n2 / (double) n_sky_items << std::endl;
+        std::cout << "Avg. Height = " << av_height << std::endl;
+        std::cout << "Max. Height = " << max_height << std::endl;
     }
     
     /** Dump decomposed matrix */
     if (dump_dm.was_set()) {
-        VERBOSE(1, "Dumping decomposed matrix into: " <<
-                dump_dm.get_value() << endl);
+        VERBOSE(1, "Dumping decomposed matrix into: " << dump_dm.get_value() << std::endl);
         FileStreamWrapper dump_file(bd.get_value());
         dump_file.OpenWrite(dump_dm.get_value());
         matrix.Write(dump_file, 0);
@@ -540,20 +539,19 @@ int main(int argc, char *argv[])
         matrix.Write(sig, 1);
         int ret;
         if (chk_dm_sig.was_set()) {
-            if ((ret=sig.CheckMD5(chk_dm_sig.get_value()))) {
-                cerr << "ERROR(ret=" << ret << ") : MD5 Signature for "
-                << "decomposed matrixdoes not match." << endl;
+            if ((ret = sig.CheckMD5(chk_dm_sig.get_value()))) {
+                std::cerr << "ERROR(ret=" << ret << ") : MD5 Signature for "
+                          << "decomposed matrixdoes not match." << std::endl;
                 return 1;
-            }
-            else {
-                cout << "Checking decomposed matrix MD5 signature: [OK]" << endl;
+            } else {
+                std::cout << "Checking decomposed matrix MD5 signature: [OK]" << std::endl;
             }
         }
         if (gen_dm_sig.was_set()) {
             if ((ret=sig.WriteMD5(gen_dm_sig.get_value()))) {
-                cerr << "ERROR (ret=" << ret << ") when writing the "
-                << "decomposed matrix MD5 signature to file: "
-                << gen_dm_sig.get_value() << endl;
+                std::cerr << "ERROR (ret=" << ret << ") when writing the "
+                          << "decomposed matrix MD5 signature to file: "
+                          << gen_dm_sig.get_value() << std::endl;
                 return 1;
             }
         }
@@ -563,8 +561,7 @@ int main(int argc, char *argv[])
     
     /** Check decomposed matrix */
     if (chk_dm_error.was_set()) {
-        VERBOSE(1, "Checking decomposed matrix error: " <<
-                chk_dm_error.get_value() << endl);
+        VERBOSE(1, "Checking decomposed matrix error: " << chk_dm_error.get_value() << std::endl);
         FileStreamWrapper ref_file(br.get_value());
         ref_file.OpenRead(chk_dm_error.get_value());
         /* Reference matrix. */
@@ -572,9 +569,9 @@ int main(int argc, char *argv[])
         ref_matrix.Read(ref_file,0);
         int max_j = matrix.Cols();
         if (max_j != ref_matrix.Cols()) {
-            cerr << "Decomposed matrix has " << max_j
-            << " cols while reference matrix has "
-            << ref_matrix.Cols() << endl;
+            std::cerr << "Decomposed matrix has " << max_j
+                      << " cols while reference matrix has "
+                      << ref_matrix.Cols() << std::endl;
             return 1;
         }
         REAL error_tolerance = error_tol.get_value();
@@ -582,9 +579,9 @@ int main(int argc, char *argv[])
         for (int j=0; j<max_j; j++) {
             int col_height = matrix.SkyHeight(j);
             if (col_height != ref_matrix.SkyHeight(j)) {
-                cerr << "Column " << j << " of decomposed matrix has " << col_height
-                << " non zero rows while reference matrix has "
-                << ref_matrix.SkyHeight(j) << endl;
+                std::cerr << "Column " << j << " of decomposed matrix has " << col_height
+                          << " non zero rows while reference matrix has "
+                          << ref_matrix.SkyHeight(j) << std::endl;
                 return 1;
             }
             int min_i = (j+1) - col_height;
@@ -595,10 +592,10 @@ int main(int argc, char *argv[])
                 if (dm_ij != rm_ij) {
                     REAL diff = abs(dm_ij - rm_ij);
                     if (diff >= error_tolerance) {
-                        VERBOSE(1, "diff(" << diff << ") tolerance (" << error_tolerance 
-                                << "). dm[" << i << "][" << j << "] (" << dm_ij
-                                << ") != rm[" << i << "][" << j << "] (" << rm_ij 
-                                << ")." << endl);
+                        VERBOSE(1, "diff(" << diff << ") tolerance (" << error_tolerance
+                                           << "). dm[" << i << "][" << j << "] (" << dm_ij
+                                           << ") != rm[" << i << "][" << j << "] (" << rm_ij
+                                           << ")." << std::endl);
                         ret = 1;
                         max_error = (max_error < diff)?diff:max_error;
                     }
@@ -606,8 +603,8 @@ int main(int argc, char *argv[])
             }
         }
         if (ret != 0) {
-            cerr << "Error ("<< max_error <<") > error tolerance ("
-            << error_tolerance <<")" <<  endl;
+            std::cerr << "Error (" << max_error << ") > error tolerance ("
+                      << error_tolerance << ")" << std::endl;
         }
     }
     

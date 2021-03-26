@@ -7,9 +7,7 @@
 #define TPZNUMERIC_H
 
 #include "pzvec.h"
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 /** 
  * @ingroup util

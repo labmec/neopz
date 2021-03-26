@@ -13,8 +13,8 @@
 #include "pzvec_extras.h"
 #include "TPZPlasticStepID.h"
 
-#ifdef LOG4CXX_PLASTICITY
-static LoggerPtr loggerDrucker(Logger::getLogger("plasticity.Drucker"));
+#ifdef PZ_LOG
+static TPZLogger loggerDrucker("plasticity.Drucker");
 #endif
 
 #define DRUCKERPARENT TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse>

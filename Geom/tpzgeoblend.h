@@ -191,7 +191,7 @@ namespace pzgeom {
 
         this->MapToSide(side, InternalPar, SidePar, JacSide);
         if (!check) {
-            #ifdef LOG4CXX2
+            #ifdef PZ_LOG2
             td::stringstream sout;
             sout << "side " << side << std::endl;
             sout << "InternalPar: ";
@@ -202,8 +202,8 @@ namespace pzgeom {
             #endif
             return false;
         }
-#ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG2
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "side " << side << std::endl;
@@ -230,8 +230,8 @@ namespace pzgeom {
         JacNeighSide.Resize(tr.Mult().Rows(), JacSide.Cols());
         tr.Mult().Multiply(JacSide, JacNeighSide);
 
-#ifdef LOG4CXX2
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG2
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             

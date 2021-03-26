@@ -66,7 +66,7 @@ int ClassId() const override;
         }
         
         /** @brief Returns the type name of the element */
-        static std::string TypeName() { return "Pyramid";} 
+        static std::string TypeName() { return "QuadraticPyramid";} 
         
         /** @brief Compute the shape being used to construct the X mapping from local parametric coordinates  */
         static void Shape(TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){

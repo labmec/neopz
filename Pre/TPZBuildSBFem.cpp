@@ -15,8 +15,8 @@
 
 #include "tpzgeoelrefpattern.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzbuildsbfem"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzbuildsbfem");
 #endif
 
 /// standard configuration means each element is a partition and a center node is created
@@ -556,8 +556,8 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                 if (subgelside.IsLinearMapping())
                 {
                     gmesh->CreateGeoElement(targettype, Nodes, matid, index);
-#ifdef LOG4CXX
-                    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+                    if(logger.isDebugEnabled())
                     {
                         std::stringstream sout;
                         sout << "Created element of type " << targettype << " with nodes " << Nodes << " index " << index;
@@ -586,8 +586,8 @@ void TPZBuildSBFem::CreateVolumetricElements(TPZCompMesh &cmesh, const std::set<
                             DebugStop();
                             break;
                     }
-#ifdef LOG4CXX
-                    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+                    if(logger.isDebugEnabled())
                     {
                         std::stringstream sout;
                         sout << "Created element of type " << targettype << " with nodes " << Nodes << " index " << index;

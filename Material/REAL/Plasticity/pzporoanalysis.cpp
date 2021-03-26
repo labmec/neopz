@@ -5,8 +5,8 @@
 #include "TPZMatTemporal.h"
 #include "pzsolve.h" 
 
-#ifdef LOG4CXX
-static LoggerPtr PoroAnalysisLogger(Logger::getLogger("analysis.poro"));
+#ifdef PZ_LOG
+static TPZLogger PoroAnalysisLogger("analysis.poro");
 #endif
 
 using namespace std;
@@ -29,7 +29,7 @@ TPZPoroElastoPlasticAnalysis::TPZPoroElastoPlasticAnalysis(TPZCompMesh *mesh,std
 
 TPZPoroElastoPlasticAnalysis::~TPZPoroElastoPlasticAnalysis()
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << "<<< TPZPoroElastoPlasticAnalysis::~TPZPoroElastoPlasticAnalysis() *** Killing Object\n";
@@ -45,7 +45,7 @@ REAL TPZPoroElastoPlasticAnalysis::LocalAssemble(int precond)
 
 	REAL norm = Norm(fRhs);
 	
-	#ifdef LOG4CXX
+	#ifdef PZ_LOG
 	{
 	   std::stringstream sout;
 	   sout << "<<< TPZPoroElastoPlasticAnalysis::LocalAssemble() *** "
@@ -118,7 +118,7 @@ int TPZPoroElastoPlasticAnalysis::FindPorousMaterials()
 void TPZPoroElastoPlasticAnalysis::Run(std::ostream &out,REAL tol ,int numiter,
 									TPZPostProcAnalysis * ppAnalysis, int res)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << ">>> TPZPoroElastoPlasticAnalysis::Run() ***";
@@ -131,7 +131,7 @@ void TPZPoroElastoPlasticAnalysis::Run(std::ostream &out,REAL tol ,int numiter,
     bool convordiv;
 	IterativeProcess(out, tol, numiter,linesearch,checkconv,convordiv);
 		
-	#ifdef LOG4CXX
+	#ifdef PZ_LOG
 	{
 	   std::stringstream sout;
 	   sout << "*** TPZPoroElastoPlasticAnalysis::Run() *** IterativeProcess() completed";
@@ -143,7 +143,7 @@ void TPZPoroElastoPlasticAnalysis::Run(std::ostream &out,REAL tol ,int numiter,
 		
 	if(ppAnalysis)
 	{
-		#ifdef LOG4CXX
+		#ifdef PZ_LOG
 		{
 		   std::stringstream sout;
 		   sout << "*** TPZPoroElastoPlasticAnalysis::Run() *** PostProcessing ";
@@ -154,7 +154,7 @@ void TPZPoroElastoPlasticAnalysis::Run(std::ostream &out,REAL tol ,int numiter,
 		ppAnalysis->PostProcess(res);
 	}
 		
-	#ifdef LOG4CXX
+	#ifdef PZ_LOG
 	{
 	   std::stringstream sout;
 	   sout << "<<< TPZPoroElastoPlasticAnalysis::ManageIterativeProcess() *** Exiting";
@@ -186,7 +186,7 @@ REAL TPZPoroElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacem
 		fCumSol += fSolution; 
 	}
 	
-	#ifdef LOG4CXX
+	#ifdef PZ_LOG
 	{
 	   std::stringstream sout;
 	   sout << ">>> TPZPoroElastoPlasticAnalysis::AcceptSolution *** "

@@ -1,15 +1,7 @@
 # @file neopz/Publications/CMakeLists.txt  -- CMake file for the Publications module
 
-target_include_directories(pz PUBLIC 
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Publications>
-                          )
-
-if(NOT BUILD_COMPLEX_PROJECTS) ##projetos nao compativeis com state=complex<double>
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Publications)
-
-file(GLOB sources *.cpp)
-
-set(pzpublications_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-endif()
+if (NOT BUILD_COMPLEX_PROJECTS) ##projetos nao compativeis com state=complex<double>
+    add_pz_internal_target(NAME hdiv2d SOURCES hdiv2dpaper201504.cpp hdiv2dpaper201504.h)
+    add_pz_internal_target(NAME hdiv3d SOURCES hdiv3dpaper201504.cpp hdiv3dpaper201504.h)
+    add_pz_internal_target(NAME hdivCurved SOURCES hdivCurvedJCompAppMath.cpp hdivCurvedJCompAppMath.h)
+endif ()

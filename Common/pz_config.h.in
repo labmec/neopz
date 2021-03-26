@@ -6,8 +6,8 @@
 #define PZSOURCEDIR "@PZSOURCEDIR@"
 #endif
 
-#ifndef REFPATTERNDIR
-#define REFPATTERNDIR "@REFPATTERNDIR@"
+#ifndef PZ_REFPATTERN_DIR
+#define PZ_REFPATTERN_DIR "@PZ_REFPATTERN_DIR@"
 #endif
 
 #ifndef PZ_BRANCH
@@ -22,82 +22,17 @@
 #define PZ_REVISION_DATE "@PZ_REVISION_DATE@"
 #endif
 
-#ifndef LOG4CXX
-#cmakedefine LOG4CXX
-#endif
-
-#ifndef _AUTODIFF
-#cmakedefine _AUTODIFF
-#endif
-
-#ifndef USING_BOOST
-#cmakedefine USING_BOOST
-#endif
-
-#ifndef USING_IPO
-#cmakedefine USING_IPO
-#endif
-
-#ifndef USING_METIS
-#cmakedefine USING_METIS
-#endif
-
-#ifndef USING_OPENSSL
-#cmakedefine USING_OPENSSL
-#endif
-
-#ifndef USING_TBB
-#cmakedefine USING_TBB
-#endif
-
-#ifndef USING_OPENMP
-#cmakedefine USING_OPENMP
-#endif
-
-#ifndef USING_LIKWID
-#cmakedefine USING_LIKWID
-#endif
-
-#ifndef USING_LIBNUMA
-#cmakedefine USING_LIBNUMA
-#endif
-
-#ifndef USING_MATLAB_ENGINE
-#cmakedefine USING_MATLAB_ENGINE
-#endif
-
-#ifndef USING_BLAS
-#cmakedefine USING_BLAS
-#endif
-
-#ifndef USING_LAPACK
-#cmakedefine USING_LAPACK
-#endif
-
-#ifndef USING_NEW_SKYLMAT
-#cmakedefine USING_NEW_SKYLMAT
-#endif
-
-#ifndef USING_PAPI
-#cmakedefine USING_PAPI
-#endif
-
-#ifndef USING_HWLOC
-#cmakedefine USING_HWLOC
-#endif
-
-#ifndef USING_MKL
-#cmakedefine USING_MKL
-#endif
-
-#ifdef USING_MKL
-#define USING_LAPACK
-#define USING_BLAS
-#endif
-
 //WIN32 defs
 #ifndef VC
 #cmakedefine VC
+#endif
+
+#ifndef PZ_LOG
+#cmakedefine PZ_LOG
+#endif
+
+#ifndef PZ_LOG4CXX_CONFIG_FILE
+#define PZ_LOG4CXX_CONFIG_FILE "@PZ_LOG4CXX_CONFIG_FILE@"
 #endif
 
 //Type defs
@@ -107,10 +42,6 @@
 
 #ifndef @STATE_TYPE_DEF@
 #define @STATE_TYPE_DEF@
-#endif
-
-#ifndef HDIVPIOLA
-#cmakedefine HDIVPIOLA
 #endif
 
 #ifndef STATE_COMPLEX

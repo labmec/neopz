@@ -41,16 +41,14 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.testgeom");
 #endif
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -58,8 +56,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testgeom"));
 #define BOOST_TEST_MAIN pz geometry_tests tests
 
 #include "boost/test/unit_test.hpp"
-#include "boost/test/floating_point_comparison.hpp"
-#include "boost/test/output_test_stream.hpp"
+#include "boost/test/tools/output_test_stream.hpp"
 
 #endif
 
@@ -155,14 +152,12 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 /** @} */
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 
 BOOST_AUTO_TEST_SUITE(geometry_tests)
 
-#ifdef _AUTODIFF
 BOOST_AUTO_TEST_CASE(gradx_tests) {
-    InitializePZLOG();
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
     
@@ -247,7 +242,6 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
 
 }
 
-#endif
 
 
 

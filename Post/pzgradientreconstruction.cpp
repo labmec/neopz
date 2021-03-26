@@ -20,8 +20,8 @@
 #include <cmath>
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.pzgradientreconstruction"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.pzgradientreconstruction");
 #endif
 
 
@@ -103,7 +103,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
         TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
         
         fGradData->SetCel(cel, useweight, paramK);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             fGradData->Print(sout);
@@ -607,16 +607,6 @@ void TPZGradientReconstruction::TPZGradientData::InitializeGradData(TPZCompEl *c
 #include <stdio.h>
 #ifdef USING_LAPACK
 #include "TPZLapack.h"
-#endif
-
-#ifdef USING_BLAS
-#ifdef USING_MKL
-#include <mkl.h>
-#elif MACOSX
-#include <Accelerate/Accelerate.h>
-#else
-#include <cblas.h>
-#endif
 #endif
 
 void TPZGradientReconstruction::TPZGradientData::ComputeGradient()

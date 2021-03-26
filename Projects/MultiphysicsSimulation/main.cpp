@@ -50,8 +50,8 @@
 #include <math.h>
 #include <set>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;
@@ -90,9 +90,8 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 
 int main1(int argc, char *argv[])
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	std::string logs("log4cxx.doubleprojection1d");
-	InitializePZLOG();
 #endif
 	gRefDBase.InitializeAllUniformRefPatterns();
 	
@@ -215,7 +214,7 @@ int main1(int argc, char *argv[])
 	AddConnects(meshvec,mphysics);
 	TransferFromMeshes(meshvec, mphysics);
 	
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    {
 //        std::stringstream sout;
 //        mphysics->Print(sout);
@@ -267,7 +266,7 @@ int main1(int argc, char *argv[])
 //	TPZManVector<TPZTransform> tr;
 //	mmesh->AffineTransform(tr);
 //	
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //    {
 //        std::stringstream out;
 //       tr[0].PrintInputForm(out);
@@ -952,7 +951,7 @@ void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 			//TPZManVector<TPZTransform> tr;
 			//mfcel->AffineTransform(tr);
 //			
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //			{
 //				int itr = tr.size();
 //				std::stringstream sout;

@@ -75,7 +75,7 @@ namespace pzgeom {
         bool IsGeoBlendEl() const;
 
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "TPZTriangleSphere";}
+		static std::string TypeName() { return "TriangleSphere";}
         
         static bool IsLinearMapping(int side)
         {

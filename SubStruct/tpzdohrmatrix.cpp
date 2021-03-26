@@ -15,8 +15,8 @@
 
 #include "tpzparallelenviroment.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
+#ifdef PZ_LOG
+static TPZLogger logger("substruct.dohrsubstruct");
 #endif
 
 
@@ -217,15 +217,15 @@ void TPZDohrMatrix<TVar,TSubStruct>::Initialize()
         //(*iter)->Initialize();
 		TPZFMatrix<TVar> diaglocal;
         (*iter)->ContributeDiagonalLocal(diaglocal);
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             LOGPZ_DEBUG(logger,"Before assemble diagonal")
         }
 #endif
 		this->fAssembly->Assemble(isub,diaglocal,diag);
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Substructure " << isub << " ";
@@ -236,8 +236,8 @@ void TPZDohrMatrix<TVar,TSubStruct>::Initialize()
         std::cout << '*';
         std::cout.flush();
 	}
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		diag.Print("Global Diagonal matrix",sout);

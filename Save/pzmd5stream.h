@@ -7,12 +7,10 @@
 #define PZMD5STREAM_H
 
 #include "TPZStream.h"
+#include "tfad.h"
+#include "fad.h"
 
-#include <stdio.h>
-
-#ifdef USING_OPENSSL
-#include <openssl/md5.h>
-#endif
+typedef struct MD5state_st MD5_CTX ;
 
 /**
  * @brief Implements the interface to write and check MD5 files. \ref save "Persistency"
@@ -22,12 +20,8 @@
 class TPZMD5Stream : public TPZStream
 {
 
-#ifdef USING_OPENSSL
   /** @brief The MD5 signature. */
-  MD5_CTX md5_sig;
-
-  unsigned char digest[MD5_DIGEST_LENGTH];
-#endif
+  TPZAutoPointer<MD5_CTX> md5_sig;
 
   int last_status; // 1 == SUCCESS
 
@@ -79,35 +73,7 @@ public:
    *         -3 error when computing this MD5 signature (last_status != 1)
    *          1 if is disable OPENSSL
    */
-  int CheckMD5(FILE* fh) 
-  {
-#ifdef USING_OPENSSL
-    unsigned char this_digest[MD5_DIGEST_LENGTH];
-    unsigned char file_digest[MD5_DIGEST_LENGTH];
-
-    if (last_status != 1)
-      return -3;
-    
-    /* Read file digest. */
-    size_t ret = fread(file_digest, sizeof(unsigned char), MD5_DIGEST_LENGTH, fh);
-    if (ret != MD5_DIGEST_LENGTH) {
-      std::cerr << "fread could not read " << MD5_DIGEST_LENGTH << " items. Read only " << ret << " bytes." << std::endl;
-      // Error.
-      return 2;
-    }
-
-    /* Compute this digest. */
-    if (MD5_Final(this_digest, &md5_sig) != 1) {
-      // Error.
-        return -1;
-    }
-    
-    return compare_digests (this_digest, file_digest, MD5_DIGEST_LENGTH);
-#else
-    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
-#endif
-      return 1;
-  }
+  int CheckMD5(FILE* fh);
 
   /**
    * @brief Write computed MD5 signature to file.
@@ -134,42 +100,14 @@ public:
    *         -3 error when computing this MD5 signature (last_status != 1)
    *          1 if it is not enable OPENSSL
    */
-  int WriteMD5(FILE* fh) 
-  {
-#ifdef USING_OPENSSL
-    unsigned char digest[MD5_DIGEST_LENGTH];
+  int WriteMD5(FILE* fh);
 
-    if (last_status != 1)
-      return -3;
-        
-    if (MD5_Final(digest, &md5_sig) != 1) {
-      return -1;
-    }
-    
-    if (fwrite( (const void*) digest, sizeof(unsigned char), MD5_DIGEST_LENGTH, fh) < MD5_DIGEST_LENGTH)
-      return 2;
-
-    return 0; // Return OK
-#else
-    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
-#endif
-      return 1;
-  }
-  
   /**
    * @brief Reset the MD5 signature. 
    * @return Returns 1 if ok, 0 otherwise. 
    */
-  int ResetMD5() 
-  {
-#ifdef USING_OPENSSL
-    return MD5_Init(&md5_sig);
-#else
-    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
-#endif
-      return 0;
-  }
-  
+  int ResetMD5();
+
   /** @brief Writes size integers at pointer location p */
   virtual void Write(const int *p, int size) {
     Writes<int>(p,size);
@@ -229,8 +167,7 @@ public:
     Writes< std::complex <long double> >(p,size);
   }
   
-#ifdef _AUTODIFF
-    
+
 	
 	virtual void Write(const TFad <1,REAL> *p, int howMany) {
 		Writes< TFad <1,REAL> >(p,howMany);
@@ -264,20 +201,10 @@ public:
 		Writes< Fad <double> >(p,howMany);
 	}
     
-#endif
-
   /** @brief Writes size objects of the class T at pointer location p */
   template<class T>
-  void  Writes(const T *p, int size) {
-#ifdef USING_OPENSSL
-    if (last_status == 1)
-      last_status = MD5_Update(&md5_sig, (const void*) p, sizeof(T)*size);
-#else
-    std::cerr << "Enable -DUSING_OPENSSL to use the TPZMD5Stream class." << std::endl; 
-#endif
-  }
-#ifdef _AUTODIFF
-    
+  void  Writes(const T *p, int size);
+
   virtual void Read(TFad <1,REAL> *p, int howMany) {
 		ReadError();
 	}
@@ -310,7 +237,6 @@ public:
 		ReadError();
 	}
     
-#endif
   /** @brief Reads size integers from pointer location p */
   virtual void Read(int *p, int size) {
     ReadError();

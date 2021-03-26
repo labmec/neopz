@@ -1,8 +1,6 @@
-file(GLOB source *.cpp)
-
-file(GLOB header *.h)
-
-add_executable(migration-perf ${source} ${header})
-install(TARGETS migration-perf DESTINATION bin)
-target_link_libraries(migration-perf pz)
-
+set(targetName migration-perf)
+add_pz_internal_target(
+  NAME ${targetName}
+  SOURCES main.cpp pzparallel.h)
+#linking additional libraries
+target_link_libraries(${targetName} PRIVATE Threads::Threads)

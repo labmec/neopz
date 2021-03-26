@@ -18,16 +18,14 @@
 
 
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 
 #include "boost/test/unit_test.hpp"
-#include "boost/test/floating_point_comparison.hpp"
-#include "boost/test/output_test_stream.hpp"
+#include "boost/test/tools/output_test_stream.hpp"
 
 #endif
 
-static std::string dirname = PZSOURCEDIR;
 static unsigned int NDigitsPrec = 13;
 static int NTypes = 2;
 // For cubature rules
@@ -147,7 +145,7 @@ static REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL L
 /** @} */
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 /**
  * @brief Tests the numerical integration rules implemented in Neopz
@@ -199,6 +197,12 @@ void TestingNumericIntegrationRule(int p,int type, boost::test_tools::output_tes
 }
 template <class NumInteg>
 void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
+  // Check if file exists
+  if (!input.is_open()) {
+    std::cout << "Error: Input file not found!\n";
+    DebugStop();
+  }
+
 	// Variables to computing numerical integration
 	TPZManVector<REAL,3> point(3);
 	REAL weight = 0.L;
@@ -291,8 +295,7 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 	// File with integration values calculated previously
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "Line.txt";
+	std::string filename = "Line.txt";
 	std::ifstream MathematicaData(filename.c_str());
 
 	// Testing over Linbo Zhang rule and over all order < 13
@@ -319,8 +322,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "Triangle.txt";
+	std::string filename = "Triangle.txt";
 	std::ifstream MathematicaData(filename.c_str());
     // Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
     const int type = 0;// triangle has only one integration rule

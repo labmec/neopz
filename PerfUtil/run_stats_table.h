@@ -45,17 +45,17 @@ public:
         if (filename.was_set()) {
             switch(flush_to_file())
             {
-                case 1: cerr << "WARNING: number of cells in one or more rows does not "
+                case 1: std::cerr << "WARNING: number of cells in one or more rows does not "
                     << "match the number of column headers when reading the \""
-                    << filename.get_value() << "\" run stats file." << endl; break;
-                case -1: cerr << "WARNING: could not read the table headers when reading the \""
+                    << filename.get_value() << "\" run stats file." << std::endl; break;
+                case -1: std::cerr << "WARNING: could not read the table headers when reading the \""
                     << filename.get_value() << "\" run stats file."; break;
-                case -2: cerr << "WARNING: could not open the \"" << filename.get_value()
-                    << "\" run stats file for read." << endl; break;
-                case -3: cerr << "WARNING: could not open the \"" << filename.get_value()
-                    << "\" run stats file for write." << endl; break;
-                case -4: cerr << "WARNING: error when appending statistics to \"" << filename.get_value()
-                    << "\" run stats file for write." << endl; break;
+                case -2: std::cerr << "WARNING: could not open the \"" << filename.get_value()
+                    << "\" run stats file for read." << std::endl; break;
+                case -3: std::cerr << "WARNING: could not open the \"" << filename.get_value()
+                    << "\" run stats file for write." << std::endl; break;
+                case -4: std::cerr << "WARNING: error when appending statistics to \"" << filename.get_value()
+                    << "\" run stats file for write." << std::endl; break;
                 default:
                     break;
             }
@@ -118,9 +118,9 @@ private:
      *          -1 if could not read the table headers
      *          -2 could not open the file.
      */
-    int read_from_file(CSVStringTable& table, string filename)
+    int read_from_file(CSVStringTable& table, std::string filename)
     {
-        ifstream ifs(filename.c_str());
+        std::ifstream ifs(filename.c_str());
         
         if (ifs.is_open()) {
             int ret=table.read(ifs);
@@ -135,9 +135,9 @@ private:
      *  Returns  0 if ok.
      *          -3 could not open the file for write.
      */
-    int write_to_file(const CSVStringTable& table, string filename)
+    int write_to_file(const CSVStringTable& table, std::string filename)
     {
-        ofstream ofs(filename.c_str());
+        std::ofstream ofs(filename.c_str());
         
         if (ofs.is_open()) {
             table.write(ofs);

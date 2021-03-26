@@ -35,9 +35,10 @@ void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int64_t NIter
 	fEtaAdmissible = EtaAdmissible;
 	fNIterations = NIterations;
 }
-/** @brief Output file with number of iteration made. */
-std::ofstream arq("Param.dat");
+
 void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEtaAdmissible) {
+    
+    std::ofstream arq("Param.dat");
 	int64_t iter = 0;//iteracao atual
 	cout << "\n\nIteration  1\n";
 	out << "\n   Iteration  1\n";
@@ -288,7 +289,7 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 
 //void DivideRecursive(TPZCompEl *locel,int index,TPZVec<int> indexsubs,int hn);
 void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
-	
+	std::ofstream arq("Param.dat");
 	arq << "CurrentEtaAdmissible "  << CurrentEtaAdmissible << endl;
 	
 	TPZAdmChunkVector<TPZCompEl *>&listel = Mesh()->ElementVec();

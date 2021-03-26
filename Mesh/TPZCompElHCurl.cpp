@@ -14,10 +14,11 @@
 #include "pzshapeprism.h"
 #include "pzstepsolver.h"
 #include "pzcheckrestraint.h"
+#include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
-static LoggerPtr loggercurl(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.TPZCompElHCurl");
+static TPZLogger loggercurl("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 /*********************************************************************************************************
                                        TPZHCurlAuxClass methods
@@ -209,7 +210,7 @@ int TPZCompElHCurl<TSHAPE>::SideConnectLocId(int con,int side) const {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__ << " there is no connect with local (side) id "<<con<<" on side "<<side << std::endl;
         PZError<<sout.str();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger,sout.str())
 #endif
         DebugStop();
@@ -232,7 +233,7 @@ int TPZCompElHCurl<TSHAPE>::SideConnectLocId(int con,int side) const {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__ << " ERROR: could not find subside associated with connect "<<con<<" on side "<<side << std::endl;
         PZError<<sout.str();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger,sout.str())
 #endif
         DebugStop();
@@ -248,7 +249,7 @@ int TPZCompElHCurl<TSHAPE>::NSideConnects(int side) const{
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__ << "Side: " << side <<"unhandled case\n";
         PZError<<sout.str();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger,sout.str())
 #endif
     }
@@ -288,8 +289,8 @@ void TPZCompElHCurl<TSHAPE>::SetConnectIndex(int i, int64_t connectindex){
     }
 #endif
     this-> fConnectIndexes[i] = connectindex;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << std::endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
@@ -305,7 +306,7 @@ int TPZCompElHCurl<TSHAPE>::ConnectOrder(int connect) const {
         sout << __PRETTY_FUNCTION__<<std::endl;
         sout << "Connect index out of range connect " << connect << " nconnects " << NConnects();
         PZError<<sout.str()<<std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, sout.str())
 #endif
         DebugStop();
@@ -327,7 +328,7 @@ int TPZCompElHCurl<TSHAPE>::EffectiveSideOrder(int side) const{
         sout << __PRETTY_FUNCTION__<<std::endl;
         sout << "Connect index out of range connect " << connect << " nconnects " << NConnects();
         PZError<<sout.str()<<std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, sout.str())
 #endif
         DebugStop();
@@ -342,7 +343,7 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__<<"Bad parameter side " << side << " order " << order;
         PZError << sout.str()<<std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger,sout.str())
 #endif
         DebugStop();
@@ -355,7 +356,7 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
         TPZMaterial * mat =this-> Material();
         if(mat) return mat->NStateVariables();
         else {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__<<"\tAssuming only one state variable since no material has been set";
             LOGPZ_DEBUG(logger,sout.str())
@@ -375,8 +376,8 @@ void TPZCompElHCurl<TSHAPE>::SetSideOrder(int side, int order){
 template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()){
         LOGPZ_DEBUG(logger,"Initializing MaterialData of TPZCompElHCurl")
     }
 #endif
@@ -394,8 +395,8 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
     IndexShapeToVec(data.fVecShapeIndex, connectOrders);
 
 
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled()){
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled()){
 		std::stringstream sout;
 		sout << "Vector/Shape indexes \n";
         for (int i = 0; i < data.fVecShapeIndex.size(); i++) {
@@ -478,8 +479,8 @@ void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
     for(auto i = 0; i < nConnects; i++){
         const int sideId = nNodes + i;
         this->fConnectIndexes[i] = this->CreateMidSideConnect(sideId);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "After creating last HCurl connect " << i << std::endl;
@@ -591,8 +592,8 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
         }
     }
 
-#ifdef LOG4CXX_keep
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG_keep
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         M->Print("MSS = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())

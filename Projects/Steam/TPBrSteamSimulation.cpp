@@ -13,8 +13,8 @@
 #include "TPZGenGrid2D.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("br.steamsimulation"));
+#ifdef PZ_LOG
+static TPZLogger logger("br.steamsimulation");
 #endif
 
 WaterDataInStateOfSaturation waterdata;
@@ -28,11 +28,7 @@ void MobilidadeRelativa();
 
 int main()
 {
-#ifdef LOG4CXX
-	InitializePZLOG("../log4cxx.cfg");
-#endif
     MobilidadeRelativa();
-#ifdef _AUTODIFF
     //    TPBrSteamMesh::TPBrSteamMesh(int numcells, REAL temperature, REAL pressure, REAL WellRadius, REAL ReservoirRadius, REAL oilsaturation)
     REAL wellradius = 0.15;
     REAL ReservoirRadius = 300;
@@ -54,7 +50,7 @@ int main()
     TPZFMatrix<REAL> tangent(neq,neq),residual(neq,1);
 /*    TPZStack<REAL> scales;
     mesh.StateScales(scales);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Statescales " << scales;
@@ -109,8 +105,7 @@ int main()
         }
     }
 //    mesh.Print();
-#endif
-     
+
     return 0;
 }
 

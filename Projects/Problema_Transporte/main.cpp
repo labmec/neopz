@@ -61,8 +61,8 @@
 
 using namespace std;
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material");
 #endif
 
 #ifdef USING_BOOST
@@ -129,9 +129,6 @@ REAL teta =0.;// M_PI/6.;
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
     
     TPZVec<REAL> erros;
     ofstream arg0("Erro.txt");
@@ -304,9 +301,6 @@ int main(int argc, char *argv[])
 //problema estacionario
 int mainestacionario(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     
     TPZVec<REAL> erros;
     ofstream arg0("Erro.txt");
@@ -843,8 +837,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     mymaterial->SetTrueRungeKuttaTwo();
     TPZAutoPointer <TPZMatrix<STATE> > matMAux = MassMatrix(mymaterial, cmesh);
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logdata.isDebugEnabled())
 	{
             std::stringstream sout;
         	matM->Print("matM = ", sout,EMathematicaInput);
@@ -861,8 +855,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     matK = an.Solver().Matrix();
     fvec = an.Rhs();
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logdata.isDebugEnabled())
 	{
 
         std::stringstream sout;
@@ -1005,8 +999,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(mymaterial, cmesh);
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        matM->Print("matM = ", sout,EMathematicaInput);
@@ -1023,8 +1017,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     matK = an.Solver().Matrix();
     fvec = an.Rhs();
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//	if(logdata.isDebugEnabled())
 //	{
 //        
 //        std::stringstream sout;
@@ -1060,8 +1054,8 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 		mymaterial->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-//#ifdef LOG4CXX
-//        if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//        if(logdata.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            sout<< " tempo = " << cent;
@@ -1364,8 +1358,8 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
     
 	gmesh->BuildConnectivity();
     
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);

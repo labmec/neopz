@@ -11,8 +11,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeolinear"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.geom.pzgeolinear");
 #endif
 
 using namespace pzshape;

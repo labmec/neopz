@@ -11,7 +11,6 @@
 #include "pzeltype.h"     // for MElementType
 #include "pzmatrix.h"     // for TPZFMatrix, TPZMatrix, TPZFNMatrix
 #include "pznoderep.h"    // for TPZNodeRep
-#include "pznoderep.h.h"  // for TPZNodeRep::TPZNodeRep<N, Topology>
 #include "pzreal.h"       // for REAL
 #include "tpzpoint.h"     // for TPZPoint
 class TPZGeoEl;

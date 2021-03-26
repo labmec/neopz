@@ -14,11 +14,11 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static LoggerPtr logger(Logger::getLogger("pz.material"));
+static TPZLogger logger("pz.material");
 #endif
 
 
@@ -289,8 +289,8 @@ void TPZVecL2::Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
   DebugStop();
   // values.Fill(0.0);
     
-// #ifdef LOG4CXX
-//     if(logger->isDebugEnabled()){
+// #ifdef PZ_LOG
+//     if(logger.isDebugEnabled()){
 //         std::stringstream sout;
 //         sout<< "\n";
 //         sout << " Pto  " << x << std::endl;

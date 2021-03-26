@@ -14,8 +14,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotriangle"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.geom.pzgeotriangle");
 #endif
 
 namespace pzgeom {
@@ -57,12 +57,12 @@ namespace pzgeom {
         for (int i=0; i<3; i++) {
             sz[i] = 2.*radius;
         }
-        REAL coords[4][3] = {
+        REAL coords[3][3] = {
             {-1,-1,-0.1},
             { 1,-1,-0.1},
             { 1, 1,-0.1}
         };
-        for (int i=0; i<4; i++) {
+        for (int i=0; i<3; i++) {
             REAL norm = sqrt(coords[i][0]*coords[i][0]+coords[i][1]*coords[i][1]+coords[i][2]*coords[i][2]);
             for(int j=0; j<3; j++) coords[i][j] *= radius/norm;
         }

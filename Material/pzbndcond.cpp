@@ -9,8 +9,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.bndcond"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.material.bndcond");
 #endif
 
 int TPZBndCond::TPZ_BCDefine::ClassId() const {
@@ -103,7 +103,7 @@ void TPZBndCond::Read(TPZStream &buf, void *context){
     fMaterial = dynamic_cast<TPZMaterial *>(TPZPersistenceManager::GetInstance(&buf));
     if (!fMaterial) {
         std::cout << " reading a boundary condition without material object!!\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_FATAL(logger, "reading a boundary condition without material object!!");
 #endif
     }

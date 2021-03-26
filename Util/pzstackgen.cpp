@@ -15,3 +15,13 @@ template class TPZStack<char>;
 
 template class TPZStack<std::complex<float> >;
 template class TPZStack<std::complex<double> >;
+
+class TPZCompEl;
+class TPZGeoEl;
+
+template class TPZStack<TPZCompEl *>;
+template class TPZStack<TPZGeoEl *>;
+#include "pzcompel.h"
+#include "pzgeoelside.h"
+template class TPZStack<TPZCompElSide>;
+template class TPZStack<TPZGeoElSide>;

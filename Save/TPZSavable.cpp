@@ -14,9 +14,9 @@
 #include "TPZPersistenceManager.h"
 #include "TPZChunkTranslator.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.savable"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.savable");
+static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 std::list<std::map<std::string, uint64_t>> TPZSavable::VersionHistory() const {
@@ -70,7 +70,7 @@ void TPZSavable::Register(TPZRestoreClassBase *restore) {
                 DebugStop();
 	}
 	RestoreClassSet().insert(restore);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 //    std::cout << "Registering object " << typeid(restore).name() <<
 //        std::endl;
 #endif
@@ -127,7 +127,7 @@ TPZSavable *TPZSavable::CreateInstance(const int &classId) {
     it = ClassIdMap().find(classId);
     if(it == ClassIdMap().end()) {
         std::cout << "TPZSavable trying to restore unknown object with classId " << classId << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__ << " trying to restore unknown object with classId " << classId;

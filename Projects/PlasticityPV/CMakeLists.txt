@@ -6,7 +6,6 @@ set(main_SRCS ${sources} ${headers})
 #Plasticity works only with double type.
 if ( STATE_TYPE STREQUAL "double" AND
      REAL_TYPE STREQUAL "double" AND 
-     USING_FAD AND 
      BUILD_PLASTICITY_MATERIALS )
 
 

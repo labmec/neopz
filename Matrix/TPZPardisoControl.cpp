@@ -8,15 +8,17 @@
 
 #include "TPZPardisoControl.h"
 
-#ifdef USING_MKL
-
-#include "mkl_pardiso.h"
 #include "pzsysmp.h"
 #include "pzysmp.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.pardisocontrol"));
+
+#ifdef USING_MKL
+
+#include "mkl_pardiso.h"
+
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.pardisocontrol");
 #endif
 //#define Release_Memory_Q
 
@@ -97,7 +99,7 @@ TPZPardisoControl<TVar> &TPZPardisoControl<TVar>::operator=(const TPZPardisoCont
 //enum MProperty {EPositiveDefinite, EIndefinite};
 
 template<class TVar>
-int DataType(TVar a)
+int DataType([[maybe_unused]]TVar a)
 {
     DebugStop();
 	return 0;
@@ -105,13 +107,13 @@ int DataType(TVar a)
 
 
 template<>
-int DataType(double a)
+int DataType([[maybe_unused]]double a)
 {
     return 0;
 }
 
 template<>
-int DataType(float a)
+int DataType([[maybe_unused]]float a)
 {
     return 1;
 }
@@ -270,8 +272,8 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
         n = fNonSymmetricSystem->Rows();
     }
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "The pardiso control vector is\n";
@@ -418,12 +420,103 @@ void TPZPardisoControl<TVar>::Error_check(int error) const {
     }
     
 }
+#else
 
+#define NOMKL \
+PZError<<"The class TPZPardisoControl should not be used ";\
+ PZError<<"if NeoPZ was configured with USING_MKL=OFF\n";  \
+ PZError<<"Aborting..."<<std::endl;                        \
+ DebugStop();
+template<class TVar>
+TPZPardisoControl<TVar>::TPZPardisoControl()
+{
+    
+}
+
+
+template<class TVar>
+TPZPardisoControl<TVar>::TPZPardisoControl([[maybe_unused]]MSystemType systemtype, [[maybe_unused]]MProperty prop)
+
+{
+}
+
+/// change the matrix type
+// this method should only be called if the pardiso control is zero (non initialized)
+template<class TVar>
+void TPZPardisoControl<TVar>::SetMatrixType([[maybe_unused]]MSystemType systemtype, [[maybe_unused]]MProperty prop)
+{
+}
+
+template<class TVar>
+TPZPardisoControl<TVar>::TPZPardisoControl([[maybe_unused]]const TPZPardisoControl<TVar> &copy)
+{
+    
+}
+
+template<class TVar>
+TPZPardisoControl<TVar> &TPZPardisoControl<TVar>::operator=([[maybe_unused]]const TPZPardisoControl &copy)
+{
+    return *this;
+}
+
+template<class TVar>
+int DataType([[maybe_unused]]TVar a)
+{
+    DebugStop();
+	return 0;
+}
+
+
+template<>
+int DataType([[maybe_unused]]double a)
+{
+    return 0;
+}
+
+template<>
+int DataType([[maybe_unused]]float a)
+{
+    return 1;
+}
+
+
+template<class TVar>
+long long TPZPardisoControl<TVar>::MatrixType()
+{
+    return 0;
+}
+
+
+template<class TVar>
+void TPZPardisoControl<TVar>::Decompose()
+{
+    NOMKL
+}
+
+/// Use the decomposed matrix to invert the system of equations
+template<class TVar>
+void TPZPardisoControl<TVar>::Solve([[maybe_unused]]TPZFMatrix<TVar> &rhs, [[maybe_unused]]TPZFMatrix<TVar> &sol) const
+{
+    NOMKL
+}
+
+template<class TVar>
+TPZPardisoControl<TVar>::~TPZPardisoControl()
+{
+    
+}
+
+template<class TVar>
+void TPZPardisoControl<TVar>::Error_check([[maybe_unused]]int error) const
+{
+    NOMKL
+}
+
+#undef NOMKL
+#endif
 
 template class TPZPardisoControl<double>;
 template class TPZPardisoControl<long double>;
 template class TPZPardisoControl<float>;
-
-
-
-#endif
+template class TPZPardisoControl<std::complex<float>>;
+template class TPZPardisoControl<std::complex<double>>;

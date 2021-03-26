@@ -14,7 +14,6 @@
 
 #include "pzausmflux.h"
 #include "pzgradientflux.h"
-#include "pzlog.h"
 class TPZCompMesh;
 
 /**

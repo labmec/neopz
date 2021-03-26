@@ -27,8 +27,8 @@
 
 
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.WellFlow"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.WellFlow");
 #endif
 
 void ParametricfunctionS(const TPZVec<REAL> &par, TPZVec<REAL> &X);
@@ -55,17 +55,6 @@ int main()
 {
     std::string dirname = PZSOURCEDIR;
     gRefDBase.InitializeUniformRefPattern(EOned);
-    
-#ifdef PZDEBUG
-#ifdef LOG4CXX
-    
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/MonophasicWell/";
-    FileName += "WellFlowLog.cfg";
-    InitializePZLOG(FileName);
-    
-#endif
-#endif
     
     // Geometry of well
     REAL s= 0.0;
@@ -180,8 +169,8 @@ void PrintLS(TPZAnalysis *an)
     FGlobal =   an->Rhs();
     
 #ifdef PZDEBUG
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logdata.isDebugEnabled())
     {
         std::stringstream sout;
         KGlobal->Print("KGlobal = ", sout,EMathematicaInput);
@@ -534,8 +523,8 @@ void NewtonIterations(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, T
         iterations++;
         
 #ifdef PZDEBUG
-    #ifdef LOG4CXX
-            if(logdata->isDebugEnabled())
+    #ifdef PZ_LOG
+            if(logdata.isDebugEnabled())
             {
                 std::stringstream sout;
                 ResidualAtn.Print("ResidualAtn = ", sout,EMathematicaInput);

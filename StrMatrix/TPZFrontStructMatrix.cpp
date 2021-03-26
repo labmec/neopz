@@ -31,9 +31,9 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.strmatrix.frontstructmatrix");
+static TPZLogger loggerel("pz.strmatrix.element");
 #endif
 
 
@@ -116,8 +116,8 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 #ifdef PZDEBUG
     TPZVec<int64_t> firstel_copy(firstelconnect);
 #endif
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout<<"numelconnected " << numelconnected << endl;
@@ -153,8 +153,8 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		}
   	}
 	//  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout<< "elconnect "<< elconnect;
@@ -168,8 +168,8 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 	//cout << "elconnect\n";
 	//  int no;
 	for(int64_t no=0; no< fMesh->ConnectVec().NElements(); no++) {
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout<< "Node index " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
@@ -219,8 +219,8 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
   		if(elorderinv[seq] == -1) continue;
   		fElementOrder[elorderinv[seq]] = seq;
   	}
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
         sout << "element order " << fElementOrder << std::endl;
@@ -259,8 +259,8 @@ TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE>
 	
 	Assemble(*mat,rhs,guiInterface);
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
         mat->FinishWriting();
@@ -388,8 +388,8 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 		
 		std::cout<< " assemblando elemento frontal " << iel <<std::endl;
 		
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			ek.fMat.Print("Element stiffness Frontal",sout);
@@ -398,8 +398,8 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 #endif
 		
 		AssembleElement(el, ek, ef, stiffness, rhs);
-#ifdef LOG4CXX
-		if(loggerel->isDebugEnabled())
+#ifdef PZ_LOG
+		if(loggerel.isDebugEnabled())
 		{
 			std::stringstream sout;
 			ek.fMat.Print("Element stiffness depois de assemblada ",sout);
@@ -432,8 +432,8 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
 		//test.flush();
 		ek.ComputeDestinationIndices();
 		this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
 		{
             std::stringstream sout;
             sout << "Element index " << el->Index() << " Unconstrained destination index " << ek.fDestinationIndex;
@@ -450,8 +450,8 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
         ef.ApplyConstraints();
         ek.ComputeDestinationIndices();
         FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
         {
 			std::stringstream sout;
 			sout << "Element index " << el->Index() << " Constrained destination index " << ek.fDestinationIndex;
@@ -694,8 +694,8 @@ void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 			DebugStop();
 		}
 	}
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " permutation " << permute;

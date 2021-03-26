@@ -1,0 +1,33 @@
+# - Config file for the PZ package
+# It defines the following variables
+#  PZ_INCLUDE_DIRS - include directories for using PZ
+#  PZ_LIBRARIES    - PZ library to link against
+
+@PACKAGE_INIT@
+
+include(@PZ_CMAKE_INSTALL_DIR@/NeoPZTargets.cmake)
+include(@PZ_CMAKE_INSTALL_DIR@/add_pz_target.cmake)
+set(PZ_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_INCLUDEDIR@")
+
+## Compute paths
+set(PZ_BRANCH "@PZ_BRANCH@")
+set(PZ_REVISION "@PZ_REVISION@")
+set(PZ_REVISION_DATE "@PZ_REVISION_DATE@")
+
+# These are IMPORTED targets created by PZTargets.cmake
+if(NOT TARGET NeoPZ::pz)
+  message(FATAL_ERROR "Could not find PZ libs!")
+endif()
+set(PZ_LIBRARIES NeoPZ::pz)
+message(STATUS "PZ_INCLUDE_DIRS: ${PZ_INCLUDE_DIRS}")
+message(STATUS "Link to: ${PZ_LIBRARIES}")
+set(PZ_BUILD_PLASTICITY_MATERIALS @BUILD_PLASTICITY_MATERIALS@)
+set(PZ_REAL_TYPE @REAL_TYPE@)
+set(PZ_STATE_TYPE @STATE_TYPE@)
+
+set(PZ_USING_BOOST @USING_BOOST@)
+set(PZ_USING_TBB @USING_TBB@)
+set(PZ_USING_LAPACK @USING_LAPACK@)
+set(PZ_USING_PAPI @USING_PAPI@)
+set(PZ_USING_MKL @USING_MKL@)
+set(PZ_LOG @PZ_LOG@)

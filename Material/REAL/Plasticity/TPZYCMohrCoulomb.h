@@ -10,8 +10,8 @@
 #include <fenv.h>//NAN DETECTOR
 #endif
 
-#ifdef LOG4CXX_PLASTICITY
-static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
+#ifdef PZ_LOG
+static TPZLogger logMohr("TPZYCMohrOriginal");
 #endif
 
 class TPZYCMohrCoulomb : public TPZPlasticCriterion {

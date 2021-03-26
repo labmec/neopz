@@ -11,8 +11,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger = Logger::getLogger("pz.geom.tpzgeocube");
+#ifdef PZ_LOG
+TPZLogger logger("pz.geom.tpzgeocube");
 #endif
 
 using namespace pzshape;

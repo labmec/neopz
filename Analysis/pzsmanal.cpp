@@ -11,8 +11,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.analysis.pzsmanalysis"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.analysis.pzsmanalysis");
 
 #endif
 
@@ -121,8 +121,8 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STA
         DebugStop();
     }
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         matred->Print("Before = ",sout,EMathematicaInput);
@@ -145,8 +145,8 @@ void TPZSubMeshAnalysis::ReducedRightHandSide(TPZFMatrix<STATE> &rhs)
         DebugStop();
     }
     TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         matred->Print("Before = ",sout,EMathematicaInput);
@@ -177,8 +177,8 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
         matred->UGlobal(soltemp,uglobal);        
         fSolution = fReferenceSolution + uglobal;
     }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         soltemp.Print("External DOF Solution",sout);
         uglobal.Print("Expanded solution",sout);

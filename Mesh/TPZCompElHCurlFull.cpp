@@ -14,9 +14,10 @@
 #include "tpztriangle.h"
 #include "tpzquadrilateral.h"
 #include "pzgenericshape.h"
+#include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHCurl"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.TPZCompElHCurl");
 #endif
 
 template<class TSHAPE>
@@ -136,8 +137,8 @@ int TPZCompElHCurlFull<TSHAPE>::NConnectShapeF(int icon, int order) const {
         }
     }();
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__<<std::endl;
@@ -165,8 +166,8 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
     * their sides' GLOBAL ids instead of their LOCAL ids
     ******************************************************************************************************************/
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << std::endl;
         sout << "ELEMENT ID: " << this->Reference()->Id() << std::endl;
@@ -203,8 +204,8 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
         firstH1ShapeFunc[iCon] = firstH1ShapeFunc[iCon - 1] + TSHAPE::NConnectShapeF(iSide - 1, sidesH1Ord[iCon-1]);
     }
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << "first H1 shape function:" << std::endl;
         for (auto &iShape : firstH1ShapeFunc) {
@@ -231,7 +232,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             soutAbort << "\tError with the number of shape functions of edge " << iEdge + nNodes << std::endl;
             soutAbort << "\tCalculated " << shapeCountVec[iEdge] << " instead of "
                       << NConnectShapeF(iEdge, connectOrder[iEdge]) << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             LOGPZ_ERROR(logger, soutAbort.str())
 #endif
             PZError << soutAbort.str() << std::endl;
@@ -246,7 +247,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
             soutAbort << "\tError with the number of shape functions of face " << iFace + nEdges + nNodes << std::endl;
             soutAbort << "\tCalculated " << shapeCountVec[iFace + nEdges] << " instead of "
                       << NConnectShapeF(iFace + nEdges, connectOrder[iFace + nEdges]) << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             LOGPZ_ERROR(logger, soutAbort.str())
 #endif
             PZError << soutAbort.str() << std::endl;
@@ -261,7 +262,7 @@ void TPZCompElHCurlFull<TSHAPE>::IndexShapeToVec(TPZVec<std::pair<int,int64_t>> 
         soutAbort << "\tError with the number of internal shape functions"<< std::endl;
         soutAbort << "\tCalculated " << indexVecShape.size() - nFuncs << " instead of "
                   << this->NConnectShapeF(lastSide - nNodes, connectOrder[lastSide - nNodes]) << std::endl;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         LOGPZ_ERROR(logger, soutAbort.str())
 #endif
         PZError << soutAbort.str() << std::endl;
@@ -320,8 +321,8 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
 
     const int firstFaceShape = shapeCount;
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << "vec shape index (edge connects):" << std::endl;
         for (int iShape = 0; iShape < firstFaceShape; iShape++) {
@@ -379,8 +380,8 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
             }
             return perm;
         }();
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::ostringstream sout;
             sout << "face :"<< iSide <<" permutation:"<< std::endl;
             for (auto i = 0; i < permutedSideSides.size(); i++) sout << permutedSideSides[i]<<"\t";
@@ -416,8 +417,8 @@ void TPZCompElHCurlFull<TSHAPE>::StaticIndexShapeToVec(TPZVec<std::pair<int,int6
     }
     const int firstInternalShape = shapeCount;
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::ostringstream sout;
         sout << "vec shape index (face connects):" << std::endl;
         for (int iShape = firstFaceShape; iShape < firstInternalShape; iShape++) {
@@ -601,8 +602,8 @@ void TPZCompElHCurlFull<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,
 //                                                + TSHAPE::NConnectShapeF(prevCon, sidesH1Ord[iSide-nSideNodes-1]);
         }
 
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::ostringstream sout;
             sout << __PRETTY_FUNCTION__ << std::endl;
             sout << "side :"<< side <<std::endl;

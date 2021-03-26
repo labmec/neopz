@@ -21,10 +21,10 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
-static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
+static TPZLogger logger("pz.strmatrix.frontstructmatrix");
+static TPZLogger loggerfw("pz.frontal.frontmatrix.fw");
 
 #endif
 
@@ -57,7 +57,7 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 	
 	// message #1.3 to fFront:TPZFront
 	this->fFront.AddKel(elmat, destinationindex);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
@@ -91,8 +91,8 @@ template<class TVar, class store, class front>
 void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
-#ifdef LOG4CXX
-    if (loggerfw->isDebugEnabled())
+#ifdef PZ_LOG
+    if (loggerfw.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< this->fFront.FrontSize();
@@ -135,8 +135,8 @@ void TPZParFrontMatrix<TVar, store, front>::FinishWriting(){
 template<class TVar, class store, class front>
 void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	TPZParFrontMatrix<TVar, store, front> *parfront = (TPZParFrontMatrix<TVar, store, front>*) t;    
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Entering WriteFile thread execution";
@@ -149,8 +149,8 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 		TPZStack<TPZEqnArray<TVar> *> local;
         {
             std::unique_lock<std::mutex> lock(parfront->fwritelock);
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Acquired writelock";
@@ -159,8 +159,8 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 #endif
             if(parfront->fEqnStack.NElements() == 0){
                 if(parfront->fFinish == 1) {
-#ifdef LOG4CXX
-                    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+                    if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
                         sout << "Terminating WriteFile thread execution";
@@ -171,8 +171,8 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
                     cout.flush();
                     break;
                 }
-#ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Entering cond_wait on fwritecond variable";
@@ -184,8 +184,8 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
             
             local = parfront->fEqnStack;
             parfront->fEqnStack.Resize(0);
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Copied the equation stack releasing the writelock";
@@ -205,8 +205,8 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	parfront->fStorage.FinishWriting();
 	parfront->fStorage.ReOpen();
 	parfront->fFinish = 0;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Releasing writelock";
@@ -214,8 +214,8 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 	}
 #endif
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Falling through on the write thread";

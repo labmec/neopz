@@ -12,15 +12,14 @@
 #include "pzfmatrix.h"
 #include "pzaxestools.h"
 #include <math.h> 
-
 #include <iostream>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphase");
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.multiphase.data");
 #endif
 
 TPZMultiphase::TPZMultiphase(): 
@@ -467,7 +466,6 @@ void TPZMultiphase::fstar(REAL &fStar, REAL Pw, REAL Sw, REAL Gdotn, REAL &dfsta
 
 // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef _AUTODIFF
 
 /** Capilar pressure \f$ pc = pc( Sw ) \f$ */
 void TPZMultiphase::CapillaryPressure(BFadREAL So, BFadREAL &pc){
@@ -575,7 +573,6 @@ void TPZMultiphase::fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw)
     
 }
 
-#endif
 
 // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -3094,8 +3091,8 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
             QGstar = 1.0*bulkfStarr*QGgstarR;            
         }
         
-// #ifdef LOG4CXX
-//             if(logdata->isDebugEnabled())
+// #ifdef PZ_LOG
+//             if(logdata.isDebugEnabled())
 //             {
 //                 std::stringstream sout;
 //                 sout <<  "SLeft =" << sol_sL[VecPos] << " bulkfStarl =" << bulkfStarl << " Gravitydotnl =" << Gravitydotnl << std::endl;

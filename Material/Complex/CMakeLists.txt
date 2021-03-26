@@ -1,13 +1,12 @@
 # @file neopz/Material/Complex/CMakeLists.txt  -- CMake file for Complex Materials
 
+target_include_directories(pz PUBLIC
+						   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+						   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material/Complex>
+						   )
 
-target_include_directories(pz PUBLIC 
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-			   $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Material/Complex> 
-						  )
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/Complex)
+set(headers "")
+set(sources "")
 
-file(GLOB sources *.cpp)
-
-set(pzmaterial_COMPLEX_SRCS ${headers} ${sources} PARENT_SCOPE)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/Complex)
+target_sources(pz PRIVATE ${headers} ${sources})

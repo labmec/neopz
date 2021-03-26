@@ -17,8 +17,8 @@
 #include "TPZElasticResponse.h"
 #include "TPZPlasticCriterion.h"
 
-#ifdef LOG4CXX
-static LoggerPtr loggerMohrCoulombPV(Logger::getLogger("pz.plasticity.mohrcoulombpv"));
+#ifdef PZ_LOG
+static TPZLogger loggerMohrCoulombPV("pz.plasticity.mohrcoulombpv");
 #endif
 
 class TPZYCMohrCoulombPV : public TPZPlasticCriterion {  

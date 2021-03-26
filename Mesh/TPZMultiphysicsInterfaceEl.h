@@ -45,6 +45,9 @@ public:
 	/** @brief Constructor */
 	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index, TPZCompElSide left, TPZCompElSide right);
     
+    /** @brief Constructor */
+    TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int64_t &index);
+    
     /** @brief create a copy of the given element */
     TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, const TPZMultiphysicsInterfaceElement &copy);
     
@@ -173,10 +176,10 @@ public:
     virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 
     /** @brief Initialize the structure of the stiffness matrix */
-    void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
     
     /** @brief Initialize the structure of the stiffness matrix */
-    void InitializeElementMatrix(TPZElementMatrix &ef);
+    void InitializeElementMatrix(TPZElementMatrix &ef) override;
     
     
     /** @brief access function to the left element */

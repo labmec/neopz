@@ -16,12 +16,12 @@
 #include "pzcompel.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.poroelastic2d");
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.poroelastic.data");
 #endif
 
 PoroElasticMatInterface2D::PoroElasticMatInterface2D() : TPZPoroElastic2d(){

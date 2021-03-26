@@ -143,8 +143,8 @@ using namespace std;
 
 //#define SmoothSol
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("PiraHP.main"));
+#ifdef PZ_LOG
+static TPZLogger logger("PiraHP.main");
 #endif
 
 
@@ -173,9 +173,7 @@ bool runhdiv = true;//hibrido ou hdiv
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+
     
     bool QuarterPoint = false; //geometria qp
     bool QuarterPointRule = false; //para regra de integracao qp

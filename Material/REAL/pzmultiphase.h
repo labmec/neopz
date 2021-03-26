@@ -10,14 +10,11 @@
 #define PZ_pzmultiphase_h
 
 #include "TPZMaterial.h"
-
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
+#include "pzstack.h"
 #include <iostream>
 #include <fstream>
 #include <string>
-
 /**
  * @ingroup material
  * @author Omar Duran
@@ -47,12 +44,10 @@ protected:
     enum EState { ELastState = 0, ECurrentState = 1 };
     EState gState;
     
-#ifdef _AUTODIFF    
-    
+
     typedef TFad<2, REAL> BFadREAL; 
     
-#endif  
-    
+
 public:
     
     bool fnewWS;
@@ -338,8 +333,7 @@ public:
      */
     void fWater(REAL &fWater, REAL Pw, REAL Sw, REAL &dfWaterDPw, REAL &dfWaterDSw);
     
-#ifdef _AUTODIFF    
-    
+
     // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
@@ -419,8 +413,7 @@ public:
      */
     void fWater(BFadREAL fWater, BFadREAL Pw, BFadREAL &Sw);        
     
-#endif  
-    
+
     // Fad Methods ///////////////////////////////////////////////////////////////////////////////////////////////////////  
     
 

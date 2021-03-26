@@ -114,13 +114,11 @@ void TPZMatOrthotropic::Print(std::ostream &out) {
 	TPZMaterial::Print(out);
 }
 
-/** @brief Output file to write stiffness matrix */
-ofstream MatrizesK("MatrizesK.out");
 void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
                                    REAL weight,
                                    TPZFMatrix<STATE> &ek,
                                    TPZFMatrix<STATE> &ef) {
-	
+	ofstream MatrizesK("MatrizesK.out");
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;

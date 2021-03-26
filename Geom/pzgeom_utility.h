@@ -37,7 +37,6 @@ class TPZGeoElSide;
 template<class Topology>
 bool IsInSideParametricDomain(int side, const TPZVec<REAL> &pt, REAL tol);
 
-//#ifdef _AUTODIFF
 //template<typename T,
 //typename std::enable_if<std::is_same<T,Fad<REAL>>::value>::type* = nullptr>
 //inline bool IsInSideParametricDomain(int side, const TPZVec<T> &pt, REAL tol){
@@ -45,7 +44,6 @@ bool IsInSideParametricDomain(int side, const TPZVec<REAL> &pt, REAL tol);
 //    for(int i = 0; i < qsiReal.size(); i++) qsiReal[i] = pt[i].val();
 //    return IsInSideParametricDomain(side,qsiReal,tol);
 //}
-//#endif
 
 
 //template<class Topology, class T>
@@ -188,7 +186,6 @@ int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDo
     
 }//method
 
-#ifdef _AUTODIFF
 
 template<class Topology>
 inline void GetSideShapeFunction(int side, TPZVec<Fad<REAL> > &qsiSide, TPZFMatrix<Fad<REAL> > &phi,TPZFMatrix<Fad<REAL> > &dphi ){
@@ -233,7 +230,6 @@ inline void GetSideShapeFunction(int side, TPZVec<Fad<REAL> > &qsiSide, TPZFMatr
         }
     }
 }
-#endif
 
 template<class Topology>
 inline void GetSideShapeFunction(int side, TPZVec<REAL> &qsiSide, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi ){

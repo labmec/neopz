@@ -14,8 +14,8 @@
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivPressure"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.TPZCompElHDivPressure");
 #endif
 
 using namespace std;
@@ -59,7 +59,7 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
         mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()-1]].IncrementElConnected();
 		
 		//		for (int i=0; i<this->NConnects(); i++) {
-		//#ifdef LOG4CXX
+		//#ifdef PZ_LOG
 		//				{
 		//						std::stringstream sout;
 		//						sout << "verificando  fConnectIndexes " <<  std::endl;
@@ -69,8 +69,8 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		//#endif
 		//		}
 		
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << "After creating last pressure connect " << newnodeindex << std::endl;
@@ -135,7 +135,7 @@ MElementType TPZCompElHDivPressure<TSHAPE>::Type() {
 template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>::SetPressureOrder(int order){
 		fPressureOrder = order;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 				std::stringstream sout;
 				sout << endl<<"Ordem da Variavel dual: "<< fPressureOrder<<std::endl;
@@ -167,8 +167,8 @@ void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, int64_t connectindex)
 		}
 #endif
 		this-> fConnectIndexes[i] = connectindex;
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
 		{
 				std::stringstream sout;
 				sout << endl<<"Setting Connect : " << i << " to connectindex " << connectindex<<std::endl;
@@ -391,7 +391,7 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
 						for (int ilinha=0; ilinha<this->Dimension(); ilinha++) {
 								cols=iv%numdof;
 								
-								//	 #ifdef LOG4CXX
+								//	 #ifdef PZ_LOG
 								//	 std::stringstream sout;
 								//	 sout << " vetor  " << ivec << " shape  " << ishape<<" coef "<< MeshSol(pos+jn,0)<<endl;
 								//	 LOGPZ_DEBUG(logger,sout.str())
@@ -501,7 +501,7 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
     if (TSHAPE::Type()==EQuadrilateral){
         pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);
         
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //        std::stringstream sout;
 //        sout<<"\n ponto de integracao " << pt <<endl;
 //        sout<< "\n vetor phiDisc "<<phiDisc<<endl;
@@ -521,7 +521,7 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
     this->Append(phiCont,phiDisc,phi);
     this->Append(dphiCont,dphiDisc,dphi);
 //	{	
-//    #ifdef LOG4CXX
+//    #ifdef PZ_LOG
 //    std::stringstream sout;
 //   // sout<< "vetor phiCont"<<phiCont<<endl;
 //    sout<< "\n vetor phi "<<phi<<endl;
@@ -544,7 +544,7 @@ template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 		
-		//#ifdef LOG4CXX
+		//#ifdef PZ_LOG
 		//	{
 		//		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 		//	}

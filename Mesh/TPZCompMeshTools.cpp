@@ -20,15 +20,14 @@
 
 #include <algorithm>
 
-#include "pzmetis.h"
 #include "pzsloan.h"
 #include "TPZSloanRenumbering.h"
 #include "TPZCutHillMcKee.h"
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.analysis"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.analysis");
 #endif
 
 #ifdef USING_BOOST

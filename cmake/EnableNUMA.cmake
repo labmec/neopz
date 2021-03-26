@@ -1,0 +1,6 @@
+function(enable_numa target)
+  find_package(NUMA REQUIRED)
+  target_include_directories(${target} PRIVATE ${NUMA_INCLUDE_DIR})
+  target_link_libraries(${target} PRIVATE ${NUMA_LIB})
+  target_compile_definitions(${target} PRIVATE USING_LIBNUMA)
+endfunction()

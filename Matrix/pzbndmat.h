@@ -1,6 +1,11 @@
 /**
  * @file
- * @brief Contains TPZFBMatrix class which defines a non symmetric banded matrix.
+ * @brief Contains TPZFBMatrix class which defines a non symmetric banded matrix. Some functionalities depend on LAPACK.
+
+ The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to 
+ know which functions are affected by this dependency.
+ LAPACK can be linked by setting USING_LAPACK=ON or USING_MKL=ON on CMake
+when configuring the library.
  */
 
 #ifndef _TBNDMATHH_
@@ -57,13 +62,7 @@ public:
         for (int64_t el=0; el<nel; el++) {
             fElem[el] = orig.fElem[el];
         }
-#ifdef USING_LAPACK
         fPivot = orig.fPivot;
-        int64_t nwork = orig.fWork.size();
-        for (int64_t el=0; el<nwork; el++) {
-            fWork[el] = orig.fWork[el];
-        }
-#endif
         
     }
     
@@ -133,11 +132,10 @@ public:
 	int Zero() override;
 	
 	void Transpose(TPZMatrix<TVar> *const T) const override;
-    
-#ifdef USING_LAPACK
+    //If LAPACK is available, it will use its implementation.
 	int       Decompose_LU(std::list<int64_t> &singular) override;
+    //If LAPACK is available, it will use its implementation.
 	int       Decompose_LU() override;
-#endif
 	
     public:
 int ClassId() const override;
@@ -153,11 +151,8 @@ private:
 	
 	TPZVec<TVar> fElem;
 	int64_t  fBandLower, fBandUpper;
-#ifdef USING_LAPACK
+
     TPZManVector<int,5> fPivot;
-    
-    TPZVec<TVar> fWork;
-#endif
 
 };
 

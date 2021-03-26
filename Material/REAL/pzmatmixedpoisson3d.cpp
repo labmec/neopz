@@ -16,8 +16,8 @@
 
 #include <iostream>
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.TPZMatMixedPoisson3D.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.TPZMatMixedPoisson3D.data");
 #endif
 
 using namespace std;
@@ -443,8 +443,8 @@ void TPZMatMixedPoisson3D::ContributeWithoutSecondIntegration(TPZVec<TPZMaterial
     }
     
     //
-    //#ifdef LOG4CXX
-    //    if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //    if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Matriz ek e vetor fk \n ";

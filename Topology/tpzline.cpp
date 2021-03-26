@@ -11,15 +11,13 @@
 #include "pzquad.h"
 #include "pzeltype.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.topology.pzline"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.topology.pzline");
 #endif
 
 using namespace std;
@@ -84,7 +82,7 @@ namespace pztopology {
             sout<<"The method BlendFactorForSide expects the point xi to correspond to coordinates of a point";
             sout<<" inside the parametric domain. Aborting...";
             PZError<<std::endl<<sout.str()<<std::endl;
-            #ifdef LOG4CXX
+            #ifdef PZ_LOG
             LOGPZ_FATAL(logger,sout.str().c_str());
             #endif
             DebugStop();
@@ -552,7 +550,6 @@ template void pztopology::TPZLine::BlendFactorForSide<REAL>(const int &, const T
 template void pztopology::TPZLine::TShape<REAL>(const TPZVec<REAL> &loc,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 template void pztopology::TPZLine::ComputeHDivDirections<REAL>(TPZFMatrix<REAL> &gradx, TPZFMatrix<REAL> &directions);
-#ifdef _AUTODIFF
 
 template bool pztopology::TPZLine::CheckProjectionForSingularity<Fad<REAL>>(const int &side, const TPZVec<Fad<REAL>> &xiInterior);
 
@@ -563,4 +560,3 @@ template void pztopology::TPZLine::BlendFactorForSide<Fad<REAL>>(const int &, co
 template void pztopology::TPZLine::TShape<Fad<REAL>>(const TPZVec<Fad<REAL>> &loc,TPZFMatrix<Fad<REAL>> &phi,TPZFMatrix<Fad<REAL>> &dphi);
 
 template void pztopology::TPZLine::ComputeHDivDirections<Fad<REAL>>(TPZFMatrix<Fad<REAL>> &gradx, TPZFMatrix<Fad<REAL>> &directions);
-#endif

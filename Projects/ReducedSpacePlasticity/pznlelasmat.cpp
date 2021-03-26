@@ -12,8 +12,8 @@
 #include <math.h>
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.elasticity.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.elasticity.data");
 #endif
 
 #include <fstream>
@@ -233,8 +233,8 @@ void TPZNLElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFM
 		}
 	}
 	
-  //#ifdef LOG4CXX
-  //	if(logdata->isDebugEnabled())
+  //#ifdef PZ_LOG
+  //	if(logdata.isDebugEnabled())
   //	{
   //		std::stringstream sout;
   //		ek.Print("ek_elastmat = ",sout,EMathematicaInput);

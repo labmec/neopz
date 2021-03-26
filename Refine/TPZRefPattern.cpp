@@ -16,7 +16,7 @@
 // #include "pzeltype.h"
 // #include "tpzpermutation.h"
 // #include "pzgeoel.h"
-// #include "pzlog.h"
+#include "pzlog.h"
 
 // #include <set>
 
@@ -31,8 +31,8 @@ const std::string TPZRefPattern::fNonInitializedName = "noname";
 /// Map of all valid permutations
 std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
 
- #ifdef LOG4CXX
- static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZRefPattern"));
+ #ifdef PZ_LOG
+ static TPZLogger logger("pz.mesh.TPZRefPattern");
  #endif
 
 
@@ -651,7 +651,7 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int64_t>
 		}
 		if (smallestDiff >= 1.e-2 && sideindices.NElements() != 0)
 		{
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 			{
 				std::stringstream sout;
 				sout << "Incompatible refinement patterns detected\n";
@@ -750,8 +750,8 @@ void TPZRefPattern::InsertPermuted()
         TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
         TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refp);
 
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Permutation " << it->fPermute;

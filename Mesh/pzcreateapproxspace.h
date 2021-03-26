@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the functions to create different computational elements (one- two- three-dimensional).
+ * @brief Contains the functions to create different computational elements (one- two- three-dimensional). The creation of SBFem elements depends on the NeoPZ library configuration USING_MKL=ON.
  */
 
 #ifndef CREATECONTINUOUSHPP
@@ -104,10 +104,8 @@ public:
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     
-#if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
-    /** @brief Create SBFem approximation space */
+    /** @brief Create SBFem approximation space. Depends on MKL. */
     void SetAllCreateFunctionsSBFem(int meshdim);
-#endif
 
 #ifndef STATE_COMPLEX
     /** @brief Create an approximation space with HDivxL2 elements */

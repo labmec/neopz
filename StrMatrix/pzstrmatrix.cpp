@@ -32,13 +32,13 @@ using namespace std;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixOR"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
-static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
-static LoggerPtr loggerelmat(Logger::getLogger("pz.strmatrix.elementmat"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"));
-static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.strmatrix.TPZStructMatrixOR");
+static TPZLogger loggerel("pz.strmatrix.element");
+static TPZLogger loggerel2("pz.strmatrix.elementinterface");
+static TPZLogger loggerelmat("pz.strmatrix.elementmat");
+static TPZLogger loggerCheck("pz.strmatrix.checkconsistency");
+static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 #endif
 
 #ifdef CHECKCONSISTENCY
@@ -133,8 +133,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         LOGPZ_ERROR(logger, "Serial_Assemble called without mesh")
         DebugStop();
     }
-#ifdef LOG4CXX
-    if (loggerelmat->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerelmat.isDebugEnabled()) {
         if (dynamic_cast<TPZSubCompMesh *> (fMesh)) {
             std::stringstream sout;
             sout << "AllEig = {};";
@@ -152,7 +152,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     int64_t iel;
     int64_t nelem = fMesh->NElements();
     TPZElementMatrix ek(fMesh, TPZElementMatrix::EK), ef(fMesh, TPZElementMatrix::EF);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     bool globalresult = true;
     bool writereadresult = true;
 #endif
@@ -190,8 +190,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
                 return;
             }
 
-#ifdef LOG4CXX
-        if (loggerelmat->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (loggerelmat.isDebugEnabled()) {
             if (dynamic_cast<TPZSubCompMesh *> (fMesh)) {
                 std::stringstream objname;
                 objname << "Element" << iel;
@@ -255,8 +255,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             //			test -= stiffness;
             //			test.Print("matriz de rigidez diference",std::cout);
             //			test2.Print("matriz de rigidez interface",std::cout);
-#ifdef LOG4CXX
-            if (loggerel->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (loggerel.isDebugEnabled()) {
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
                 if (gel) {
@@ -282,8 +282,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
             stiffness.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
 
-#ifdef LOG4CXX
-            if (loggerel->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (loggerel.isDebugEnabled()) {
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
                 //                el->Print();
@@ -349,13 +349,13 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     }//fim for iel
     if (count > 1000) std::cout << std::endl;
 
-#ifdef LOG4CXX
-    if (loggerCheck->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerCheck.isDebugEnabled()) {
         std::stringstream sout;
         sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
-    if (loggerGlobStiff->isDebugEnabled())
+    if (loggerGlobStiff.isDebugEnabled())
     {
         std::stringstream sout;
         stiffness.Print("GK = ",sout,EMathematicaInput);
@@ -410,8 +410,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
         el->CalcResidual(ef);
 
         calcresidual.stop();
-#ifdef LOG4CXX
-        if(loggerel->isDebugEnabled())
+#ifdef PZ_LOG
+        if(loggerel.isDebugEnabled())
         {
             std::stringstream sout;
             TPZGeoEl *gel = el->Reference();
@@ -440,8 +440,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
             fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat, ef.fSourceIndex, ef.fDestinationIndex);
         }
-#ifdef LOG4CXX
-        if(loggerel->isDebugEnabled())
+#ifdef PZ_LOG
+        if(loggerel.isDebugEnabled())
         {
             std::stringstream sout;
             ef.Print(sout);
@@ -452,9 +452,9 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
         assemble.stop();
 
     }//fim for iel
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << calcresidual.processName() << " " << calcresidual << std::endl;
             sout << assemble.processName() << " " << assemble;
@@ -485,8 +485,8 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<
       allthreads[itr].join();
     }
 
-#ifdef LOG4CXX2
-    if (loggerCheck->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (loggerCheck.isDebugEnabled()) {
         std::stringstream sout;
         //stiffness.Print("Matriz de Rigidez: ",sout);
         mat.Print("Matriz de Rigidez: ", sout, EMathematicaInput);
@@ -607,8 +607,8 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
             if (data->fStruct->HasRange()) {
                 data->fStruct->FilterEquations(ek->fSourceIndex, ek->fDestinationIndex);
             }
-#ifdef LOG4CXX
-            if (loggerel->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (loggerel.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Element index " << iel << std::endl;
                 ek->fMat.Print("Element stiffness matrix", sout);
@@ -626,8 +626,8 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
             if (data->fStruct->HasRange()) {
                 data->fStruct->FilterEquations(ek->fSourceIndex, ek->fDestinationIndex);
             }
-#ifdef LOG4CXX
-            if (loggerel2->isDebugEnabled() && el->Reference() && el->Reference()->MaterialId() == 1 && el->IsInterface()) {
+#ifdef PZ_LOG
+            if (loggerel2.isDebugEnabled() && el->Reference() && el->Reference()->MaterialId() == 1 && el->IsInterface()) {
                 std::stringstream sout;
                 el->Reference()->Print(sout);
                 el->Print(sout);
@@ -636,8 +636,8 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
                 LOGPZ_DEBUG(loggerel2, sout.str())
             }
 #endif
-#ifdef LOG4CXX
-            if (loggerel->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (loggerel.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "Element index " << iel << std::endl;
                 ek->fConstrMat.Print("Element stiffness matrix", sout);
@@ -686,15 +686,15 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
                 // make sure we come back to look for one more element
                 keeplooking = true;
                 // Get a hold of the data
-#ifdef LOG4CXX
+#ifdef PZ_LOG
                 int iel = *itprocess;
 #endif
                 data->fProcessed.erase(itprocess);
                 TPZAutoPointer<TPZElementMatrix> ek = itavail->second.first;
                 TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;
                 data->fSubmitted.erase(itavail);
-#ifdef LOG4CXX
-                if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+                if (logger.isDebugEnabled()) {
                     std::stringstream sout;
                     sout << "Assembling element " << iel;
                     LOGPZ_DEBUG(logger, sout.str())
@@ -735,15 +735,15 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
         }
         if (!keeplooking) {
           data->fMutexAccessElement.unlock();
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 LOGPZ_DEBUG(logger, "Going to sleep within assembly")
             }
 #endif
             // wait for a signal
             data->fAssembly.Wait();
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled()) {
                 LOGPZ_DEBUG(logger, "Waking up for assembly")
             }
 #endif
@@ -754,15 +754,15 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
 
     }
     //	std::cout << std::endl;
-#ifdef LOG4CXX
-    if (loggerCheck->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerCheck.isDebugEnabled()) {
         std::stringstream sout;
         sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
         LOGPZ_DEBUG(loggerCheck, sout.str())
     }
 #endif
-#ifdef LOG4CXX
-    if (loggerCheck->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerCheck.isDebugEnabled()) {
         std::stringstream sout;
         if (data->fGlobMatrix) {
             data->fGlobMatrix->Print("Matriz de Rigidez: ", sout, EMathematicaInput);
@@ -792,9 +792,9 @@ int64_t TPZStructMatrixOR::ThreadData::NextElement() {
     nextel = iel;
     if (iel < nel) fProcessed.insert(iel); //AQUIBORIN pelo que percebi, aqui tem que acontecer antes do unlock no caso sem Critical Section
     fMutexAccessElement.unlock();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
-        if (logger->isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__ << " returning " << nextel << " fNextElement " << fNextElement;
             LOGPZ_DEBUG(logger, sout.str())

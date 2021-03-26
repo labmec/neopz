@@ -59,8 +59,8 @@
 #include <set>
 #include "TPZVTKGeoMesh.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;
@@ -104,7 +104,6 @@ void NeumannBC4(const TPZVec<REAL> &loc, TPZVec<STATE> &result);   ///Jorge 2017
 
 int main(int argc, char *argv[])
 {
-    InitializePZLOG();
     gRefDBase.InitializeUniformRefPattern(EOned);
     gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
     gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -288,7 +287,6 @@ int main22(int argc, char *argv[])
 
 //int main(int argc, char *argv[])
 //{
-//    InitializePZLOG();
 //    gRefDBase.InitializeUniformRefPattern(EOned);
 //    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 //    gRefDBase.InitializeUniformRefPattern(ETriangle);
@@ -460,8 +458,8 @@ TPZCompMesh *CMeshFlux(int pOrder,TPZGeoMesh *gmesh)
     //Ajuste da estrutura de dados computacional
     cmesh->AutoBuild();
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
@@ -534,8 +532,8 @@ TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
 //    }
 //#endif
 
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//	if(logdata.isDebugEnabled())
 //	{
 //        std::stringstream sout;
 //        sout<<"\n\n Malha Computacional_2 pressure\n ";
@@ -962,8 +960,8 @@ void ErrorH1(TPZCompMesh *l2mesh, std::ostream &out)
         
         int nerr = elerror.size();
         //globerrors.resize(nerr);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "L2 Error sq of element " << el << elerror[0]*elerror[0];
             LOGPZ_DEBUG(logger, sout.str())

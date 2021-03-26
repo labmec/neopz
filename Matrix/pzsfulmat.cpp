@@ -12,8 +12,8 @@
 
 #include <sstream>
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsfmatrix"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzsfmatrix");
 #endif
 
 using namespace std;
@@ -827,11 +827,6 @@ TPZSFMatrix<TVar> ::Clear()
 	return( 1 );
 }
 
-template class TPZSFMatrix<float>;
-template class TPZSFMatrix<double>;
-template class TPZSFMatrix<long double>;
-
-
 #ifdef OOPARLIB
 
 template<class TVar>
@@ -873,3 +868,7 @@ template<class TVar>
 int TPZSFMatrix<TVar>::ClassId() const{
     return Hash("TPZSFMatrix") ^ TPZMatrix<TVar>::ClassId() << 1;
 }
+
+template class TPZSFMatrix<float>;
+template class TPZSFMatrix<double>;
+template class TPZSFMatrix<long double>;

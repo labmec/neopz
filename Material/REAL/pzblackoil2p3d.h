@@ -9,7 +9,8 @@
 #include "TPZMaterial.h"
 
 
-#ifdef _AUTODIFF
+
+
 
 #include "fad.h"
 
@@ -202,4 +203,3 @@ public:
 
 #endif
 
-#endif

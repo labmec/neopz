@@ -29,9 +29,9 @@
 #include <iterator>
 #include <numeric>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mhmeshcontrol"));
-static LoggerPtr loggerWRAP(Logger::getLogger("pz.mhmeshwrap"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mhmeshcontrol");
+static TPZLogger loggerWRAP("pz.mhmeshwrap");
 #endif
 
 // toto
@@ -52,8 +52,8 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int6
     for (int64_t c=0; c<nc; c++) {
         fMHMtoSubCMesh[geotomhm[c] ] = -1;
     }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Coarse element indexes ";
         for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
@@ -82,8 +82,8 @@ void TPZMHMeshControl::DefinePartition(TPZVec<int64_t> &partitionindex, std::map
     for (int64_t c=0; c<nc; c++) {
         fMHMtoSubCMesh[partitionindex[c] ] = -1;
     }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Coarse element indexes ";
         for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
@@ -182,8 +182,8 @@ TPZMHMeshControl::TPZMHMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh) : fGMesh(gm
                                                                        fNumeq(-1) {
 
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Coarse element indexes ";
         for (std::map<int64_t,int64_t>::iterator it=fMHMtoSubCMesh.begin(); it != fMHMtoSubCMesh.end(); it++) {
@@ -292,8 +292,8 @@ void TPZMHMeshControl::DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseind
         }
     }
     CreateSkeletonElements();
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Subdomain indices " << fGeoToMHMDomain << std::endl;
         sout << "Recognized domains ";
@@ -364,8 +364,8 @@ void TPZMHMeshControl::CreateSkeletonElements()
 //    BuildWrapMesh(fGMesh->Dimension()-1);
 
     fGeoToMHMDomain.Resize(fGMesh->NElements(), -1);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         std::map<int64_t, std::pair<int64_t,int64_t> >::iterator it = fInterfaces.begin();
         while (it != fInterfaces.end()) {
@@ -598,8 +598,8 @@ void TPZMHMeshControl::BuildComputationalMesh(bool usersubstructure)
     }
 
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "*********** BEFORE SUBSTRUCTURING *************\n";
         fCMesh->Print(sout);
@@ -834,8 +834,8 @@ void TPZMHMeshControl::CreateInterfaceElements()
                     int64_t index;
                     TPZGeoEl *gelnew = smallGeoElSide.Element()->CreateBCGeoEl(smallGeoElSide.Side(), matid);
                     new TPZInterfaceElement(fCMesh, gelnew , index, csmall, celskeleton);
-#ifdef LOG4CXX
-                    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+                    if (logger.isDebugEnabled()) {
                         std::stringstream sout;
                         sout << "New interface left " << smallGeoElSide.Element()->Index() << " right " << gel->Index() << " matid " << matid;
                         sout << " interface index " << gelnew->Reference()->Index() << " beint64_ts to subdomain " << WhichSubdomain(gelnew->Reference());
@@ -1235,8 +1235,8 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
             SetSubdomain(cel, subdomain);
         }
     }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         fCMeshLagrange->Print(sout);
         fCMeshConstantPressure->Print(sout);
@@ -1390,8 +1390,8 @@ void TPZMHMeshControl::TransferToMultiphysics()
     }
     fCMesh->ExpandSolution();
     //fCMesh->SaddlePermute();
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         fCMesh->Print(sout);
         LOGPZ_DEBUG(logger, sout.str())
@@ -1440,8 +1440,8 @@ void TPZMHMeshControl::SubStructure()
             DebugStop();
         }
         submeshes[domain]->TransferElement(fCMesh.operator->(), cel->Index());
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Transferring element index " << cel->Index() << " geometric index ";
             TPZGeoEl *gel = cel->Reference();
@@ -1502,8 +1502,8 @@ void TPZMHMeshControl::SubStructure()
         TPZSubCompMesh *submesh = itsub->second;
         int numthreads = 0;
         int preconditioned = 0;
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Newly created submesh for element " << *it << "\n";
             submesh->Print(sout);
@@ -1851,8 +1851,8 @@ void TPZMHMeshControl::HybridizeSkeleton(int skeletonmatid, int pressurematid)
                 }
                 fGeoToMHMDomain[right.Element()->Reference()->Index()] = subdomain;
                 SetSubdomain(right.Element(), subdomain);
-#ifdef LOG4CXX
-                if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+                if(logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Interface right flux element " << right.Element()->Index() << " has been adjusted subdomain is " << WhichSubdomain(right.Element());
@@ -2474,8 +2474,8 @@ void TPZMHMeshControl::CreateWrap(TPZGeoElSide gelside)
     {
         wrapmat = WrapMaterialId(gelside);
         TPZGeoElBC gbc(gelside, wrapmat);
-#ifdef LOG4CXX
-        if(loggerWRAP->isDebugEnabled())
+#ifdef PZ_LOG
+        if(loggerWRAP.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Creating a wrap element on element/side " << gelside.Element()->Index() <<
@@ -2605,8 +2605,8 @@ void TPZMHMeshControl::DivideWrap(TPZGeoEl *wrapelement)
                 DebugStop();
             }
 #endif
-#ifdef LOG4CXX
-            if(loggerWRAP->isDebugEnabled())
+#ifdef PZ_LOG
+            if(loggerWRAP.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << std::endl;

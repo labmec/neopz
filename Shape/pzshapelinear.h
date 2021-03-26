@@ -12,9 +12,7 @@
 #include "tpzline.h"
 #include "pzshtmat.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
@@ -96,7 +94,6 @@ namespace pzshape {
 		 */
 		static void Legendre(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int nderiv);
 
-#ifdef _AUTODIFF
 		/**
 		 *	@brief Pointer to function which returns num orthogonal functions at the point x
 		 * @param x coordinate of the point with derivatives already setup
@@ -113,7 +110,6 @@ namespace pzshape {
 		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
 		 */
 		static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
-#endif
 
 		/** @} */
 		
@@ -203,7 +199,6 @@ public:
             ShapeGenerating(pt, phi, dphi);
         }
 
-#ifdef _AUTODIFF
 		/**
 		 * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the
 		 * corner shapefunctions
@@ -219,8 +214,7 @@ public:
 		 * The shape1dInternal function is extensively used by the shapefunction computation of the other elements
 		 */
 		static void ShapeInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index);
-#endif
-		
+
 		/**
 		 * @brief Computes the transformation applied to the variational parameter of the one-d element
 		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
@@ -232,7 +226,6 @@ public:
 		 * be viewed by the transformation of a variational parameter.
 		 */
 		static void TransformPoint1d(int transid,REAL in,REAL &out);
-#ifdef _AUTODIFF
 		/**
 		 * @brief Computes the transformation applied to the variational parameter of the one-d element
 		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
@@ -245,7 +238,6 @@ public:
 		 * be viewed by the transformation of a variational parameter.
 		 */
 		static void TransformPoint1d(int transid,FADREAL & in,FADREAL &out);
-#endif
 		/**
 		 * @brief Applies the transformation on the values of the derivatives of the shape functions of the
 		 * internal shape functions

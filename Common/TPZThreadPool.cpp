@@ -1,8 +1,8 @@
 #include "pzerror.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
+#ifdef PZ_LOG
+static TPZLogger logger("TPZThreadPool");
 #endif
 
 #include "TPZThreadPool.h"

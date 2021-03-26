@@ -107,10 +107,6 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 // MAIN FUNCTION
 int main(int argc, char *argv[]) {
 	
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
-	
 	// Initializing uniform refinements for quadrilaterals and triangles
 	gRefDBase.InitializeUniformRefPattern(EOned);
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);

@@ -50,9 +50,9 @@
 #include <fstream>
 #include <string>
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 #include "pzskylmat.h"

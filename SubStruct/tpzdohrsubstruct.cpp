@@ -7,8 +7,8 @@
 #include <iostream>
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
+#ifdef PZ_LOG
+static TPZLogger logger("substruct.dohrsubstruct");
 #endif
 
 using namespace std;
@@ -210,8 +210,8 @@ void TPZDohrSubstruct<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_loca
 	TPZFMatrix<TVar> temp2(ncoarse+nnull,ncols);
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		Lambda_star.Print("Lambda_star ",sout);
@@ -224,8 +224,8 @@ void TPZDohrSubstruct<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &residual_loca
 	fKeC_star.Multiply(Lambda_star,temp2);
 	temp2 *= -1.;
 	temp2.Add(KWeightedResidual,zi);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		zi.Print("zi ",sout);
@@ -372,8 +372,8 @@ void TPZDohrSubstruct<TVar>::SolveSystemPhi() {
 	//  out.flush();
 	finv.Solve(I_lambda, Lambda_star);
 	
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		Lambda_star.Print("matrix lambda star",sout );
@@ -431,8 +431,8 @@ void TPZDohrSubstruct<TVar>::ComputeCoarseStiffness() {
 	TPZFMatrix<TVar> temp1(fNEquations,fCoarseIndex.NElements());
 	fKCi.Resize(fCoarseIndex.NElements(),fCoarseIndex.NElements());
 	fStiffness->Multiply(fPhiC,temp1);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		temp1.Print("stiffness matrix times phi",sout);
@@ -440,8 +440,8 @@ void TPZDohrSubstruct<TVar>::ComputeCoarseStiffness() {
 	}
 #endif
 	fPhiC.MultAdd(temp1,temp1,fKCi,1,0,1);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		fKCi.Print("Coarse stiffness matrix",sout);
@@ -474,7 +474,7 @@ void TPZDohrSubstruct<TVar>::ContributeGlobalDiagonal(TPZFMatrix<TVar> &Stiffnes
 			fWeights[fCoarseNodes[i]] = 1.;
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Weight used for assembly" << fWeights;
@@ -513,7 +513,7 @@ void TPZDohrSubstruct<TVar>::ContributeDiagonalLocal(TPZFMatrix<TVar> &Stiffness
 			fWeights[fCoarseNodes[i]] = 1.;
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Weight used for assembly" << fWeights;
@@ -542,7 +542,7 @@ void TPZDohrSubstruct<TVar>::ComputeWeights(TPZFMatrix<TVar> &StiffnessDiag) {
 	{
 		fWeights[fInternalEqs[i]] = 1.;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Weights = " <<  fWeights;
@@ -563,7 +563,7 @@ void TPZDohrSubstruct<TVar>::ComputeWeightsLocal(TPZFMatrix<TVar> &StiffnessDiag
 	{
 		fWeights[fInternalEqs[i]] = 1.;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Weights = " <<  fWeights;
@@ -614,7 +614,7 @@ void TPZDohrSubstruct<TVar>::ContributeKU(const TVar alpha, const TPZFMatrix<TVa
 			uloc(ind.first,j) = uglobal.Get(ind.second,j);
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Value of the local solution = ";
@@ -645,7 +645,7 @@ void TPZDohrSubstruct<TVar>::ContributeKU(const TVar alpha, const TPZFMatrix<TVa
 #else
 	v3 = v3glob;
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Contribution of v3";
@@ -654,7 +654,7 @@ void TPZDohrSubstruct<TVar>::ContributeKU(const TVar alpha, const TPZFMatrix<TVa
 	}
 #endif
 	uloc += v3;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "New value of uloc";
@@ -666,7 +666,7 @@ void TPZDohrSubstruct<TVar>::ContributeKU(const TVar alpha, const TPZFMatrix<TVa
 	/* Computing K(i)*uloc and storing in temp1 */
 	temp1.Resize(nglob,ncols);
 	fStiffness->Multiply(uloc,temp1);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "After multiplying the solution temp1 = ";
@@ -703,7 +703,7 @@ void TPZDohrSubstruct<TVar>::ContributeKULocal(const TVar alpha, const TPZFMatri
 			uloc(ind.first,j) = u.Get(i,j);
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Value of the local solution = ";
@@ -715,7 +715,7 @@ void TPZDohrSubstruct<TVar>::ContributeKULocal(const TVar alpha, const TPZFMatri
 #ifdef ZERO_INTERNAL_RESIDU
 	// zero out the internal residu
 	this->Contribute_v3_local(uloc,v3);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Contribution of v3";
@@ -724,7 +724,7 @@ void TPZDohrSubstruct<TVar>::ContributeKULocal(const TVar alpha, const TPZFMatri
 	}
 #endif
 	uloc += v3;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "New value of uloc";
@@ -736,7 +736,7 @@ void TPZDohrSubstruct<TVar>::ContributeKULocal(const TVar alpha, const TPZFMatri
 	/* Computing K(i)*uloc and storing in temp1 */
 	temp1.Resize(nglob,ncols);
 	fStiffness->Multiply(uloc,temp1);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "After multiplying the solution temp1 = ";
@@ -786,7 +786,7 @@ void TPZDohrSubstruct<TVar>::PrepareSystems() {
 	TPZFMatrix<TVar> KeC(fNEquations,ncoarse);
 	fInvertedStiffness.Solve(C_transposed,KeC);
 	/** */
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Number of zero pivots of the substructure : " << fInvertedStiffness.Singular().size();
@@ -866,7 +866,7 @@ void TPZDohrSubstruct<TVar>::AdjustResidual(TPZFMatrix<TVar> &r_global)
 		radapt(ind.first,0) = r_global(ind.second,0);
 	}
 	fInvertedInternalStiffness.Solve(rint,fAdjustSolution);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Adjusted internal solution";

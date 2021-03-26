@@ -16,10 +16,6 @@
 #include "pzlog.h"
 #include <sstream>
 
-#ifdef LOG4CXX
-static LoggerPtr loggermapped(Logger::getLogger("pz.mesh.geoelmapped"));
-#endif
-
 /**
  * @ingroup geometry
  * @brief This class implements a geometric element which uses its ancestral to compute its jacobian. \ref geometry "Geometry"
@@ -218,29 +214,38 @@ int ClassId() const override;
 
 				error = sqrt(error);
 				if(error > 1e-8){
-					std::stringstream sout;
+#ifdef PZ_LOG
+                    TPZLogger loggermapped("pz.mesh.geoelmapped");
+                    if(loggermapped.isErrorEnabled()){
+                        std::stringstream sout;
 					
-					sout.precision(16);
-					sout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
-					sout << "this->Index = " << this->Index() << "\n";
-					sout << "Node number " << in << std::endl;
-					sout << "Node index " << this->NodeIndex(in) << std::endl;
-					sout << "Father side " << this->FatherSide(in,0) << std::endl;
-					sout << "aux:\n";
-					for(int i = 0; i < aux.NElements(); i++) sout << aux[i] << "\t";
-					sout << "\nptancestor:\n";
-					for(int i = 0; i < ptancestor.NElements(); i++) sout << ptancestor[i] << "\t";
-					sout << "\n";
-					sout << "nodeX:\n";
-					for(int i = 0; i < nodeX.NElements(); i++) sout << nodeX[i] << "\t";
-					sout << "\nfatherX:\n";
-					for(int i = 0; i < fatherX.NElements(); i++) sout << fatherX[i] << "\t";
-					sout << "\nfatherXaux:\n";
-					for(int i = 0; i < fatherXaux.NElements(); i++) sout << fatherXaux[i] << "\t";
-					std::cout << sout.str();
-#ifdef LOG4CXX
-					father->Mesh()->Print(sout);
-					LOGPZ_ERROR(loggermapped,sout.str())
+                        sout.precision(16);
+                        sout << "\nError at " << __PRETTY_FUNCTION__ << __LINE__ << "\n";
+                        sout << "this->Index = " << this->Index() << "\n";
+                        sout << "Node number " << in << std::endl;
+                        sout << "Node index " << this->NodeIndex(in)
+                             << std::endl;
+                        sout << "Father side " << this->FatherSide(in, 0)
+                             << std::endl;
+                        sout << "aux:\n";
+                        for (int i = 0; i < aux.NElements(); i++)
+                          sout << aux[i] << "\t";
+                        sout << "\nptancestor:\n";
+                        for (int i = 0; i < ptancestor.NElements(); i++)
+                          sout << ptancestor[i] << "\t";
+                        sout << "\n";
+                        sout << "nodeX:\n";
+                        for (int i = 0; i < nodeX.NElements(); i++)
+                          sout << nodeX[i] << "\t";
+                        sout << "\nfatherX:\n";
+                        for (int i = 0; i < fatherX.NElements(); i++)
+                          sout << fatherX[i] << "\t";
+                        sout << "\nfatherXaux:\n";
+                        for (int i = 0; i < fatherXaux.NElements(); i++)
+                          sout << fatherXaux[i] << "\t";
+                        std::cout << sout.str();
+                        LOGPZ_ERROR(loggermapped, sout.str())
+                    }
 #endif
 					DebugStop();
 				}
@@ -256,12 +261,10 @@ int ClassId() const override;
 		
 	}//method
 	
-#ifdef _AUTODIFF
     /** @brief Return the Jacobian matrix at the point*/
     virtual void GradXFad(TPZVec<Fad<REAL> > &qsi, TPZFMatrix<Fad<REAL> > &gradx) const  {
         DebugStop();
     }
-#endif
 //    /** @brief Return the Jacobian matrix at the point*/
 //    virtual void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const {
 //
@@ -300,12 +303,10 @@ int ClassId() const override;
     void GradX(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
-#ifdef _AUTODIFF
     void GradX(TPZVec<Fad<REAL>> &qsi, TPZFMatrix<Fad<REAL>> &gradx) const  override {
         return TGradX(qsi, gradx);
     }
-#endif
-	
+
 //	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
 //	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 //	{
@@ -360,11 +361,9 @@ int ClassId() const override;
     void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const override {
 	        return TX(ksi,result);
 	}
-#ifdef _AUTODIFF
     void X(TPZVec<Fad<REAL>> &ksi,TPZVec<Fad<REAL>> &result) const override {
         return TX(ksi,result);
     }
-#endif
 
 	virtual void Print(std::ostream & out = std::cout) override
 	{
@@ -475,12 +474,10 @@ private:
         return TKsiBar(ksi,ksibar);
     }
 
-    #ifdef _AUTODIFF
     void KsiBar(TPZVec<Fad<REAL>> &ksi, TPZVec<Fad<REAL>> &ksibar) const{
         return TKsiBar(ksi,ksibar);
     }
-    #endif
-	
+
 	virtual TPZGeoEl *CreateBCGeoEl(int side, int bc) override {
 		int ns = this->NSideNodes(side);
 		TPZManVector<int64_t> nodeindices(ns);
@@ -531,8 +528,9 @@ protected:
 
         /// @brief Combining Variables
         gradxfather.Multiply(gradxlocal, gradx);
-#ifdef LOG4CXX
-        if(loggermapped->isDebugEnabled())
+#ifdef PZ_LOG
+        TPZLogger loggermapped("pz.mesh.geoelmapped");
+        if(loggermapped.isDebugEnabled())
         {
             std::stringstream sout;
             gradxfather.Print("gradx father",sout);

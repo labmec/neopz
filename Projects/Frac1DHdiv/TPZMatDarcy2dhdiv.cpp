@@ -15,12 +15,12 @@
 
 #include <iostream>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphase"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphase");
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.multiphase.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.multiphase.data");
 #endif
 
 TPZMatDarcy2dhdiv::TPZMatDarcy2dhdiv(): TPZMaterial()

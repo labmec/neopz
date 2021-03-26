@@ -14,13 +14,8 @@
 #include <sstream>
 
 #include "pzlog.h" // test 
-#ifdef LOG4CXX
-static LoggerPtr loggerrefless(Logger::getLogger("pz.mesh.tpzgeoelrefless"));
-#endif
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZRegisterClassId(&TPZGeoElRefLess<TGeo>::ClassId),
@@ -392,7 +387,6 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform<> 
 	BuildTransform2(side,father,t);
 }
 
-#ifdef _AUTODIFF
 /** @brief Return the Gradient of the transformation at the point */
 template<class TGeo>
 void
@@ -403,7 +397,6 @@ TPZGeoElRefLess<TGeo>::GradX(TPZVec<Fad<REAL> > &par, TPZFMatrix<Fad<REAL> > &gr
     CornerCoordinates(cornerco);
     fGeo.GradX(cornerco,par,gradx);
 }
-#endif
 
 /** @brief Return the gradient of the transformation at the point */
 template<class TGeo>
@@ -428,7 +421,6 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 	fGeo.X(cornerco,coordinate,result);
 }
 
-#ifdef _AUTODIFF
 /** @brief Return the gradient of the transformation at the point */
 template<class TGeo>
 void
@@ -438,7 +430,6 @@ TPZGeoElRefLess<TGeo>::X(TPZVec<Fad<REAL> > &coordinate,TPZVec<Fad<REAL> > &resu
     CornerCoordinates(cornerco);
     fGeo.X(cornerco,coordinate,result);
 }
-#endif
 
 template<class TGeo>
 bool TPZGeoElRefLess<TGeo>::IsLinearMapping(int side) const
@@ -615,7 +606,6 @@ void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<REAL> &d
     
 }
 
-#ifdef _AUTODIFF
 template<class TGeo>
 void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL>> &directions)
 {
@@ -641,7 +631,6 @@ void TPZGeoElRefLess<TGeo>::HDivDirections(TPZVec<REAL> &pt, TPZFMatrix<Fad<REAL
     TGeo::ComputeHDivDirections(gradxFad, directions);
    
 }
-#endif
 
 
 #include "pzgeoquad.h"
@@ -655,9 +644,11 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVe
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " called with wrong side parameter " << side;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
+        TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
+        DebugStop();
         std::cout << sout.str() << std::endl;
 	}
 	permutegather.Resize(3);
@@ -688,7 +679,8 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, T
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " called with wrong side parameter " << side;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
+        TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
         std::cout << sout.str() << std::endl;
@@ -722,7 +714,8 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 	{
 		std::stringstream sout;
 		sout << "HDivPermutation called with wrong side parameter " << side;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
+        TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
 		LOGPZ_ERROR(loggerrefless,sout.str())
 #endif
 	}
@@ -771,8 +764,9 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
             DebugStop();
             break;
     }
-#ifdef LOG4CXX
-    if (loggerrefless->isDebugEnabled()) {
+#ifdef PZ_LOG
+    TPZLogger loggerrefless ("pz.mesh.tpzgeoelrefless");
+    if (loggerrefless.isDebugEnabled()) {
         std::stringstream sout;
         sout << "side = " << side << " transform id " << transformid << " permutegather " << permutegather;
         LOGPZ_DEBUG(loggerrefless, sout.str())

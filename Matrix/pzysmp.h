@@ -1,6 +1,7 @@
 /**
  * @file
- * @brief Contains the TPZFYsmpMatrix class which implements a non symmetric sparse matrix.
+ * @brief Contains the TPZFYsmpMatrix class which implements a non symmetric sparse matrix. \n
+ * Purpose: Defines operations on non-symmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
  */
 
 #ifndef YSMPMATH
@@ -8,31 +9,13 @@
 
 #include "pz_config.h"
 
-#ifdef USING_BLAS
-#ifdef USING_MKL
-#include <mkl.h>
-#elif MACOSX
-#include <Accelerate/Accelerate.h>
-#else
-#ifdef MACOSX
-#include <Accelerate/Accelerate.h>
-#else
-extern "C"{
-     #include "cblas.h"
-     };
-#endif
-#endif
-#endif
-
 template<class TVar>
 class TPZVerySparseMatrix;
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 
-#ifdef USING_MKL
 #include "TPZPardisoControl.h"
-#endif
 
 /**
  * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage). \ref matrix "Matrix"
@@ -44,9 +27,7 @@ class TPZVerySparseMatrix;
 template<class TVar>
 class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 	
-#ifdef USING_MKL
     friend class TPZPardisoControl<TVar>;
-#endif
     
 	public :
 	
@@ -211,9 +192,7 @@ protected:
 	
 	int   fSymmetric;
 	
-#ifdef USING_MKL    
     TPZPardisoControl<TVar> fPardisoControl;
-#endif
 protected:
 	
 	/**

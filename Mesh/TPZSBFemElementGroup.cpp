@@ -16,6 +16,7 @@
 #include "TPZSBFemVolume.h"
 #include "pzcmesh.h"
 #include "TPZMaterial.h"
+#include "pzlog.h"
 #include <algorithm>
 #include <thread>
 #ifdef USING_MKL
@@ -49,12 +50,12 @@ using blaze::DynamicMatrix;
 #endif
 
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemelementgroup"));
-static LoggerPtr loggercoefmatrices(Logger::getLogger("pz.mesh.sbfemcoefmatrices"));
-static LoggerPtr loggerMT(Logger::getLogger("pz.mesh.sbfemelementgroupMT"));
-static LoggerPtr loggerBF(Logger::getLogger("pz.mesh.sbfemelementgroupBF"));
-static LoggerPtr loggerbubble(Logger::getLogger("pz.mesh.sbfembubbleparam"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.sbfemelementgroup");
+static TPZLogger loggercoefmatrices("pz.mesh.sbfemcoefmatrices");
+static TPZLogger loggerMT("pz.mesh.sbfemelementgroupMT");
+static TPZLogger loggerBF("pz.mesh.sbfemelementgroupBF");
+static TPZLogger loggerbubble("pz.mesh.sbfembubbleparam");
 #endif
 
 
@@ -107,8 +108,8 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
         TPZElementMatrix M0Loc(Mesh(),TPZElementMatrix::EK);
         sbfem->ComputeKMatrices(E0Loc, E1Loc, E2Loc,M0Loc);
         
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
             TPZGeoEl *gel = cel->Reference();
             
             int matid = 0;
@@ -183,8 +184,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     TPZElementMatrix E0, E1, E2, M0;
     ComputeMatrices(E0, E1, E2, M0);
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "BLAZE VERSION\n";
         E0.fMat.Print("E0 = ",sout, EMathematicaInput);
@@ -368,8 +369,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         DebugStop();
     }
     fEigenvalues = eigvalsel;
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "eigenvalues BLAZE " << eigvalsel << std::endl;
@@ -392,8 +393,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     memcpy(fPhiInverse.Adress(), &PhiInverseblaze.data()[0], n*n*sizeof(std::complex<double>));
 
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         fPhiInverse.Print("fPhiInverse = ",sout,EMathematicaInput);
@@ -461,8 +462,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
     lck_crc.unlock();
 #endif
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         ek.fMat.Print("Stiff = ",sout,EMathematicaInput);
@@ -543,8 +544,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
             }
         }
     
-#ifdef LOG4CXX
-        if(loggerbubble->isDebugEnabled())
+#ifdef PZ_LOG
+        if(loggerbubble.isDebugEnabled())
         {
             std::stringstream sout;
             K.Print("KBubble = ",sout,EMathematicaInput);
@@ -586,8 +587,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
             ef.fMat(i+n,0) = -efbubbles(i,0).real();
         }
     
-#ifdef LOG4CXX
-        if (loggerBF->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (loggerBF.isDebugEnabled()) {
             std::stringstream sout;
 
             K0.Print("K0 = ", sout, EMathematicaInput);
@@ -599,7 +600,6 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
             LOGPZ_DEBUG(loggerBF, sout.str())
         }
 #endif
-    }
     }
 #endif
 }
@@ -623,8 +623,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     TPZElementMatrix E0,E1,E2, M0;
     ComputeMatrices(E0, E1, E2, M0);
 
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         E0.fMat.Print("E0 = ",sout, EMathematicaInput);
         E1.fMat.Print("E1 = ",sout, EMathematicaInput);
@@ -839,8 +839,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         DebugStop();
     }
     fEigenvalues = eigvalsel;
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "eigenvalues " << eigvalsel << std::endl;
@@ -863,8 +863,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     {
         exit(-1);
     }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         fPhiInverse.Print("fPhiInverse = ",sout,EMathematicaInput);
@@ -943,8 +943,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
     ComputeMassMatrix(M0);
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         ek.fMat.Print("Stiff = ",sout,EMathematicaInput);
@@ -1029,8 +1029,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             }
         }
     
-#ifdef LOG4CXX
-        if(loggerbubble->isDebugEnabled())
+#ifdef PZ_LOG
+        if(loggerbubble.isDebugEnabled())
         {
             std::stringstream sout;
             K.Print("KBubble = ",sout,EMathematicaInput);
@@ -1072,8 +1072,8 @@ void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             ef.fMat(i+n,0) = efbubbles(i,0).real();
         }
     
-#ifdef LOG4CXX
-        if (loggerBF->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (loggerBF.isDebugEnabled()) {
             std::stringstream sout;
 
             K0.Print("K0 = ", sout, EMathematicaInput);
@@ -1145,8 +1145,8 @@ void TPZSBFemElementGroup::LoadSolution()
 #endif
         sbfem->LoadCoef(fCoef);
     }
-    #ifdef LOG4CXX
-        if (loggerBF->isDebugEnabled()) {
+    #ifdef PZ_LOG
+        if (loggerBF.isDebugEnabled()) {
             std::stringstream sout;
             fCoef.Print("fCoef = ", sout, EMathematicaInput);
             LOGPZ_DEBUG(loggerBF, sout.str())
@@ -1437,8 +1437,8 @@ void TPZSBFemElementGroup::ComputeBubbleParameters()
         }
     }
 
-#ifdef LOG4CXX
-    if (loggerbubble->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerbubble.isDebugEnabled()) {
         std::stringstream sout;
         sout << "eigvalbubbles = {" << fEigenvaluesBubble << "};\n";
         fPhiBubble.Print("fPhiBubble = ", sout, EMathematicaInput);

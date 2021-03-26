@@ -1,8 +1,6 @@
 #include "TPZBFileStream.h"
-#ifdef _AUTODIFF
 #include "fad.h"
 #include "tfad.h"
-#endif
 
 TPZBFileStream::TPZBFileStream() {}
 
@@ -95,3 +93,14 @@ void TPZBFileStream::ReadData<double>(double *p, int howMany);
 template
 void TPZBFileStream::WriteData<double>(const double *p, int howMany);
 
+template
+void TPZBFileStream::WriteData<int>(int const* p, int howMany);
+
+template
+void TPZBFileStream::WriteData<long const>(long const* p, int howMany);
+
+template
+void TPZBFileStream::ReadData<int>(int* p, int howMany);
+
+template
+void TPZBFileStream::ReadData<long>(long* p, int howMany);

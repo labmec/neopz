@@ -142,8 +142,6 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix<STATE> &n) {
 	fB00R = fRmatT * (fB00 * fRmat);
 }
 
-/** @brief Output file to write data of the test over shell (placa)*/
-ofstream placatest("placatest.dat");
 void TPZMatPlaca2::Contribute(TPZMaterialData &data,
                               REAL weight,
                               TPZFMatrix<STATE> &ek,
@@ -217,18 +215,6 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	
 	B000  = fB00R ;
 	
-	/*
-	 Kn1n1.Print("Kn1n1 = ",placatest);
-	 Kn1n2.Print("Kn1n2 = ",placatest);
-	 Kn2n2.Print("Kn2n2 = ",placatest);
-	 Kn2n1.Print("Kn2n1 = ",placatest);
-	 B0n1.Print("B0n1 = ",placatest);
-	 Bn10.Print("Bn10 = ",placatest);
-	 B0n2.Print("B0n2 = ",placatest);
-	 Bn20.Print("B0n1 = ",placatest);
-	 B000.Print("B00 = ",placatest);
-	 placatest.flush();
-	 */
 	int nshape = phi.Rows();
 	TPZFMatrix<STATE> KIJ(fIdfMax,fIdfMax);
 	

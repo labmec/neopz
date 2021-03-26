@@ -1,0 +1,6 @@
+function(enable_metis target)
+  find_package(METIS REQUIRED)
+  target_link_libraries(${target} PRIVATE ${METIS_LIBRARIES})
+  target_include_directories(${target} PRIVATE ${METIS_INCLUDE_DIRS})
+  target_compile_definitions(${target} PRIVATE USING_METIS)
+endfunction()

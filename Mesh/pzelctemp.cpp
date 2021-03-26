@@ -10,8 +10,8 @@
 #include "pzlog.h"
 #include "pzcmesh.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzintelgen");
 #endif
 
 template<class TSHAPE>
@@ -223,7 +223,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 	if(side<0 || side >= TSHAPE::NSides || (side >= TSHAPE::NCornerNodes && order <1)) {
 		PZError << "TPZIntelGen::SetSideOrder. Bad paramenter side " << side << " order " << order << std::endl;
 		DebugStop();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
 		LOGPZ_ERROR(logger,sout.str())
@@ -278,7 +278,7 @@ int TPZIntelGen<TSHAPE>::EffectiveSideOrder(int side) const {
 		std::stringstream sout ;
 		sout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
 		//Print(sout);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_ERROR(logger,sout.str());
 #else
 		std::cout << sout.str() << std::endl;

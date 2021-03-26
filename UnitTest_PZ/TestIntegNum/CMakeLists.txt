@@ -1,22 +1,12 @@
-# @file neopz/UnitTest_PZ/TestIntegNum/CMakeLists.txt  -- CMake file for unit test of the matrix module
+# @file neopz/UnitTest_PZ/TestIntegNum/CMakeLists.txt  -- CMake file for unit test of numerical integration
 
-file(GLOB headers *.h)
-file(GLOB sources *.cpp)
+add_unit_test(TestIntegNum
+        IntegNumUnitTest.cpp
+        GeometryUnitTest.cpp
+        TPZCurve.cpp
+        TPZCurve.h
+        )
 
-
-if(BUILD_UNITTESTING)
-
-	include (CTestTestFile.cmake)
-
-	set(pztestintegnum ${headers} ${sources} PARENT_SCOPE )
-
-	add_executable(TestIntNum ${headers} ${sources})
-
-        if (WIN32)
-          target_link_libraries(TestIntNum pz ${Boost_LIBRARIES})
-        else()
-          target_link_libraries(TestIntNum pz)
-          target_link_libraries(TestIntNum ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-        endif()
-endif()
-
+configure_file(Line.txt ${CMAKE_CURRENT_BINARY_DIR}/Line.txt COPYONLY)
+configure_file(Triangle.txt ${CMAKE_CURRENT_BINARY_DIR}/Triangle.txt COPYONLY)
+configure_file(NumInteBeingChecked.nb ${CMAKE_CURRENT_BINARY_DIR}/NumInteBeingChecked COPYONLY)

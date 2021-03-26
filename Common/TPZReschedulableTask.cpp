@@ -5,8 +5,8 @@
 #include "pzlog.h"
 #include <mutex>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("TPZThreadPool"));
+#ifdef PZ_LOG
+static TPZLogger logger("TPZThreadPool");
 #endif
 
 TPZReschedulableTask::TPZReschedulableTask(const int priority, TPZAutoPointer<std::packaged_task<void(void) >> task, TPZTaskGroup *taskGroup) :

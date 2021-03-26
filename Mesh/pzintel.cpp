@@ -26,15 +26,13 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
-static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzinterpolatedelement");
+static TPZLogger loggerdiv("pz.mesh.tpzinterpolatedelement.divide");
 #endif
 
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 #include <sstream>
 using namespace std;
@@ -924,8 +922,8 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
             }
         }
     }
-#ifdef LOG4CXX_keep
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG_keep
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         M->Print("MSS = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
@@ -1375,8 +1373,8 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
     }
     TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[0].Element());
     int minorder = cel->PreferredSideOrder(smallset[0].Side());
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         sout << "Order of first side " << minorder;
         LOGPZ_DEBUG(logger, sout.str())
@@ -1418,7 +1416,7 @@ void TPZInterpolatedElement::Divide(int64_t index,TPZVec<int64_t> &sub,int inter
 	int nsubelements = ref->NSubElements();
 	sub.Resize(nsubelements);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << (void*) Mesh() << " Divide " << Index() << " " << Reference()->Index();
@@ -1630,8 +1628,8 @@ void TPZInterpolatedElement::PRefine(int order) {
 #endif
     SetPreferredOrder(order);
 
-#ifdef LOG4CXX
-    if (loggerdiv->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerdiv.isDebugEnabled()) {
         std::stringstream sout;
         sout << (void*) Mesh() << " PRefine elindex " << Index() << " gel index " << Reference()->Index() << " " << order;
         LOGPZ_DEBUG(loggerdiv, sout.str())
@@ -1642,8 +1640,8 @@ void TPZInterpolatedElement::PRefine(int order) {
     for (int is = 0; is < ns; is++) {
         IdentifySideOrder(is);
     }
-#ifdef LOG4CXX
-    if (loggerdiv->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerdiv.isDebugEnabled()) {
         std::stringstream sout;
         sout << " PRefine connect orders ";
         int nc = NConnects();
@@ -1812,151 +1810,6 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
     }
     return maxorder;
 }
-
-
-#ifdef _AUTODIFF2
-
-/**calculate the element Energy*/
-void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef) {
-    int i;
-
-    TPZMaterial * material = Material();
-    if (!material) {
-        cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
-        LOGPZ_ERROR(logger, "CalcEnergy no material");
-        ef.Reset();
-        return;
-    }
-
-    int numdof = material->NStateVariables();
-    int ncon = NConnects();
-    int dim = Dimension();
-    int nshape = NShapeF();
-    TPZBlock &block = Mesh()->Block();
-    TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
-    // clean ek and ef
-
-    int numeq = nshape*numdof;
-    ek.fMat.Redim(numeq, numeq);
-    ef.fMat.Redim(numeq, 1);
-    ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon);
-
-    for (i = 0; i < ncon; i++) {
-        int nshape = NConnectShapeF(i);
-#ifdef PZDEBUG
-        TPZConnect &c = Connect(i);
-        if (c.NShape() != nshape || c.NState() != numdof) {
-            DebugStop();
-        }
-#endif
-        ek.fBlock.Set(i, nshape * numdof);
-        ef.fBlock.Set(i, nshape * numdof);
-    }
-
-    ek.fConnect.Resize(ncon);
-    ef.fConnect.Resize(ncon);
-
-    for (i = 0; i < ncon; ++i) {
-        (ef.fConnect)[i] = ConnectIndex(i);
-        (ek.fConnect)[i] = ConnectIndex(i);
-    }
-    //suficiente para ordem 5 do cubo
-    TPZFNMatrix<220> phi(nshape, 1);
-    TPZFNMatrix<660> dphi(dim, nshape), dphix(dim, nshape);
-    TPZFNMatrix<9> axes(3, 3, 0.);
-    TPZFMatrix<9> jacobian(dim, dim);
-    TPZFNMatrix<9> jacinv(dim, dim);
-    REAL detjac;
-    TPZManVector<REAL, 3> x(3, 0.);
-    TPZManVector<REAL, 3> intpoint(dim, 0.);
-    REAL weight = 0.;
-
-    TPZVec<FADFADREAL> sol(numdof);
-    TPZVec<FADFADREAL> dsol(numdof * dim); // x, y and z data aligned
-
-    FADREAL defaultFAD(numeq, 0., 0.);
-    if (defaultFAD.dx(0) == 1.) {
-        LOGPZ_ERROR(logger, "FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !");
-        return;
-    }
-    FADFADREAL defaultFADFAD(numeq, defaultFAD, defaultFAD);
-
-    FADFADREAL U(defaultFADFAD); // Zeroed Energy Value -> ready for contribution
-
-    TPZGeoEl *ref = Reference();
-    TPZIntPoints &intrule = GetIntegrationRule();
-    for (int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind) {
-
-        intrule.Point(int_ind, intpoint, weight);
-        this->ComputeShape(intpoint, x, jacobian, axes, detjac, jacinv, phi, dphix);
-        weight *= fabs(detjac);
-
-        int64_t iv = 0, d;
-
-        sol.Fill(defaultFADFAD);
-        dsol.Fill(defaultFADFAD);
-
-        for (int in = 0; in < ncon; in++) {
-            TPZConnect *df = &Connect(in);
-            int64_t dfseq = df->SequenceNumber();
-            int dfvar = block.Size(dfseq);
-            int64_t pos = block.Position(dfseq);
-            for (int jn = 0; jn < dfvar; jn++) {
-                /*FADFADREAL upos(numeq, iv, FADREAL(numeq, iv, MeshSol(pos+jn,0)));
-				 
-                 sol[iv%numdof] += upos * FADREAL(phi(iv/numdof,0));*/
-                // Using direct access to the fad derivatives to enhance performance
-
-                sol[iv % numdof].val().val() += MeshSol(pos + jn, 0) * phi(iv / numdof, 0);
-                sol[iv % numdof].val().fastAccessDx(iv) += phi(iv / numdof, 0);
-                sol[iv % numdof].fastAccessDx(iv).val() += phi(iv / numdof, 0);
-                for (d = 0; d < dim; d++) {
-                    //dsol[d+(iv%numdof)*dim] += upos * FADREAL (dphix(d, iv/numdof));
-                    // Using direct access to the fad derivatives to enhance performance
-
-                    dsol[d + (iv % numdof) * dim].val().val() += MeshSol(pos + jn, 0) * dphix(d, iv / numdof);
-                    dsol[d + (iv % numdof) * dim].val().fastAccessDx(iv) += dphix(d, iv / numdof);
-                    dsol[d + (iv % numdof) * dim].fastAccessDx(iv).val() += dphix(d, iv / numdof);
-                }
-
-                iv++;
-            }
-        }
-
-        material->ContributeEnergy(x, sol, dsol, U, weight);
-    }
-
-    FADToMatrix(U, ek.fMat, ef.fMat);
-}
-
-void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef) {
-    int64_t efsz = ef.Rows();
-    int64_t ekrows = ek.Rows();
-    int64_t ekcols = ek.Cols();
-
-    int64_t Ucols = U.size();
-    int64_t Urows = U.val().size();
-
-    if (efsz != Urows) {
-        LOGPZ_WARN(logger, "Energy Fad type and ef vectors are of different sizes");
-    }
-    if (ekrows != Urows || ekcols != Ucols) {
-        LOGPZ_WARN(logger, "Energy Fad type and ek matrix are of different sizes");
-    }
-
-    FADREAL * pBufferFAD;
-    int i, j;
-    for (j = 0; j < Urows; j++) {
-        pBufferFAD = &U.fastAccessDx(j);
-        ef(j, 0) = -pBufferFAD->val();
-        // U.val().fastAccessDx(i); must be the same as U.fastAccessDx(i).val();
-        for (i = 0; i < Ucols; i++) {
-            ek(i, j) = pBufferFAD->fastAccessDx(i);
-        }
-    }
-}
-#endif
 
 int TPZInterpolatedElement::ClassId() const {
     return Hash("TPZInterpolatedElement") ^ TPZInterpolationSpace::ClassId() << 1;

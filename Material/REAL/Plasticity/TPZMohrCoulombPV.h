@@ -18,8 +18,8 @@
 #include "pzvec_extras.h"
 #include "TPZPlasticState.h"
 
-#ifndef LOG4CXX
-static LoggerPtr loggerMohrCoulombPV(Logger::getLogger("pz.plasticity.mohrcoulombpv"));
+#ifndef PZ_LOG
+static TPZLogger loggerMohrCoulombPV("pz.plasticity.mohrcoulombpv");
 #endif
 
 class TPZMohrCoulombPV
@@ -207,8 +207,8 @@ public:
         typename TPZTensor<T>::TPZDecomposed sigma_trial;
         sigma.EigenSystem(sigma_trial);
         
-#ifdef LOG4CXX
-        if (loggerMohrCoulomb->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (loggerMohrCoulomb.isDebugEnabled()) {
             std::stringstream sout;
             sout << "Input stress tensor ";
             sigma.Print(sout);
@@ -385,7 +385,7 @@ public:
                 ReturnMapLeftEdge<T>(sigma_trial, sigma_projected, memory);
                 memory.fWhichPlane = TComputeSequence::ELeftEdge;
             }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 sout << "After the map to the edge, sigma_projected :\n";
@@ -546,7 +546,7 @@ public:
         phi[1] = sigma_bar[1] - T(2.*cosphi)*sigmay;
         ab[0] = T(4.*GV*(1+sinphi*sinpsi/3.)+4.*KV*sinphi*sinpsi);
         ab[1] = T(2.*GV*(1.+sinphi+sinpsi-sinphi*sinpsi/3.)+4.*KV*sinphi*sinpsi);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "phi = " << phi << std::endl;
@@ -578,7 +578,7 @@ public:
         int iter = 0;
         T residual =1;
         do {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 sout << "epsbar = " << epsbar << std::endl;
@@ -608,7 +608,7 @@ public:
             phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[1] - T(2.*cosphi)*sigmay;
             phival[0] = TPZExtractVal::val(phi[0]);
             phival[1] = TPZExtractVal::val(phi[1]);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 sout << "iter = " << iter << " phi = " << phival << std::endl;
@@ -628,7 +628,7 @@ public:
             
         memory.fGamma[0] = TPZExtractVal::val(gamma[0]);
         memory.fGamma[1] = TPZExtractVal::val(gamma[1]);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << "gamma = " << gamma << std::endl;

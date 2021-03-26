@@ -24,10 +24,8 @@
 #include "pzvec.h"
 #include "tpzverysparsematrix.h"
 #include "TPZParallelUtils.h"
-#ifdef _AUTODIFF
 #include "tfad.h"
 #include "fad.h"
-#endif
 
 class TPZStream;
 
@@ -35,13 +33,13 @@ class TPZStream;
 #define DEBUG2
 #endif
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzfmatrix");
+static TPZLogger loggerCheck("pz.checkconsistency");
 #endif
 
 #ifdef USING_LAPACK
-/** CBlas Math Library */
+/** Maybe some calls just need BLAS. We need to check it. */
 #include "TPZLapack.h"
 #define BLAS_MULT
 #endif
@@ -256,7 +254,7 @@ void TPZFMatrix<double>::AddFel(TPZFMatrix<double> &rhs,TPZVec<int64_t> &source,
     int64_t i,j;
     for(j=0; j<ncol; j++) {
         for(i=0; i<nrow; i++) {
-          AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
         }
     }
 }
@@ -273,7 +271,7 @@ void TPZFMatrix<float>::AddFel(TPZFMatrix<float> &rhs,TPZVec<int64_t> &source, T
     int64_t i,j;
     for(j=0; j<ncol; j++) {
         for(i=0; i<nrow; i++) {
-          AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
+          pzutils::AtomicAdd(operator()(destination[i],j),rhs(source[i],j));
         }
     }
 }
@@ -325,7 +323,6 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
     DebugStop();
 }
 
-#ifdef _AUTODIFF
 template <>
 void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
 {
@@ -338,13 +335,12 @@ void TPZFMatrix<Fad<double> >::GramSchmidt(TPZFMatrix<Fad<double> > &Orthog, TPZ
     DebugStop();
 }
 
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         Print("GrSchmidt Entrada",sout);
@@ -431,8 +427,8 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
             else
             {
-#ifdef LOG4CXX2
-                if (logger->isDebugEnabled())
+#ifdef PZ_LOG2
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "dotdown = " << dotDown << " dotup = " << dotUp;
@@ -462,7 +458,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
         }
         else {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             std::stringstream sout;
             sout << "Linearly dependent columns dotUp = " << dotUp;
             LOGPZ_ERROR(logger,sout.str())
@@ -480,8 +476,8 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     this->operator*= ( 1./scale );
     TransfToOrthog.operator*= ( 1./scale );
     
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << endl;
@@ -518,7 +514,6 @@ void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &i
     for(r=0; r<this->Rows(); r++) determinant *= copy(r,r);
 }
 
-#ifdef USING_LAPACK
 
 template <class TVar>
 /** @brief Initialize pivot with i = i  */
@@ -529,8 +524,6 @@ void TPZFMatrix<TVar>::InitializePivot()
         fPivot[i] = i+1; // Fortran based indexing
     }
 }
-
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int64_t rows, int64_t cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
@@ -1308,14 +1301,6 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 }
 
 
-//#ifdef _AUTODIFF
-//template <class TVar>
-//int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B) {
-//    std::cout << __PRETTY_FUNCTION__ << " bailing out\n";
-//    DebugStop();
-//    return 1;
-//}
-//#else
 template <class TVar>
 int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVar> *B)
 {
@@ -1351,9 +1336,7 @@ int TPZFMatrix<TVar>::Substitution(const TVar *ptr, int64_t rows, TPZFMatrix<TVa
 }
 //#endif
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /****************/
 /*** Substitution ***/
@@ -1870,7 +1853,7 @@ int TPZFMatrix<double>::Subst_Forward( TPZFMatrix<double>* b ) const
         return TPZMatrix<double>::Subst_Forward(b);
     }
 }
-
+#endif 
 /**
  * @brief Computes B = Y, where A*Y = B, A is lower triangular.
  * @param b right hand side and result after all
@@ -1891,7 +1874,7 @@ int TPZFMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar>* b ) const
     return TPZMatrix<TVar>::Subst_Backward(b);
 }
 
-
+#ifdef USING_LAPACK
 template<>
 int TPZFMatrix<float>::Subst_Backward( TPZFMatrix<float>* b ) const
 {
@@ -2002,18 +1985,6 @@ int TPZFMatrix<double>::Subst_LForward( TPZFMatrix<double>* b ) const
     //    return TPZMatrix<TVar>::Subst_LForward(b);
 }
 
-
-/**
- * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
- * @param b right hand side and result after all
- */
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
-{
-    //    ssytrs2
-    return TPZMatrix<TVar>::Subst_LForward(b);
-}
-
 /**
  * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
  * @param b right hand side and result after all
@@ -2032,16 +2003,6 @@ template<>
 int TPZFMatrix<double>::Subst_LBackward( TPZFMatrix<double>* b ) const
 {
     return 1;
-}
-
-/**
- * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
- * @param b right hand side and result after all
- */
-template<class TVar>
-int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
-{
-    return TPZMatrix<TVar>::Subst_LBackward(b);
 }
 
 /**
@@ -2064,6 +2025,28 @@ int TPZFMatrix<double>::Subst_Diag( TPZFMatrix<double>* b ) const
     return 1;
 }
 
+#endif
+/**
+ * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
+{
+    //    ssytrs2
+    return TPZMatrix<TVar>::Subst_LForward(b);
+}
+
+/**
+ * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+ * @param b right hand side and result after all
+ */
+template<class TVar>
+int TPZFMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar>* b ) const
+{
+    return TPZMatrix<TVar>::Subst_LBackward(b);
+}
+
 /**
  * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
  * @param b right hand side and result after all
@@ -2073,7 +2056,6 @@ int TPZFMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar>* b ) const
 {
     return TPZMatrix<TVar>::Subst_Diag(b);
 }
-#endif //USING_LAPACK
 
 /** @brief Implement dot product for matrices */
 template<class TVar>
@@ -2081,15 +2063,6 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
     int64_t size = (A.Rows())*A.Cols();
     TVar result = 0.;
     if(!size) return result;
-    // #ifdef USING_ATLAS
-    // 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-    // 	return result;
-    //
-    // #elif USING_BLAS
-    // 	result = cblas_ddot(size, &A.g(0,0), 1, &B.g(0,0), 1);
-    // 	return result;
-    //
-    // #else
     const TVar *fpA = &A.g(0,0), *fpB = &B.g(0,0);
     const TVar *fpLast = fpA+size;
     while(fpA < fpLast)
@@ -2124,7 +2097,6 @@ int64_t Dot(const TPZFMatrix<int64_t> &A, const TPZFMatrix<int64_t> &B);
 template
 int Dot(const TPZFMatrix<int> &A, const TPZFMatrix<int> &B);
 
-#ifdef _AUTODIFF
 template
 Fad<float> Dot(const TPZFMatrix<Fad<float> > &A, const TPZFMatrix<Fad<float> > &B);
 
@@ -2133,7 +2105,6 @@ Fad<double> Dot(const TPZFMatrix<Fad<double> > &A, const TPZFMatrix<Fad<double> 
 
 template
 Fad<long double> Dot(const TPZFMatrix<Fad<long double> > &A, const TPZFMatrix<Fad<long double> > &B);
-#endif
 
 template
 TPZFlopCounter Dot(const TPZFMatrix<TPZFlopCounter> &A, const TPZFMatrix<TPZFlopCounter> &B);
@@ -2176,7 +2147,6 @@ int TPZFMatrix<TVar>::Clear() {
     return( 1 );
 }
 
-#ifdef _AUTODIFF
 template <>
 void TPZFMatrix<TFad<6,REAL> >::Read( TPZStream &buf, void *context ){
     DebugStop();
@@ -2196,7 +2166,6 @@ template <>
 void TPZFMatrix<Fad<REAL> >::Write( TPZStream &buf, int withclassid ) const {
     DebugStop();
 }
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
@@ -2306,13 +2275,11 @@ bool TPZFMatrix<TVar>::Compare(TPZSavable *copy, bool override) const
     return matresult;
 }
 
-#ifdef _AUTODIFF
 template <>
 void TPZFMatrix<TFad<6,REAL> >::PrintStatic(const TFad<6,REAL> *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form)
 {
     DebugStop();
 }
-#endif
 
 template <class TVar>
 void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int64_t rows, int64_t cols, const char *name, std::ostream& out,const MatrixOutputFormat form){
@@ -3142,7 +3109,6 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
 
 #endif // USING_LAPACK
 
-#ifdef _AUTODIFF
 /** @brief Returns the norm of the matrix A */
 template<>
 TFad<6,REAL> Norm(const TPZFMatrix<TFad<6,REAL> > &A)
@@ -3159,8 +3125,27 @@ Fad<REAL> Norm(const TPZFMatrix<Fad<REAL> > &A)
     return res;
 }
 
-#endif
+#ifndef USING_LAPACK    
+#define NON_LAPACK \
+    PZError<<__PRETTY_FUNCTION__<<" requires Lapack\n";             \
+    PZError<<" Set either USING_LAPACK=ON or USING_MKL=ON on CMake ";   \
+    PZError<<" when configuring NeoPZ library"<<std::endl;              \
+    DebugStop();\
+    return -1;
 
+template<class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+template<class TVar>
+int TPZFMatrix<TVar>::SolveEigenProblem(TPZVec < std::complex<double> > &w){NON_LAPACK}
+
+template<class TVar>
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors){NON_LAPACK}
+
+template<class TVar>
+int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
+#undef NON_LAPACK
+#endif
 #include <complex>
 
 template class TPZFMatrix<int >;
@@ -3186,8 +3171,6 @@ template class TPZRestoreClass< TPZFMatrix<std::complex<double> > >;
 template class TPZRestoreClass< TPZFMatrix<std::complex<long double> > >;
 template class TPZRestoreClass< TPZFMatrix<TPZFlopCounter > >;
 
-#ifdef _AUTODIFF
-#include "fad.h"
 template class TPZFMatrix<TFad<6,REAL> >;
 template class TPZFMatrix<Fad<double> >;
 template class TPZFMatrix<Fad<float> >;
@@ -3197,4 +3180,3 @@ template class TPZRestoreClass<TPZFMatrix<TFad<6,REAL> >>;
 template class TPZRestoreClass<TPZFMatrix<Fad<double> >>;
 template class TPZRestoreClass<TPZFMatrix<Fad<float> >>;
 template class TPZRestoreClass<TPZFMatrix<Fad<long double> >>;
-#endif

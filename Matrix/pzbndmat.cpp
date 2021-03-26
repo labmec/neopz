@@ -15,8 +15,8 @@
 #include <stdlib.h>
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfbmatrix"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.matrix.tpzfbmatrix");
 #endif
 
 using namespace std;
@@ -492,7 +492,6 @@ TPZFBMatrix<TVar>::Transpose (TPZMatrix<TVar> *const T) const
     }
 }
 
-#ifdef USING_LAPACK
 
 template<class TVar>
 int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
@@ -501,7 +500,18 @@ int TPZFBMatrix<TVar>::Decompose_LU(std::list<int64_t> &singular)
 	return ELU;
 }
 
+template<class TVar>
+int TPZFBMatrix<TVar>::Decompose_LU()
+{
+    if (  this->fDecomposed && this->fDecomposed == ELU) {
+        return ELU;
+    } else if(this->fDecomposed) {
+        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+    }
+    return TPZMatrix<TVar>::Decompose_LU();
+}
 
+#ifdef USING_LAPACK
 template<>
 int
 TPZFBMatrix<float>::Decompose_LU()
@@ -565,18 +575,6 @@ TPZFBMatrix<double>::Decompose_LU()
 }
 
 
-
-template<class TVar>
-int TPZFBMatrix<TVar>::Decompose_LU()
-{
-    if (  this->fDecomposed && this->fDecomposed == ELU) {
-        return ELU;
-    } else if(this->fDecomposed) {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
-    }
-    return TPZMatrix<TVar>::Decompose_LU();
-}
-
 template<>
 int TPZFBMatrix<float>::Substitution( TPZFMatrix<float> *B ) const{
     
@@ -616,7 +614,6 @@ int TPZFBMatrix<double>::Substitution( TPZFMatrix<double> *B ) const{
     dgbtrs_(notrans, &rows, &bandlower, &bandupper, &nrhs, &fElem[0], &ldab, &fPivot[0], &B->s(0,0), &rows, &info);
     return( 1 );
 }
-
 
 #endif
 

@@ -14,8 +14,8 @@ extern "C" {
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.metis"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.metis");
 #endif
 
 #include <iostream>
@@ -23,6 +23,10 @@ using namespace std;
 
 TPZMetis::TPZMetis() : TPZRenumbering()
 {
+    PZError<<"TPZMetis depends on the Metis library\n";
+    PZError<<"Please reconfigure NeoPZ library using:\n";
+    PZError<<"USING_METIS=ON"<<std::endl;
+    DebugStop();
 }
 
 void TPZMetis::Print(std::ostream &out,char * title) {
@@ -151,11 +155,11 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	TPZManVector<int> AdjacencyWeight;
 	ConvertToElementoToElementGraph(fElementGraph,fElementGraphIndex,Adjacency,AdjacencyWeight,AdjacencyIndex);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		TPZRenumbering::Print(Adjacency,AdjacencyIndex,"Element to element graph",sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str())
 		}

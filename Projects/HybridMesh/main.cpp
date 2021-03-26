@@ -53,8 +53,8 @@
 #include <math.h>
 #include <set>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;
@@ -81,9 +81,6 @@ void ResetMesh(TPZCompMesh *cmesh);
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	int  p=1;
 	int  NRefUnif=1;
@@ -340,7 +337,7 @@ void BuildElementGroups(TPZCompMesh *cmesh, int materialid, int interfacemat, in
             int64_t index;
             TPZElementGroup *elgr = new TPZElementGroup(*cmesh,index);
             elgroup[el] = elgr;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
             {
                 std::stringstream sout;
                 sout << "Creating an element group around element index " << el;

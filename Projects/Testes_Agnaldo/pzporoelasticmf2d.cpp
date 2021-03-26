@@ -15,8 +15,8 @@
 #include "pzaxestools.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic2d.data"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.poroelastic2d.data");
 #endif
 
 TPZPoroElasticMF2d::EState TPZPoroElasticMF2d::gState = ECurrentState;
@@ -298,8 +298,8 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
         }
     }
 	
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		ek.Print("ek = ",sout,EMathematicaInput);

@@ -18,9 +18,9 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.frontal.frontmerda"));
-static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmerdatotal"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.frontal.frontmatrix");
+static TPZLogger loggerfw("pz.frontal.frontmatrixfww");
 #endif
 
 using namespace std;
@@ -43,8 +43,8 @@ void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<int64_t> &de
 	lower_eq=fLastDecomposed+1;
 	while(upper_eq < fNumEq-1 && fNumElConnected[upper_eq+1]==0) upper_eq++;
 	fLastDecomposed=upper_eq;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Constructor frontmatrix lower_eq "<< lower_eq << " upper_eq " << upper_eq << " fNumElConnected " << fNumElConnected;
@@ -59,8 +59,8 @@ void TPZFrontMatrix<TVar,store, front>::SetNumElConnected(TPZVec < int > &numelc
 	fNumElConnected.Resize(numelconnected.NElements());
 	fNumElConnected=numelconnected;
 	fNumElConnectedBackup = fNumElConnected;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "fNumElConnected " << fNumElConnected;
@@ -75,8 +75,8 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 	
 	// message #1.3 to fFront:TPZFront
 	fFront.AddKel(elmat, destinationindex);
-#ifdef LOG4CXX
-    if (loggerfw->isInfoEnabled())
+#ifdef PZ_LOG
+    if (loggerfw.isInfoEnabled())
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< fFront.NElements();
@@ -105,8 +105,8 @@ template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int64_t > & sourceindex, TPZVec < int64_t > & destinationindex)
 {
 	fFront.AddKel(elmat, sourceindex, destinationindex);
-#ifdef LOG4CXX
-    if (loggerfw->isInfoEnabled())
+#ifdef PZ_LOG
+    if (loggerfw.isInfoEnabled())
 	{
 		std::stringstream sout;
 		sout << "Frondwidth after AddKel "<< fFront.FrontSize();
@@ -269,8 +269,8 @@ void TPZFrontMatrix<TVar,store, front>::CheckCompress()
 	double nfreerate = ( (double)fFront.NFree() / (double)fFront.FrontSize() ) * 100;
 	if(nfreerate>20.) 
 	{
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Compressing front nfreerate " << nfreerate << " NFree " << fFront.NFree() << " Front elements " << fFront.FrontSize();
@@ -278,8 +278,8 @@ void TPZFrontMatrix<TVar,store, front>::CheckCompress()
 		}
 #endif
 		fFront.Compress();
-#ifdef LOG4CXX
-        if (loggerfw->isInfoEnabled())
+#ifdef PZ_LOG
+        if (loggerfw.isInfoEnabled())
 		{
 			std::stringstream sout;
 			sout << "Frondwidth after Compress "<< fFront.FrontSize();
@@ -294,8 +294,8 @@ int TPZFrontMatrix<TVar,store, front>::SolveDirect( TPZFMatrix<TVar> &B , Decomp
     if (fFront.GetDecomposeType() != dt) {
         DebugStop();
     }
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled())
     {
         
         std::stringstream sout;
@@ -304,8 +304,8 @@ int TPZFrontMatrix<TVar,store, front>::SolveDirect( TPZFMatrix<TVar> &B , Decomp
     }
 #endif
     Subst_Forward(&B);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         B.Print("After forward and diagonal " , sout);
@@ -313,8 +313,8 @@ int TPZFrontMatrix<TVar,store, front>::SolveDirect( TPZFMatrix<TVar> &B , Decomp
     }
 #endif
     Subst_Backward(&B);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         B.Print("Final result " , sout);

@@ -16,8 +16,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.reducedspace.data");
 #endif
 
 
@@ -36,10 +36,6 @@ int main(int argc, char *argv[])
 }
 int mainFrac(int argc, char *argv[])
 {
- 
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
   //Propagation criterion
   
   REAL Lx = 4;

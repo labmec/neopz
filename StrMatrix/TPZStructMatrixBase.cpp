@@ -7,15 +7,14 @@
 #include "pzanalysis.h"
 #include "TPZThreadPool.h"
 #include "pzshtmat.h"
-
-#ifdef LOG4CXX
 #include "pzlog.h"
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.TPZStructMatrixOR"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
-static LoggerPtr loggerel2(Logger::getLogger("pz.strmatrix.elementinterface"));
-static LoggerPtr loggerelmat(Logger::getLogger("pz.strmatrix.elementmat"));
-static LoggerPtr loggerCheck(Logger::getLogger("pz.strmatrix.checkconsistency"));
-static LoggerPtr loggerGlobStiff(Logger::getLogger("pz.strmatrix.globalstiffness"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.strmatrix.TPZStructMatrixOR");
+static TPZLogger loggerel("pz.strmatrix.element");
+static TPZLogger loggerel2("pz.strmatrix.elementinterface");
+static TPZLogger loggerelmat("pz.strmatrix.elementmat");
+static TPZLogger loggerCheck("pz.strmatrix.checkconsistency");
+static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 #endif
 
 //this is not in header file to avoid including cmesh.h there
@@ -69,8 +68,8 @@ TPZMatrix<STATE> *TPZStructMatrixBase::CreateAssemble(
     rhs.Redim(fEquationFilter.NEqExpand(), cols);
     Assemble(*stiff, rhs, guiInterface);
 
-#ifdef LOG4CXX2
-    if (loggerel->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (loggerel.isDebugEnabled()) {
         std::stringstream sout;
         stiff->Print("Stiffness matrix", sout);
         rhs.Print("Right hand side", sout);
@@ -90,8 +89,8 @@ void TPZStructMatrixBase::FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int
 void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
 {
     fMaterialIds = materialids;
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::set<int>::const_iterator it;
         std::stringstream sout;

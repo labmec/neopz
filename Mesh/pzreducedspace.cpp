@@ -14,8 +14,8 @@
 #include "pzelmat.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.TPZInterpolationSpace");
 #endif
 
 /** @brief Default constructor */

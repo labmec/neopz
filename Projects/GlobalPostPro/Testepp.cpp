@@ -66,18 +66,17 @@ int dirichlet = 0;
 int neumann = 1;
 REAL const Pi = 4.*atan(1.);
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.Margui"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.Margui");
 #endif
 
 int main() {
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     std::string dirname = PZSOURCEDIR;
     std::string FileName = dirname;
     FileName = dirname + "/Projects/GlobalPostPro/";
     FileName += "MarguiLog.cfg";
-    InitializePZLOG(FileName);
 #endif  
     
     REAL t=0.0;

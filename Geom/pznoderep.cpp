@@ -3,10 +3,6 @@
  * @brief Creates TPZNodeRep classes for several master elements. 
  */
 
-#ifndef BORLAND
-#include "pznoderep.h.h"
-#endif
-
 #ifdef BORLAND
 #include "pznoderep.h"
 #endif

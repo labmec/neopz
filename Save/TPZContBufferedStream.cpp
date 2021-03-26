@@ -3,9 +3,7 @@
 #include <stdexcept>
 #include <string.h>
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 TPZContBufferedStream::TPZContBufferedStream() {
 
@@ -168,7 +166,6 @@ void TPZContBufferedStream::Write(const std::complex<double> *p, int howMany) {
     WriteData<std::complex<double>>(p, howMany);
 }
 
-#ifdef _AUTODIFF
 
 void TPZContBufferedStream::Write(const TFad<1,REAL> *p, int howMany) {
     WriteData<TFad<1,REAL>>(p, howMany);
@@ -202,7 +199,6 @@ void TPZContBufferedStream::Write(const Fad<double> *p, int howMany) {
     WriteData<Fad<double>>(p, howMany);
 }
 
-#endif
 
 void TPZContBufferedStream::Read(int *p, int howMany) {
     ReadData<int>(p, howMany);
@@ -244,7 +240,6 @@ void TPZContBufferedStream::Read(std::complex<double> *p, int howMany) {
     ReadData<std::complex<double>>(p, howMany);
 }
 
-#ifdef _AUTODIFF
 
 void TPZContBufferedStream::Read(TFad<1,REAL> *p, int howMany) {
     ReadData<TFad<1,REAL>>(p, howMany);
@@ -278,7 +273,6 @@ void TPZContBufferedStream::Read(Fad<double> *p, int howMany) {
     ReadData<Fad<double>>(p, howMany);
 }
 
-#endif
 
 void TPZContBufferedStream::GetDataFromBuffer(char *dest) const {
     memcpy(dest, fFirst, fSize);

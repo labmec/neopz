@@ -1,71 +1,67 @@
 # @file neopz/CMakeList.txt  -- First file to read for CMake
 
-cmake_minimum_required (VERSION 3.11.0)
+cmake_minimum_required (VERSION 3.13.0)
 
 #disable excessive warning messages by Microsoft VC compiler
-set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptionsMSVC.cmake")
+#set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerOptionsMSVC.cmake")
 
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING  INTERNAL FORCE )
-
-project (PZ)
-
-#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-#this allow us to define custom FindXXX.cmake modules
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-IF (WIN32)
-	# Prevents timespec redefinition problem with Visual Studio 2015
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_STRUCT_TIMESPEC")
-    if (NOT CMAKE_GENERATOR MATCHES "Ninja")
-    	set(CMAKE_INSTALL_PREFIX "C:/Program Files/PZ" CACHE PATH "Installation path, prepended onto install directories." FORCE) 
-	endif()
-ELSE (WIN32)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-narrowing")#this flag is for preventing errors when casting from double to float
-	if ( NOT APPLE AND NOT CMAKE_BUILD_TYPE )
-		set (CMAKE_BUILD_TYPE Release CACHE STRING "Options: Release Debug None MinSizeRel RelWithDebInfo" FORCE) 
-	endif()
-ENDIF()
-
+project(PZ LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-## inserting main definitions
-#specifying the path to neopz source code
-set(PZSOURCEDIR ${PROJECT_SOURCE_DIR})
-#specify where the refinement patterns can be found (default behaviour when running the code)
-set(REFPATTERNDIR ${PROJECT_SOURCE_DIR}/Refine/RefPatterns)
+#this allow us to define custom FindXXX.cmake modules
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Definition of build type and REAL and STATE types
+include(cmake/StandardPZSettings.cmake)
 
-#Defining variables
-#To cmake
-string(FIND ${CMAKE_CXX_FLAGS_DEBUG} "-DPZDEBUG" val)
-if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPZDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+##TODOWIN32: should this change when on WIN32?
+set(PZ_LIB_TYPE SHARED)
+add_library(pz ${PZ_LIB_TYPE} "")
+
+##TODOWIN32: check whether these distinctions are really necessary
+##TODO: are they ok when private?
+if (WIN32)
+	# Prevents timespec redefinition problem with Visual Studio 2015
+  target_compile_definitions(pz
+    PRIVATE
+    HAVE_STRUCT_TIMESPEC)
+else (WIN32)
+  target_compile_options(pz
+    PRIVATE
+    -fPIC
+    -Wno-narrowing)
 endif()
 
-string(FIND ${CMAKE_CXX_FLAGS_RELEASE} "-DNODEBUG" val)
-if(${val} LESS 0)
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
+# Mac OS X specific code
+if (APPLE)
+  target_compile_definitions(pz PRIVATE MACOSX)
 endif()
 
+# if target_compile_options should be used in the following section,
+# then maybe this could be useful:
+# https://stackoverflow.com/questions/23995019/what-is-the-modern-method-for-setting-general-compile-flags-in-cmake/23995391
+
+#TODO: think if we don't need these definitions in RelWithDebugInfo builds
+target_compile_definitions(pz PRIVATE
+                           "$<$<CONFIG:RELEASE>:NODEBUG>"
+                           "$<$<CONFIG:RELEASE>:ZERO_INTERNAL_RESIDU>"
+                           "$<$<CONFIG:RELEASE>:MAKEINTERNAL>"
+                           "$<$<CONFIG:DEBUG>:PZDEBUG>")
+if(APPLE)                         
+  set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
+endif()
 # Location to search files or libraries
-set(SEARCH_DIRS ENV PATH /usr/local/opt/ /usr/local/opt/qt5/lib/cmake/ /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include ./../externallibs/include/lapack /usr/lib/atlas-base/ /usr/include/atlas /usr/local/atlas/include /usr/local/atlas/lib )
-
-# INSTALL part
-#To install neopz/include
-set(NEOPZ_INCLUDE pzlib/include)
-#To install neopz library
-set(NEOPZ_LIB pzlib/lib)
+set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
 
 #ENABLING EXTERNAL LIBRARIES
+include(cmake/EnableThreads.cmake)
+enable_threads(pz)
 
 IF(APPLE)
    # Mac OS X specific code
-   add_definitions(-DMACOSX)
-   set(MACOSX MACOSX)
    find_library(ACCELERATE_LIB Accelerate)
-   link_libraries(${ACCELERATE_LIB})
+   target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
 ENDIF(APPLE)
 
 #enabling Boost library
@@ -74,279 +70,90 @@ option(USING_BOOST "Whether the Boost package will be linked with the library" O
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
+	include(cmake/add_unit_test.cmake)
 	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
 endif()
 
 if(USING_BOOST)
-	IF (WIN32)
-		set(Boost_USE_STATIC_LIBS   ON)
-		set(Boost_USE_MULTITHREADED ON)
-                set(CMAKE_PREFIX_PATH "C:/local/boost_1_72_0" ${CMAKE_PREFIX_PATH})
-	ENDIF()
-	find_package( Boost COMPONENTS unit_test_framework date_time atomic REQUIRED )
-endif(USING_BOOST)
-
-option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-if(USING_FAD)
-	#Adding a variable to hold this definition
-	set(_AUTODIFF _AUTODIFF)
-endif(USING_FAD)
+	include(cmake/EnableBoost.cmake)
+    enable_boost(pz)
+endif()
 
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
-	#Adding a variable to hold this definition
-	set(LOG4CXX LOG4CXX)
-	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ${PROJECT_SOURCE_DIR}/../log4cxx ${PROJECT_SOURCE_DIR}/../log4cxx_src/include ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src ${PROJECT_SOURCE_DIR}/../externallibs/log4cxx_src/include)
-	find_library(LOG4CXX_LIB_RELEASE
-		         NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a
-				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Release 
-				)
-	find_library(LOG4CXX_LIB_DEBUG
-				 NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a       # Change name here if debug lib has different name.
-				 PATHS ${SEARCH_DIRS} ./../log4cxx_src ./../log4cxx_src/lib ./../externallibs/log4cxx_src ./../externallibs/log4cxx_src/lib ./../externallibs/lib ./../externallibs/lib/Debug
-				)
-	set(LOG4CXX_LIB
-	    debug ${LOG4CXX_LIB_DEBUG}
-	    optimized ${LOG4CXX_LIB_RELEASE}
-	   )	
-	if(LOG4CXX_INCLUDE-NOTFOUND)
-		set (LOG4CXX_INCLUDE "" CACHE PATH "Directory where log4cxx header files can be found")
-	else()
-		include_directories(${LOG4CXX_INCLUDE})
-	endif()
-	
-	if(LOG4CXX_LIB-NOTFOUND)
-		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
-	endif()
-endif(USING_LOG4CXX)
-
-#enabling compiler interprocedural optimizations (IPO)
-option(USING_IPO "Whether link and assembly support for compiler IPO will be activated or not (may cause linking to be very slow)." OFF)
+  #this is the definition used in pz lib
+  include(cmake/EnableLog4cxx.cmake)
+  enable_log4cxx(pz)
+  set(PZ_LOG ON) # Will add a define PZ_LOG on pz_config.h
+  set(PZ_LOG4CXX_CONFIG_FILE ${PROJECT_SOURCE_DIR}/Util/log4cxx.cfg) #specify where log4cxx config is found
+endif()
 
 #enabling METIS library
 option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)
-	####add_definitions(-DUSING_METIS)
-	find_path(METIS_INCLUDE metis.h PATHS ${SEARCH_DIRS})
-	find_library(METIS_LIB NAMES libmetis.dylib metis.lib libmetis.so libmetis.a PATHS ${SEARCH_DIRS})
-	if(METIS_INCLUDE-NOTFOUND)
-		set (METIS_INCLUDE "" CACHE PATH "Directory where metis header files can be found")
-	else()
-		include_directories(${METIS_INCLUDE})
-	endif()
-	if(METIS_LIB-NOTFOUND)
-		set (METIS_LIB "" CACHE PATH "Directory where the metis library can be found")
-	endif()
-endif(USING_METIS)
+    include(cmake/EnableMetis.cmake)
+    enable_metis(pz)
+endif()
 
 #enabling OPENSSL library (used for MD5 computation)
 option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
 if(USING_OPENSSL)
-	link_libraries(crypto)
-endif(USING_OPENSSL)
+	target_link_libraries(pz PRIVATE crypto)
+    target_compile_definitions(pz PRIVATE USING_OPENSSL)
+endif()
 
 #enabling TBB library
 option(USING_TBB "Whether the TBB library will be linked in" OFF)
 if(USING_TBB)
-  find_package(TBB REQUIRED)
-  if (NOT TBB_FOUND)
-		message(FATAL_ERROR "Could not find TBB. If TBB is not needed, "
-      "configure the project with -DUSING_TBB=OFF")
-	endif()
-endif(USING_TBB)
+    include(cmake/EnableTBB.cmake)
+	enable_tbb(pz)
+endif()
 
 #enabling LIKWID library
 option(USING_LIKWID "Whether the likwid library will be linked in" OFF)
 if(USING_LIKWID)
-	find_path(LIKWID_INCLUDE likwid.h PATHS ${SEARCH_DIRS})
-	find_library(LIKWID_LIB NAMES liblikwid.a PATHS ${SEARCH_DIRS})
-	if(LIKWID_INCLUDE-NOTFOUND)
-		set (LIKWID_INCLUDE "" CACHE PATH "Directory where likwid header files can be found")
-	else()
-		include_directories(${LIKWID_INCLUDE})
-	endif()
-	if(LIKWID_LIB-NOTFOUND)
-		set (LIKWID_LIB "" CACHE PATH "Directory where the likwid library can be found")
-	else()
-		link_libraries(${LIKWID_LIB})
-	endif()
-endif(USING_LIKWID)
+    include(cmake/EnableLIKWID.cmake)
+    enable_likwid(pz)
+endif()
 
 #enabling numa library
 option(USING_LIBNUMA "Whether the Lib NUMA library will be linked in" OFF)
 if(USING_LIBNUMA)
-	find_path(LIBNUMA_INCLUDE numa.h PATHS ${SEARCH_DIRS})
-	find_library(LIBNUMA_LIB NAMES libnuma.so PATHS ${SEARCH_DIRS})
-	if(LIBNUMA_INCLUDE-NOTFOUND)
-		set (LIBNUMA_INCLUDE "" CACHE PATH "Directory where libnuma header files can be found (consider installing libnuma-dev)")
-	else()
-		include_directories(${LIBNUMA_INCLUDE})
-	endif()
-	if(LIBNUMA_LIB-NOTFOUND)
-		set (LIBNUMA_LIB "" CACHE PATH "Directory where the libnuma library can be found")
-	else()
-		link_libraries(${LIBNUMA_LIB})
-	endif()
-endif(USING_LIBNUMA)
-
-# ----------------------- enabling MatLab library -----------------------
-option(USING_MATLAB_ENGINE "Whether MatLab Engine will be linked in" OFF)
-if(USING_MATLAB_ENGINE)
-	find_package(MATLAB REQUIRED)
-	if (NOT MATLAB_FOUND)
-		message(FATAL_ERROR "This project requires the MATLAB library. Please inform the path to your matlab application")
-	endif()
-
-	if(NOT EXISTS "/usr/bin/matlab")
-		message(FATAL_ERROR "Error! Please create matlab symlink on /usr/bin by typing on terminal:\nsudo ln -sf PATH_TO_YOUR_MATLAB/bin/matlab /usr/bin/matlab")
-	endif()
-
-	include_directories(${Matlab_ROOT_DIR}/extern/include)
-
-endif(USING_MATLAB_ENGINE)
-
-#enabling LAPACK library
-option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
-option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
-if(USING_LAPACK)
-	set(USING_BLAS ON CACHE BOOL "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" FORCE)
-	if(APPLE)
-	else()
-		find_path(LAPACK_INCLUDE lapacke.h PATHS ${SEARCH_DIRS})
-		find_library(LAPACK_LIB NAMEs liblapack.lib liblapack.so PATHS ${SEARCH_DIRS})
-		if(LAPACK_INCLUDE-NOTFOUND)
-			set (LAPACK_INCLUDE "" CACHE PATH "Directory where LAPACK header files can be found")
-		else()
-			#include_directories(${LAPACK_INCLUDE})
-		endif()
-		if(LAPACK_LIB-NOTFOUND)
-			set (LAPACK_LIB "" CACHE PATH "Directory where the LAPACK library can be found")
-		endif()
-	endif(APPLE)
-endif(USING_LAPACK)
-
-#enabling BLAS library
-#option(USING_BLAS "Whether the Basic Linear Algebra Subprograms (BLAS) library will be linked in" OFF)
-if(USING_BLAS)
-	if(APPLE)
-	else()
-		find_path(CBLAS_INCLUDE cblas.h PATHS ${SEARCH_DIRS})
-		find_library(CBLAS_LIB NAMES libcblas cblas libtcblas PATHS ${SEARCH_DIRS})
-		if(CBLAS_INCLUDE-NOTFOUND)
-			set (CBLAS_INCLUDE "" CACHE PATH "Directory where CBLAS header files can be found")
-		else()
-			include_directories(${CBLAS_INCLUDE})
-		endif()
-		if(CBLAS_LIB-NOTFOUND)
-			set (CBLAS_LIB "" CACHE PATH "Directory where the CBLAS library can be found")
-		endif()
-	endif(APPLE)
-endif(USING_BLAS)
-
-
-#enabling the new skyline matrix format
-option(USING_NEW_SKYLMAT "Enable the new skyline matrix format" OFF)
-if(USING_NEW_SKYLMAT)
-		set(USING_NEW_SKYLMAT DUSING_NEW_SKYLMAT)
-endif(USING_NEW_SKYLMAT)
-
-#enabling PAPI library
-option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
-if(USING_PAPI)
-        find_path(PAPI_INCLUDE NAMES papi.h PATHS ${SEARCH_DIRS})
-        find_library(PAPI_LIB NAMES libpapi.a libpapi.so PATHS ${SEARCH_DIRS})
-        if(PAPI_INCLUDE-NOTFOUND)
-                set (PAPI_INCLUDE "" CACHE PATH "Directory where papi.h can be found")
-        endif()
-        if(PAPI_LIB-NOTFOUND)
-                set (PAPI_LIB "" CACHE PATH "Directory where the papi library can be found")
-        endif()
-endif(USING_PAPI)
-
-#enabling HWLOC library
-option(USING_HWLOC "Whether the HWLOC library will be linked in" OFF)
-if(USING_HWLOC)
-        find_path(HWLOC_INCLUDE NAMES hwloc.h PATHS ${SEARCH_DIRS})
-        find_library(HWLOC_LIB NAMES hwloc.a libhwloc.so libhwloc.dylib PATHS ${SEARCH_DIRS})
-        if(HWLOC_INCLUDE-NOTFOUND)
-                set (HWLOC_INCLUDE "" CACHE PATH "Directory where hwloc.h can be found")
-        endif()
-        if(HWLOC_LIB-NOTFOUND)
-                set (HWLOC_LIB "" CACHE PATH "Directory where the hwloc library can be found")
-        endif()
-endif(USING_HWLOC)
-
-
+    include(cmake/EnableNUMA.cmake)
+    enable_numa(pz)
+endif()
 
 #enabling MKL library
 option(USING_MKL "Whether the MKL library will be linked in" OFF)
 if(USING_MKL)
-	if (WIN32)
-		set(MKL_ROOT "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows")
-		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${MKL_ROOT}/mkl/include)
-		find_library(MKL_LIB_INTEL NAMES mkl_rt.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-		find_library(MKL_LIB_CORE NAMES mkl_core.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-		find_library(MKL_LIB_THREAD NAMES mkl_intel_thread.lib PATHS ${MKL_ROOT}/mkl/lib/intel64_win)
-                find_library(COMPOSER_OMP NAMES libiomp5md.lib PATHS ${MKL_ROOT}/compiler/lib/intel64_win)
-	else()
-		find_path(MKL_INCLUDE NAMES mkl.h PATHS ${SEARCH_DIRS} /opt/intel/mkl/include /softwares/intel/mkl/include)
-		find_library(MKL_LIB_INTEL NAMES libmkl_intel_lp64.so libmkl_intel_lp64.dylib PATHS
-				${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64)
-		find_library(MKL_LIB_CORE NAMES libmkl_core.so libmkl_core.dylib PATHS ${SEARCH_DIRS}
-				/opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-		find_library(MKL_LIB_THREAD NAMES libmkl_intel_thread.so libmkl_intel_thread.dylib PATHS
-				${SEARCH_DIRS} /opt/intel/mkl/lib /opt/intel/mkl/lib/intel64/ /softwares/intel/mkl/lib /softwares/intel/mkl/lib/intel64/)
-		find_library(COMPOSER_OMP NAMES libiomp5.so libiomp5.dylib PATHS ${SEARCH_DIRS}
-				/opt/intel/composer_xe/compiler/lib
-				/opt/intel/composerxe/lib/intel64
-				/opt/intel/lib /softwares/intel/lib/intel64
-                                /opt/intel/compilers_and_libraries/linux/lib/intel64_lin )
-	endif()
-
-	if(MKL_INCLUDE-NOTFOUND)
-                set (MKL_INCLUDE "" CACHE PATH "Directory where mkl.h can be found")
-        else()
-                #include_directories(${MKL_INCLUDE})
-        endif()
-
-        if(MKL_LIB-NOTFOUND)
-                set (MKL_LIB_INTEL "" CACHE PATH "Directory where the mkl library can be found")
-        else()
-                link_libraries(${MKL_LIB_INTEL})
-                link_libraries(${MKL_LIB_CORE})
-                link_libraries(${MKL_LIB_THREAD})
-                link_libraries(${COMPOSER_OMP})
-        endif()
+    include(cmake/EnableMKL.cmake)
+    enable_mkl(pz)
 endif(USING_MKL)
+
+#enabling LAPACK library
+option(USING_LAPACK "Whether the LAPACK library will be linked in" OFF)
+if(USING_LAPACK)
+    include(cmake/EnableLAPACK.cmake)
+    enable_lapack(pz)
+endif(USING_LAPACK)
+
+#enabling PAPI library
+option(USING_PAPI "Whether the PAPI library will be linked in" OFF)
+if(USING_PAPI)
+    include(cmake/EnablePAPI.cmake)
+    enable_papi(pz)
+endif(USING_PAPI)
 
 #enabling Blaze
 option(USING_BLAZE "Whether the Blaze package will be linked with the library" OFF)
 if(USING_BLAZE)
-        if ( NOT USING_MKL AND NOT USING_LAPACK )
-                message( FATAL_ERROR "Blaze library requires either USING_MKL or USING_LAPACK enabled !")
-        endif() 
-	find_package( blaze REQUIRED)
-	if( blaze_FOUND )
-		#link_libraries(${MKL_LIB_INTEL})
-	    add_library( blaze_target INTERFACE )
-    else()
-        set (USING_BLAZE "" CACHE PATH "Directory where blaze can be found")
-    endif()
-    add_definitions(-DUSING_BLAZE)
-
+    include(cmake/EnableBLAZE.cmake)
+    enable_blaze(pz)
 endif(USING_BLAZE)
 
-#To enable Python bindings
-option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
-if (BUILD_PYTHON_BINDING)
-  find_package(SWIG "2.0")
-  find_package(PythonLibs)
-  if (NOT SWIG_FOUND OR NOT PYTHONLIBS_FOUND)
-    message(WARNING "SWIG 2 and Python headers required for building Python API bindings. You can set proper SWIG executable with argument -DSWIG_EXECUTABLE=/path/to/swig2.0")
-    set(BUILD_PYTHON_BINDING OFF)
-  endif()
-endif()
+#the following include is for making it easier to create pz targets
+include(cmake/add_pz_internal_target.cmake)
 
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
@@ -357,10 +164,11 @@ endif()
 #To building several examples for training and experimentation PZ
 option(BUILD_BROKEN "To build projects which are broken" OFF)
 
-if(BUILD_TUTORIAL)
-	####add_definitions(-DBUILD_TUTORIAL)
+#To building publication targets
+option(BUILD_PUBLICATIONS "To build publications targets" OFF)
+if(BUILD_PUBLICATIONS)
+    add_subdirectory(Publications)
 endif()
-
 
 #To building all the specific projects developed with PZ environment
 option(BUILD_PROJECTS "To build specific projects." OFF)
@@ -371,62 +179,18 @@ option(BUILD_PERF_TESTS "To build the performance test." OFF)
 #To building all the plasticity materials
 option(BUILD_PLASTICITY_MATERIALS "To build plasticity materials." OFF)
 
-#To select type of REAL
-set(REALTypesAre "Types are: double, float, long double, pzfpcounter")
-set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
-
-if (REAL_TYPE STREQUAL "double")
-  set(REAL_TYPE_DEF "REALdouble")
-elseif (REAL_TYPE STREQUAL "float")
-  set(REAL_TYPE_DEF "REALfloat")
-elseif (REAL_TYPE STREQUAL "long double")
-  set(REAL_TYPE_DEF "REALlongdouble")
-elseif (REAL_TYPE STREQUAL "pzfpcounter")
-  set(REAL_TYPE_DEF "REALpzfpcounter")
-else()
-  message (FATAL_ERROR "ERROR: Please specify a valid type for REAL. ${REALTypesAre}")
-endif()
-message (STATUS "Using REAL type = ${REAL_TYPE}")
-
-#To select type of STATE
-set(STATETypesAre "Types are: double, float, long double, complex<float>, complex<double>, complex<long double>")
-set(STATE_TYPE "double" CACHE STRING "${STATETypesAre}")
-
-if (STATE_TYPE STREQUAL "double")
-  set(STATE_TYPE_DEF "STATEdouble")
-elseif (STATE_TYPE STREQUAL "float")
-  set(STATE_TYPE_DEF "STATEfloat")
-elseif (STATE_TYPE STREQUAL "long double")
-  set(STATE_TYPE_DEF "STATElongdouble")
-elseif (STATE_TYPE STREQUAL "complex<float>")
-  set(STATE_TYPE_DEF "STATEcomplexf")
-  set(STATE_COMPLEX "STATE_COMPLEX")
-  set (BUILD_COMPLEX_PROJECTS ON)
-elseif (STATE_TYPE STREQUAL "complex<double>")
-  set(STATE_TYPE_DEF "STATEcomplexd")
-  set(STATE_COMPLEX "STATE_COMPLEX")
-  set (BUILD_COMPLEX_PROJECTS ON)
-elseif (STATE_TYPE STREQUAL "complex<long double>")
-  set(STATE_TYPE_DEF "STATEcomplexld")
-  set(STATE_COMPLEX "STATE_COMPLEX")
-  set (BUILD_COMPLEX_PROJECTS ON)
-else()
-  message (FATAL_ERROR "ERROR: Please specify a valid type for STATE. ${STATETypesAre}")
-endif()
-message (STATUS "Using STATE type = ${STATE_TYPE}")
 
 # Some definitions for windows
 if(WIN32)
 	#add a define saying it is a VC compiler
-	set(VC "#Will add a define VC on pz_config.h")
-	add_definitions(-DVC)
+	set(VC ON) # Will add a define VC on pz_config.h
 	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
 	#disabling VC warnings
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	#disabling STL warning for std::_Vector_alloc when LOG4CXX is enabled
-	#if (USING_LOG4CXX)
+	#disabling STL warning for std::_Vector_alloc when PZ_LOG is enabled
+	#if (USING_PZ_LOG)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251 /wd4244")
 	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4244")
 	#endif()
@@ -454,7 +218,7 @@ if(WIN32)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
-  find_package(Git)
+  find_package(Git QUIET)
   if(GIT_FOUND)
     execute_process(
       COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
@@ -486,107 +250,24 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 # this will be saved at include diretory in the install target
 set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
 configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
+
+# Provide a standard relative layout for the installation directory.
+# Documentation directory is set to share/doc/PROJECT_NAME.
+
+#this needs to be before add_subdirectory calls so
+#the INSTALL_INTERFACE is correctly set
+include(GNUInstallDirs)
+
+#the PZ library itself will be installed one level after
+#CMAKE_INSTALL_PREFIX, so these changes are needed
+set(PZLIB_INSTALL_PREFIX "pz")
+set(CMAKE_INSTALL_LIBDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_INSTALL_INCLUDEDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+set(CMAKE_INSTALL_BINDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+
+#this variable will contain all the public headers from neopz
+set(PZ_PUBLIC_HEADERS "")
 # add it to include search path
-include_directories("${PROJECT_BINARY_DIR}/Common")
-# add the .h file in the install target
-install (FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE} COMPONENT libraries)
-# End of pz_config.h part
-
-
-#creating target pz library and installing it
-if (BUILD_PYTHON_BINDING)
-	IF (NOT WIN32)
-		#Build a shared library to be used with python binding
-		add_library(pz SHARED)
-	ELSE()
-		add_library(pz STATIC)
-	ENDIF()
-else()
-  #Build a static library (default)
-  add_library(pz)
-endif()
-
-find_package(Threads REQUIRED)
-target_link_libraries(pz Threads::Threads)
-IF (USING_IPO)
-  set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
-ENDIF()
-
-if (USING_BLAZE)
-    target_link_libraries(pz blaze::blaze) # Blaze docs enforce this line. Mandatory under Windows. In future, should include "INTERFACE" modifier.
-    add_definitions(-DUSING_BLAZE)
-endif()
-
-if (USING_BOOST)
-   if(APPLE)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.dylib ${Boost_LIBRARY_DIRS}/libboost_atomic-mt.dylib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.dylib)
-   elseif(UNIX)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time.so ${Boost_LIBRARY_DIRS}/libboost_atomic.so ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework.so)
-   elseif(WIN32)
-          target_link_libraries(pz ${Boost_LIBRARY_DIRS}/libboost_date_time-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_atomic-vc140-mt-x64-1_72.lib ${Boost_LIBRARY_DIRS}/libboost_unit_test_framework-vc140-mt-x64-1_72.lib)
-   endif()
-   target_include_directories(pz PUBLIC ${Boost_INCLUDE_DIR})
-endif()
-
-if (USING_LOG4CXX)
-  target_link_libraries(pz ${LOG4CXX_LIB})
-  target_include_directories(pz PUBLIC ${LOG4CXX_INCLUDE})
-  if(WIN32)
-	target_link_libraries(pz odbc32.lib ws2_32.lib mswsock.lib)
-  endif()
-endif()
-
-if (USING_METIS)
-  target_link_libraries(pz ${METIS_LIB})
-  target_include_directories(pz PUBLIC ${METIS_INCLUDE})
-endif()
-
-if (USING_LAPACK)
-  target_link_libraries(pz ${LAPACK_LIB} )
-  target_include_directories(pz PUBLIC ${LAPACK_INCLUDE})
-endif()
-
-if (USING_BLAS)
-  target_link_libraries(pz ${CBLAS_LIB} ) # lapack BLAS
-endif()
-
-if (USING_PAPI)
-  target_link_libraries(pz ${PAPI_LIB})
-endif()
-
-if (USING_MKL)
-  target_link_libraries(pz ${MKL_LIB_INTEL} ${MKL_LIB_CORE} ${MKL_LIB_THREAD} ${COMPOSER_OMP})
-  target_include_directories(pz PUBLIC ${MKL_INCLUDE})
-endif()
-
-if (USING_TBB)
-  target_link_libraries(pz TBB::tbb)
-  target_include_directories(pz PUBLIC ${TBB_INCLUDE_DIRS})
-endif()
-
-
-if (USING_HWLOC)
-  target_link_libraries(pz ${HWLOC_LIB})
-endif()
-
-#increment all the directories where the sources files is
-if(NOT BUILD_COMPLEX_PROJECTS)
-    if(BUILD_PERF_TESTS)
-        add_subdirectory(PerfTests)
-    endif()
-    if (BUILD_PYTHON_BINDING)
-        add_subdirectory(Python)
-    endif()
-endif()
-
-#enabling to use HDIVPIOLA the contravariant Piola Mapping
-option(USING_HDIVPIOLA "Whether the HDIVPIOLA is being used" OFF)
-if(USING_HDIVPIOLA)
-	#Adding a variable to hold this definition
-	set(HDIVPIOLA HDIVPIOLA)
-	add_definitions(-D${HDIVPIOLA})
-endif(USING_HDIVPIOLA)
-
 add_subdirectory(PerfUtil)
 add_subdirectory(Util)
 add_subdirectory(Common)
@@ -609,168 +290,82 @@ add_subdirectory(Frontal)
 add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
-add_subdirectory(Publications)
-add_subdirectory("Random")
+add_subdirectory(Random)
 add_subdirectory(Optimization)
 add_subdirectory(Exception)
+#uncomment the following line to be scared
+#message(${PZ_PUBLIC_HEADERS})
+#############INSTALL#############
 
-#Creating groups for organized display of files into PZ modules (subfolders)
-source_group(Common FILES ${pzcommon_STAT_SRCS})
-source_group(Exception FILES ${pzexception_STAT_SRCS})
-source_group(Save FILES ${pzsave_STAT_SRCS})
-source_group(Util FILES ${pzutil_STAT_SRCS})
-source_group(PerfUtil FILES ${pzperfutil_STAT_SRCS})
-source_group(Matrix FILES ${pzmatrix_STAT_SRCS})
-source_group("Linear Solvers" FILES ${pzlinearsolvers_STAT_SRCS})
-source_group(Topology FILES ${pztopology_STAT_SRCS})
-source_group(Geom FILES ${pzgeom_STAT_SRCS})
-source_group("Special Maps" FILES ${pzspecialmaps_STAT_SRCS})
-source_group(Mesh FILES ${pzmesh_STAT_SRCS})
-source_group(Shape FILES ${pzshape_STAT_SRCS})
-source_group(Refine FILES ${pzrefine_STAT_SRCS})
-source_group(Material FILES ${pzmaterial_STAT_SRCS})
-source_group(Analisys FILES ${pzanalysis_STAT_SRCS})
-source_group(Multigrid FILES ${pzmultigrid_STAT_SRCS})
-source_group(Post FILES ${pzpost_STAT_SRCS})
-source_group(Frontal FILES ${pzfrontal_STAT_SRCS})
-source_group("StructMatrix" FILES ${pzstrmatrix_STAT_SRCS})
-source_group(Pre FILES ${pzpre_STAT_SRCS})
-source_group("Substruct" FILES ${pzsubstruct_STAT_SRCS})
-source_group(Integral FILES ${pzintegral_STAT_SRCS})
-source_group(External FILES ${pzexternal_STAT_SRCS})
-source_group(Publications FILES ${pzpublications_STAT_SRCS})
-source_group(External\\Sloan FILES ${sloan_SRCS})
-source_group(External\\FAD FILES ${FAD_SRCS})
-source_group(External\\FAD\\Fad FILES ${FAD_fad_SRCS})
-source_group(External\\FAD\\TinyFad FILES ${FAD_Tiny_SRCS})
-source_group(External\\FAD\\TinyFadET FILES ${FAD_TinyET_SRCS})
-source_group("Random" FILES ${pzrandom_STAT_SRCS})
-source_group("Optimization" FILES ${pzoptimization_STAT_SRCS})
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  if(WIN32)
+    set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
+  else()
+    set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
+  endif()
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-add_subdirectory(lib)
+# End of pz_config.h part
 
+# Set a debug suffix automatically when PZ is built in Debug mode
+set(CMAKE_DEBUG_POSTFIX "-debug")
+set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+install(TARGETS pz
+        EXPORT NeoPZTargets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+#where cmake config files are going to be set
+set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/neopz)
 
-install(TARGETS pz 
-		EXPORT PZTargets
-		ARCHIVE
-		DESTINATION ${NEOPZ_LIB})
+install(EXPORT NeoPZTargets
+        FILE NeoPZTargets.cmake
+        NAMESPACE NeoPZ::
+        DESTINATION ${PZ_CMAKE_INSTALL_DIR}
+        )
+      
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NeoPZConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfig.cmake" @ONLY)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NeoPZConfigVersion.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfigVersion.cmake" @ONLY)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/NeoPZConfigVersion.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/add_pz_target.cmake"
+        DESTINATION ${PZ_CMAKE_INSTALL_DIR}
+        )
+
+include(cmake/InstallPZConfigFile.cmake)
+
+#############EXTRA TARGETS#############
 if(BUILD_PROJECTS OR BUILD_TUTORIAL)
-	add_subdirectory(Projects)
+    add_subdirectory(Projects)
 endif()
 
 if(BUILD_UNITTESTING)
-	add_subdirectory(UnitTest_PZ)
+    add_subdirectory(UnitTest_PZ)
+endif()
+
+if(NOT BUILD_COMPLEX_PROJECTS)
+    if(BUILD_PERF_TESTS)
+        add_subdirectory(PerfTests)
+    endif()
 endif()
 
 #Enabling tests
 ENABLE_TESTING()
 include(CTest)
 
-#To insert cmakelist files as a group
-if(BUILD_TUTORIAL)
-	#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
-	file(GLOB_RECURSE makefiles *Lists.txt)
-
-	#creating text files group
-	source_group(CMakefilesPZ FILES ${makefilespz})
-	source_group(CMakefilesProjects FILES ${makefilesproject})
-	source_group(CMakefilesUnitTest FILES ${makefilesunittest})
-	add_custom_target(CMAKE_Files SOURCES ${makefiles})
-endif(BUILD_TUTORIAL)
-
-#To insert doxygen documentation files
-file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
-add_custom_target(DOXYGEN_Files SOURCES  ${doxyfiles})
-
-#To force XCode to use standard library c++ = libstdc++ (Required after upgrading to XCode 5)
-#SET(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libstdc++")
-
-set_target_properties(pz PROPERTIES XCODE_ATTRIBUTE_WARNING_CFLAGS "")
-
-
-# Add all targets to the build-tree export set
-export(TARGETS pz  FILE "${PROJECT_BINARY_DIR}/PZTargets.cmake")
- 
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
-export(PACKAGE PZ)
-
-set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/CMake)
-
-file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}"
-   "${CMAKE_INSTALL_PREFIX}/${NEOPZ_INCLUDE}")   
-   
-# ... for the build tree
-set(CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
-configure_file(PZConfig.cmake.in
-  "${PROJECT_BINARY_DIR}/PZConfig.cmake" @ONLY)
-  
-# ... for the install tree
-set(CONF_INCLUDE_DIRS "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}"
-	"/${REL_INCLUDE_DIR}/Python"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Util"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/PerfUtil"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Common"
-    "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Save"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Matrix"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Topology"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Geom"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/SpecialMaps"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Refine"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Shape"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material/REAL"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material/REAL/Plasticity"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Material/Complex"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Multigrid"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Mesh"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/StrMatrix"
-    "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Integral"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Frontal"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Pre"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Post"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Random"	
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Optimization"	
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Analysis"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/SubStruct"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/LinearSolvers"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/sloan"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Publications"
-	"\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/Exception"
-)
-
-if(USING_FAD)
-	set(CONF_INCLUDE_DIRS ${CONF_INCLUDE_DIRS} 
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD"
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/Fad"
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/TinyFad"
-            "\${PZ_CMAKE_DIR}/${REL_INCLUDE_DIR}/External/FAD/TinyFadET"
-        )
-endif(USING_FAD)
-
-configure_file(PZConfig.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake" @ONLY)
-  
-configure_file(PZConfig_Debug.cmake.in
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake" COPYONLY)
-   
-# ... for both
-configure_file(PZConfigVersion.cmake.in
-  "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake" @ONLY)
- 
-# Install the PZConfig.cmake and PZConfigVersion.cmake
-install(FILES
-        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig.cmake"
-        "${PROJECT_BINARY_DIR}/PZConfigVersion.cmake"
-        DESTINATION "${INSTALL_CMAKE_DIR}" )
-  
-install(FILES
-        "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PZConfig_Debug.cmake"
-        DESTINATION "${INSTALL_CMAKE_DIR}" 
-        CONFIGURATIONS Debug )  
- 
-# Install the export set for use with the install-tree
-install(EXPORT PZTargets 
-        DESTINATION "${INSTALL_CMAKE_DIR}")		
+#To build the documentation using doxygen
+option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)
+#To build the documentation using doxygen+breathe+sphynx
+option(BUILD_SPHINX_DOCS "Whether to build the documentation using Doxygen+Breathe+Sphinx" OFF)
+if(BUILD_DOCS)
+    add_subdirectory(docs)
+elseif(BUILD_SPHINX_DOCS)
+    message(FATAL_ERROR "For building sphinx docu BUILD_DOCS needs to be enabled")
+endif()

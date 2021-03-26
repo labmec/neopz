@@ -9,7 +9,7 @@
 #include "pzbndcond.h"
 #include "pzerror.h"
 #include "pzvec.h"
-
+#include "Hash/TPZHash.h"
 #include <math.h>
 using namespace std;
 
@@ -20,6 +20,9 @@ TPZNLMat1d::TPZNLMat1d(int id) : TPZMaterial(id)
 TPZNLMat1d::~TPZNLMat1d()
 {}
 
+int TPZNLMat1d::ClassId() const{
+return Hash("TPZNLMat1d") ^ TPZMaterial::ClassId() << 1;
+}
 void TPZNLMat1d::Contribute(TPZMaterialData &data, REAL weight,
                              TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;

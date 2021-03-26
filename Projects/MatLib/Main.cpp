@@ -63,8 +63,8 @@ USING_MATLIB_NAMESPACE
 #include <cmath>
 #include <set>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.elasticity");
 #endif
 
 // Dummy Boundary Conditions
@@ -100,12 +100,6 @@ int main(int argc, char *argv[])
 {
 
     std::string dirname = PZSOURCEDIR;
-#ifdef LOG4CXX
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/Elasticity2D/";
-    FileName += "Elasticity2DLog.cfg";
-    InitializePZLOG(FileName);
-#endif
 
 #ifdef USING_MATLIB
     std::cout << "Printing something\n";

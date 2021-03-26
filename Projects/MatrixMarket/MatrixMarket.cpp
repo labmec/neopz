@@ -7,6 +7,7 @@
 #include "pzfmatrix.h"
 #include "pzfstrmatrix.h"
 #include "pzsysmp.h"
+#include "pzskylmat.h"
 #include "pzlog.h"
 
 #include "pzstepsolver.h"
@@ -17,8 +18,8 @@
 #include <cmath>
 #include <set>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.elasticity");
 #endif
 
 #ifdef USING_BOOST

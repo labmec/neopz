@@ -14,9 +14,9 @@
 
 #include <iostream>
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
-static LoggerPtr logerror(Logger::getLogger("pz.mixedpoisson.error"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.mixedpoisson.data");
+static TPZLogger logerror("pz.mixedpoisson.error");
 #endif
 
 TPZMixedPoissonParabolic::TPZMixedPoissonParabolic(): TPZMixedPoisson(), fRho(1.), fDeltaT(1.)

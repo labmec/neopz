@@ -1,10 +1,11 @@
 # @file neopz/Util/Hash/CMakeLists.txt  -- CMake file for the Hash module
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Util/Hash)
+target_include_directories(pz PUBLIC
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Util/Hash>
+                           )
 
-file(GLOB sources *.cpp)
-
-set(pzutil_Hash_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+set(headers MurmurHash3.h TPZHash.h)
+set(sources MurmurHash3.cpp TPZHash.cpp)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util/Hash)
+target_sources(pz PRIVATE ${headers} ${sources})

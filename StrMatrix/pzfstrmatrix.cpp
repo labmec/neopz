@@ -10,9 +10,9 @@
 #include <sstream>
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzfstructmatrix"));
-static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.strmatrix.tpzfstructmatrix");
+static TPZLogger loggerel("pz.strmatrix.element");
 #endif
 
 

@@ -9,15 +9,14 @@
 #include <math.h>
 
 // Using Unit Test of the Boost Library
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
 #endif
 #define BOOST_TEST_MAIN pz fad_tests tests
 
-#include "boost/test/floating_point_comparison.hpp"
-#include "boost/test/output_test_stream.hpp"
+#include "boost/test/tools/output_test_stream.hpp"
 #include "boost/test/unit_test.hpp"
 
 //#define NOISY //outputs operations' results

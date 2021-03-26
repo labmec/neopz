@@ -21,8 +21,8 @@
 #include <stdio.h>
 #include <fstream>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.nonlinearanalysis"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.nonlinearanalysis");
 #endif
 
 using namespace std;

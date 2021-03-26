@@ -11,12 +11,9 @@
 #include "pzstack.h"
 #include "pztrnsform.h"
 #include "pzeltype.h"
-#include "pznumeric.h"
 #include "pzaxestools.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 class TPZIntPoints;
 class TPZIntCube3D;
@@ -120,15 +117,13 @@ namespace pztopology {
         /** @brief Verifies if the parametric point pt is in the element parametric domain */
         static bool IsInParametricDomain(const TPZVec<REAL> &pt, REAL tol = pztopology::gTolerance);
 
-        #ifdef _AUTODIFF
         /** @brief Verifies if the parametric point pt is in the element parametric domain (FAD version)*/
         static bool IsInParametricDomain(const TPZVec<Fad<REAL>> &pt, REAL tol = pztopology::gTolerance){
             TPZVec<REAL> xi(pt.size());
             for(int i = 0; i < pt.size(); i++) xi[i]= pt[i].val();
             return IsInParametricDomain(xi,tol);
         }
-        #endif
-        
+
         /** @brief Generates a random point in the master domain */
         static void RandomPoint(TPZVec<REAL> &pt);
 

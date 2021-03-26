@@ -51,9 +51,9 @@
 
 #include "TPZMatDualHybridPoisson.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
-static LoggerPtr logger(Logger::getLogger("Bima.main"));
+static TPZLogger logger("Bima.main");
 
 #endif
 static void SolExataSteklov(const TPZVec<REAL> &loc, TPZVec<STATE> &u, TPZFMatrix<STATE> &du){
@@ -131,16 +131,6 @@ int main()
 {
     
     std::ofstream myerrorfile("erros.txt");
-//	
-//#ifdef LOG4CXX
-//    if (logger->isDebugEnabled())
-//	{
-//		InitializePZLOG();
-//		std::stringstream sout;
-//		sout<< "Problema Hibrido do Abimael"<<endl;
-//		LOGPZ_DEBUG(logger, sout.str());
-//	}
-//#endif
 	
 	for (int porder= 4; porder<5; porder++) {
 		
@@ -210,8 +200,8 @@ int main()
 
 				
             cmesh->SetName("Malha depois de Analysis-----");
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				cmesh->Print(sout);
@@ -312,8 +302,8 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
     comp->LoadReferences();
     comp->ApproxSpace().CreateInterfaceElements(comp,true);
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		comp->Print(sout);
@@ -335,8 +325,8 @@ TPZCompMesh *CreateHybridCompMesh(TPZGeoMesh &gmesh,int porder){
 	
 	comp->SetName("Malha Computacional Original");
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		comp->Print(sout);
@@ -433,8 +423,8 @@ TPZGeoMesh * MalhaGeo(const int ndiv){//malha quadrilatera
 	}
     
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
@@ -491,8 +481,8 @@ void GroupElements(TPZCompMesh *cmesh)
                 }
             }
         }
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             for (std::list<TPZCompEl *>::iterator it = group.begin(); it != group.end(); it++) {
@@ -514,8 +504,8 @@ void GroupElements(TPZCompMesh *cmesh)
         TPZCompEl *cel = cmesh->ElementVec()[*it];
         TPZCondensedCompEl *cond = new TPZCondensedCompEl(cel);
     }
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);

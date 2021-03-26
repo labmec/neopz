@@ -94,4 +94,6 @@ TPZGeoElSide TPZGeoElSideAncestors::LargeSide(TPZGeoEl *large)
         }
     }
     DebugStop();
+    //silencing warnings
+    return TPZGeoElSide();
 }

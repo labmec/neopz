@@ -10,8 +10,6 @@
 
 using namespace std;
 
-//int HDivPiola = 1;
-
 TPZCounter TPZFlopCounter::gCount;
 
 static string names[] = {

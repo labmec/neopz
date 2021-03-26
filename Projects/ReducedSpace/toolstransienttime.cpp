@@ -37,8 +37,8 @@
 //Plasticidade
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.toolstransienttime"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.toolstransienttime");
 #endif
 
 

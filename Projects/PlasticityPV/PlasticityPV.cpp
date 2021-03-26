@@ -32,10 +32,12 @@
 #include "TPZPlasticStepPV.h"
 
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
+
+using namespace std;
 
 REAL NormVec(TPZManVector<REAL,3> &vec1);
 
@@ -63,7 +65,6 @@ TPZFNMatrix <6> FromMatToVoight(TPZFNMatrix <9> mat);
 
 int main()
 {
-	InitializePZLOG();
   CurvaFig12PlasticPV();
 //	const REAL Phi = M_PI/9., Psi = M_PI/9., c = 9.35;
 //	TPZElasticResponse ER;
@@ -166,7 +167,7 @@ void DepPlasticPVMC()
 	//eps.XY() = 0.01;
 	//eps.XZ() = -24. * 0.001;
 	//eps.YZ() = -65. * 0.001;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream str;
 		str << "\n-------------------------- BEGINING OF TAYLORCHECK TEST USING PRINCIPAL VALUES --------------------------" << endl;

@@ -4,7 +4,6 @@
  */
 
 #include "tpzgeoelrefpattern.h"
-#include "tpzgeoelrefpattern.h.h"
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
@@ -42,8 +41,8 @@ using namespace pzshape;
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelrefpattern"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzgeoelrefpattern");
 #endif
 TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh, MElementType type,
                                   TPZVec<int64_t>& nodeindexes,

@@ -13,6 +13,10 @@
 #include "pzshapeprism.h"
 #include "pzshapepiram.h"
 
+#ifdef PZ_LOG
+static TPZLogger CompElWMemlogger("mesh.TPZCompElWithMem");
+#endif
+
 bool gSinglePointMemory = false;
 
 template<class TBASE>
@@ -29,7 +33,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     
     if(fIntPtIndices.NElements())
     {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
@@ -91,7 +95,7 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     
     if(fIntPtIndices.NElements())
     {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             sout << __PRETTY_FUNCTION__ << " Attempting to add memory indices to an already configured TPZCompElWithMem";
@@ -178,6 +182,8 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TP
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsInterfaceElement>>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZInterfaceElement>>;
+template class TPZCompElWithMem<TPZMultiphysicsInterfaceElement>;
+template class TPZCompElWithMem<TPZInterfaceElement>;
 
 
 /*

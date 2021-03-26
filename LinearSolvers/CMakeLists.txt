@@ -2,14 +2,26 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/LinearSolvers>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/LinearSolvers>
+                           )
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/LinearSolvers)
+set(headers
+    bicg.h
+    bicgstab.h
+    cg.h
+    cgbet.h
+    cgs.h
+    cheby.h
+    gmres.h
+    ir.h
+    qmr.h
+    )
 
-file(GLOB sources *.cpp)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LinearSolvers)
 
-set(pzlinearsolvers_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
-
-
+target_sources(pz PRIVATE ${headers})
+#for doxygen
+foreach(header ${headers})
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+endforeach()
+set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

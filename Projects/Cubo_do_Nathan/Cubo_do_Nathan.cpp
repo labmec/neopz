@@ -31,8 +31,8 @@
 #include <iostream>
 #include <cstdlib>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger logger("main");
 #endif
 
 #define MAIN3
@@ -282,7 +282,6 @@ int main()
 #ifdef MAIN3
 int main()
 {
-	InitializePZLOG();
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
 	int porder = 1;
@@ -309,8 +308,8 @@ int main()
 	
 	//an.Solution().Print("Solution");
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		an.Solution().Print("Solution",str);
@@ -727,7 +726,6 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 
 void Teste()
 {
-	InitializePZLOG();
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
 	int porder = 1;
@@ -772,8 +770,8 @@ void Teste()
 	
 	//an.Solution().Print("Solution");
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		an.Solution().Print("Solution",str);
@@ -781,8 +779,8 @@ void Teste()
 	}
 #endif
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		an2.Solution().Print("Solution",str);
@@ -835,8 +833,8 @@ void Teste()
 		sub(is,0) = Ku(is,0) - carga(is,0);
 	}
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream str;
 		sub.Print("Subtracao",str);

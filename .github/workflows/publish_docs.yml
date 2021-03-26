@@ -1,0 +1,44 @@
+name: Publish Docs
+
+on:
+  #push:
+  #  branches-ignore:
+  #    - '**'  
+  push:
+    branches: [ RefactorGeom, refactor-cmake ]
+  #pull_request:
+  # branches: [ main ]
+  
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - name: Requirements
+      run: brew install doxygen
+        && brew install sphinx-doc
+        && pip3 install sphinx-rtd-theme
+        && pip3 install breathe
+        && pip3 install sphinx-sitemap
+    - name: Checkout repo
+      uses: actions/checkout@1.0.0
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DBUILD_DOCS=ON -DBUILD_SPHINX_DOCS=ON
+    - name: Build docs
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: make run-doxygen
+        && make run-sphinx
+        && cd docs/sphinx
+        && touch .nojekyll
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: ${{github.workspace}}/build/docs/sphinx # The folder the action should deploy.

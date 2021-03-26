@@ -46,9 +46,9 @@
 #include "TPZfTime.h"
 
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 //#include "timing_analysis.h"
@@ -103,10 +103,7 @@ int main(int argc, char *argv[])
 #ifdef USING_LIKWID
     likwid_manager_t likwid_manager;
 #endif
-    
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
+
 #ifdef USING_TBB
     task_scheduler_init init;
 #endif
@@ -152,11 +149,11 @@ int main(int argc, char *argv[])
     dohrstruct->IdentifyExternalConnectIndexes();
     dohrstruct->SubStructure(nSubMeshes);
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
       std::stringstream str;
       cmeshauto->Print(str);
-      if(logger->isDebugEnabled()) LOGPZ_DEBUG(logger,str.str());
+      if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,str.str());
     }
 #endif
       
@@ -206,7 +203,7 @@ int main(int argc, char *argv[])
     /* checking if the solver converged */
     if (cg.GetTolerance() > 1.e-8)
       {
-        cerr << "ERROR: solver do not converged with the limit of iterations."  << endl;
+        std::cerr << "ERROR: solver do not converged with the limit of iterations."  << std::endl;
         exit(1);
       }
         
@@ -251,7 +248,7 @@ int main(int argc, char *argv[])
       it++;
     }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
       std::stringstream sout;
       diag.Print("Resultado do processo iterativo",sout);
@@ -422,18 +419,18 @@ TPZGeoMesh *MalhaPredio()
 	int numelements=-1;
 	
 #ifndef MACOSX
-	string FileName = "8andares02.txt";
+	std::string FileName = "8andares02.txt";
 #else
-    string FileName = "../8andares02.txt";
+  std::string FileName = "../8andares02.txt";
 #endif
 	{
 		bool countnodes = false;
 		bool countelements = false;
 		
-		ifstream read (FileName.c_str());
+		std::ifstream read (FileName.c_str());
 		if (!read.is_open()) {
-            cerr << "Could not open file: " << FileName << endl;
-            exit(1);
+      std::cerr << "Could not open file: " << FileName << std::endl;
+      exit(1);
 		}
         
 		while(read)
@@ -463,7 +460,7 @@ TPZGeoMesh *MalhaPredio()
 	//setting nodes coords
 	int64_t nodeId = 0, elementId = 0, matElId = 1;
 	
-	ifstream read;
+	std::ifstream read;
 	read.open(FileName.c_str());
 	
 	double nodecoordX , nodecoordY , nodecoordZ ;
@@ -521,7 +518,7 @@ TPZGeoMesh *MalhaPredio()
 		gMesh->BuildConnectivity();
 		// Colocando as condicoes de contorno
 		
-		ParallelFor(0,numelements,[&](int el)
+		pzutils::ParallelFor(0,numelements,[&](int el)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
@@ -549,9 +546,9 @@ TPZGeoMesh *MalhaPredio()
 		});
 	}
 	
-	ofstream arg("malhaPZ.txt");
+	std::ofstream arg("malhaPZ.txt");
 	gMesh->Print(arg);
-	ofstream predio("GeoPredio.vtk");
+	std::ofstream predio("GeoPredio.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(gMesh,predio,true);
 	
 	return gMesh;
@@ -562,14 +559,14 @@ TPZGeoMesh *MalhaCubo()
 	int numnodes=-1;
 	int numelements=-1;
 	
-	string FileName = "cube1.txt";
+	std::string FileName = "cube1.txt";
 	{
 		bool countnodes = false;
 		bool countelements = false;
-		
-		ifstream read (FileName.c_str());
+
+		std::ifstream read (FileName.c_str());
 		if (!read.is_open()) {
-            cerr << "Could not open file: " << FileName << endl;
+            std::cerr << "Could not open file: " << FileName << std::endl;
             exit(1);
 		}
 		
@@ -600,7 +597,7 @@ TPZGeoMesh *MalhaCubo()
 	//setting nodes coords
 	int nodeId = 0, elementId = 0, matElId = 1;
 	
-	ifstream read;
+	std::ifstream read;
 	read.open(FileName.c_str());
 	
 	double nodecoordX , nodecoordY , nodecoordZ ;
@@ -659,7 +656,7 @@ TPZGeoMesh *MalhaCubo()
 		gMesh->BuildConnectivity();
 		
 		// Colocando as condicoes de contorno
-		ParallelFor(0,numelements,[&](int el)
+		pzutils::ParallelFor(0,numelements,[&](int el)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
@@ -736,7 +733,7 @@ TPZGeoMesh *MalhaCubo()
     }
   }
 	
-	ofstream arg("malhaPZ1BC.txt");
+	std::ofstream arg("malhaPZ1BC.txt");
 	gMesh->Print(arg);
 	
 	std::ofstream out("Cube.vtk");

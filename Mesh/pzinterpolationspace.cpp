@@ -15,8 +15,8 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.TPZInterpolationSpace");
 #endif
 
 TPZInterpolationSpace::TPZInterpolationSpace()
@@ -318,8 +318,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
         return;
     }
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
@@ -678,8 +678,8 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
             TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
             if(!gel) 
             {
-#ifdef LOG4CXX
-                if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "CreateBCGeoEl devolveu zero!@@@@";
@@ -732,7 +732,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 			if(!leftIsLinear && !rightIsLinear){
 				if(faceGel->IsGeoBlendEl() == false){
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 					{
 						std::stringstream sout;
 						sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
@@ -834,8 +834,8 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
                 }
                 TPZCompElSide thiscompelside(this, thisside);
                 TPZCompElSide lowcelcompelside(lowcel, neighside);
-#ifdef LOG4CXX_KEEP
-                if (logger->isDebugEnabled())
+#ifdef PZ_LOG_KEEP
+                if (logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << __PRETTY_FUNCTION__ << " left element";
@@ -861,7 +861,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 			if(!leftIsLinear && !rightIsLinear){
 				if(faceGel->IsGeoBlendEl() == false){
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 					{
 						std::stringstream sout;
 						sout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
@@ -962,8 +962,8 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	int64_t size = list.NElements(),i=-1;
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
-#ifdef LOG4CXX_keep
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG_keep
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << " no interface element found\n";
@@ -975,9 +975,9 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	}
 	// aqui existe a interface
 	TPZCompEl *cel = list[i].Element();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	TPZGeoEl *gel = cel->Reference();
-    if (logger->isDebugEnabled())
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " element index " << Index() << " side " << std::endl;
@@ -1397,8 +1397,8 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	REAL weight;
 	int lin,ljn,cjn;
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled() && coarsel.HasDependency()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled() && coarsel.HasDependency()) {
         std::stringstream sout;
         coarsel.Print(sout);
         int nc = coarsel.NConnects();
@@ -1423,16 +1423,16 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 		cordphi.Zero();
 		coarsel.Shape(coarse_int_point,corphi,cordphi);
 		
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled() && coarsel.HasDependency()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled() && coarsel.HasDependency()) {
             std::stringstream sout;
             corphi.Print("Coarse shape functions before expandShapeFunctions",sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
 		coarsel.ExpandShapeFunctions(connectlistcoarse,dependencyordercoarse,corblocksize,corphi,cordphi);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled() && coarsel.HasDependency()) {
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled() && coarsel.HasDependency()) {
             std::stringstream sout;
             corphi.Print("Coarse shape functions after expandShapeFunctions",sout);
             LOGPZ_DEBUG(logger, sout.str())
@@ -1451,7 +1451,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	}
 	loclocmat.SolveDirect(loccormat,ELDLt);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         loccormat.Print("Element transfer matrix",sout);

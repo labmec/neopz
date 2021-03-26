@@ -36,16 +36,16 @@
 #include "pzelmat.h"
 #include "pzbndcond.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
 void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef);
-#endif
 
 TPZCompMesh *CreateMesh();
 int mainFull();
 void Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, int method, TPZCompMesh & Mesh);
 TPZCompMesh *CreateMesh();
 TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh);
+
+using namespace std;
 
 int main()
 {
@@ -100,8 +100,7 @@ int main()
 
 ////////////////
 
-#ifdef _AUTODIFF
-    
+
   TPZVec<FADFADREAL> solFAD(ndof);
   TPZVec<FADFADREAL> dsolFAD(ndof * dim);// x, y and z data aligned
 
@@ -159,8 +158,7 @@ FADToMatrix(U, ekFAD, efFAD);
  REAL dif = Norm(ek);
  cout << "Difference in norm " << dif << endl;
     
-#endif
-    
+
   return 0;
 }
 
@@ -414,7 +412,6 @@ void Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, int method, T
 
 */
 
-#ifdef _AUTODIFF
 
 void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef)
 {
@@ -439,4 +436,3 @@ void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef)
      }
   }
 }
-#endif

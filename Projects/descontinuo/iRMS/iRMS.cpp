@@ -17,8 +17,8 @@
 
 // iRMS (i rise for / innovatory Reservoir Muli-scale Simulator)
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.iRMS"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.iRMS");
 #endif
 
 #ifdef USING_BOOST
@@ -34,9 +34,6 @@ void CreateExampleRawData(TRMRawData &data);
 
 int main()
 {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     // This code use normalized piola contravariant mapping for nonlinear mappings
     HDivPiola = 1;
     TPZMaterial::gBigNumber = 1.0e14;

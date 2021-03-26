@@ -21,11 +21,6 @@ class TPZMaterialData;
 #include "pzlog.h"
 
 
-
-#ifdef LOG4CXX
-static LoggerPtr CompElWMemlogger(Logger::getLogger("mesh.TPZCompElWithMem"));
-#endif
-
 /**
  * @brief This class implements the TPZCompEl structure to enable material memory feature. \n
  * It should be instantiated using one of TPZCompEl bottom classes as parent in the template parameter.

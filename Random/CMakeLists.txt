@@ -1,13 +1,25 @@
 
 target_include_directories(pz PUBLIC 
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Random>
-                          )
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Random>
+                           )
 
+set(headers
+    TPZConstrainedNormalRandom.h
+    TPZConstrainedRandom.h
+    TPZNormalRandom.h
+    TPZRandom.h
+    TPZUniformRandom.h
+    )
 
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Random)
+set(sources TPZUniformRandom.cpp)
 
-file(GLOB sources *.cpp)
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Random)
 
-set(pzrandom_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
+target_sources(pz PRIVATE ${headers} ${sources})
+
+#for doxygen
+foreach(header ${headers})
+    list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
+endforeach()
+set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

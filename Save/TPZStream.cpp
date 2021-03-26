@@ -1,9 +1,7 @@
 #include "TPZStream.h"
 #include "TPZPersistenceManager.h"
 
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
 void TPZStream::Write(const bool val) {
     int ival = (val == true) ? 1 : 0;
@@ -76,7 +74,6 @@ void TPZStream::Write(const TPZFlopCounter *p, int howMany) {
         Write(&(p[i].fVal), 1);
 }
 
-#ifdef _AUTODIFF
 /** @brief Writes howMany fad-long double at pointer location p */
 void TPZStream::Write(const Fad <long double> *p, int howMany) {//weird but necessary for working between different OSs
     Fad<double> *copy = new Fad<double>[howMany];
@@ -86,7 +83,6 @@ void TPZStream::Write(const Fad <long double> *p, int howMany) {//weird but nece
     Write(copy, howMany);
     delete[] copy;
 }
-#endif
 
 void TPZStream::Read(bool &val) {
     int ival;
@@ -166,7 +162,6 @@ void TPZStream::Read(TPZFlopCounter *p, int howMany) {
     }
 }
 
-#ifdef _AUTODIFF
 /** @brief Reads howMany fad-long double from pointer location p */
 void TPZStream::Read(Fad<long double> *p, int howMany) {//weird but necessary for working between different OSs
     Fad<double> *copy = new Fad<double>[howMany];
@@ -176,9 +171,7 @@ void TPZStream::Read(Fad<long double> *p, int howMany) {//weird but necessary fo
     }
     delete[] copy;
 }
-#endif
 
-#ifdef _AUTODIFF
 void TPZStream::Read(Fad<std::complex< float >> *p, int howMany)
 {
     std::cout << __PRETTY_FUNCTION__ << " PLEASE IMPLEMENT ME\n";
@@ -216,4 +209,3 @@ void TPZStream::Write(const Fad<std::complex< long double >> *p, int howMany)
 }
 
 
-#endif

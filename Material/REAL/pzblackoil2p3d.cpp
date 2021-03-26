@@ -8,7 +8,6 @@
 
 using namespace std;
 
-#ifdef _AUTODIFF
 
 #include "fad.h"
 
@@ -566,4 +565,3 @@ void TPZBlackOil2P3D::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 	
 }//method
 
-#endif

@@ -14,7 +14,6 @@
 #include "pzsubcmesh.h"
 
 #include "tpznodesetcompute.h"
-#include "pzmetis.h"
 
 #include "tpzdohrmatrix.h"
 #include "tpzdohrsubstruct.h"
@@ -37,8 +36,8 @@
 
 #include <sstream>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.gensubstruct"));
+#ifdef PZ_LOG
+static TPZLogger logger("substruct.gensubstruct");
 #endif
 
 TPZGenSubStruct::TPZGenSubStruct(int dimension, int numlevels, int substructlevel) : fMatDist(DistMaterial),fK(8,1.),
@@ -126,7 +125,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 	fCMesh->AutoBuild();
 	std::cout << "Number of equations " << fCMesh->NEquations() << std::endl;
 	//tempo.fNumEq = fCMesh->NEquations();													// alimenta timeTemp com o numero de equacoes
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream str;
 		fCMesh->Print(str);
@@ -310,7 +309,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 	//  int neq = fCMesh->NEquations();
 	fCMesh->ComputeElGraph(elementgraph,elementgraphindex);
 	int nel = elementgraphindex.NElements()-1;
-	TPZMetis renum(nel,nindep);
+	TPZRenumbering renum(nel,nindep);
     //nodeset.Print(file,elementgraphindex,elementgraph);
 	std::cout << "Convert Graph ";
 	TPZfTime convertgraph;
@@ -322,7 +321,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 	TPZfTime analysegraph;
 	nodeset.AnalyseGraph();
 	std::cout << analysegraph.ReturnTimeString();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream str;
 		nodeset.Print(str);
@@ -369,7 +368,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 	}
 	
 #endif
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream str;
 		str << "number of corner indices " << fCornerEqs.size() << std::endl;
@@ -470,7 +469,7 @@ void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix<STATE> > dohrmatri
 		// This is a lengthy process which should run on the remote processor
 		InitializeMatrices(submesh, substruct,  assembly);
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			/*      sout << "Submesh for element " << iel << std::endl;
@@ -579,7 +578,7 @@ void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix<STATE> > d
 		// This is a lengthy process which should run on the remote processor
 		InitializeMatrices(submesh, substruct,  assembly);
 		
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		{
 			std::stringstream sout;
 			sout << "The coarse equations are " << assembly->fCoarseEqs[isub] << std::endl;
@@ -605,7 +604,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<std::pair<in
 	TPZCompMesh *super = fCMesh.operator->();
 	int count = 0;
 	int ic;
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	std::stringstream sout;
 	sout << "total submesh connects/glob/loc ";
 #endif
@@ -623,7 +622,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<std::pair<in
 		int ieq;
 		for(ieq =0; ieq<locsize; ieq++)
 		{
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 			sout << ic << "/" << globpos+ieq << "/" << locpos+ieq << " ";
 #endif
 			globaleq[count] = std::pair<int,int>(locpos+ieq,globpos+ieq);
@@ -632,7 +631,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<std::pair<in
 		}
 	}
 	globaleq.Resize(count);
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	LOGPZ_DEBUG(logger,sout.str())
 #endif
 }
@@ -647,7 +646,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<int> &global
 	global.Resize(subcomp->NEquations(),-1);
 	TPZCompMesh *super = fCMesh.operator->();
 	int ic;
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	std::stringstream sout;
 	sout << "total submesh connects/glob/loc ";
 #endif
@@ -665,14 +664,14 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<int> &global
 		int ieq;
 		for(ieq =0; ieq<locsize; ieq++)
 		{
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 			sout << ic << "/" << globpos+ieq << "/" << locpos+ieq << " ";
 #endif
 			global[locpos+ieq] = globpos+ieq;
 			globinv[globpos+ieq] = locpos+ieq;
 		}
 	}
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	LOGPZ_DEBUG(logger,sout.str())
 #endif
 }
@@ -691,7 +690,7 @@ void TPZGenSubStruct::ReorderInternalNodes(TPZSubCompMesh *sub,std::map<int,int>
 	internalnodes.Fill(-1);
 	int ncon = sub->ConnectVec().NElements();
 	TPZCompMesh *super = fCMesh.operator->();
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	std::stringstream sout;
 	sout << "internal submesh connects/glob/loc ";
 #endif
@@ -711,14 +710,14 @@ void TPZGenSubStruct::ReorderInternalNodes(TPZSubCompMesh *sub,std::map<int,int>
 		{
 			if(locpos+ieq < ninternal)
 			{
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 				sout << ic << "/" << globpos+ieq << "/" << locpos+ieq << " ";
 #endif
 				internalnodes[locpos+ieq] = globaltolocal[globpos+ieq];
 			}
 		}
 	}
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	LOGPZ_DEBUG(logger,sout.str())
 #endif
 	
@@ -752,7 +751,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 	scatterpermute.Fill(-1);
 	gatherpermute.Fill(-1);
 	int ncon = sub->ConnectVec().NElements();
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	std::stringstream sout;
 	sout << "internal submesh connects/glob/loc ";
 #endif
@@ -773,7 +772,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 		int ieq;
 		for(ieq =0; ieq<size; ieq++)
 		{
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 			sout << ic << "/" << locpos+ieq << "/" << destpos+ieq << " ";
 #endif
 			scatterpermute[locpos+ieq] = destpos+ieq;
@@ -784,7 +783,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 	{
 		gatherpermute[scatterpermute[ieq]] = ieq;
 	}
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	LOGPZ_DEBUG(logger,sout.str())
 #endif
 	
@@ -810,7 +809,7 @@ void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &in
 	// this datastructure will not be initialized if the connects are made internal
 	internaleqs.Fill(-1);
 	int ncon = sub->ConnectVec().NElements();
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	std::stringstream sout;
 	sout << "internal submesh connects/glob/loc ";
 #endif
@@ -828,14 +827,14 @@ void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &in
 		{
 			if(locpos+ieq < ninternal)
 			{
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 				sout << ic << "/" << globpos+ieq << "/" << locpos+ieq << " ";
 #endif
 				internaleqs[locpos+ieq] = origpos+ieq;
 			}
 		}
 	}
-#ifdef LOG4CXX_STOP
+#ifdef PZ_LOG_STOP
 	LOGPZ_DEBUG(logger,sout.str())
 #endif
 	
@@ -845,7 +844,7 @@ void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &in
 void TPZGenSubStruct::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 										   TPZVec<int> &coarseindex)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Input data for IdentifySubCornerEqs \nglobaltolocal";

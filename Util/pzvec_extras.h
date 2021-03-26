@@ -47,9 +47,6 @@ void saxpy(TPZVec< T1 >& x, const TPZVec< T2 >& y, Scalar s) {
  */
 template< class T1, class Scalar >
 void sscal(TPZVec< T1 > & x, const Scalar s) {
-#ifdef BLAS
-    //The blas method's call shall be done here.
-#endif  //BLAS
 
     int size = x.NElements();
 
@@ -96,9 +93,6 @@ TPZVec<T> &operator-=(TPZVec<T> &a, const TPZVec<T> &b) {
  */
 template< class T1 >
 double sdot(TPZVec< T1 > & x, TPZVec< T1 > & y) {
-#ifdef BLAS
-    //The blas method's call shall be done here.
-#endif  //BLAS
 
     int size = x.NElements();
     double sum = 0.0;

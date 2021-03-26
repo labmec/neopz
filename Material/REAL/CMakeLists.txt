@@ -1,20 +1,135 @@
 # @file neopz/Material/REAL/CMakeLists.txt  -- CMake file for REAL Materials
 
-target_include_directories(pz PUBLIC 
+target_include_directories(pz PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${NEOPZ_INCLUDE}/Material/REAL>
-                          )
-file(GLOB headers *.h)
-install(FILES ${headers} DESTINATION ${NEOPZ_INCLUDE}/Material/REAL)
+                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL>
+                           )
 
-file(GLOB sources *.cpp)
+set(headers
+    TPZConsLawTest.h
+    TPZLinearConvection.h
+    TPZMulticamadaOrtho.h
+    pzbctension.h
+    pzelasmat.h
+    pzmathyperelastic.h
+    pznlmat1d.h
+    swelling.h
+    TPZDiffusionConsLaw.h
+    TPZMatDualHybridPoisson.h
+    TPZPlacaOrthotropic.h
+    pzbiharmonic.h
+    pzelast3d.h
+    pzmatmixedpoisson3d.h
+    pznonlinbiharmonic.h
+    tpzmultcamada.h
+    TPZDualPoisson.h
+    TPZMatElasticity2D.h
+    TPZPrimalPoisson.h
+    pzblackoil2p3d.h
+    pzelasthybrid.h
+    pzmatorthotropic.h
+    pznonlinearpoisson3d.h
+    TPZElast3Dnlinear.h
+    TPZMatWithMem.h
+    TPZTracerFlow.h
+    pzburger.h
+    pzeuler.h
+    pzmatplaca2.h
+    pzplaca.h
+    TPZElasticity2DHybrid.h
+    TPZMatWithMemTranslator.h
+    eulerdif.h
+    pzconvectionproblem.h
+    pzeulerconslaw.h
+    pzmattest.h
+    pzpoisson3dreferred.h
+    TPZEuler.h
+    TPZMixedDarcyFlow.h
+    mixedpoisson.h
+    pzcoupledtransportdarcy.h
+    pzgradientflux.h
+    pzmattest3d.h
+    pzspacetimerichardseq.h
+    TPZFVHybrid.h
+    TPZMixedElasticityMaterial.h
+    pzartdiff.h
+    pzcoupledtransportdarcyBC.h
+    pzincnskeps.h
+    pzmultiphase.h
+    pzthermicelast3d.h
+    TPZLinearConvecDiff.h
+    TPZMixedPoissonParabolic.h
+    pzausmflux.h
+    pzelasAXImat.h
+    pzmaterialcoupling.h
+    pzmultplaca.h
+    pzviscoelastic.h    
+    )
 
-if (USING_FAD AND BUILD_PLASTICITY_MATERIALS)
-	if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-		add_subdirectory(Plasticity)
-	else()
-		message ("Plasticity materials will not be built (set REAL_TYPE=double and STATE_TYPE=double to build them) !")
-	endif()
+set(sources
+    TPZConsLawTest.cpp
+    TPZMatDualHybridPoisson.cpp
+    TPZTracerFlow.cpp
+    pzconvectionproblem.cpp
+    pzgradientflux.cpp
+    pzmultiphase.cpp
+    pzviscoelastic.cpp
+    TPZDiffusionConsLaw.cpp
+    TPZMatElasticity2D.cpp
+    eulerdif.cpp
+    pzcoupledtransportdarcy.cpp
+    pzincnskeps.cpp
+    pzmultplaca.cpp
+    swelling.cpp
+    TPZDualPoisson.cpp
+    TPZMatWithMemTranslator.cpp
+    mixedpoisson.cpp
+    pzcoupledtransportdarcyBC.cpp
+    pzmaterialcoupling.cpp
+    pznlmat1d.cpp
+    tpzmultcamada.cpp
+    TPZElast3Dnlinear.cpp
+    TPZMixedDarcyFlow.cpp
+    pzartdiff.cpp
+    pzelasAXImat.cpp
+    pzmathyperelastic.cpp
+    pznonlinbiharmonic.cpp
+    TPZElasticity2dHybrid.cpp
+    TPZMixedElasticityMaterial.cpp
+    pzausmflux.cpp
+    pzelasmat.cpp
+    pzmatmixedpoisson3d.cpp
+    pznonlinearpoisson3d.cpp
+    TPZEuler.cpp
+    TPZMixedPoissonParabolic.cpp
+    pzbctension.cpp
+    pzelast3d.cpp
+    pzmatorthotropic.cpp
+    pzplaca.cpp
+    TPZFVHybrid.cpp
+    TPZMulticamadaOrtho.cpp
+    pzbiharmonic.cpp
+    pzelasthybrid.cpp
+    pzmatplaca2.cpp
+    pzpoisson3dreferred.cpp
+    TPZLinearConvecDiff.cpp
+    TPZPlacaOrthotropic.cpp
+    pzblackoil2p3d.cpp
+    pzeuler.cpp
+    pzmattest.cpp
+    pzspacetimerichardseq.cpp
+    TPZLinearConvection.cpp
+    TPZPrimalPoisson.cpp
+    pzburger.cpp
+    pzeulerconslaw.cpp
+    pzmattest3d.cpp
+    pzthermicelast3d.cpp    
+    )
+
+install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material/REAL)
+
+target_sources(pz PRIVATE ${headers} ${sources})
+#check for compatible cmake options is in Material/CMakeLists.txt
+if (BUILD_PLASTICITY_MATERIALS)
+	add_subdirectory(Plasticity)
 endif()
-
-set(pzmaterial_REAL_SRCS ${headers} ${sources} ${pzmaterial_Plasticity_SRCS} PARENT_SCOPE)

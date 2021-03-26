@@ -11,7 +11,8 @@
 
 #include <iostream>
 
-
+#include "TPZMaterial.h"
+#include "pzreal.h"
 
 /**
  * @ingroup material

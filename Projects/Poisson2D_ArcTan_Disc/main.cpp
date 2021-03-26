@@ -121,8 +121,8 @@ void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid)
 
 void AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs);
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.Poisson2D_ArcTan_Disc"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.Poisson2D_ArcTan_Disc");
 
 #endif
 
@@ -130,9 +130,6 @@ static LoggerPtr logger(Logger::getLogger("pz.Poisson2D_ArcTan_Disc"));
 /** Laplace equation on square - Volker John article 2000 */
 
 int main() {
-#ifdef LOG4CXX
-    InitializePZLOG();
-#endif
     
     // Initializing uniform refinements for reference elements
     gRefDBase.InitializeAllUniformRefPatterns();
@@ -156,8 +153,8 @@ int main() {
     TPZCompMesh *cmesh = CreateMesh(gmesh, p, dim, true);
     cmesh->ComputeNodElCon();
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         cmesh->Print(sout);
         LOGPZ_DEBUG(logger, sout.str())

@@ -34,10 +34,10 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.adaptivity"));
-static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
-static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.adaptivity");
+static TPZLogger loggerconv("pz.adaptivity.conv");
+static TPZLogger loggerpoint("pz.adaptivity.points");
 #endif
 
 #include <time.h>
@@ -49,10 +49,6 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
 
 // bi-dimensional problem for elasticity
 int main() {
-	
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	// Creating geometric mesh
 	TPZGeoMesh *gmesh = CreateGeoMesh();
@@ -182,8 +178,8 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Print(sout);

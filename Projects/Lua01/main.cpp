@@ -41,10 +41,6 @@ void InsertElasticity(TPZCompMesh *cmesh);
 
 int main(){
 	
-//#ifdef log4cxx
-//	InitializePZLOG("../Luanlog4cxx.cfg")
-//#endif
-	
 	
 	//  RegisterMeshClasses();
 	//  RegisterMatrixClasses();
@@ -281,7 +277,7 @@ void InsertElasticity(TPZCompMesh *mesh)
 	naxes.Print(" axes = ",file, EMathematicaInput);
 	
 //#ifdef log4cxx
-//	if (logdata->isDebugEnabled()) {
+//	if (logdata.isDebugEnabled()) {
 //		
 //		std::stringstream sout;
 //		naxes.Print(" axes ",sout, EMathematicaInput );

@@ -14,8 +14,8 @@
 #include "pzaxestools.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.elasticity");
 #endif
 
 

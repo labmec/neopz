@@ -13,8 +13,8 @@
 #include "TPZVTKGeoMesh.h"
 #include "TPZRefPatternDataBase.h"
 
-//#ifdef LOG4CXX
-//static LoggerPtr logger(Logger::getLogger("pz.reducedspace.data"));
+//#ifdef PZ_LOG
+//static TPZLogger logger("pz.reducedspace.data");
 //#endif
 
 

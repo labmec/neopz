@@ -60,7 +60,7 @@ int ClassId() const override;
         pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
 		}
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Triangle";}
+		static std::string TypeName() { return "QuadraticTriangle";}
 		
 		// /**
 		//  * @brief Method which creates a geometric boundary condition 

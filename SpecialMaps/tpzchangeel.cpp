@@ -20,7 +20,7 @@
 #include "tpzquadraticprism.h"
 #include "tpzquadraticcube.h"
 
-#include "TPZGeoElement.h.h"
+#include "TPZGeoElement.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "tpzgeoelrefpattern.h"

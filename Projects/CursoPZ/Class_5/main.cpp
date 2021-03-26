@@ -26,7 +26,6 @@ using namespace std;
 TPZGeoMesh * GetMesh(int nx,int ny);
 
 int main() {
-    InitializePZLOG();
 	//TPZSavable::Register(TPZSAVEABLEID,Restore<TPZSavable>);
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";

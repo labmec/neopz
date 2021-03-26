@@ -11,12 +11,10 @@
 #include "tpzgeoelrefpattern.h"
 
 #include "pzlog.h"
-#ifdef _AUTODIFF
 #include "fad.h"
-#endif
 
-#ifdef LOG4CXX
-static log4cxx::LoggerPtr logger(Logger::getLogger("pz.geom.pzgeotriangle"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.geom.pzgeotriangle");
 #endif
 
 using namespace pzshape;

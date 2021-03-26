@@ -1,0 +1,6 @@
+function(enable_likwid target)
+    find_package(LIKWID REQUIRED)
+    target_include_directories(${target} PRIVATE ${LIKWID_INCLUDE_DIR})
+    target_link_libraries(${target} PRIVATE ${LIKWID_LIB})
+    target_compile_definitions(${target} PRIVATE USING_LIKWID)
+endfunction()

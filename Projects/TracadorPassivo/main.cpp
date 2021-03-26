@@ -146,15 +146,12 @@ REAL fkref = fk1;//(fk1+fk2)/2.;
 REAL fpref = 1.e7;//1.96133e7;//pa
 REAL fvisref = 1.e-3;
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material");
 #endif
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
     
     if(fishomogmedium == true)
     {
@@ -505,8 +502,8 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL Lx, REAL Ly){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -622,8 +619,8 @@ TPZGeoMesh *GMesh2(REAL Lx, REAL Ly, bool triang_elements){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //	if(logdata.isDebugEnabled())
     //	{
     //        std::stringstream sout;
     //        sout<<"\n\n Malha Geometrica Inicial\n ";
@@ -1059,8 +1056,8 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     matKPressureFlux = an.Solver().Matrix();
     fvecPressureFlux = an.Rhs();
     
-//#ifdef LOG4CXX
-//    if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//    if(logdata.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        matKPressureFlux->Print("matKPressureFlux = ", sout,EMathematicaInput);
@@ -1093,8 +1090,8 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
          material->SetTrueRungeKuttaTwo();
          matMAux = MassMatrix(material, mphysics);
      }
-//#ifdef LOG4CXX
-//    if(logdata->isDebugEnabled())
+//#ifdef PZ_LOG
+//    if(logdata.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        matM->Print("matM = ", sout,EMathematicaInput);
@@ -1111,8 +1108,8 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     matK = an.Solver().Matrix();
     fvecK = an.Rhs();
     
-//    #ifdef LOG4CXX
-//    if(logdata->isDebugEnabled())
+//    #ifdef PZ_LOG
+//    if(logdata.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        matK->Print("matK = ", sout,EMathematicaInput);
@@ -1215,8 +1212,8 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     matKPressureFlux = an.Solver().Matrix();
     fvecPressureFlux = an.Rhs();
     
-    //#ifdef LOG4CXX
-    //    if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //    if(logdata.isDebugEnabled())
     //    {
     //        std::stringstream sout;
     //        matKPressureFlux->Print("matKPressureFlux = ", sout,EMathematicaInput);
@@ -1243,8 +1240,8 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     material->SetTimeStep(deltaT);
     //------------------- Criando matriz de massa (matM) ---------------------
     TPZAutoPointer <TPZMatrix<STATE> > matM = MassMatrix(material, mphysics);
-    //#ifdef LOG4CXX
-    //    if(logdata->isDebugEnabled())
+    //#ifdef PZ_LOG
+    //    if(logdata.isDebugEnabled())
     //    {
     //        std::stringstream sout;
     //        matM->Print("matM = ", sout,EMathematicaInput);
@@ -1261,8 +1258,8 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     matK = an.Solver().Matrix();
     fvecK = an.Rhs();
     
-    //    #ifdef LOG4CXX
-    //    if(logdata->isDebugEnabled())
+    //    #ifdef PZ_LOG
+    //    if(logdata.isDebugEnabled())
     //    {
     //        std::stringstream sout;
     //        matK->Print("matK = ", sout,EMathematicaInput);
@@ -1290,8 +1287,8 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
 		material->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-        //        #ifdef LOG4CXX
-        //                if(logdata->isDebugEnabled())
+        //        #ifdef PZ_LOG
+        //                if(logdata.isDebugEnabled())
         //            {
         //                std::stringstream sout;
         //                sout<< " tempo = " << cent;

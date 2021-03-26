@@ -15,11 +15,11 @@
 #include "pzlog.h"
 #include "TPZPersistenceManager.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static LoggerPtr logger(Logger::getLogger("pz.material"));
+static TPZLogger logger("pz.material");
 #endif
 
 //TPZVec< void(*) (const TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;
@@ -181,7 +181,7 @@ int TPZMaterial::VariableIndex(const std::string &name) {
 	
 //	std::cout << __PRETTY_FUNCTION__ << " Variable " << name << " not found\n";
 	
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
 	{
 		std::stringstream sout;
 		sout << "Variable " << name << " not found";

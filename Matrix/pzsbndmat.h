@@ -1,7 +1,12 @@
 /**
  * @file
  * @brief Contains TPZSBMatrix class which implements symmetric band matrices(hermitian, for the complex case. assumed to be
- * upper triangular).
+ upper triangular). Some functionalities depend on LAPACK.
+
+ The functionalities that depend on LAPACK will result in runtime error if LAPACK is not linked to NeoPZ. Search for LAPACK in this header to 
+ know which functions are affected by this dependency.
+ LAPACK can be linked by setting USING_LAPACK=ON or USING_MKL=ON on CMake
+when configuring the library.
  */
 
 #ifndef TSBNDMATH
@@ -102,10 +107,10 @@ public:
     
     /// To solve linear systems
     // @{
-#ifdef USING_LAPACK
+    //If LAPACK is available, it will use its implementation.
     int Decompose_Cholesky() override;  // Faz A = GGt.
+    //If LAPACK is available, it will use its implementation.
     int Decompose_Cholesky(std::list<int64_t> &singular) override;
-#endif
     
     int Subst_Forward( TPZFMatrix<TVar>*B ) const override;
     int Subst_Backward ( TPZFMatrix<TVar> *b ) const override;
@@ -120,33 +125,32 @@ public:
     
     // @}
     
-#ifdef USING_LAPACK
-    /*** @name Solve eigenvalues ***/
+    /*** @name Solve eigenvalues. Depends on LAPACK ***/
     /** @{ */
     
     /// Computes the eigenvalues and eigenvectors of the symmetric matrix
     // on exit the matrix contains the eigenvectors
-    /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors
+    /** @brief Solves the Ax=w*x eigenvalue problem and calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
      */
     int SolveEigenProblem(TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
-    /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors
+    /** @brief Solves the Ax=w*x eigenvalue problem and does NOT calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
      */
     int SolveEigenProblem(TPZVec < std::complex<double> > &w);
-    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors
+    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
      * @param Stores the correspondent eigenvectors
      */
     int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w, TPZFMatrix < std::complex<double> > &eigenVectors);
-    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors
+    /** @brief Solves the generalised Ax=w*B*x eigenvalue problem and does NOT calculates the eigenvectors. Depends on LAPACK.
      * @param w Stores the eigenvalues
      */
     int SolveGeneralisedEigenProblem(TPZSBMatrix< TVar > &B , TPZVec < std::complex<double> > &w);
     
     /** @} */
-#endif
+
     public:
 int ClassId() const override;
 

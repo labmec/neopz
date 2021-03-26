@@ -30,8 +30,8 @@
 //#include "math.h"
 //
 //#ifdef PZDEBUG
-//    #ifdef LOG4CXX
-//    static LoggerPtr logger(Logger::getLogger("pz.DarcyFlow"));
+//    #ifdef PZ_LOG
+//    static TPZLogger logger("pz.DarcyFlow");
 //    #endif
 //#endif
 //
@@ -87,8 +87,8 @@
 //    fResidualAtn = an->Rhs();
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //     #ifdef PZ_LOG
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
@@ -108,8 +108,8 @@
 //    fResidualAtnplusOne = an->Rhs();
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //     #ifdef PZ_LOG
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             fResidualAtnplusOne.Print("fResidualAtnplusOne = ", sout,EMathematicaInput);
@@ -126,8 +126,8 @@
 //    falphaAtnplusOne = alpha;
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //     #ifdef PZ_LOG
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
@@ -161,8 +161,8 @@
 //    falphaAtnplusOne = fcmeshdarcy->Solution();
 //    
 //    // #ifdef PZDEBUG
-//    //     #ifdef LOG4CXX
-//    //         if(logger->isDebugEnabled())
+//    //     #ifdef PZ_LOG
+//    //         if(logger.isDebugEnabled())
 //    //         {
 //    //             std::stringstream sout;
 //    //             falphaAtn.Print("falphaAtn = ", sout,EMathematicaInput);
@@ -182,16 +182,6 @@
 //    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 //    gRefDBase.InitializeUniformRefPattern(ETriangle);
 //    
-//#ifdef PZDEBUG
-//    #ifdef LOG4CXX
-//        
-//        std::string FileName = dirname;
-//        FileName = dirname + "/Projects/DarcyflowAxisymmetricHdiv/";
-//        FileName += "DarcyFlowLog.cfg";
-//        InitializePZLOG(FileName);
-//        
-//    #endif
-//#endif
 //    
 //    //  Reading mesh
 //    std::string GridFileName;
@@ -356,8 +346,8 @@
 //    FGlobal =   an->Rhs();
 //    
 //#ifdef PZDEBUG
-//    #ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
+//    #ifdef PZ_LOG
+//        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            KGlobal->Print("KGlobal = ", sout,EMathematicaInput);
@@ -482,8 +472,8 @@
 //        iterations++;
 //        
 ////#ifdef PZDEBUG
-////    #ifdef LOG4CXX
-////            if(logger->isDebugEnabled())
+////    #ifdef PZ_LOG
+////            if(logger.isDebugEnabled())
 ////            {
 ////                std::stringstream sout;
 ////                fResidualAtn.Print("fResidualAtn = ", sout,EMathematicaInput);
@@ -562,8 +552,8 @@
 //        D.operator->()->Multiply(*DInverse, Identity);
 //        
 //#ifdef PZDEBUG
-//#ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
+//#ifdef PZ_LOG
+//        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
@@ -611,8 +601,8 @@
 //            break;
 //        }
 //#ifdef PZDEBUG
-//#ifdef LOG4CXX
-//        if(logger->isDebugEnabled())
+//#ifdef PZ_LOG
+//        if(logger.isDebugEnabled())
 //        {
 //            std::stringstream sout;
 //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
@@ -652,8 +642,8 @@
 //        
 //        
 //        
-//        //#ifdef LOG4CXX
-//        //        if(logger->isDebugEnabled())
+//        //#ifdef PZ_LOG
+//        //        if(logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
 //        //            an->Solver().Matrix().operator->()->Print("*an->Solver().Matrix().operator->() = ", sout,EMathematicaInput);
@@ -678,8 +668,8 @@
 //        X += DeltaX;                // Xk+1
 //        
 //        
-//        //#ifdef LOG4CXX
-//        //        if(logger->isDebugEnabled())
+//        //#ifdef PZ_LOG
+//        //        if(logger.isDebugEnabled())
 //        //        {
 //        //            std::stringstream sout;
 //        //            DeltaX.Print("DeltaX = ", sout,EMathematicaInput);
@@ -708,8 +698,8 @@
 //    TPZFMatrix<STATE> RankOne;
 //    g.Multiply(dT, RankOne);
 //    
-//    //#ifdef LOG4CXX
-//    //    if(logger->isDebugEnabled())
+//    //#ifdef PZ_LOG
+//    //    if(logger.isDebugEnabled())
 //    //    {
 //    //        std::stringstream sout;
 //    //        g.Print("g = ", sout,EMathematicaInput);
@@ -1450,8 +1440,8 @@
 ////
 ////    gmesh->BuildConnectivity();
 ////
-////#ifdef LOG4CXX
-////    if (logger->isDebugEnabled())
+////#ifdef PZ_LOG
+////    if (logger.isDebugEnabled())
 ////    {
 ////        std::stringstream sout;
 ////        sout<<"gmesh depois de refinar direcionalmente\n";
@@ -1517,8 +1507,8 @@
 //    oldmat.Multiply(*PreInverse, Identity);
 //    
 //#ifdef PZDEBUG
-//#ifdef LOG4CXX
-//    if(logger->isDebugEnabled())
+//#ifdef PZ_LOG
+//    if(logger.isDebugEnabled())
 //    {
 //        std::stringstream sout;
 //        sout << "Is decomposed=  " << MatG->IsDecomposed() << std::endl;

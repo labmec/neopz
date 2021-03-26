@@ -115,7 +115,10 @@ fRefPattern ( cp.fRefPattern )
 			std::stringstream sout;
 			sout << "ERROR in - " << __PRETTY_FUNCTION__
 			<< " subelement " << i << " index = " << cp.fSubEl[i] << " is not in the map.";
+#ifdef PZ_LOG
+            TPZLogger loggerrefpattern("pz.mesh.tpzgeoelrefpattern");
 			LOGPZ_ERROR (loggerrefpattern,sout.str().c_str());
+#endif
 			DebugStop();
 		}
 		this->fSubEl[i] = gl2lcElMap[cp.fSubEl[i]];

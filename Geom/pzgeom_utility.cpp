@@ -7,8 +7,8 @@
 
 #include "pzgeom_utility.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeom_util"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.geom.pzgeom_util");
 #endif
 
 
@@ -36,7 +36,6 @@ template void GetSideShapeFunction<TPZTetrahedron>(int , TPZVec<REAL> &, TPZFMat
 template void GetSideShapeFunction<TPZPrism>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
 template void GetSideShapeFunction<TPZCube>(int , TPZVec<REAL> &, TPZFMatrix<REAL> &,TPZFMatrix<REAL> &);
 
-#ifdef _AUTODIFF
 #include "fad.h"
 //template<class T=REAL>
 //class Fad;
@@ -49,4 +48,3 @@ template void GetSideShapeFunction<TPZTetrahedron>(int , TPZVec<Fad<REAL>> &, TP
 template void GetSideShapeFunction<TPZPrism>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
 template void GetSideShapeFunction<TPZCube>(int , TPZVec<Fad<REAL>> &, TPZFMatrix<Fad<REAL>> &,TPZFMatrix<Fad<REAL>> &);
 
-#endif

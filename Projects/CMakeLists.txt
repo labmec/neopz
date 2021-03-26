@@ -68,7 +68,7 @@ ENABLE_TESTING()
 			# Simple project to test rational function defined by Cedric on pyramids
 			add_subdirectory(RationalFunctionPyramid)
 
-			add_subdirectory(proDG)
+			# add_subdirectory(proDG)
 
 		endif(BUILD_COMPLEX_PROJECTS)
 
@@ -112,9 +112,6 @@ ENABLE_TESTING()
 				#add_subdirectory(HydraulicFracturePropagation)
 			endif()
 			##########################
-
-			#Testes Douglas
-			add_subdirectory(dactests)
 
 			#Testes padroes de refinamento
 			add_subdirectory(F17DirectionalRefinement)
@@ -169,16 +166,12 @@ ENABLE_TESTING()
 			#add_subdirectory(DarcyflowAxisymmetricHdiv)
 			#add_subdirectory(DarcyflowHdiv3D)
 			add_subdirectory(MonophasicWell)
-			if(USING_FAD)
-				if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-					add_subdirectory(ElastoPlasticSimulator)
-				endif()
-			endif()
-			if(USING_FAD)
-				if (USING_LAPACK)
-					add_subdirectory(GradOfX)
-                endif()
- 			endif()
+			if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
+				add_subdirectory(ElastoPlasticSimulator)
+			endif ()
+			if (USING_LAPACK)
+				add_subdirectory(GradOfX)
+			endif ()
 			#collaborative project (NH GH PD, SG, OD) 18-04-2015
 			#add_subdirectory(iRMS)
 			add_subdirectory(Elasticity2D)
@@ -234,7 +227,7 @@ ENABLE_TESTING()
 			add_subdirectory(MatLib)
 
 			if(USING_MKL)
-				add_subdirectory(PardisoSample)
+				#add_subdirectory(PardisoSample)
 			endif(USING_MKL)
 
 		endif(BUILD_COMPLEX_PROJECTS)

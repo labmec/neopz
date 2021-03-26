@@ -29,9 +29,9 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr EPAnalysisLogger(Logger::getLogger("pz.analysis.elastoplastic"));
-static LoggerPtr loggertest(Logger::getLogger("testing"));
+#ifdef PZ_LOG
+static TPZLogger EPAnalysisLogger("pz.analysis.elastoplastic");
+static TPZLogger loggertest("testing");
 #endif
 
 using namespace std;
@@ -57,9 +57,9 @@ TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis()
 {
 	if(fPrecond)delete fPrecond;
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
-    if(EPAnalysisLogger->isDebugEnabled()){
+    if(EPAnalysisLogger.isDebugEnabled()){
         std::stringstream sout;
         sout << "<<< TPZElastoPlasticAnalysis::~TPZElastoPlasticAnalysis() *** Killing Object\n";
         LOGPZ_DEBUG(EPAnalysisLogger,sout.str().c_str());
@@ -333,7 +333,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
         DebugStop();
     }
     
-#ifdef LOG4CXX_keep
+#ifdef PZ_LOG_keep
     {
         std::stringstream sout;
         fSolution.Print("Solution for checkconv",sout);
@@ -351,8 +351,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
     Assemble();
     REAL RhsNormPrev = Norm(fRhs);
     
-#ifdef LOG4CXX
-    if (EPAnalysisLogger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (EPAnalysisLogger.isDebugEnabled()) {
         std::stringstream sout;
         PrintVectorByElement(sout, fRhs,1.e-5);
         LOGPZ_DEBUG(EPAnalysisLogger, sout.str())
@@ -437,7 +437,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	TPZFMatrix<REAL> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
     
-#ifdef LOG4CXX_keep
+#ifdef PZ_LOG_keep
     {
         std::stringstream sout;
         fSolution.Print("Solution for checkconv",sout);
@@ -553,9 +553,9 @@ REAL TPZElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacements
 		fCumSol += fSolution;
 	}
 
-	#ifdef LOG4CXX
+	#ifdef PZ_LOG
 	{
-            if (EPAnalysisLogger->isDebugEnabled()){
+            if (EPAnalysisLogger.isDebugEnabled()){
                std::stringstream sout;
                sout << ">>> TTPZElastoPlasticAnalysis::AcceptSolution *** "
                     << " with Norm(fCumSol) = " << Norm(fCumSol);
@@ -595,7 +595,7 @@ void TPZElastoPlasticAnalysis::LoadSolution()
 
 void TPZElastoPlasticAnalysis::CheckConv(std::ostream &out, REAL range) {
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << ">>> TPZElastoPlasticAnalysis::CheckConv() ***"
@@ -660,7 +660,7 @@ void TPZElastoPlasticAnalysis::UpdatePrecond()
 
 void TPZElastoPlasticAnalysis::SetBiCGStab(int numiter, REAL tol)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << ">>> TPZElastoPlasticAnalysis::SetBiCGStab() *** numiter = " << numiter << " and tol=" << tol;
@@ -676,7 +676,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab(int numiter, REAL tol)
     TPZStepSolver<REAL> Pre;
     TPZBlockDiagonal<REAL> * block = new TPZBlockDiagonal<REAL>();
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << "*** TPZElastoPlasticAnalysis::SetBiCGStab() *** Assembling Block Diagonal Preconditioning matrix\n";
@@ -693,7 +693,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab(int numiter, REAL tol)
     this->SetSolver(Solver);
 	this->SetPrecond(Pre);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << "<<< TPZElastoPlasticAnalysis::SetBiCGStab() *** Exiting\n";
@@ -706,7 +706,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab(int numiter, REAL tol)
 
 void TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi(int numiter, REAL tol)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << ">>> TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi() *** numiter = " << numiter << " and tol=" << tol;
@@ -723,7 +723,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi(int numiter, REAL tol)
     TPZStepSolver<REAL> Pre;
     TPZBlockDiagonal<REAL> * block = new TPZBlockDiagonal<REAL>();
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << "*** TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi() *** Assembling Block Diagonal Preconditioning matrix\n";
@@ -742,7 +742,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi(int numiter, REAL tol)
     this->SetSolver(Solver);
 	this->SetPrecond(Pre);
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << "<<< TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi() *** Exiting\n";
@@ -753,7 +753,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi(int numiter, REAL tol)
 
 void TPZElastoPlasticAnalysis::SetLU()
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
    std::stringstream sout;
    sout << ">>> TPZElastoPlasticAnalysis::SetLU() ***\n";
@@ -800,7 +800,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 										
 	if(!fCompMesh)return;
 										
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 {
 	
    std::stringstream sout;
@@ -867,7 +867,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 		pBC->Val1() = val1;
 		pBC->Val2() = val2;
 		
-		#ifdef LOG4CXX
+		#ifdef PZ_LOG
 		{
 		   std::stringstream sout;
 		   sout << "*** TPZElastoPlasticAnalysis::ManageIterativeProcess() *** load step " << i;
@@ -884,7 +884,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 		IterativeProcess(out, tol, numiter, linesearch, checkconv,convordiv);
         
 		
-		#ifdef LOG4CXX
+		#ifdef PZ_LOG
 		{
 		   std::stringstream sout;
 		   sout << "*** TPZElastoPlasticAnalysis::ManageIterativeProcess() *** load step " << i << " ended";
@@ -896,7 +896,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 		
 		if(ppAnalysis)
 		{
-			#ifdef LOG4CXX
+			#ifdef PZ_LOG
 			{
 			   std::stringstream sout;
 			   sout << "*** TPZElastoPlasticAnalysis::ManageIterativeProcess() *** PostProcessing ";
@@ -908,7 +908,7 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 		}
 	}
 		
-	#ifdef LOG4CXX
+	#ifdef PZ_LOG
 	{
 	   std::stringstream sout;
 	   sout << "<<< TPZElastoPlasticAnalysis::ManageIterativeProcess() *** Exiting";
@@ -1064,9 +1064,9 @@ void TPZElastoPlasticAnalysis::IdentifyEquationsToZero()
             }
         }
     }
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
-        if(EPAnalysisLogger->isDebugEnabled())
+        if(EPAnalysisLogger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Equations to zero ";

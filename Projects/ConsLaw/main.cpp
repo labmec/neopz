@@ -6,9 +6,7 @@
 #include "pzeulerconslaw.h"
 #include "stdlib.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 int gDebug;
 using namespace std;
@@ -25,10 +23,8 @@ void CheckConv(const double step,
 			   TPZFMatrix<REAL> &dphi,
 			   TPZEulerConsLaw & MatTest);
 
-#ifdef _AUTODIFF
 void CheckJacobFlux(
 					TPZEulerConsLaw & MatTest);
-#endif
 
 int main()
 {
@@ -103,10 +99,8 @@ int main()
 	
 	cout << "\nek\n" << ek;
 	
-#ifdef _AUTODIFF
 	CheckJacobFlux(MatTest);
-#endif
-	
+
 	cout.flush();
 	
 	CheckConv(.0001, u, data.phi, data.dphix, MatTest);
@@ -239,7 +233,6 @@ void CheckConv(const double step,
 	
 }
 
-#ifdef _AUTODIFF
 // verifies if jacobian of Flux is right
 void CheckJacobFlux(
 					TPZEulerConsLaw & MatTest)
@@ -294,4 +287,3 @@ void CheckJacobFlux(
 	
 	cout << "\nDifference" << Difference;
 }
-#endif

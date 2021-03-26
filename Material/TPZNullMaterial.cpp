@@ -16,11 +16,11 @@
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 #ifdef PZDEBUG
 #define DEBUG2
 #endif
-static LoggerPtr logger(Logger::getLogger("pz.material"));
+static TPZLogger logger("pz.material");
 #endif
 
 

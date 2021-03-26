@@ -61,8 +61,8 @@
 #include "tpzcube.h"
 #include "pzelctemp.h"
 
-#ifdef LOG4CXX
-static LoggerPtr PPAnalysisLogger(Logger::getLogger("pz.analysis.postproc"));
+#ifdef PZ_LOG
+static TPZLogger PPAnalysisLogger("pz.analysis.postproc");
 #endif
 
 using namespace std;
@@ -284,8 +284,8 @@ void TPZPostProcAnalysis::AutoBuildDisc()
         Mesh()->Block().Set(seqnum, blsize);
     }
 	Mesh()->InitializeBlock();
-#ifdef LOG4CXX
-    if(PPAnalysisLogger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(PPAnalysisLogger.isDebugEnabled())
     {
         std::stringstream sout;
         Mesh()->Print(sout);

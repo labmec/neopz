@@ -25,8 +25,8 @@ TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh);
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.project.perkinsgonzalez"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.project.perkinsgonzalez");
 #endif
 
 void forceX(TPZVec<REAL> &x, TPZVec<REAL> &force)
@@ -44,7 +44,6 @@ void TemperatureFunction(const TPZVec<REAL> &rz, REAL &temp)
 
 int main()
 {
-    InitializePZLOG();
 //    TPZGenGrid2D(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
 
     const int nel=2;
@@ -62,8 +61,8 @@ int main()
     
     std::ofstream gmeshfile("gmesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(), gmeshfile,true);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);

@@ -29,7 +29,10 @@ namespace pzgeom {
         public:
 int ClassId() const override;
 
-        
+        static bool IsLinearMapping(int side)
+        {
+            return false;
+        }
         /** @brief Constructor with list of nodes */
 		TPZQuadTorus(TPZVec<int64_t> &nodeindexes) : TPZGeoQuad(nodeindexes), fOrigin(3,0.), fPhiTheta(3,4,0.)
 		{
@@ -94,7 +97,7 @@ int ClassId() const override;
         }
 
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "TorusQuad";}
+		static std::string TypeName() { return "QuadTorus";}
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         

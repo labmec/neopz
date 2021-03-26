@@ -34,8 +34,8 @@
 using namespace pzgeom;
 
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysiccompEl"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzmultiphysiccompEl");
 #endif
 
 template <class TGeometry>
@@ -167,7 +167,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
     }
     
     
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Number of elements : " << refIndexVec.size() << std::endl;

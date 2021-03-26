@@ -60,8 +60,8 @@
 #include <cmath>
 #include <set>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.elasticity"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.elasticity");
 #endif
 
 static bool oldmat = true;
@@ -85,12 +85,6 @@ int main(int argc, char *argv[])
 {
 
     std::string dirname = PZSOURCEDIR;
-#ifdef LOG4CXX
-    std::string FileName = dirname;
-    FileName = dirname + "/Projects/Elasticity2D/";
-    FileName += "Elasticity2DLog.cfg";
-    InitializePZLOG(FileName);
-#endif
 
     std::string GridFileName;
     GridFileName = dirname + "/Projects/Elasticity2D/";
@@ -124,7 +118,7 @@ int main(int argc, char *argv[])
     int PElasticity = 2;
 	UniformRefinement(gmesh, Href);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		//	Print Geometrical refined Base Mesh
         std::ofstream argument("RefinedGeometricMesh.txt");
@@ -347,8 +341,8 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     bool converged = false;
     while(!converged && iter < numiter) {
         
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             matK=an->Solver().Matrix();
@@ -366,8 +360,8 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         //Computing ||DeltaU||
         REAL NormOfDeltaU = Norm(DeltaU);
         
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             DeltaU.Print("DeltaU = ", sout,EMathematicaInput);
@@ -380,8 +374,8 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         an->Assemble();
         an->Rhs() *= -1.0; //- [R(U0)];
         
-#ifdef LOG4CXX
-        if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if(logger.isDebugEnabled())
         {
             std::stringstream sout;
             an->Rhs().Print("Res = ", sout,EMathematicaInput);

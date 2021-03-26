@@ -13,13 +13,12 @@
 #include "ThermalMethodsTables.h"
 #include "PropertiesTable.h"
 
-#ifdef _AUTODIFF
 
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("br.steam.steamflux"));
-static LoggerPtr logger2(Logger::getLogger("br.steam.steamflux"));
+#ifdef PZ_LOG
+static TPZLogger logger("br.steam.steamflux");
+static TPZLogger logger2("br.steam.steamflux");
 #endif
 
 //WaterDataInStateOfSaturation waterdata;
@@ -71,7 +70,7 @@ void TPBrSteamFlux::CalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &rightstate,
 			ek(i,j) = cellresidualfad[i].d(j);
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		ek.Print("Flux stiffness",sout);
@@ -92,7 +91,7 @@ void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &inter
 	//TPBrSteamFlux::InitializeInlet<totaleq>(inletstate,inletfad,0);
 	TPBrSteamFlux::InitializeInlet<totaleq>(interfacestate,interfacefad,0);
 	TPBrCellConservation::Initialize<totaleq>(rightstate,rightcellfad,NumInletVars+TPBrSteamFlux::NumFluxEq);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
         sout << "before calling inlet flux residual\n";
@@ -107,7 +106,7 @@ void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &inter
 	
 	InletFluxResidual(rightcellfad, interfacefad, delx, area, delt, cellresidualfad );
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "cellresidual " << cellresidualfad;
@@ -124,7 +123,7 @@ void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &inter
 			ek(i,j) = cellresidualfad[i].d(j);
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		ek.Print("Inlet stiffness",sout);
@@ -144,7 +143,7 @@ void TPBrSteamFlux::OutletCalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &inter
 	TPBrCellConservation::Initialize<totaleq>(leftstate,leftcellfad,0);
 	TPBrSteamFlux::Initialize<totaleq>(interfacestate,interfacefad,TPBrCellConservation::NumCellEq);
 	
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "leftstate " << leftstate << std::endl;
@@ -168,7 +167,7 @@ void TPBrSteamFlux::OutletCalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &inter
 			ek(i,j) = cellresidualfad[i].d(j);
 		}
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		ek.Print("Outlet flux stiffness",sout);
@@ -220,7 +219,7 @@ enum ESteamFluxVars {
 template<class T>
 void TPBrSteamFlux::FluxResidual(TPZVec<T> &leftstate, TPZVec<T> &rightstate, TPZVec<T> &interfacestate, REAL delx, REAL area, REAL delt, TPZVec<T> &fluxresidual)
 {
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "leftstate " << leftstate << std::endl;
@@ -251,7 +250,7 @@ void TPBrSteamFlux::FluxResidual(TPZVec<T> &leftstate, TPZVec<T> &rightstate, TP
 	//[Pa]*[m2]/[Pa*sec] - [m/sec]*[m] -> [m2/s] - [m2/s] -> ... ->[m/s]  
 	fluxresidual[EDarcyVelocityOilEq] = (leftstate[TPBrCellConservation::EPressureOil]-rightstate[TPBrCellConservation::EPressureOil])*fMaterialPermeability*relatpermeability[EOil]/ViscosityOil(temperature)
 							-interfacestate[EDarcyVelocityOil]*delx;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Darcy velocity oil " << interfacestate[EDarcyVelocityOil] << std::endl;
@@ -280,7 +279,7 @@ void TPBrSteamFlux::FluxResidual(TPZVec<T> &leftstate, TPZVec<T> &rightstate, TP
 	T viscWater = ViscosityWater(temperature);
 	T KrWater = relatpermeability[EWater];
 	T pressaoIniWater =leftstate[TPBrCellConservation::EPressureWater];
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         using namespace std;
         std::stringstream sout;
@@ -327,7 +326,7 @@ void TPBrSteamFlux::FluxResidual(TPZVec<T> &leftstate, TPZVec<T> &rightstate, TP
 	T vEnthalpyWater = EnthalpyWater(temperature);
     T enthalpy2 = waterdata.getSpecificEnthalpyToLiquidWater(temperature);
 	T vEnthalpySteam = EnthalpySteam(temperature);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "Temperature " << temperature << std::endl;
@@ -356,7 +355,7 @@ void TPBrSteamFlux::FluxResidual(TPZVec<T> &leftstate, TPZVec<T> &rightstate, TP
 								  +vEnthalpyWater*DarcyVelocityWater*DensityWater(temperature)
 								  +vEnthalpySteam*DarcyVelocitySteam*DensitySteam(temperature)
 								  )*area;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "flux residual energy " << fluxresidual[EEnergyFluxEq];
@@ -415,7 +414,7 @@ void TPBrSteamFlux::InletFluxResidual(TPZVec<T> &rightstate, TPZVec<T> &suminter
 
 	fluxresidual[EInletMassFlux] = fInletMassFlux - interfacestate[EMassFluxSteam] - interfacestate[EMassFluxWater];
 	fluxresidual[EInletEnergyFlux] = fInletEnergyFlux - interfacestate[EEnergyFlux];
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "inlet mass flux " << fInletMassFlux << std::endl;
@@ -435,7 +434,7 @@ void TPBrSteamFlux::InletFluxResidual(TPZVec<T> &rightstate, TPZVec<T> &suminter
     }
 //    T press = inletstate[EInletPressure];
     T saturationtemperature = TemperatureSaturation(press);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "pressure " << press << std::endl;
@@ -473,14 +472,14 @@ void TPBrSteamFlux::InletFluxResidual(TPZVec<T> &rightstate, TPZVec<T> &suminter
         fluxresidual[EInletStateEqs] = inletstate[EInletSteamSaturation];
     }
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     sout << std::endl;
     sout << "flux residual inlet equation " << EInletStateEqs << " " << fluxresidual[EInletStateEqs] << std::endl;
     LOGPZ_DEBUG(logger2, sout.str())
 #endif
 	TPZManVector<T> leftstate(TPBrCellConservation::NumCellEq);
     ComputeLeftState(inletstate,leftstate);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
         sout << "Transferring the inletstate to a leftstate\n";
@@ -526,7 +525,7 @@ void TPBrSteamFlux::OutletFluxResidual(TPZVec<T> &leftstate, TPZVec<T> &interfac
 	rightstate[TPBrCellConservation::EPressureWater] = T(fFarfieldPressureWater-TPBrScales::fReferencePressure);
 	rightstate[TPBrCellConservation::EPressureSteam] = T(fFarfieldPressureSteam-TPBrScales::fReferencePressure);
 	rightstate[TPBrCellConservation::EPressureOil] = T(fFarfieldPressureOil-TPBrScales::fReferencePressure);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         sout << "farfield (relative) pressure water" << fFarfieldPressureWater-TPBrScales::fReferencePressure << std::endl;
@@ -745,5 +744,3 @@ REAL TPBrSteamFlux::LimitRange(REAL scale,TPZVec<REAL> &interfacestate,TPZVec<RE
 }
 
 
-
-#endif

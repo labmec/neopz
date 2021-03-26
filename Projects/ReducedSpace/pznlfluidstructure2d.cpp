@@ -18,8 +18,8 @@
 #include "pzintel.h"
 
 #include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
+#ifdef PZ_LOG
+static TPZLogger logdata("pz.material.elastpressure");
 #endif
 
 

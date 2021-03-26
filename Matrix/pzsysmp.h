@@ -2,6 +2,8 @@
  * @file
  * @brief Contains TPZSYsmpMatrix class which implements a symmetric sparse matrix. \n
  * Purpose: Defines operations on symmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
+ * Some of the functionalities of this class depends on the MKL library and thus needs the NeoPZ library
+ * to be configured using USING_MKL=ON during the CMake process. Search on this header for MKL to see which functionalities are these.
  */
 
 #ifndef SYSMPMATH
@@ -9,11 +11,8 @@
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-
-#ifdef USING_MKL
-
 #include "TPZPardisoControl.h"
-#endif
+
  /**
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
   * @ingroup matrix
@@ -21,9 +20,7 @@
 template<class TVar>
 class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
-#ifdef USING_MKL
     friend class TPZPardisoControl<TVar>;
-#endif
     
 public :
     /** @brief Constructor based on number of rows and columns */
@@ -31,17 +28,7 @@ public :
 	/** @brief Constructor based on number of rows and columns */
     TPZSYsmpMatrix(const int64_t rows, const int64_t cols );
 	/** @brief Copy constructor */
-    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
-    TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
-    TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
-#ifdef USING_MKL
-    , fPardisoControl(cp.fPardisoControl)
-#endif
-    {
-#ifdef USING_MKL
-        fPardisoControl.SetMatrix(this);
-#endif
-    }
+    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp);
     
     TPZSYsmpMatrix &operator=(const TPZSYsmpMatrix<TVar> &copy);
     
@@ -55,15 +42,7 @@ public :
     inline int IsSquare() const { return 1;}
     
     /** @brief Zeroes the matrix */
-    virtual int Zero() override {
-        fA.Fill(0.);
-        fDiag.Fill(0.);
-#ifndef USING_MKL
-        TPZMatrix<TVar>::fDecomposed = ENoDecompose;
-#endif
-        return 0;
-        
-    }
+    virtual int Zero() override;
 
     /** @brief Zeroes the matrix */
     virtual int Redim(int64_t rows, int64_t cols) override
@@ -76,6 +55,7 @@ public :
         {
             DebugStop();
         }
+        return 0;
     }
     
     /** @brief Fill matrix storage with randomic values */
@@ -118,7 +98,6 @@ public :
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const override;
     
-#ifdef USING_MKL
     /**
      * @name Factorization
      * @brief Those member functions perform the matrix factorization
@@ -127,18 +106,18 @@ public :
     
 
     /**
-     * @brief Decomposes the current matrix using LDLt. \n
+     * @brief Decomposes the current matrix using LDLt. Depends on MKL. \n
      * The current matrix has to be symmetric.
      * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
      */
     virtual int Decompose_LDLt(std::list<int64_t> &singular) override;
-    /** @brief Decomposes the current matrix using LDLt. */
+    /** @brief Decomposes the current matrix using LDLt. Depends on MKL.*/
     virtual int Decompose_LDLt() override;
 
-    /** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
+    /** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. Depends on MKL.*/
     virtual int Decompose_Cholesky() override;
     /**
-     * @brief Decomposes the current matrix using Cholesky method.
+     * @brief Decomposes the current matrix using Cholesky method.Depends on MKL.
      * @param singular
      */
     virtual int Decompose_Cholesky(std::list<int64_t> &singular)  override;
@@ -153,31 +132,31 @@ public :
      */
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.Depends on MKL.
      * @param b right hand side and result after all
      */
     virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.Depends on MKL.
      * @param b right hand side and result after all
      */
     virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
+     * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.Depends on MKL.
      * @param b right hand side and result after all
      */
     virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const override;
 
     /**
-     * @brief Computes B = Y, where A*Y = B, A is lower triangular.
+     * @brief Computes B = Y, where A*Y = B, A is lower triangular.Depends on MKL.
      * @param b right hand side and result after all
      */
     virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const override;
     
     /**
-     * @brief Computes B = Y, where A*Y = B, A is upper triangular.
+     * @brief Computes B = Y, where A*Y = B, A is upper triangular.Depends on MKL.
      * @param b right hand side and result after all
      */
     virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const override;
@@ -185,8 +164,6 @@ public :
 
     /** @} */
     
-
-#endif
     public:
 int ClassId() const override;
 
@@ -199,9 +176,7 @@ private:
 	TPZVec<int64_t>  fJA;
 	TPZVec<TVar> fA;
 	
-#ifdef USING_MKL
     TPZPardisoControl<TVar> fPardisoControl;
-#endif
 	
 	TPZVec<TVar> fDiag;
 };

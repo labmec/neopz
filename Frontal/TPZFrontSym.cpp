@@ -13,16 +13,6 @@
 
 using namespace std;
 
-// #ifdef USING_BLAS
-// #include "cblas.h"
-// #endif
-
-
-// #ifdef USING_ATLAS
-// void cblas_dspr(const enum CBLAS_ORDER Order, const enum CBLAS_UPLO Uplo,
-//                 const int N, const double alpha, const double *X,
-//                 const int incX, double *Ap);
-// #endif
 template<class TVar>
 DecomposeType TPZFrontSym<TVar>::GetDecomposeType() const
 {
@@ -191,34 +181,6 @@ void TPZFrontSym<TVar>::DecomposeOneEquation(int64_t ieq, TPZEqnArray<TVar> &eqn
 	eqnarray.BeginEquation(ieq);       
 	eqnarray.AddTerm(ieq, diag);
 	
-	//Blas utilizatioin  
-	// #ifdef USING_BLAS     
-	// 	CBLAS_ORDER order = CblasColMajor;
-	// 	CBLAS_UPLO up_lo = CblasUpper;
-	// 	int sz = fFront;
-	// 	int64_t incx = 1;
-	// 	double db = -1.;//AuxVec[ilocal];
-	// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
-	// 	
-	// #endif
-	// #ifdef USING_ATLAS
-	// 	CBLAS_ORDER order = CblasColMajor;
-	// 	CBLAS_UPLO up_lo = CblasUpper;
-	// 	int sz = fFront;
-	// 	int64_t incx = 1;
-	// 	double db = -1.;//AuxVec[ilocal];
-	// 	cblas_dspr(order, up_lo,sz,db,&AuxVec[0],incx,&Element(0,0));
-	// 	//cout << "Using ATLAS" << endl;
-	// #endif
-	// #ifndef USING_BLAS
-	// #ifndef USING_ATLAS
-
-//	int64_t j=0; METODOLOGIA ANTIGA QUE PERCORRE A MATRIZ MAIS LENTAMENTE
-//	for(i=0;i<this->fFront;i++){
-//		for(j=i;j<this->fFront;j++){
-//			Element(i,j)-=AuxVec[i]*AuxVec[j];
-//		}
-//	}
 	
     if (this->fDecomposeType == ECholesky)
     {

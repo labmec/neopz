@@ -113,8 +113,8 @@ protected:
 	
 public:
 	
-	void InitializeElementMatrix(TPZElementMatrix &ef);
-	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	void InitializeElementMatrix(TPZElementMatrix &ef) override;
+	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
 	
 	/**
 	 * @brief Maps qsi coordinate at this master element to qsi coordinate at neighbor master element.

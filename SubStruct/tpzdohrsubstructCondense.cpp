@@ -9,8 +9,8 @@
 #include "pzlog.h"
 #include "TPZfTime.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstructcondense"));
+#ifdef PZ_LOG
+static TPZLogger logger("substruct.dohrsubstructcondense");
 #endif
 
 using namespace std;
@@ -80,8 +80,8 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &resid
             LocalWeightedResidual(scatter[i],ic) += fWeights[scatter[i]] * residual_local(i,ic);
         }
     }
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		LocalWeightedResidual.Print("LocalWeightedResidual ",sout);
@@ -91,8 +91,8 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &resid
 	fMatRedComplete->SetF(LocalWeightedResidual);
 	TPZFMatrix<TVar> U1(ncoarse,ncols,0.), UGlobal(fNEquations+ncoarse,ncols,0.);
 	fMatRedComplete->U1(U1);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		U1.Print("U1 ",sout);
@@ -100,8 +100,8 @@ void TPZDohrSubstructCondense<TVar>::Contribute_v2_local(TPZFMatrix<TVar> &resid
 	}
 #endif
 	fMatRedComplete->UGlobal(U1,UGlobal);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		UGlobal.Print("UGlobal ",sout);
@@ -182,11 +182,11 @@ void TPZDohrSubstructCondense<TVar>::SolveSystemPhi() {
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::ContributeDiagonalLocal(TPZFMatrix<TVar> &StiffnessDiagLocal) {
 	int i;
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Weight used for assembly" << fWeights;
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}
@@ -215,11 +215,11 @@ void TPZDohrSubstructCondense<TVar>::ComputeWeightsLocal(TPZFMatrix<TVar> &Stiff
 	{
 		fWeights[scatter[i]] = 1.;
 	}
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Weights = " <<  fWeights;
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}
@@ -261,8 +261,8 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 	PermuteGather (itrelat2->second, fLocalLoad, resglobal, 0, nglob);
 	fMatRed->SetF(resglobal);
 	fMatRed->F1Red(resloc);
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         resglobal.Print("resglobal ",sout);
         LOGPZ_DEBUG(logger, sout.str())
@@ -271,7 +271,7 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 	resglobal.Zero();
 	PermuteScatter(itrelat->second, resloc, resglobal, 0, fNumExternalEquations);
 	PermuteGather(itrelat->second, resglobal, rhs, 0, fNumExternalEquations);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		resloc.Print("Condensed F", sout);
@@ -279,7 +279,7 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 		rhs.Print("External first", sout);
 		sout << "vector for scatter " << itrelat->second << std::endl;
 		sout << "vector for gather " << itrelat->second << std::endl;
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}
@@ -320,13 +320,13 @@ void TPZDohrSubstructCondense<TVar>::UGlobal(TPZFMatrix<TVar> &UGlob, TPZFMatrix
         
     }
     PermuteScatter(itrelat2->second, uloc, USub , 0, nglob);
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		//		uext.Print("Boundary node solution", sout);
         uloc.Print("Complete solution internal first", sout);
 		UGlob.Print("submesh solution", sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}
@@ -352,8 +352,8 @@ void TPZDohrSubstructCondense<TVar>::ContributeKULocal(const TVar alpha, const T
 	{
 		return;
 	}
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Scatter from external do submesh" << itrelat->second << std::endl;
@@ -363,8 +363,8 @@ void TPZDohrSubstructCondense<TVar>::ContributeKULocal(const TVar alpha, const T
 #endif
 	PermuteScatter(itrelat->second, u, uloc, 0, u.Rows());
 	PermuteGather(itrelat2->second, uloc, uborder, fNumInternalEquations, fNEquations);
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		u.Print("Input matrix ", sout);
@@ -378,14 +378,14 @@ void TPZDohrSubstructCondense<TVar>::ContributeKULocal(const TVar alpha, const T
 	TPZFMatrix<TVar> resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
 	PermuteScatter(itrelat2->second, resborder, resglobal, fNumInternalEquations, fNEquations);
 	PermuteGather(itrelat->second, resglobal, resloc, 0, u.Rows());
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 	{
 		std::stringstream sout;
 		sout << "Value of the local multiply = ";
 		resborder.Print("resborder " ,sout);
 		resglobal.Print("resglobal ",sout);
 		resloc.Print("resloc ",sout);
-		if (logger->isDebugEnabled())
+		if (logger.isDebugEnabled())
 		{
 			LOGPZ_DEBUG(logger, sout.str());
 		}

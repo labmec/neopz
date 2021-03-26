@@ -18,14 +18,15 @@
 #include "pzbndcond.h"
 #include "pzvec_extras.h"
 #include "pzcmesh.h"
+#include "pzlog.h"
 
 #include <algorithm>
 
-#ifdef LOG4CXX
-static LoggerPtr loggercoefmatrices(Logger::getLogger("pz.mesh.sbfemvolume.coefmatrices"));
-static LoggerPtr logger(Logger::getLogger("pz.mesh.sbfemvolume"));
-static LoggerPtr loggerLBF(Logger::getLogger("pz.mesh.sbfemvolume.bodyloads"));
-static LoggerPtr loggerEvaluateError(Logger::getLogger("pz.mesh.sbfemvolume.error"));
+#ifdef PZ_LOG
+static TPZLogger loggercoefmatrices("pz.mesh.sbfemvolume.coefmatrices");
+static TPZLogger logger("pz.mesh.sbfemvolume");
+static TPZLogger loggerLBF("pz.mesh.sbfemvolume.bodyloads");
+static TPZLogger loggerEvaluateError("pz.mesh.sbfemvolume.error");
 #endif
 
 TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZInterpolationSpace(mesh, gel, index), fElementGroupIndex(-1), fSkeleton(-1), fDensity(1.) {
@@ -124,8 +125,8 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
         if (dim2 == 3) {
             //            TPZFNMatrix<9,REAL> jacorig(data2d.jacobian);
             AdjustAxes3D(axes, data2d.axes, data2d.jacobian, data2d.jacinv, data2d.detjac);
-#ifdef LOG4CXX2
-            if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+            if (logger.isDebugEnabled()) {
                 std::stringstream sout;
                 sout << "x 2d " << data1d.x << std::endl;
                 data1d.axes.Print("axes 2D", sout);
@@ -137,8 +138,8 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1
             }
 #endif
         }
-#ifdef LOG4CXX2
-        if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+        if (logger.isDebugEnabled()) {
             std::stringstream sout;
             TPZFNMatrix<9> axest, gradx(3, dim2);
             data2d.axes.Transpose(&axest);
@@ -324,8 +325,8 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
         DebugStop();
     }
 #endif
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
         TPZManVector<std::complex<double> > coefcol(fCoeficients.Rows());
         for (int i = 0; i < fCoeficients.Rows(); i++) {
             coefcol[i] = fCoeficients(i, 0);
@@ -358,8 +359,8 @@ void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
                 Duh_xi[i] += -fCoeficients(c, s)*(fEigenvalues[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhi(i, c);
             }
         }
-#ifdef LOG4CXX2
-        if (s == 0 && logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+        if (s == 0 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
@@ -420,8 +421,8 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     TPZCompEl *celgroup = cmesh->Element(fElementGroupIndex);
     TPZSBFemElementGroup *elgr = dynamic_cast<TPZSBFemElementGroup *> (celgroup);
     TPZFMatrix<std::complex<double> > &CoefficientLoc = elgr->PhiInverse();
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         CoefficientLoc.Print("Coefficients = ", sout, EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
@@ -476,8 +477,8 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
     }
 #endif
     phi.Zero();
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
         int eq = 1;
         TPZManVector<std::complex<double> > coefcol(CoefficientLoc.Rows());
         for (int i = 0; i < CoefficientLoc.Rows(); i++) {
@@ -511,8 +512,8 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
                 Duh_xi[i] += -CoefficientLoc(c, s)*(fEigenvalues[c] + 0.5 * (dim - 2)) * xiexpm1 * fPhi(i, c);
             }
         }
-#ifdef LOG4CXX2
-        if (s == 1 && logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+        if (s == 1 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
@@ -1009,8 +1010,8 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         }
     }
     
-#ifdef LOG4CXX
-    if (loggerLBF->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (loggerLBF.isDebugEnabled()) {
         std::stringstream sout;
         eflocal.Print("eflocal = ", sout, EMathematicaInput);
         f.Print("f = ", sout, EMathematicaInput);
@@ -1083,8 +1084,8 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
         DebugStop();
     }
 #endif
-#ifdef LOG4CXX2
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG2
+    if (logger.isDebugEnabled()) {
         TPZManVector<std::complex<double> > coefcol(fCoeficients.Rows());
         for (int i = 0; i < fCoeficients.Rows(); i++) {
             coefcol[i] = fCoeficients(i, 0);
@@ -1150,8 +1151,8 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
             }
         }
         
-#ifdef LOG4CXX
-        if (s == 0 && logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+        if (s == 0 && logger.isDebugEnabled()) {
             std::stringstream sout;
             sout << "uh_xi " << uh_xi << std::endl;
             sout << "Duh_xi " << Duh_xi << std::endl;
@@ -1185,8 +1186,8 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
     }
     
     
-#ifdef LOG4CXX
-   if (loggerEvaluateError->isDebugEnabled()) {
+#ifdef PZ_LOG
+   if (loggerEvaluateError.isDebugEnabled()) {
         TPZFNMatrix<200, std::complex<double> > sbfemmat(numeig,numeig,0.);
         for (int i=0; i<numeig; i++) {
             sbfemmat(i,i) = pow(sbfemparam, -Eigenvalues()[i].real());

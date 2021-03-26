@@ -14,11 +14,11 @@
 #include "TPZGeoCube.h"
 #include "pzgeopyramid.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testshape"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.testshape");
 #endif
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -30,7 +30,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testshape"));
 
 struct SuiteInitializer {
     SuiteInitializer() {
-        InitializePZLOG();
     }
 };
 

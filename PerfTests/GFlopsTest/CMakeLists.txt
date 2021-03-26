@@ -1,8 +1,7 @@
-file(GLOB source *.cpp)
-
-file(GLOB header *.h)
-
-add_executable(GFlopsTest ${source} ${header})
-install(TARGETS GFlopsTest DESTINATION bin)
-target_link_libraries(GFlopsTest pz)
+set(targetName GFlopsTest)
+add_pz_internal_target(
+  NAME ${targetName}
+  SOURCES gflopstest.cpp)
+#linking additional libraries
+target_link_libraries(${targetName} PRIVATE Threads::Threads)
 

@@ -49,8 +49,8 @@
 #include <math.h>
 #include <set>
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.multiphysics");
 #endif
 
 using namespace std;
@@ -76,9 +76,6 @@ void Solve ( TPZAnalysis &an );
 
 int main(int argc, char *argv[])
 {
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
 	
 	int  p=1;
 	int  NRefUnif=1;

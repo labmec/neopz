@@ -41,9 +41,9 @@
 #include <condition_variable> // std::condition_variable
 
 
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 
-static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
+static TPZLogger logger("pz.strmatrix.frontstructmatrix");
 
 #endif
 /// Semaphore which controls threads assembling elements
@@ -108,8 +108,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 			 cout << "    Waiting" << endl;
 			 cout.flush();*/
 			//cout << "Mutex unlocked on Condwait" << endl;
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "Entering cond_wait because of stack overflow ";
@@ -133,8 +133,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		 return 0;
 		 }
 		 */
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Computing element " << local_element;
@@ -173,8 +173,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
             parfront->fekstack.Push(ek);
             parfront->fefstack.Push(ef);
             
-    #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+    #ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Pushing element " << local_element << " on the stack, stack sizes " << parfront->felnum.NElements() << " " << parfront->fekstack.NElements() << " " << parfront->fefstack.NElements();
@@ -210,8 +210,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		}
 	}//fim for iel
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Falling through";
@@ -288,8 +288,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		TPZElementMatrix *ekaux = 0, *efaux = 0;
         {
             std::unique_lock<std::mutex> global_lock(mutex_global_assemble);
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Acquired mutex_global_assemble";
@@ -321,8 +321,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                 }
                 if(aux!=local_element){
                     i=0;
-    #ifdef LOG4CXX
-                    if (logger->isDebugEnabled())
+    #ifdef PZ_LOG
+                    if (logger.isDebugEnabled())
                     {
                         std::stringstream sout;
                         sout << "Waiting on condassemble";
@@ -332,8 +332,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                     condassemble.wait(global_lock);
                 }
             }
-    #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+    #ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "Unlocking mutex_global_assemble";
@@ -352,8 +352,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
             
 #endif
 			mat->FinishWriting();
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "fFinishedComputing set to 1";
@@ -378,8 +378,8 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		
 		
 	}//fim for iel
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Terminating assemble thread";
@@ -439,8 +439,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	
 //	this->AdjustSequenceNumbering();
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) {
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) {
         std::stringstream sout;
         this->fMesh->Print(sout);
         LOGPZ_DEBUG(logger, sout.str())

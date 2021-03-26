@@ -20,9 +20,9 @@
 
 using namespace std;
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
-static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.tpzinterfacelement");
+static TPZLogger logdata("pz.material.axisymetric.data");
 #endif
 
 void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right) {
@@ -673,7 +673,7 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << "the dimension of the interface element " << myinterfacedim << " is not compatible with the dimension of the material " << InterfaceDimension <<
 		" Expect trouble ";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 		LOGPZ_WARN(logger,sout.str())
 #else
 		//		std::cout << sout.str() << std::endl;
@@ -708,7 +708,7 @@ void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &no
 			if(normalize == 0.0)
 			{
 				PZError << __PRETTY_FUNCTION__ << " null normal vetor\n";
-#ifdef LOG4CXX
+#ifdef PZ_LOG
 				{
 					std::stringstream sout;
 					Print(sout);
@@ -1033,8 +1033,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		ic++;
 	}
 #ifdef PZDEBUG
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
+#ifdef PZ_LOG
+	if(logdata.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout.precision(15);
@@ -1049,8 +1049,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "elemento de interface " << Index() << " Indice deste Material--> " <<this->Material()->Id()<< std::endl;
@@ -1113,10 +1113,10 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	int leftmaxp = left->MaxOrder();
 	int rightmaxp = right->MaxOrder();
 	
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled()) 
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled()) 
 	{
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
@@ -1188,10 +1188,10 @@ void TPZInterfaceElement::InitializeIntegrationRule(){
     int leftmaxp = left->MaxOrder();
     int rightmaxp = right->MaxOrder();
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
-        if (logger->isDebugEnabled())
+        if (logger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
@@ -1419,8 +1419,8 @@ void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTrans
 	TPZTransform<> LocalTransf(dim);
 	TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
 	TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout << "thisgeoside = \n";

@@ -30,11 +30,6 @@ class TPZMaterialData;
 
 #include "pzmultiphysicselement.h"
 
-#ifdef LOG4CXX
-static LoggerPtr CompElPostProclogger(Logger::getLogger("pz.mesh.TPZCompElPostProc"));
-#endif
-
-using namespace std;
 
 
 /**
@@ -354,12 +349,13 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
         data.sol[0].Resize(stackedVarSize,0.);
         int64_t index = 0;
         // stacking the solutions to post process.
-#ifdef LOG4CXX
-        if(CompElPostProclogger->isDebugEnabled())
+#ifdef PZ_LOG
+        TPZLogger pzcompelpostproclogger("pz.mesh.TPZCompElPostProc");
+        if(pzcompelpostproclogger.isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Integration point " << int_ind << " x = " << dataRef.x << " GradSol = " << dataRef.dsol[0] ;
-            LOGPZ_DEBUG(CompElPostProclogger, sout.str())
+            LOGPZ_DEBUG(pzcompelpostproclogger, sout.str())
         }
 #endif
         int n_var_indexes = varIndex.NElements();
@@ -376,14 +372,14 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
                 pCompElRef->Solution(intpointRef, variableindex, Sol);
             }
 
-#ifdef LOG4CXX
-            if(CompElPostProclogger->isDebugEnabled())
+#ifdef PZ_LOG
+            if(pzcompelpostproclogger.isDebugEnabled())
             {
                 std::stringstream sout;
                 std::string varname;
                 pPostProcMat->GetPostProcVarName(var_ind, varname);
                 sout << varname << " -value- " << Sol;
-                LOGPZ_DEBUG(CompElPostProclogger, sout.str())
+                LOGPZ_DEBUG(pzcompelpostproclogger, sout.str())
             }
 #endif
             for(int i = 0; i <nsolvars; i++) data.sol[0][index+i] = Sol[i];
@@ -423,12 +419,12 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
             ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh);
     }
 
-#ifdef LOG4CXX2
+#ifdef PZ_LOG2
     {
         std::stringstream sout;
         sout << "Element index " << this->fIndex << std::endl;
         ef.fMat.Print("Post Processed ",sout);
-        LOGPZ_DEBUG(CompElPostProclogger, sout.str())
+        LOGPZ_DEBUG(pzcompelpostproclogger, sout.str())
     }
 #endif
     

@@ -151,7 +151,6 @@ void TPZArtDiff::ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TP
 		for(i=0;i<neq;i++)Result[i] += TauDiv[k][i] * dphi[k];
 }
 
-#ifdef _AUTODIFF
 
 template <class T>
 void TPZArtDiff::Divergent(TPZFMatrix<STATE> &dsol,
@@ -219,7 +218,6 @@ void TPZArtDiff::Divergent(TPZFMatrix<STATE> &dsol,
 	}
 }
 
-#endif // _AUTODIFF
 
 void TPZArtDiff::Divergent(TPZFMatrix<STATE> &dsol,
 						   TPZFMatrix<REAL> & dphi,
@@ -266,7 +264,6 @@ void TPZArtDiff::Divergent(TPZFMatrix<STATE> &dsol,
 }
 
 
-#ifdef _AUTODIFF
 void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
 						   TPZVec<TPZDiffMatrix<FADREAL> > & Ai,
 						   TPZVec<FADREAL> & Div)
@@ -289,7 +286,6 @@ void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
 	}
 }
 
-#endif
 
 //----------------------Tau tensor
 
@@ -523,7 +519,6 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<STATE
 	}
 }
 
-#ifdef _AUTODIFF
 void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol,
 								 TPZVec<FADREAL> &dsol, TPZVec<TPZVec<FADREAL> > & TauDiv)
 {
@@ -667,7 +662,6 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 }
 
 
-#endif
 
 
 //-----------------Contribute
@@ -725,7 +719,6 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<ST
 }
 
 
-#ifdef _AUTODIFF
 
 void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, REAL weight,  REAL timeStep, REAL deltaX)
 {
@@ -824,7 +817,6 @@ void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
 	TPZEulerConsLaw::Pressure(gamma, dim, press, U);
 }
 
-#endif
 
 void TPZArtDiff::Write(TPZStream &buf, int withclassid) const
 {

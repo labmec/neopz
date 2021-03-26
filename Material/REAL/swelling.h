@@ -9,9 +9,7 @@
 #include "TPZMaterial.h"
 #include "pzfmatrix.h"
 
-#ifdef _AUTODIFF
 #include "fadType.h"
-#endif
 
 /**
  * @ingroup material
@@ -62,7 +60,6 @@ class TPZSwelling : public TPZMaterial {
 	/** @brief External concentration (used as reference value for pressure) [mmol/mm^3] */
 	static STATE gExtConc;
 
-#ifdef _AUTODIFF
 	/** @brief Faraday constant [C/mmol] */
 	static REAL gFaraday;
 	/** @brief Molar volume cation [mm^3/mmol] */
@@ -75,22 +72,6 @@ class TPZSwelling : public TPZMaterial {
 	static REAL gTemp;
 	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
 	static REAL gMuRef[3];
-
-#else 
-	/** @brief Faraday constant [C/mmol] */
-	static STATE gFaraday;
-	/** @brief Molar volume cation [mm^3/mmol] */
-	static STATE gVPlus;
-	/** @brief Molar volume anions [mm^3/mmol] */
-	static STATE gVMinus;
-	/** @brief gas constant [Nmm/(mmol K)] */
-	static STATE gRGas;
-	/** @brief Absolute temperature [K] */
-	static STATE gTemp;
-	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
-	static STATE gMuRef[3];
-	
-#endif
 
 	public :
 	
@@ -174,8 +155,7 @@ class TPZSwelling : public TPZMaterial {
 	}
 	
 	
-#ifdef _AUTODIFF
-	
+
 	/** @brief Compute contribution to the energy at an integration point */
 	virtual void ContributeElastEnergy(
 									   TPZVec<FADFADREAL> &dsol,
@@ -207,7 +187,6 @@ class TPZSwelling : public TPZMaterial {
 		std::cout << "TPZSwelling::ContributeBCEnergy is not implemented\n";
 	}
 	
-#endif
 
 	/** @} */
 	
@@ -223,18 +202,15 @@ private:
 	/** This method has been superseded by the direct computation ExactSolution */
 	void ComputeInitialGuess(TPZVec<STATE> &mu, STATE J, STATE &pres, STATE &ksi, TPZVec<STATE> &N);
 	
-#ifdef _AUTODIFF
 	/** @brief Computes the mixing energy W and its first and second derivatives */
 	/** This method has been superseded by the direct computation ExactSolution */
 	void ComputeW(FADFADREAL &W, TPZVec<STATE> &N);
 	
-#endif
-	
+
 	/** @brief Computes the value of the N coeficients in function of ksi and mus, iterative method, inverting the Hessian of W */
 	/** This method has been superseded by the direct computation ExactSolution */
 	void ComputeN(TPZVec<STATE> &mu, STATE ksi, STATE pressure, TPZVec<STATE> &N);
 	
-#ifdef _AUTODIFF
 	/** @brief Computes N and its partial derivatives by directly inverting the analytic expressions */
 	/** This method has been superseded by the direct computation ExactSolution */
 	void ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N);
@@ -243,13 +219,11 @@ private:
 	/** This method has been superseded by the direct computation ExactSolution */
 	void ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N);
 	
-#endif
 	/** @brief Computes the residual and tangent vector of the system of equations which determines N */
 	/** This method has been superseded by the direct computation ExactSolution */
 	void NResidual(TPZVec<STATE> &mu, STATE ksi, STATE pressure, TPZVec<STATE> &N, TPZFMatrix<STATE> &res, TPZFMatrix<STATE> &tangent);
 	
-#ifdef _AUTODIFF
-	/** 
+	/**
 	 * @brief This method computes the numerical approximation of N by the Newton method and \n
 	 * its derivatives with respect to the dependent variables */
 	/** This method has been superseded by the direct computation ExactSolution */
@@ -265,7 +239,6 @@ public:
 	
 	static int main();
 	
-#endif
 	/** @brief Methods needed to perform convergence checks */
 	/** Number of cases which are considered for convergence checks */
 	int NumCases();

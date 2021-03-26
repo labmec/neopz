@@ -11,8 +11,8 @@
 #include "pzreal.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.shape.TPZShapeQuad"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.shape.TPZShapeQuad");
 #endif
 
 using namespace std;
@@ -494,8 +494,7 @@ namespace pzshape {
 	
 	
 	
-#ifdef _AUTODIFF
-	
+
 	void TPZShapeQuad::Shape2dQuadInternal(TPZVec<FADREAL> &x, int order,
 										   TPZVec<FADREAL> &phi,int quad_transformation_index) {
 		
@@ -556,8 +555,7 @@ namespace pzshape {
 	 }
 	 */
 	
-#endif
-	
+
 };
 
 

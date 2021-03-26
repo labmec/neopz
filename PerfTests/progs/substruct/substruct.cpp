@@ -47,9 +47,9 @@
 #include <fstream>
 #include <string>
 
-#ifdef LOG4CXX
-static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
-static LoggerPtr logger(Logger::getLogger("main"));
+#ifdef PZ_LOG
+static TPZLogger loggerconverge("pz.converge");
+static TPZLogger logger("main");
 #endif
 
 //#include "timing_analysis.h"
@@ -223,11 +223,7 @@ int main(int argc, char *argv[])
     likwid_manager_t likwid_manager;
 #endif
     
-#ifdef LOG4CXX
-    InitializePZLOG("log4cxx.cfg");
-#endif
-    
-#ifdef USING_BLAS
+#ifdef USING_LAPACK
     setenv("VECLIB_MAXIMUM_THREADS", "1", true);
 #endif
     
@@ -370,7 +366,7 @@ int main(int argc, char *argv[])
         
         dohrstruct->SubStructure(nsub.get_value());
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream str;
             cmeshauto->Print(str);
@@ -714,7 +710,7 @@ int main(int argc, char *argv[])
             it++;
         }
         
-#ifdef LOG4CXX
+#ifdef PZ_LOG
         {
             std::stringstream sout;
             diag.Print("Resultado do processo iterativo",sout);

@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzsysmp.h"
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -23,7 +23,7 @@
 #define BOOST_TEST_MAIN pz matrix tests
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/tools/floating_point_comparison.hpp>
 
 #endif
 
@@ -51,7 +51,7 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 }
 
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 /**
  * @brief Tests the Inverse method of the matrix to any matrix types. It uses the AutoFill method to create a square matrix with
@@ -280,7 +280,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
     BOOST_CHECK(check);
 }
 
-#ifdef USING_LAPACK
+#ifdef PZ_USING_LAPACK
 
 /**
  * @brief Tests the Eigenvalues/eigenvectors of the generalised eigenproblem Av=wBv to any matrix types. It uses the AutoFill method to create a square matrix with
@@ -412,7 +412,7 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric) {
 
 BOOST_AUTO_TEST_SUITE(matrix_tests)
 
-#ifdef USING_LAPACK
+#ifdef PZ_USING_LAPACK
 
 
 BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
@@ -451,7 +451,7 @@ BOOST_AUTO_TEST_CASE(generalized_eigenvalue_tests) {
 BOOST_AUTO_TEST_CASE(inverse_tests) {
     int dim;
     for (dim = 9; dim < 10; dim += 5) {
-#ifdef USING_MKL
+#ifdef PZ_USING_MKL
 //        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim, 1, ECholesky);
 //        TestingInverseWithAutoFill<TPZSYsmpMatrix<float>, float >(dim, 1, ELDLt);
         TestingInverseWithAutoFill<TPZSYsmpMatrix<double>, double >(dim, 1, ECholesky);

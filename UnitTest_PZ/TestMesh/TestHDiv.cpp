@@ -69,11 +69,11 @@
 using namespace pzshape;
 
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.mesh.testhdiv");
 #endif
 
-#ifdef USING_BOOST
+#ifdef PZ_USING_BOOST
 
 #ifndef WIN32
 #define BOOST_TEST_DYN_LINK
@@ -241,7 +241,6 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
 /// Check that the Div of the vector functions can be represented
 BOOST_AUTO_TEST_CASE(bilinearsolution_check)
 {
-    InitializePZLOG();
     std::cout << "Initializing solution check\n";
     RunBilinear(EPiramide);
     RunBilinear(ETetraedro);
@@ -340,8 +339,8 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
         TPZVTKGeoMesh::PrintGMeshVTK(gmesh,Dummyfile2, true);
     }
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
         sout<<"Malha Geo FINAl \n\n";
@@ -543,8 +542,8 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
 //    ofstream arq4("mphysics.txt");
 //    mphysics->Print(arq4);
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if (logger.isDebugEnabled())
     {
         std::stringstream sout;
 //        gmesh->Print(sout);
@@ -587,7 +586,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec
     cmesh->SetDefaultOrder(fluxorder);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
-#ifdef LOG4CXX
+#ifdef PZ_LOG
     {
         std::stringstream sout;
         gmesh->Print(sout);
@@ -967,8 +966,8 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
 //        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
         intel->ComputeRequiredData(dataA, pos);
         intelP->ComputeShape(pos, dataB);
-#ifdef LOG4CXX
-        if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled())
 				{
 						std::stringstream sout;
 						sout << "Phi's " << dataA.phi<< " dphix's "<< dataA.dphix<<std::endl;
@@ -994,7 +993,7 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             for (d=0; d<dim; d++) {
                 divphi += dataA.dphix(d,phiindex)*vecinner[d];                
             }
-//#ifdef LOG4CXX
+//#ifdef PZ_LOG
 //						{
 //								std::stringstream sout;
 //								sout << "Div " << divphi<< std::endl;
@@ -1011,8 +1010,8 @@ static int VerifyProjection(TPZCompEl *cel, TPZFMatrix<STATE> &multiplier)
             }
             // the divergence of the vector function should be equal to the value of projected pressure space
             STATE diff = phival-divphi;
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
+#ifdef PZ_LOG
+            if (logger.isDebugEnabled())
             {
                 std::stringstream sout;
                 sout << "phi: " << phival<<" dphi: "<< divphi <<"\n";
@@ -1560,8 +1559,8 @@ void RunBilinear(MElementType eltype)
     an.PostProcess(div,dim);
     
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+    if(logger.isDebugEnabled())
     {
         std::stringstream sout;
         cmesh->Reference()->Print(sout);
@@ -1724,8 +1723,8 @@ TPZAutoPointer<TPZGeoMesh> TetrahedralMeshCubo(int64_t nelem,int MaterialId)
                 nodes[5] = (k+1)*(nelem+1)*(nelem+1)+j*(nelem+1)+i+1;
                 nodes[6] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i+1;
                 nodes[7] = (k+1)*(nelem+1)*(nelem+1)+(j+1)*(nelem+1)+i;
-#ifdef LOG4CXX
-                if(logger->isDebugEnabled())
+#ifdef PZ_LOG
+                if(logger.isDebugEnabled())
                 {
                     std::stringstream sout;
                     sout << "Tetrahedral nodes " << nodes;

@@ -16,8 +16,8 @@
 #include "pzgeoelside.h"
 #include "pzlog.h"
 
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.refpattern.TPZRefPatternDataBase"));
+#ifdef PZ_LOG
+static TPZLogger logger("pz.refpattern.TPZRefPatternDataBase");
 #endif
 
 #ifdef BORLAND
@@ -376,13 +376,6 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled()) {
-                std::stringstream sout;
-                refpat->PrintMore(sout);
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
 			
 			break;
 		}
@@ -593,13 +586,6 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 	InitializeUniformRefPattern(EPiramide);
 	InitializeUniformRefPattern(EPrisma);
 	InitializeUniformRefPattern(ECube);
-}
-
-
-void TPZRefPatternDataBase::InitializeRefPatterns(int maxdim)
-{
-    std::string path = REFPATTERNDIR;
-	ImportRefPatterns(path, maxdim);
 }
 
 //.........................................................................................................................................

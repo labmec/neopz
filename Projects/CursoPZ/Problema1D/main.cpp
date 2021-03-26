@@ -150,10 +150,6 @@ int main() {
 }
 // uni-dimensional problem for elasticity
 int main1D() {
-
-//#ifdef LOG4CXX
-//    InitializePZLOG();
-//#endif
     
 	Archivo += "/Projects/CursoPZ/Problema1D/";
 	Archivo += "Viga1D.dump";
