@@ -63,7 +63,7 @@ jobs:
     - name: Configure CMake External Projects
       shell: bash
       working-directory: ${{github.workspace}}/NeoPZExamples/build
-      run: cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/install
+      run: cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/install
     - name: Build External Projects
       working-directory: ${{github.workspace}}/NeoPZExamples/build
       shell: bash
