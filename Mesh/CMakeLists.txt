@@ -73,7 +73,6 @@ set(sources
   pzcheckrestraint.cpp
   pzelctemp.cpp
   pzgnode.cpp
-  pzstackmesh.cpp
   TPZCompElLagrange.cpp
   TPZInterfaceEl.cpp
   pzcmesh.cpp
@@ -83,7 +82,6 @@ set(sources
   TPZMultiphysicsCompMesh.cpp
   pzcompel.cpp
   pzelmat.cpp  
-  pzvecmesh.cpp
   TPZCompMeshTools.cpp
   TPZMultiphysicsInterfaceEl.cpp
   pzcompelwithmem.cpp  

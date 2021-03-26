@@ -64,22 +64,21 @@ set(sources
     pzline.cpp
     pznuma.cpp
     pzpolynomial.cpp
-    pzvecgen.cpp
     TPZFunctionTranslator.cpp
     TPZSemaphore.cpp
     pzfunction.cpp
     pzlog.cpp
     pznumeric.cpp
-    pzstackgen.cpp
-    pzvecmesh.cpp
     tpzpermutation.cpp
     TPZHWTools.cpp
     TPZTimer.cpp
     pzgradient.cpp
-    pzmanvectorgen.cpp
     pzplane.cpp
     pzstring.cpp
     tpzautopointer.cpp
+    pzvecgen.cpp
+    pzmanvectorgen.cpp
+    pzstackgen.cpp
     )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Util)

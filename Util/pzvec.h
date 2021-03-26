@@ -52,8 +52,14 @@ public:
 	 * It will call the empty constructor on all objects of type T
 	 * created copies the object copy to all elements.
 	 */
-	TPZVec(const int64_t size, const T& copy);
-	
+	TPZVec(const int64_t size, const T& copy);   
+
+	/**
+	 * @brief Creates a vector from a initializer list
+	 * @param list : initializer list, usually a list of elements in curly brackets
+	 */
+	TPZVec(const std::initializer_list<T>& list);
+    
 	/**
 	 * @brief Creates a vector with copy constructor. \n
 	 * will call the empty constructor on all objects of type T created
@@ -61,14 +67,26 @@ public:
 	 */
 	TPZVec(const TPZVec<T> &copy);
 
-	/**
-	 * @brief Creates a vector from a initializer list
-	 * @param list : initializer list, usually a list of elements in curly brackets
-	 */
-	TPZVec(const std::initializer_list<T>& list);
-	
+    /**
+     * @brief Creates a vector using the move constructor.
+     * No memory is allocated.
+     */
+    TPZVec(TPZVec<T> &&rval);
+    
 	/** @brief destructor, will delete the storage allocated */
 	virtual ~TPZVec();
+	/**
+	 * @brief will copy the vector into the current vector.
+	 * @param copy vector which will be copied
+	 * @return reference to the current object
+	 */
+	/** Will first delete the allocated storage before allocating storage for the copy */
+	TPZVec<T> &operator=(const TPZVec<T> &copy);
+
+    /**
+     * @brief will move the vector into the current vector
+     */
+    TPZVec<T> &operator=(TPZVec<T> &&rval);
   
 	void ReallocForNuma() {
         if (fNElements == 0 || fStore == NULL)
@@ -78,14 +96,6 @@ public:
         delete [] fStore;
         fStore = newStore;
 	}
-	
-	/**
-	 * @brief will copy the vector into the current vector.
-	 * @param copy vector which will be copied
-	 * @return reference to the current object
-	 */
-	/** Will first delete the allocated storage before allocating storage for the copy */
-	TPZVec<T> &operator=(const TPZVec<T> &copy);
 
 	/**
 	 * @brief create a new vector and stores in the current vector
@@ -184,7 +194,9 @@ public:
 	 * @return number of elements used by the vector
 	 */
 	inline int64_t NElements() const { return fNElements; }
-	
+
+    /** @brief Returns number of elements dynamically for this object. */
+    inline int64_t NAlloc() const { return fNAlloc; }
 	/**
 	 * @brief Returns the number of elements of the vector
 	 * @return number of elements used by the vector
@@ -227,24 +239,31 @@ protected:
 	
 	/** @brief Number of elements of the vector object */
 	int64_t fNElements;
+    
+    /** @brief Number of elements allocated for this object. */
+    int64_t fNAlloc;
+    /*@orlandini note: for TPZVec<T> fNAlloc is always equal to
+     * fNElements. This wont hold true at all times for derived types.
+     */
 };
 
 template< class T >
-inline TPZVec<T>::TPZVec() : fStore( 0 ), fNElements( 0 )
+inline TPZVec<T>::TPZVec() : fStore( nullptr ), fNElements( 0 ), fNAlloc(0)
 {
 	// NOTHING TO DO HERE!
 }
 
 template< class T >
-TPZVec<T>::TPZVec( const int64_t size ) : fStore( 0 )
+TPZVec<T>::TPZVec( const int64_t size ) : fStore( nullptr )
 {
 #ifndef NODEBUG
 	if( size < 0 )
 	{
-		PZError << "TPZVec constructor. Bad parameter size, then size = 0."
-		<< std::endl;
+		PZError << __PRETTY_FUNCTION__;
+        PZError << "Bad parameter size, then size = 0.\n";
 		PZError.flush();
 		fNElements = 0;
+        fNAlloc = 0;
 		return;
 	}
 #endif
@@ -257,18 +276,21 @@ TPZVec<T>::TPZVec( const int64_t size ) : fStore( 0 )
 	
 	// Note that even 0 sized vectors are allowed.
 	fNElements = size;
+    fNAlloc = size;
+    
 }
 
 template< class T >
-TPZVec<T>::TPZVec( const int64_t size, const T& copy ) : fStore( 0 )
+TPZVec<T>::TPZVec( const int64_t size, const T& copy ) : fStore( nullptr )
 {
 #ifndef NODEBUG
 	if( size < 0 )
 	{
-		PZError << "TPZVec constructor. Bad parameter size, then size = 0."
-		<< std::endl;
+		PZError << __PRETTY_FUNCTION__;
+        PZError << "Bad parameter size, then size = 0.\n";
 		PZError.flush();
 		fNElements = 0;
+        fNAlloc = 0;
 		return;
 	}
 #endif
@@ -279,6 +301,7 @@ TPZVec<T>::TPZVec( const int64_t size, const T& copy ) : fStore( 0 )
 	}
 	
 	fNElements = size;
+    fNAlloc = size;
 	
 	for( int64_t i = 0; i < size; i++ )
 	{
@@ -286,27 +309,12 @@ TPZVec<T>::TPZVec( const int64_t size, const T& copy ) : fStore( 0 )
 	}
 }
 
-template< class T >
-TPZVec<T>::TPZVec(const TPZVec<T> &copy){
-	fStore = 0;
-	
-	if( copy.fNElements > 0 )
-		fStore = new T[copy.fNElements];
-	else
-		fStore = 0;
-	
-	for(int64_t i=0; i<copy.fNElements; i++)
-		fStore[i]=copy.fStore[i];
-	
-	fNElements = copy.fNElements;
-}
 
 template< class T >
-TPZVec<T>::TPZVec(const std::initializer_list<T>& list) {
-	fStore = NULL;
-
-	if (list.size() > 0)
-		fStore = new T[list.size()];
+TPZVec<T>::TPZVec(const std::initializer_list<T>& list) : fStore(nullptr) {
+    const auto size = list.size();
+	if (size > 0)
+		fStore = new T[size];
 
 	auto it = list.begin();
 	auto it_end = list.end();
@@ -314,7 +322,40 @@ TPZVec<T>::TPZVec(const std::initializer_list<T>& list) {
 	for (; it != it_end; it++, aux++)
 		*aux = *it;
 
-	fNElements = list.size();
+	fNElements = size;
+    fNAlloc = size;
+}
+
+template< class T >
+TPZVec<T>::TPZVec(const TPZVec<T> &copy){
+	fStore = nullptr;
+	
+	if( copy.fNElements > 0 )
+		fStore = new T[copy.fNElements];
+	else
+		fStore = nullptr;
+	
+	for(int64_t i=0; i<copy.fNElements; i++)
+		fStore[i]=copy.fStore[i];
+	
+	fNElements = copy.fNElements;
+    fNAlloc = copy.fNAlloc;
+}
+
+template< class T >
+TPZVec<T>::TPZVec(TPZVec<T> &&rval) : fNElements(std::move(rval.fNElements)){
+    if(rval.fNAlloc){
+        fStore = rval.fStore;
+        fNAlloc = std::move(rval.fNAlloc);
+        rval.fNAlloc = 0;
+    }else{//rval did not allocate memory. let us just copy
+        fStore = new T[fNElements];
+        for(int64_t i=0; i<fNElements; i++)
+		fStore[i]=rval.fStore[i];
+    }
+    
+    rval.fStore = nullptr;
+    rval.fNElements = 0;    
 }
 
 template<class T>
@@ -327,15 +368,33 @@ inline TPZVec<T>::~TPZVec() {
 
 template< class T >
 TPZVec<T> &TPZVec<T>::operator=(const TPZVec<T> &copy){
-	if(this == &copy) return *this;
-	
-	Resize(copy.NElements());
-	
-	for(int64_t i=0; i<copy.fNElements; i++)
-		fStore[i]=copy.fStore[i];
-	
-	fNElements = copy.fNElements;
-	
+    if (this != &copy) {
+
+      Resize(copy.NElements());
+
+      for (int64_t i = 0; i < copy.fNElements; i++)
+          fStore[i] = copy.fStore[i];
+    }
+    return *this;
+}
+
+template< class T >
+TPZVec<T> &TPZVec<T>::operator=(TPZVec<T> &&rval){
+	if(this != &rval){
+        fNElements = rval.fNElements;
+        if(fStore) delete [] fStore;
+        if(rval.fNAlloc){
+            fStore = rval.fStore;
+        }else{
+            fStore = new T[fNElements];
+            for (int64_t i = 0; i < fNElements; i++)
+                fStore[i] = rval.fStore[i];
+        }
+        fNAlloc = fNElements;//perhaps rval.fNalloc was 0
+        rval.fStore = nullptr;
+        rval.fNElements = 0;
+        rval.fNAlloc = 0;
+	}
 	return *this;
 }
 
@@ -349,7 +408,6 @@ TPZVec<T> &TPZVec<T>::operator=(const std::initializer_list<T> &list) {
 
 	for (; it != it_end; it++, aux++)
 		*aux = *it;
-
 	return *this;
 }
 
@@ -388,10 +446,11 @@ void TPZVec<T>::Resize(const int64_t newsize,const T& object) {
 	}
     if(fStore) {
         delete[] fStore;
-        fStore = 0;
+        fStore = nullptr;
     }
 	fStore = newstore;
 	fNElements = newsize;//cedric 20/11/99 e 29/04/00
+    fNAlloc = newsize;
 }
 
 #include <limits>
@@ -421,8 +480,9 @@ void TPZVec<T>::Resize(const int64_t newsize) {
 	if(newsize == fNElements) return;
 	if (newsize == 0) {
 		fNElements = 0;
+        fNAlloc = 0;
 		delete[] fStore;
-		fStore = 0;
+		fStore = nullptr;
 		return;
 	}
 	T *newstore = new T[newsize];
@@ -434,6 +494,7 @@ void TPZVec<T>::Resize(const int64_t newsize) {
 	if(fStore) delete[] fStore;
 	fStore = newstore;
 	fNElements = newsize;
+    fNAlloc = newsize;
 }
 
 template<class T>
@@ -519,5 +580,49 @@ inline std::ostream& operator<<( std::ostream& Out, const TPZVec< std::pair<doub
 	return Out;
 }
 
+extern template class TPZVec<float>;
+extern template class TPZVec<float * >;
+extern template class TPZVec<double>;
+extern template class TPZVec<double * >;
+extern template class TPZVec<long double>;
+extern template class TPZVec<long double * >;
+extern template class TPZVec<int>;
+extern template class TPZVec<int64_t>;
+extern template class TPZVec<int64_t *>;
+extern template class TPZVec<int *>;
+extern template class TPZVec<char *>;
+extern template class TPZVec<void *>;
+extern template class TPZVec<char>;
 
+class TPZGeoEl;
+class TPZGeoNode;
+struct TPZGeoNodeBC;
+struct TPZGeoElBC;
+extern template class TPZVec<TPZGeoEl *>;
+extern template class TPZVec<TPZGeoNode *>;
+extern template class TPZVec<TPZGeoNodeBC *>;
+extern template class TPZVec<TPZGeoElBC *>;
+
+
+class TPZCompEl;
+class TPZConnect;
+struct TPZConnectBC;
+extern template class TPZVec<TPZCompEl *>;
+extern template class TPZVec<TPZConnect *>;
+extern template class TPZVec<TPZConnectBC *>;
+
+class TPZMaterial;
+class TPZBndCond;
+extern template class TPZVec<TPZMaterial *>;
+extern template class TPZVec<TPZBndCond *>;
+
+struct TPZElementMatrix;
+extern template class TPZVec<TPZElementMatrix *>;
+
+class TPZGraphEl;
+class TPZGraphNode;
+class TPZCompMesh;
+extern template class TPZVec<TPZGraphEl *>;
+extern template class TPZVec<TPZGraphNode *>;
+extern template class TPZVec<TPZCompMesh *>;
 #endif
