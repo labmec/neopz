@@ -110,6 +110,16 @@ void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 	fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
+template class TPZSolver<float>;
+template class TPZSolver<std::complex<float> >;
+
+template class TPZSolver<double>;
+template class TPZSolver<std::complex<double> >;
+
+template class TPZSolver<long double>;
+template class TPZSolver<std::complex<long double> >;
+
+
 template class TPZMatrixSolver<float>;
 template class TPZMatrixSolver<std::complex<float> >;
 

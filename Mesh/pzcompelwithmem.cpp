@@ -182,6 +182,8 @@ template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TP
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsCompEl<pzgeom::TPZGeoPyramid> >>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZMultiphysicsInterfaceElement>>;
 template class TPZRestoreClass<TPZCompElWithMem<TPZInterfaceElement>>;
+template class TPZCompElWithMem<TPZMultiphysicsInterfaceElement>;
+template class TPZCompElWithMem<TPZInterfaceElement>;
 
 
 /*
