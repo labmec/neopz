@@ -173,23 +173,10 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
 		}
 		TPZStack<int64_t> connectindexes;
 		int64_t imesh;
-        std::list<TPZOneShapeRestraint> oneshape;
 		for (imesh=0; imesh < nmeshes; imesh++) {
 			TPZCompEl *celref = cel->ReferredElement(imesh);
             if (!celref) {
                 continue;
-            }
-            std::list<TPZOneShapeRestraint> celrest;
-            celrest = celref->GetShapeRestraints();
-            for (std::list<TPZOneShapeRestraint>::iterator it = celrest.begin(); it != celrest.end(); it++) {
-                TPZOneShapeRestraint rest = *it;
-                TPZOneShapeRestraint convertedrest(rest);
-                for(int face = 0; face < rest.fFaces.size(); face++)
-                {
-                    int ic = rest.fFaces[face].first;
-                    convertedrest.fFaces[face].first = ic+FirstConnect[imesh];
-                }
-                oneshape.push_back(convertedrest);
             }
 			int64_t ncon = celref->NConnects();
 			int64_t ic;
@@ -198,9 +185,6 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> &cmeshVec, TPZC
 			}
 		}
 		cel->SetConnectIndexes(connectindexes);
-        for (std::list<TPZOneShapeRestraint>::iterator it = oneshape.begin(); it != oneshape.end(); it++) {
-            cel->AddShapeRestraint(*it);
-        }
 	}
 }
 

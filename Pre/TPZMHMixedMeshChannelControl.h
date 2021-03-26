@@ -24,10 +24,6 @@ public:
         
     }
     
-    TPZMHMixedMeshChannelControl(int dimension):TPZMHMixedMeshControl(dimension){
-        
-    }
-
     
     TPZMHMixedMeshChannelControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int64_t> &coarseindices):TPZMHMixedMeshControl( gmesh, coarseindices){
         

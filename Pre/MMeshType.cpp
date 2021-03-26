@@ -29,6 +29,8 @@ std::string MMeshType_Name(const MMeshType meshType){
             return "No Type";
     }
 
+    DebugStop();
+    return "null"; // dummy return to remove warning
 }
 
 int MMeshType_Dimension(const MMeshType meshType){
@@ -46,4 +48,24 @@ int MMeshType_Dimension(const MMeshType meshType){
             return -1;
     }
 
+    DebugStop();
+    return -1; // dummy return to remove warning
+}
+
+
+
+MMeshType StringToMeshtype(const std::string& name){
+	if(name[0] != 'E'){PZError << "\nYou forgot the E";}
+    else if(name == "EQuadrilateral"){	return MMeshType::EQuadrilateral;}
+    else if(name == "ETriangular"){		return MMeshType::ETriangular;}
+    else if(name == "EHexahedral"){		return MMeshType::EHexahedral;}
+    else if(name == "ETetrahedral"){	return MMeshType::ETetrahedral;}
+    else if(name == "EPyramidal"){		return MMeshType::EPyramidal;}
+    else if(name == "EPrismatic"){		return MMeshType::EPrismatic;}
+    else if(name == "EHexaPyrMixed"){	return MMeshType::EHexaPyrMixed;}
+    else if(name == "ENoType"){			return MMeshType::ENoType;}
+	
+    PZError << "\nTried to interpret unrecognized MMeshType : \'" << name << "\'\n";
+    DebugStop();
+	return MMeshType::ENoType; // dummy return to remove warning
 }

@@ -266,13 +266,18 @@ int TPZGeoElSide::NSides() const
 /// Area associated with the side
 REAL TPZGeoElSide::Area()
 {
+    // Assuming linear mapping
+	if(!this->IsLinearMapping()){PZError << "\n\n" << __PRETTY_FUNCTION__ << "\nOnly implemented for linear mappings.\n\n";DebugStop();}
+	
+	// Compute determinant of the jacobian
 	TPZManVector<REAL,3> sideparam(Dimension(),0);
-	REAL detjac;
-	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
-    //supondo jacobiano constante: X linear
+	TPZFNMatrix<9,REAL> gradx(3,Dimension());
 	CenterPoint(sideparam);
-	Jacobian(sideparam,jacobian,axes,detjac,jacinv);
-    TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
+	GradX(sideparam,gradx);
+	REAL detjac = TPZAxesTools<REAL>::ComputeDetjac(gradx);
+    
+	// Compute volume of side in parametric space (RefElVolume)
+	TPZIntPoints *intrule = fGeoEl->CreateSideIntegrationRule(fSide, 0);
     REAL RefElVolume = 0.;
     int np = intrule->NPoints();
     TPZManVector<REAL,3> points(Dimension());
@@ -281,8 +286,8 @@ REAL TPZGeoElSide::Area()
         intrule->Point(ip, points, weight);
         RefElVolume += weight;
     }
-	return (RefElVolume*detjac);//RefElVolume(): volume do elemento de refer�ncia
-	
+	// Return area of side in mapped element
+	return (RefElVolume*detjac);
 }
 
 
@@ -300,6 +305,33 @@ int TPZGeoElSide::NNeighbours()
 	return nneighbours;
 }
 
+/** @brief Get number of neighbours of a given dimension */
+int TPZGeoElSide::NNeighbours(int dimfilter){
+	if(dimfilter < 0) return NNeighbours();
+	int nneighbours = 0;
+
+	TPZGeoElSide neig = this->Neighbour();
+	while(neig != *this){
+		nneighbours += neig.Element()->Dimension() == dimfilter;
+		neig = neig.Neighbour();
+	}
+
+	return nneighbours;
+}
+
+int TPZGeoElSide::NNeighbours(int dimfilter, std::set<int>& matids){
+	if(matids.size() == 0) return NNeighbours(dimfilter);
+	int nneighbours = 0;
+
+	TPZGeoElSide neig = this->Neighbour();
+	auto end = matids.end();
+	while(neig != *this){
+		nneighbours += (dimfilter<0 || neig.Element()->Dimension() == dimfilter) && matids.find(neig.Element()->MaterialId()) != end;
+		neig = neig.Neighbour();
+	}
+
+	return nneighbours;
+}
 
 int TPZGeoElSide::NNeighboursButThisElem(TPZGeoEl *thisElem)
 {
@@ -1372,17 +1404,19 @@ TPZGeoElSide TPZGeoElSide::HasNeighbour(int materialid) const
     return TPZGeoElSide();
 }
 
-TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> matIDs) const
-{
-    for (const auto &it : matIDs) {
-        TPZGeoElSide neigh = HasNeighbour(it);
-        if (neigh.Exists())
+TPZGeoElSide TPZGeoElSide::HasNeighbour(std::set<int> materialid) const
+    {
+        if(!fGeoEl) return TPZGeoElSide();
+        auto it = materialid.find(fGeoEl->MaterialId());
+        if(it != materialid.end()) return *this;
+        TPZGeoElSide neighbour = Neighbour();
+        while(neighbour != *this)
         {
-            return neigh;
+            if(materialid.find(neighbour.Element()->MaterialId()) != materialid.end()) return neighbour;
+            neighbour = neighbour.Neighbour();
         }
+        return TPZGeoElSide();
     }
-    return TPZGeoElSide();
-}
 
 /** verifiy if a larger (lower level) neighbour exists with the given material id
  */

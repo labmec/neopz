@@ -14,10 +14,12 @@
 
 
 #include <pz_config.h>
+#include "pzerror.h"
 
 inline void StopError()
 {
 	std::cout << "Ponto de parada\n";
+    DebugStop();
 }
 
 

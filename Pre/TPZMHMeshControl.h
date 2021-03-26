@@ -14,6 +14,10 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
+#include "TPZMultiphysicsCompMesh.h"
+class TPZSubCompMesh;
+class TPZCondensedCompEl;
+class TPZElementGroup;
 
 /// class oriented towards the creation of multiscale hybrid meshes - YES
 class TPZMHMeshControl
@@ -29,7 +33,7 @@ protected:
     TPZAutoPointer<TPZGeoMesh> fGMesh;
     
     /// computational MHM mesh being built by this class
-    TPZAutoPointer<TPZCompMesh> fCMesh;
+    TPZAutoPointer<TPZMultiphysicsCompMesh> fCMesh;
     
     /// computational mesh to represent the distributed flux in each subdomain
     TPZAutoPointer<TPZCompMesh> fCMeshLagrange;
@@ -41,6 +45,11 @@ protected:
     // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
     TPZAutoPointer<TPZCompMesh> fPressureFineMesh;
     
+    /// computational mesh to contain the pressure elements
+    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
+    TPZAutoPointer<TPZCompMesh> fFluxMesh;
+    
+
     /// Variable defining the type of problem
     MProblemType fProblemType = EScalar;
     
@@ -51,7 +60,7 @@ public:
     /// material id associated with the skeleton elements
     int fSkeletonMatId = 4;
     
-    /// material id associated with the skeleton elements
+    /// material id associated with the skeleton elements when hybridized
     int fSecondSkeletonMatId = 3;
     
     /// material id associated with the skeleton elements in a hybrid context
@@ -79,7 +88,7 @@ protected:
     int fHdivmaismais = 0;
     
     /// material index of the skeleton wrap
-    int fSkeletonWrapMatId = 500;
+    int fWrapMatId = 500;
     
     /// material index of the boundary wrap
     int fBoundaryWrapMatId = 502;
@@ -106,8 +115,8 @@ protected:
      */
     bool fLagrangeAveragePressure = false;
     
-    /// flag to indicate whether we create a hybridized mesh
-    bool fHybridize = false;
+    /// flag to indicate whether we hybridize the skeleton fluxes
+    bool fHybridizeSkeleton = false;
     
     /// flag to indicate whether the lagrange multipliers should switch signal
     bool fSwitchLagrangeSign = false;
@@ -124,19 +133,20 @@ public:
 public:
     TPZMHMeshControl() : fProblemType(EScalar), fNState(1), fGeoToMHMDomain(), fMHMtoSubCMesh(),
     fLagrangeAveragePressure(false),
-    fHybridize(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
+    fHybridizeSkeleton(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
     {
         
     }
 
     TPZMHMeshControl(int dimension) : fProblemType(EScalar), fNState(1), fGeoToMHMDomain(), fMHMtoSubCMesh(),
     fLagrangeAveragePressure(false),
-    fHybridize(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
+    fHybridizeSkeleton(false), fSwitchLagrangeSign(false), fGlobalSystemSize(-1), fGlobalSystemWithLocalCondensationSize(-1), fNumeq(-1)
     {
         fGMesh = new TPZGeoMesh;
         fGMesh->SetDimension(dimension);
-        fCMesh = new TPZCompMesh(fGMesh);
+        fCMesh = new TPZMultiphysicsCompMesh(fGMesh);
         fPressureFineMesh = new TPZCompMesh(fGMesh);
+        fFluxMesh = new TPZCompMesh(fGMesh);
     }
 
     /// constructor, indicating that the MHM approximation will use the elements indicated by coarseindices as the macro elements
@@ -153,7 +163,7 @@ public:
     
     TPZMHMeshControl &operator=(const TPZMHMeshControl &cp);
     
-    TPZAutoPointer<TPZCompMesh> CMesh() const
+    TPZAutoPointer<TPZMultiphysicsCompMesh> CMesh() const
     {
         return fCMesh;
     }
@@ -167,6 +177,12 @@ public:
     {
         return fPressureFineMesh;
     }
+    
+    TPZAutoPointer<TPZCompMesh> FluxMesh()
+    {
+        return fFluxMesh;
+    }
+    
     
     /// Define the MHM partition by the coarse element indices
     void DefinePartitionbyCoarseIndices(TPZVec<int64_t> &coarseindices);
@@ -239,13 +255,13 @@ public:
     }
     
     /// Set the hybridization to true
-    virtual void SetHybridize(bool flag = true)
+    virtual void SetHybridizeSkeleton(bool flag = true)
     {
-        fHybridize = flag;
+        fHybridizeSkeleton = flag;
     }
     
-    virtual bool GetHybridize() {
-        return fHybridize;
+    virtual bool GetHybridizeSkeleton() {
+        return fHybridizeSkeleton;
     }
     /// Create all data structures for the computational mesh
     virtual void BuildComputationalMesh(bool usersubstructure);
@@ -260,7 +276,7 @@ public:
     /// divide the skeleton elements
     void DivideSkeletonElements(int ndivide);
     
-    /// divide the boundary skeleton elements
+    /// divide the boundary skeleton elements untill they are the same size of the volumetric elements
     void DivideBoundarySkeletonElements();
     
     /// switch the sign of the lagrange multipliers
@@ -276,22 +292,44 @@ public:
     void PrintDiagnostics(std::ostream &out);
     
     /// Put the pointers to the meshes in a vector
-    void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
+    virtual void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
     {
-        if (fCMeshLagrange)
+        if (fLagrangeAveragePressure)
         {
-            meshvec.Resize(3);
-            meshvec[0] = fPressureFineMesh.operator->();
-            meshvec[1] = fCMeshLagrange.operator->();
-            meshvec[2] = fCMeshConstantPressure.operator->();
+            meshvec.Resize(4);
+            meshvec[0] = fFluxMesh.operator->();
+            meshvec[1] = fPressureFineMesh.operator->();
+            meshvec[2] = fCMeshLagrange.operator->();
+            meshvec[3] = fCMeshConstantPressure.operator->();
         }
         else
         {
-            meshvec.resize(0);
+            meshvec.Resize(2);
+            meshvec[0] = fFluxMesh.operator->();
+            meshvec[1] = fPressureFineMesh.operator->();
         }
     }
-    
-    TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes()
+
+    /// Put the pointers to the meshes in a vector
+    virtual void GetMeshVec(TPZVec<TPZAutoPointer<TPZCompMesh >> &meshvec)
+    {
+        if (fLagrangeAveragePressure)
+        {
+            meshvec.Resize(4);
+            meshvec[0] = fFluxMesh;
+            meshvec[1] = fPressureFineMesh;
+            meshvec[2] = fCMeshLagrange;
+            meshvec[3] = fCMeshConstantPressure;
+        }
+        else
+        {
+            meshvec.Resize(2);
+            meshvec[0] = fFluxMesh;
+            meshvec[1] = fPressureFineMesh;
+        }
+    }
+
+    virtual TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes()
     {
         TPZManVector<TPZAutoPointer<TPZCompMesh>,3> result;
         if (fCMeshLagrange)
@@ -308,6 +346,9 @@ public:
         return result;
     }
 
+    /// get the element indices for which a multiphysics element needs to be created
+    void GetGeometricElementPartition(TPZVec<int64_t> &gelindices);
+    
     TPZManVector<int64_t> GetGeoToMHMDomain() {
         return fGeoToMHMDomain;
     }
@@ -338,8 +379,12 @@ protected:
     /// Add the boundary interface elements to the computational mesh
     void AddBoundaryInterfaceElements();
     
-    /// will create the elements on the skeleton
-    void CreateSkeleton();
+    /// will create the computational elements on the skeleton in the flux mesh
+    virtual void CreateSkeleton();
+    
+    /// build the multi physics mesh (not at the finest geometric mesh level
+    virtual void BuildMultiPhysicsMesh();
+
     
     /// will create the interface elements between the internal elements and the skeleton
     void CreateInterfaceElements();
@@ -396,6 +441,14 @@ protected:
     /// Divide the wrap element while it has divided neighbours
     void DivideWrap(TPZGeoEl *wrapelement);
     
+    /// Set the Lagrange levels of the connects of the different meshes
+    virtual void SetLagrangeMultiplierLevels();
+    
+public:
+    
+    /// print info about the element
+    static void PrintMeshInfo(TPZCompMesh *cmesh, std::ostream &out);
+    
 protected:
     /// create the lagrange multiplier mesh, one element for each subdomain
     void CreateLagrangeMultiplierMesh();
@@ -403,12 +456,22 @@ protected:
     /// associates the connects of an element with a subdomain
     void SetSubdomain(TPZCompEl *cel, int64_t subdomain);
     
+    /// associates a geometric element with a subdomain
+    void SetSubdomain(TPZGeoEl *gel, int64_t subdomain);
+    
     /// associates the connects index with a subdomain
     void SetSubdomain(TPZCompMesh *cmesh, int64_t connectindex, int64_t subdomain);
     
-    /// returns to which subdomain a given element beint64_ts
-    // this method calls debugstop if the element beint64_ts to two subdomains
+    /// returns to which subdomain a given element belongs
+    // this method calls debugstop if the element belongs to two subdomains
     int64_t WhichSubdomain(TPZCompEl *cel);
+    
+    /// returns to which subdomain a given element belongs
+    // this method calls debugstop if the element belongs to two subdomains
+    int64_t WhichSubdomain(TPZGeoEl *gel)
+    {
+        return fGeoToMHMDomain[gel->Index()];
+    }
     
     /// Subdomains are identified by computational mesh, this method will join
     // the subdomain indices of the connects to the multi physics mesh

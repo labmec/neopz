@@ -26,6 +26,13 @@ enum class MMeshType
 std::string MMeshType_Name(const MMeshType meshType);
 
 /**
+ * @brief Converts your string into a MMeshType
+ * @param name string for the mesh type
+ * @return MMeshType
+ */
+MMeshType StringToMeshtype(const std::string& name);
+
+/**
  * Returns the dimension of the mesh associated with a given mesh type
  * @param meshType mesh type
  * @return dimension

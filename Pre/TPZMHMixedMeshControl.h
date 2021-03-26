@@ -18,12 +18,14 @@ class TPZMHMixedMeshControl : public TPZMHMeshControl
 {
     
 protected:
-    /// computational mesh to contain the pressure elements
-    // this mesh is the same as fCMesh if there are no lagrange multipliers assocated with the average pressure
-    TPZAutoPointer<TPZCompMesh> fFluxMesh;
-    
     /// computational mesh to contain the rotation elements
     TPZAutoPointer<TPZCompMesh> fRotationMesh;
+    
+    /// mesh representing a distributed flux in each element
+    TPZAutoPointer<TPZCompMesh> fDistributedFlux;
+    
+    /// mesh representing the average solution in each element
+    TPZAutoPointer<TPZCompMesh> fAverageSolution;
     
 
 public:
@@ -33,8 +35,6 @@ public:
         
     }
     
-    TPZMHMixedMeshControl(int dimension);
-    //    TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, std::set<int64_t> &coarseindices);
     
     TPZMHMixedMeshControl(TPZAutoPointer<TPZGeoMesh> gmesh, TPZVec<int64_t> &coarseindices);
     
@@ -43,19 +43,23 @@ public:
     
     TPZMHMixedMeshControl(const TPZMHMixedMeshControl &copy) : TPZMHMeshControl(copy)
     {
-        fFluxMesh = copy.fFluxMesh;
+        fRotationMesh = copy.fRotationMesh;
+        DebugStop();
     }
     
     TPZMHMixedMeshControl &operator=(const TPZMHMixedMeshControl &cp)
     {
-        fFluxMesh = cp.fFluxMesh;
         TPZMHMeshControl::operator=(cp);
+        fRotationMesh = cp.fRotationMesh;
+        fDistributedFlux = cp.fDistributedFlux;
+        fAverageSolution = cp.fAverageSolution;
+        DebugStop();
         return *this;
     }
     
     virtual ~TPZMHMixedMeshControl();
     /// Insert Boundary condition objects that do not perform any actual computation
-    virtual void InsertPeriferalMaterialObjects();
+    virtual void InsertPeriferalMaterialObjects() override;
     
     /// Insert the necessary H(div) material objects to create the flux mesh
     virtual void InsertPeriferalHdivMaterialObjects();
@@ -67,17 +71,12 @@ public:
     virtual void InsertPeriferalRotationMaterialObjects();
     
     /// Create all data structures for the computational mesh
-    virtual void BuildComputationalMesh(bool usersubstructure);
-    
-    TPZAutoPointer<TPZCompMesh> FluxMesh()
-    {
-        return fFluxMesh;
-    }
+    virtual void BuildComputationalMesh(bool usersubstructure) override;
     
     /// Set the flag for creating Lagrange Dofs for the average pressure
     void SetLagrangeAveragePressure(bool flag)
     {
-        if (flag == true) {
+        if (flag == false) {
             DebugStop();
         }
     }
@@ -89,20 +88,13 @@ public:
     }
 
     /// Put the pointers to the meshes in a vector
-    void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec)
-    {
-        meshvec.Resize(2);
-        meshvec[0] = fFluxMesh.operator->();
-        meshvec[1] = fPressureFineMesh.operator->();
-    }
+    void GetMeshVec(TPZVec<TPZCompMesh *> &meshvec) override;
 
-    TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes()
-    {
-        TPZManVector<TPZAutoPointer<TPZCompMesh>,3> result(2);
-        result[0] = fFluxMesh;
-        result[1] = fPressureFineMesh;
-        return result;
-    }
+    /// Put the pointers to the meshes in a vector
+    void GetMeshVec(TPZVec<TPZAutoPointer<TPZCompMesh >> &meshvec) override;
+
+    /// return the pointers to the meshes in a vector
+    TPZVec<TPZAutoPointer<TPZCompMesh> > GetMeshes() override;
     
 
     /// print the data structure
@@ -131,14 +123,24 @@ protected:
     virtual void CreateInternalFluxElements();
     
     // create the approximation space associated with the skeleton and restrain the connects
-    virtual void CreateSkeleton();
-    
+    virtual void CreateSkeletonOld();
+
+    // restrain the connects to the skeleton and boundary elements
+    void RestrainToSkeleton();
 
     /// Create the multiphysics mesh
     void CreateHDivPressureMHMMesh();
     
+    /// create the distributed flux and average solution mesh
+    void CreateAverageSolutionMeshes();
+    
+    /// Set the Lagrange levels of the connects of the different meshes
+    virtual void SetLagrangeMultiplierLevels() override;
+    
+
+    
     /// build the multi physics mesh (not at the finest geometric mesh level
-    void BuildMultiPhysicsMesh();
+    void BuildMultiPhysicsMesh() override;
 
     /// Create the interfaces between the pressure elements of dimension dim
     virtual void CreateMultiPhysicsInterfaceElements(int dim);
@@ -148,6 +150,9 @@ protected:
     
     /// put the elements in TPZSubCompMesh, group the elements and condense locally
     void HideTheElements();
+
+    /// put the elements in TPZSubCompMesh, group the elements and condense locally
+    void HideTheElements(int lagrangelevel);
 
     /// hybridize the flux elements with the given material id - each flux element creates
     /// a pressure element
@@ -162,7 +167,6 @@ protected:
     /// delete the pressure elements leaving the geometric mesh without pointing to the computational mesh
     void DeletePressureElements();
 
-    void AdjustBoundaryElements();
 };
 
 #endif /* TPZMHMixedMeshControl_hpp */

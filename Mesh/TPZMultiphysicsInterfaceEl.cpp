@@ -670,13 +670,13 @@ void TPZMultiphysicsInterfaceElement::ComputeCenterNormal(TPZVec<REAL> &normal) 
 
 void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 	
+    out << "Multiphysics Interface element : \n";
 	TPZCompEl::Print(out);
-	out << "\nInterface element : \n";
 	if(!LeftElement() || !LeftElement()->Reference()) out << "\tNULL LeftElement - this is inconsistent\n";
 	else{
                 out << "\tLeft Computational Index: " << LeftElement()->Index() << std::endl;
 		out << "\tLeft Geometric Index: " << LeftElement()->Reference()->Index() << std::endl;
-		out << "\tLeft Geometric Id: " << LeftElement()->Reference()->Id() << std::endl;
+		out << "\tLeft Material Id: " << LeftElement()->Reference()->MaterialId() << std::endl;
 		out << "\tElement Dimension " << LeftElement()->Reference()->Dimension() << std::endl;
 	}
 	
@@ -684,7 +684,7 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 	else{
                 out << "\tRight Computational Index: " << RightElement()->Index() << std::endl;
 		out << "\tRight Geometric Index: " << RightElement()->Reference()->Index() << std::endl;
-		out << "\tRight Geometric Id: " << RightElement()->Reference()->Id() << std::endl;
+		out << "\tRight Material Id: " << RightElement()->Reference()->MaterialId() << std::endl;
 		out << "\tElement Dimension " << RightElement()->Reference()->Dimension() << std::endl;
 	}
 	

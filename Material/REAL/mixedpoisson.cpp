@@ -144,12 +144,24 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         {
             DebugStop();
         }
-    }else
+    }else if(nactive == 6)
     {
-        if(phrp+phrq != ek.Rows())
+        int phrgb = datavec[2].phi.Rows();
+        int phrub = datavec[3].phi.Rows();
+        int phrgb2 = datavec[4].phi.Rows();
+        int phrub2 = datavec[5].phi.Rows();
+        if(phrp+phrq+phrgb+phrub+phrgb2+phrub2 != ek.Rows())
         {
             DebugStop();
         }
+    }
+    else if(phrp+phrq != ek.Rows())
+    {
+            DebugStop();
+    }
+    else
+    {
+        DebugStop();
     }
 #endif
 	//Calculate the matrix contribution for flux. Matrix A
@@ -312,7 +324,7 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
             }
         }
     }
-    if(nactive == 4)
+    if(nactive >= 4)
     {
         for(int ip=0; ip<phrp; ip++)
         {
@@ -321,6 +333,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
         }
         ek(phrp+phrq+1,phrq+phrp) += -weight;
         ek(phrq+phrp,phrp+phrq+1) += -weight;
+    }
+    if(nactive == 6)
+    {
+        for(int ip=0; ip<phrp; ip++)
+        {
+            ek(phrq+ip,phrq+phrp+2) += phip(ip,0)*weight;
+            ek(phrq+phrp+2,phrq+ip) += phip(ip,0)*weight;
+        }
+        ek(phrp+phrq+3,phrq+phrp+2) += -weight;
+        ek(phrq+phrp+2,phrp+phrq+3) += -weight;
     }
     //
 //    #ifdef LOG4CXX

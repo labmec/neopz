@@ -23,6 +23,7 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDiv"));
 static LoggerPtr loggerdiv(Logger::getLogger("pz.mesh.tpzinterpolatedelement.divide"));
+static LoggerPtr loggerconfig(Logger::getLogger("pz.hdiv.vecconfig"));
 #endif
 
 using namespace std;
@@ -875,7 +876,6 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec2(TPZVec<int> &VectorSide, TPZVec<int
     if (count != ivs) {
         DebugStop();
     }
-
 //    cout <<  " foi  " << endl;
 }
 
@@ -1545,7 +1545,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
         }
 
 #ifdef _AUTODIFF
-            data.fDeformedDirectionsFad.Resize(3, numvec);
+        data.fDeformedDirectionsFad.Resize(3, numvec);
 #endif
 
         data.fDeformedDirections.Resize(3, numvec);

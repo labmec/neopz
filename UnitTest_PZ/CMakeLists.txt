@@ -12,6 +12,7 @@ if(BUILD_UNITTESTING)
 		add_subdirectory(TestTopology)
 		add_subdirectory(TestMatrix)
 		add_subdirectory(TestMesh)
+		add_subdirectory(TestMHM)
 		add_subdirectory(TestMaterial)
 		add_subdirectory(TestIntegNum)
 		add_subdirectory(TestIterator)
@@ -27,6 +28,7 @@ if(BUILD_UNITTESTING)
 		source_group(UnitTestTopology FILES ${pztesttopology})
 		source_group(UnitTestMatrix FILES ${pztestmatrix})
 		source_group(UnitTestMesh FILES ${pztestmesh})
+		source_group(UnitTestMHM FILES ${pztestmhm})
 		source_group(UnitTestIntegNum FILES ${pztestintegnum})
 		source_group(UnitTestIterator FILES ${pztestiterator})
 		source_group(UnitTestGeometry FILES ${pztestgeometry})
@@ -37,7 +39,7 @@ if(BUILD_UNITTESTING)
 
 	else()
 
-		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum}
+		set(pztest ${pztest} ${pztestfad} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestmhm} ${pztestintegnum}
 				${pztestiterator} ${pztestrandom} ${pztestshape})
 
 	endif()

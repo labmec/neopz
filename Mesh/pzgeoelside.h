@@ -143,7 +143,17 @@ public:
     /** @brief Area associated with the side */
     REAL Area();
 	
+	/** @returns Number of neighbours */
 	int NNeighbours();
+
+	/** @brief Get number of neighbours of a given dimension */
+	int NNeighbours(int dimfilter);
+
+	/** @brief Get number of neighbours filtered by dimension and/or material id
+	 * @param dimfilter: only return elements of this dimension. Ignore filter if set to < 0;
+	 * @param matids: only return elements of a material id contained in this set. Ignore filter if passing empty set;
+	*/
+	int NNeighbours(int dimfilter, std::set<int>& matids);
 	
 	/** @brief Returns the number of neighbours, excluding the given element (thisElem) */
 	int NNeighboursButThisElem(TPZGeoEl *thisElem);
@@ -151,7 +161,7 @@ public:
 	TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
 	
 	TPZGeoElSide(TPZGeoEl *gel,int side){  fGeoEl = gel; fSide = side;}
-	
+	    
 	/** @brief This constructor set an TPZGeoElSide based in the cornerNodes of an side of gel */
 	/** If the cornerNodes are not consistent, the TPZGeoElSide created is NULL */
 	TPZGeoElSide(TPZGeoEl *gel, std::set<int64_t> &sideCornerNodes);
@@ -319,7 +329,6 @@ public:
     /** verifiy if a larger (lower level) neighbour exists with the given material id
      */
     TPZGeoElSide HasLowerLevelNeighbour(int materialid) const;
-    
     
     /** @brief Will return all elements of equal or higher level than than the current element */
 	void EqualorHigherCompElementList2(TPZStack<TPZCompElSide> &celside, int onlyinterpolated, int removeduplicates);

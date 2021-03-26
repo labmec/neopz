@@ -32,10 +32,10 @@ protected:
     TPZManVector<int64_t,20> fConnectIndexes;
     
     /** @brief indices of the Left Element Vector */
-    TPZManVector<int64_t,3> fLeftElIndices;
+    TPZManVector<int64_t,7> fLeftElIndices;
     
     /** @brief indices of the Right Element Vector */
-    TPZManVector<int64_t,3> fRightElIndices;
+    TPZManVector<int64_t,7> fRightElIndices;
     
 	
 public:

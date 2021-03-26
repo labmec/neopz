@@ -292,6 +292,21 @@ void TPZCondensedCompEl::Resequence()
     }
 }
 
+/// return the number of connects that will be condensed
+int TPZCondensedCompEl::NCondensableConnects() const
+{
+
+    int eq = 0;
+    for (int ic = 0; ic<fIndexes.size(); ic++) {
+        TPZConnect &c = fMesh->ConnectVec()[fIndexes[ic]];
+        int neq = c.NShape()*c.NState();
+        eq += neq;
+        if(eq > fNumInternalEqs) return ic;
+    }
+    return fIndexes.size();
+}
+
+
 /// Assemble the stiffness matrix in locally kept datastructure
 void TPZCondensedCompEl::Assemble()
 {
@@ -501,7 +516,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         std::stringstream sout;
         sout << "BEFORE CONDENSING THE EQUATIONS\n";
         sout << "Index = " << Index() << std::endl;
-        fCondensed.Print("Reduced = ",sout,EMathematicaInput);
+        sout << "Num internal " << fCondensed.Dim0() << std::endl;
+        fCondensed.Print("EKRED = ",sout,EMathematicaInput);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif

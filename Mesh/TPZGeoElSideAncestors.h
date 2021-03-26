@@ -46,7 +46,16 @@ public:
     /// return true is a (strict) larger element with matid exists
     TPZGeoElSide HasLarger(int matid);
     
-    /// return the element/side of the larger element
+    /// return true is a (strict) larger element with matid exists
+    TPZGeoElSide HasLarger(const std::set<int> &matid);
+    
+    /// return true is a (strict) larger element with matid exists
+    TPZGeoElSide HasLargerorEqual(int matid);
+
+    /// return true is a (strict) larger element with matid exists
+    TPZGeoElSide HasLargerorEqual(const std::set<int> &matid);
+
+/// return the element/side of the larger element
     TPZGeoElSide LargeSide(TPZGeoEl *large);
 };
 

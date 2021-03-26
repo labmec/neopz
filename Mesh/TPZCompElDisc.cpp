@@ -98,6 +98,25 @@ void TPZCompElDisc::SetTotalOrderShape(TPZCompMesh * cmesh){
 	}
 }
 
+/** @brief Set shape function type for all discontinuous elements in cmesh. */
+void TPZCompElDisc::SetQsiEtaShape(TPZCompMesh * cmesh, bool qsieta)
+{
+    if(!cmesh) return;
+    int64_t nel = cmesh->NElements();
+    for(int64_t iel = 0; iel < nel; iel++){
+        TPZCompEl * cel = cmesh->ElementVec()[iel];
+        if(!cel) continue;
+        TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
+        if(!disc) continue;
+        if(qsieta)
+            disc->SetTrueUseQsiEta();
+        else
+            disc->SetFalseUseQsiEta();
+    }
+}
+
+
+
 TPZCompElDisc::~TPZCompElDisc() {
 	TPZGeoEl * ref = this->Reference();
 	if (ref){

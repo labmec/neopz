@@ -292,6 +292,9 @@ public:
     /** @brief Returns the number of sides of a given dimension */
     virtual int NSides(int dim) const = 0;
 	
+    /** @brief Returns the first side of a given dimension */
+    virtual int FirstSide(int dim) const = 0;
+    
 	/** @brief Returns the pointer to the nodenum node of side*/
 	virtual TPZGeoNode *SideNodePtr(int side,int nodenum) const;
 	

@@ -19,7 +19,7 @@ class TPZMultiphysicsCompMesh : public TPZCompMesh {
     /// Vector of active physics: index vector
     /// Define wich space will be active in order to generate equations. Should be defined for each space that you want to use by 0: no active or 1: active
     ///The size have to be the same as the m_mesh_vector
-    TPZManVector<int,5> m_active_approx_spaces;
+    TPZManVector<int,7> m_active_approx_spaces;
     
     /// Vector of computational meshes
     TPZManVector<TPZCompMesh * , 7> m_mesh_vector;
@@ -59,8 +59,10 @@ public:
     /// Set active approximation spaces
     void BuildMultiphysicsSpaceWithMemory(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
+    /// transfer the solution from the atomic meshes to the multiphysics mesh
     void LoadSolutionFromMeshes();
     
+    /// transfer the solution from the multiphysics mesh to the atomic meshes
     void LoadSolutionFromMultiPhysics();
     
     /// Get the vector of computational meshes

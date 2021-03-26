@@ -137,7 +137,7 @@ public:
      * @brief Set the active approximation spaces
      * @param indexes List of the active approximation spaces
      */
-    virtual void SetActiveApproxSpaces(TPZManVector<int,5> & active_approx_space)
+    virtual void SetActiveApproxSpaces(TPZVec<int> & active_approx_space)
     {
 #ifdef PZDEBUG
         if(fActiveApproxSpace.size()!= ElementVec().size()){
@@ -152,7 +152,7 @@ public:
      * @brief Set the active approximation spaces
      * @param indexes List of the active approximation spaces
      */
-    virtual TPZManVector<int,5> & GetActiveApproxSpaces()
+    virtual TPZVec<int> & GetActiveApproxSpaces()
     {
         return fActiveApproxSpace;
         

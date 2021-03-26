@@ -322,7 +322,7 @@ TPZConnect &TPZCompEl::Connect(int i) const{
 
 void TPZCompEl::Print(std::ostream & out) const {
 
-	out << "\nOutput for a computable element index: " << fIndex;
+	out << "Output for a computable element index: " << fIndex;
     out << "\nfReferenceIndex " << fReferenceIndex;
 	if(this->Reference())
 	{
@@ -601,9 +601,6 @@ int TPZCompEl::HasDependency() {
     int nconnects = NConnects();
     int in;
     for(in=0; in<nconnects; in++) if(Connect(in).HasDependency()){
-        return 1;
-    }
-    if (GetShapeRestraints().size()) {
         return 1;
     }
     return 0;

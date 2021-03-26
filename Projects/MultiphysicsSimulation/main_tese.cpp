@@ -510,6 +510,7 @@ TPZCompMesh *CMeshPressure(int pOrder,TPZGeoMesh *gmesh)
     for(int i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
         TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        celdisc->SetFalseUseQsiEta();
         celdisc->SetConstC(1.);
         celdisc->SetCenterPoint(0, 0.);
         celdisc->SetCenterPoint(1, 0.);
