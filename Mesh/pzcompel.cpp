@@ -440,7 +440,7 @@ void TPZCompEl::PrintTitle(const char *varname,std::ostream &s) {
     for(int i=0; i<numvar; i++) s << varname << '_' << i << '\t';
 }
 
-inline void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate) {
+void TPZCompEl::Divide(int64_t index, TPZVec<int64_t> &subindex, int interpolate) {
     subindex.Resize(0);
     LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
