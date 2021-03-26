@@ -195,7 +195,7 @@ public:
 	 */
 	inline int64_t NElements() const { return fNElements; }
 
-    /** @brief Returns number of elements allocated for this object. */
+    /** @brief Returns number of elements dynamically for this object. */
     inline int64_t NAlloc() const { return fNAlloc; }
 	/**
 	 * @brief Returns the number of elements of the vector
@@ -343,10 +343,19 @@ TPZVec<T>::TPZVec(const TPZVec<T> &copy){
 }
 
 template< class T >
-TPZVec<T>::TPZVec(TPZVec<T> &&rval) : fStore(std::move(rval.fStore)), fNElements(std::move(rval.fNElements)), fNAlloc(std::move(fNAlloc)){
+TPZVec<T>::TPZVec(TPZVec<T> &&rval) : fNElements(std::move(rval.fNElements)){
+    if(rval.fNAlloc){
+        fStore = rval.fStore;
+        fNAlloc = std::move(rval.fNAlloc);
+        rval.fNAlloc = 0;
+    }else{//rval did not allocate memory. let us just copy
+        fStore = new T[fNElements];
+        for(int64_t i=0; i<fNElements; i++)
+		fStore[i]=rval.fStore[i];
+    }
+    
     rval.fStore = nullptr;
-    rval.fNElements = 0;
-    rval.fNAlloc = 0;
+    rval.fNElements = 0;    
 }
 
 template<class T>
@@ -372,10 +381,16 @@ TPZVec<T> &TPZVec<T>::operator=(const TPZVec<T> &copy){
 template< class T >
 TPZVec<T> &TPZVec<T>::operator=(TPZVec<T> &&rval){
 	if(this != &rval){
-        if(fStore) delete [] fStore;
-        fStore = rval.fStore;
         fNElements = rval.fNElements;
-
+        if(fStore) delete [] fStore;
+        if(rval.fNAlloc){
+            fStore = rval.fStore;
+        }else{
+            fStore = new T[fNElements];
+            for (int64_t i = 0; i < fNElements; i++)
+                fStore[i] = rval.fStore[i];
+        }
+        fNAlloc = fNElements;//perhaps rval.fNalloc was 0
         rval.fStore = nullptr;
         rval.fNElements = 0;
         rval.fNAlloc = 0;

@@ -18,14 +18,18 @@
 
 
 BOOST_AUTO_TEST_CASE(tpzvec_tests) {
-
-    TPZVec<REAL> vec1(std::move(TPZVec<REAL>(3,0.)));//mv ctor
+    //mv ctor
+    TPZVec<REAL> vec1(std::move(TPZVec<REAL>(3,0.)));
     BOOST_CHECK(true);
-    TPZVec<REAL> vec2(vec1);//cp ctor
+    //cp ctor
+    TPZVec<REAL> vec2(vec1);
     BOOST_CHECK(true);
-    vec2= std::move(vec1);//mv assignment
+    //mv assignment
+    vec2= std::move(vec1);
     BOOST_CHECK(true);
+    //mv assignment with tpzmanvector
     TPZVec<REAL> vec3(std::move(TPZManVector<REAL,3>(3,0)));
+    BOOST_CHECK(true)
 }
 
 
