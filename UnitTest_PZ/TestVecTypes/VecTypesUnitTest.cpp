@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(tpzvec_tests) {
     BOOST_CHECK(true);
     //mv assignment with tpzmanvector
     TPZVec<REAL> vec3(std::move(TPZManVector<REAL,3>(3,0)));
-    BOOST_CHECK(true)
+    BOOST_CHECK(true);
 }
 
 
