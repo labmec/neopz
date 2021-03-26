@@ -1985,7 +1985,7 @@ TPZGeoEl * TPZGeoEl::EldestAncestor() const
     TPZGeoEl *father = this->Father();
     if(!father)
     {
-        return NULL;
+        return const_cast<TPZGeoEl*>(this); // we have to cast away the constness given by the const qualifier of this function
     }
     TPZGeoEl *nextfather = NULL;
     if(father) nextfather = father->Father();
