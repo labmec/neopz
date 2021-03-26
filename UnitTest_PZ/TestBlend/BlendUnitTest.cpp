@@ -57,8 +57,9 @@ static TPZLogger logger("pz.mesh.testgeom");
 
 #endif
 
-//#define NOISY_BLEND //outputs x and grad comparisons
-//#define NOISYVTK_BLEND//prints all elements in .vtk format
+//#define BLEND_VERBOSE //outputs x and grad comparisons
+//#define BLEND_OUTPUT_TXT//prints all elements in .txt format
+//#define BLEND_OUTPUT_VTK//prints all elements in .vtk format
 
 std::string dirname = PZSOURCEDIR;
 
@@ -188,18 +189,19 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
         nodesIdVec[2]=5;
         arc = new TPZGeoElRefPattern<pzgeom::TPZArc3D>(nodesIdVec, matIdArc, *gmesh);
         gmesh->BuildConnectivity();
-#ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
         {
-            std::string meshFileName = "gmesh_circle";
-            const size_t strlen = meshFileName.length();
-            meshFileName.append(".vtk");
+          constexpr std::string meshFileName = "gmesh_circle.txt";
+          std::ofstream outTXT(meshFileName.c_str());
+          gmesh->Print(outTXT);
+          outTXT.close();          
+        }
+#endif
+#ifdef BLEND_OUTPUT_VTK
+        {
+            constexpr std::string meshFileName = "gmesh_circle.vtk";
             std::ofstream outVTK(meshFileName.c_str());
-            meshFileName.replace(strlen, 4, ".txt");
-            std::ofstream outTXT(meshFileName.c_str());
-
             TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-            gmesh->Print(outTXT);
-            outTXT.close();
             outVTK.close();
         }
 #endif
@@ -233,18 +235,17 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 //TODO: (IMPORTANT) deactivate the log after testing
             }
         }
-        std::cout<<"quadrilateral_blend_semicircle:"<<std::endl;
-        std::cout<<"\tnPointsTotal = "<<nPointsTotal<<std::endl;
-        std::cout<<"\tnErrorsX = "<<nErrorsX<<std::endl;
+#ifdef BLEND_VERBOSE
+        std::cout<<"quadrilateral_blend_semicircle:"<<'\n';
+        std::cout<<"\tnPointsTotal = "<<nPointsTotal<<'\n';
+        std::cout<<"\tnErrorsX = "<<nErrorsX<<'\n';
         std::cout<<"\tnErrorsGradX = "<<nErrorsGradX<<std::endl;
+#endif
     }
     namespace blendtest{
 
         bool CheckVectors(const TPZVec<REAL> &x1, std::string name1,
                 const TPZVec<REAL> &x2, std::string name2, const REAL &tol){
-            std::ostringstream x1m, x2m;
-            x1m << name1 << std::endl;
-            x2m << name2 << std::endl;
             const auto VAL_WIDTH = 15;
             REAL diff = 0;
             bool hasAnErrorOccurred = false;
@@ -252,28 +253,31 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 hasAnErrorOccurred = true;
                 return hasAnErrorOccurred;
             }
-            for (int i = 0; i < x1.size(); i++) {
-                x1m << std::setw(VAL_WIDTH) << std::right << x1[i] << "\t";
-                x2m << std::setw(VAL_WIDTH) << std::right << x2[i] << "\t";
+            for (int i = 0; i < x1.size(); i++) {    
                 diff += (x1[i] - x2[i]) * (x1[i] - x2[i]);
             }
             if (diff > tol) {
                 hasAnErrorOccurred = true;
             }
             if (hasAnErrorOccurred) {
-                std::cout << std::flush;
-                std::cout << x1m.str() << std::endl;
-                std::cout << x2m.str() << std::endl;
+#ifdef BLEND_VERBOSE
+                std::ostringstream x1m, x2m;
+                x1m << name1 << '\n';
+                x2m << name2 << '\n';
+                for (int i = 0; i < x1.size(); i++) {
+                  x1m << std::setw(VAL_WIDTH) << std::right << x1[i] << "\t";
+                  x2m << std::setw(VAL_WIDTH) << std::right << x2[i] << "\t";
+                }
+                std::cout << x1m.str() << '\n';
+                std::cout << x2m.str() << '\n';
                 std::cout << "diff :" << diff << std::endl;
+#endif
             }
             return hasAnErrorOccurred;
         }
 
         bool CheckMatrices(const TPZFMatrix<REAL> &gradx1, std::string name1,
                           const TPZFMatrix<REAL> &gradx2, std::string name2, const REAL &tol){
-            std::ostringstream x1m, x2m;
-            x1m << name1 << std::endl;
-            x2m << name2 << std::endl;
             const auto VAL_WIDTH = 15;
             REAL diff = 0;
             bool hasAnErrorOccurred = false;
@@ -283,28 +287,40 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             }
             for (int i = 0; i < gradx1.Rows(); i++) {
                 for (int j = 0; j < gradx1.Cols(); j++) {
-                    x1m << std::setw(VAL_WIDTH) << std::right << gradx1.GetVal(i, j) << "\t";
-                    x2m << std::setw(VAL_WIDTH) << std::right << gradx2.GetVal(i, j) << "\t";
                     diff += (gradx1.GetVal(i, j) - gradx2.GetVal(i, j)) * (gradx1.GetVal(i, j) - gradx2.GetVal(i, j));
                 }
-                x1m << std::endl;
-                x2m << std::endl;
             }
             if (diff > tol) {
                 hasAnErrorOccurred = true;
             }
             if (hasAnErrorOccurred) {
-                std::cout << std::flush;
-                std::cout << x1m.str() << std::endl;
-                std::cout << x2m.str() << std::endl;
+#ifdef BLEND_VERBOSE
+                std::ostringstream x1m, x2m;
+                x1m << name1 << std::endl;
+                x2m << name2 << std::endl;
+                for (int i = 0; i < gradx1.Rows(); i++) {
+                  for (int j = 0; j < gradx1.Cols(); j++) {
+                    x1m << std::setw(VAL_WIDTH) << std::right
+                        << gradx1.GetVal(i, j) << "\t";
+                    x2m << std::setw(VAL_WIDTH) << std::right
+                        << gradx2.GetVal(i, j) << "\t";            
+                  }
+                  x1m << '\n';
+                  x2m << '\n';
+                }
+                std::cout << x1m.str() << '\n';
+                std::cout << x2m.str() << '\n';
                 std::cout << "diff :" << diff << std::endl;
+#endif
             }
             return hasAnErrorOccurred;
         }
 
         template <class TGeo>
         void CompareQuadraticAndBlendEls() {
+#ifdef BLEND_VERBOSE
             std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
             auto elType = TGeo::Type();
 
             const int64_t nCornerNodes = TGeo::NCornerNodes;
@@ -459,14 +475,13 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             for(int i = 0; i < nodesIdVec.size(); i++ ) nodesIdVec[i] = i + nNodesOriginalMesh;
             TPZGeoEl *blendEl = new TPZGeoElRefLess<pzgeom::TPZGeoBlend<TGeo>>(elId,nodesIdVec,matIdVol,*gmesh);
 
-#ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
             {
-                std::string meshFileName = "gmesh_" + TGeo::TypeName();
-                const size_t strlen = meshFileName.length();
-                meshFileName.replace(strlen, 4, ".txt");
-                std::ofstream outTXT(meshFileName.c_str());
-                gmesh->Print(outTXT);
-                outTXT.close();
+              const std::string meshFileName =
+                  "gmesh_" + TGeo::TypeName() + ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
             }
 #endif
             ///////CREATE MAX DIM - 1 ELEMENTS FOR BLENDING
@@ -515,20 +530,22 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             }
             gmesh->BuildConnectivity();
 
-
-#ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
             {
-                std::string meshFileName = "gmesh_" + TGeo::TypeName();
-                const size_t strlen = meshFileName.length();
-                meshFileName.append(".vtk");
-                std::ofstream outVTK(meshFileName.c_str());
-                meshFileName.replace(strlen, 4, ".txt");
-                std::ofstream outTXT(meshFileName.c_str());
-
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-                gmesh->Print(outTXT);
-                outTXT.close();
-                outVTK.close();
+              const std::string meshFileName =
+                  "gmesh_" + TGeo::TypeName() ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
+            }
+#endif
+#ifdef BLEND_OUTPUT_VTK
+            {
+              const std::string meshFileName =
+                  "gmesh_" + TGeo::TypeName() ".vtk";
+              std::ofstream outVTK(meshFileName.c_str());
+              TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+              outVTK.close();
             }
 #endif
             //X COMPARE
@@ -556,6 +573,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                         hasAnErrorOccurred = blendtest::CheckVectors(xBlend,"xBlend",xQuad,"xQuad",blendtest::tol);
                         BOOST_CHECK(!hasAnErrorOccurred);
                         if(hasAnErrorOccurred){
+#ifdef BLEND_VERBOSE
                             if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
                             if(iSide == TGeo::NSides - 1) errorsInterior++;
                             const auto VAL_WIDTH = 15;
@@ -569,6 +587,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                     TPZManVector<REAL, 3> xNeigh(3);
                                     neigh.X(neighXi, xNeigh);
                                     std::cout<<"x_neigh_blend:"<<std::endl;
+p
                                     for (int i = 0; i < xNeigh.size(); i++) {
                                         std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i] - coordsOffset[i]
                                                   << "\t";
@@ -580,12 +599,14 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                             if(iSide < TGeo::NSides - 1){
                                 auto neigh = quadraticEl->Neighbour(iSide);
                                 if(neigh.Id() != quadraticEl->Id()) {
+                                    
                                     TPZGeoElSide thisside(quadraticEl, iSide);
                                     auto neighTransf = thisside.NeighbourSideTransform(neigh);
                                     TPZManVector<REAL, 3> neighXi(neigh.Dimension(), 0);
                                     neighTransf.Apply(xiSide, neighXi);
                                     TPZManVector<REAL, 3> xNeigh(3);
                                     neigh.X(neighXi, xNeigh);
+                                    
                                     std::cout<<"x_neigh_quad:"<<std::endl;
                                     for (int i = 0; i < xNeigh.size(); i++) {
                                         std::cout << std::setw(VAL_WIDTH) << std::right << xNeigh[i]<< "\t";
@@ -593,9 +614,10 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                     std::cout<<std::endl;
                                 }
                             }
+#endif
                         }
                     }
-#ifdef NOISY_BLEND
+#ifdef BLEND_VERBOSE
                     if(iSide == TGeo::NSides - 1){
                         std::cout<<"\tNumber of interior points: "<<intRule->NPoints()<<"\tErrors: "<<errorsInterior<<std::endl;
                     }else{
@@ -607,7 +629,9 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 for(int i = 0; i< errorsSide.size(); i++){
                     errorsTotal +=errorsSide[i];
                 }
+#ifdef BLEND_VERBOSE
                 std::cout<<"\tNumber of points: "<<nPoints<<"\tErrors: "<<errorsTotal<<std::endl;
+#endif
             }
             delete gmesh;
         }
@@ -615,7 +639,9 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
 
     template <class TGeo>
     void CompareSameDimensionNonLinNeighbour(int nref) {
+#ifdef BLEND_VERBOSE
         std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
         auto elType = TGeo::Type();
 
         const int64_t nCornerNodes = TGeo::NCornerNodes;
@@ -745,20 +771,23 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             }
         }
 
-#ifdef NOISYVTK_BLEND
-    {
-        std::string meshFileName = "gmesh_nonlin_" + TGeo::TypeName();
-            const size_t strlen = meshFileName.length();
-            meshFileName.append(".vtk");
-            std::ofstream outVTK(meshFileName.c_str());
-            meshFileName.replace(strlen, 4, ".txt");
-            std::ofstream outTXT(meshFileName.c_str());
-
-            TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-            gmesh->Print(outTXT);
-            outTXT.close();
-            outVTK.close();
-    }
+#ifdef BLEND_OUTPUT_TXT
+            {
+              const std::string meshFileName =
+                  "gmesh_nonlin_" + TGeo::TypeName() ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
+            }
+#endif
+#ifdef BLEND_OUTPUT_VTK
+            {
+              const std::string meshFileName =
+                  "gmesh_nonlin_" + TGeo::TypeName() ".vtk";
+              std::ofstream outVTK(meshFileName.c_str());
+              TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+              outVTK.close();
+            }
 #endif
 
         //X COMPARE
@@ -785,6 +814,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                     hasAnErrorOccurred = blendtest::CheckVectors(xBlend, "xBlend", xNonLin, "xNonLin", blendtest::tol);
                     BOOST_CHECK(!hasAnErrorOccurred);
                     if(hasAnErrorOccurred){
+#ifdef BLEND_VERBOSE
                         if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
                         if(iSide == TGeo::NSides - 1) errorsInterior++;
                         const auto VAL_WIDTH = 15;
@@ -822,9 +852,10 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                 std::cout<<std::endl;
                             }
                         }
+#endif
                     }
                 }
-#ifdef NOISY_BLEND
+#ifdef BLEND_VERBOSE
                 if(iSide == TGeo::NSides - 1){
                     std::cout<<"\tNumber of interior points: "<<intRule->NPoints()<<"\tErrors: "<<errorsInterior<<std::endl;
                 }else{
@@ -836,14 +867,18 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             for(int i = 0; i< errorsSide.size(); i++){
                 errorsTotal +=errorsSide[i];
             }
+#ifdef BLEND_VERBOSE
             std::cout<<"\tNumber of points: "<<nPoints<<"\tErrors: "<<errorsTotal<<std::endl;
+#endif
         }
         delete gmesh;
     }
 
 
         void CreateGeoMesh2D(int nDiv) {
+#ifdef BLEND_VERBOSE
             std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
             TPZGeoMesh *gmesh = new TPZGeoMesh();
 
             TPZVec<REAL> coord(3, 0.);
@@ -984,21 +1019,24 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
 
             gmesh->ResetConnectivities();
             gmesh->BuildConnectivity();
-#ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
             {
-                std::string meshFileName = "blendmesh2D_partial";
-                const size_t strlen = meshFileName.length();
-                meshFileName.append(".vtk");
-                std::ofstream outVTK(meshFileName.c_str());
-                meshFileName.replace(strlen, 4, ".txt");
-                std::ofstream outTXT(meshFileName.c_str());
-
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-                gmesh->Print(outTXT);
-                outTXT.close();
-                outVTK.close();
+              const std::string meshFileName =
+                  "blendmesh2D_partial" + TGeo::TypeName() ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
             }
 #endif
+#ifdef BLEND_OUTPUT_VTK
+            {
+              const std::string meshFileName =
+                  "blendmesh2D_partial" + TGeo::TypeName() ".vtk";
+              std::ofstream outVTK(meshFileName.c_str());
+              TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+              outVTK.close();
+            }
+#endif            
             {
                 TPZManVector<REAL,3> xiReal;
                 TPZManVector<Fad<REAL>,3> xiFad;
@@ -1038,19 +1076,20 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                 errors++;
                             }
                         }
-                        if(errors > 0){
-                            std::cout<<"============================"<<std::endl;
-                            std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
-                            std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
-                            std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
-                        }else{
-                            if(geo->IsGeoBlendEl()){
-                                std::cout<<"============================"<<std::endl;
-                                std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
-                                std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
-                                std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
-                            }
+#ifdef BLEND_VERBOSE
+                        if(errors > 0 || geo->IsGeoBlendEl()){
+                          std::cout << "============================"
+                                    << std::endl;
+                          std::cout
+                              << "Element: " << geo->Id()
+                              << "\tType: " << MElementType_Name(geo->Type());
+                          std::cout << "\tIs blend? : " << geo->IsGeoBlendEl()
+                                    << std::endl;
+                          std::cout
+                              << "\tNumber of points: " << intRule->NPoints()
+                              << "\tErrors: " << errors << std::endl;
                         }
+#endif
                     }
                 }
             }
@@ -1060,45 +1099,43 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 TPZVec<TPZGeoEl *> sons;
                 std::vector<std::string> loading = {"-","/","|","\\"};
                 for (int iDiv = 0; iDiv < nDiv; iDiv++) {
-                    #ifdef NOISY_BLEND
                     std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
-                    #endif
                     const int nel = gmesh->NElements();
                     for (int iel = 0; iel < nel; iel++) {
-                        #ifdef NOISY_BLEND
                         std::cout<<"\b"<<loading[iel%4]<<std::flush;
-                        #endif
                         TPZGeoEl *geo = gmesh->ElementVec()[iel];
                         if (geo && !geo->HasSubElement()) {
                             geo->Divide(sons);
                         }
                     }
-                    #ifdef NOISY_BLEND
-                    std::cout<<"\b"<<std::endl;
-                    #endif
+                    std::cout<<"\b";
                 }
             }
-
-            #ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
             {
-                std::string meshFileName = "blendmesh2D";
-                const size_t strlen = meshFileName.length();
-                meshFileName.append(".vtk");
-                std::ofstream outVTK(meshFileName.c_str());
-                meshFileName.replace(strlen, 4, ".txt");
-                std::ofstream outTXT(meshFileName.c_str());
-
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-                gmesh->Print(outTXT);
-                outTXT.close();
-                outVTK.close();
+              const std::string meshFileName =
+                  "blendmesh2D" + TGeo::TypeName() ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
             }
-            #endif
+#endif
+#ifdef BLEND_OUTPUT_VTK
+            {
+              const std::string meshFileName =
+                  "blendmesh2D" + TGeo::TypeName() ".vtk";
+              std::ofstream outVTK(meshFileName.c_str());
+              TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+              outVTK.close();
+            }
+#endif            
             delete gmesh;
         }
 
         void CreateGeoMesh3D(int nDiv){
+#ifdef BLEND_VERBOSE
             std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
             TPZGeoMesh *gmesh = new TPZGeoMesh();
 
             const int64_t nNodesHexa = 8;
@@ -1249,19 +1286,22 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
             }
             gmesh->ResetConnectivities();
             gmesh->BuildConnectivity();
-#ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
             {
-                std::string meshFileName = "blendmesh3D_partial";
-                const size_t strlen = meshFileName.length();
-                meshFileName.append(".vtk");
-                std::ofstream outVTK(meshFileName.c_str());
-                meshFileName.replace(strlen, 4, ".txt");
-                std::ofstream outTXT(meshFileName.c_str());
-
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-                gmesh->Print(outTXT);
-                outTXT.close();
-                outVTK.close();
+              const std::string meshFileName =
+                  "blendmesh3D_partial" + TGeo::TypeName() ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
+            }
+#endif
+#ifdef BLEND_OUTPUT_VTK
+            {
+              const std::string meshFileName =
+                  "blendmesh3D_partial" + TGeo::TypeName() ".vtk";
+              std::ofstream outVTK(meshFileName.c_str());
+              TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+              outVTK.close();
             }
 #endif
             {
@@ -1300,19 +1340,20 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                                 errors++;
                             }
                         }
-                        if(errors > 0){
-                            std::cout<<"============================"<<std::endl;
-                            std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
-                            std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
-                            std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
-                        }else{
-                            if(geo->IsGeoBlendEl()){
-                                std::cout<<"============================"<<std::endl;
-                                std::cout<<"Element: "<<geo->Id()<<"\tType: "<<MElementType_Name(geo->Type());
-                                std::cout<<"\tIs blend? : "<<geo->IsGeoBlendEl()<<std::endl;
-                                std::cout<<"\tNumber of points: "<<intRule->NPoints()<<"\tErrors: "<<errors<<std::endl;
-                            }
+#ifdef BLEND_VERBOSE
+                        if(errors > 0 || geo->IsGeoBlendEl()){
+                          std::cout << "============================"
+                                    << std::endl;
+                          std::cout
+                              << "Element: " << geo->Id()
+                              << "\tType: " << MElementType_Name(geo->Type());
+                          std::cout << "\tIs blend? : " << geo->IsGeoBlendEl()
+                                    << std::endl;
+                          std::cout
+                              << "\tNumber of points: " << intRule->NPoints()
+                              << "\tErrors: " << errors << std::endl;
                         }
+#endif
                     }
                 }
             }
@@ -1320,14 +1361,13 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 TPZVec<TPZGeoEl *> sons;
                 std::vector<std::string> loading = {"-","/","|","\\"};
                 for (int iDiv = 0; iDiv < nDiv; iDiv++) {
-#ifdef NOISY_BLEND
+#ifdef BLEND_OUTPUT_TXT
                     {
-                        std::string meshFileName = "blendmesh3D_ref";
-                        meshFileName.append(std::to_string(iDiv));
-                        meshFileName.append(".txt");
-                        std::ofstream outTXT(meshFileName.c_str());
-                        gmesh->Print(outTXT);
-                        outTXT.close();
+                      const std::string meshFileName =
+                          "blendmesh3D_ref" + std::to_string(iDiv) + ".txt";
+                      std::ofstream outTXT(meshFileName.c_str());
+                      gmesh->Print(outTXT);
+                      outTXT.close();
                     }
 #endif
                     std::cout<<"Performing "<<iDiv+1<<" ref step out of " << nDiv<<std::endl;
@@ -1339,25 +1379,27 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                             geo->Divide(sons);
                         }
                     }
-                    std::cout<<"\b"<<std::endl;
+                    std::cout<<"\b";
                 }
             }
-
-            #ifdef NOISYVTK_BLEND
+#ifdef BLEND_OUTPUT_TXT
             {
-                std::string meshFileName = "blendmesh3D";
-                const size_t strlen = meshFileName.length();
-                meshFileName.append(".vtk");
-                std::ofstream outVTK(meshFileName.c_str());
-                meshFileName.replace(strlen, 4, ".txt");
-                std::ofstream outTXT(meshFileName.c_str());
-
-                TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
-                gmesh->Print(outTXT);
-                outTXT.close();
-                outVTK.close();
+              const std::string meshFileName =
+                  "blendmesh3D" + TGeo::TypeName() ".txt";
+              std::ofstream outTXT(meshFileName.c_str());
+              gmesh->Print(outTXT);
+              outTXT.close();
             }
-            #endif
+#endif
+#ifdef BLEND_OUTPUT_VTK
+            {
+              const std::string meshFileName =
+                  "blendmesh3D" + TGeo::TypeName() ".vtk";
+              std::ofstream outVTK(meshFileName.c_str());
+              TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outVTK, true);
+              outVTK.close();
+            }
+#endif
             delete gmesh;
         }
 
