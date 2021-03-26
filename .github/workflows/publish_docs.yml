@@ -5,7 +5,7 @@ on:
   #  branches-ignore:
   #    - '**'  
   push:
-    branches: [ refactor-cmake ]
+    branches: [ RefactorGeom, refactor-cmake ]
   #pull_request:
   # branches: [ main ]
   
