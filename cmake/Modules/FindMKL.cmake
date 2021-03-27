@@ -160,7 +160,7 @@ endif(CMAKE_MKL_DEBUG)
 # Determine MKL's library folder
 #
 set(_mkl_libpath_suffix_orig "lib/intel64")
-if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
+if(UNIX AND CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
     set(_mkl_libpath_suffix_orig "lib/ia32")
 endif()
 
@@ -220,6 +220,13 @@ find_path(MKL_INCLUDE_DIR mkl.h
     )
 mark_as_advanced(MKL_INCLUDE_DIR)
 
+if(NOT MKL_INCLUDE_DIR)
+    message(FATAL_ERROR "Could not find MKL_INCLUDE_DIR."
+        "If your MKL install is in a non-standard folder, please set the CMake variable "
+        "EXTRA_SEARCH_DIRS accordingly."
+        )
+    return()
+endif()
 if(CMAKE_MKL_DEBUG)  
   message(STATUS "MKL INCLUDE DIR ${MKL_INCLUDE_DIR}")
 endif()
@@ -272,12 +279,10 @@ __mkl_find_library(MKL_BLACS_OMPI_32BIT_LIB mkl_blacs_openmpi_lp64)
 __mkl_find_library(MKL_BLACS_OMPI_64BIT_LIB mkl_blacs_openmpi_ilp64)
 
 
-if(UNIX)
 # ScaLAPACK
 #
 __mkl_find_library(MKL_SCALAPACK_32BIT_LIB mkl_scalapack_lp64)
 __mkl_find_library(MKL_SCALAPACK_64BIT_LIB mkl_scalapack_ilp64)
-endif()
 # Check if core libs were found
 #
 find_package_handle_standard_args(MKL REQUIRED_VARS MKL_INCLUDE_DIR
