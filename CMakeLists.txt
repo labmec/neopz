@@ -348,6 +348,9 @@ endif()
 
 if(BUILD_UNITTESTING)
     add_subdirectory(UnitTest_PZ)
+    #Enabling tests
+    ENABLE_TESTING()
+    include(CTest)
 endif()
 
 if(NOT BUILD_COMPLEX_PROJECTS)
@@ -356,9 +359,6 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif()
 
-#Enabling tests
-ENABLE_TESTING()
-include(CTest)
 
 #To build the documentation using doxygen
 option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)
