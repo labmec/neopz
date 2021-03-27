@@ -23,13 +23,12 @@
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #include <cmath>
+#endif // _USE_MATH_DEFINES
 //additional math defines
 #define M_SQRT3   1.732050807568877293527446341505872366
 #define M_SQRT1_3 0.577350269189625764509148780501957455
 #define M_SQRT6   2.449489742783178098197284074705891391
 #define M_SQRT1_6 0.408248290463863016366214012450981898
-#endif // _USE_MATH_DEFINES
-
 #include <iostream>
 #include <complex>
 #include "fpo_exceptions.h"
