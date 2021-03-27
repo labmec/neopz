@@ -17,7 +17,18 @@ include(cmake/StandardPZSettings.cmake)
 
 ## RPATH SETTINGS - BEGIN
 # rpath settings must be set before any target is declared
-include(GNUInstallDirs)
+if(UNIX)
+  include(GNUInstallDirs)
+else()
+  if (WIN32)
+    set(CMAKE_INSTALL_LIBDIR "lib")
+    set(CMAKE_INSTALL_DATADIR "share")
+    set(CMAKE_INSTALL_INCLUDEDIR "include")
+    set(CMAKE_INSTALL_BINDIR "bin")
+  else()
+    message(FATAL_ERROR "System not UNIX nor WIN32 - not implemented yet")
+  endif()
+endif()
 
 set(PZLIB_INSTALL_PREFIX "pz")
 set(CMAKE_INSTALL_LIBDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
@@ -285,10 +296,6 @@ endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 set (CONFIG_H "${PROJECT_BINARY_DIR}/Common/pz_config.h")
 configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 
-# Provide a standard relative layout for the installation directory.
-# Documentation directory is set to share/doc/PROJECT_NAME.
-
-
 #this variable will contain all the public headers from neopz
 set(PZ_PUBLIC_HEADERS "")
 # add it to include search path
@@ -342,7 +349,12 @@ install(TARGETS pz
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
 #where cmake config files are going to be set
-set(PZ_CMAKE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/neopz)
+if(WIN32)
+    set(PZ_CMAKE_INSTALL_DIR_SUFFIX "/cmake")
+else()
+    set(PZ_CMAKE_INSTALL_DIR_SUFFIX "/lib/cmake/neopz")
+endif()
+set(PZ_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}${PZ_CMAKE_INSTALL_DIR_SUFFIX}")
 
 install(EXPORT NeoPZTargets
         FILE NeoPZTargets.cmake
