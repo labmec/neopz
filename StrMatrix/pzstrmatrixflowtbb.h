@@ -8,7 +8,6 @@
 
 #include <set>
 #include <map>
-#include <semaphore.h>
 #include "pzvec.h"
 #include "tpzautopointer.h"
 #include "pzcmesh.h"

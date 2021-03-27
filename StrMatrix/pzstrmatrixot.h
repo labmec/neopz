@@ -10,7 +10,6 @@ synchronized.
 
 #include <set>
 #include <map>
-#include <semaphore.h>
 #include <mutex>
 #include <condition_variable>
 #include "pzvec.h"
