@@ -323,7 +323,7 @@ add_subdirectory(Exception)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if(WIN32)
-    set(CMAKE_INSTALL_PREFIX "C:/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
+    set(CMAKE_INSTALL_PREFIX "C:/Program\ Files/NeoPZ"  CACHE PATH "Directory where PZ will be installed" FORCE)
   else()
     set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
   endif()

@@ -3,4 +3,4 @@ set(CONFIG_DEST ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/Common/pz_co
 if(PZ_LOG)
     set(PZ_LOG4CXX_CONFIG_FILE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/Util/log4cxx.cfg)
 endif()
-configure_file (${PZSOURCEDIR}/Common/pz_config.h.in ${CONFIG_DEST})
+configure_file (${PZSOURCEDIR}/Common/pz_config.h.in "${CONFIG_DEST}")
