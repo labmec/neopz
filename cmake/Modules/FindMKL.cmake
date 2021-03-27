@@ -131,7 +131,7 @@ if (WIN32)
 	list(APPEND _mkl_search_paths "${PRG_FOLD}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
 	list(APPEND _mkl_search_paths "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
 	list(APPEND _mkl_search_paths "${PRG_FOLD}/Intel/oneAPI/mkl") # default for oneAPI (2020 and later)
-elseif(UNIX)#we need to test if we need sth different for apple
+elseif(UNIX)
 	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
 		list(APPEND _mkl_search_paths "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
 		list(APPEND _mkl_search_paths "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
@@ -153,7 +153,7 @@ endif()
 if(CMAKE_MKL_DEBUG)
     message(STATUS "Searching for MKL in:")
     foreach (dir ${_mkl_search_paths})
-        message(${dir})
+        message(STATUS ${dir})
     endforeach ()         
 endif(CMAKE_MKL_DEBUG)
 
@@ -271,11 +271,13 @@ endif()
 __mkl_find_library(MKL_BLACS_OMPI_32BIT_LIB mkl_blacs_openmpi_lp64)
 __mkl_find_library(MKL_BLACS_OMPI_64BIT_LIB mkl_blacs_openmpi_ilp64)
 
+
+if(UNIX)
 # ScaLAPACK
 #
 __mkl_find_library(MKL_SCALAPACK_32BIT_LIB mkl_scalapack_lp64)
 __mkl_find_library(MKL_SCALAPACK_64BIT_LIB mkl_scalapack_ilp64)
-
+endif()
 # Check if core libs were found
 #
 find_package_handle_standard_args(MKL REQUIRED_VARS MKL_INCLUDE_DIR
@@ -286,10 +288,16 @@ find_package_handle_standard_args(MKL REQUIRED_VARS MKL_INCLUDE_DIR
 #
 set(_mkl_dep_found_SEQ TRUE)
 if(TARGET TBB::tbb)
+    if(CMAKE_MKL_DEBUG)
+        message(STATUS "MKL Found TBB")
+    endif()
   set(_mkl_dep_TBB TBB::tbb)
   set(_mkl_dep_found_TBB TRUE)
 endif()
 if (TARGET OpenMP::OpenMP_CXX)
+    if(CMAKE_MKL_DEBUG)
+        message(STATUS "MKL Found OMP")
+    endif()
   set(_mkl_dep_OMP OpenMP::OpenMP_CXX)
   set(_mkl_dep_found_OMP TRUE)
 endif()
@@ -374,3 +382,4 @@ foreach(_libtype "ST" "DYN")
     endforeach()
 endforeach()
 mark_as_advanced(MKL_ROOT)
+mark_as_advanced(TBB_DIR)
