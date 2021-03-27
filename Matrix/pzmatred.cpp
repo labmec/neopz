@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
-using namespace std;
 
 
 #include "pzmatred.h"
@@ -22,6 +21,7 @@ using namespace std;
 static TPZLogger logger("pz.matrix.tpzmatred");
 #endif
 
+using namespace std;
 /*************************** Public ***************************/
 
 /******************/
