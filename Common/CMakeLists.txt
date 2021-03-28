@@ -11,6 +11,7 @@ set(public_headers
   pzerror.h
   pzreal.h
   fpo_exceptions.h
+  pz_shared_exports.h
   )
 set(headers
     TPZGuiInterface.h
@@ -25,6 +26,7 @@ set(headers
     pzerror.h
     pzreal.h
     pzversion.h
+    pz_shared_exports.h
     )
 
 set(sources

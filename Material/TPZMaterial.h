@@ -20,6 +20,9 @@
 #include <iostream>
 #include <string>
 
+//for TPZMaterial::gBigNumber
+#include "pz_shared_exports.h"
+
 class TPZBndCond;
 class TPZIntPoints;
 class TPZCompEl;
@@ -72,7 +75,7 @@ protected:
     
 public:
     /** @brief Big number to penalization method, used for Dirichlet conditions */
-    static REAL gBigNumber;
+    static  REAL PZ_EXPORT gBigNumber;
     
     /** @brief Creates a material object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */

@@ -15,4 +15,17 @@ function(add_unit_test testName)
     if(PZ_LOG)
       target_link_libraries(${testName} PRIVATE ${Log4cxx_LIBRARY})
     endif()
+    if (WIN32)
+        # TODOWIN32 (Gustavo 06/03/2021): this part needs testing with Visual Studio.
+        # More specifically we need to check if the relative paths of the generated file tabs are
+        # correct (specified here by UnitTests/${testName}).
+        source_group(UnitTests/${testName} FILES ${ARGN})
+        foreach(file ${PZ_ADDITIONAL_DLLS})
+            get_filename_component(fileName ${file} NAME)
+            add_custom_command(TARGET ${testName} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${file}
+                ${CMAKE_CFG_INTDIR}/${fileName})
+        endforeach()
+    endif()
 endfunction()

@@ -21,7 +21,8 @@
 #include "pzeltype.h"
 #include "tpzautopointer.h"
 #include "TPZRefPattern.h"
-
+//for gRefDBase
+#include "pz_shared_exports.h"
 /**
  * @ingroup refine
  * @brief Defines data base of patterns. \ref refine "Refine"
@@ -98,6 +99,6 @@ protected:
 };
 
 /// External variable to data base of patterns
-extern TPZRefPatternDataBase gRefDBase;
+extern TPZRefPatternDataBase PZ_EXPORT gRefDBase;
 
 #endif

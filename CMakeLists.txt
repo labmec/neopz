@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Definition of build type and REAL and STATE types
 include(cmake/StandardPZSettings.cmake)
-
+include(GenerateExportHeader)
 ## RPATH SETTINGS - BEGIN
 # rpath settings must be set before any target is declared
 if(UNIX)
@@ -51,16 +51,28 @@ set(CMAKE_MACOSX_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
 ##RPATH SETTINGS - END
+if(WIN32)
+    #this is for generating a .lib along with a .dll on win systems
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    #include Microsoft redistributable in the installer
+    set(CMAKE_INSTALL_UCRT_LIBRARIES ON)
+    include (InstallRequiredSystemLibraries)
+    set(PZ_ADDITIONAL_DLLS ${__ucrt_dlls})
+    mark_as_advanced(PZ_ADDITIONAL_DLLS)
+endif()
 set(PZ_LIB_TYPE SHARED)
 add_library(pz ${PZ_LIB_TYPE} "")
-
 ##TODOWIN32: check whether these distinctions are really necessary
 ##TODO: are they ok when private?
 if (WIN32)
 	# Prevents timespec redefinition problem with Visual Studio 2015
-  target_compile_definitions(pz
-    PRIVATE
-    HAVE_STRUCT_TIMESPEC)
+    target_compile_definitions(pz
+        PRIVATE
+        HAVE_STRUCT_TIMESPEC)
+    #it indirectly allows to export more symbols on win systems 
+    target_compile_definitions(pz
+        PRIVATE
+        /Ob2)
 else (WIN32)
   target_compile_options(pz
     PRIVATE
@@ -330,7 +342,7 @@ add_subdirectory(Exception)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if(WIN32)
-    set(CMAKE_INSTALL_PREFIX "C:/Program\ Files/NeoPZ"  CACHE PATH "Directory where PZ will be installed" FORCE)
+    set(CMAKE_INSTALL_PREFIX "C:/NeoPZ"  CACHE PATH "Directory where PZ will be installed" FORCE)
   else()
     set(CMAKE_INSTALL_PREFIX "/opt/neopz" CACHE PATH "Directory where PZ will be installed" FORCE)
   endif()
@@ -354,7 +366,11 @@ if(WIN32)
 else()
     set(PZ_CMAKE_INSTALL_DIR_SUFFIX "/lib/cmake/neopz")
 endif()
-set(PZ_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}${PZ_CMAKE_INSTALL_DIR_SUFFIX}")
+if(WIN32)
+    set(PZ_CMAKE_INSTALL_DIR "C:/Program Files/NeoPZ/${PZ_CMAKE_INSTALL_DIR_SUFFIX}")
+else()
+    set(PZ_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}${PZ_CMAKE_INSTALL_DIR_SUFFIX}")
+endif()
 
 install(EXPORT NeoPZTargets
         FILE NeoPZTargets.cmake
