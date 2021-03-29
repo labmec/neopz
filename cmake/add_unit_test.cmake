@@ -20,7 +20,7 @@ function(add_unit_test testName)
         # More specifically we need to check if the relative paths of the generated file tabs are
         # correct (specified here by UnitTests/${testName}).
         source_group(UnitTests/${testName} FILES ${ARGN})
-        foreach(file ${PZ_ADDITIONAL_DLLS})
+        foreach(file ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
             get_filename_component(fileName ${file} NAME)
             add_custom_command(TARGET ${testName} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different

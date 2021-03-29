@@ -56,9 +56,9 @@ if(WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
     #include Microsoft redistributable in the installer
     set(CMAKE_INSTALL_UCRT_LIBRARIES ON)
+    #let us include them with the pz dll
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
     include (InstallRequiredSystemLibraries)
-    set(PZ_ADDITIONAL_DLLS ${__ucrt_dlls})
-    mark_as_advanced(PZ_ADDITIONAL_DLLS)
 endif()
 set(PZ_LIB_TYPE SHARED)
 add_library(pz ${PZ_LIB_TYPE} "")
@@ -370,6 +370,12 @@ if(WIN32)
     set(PZ_CMAKE_INSTALL_DIR "C:/Program Files/NeoPZ/${PZ_CMAKE_INSTALL_DIR_SUFFIX}")
 else()
     set(PZ_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}${PZ_CMAKE_INSTALL_DIR_SUFFIX}")
+endif()
+
+if(WIN32)
+    install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        )
 endif()
 
 install(EXPORT NeoPZTargets
