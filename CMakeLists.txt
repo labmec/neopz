@@ -87,6 +87,8 @@ if(USING_LOG4CXX)
   enable_log4cxx(pz)
   set(PZ_LOG ON) # Will add a define PZ_LOG on pz_config.h
   set(PZ_LOG4CXX_CONFIG_FILE ${PROJECT_SOURCE_DIR}/Util/log4cxx.cfg) #specify where log4cxx config is found
+else()
+  set(PZ_LOG OFF)
 endif()
 
 #enabling METIS library
