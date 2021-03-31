@@ -150,20 +150,20 @@ macro(findpkg_finish PREFIX TARGET_NAME)
     if (${PREFIX}_LIBRARY_DEBUG)
       tbb_extract_real_library(${${PREFIX}_LIBRARY_DEBUG} real_debug)
     endif ()
-    add_library(TBB::${TARGET_NAME} UNKNOWN IMPORTED)
+    add_library(TBB::${TARGET_NAME} INTERFACE IMPORTED)
     set_target_properties(TBB::${TARGET_NAME} PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES "${${PREFIX}_INCLUDE_DIR}")
     if (${PREFIX}_LIBRARY_DEBUG AND ${PREFIX}_LIBRARY_RELEASE)
       set_target_properties(TBB::${TARGET_NAME} PROPERTIES
-        IMPORTED_LOCATION "${real_release}"
-        IMPORTED_LOCATION_DEBUG "${real_debug}"
-        IMPORTED_LOCATION_RELEASE "${real_release}")
+        INTERFACE_LINK_LIBRARIES "${real_release}"
+        INTERFACE_LINK_LIBRARIES_DEBUG "${real_debug}"
+        INTERFACE_LINK_LIBRARIES_RELEASE "${real_release}")
     elseif (${PREFIX}_LIBRARY_RELEASE)
       set_target_properties(TBB::${TARGET_NAME} PROPERTIES
-        IMPORTED_LOCATION "${real_release}")
+        INTERFACE_LINK_LIBRARIES "${real_release}")
     elseif (${PREFIX}_LIBRARY_DEBUG)
       set_target_properties(TBB::${TARGET_NAME} PROPERTIES
-        IMPORTED_LOCATION "${real_debug}")
+        INTERFACE_LINK_LIBRARIES "${real_debug}")
     endif ()
   endif ()
 
