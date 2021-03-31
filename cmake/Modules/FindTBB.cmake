@@ -443,9 +443,13 @@ findpkg_finish(TBB tbb)
 set(TBB_MALLOC_LIBRARY_NAMES tbbmalloc)
 get_debug_names(TBB_MALLOC_LIBRARY_NAMES)
 
-find_path(TBB_MALLOC_INCLUDE_DIR
-          NAMES tbb/tbb.h
-          HINTS ${TBB_INC_SEARCH_PATH})
+find_path(TBB_MALLOC_INCLUDE_DIR tbb.h
+          HINTS ${_tbb_search_paths}
+          PATH_SUFFIXES
+          "include" #older versions
+          "latest/include/oneapi" #newer (2021) oneAPI version
+          "include/tbb" #when installed by apt-get on debian
+          )
 find_tbb_library_verifying_release_debug_locations(TBB_MALLOC_LIBRARY)
 make_library_set(TBB_MALLOC_LIBRARY)
 
@@ -456,9 +460,13 @@ findpkg_finish(TBB_MALLOC tbbmalloc)
 set(TBB_MALLOC_PROXY_LIBRARY_NAMES tbbmalloc_proxy)
 get_debug_names(TBB_MALLOC_PROXY_LIBRARY_NAMES)
 
-find_path(TBB_MALLOC_PROXY_INCLUDE_DIR
-          NAMES tbb/tbbmalloc_proxy.h
-          HINTS ${TBB_INC_SEARCH_PATH})
+find_path(TBB_MALLOC_PROXY_INCLUDE_DIR tbbmalloc_proxy.h
+          HINTS ${_tbb_search_paths}
+          PATH_SUFFIXES
+          "include" #older versions
+          "latest/include/tbb" #newer (2021) oneAPI version
+          "include/tbb" #when installed by apt-get on debian
+          )
 find_tbb_library_verifying_release_debug_locations(TBB_MALLOC_PROXY_LIBRARY)
 make_library_set(TBB_MALLOC_PROXY_LIBRARY)
 
