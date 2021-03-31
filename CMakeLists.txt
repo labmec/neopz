@@ -15,7 +15,31 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # Definition of build type and REAL and STATE types
 include(cmake/StandardPZSettings.cmake)
 
-##TODOWIN32: should this change when on WIN32?
+## RPATH SETTINGS - BEGIN
+# rpath settings must be set before any target is declared
+include(GNUInstallDirs)
+
+set(PZLIB_INSTALL_PREFIX "pz")
+set(CMAKE_INSTALL_LIBDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_INSTALL_INCLUDEDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+set(CMAKE_INSTALL_BINDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+
+
+
+file(RELATIVE_PATH relDir
+${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}
+${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}
+)
+
+if(APPLE)
+set(basePoint @loader_path)
+else()
+set(basePoint $ORIGIN)
+endif()
+set(CMAKE_MACOSX_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
+##RPATH SETTINGS - END
 set(PZ_LIB_TYPE SHARED)
 add_library(pz ${PZ_LIB_TYPE} "")
 
@@ -256,16 +280,6 @@ configure_file ("${PROJECT_SOURCE_DIR}/Common/pz_config.h.in" ${CONFIG_H})
 # Provide a standard relative layout for the installation directory.
 # Documentation directory is set to share/doc/PROJECT_NAME.
 
-#this needs to be before add_subdirectory calls so
-#the INSTALL_INTERFACE is correctly set
-include(GNUInstallDirs)
-
-#the PZ library itself will be installed one level after
-#CMAKE_INSTALL_PREFIX, so these changes are needed
-set(PZLIB_INSTALL_PREFIX "pz")
-set(CMAKE_INSTALL_LIBDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-set(CMAKE_INSTALL_INCLUDEDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
-set(CMAKE_INSTALL_BINDIR ${PZLIB_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
 #this variable will contain all the public headers from neopz
 set(PZ_PUBLIC_HEADERS "")
