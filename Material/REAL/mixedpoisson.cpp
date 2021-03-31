@@ -1001,6 +1001,97 @@ errors[4] = L2flux + residual;
 
 }
 
+void TPZMixedPoisson::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors)
+{
+/**
+datavec[0]= Flux
+datavec[1]= Pressure
+
+ Errors
+ [0] L2 for pressure
+ [1] L2 for flux
+ [2] L2 for div(flux)
+ [3] Grad pressure (Semi H1)
+ [4] Hdiv norm
+**/
+
+    errors.Resize(NEvalErrors());
+    errors.Fill(0.0);
+
+    int dim = fDim;
+
+    TPZManVector<STATE,3> fluxfem(3),pressurefem(1);
+    fluxfem = data[0].sol[0];
+    STATE divsigmafem=data[0].divsol[0][0];
+
+    TPZGradSolVec &dsol=data[1].dsol;
+
+
+    TPZVec<STATE> divsigma(1);
+
+    TPZVec<STATE> u_exact(1,0);
+    TPZFMatrix<STATE> du_exact(3,1,0);
+    if(this->fExactSol){
+        this->fExactSol->Execute(data[0].x,u_exact,du_exact);
+        this->fForcingFunction->Execute(data[0].x,divsigma);
+    }
+
+    REAL residual = 0.;
+    residual = (divsigma[0] - divsigmafem)*(divsigma[0] - divsigmafem);
+    pressurefem[0] = data[1].sol[0][0];
+
+    TPZFNMatrix<9,STATE> PermTensor; this->GetPermeability(PermTensor);
+    TPZFNMatrix<9,STATE> InvPermTensor; this->GetInvPermeability(InvPermTensor);
+
+    if(fPermeabilityFunction){
+        PermTensor.Redim(3,3);
+        InvPermTensor.Redim(3,3);
+        TPZFNMatrix<3,STATE> resultMat;
+        TPZManVector<STATE> res;
+        fPermeabilityFunction->Execute(data[0].x,res,resultMat);
+        for(int id=0; id<dim; id++){
+            for(int jd=0; jd<dim; jd++){
+                PermTensor(id,jd) = resultMat(id,jd);
+                InvPermTensor(id,jd) = resultMat(id+dim,jd);
+            }
+        }
+    }
+
+    TPZManVector<STATE,3> gradpressurefem(fDim,0.);
+    this->Solution(data,VariableIndex("GradPressure"), gradpressurefem);
+
+    TPZFNMatrix<3,STATE> fluxexactneg;
+
+//sigma=-K grad(u)
+
+    TPZFNMatrix<9,STATE> gradpressure(3,1);
+    for (int i=0; i<3; i++) {
+        gradpressure(i,0) = du_exact[i];
+    }
+    PermTensor.Multiply(gradpressure,fluxexactneg);
+
+
+
+    REAL L2flux = 0., L2grad = 0.;
+    for (int i=0; i<fDim; i++) {
+        //   std::cout<<"fluxo fem = "<<fluxfem[i]<<std::endl;
+        for (int j=0; j<fDim; j++) {
+            L2flux += (fluxfem[i]+fluxexactneg(i,0))*InvPermTensor(i,j)*(fluxfem[j]+fluxexactneg(j,0));//Pq esta somando: o fluxo fem esta + e o exato -
+
+        }
+
+        // std::cout<<"grad sol = "<<gradpressurefem[i]<<std::endl;
+        L2grad += (gradpressure(i,0)-gradpressurefem[i])*(gradpressure(i,0)-gradpressurefem[i]);
+    }
+    errors[0] = (pressurefem[0]-u_exact[0])*(pressurefem[0]-u_exact[0]);//L2 error for pressure
+    errors[1] = L2flux;//L2 error for flux
+    errors[2] = residual;//L2 for div
+    errors[3] = L2grad;
+    errors[4] = L2flux + residual;
+
+
+}
+
 void TPZMixedPoisson::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
     //Add on Robin part the term ||e||_Gamma_R = K_R (e.n)^2
     // with e = sigma_fem - sigma_ex
