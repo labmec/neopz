@@ -374,12 +374,11 @@ if(CMAKE_TBB_DEBUG)
     endforeach ()         
 endif(CMAKE_TBB_DEBUG)
 
-find_path(TBB_INCLUDE_DIR tbb.h
+find_path(TBB_INCLUDE_DIR tbb/tbb.h
           HINTS ${_tbb_search_paths}
           PATH_SUFFIXES
-          "include" #older versions
-          "latest/include/oneapi" #newer (2021) oneAPI version
-          "include/tbb" #when installed by apt-get on debian
+          "latest/include" #newer (2021) oneAPI version
+          "include" #when installed by apt-get on debian
           )
 if(CMAKE_TBB_DEBUG)
     message(STATUS "TBB INCLUDE DIR ${TBB_INCLUDE_DIR}")
@@ -443,12 +442,11 @@ findpkg_finish(TBB tbb)
 set(TBB_MALLOC_LIBRARY_NAMES tbbmalloc)
 get_debug_names(TBB_MALLOC_LIBRARY_NAMES)
 
-find_path(TBB_MALLOC_INCLUDE_DIR tbb.h
+find_path(TBB_MALLOC_INCLUDE_DIR tbb/tbb.h
           HINTS ${_tbb_search_paths}
           PATH_SUFFIXES
-          "include" #older versions
-          "latest/include/oneapi" #newer (2021) oneAPI version
-          "include/tbb" #when installed by apt-get on debian
+          "latest/include" #newer (2021) oneAPI version
+          "include" #when installed by apt-get on debian
           )
 find_tbb_library_verifying_release_debug_locations(TBB_MALLOC_LIBRARY)
 make_library_set(TBB_MALLOC_LIBRARY)
@@ -460,12 +458,11 @@ findpkg_finish(TBB_MALLOC tbbmalloc)
 set(TBB_MALLOC_PROXY_LIBRARY_NAMES tbbmalloc_proxy)
 get_debug_names(TBB_MALLOC_PROXY_LIBRARY_NAMES)
 
-find_path(TBB_MALLOC_PROXY_INCLUDE_DIR tbbmalloc_proxy.h
+find_path(TBB_MALLOC_PROXY_INCLUDE_DIR tbb/tbbmalloc_proxy.h
           HINTS ${_tbb_search_paths}
           PATH_SUFFIXES
-          "include" #older versions
-          "latest/include/tbb" #newer (2021) oneAPI version
-          "include/tbb" #when installed by apt-get on debian
+          "latest/include" #newer (2021) oneAPI version
+          "include" #when installed by apt-get on debian
           )
 find_tbb_library_verifying_release_debug_locations(TBB_MALLOC_PROXY_LIBRARY)
 make_library_set(TBB_MALLOC_PROXY_LIBRARY)
@@ -477,9 +474,9 @@ findpkg_finish(TBB_MALLOC_PROXY tbbmalloc_proxy)
 #parse all the version numbers from tbb
 if(NOT TBB_VERSION)
   set(TBB_VERSION_FILE_PRIOR_TO_TBB_2021_1
-    "${TBB_INCLUDE_DIR}/../tbb/tbb_stddef.h")
+    "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h")
   set(TBB_VERSION_FILE_AFTER_TBB_2021_1
-    "${TBB_INCLUDE_DIR}/../tbb/version.h")
+    "${TBB_INCLUDE_DIR}/tbb/version.h")
   if (EXISTS "${TBB_VERSION_FILE_PRIOR_TO_TBB_2021_1}")
     set(TBB_VERSION_FILE "${TBB_VERSION_FILE_PRIOR_TO_TBB_2021_1}")
   elseif (EXISTS "${TBB_VERSION_FILE_AFTER_TBB_2021_1}")
