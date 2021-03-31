@@ -152,13 +152,17 @@ public:
 
 #define LOGPZ_WARN(A,B)
 
-#define LOGPZ_ERROR(A,B) \
-std::cout<<B<<std::endl;\
-DebugStop();
+#define LOGPZ_ERROR(A,B)   \
+{                          \
+  std::cout<<B<<std::endl; \
+  DebugStop();             \
+}
 
-#define LOGPZ_FATAL(A,B)\
-std::cout<<B<<std::endl;\
-DebugStop();
+#define LOGPZ_FATAL(A,B)   \
+{                          \
+  std::cout<<B<<std::endl; \
+  DebugStop();             \
+}
 
 #endif
 
