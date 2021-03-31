@@ -280,8 +280,9 @@ void TPZCompEl::LoadSolution() {
 
 void TPZCompEl::SetMesh(TPZCompMesh *mesh) {
     // The mesh can be null, indicating that the element is now unused
-    if(!mesh)
+    if(!mesh) {
         LOGPZ_ERROR(logger, "TPZCompEl.SetMesh called with zero pointer.");
+    }
     fMesh = mesh;
 }
 
