@@ -79,6 +79,13 @@ endif()
 set(EXTRA_SEARCH_DIRS ${EXTRA_SEARCH_DIRS})
 
 #ENABLING EXTERNAL LIBRARIES
+
+option(CMAKE_TBB_DEBUG "Outputs information when searching for the TBB library" OFF)
+#this is for debugging any problems while finding mkl
+option(CMAKE_MKL_DEBUG "Outputs information when searching for the MKL library" OFF)
+mark_as_advanced(CMAKE_MKL_DEBUG)
+mark_as_advanced(CMAKE_TBB_DEBUG)
+
 include(cmake/EnableThreads.cmake)
 enable_threads(pz)
 
