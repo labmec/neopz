@@ -226,8 +226,8 @@ endif()
 # Group flags for static libraries on Linux (GNU, PGI, ICC -> same linker)
 #
 if(UNIX AND NOT APPLE)
-    set(_mkl_linker_pre_flags_ST "-Wl,--start-group")
-    set(_mkl_linker_post_flags_ST "-Wl,--end-group")
+    set(_mkl_linker_pre_flags "-Wl,--start-group")
+    set(_mkl_linker_post_flags "-Wl,--end-group -ldl -lm")
 endif()
 
 # Core MKL
@@ -314,12 +314,12 @@ foreach(_libtype "ST" "DYN")
                    AND _mkl_core_lib
                    AND _mkl_dep_found_${_threading}
                    AND NOT TARGET ${_mkl_tgt})
-                    set(_mkl_libs "${_mkl_linker_pre_flags_${_threading}}"
+                    set(_mkl_libs "${_mkl_linker_pre_flags}"
                                   "${_mkl_interface_lib}"
                                   "${_mkl_threading_lib}"
                                   "${_mkl_core_lib}"
-                                  "${_mkl_linker_post_flags_${_threading}}"
                                   "${_mkl_dep_${_threading}}"
+                                  "${_mkl_linker_post_flags}"
                                   "Threads::Threads")
                     add_library(${_mkl_tgt} INTERFACE IMPORTED)
                     set_target_properties(${_mkl_tgt} PROPERTIES
@@ -327,6 +327,9 @@ foreach(_libtype "ST" "DYN")
                       INTERFACE_LINK_LIBRARIES "${_mkl_libs}")
                     if(CMAKE_MKL_DEBUG)
                         message(STATUS "MKL_TGT: ${_mkl_tgt}")
+                        message(STATUS "_mkl_libs: ${_mkl_libs}")
+                        message(STATUS "_mkl_dep_${_threading}: ${_mkl_dep_${_threading}}")
+
                     endif(CMAKE_MKL_DEBUG)
                 endif()
 
@@ -341,12 +344,12 @@ foreach(_libtype "ST" "DYN")
                        AND TARGET ${_mkl_tgt}
                        AND TARGET MPI::MPI_CXX
                        AND NOT TARGET ${_blacs_tgt})
-                        set(_blacs_libs "${_mkl_linker_pre_flags_${_libtype}}"
+                        set(_blacs_libs "${_mkl_linker_pre_flags}"
                                         "${_mkl_interface_lib}"
                                         "${_mkl_threading_lib}"
                                         "${_mkl_core_lib}"
                                         "${_mkl_blacs_lib}"
-                                        "${_mkl_linker_post_flags_${_libtype}}"
+                                        "${_mkl_linker_post_flags}"
                                         "MPI::MPI_CXX"
                                         "${_mkl_dep_${_threading}}"
                                         "Threads::Threads")

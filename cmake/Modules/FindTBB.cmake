@@ -51,50 +51,48 @@
 # free to make use of it in any way you like.
 #-------------------------------------------------------------------
 #
-#=============================================================================
-# Copyright 2010-2012 Kitware, Inc.
-# Copyright 2012      Rolf Eike Beer <eike@sf-mail.de>
+# =========================================================================
+# Taken from Copyright.txt in the root of the VTK source tree as per
+# instructions to substitute the full license in place of the summary
+# reference when distributing outside of VTK
+# =========================================================================
 #
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
+#  Program:   Visualization Toolkit
+#  Module:    Copyright.txt
 #
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
-#=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
-
+# Copyright (c) 1993-2015 Ken Martin, Will Schroeder, Bill Lorensen
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither name of Ken Martin, Will Schroeder, or Bill Lorensen nor the names
+#   of any contributors may be used to endorse or promote products derived
+#   from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# =========================================================================*/
 
 #=============================================================================
 #  FindTBB helper functions and macros
 #
-
-# Use TBBConfig.cmake if possible.
-
-set(_tbb_find_quiet)
-if (TBB_FIND_QUIETLY)
-  set(_tbb_find_quiet QUIET)
-endif ()
-set(_tbb_find_components)
-set(_tbb_find_optional_components)
-foreach (_tbb_find_component IN LISTS TBB_FIND_COMPONENTS)
-  if (TBB_FIND_REQUIRED_${_tbb_find_component})
-    list(APPEND _tbb_find_components "${_tbb_find_component}")
-  else ()
-    list(APPEND _tbb_find_optional_components "${_tbb_find_component}")
-  endif ()
-endforeach ()
-unset(_tbb_find_component)
-find_package(TBB CONFIG ${_tbb_find_quiet}
-  COMPONENTS ${_tbb_find_components}
-  OPTIONAL_COMPONENTS ${_tbb_find_optional_components})
-unset(_tbb_find_quiet)
-unset(_tbb_find_components)
-unset(_tbb_find_optional_components)
-if (TBB_FOUND)
-  return ()
-endif ()
 
 #====================================================
 # Fix the library path in case it is a linker script
@@ -152,20 +150,20 @@ macro(findpkg_finish PREFIX TARGET_NAME)
     if (${PREFIX}_LIBRARY_DEBUG)
       tbb_extract_real_library(${${PREFIX}_LIBRARY_DEBUG} real_debug)
     endif ()
-    add_library(TBB::${TARGET_NAME} UNKNOWN IMPORTED)
+    add_library(TBB::${TARGET_NAME} INTERFACE IMPORTED)
     set_target_properties(TBB::${TARGET_NAME} PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES "${${PREFIX}_INCLUDE_DIR}")
     if (${PREFIX}_LIBRARY_DEBUG AND ${PREFIX}_LIBRARY_RELEASE)
       set_target_properties(TBB::${TARGET_NAME} PROPERTIES
-        IMPORTED_LOCATION "${real_release}"
-        IMPORTED_LOCATION_DEBUG "${real_debug}"
-        IMPORTED_LOCATION_RELEASE "${real_release}")
+        INTERFACE_LINK_LIBRARIES "${real_release}"
+        INTERFACE_LINK_LIBRARIES_DEBUG "${real_debug}"
+        INTERFACE_LINK_LIBRARIES_RELEASE "${real_release}")
     elseif (${PREFIX}_LIBRARY_RELEASE)
       set_target_properties(TBB::${TARGET_NAME} PROPERTIES
-        IMPORTED_LOCATION "${real_release}")
+        INTERFACE_LINK_LIBRARIES "${real_release}")
     elseif (${PREFIX}_LIBRARY_DEBUG)
       set_target_properties(TBB::${TARGET_NAME} PROPERTIES
-        IMPORTED_LOCATION "${real_debug}")
+        INTERFACE_LINK_LIBRARIES "${real_debug}")
     endif ()
   endif ()
 
@@ -200,15 +198,45 @@ endmacro()
 # Couple a set of release AND debug libraries
 #===============================================
 macro(make_library_set PREFIX)
-  if (${PREFIX}_RELEASE AND ${PREFIX}_DEBUG)
-    set(${PREFIX} optimized ${${PREFIX}_RELEASE} debug ${${PREFIX}_DEBUG})
-  elseif (${PREFIX}_RELEASE)
-    set(${PREFIX} ${${PREFIX}_RELEASE})
-  elseif (${PREFIX}_DEBUG)
+    #@orlandini until i know better how to deal with is, picking release version if it is found
+    if (NOT ${PREFIX}_RELEASE AND ${PREFIX}_DEBUG)
     set(${PREFIX} ${${PREFIX}_DEBUG})
+  else()
+    set(${PREFIX} ${${PREFIX}_RELEASE})  
   endif ()
 endmacro()
 
+#===============================================
+# Ensure that the release & debug libraries found are from the same installation.
+#===============================================
+macro(find_tbb_library_verifying_release_debug_locations PREFIX)
+  find_library(${PREFIX}_RELEASE
+    NAMES ${_tbb_libname_prefix}${${PREFIX}_NAMES}${_tbb_shared_lib}
+    HINTS ${_tbb_search_paths}
+    PATH_SUFFIXES ${_tbb_libpath_suffix})
+if(CMAKE_TBB_DEBUG)
+    message(STATUS "${PREFIX} RELEASE ${${PREFIX}_RELEASE}")
+endif(CMAKE_TBB_DEBUG)
+  if (${PREFIX}_RELEASE)
+    # To avoid finding a mismatched set of release & debug libraries from
+    # different installations if the first found does not have debug libraries
+    # by forcing the search for debug to only occur within the detected release
+    # library directory (if found).  Although this would break detection if the
+    # release & debug libraries were shipped in different directories, this is
+    # not the case in the official TBB releases for any platform.
+    get_filename_component(
+      FOUND_RELEASE_LIB_DIR "${${PREFIX}_RELEASE}" DIRECTORY)
+    find_library(${PREFIX}_DEBUG
+      NAMES ${${PREFIX}_NAMES_DEBUG}
+      HINTS ${FOUND_RELEASE_LIB_DIR}
+      NO_DEFAULT_PATH)
+  else()
+    find_library(${PREFIX}_DEBUG
+      NAMES ${${PREFIX}_NAMES_DEBUG}
+      HINTS ${_tbb_search_paths}
+      PATH_SUFFIXES ${_tbb_libpath_suffix})
+  endif()
+endmacro()
 
 #=============================================================================
 #  Now to actually find TBB
@@ -219,16 +247,7 @@ getenv_path(TBB_ROOT)
 
 # initialize search paths
 set(TBB_PREFIX_PATH ${TBB_ROOT} ${ENV_TBB_ROOT})
-set(TBB_INC_SEARCH_PATH "")
-set(TBB_LIB_SEARCH_PATH "")
-
-#ADDING OUR CUSTOM PATHS FOR EXTERNAL LIBRARIES
-foreach (dir IN LISTS ${EXTRA_SEARCH_DIRS})
-  list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib ${dir}/Lib ${dir}/lib/tbb
-    ${dir}/Libs)
-  list(APPEND TBB_INC_SEARCH_PATH ${dir}/include ${dir}/Include
-    ${dir}/include/tbb)
-endforeach ()
+set(_tbb_search_paths "")
 
 
 # If user built from sources
@@ -240,7 +259,7 @@ if (TBB_BUILD_PREFIX AND ENV_TBB_ROOT)
   endif ()
 
   # include directory under ${ENV_TBB_ROOT}/include
-  list(APPEND TBB_LIB_SEARCH_PATH
+  list(APPEND _tbb_search_paths
     ${ENV_TBB_BUILD_DIR}/${TBB_BUILD_PREFIX}_release
     ${ENV_TBB_BUILD_DIR}/${TBB_BUILD_PREFIX}_debug)
 endif ()
@@ -271,19 +290,6 @@ if (WIN32 AND MSVC)
   elseif(MSVC_VERSION GREATER_EQUAL 1900)
     set(COMPILER_PREFIX "vc14")
   endif ()
-
-  # for each prefix path, add ia32/64\${COMPILER_PREFIX}\lib to the lib search path
-  foreach (dir IN LISTS TBB_PREFIX_PATH)
-    if (CMAKE_CL_64)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia64/${COMPILER_PREFIX}/lib)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia64/${COMPILER_PREFIX})
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/${COMPILER_PREFIX}/lib)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64/${COMPILER_PREFIX})
-    else ()
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/${COMPILER_PREFIX}/lib)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32/${COMPILER_PREFIX})
-    endif ()
-  endforeach ()
 endif ()
 
 # For OS X binary distribution, choose libc++ based libraries for Mavericks (10.9)
@@ -305,7 +311,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
 
   if (USE_LIBCXX)
     foreach (dir IN LISTS TBB_PREFIX_PATH)
-      list (APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/libc++ ${dir}/libc++/lib)
+      list (APPEND _tbb_search_paths ${dir}/lib/libc++ ${dir}/libc++/lib)
     endforeach ()
   endif ()
 endif ()
@@ -336,75 +342,113 @@ else() # Assume compatibility with 4.4 for other compilers
   list(APPEND COMPILER_PREFIX "gcc4.4")
 endif ()
 
-# if platform architecture is explicitly specified
-set(TBB_ARCH_PLATFORM $ENV{TBB_ARCH_PLATFORM})
-if (TBB_ARCH_PLATFORM)
-  foreach (dir IN LISTS TBB_PREFIX_PATH)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/${TBB_ARCH_PLATFORM}/lib)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/${TBB_ARCH_PLATFORM})
-  endforeach ()
+if (WIN32)
+	set(PROGRAM_FILE_ENVVAR "PROGRAMFILES(x86)")
+	file(TO_CMAKE_PATH "$ENV{${PROGRAM_FILE_ENVVAR}}" PRG_FOLD)
+	list(APPEND _tbb_search_paths "${PRG_FOLD}/Intel/Composer XE/tbb") # default until ParallelStudioXE2015
+	list(APPEND _tbb_search_paths "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/tbb") # default for ParallelStudioXE2016 and later
+	list(APPEND _tbb_search_paths "${PRG_FOLD}/Intel/oneAPI/tbb") # default for oneAPI (2020 and later)
+elseif(UNIX)#we need to test if we need sth different for apple
+	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
+		list(APPEND _tbb_search_paths "/opt/intel/composerxe-${_MKL_VER}/tbb") # default until ParallelStudioXE2015 (root permissions)
+		list(APPEND _tbb_search_paths "$ENV{HOME}/intel/composerxe-${_MKL_VER}/tbb") # default until ParallelStudioXE2015 (no root permissions)
+	endforeach()
+    if(APPLE)
+	    list(APPEND _tbb_search_paths "/opt/intel/compilers_and_libraries/mac/tbb") # default for ParallelStudioXE2016 and later (root permissions)
+    else()
+        list(APPEND _tbb_search_paths "/opt/intel/compilers_and_libraries/linux/tbb") # default for ParallelStudioXE2016 and later (root permissions)
+    endif()
+	list(APPEND _tbb_search_paths "/opt/intel/oneapi/tbb") # default for oneAPI (2020) and later (root permissions)
+    if(APPLE)
+	    list(APPEND _tbb_search_paths "$ENV{HOME}/intel/compilers_and_libraries/mac/tbb") # default for ParallelStudioXE2016 and later (no root permissions)
+    else()
+        list(APPEND _tbb_search_paths "$ENV{HOME}/intel/compilers_and_libraries/linux/tbb") # default for ParallelStudioXE2016 and later (no root permissions)
+    endif()
+    list(APPEND _tbb_search_paths "$ENV{HOME}/intel/oneapi/tbb") # default for oneAPI (2020) and later (no root permissions)
+endif()
+
+if(CMAKE_TBB_DEBUG)
+    message(STATUS "Searching for TBB in:")
+    foreach (dir ${_tbb_search_paths})
+        message(${dir})
+    endforeach ()         
+endif(CMAKE_TBB_DEBUG)
+
+find_path(TBB_INCLUDE_DIR tbb/tbb.h
+          HINTS ${_tbb_search_paths}
+          PATH_SUFFIXES
+          "latest/include" #newer (2021) oneAPI version
+          "include" #when installed by apt-get on debian
+          )
+if(CMAKE_TBB_DEBUG)
+    message(STATUS "TBB INCLUDE DIR ${TBB_INCLUDE_DIR}")
+endif(CMAKE_TBB_DEBUG)
+
+#if we haven't found TBB no point on going any further
+if (NOT TBB_INCLUDE_DIR)
+  return()
 endif ()
 
-foreach (dir IN LISTS TBB_PREFIX_PATH)
-  foreach (prefix IN LISTS COMPILER_PREFIX)
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64/${prefix})
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/lib)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/${prefix}/lib)
-    else ()
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32/${prefix})
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/lib)
-      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/${prefix}/lib)
-    endif ()
-  endforeach()
-endforeach ()
+set(_tbb_libpath_suffix_orig "lib/intel64")
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # 32 bit
+    set(_tbb_libpath_suffix_orig "lib/ia32")
+endif()
 
-# add general search paths
-foreach (dir IN LISTS TBB_PREFIX_PATH)
-  list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib ${dir}/Lib ${dir}/lib/tbb
-    ${dir}/Libs)
-  list(APPEND TBB_INC_SEARCH_PATH ${dir}/include ${dir}/Include
-    ${dir}/include/tbb)
-endforeach ()
+set(_tbb_libpath_suffix ${_tbb_libpath_suffix_orig})
+list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}")
+
+
+foreach (pre ${COMPILER_PREFIX})
+    list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}/${pre}")
+endforeach ()         
+if(WIN32)
+    list(APPEND _tbb_libpath_suffix "${_tbb_libpath_suffix_orig}_win")
+    list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}_win")
+    set(_tbb_libname_prefix "")
+    set(_tbb_shared_lib "_dll.lib")
+    set(_tbb_static_lib ".lib")
+elseif(APPLE)
+    list(APPEND _tbb_libpath_suffix "lib")
+    list(APPEND _tbb_libpath_suffix "${_tbb_libpath_suffix_orig}_mac")
+    list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}_mac")
+    set(_tbb_libname_prefix "lib")
+    set(_tbb_shared_lib ".dylib")
+    set(_tbb_static_lib ".a")
+else() # LINUX
+    list(APPEND _tbb_libpath_suffix "${_tbb_libpath_suffix_orig}_lin")
+    list(APPEND _tbb_libpath_suffix "latest/${_tbb_libpath_suffix_orig}_lin")
+    set(_tbb_libname_prefix "lib")
+    set(_tbb_shared_lib ".so")
+    set(_tbb_static_lib ".a")
+endif()
+
+if(CMAKE_TBB_DEBUG)
+    message(STATUS "Lib suffixes for TBB:")
+    foreach (dir ${_tbb_libpath_suffix})
+        message(${dir})
+    endforeach ()         
+endif(CMAKE_TBB_DEBUG)
 
 set(TBB_LIBRARY_NAMES tbb)
 get_debug_names(TBB_LIBRARY_NAMES)
 
-
-find_path(TBB_INCLUDE_DIR
-          NAMES tbb/tbb.h
-          PATHS ${TBB_INC_SEARCH_PATH})
-
-find_library(TBB_LIBRARY_RELEASE
-             NAMES ${TBB_LIBRARY_NAMES}
-             PATHS ${TBB_LIB_SEARCH_PATH})
-find_library(TBB_LIBRARY_DEBUG
-             NAMES ${TBB_LIBRARY_NAMES_DEBUG}
-             PATHS ${TBB_LIB_SEARCH_PATH})
+find_tbb_library_verifying_release_debug_locations(TBB_LIBRARY)
 make_library_set(TBB_LIBRARY)
 
-#if we haven't found TBB no point on going any further
-if (NOT TBB_FOUND)
-  return()
-endif ()
+
 findpkg_finish(TBB tbb)
 #=============================================================================
 # Look for TBB's malloc package
 set(TBB_MALLOC_LIBRARY_NAMES tbbmalloc)
 get_debug_names(TBB_MALLOC_LIBRARY_NAMES)
 
-find_path(TBB_MALLOC_INCLUDE_DIR
-          NAMES tbb/tbb.h
-          PATHS ${TBB_INC_SEARCH_PATH})
-
-find_library(TBB_MALLOC_LIBRARY_RELEASE
-             NAMES ${TBB_MALLOC_LIBRARY_NAMES}
-             PATHS ${TBB_LIB_SEARCH_PATH})
-find_library(TBB_MALLOC_LIBRARY_DEBUG
-             NAMES ${TBB_MALLOC_LIBRARY_NAMES_DEBUG}
-             PATHS ${TBB_LIB_SEARCH_PATH})
+find_path(TBB_MALLOC_INCLUDE_DIR tbb/tbb.h
+          HINTS ${_tbb_search_paths}
+          PATH_SUFFIXES
+          "latest/include" #newer (2021) oneAPI version
+          "include" #when installed by apt-get on debian
+          )
+find_tbb_library_verifying_release_debug_locations(TBB_MALLOC_LIBRARY)
 make_library_set(TBB_MALLOC_LIBRARY)
 
 findpkg_finish(TBB_MALLOC tbbmalloc)
@@ -414,16 +458,13 @@ findpkg_finish(TBB_MALLOC tbbmalloc)
 set(TBB_MALLOC_PROXY_LIBRARY_NAMES tbbmalloc_proxy)
 get_debug_names(TBB_MALLOC_PROXY_LIBRARY_NAMES)
 
-find_path(TBB_MALLOC_PROXY_INCLUDE_DIR
-          NAMES tbb/tbbmalloc_proxy.h
-          PATHS ${TBB_INC_SEARCH_PATH})
-
-find_library(TBB_MALLOC_PROXY_LIBRARY_RELEASE
-             NAMES ${TBB_MALLOC_PROXY_LIBRARY_NAMES}
-             PATHS ${TBB_LIB_SEARCH_PATH})
-find_library(TBB_MALLOC_PROXY_LIBRARY_DEBUG
-             NAMES ${TBB_MALLOC_PROXY_LIBRARY_NAMES_DEBUG}
-             PATHS ${TBB_LIB_SEARCH_PATH})
+find_path(TBB_MALLOC_PROXY_INCLUDE_DIR tbb/tbbmalloc_proxy.h
+          HINTS ${_tbb_search_paths}
+          PATH_SUFFIXES
+          "latest/include" #newer (2021) oneAPI version
+          "include" #when installed by apt-get on debian
+          )
+find_tbb_library_verifying_release_debug_locations(TBB_MALLOC_PROXY_LIBRARY)
 make_library_set(TBB_MALLOC_PROXY_LIBRARY)
 
 findpkg_finish(TBB_MALLOC_PROXY tbbmalloc_proxy)
@@ -432,10 +473,22 @@ findpkg_finish(TBB_MALLOC_PROXY tbbmalloc_proxy)
 #=============================================================================
 #parse all the version numbers from tbb
 if(NOT TBB_VERSION)
+  set(TBB_VERSION_FILE_PRIOR_TO_TBB_2021_1
+    "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h")
+  set(TBB_VERSION_FILE_AFTER_TBB_2021_1
+    "${TBB_INCLUDE_DIR}/tbb/version.h")
+  if (EXISTS "${TBB_VERSION_FILE_PRIOR_TO_TBB_2021_1}")
+    set(TBB_VERSION_FILE "${TBB_VERSION_FILE_PRIOR_TO_TBB_2021_1}")
+  elseif (EXISTS "${TBB_VERSION_FILE_AFTER_TBB_2021_1}")
+    set(TBB_VERSION_FILE "${TBB_VERSION_FILE_AFTER_TBB_2021_1}")
+  else()
+    message(FATAL_ERROR "Found TBB installation: ${TBB_INCLUDE_DIR} "
+      "missing version header.")
+  endif()
 
  #only read the start of the file
  file(STRINGS
-      "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h"
+      "${TBB_VERSION_FILE}"
       TBB_VERSION_CONTENTS
       REGEX "VERSION")
 

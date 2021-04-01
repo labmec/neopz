@@ -1,8 +1,4 @@
 function(enable_mkl target)
-  #this is for debugging any problems while finding mkl
-  if(NOT CMAKE_MKL_DEBUG)  
-      set(CMAKE_MKL_DEBUG OFF)
-  endif()
   find_package(MKL REQUIRED)
 
   set(MKL_THREAD_MODEL_TYPES "Options are: seq, tbb or omp(default)"
