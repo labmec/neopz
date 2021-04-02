@@ -118,6 +118,18 @@ void TPZMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 	
 }
 
+void TPZMaterial::FillDataRequirements(std::map<int, TPZMaterialData > &datavec)
+{
+    for(auto &it : datavec)
+    {
+        it.second.SetAllRequirements(true);
+        it.second.fNeedsNeighborSol = false;
+        it.second.fNeedsNeighborCenter = false;
+        it.second.fNeedsNormal = false;
+    }
+    
+}
+
 void TPZMaterial::Print(std::ostream & out) {
     out << __PRETTY_FUNCTION__ << std::endl;
 	out << "Material Id = " << fId << std::endl;
@@ -241,14 +253,14 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STA
     DebugStop();
 }
 
-void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
+void TPZMaterial::Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
 {
-		this->Solution(data,dataleftvec,datarightvec, var, Solout);
+    DebugStop();
 }
 
-void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *ritgh)
+void TPZMaterial::Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *right)
 {
-	this->Solution(data,dataleftvec,datarightvec, var, Solout, left, ritgh);
+    DebugStop();
 }
 
 void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
@@ -429,25 +441,23 @@ void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
     this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
 }
 
-void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright,
+void TPZMaterial::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright,
                                                    REAL weight, TPZFMatrix<STATE> &ef){
     TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
     this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
 }
 
-void TPZMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPZMaterial::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
-    this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
-
-}
-void TPZMaterial::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-                                 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
-    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
     DebugStop();
 }
+//void TPZMaterial::ContributeInterface(TPZVec<TPZMaterialData> &datavec, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec,
+//                                 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
+//    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
+//    DebugStop();
+//}
 
-void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){
     
     DebugStop();
 }
@@ -461,7 +471,7 @@ void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMateria
  * @param bc [in] is the boundary condition object
  * @since February 21, 2013
  */
-void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZMaterial::ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<STATE> ek(ef.Rows(),ef.Rows());
     this->ContributeBCInterface(data, dataleft, weight, ek, ef, bc);

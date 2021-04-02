@@ -201,7 +201,7 @@ public:
      * @param bc[in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
+    virtual void ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one internal interface integration point.
@@ -212,7 +212,7 @@ public:
      * @param bc[in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
+    virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, std::map<int, TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) override;
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC interface integration point.
@@ -223,7 +223,7 @@ public:
      * @param bc[in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+    virtual void ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
         DebugStop();
     }
     
@@ -235,7 +235,7 @@ public:
      * @param bc[in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef) override {
+    virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, std::map<int, TPZMaterialData> &datavecright, REAL weight,TPZFMatrix<STATE> &ef) override {
         DebugStop();
     }
     

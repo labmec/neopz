@@ -407,39 +407,45 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> indices)
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialData> &datavec   )
 {
-    int64_t nmeshes = NMeshes();
-    int64_t nindices = indices.size();
-    if(nindices>0){
-        for (int64_t iel = 0; iel<nindices; iel++) {
-            int64_t indicel = indices.operator[](iel);
-            TPZCompEl *cel = Element(indicel);
-            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-            if (!intel) {
-                continue;
-            }
-            TPZGeoEl *gel = intel->Reference();
-            TPZManVector<REAL> locpt(gel->Dimension());
-            trvec[indicel].Apply(point, locpt);
-            datavec[indicel].intGlobPtIndex = -1;
-            intel->ComputeRequiredData(datavec[indicel], locpt);
+    for (auto &it : datavec) {
+        int elindex = it.first;
+        TPZCompEl *cel = Element(elindex);
+#ifdef PZDEBUG
+        if(!cel) DebugStop();
+#endif
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        if (!intel) {
+            DebugStop();
         }
-    }else{
-        for (int64_t iel = 0; iel<nmeshes; iel++) {
-            TPZCompEl *cel = Element(iel);
-            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-            if (!intel) {
-                continue;
-            }
-            TPZGeoEl *gel = intel->Reference();
-            TPZManVector<REAL> locpt(gel->Dimension());
-            trvec[iel].Apply(point, locpt);
-            datavec[iel].intGlobPtIndex = -1;
-            intel->ComputeRequiredData(datavec[iel], locpt);
-        }
+        TPZGeoEl *gel = intel->Reference();
+        TPZManVector<REAL> locpt(gel->Dimension());
+        trvec[elindex].Apply(point, locpt);
+        datavec[elindex].intGlobPtIndex = -1;
+        intel->ComputeRequiredData(it.second, locpt);
     }
 }
+
+
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
+{
+    int64_t ElemVecSize = NMeshes();
+    for (int64_t iref = 0; iref < ElemVecSize; iref++)
+    {
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(Element(iref));
+        if (!msp) {
+            continue;
+        }
+        
+        TPZManVector<REAL,3> intpoint(msp->Reference()->Dimension(),0.);
+        
+        trvec[iref].Apply(intpointtemp, intpoint);
+        
+        msp->ComputeRequiredData(datavec[iref], intpoint);
+    }
+}//ComputeRequiredData
+
 
 
 void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     constexpr int dim{3};
     constexpr int initPOrder{2};
     constexpr int nSubMeshes{3};
-    const int nThreads{std::thread::hardware_concurrency()};
+    const unsigned int nThreads{std::thread::hardware_concurrency()};
     constexpr bool useTBB{false};
     constexpr int numIt{500};//CG solver
     /*CODE*/
@@ -823,7 +823,7 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 			}
 			domaincolor[gel->Index()] = subindex[cel];
 		}
-		ofstream vtkfile("partition.vtk");
+		std::ofstream vtkfile("partition.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, domaincolor);
 	}
 #endif

@@ -70,26 +70,32 @@ void TPZLagrangeMultiplier::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
  * @param ef [out] is the load vector
  * @since June 5, 2012
  */
-void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPZLagrangeMultiplier::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    TPZFMatrix<REAL> *phiLPtr = 0, *phiRPtr = 0;
-    for (int i=0; i<dataleft.size(); i++) {
-        if (dataleft[i].phi.Rows() != 0) {
-            phiLPtr = &dataleft[i].phi;
-            break;
-        }
-    }
-    for (int i=0; i<dataright.size(); i++) {
-        if (dataright[i].phi.Rows() != 0) {
-            phiRPtr = &dataright[i].phi;
-            break;
-        }
-    }
+#ifdef PZDEBUG
+    if(dataleft.size() != 1 || dataright.size() != 1) DebugStop();
+#endif
     
-    if(!phiLPtr || !phiRPtr)
-    {
-        DebugStop();
-    }
+    TPZFMatrix<REAL> *phiLPtr = 0, *phiRPtr = 0;
+    phiLPtr = &dataleft.begin()->second.phi;
+    phiRPtr = &dataright.begin()->second.phi;
+//    for (int i=0; i<dataleft.size(); i++) {
+//        if (dataleft[i].phi.Rows() != 0) {
+//            phiLPtr = &dataleft[i].phi;
+//            break;
+//        }
+//    }
+//    for (int i=0; i<dataright.size(); i++) {
+//        if (dataright[i].phi.Rows() != 0) {
+//            phiRPtr = &dataright[i].phi;
+//            break;
+//        }
+//    }
+//
+//    if(!phiLPtr || !phiRPtr)
+//    {
+//        DebugStop();
+//    }
     TPZFMatrix<REAL> &phiL = *phiLPtr;
     TPZFMatrix<REAL> &phiR = *phiRPtr;
     

@@ -91,10 +91,6 @@ public:
         DebugStop();
     }
     
-    void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) override {
-        DebugStop();
-    }
-    
     /**
      * Save the element data to a stream
      */

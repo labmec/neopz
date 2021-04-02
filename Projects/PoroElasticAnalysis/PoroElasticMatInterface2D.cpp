@@ -57,7 +57,7 @@ void PoroElasticMatInterface2D::SetPenalty(REAL knu, REAL ktu, REAL knp, REAL kt
 	fktp = ktp;	
 }
 
-void PoroElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void PoroElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 	if (this->fcontribute) 
 	{
@@ -171,21 +171,24 @@ int PoroElasticMatInterface2D::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
+void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)
 {
 	
 	Solout.Resize( this->NSolutionVariables(var));
 
 	int NumberOfStateVar = dataleftvec.size();	
 	
+    TPZVec<TPZMaterialData> dataleft(NumberOfStateVar),dataright(NumberOfStateVar);
 	for(int istate = 0 ; istate < NumberOfStateVar ; istate++)
 	{
 		if (dataleftvec[istate].sol.size() != 1 && datarightvec[istate].sol.size() ) 
 		{	
-			std::cout << "Data no initialized on dataleftvec or datarightvec " << std::endl;
+			std::cout << "Data not initialized on dataleftvec or datarightvec " << std::endl;
 			DebugStop();
 		}
-	}	
+        dataleft[istate] = dataleftvec[istate];
+        dataright[istate] = datarightvec[istate];
+	}
 	
 	//	Using the Solution method
     TPZPoroElastic2d * LeftPoroelastic = dynamic_cast<TPZPoroElastic2d *> (Left->Material());
@@ -196,12 +199,12 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 	TPZVec<STATE> RightSigmaX,RightSigmaY;
 	TPZVec<STATE> LeftTau,RightTau;	
 	
-	LeftPoroelastic->Solution(dataleftvec,3,LeftSigmaX);
-	RightPoroelastic->Solution(datarightvec,3,RightSigmaX);
-	LeftPoroelastic->Solution(dataleftvec,4,LeftSigmaY);
-	RightPoroelastic->Solution(datarightvec,4,RightSigmaY);
-	LeftPoroelastic->Solution(dataleftvec,5,LeftTau);
-	RightPoroelastic->Solution(datarightvec,5,RightTau);		
+	LeftPoroelastic->Solution(dataleft,3,LeftSigmaX);
+	RightPoroelastic->Solution(dataright,3,RightSigmaX);
+	LeftPoroelastic->Solution(dataleft,4,LeftSigmaY);
+	RightPoroelastic->Solution(dataright,4,RightSigmaY);
+	LeftPoroelastic->Solution(dataleft,5,LeftTau);
+	RightPoroelastic->Solution(dataright,5,RightTau);		
 
 	REAL n[2] = {-data.normal[1],data.normal[0]};
 	REAL t[2] = {-data.normal[0],-data.normal[1]};

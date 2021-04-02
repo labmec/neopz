@@ -222,7 +222,7 @@ public:
 
 	//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
-	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)  override {
+	virtual void Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right)  override {
         TPZMaterial::Solution(data,dataleftvec,datarightvec,var,Solout,Left,Right);
     }
 //	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
@@ -235,9 +235,8 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
-							 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
-	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+
+	virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec,
 									 REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override {
         TPZMaterial::ContributeInterface(data,dataleftvec,datarightvec,weight,ek,ef);
     }

@@ -2022,19 +2022,22 @@ void TPZMultiphase::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 }
 
 
-void TPZMultiphase::ContributeInterface(TPZVec<TPZMaterialData> &datavec,TPZVec<TPZMaterialData> &dataleftvec,TPZVec<TPZMaterialData> &datarightvec,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
-{
-    DebugStop();
-}
+
 
 void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     DebugStop();
 }
 
-void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+void TPZMultiphase::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
-    
+#ifdef PZDEBUG
+    for(int i=0; i<5; i++)
+    {
+        if(dataleft.find(i) == dataleft.end()) DebugStop();
+        if(dataright.find(i) == dataright.end()) DebugStop();
+    }
+#endif
     TPZFMatrix<REAL> &phiUL = dataleft[0].phi;
     TPZFMatrix<REAL> &phiUR = dataright[0].phi;
     
@@ -2690,8 +2693,15 @@ void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMateria
 
 
 
-void TPZMultiphase::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef)
+void TPZMultiphase::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef)
 {
+#ifdef PZDEBUG
+    for(int i=0; i<5; i++)
+    {
+        if(dataleft.find(i) == dataleft.end()) DebugStop();
+        if(dataright.find(i) == dataright.end()) DebugStop();
+    }
+#endif
 
     TPZFMatrix<REAL> &phiUL = dataleft[0].phi;
     TPZFMatrix<REAL> &phiUR = dataright[0].phi;    
@@ -3307,12 +3317,18 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
     DebugStop();
 }
 
-void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
-    
+#ifdef PZDEBUG
+    for(int i=0; i<5; i++)
+    {
+        if(dataleft.find(i) == dataleft.end()) DebugStop();
+    }
+#endif
+
     int nref =  dataleft.size();
     if (nref != 5) {
-        std::cout << " Error:: datavec size must to be equal to 4 \n" << std::endl;
+        std::cout << " Error:: datavec size must to be equal to 5 \n" << std::endl;
         DebugStop();
     }
     
@@ -3878,7 +3894,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
       
 }
 
-    void TPZMultiphase::ApplyUxD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyUxD       (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
 
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -3940,7 +3956,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplyUyD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyUyD       (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
 
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4001,7 +4017,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySigmaN    (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySigmaN    (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4055,7 +4071,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplyQnD       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyQnD       (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4129,7 +4145,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
     }
 
     
-    void TPZMultiphase::ApplyPN        (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplyPN        (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4242,7 +4258,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySin       (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4410,7 +4426,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySout      (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
     
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4577,7 +4593,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySin       (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySin       (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
@@ -4716,7 +4732,7 @@ void TPZMultiphase::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMater
         
     }
     
-    void TPZMultiphase::ApplySout      (TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
+    void TPZMultiphase::ApplySout      (TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
     {
         
         TPZFMatrix<REAL> &phiUL     = dataleft[0].phi;    
