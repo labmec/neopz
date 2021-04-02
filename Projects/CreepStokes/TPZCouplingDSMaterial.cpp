@@ -400,7 +400,7 @@ void TPZCouplingDSMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, std::map<int, TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 
 
 #ifdef PZDEBUG
@@ -522,11 +522,6 @@ void TPZCouplingDSMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TP
 
 
 
-void TPZCouplingDSMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-   
-    DebugStop();
-    
-}
 
 
 

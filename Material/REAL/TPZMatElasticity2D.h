@@ -218,9 +218,6 @@ virtual int ClassId() const override;
     
     //public:
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * Left, TPZCompEl * Right) override {
-        DebugStop();
-    }
     
     /**
      * @brief Computes the error due to the difference between the interpolated flux \n

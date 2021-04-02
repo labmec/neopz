@@ -766,7 +766,7 @@ void TPZDarcyPMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, std::map<int, TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
     
     
 #ifdef PZDEBUG
@@ -945,7 +945,7 @@ void TPZDarcyPMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
 }
 
 
-void TPZDarcyPMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPZDarcyPMaterial::ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     
     

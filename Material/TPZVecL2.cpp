@@ -84,14 +84,14 @@ void TPZVecL2::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE>
 	DebugStop();
 }
 
-void TPZVecL2::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
+void TPZVecL2::Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout)
 {
-		this->Solution(data,dataleftvec,datarightvec, var, Solout);
+    DebugStop();
 }
 
-void TPZVecL2::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *right)
+void TPZVecL2::Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl *left, TPZCompEl *right)
 {
-	this->Solution(data,dataleftvec,datarightvec, var, Solout, left, right);
+    DebugStop();
 }
 
 void TPZVecL2::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
