@@ -357,15 +357,24 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
 
-    int nmesh =datavecleft.size();
-    for(int id = 0; id<nmesh; id++){
-        datavecleft[id].p = 0;
+    for(auto &it : datavecleft){
+        it.second.p = 0;
+        int id = it.first;
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel->Element(id));
         if (msp)
         {
             datavecleft[id].p =msp->MaxOrder();
         }
     }
+//    for(auto &it : datavecright){
+//        it.second.p = 0;
+//        int id = it.first;
+//        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(rightel->Element(id));
+//        if (msp)
+//        {
+//            datavecright[id].p = msp->MaxOrder();
+//        }
+//    }
 
     TPZManVector<int> intleftorder;
     leftel->PolynomialOrder(intleftorder);
@@ -405,7 +414,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         trright.Apply(Point, rightPoint);
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         
-        data.x = datavecleft[0].x;
+        data.x = datavecleft.begin()->second.x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }	
 	

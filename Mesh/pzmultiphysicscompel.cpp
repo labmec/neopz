@@ -714,12 +714,12 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(std::map<int, TPZMateria
 {
     int64_t nref = this->fElementVec.size();
     
-#ifdef PZDEBUG
-    if (nref != dataVec.size()) {
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
-        DebugStop();
-    }
-#endif
+//#ifdef PZDEBUG
+//    if (nref != dataVec.size()) {
+//        PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
+//        DebugStop();
+//    }
+//#endif
     if(indices){
         int64_t nindices = indices->size();
         TPZVec<int> nshape(nindices);
@@ -758,8 +758,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(std::map<int, TPZMateria
         fActiveApproxSpace.Resize(nref, 1);
     }
     
-    for (int64_t iref = 0; iref < nref; iref++) {
-        dataVec[iref].fActiveApproxSpace = fActiveApproxSpace[iref];
+    for (auto &it : dataVec) {
+        it.second.fActiveApproxSpace = fActiveApproxSpace[it.first];
     }
     
     this->Material()->FillDataRequirements(dataVec);
