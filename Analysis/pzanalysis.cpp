@@ -762,9 +762,9 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
 
 void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
-    int64_t neq = fCompMesh->NEquations();
-    TPZVec<REAL> ux(neq);
-    TPZVec<REAL> sigx(neq);
+    fCompMesh->EvaluateError(store_error, ervec);
+    return;
+    
     TPZManVector<REAL,10> values(10,0.);
     TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
     TPZGeoMesh *gmesh = fCompMesh->Reference();

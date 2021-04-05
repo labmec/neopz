@@ -1462,7 +1462,7 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	//soma de erros sobre os elementos
 	for(int64_t el=0;el< fElementVec.NElements();el++) {
 		cel = fElementVec[el];
-		if(!cel  || cel->Material()->Id() < 0) continue;
+		if(!cel) continue;
 		cel->EvaluateError(true_error,store_error);
 		
 		int64_t nerrors = true_error.NElements();

@@ -560,7 +560,8 @@ public:
 
   virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
         PZError << __PRETTY_FUNCTION__ << std::endl;
-        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+        PZError << "Method not implemented! Error computation not available. Please, implement it." << std::endl;
+      DebugStop();
     }
   virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
     

@@ -285,7 +285,10 @@ protected:
 	}
     //error for bc
     virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)override;
-    
+
+    //error for bc
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors)override;
+
 //    // error for boundary robin part
 //    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors, TPZBndCond &bc) override;
 	
