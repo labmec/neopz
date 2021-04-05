@@ -606,12 +606,22 @@ protected:
   virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
                       TPZFMatrix<REAL> &axes, TPZVec<REAL> &u_exact,
                       TPZFMatrix<REAL> &du_exact, TPZVec<REAL> &values){
+        PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Error comparison not available.\n";
         PZError << "Please, implement it.\n";
         DebugStop();
   }
 public:
-
+    //obsolete signature
+    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,
+                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
+                          TPZVec<REAL> &errors,TPZBndCond &bc){
+    
+        PZError << __PRETTY_FUNCTION__ << std::endl;
+        PZError << "Error comparison not available.\n";
+        PZError << "Please, implement it.\n";
+        DebugStop();
+    }
     
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     virtual int NEvalErrors() {return 3;}

@@ -289,7 +289,10 @@ public:
 
     
 virtual int ClassId() const override;
-    
+
+    virtual void EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) override {
+    }
+
 };
 
 #endif
