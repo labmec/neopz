@@ -127,8 +127,10 @@ TPZBlock<TVar>::SetAll( TPZVec<int> & dimensions )
 	int i,nel = dimensions.NElements() ;
 	for(i=0;i<nel;i++) total_dim += dimensions[i];
 	if ( total_dim != fpMatrix->Rows() ||
-		total_dim > fpMatrix->Rows() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"SetAll <new block dimensions not compatible whit matrix dimension>");
+		 total_dim > fpMatrix->Rows() ){
+		PZError<<__PRETTY_FUNCTION__<<"SetAll <new block dimensions not compatible whit matrix dimension>"<<std::endl;
+		DebugStop();
+	}
 	
 	int pos=0;
 	
@@ -192,18 +194,20 @@ TPZBlock<TVar>::Get(const int bRow,const int bCol,const int r,const int c ) cons
 {
 	int row(r),col(c);
 	int MaxBlocks = fBlock.NElements();
-	if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <block index out of range>" );
+	if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) ){
+		PZError<<__PRETTY_FUNCTION__ <<"Get <block index out of range>" <<std::endl;
+		DebugStop();
+		}
 	
 	int rowDim = fBlock[bRow].dim;
 	int colDim = fBlock[bCol].dim;
 	
 	
 	if ( !rowDim || !colDim )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <inexistent block>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Get <inexistent block>" <<std::endl; DebugStop();}
 	
 	if ( (row >= rowDim) || (col >= colDim) )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <elemente is out of the block>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Get <elemente is out of the block>" <<std::endl; DebugStop();}
 	
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
@@ -220,16 +224,16 @@ TPZBlock<TVar>::Put(const int bRow,const int bCol,const int r,const int c,
 	int MaxBlocks = fBlock.NElements();
 	int row(r),col(c);
 	if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <block index out of range>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Put <block index out of range>" <<std::endl; DebugStop();}
 	
 	int rowDim = fBlock[bRow].dim;
 	int colDim = fBlock[bCol].dim;
 	
 	if ( !rowDim || !colDim )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <inexistent block>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Put <inexistent block>" <<std::endl; DebugStop();}
 	
 	if ( (row >= rowDim) || (col >= colDim) )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <elemente is out of the block>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Put <elemente is out of the block>" <<std::endl; DebugStop();}
 	
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
@@ -246,7 +250,7 @@ TPZBlock<TVar>::Get(const int bRow,const int r,const int c ) const
 	int MaxBlocks = fBlock.NElements();
 	if ( (bRow >= MaxBlocks)  )
 	{
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <block index out of range>" );
+		PZError<<__PRETTY_FUNCTION__<< "Get <block index out of range>" <<std::endl; DebugStop();
 	}
 	
 	int rowDim = fBlock[bRow].dim;
@@ -254,12 +258,12 @@ TPZBlock<TVar>::Get(const int bRow,const int r,const int c ) const
 	
 	if ( !rowDim  )
 	{
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <inexistent block>" );
+		PZError<<__PRETTY_FUNCTION__<< "Get <inexistent block>" <<std::endl; DebugStop();
 	}
 	
 	if ( (row >= rowDim) || (col >= fpMatrix->Cols()) )
 	{
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <elemente is out of the block>" );
+		PZError<<__PRETTY_FUNCTION__<< "Get <elemente is out of the block>" <<std::endl; DebugStop();
 	}
 	
 	row += fBlock[bRow].pos;
@@ -276,15 +280,15 @@ TPZBlock<TVar>::Put(const int bRow,const int r,const int c,
 	int MaxBlocks = fBlock.NElements();
 	int row(r),col(c);
 	if ( (bRow >= MaxBlocks)  )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <block index out of range>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Put <block index out of range>" <<std::endl; DebugStop();}
 	
 	int rowDim = fBlock[bRow].dim;
 	
 	if ( !rowDim )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <inexistent block>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Put <inexistent block>" <<std::endl; DebugStop();}
 	
 	if ( (row >= rowDim) || (col >= fpMatrix->Cols()) )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <elemente is out of the block>" );
+		{PZError<<__PRETTY_FUNCTION__<< "Put <elemente is out of the block>" <<std::endl; DebugStop();}
 	
 	row += fBlock[bRow].pos;
 	return( fpMatrix->Put( row, col, value ) );
@@ -385,7 +389,8 @@ TPZBlock<TVar>::InsertBlock(const int block_row,const int block_col,
 	
 	if ( ((target_row + rowDim) > target.Rows()) ||
 		((target_col + colDim) > target.Cols()) ) {
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "GetSub <the sub-matrix is too big>" ) ;
+		PZError<<__PRETTY_FUNCTION__<< "GetSub <the sub-matrix is too big>" <<std::endl;
+		DebugStop();
 		return ( 0 );
 	}
 	

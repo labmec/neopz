@@ -83,7 +83,7 @@ public:
 	static int main();
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill(int64_t dim, int64_t dimj, int symmetric);
+    void AutoFill(int64_t dim, int64_t dimj, int symmetric) override;
 	
 private:
 	

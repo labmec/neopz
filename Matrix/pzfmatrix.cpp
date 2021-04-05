@@ -2702,14 +2702,14 @@ template< class TVar>
 int
 TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w, TPZFMatrix < complex<double> > &eigenVectors)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+    Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 template< class TVar>
 int
 TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+    Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 
@@ -2719,7 +2719,7 @@ TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <c
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -2779,7 +2779,7 @@ TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <c
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";
@@ -2822,7 +2822,7 @@ TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec 
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -2882,7 +2882,7 @@ TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec 
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";
@@ -2926,7 +2926,7 @@ TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<flo
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -2976,7 +2976,7 @@ TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<flo
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";
@@ -3019,7 +3019,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -3069,7 +3069,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";

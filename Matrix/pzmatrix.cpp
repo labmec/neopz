@@ -36,18 +36,18 @@ using namespace std;
 //template <class TVar>
 //TVar TPZMatrix<TVar>::gZero = TVar(0);
 
-template <class TVar>
-TPZMatrix<TVar>::~TPZMatrix()
-{
-	fDecomposed = 0;
-	fDefPositive = 0;
-	fRow = 0;
-	fCol = 0;
+template<class TVar>
+TPZMatrix<TVar> &TPZMatrix<TVar>::operator=(const TPZMatrix<TVar> &cp) {
+    
+    TPZBaseMatrix::operator=(cp);
+    return *this;
 }
 
-/** @brief Get values without bounds checking \n
- *  This method is faster than "Get" if DEBUG is defined.
- */
+template<class TVar>
+TPZMatrix<TVar> &TPZMatrix<TVar>::operator=(TPZMatrix<TVar> &&rval) {
+    TPZBaseMatrix::operator=(rval);
+    return *this;
+}
 
 template<class TVar>
 const TVar &TPZMatrix<TVar>::GetVal(const int64_t /*row*/, const int64_t /*col*/ ) const
@@ -743,7 +743,7 @@ int TPZMatrix<TVar>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt, std::l
 		case ELDLt:
 			return( Solve_LDLt( &B, singular )  );
 		default:
-			Error( "Solve  < Unknow decomposition type >" );
+			Error( "Solve  < Unknown decomposition type >" );
 			break;
 	}
 	return ( 0 );
@@ -759,7 +759,7 @@ int TPZMatrix<TVar>::SolveDirect( TPZFMatrix<TVar> &B , DecomposeType dt) {
 		case ELDLt:
 			return( Solve_LDLt( &B )  );
 		default:
-			Error( "Solve  < Unknow decomposition type >" );
+			Error( "Solve  < Unknown decomposition type >" );
 			break;
 	}
 	return ( 0 );
@@ -1423,19 +1423,10 @@ int TPZMatrix<TVar>::Error(const char *msg ,const char *msg2) {
 	std::bad_exception myex;
 	throw myex;
 }
-template <class TVar>
-void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
-	buf.Read(&fRow);
-	buf.Read(&fCol);
-	buf.Read(&fDecomposed);
-	buf.Read(&fDefPositive);
-}
-template <class TVar>
-void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const { //ok
-	buf.Write(&fRow);
-	buf.Write(&fCol);
-	buf.Write(&fDecomposed);
-	buf.Write(&fDefPositive);
+
+template<class TVar>
+int TPZMatrix<TVar>::ClassId() const{
+    return Hash("TPZMatrix") ^ ClassIdOrHash<TVar>()<<1 ^ TPZBaseMatrix::ClassId();
 }
 
 /// Compare the object for identity with the object pointed to, eventually copy the object

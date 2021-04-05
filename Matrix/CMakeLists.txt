@@ -11,6 +11,7 @@ set(headers
     pzbndmat.h
     pzfmatrix.h
     pzmatrix.h
+    pzbasematrix.h
     pzsespmat.h
     pzskylmat.h
     pzspblockdiagpivot.h
@@ -42,6 +43,7 @@ set(sources
     pzblockdiag.cpp
     pzfmatrix.cpp
     pzmatrix.cpp
+    pzbasematrix.cpp
     pzsespmat.cpp
     pzskylmat.cpp
     pzspblockdiagpivot.cpp

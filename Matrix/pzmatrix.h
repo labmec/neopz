@@ -7,11 +7,8 @@
 #define _TMATRIXHH_
 
 #include "pzvec.h"
-#include "TPZStream.h"
 #include "pzreal.h"
-#include "TPZSavable.h"
-#include "Hash/TPZHash.h"
-
+#include "pzbasematrix.h"
 #include <list>
 #include <sstream>
 
@@ -21,6 +18,7 @@
 template<class TVar>
 class TPZFMatrix;
 
+class TPZStream;
 /** @brief To create clone matrix */
 #define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const override { return new A(*this); }
 
@@ -28,52 +26,41 @@ class TPZFMatrix;
 template<class TVar>
 class TPZSolver;
 
-/** \addtogroup matrix
- * @{
- */
-/**
- * @enum DecomposeType
- * @brief Defines decomposition type for any matrix classes
- * @param ENoDecompose Not decomposed
- * @param ELU Decomposed using LU method
- * @param ECholesky Decomposed using Cholesky method
- * @param ELDLt Decomposed using LDLt method
- */
-enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
-
 /** @brief Defines output format */
 enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros, EMatrixMarket, ECSV, EFixedColumn};
 
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
-template<class TVar=REAL>
-class TPZMatrix: public TPZSavable
+template<class TVar=STATE>
+class TPZMatrix: public TPZBaseMatrix
 
 {
 public:
     
-    //typedef typename TVar;
-	/** @brief Simple constructor */
-	TPZMatrix() {
-		fDecomposed = 0;
-		fDefPositive = 0;
-		fRow = 0;
-		fCol = 0;
-	}
-	
-	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId), fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
+	/** @brief Default constructor */
+	TPZMatrix() = default;
+	/**@brief Copy constructor */
+	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId), TPZBaseMatrix(cp)
 	{
 	}
+
+    /** @brief Move constructor */
+    TPZMatrix<TVar>(TPZMatrix<TVar> &&cp) = default;
 	/** @brief Simple destructor */
-	virtual ~TPZMatrix();
-	
-	virtual TPZMatrix<TVar>*Clone() const = 0;
+	virtual ~TPZMatrix() = default;
+
+    /** @brief Copy assignment operator*/
+    TPZMatrix<TVar> &operator=(const TPZMatrix<TVar> &);
+    /** @brief Move assignment operator*/
+    TPZMatrix<TVar> &operator=(TPZMatrix<TVar> &&);
+
+    virtual TPZMatrix<TVar>*Clone() const = 0;
 
 	/**
 	 * @brief Returns the approximate size of the memory footprint (amount
 	 * of memory required to store this object).
 	 */
-        virtual int64_t MemoryFootprint() const {
+    int64_t MemoryFootprint() const override{
 	  std::cout << __PRETTY_FUNCTION__ 
 		    << ": Please, implement me! (class = " << ClassId() 
 	            << std::endl;
@@ -94,13 +81,13 @@ public:
 
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
-	void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
+	void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
 	
 	/** @brief Checks if current matrix value is symmetric */
-	virtual int VerifySymmetry(REAL tol = 1.e-13) const;
+	int VerifySymmetry(REAL tol = ZeroTolerance()) const override;
 	
 	/**
-     * @brief Put values with bounds checking if DEBUG variable is defined.
+     * @brief Put value with bounds checking
      * @param row Row number.
      * @param col Column number.
      * @param value Value being put.
@@ -248,28 +235,12 @@ public:
 	/** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
 	virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 	
-	//void PrintMath(const char *name, std::ostream &out);
-	
-	/** @brief Returns number of rows */
-    inline int64_t Rows() const {
-        return fRow;
-    }
-	/** @brief Returns number of cols */
-    int64_t Cols() const {
-        return fCol;
-    }
-	
-	/** @brief Returns the dimension of the matrix if the matrix is square.*/
-	/** If the matrix is not square, returns an error */
-	inline virtual int64_t Dim() const;
-	
-	
 	/**
 	 * @brief Redimensions a matriz keeping the previous values
 	 * @param newRows Specifies the new number of rows in matrix
 	 * @param newCols Specifies the new number of Columns in matrix
 	 */
-	virtual int Resize(const int64_t newRows, const int64_t newCols ) {
+	int Resize(const int64_t newRows, const int64_t newCols ) override{
 		fRow = newRows;
 		fCol = newCols;
 		return 0;
@@ -280,14 +251,14 @@ public:
 	 * @param newRows Specifies the new number of rows in matrix.
 	 * @param newCols Specifies the new number of Columns in matrix.
 	 */
-	virtual int Redim(const int64_t newRows, const int64_t newCols ) {
+	int Redim(const int64_t newRows, const int64_t newCols ) override {
 		fRow = newRows;
 		fCol = newCols;
 		return 0;
 	}
 	
 	/** @brief Zeroes the matrix */
-	virtual int Zero(){
+	int Zero() override{
 		std::cout << "WARNING! TPZMatrix<TVar>::Zero is called\n";
         DebugStop();
 		return 0; }
@@ -384,24 +355,8 @@ public:
         DebugStop();
 	}
 	
-	/** @brief Checks if the current matrix is symmetric */
-	virtual int IsSimetric() const    { return 0; }
-	/** @brief Checks if current matrix is square */
-	inline int IsSquare() const { return fRow == fCol;}
-	
 	/** @brief Simetrizes copies upper plan to the lower plan, making its data simetric */
-	virtual void Simetrize();
-	
-	
-	/** @brief Checks if current matrix is definite positive */
-	virtual int IsDefPositive() const{ return 0; }
-	/** @brief Checks if current matrix is already decomposed */
-	int IsDecomposed() const         { return fDecomposed; }
-	
-	/** @} */
-	
-	/** @brief Sets current matrix to decomposed state */
-	void SetIsDecomposed(int val) {fDecomposed = (char) val; }
+	void Simetrize() override;		
 	
 	/**
 	 * @name Solvers
@@ -562,45 +517,6 @@ public:
 	 */
 	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt);
 	
-    /** @brief decompose the system of equations acording to the decomposition scheme */
-    virtual int Decompose(const DecomposeType dt, std::list<int64_t> &singular)
-    {
-        switch (dt) {
-            case ELU:
-                return Decompose_LU(singular);
-                break;
-            case ELDLt:
-                return Decompose_LDLt(singular);
-                break;
-            case ECholesky:
-                return Decompose_Cholesky(singular);
-                break;                
-            default:
-                DebugStop();
-                break;
-        }
-        return -1;
-    }
-
-    /** @brief decompose the system of equations acording to the decomposition scheme */
-    virtual int Decompose(const DecomposeType dt)
-    {
-        switch (dt) {
-            case ELU:
-                return Decompose_LU();
-                break;
-            case ELDLt:
-                return Decompose_LDLt();
-                break;
-            case ECholesky:
-                return Decompose_Cholesky();
-                break;
-            default:
-                DebugStop();
-                break;
-        }
-        return -1;
-    }
 /** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
 	static TVar ReturnNearestValue(TVar val, TPZVec<TVar> &Vec, TVar tol);
 	
@@ -648,25 +564,29 @@ public:
 	 */
 	
 	/** @brief Decomposes the current matrix using LU decomposition. */
-	virtual int Decompose_LU(std::list<int64_t> &singular);
-	virtual int Decompose_LU();
-	
-	/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
-	virtual int Decompose_Cholesky() ;
-	/**
-	 * @brief Decomposes the current matrix using Cholesky method.
-	 * @param singular
-	 */
-	virtual int Decompose_Cholesky(std::list<int64_t> &singular) ;
-	
-	/**
-	 * @brief Decomposes the current matrix using LDLt. \n
-	 * The current matrix has to be symmetric.
-	 * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
-	 */
-	virtual int Decompose_LDLt(std::list<int64_t> &singular);
-	/** @brief Decomposes the current matrix using LDLt. */
-	virtual int Decompose_LDLt();
+    int Decompose_LU(std::list<int64_t> &singular) override;
+    /** @brief Decomposes the current matrix using LU decomposition. */
+    int Decompose_LU() override;
+
+  
+    /**
+     * @brief Decomposes the current matrix using Cholesky method.
+     *
+     * The curent matrix has to be hermitian.
+     */
+    int Decompose_Cholesky(std::list<int64_t> &singular) override;
+    /** @brief Decomposes the current matrix using Cholesky*/
+    int Decompose_Cholesky() override;
+    /**
+     * @brief Decomposes the current matrix using LDLt.
+     *
+     * The current matrix has to be symmetric.
+     * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal
+     * matrix.
+     */
+    int Decompose_LDLt(std::list<int64_t> &singular) override;
+    /** @brief Decomposes the current matrix using LDLt. */
+    int Decompose_LDLt() override;
 	
 	/** @} */
 	
@@ -720,23 +640,7 @@ public:
 	 * @{
 	 */
 	
-        public:
-int ClassId() const override;
-
-        
-	/**
-	 * @brief Unpacks the object structure from a stream of bytes
-	 * @param buf The buffer containing the object in a packed form
-	 * @param context 
-	 */
-	void Read(TPZStream &buf, void *context) override;
-	
-	/**
-	 * @brief Packs the object structure in a stream of bytes
-	 * @param buf Buffer which will receive the bytes
-	 * @param withclassid
-	 */
-	void Write(TPZStream &buf, int withclassid) const override;
+    int ClassId() const override;
 	
 	/** @} */
 	
@@ -775,36 +679,29 @@ protected:
 	inline  TPZMatrix<TVar>(const int64_t row,const int64_t col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId)
 	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
-public:
+	
+protected:
 	/**
-	 * @brief Returns error messages
+	 * @brief Returns error messages and aborts executioin
 	 * @param msg First message.
 	 * @param msg2 Second message.
 	 */
 	static int Error(const char *msg ,const char *msg2 = 0);
-	
-protected:
 	/** @brief It clears data structure. */
 	virtual int Clear() { return 0; }
 	
 	/** @brief Swaps contents of a in b and b in a */
 	static void Swap(int64_t *a, int64_t *b);
-	/** @brief Number of rows in matrix */
-	int64_t fRow;
-	/** @brief Number of cols in matrix */
-	int64_t fCol;
-	/** @brief Decomposition type used to decompose the current matrix */
-	char  fDecomposed;
-	/** @brief Definite Posistiveness of current matrix */
-	char fDefPositive;
+    /** @brief value considered as zero*/
 	static TVar gZero;
 };
 
-/** @} */
+
 
 /** @brief Initializing value to static variable */
 template <class TVar>
 TVar TPZMatrix<TVar>::gZero = TVar(0);
+/** @} */
 
 /** @brief Overload << operator to print entries of the matrix ***/
 template<class TVar>
@@ -848,7 +745,7 @@ TPZMatrix<std::complex<double>>::Residual(const TPZFMatrix<std::complex<double>>
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Put(const int64_t row,const int64_t col,const TVar & value ) {
-	// verificando se o elemento a inserir esta dentro da matriz
+	// bound checking
 #ifdef PZDEBUG
 	if ( row >= Rows() || col >= Cols() || row <0 || col < 0 ) {
 		std::stringstream sout;
@@ -867,7 +764,7 @@ inline int TPZMatrix<TVar>::Put(const int64_t row,const int64_t col,const TVar &
 
 template<class TVar>
 inline const TVar &TPZMatrix<TVar>::Get(const int64_t row, const int64_t col ) const {
-	// verificando se o elemento pedido esta dentro da matriz
+	// bound checking
 #ifdef PZDEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
 		Error("TPZMatrix::Get", "Index out of range");
@@ -879,7 +776,7 @@ inline const TVar &TPZMatrix<TVar>::Get(const int64_t row, const int64_t col ) c
 
 template<class TVar>
 inline TVar &TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) {
-	// verificando se o elemento a inserir esta dentro da matriz
+	// bound checking
 #ifndef NODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
 		Error("TPZMatrix<TVar>::Operator()","Index out of range");
@@ -891,7 +788,6 @@ inline TVar &TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) {
 
 template<class TVar>
 inline TVar &TPZMatrix<TVar>::s(const int64_t row, const int64_t col) {
-	// verificando se o elemento a inserir esta dentro da matriz
     DebugStop();
     throw "TPZMatrix<TVar>::s not implemented\n";
     
@@ -901,26 +797,19 @@ template<class TVar>
 inline TVar &TPZMatrix<TVar>::operator()(const int64_t row) {
 	return operator()(row,0);
 }
-
-template<class TVar>
-inline int64_t TPZMatrix<TVar>::Dim() const{
-	if ( IsSquare() ) return Rows();
-	Error( "matrix is not square" );
-	return ( 0 );
-}
 //***Solve LU ***/
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int64_t> &singular) {
 	if ( IsSimetric() )
-        Error( "LU decomposition is a not symetric decomposition" );
+        Error( "LU decomposition is not a symmetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
 }
 
 template<class TVar>
 inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B ) {
 	if ( IsSimetric() )
-        Error( "LU decomposition is a not symetric decomposition" );
+        Error( "LU decomposition is not a symmetric decomposition" );
 	return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
 }
 /**********************/
@@ -965,11 +854,6 @@ TPZMatrix<TVar>::Swap( int64_t *a, int64_t *b )
 	int64_t aux = *a;
 	*a = *b;
 	*b = aux;
-}
-
-template<class TVar>
-int TPZMatrix<TVar>::ClassId() const{
-    return Hash("TPZMatrix") ^ ClassIdOrHash<TVar>()<<1;
 }
 
 #include "pzfmatrix.h"

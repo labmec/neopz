@@ -170,7 +170,7 @@ public:
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
-	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) ;
+	virtual void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
 	
 	public:
 int ClassId() const override;
