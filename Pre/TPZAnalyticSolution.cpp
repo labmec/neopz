@@ -1483,6 +1483,13 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
            // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
         }
             break;
+
+        case EBubble2D:{
+
+            disp[0] = xloc[0]*xloc[1]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1]);
+            // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
+        }
+            break;
         case ESinCosCircle:{
             
             TVar coef = pow(r, TVar(4.));
@@ -1796,6 +1803,14 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             disp[0] = xloc[0]*xloc[1]*xloc[2]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1])*(TVar(1.)-xloc[2]);
          //   std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
             
+        }
+            break;
+
+        case EBubble2D:{
+
+            disp[0] = xloc[0]*xloc[1]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1]);
+            //   std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
+
         }
             break;
             
