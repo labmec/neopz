@@ -103,6 +103,15 @@ public:
 	 */
 	int Verify() const;
 	
+    /// Return the index in the blocked matrix
+    int64_t Index(const int64_t block_row, const int r) const;
+    
+    /// Return the row-column index for the row and column block
+    std::pair<int64_t, int64_t> at(const int block_row,const int block_col,const int r,const int c) const
+    {
+        return std::pair<int64_t, int64_t>(Index(block_row, r),Index(block_col,c));
+    }
+protected:
 	TVar & operator()(const int block_row,const int block_col,const int r,const int c ) const;
 	
 	/** @brief Gets a element from matrix verifying */
@@ -120,6 +129,8 @@ public:
 	/** @brief Puts a element to matrix but not verify the existence */
 	int PutVal(const int bRow,const int bCol,const int r,const int c,const TVar& value );
 	
+public:
+    
 	TPZBlock<TVar>&operator=(const TPZBlock<TVar>& ); 		
 	
     void PrintStructure(std::ostream &out = std::cout);

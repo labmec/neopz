@@ -216,7 +216,10 @@ public:
 	TPZBlock<STATE> &Block() { return fBlock;}
 	
 	/** @brief Access the solution vector */
-	TPZFMatrix<STATE> &Solution(){ return fSolution;}
+	TPZFMatrix<STATE> &Solution() { return fSolution;}
+    
+    /** @brief Access the solution vector */
+    const TPZFMatrix<STATE> &Solution() const { return fSolution;}
     
     /** @brief Access the  previous solution vector */
     TPZFMatrix<STATE> &SolutionN(){ return fSolN;}

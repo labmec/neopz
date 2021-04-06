@@ -336,11 +336,25 @@ TPZBlock<TVar>::GetVal(const int bRow,const int bCol,const int r,const int c ) c
 	return( tmp->GetVal( row, col ) );
 }
 
+/// Return the index in the blocked matrix
+template<class TVar>
+int64_t TPZBlock<TVar>::Index(const int64_t bRow, const int r) const
+{
+    auto MaxBlocks = fBlock.NElements();
+    int64_t row(r);
+    if(bRow <0 || bRow >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
+        cout << "TPZBlock::operator() indexes out of range\n";
+        DebugStop();
+    }
+    row += fBlock[bRow].pos;
+    return row;
+}
+
 template<class TVar>
 TVar &
 TPZBlock<TVar>::operator()(const int bRow,const int bCol,const int r,const int c ) const
 {
-	int MaxBlocks = fBlock.NElements();
+	auto MaxBlocks = fBlock.NElements();
 	int row(r),col(c);
 	if(bRow <0 || bRow >= MaxBlocks || bCol <0 || bCol >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
 		cout << "TPZBlock::operator() indexes out of range\n";

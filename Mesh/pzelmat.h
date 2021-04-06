@@ -120,6 +120,14 @@ struct TPZElementMatrix {
     /// Compute the dependency order of the connects, considering the one shape restraints
     void BuildDependencyOrder(TPZVec<int64_t> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
 	
+    STATE &at(int64_t ibl, int64_t jbl, int idf, int jdf)
+    {
+        return fMat.at(fBlock.at(ibl,jbl,idf,jdf));
+    }
+    STATE &at(int64_t ibl, int idf)
+    {
+        return fMat(fBlock.Index(ibl,idf));
+    }
 };
 
 #endif

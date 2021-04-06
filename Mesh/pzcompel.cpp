@@ -73,10 +73,11 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             int r,c;
             //TPZBlock<REAL> &mbl = ek.fConstrBlock;
             TPZBlock<STATE> &mbl = ek.fConstrBlock;
+            TPZFMatrix<STATE> &msol = ek.fConstrMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
-                    ekbl(r,c) = (mbl)(b,b,r,c);
+                    ekbl(r,c) = msol.at(mbl.at(b,b,r,c));
                 }
             }
             blockdiag.AddBlock(b,ekbl);
@@ -100,11 +101,12 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             int r, c;
             //TPZBlock<REAL> &mbl = ek.fBlock;
             TPZBlock<STATE> &mbl = ek.fBlock;
+            TPZFMatrix<STATE> &sol = ek.fMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
                     //ekbl(r,c) = (mbl)(b,b,r,c);
-                    ekbl(r,c) = (mbl)(b,b,r,c);
+                    ekbl(r,c) = sol.at(mbl.at(b,b,r,c));
                 }
             }
             blockdiag.AddBlock(b,ekbl);
@@ -251,30 +253,6 @@ void TPZCompEl::LoadSolution() {
             }
         }
         current_order--;
-    }
-    std::list<TPZOneShapeRestraint> mylist = this->GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++)
-    {
-        int64_t connectdest = it->fFaces[0].first;
-        int64_t seqnumdest = Mesh()->ConnectVec()[connectdest].SequenceNumber();
-        int destidf = it->fFaces[0].second;
-        REAL mult = -1./it->fOrient[0];
-#ifdef PZDEBUG
-        STATE prevval = Mesh()->Block()(seqnumdest,0,destidf,0);
-#endif
-        Mesh()->Block()(seqnumdest,0,destidf,0) = 0.;
-        for (int i=1; i<4; i++) {
-            int64_t connectindex = it->fFaces[i].first;
-            int64_t seqnum = Mesh()->ConnectVec()[connectindex].SequenceNumber();
-            int idf = it->fFaces[i].second;
-            STATE val = Mesh()->Block()(seqnum,0,idf,0);
-            REAL multorig = it->fOrient[i];
-            Mesh()->Block()(seqnumdest,0,destidf,0) += mult*multorig*val;
-        }
-#ifdef PZDEBUG
-        STATE finalval = Mesh()->Block()(seqnumdest,0,destidf,0);
-        finalval -= prevval;
-#endif
     }
 }
 

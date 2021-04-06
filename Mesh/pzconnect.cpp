@@ -78,7 +78,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 		int64_t ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
-			out << mesh.Block()(fSequenceNumber,0,ieq,0) << ' ';
+			out << mesh.Solution().at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
 		}
 	}
 	
@@ -108,7 +108,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 		int64_t ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
-			out << mesh.Block()(fSequenceNumber,0,ieq,0) << ' ';
+			out << mesh.Solution().at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
 		}
 	}
 	

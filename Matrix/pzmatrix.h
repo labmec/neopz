@@ -113,6 +113,19 @@ public:
 	 * @param col Column number.
 	 */
 	TVar &operator() (const int64_t row,const int64_t col );
+    /**
+     * @brief The operators check on the bounds if the DEBUG variable is defined
+     * @param row Row number.
+     * @param col Column number.
+     */
+    TVar &at(const std::pair<int64_t,int64_t> &rowcol )
+    {
+        return operator()(rowcol.first,rowcol.second);
+    }
+    const TVar &at(const std::pair<int64_t,int64_t> &rowcol ) const
+    {
+        return Get(rowcol.first,rowcol.second);
+    }
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.

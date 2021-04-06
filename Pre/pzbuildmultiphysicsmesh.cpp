@@ -326,11 +326,13 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
     ComputeAtomicIndexes(MFMesh, indexes);
     int64_t nconnect = indexes.size();
     TPZBlock<STATE> &blockMF = MFMesh->Block();
+    TPZFMatrix<STATE> &solMF = MFMesh->Solution();
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         if(!atomic_mesh) continue;
 		TPZBlock<STATE> &block = atomic_mesh->Block();
+        TPZFMatrix<STATE> &sol = atomic_mesh->Solution();
         TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
         int64_t seqnum = con.SequenceNumber();
         if(seqnum<0) DebugStop();       /// Whether connect was deleted by previous refined process
@@ -339,8 +341,8 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            auto getval = block.Get(seqnum, idf, 0);
-            blockMF.Put(seqnumMF, idf, 0, getval);
+            auto getval = sol(block.Index(seqnum, idf));
+            solMF(blockMF.Index(seqnumMF, idf)) = getval;
         }
 	}
     
@@ -362,19 +364,21 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
                 if(fatherconIndex == -1) DebugStop();
                 //acessing the block on father mesh
                 TPZBlock<STATE> &blockfather = fathermesh->Block();
+                TPZFMatrix<STATE> &solfather = fathermesh->Solution();
                 
                 TPZConnect &confather = fathermesh->ConnectVec()[fatherconIndex];
                 int64_t seqnumfather = confather.SequenceNumber();
                 int nblock = blockfather.Size(seqnumfather);
                 //acessing the block on submesh
                 TPZBlock<STATE> &blocksub = msub->Block();
+                TPZFMatrix<STATE> &solsub = ((TPZCompMesh *)(msub))->Solution();
                 TPZConnect &consub = msub->ConnectVec()[submeshIndex];
                 int64_t seqnumsub = consub.SequenceNumber();
                 
                 if(seqnumfather < 0) DebugStop();
                 for(int idf=0 ; idf<nblock; idf++){
                     int posfather = blockfather.Position(seqnumfather);
-                    STATE valsub = blocksub.Get(seqnumsub, idf,0);
+                    STATE valsub = solsub(blocksub.Index(seqnumsub, idf));
                     fathermesh->Solution()(posfather + idf) = valsub;
                 }
             }
@@ -400,6 +404,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
     ComputeAtomicIndexes(MFMesh, indexes);
     int64_t nconnect = indexes.size();
     TPZBlock<STATE> &blockMF = MFMesh->Block();
+    TPZFMatrix<STATE> &solMF = MFMesh->Solution();
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
@@ -414,7 +419,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         int64_t seqnumMF = conMF.SequenceNumber();
         if(seqnumMF < 0) DebugStop();
         for (int idf=0; idf<blsize; idf++) {
-            STATE val = blockMF.Get(seqnumMF, idf, 0);
+            STATE val = solMF(blockMF.Index(seqnumMF, idf));
             int64_t pos = block.Position(seqnum);
             atomic_mesh->Solution()(pos+idf) = val;          
         }

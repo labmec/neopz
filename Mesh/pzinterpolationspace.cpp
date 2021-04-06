@@ -566,13 +566,14 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	loclocmat.SolveDirect(projectmat,ELU);
 	// identify the non-zero blocks for each row
 	TPZBlock<STATE> &fineblock = Mesh()->Block();
+    TPZFMatrix<STATE> &finesol = Mesh()->Solution();
 	int iv=0,in;
 	for(in=0; in<locnod; in++) {
 		df = &Connect(in);
 		int64_t dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
-			fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+			finesol.at(fineblock.at(dfseq,0,ljn,0)) = projectmat(iv/nvar,iv%nvar);
 			iv++;
 		}
 	}

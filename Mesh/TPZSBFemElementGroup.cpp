@@ -159,10 +159,10 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
                 int jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
-                        E0.fBlock(ibldest,jbldest,idf,jdf) += E0Loc.fBlock(ic,jc,idf,jdf);
-                        E1.fBlock(ibldest,jbldest,idf,jdf) += E1Loc.fBlock(ic,jc,idf,jdf);
-                        E2.fBlock(ibldest,jbldest,idf,jdf) += E2Loc.fBlock(ic,jc,idf,jdf);
-                        M0.fBlock(ibldest,jbldest,idf,jdf) += M0Loc.fBlock(ic,jc,idf,jdf);
+                        E0.at(ibldest,jbldest,idf,jdf) += E0Loc.at(ic,jc,idf,jdf);
+                        E1.at(ibldest,jbldest,idf,jdf) += E1Loc.at(ic,jc,idf,jdf);
+                        E2.at(ibldest,jbldest,idf,jdf) += E2Loc.at(ic,jc,idf,jdf);
+                        M0.at(ibldest,jbldest,idf,jdf) += M0Loc.at(ic,jc,idf,jdf);
                     }
                 }
             }
