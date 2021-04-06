@@ -1165,12 +1165,81 @@ void TPZMixedPoisson::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_e
     //errors[4] = L2flux + residual;
 
     }
+}
+
+void TPZMixedPoisson::ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
+    //Add on Robin part the term ||e||_Gamma_R = K_R (e.n)^2
+    // with e = sigma_fem - sigma_ex
+
+    if(bc.Type() == 4){
+
+        REAL InvKm = 1/bc.Val1()(0,0);
+
+        errors.Resize(NEvalErrors());
+        errors.Fill(0.0);
+
+        int dim = fDim;
+
+
+        REAL normalflux_fem = 0;//u.n
+        normalflux_fem = data[0].sol[0][0];
+
+
+        TPZVec<STATE> u_exact(1,0); TPZFMatrix<STATE> du_exact(3,1,0);
+        if(this->fExactSol){
+
+            this->fExactSol->Execute(data[0].x,u_exact,du_exact);
+        }
+
+
+        TPZFNMatrix<9,REAL> PermTensor; this->GetPermeability(PermTensor);
 
 
 
+        if(fPermeabilityFunction){
+            PermTensor.Redim(3,3);
+            TPZFNMatrix<3,STATE> resultMat;
+            TPZManVector<STATE> res;
+            fPermeabilityFunction->Execute(data[0].x,res,resultMat);
+            for(int id=0; id<dim; id++){
+                for(int jd=0; jd<dim; jd++){
+                    PermTensor(id,jd) = resultMat(id,jd);
+                }
+            }
+        }
+
+        TPZFNMatrix<3,REAL> fluxexactneg;
+
+        //sigma=-K grad(u)
+
+        TPZFNMatrix<9,REAL> gradpressure(3,1);
+        for (int i=0; i<3; i++) {
+            gradpressure(i,0) = du_exact[i];
+        }
+        PermTensor.Multiply(gradpressure,fluxexactneg);
+
+        REAL normalflux_ex=0.;
+        for(int i=0;i<fDim;i++){
+
+            normalflux_ex += fluxexactneg(i,0)*data[0].normal[i];
+
+        }
 
 
+        REAL robinBCterm = 0.;
 
+        //  std::cout<<"normalflux fem = "<<normalflux_fem<<" normalflux ex = "<<normalflux_ex<<std::endl;
+
+        robinBCterm = (normalflux_fem +normalflux_ex)*InvKm*(normalflux_fem +normalflux_ex);//Pq esta somando: o fluxo fem esta + e o exato -
+
+
+        errors[1] = robinBCterm;//L2 error for flux
+        //errors[0] = L2 error for pressure
+        //errors[2] = L2 for div
+        //errors[3] = L2 for grad;
+        //errors[4] = L2flux + residual;
+
+    }
 }
 
 
