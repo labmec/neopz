@@ -69,6 +69,9 @@ if (WIN32)
     target_compile_definitions(pz
         PRIVATE
         HAVE_STRUCT_TIMESPEC)
+    target_compile_definitions(pz
+        PRIVATE
+        VC)
     #it indirectly allows to export more symbols on win systems 
     target_compile_definitions(pz
         PRIVATE
@@ -244,35 +247,40 @@ if(WIN32)
 	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
 	#disabling VC warnings
-	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+      add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+      add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+      # W0 disables ALL MSVC warnings.
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /W0")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /W0")
+  endif(#[[CMAKE_CXX_COMPILER_ID MATCHES "MSVC"]])
 	#disabling STL warning for std::_Vector_alloc when PZ_LOG is enabled
 	#if (USING_PZ_LOG)
 	    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /wd4251 /wd4244")
 	    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4251 /wd4244")
 	#endif()
-	add_definitions(-DPTW32_STATIC_LIB)
-        #enabling /bigobj
-        add_definitions("/bigobj")
-        if (NOT CMAKE_GENERATOR MATCHES "Ninja")
-            add_definitions("/MP")
-        endif()
-        if (CMAKE_GENERATOR MATCHES "NMake")
-            set(CMAKE_MAKE_PROGRAM D:/Downloads/jom_1_1_3/jom.exe CACHE STRING "Path to jom.exe" FORCE)
-            message("CMAKE_MAKE_PROGRAM set to 'D:/Downloads/jom_1_1_3/jom.exe' to enable parallel builds in Windows")
-            FOREACH(FLAG_TYPE EXE MODULE SHARED)
-                # (NMake only) No incremental linking; .pdb file must be generated or QtCreator is not able to debug (via CDB debugger)
-                SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "/DEBUG /INCREMENTAL:NO" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
-                MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
-            ENDFOREACH ()
-        else()
-            FOREACH(FLAG_TYPE EXE MODULE SHARED)
-                # (MSVC and Ninja only)No incremental linking; preventing .pdb unnecessary file generation overhead: no /DEBUG flag in linker flags
-                SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
-                MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
-            ENDFOREACH ()
-        endif()
-endif()
+	# add_definitions(-DPTW32_STATIC_LIB)
+  #       #enabling /bigobj
+  #       add_definitions("/bigobj")
+  #       if (NOT CMAKE_GENERATOR MATCHES "Ninja")
+  #           add_definitions("/MP")
+  #       endif(#[[NOT CMAKE_GENERATOR MATCHES "Ninja"]])
+  #       if (CMAKE_GENERATOR MATCHES "NMake")
+  #           set(CMAKE_MAKE_PROGRAM D:/Downloads/jom_1_1_3/jom.exe CACHE STRING "Path to jom.exe" FORCE)
+  #           message("CMAKE_MAKE_PROGRAM set to 'D:/Downloads/jom_1_1_3/jom.exe' to enable parallel builds in Windows")
+  #           FOREACH(FLAG_TYPE EXE MODULE SHARED)
+  #               # (NMake only) No incremental linking; .pdb file must be generated or QtCreator is not able to debug (via CDB debugger)
+  #               SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "/DEBUG /INCREMENTAL:NO" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
+  #               MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
+  #           ENDFOREACH ()
+  #       else(#[[CMAKE_GENERATOR MATCHES "NMake"]])
+  #           FOREACH(FLAG_TYPE EXE MODULE SHARED)
+  #               # (MSVC and Ninja only)No incremental linking; preventing .pdb unnecessary file generation overhead: no /DEBUG flag in linker flags
+  #               SET(CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO" CACHE STRING "Overriding default debug ${FLAG_TYPE} linker flags." FORCE)
+  #               MARK_AS_ADVANCED (CMAKE_${FLAG_TYPE}_LINKER_FLAGS_DEBUG)
+  #           ENDFOREACH ()
+  #       endif(#[[CMAKE_GENERATOR MATCHES "NMake"]])
+endif(#[[win32]])
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git QUIET)
