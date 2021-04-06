@@ -41,11 +41,9 @@ i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
 //}
 
 #include <stdlib.h>
-#include <stdexcept>
 #include <atomic>
-namespace pzinternal{
-    static std::mutex g_ap_mut;
-}
+
+
 /**
  * @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
  * @author Philippe R. B. Devloo
@@ -116,18 +114,25 @@ class TPZAutoPointer {
         bool Decrease()
         {
             bool should_delete = false;
-            (*fCounter)--;            
-            if((*fCounter) == 0) should_delete = true;
-            else if((*fCounter) < 0){
-                throw std::logic_error ("Invalid value on reference counter of TPZAutoPointer");
+//            std::mutex *mut = get_ap_mutex((void*) this);
+//            std::unique_lock<std::mutex> lck(*mut);//already locks
+            (*fCounter)--;
+            
+            if((*fCounter) <= 0) should_delete = true;
+            
+//            lck.unlock();
+            if(should_delete)
+            {
+                delete this;
             }
-            return should_delete;
+            return true;
         }
         
     };
     
 	/** @brief The object which contains the pointer and the reference count */
 	TPZReference<T> *fRef;
+    
 public:
 	/** @brief Creates an reference counted null pointer */
 	TPZAutoPointer()
@@ -138,14 +143,9 @@ public:
 	/** @brief The destructor will delete the administered pointer if its reference count is zero */
 	~TPZAutoPointer()
 	{
-        if (fRef){
-            const bool shouldDelete = fRef->Decrease();
-            if(shouldDelete){
-                std::scoped_lock<std::mutex> lck(pzinternal::g_ap_mut);
-                if(fRef) delete fRef;
-                fRef = nullptr;
+            if (fRef){
+		fRef->Decrease();
             }
-        }
 	}
     
 	/** @brief This method will create an object which will administer the area pointed to by obj */
@@ -162,32 +162,21 @@ public:
 	}
         
 	/** @brief Move assignment operator */
-	TPZAutoPointer &operator=(TPZAutoPointer<T> &&copy)
-    {
-        if (fRef) {
-            const bool shouldDelete = fRef->Decrease();
-            if(shouldDelete){
-                std::scoped_lock<std::mutex> lck(pzinternal::g_ap_mut);
-                if(fRef) delete fRef;
-                fRef = nullptr;
+	TPZAutoPointer &operator=(TPZAutoPointer<T> &&copy){
+            if (fRef) {
+                fRef->Decrease();
             }
+            fRef = copy.fRef;
+            copy.fRef = nullptr;
+            return *this;
         }
-        fRef = copy.fRef;
-        copy.fRef = nullptr;
-        return *this;
-    }
         
 	/** @brief Assignment operator */
 	TPZAutoPointer &operator=(const TPZAutoPointer<T> &copy)
 	{
 		if(copy.fRef == fRef) return *this;
 		copy.fRef->Increment();
-		const bool shouldDelete = fRef->Decrease();
-        if(shouldDelete){
-            std::scoped_lock<std::mutex> lck(pzinternal::g_ap_mut);
-            if(fRef) delete fRef;
-            fRef = nullptr;
-        }
+		fRef->Decrease();
 		fRef = copy.fRef;
 		return *this;
 	}
