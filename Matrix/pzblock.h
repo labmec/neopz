@@ -22,7 +22,7 @@ template<class TVar>
 class TPZBlock : public TPZSavable
 {
 public:
-    TPZBlock() : TPZRegisterClassId(&TPZBlock::ClassId), fBlock(), fpMatrix(0)
+    TPZBlock() : TPZRegisterClassId(&TPZBlock::ClassId), fBlock(), fpMatrix(nullptr)
     {
         
     }
@@ -54,7 +54,17 @@ public:
     }
 	
 	/** @brief Returns a pointer to current matrix */
-	TPZMatrix<TVar> *Matrix(){ return fpMatrix;}
+	TPZMatrix<TVar> *Matrix(){
+		if(auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix); tmp){
+            return tmp;
+        }
+        else{
+            PZError<<"Incompatible matrix type in ";
+            PZError<<__PRETTY_FUNCTION__<<std::endl;
+            DebugStop();
+            return nullptr;
+        }
+	}
 	
 	/**
      * @brief Sets number of blocks on diagonal matrix
@@ -172,7 +182,7 @@ private:
 	/** @brief Nodes vector */
 	TPZManVector<TNode>    fBlock;
 	/**  @brief Pointer to TPZMatrix */
-	TPZMatrix<TVar> *fpMatrix;
+	TPZBaseMatrix *fpMatrix;
 	static REAL gZero;//zero
 	
 };

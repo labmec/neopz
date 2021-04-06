@@ -278,7 +278,13 @@ TPZBlock<TVar>::Get(const int bRow,const int r,const int c ) const
 	}
 	
 	row += fBlock[bRow].pos;
-	return( fpMatrix->Get( row, col ) );
+	auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix);
+	if(!tmp){
+		PZError<<"Incompatible matrix type in ";
+		PZError<<__PRETTY_FUNCTION__<<std::endl;
+		DebugStop();
+	}
+	return( tmp->GetVal( row, col ) );
 }
 
 /***********/
@@ -302,7 +308,13 @@ TPZBlock<TVar>::Put(const int bRow,const int r,const int c,
 		{PZError<<__PRETTY_FUNCTION__<< "Put <elemente is out of the block>" <<std::endl; DebugStop();}
 	
 	row += fBlock[bRow].pos;
-	return( fpMatrix->Put( row, col, value ) );
+	auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix);
+	if(!tmp){
+		PZError<<"Incompatible matrix type in ";
+		PZError<<__PRETTY_FUNCTION__<<std::endl;
+		DebugStop();
+	}
+	return( tmp->PutVal( row, col, value ) );
 }
 
 /**************/
@@ -315,7 +327,13 @@ TPZBlock<TVar>::GetVal(const int bRow,const int bCol,const int r,const int c ) c
 	int row(r),col(c);
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
-	return( fpMatrix->Get( row, col ) );
+	auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix);
+	if(!tmp){
+		PZError<<"Incompatible matrix type in ";
+		PZError<<__PRETTY_FUNCTION__<<std::endl;
+		DebugStop();
+	}
+	return( tmp->GetVal( row, col ) );
 }
 
 template<class TVar>
@@ -330,7 +348,13 @@ TPZBlock<TVar>::operator()(const int bRow,const int bCol,const int r,const int c
 	}
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
-	return( (*fpMatrix)( row, col ) );
+	auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix);
+	if(!tmp){
+		PZError<<"Incompatible matrix type in ";
+		PZError<<__PRETTY_FUNCTION__<<std::endl;
+		DebugStop();
+	}
+	return( (*tmp)( row, col ) );
 }
 
 /**************/
@@ -343,7 +367,13 @@ TPZBlock<TVar>::PutVal(const int bRow,const int bCol,const int r,const int c,
 	int row(r),col(c);
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
-	return( fpMatrix->Put( row, col, value ) );
+	auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix);
+	if(!tmp){
+		PZError<<"Incompatible matrix type in ";
+		PZError<<__PRETTY_FUNCTION__<<std::endl;
+		DebugStop();
+	}
+	return( tmp->PutVal( row, col, value ) );
 }
 
 
