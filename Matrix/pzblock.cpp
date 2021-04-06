@@ -192,26 +192,30 @@ template<class TVar>
 const TVar &
 TPZBlock<TVar>::Get(const int bRow,const int bCol,const int r,const int c ) const
 {
-	int row(r),col(c);
-	int MaxBlocks = fBlock.NElements();
-	if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) ){
-		PZError<<__PRETTY_FUNCTION__ <<"Get <block index out of range>" <<std::endl;
+	const auto maxBlocks = fBlock.NElements();
+	if ( (bRow >= maxBlocks) || (bCol >= maxBlocks) ){
+		PZError << __PRETTY_FUNCTION__ <<'\n';
+		PZError << "Get <block index out of range>" <<std::endl;
 		DebugStop();
-		}
+	}
 	
-	int rowDim = fBlock[bRow].dim;
-	int colDim = fBlock[bCol].dim;
+	const auto rowDim = fBlock[bRow].dim;
+	const auto colDim = fBlock[bCol].dim;
 	
 	
-	if ( !rowDim || !colDim )
-		{PZError<<__PRETTY_FUNCTION__<< "Get <inexistent block>" <<std::endl; DebugStop();}
+	if ( !rowDim || !colDim ){
+		PZError << __PRETTY_FUNCTION__ << '\n';
+		PZError << "Get <inexistent block>";
+		PZError << std::endl;
+		DebugStop();
+	}
 	
-	if ( (row >= rowDim) || (col >= colDim) )
-		{PZError<<__PRETTY_FUNCTION__<< "Get <elemente is out of the block>" <<std::endl; DebugStop();}
-	
-	row += fBlock[bRow].pos;
-	col += fBlock[bCol].pos;
-	return( fpMatrix->Get( row, col ) );
+	if ( (r >= rowDim) || (c >= colDim) ){
+		PZError << __PRETTY_FUNCTION__<<'\n';
+		PZError << "Get <element is out of the block>" <<std::endl;
+		DebugStop();
+	}
+	return this->GetVal(bRow,bCol,r,c);
 }
 
 /***********/
@@ -221,23 +225,30 @@ int
 TPZBlock<TVar>::Put(const int bRow,const int bCol,const int r,const int c,
 					const TVar& value )
 {
-	int MaxBlocks = fBlock.NElements();
-	int row(r),col(c);
-	if ( (bRow >= MaxBlocks) || (bCol >= MaxBlocks) )
-		{PZError<<__PRETTY_FUNCTION__<< "Put <block index out of range>" <<std::endl; DebugStop();}
+	const auto maxBlocks = fBlock.NElements();
+	if ( (bRow >= maxBlocks) || (bCol >= maxBlocks) ){
+		PZError << __PRETTY_FUNCTION__ <<'\n';
+		PZError << "Get <block index out of range>" <<std::endl;
+		DebugStop();
+	}
 	
-	int rowDim = fBlock[bRow].dim;
-	int colDim = fBlock[bCol].dim;
+	const auto rowDim = fBlock[bRow].dim;
+	const auto colDim = fBlock[bCol].dim;
 	
-	if ( !rowDim || !colDim )
-		{PZError<<__PRETTY_FUNCTION__<< "Put <inexistent block>" <<std::endl; DebugStop();}
 	
-	if ( (row >= rowDim) || (col >= colDim) )
-		{PZError<<__PRETTY_FUNCTION__<< "Put <elemente is out of the block>" <<std::endl; DebugStop();}
+	if ( !rowDim || !colDim ){
+		PZError << __PRETTY_FUNCTION__ << '\n';
+		PZError << "Put <inexistent block>";
+		PZError << std::endl;
+		DebugStop();
+	}
 	
-	row += fBlock[bRow].pos;
-	col += fBlock[bCol].pos;
-	return( fpMatrix->Put( row, col, value ) );
+	if ( (r >= rowDim) || (c >= colDim) ){
+		PZError << __PRETTY_FUNCTION__<<'\n';
+		PZError << "Put <element is out of the block>" <<std::endl;
+		DebugStop();
+	}
+	return this->PutVal(bRow, bCol, r, c, value);
 }
 
 /***********/
@@ -302,10 +313,6 @@ TPZBlock<TVar>::GetVal(const int bRow,const int bCol,const int r,const int c ) c
 {
 	int MaxBlocks = fBlock.NElements();
 	int row(r),col(c);
-	if(bRow <0 || bRow >= MaxBlocks || bCol <0 || bCol >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
-		cout << "TPZBlock::GetVal indexes out of range\n";
-		DebugStop();
-	}
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
 	return( fpMatrix->Get( row, col ) );
