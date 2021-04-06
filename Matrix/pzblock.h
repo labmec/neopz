@@ -110,56 +110,9 @@ public:
 	/** @brief Puts a element to matrix but not verify the existence */
 	int PutVal(const int bRow,const int bCol,const int r,const int c,const TVar& value );
 	
-	/**
-     * @brief Puts a block on current matrix
-     * @param block_row Contains block row
-     * @param block_col Contains block column
-     * @param block Block to be inserted
-	 */
-	int PutBlock(const int block_row,const int block_col,const TPZFMatrix<TVar> & block );
-	/**
-     * @brief Gets a block on current matrix
-     * @param block_row Contains block row
-     * @param block_col Contains block column
-     * @param block Block to be inserted
-	 */
-	int GetBlock(const int block_row,const int block_col, TPZFMatrix<TVar> & block ) const;
-	/**
-     * @brief Adds a block on current matrix
-     * @param block_row Contains block row
-     * @param block_col Contains block column
-     * @param block Block to be inserted
-	 */
-	int AddBlock(const int block_row,const int block_col, const TPZFMatrix<TVar> & block );
-		
-	/**
-     * @brief Inserts a block (block_row , block_col) on current matrix target
-     * @param block_row Contains block row
-     * @param block_col Contains block column
-     * @param target Block to be inserted
-     * @param row Starting row position
-     * @param col Starting column position
-	 */
-	int InsertBlock(const int block_row,const int block_col,
-					const int row,const int col, TPZMatrix<TVar> &target) const;
-	
-	TPZBlock<TVar>&operator=(const TPZBlock<TVar>& ); 
-	 
-	/**
-     * @brief Prints a matrix block
-     * @param block_row Contains block row
-     * @param block_col Contains block column
-     * @param title Title on printed output device
-     * @param out Output device
-	 */
-	int  PrintBlock(const int block_row,const int block_col,const char *title = "",TPZostream &out = std::cout ) const;
-	
-	/// Prints all the blocks of the matrix
-	void Print(const char *title = "",TPZostream &out = std::cout,TPZMatrix<TVar> *mat=NULL);
+	TPZBlock<TVar>&operator=(const TPZBlock<TVar>& ); 		
 	
     void PrintStructure(std::ostream &out = std::cout);
-    
-	void PrintSolution(const char *title, TPZostream &out);
 	
 	/** @brief Returns the max number of blocks on diagonal */
 	int MaxBlockSize() const {return fBlock.NElements();}
