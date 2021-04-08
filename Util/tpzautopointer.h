@@ -33,11 +33,10 @@ template<class T>
 class TPZAutoPointer {
     
 	/** @brief Counter struct */
-	template<class T2>
     struct TPZReference
     {
-        /** @brief Pointer to T2 object */
-        T2 *fPointer;
+        /** @brief Pointer to T object */
+        T *fPointer;
         /** @brief Reference counter*/
         std::atomic_int *fCounter;
         
@@ -48,7 +47,7 @@ class TPZAutoPointer {
             fCounter->store(1);
         }
         
-        TPZReference(T2 *pointer)
+        TPZReference(T *pointer)
         {
             fPointer = pointer;
             fCounter = new std::atomic_int{};
@@ -104,11 +103,11 @@ class TPZAutoPointer {
     };
     
 	/** @brief The object which contains the pointer and the reference count */
-	TPZReference<T> *fRef;
+	TPZReference *fRef;
     
 public:
 	/** @brief Creates an reference counted null pointer */
-	TPZAutoPointer() : fRef(new TPZReference<T>())
+	TPZAutoPointer() : fRef(new TPZReference())
 	{
 		
 	}
@@ -122,7 +121,7 @@ public:
 	}
     
 	/** @brief This method will create an object which will administer the area pointed to by obj */
-	TPZAutoPointer(T *obj) : fRef(new TPZReference<T>(obj))
+	TPZAutoPointer(T *obj) : fRef(new TPZReference(obj))
 	{
 
 	}
@@ -172,7 +171,7 @@ public:
         if (fRef && fRef->Decrease()){
             Release();
         }
-        fRef = new TPZReference<T>(rval);
+        fRef = new TPZReference(rval);
         return *this;
     }
     
@@ -249,9 +248,8 @@ template<typename R, typename T>
 TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
     TPZAutoPointer<R> rv;
     if (R* p; (p = dynamic_cast<R*> (in.fRef->fPointer)) ) {
-        rv.fRef->fPointer = p;
-		delete rv.fRef->fCounter;
-		rv.fRef->fCounter = in.fRef->fCounter;
+        delete rv.fRef;
+        rv.fRef = (typename TPZAutoPointer<R>::TPZReference *) in.fRef;
         rv.fRef->Increment();
     }
     return rv;
