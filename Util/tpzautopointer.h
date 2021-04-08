@@ -248,10 +248,10 @@ private:
 template<typename R, typename T>
 TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T> in) {
     TPZAutoPointer<R> rv;
+    if (R* p; (p = dynamic_cast<R*> (in.fRef->fPointer)) ) {
         rv.fRef->fPointer = p;
 		delete rv.fRef->fCounter;
 		rv.fRef->fCounter = in.fRef->fCounter;
-    if (R* p; (p = dynamic_cast<R*> (in.fRef->fPointer)) ) {
         rv.fRef->Increment();
     }
     return rv;
