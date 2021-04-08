@@ -1466,12 +1466,7 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 
         if (!cel) continue;
 
-        int gelDim = cel->Dimension();
-        if(gelDim != gridDim) continue;
-
-        true_error.Fill(0.);
         cel->EvaluateError(true_error, store_error);
-
 
         int64_t nerrors = true_error.NElements();
         errorSum.Resize(nerrors, 0.);
