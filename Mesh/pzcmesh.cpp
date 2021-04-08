@@ -1449,24 +1449,45 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	
 
 	TPZCompEl *cel;
+	int gridDim = Dimension();
 	
 	//soma de erros sobre os elementos
 	for(int64_t el=0;el< fElementVec.NElements();el++) {
-		cel = fElementVec[el];
-		if(!cel) continue;
-		cel->EvaluateError(true_error,store_error);
-		
-		int64_t nerrors = true_error.NElements();
-		errorSum.Resize(nerrors,0.);
-		for(int64_t ii = 0; ii < nerrors; ii++)
-			errorSum[ii] += true_error[ii]*true_error[ii];
+        cel = fElementVec[el];
+
+        if (!cel) continue;
+
+        int gelDim = cel->Dimension();
+        if(gelDim != gridDim) continue;
+
+        cel->EvaluateError(true_error, store_error);
+
+
+        int64_t nerrors = true_error.NElements();
+        errorSum.Resize(nerrors, 0.);
+        for (int64_t ii = 0; ii < nerrors; ii++)
+            errorSum[ii] += true_error[ii] * true_error[ii];
+
+#ifdef PZ_LOG
+        if (logger.isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "------Debugging Errors------\n";
+            sout << "el_id =  " << el << "\n";
+            if(cel->Material()) sout << "mat_ID = " << cel->Material()->Id() << "\n";
+            sout << "error[0]^2:   " << true_error[0] * true_error[0] << "\n";
+            sout << "error[1]^2:   " << true_error[1] * true_error[1] << std::endl;
+            sout << "errorSum[0]:  "<< errorSum[0] << std::endl;
+            sout << "errorSum[1]:  "<< errorSum[1] << std::endl;
+            sout << "----------------------------\n";
+            LOGPZ_DEBUG(logger, sout.str().c_str());
+        }
+#endif
 	}
 	
 	int64_t nerrors = errorSum.NElements();
 	for(int64_t ii = 0; ii < nerrors; ii++)
 		errorSum[ii] = sqrt(errorSum[ii]);
 }
-
 
 void TPZCompMesh::AdjustBoundaryElements() {
 	int changed = 1;

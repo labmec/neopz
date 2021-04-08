@@ -791,6 +791,14 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
 void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
     fCompMesh->EvaluateError(store_error, ervec);
+#ifdef PZDEBUG
+    out << "############" << endl;
+    out <<"Norma H1 or L2 -> p = "  << ervec[0] << std::endl;
+    out <<"Norma L2 or L2 -> u = "    << ervec[1]  << std::endl;
+    out << "Semi-norma H1 or L2 -> div = "    << ervec[2]   <<std::endl;
+    for(int ier = 3; ier < ervec.size(); ier++)
+        out << "other norms = " << ervec[ier] << std::endl;
+#endif
     return;
     
     TPZManVector<REAL,10> values(10,0.);
@@ -893,6 +901,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
 	// Returns the calculated errors.
 	for(i=0;i<nerrors;i++)
 		ervec[i] = sqrt(values[i]);
+
     return;
 }
 
