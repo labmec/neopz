@@ -731,8 +731,8 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 	// This permutation vector is with respect to the blocks of the mesh
 	TPZVec<int64_t> scatterpermuteblock;
 	sub->ComputePermutationInternalFirst(scatterpermuteblock);
-	TPZBlock<STATE> destblock = sub->Block();
-	TPZBlock<STATE> &origblock = sub->Block();
+	TPZBlock destblock = sub->Block();
+	TPZBlock &origblock = sub->Block();
 	int nblocks = origblock.NBlocks();
 	if(scatterpermuteblock.NElements() != origblock.NBlocks())
 	{
@@ -794,7 +794,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
  */
 void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &internaleqs, TPZVec<int64_t> &blockinvpermute)
 {
-	TPZBlock<STATE> prevblock = sub->Block();
+	TPZBlock prevblock = sub->Block();
 	// This permutation vector is with respect to the blocks of the mesh
 	TPZVec<int64_t> permute;
 	sub->PermuteInternalFirst(permute);

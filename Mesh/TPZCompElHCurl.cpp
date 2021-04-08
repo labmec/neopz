@@ -606,7 +606,7 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
 
     const auto thisNumSideNodes = NSideConnects(side);
     const auto largeNumSideNodes = large->NSideConnects(neighbourside);
-    TPZBlock<REAL> MBlocksmall(0, thisNumSideNodes), MBlocklarge(0, largeNumSideNodes);
+    TPZBlock MBlocksmall(0, thisNumSideNodes), MBlocklarge(0, largeNumSideNodes);
     for (auto in = 0; in < thisNumSideNodes; in++) {
         int locid = SideConnectLocId(in, side);
         TPZConnect &c = this->Connect(locid);
@@ -767,7 +767,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
         curlSol[iSol].Fill(0);
     }
 
-    TPZBlock<STATE> &block = this->Mesh()->Block();
+    TPZBlock &block = this->Mesh()->Block();
     int ishape = 0;
     for (int iCon = 0; iCon < nConnects; iCon++) {
         TPZConnect *con = &this->Connect(iCon);

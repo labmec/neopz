@@ -165,10 +165,10 @@ REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedEl
 	TPZAutoPointer<TPZIntPoints> intrule = fine->GetIntegrationRule().Clone();
 	int dimension = fine->Dimension();
 	int numdof = fine->Material()->NStateVariables();
-	TPZBlock<STATE> &locblock = fine->Mesh()->Block();
+	TPZBlock &locblock = fine->Mesh()->Block();
 	TPZFMatrix<STATE> &locsolmesh = fine->Mesh()->Solution();
 	
-	TPZBlock<STATE> &corblock = coarse->Mesh()->Block();
+	TPZBlock &corblock = coarse->Mesh()->Block();
 	TPZFMatrix<STATE> &corsolmesh = coarse->Mesh()->Solution();
 	
 	TPZVec<STATE> locsol(numdof);

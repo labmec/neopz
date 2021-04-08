@@ -939,10 +939,10 @@ void TPZCompMesh::Skyline(TPZVec<int64_t> &skyline) {
 
 void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE> &transfer) {
 	
-	//TPZBlock<REAL> &localblock = Block();
-	TPZBlock<STATE> &localblock = Block();
-	//TPZBlock<REAL> &coarseblock = coarsemesh.Block();
-	TPZBlock<STATE> &coarseblock = coarsemesh.Block();
+	//TPZBlock &localblock = Block();
+	TPZBlock &localblock = Block();
+	//TPZBlock &coarseblock = coarsemesh.Block();
+	TPZBlock &coarseblock = coarsemesh.Block();
 	// adapt the block size of the blocks, dividing by the number of variables
 	//  of the material
 	int nmat = NMaterials();
@@ -1000,10 +1000,10 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
 #ifdef STATE_COMPLEX
 	DebugStop();
 #else
-	//TPZBlock<REAL> &localblock = Block();
-	TPZBlock<STATE> &localblock = Block();
-	//TPZBlock<REAL> &transferblock = transfermesh.Block();
-	TPZBlock<STATE> &transferblock = transfermesh.Block();
+	//TPZBlock &localblock = Block();
+	TPZBlock &localblock = Block();
+	//TPZBlock &transferblock = transfermesh.Block();
+	TPZBlock &transferblock = transfermesh.Block();
 	// adapt the block size of the blocks, dividing by the number of variables
 	//  of the material
 	int nmat = NMaterials();

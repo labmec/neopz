@@ -325,13 +325,13 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
     TPZVec<atomic_index> indexes;
     ComputeAtomicIndexes(MFMesh, indexes);
     int64_t nconnect = indexes.size();
-    TPZBlock<STATE> &blockMF = MFMesh->Block();
+    TPZBlock &blockMF = MFMesh->Block();
     TPZFMatrix<STATE> &solMF = MFMesh->Solution();
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         if(!atomic_mesh) continue;
-		TPZBlock<STATE> &block = atomic_mesh->Block();
+		TPZBlock &block = atomic_mesh->Block();
         TPZFMatrix<STATE> &sol = atomic_mesh->Solution();
         TPZConnect &con = atomic_mesh->ConnectVec()[indexes[connect].second];
         int64_t seqnum = con.SequenceNumber();
@@ -363,14 +363,14 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
                 int64_t submeshIndex = msub->InternalIndex(fatherconIndex);
                 if(fatherconIndex == -1) DebugStop();
                 //acessing the block on father mesh
-                TPZBlock<STATE> &blockfather = fathermesh->Block();
+                TPZBlock &blockfather = fathermesh->Block();
                 TPZFMatrix<STATE> &solfather = fathermesh->Solution();
                 
                 TPZConnect &confather = fathermesh->ConnectVec()[fatherconIndex];
                 int64_t seqnumfather = confather.SequenceNumber();
                 int nblock = blockfather.Size(seqnumfather);
                 //acessing the block on submesh
-                TPZBlock<STATE> &blocksub = msub->Block();
+                TPZBlock &blocksub = msub->Block();
                 TPZFMatrix<STATE> &solsub = ((TPZCompMesh *)(msub))->Solution();
                 TPZConnect &consub = msub->ConnectVec()[submeshIndex];
                 int64_t seqnumsub = consub.SequenceNumber();
@@ -403,13 +403,13 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
     TPZVec<atomic_index> indexes;
     ComputeAtomicIndexes(MFMesh, indexes);
     int64_t nconnect = indexes.size();
-    TPZBlock<STATE> &blockMF = MFMesh->Block();
+    TPZBlock &blockMF = MFMesh->Block();
     TPZFMatrix<STATE> &solMF = MFMesh->Solution();
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         if(!atomic_mesh) continue;
-        TPZBlock<STATE> &block = atomic_mesh->Block();
+        TPZBlock &block = atomic_mesh->Block();
         int64_t atomicindexconnect = indexes[connect].second;
         TPZConnect &con = atomic_mesh->ConnectVec()[atomicindexconnect];
         int64_t seqnum = con.SequenceNumber();

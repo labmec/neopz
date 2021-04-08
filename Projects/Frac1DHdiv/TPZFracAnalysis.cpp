@@ -169,7 +169,7 @@ void TPZFracAnalysis::Run()
       
       // Setando a pressao inicial no elemento novo
       TPZConnect &c = celPress->Connect(0);
-      TPZBlock<STATE> &Block = fmeshvec[1]->Block();
+      TPZBlock &Block = fmeshvec[1]->Block();
       int sq = c.SequenceNumber();
       int sz = Block.Size(sq);
       if (sz > 1) {
@@ -893,7 +893,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
       continue;
     }
     
-    TPZBlock<STATE> & block = fmeshvec[1]->Block();
+    TPZBlock & block = fmeshvec[1]->Block();
     TPZGeoElSide gelsideleft(gel,0);
     TPZGeoElSide neighTip = gelsideleft.Neighbour();
     
@@ -1005,7 +1005,7 @@ void TPZFracAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
     }
   }
   
-  TPZBlock<STATE> &blockQ = fmeshvec[0]->Block(), &blockP = fmeshvec[1]->Block();
+  TPZBlock &blockQ = fmeshvec[0]->Block(), &blockP = fmeshvec[1]->Block();
   
   
   // Setando os valores dos fluxos na fratura

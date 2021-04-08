@@ -13,7 +13,6 @@
 #include <iostream>
 class TPZGraphMesh;
 class TPZGraphNode;
-template <class>
 class TPZBlock;
 
 /**
@@ -69,7 +68,7 @@ public:
 	void DrawCo(TPZGraphNode *n, TPZDrawStyle st);
 	
 	/** @brief Draw solution of the graphical node */
-	void DrawSolution(TPZGraphNode *n,TPZBlock<REAL> &Sol, TPZDrawStyle st);
+	void DrawSolution(TPZGraphNode *n,TPZBlock &Sol, TPZDrawStyle st);
 	void DrawSolution(TPZGraphNode *n,int solind, TPZDrawStyle st);
 	void DrawSolution(TPZGraphNode *n,TPZVec<int> &solind, TPZDrawStyle st);
 	

@@ -602,7 +602,7 @@ void TPZCompElDisc::Divide(int64_t index,TPZVec<int64_t> &subindex,int interpola
 
 void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<STATE> &uh){
 	TPZCompMesh *finemesh = Mesh();
-	TPZBlock<STATE> &fineblock = finemesh->Block();
+	TPZBlock &fineblock = finemesh->Block();
 	int nstate = Material()->NStateVariables();
 	TPZFMatrix<STATE> &FineMeshSol = finemesh->Solution();
 	int matsize = NShapeF(),dim = Dimension();
@@ -1032,7 +1032,7 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TP
 	
 	const int nstate = this->Material()->NStateVariables();
 	const int ncon = this->NConnects();
-	TPZBlock<STATE> &block = Mesh()->Block();
+	TPZBlock &block = Mesh()->Block();
 	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int64_t numbersol = MeshSol.Cols();
 	

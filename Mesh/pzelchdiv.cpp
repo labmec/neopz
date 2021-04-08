@@ -1141,7 +1141,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
         Normalvec=data.fDeformedDirections;
     }
 
-    TPZBlock<STATE> &block =this->Mesh()->Block();
+    TPZBlock &block =this->Mesh()->Block();
     int ishape=0,ivec=0,counter=0;
 
     int nshapeV = data.fVecShapeIndex.NElements();

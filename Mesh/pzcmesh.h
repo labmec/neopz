@@ -64,8 +64,8 @@ protected:
 	/** @brief Map of pointers to materials */
 	std::map<int, TPZMaterial * >	fMaterialVec;
 	/** @brief Block structure of the solution vector ???? */
-	//TPZBlock<REAL>		fSolutionBlock;
-	TPZBlock<STATE>		fSolutionBlock;
+	//TPZBlock		fSolutionBlock;
+	TPZBlock		fSolutionBlock;
 	
 	/** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
@@ -76,8 +76,8 @@ protected:
     TPZFMatrix<STATE>  fSolN;
 	
 	/** @brief Block structure to right construction of the stiffness matrix and load vector */
-	//TPZBlock<REAL>		fBlock;
-	TPZBlock<STATE>		fBlock;
+	//TPZBlock		fBlock;
+	TPZBlock		fBlock;
 	
 	/** @brief Solution vectors organized by element */
 	TPZFMatrix<STATE> fElementSolution;
@@ -209,11 +209,11 @@ public:
 	TPZGeoMesh *Reference() const { return fReference; }
 	
 	/** @brief Access the block structure of the solution vector */
-	//const TPZBlock<REAL> &Block() const { return fBlock;}
-	const TPZBlock<STATE> &Block() const { return fBlock;}
+	//const TPZBlock &Block() const { return fBlock;}
+	const TPZBlock &Block() const { return fBlock;}
 	
 	/** @brief Access the block structure of the solution vector */
-	TPZBlock<STATE> &Block() { return fBlock;}
+	TPZBlock &Block() { return fBlock;}
 	
 	/** @brief Access the solution vector */
 	TPZFMatrix<STATE> &Solution() { return fSolution;}

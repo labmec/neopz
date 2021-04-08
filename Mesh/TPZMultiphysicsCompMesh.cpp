@@ -384,7 +384,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
         }
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
-    TPZBlock<STATE> &blockMF = Block();
+    TPZBlock &blockMF = Block();
     TPZFMatrix<STATE> &solMF = Solution();
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         
@@ -393,7 +393,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
         }
         
         int64_t ncon = m_mesh_vector[i_as]->NConnects();
-        TPZBlock<STATE> &block = m_mesh_vector[i_as]->Block();
+        TPZBlock &block = m_mesh_vector[i_as]->Block();
         TPZFMatrix<STATE> &sol = m_mesh_vector[i_as]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
@@ -421,7 +421,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         }
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
-    TPZBlock<STATE> &blockMF = Block();
+    TPZBlock &blockMF = Block();
     TPZFMatrix<STATE> &solMF = Solution();
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         
@@ -430,7 +430,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         }
         
         int64_t ncon = m_mesh_vector[i_as]->NConnects();
-        TPZBlock<STATE> &block = m_mesh_vector[i_as]->Block();
+        TPZBlock &block = m_mesh_vector[i_as]->Block();
         TPZFMatrix<STATE> &sol = m_mesh_vector[i_as]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {

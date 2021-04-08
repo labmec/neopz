@@ -72,7 +72,7 @@ void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         ek.fMat(count+fDef[l].fIdf[0],count+blsize0+fDef[l].fIdf[1]) = -1.;
         ek.fMat(count+blsize0+fDef[l].fIdf[1],count+fDef[l].fIdf[0]) = -1.;
         ek.fMat(count+blsize0+fDef[l].fIdf[1],count+blsize0+fDef[l].fIdf[1]) = 1.;
-        const TPZBlock<STATE> &bl = Mesh()->Block();
+        const TPZBlock &bl = Mesh()->Block();
         TPZFMatrix<STATE> &sol = Mesh()->Solution();
         int64_t pos0 = bl.Index(c0.SequenceNumber(), fDef[l].fIdf[0]);
         int64_t pos1 = bl.Index(c1.SequenceNumber(), fDef[l].fIdf[1]);

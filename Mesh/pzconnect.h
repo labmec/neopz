@@ -14,7 +14,6 @@
 
 class TPZBndCond;
 class TPZCompMesh;
-template<class TVar>
 class TPZBlock;
 
 /** 

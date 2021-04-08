@@ -1049,10 +1049,10 @@ void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
     for (imesh = 0; imesh < nmeshes; imesh++) {
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
-    TPZBlock<STATE> &blockMF = MFMesh->Block();
+    TPZBlock &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
         int64_t ncon = cmeshVec[imesh]->NConnects();
-        TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
+        TPZBlock &block = cmeshVec[imesh]->Block();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
@@ -1077,10 +1077,10 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
     for (imesh = 0; imesh < nmeshes; imesh++) {
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
-    TPZBlock<STATE> &blockMF = MFMesh->Block();
+    TPZBlock &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
         int64_t ncon = cmeshVec[imesh]->NConnects();
-        TPZBlock<STATE> &block = cmeshVec[imesh]->Block();
+        TPZBlock &block = cmeshVec[imesh]->Block();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];

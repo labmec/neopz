@@ -536,7 +536,7 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, bool store_error
 	TPZManVector<REAL,3> errorSum(3);
 	errorSum.Fill(0.0);
 	
-	TPZBlock<REAL> *flux = 0;
+	TPZBlock *flux = 0;
 	int64_t elcounter=0;
 	int64_t numel = Mesh()->ElementVec().NElements();
 	fElErrors.Resize(numel);

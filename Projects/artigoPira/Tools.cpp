@@ -1982,8 +1982,8 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
 {
     int dim = cmesh->Reference()->Dimension();
     
-    TPZBlock<STATE> blockMP = MPMesh->Block();
-    TPZBlock<STATE> blockF = cmesh->Block();
+    TPZBlock blockMP = MPMesh->Block();
+    TPZBlock blockF = cmesh->Block();
     
     
     blockF.SetMatrix(matF.operator->());
@@ -2062,7 +2062,7 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
 void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat, int nodeAtOriginId, bool matInicial, std::ofstream &subMat)
 {
     int dim = cmesh->Reference()->Dimension();
-    TPZBlock<STATE> blockMat = cmesh->Block();
+    TPZBlock blockMat = cmesh->Block();
     blockMat.SetMatrix(mat.operator->());
     
     long nel = cmesh->NElements();

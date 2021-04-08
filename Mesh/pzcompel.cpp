@@ -71,8 +71,8 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             //TPZFMatrix<REAL> ekbl(blsize,blsize);
             TPZFMatrix<STATE> ekbl(blsize,blsize);
             int r,c;
-            //TPZBlock<REAL> &mbl = ek.fConstrBlock;
-            TPZBlock<STATE> &mbl = ek.fConstrBlock;
+            //TPZBlock &mbl = ek.fConstrBlock;
+            TPZBlock &mbl = ek.fConstrBlock;
             TPZFMatrix<STATE> &msol = ek.fConstrMat;
             
             for(r=0; r<blsize; r++) {
@@ -99,8 +99,8 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             TPZConnect &con = Mesh()->ConnectVec()[conind];
             if(con.HasDependency() || con.IsCondensed()) continue;
             int r, c;
-            //TPZBlock<REAL> &mbl = ek.fBlock;
-            TPZBlock<STATE> &mbl = ek.fBlock;
+            //TPZBlock &mbl = ek.fBlock;
+            TPZBlock &mbl = ek.fBlock;
             TPZFMatrix<STATE> &sol = ek.fMat;
             
             for(r=0; r<blsize; r++) {
@@ -214,8 +214,8 @@ void TPZCompEl::LoadSolution() {
     //		return;
     //	}
     //int numstate = mat->NStateVariables();
-    //TPZBlock<REAL> &block = Mesh()->Block();
-    TPZBlock<STATE> &block = Mesh()->Block();
+    //TPZBlock &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     //TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
     TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int maxdep = 0;

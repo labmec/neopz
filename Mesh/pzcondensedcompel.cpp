@@ -727,8 +727,8 @@ void TPZCondensedCompEl::LoadSolution()
 //    }
     dim0 = fNumInternalEqs;
     dim1 = fNumTotalEqs-dim0;
-    //TPZBlock<REAL> &bl = Mesh()->Block();
-	TPZBlock<STATE> &bl = Mesh()->Block();
+    //TPZBlock &bl = Mesh()->Block();
+	TPZBlock &bl = Mesh()->Block();
     TPZFMatrix<STATE> &sol = Mesh()->Solution();
     int64_t count = 0;
     //TPZFMatrix<REAL> u1(dim1,1,0.);

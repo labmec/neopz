@@ -522,7 +522,7 @@ void TPZNodesetCompute::Print(std::ostream &file, const std::set<int64_t> &nodes
   /**
   * Expand the graph acording to the block structure
   */
-void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock<STATE> &block,
+void TPZNodesetCompute::ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
     TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex)
 {
   int64_t expgraphsize = 0;

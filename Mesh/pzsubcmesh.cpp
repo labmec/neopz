@@ -1048,7 +1048,7 @@ void TPZSubCompMesh::Assemble()
 /// Initialize the datastructure of ef
 void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
 {
-    TPZBlock<STATE> &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     TPZMaterial * mat = MaterialVec().begin()->second;
     int nstate = mat->NStateVariables();
     int numloadcases = mat->NumLoadCases();
@@ -1093,7 +1093,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	
 	
-	TPZBlock<STATE> &block = Mesh()->Block();
+	TPZBlock &block = Mesh()->Block();
 	//	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 	

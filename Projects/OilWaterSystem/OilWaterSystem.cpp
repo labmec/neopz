@@ -1553,7 +1553,7 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
 {
     if(!cel) {return;}
     
-    TPZBlock<STATE> &Block = mphysics->Block(); 
+    TPZBlock &Block = mphysics->Block(); 
     int NumberOfEquations = cel->NEquations();  
     int NumberOfConnects = cel->NConnects();
     TPZFMatrix<STATE> elSolution(NumberOfEquations,1,0.0);

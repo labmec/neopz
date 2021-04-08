@@ -1231,7 +1231,7 @@ void TPZDarcyAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
             continue;
         }
         
-        TPZBlock<STATE> & block = fmeshvec[1]->Block();
+        TPZBlock & block = fmeshvec[1]->Block();
         TPZGeoElSide gelsideleft(gel,0);
         TPZGeoElSide neighTip = gelsideleft.Neighbour();
         
@@ -1398,7 +1398,7 @@ void TPZDarcyAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
         }
     }
     
-    TPZBlock<STATE> &blockQ = fmeshvec[0]->Block(), &blockP = fmeshvec[1]->Block();
+    TPZBlock &blockQ = fmeshvec[0]->Block(), &blockP = fmeshvec[1]->Block();
     
     
     // Setando os valores dos fluxos na fratura
@@ -1475,7 +1475,7 @@ void TPZDarcyAnalysis::SetPressureOnNewElement(TPZAnalysis *an)
             continue;
         }
         
-        TPZBlock<STATE> & block = fmeshvec[1]->Block();
+        TPZBlock & block = fmeshvec[1]->Block();
         TPZGeoElSide gelsideleft(gel,0);
 
 #ifdef PZDEBUG

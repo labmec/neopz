@@ -18,7 +18,6 @@
  * @since 12/1994
  * @ingroup matrixutility
  */
-template<class TVar>
 class TPZBlock : public TPZSavable
 {
 public:
@@ -32,14 +31,14 @@ public:
 	 * @param num_of_blocks Indicates number of blocks
 	 * @param initial_blocks_size Indicates initial block size, default value is 1
 	 */
-	TPZBlock(TPZMatrix<TVar> *const matrix_to_represent,const int num_of_blocks = 0,
+	TPZBlock(TPZBaseMatrix *const matrix_to_represent,const int num_of_blocks = 0,
 			 const int initial_blocks_size = 1 );
 	
 	/**
 	 * @brief Copy constructor
 	 * @param bl New object is created based on bl
 	 */
-	TPZBlock(const TPZBlock<TVar> &bl);
+	TPZBlock(const TPZBlock &bl);
 	
 	/** @brief Simple Destrutor */
 	virtual ~TPZBlock();
@@ -48,12 +47,13 @@ public:
      * @brief Changes pointer to other
      * @param other New matrix to be pointed to
 	 */
-	void SetMatrix(TPZMatrix<TVar> *const other)
+	void SetMatrix(TPZBaseMatrix *const other)
     {
         fpMatrix = other;
     }
 	
 	/** @brief Returns a pointer to current matrix */
+    template <class TVar>
 	TPZMatrix<TVar> *Matrix(){
 		if(auto tmp = dynamic_cast<TPZMatrix<TVar>*>(fpMatrix); tmp){
             return tmp;
@@ -111,27 +111,10 @@ public:
     {
         return std::pair<int64_t, int64_t>(Index(block_row, r),Index(block_col,c));
     }
-protected:
-	TVar & operator()(const int block_row,const int block_col,const int r,const int c ) const;
-	
-	/** @brief Gets a element from matrix verifying */
-	const TVar & Get(const int block_row,const int block_col,const int r,const int c ) const;
-	/** @brief Puts a element to matrix verifying */
-	int Put(const int block_row,const int block_col,const int r,const int c,const TVar& value );
-	
-	/** @brief Gets a element from a matrix verifying the existence */
-	const TVar & Get(const int block_row,const int r,const int c ) const;
-	/** @brief Puts a element to matrix verifying the existence */
-	int Put(const int block_row,const int r,const int c,const TVar& value );
-	
-	/** @brief Gets a element from matrix but not verify the existence */
-	const TVar & GetVal(const int bRow,const int bCol,const int r,const int c ) const;
-	/** @brief Puts a element to matrix but not verify the existence */
-	int PutVal(const int bRow,const int bCol,const int r,const int c,const TVar& value );
 	
 public:
     
-	TPZBlock<TVar>&operator=(const TPZBlock<TVar>& ); 		
+	TPZBlock&operator=(const TPZBlock& ); 		
 	
     void PrintStructure(std::ostream &out = std::cout);
 	
@@ -183,7 +166,7 @@ private:
 		}
                 
         int ClassId() const override{
-            return Hash("TNode") ^ ClassIdOrHash<TPZBlock<TVar>>() << 1;
+            return Hash("TNode") ^ ClassIdOrHash<TPZBlock>() << 1;
         }
                 
 		void Read(TPZStream &buf, void *context) override;
@@ -198,9 +181,13 @@ private:
 	
 };
 
-template<class TVar>
-int TPZBlock<TVar>::ClassId() const {
-    return Hash("TPZBlock") ^ ClassIdOrHash<TVar>() << 1;
-}
+extern template TPZMatrix<float> * TPZBlock::Matrix();
+extern template TPZMatrix<double> * TPZBlock::Matrix();
+extern template TPZMatrix<long double> * TPZBlock::Matrix();
+
+extern template TPZMatrix<std::complex<float> > * TPZBlock::Matrix();
+extern template TPZMatrix<std::complex<double> > * TPZBlock::Matrix();
+extern template TPZMatrix<std::complex<long double> > * TPZBlock::Matrix();
+
 
 #endif

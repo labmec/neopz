@@ -190,7 +190,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     TPZMaterial *mat = Material();
 	int nstate = mat->NStateVariables();
 	int nshape = NShapeF();
-	TPZBlock<STATE> &block = Mesh()->Block();
+	TPZBlock &block = Mesh()->Block();
 	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int64_t numbersol = MeshSol.Cols();
 	int numeq = nshape * nstate;
@@ -588,7 +588,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
 	aggmat.SolveDirect(loadvec,ELDLt);//ELU
 	//transferindo a solu�o obtida por restri�o
 	int64_t iv=0;
-	TPZBlock<STATE> &block = Mesh()->Block();
+	TPZBlock &block = Mesh()->Block();
 	TPZConnect *df = &Connect(0);
 	int64_t dfseq = df->SequenceNumber();
 	int dfvar = block.Size(dfseq);
