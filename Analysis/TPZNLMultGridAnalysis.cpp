@@ -724,7 +724,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 		//da solu�o projetada projfinesol
 		projfineres *= skm1;
 		fMeshes[1]->ProjectSolution(projfinesol);// PASSO 3
-		fMeshes[1]->LoadSolution(projfinesol);
+		//TODOCOMPLEX
+		fMeshes[1]->LoadSolution(&projfinesol);
 		geomesh->ResetReference();//istas duas linhas s� feitas
 		fMeshes[1]->LoadReferences();//em ProjectSolution acima
 		if(positer){
@@ -756,7 +757,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 		transfer.TransferSolution(coarsesol-projfinesol,finesol0);
 		finesol0 *= skm1inv;
 		finesol0 = finesol + finesol0;
-		fMeshes[2]->LoadSolution(finesol0);// PASSO 6
+		//TODOCOMPLEX
+		fMeshes[2]->LoadSolution(&finesol0);// PASSO 6
 		{
 			if( REAL(mgiter) / REAL(posmarcha) == draw || posmarcha == 1 || (mgiter+1) == mgmaxiter){
 				coarsegraph.DrawSolution(draw,time);

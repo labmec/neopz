@@ -26,9 +26,6 @@ class TPZStream;
 template<class TVar>
 class TPZSolver;
 
-/** @brief Defines output format */
-enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros, EMatrixMarket, ECSV, EFixedColumn};
-
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
 /** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
 template<class TVar=STATE>
@@ -246,7 +243,7 @@ public:
         Print(name.c_str(),out);
     }
 	/** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
-	virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
+	void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const override;
 	
 	/**
 	 * @brief Redimensions a matriz keeping the previous values

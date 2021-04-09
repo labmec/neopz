@@ -149,7 +149,8 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     TPZFMatrix<STATE> result;
     step.Solve(rhs, result);
 //    cmesh->Solution().Zero();
-    cmesh->LoadSolution(result);
+    //TODOCOMPLEX
+    cmesh->LoadSolution(&result);
     
 //        stiffmatrix->Print("MatKRG = ");
 //        rhs.Print("FComRG = ");

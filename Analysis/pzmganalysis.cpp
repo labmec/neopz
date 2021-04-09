@@ -60,7 +60,8 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	TPZFMatrix<STATE> sol(mesh->NEquations(),1);
 	tr->TransferSolution(fSolution,sol);
 	fSolution = sol;
-	mesh->LoadSolution(fSolution);
+	//TODOCOMPLEX
+	mesh->LoadSolution(&fSolution);
 	TPZBlockDiagonalStructMatrix bdstr(mesh);
 	TPZBlockDiagonal<STATE> *bd = (TPZBlockDiagonal<STATE> *) bdstr.Create();
 	bdstr.AssembleBlockDiagonal(*bd);
@@ -401,8 +402,9 @@ void TPZMGAnalysis::Solve() {
 	cout << "TPZMGAnalysis::Run res : " << Norm(residual) << " neq " << numeq << endl;
 	solve->Solve(residual, delu);
 	fSolution += delu;
-	
-	fCompMesh->LoadSolution(fSolution);
+
+	//TODOCOMPLEX
+	fCompMesh->LoadSolution(&fSolution);
 	if(fSolutions.NElements() < fMeshes.NElements()) {
 		fSolutions.Push(new TPZFMatrix<STATE>(fSolution));
 	} else {
@@ -461,8 +463,9 @@ void TPZMGAnalysis::ComputeError(TPZVec<REAL> &error) {
 		cout << "TPZMGAnalysis cannot compute the errors\n";
 		return;
 	}
-	fMeshes[nsol-2]->LoadSolution(*fSolutions[nsol-2]);
-	fMeshes[nsol-1]->LoadSolution(*fSolutions[nsol-1]);
+	//TODOCOMPLEX
+	fMeshes[nsol-2]->LoadSolution(fSolutions[nsol-2]);
+	fMeshes[nsol-1]->LoadSolution(fSolutions[nsol-1]);
 	TPZVec<REAL> truerror;
 	MeshError(fMeshes[nsol-1],fMeshes[nsol-2],error,0,truerror);
 }

@@ -92,6 +92,9 @@ protected:
 	/** @brief This vector of pointers represent the collection of all fluid materials in the mesh. */
 	/** These are the materials that deserve special attention during the contribution processes. */
 	std::map<int, TPZMaterial* > fFluidMaterial;
+
+	template<class TVar>
+	void ExpandSolution2Internal(TPZFMatrix<TVar> &sol);
 };
 
 #endif

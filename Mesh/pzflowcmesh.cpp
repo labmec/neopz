@@ -249,6 +249,21 @@ void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
 
 void TPZFlowCompMesh::ExpandSolution2()
 {
+  // TODOCOMPLEX
+  if (auto tmp = dynamic_cast<TPZFMatrix<STATE> *>(fSolution.GetMatrixPtr());
+      tmp) {
+    ExpandSolution2Internal(*tmp);
+  } else {
+    PZError << "Incompatible matrix type in ";
+    PZError << __PRETTY_FUNCTION__ << '\n';
+    PZError << std::endl;
+    DebugStop();
+  }
+}
+
+template<class TVar>
+void TPZFlowCompMesh::ExpandSolution2Internal(TPZFMatrix<TVar>& mysol)
+{
 	int nFluid = fFluidMaterial.size();
 	
 	if(nFluid != 1)
@@ -271,14 +286,14 @@ void TPZFlowCompMesh::ExpandSolution2()
 			//REAL temp;
 			STATE temp;
 			for(ieq=0; ieq<nstate; ieq++) {
-				temp = fSolution(position+ieq,ic);
-				fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);
-				fSolution(lastStatePos+ieq,ic) = temp;
+				temp = mysol(position+ieq,ic);
+				mysol(position+ieq,ic) = mysol(lastStatePos+ieq,ic);
+				mysol(lastStatePos+ieq,ic) = temp;
 			}
 		}
 	}
 	
-	TPZCompMesh::ExpandSolution();
+	TPZCompMesh::ExpandSolutionInternal(mysol);
 	
 	for(ic=0; ic<cols; ic++) {
 		for(ibl = 0;ibl<nblocks;ibl++) {
@@ -289,9 +304,9 @@ void TPZFlowCompMesh::ExpandSolution2()
 			//REAL temp;
 			STATE temp;
 			for(ieq=0; ieq<nstate; ieq++) {
-				temp = fSolution(position+ieq,ic);
-				fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);
-				fSolution(lastStatePos+ieq,ic) = temp;
+				temp = mysol(position+ieq,ic);
+				mysol(position+ieq,ic) = mysol(lastStatePos+ieq,ic);
+				mysol(lastStatePos+ieq,ic) = temp;
 			}
 		}
 	}

@@ -16,11 +16,6 @@
 #include <utility>                         // for pair
 #include "TPZCompElDisc.h"                 // for TPZCompElDisc
 #include "TPZInterfaceEl.h"                // for TPZInterfaceElement
-#ifdef PZ_LOG
-#include "log4cxx/helpers/objectptr.h"     // for ObjectPtrT
-#include "log4cxx/logger.h"                // for Logger
-#include "log4cxx/propertyconfigurator.h"  // for LoggerPtr
-#endif
 #include "pzadmchunk.h"                    // for TPZAdmChunkVector
 #include "pzblock.h"                       // for TPZBlock
 #include "pzbndcond.h"                     // for TPZBndCond
@@ -58,11 +53,57 @@ static TPZLogger aloclogger("pz.allocate");
 #endif
 using namespace std;
 
+TPZCompMesh::TPZSolutionMatrix::TPZSolutionMatrix(int nrows, int ncols,
+                                                  bool is_complex)
+    : fIsComplex(is_complex) {
+  if (!fIsComplex) {
+    fBaseMatrix = &fRealMatrix;
+  }
+  else{DebugStop();}
+  // else{ fBaseMatrix = &fComplexMatrix;}
+  fBaseMatrix->Resize(nrows, ncols);
+}
 
-TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) : TPZRegisterClassId(&TPZCompMesh::ClassId),
-fElementVec(0),
-fConnectVec(0),fMaterialVec(),
-fSolution(0,1) {
+TPZCompMesh::TPZSolutionMatrix::TPZSolutionMatrix(const TPZSolutionMatrix &cp) :
+    fIsComplex(cp.fIsComplex), fRealMatrix(cp.fRealMatrix)
+    // , fComplexMatrix(cp.fComplexMatrix)
+{
+    if (!fIsComplex) {
+    fBaseMatrix = &fRealMatrix;
+  }
+    else{DebugStop();}
+  // else{ fBaseMatrix = &fComplexMatrix;}
+}
+
+TPZCompMesh::TPZSolutionMatrix&
+TPZCompMesh::TPZSolutionMatrix::operator=(const TPZSolutionMatrix &cp)
+{
+    fIsComplex = cp.fIsComplex;
+    fRealMatrix = cp.fRealMatrix;
+    // fComplexMatrix = copy.fComplexMatrix;
+    if (!fIsComplex) {
+    fBaseMatrix = &fRealMatrix;
+  }
+    else{DebugStop();}
+  // else{ fBaseMatrix = &fComplexMatrix;}
+}
+void TPZCompMesh::TPZSolutionMatrix::Read(TPZStream &buf, void *context) {
+  if (!fIsComplex)
+    return fRealMatrix.Read(buf, context);
+  else{DebugStop();}
+  // else return fComplexMatrix.Read(buf,context);
+}
+void TPZCompMesh::TPZSolutionMatrix::Write(TPZStream &buf, int withclassid) const {
+  if (!fIsComplex)
+    return fRealMatrix.Write(buf, withclassid);
+  else{DebugStop();}
+  // else return fComplexMatrix.Write(buf,withclassid);
+}
+
+TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) :
+    TPZRegisterClassId(&TPZCompMesh::ClassId),
+    fElementVec(0),fConnectVec(0),fMaterialVec(),
+    fSolution(0,1),fElementSolution(0,1),fSolN(0,1) {
     
 #ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
@@ -88,17 +129,17 @@ fSolution(0,1) {
     else {
         SetName( "Computational mesh");
     }
-	fBlock.SetMatrix(&fSolution);
-	fSolutionBlock.SetMatrix(&fSolution);
+	fBlock.SetMatrix(fSolution.GetMatrixPtr());
+	fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
     
     fNmeshes = 0;
 }
 
 
-TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) : TPZRegisterClassId(&TPZCompMesh::ClassId),
-fGMesh(gmesh),fElementVec(0),
-fConnectVec(0),fMaterialVec(),
-fSolution(0,1)
+TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) :
+    TPZRegisterClassId(&TPZCompMesh::ClassId),
+    fGMesh(gmesh),fElementVec(0),fConnectVec(0),fMaterialVec(),
+    fSolution(0,1),fSolN(0,1),fElementSolution(0,1)
 {
 #ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
@@ -124,8 +165,8 @@ fSolution(0,1)
     else {
         SetName( "Computational mesh");
     }
-    fBlock.SetMatrix(&fSolution);
-    fSolutionBlock.SetMatrix(&fSolution);
+    fBlock.SetMatrix(fSolution.GetMatrixPtr());
+    fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
     
     fNmeshes = 0;
 }
@@ -442,34 +483,33 @@ void TPZCompMesh::InitializeBlock() {
 	CleanUpUnconnectedNodes();
 }
 
-void TPZCompMesh::ExpandSolution() {
+
+void TPZCompMesh::ExpandSolution(){
+    //TODOCOMPLEX
+    if(auto tmp = dynamic_cast<TPZFMatrix<STATE>*>(fSolution.GetMatrixPtr());tmp)
+        {
+            ExpandSolutionInternal(*tmp);
+        }
+    else
+        {
+          PZError << "Incompatible matrix type in ";
+          PZError << __PRETTY_FUNCTION__ << '\n';
+          PZError << std::endl;
+          DebugStop();
+        }
+}
+
+template<class TVar>
+void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 	fBlock.Resequence();
 	int64_t ibl,nblocks = fBlock.NBlocks();
 	
-	//TPZFMatrix<REAL> OldSolution(fSolution);
-	TPZFMatrix<STATE> OldSolution(fSolution);
+	TPZFMatrix<TVar> OldSolution(sol);
 	
-	int64_t cols = fSolution.Cols();
-	fSolution.Redim(fBlock.Dim(),cols);
+	int64_t cols = sol.Cols();
+	sol.Redim(fBlock.Dim(),cols);
 	int64_t minblocks = nblocks < fSolutionBlock.NBlocks() ? nblocks : fSolutionBlock.NBlocks();
-	/*
-	 int ic;
-	 for(ic=0; ic<cols; ic++) {
-	 for(ibl = 0;ibl<minblocks;ibl++) {
-	 int oldsize = fSolutionBlock.Size(ibl);
-	 int oldposition = fSolutionBlock.Position(ibl);
-	 int newsize = fBlock.Size(ibl);
-	 int newposition = fBlock.Position(ibl);
-	 int minsize = (oldsize < newsize) ? oldsize : newsize;
-	 int ieq;
-	 int offset = 0;
-	 if(Discontinuous)offset = newsize - oldsize;
-	 for(ieq=0; ieq<minsize; ieq++) {
-	 fSolution(newposition+ieq+offset,ic) = OldSolution(oldposition+ieq,ic);
-	 }
-	 }
-	 }
-	 */
+	
 	int64_t ic;
 	for(ic=0; ic<cols; ic++) {
 		for(ibl = 0;ibl<minblocks;ibl++) {
@@ -480,27 +520,29 @@ void TPZCompMesh::ExpandSolution() {
 			int64_t minsize = (oldsize < newsize) ? oldsize : newsize;
 			int64_t ieq;
 			for(ieq=0; ieq<minsize; ieq++) {
-				fSolution(newposition+ieq,ic) = OldSolution(oldposition+ieq,ic);
+				sol.PutVal(newposition+ieq,ic,OldSolution(oldposition+ieq,ic));
 			}
 		}
 	}
 	fSolutionBlock = fBlock;
 }
 
-void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
-	
-	int64_t nrow = mat.Rows();
+
+template<class TVar>
+void TPZCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &sol, const TPZFMatrix<TVar> &mat)
+{
+    int64_t nrow = mat.Rows();
 	int64_t ncol = mat.Cols();
     int64_t solrow = fSolution.Rows();
     fSolution.Resize(solrow, ncol);
 	int64_t i,j;
-    STATE val;
+    TVar val;
 	for(j=0;j<ncol;j++)
     {
         for(i=0;i<nrow;i++)
         {
             val = (mat.GetVal(i,j));
-            fSolution(i,j) =  val;
+            sol.PutVal(i,j,val);
         }
         
     }
@@ -513,7 +555,18 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
 		if(!cel) continue;
 		cel->LoadSolution();
 	}
-    
+}
+void TPZCompMesh::LoadSolution(const TPZBaseMatrix *mat){
+    //TODOCOMPLEX
+    if(auto tmat = dynamic_cast<const TPZFMatrix<STATE>*>(mat);tmat)
+        {
+            if(auto tsol = dynamic_cast<TPZFMatrix<STATE>*>(fSolution.GetMatrixPtr());tmat)
+                return LoadSolutionInternal(*tsol,*tmat);
+        }
+        PZError << "Incompatible matrix type in ";
+        PZError << __PRETTY_FUNCTION__ << '\n';
+        PZError << std::endl;
+        DebugStop();
 }
 
 void TPZCompMesh::TransferMultiphysicsSolution()
@@ -1376,6 +1429,20 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 /**ExpandSolution must be called before calling this*/
 // it is a gather permutation
 void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
+
+  if (auto tmp = dynamic_cast<TPZFMatrix<STATE> *>(fSolution.GetMatrixPtr());
+      tmp) {
+      PermuteInternal(*tmp,permute);
+  } else {
+    PZError << "Incompatible matrix type in ";
+    PZError << __PRETTY_FUNCTION__ << '\n';
+    PZError << std::endl;
+    DebugStop();
+  }
+}
+
+template<class TVar>
+void TPZCompMesh::PermuteInternal(TPZFMatrix<TVar> &sol,TPZVec<int64_t> &permute) {
 	
 	ExpandSolution();
 	//   if (permute.NElements() != fBlock.NBlocks()) {
@@ -1402,9 +1469,9 @@ void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
 	int64_t permutenel = permute.NElements();
 	for (i = 0; i < permutenel; i++) fBlock.Set(permute[i],fSolutionBlock.Size(i));
 	fBlock.Resequence();
-	if (fSolution.Rows() != 0) {
+	if (sol.Rows() != 0) {
 		//TPZFMatrix<REAL>	newsol(fSolution);
-		TPZFMatrix<STATE> newsol(fSolution);
+		TPZFMatrix<TVar> newsol(sol);
 		for (i=0;i<fBlock.NBlocks();i++) {
 			int64_t oldpos = fSolutionBlock.Position(i);
 			int64_t newpos;
@@ -1413,7 +1480,7 @@ void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
 			} else {
 				newpos = fBlock.Position(i);
 			}
-			for (j=0;j<fSolutionBlock.Size(i);j++) fSolution(newpos+j,0) = newsol(oldpos+j,0);
+			for (j=0;j<fSolutionBlock.Size(i);j++) sol.PutVal(newpos+j,0,newsol(oldpos+j,0));
 		}    //a sol. inicial esta em newsol
 	}
 	
@@ -1615,9 +1682,26 @@ REAL TPZCompMesh::CompareMesh(int var, char *matname){
 	return (error);
 }
 
-void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol) {
+
+
+void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol){
+    if(auto tmp = dynamic_cast<TPZFMatrix<STATE>*>(fElementSolution.GetMatrixPtr());tmp)
+        {
+            SetElementSolutionInternal(*tmp,i,sol);
+        }
+    else
+        {
+          PZError << "Incompatible matrix type in ";
+          PZError << __PRETTY_FUNCTION__ << '\n';
+          PZError << std::endl;
+          DebugStop();
+        }
+}
+
+template<class TVar>
+void TPZCompMesh::SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i, TPZVec<TVar> &sol) {
 	if(sol.NElements() != NElements()) {
-		cout << "TPZCompMesh::SetElementSolution size of the vector doesn't match\n";
+		cout << __PRETTY_FUNCTION__<<" size of the vector doesn't match\n";
 	}
     
 #ifdef PZ_LOG
@@ -1633,10 +1717,10 @@ void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol) {
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-	if(fElementSolution.Cols() <= i) fElementSolution.Resize(NElements(),i+1);
+	if(mysol.Cols() <= i) mysol.Resize(NElements(),i+1);
 	int64_t el,nel= NElements();
 	for(el=0; el<nel; el++) {
-		fElementSolution(el,i) = sol[el];
+		mysol.PutVal(el,i,sol[el]);
 	}
 }
 
@@ -1709,8 +1793,10 @@ TPZCompMesh::TPZCompMesh(const TPZCompMesh &copy) :
 TPZRegisterClassId(&TPZCompMesh::ClassId),
 fReference(copy.fReference),fConnectVec(copy.fConnectVec),
 fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
-fSolution(copy.fSolution), fBlock(copy.fBlock),
-fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
+fCreate(copy.fCreate), fBlock(copy.fBlock),
+fSolution(copy.fSolution),
+fElementSolution(copy.fElementSolution),
+fSolN(copy.fSolN)
 {
 #ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
@@ -1722,8 +1808,8 @@ fElementSolution(copy.fElementSolution), fCreate(copy.fCreate)
 
 	fDefaultOrder = copy.fDefaultOrder;
 	fReference->ResetReference();
-	fBlock.SetMatrix(&fSolution);
-	fSolutionBlock.SetMatrix(&fSolution);
+	fBlock.SetMatrix(fSolution.GetMatrixPtr());
+    fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
 	copy.CopyMaterials(*this);
 	int64_t nel = copy.fElementVec.NElements();
 	fElementVec.Resize(nel);
@@ -1772,12 +1858,13 @@ TPZCompMesh &TPZCompMesh::operator=(const TPZCompMesh &copy)
     fReference->ResetReference();
     fConnectVec = copy.fConnectVec;
     copy.CopyMaterials(*this);
-    fSolutionBlock = copy.fSolutionBlock;
-    fSolution = copy.fSolution;
-    fSolutionBlock.SetMatrix(&fSolution);
+    fSolutionBlock = copy.fSolutionBlock;    
+    fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
     fBlock = copy.fBlock;
-    fBlock.SetMatrix(&fSolution);
+    fBlock.SetMatrix(fSolution.GetMatrixPtr());
     fElementSolution = copy.fElementSolution;
+    fSolution = copy.fSolution;
+    fSolN = copy.fSolN;
     fDefaultOrder = copy.fDefaultOrder;
     int64_t nel = copy.fElementVec.NElements();
     fElementVec.Resize(nel);
@@ -2081,6 +2168,7 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid) const { //ok
     buf.WritePointers(boundary_materials);
     fSolutionBlock.Write(buf,0);
     fSolution.Write(buf,0);
+    fSolN.Write(buf,0);
     fBlock.Write(buf,0);
     fElementSolution.Write(buf,0);
     buf.Write(&fDimModel);
@@ -2103,12 +2191,33 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     buf.ReadPointers(fMaterialVec); //boundary materials
     fSolutionBlock.Read(buf, NULL);
     fSolution.Read(buf,NULL);
+    fSolN.Read(buf,NULL);
     fBlock.Read(buf, NULL);
     fElementSolution.Read(buf, NULL);
     buf.Read(&fDimModel);
     buf.Read(&fDefaultOrder);
     fCreate.Read(buf, context);
     buf.Read(&fNmeshes);
+}
+
+TPZFMatrix<STATE> &TPZCompMesh::Solution()
+{
+    return fSolution.GetRealMatrix();
+}
+
+const TPZFMatrix<STATE> &TPZCompMesh::Solution() const
+{
+    return fSolution.GetRealMatrix();
+}
+
+TPZFMatrix<STATE> &TPZCompMesh::SolutionN()
+{
+    return fSolN.GetRealMatrix();
+}
+
+TPZFMatrix<STATE> &TPZCompMesh::ElementSolution()
+{
+    return fElementSolution.GetRealMatrix();
 }
 
 #include "TPZGeoElement.h"
@@ -2872,7 +2981,9 @@ void TPZCompMesh::UpdatePreviousState(STATE mult)
     {
         fSolN.Redim(fSolution.Rows(),fSolution.Cols());
     }
-    fSolN += mult*fSolution;
+    auto tmpSolN = fSolN.GetRealMatrix();
+    auto tmpSol = fSolution.GetRealMatrix();
+    tmpSolN += mult*tmpSol;
     fSolution = fSolN;
     int64_t nel = NElements();
     for(int64_t el = 0; el<nel; el++)

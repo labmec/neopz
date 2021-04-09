@@ -1839,14 +1839,15 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	Permute(permute);
 }
 
-void TPZSubCompMesh::LoadSolution() {
+template<class TVar>
+void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 	
 	int64_t i=0;
 	int64_t seqnumext;
 	int64_t seqnumint;
 	//	int numinteq = NumInternalEquations();
 	int size;
-	TPZFMatrix<STATE> &sol = Mesh()->Solution();
+	TPZFMatrix<TVar> &currentsol = mysol;
 	
 	for (i=0;i<fConnectVec.NElements(); i++) {
 		if (fExternalLocIndex[i] != -1) {
@@ -1859,14 +1860,29 @@ void TPZSubCompMesh::LoadSolution() {
 			int64_t posint = fBlock.Position(seqnumint);
 			int l;
 			for(l=0;l<size;l++) {
-				fSolution(posint+l,0) = sol(posext+l,0);
+				mysol(posint+l,0) = currentsol(posext+l,0);
 			}
 		}
 	}
 //    fSolution.Print(std::cout);
     
-	if(fAnalysis) fAnalysis->LoadSolution(fSolution);
-	TPZCompMesh::LoadSolution(fSolution);
+	if(fAnalysis) fAnalysis->LoadSolution(mysol);
+	TPZCompMesh::LoadSolution(&mysol);
+}
+
+void TPZSubCompMesh::LoadSolution(){
+    //TODOCOMPLEX
+    if(auto tmp = dynamic_cast<TPZFMatrix<STATE>*>(fSolution.GetMatrixPtr());tmp)
+        {
+            LoadSolutionInternal(*tmp);
+        }
+    else
+        {
+          PZError << "Incompatible matrix type in ";
+          PZError << __PRETTY_FUNCTION__ << '\n';
+          PZError << std::endl;
+          DebugStop();
+        }
 }
 
 /**
@@ -1884,7 +1900,7 @@ void TPZSubCompMesh::TransferMultiphysicsElementSolution()
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
-        fSolution.Print("SubMeshSol",sout);
+        fSolution.GetMatrixPtr()->Print("SubMeshSol",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif

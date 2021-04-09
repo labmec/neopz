@@ -66,21 +66,58 @@ protected:
 	/** @brief Block structure of the solution vector ???? */
 	//TPZBlock		fSolutionBlock;
 	TPZBlock		fSolutionBlock;
-	
-	/** @brief Solution vector */
+
+        class TPZSolutionMatrix {
+        private:
+          bool fIsComplex;
+          TPZFMatrix<STATE> fRealMatrix;
+          // TPZFMatrix<CSTATE> fComplexMatrix;
+          TPZBaseMatrix *fBaseMatrix;
+
+        public:
+          TPZSolutionMatrix(int nrows, int ncols, bool is_complex = false);
+          TPZSolutionMatrix(const TPZSolutionMatrix &);
+          TPZSolutionMatrix(TPZSolutionMatrix &&) = delete;
+          ~TPZSolutionMatrix() = default;
+          TPZSolutionMatrix& operator=(const TPZSolutionMatrix &);
+          TPZSolutionMatrix& operator=(TPZSolutionMatrix &&) = delete;
+
+          inline int64_t Rows() const { return fBaseMatrix->Rows(); }
+
+          inline int64_t Cols() const { return fBaseMatrix->Cols(); }
+
+          inline int Redim(const int64_t r, const int64_t c) {
+            return fBaseMatrix->Redim(r, c);
+          }
+
+          inline int Resize(const int64_t r, const int64_t c) {
+            return fBaseMatrix->Resize(r, c);
+          }
+
+          TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
+
+          const TPZFMatrix<STATE> &GetRealMatrix() const { return fRealMatrix; }
+          TPZFMatrix<STATE> &GetRealMatrix() { return fRealMatrix; }
+
+          // const TPZFMatrix<CSTATE> &GetRealMatrix() const { return fRealMatrix; }
+          // TPZFMatrix<CSTATE> &GetRealMatrix() { return fRealMatrix; }
+          void Read(TPZStream &buf, void *context);
+          void Write(TPZStream &buf, int withclassid) const;
+        };
+        /** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
-	TPZFMatrix<STATE>	fSolution;
+	TPZSolutionMatrix fSolution;
     
     /** @brief Solution at previous state
      */
-    TPZFMatrix<STATE>  fSolN;
+    TPZSolutionMatrix  fSolN;
 	
 	/** @brief Block structure to right construction of the stiffness matrix and load vector */
 	//TPZBlock		fBlock;
 	TPZBlock		fBlock;
 	
 	/** @brief Solution vectors organized by element */
-	TPZFMatrix<STATE> fElementSolution;
+	TPZSolutionMatrix fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
@@ -97,6 +134,18 @@ protected:
     //quantity of meshes associated with a mesh multiphysics
 	int64_t fNmeshes;
 
+    /*The following methods are meant to encapsulate 
+     the fact that the solution may or may not be complex.
+     Avoid using them in child classes, unless there is no 
+     other option*/
+    template<class TVar>
+    void LoadSolutionInternal(TPZFMatrix<TVar> &sol, const TPZFMatrix<TVar> &mat);
+    template<class TVar>
+	void ExpandSolutionInternal(TPZFMatrix<TVar> &sol);
+    template<class TVar>
+    void PermuteInternal(TPZFMatrix<TVar> &sol, TPZVec<int64_t> &permute);
+    template<class TVar>
+    void SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i, TPZVec<TVar> &sol);
 public:
 	
 	/**
@@ -216,16 +265,16 @@ public:
 	TPZBlock &Block() { return fBlock;}
 	
 	/** @brief Access the solution vector */
-	TPZFMatrix<STATE> &Solution() { return fSolution;}
+	TPZFMatrix<STATE> &Solution();
     
     /** @brief Access the solution vector */
-    const TPZFMatrix<STATE> &Solution() const { return fSolution;}
+    const TPZFMatrix<STATE> &Solution() const;
     
     /** @brief Access the  previous solution vector */
-    TPZFMatrix<STATE> &SolutionN(){ return fSolN;}
+    TPZFMatrix<STATE> &SolutionN();
 	
 	/** @brief Access method for the element solution vectors */
-	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
+	TPZFMatrix<STATE> &ElementSolution();
 	
 	/** @} */
 	
@@ -271,6 +320,8 @@ public:
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
 	void SetElementSolution(int64_t i, TPZVec<STATE> &sol);
+
+    //void SetElementSolution(int64_t i, TPZVec<CSTATE> &sol);
 	
 	/** @} */
 	
@@ -574,7 +625,7 @@ public:
 	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
 	 */
-	void LoadSolution(const TPZFMatrix<STATE> &sol);
+	void LoadSolution(const TPZBaseMatrix *sol);
     
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */

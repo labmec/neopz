@@ -11,6 +11,9 @@
 #include "TPZSavable.h"
 #include "pzreal.h"
 
+/** @brief Defines output format */
+enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros, EMatrixMarket, ECSV, EFixedColumn};
+
 class TPZStream;
 /** \addtogroup matrix
  * @{
@@ -186,9 +189,11 @@ public:
   virtual int Decompose_LDLt(std::list<int64_t> &singular) = 0;
   /** @brief Decomposes the current matrix using LDLt. */
   virtual int Decompose_LDLt() = 0;
-
+  
   /** @} */
 
+  /** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
+  virtual void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const = 0;
   int ClassId() const override;
 
   /**
