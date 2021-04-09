@@ -151,7 +151,7 @@ public:
             datavec[iref].SetAllRequirements(false);
             datavec[iref].fNeedsSol = false;
         }
-        datavec[0].fNeedsNormal = false;
+        datavec[0].fNeedsNormal = true;
         if(type == 50)
         {
             for(int iref = 0; iref<nref; iref++){

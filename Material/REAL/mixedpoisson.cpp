@@ -600,7 +600,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
                     
                     ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight;
                 }
-            }  
+            }
 			break;
         
         case 2 :			// mixed condition
@@ -785,7 +785,7 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
         PermTensor.Multiply(gradu, flux);
 
         for (int i = 0; i < fDim; i++) {
-            Solout[i] = flux(i, 0);
+            Solout[i] = -flux(i, 0);
         }
 
         return;
