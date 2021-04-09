@@ -67,43 +67,54 @@ protected:
 	//TPZBlock		fSolutionBlock;
 	TPZBlock		fSolutionBlock;
 
-        class TPZSolutionMatrix {
-        private:
-          bool fIsComplex;
-          TPZFMatrix<STATE> fRealMatrix;
-          // TPZFMatrix<CSTATE> fComplexMatrix;
-          TPZBaseMatrix *fBaseMatrix;
+    class TPZSolutionMatrix {
+    private:
+        bool fIsComplex;
+        TPZFMatrix<STATE> fRealMatrix;
+        // TPZFMatrix<CSTATE> fComplexMatrix;
+        TPZBaseMatrix *fBaseMatrix;
+        
+    public:
+        TPZSolutionMatrix(int nrows, int ncols, bool is_complex = false);
+        TPZSolutionMatrix(const TPZSolutionMatrix &);
+        TPZSolutionMatrix(TPZSolutionMatrix &&) = delete;
+        ~TPZSolutionMatrix() = default;
+        TPZSolutionMatrix &operator=(const TPZSolutionMatrix &);
+        TPZSolutionMatrix &operator=(TPZSolutionMatrix &&) = delete;
 
-        public:
-          TPZSolutionMatrix(int nrows, int ncols, bool is_complex = false);
-          TPZSolutionMatrix(const TPZSolutionMatrix &);
-          TPZSolutionMatrix(TPZSolutionMatrix &&) = delete;
-          ~TPZSolutionMatrix() = default;
-          TPZSolutionMatrix& operator=(const TPZSolutionMatrix &);
-          TPZSolutionMatrix& operator=(TPZSolutionMatrix &&) = delete;
+        inline int64_t Rows() const { return fBaseMatrix->Rows(); }
 
-          inline int64_t Rows() const { return fBaseMatrix->Rows(); }
+        inline int64_t Cols() const { return fBaseMatrix->Cols(); }
 
-          inline int64_t Cols() const { return fBaseMatrix->Cols(); }
+        inline int Redim(const int64_t r, const int64_t c) {
+          return fBaseMatrix->Redim(r, c);
+        }
 
-          inline int Redim(const int64_t r, const int64_t c) {
-            return fBaseMatrix->Redim(r, c);
-          }
+        inline int Resize(const int64_t r, const int64_t c) {
+          return fBaseMatrix->Resize(r, c);
+        }
 
-          inline int Resize(const int64_t r, const int64_t c) {
-            return fBaseMatrix->Resize(r, c);
-          }
+        inline TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
 
-          TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
+        inline const TPZFMatrix<STATE> &GetRealMatrix() const{
+            if(fIsComplex)
+              throw std::logic_error(
+                  "TPZCompMesh has a complex matrix and GetRealMatrix wwas called");
+            return fRealMatrix;
+        }
 
-          const TPZFMatrix<STATE> &GetRealMatrix() const { return fRealMatrix; }
-          TPZFMatrix<STATE> &GetRealMatrix() { return fRealMatrix; }
+        inline TPZFMatrix<STATE> &GetRealMatrix(){
+            if(fIsComplex)
+              throw std::logic_error(
+                  "TPZCompMesh has a complex matrix and GetRealMatrix wwas called");
+            return fRealMatrix;
+        }
 
-          // const TPZFMatrix<CSTATE> &GetRealMatrix() const { return fRealMatrix; }
-          // TPZFMatrix<CSTATE> &GetRealMatrix() { return fRealMatrix; }
-          void Read(TPZStream &buf, void *context);
-          void Write(TPZStream &buf, int withclassid) const;
-        };
+        // const TPZFMatrix<CSTATE> &GetRealMatrix() const { return fRealMatrix;
+        // } TPZFMatrix<CSTATE> &GetRealMatrix() { return fRealMatrix; }
+        void Read(TPZStream &buf, void *context);
+        void Write(TPZStream &buf, int withclassid) const;
+    };
         /** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
 	TPZSolutionMatrix fSolution;

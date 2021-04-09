@@ -86,7 +86,9 @@ TPZCompMesh::TPZSolutionMatrix::operator=(const TPZSolutionMatrix &cp)
   }
     else{DebugStop();}
   // else{ fBaseMatrix = &fComplexMatrix;}
+    return *this;
 }
+
 void TPZCompMesh::TPZSolutionMatrix::Read(TPZStream &buf, void *context) {
   if (!fIsComplex)
     return fRealMatrix.Read(buf, context);
