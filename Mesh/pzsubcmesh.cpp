@@ -1872,9 +1872,9 @@ void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 
 void TPZSubCompMesh::LoadSolution(){
     //TODOCOMPLEX
-    if(auto tmp = dynamic_cast<TPZFMatrix<STATE>*>(fSolution.GetMatrixPtr());tmp)
+    if(auto tmp = fSolution.GetRealMatrix();tmp)
         {
-            LoadSolutionInternal(*tmp);
+            LoadSolutionInternal(tmp);
         }
     else
         {

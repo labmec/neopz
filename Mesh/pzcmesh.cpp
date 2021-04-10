@@ -487,18 +487,16 @@ void TPZCompMesh::InitializeBlock() {
 
 
 void TPZCompMesh::ExpandSolution(){
-    //TODOCOMPLEX
-    if(auto tmp = dynamic_cast<TPZFMatrix<STATE>*>(fSolution.GetMatrixPtr());tmp)
-        {
-            ExpandSolutionInternal(*tmp);
-        }
-    else
-        {
-          PZError << "Incompatible matrix type in ";
-          PZError << __PRETTY_FUNCTION__ << '\n';
-          PZError << std::endl;
-          DebugStop();
-        }
+    try{
+        TPZFMatrix<REAL>& tmp = fSolution.GetRealMatrix();
+        ExpandSolutionInternal(tmp);
+    }
+    catch(...){
+        PZError << "Incompatible matrix type in ";
+        PZError << __PRETTY_FUNCTION__;
+        PZError << std::endl;
+        DebugStop();
+    }
 }
 
 template<class TVar>
@@ -560,15 +558,16 @@ void TPZCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &sol, const TPZFMatrix<T
 }
 void TPZCompMesh::LoadSolution(const TPZBaseMatrix *mat){
     //TODOCOMPLEX
-    if(auto tmat = dynamic_cast<const TPZFMatrix<STATE>*>(mat);tmat)
-        {
-            if(auto tsol = dynamic_cast<TPZFMatrix<STATE>*>(fSolution.GetMatrixPtr());tmat)
-                return LoadSolutionInternal(*tsol,*tmat);
-        }
-        PZError << "Incompatible matrix type in ";
-        PZError << __PRETTY_FUNCTION__ << '\n';
-        PZError << std::endl;
-        DebugStop();
+    try {
+      TPZFMatrix<STATE>& tsol = fSolution.GetRealMatrix();
+      auto tmat = dynamic_cast<const TPZFMatrix<STATE> *>(mat);
+      return LoadSolutionInternal(tsol, *tmat);
+    } catch (...) {
+      PZError << "Incompatible matrix type in ";
+      PZError << __PRETTY_FUNCTION__ << '\n';
+      PZError << std::endl;
+      DebugStop();
+    }
 }
 
 void TPZCompMesh::TransferMultiphysicsSolution()
@@ -1432,10 +1431,10 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 // it is a gather permutation
 void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
 
-  if (auto tmp = dynamic_cast<TPZFMatrix<STATE> *>(fSolution.GetMatrixPtr());
-      tmp) {
-      PermuteInternal(*tmp,permute);
-  } else {
+  try {
+    TPZFMatrix<STATE> & tmp = fSolution.GetRealMatrix();
+    PermuteInternal(tmp, permute);
+  } catch (...) {
     PZError << "Incompatible matrix type in ";
     PZError << __PRETTY_FUNCTION__ << '\n';
     PZError << std::endl;
@@ -1687,17 +1686,15 @@ REAL TPZCompMesh::CompareMesh(int var, char *matname){
 
 
 void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol){
-    if(auto tmp = dynamic_cast<TPZFMatrix<STATE>*>(fElementSolution.GetMatrixPtr());tmp)
-        {
-            SetElementSolutionInternal(*tmp,i,sol);
-        }
-    else
-        {
-          PZError << "Incompatible matrix type in ";
-          PZError << __PRETTY_FUNCTION__ << '\n';
-          PZError << std::endl;
-          DebugStop();
-        }
+    try{
+        TPZFMatrix<STATE>& tmp = fElementSolution.GetRealMatrix();
+        SetElementSolutionInternal(tmp,i,sol);
+    } catch(...){
+        PZError << "Incompatible matrix type in ";
+        PZError << __PRETTY_FUNCTION__ << '\n';
+        PZError << std::endl;
+        DebugStop();
+    }
 }
 
 template<class TVar>

@@ -110,8 +110,10 @@ protected:
             return fRealMatrix;
         }
 
-        // const TPZFMatrix<CSTATE> &GetRealMatrix() const { return fRealMatrix;
-        // } TPZFMatrix<CSTATE> &GetRealMatrix() { return fRealMatrix; }
+        // const TPZFMatrix<CSTATE> &GetComplexMatrix() const { return fRealMatrix;
+        // }
+        // TPZFMatrix<CSTATE> &GetComplexMatrix() { return fRealMatrix; }
+        
         void Read(TPZStream &buf, void *context);
         void Write(TPZStream &buf, int withclassid) const;
     };
