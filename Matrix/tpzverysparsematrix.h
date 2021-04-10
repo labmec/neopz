@@ -5,13 +5,12 @@
 #ifndef TPZVERYSPARSEMATRIX_H
 #define TPZVERYSPARSEMATRIX_H
 
+#include "pzmatrix.h"
 #include <iostream>
 #include <map>
-
-#include "pzmatrix.h"
+#include "Hash/TPZHash.h"
 
 /** @ingroup matrix */
-#define TPZVERYSPARSEMATRIX_ID 28291001;
 
 template <class TVar>
 class TPZFMatrix;

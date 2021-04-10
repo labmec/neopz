@@ -4,15 +4,12 @@
  */
 #ifndef PZERRORH
 #define PZERRORH
-
-#include <iostream>
-#include <stdlib.h>
-
+#include <cstddef>//smallest header with std::size_t
 /**
  * @ingroup common
  * @brief Defines the output device to error messages and the DebugStop() function.
  */
-#define PZError std::cout
+#define PZError std::cerr
 /**
  * @ingroup common
  * @brief Returns a message to user put a breakpoint in

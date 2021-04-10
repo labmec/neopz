@@ -7,7 +7,6 @@
 #define ANALYSISH
 
 #include <mutex>              // for mutex
-#include <iostream>           // for string, cout, ostream
 #include <set>                // for set
 #include <functional>         // for function
 #include "TPZGuiInterface.h"  // for TPZGuiInterface

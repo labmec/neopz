@@ -4,7 +4,8 @@
  */
 
 #include "tpzverysparsematrix.h"
-
+#include "pzfmatrix.h"
+#include "TPZStream.h"
 using namespace std;
 
 template<class TVar>

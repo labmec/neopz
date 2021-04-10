@@ -865,7 +865,4 @@ TPZMatrix<TVar>::Swap( int64_t *a, int64_t *b )
 	*b = aux;
 }
 
-#include "pzfmatrix.h"
-#include "pzsolve.h"
-
 #endif
