@@ -24,10 +24,10 @@
 //  * @brief Increment and Decrement actions are mutexed by this mutex
 //  */
 
-namespace pzinternal{
-    extern std::recursive_mutex g_ap_mut;
-extern std::mutex g_diag_mut;
-}
+//namespace pzinternal{
+//    extern std::recursive_mutex g_ap_mut;
+//extern std::mutex g_diag_mut;
+//}
 
 /**
  * @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
@@ -95,15 +95,14 @@ class TPZAutoPointer {
             }
             bool should_delete = false;
             int result = fCounter->fetch_sub(1);
-            auto trhid = std::this_thread::get_id();
             result--;
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+//            std::this_thread::sleep_for(std::chrono::milliseconds(10));
             // at this point the object may already have been deleted by another thread
-            {
-                const std::lock_guard<std::mutex> lock(pzinternal::g_diag_mut);
-                std::cout <<  "thread id " <<  std::this_thread::get_id() <<
-                " result " << result << std::endl;
-            }
+//            {
+//                const std::lock_guard<std::mutex> lock(pzinternal::g_diag_mut);
+//                std::cout <<  "thread id " <<  std::this_thread::get_id() <<
+//                " result " << result << std::endl;
+//            }
             if((result) == 0) should_delete = true;
             else if((result) < 0){
                 throw std::logic_error(

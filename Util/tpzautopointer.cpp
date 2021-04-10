@@ -4,10 +4,10 @@
  */
 
 #include "tpzautopointer.h"
-namespace pzinternal{
-    std::recursive_mutex g_ap_mut;
-    std::mutex g_diag_mut;
-}
+//namespace pzinternal{
+//    std::recursive_mutex g_ap_mut;
+//    std::mutex g_diag_mut;
+//}
 
 
 #include "pzmatrix.h"

@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(multithread_stress_test)
     threadTest::AutoPointerStressTest();
 }
 
-/*
+
 BOOST_AUTO_TEST_CASE(multithread_assemble_test)
 {
     threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix>(4);
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(multithread_postprocerror_test)
 {
     threadTest::ComparePostProcError<TPZSkylineStructMatrix>(4);
 }
-*/
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
