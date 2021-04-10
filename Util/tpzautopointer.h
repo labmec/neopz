@@ -42,20 +42,18 @@ class TPZAutoPointer {
         /** @brief Pointer to T object */
         T *fPointer;
         /** @brief Reference counter*/
-        std::atomic_int *fCounter;
+        std::atomic_int fCounter;
         
         TPZReference()
         {
             fPointer = nullptr;
-            fCounter = new std::atomic_int{};
-            fCounter->store(1);
+            fCounter.store(1);
         }
         
         TPZReference(T *pointer)
         {
             fPointer = pointer;
-            fCounter = new std::atomic_int{};
-            fCounter->store(1);
+            fCounter.store(1);
         }
 
         TPZReference(const TPZReference &) = delete;        
@@ -69,11 +67,6 @@ class TPZAutoPointer {
                 delete fPointer;
             }
             fPointer = nullptr;
-            
-            if(fCounter) {
-                delete fCounter;
-            }
-            fCounter = nullptr;
         }
         
 
@@ -82,7 +75,7 @@ class TPZAutoPointer {
         {
 //            std::mutex *mut = get_ap_mutex((void*) this);
 //            std::unique_lock<std::mutex> lck(*mut);//already locks
-            fCounter->fetch_add(1);
+            fCounter.fetch_add(1);
 //            lck.unlock();
             return true;
         }
@@ -90,11 +83,8 @@ class TPZAutoPointer {
             it is needed to delete the reference.*/
         bool Decrease()
         {
-            if(!fCounter){
-                throw std::logic_error("TPZAutoPointer::Decrease() called without fCounter");
-            }
             bool should_delete = false;
-            int result = fCounter->fetch_sub(1);
+            int result = fCounter.fetch_sub(1);
             result--;
 //            std::this_thread::sleep_for(std::chrono::milliseconds(10));
             // at this point the object may already have been deleted by another thread
@@ -231,7 +221,7 @@ public:
 	int Count() const
 	{
         if(!fRef) return 0;
-		return *(fRef->fCounter);
+		return fRef->fCounter;
 	}
     template<typename R, typename T2>
     friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
@@ -239,17 +229,7 @@ public:
 private:
     /** @brief Method for deleting the reference*/
     inline void Release(){
-//        const std::lock_guard<std::mutex> lock(pzinternal::g_diag_mut);
-//        std::scoped_lock<std::recursive_mutex> lck(
-//                    pzinternal::g_ap_mut);
-        //just checking if nobody else deleted fRef
-        //or another fRef pointing to the same address
         if(fRef && fRef->fCounter) {
-            // std::cout<<__PRETTY_FUNCTION__<<'\n';
-            // std::cout<<"fref address: "<<fRef<<std::endl;
-            // std::cout<<"fcount address: "<<fRef->fCounter<<std::endl;
-            // std::cout<<"fcount value: "<<*(fRef->fCounter)<<std::endl;
-            // std::cout<<"fpointer address: "<<fRef->fPointer<<std::endl;
             delete fRef;
         }
         fRef = nullptr;
