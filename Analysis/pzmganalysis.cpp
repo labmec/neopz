@@ -61,7 +61,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	tr->TransferSolution(fSolution,sol);
 	fSolution = sol;
 	//TODOCOMPLEX
-	mesh->LoadSolution(&fSolution);
+	mesh->LoadSolution(fSolution);
 	TPZBlockDiagonalStructMatrix bdstr(mesh);
 	TPZBlockDiagonal<STATE> *bd = (TPZBlockDiagonal<STATE> *) bdstr.Create();
 	bdstr.AssembleBlockDiagonal(*bd);
@@ -404,7 +404,7 @@ void TPZMGAnalysis::Solve() {
 	fSolution += delu;
 
 	//TODOCOMPLEX
-	fCompMesh->LoadSolution(&fSolution);
+	fCompMesh->LoadSolution(fSolution);
 	if(fSolutions.NElements() < fMeshes.NElements()) {
 		fSolutions.Push(new TPZFMatrix<STATE>(fSolution));
 	} else {

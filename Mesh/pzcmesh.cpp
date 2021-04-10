@@ -570,6 +570,34 @@ void TPZCompMesh::LoadSolution(const TPZBaseMatrix *mat){
     }
 }
 
+void TPZCompMesh::LoadSolution(const TPZBaseMatrix &mat){
+    //TODOCOMPLEX
+    try {
+      TPZFMatrix<STATE>& tsol = fSolution.GetRealMatrix();
+      auto tmat = dynamic_cast<const TPZFMatrix<STATE> &>(mat);
+      return LoadSolutionInternal(tsol, tmat);
+    } catch (...) {
+      PZError << "Incompatible matrix type in ";
+      PZError << __PRETTY_FUNCTION__ << '\n';
+      PZError << std::endl;
+      DebugStop();
+    }
+}
+
+void TPZCompMesh::LoadSolution(const TPZBaseMatrix &&mat){
+    //TODOCOMPLEX
+    try {
+      TPZFMatrix<STATE>& tsol = fSolution.GetRealMatrix();
+      auto tmat = dynamic_cast<const TPZFMatrix<STATE> &&>(mat);
+      return LoadSolutionInternal(tsol, tmat);
+    } catch (...) {
+      PZError << "Incompatible matrix type in ";
+      PZError << __PRETTY_FUNCTION__ << '\n';
+      PZError << std::endl;
+      DebugStop();
+    }
+}
+
 void TPZCompMesh::TransferMultiphysicsSolution()
 {
     int64_t nel = this->NElements();

@@ -437,7 +437,7 @@ void TPZAnalysis::Solve() {
 	}
 #endif
     //TODOCOMPLEX
-	fCompMesh->LoadSolution(&fSolution);
+	fCompMesh->LoadSolution(fSolution);
     fCompMesh->TransferMultiphysicsSolution();
 
 }
@@ -445,7 +445,7 @@ void TPZAnalysis::Solve() {
 void TPZAnalysis::LoadSolution() {	
 	if(fCompMesh) {
         //TODOCOMPLEX
-		fCompMesh->LoadSolution(&fSolution);
+		fCompMesh->LoadSolution(fSolution);
 	}
 }
 
@@ -479,7 +479,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	TPZManVector<REAL,10> values(10,0.);
 	TPZManVector<REAL,10> values2(10,0.);
     //TODOCOMPLEX
-	fCompMesh->LoadSolution(&fSolution);
+	fCompMesh->LoadSolution(fSolution);
 	TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
 	TPZManVector<REAL,10> errors(10);
 	errors.Fill(0.0);
@@ -671,7 +671,7 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
 void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){ //totto
 
   //TODOCOMPLEX
-  fCompMesh->LoadSolution(&fSolution);
+  fCompMesh->LoadSolution(fSolution);
   const int numthreads = this->fNthreadsError;
   std::vector<std::thread> allthreads;
 
@@ -777,7 +777,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
     int64_t nelgeom = gmesh->NElements();
     TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
     //TODOCOMPLEX
-    fCompMesh->LoadSolution(&fSolution);
+    fCompMesh->LoadSolution(fSolution);
     //	SetExact(&Exact);
     TPZManVector<REAL,10> errors(10);
     errors.Fill(0.0);
@@ -1143,7 +1143,7 @@ void TPZAnalysis::AnimateRun(int64_t num_iter, int steps, TPZVec<std::string> &s
 		SetSolver(sol);
 		fSolver->Solve(fRhs, fSolution);
 		//TODOCOMPLEX
-		fCompMesh->LoadSolution(&fSolution);
+		fCompMesh->LoadSolution(fSolution);
 		gg.DrawSolution(i-1,0);
 	}
 }

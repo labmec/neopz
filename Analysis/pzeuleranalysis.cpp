@@ -53,14 +53,14 @@ void TPZEulerAnalysis::SetAdvancedState()
 {
 	SetContributionTime(Advanced_CT);
 	//TODOCOMPLEX
-	fCompMesh->LoadSolution(&fSolution);
+	fCompMesh->LoadSolution(fSolution);
 }
 
 void TPZEulerAnalysis::SetLastState()
 {
 	SetContributionTime(Last_CT);
 	//TODOCOMPLEX
-	fCompMesh->LoadSolution(&fSolution);
+	fCompMesh->LoadSolution(fSolution);
 }
 
 void TPZEulerAnalysis::SetContributionTime(TPZContributeTime time)
@@ -76,7 +76,7 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsi
     {
         fSolution += deltaSol;
 		//TODOCOMPLEX
-        fCompMesh->LoadSolution(&fSolution);
+        fCompMesh->LoadSolution(fSolution);
         AssembleRhs();
         epsilon = Norm(fRhs);
     }
@@ -86,19 +86,19 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsi
 		fSolution -= deltaSol;
 		epsilon = initEpsilon;
 		//TODOCOMPLEX
-		fCompMesh->LoadSolution(&fSolution);
+		fCompMesh->LoadSolution(fSolution);
 	}
 	
     if(epsilon > initEpsilon)
     {
 		fSolution -= deltaSol;
 		//TODOCOMPLEX
-		fCompMesh->LoadSolution(&fSolution);
+		fCompMesh->LoadSolution(fSolution);
 		/*int resultlin = */
 		LineSearch(initEpsilon ,fSolution, deltaSol);
 		fSolution += deltaSol;
 		//TODOCOMPLEX
-		fCompMesh->LoadSolution(&fSolution);
+		fCompMesh->LoadSolution(fSolution);
 		epsilon = Norm(fRhs);
     }
 	
@@ -107,7 +107,7 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsi
 		/*int resultlin = */LineSearch(initEpsilon ,fSolution, deltaSol);
 		fSolution += deltaSol;
 		//TODOCOMPLEX
-		fCompMesh->LoadSolution(&fSolution);
+		fCompMesh->LoadSolution(fSolution);
 		epsilon = Norm(fRhs);
 		fFlowCompMesh->ScaleCFL(.5);
     }
@@ -528,7 +528,7 @@ int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix<STATE> &sol0, TPZFMa
 	REAL incr = 1.0;
 	TPZFMatrix<STATE> solution;
 	//TODOCOMPLEX
-	fFlowCompMesh->LoadSolution(&sol0);
+	fFlowCompMesh->LoadSolution(sol0);
 	AssembleRhs();
 	REAL preverr = Norm(fRhs);
 	REAL error;
@@ -537,7 +537,7 @@ int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix<STATE> &sol0, TPZFMa
 		solution = sol0;
 		solution += (direction *(STATE)dist);
 		//TODOCOMPLEX
-		fFlowCompMesh->LoadSolution(&solution);
+		fFlowCompMesh->LoadSolution(solution);
 		try
 		{
 			AssembleRhs();
@@ -574,7 +574,7 @@ int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix<STATE> &sol0, TPZFMa
 		}
 	}
 	//TODOCOMPLEX
-	fFlowCompMesh->LoadSolution(&sol0);
+	fFlowCompMesh->LoadSolution(sol0);
 	if(dist > 0.) return 1;
 	else return 0;
 }

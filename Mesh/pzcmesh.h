@@ -639,7 +639,16 @@ public:
 	 * @param sol given solution matrix
 	 */
 	void LoadSolution(const TPZBaseMatrix *sol);
-    
+    /**
+	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
+	 * @param sol refence to rval solution matrix
+	 */
+    void LoadSolution(const TPZBaseMatrix &sol);
+    /**
+	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
+	 * @param sol refence to rval solution matrix
+	 */
+    void LoadSolution(const TPZBaseMatrix &&sol);
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */
     void UpdatePreviousState(STATE mult = 1.0);

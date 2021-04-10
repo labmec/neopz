@@ -461,7 +461,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
             continue;
         }
         //TODOCOMPLEX
-        m_mesh_vector[i_as]->LoadSolution(&(m_mesh_vector[i_as]->Solution()));
+        m_mesh_vector[i_as]->LoadSolution((m_mesh_vector[i_as]->Solution()));
     }
 }
 
