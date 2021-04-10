@@ -12,6 +12,18 @@ TPZSolutionMatrix::TPZSolutionMatrix(int nrows, int ncols,
   fBaseMatrix->Resize(nrows, ncols);
 }
 
+TPZSolutionMatrix::TPZSolutionMatrix(TPZFMatrix<STATE> &sol)
+    : fIsComplex(false), fRealMatrix(sol), fBaseMatrix(&fRealMatrix)
+{
+
+}
+
+// TPZSolutionMatrix::TPZSolutionMatrix(TPZFMatrix<CSTATE> &sol)
+//     : fIsComplex(true), fComplexMatrix(sol), fBaseMatrix(&fComplexMatrix)
+// {
+
+// }
+
 TPZSolutionMatrix::TPZSolutionMatrix(const TPZSolutionMatrix &cp) :
     fIsComplex(cp.fIsComplex), fRealMatrix(cp.fRealMatrix)
     // , fComplexMatrix(cp.fComplexMatrix)

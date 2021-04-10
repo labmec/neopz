@@ -18,39 +18,48 @@ private:
   TPZBaseMatrix *fBaseMatrix;//!< Pointer for actual solution
 
 public:
-  /*! Constructor of TPZSolutionMatrix
+  /*! Constructor of empty TPZSolutionMatrix
       \param nrows - number of rows of the solution matrix
       \param ncols - number of cols of the solution matrix
       \param is_complex - whether the solution is complex or real
     */
   TPZSolutionMatrix(int nrows, int ncols, bool is_complex = false);
-  //!Copy constructor
+
+  //! Constructor taking a real matrix
+  TPZSolutionMatrix(TPZFMatrix<STATE> &sol);
+  // //! Constructor taking a complex matrix
+  // TPZSolutionMatrix(TPZFMatrix<CSTATE> &sol);
+  //! Copy constructor
   TPZSolutionMatrix(const TPZSolutionMatrix &);
-  //!Move constructor (deleted)
+  //! Move constructor (deleted)
   TPZSolutionMatrix(TPZSolutionMatrix &&) = delete;
-  //!Destructor
+  //! Destructor
   ~TPZSolutionMatrix() = default;
-  //!Copy operator
+  //! Copy operator
   TPZSolutionMatrix &operator=(const TPZSolutionMatrix &);
-  //!Move operator
+  //! Move operator
   TPZSolutionMatrix &operator=(TPZSolutionMatrix &&) = delete;
-  //!Number of Rows of the solution
+  //! Number of Rows of the solution
   inline int64_t Rows() const { return fBaseMatrix->Rows(); }
-  //!Number of cols of the solution
+  //! Number of cols of the solution
   inline int64_t Cols() const { return fBaseMatrix->Cols(); }
-  //!Redim the solution \ref matrix "Matrix"
+  //! Redim the solution \ref matrix "Matrix"
   inline int Redim(const int64_t r, const int64_t c) {
     return fBaseMatrix->Redim(r, c);
   }
-  //!Resize the solution \ref matrix "Matrix"
+  //! Resize the solution \ref matrix "Matrix"
   inline int Resize(const int64_t r, const int64_t c) {
     return fBaseMatrix->Resize(r, c);
   }
-  //!Get pointer to TPZBaseMatrix associated with the FEM solution
+  //! Get pointer to TPZBaseMatrix associated with the FEM solution
   inline TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
 
+
+  //the following doxygen directive will apply
+  //this description for a group of functions
+  
   //@{
-  //!Get reference to real matrix (throws exception if solution is complex)
+  //! Get reference to real matrix (throws exception if solution is complex)
   inline const TPZFMatrix<STATE> &GetRealMatrix() const {
     if (fIsComplex)
       throw std::logic_error(
