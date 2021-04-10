@@ -163,7 +163,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
     int64_t count = 0;
     for (iel = 0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
-        if (!el || el->IsInterface()) continue;
+        if (!el) continue;
         int matid = 0;
         TPZGeoEl *gel = el->Reference();
         if (gel) {
