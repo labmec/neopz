@@ -36,6 +36,7 @@ set(headers
     pzsolve.h
     pzstepsolver.h
     pzysmp.h
+    TPZSolutionMatrix.h
     )
 
 set(sources
@@ -66,6 +67,7 @@ set(sources
     pzsolve.cpp
     pzstepsolver.cpp
     pzysmp.cpp
+    TPZSolutionMatrix.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Matrix)

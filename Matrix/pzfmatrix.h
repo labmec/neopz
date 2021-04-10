@@ -15,7 +15,6 @@ when configuring the library.
 #include "pzmatrix.h"		 // for TPZMatrix
 #include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
 #include "pzmanvector.h"     // for TPZManVector
-#include <cstdlib>
 
 #include "tfad.h"
 #include "fad.h"

@@ -18,6 +18,7 @@
 #include "pzcreateapproxspace.h"  // for TPZCreateApproximationSpace
 #include "pzgmesh.h"              // for TPZGeoMesh
 #include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
+#include "TPZSolutionMatrix.h"
 #include "pzreal.h"               // for STATE, REAL
 #include "TPZSavable.h"          // for TPZSavable
 #include "pzstack.h"              // for TPZStack
@@ -67,57 +68,7 @@ protected:
 	//TPZBlock		fSolutionBlock;
 	TPZBlock		fSolutionBlock;
 
-    class TPZSolutionMatrix {
-    private:
-        bool fIsComplex;
-        TPZFMatrix<STATE> fRealMatrix;
-        // TPZFMatrix<CSTATE> fComplexMatrix;
-        TPZBaseMatrix *fBaseMatrix;
-        
-    public:
-        TPZSolutionMatrix(int nrows, int ncols, bool is_complex = false);
-        TPZSolutionMatrix(const TPZSolutionMatrix &);
-        TPZSolutionMatrix(TPZSolutionMatrix &&) = delete;
-        ~TPZSolutionMatrix() = default;
-        TPZSolutionMatrix &operator=(const TPZSolutionMatrix &);
-        TPZSolutionMatrix &operator=(TPZSolutionMatrix &&) = delete;
-
-        inline int64_t Rows() const { return fBaseMatrix->Rows(); }
-
-        inline int64_t Cols() const { return fBaseMatrix->Cols(); }
-
-        inline int Redim(const int64_t r, const int64_t c) {
-          return fBaseMatrix->Redim(r, c);
-        }
-
-        inline int Resize(const int64_t r, const int64_t c) {
-          return fBaseMatrix->Resize(r, c);
-        }
-
-        inline TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
-
-        inline const TPZFMatrix<STATE> &GetRealMatrix() const{
-            if(fIsComplex)
-              throw std::logic_error(
-                  "TPZCompMesh has a complex matrix and GetRealMatrix wwas called");
-            return fRealMatrix;
-        }
-
-        inline TPZFMatrix<STATE> &GetRealMatrix(){
-            if(fIsComplex)
-              throw std::logic_error(
-                  "TPZCompMesh has a complex matrix and GetRealMatrix wwas called");
-            return fRealMatrix;
-        }
-
-        // const TPZFMatrix<CSTATE> &GetComplexMatrix() const { return fRealMatrix;
-        // }
-        // TPZFMatrix<CSTATE> &GetComplexMatrix() { return fRealMatrix; }
-        
-        void Read(TPZStream &buf, void *context);
-        void Write(TPZStream &buf, int withclassid) const;
-    };
-        /** @brief Solution vector */
+    /** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
 	TPZSolutionMatrix fSolution;
     

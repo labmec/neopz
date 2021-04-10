@@ -53,55 +53,6 @@ static TPZLogger aloclogger("pz.allocate");
 #endif
 using namespace std;
 
-TPZCompMesh::TPZSolutionMatrix::TPZSolutionMatrix(int nrows, int ncols,
-                                                  bool is_complex)
-    : fIsComplex(is_complex) {
-  if (!fIsComplex) {
-    fBaseMatrix = &fRealMatrix;
-  }
-  else{DebugStop();}
-  // else{ fBaseMatrix = &fComplexMatrix;}
-  fBaseMatrix->Resize(nrows, ncols);
-}
-
-TPZCompMesh::TPZSolutionMatrix::TPZSolutionMatrix(const TPZSolutionMatrix &cp) :
-    fIsComplex(cp.fIsComplex), fRealMatrix(cp.fRealMatrix)
-    // , fComplexMatrix(cp.fComplexMatrix)
-{
-    if (!fIsComplex) {
-    fBaseMatrix = &fRealMatrix;
-  }
-    else{DebugStop();}
-  // else{ fBaseMatrix = &fComplexMatrix;}
-}
-
-TPZCompMesh::TPZSolutionMatrix&
-TPZCompMesh::TPZSolutionMatrix::operator=(const TPZSolutionMatrix &cp)
-{
-    fIsComplex = cp.fIsComplex;
-    fRealMatrix = cp.fRealMatrix;
-    // fComplexMatrix = copy.fComplexMatrix;
-    if (!fIsComplex) {
-    fBaseMatrix = &fRealMatrix;
-  }
-    else{DebugStop();}
-  // else{ fBaseMatrix = &fComplexMatrix;}
-    return *this;
-}
-
-void TPZCompMesh::TPZSolutionMatrix::Read(TPZStream &buf, void *context) {
-  if (!fIsComplex)
-    return fRealMatrix.Read(buf, context);
-  else{DebugStop();}
-  // else return fComplexMatrix.Read(buf,context);
-}
-void TPZCompMesh::TPZSolutionMatrix::Write(TPZStream &buf, int withclassid) const {
-  if (!fIsComplex)
-    return fRealMatrix.Write(buf, withclassid);
-  else{DebugStop();}
-  // else return fComplexMatrix.Write(buf,withclassid);
-}
-
 TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) :
     TPZRegisterClassId(&TPZCompMesh::ClassId),
     fElementVec(0),fConnectVec(0),fMaterialVec(),
