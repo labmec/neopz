@@ -588,7 +588,7 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
     }
     if(!directsolve)
     {
-        TPZSolver<TVar> *presolve = stepsolve->PreConditioner();
+        TPZMatrixSolver<TVar> *presolve = stepsolve->PreConditioner();
         TPZStepSolver<TVar> *prestep = dynamic_cast<TPZStepSolver<TVar> *>(presolve);
         if(prestep->Solver() == TPZMatrixSolver<TVar>::EDirect)
         {

@@ -21,8 +21,6 @@ class TPZStream;
 /** @brief To create clone matrix */
 #define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const override { return new A(*this); }
 
-
-template<class TVar>
 class TPZSolver;
 
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
@@ -430,7 +428,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
-	virtual void SolveCG(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveCG(int64_t & numiterations, TPZSolver & preconditioner,
 						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						 TPZFMatrix<TVar>* residual, REAL & tol,
 						 const int FromCurrent = 0) ;
@@ -442,7 +440,7 @@ public:
 	 * @param result The solution.
 	 * @param tol The tolerance value.
 	 */
-	virtual void SolveBICG(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveBICG(int64_t & numiterations, TPZSolver & preconditioner,
 						   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						   REAL & tol) ;
 	
@@ -456,7 +454,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
-	virtual void SolveBICGStab(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveBICGStab(int64_t & numiterations, TPZSolver & preconditioner,
 							   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 							   TPZFMatrix<TVar>* residual, REAL & tol,
 							   const int FromCurrent = 0) ;
@@ -473,7 +471,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveGMRES(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveGMRES(int64_t & numiterations, TPZSolver & preconditioner,
 							TPZFMatrix<TVar>& H, int & numvectors,
 							const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 							TPZFMatrix<TVar>* residual, REAL & tol,const int FromCurrent) ;
@@ -488,7 +486,7 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveIR(int64_t & numiterations, TPZSolver<TVar> & preconditioner,
+	virtual void SolveIR(int64_t & numiterations, TPZSolver & preconditioner,
 						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
 						 TPZFMatrix<TVar>* residual, REAL & tol,
 						 const int FromCurrent = 0);

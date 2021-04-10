@@ -36,7 +36,7 @@ private:
 	REAL fInitialTemp;
 	
 	/// matrix solution procedure for computing the next solution
-	TPZAutoPointer<TPZSolver<STATE> > fSolver;
+	TPZAutoPointer<TPZMatrixSolver<STATE> > fSolver;
 	
 	/// timestep [s]
 	REAL fTimeStep;

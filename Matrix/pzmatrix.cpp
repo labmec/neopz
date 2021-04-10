@@ -869,266 +869,111 @@ void TPZMatrix<TVar>::SolveSSOR(int64_t &numiterations, const TPZFMatrix<TVar> &
 	tol = res;
 }
 
+
+
+
 #include "cg.h"
 template <class TVar>
-void TPZMatrix<TVar>::SolveCG(int64_t &numiterations, TPZSolver<TVar> &preconditioner,
+void TPZMatrix<TVar>::SolveCG(int64_t &numiterations, TPZSolver &preconditioner,
 						const	TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 						TPZFMatrix<TVar> *residual, REAL &tol, const int FromCurrent) {
-	CG(*this, result, F, preconditioner, residual, numiterations, tol, FromCurrent);
-}
-
-template <>
-void TPZMatrix< TFad<6,REAL> >::SolveCG(int64_t &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
-                                               const	TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
-                                               TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol, const int FromCurrent) {
-	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-template <>
-void TPZMatrix< Fad<REAL> >::SolveCG(int64_t &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
-                                        const	TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
-                                        TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol, const int FromCurrent) {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-
-template <>
-void TPZMatrix< std::complex<float> >::SolveCG(int64_t &numiterations, TPZSolver< std::complex<float> > &preconditioner,
-						const	TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-						TPZFMatrix< std::complex<float> > *residual,  REAL  &tol, const int FromCurrent) {
-	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<double> >::SolveCG(int64_t &numiterations, TPZSolver< std::complex<double> > &preconditioner,
-						const	TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-						TPZFMatrix< std::complex<double> > *residual,  REAL  &tol, const int FromCurrent) {
-	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<long double> >::SolveCG(int64_t &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
-						const	TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-						TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol, const int FromCurrent) {
-	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+    if constexpr(std::is_floating_point<TVar>::value){
+        TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
+        CG(*this, result, F, precond, residual, numiterations, tol, FromCurrent);
+    }else{
+        PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
+        PZError<<"for this type\nAborting...";
+        DebugStop();
+    }
 }
 
 #include "gmres.h"
 #include "pzstepsolver.h"
 template <class TVar>
-void TPZMatrix<TVar>::SolveGMRES(int64_t &numiterations, TPZSolver<TVar> &preconditioner,
-						   TPZFMatrix<TVar> &H, int &numvectors,
-						   const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-						   TPZFMatrix<TVar> *residual, REAL &tol,const int FromCurrent)  
+void TPZMatrix<TVar>::SolveGMRES(int64_t &numiterations, TPZSolver &preconditioner,
+                                 TPZFMatrix<TVar> &H, int &numvectors,
+                                 const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
+                                 TPZFMatrix<TVar> *residual, REAL &tol,const int FromCurrent)  
 {
-    if(F.Cols() > 1)
-    {
+    if constexpr(std::is_floating_point<TVar>::value){
+        TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
+      if (F.Cols() > 1) {
         int64_t locnumiter = numiterations;
         TVar loctol = tol;
         int64_t nrow = F.Rows();
         int64_t ncol = F.Cols();
         int64_t col;
-        //preconditioner.Solve(F, result);
-        for (col=0; col<ncol; col++) {
-//            std::cout << "Column " << col << std::endl;
-            numiterations = locnumiter;
-            tol = TPZExtractVal::val(loctol);
-            TPZFMatrix<TVar> FCol(nrow,1);
-            memcpy((void *)(&FCol(0,0)), (void *)(&F.GetVal(0,col)), nrow*sizeof(REAL));
-            TPZFMatrix<TVar> resultCol(nrow,1,&result(0,col),nrow);
-            GMRES(*this,resultCol,FCol,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
+        // preconditioner.Solve(F, result);
+        for (col = 0; col < ncol; col++) {
+          //            std::cout << "Column " << col << std::endl;
+          numiterations = locnumiter;
+          tol = TPZExtractVal::val(loctol);
+          TPZFMatrix<TVar> FCol(nrow, 1);
+          memcpy((void *)(&FCol(0, 0)), (void *)(&F.GetVal(0, col)),
+                 nrow * sizeof(REAL));
+          TPZFMatrix<TVar> resultCol(nrow, 1, &result(0, col), nrow);
+          
+          GMRES(*this, resultCol, FCol, precond, H, numvectors,
+                numiterations, tol, residual, FromCurrent);
         }
+      } else {
+        GMRES(*this, result, F, precond, H, numvectors, numiterations,
+              tol, residual, FromCurrent);
+      }
+    }else{
+        PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
+        PZError<<"for this type\nAborting...";
+        DebugStop();
     }
-    else
-    {
-        GMRES(*this,result,F,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
-    }
 }
-
-template <>
-void TPZMatrix< TFad<6,REAL> >::SolveGMRES(int64_t &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
-                                                  TPZFMatrix< TFad<6,REAL> > &H, int &numvectors,
-                                                  const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
-                                                  TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,const int FromCurrent)  
-{
-    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-template <>
-void TPZMatrix< Fad<REAL> >::SolveGMRES(int64_t &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
-                                           TPZFMatrix< Fad<REAL> > &H, int &numvectors,
-                                           const TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
-                                           TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol,const int FromCurrent)
-{
-    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<float> >::SolveGMRES(int64_t &numiterations, TPZSolver< std::complex<float> > &preconditioner,
-						   TPZFMatrix< std::complex<float> > &H, int &numvectors,
-						   const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-						   TPZFMatrix< std::complex<float> > *residual,  REAL  &tol,const int FromCurrent)  
-{
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<double> >::SolveGMRES(int64_t &numiterations, TPZSolver< std::complex<double> > &preconditioner,
-						   TPZFMatrix< std::complex<double> > &H, int &numvectors,
-						   const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-						   TPZFMatrix< std::complex<double> > *residual,  REAL  &tol,const int FromCurrent)  
-{
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<long double> >::SolveGMRES(int64_t &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
-						   TPZFMatrix< std::complex<long double> > &H, int &numvectors,
-						   const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-						   TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol,const int FromCurrent)  
-{
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-
 #include "bicg.h"
 template<class TVar>
-void TPZMatrix<TVar>::SolveBICG(int64_t &numiterations, TPZSolver<TVar> &preconditioner,
+void TPZMatrix<TVar>::SolveBICG(int64_t &numiterations, TPZSolver &preconditioner,
 						  const TPZFMatrix<TVar> &F,
 						  TPZFMatrix<TVar> &result,
 						  REAL &tol)  {
-	BiCG (*this, result,F,preconditioner,numiterations,tol);
-}
-
-template<>
-void TPZMatrix< TFad<6,REAL> >::SolveBICG(int64_t &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
-                                                 const TPZFMatrix< TFad<6,REAL> > &F,
-                                                 TPZFMatrix< TFad<6,REAL> > &result,
-                                                 REAL  &tol)  {
-    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-template<>
-void TPZMatrix< Fad<REAL> >::SolveBICG(int64_t &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
-                                          const TPZFMatrix< Fad<REAL> > &F,
-                                          TPZFMatrix< Fad<REAL> > &result,
-                                          REAL  &tol)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template<>
-void TPZMatrix< std::complex<float> >::SolveBICG(int64_t &numiterations, TPZSolver< std::complex<float> > &preconditioner,
-						  const TPZFMatrix< std::complex<float> > &F,
-						  TPZFMatrix< std::complex<float> > &result,
-						   REAL  &tol)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template<>
-void TPZMatrix< std::complex<double> >::SolveBICG(int64_t &numiterations, TPZSolver< std::complex<double> > &preconditioner,
-						  const TPZFMatrix< std::complex<double> > &F,
-						  TPZFMatrix< std::complex<double> > &result,
-						   REAL  &tol)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template<>
-void TPZMatrix< std::complex<long double> >::SolveBICG(int64_t &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
-						  const TPZFMatrix< std::complex<long double> > &F,
-						  TPZFMatrix< std::complex<long double> > &result,
-						   REAL  &tol)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+    if constexpr(std::is_floating_point<TVar>::value){
+        TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
+        BiCG (*this, result,F,precond,numiterations,tol);
+    }else{
+        PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
+        PZError<<"for this type\nAborting...";
+        DebugStop();
+    }
 }
 
 #include "bicgstab.h"
 template <class TVar>
-void TPZMatrix<TVar>::SolveBICGStab(int64_t &numiterations, TPZSolver<TVar> &preconditioner,
+void TPZMatrix<TVar>::SolveBICGStab(int64_t &numiterations, TPZSolver &preconditioner,
 							  const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 							  TPZFMatrix<TVar> *residual, REAL &tol,const int FromCurrent)  {
-	BiCGSTAB(*this,result,F,preconditioner,numiterations,tol,residual,FromCurrent);
+    if constexpr(std::is_floating_point<TVar>::value){
+        TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
+        BiCGSTAB(*this,result,F,precond,numiterations,tol,residual,FromCurrent);
+    }else{
+        PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
+        PZError<<"for this type\nAborting...";
+        DebugStop();
+    }    
 }
-
-template <>
-void TPZMatrix< TFad<6,REAL> >::SolveBICGStab(int64_t &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
-                                                     const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
-                                                     TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,const int FromCurrent)  {
-    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-template <>
-void TPZMatrix< Fad<REAL> >::SolveBICGStab(int64_t &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
-                                              const TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
-                                              TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol,const int FromCurrent)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<float> >::SolveBICGStab(int64_t &numiterations, TPZSolver< std::complex<float> > &preconditioner,
-							  const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-							  TPZFMatrix< std::complex<float> > *residual,  REAL  &tol,const int FromCurrent)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<double> >::SolveBICGStab(int64_t &numiterations, TPZSolver< std::complex<double> > &preconditioner,
-							  const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-							  TPZFMatrix< std::complex<double> > *residual,  REAL  &tol,const int FromCurrent)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<long double> >::SolveBICGStab(int64_t &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
-							  const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-							  TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol,const int FromCurrent)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-
 
 #include "ir.h"
 template <class TVar>
-void TPZMatrix<TVar>::SolveIR(int64_t &numiterations, TPZSolver<TVar> &preconditioner,
+void TPZMatrix<TVar>::SolveIR(int64_t &numiterations, TPZSolver &preconditioner,
 						const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 						TPZFMatrix<TVar> *residual, REAL &tol,
 						const int FromCurrent)  {
-	IR(*this,result,F,preconditioner,residual,numiterations,tol,FromCurrent);
+    if constexpr(std::is_floating_point<TVar>::value){
+        TPZMatrixSolver<TVar> &precond = dynamic_cast<TPZMatrixSolver<TVar> &>(preconditioner);
+        IR(*this,result,F,precond,residual,numiterations,tol,FromCurrent);
+    }else{
+        PZError<<__PRETTY_FUNCTION__<<" is currently not implemented ";
+        PZError<<"for this type\nAborting...";
+        DebugStop();
+    }
 }
 
-template <>
-void TPZMatrix< TFad<6,REAL> >::SolveIR(int64_t &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
-                                               const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
-                                               TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,
-                                               const int FromCurrent)  {
-    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-template <>
-void TPZMatrix< Fad<REAL> >::SolveIR(int64_t &numiterations, TPZSolver< Fad<REAL> > &preconditioner,
-                                        const TPZFMatrix< Fad<REAL> > &F, TPZFMatrix< Fad<REAL> > &result,
-                                        TPZFMatrix< Fad<REAL> > *residual,  REAL  &tol,
-                                        const int FromCurrent)  {
-  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<float> >::SolveIR(int64_t &numiterations, TPZSolver< std::complex<float> > &preconditioner,
-						const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-						TPZFMatrix< std::complex<float> > *residual,  REAL  &tol,
-						const int FromCurrent)  {
-	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<double> >::SolveIR(int64_t &numiterations, TPZSolver< std::complex<double> > &preconditioner,
-						const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-						TPZFMatrix< std::complex<double> > *residual,  REAL  &tol,
-						const int FromCurrent)  {
-	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
-template <>
-void TPZMatrix< std::complex<long double> >::SolveIR(int64_t &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
-						const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-						TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol,
-						const int FromCurrent)  {
-	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
-}
-
+/*******************************************************************************/
 
 /*****************/
 /*** Decompose_LU ***/
