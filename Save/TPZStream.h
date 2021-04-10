@@ -11,10 +11,10 @@
 #include "pzreal.h"          // for REAL, TPZFlopCounter, is_arithmetic_pz
 #include <stddef.h>          // for NULL
 #include <complex>           // for complex
-#include <fstream>           // for string
+#include <string>           // for string
 #include <map>               // for map
 #include <set>               // for set
-#include <type_traits>       // for enable_if, is_same
+#include <type_traits>       // for is_same
 #include <vector>            // for vector
 #include "pzmanvector.h"     // for TPZManVector
 #include "pzvec.h"           // for TPZVec
@@ -185,23 +185,21 @@ public:
     void Read(TPZFlopCounter *p, int howMany = 1);
 
     //VECTORS AND ARRAYS
-
-    template <class T,
-    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    template <class T>
     void Write(const TPZVec<T> &vec) {
-        int64_t nel = vec.NElements();
-        this->Write(&nel);
-        if (nel) this->Write(&vec[0], vec.NElements());
-    }
-
-    template <class T,
-    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
-    void Write(const TPZVec<T> &vec) {
-        int64_t c, nc = vec.NElements();
-        this->Write(&nc);
-        for (c = 0; c < nc; c++) {
+      int64_t nel = vec.NElements();
+      this->Write(&nel);
+      if constexpr(
+            std::is_same<std::string, T>::value ||
+            is_arithmetic_pz<T>::value){
+        if (nel)
+          this->Write(&vec[0], vec.NElements());
+      }
+      else{
+          for (auto c = 0; c < nel; c++) {
             vec[c].Write(*this, 0);
         }
+      }
     }
     
     template <class T>
@@ -213,23 +211,20 @@ public:
         }
     }
 
-    template <class T,
-    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    template <class T>
     void Write(const std::vector<T> &vec) {
         int nel = vec.size();
         this->Write(&nel);
-        for (int c = 0; c < nel; c++){
-            this->Write(&vec[c]);
+        if constexpr(
+            std::is_same<std::string, T>::value ||
+            is_arithmetic_pz<T>::value){
+            for (int c = 0; c < nel; c++)
+                this->Write(&vec[c]);
         }
-    }
-
-    template <class T,
-    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
-    void Write(const std::vector<T> &vec) {
-        int c, nc = vec.size();
-        this->Write(&nc);
-        for (c = 0; c < nc; c++)
-            vec[c].Write(*this, 0);
+        else{
+            for (int c = 0; c < nel; c++)
+                vec[c].Write(*this, 0);
+        }
     }
 
     void Write(const TPZVec<TPZFlopCounter> &vec) {
@@ -256,16 +251,21 @@ public:
         Write(valVec);
     }
 
-    template <class T,
-    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    template <class T>
     void Write(const std::set<T> &vec) {
-        int nel = vec.size();
-        this->Write(&nel);
-        typename std::set<T>::iterator it = vec.begin();
-        while (it != vec.end()) {
+        if(std::is_same<std::string, T>::value ||
+           is_arithmetic_pz<T>::value){
+          int nel = vec.size();
+          this->Write(&nel);
+          typename std::set<T>::iterator it = vec.begin();
+          while (it != vec.end()) {
             int val = *it;
             this->Write(&val);
             it++;
+          }
+        }
+        else{
+            DebugStop();
         }
     }
 
@@ -274,24 +274,20 @@ public:
         Read(vec, NULL);
     }
 
-    template <class T,
-    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    template <class T>
     void Read(TPZVec<T> &vec, void *context) {
         int64_t c, nc;
         this->Read(&nc, 1);
         vec.Resize(nc);
-        for (c = 0; c < nc; c++) {
-            vec[c].Read(*this, context);
+        if constexpr (std::is_same<std::string,T>::value ||
+                      is_arithmetic_pz<T>::value){
+            if (nc) this->Read(&vec[0], nc);
         }
-    }
-
-    template <class T,
-    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
-    void Read(TPZVec<T> &vec, void *context) {
-        int64_t nc;
-        this->Read(&nc, 1);
-        vec.Resize(nc);
-        if (nc) this->Read(&vec[0], nc);
+        else{
+          for (c = 0; c < nc; c++) {
+            vec[c].Read(*this, context);
+          }
+        }
     }
     
     
@@ -316,25 +312,21 @@ public:
         }
     }
 
-    template <class T,
-    typename std::enable_if<!(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    template <class T>
     void Read(std::vector<T> &vec, void *context) {
         int c, nc;
         this->Read(&nc, 1);
         vec.resize(nc);
-        for (c = 0; c < nc; c++) {
-            vec[c].Read(*this, context);
-        }
-    }
-
-    template <class T,
-    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
-    void Read(std::vector<T> &vec, void *context) {
-        int nel;
-        this->Read(&nel, 1);
-        vec.resize(nel);
-        for (int i = 0; i < nel; i++) {
+        if constexpr (std::is_same<std::string,T>::value ||
+                      is_arithmetic_pz<T>::value){
+          for (int i = 0; i < nc; i++) {
             this->Read(&vec[i]);
+          }
+        }
+        else{
+          for (c = 0; c < nc; c++) {
+            vec[c].Read(*this, context);
+          }
         }
     }
 
@@ -371,15 +363,18 @@ public:
         }
     }
 
-    template <class T,
-    typename std::enable_if<(std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value), int>::type* = nullptr>
+    template <class T>
     void Read(std::set<T> &vec) {
+        if constexpr (std::is_same<std::string, T>::value || is_arithmetic_pz<T>::value){
         int nel;
         this->Read(&nel, 1);
         for (int i = 0; i < nel; i++) {
             T val;
             this->Read(&val);
             vec.insert(val);
+        }
+        }else{
+            DebugStop();
         }
     }
     ////////////////

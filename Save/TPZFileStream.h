@@ -1,9 +1,10 @@
 #ifndef TPZFILESTREAM_H
 #define TPZFILESTREAM_H
 
-#include <complex>              // for complex, operator<<, operator>>
-#include <sstream>              // for basic_stringbuf<>::int_type, basic_st...
-#include "TPZGeneralFStream.h"  // for TPZGeneralFStream
+#include "TPZGeneralFStream.h" // for TPZGeneralFStream
+#include <complex>             // for complex, operator<<, operator>>
+#include <fstream>             //for file streams
+#include <sstream>             // for basic_stringbuf<>::int_type, basic_st...
 template <class T> class Fad;
 template <int Num, class T> class TFad;
 /**
