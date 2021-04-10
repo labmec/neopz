@@ -6,6 +6,7 @@
 #include "tpzautopointer.h"
 namespace pzinternal{
     std::recursive_mutex g_ap_mut;
+    std::mutex g_diag_mut;
 }
 
 

@@ -8,6 +8,9 @@
 
 #include <stdlib.h>
 #include <atomic>
+#include <thread>
+#include <chrono>
+#include <iostream>
 #include <mutex>
 #include <stdexcept>
 // #include <iostream>//useful for debugging
@@ -23,6 +26,7 @@
 
 namespace pzinternal{
     extern std::recursive_mutex g_ap_mut;
+extern std::mutex g_diag_mut;
 }
 
 /**
@@ -90,10 +94,18 @@ class TPZAutoPointer {
                 throw std::logic_error("TPZAutoPointer::Decrease() called without fCounter");
             }
             bool should_delete = false;
-            fCounter->fetch_sub(1);
-            
-            if((*fCounter) == 0) should_delete = true;
-            else if((*fCounter) < 0){
+            int result = fCounter->fetch_sub(1);
+            auto trhid = std::this_thread::get_id();
+            result--;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            // at this point the object may already have been deleted by another thread
+            {
+                const std::lock_guard<std::mutex> lock(pzinternal::g_diag_mut);
+                std::cout <<  "thread id " <<  std::this_thread::get_id() <<
+                " result " << result << std::endl;
+            }
+            if((result) == 0) should_delete = true;
+            else if((result) < 0){
                 throw std::logic_error(
                     "Invalid value for ref counter of TPZAutoPointer");
             }
@@ -228,8 +240,9 @@ public:
 private:
     /** @brief Method for deleting the reference*/
     inline void Release(){
-        std::scoped_lock<std::recursive_mutex> lck(
-                    pzinternal::g_ap_mut);
+//        const std::lock_guard<std::mutex> lock(pzinternal::g_diag_mut);
+//        std::scoped_lock<std::recursive_mutex> lck(
+//                    pzinternal::g_ap_mut);
         //just checking if nobody else deleted fRef
         //or another fRef pointing to the same address
         if(fRef && fRef->fCounter) {
@@ -238,7 +251,8 @@ private:
             // std::cout<<"fcount address: "<<fRef->fCounter<<std::endl;
             // std::cout<<"fcount value: "<<*(fRef->fCounter)<<std::endl;
             // std::cout<<"fpointer address: "<<fRef->fPointer<<std::endl;
-            delete fRef;}
+            delete fRef;
+        }
         fRef = nullptr;
     }
 };
