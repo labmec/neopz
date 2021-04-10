@@ -12,18 +12,9 @@ when configuring the library.
 #ifndef _TFULLMATRIXH_
 #define _TFULLMATRIXH_
 
-#include <math.h>            // for sqrt
-#include <string.h>          // for NULL, memset
-#include <complex>           // for complex
-#include <iostream>          // for operator<<, ostream, cout
-#include <list>              // for list
-#include <sstream>           // for basic_stringbuf<>::int_type, basic_strin...
 #include "pzmatrix.h"		 // for TPZMatrix
-#include "pzerror.h"         // for DebugStop
-#include "pzmanvector.h"     // for TPZManVector
 #include "pzreal.h"          // for TPZFlopCounter, IsZero, REAL, sqrt, fabs
-#include "pzvec.h"           // for TPZVec
-#include "tpzautopointer.h"  // for TPZAutoPointer
+#include "pzmanvector.h"     // for TPZManVector
 #include <cstdlib>
 
 #include "tfad.h"
@@ -32,12 +23,9 @@ when configuring the library.
 
 class TPZSavable;
 class TPZStream;
+template <class TVar> class TPZAutoPointer;
 template <class TVar> class TPZFMatrix;
 template <class TVar> class TPZVerySparseMatrix;
-
-
-template <class T>
-class TPZVec;
 
 /**
  * @addtogroup matrix
@@ -179,8 +167,7 @@ public:
         }
         else
         {
-            std::cout << "TPZMatrix<TVar>::UdateFrom is not implemented\n";
-            DebugStop();
+            Error("TPZMatrix<TVar>::UdateFrom is not implemented\n");
         }
     }
 

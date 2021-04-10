@@ -6,17 +6,16 @@
 #ifndef _TMATRIXHH_
 #define _TMATRIXHH_
 
-#include "pzvec.h"
-#include "pzreal.h"
 #include "pzbasematrix.h"
-#include <list>
-#include <sstream>
+#include "pzreal.h"
 
-#include "fad.h"
-#include "tfad.h"
 
 template<class TVar>
+class TPZVec;
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
+class TPZAutoPointer;
 
 class TPZStream;
 /** @brief To create clone matrix */

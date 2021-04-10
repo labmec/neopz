@@ -7,7 +7,7 @@
 #define TPREH
 
 #include "pzfmatrix.h"
-
+#include "TPZHash.h"
 template<class TVar>
 class TPZMatrixSolver;
 
