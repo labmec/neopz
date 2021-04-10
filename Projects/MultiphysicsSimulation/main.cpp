@@ -1050,9 +1050,11 @@ void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
     TPZBlock &blockMF = MFMesh->Block();
+	TPZFMatrix<STATE> &solMF = MFMesh->Solution();
     for (imesh = 0; imesh < nmeshes; imesh++) {
         int64_t ncon = cmeshVec[imesh]->NConnects();
         TPZBlock &block = cmeshVec[imesh]->Block();
+		TPZFMatrix<STATE> &sol = cmeshVec[imesh]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
@@ -1063,7 +1065,7 @@ void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
             int64_t seqnumMF = conMF.SequenceNumber();
             int idf;
             for (idf=0; idf<blsize; idf++) {
-                blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
+				solMF(blockMF.Index(seqnumMF, idf)) = sol(block.Index(seqnum, idf));
             }
         }
     }
@@ -1078,9 +1080,11 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
     TPZBlock &blockMF = MFMesh->Block();
+	TPZFMatrix<STATE> &solMF = MFMesh->Solution();
     for (imesh = 0; imesh < nmeshes; imesh++) {
         int64_t ncon = cmeshVec[imesh]->NConnects();
         TPZBlock &block = cmeshVec[imesh]->Block();
+		TPZFMatrix<STATE> &sol = cmeshVec[imesh]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
@@ -1091,7 +1095,7 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
             int64_t seqnumMF = conMF.SequenceNumber();
             int idf;
             for (idf=0; idf<blsize; idf++) {
-                block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
+                sol(block.Index(seqnum, idf)) = solMF(blockMF.Index(seqnumMF, idf));
             }
         }
     }

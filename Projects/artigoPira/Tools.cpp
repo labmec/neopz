@@ -2063,6 +2063,7 @@ void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat,
 {
     int dim = cmesh->Reference()->Dimension();
     TPZBlock blockMat = cmesh->Block();
+    TPZFMatrix<STATE> meshSol = cmesh->Solution();
     blockMat.SetMatrix(mat.operator->());
     
     long nel = cmesh->NElements();
@@ -2123,7 +2124,8 @@ void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat,
                 
                 for (int r = 0; r < iblsize; r++) {
                     for (int c = 0; c < jblsize; c++) {
-                        substiff.PutVal(icount+r, jcount+c, blockMat.GetVal(seqnumi, seqnumj,r,c));
+                        const auto val = meshSol.at(blockMat.at(seqnumi,seqnumj,r,c));
+                        substiff.PutVal(icount+r, jcount+c, val);
                     }
                 }
                 jcount += conj.NDof();
