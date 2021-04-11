@@ -275,11 +275,12 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4NK8TPZGeoEl13NPermutationsEv">
 <span id="_CPPv3NK8TPZGeoEl13NPermutationsEv"></span><span id="_CPPv2NK8TPZGeoEl13NPermutationsEv"></span><span id="TPZGeoEl::NPermutationsC"></span><span class="target" id="classTPZGeoEl_1ab74283443377c6b9d50fa81c5899f76a"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">NPermutations</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4NK8TPZGeoEl13NPermutationsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the number of valid permutations among the element nodes <dl class="simple">
-<dt><strong>Return</strong></dt><dd><p></p>
+<dd><p>Get the number of valid permutations among the element nodes </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -461,16 +462,18 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl22ResetBlendConnectivityERK7int64_tRK7int64_t">
 <span id="_CPPv3N8TPZGeoEl22ResetBlendConnectivityERK7int64_tRK7int64_t"></span><span id="_CPPv2N8TPZGeoEl22ResetBlendConnectivityERK7int64_tRK7int64_t"></span><span id="TPZGeoEl::ResetBlendConnectivity__int64_tCR.int64_tCR"></span><span class="target" id="classTPZGeoEl_1ada671e50f5b0041e4c572237152b564c"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">ResetBlendConnectivity</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">int64_t</span> <span class="pre">&amp;</span><em><span class="pre">side</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">int64_t</span> <span class="pre">&amp;</span><em><span class="pre">index</span></em><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl22ResetBlendConnectivityERK7int64_tRK7int64_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>If the element is a TPZGeoBlend element, this method will ensure that if the side side is connected to the element with index index, its blend connectivity is erased (for instance, this element may have been deleted). If it is not a TPZGeoBlend element, the method will just return false. <dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>true if the element is a TPZGeoBlend element. </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">side</span></code>: side in which to seek for connectivities </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">index</span></code>: index of the element that will be disconnected from this </p></li>
+<dd><p>If the element is a TPZGeoBlend element, this method will ensure that if the side side is connected to the element with index index, its blend connectivity is erased (for instance, this element may have been deleted). If it is not a TPZGeoBlend element, the method will just return false. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>side</strong> – side in which to seek for connectivities </p></li>
+<li><p><strong>index</strong> – index of the element that will be disconnected from this </p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if the element is a TPZGeoBlend element. </p>
+</dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -557,13 +560,11 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl20PrintTopologicalInfoERNSt7ostreamE">
 <span id="_CPPv3N8TPZGeoEl20PrintTopologicalInfoERNSt7ostreamE"></span><span id="_CPPv2N8TPZGeoEl20PrintTopologicalInfoERNSt7ostreamE"></span><span id="TPZGeoEl::PrintTopologicalInfo__osR"></span><span class="target" id="classTPZGeoEl_1a9f8df0d61195ec3b2b47b247522d94ee"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">PrintTopologicalInfo</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">ostream</span> <span class="pre">&amp;</span><em><span class="pre">out</span></em> <span class="pre">=</span> <span class="pre">std</span><span class="pre">::</span><span class="pre">cout</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl20PrintTopologicalInfoERNSt7ostreamE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Prints the coordinates of all nodes (geometric) </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">out</span></code>: Indicates the device where the coordinates will be printed </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>out</strong> – Indicates the device where the coordinates will be printed </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -769,11 +770,10 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEllsERNSt7ostreamER8TPZGeoEl">
 <span id="_CPPv3N8TPZGeoEllsERNSt7ostreamER8TPZGeoEl"></span><span id="_CPPv2N8TPZGeoEllsERNSt7ostreamER8TPZGeoEl"></span><span id="TPZGeoEl::lshift-operator__osR.TPZGeoElR"></span><span class="target" id="classTPZGeoEl_1ab83f4591ac0f646bd2cf9992b75a08a8"></span><em class="property"><span class="pre">friend</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">ostream</span> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">operator&lt;&lt;</span></code><span class="sig-paren">(</span><span class="pre">std</span><span class="pre">::</span><span class="pre">ostream</span> <span class="pre">&amp;</span><em><span class="pre">s</span></em>, <a class="reference internal" href="#_CPPv48TPZGeoEl" title="TPZGeoEl"><span class="pre">TPZGeoEl</span></a> <span class="pre">&amp;</span><em><span class="pre">el</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEllsERNSt7ostreamER8TPZGeoEl" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Equivalent to Print. </p>
-<p><dl class="simple">
-<dt><strong>Note</strong></dt><dd><p>Overload operator &lt;&lt; to print geometric element data </p>
-</dd>
-</dl>
-</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Overload operator &lt;&lt; to print geometric element data </p>
+</div>
 </dd></dl>
 
 </div>
@@ -802,15 +802,14 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl9WhichSideER6TPZVecI4REALE">
 <span id="_CPPv3N8TPZGeoEl9WhichSideER6TPZVecI4REALE"></span><span id="_CPPv2N8TPZGeoEl9WhichSideER6TPZVecI4REALE"></span><span id="TPZGeoEl::WhichSide__TPZVec:REAL:R"></span><span class="target" id="classTPZGeoEl_1a7654a2e79772c528b0c85ca6a3f9083d"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">WhichSide</span></code><span class="sig-paren">(</span><span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">pt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl9WhichSideER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the side number which is connected to the point pt. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>lowest dimension side which contains the point, -1 if no side is found </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pt</strong> – coordinates of the point in parameter space </p>
 </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">pt</span></code>: coordinates of the point in parameter space </p></li>
-</ul>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>lowest dimension side which contains the point, -1 if no side is found </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -862,39 +861,36 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl16NodesCoordinatesER10TPZFMatrixI4REALE">
 <span id="_CPPv3N8TPZGeoEl16NodesCoordinatesER10TPZFMatrixI4REALE"></span><span id="_CPPv2N8TPZGeoEl16NodesCoordinatesER10TPZFMatrixI4REALE"></span><span id="TPZGeoEl::NodesCoordinates__TPZFMatrix:REAL:R"></span><span class="target" id="classTPZGeoEl_1aec83ffd2a376eb7e96b7d7fb463646ba"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">NodesCoordinates</span></code><span class="sig-paren">(</span><span class="pre">TPZFMatrix</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">cooridnates</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl16NodesCoordinatesER10TPZFMatrixI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Computes nodes coordinates of the element. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">cooridnates</span></code>: xyz coorinates of each node that belongs to element </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cooridnates</strong> – xyz coorinates of each node that belongs to element </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl15ComputeXInverseER6TPZVecI4REALER6TPZVecI4REALE4REAL">
 <span id="_CPPv3N8TPZGeoEl15ComputeXInverseER6TPZVecI4REALER6TPZVecI4REALE4REAL"></span><span id="_CPPv2N8TPZGeoEl15ComputeXInverseER6TPZVecI4REALER6TPZVecI4REALE4REAL"></span><span id="TPZGeoEl::ComputeXInverse__TPZVec:REAL:R.TPZVec:REAL:R.REAL"></span><span class="target" id="classTPZGeoEl_1a18db7fa5914db19cf505ebce5fd1bc67"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">ComputeXInverse</span></code><span class="sig-paren">(</span><span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">XD</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">ksi</span></em>, <span class="pre">REAL</span> <em><span class="pre">Tol</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl15ComputeXInverseER6TPZVecI4REALER6TPZVecI4REALE4REAL" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Computes the XInverse and returns true if ksi belongs to master element domain. </p>
-<p><dl class="simple">
-<dt><strong>Note</strong></dt><dd><p>ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it </p>
-</dd>
-</dl>
-</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it </p>
+</div>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl20TransformSonToFatherEP8TPZGeoElR6TPZVecI4REALER6TPZVecI4REALE">
 <span id="_CPPv3N8TPZGeoEl20TransformSonToFatherEP8TPZGeoElR6TPZVecI4REALER6TPZVecI4REALE"></span><span id="_CPPv2N8TPZGeoEl20TransformSonToFatherEP8TPZGeoElR6TPZVecI4REALER6TPZVecI4REALE"></span><span id="TPZGeoEl::TransformSonToFather__TPZGeoElP.TPZVec:REAL:R.TPZVec:REAL:R"></span><span class="target" id="classTPZGeoEl_1ae0823b9bd8d9e0340b9552cd61c28bff"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">TransformSonToFather</span></code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv48TPZGeoEl" title="TPZGeoEl"><span class="pre">TPZGeoEl</span></a> <span class="pre">*</span><em><span class="pre">ancestor</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">ksiSon</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">ksiAncestor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl20TransformSonToFatherEP8TPZGeoElR6TPZVecI4REALER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the map of a paramenter point in the subelement to a parameter point in the super element. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ancestor</span></code>: ancestor element of subelement </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ksiSon</span></code>: paramenter point in the subelement </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ksiAncestor</span></code>: receives the paramenter point in the ancestor element </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ancestor</strong> – ancestor element of subelement </p></li>
+<li><p><strong>ksiSon</strong> – paramenter point in the subelement </p></li>
+<li><p><strong>ksiAncestor</strong> – receives the paramenter point in the ancestor element </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -929,16 +925,18 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl18CharacteristicSizeEv">
 <span id="_CPPv3N8TPZGeoEl18CharacteristicSizeEv"></span><span id="_CPPv2N8TPZGeoEl18CharacteristicSizeEv"></span><span id="TPZGeoEl::CharacteristicSize"></span><span class="target" id="classTPZGeoEl_1a7616d2c4b3f087a2fdebe80ef5cd7f11"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">REAL</span> <code class="sig-name descname"><span class="pre">CharacteristicSize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl18CharacteristicSizeEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Computes the set of normals for defining HDiv approximation spaces. </p>
-<p><dl class="simple">
-<dt><strong>Note</strong></dt><dd><p>The normal vectors are initially ordered according to the return of LowerDimensionSides and then permuted according to the node id’s This method will accumulate the normals for all the sides Computation of NormalVectors for curvilinear elements </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">normals</span></code>: normal associated with each side </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">vectorsides</span></code>: side associated with each normal vector </p></li>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The normal vectors are initially ordered according to the return of LowerDimensionSides and then permuted according to the node id’s This method will accumulate the normals for all the sides Computation of NormalVectors for curvilinear elements </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>normals</strong> – normal associated with each side </p></li>
+<li><p><strong>vectorsides</strong> – side associated with each normal vector </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -951,16 +949,17 @@ possible those technologies should be able to interact with each other.</p>
 <span id="_CPPv3N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE"></span><span id="_CPPv2N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE"></span><span id="TPZGeoEl::ComputePermutationNormals__i.TPZVec:i:R"></span><span class="target" id="classTPZGeoEl_1a6585c9d3c5b4d90bf423f39217d5daa2"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ComputePermutationNormals</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">indexfrom</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the set of normals along a side for defining HDiv approximation spaces. </p>
 <p><p>Compute the permutation needed to order the normal vectors in a consistent way </p>
-<span class="math notranslate nohighlight">\( normal(indexfrom[i]) = normal(i) \)</span> This permutation needs to be applied to the shape functions <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">side</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">normals</span></code>: normal associated with each side </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">vectorsides</span></code>: side associated with each normal vector the normal vectors are initially ordered <p> according to the return of LowerDimensionSides and then permuted according to the node id’s</p>
+<span class="math notranslate nohighlight">\( normal(indexfrom[i]) = normal(i) \)</span> This permutation needs to be applied to the shape functions </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>side</strong> – </p></li>
+<li><p><strong>normals</strong> – normal associated with each side </p></li>
+<li><p><strong>vectorsides</strong> – side associated with each normal vector the normal vectors are initially ordered <p> according to the return of LowerDimensionSides and then permuted according to the node id’s</p>
 </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -985,11 +984,11 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl21VerifyNodeCoordinatesE4REAL">
 <span id="_CPPv3N8TPZGeoEl21VerifyNodeCoordinatesE4REAL"></span><span id="_CPPv2N8TPZGeoEl21VerifyNodeCoordinatesE4REAL"></span><span id="TPZGeoEl::VerifyNodeCoordinates__REAL"></span><span class="target" id="classTPZGeoEl_1a1b18f1d185c06bad3d04e1c939090167"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">VerifyNodeCoordinates</span></code><span class="sig-paren">(</span><span class="pre">REAL</span> <em><span class="pre">tol</span></em> <span class="pre">=</span> <span class="pre">1e-1</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl21VerifyNodeCoordinatesE4REAL" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Verify coordinate of element nodes checking if they are coincident to the X mapping of the corner nodes of parametric elements. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>true if everything OK else false </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>true if everything OK else false </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1002,28 +1001,34 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl25ProjectInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE">
 <span id="_CPPv3N8TPZGeoEl25ProjectInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE"></span><span id="_CPPv2N8TPZGeoEl25ProjectInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE"></span><span id="TPZGeoEl::ProjectInParametricDomain__TPZVec:REAL:R.TPZVec:REAL:R"></span><span class="target" id="classTPZGeoEl_1a5260c03b3cba6cf4fafacb5d30949bf3"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">ProjectInParametricDomain</span></code><span class="sig-paren">(</span><span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">qsi</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">qsiInDomain</span></em><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl25ProjectInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain) </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>Returns the side where the point was projected. </p>
-</dd>
-<dt><strong>Note</strong></dt><dd><p>If ortogonal projection to any sides of element results in a qsi outside domain, this method will returns the nearest node side. </p>
-</dd>
-<dt><strong>Note</strong></dt><dd><p>Observe that if the point is already in the parametric domain, the method will return <span class="math notranslate nohighlight">\( NSides() - 1 \)</span> </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If ortogonal projection to any sides of element results in a qsi outside domain, this method will returns the nearest node side. </p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Observe that if the point is already in the parametric domain, the method will return <span class="math notranslate nohighlight">\( NSides() - 1 \)</span> </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Returns the side where the point was projected. </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl35ProjectBissectionInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE">
 <span id="_CPPv3N8TPZGeoEl35ProjectBissectionInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE"></span><span id="_CPPv2N8TPZGeoEl35ProjectBissectionInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE"></span><span id="TPZGeoEl::ProjectBissectionInParametricDomain__TPZVec:REAL:R.TPZVec:REAL:R"></span><span class="target" id="classTPZGeoEl_1a0d57fa9c236e08fc7f4b66991c77e9ea"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">ProjectBissectionInParametricDomain</span></code><span class="sig-paren">(</span><span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">qsi</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">qsiInDomain</span></em><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl35ProjectBissectionInParametricDomainER6TPZVecI4REALER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Projection from given qsi to a qsiInDomain (in the element boundary) using bissection method from given qsi to element center. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>Returns the side where the point was projected. </p>
-</dd>
-<dt><strong>Note</strong></dt><dd><p>Observe that if the point is already in the parametric domain, the method will return <span class="math notranslate nohighlight">\( NSides() - 1 \)</span> </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Observe that if the point is already in the parametric domain, the method will return <span class="math notranslate nohighlight">\( NSides() - 1 \)</span> </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Returns the side where the point was projected. </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1103,14 +1108,15 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4NK8TPZGeoEl14GetPermutationERKiR6TPZVecIiE">
 <span id="_CPPv3NK8TPZGeoEl14GetPermutationERKiR6TPZVecIiE"></span><span id="_CPPv2NK8TPZGeoEl14GetPermutationERKiR6TPZVecIiE"></span><span id="TPZGeoEl::GetPermutation__iCR.TPZVec:i:RC"></span><span class="target" id="classTPZGeoEl_1ab34eecc887addd84cc41e20b38f175cd"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">GetPermutation</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">int</span> <span class="pre">&amp;</span><em><span class="pre">i</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">permutation</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4NK8TPZGeoEl14GetPermutationERKiR6TPZVecIiE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This method gets the ith valid permutation of its topology <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>: number of the permutation to get </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">permutation</span></code>: vector contained the permuted sides </p></li>
+<dd><p>This method gets the ith valid permutation of its topology </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> – number of the permutation to get </p></li>
+<li><p><strong>permutation</strong> – vector contained the permuted sides </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1123,75 +1129,75 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl7Shape1dE4REALiR10TPZFMatrixI4REALER10TPZFMatrixI4REALE">
 <span id="_CPPv3N8TPZGeoEl7Shape1dE4REALiR10TPZFMatrixI4REALER10TPZFMatrixI4REALE"></span><span id="_CPPv2N8TPZGeoEl7Shape1dE4REALiR10TPZFMatrixI4REALER10TPZFMatrixI4REALE"></span><span id="TPZGeoEl::Shape1d__REAL.i.TPZFMatrix:REAL:R.TPZFMatrix:REAL:R"></span><span class="target" id="classTPZGeoEl_1ae75faa0eda003347da0f52792b9e1914"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">Shape1d</span></code><span class="sig-paren">(</span><span class="pre">REAL</span> <em><span class="pre">x</span></em>, <span class="pre">int</span> <em><span class="pre">num</span></em>, <span class="pre">TPZFMatrix</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">phi</span></em>, <span class="pre">TPZFMatrix</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">dphi</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl7Shape1dE4REALiR10TPZFMatrixI4REALER10TPZFMatrixI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Computes the values of the “num” one dimensional shapefunctions and derivatives at point x, using lagrangian interpolation. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>: point at which the shapefunction is computed </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">num</span></code>: number of shapefunctions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: values of the shapefunctions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dphi</span></code>: values of the derivatives of the shapefunctions </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – point at which the shapefunction is computed </p></li>
+<li><p><strong>num</strong> – number of shapefunctions </p></li>
+<li><p><strong>phi</strong> – values of the shapefunctions </p></li>
+<li><p><strong>dphi</strong> – values of the derivatives of the shapefunctions </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl10ShapePhi1dE4REALiR10TPZFMatrixI4REALE">
 <span id="_CPPv3N8TPZGeoEl10ShapePhi1dE4REALiR10TPZFMatrixI4REALE"></span><span id="_CPPv2N8TPZGeoEl10ShapePhi1dE4REALiR10TPZFMatrixI4REALE"></span><span id="TPZGeoEl::ShapePhi1d__REAL.i.TPZFMatrix:REAL:R"></span><span class="target" id="classTPZGeoEl_1abde0d919ff86d3721193be315d992310"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ShapePhi1d</span></code><span class="sig-paren">(</span><span class="pre">REAL</span> <em><span class="pre">x</span></em>, <span class="pre">int</span> <em><span class="pre">num</span></em>, <span class="pre">TPZFMatrix</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">phi</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl10ShapePhi1dE4REALiR10TPZFMatrixI4REALE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Computes the values of the “num” one dimensional shapefunctions at point x, using lagrangian interpolation. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>: point at which the shapefunction is computed </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">num</span></code>: number of shapefunctions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: values of the shapefunctions </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – point at which the shapefunction is computed </p></li>
+<li><p><strong>num</strong> – number of shapefunctions </p></li>
+<li><p><strong>phi</strong> – values of the shapefunctions </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl8TPZGeoElE7int64_tiR10TPZGeoMesh">
 <span id="_CPPv3N8TPZGeoEl8TPZGeoElE7int64_tiR10TPZGeoMesh"></span><span id="_CPPv2N8TPZGeoEl8TPZGeoElE7int64_tiR10TPZGeoMesh"></span><span id="TPZGeoEl::TPZGeoEl__int64_t.i.TPZGeoMeshR"></span><span class="target" id="classTPZGeoEl_1ad1bc6a105e67f92f7caabfa98fd8d63b"></span><code class="sig-name descname"><span class="pre">TPZGeoEl</span></code><span class="sig-paren">(</span><span class="pre">int64_t</span> <em><span class="pre">id</span></em>, <span class="pre">int</span> <em><span class="pre">materialindex</span></em>, <span class="pre">TPZGeoMesh</span> <span class="pre">&amp;</span><em><span class="pre">mesh</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl8TPZGeoElE7int64_tiR10TPZGeoMesh" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Constructor. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">id</span></code>: is the number of the element </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">materialindex</span></code>: is the material index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mesh</span></code>: is a pointer to the mesh to which the element belongs </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> – is the number of the element </p></li>
+<li><p><strong>materialindex</strong> – is the material index </p></li>
+<li><p><strong>mesh</strong> – is a pointer to the mesh to which the element belongs </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl8TPZGeoElEiR10TPZGeoMesh">
 <span id="_CPPv3N8TPZGeoEl8TPZGeoElEiR10TPZGeoMesh"></span><span id="_CPPv2N8TPZGeoEl8TPZGeoElEiR10TPZGeoMesh"></span><span id="TPZGeoEl::TPZGeoEl__i.TPZGeoMeshR"></span><span class="target" id="classTPZGeoEl_1af61da0c6b291413031241f062efe848f"></span><code class="sig-name descname"><span class="pre">TPZGeoEl</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">materialindex</span></em>, <span class="pre">TPZGeoMesh</span> <span class="pre">&amp;</span><em><span class="pre">mesh</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl8TPZGeoElEiR10TPZGeoMesh" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This constructor generates a unique Id. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">materialindex</span></code>: is the material index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mesh</span></code>: is a pointer to the mesh to which the element belongs </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>materialindex</strong> – is the material index </p></li>
+<li><p><strong>mesh</strong> – is a pointer to the mesh to which the element belongs </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl8TPZGeoElEiR10TPZGeoMeshR7int64_t">
 <span id="_CPPv3N8TPZGeoEl8TPZGeoElEiR10TPZGeoMeshR7int64_t"></span><span id="_CPPv2N8TPZGeoEl8TPZGeoElEiR10TPZGeoMeshR7int64_t"></span><span id="TPZGeoEl::TPZGeoEl__i.TPZGeoMeshR.int64_tR"></span><span class="target" id="classTPZGeoEl_1ac6f92a2db6d7f637d730a0d96f4a0a06"></span><code class="sig-name descname"><span class="pre">TPZGeoEl</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">materialindex</span></em>, <span class="pre">TPZGeoMesh</span> <span class="pre">&amp;</span><em><span class="pre">mesh</span></em>, <span class="pre">int64_t</span> <span class="pre">&amp;</span><em><span class="pre">index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl8TPZGeoElEiR10TPZGeoMeshR7int64_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This constructor generates a unique Id. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">materialindex</span></code>: is the material index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mesh</span></code>: is a pointer to the mesh to which the element belongs </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">index</span></code>: index of the new element in the element vector </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>materialindex</strong> – is the material index </p></li>
+<li><p><strong>mesh</strong> – is a pointer to the mesh to which the element belongs </p></li>
+<li><p><strong>index</strong> – index of the new element in the element vector </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1261,16 +1267,16 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4NK8TPZGeoEl12ClonePatchElER10TPZGeoMeshRNSt3mapI7int64_t7int64_tEERNSt3mapI7int64_t7int64_tEE">
 <span id="_CPPv3NK8TPZGeoEl12ClonePatchElER10TPZGeoMeshRNSt3mapI7int64_t7int64_tEERNSt3mapI7int64_t7int64_tEE"></span><span id="_CPPv2NK8TPZGeoEl12ClonePatchElER10TPZGeoMeshRNSt3mapI7int64_t7int64_tEERNSt3mapI7int64_t7int64_tEE"></span><span id="TPZGeoEl::ClonePatchEl__TPZGeoMeshR.std::map:int64_t.int64_t:R.std::map:int64_t.int64_t:RC"></span><span class="target" id="classTPZGeoEl_1a1c07be94659c3beabfad733562c2b2cf"></span><em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv48TPZGeoEl" title="TPZGeoEl"><span class="pre">TPZGeoEl</span></a> <span class="pre">*</span><code class="sig-name descname"><span class="pre">ClonePatchEl</span></code><span class="sig-paren">(</span><span class="pre">TPZGeoMesh</span> <span class="pre">&amp;</span><em><span class="pre">DestMesh</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">int64_t</span><span class="pre">,</span> <span class="pre">int64_t</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">gl2lcNdIdx</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">map</span><span class="pre">&lt;</span><span class="pre">int64_t</span><span class="pre">,</span> <span class="pre">int64_t</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">gl2lcElIdx</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4NK8TPZGeoEl12ClonePatchElER10TPZGeoMeshRNSt3mapI7int64_t7int64_tEERNSt3mapI7int64_t7int64_tEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Creates a clone of this element into a new patch mesh. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">DestMesh</span></code>: destination patch mesh </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gl2lcNdIdx</span></code>: map between node indexes in original and patch mesh </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">gl2lcElIdx</span></code>: map between element indexes in original and patch mesh This method differs from the above by the patch mesh does not include all elements and nodes. <p>Therefore, a map between node indexes in both meshes are required </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>DestMesh</strong> – destination patch mesh </p></li>
+<li><p><strong>gl2lcNdIdx</strong> – map between node indexes in original and patch mesh </p></li>
+<li><p><strong>gl2lcElIdx</strong> – map between element indexes in original and patch mesh This method differs from the above by the patch mesh does not include all elements and nodes. <p>Therefore, a map between node indexes in both meshes are required </p>
 </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
