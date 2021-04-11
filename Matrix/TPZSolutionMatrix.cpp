@@ -38,14 +38,19 @@ TPZSolutionMatrix::TPZSolutionMatrix(const TPZSolutionMatrix &cp) :
 TPZSolutionMatrix&
 TPZSolutionMatrix::operator=(const TPZSolutionMatrix &cp)
 {
-    fIsComplex = cp.fIsComplex;
-    fRealMatrix = cp.fRealMatrix;
-    // fComplexMatrix = copy.fComplexMatrix;
-    if (!fIsComplex) {
-    fBaseMatrix = &fRealMatrix;
-  }
-    else{DebugStop();}
-  // else{ fBaseMatrix = &fComplexMatrix;}
+    if(fIsComplex==cp.fIsComplex){
+        fRealMatrix = cp.fRealMatrix;
+        // fComplexMatrix = copy.fComplexMatrix;
+        if (!fIsComplex) {
+          fBaseMatrix = &fRealMatrix;
+        }
+        else{DebugStop();}
+        // else{ fBaseMatrix = &fComplexMatrix;}
+        return *this;
+  } else{DebugStop();}
+    return *this;
+}
+
     return *this;
 }
 
