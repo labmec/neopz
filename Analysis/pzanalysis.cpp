@@ -352,7 +352,9 @@ void TPZAnalysis::Assemble()
 	fSolver->UpdateFrom(fSolver->Matrix());
 }
 
-void TPZAnalysis::Solve() {
+
+template<class TVar>
+void TPZAnalysis::SolveInternal(){
 	int64_t numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) 
     {
@@ -361,14 +363,14 @@ void TPZAnalysis::Solve() {
 	int64_t nReducedEq = fStructMatrix->NReducedEquations();
     if (nReducedEq == numeq) 
     {
-        TPZFMatrix<STATE> residual(fRhs);
-        TPZFMatrix<STATE> delu(numeq,1,0.);
-        //      STATE normres  = Norm(residual);
+        TPZFMatrix<TVar> residual(fRhs);
+        TPZFMatrix<TVar> delu(numeq,1,0.);
+        //      TVar normres  = Norm(residual);
         //	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 #ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
-            TPZFMatrix<STATE> res2(fRhs);
+            TPZFMatrix<TVar> res2(fRhs);
             fSolver->Matrix()->Residual(fSolution,fRhs,res2);
             std::stringstream sout;
             sout << "Residual norm " << Norm(res2) << std::endl;
@@ -389,7 +391,7 @@ void TPZAnalysis::Solve() {
         {
             if(!fSolver->Matrix()->IsDecomposed())
             {
-                TPZFMatrix<STATE> res2(fRhs);
+                TPZFMatrix<TVar> res2(fRhs);
                 fSolver->Matrix()->Residual(delu,fRhs,res2);
                 std::stringstream sout;
                 sout << "Residual norm " << Norm(res2) << std::endl;
@@ -402,16 +404,16 @@ void TPZAnalysis::Solve() {
     }
     else 
     {
-        TPZFMatrix<STATE> residual(nReducedEq,1,0.);
-    	TPZFMatrix<STATE> delu(nReducedEq,1,0.);
-        fStructMatrix->EquationFilter().Gather(fRhs,residual);
+        TPZFMatrix<TVar> residual(nReducedEq,1,0.);
+    	TPZFMatrix<TVar> delu(nReducedEq,1,0.);
+        fStructMatrix->EquationFilter().Gather<TVar>(fRhs,residual);
 	    fSolver->Solve(residual, delu);
         fSolution.Redim(numeq,1);
-        fStructMatrix->EquationFilter().Scatter(delu,fSolution);
+        fStructMatrix->EquationFilter().Scatter<TVar>(delu,fSolution);
     }
 #ifdef PZ_LOG
     std::stringstream sout;
-    TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *> (fSolver);
+    TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *> (fSolver);
     if(!step) DebugStop();
     int64_t nsing = step->Singular().size();
 	if(nsing && logger.isWarnEnabled()) {
@@ -436,10 +438,12 @@ void TPZAnalysis::Solve() {
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-    //TODOCOMPLEX
 	fCompMesh->LoadSolution(fSolution);
     fCompMesh->TransferMultiphysicsSolution();
+}
 
+void TPZAnalysis::Solve() {
+    SolveInternal<STATE>();
 }
 
 void TPZAnalysis::LoadSolution() {	
@@ -465,7 +469,7 @@ void TPZAnalysis::Print( const std::string &name, std::ostream &out) {
             }
         }
     }
-	fSolution.Print("fSolution",out);
+	this->Solution().Print("fSolution",out);
     if (fCompMesh) {
         fCompMesh->ConnectSolution(out);
     }
@@ -879,6 +883,29 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 	return;
 }
 
+
+template<class TVar>
+void TPZAnalysis::ShowShapeInternal(
+    const TPZStack<std::string> &scalnames,
+    const TPZStack<std::string> &vecnames,
+    const std::string &plotfile,
+    TPZVec<int64_t> &equationindices){
+  DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
+  int porder = fCompMesh->GetDefaultOrder();
+
+  int neq = equationindices.size();
+  TPZFMatrix<TVar> solkeep(fSolution);
+  fSolution.Zero();
+  for (int ieq = 0; ieq < neq; ieq++) {
+    Solution()(equationindices[ieq], 0) = 1.;
+    LoadSolution();
+    Mesh()->TransferMultiphysicsSolution();
+    PostProcess(porder + 1);
+    fSolution.Zero();
+  }
+  fSolution = solkeep;
+  LoadSolution();
+}
 void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices)
 {
 	
@@ -893,21 +920,8 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
     {
         vecnames.Push("Solution");
     }
-    DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
-    int porder = fCompMesh->GetDefaultOrder();
-    
-    int neq = equationindices.size();
-    TPZFMatrix<STATE> solkeep(fSolution);
-    fSolution.Zero();
-    for (int ieq = 0; ieq < neq; ieq++) {
-        fSolution(equationindices[ieq],0) = 1.;
-        LoadSolution();
-        Mesh()->TransferMultiphysicsSolution();
-        PostProcess(porder+1);
-        fSolution.Zero();
-    }
-    fSolution = solkeep;
-    LoadSolution();
+    //TODOCOMPLEX
+    ShowShapeInternal<STATE>(scalnames,vecnames,plotfile,equationindices);
 }
 
 void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices, int matid, const TPZVec<std::string> &varname)
@@ -931,28 +945,8 @@ void TPZAnalysis::ShowShape(const std::string &plotfile, TPZVec<int64_t> &equati
             vecnames.Push(varname[i_var]);
         }
     }
-    
-    DefineGraphMesh(fCompMesh->Dimension(), scalnames, vecnames, plotfile);
-    int porder = fCompMesh->GetDefaultOrder();
-    
-    int neq = equationindices.size();
-    TPZFMatrix<STATE> solkeep(fSolution);
-    fSolution.Zero();
-    for (int ieq = 0; ieq < neq; ieq++) {
-        fSolution(equationindices[ieq],0) = 1.;
-        LoadSolution();
-        Mesh()->TransferMultiphysicsSolution();
-        
-        {
-            std::ofstream out("shapemesh.txt");
-            Mesh()->Print(out);
-        }
-        PostProcess(3);
-        fSolution.Zero();
-    }
-    fSolution = solkeep;
-    LoadSolution();
-    
+    //TODOCOMPLEX
+    ShowShapeInternal<STATE>(scalnames,vecnames,plotfile,equationindices);
 }
 
 

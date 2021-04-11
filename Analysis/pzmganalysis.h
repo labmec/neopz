@@ -73,7 +73,7 @@ private:
 	TPZStack < TPZCompMesh * > fMeshes;
 	
 	/** @brief Contains the meshes solutions */	
-	TPZStack <TPZFMatrix<STATE> *> fSolutions;
+	TPZStack <TPZSolutionMatrix *> fSolutions;
 	
 	/** @brief Contains the solution method applied to the mesh */
 	TPZStack <TPZMatrixSolver<STATE> *> fSolvers;
@@ -96,6 +96,8 @@ private:
 							   TPZTransform<> &tr,
 							   void (*f) (const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
 							   REAL &truerror);
+	template<class TVar>
+	void SolveInternal();
 };
 
 #endif //TPZMGANALYSIS_H

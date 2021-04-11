@@ -68,14 +68,15 @@ void TPZEulerAnalysis::SetContributionTime(TPZContributeTime time)
 	fFlowCompMesh->SetContributionTime(time);
 }
 
-void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsilon)
+template<class TVar>
+void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<TVar> & deltaSol, REAL & epsilon)
 {
+	TPZFMatrix<TVar> &sol = fSolution;
     REAL initEpsilon = epsilon;
     int outofrange = 0;
     try
     {
-        fSolution += deltaSol;
-		//TODOCOMPLEX
+        sol += deltaSol;
         fCompMesh->LoadSolution(fSolution);
         AssembleRhs();
         epsilon = Norm(fRhs);
@@ -83,7 +84,7 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsi
 	catch(TPZOutofRange obj)
 	{
 		outofrange = 1;
-		fSolution -= deltaSol;
+		sol -= deltaSol;
 		epsilon = initEpsilon;
 		//TODOCOMPLEX
 		fCompMesh->LoadSolution(fSolution);
@@ -91,12 +92,12 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsi
 	
     if(epsilon > initEpsilon)
     {
-		fSolution -= deltaSol;
+		sol -= deltaSol;
 		//TODOCOMPLEX
 		fCompMesh->LoadSolution(fSolution);
 		/*int resultlin = */
 		LineSearch(initEpsilon ,fSolution, deltaSol);
-		fSolution += deltaSol;
+		sol += deltaSol;
 		//TODOCOMPLEX
 		fCompMesh->LoadSolution(fSolution);
 		epsilon = Norm(fRhs);
@@ -105,7 +106,7 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsi
     if(outofrange)
     {
 		/*int resultlin = */LineSearch(initEpsilon ,fSolution, deltaSol);
-		fSolution += deltaSol;
+		sol += deltaSol;
 		//TODOCOMPLEX
 		fCompMesh->LoadSolution(fSolution);
 		epsilon = Norm(fRhs);

@@ -137,3 +137,6 @@ void TPZSolutionMatrix::Write(TPZStream &buf, int withclassid) const {
   else{DebugStop();}
   // else return fComplexMatrix.Write(buf,withclassid);
 }
+
+template
+TPZSolutionMatrix &TPZSolutionMatrix::operator=<STATE>(const TPZFMatrix<STATE> &mat);

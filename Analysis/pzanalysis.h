@@ -12,6 +12,7 @@
 #include "TPZGuiInterface.h"  // for TPZGuiInterface
 #include "pzerror.h"          // for DebugStop
 #include "pzmatrix.h"         // for TPZFMatrix, TPZMatrix
+#include "TPZSolutionMatrix.h"// for TPZSolutionMatrix
 #include "pzreal.h"           // for STATE, REAL
 #include "TPZRenumbering.h"    // for TPZRenumbering
 #include "pzstrmatrix.h"      // for TPZStructMatrix
@@ -47,9 +48,9 @@ protected:
 	/** @brief Graphical mesh */
 	TPZGraphMesh *fGraphMesh[3];
 	/** @brief Load vector */
-	TPZFMatrix<STATE> fRhs;
+	TPZSolutionMatrix fRhs;
 	/** @brief Solution vector */
-	TPZFMatrix<STATE> fSolution;
+	TPZSolutionMatrix fSolution;
 	/** @brief Type of solver to be applied */
 	TPZMatrixSolver<STATE> *fSolver;
 	/** @brief Scalar variables names - to post process */
@@ -94,7 +95,14 @@ protected:
 	};
 	
         TTablePostProcess fTable;
-        
+
+    template<class TVar>
+    void SolveInternal();
+    template<class TVar>
+    void ShowShapeInternal(const TPZStack<std::string> &scalnames,
+      const TPZStack<std::string> &vecnames,
+      const std::string &plotfile,
+      TPZVec<int64_t> &equationindices);
 	public :
 	
     /** @brief Pointer to Exact solution function, it is necessary to calculating errors */

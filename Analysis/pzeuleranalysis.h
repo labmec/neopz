@@ -87,7 +87,8 @@ public:
 	/** 
 	 * Also updates the CompMesh soution.
 	 */
-	void UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsilon);
+	template<class TVar>
+	void UpdateSolAndRhs(TPZFMatrix<TVar> & deltaSol, REAL & epsilon);
 	
 	/**
 	 * @brief After a call to UpdateSolution, this method

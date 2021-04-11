@@ -106,7 +106,8 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunTransient(std::ostream &out, bool 
 			
 			fSolution.Redim(0,0);
 			this->Assemble();
-			this->fRhs += laststate;
+			TPZFMatrix<STATE> &rhs = this->fRhs;
+			rhs += laststate;
 			this->Solve();
 			
 			if (linesearch){
@@ -117,7 +118,8 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunTransient(std::ostream &out, bool 
 				fSolution = nextSol;
 			}
 			else{
-				fSolution += prevsol;
+				TPZFMatrix<STATE> &sol = fSolution;
+				sol += prevsol;
 			}
 			
 			prevsol -= fSolution;
@@ -374,7 +376,8 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunExplicit(std::ostream &out, bool F
 		
 		this->Solve();
 		//now fSolution = deltaSol
-		fSolution += prevsol;
+		TPZFMatrix<STATE> &sol = fSolution;
+		sol += prevsol;
 		
 		TPZAnalysis::LoadSolution();
 		if (this->fSaveFrequency){

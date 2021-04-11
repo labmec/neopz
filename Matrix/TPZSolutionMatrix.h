@@ -88,4 +88,9 @@ public:
   void Write(TPZStream &buf, int withclassid) const override;
 };
 
+
+extern template
+TPZSolutionMatrix &TPZSolutionMatrix::operator=<STATE>(const TPZFMatrix<STATE> &mat);
+// extern template
+// TPZSolutionMatrix &TPZSolutionMatrix::operator=<CSTATE>(const TPZFMatrix<CSTATE> &mat);
 #endif
