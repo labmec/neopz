@@ -1,10 +1,14 @@
 #include "TPZSolutionMatrix.h"
 #include "TPZStream.h"
 
+TPZSolutionMatrix::TPZSolutionMatrix()
+    : fSolType(EUndefined) {
+    fBaseMatrix = nullptr;
+}
 TPZSolutionMatrix::TPZSolutionMatrix(int nrows, int ncols,
                                                   bool is_complex)
-    : fIsComplex(is_complex) {
-  if (!fIsComplex) {
+    : fSolType(is_complex ? EComplex : EReal) {
+    if(fSolType == EReal) {
     fBaseMatrix = &fRealMatrix;
   }
   else{DebugStop();}
@@ -13,22 +17,22 @@ TPZSolutionMatrix::TPZSolutionMatrix(int nrows, int ncols,
 }
 
 TPZSolutionMatrix::TPZSolutionMatrix(TPZFMatrix<STATE> &sol)
-    : fIsComplex(false), fRealMatrix(sol), fBaseMatrix(&fRealMatrix)
+    : fSolType(EReal), fRealMatrix(sol), fBaseMatrix(&fRealMatrix)
 {
 
 }
 
 // TPZSolutionMatrix::TPZSolutionMatrix(TPZFMatrix<CSTATE> &sol)
-//     : fIsComplex(true), fComplexMatrix(sol), fBaseMatrix(&fComplexMatrix)
+//     : fSolType(EComplex), fComplexMatrix(sol), fBaseMatrix(&fComplexMatrix)
 // {
 
 // }
 
 TPZSolutionMatrix::TPZSolutionMatrix(const TPZSolutionMatrix &cp) :
-    fIsComplex(cp.fIsComplex), fRealMatrix(cp.fRealMatrix)
+    fSolType(cp.fSolType), fRealMatrix(cp.fRealMatrix)
     // , fComplexMatrix(cp.fComplexMatrix)
 {
-    if (!fIsComplex) {
+    if(fSolType == EReal) {
     fBaseMatrix = &fRealMatrix;
   }
     else{DebugStop();}
@@ -38,10 +42,13 @@ TPZSolutionMatrix::TPZSolutionMatrix(const TPZSolutionMatrix &cp) :
 TPZSolutionMatrix&
 TPZSolutionMatrix::operator=(const TPZSolutionMatrix &cp)
 {
-    if(fIsComplex==cp.fIsComplex){
+    if(fSolType == EUndefined){
+        fSolType = cp.fSolType;
+    }
+    if(fSolType == cp.fSolType){
         fRealMatrix = cp.fRealMatrix;
         // fComplexMatrix = copy.fComplexMatrix;
-        if (!fIsComplex) {
+        if(fSolType == EReal) {
           fBaseMatrix = &fRealMatrix;
         }
         else{DebugStop();}
@@ -59,7 +66,7 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
                   // ||std::is_same<TVar,CSTATE>::value
                   ){
         if constexpr(std::is_same<TVar,STATE>::value){
-            if(!fIsComplex){
+            if(fSolType == EReal){
                 fRealMatrix = mat;
                 fBaseMatrix = &fRealMatrix;
                 return *this;
@@ -80,45 +87,52 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
 }
 
 TPZSolutionMatrix::operator TPZFMatrix<STATE> &(){
-    if(fIsComplex){
+    if(fSolType != EReal){
         PZError<<__PRETTY_FUNCTION__;
         PZError << " called with incompatible type\n";
-        DebugStop();
         DebugStop();
     }
     return fRealMatrix;
 }
 
 TPZSolutionMatrix::operator const TPZFMatrix<STATE> &()const{
-    if(fIsComplex){
+    if(fSolType != EReal){
         PZError<<__PRETTY_FUNCTION__;
         PZError << " called with incompatible type\n";
-        DebugStop();
         DebugStop();
     }
     return fRealMatrix;
 }
 
 // TPZSolutionMatrix::operator TPZFMatrix<CSTATE> &(){
-//     if(!fIsComplex){
+//     if(fSolType != EComplex){
 //         PZError<<__PRETTY_FUNCTION__;
 //         PZError << " called with incompatible type\n";
-//         DebugStop();
 //         DebugStop();
 //     }
 //     return fComplexMatrix;
 // }
 
 void TPZSolutionMatrix::Read(TPZStream &buf, void *context) {
-  buf.Read(fIsComplex);
-  if (!fIsComplex)
+  bool isComplex;
+  buf.Read(isComplex);
+  if(isComplex) fSolType = EComplex;
+  else fSolType = EReal;
+  
+  if (fSolType == EReal)
     return fRealMatrix.Read(buf, context);
   else{DebugStop();}
   // else return fComplexMatrix.Read(buf,context);
 }
 void TPZSolutionMatrix::Write(TPZStream &buf, int withclassid) const {
-  buf.Write(fIsComplex);
-  if (!fIsComplex)
+  if(fSolType == EUndefined){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" cannot write TPZSolutionMatrix without defining its type!\n";
+    DebugStop();
+  }
+  const bool isComplex = fSolType == EComplex ? true : false;
+  buf.Write(isComplex);
+  if (!isComplex)
     return fRealMatrix.Write(buf, withclassid);
   else{DebugStop();}
   // else return fComplexMatrix.Write(buf,withclassid);

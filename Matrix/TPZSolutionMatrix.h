@@ -12,13 +12,17 @@
 
 class TPZSolutionMatrix : public TPZSavable{
 private:
-  
-  bool fIsComplex;//!< Whether it stores a complex or real solution
+
+  //! Enum for solution type
+  enum ESolType{ EReal=1,EComplex=2,EUndefined=3};
+  ESolType fSolType;//!< Type of solution
   TPZFMatrix<STATE> fRealMatrix;//!< Static storage for real matrix
   // TPZFMatrix<CSTATE> fComplexMatrix; //!< Static storage for complex matrix
   TPZBaseMatrix *fBaseMatrix;//!< Pointer for actual solution
 
 public:
+  //! Default constructor
+  TPZSolutionMatrix();
   /*! Constructor of empty TPZSolutionMatrix
       \param nrows - number of rows of the solution matrix
       \param ncols - number of cols of the solution matrix
