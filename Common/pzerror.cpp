@@ -1,4 +1,5 @@
 #include "pzerror.h"
+#include <iostream>
 
 #include <stdexcept>
 void pzinternal::DebugStopImpl(const char *fileName, const std::size_t lineN)
