@@ -7,12 +7,10 @@
 #define NONLINANALYSISH
 
 #include "pzanalysis.h"
-#include "pzcompel.h"
-#include "pzfmatrix.h"
-#include "pzvec.h"
-#include "pzcmesh.h"
-#include <iostream>
+#include <iosfwd>
 
+template<class TVar>
+class TPZFMatrix;
 /**
  * @brief Derived class from TPZAnalysis implements non linear analysis (Newton's method). \ref analysis "Analysis"
  * @ingroup analysis

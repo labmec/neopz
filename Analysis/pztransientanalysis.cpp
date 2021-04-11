@@ -10,6 +10,7 @@
 #include "pzstrmatrix.h"
 #include "pzseqsolver.h"
 #include "checkconv.h"
+#include "pzcmesh.h"
 
 using namespace std;
 

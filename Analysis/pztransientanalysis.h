@@ -6,12 +6,9 @@
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
 
-#include "pzanalysis.h"
 #include "pznonlinanalysis.h"
-#include "pzcompel.h"
 #include "pzfmatrix.h"
-#include "pzvec.h"
-#include <iostream>
+#include <iosfwd>
 #include <list>
 
 class TPZCompMesh;

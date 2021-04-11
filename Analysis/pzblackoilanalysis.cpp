@@ -11,6 +11,7 @@
 #include "pzseqsolver.h"
 #include "checkconv.h"
 #include "pzelmat.h"
+#include "pzcmesh.h"
 
 using namespace std;
 
