@@ -1871,18 +1871,7 @@ void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 }
 
 void TPZSubCompMesh::LoadSolution(){
-    //TODOCOMPLEX
-    if(auto tmp = fSolution.GetRealMatrix();tmp)
-        {
-            LoadSolutionInternal(tmp);
-        }
-    else
-        {
-          PZError << "Incompatible matrix type in ";
-          PZError << __PRETTY_FUNCTION__ << '\n';
-          PZError << std::endl;
-          DebugStop();
-        }
+    LoadSolutionInternal<STATE>(fSolution);
 }
 
 /**

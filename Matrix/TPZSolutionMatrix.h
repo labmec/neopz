@@ -40,9 +40,22 @@ public:
   TPZSolutionMatrix &operator=(const TPZSolutionMatrix &);
   //! Move assignment operator
   TPZSolutionMatrix &operator=(TPZSolutionMatrix &&) = delete;
-  //! Assignment operator from TPZFMatrix (throws error if incompatible)
+  //! Assignment operator from TPZFMatrix<T>. Throws error if incompatible
   template<class TVar>
   TPZSolutionMatrix &operator=(const TPZFMatrix<TVar> &mat);
+
+  //@{
+  //! Conversion function to TPZFMatrix<STATE>. Throws error if incompatible
+  operator TPZFMatrix<STATE>& ();
+  operator const TPZFMatrix<STATE>& () const;
+  //@}
+  
+  // //@{
+  // //! Conversion function to TPZFMatrix<CSTATE>. Throws error if incompatible
+  // operator TPZFMatrix<CSTATE>& ();
+  // operator const TPZFMatrix<CSTATE>& () const;
+  // //@}
+  
   //! Number of Rows of the solution
   inline int64_t Rows() const { return fBaseMatrix->Rows(); }
   //! Number of cols of the solution
@@ -55,34 +68,12 @@ public:
   inline int Resize(const int64_t r, const int64_t c) {
     return fBaseMatrix->Resize(r, c);
   }
+  //! Zeroes the matrix
+  int Zero() {
+    return fBaseMatrix->Zero();
+  }
   //! Get pointer to TPZBaseMatrix associated with the FEM solution
   inline TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
-
-
-  //the following doxygen directive will apply
-  //this description for a group of functions
-  
-  //@{
-  //! Get reference to real matrix (throws exception if solution is complex)
-  inline const TPZFMatrix<STATE> &GetRealMatrix() const {
-    if (fIsComplex)
-      throw std::logic_error(
-          "TPZSolutionMatrix has a complex matrix and GetRealMatrix was called");
-    return fRealMatrix;
-  }
-  
-  inline TPZFMatrix<STATE> &GetRealMatrix() {
-    if (fIsComplex)
-      throw std::logic_error(
-          "TPZSolutionMatrix has a complex matrix and GetRealMatrix was called");
-    return fRealMatrix;
-  }
-  //@}
-
-  // const TPZFMatrix<CSTATE> &GetComplexMatrix() const { return fRealMatrix;
-  // }
-  // TPZFMatrix<CSTATE> &GetComplexMatrix() { return fRealMatrix; }
-
   //! ClassId method
   int ClassId() const override{
     return Hash("TPZSolutionMatrix");

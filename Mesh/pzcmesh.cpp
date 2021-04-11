@@ -439,8 +439,7 @@ void TPZCompMesh::InitializeBlock() {
 
 void TPZCompMesh::ExpandSolution(){
     try{
-        TPZFMatrix<REAL>& tmp = fSolution.GetRealMatrix();
-        ExpandSolutionInternal(tmp);
+        ExpandSolutionInternal<STATE>(fSolution);
     }
     catch(...){
         PZError << "Incompatible matrix type in ";
@@ -1350,8 +1349,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
 
   try {
-    TPZFMatrix<STATE> & tmp = fSolution.GetRealMatrix();
-    PermuteInternal(tmp, permute);
+    PermuteInternal<STATE>(fSolution, permute);
   } catch (...) {
     PZError << "Incompatible matrix type in ";
     PZError << __PRETTY_FUNCTION__ << '\n';
@@ -1605,8 +1603,7 @@ REAL TPZCompMesh::CompareMesh(int var, char *matname){
 
 void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol){
     try{
-        TPZFMatrix<STATE>& tmp = fElementSolution.GetRealMatrix();
-        SetElementSolutionInternal(tmp,i,sol);
+        SetElementSolutionInternal<STATE>(fElementSolution,i,sol);
     } catch(...){
         PZError << "Incompatible matrix type in ";
         PZError << __PRETTY_FUNCTION__ << '\n';
@@ -2119,22 +2116,22 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
 
 TPZFMatrix<STATE> &TPZCompMesh::Solution()
 {
-    return fSolution.GetRealMatrix();
+    return fSolution;
 }
 
 const TPZFMatrix<STATE> &TPZCompMesh::Solution() const
 {
-    return fSolution.GetRealMatrix();
+    return fSolution;
 }
 
 TPZFMatrix<STATE> &TPZCompMesh::SolutionN()
 {
-    return fSolN.GetRealMatrix();
+    return fSolN;
 }
 
 TPZFMatrix<STATE> &TPZCompMesh::ElementSolution()
 {
-    return fElementSolution.GetRealMatrix();
+    return fElementSolution;
 }
 
 #include "TPZGeoElement.h"
@@ -2892,15 +2889,16 @@ TPZCompMesh * TPZCompMesh::CommonMesh(TPZCompMesh *mesh){
 
 /** update the solution at the previous state with fSolution and
     set fSolution to the previous state */
-void TPZCompMesh::UpdatePreviousState(STATE mult)
+template<class TVar>
+void TPZCompMesh::UpdatePreviousState(TVar mult)
 {
     if(fSolN.Rows() != fSolution.Rows() || fSolN.Cols() != fSolution.Cols())
     {
         fSolN.Redim(fSolution.Rows(),fSolution.Cols());
     }
-    auto tmpSolN = fSolN.GetRealMatrix();
-    auto tmpSol = fSolution.GetRealMatrix();
-    tmpSolN += mult*tmpSol;
+    TPZFMatrix<TVar>& solN = fSolN;
+    TPZFMatrix<TVar>& sol = fSolution;
+    solN += mult*sol;
     fSolution = fSolN;
     int64_t nel = NElements();
     for(int64_t el = 0; el<nel; el++)

@@ -79,6 +79,36 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
     return *this;
 }
 
+TPZSolutionMatrix::operator TPZFMatrix<STATE> &(){
+    if(fIsComplex){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError << " called with incompatible type\n";
+        DebugStop();
+        DebugStop();
+    }
+    return fRealMatrix;
+}
+
+TPZSolutionMatrix::operator const TPZFMatrix<STATE> &()const{
+    if(fIsComplex){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError << " called with incompatible type\n";
+        DebugStop();
+        DebugStop();
+    }
+    return fRealMatrix;
+}
+
+// TPZSolutionMatrix::operator TPZFMatrix<CSTATE> &(){
+//     if(!fIsComplex){
+//         PZError<<__PRETTY_FUNCTION__;
+//         PZError << " called with incompatible type\n";
+//         DebugStop();
+//         DebugStop();
+//     }
+//     return fComplexMatrix;
+// }
+
 void TPZSolutionMatrix::Read(TPZStream &buf, void *context) {
   buf.Read(fIsComplex);
   if (!fIsComplex)

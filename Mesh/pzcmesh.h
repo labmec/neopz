@@ -587,7 +587,8 @@ public:
 	void LoadSolution(const TPZSolutionMatrix &sol);
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */
-    void UpdatePreviousState(STATE mult = 1.0);
+    template<class TVar>
+    void UpdatePreviousState(TVar mult = 1.0);
     
     /**
      * @brief Transfer multiphysics mesh solution
