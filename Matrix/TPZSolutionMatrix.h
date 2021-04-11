@@ -63,14 +63,14 @@ public:
   inline const TPZFMatrix<STATE> &GetRealMatrix() const {
     if (fIsComplex)
       throw std::logic_error(
-          "TPZCompMesh has a complex matrix and GetRealMatrix wwas called");
+          "TPZCompMesh has a complex matrix and GetRealMatrix was called");
     return fRealMatrix;
   }
   
   inline TPZFMatrix<STATE> &GetRealMatrix() {
     if (fIsComplex)
       throw std::logic_error(
-          "TPZCompMesh has a complex matrix and GetRealMatrix wwas called");
+          "TPZCompMesh has a complex matrix and GetRealMatrix was called");
     return fRealMatrix;
   }
   //@}
