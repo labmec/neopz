@@ -8,7 +8,7 @@
 
 
 #include <stddef.h>               // for NULL
-#include <iostream>               // for operator<<, string, cout, ostream
+#include <ostream>               // for operator<<, string, cout, ostream
 #include <map>                    // for map
 #include <set>                    // for set
 #include "pzadmchunk.h"           // for TPZAdmChunkVector
@@ -17,12 +17,9 @@
 #include "pzconnect.h"            // for TPZConnect
 #include "pzcreateapproxspace.h"  // for TPZCreateApproximationSpace
 #include "pzgmesh.h"              // for TPZGeoMesh
-#include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
 #include "TPZSolutionMatrix.h"
 #include "pzreal.h"               // for STATE, REAL
-#include "TPZSavable.h"          // for TPZSavable
 #include "pzstack.h"              // for TPZStack
-#include "pzvec.h"                // for TPZVec
 #include "tpzautopointer.h"       // for TPZAutoPointer
 #include "pzcheckgeom.h"		  // for TPZCheckGeom
 #include <functional>
@@ -32,7 +29,7 @@ class TPZGeoEl;
 class TPZMaterial;
 class TPZStream;
 template <class TVar> class TPZTransfer;
-
+template <class TVar> class TPZVec;
 
 /**
  * @brief Implements computational mesh. \ref CompMesh "Computational Mesh"
@@ -102,8 +99,6 @@ protected:
      the fact that the solution may or may not be complex.
      Avoid using them in child classes, unless there is no 
      other option*/
-    template<class TVar>
-    void LoadSolutionInternal(TPZFMatrix<TVar> &sol, const TPZFMatrix<TVar> &mat);
     template<class TVar>
 	void ExpandSolutionInternal(TPZFMatrix<TVar> &sol);
     template<class TVar>
@@ -589,17 +584,7 @@ public:
 	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
 	 */
-	void LoadSolution(const TPZBaseMatrix *sol);
-    /**
-	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
-	 * @param sol refence to rval solution matrix
-	 */
-    void LoadSolution(const TPZBaseMatrix &sol);
-    /**
-	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
-	 * @param sol refence to rval solution matrix
-	 */
-    void LoadSolution(const TPZBaseMatrix &&sol);
+	void LoadSolution(const TPZSolutionMatrix &sol);
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */
     void UpdatePreviousState(STATE mult = 1.0);

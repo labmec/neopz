@@ -40,6 +40,9 @@ public:
   TPZSolutionMatrix &operator=(const TPZSolutionMatrix &);
   //! Move assignment operator
   TPZSolutionMatrix &operator=(TPZSolutionMatrix &&) = delete;
+  //! Assignment operator from TPZFMatrix (throws error if incompatible)
+  template<class TVar>
+  TPZSolutionMatrix &operator=(const TPZFMatrix<TVar> &mat);
   //! Number of Rows of the solution
   inline int64_t Rows() const { return fBaseMatrix->Rows(); }
   //! Number of cols of the solution

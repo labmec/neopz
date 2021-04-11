@@ -51,6 +51,31 @@ TPZSolutionMatrix::operator=(const TPZSolutionMatrix &cp)
     return *this;
 }
 
+template<class TVar>
+TPZSolutionMatrix&
+TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
+{
+    if constexpr (std::is_same<TVar,STATE>::value
+                  // ||std::is_same<TVar,CSTATE>::value
+                  ){
+        if constexpr(std::is_same<TVar,STATE>::value){
+            if(!fIsComplex){
+                fRealMatrix = mat;
+                fBaseMatrix = &fRealMatrix;
+                return *this;
+            }
+        }
+        // else if constexpr(std::is_same<TVar,STATE>::value){
+        //     if(fIsComplex){
+        //         fComplexMatrix = mat;
+        //         fBaseMatrix = &fComplexMatrix;
+        //         return *this;
+        //     }
+        // }
+    }
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" called with incompatible type\n";
+    DebugStop();
     return *this;
 }
 

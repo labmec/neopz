@@ -478,75 +478,14 @@ void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 	fSolutionBlock = fBlock;
 }
 
-
-template<class TVar>
-void TPZCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &sol, const TPZFMatrix<TVar> &mat)
-{
-    int64_t nrow = mat.Rows();
-	int64_t ncol = mat.Cols();
-    int64_t solrow = fSolution.Rows();
-    fSolution.Resize(solrow, ncol);
-	int64_t i,j;
-    TVar val;
-	for(j=0;j<ncol;j++)
-    {
-        for(i=0;i<nrow;i++)
-        {
-            val = (mat.GetVal(i,j));
-            sol.PutVal(i,j,val);
-        }
-        
-    }
-    
-
-	int64_t nelem = NElements();
-	TPZCompEl *cel;
-	for(i=0; i<nelem; i++) {
-		cel = fElementVec[i];
+void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
+    fSolution = mat;
+    const auto nelem = NElements();
+	for(auto i=0; i<nelem; i++) {
+		TPZCompEl *cel = fElementVec[i];
 		if(!cel) continue;
 		cel->LoadSolution();
 	}
-}
-void TPZCompMesh::LoadSolution(const TPZBaseMatrix *mat){
-    //TODOCOMPLEX
-    try {
-      TPZFMatrix<STATE>& tsol = fSolution.GetRealMatrix();
-      auto tmat = dynamic_cast<const TPZFMatrix<STATE> *>(mat);
-      return LoadSolutionInternal(tsol, *tmat);
-    } catch (...) {
-      PZError << "Incompatible matrix type in ";
-      PZError << __PRETTY_FUNCTION__ << '\n';
-      PZError << std::endl;
-      DebugStop();
-    }
-}
-
-void TPZCompMesh::LoadSolution(const TPZBaseMatrix &mat){
-    //TODOCOMPLEX
-    try {
-      TPZFMatrix<STATE>& tsol = fSolution.GetRealMatrix();
-      auto tmat = dynamic_cast<const TPZFMatrix<STATE> &>(mat);
-      return LoadSolutionInternal(tsol, tmat);
-    } catch (...) {
-      PZError << "Incompatible matrix type in ";
-      PZError << __PRETTY_FUNCTION__ << '\n';
-      PZError << std::endl;
-      DebugStop();
-    }
-}
-
-void TPZCompMesh::LoadSolution(const TPZBaseMatrix &&mat){
-    //TODOCOMPLEX
-    try {
-      TPZFMatrix<STATE>& tsol = fSolution.GetRealMatrix();
-      auto tmat = dynamic_cast<const TPZFMatrix<STATE> &&>(mat);
-      return LoadSolutionInternal(tsol, tmat);
-    } catch (...) {
-      PZError << "Incompatible matrix type in ";
-      PZError << __PRETTY_FUNCTION__ << '\n';
-      PZError << std::endl;
-      DebugStop();
-    }
 }
 
 void TPZCompMesh::TransferMultiphysicsSolution()

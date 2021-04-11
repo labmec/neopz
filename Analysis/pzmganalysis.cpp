@@ -464,8 +464,8 @@ void TPZMGAnalysis::ComputeError(TPZVec<REAL> &error) {
 		return;
 	}
 	//TODOCOMPLEX
-	fMeshes[nsol-2]->LoadSolution(fSolutions[nsol-2]);
-	fMeshes[nsol-1]->LoadSolution(fSolutions[nsol-1]);
+	fMeshes[nsol-2]->LoadSolution(*fSolutions[nsol-2]);
+	fMeshes[nsol-1]->LoadSolution(*fSolutions[nsol-1]);
 	TPZVec<REAL> truerror;
 	MeshError(fMeshes[nsol-1],fMeshes[nsol-2],error,0,truerror);
 }

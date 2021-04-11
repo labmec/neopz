@@ -1867,7 +1867,7 @@ void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 //    fSolution.Print(std::cout);
     
 	if(fAnalysis) fAnalysis->LoadSolution(mysol);
-	TPZCompMesh::LoadSolution(&mysol);
+	TPZCompMesh::LoadSolution(fSolution);
 }
 
 void TPZSubCompMesh::LoadSolution(){
