@@ -8,8 +8,9 @@
 
 #include "pzreal.h"//STATE
 #include "pzfmatrix.h"//TPZFMatrix<T>,TPZBaseMatrix
+#include "Hash/TPZHash.h"//Hash
 
-class TPZSolutionMatrix {
+class TPZSolutionMatrix : public TPZSavable{
 private:
   
   bool fIsComplex;//!< Whether it stores a complex or real solution
@@ -35,9 +36,9 @@ public:
   TPZSolutionMatrix(TPZSolutionMatrix &&) = delete;
   //! Destructor
   ~TPZSolutionMatrix() = default;
-  //! Copy operator
+  //! Copy assignment operator
   TPZSolutionMatrix &operator=(const TPZSolutionMatrix &);
-  //! Move operator
+  //! Move assignment operator
   TPZSolutionMatrix &operator=(TPZSolutionMatrix &&) = delete;
   //! Number of Rows of the solution
   inline int64_t Rows() const { return fBaseMatrix->Rows(); }
@@ -63,14 +64,14 @@ public:
   inline const TPZFMatrix<STATE> &GetRealMatrix() const {
     if (fIsComplex)
       throw std::logic_error(
-          "TPZCompMesh has a complex matrix and GetRealMatrix was called");
+          "TPZSolutionMatrix has a complex matrix and GetRealMatrix was called");
     return fRealMatrix;
   }
   
   inline TPZFMatrix<STATE> &GetRealMatrix() {
     if (fIsComplex)
       throw std::logic_error(
-          "TPZCompMesh has a complex matrix and GetRealMatrix was called");
+          "TPZSolutionMatrix has a complex matrix and GetRealMatrix was called");
     return fRealMatrix;
   }
   //@}
@@ -78,10 +79,15 @@ public:
   // const TPZFMatrix<CSTATE> &GetComplexMatrix() const { return fRealMatrix;
   // }
   // TPZFMatrix<CSTATE> &GetComplexMatrix() { return fRealMatrix; }
+
+  //! ClassId method
+  int ClassId() const override{
+    return Hash("TPZSolutionMatrix");
+  }
   //! Read method
-  void Read(TPZStream &buf, void *context);
+  void Read(TPZStream &buf, void *context) override;
   //! Write method (only the current matrix is written)
-  void Write(TPZStream &buf, int withclassid) const;
+  void Write(TPZStream &buf, int withclassid) const override;
 };
 
 #endif
