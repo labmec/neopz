@@ -2134,34 +2134,6 @@ TPZFMatrix<STATE> &TPZCompMesh::ElementSolution()
     return fElementSolution;
 }
 
-#include "TPZGeoElement.h"
-#include "pzgeoelrefless.h"
-#include "TPZGeoCube.h"
-#include "pzshapecube.h"
-#include "TPZRefCube.h"
-#include "pzshapelinear.h"
-#include "TPZGeoLinear.h"
-#include "TPZRefLinear.h"
-#include "pzrefquad.h"
-#include "pzshapequad.h"
-#include "pzgeoquad.h"
-#include "pzshapetriang.h"
-#include "pzreftriangle.h"
-#include "pzgeotriangle.h"
-#include "pzshapeprism.h"
-#include "pzrefprism.h"
-#include "pzgeoprism.h"
-#include "pzshapetetra.h"
-#include "pzreftetrahedra.h"
-#include "pzgeotetrahedra.h"
-#include "pzshapepiram.h"
-#include "pzrefpyram.h"
-#include "pzgeopyramid.h"
-#include "pzrefpoint.h"
-#include "pzgeopoint.h"
-#include "pzshapepoint.h"
-
-
 void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps){
 	const int64_t nelements = this->NElements();
 	celJumps.Resize(nelements);
