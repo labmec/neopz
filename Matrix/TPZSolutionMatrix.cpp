@@ -5,6 +5,16 @@ TPZSolutionMatrix::TPZSolutionMatrix()
     : fSolType(EUndefined) {
     fBaseMatrix = nullptr;
 }
+
+TPZSolutionMatrix::TPZSolutionMatrix(bool is_complex) {
+  fSolType = is_complex ? EComplex : EReal;
+  if(fSolType == EReal)
+    {
+      fBaseMatrix = &fRealMatrix;
+    }
+  else{DebugStop();}
+  // else{ fBaseMatrix = &fComplexMatrix;}
+}
 TPZSolutionMatrix::TPZSolutionMatrix(int nrows, int ncols,
                                                   bool is_complex)
     : fSolType(is_complex ? EComplex : EReal) {
@@ -66,19 +76,19 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
                   // ||std::is_same<TVar,CSTATE>::value
                   ){
         if constexpr(std::is_same<TVar,STATE>::value){
-            if(fSolType == EReal){
+            if(fSolType == EReal || fSolType == EUndefined){
+                fSolType = EReal;
                 fRealMatrix = mat;
                 fBaseMatrix = &fRealMatrix;
                 return *this;
             }
+            // else if(fSolType == EComplex || fSolType == EUndefined){
+            //     fSolType = EComplex;
+            //     fRealMatrix = mat;
+            //     fBaseMatrix = &fComplexMatrix;
+            //     return *this;
+            // }
         }
-        // else if constexpr(std::is_same<TVar,STATE>::value){
-        //     if(fIsComplex){
-        //         fComplexMatrix = mat;
-        //         fBaseMatrix = &fComplexMatrix;
-        //         return *this;
-        //     }
-        // }
     }
     PZError<<__PRETTY_FUNCTION__;
     PZError<<" called with incompatible type\n";

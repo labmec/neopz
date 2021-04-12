@@ -86,7 +86,9 @@ void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix)
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
 }
 TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
+fGeoMesh(0), fCompMesh(0),
+fRhs(false), fSolution(false),//TODOCOMPLEX
+fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
 , fGuiInterface(NULL), fTable(), fExact(NULL) {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -96,7 +98,9 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
+fGeoMesh(0), fCompMesh(0),
+fRhs(false), fSolution(false),//TODOCOMPLEX
+fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -106,7 +110,9 @@ fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.),
 
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(), fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
+fGeoMesh(0), fCompMesh(0),
+fRhs(false), fSolution(false),//TODOCOMPLEX
+fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;

@@ -14,7 +14,8 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh){
+TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh)                                                , fReferenceSolution(false)//TODOCOMPLEX
+{
 	fMesh = mesh;
 	fFront = 0;
 }

@@ -23,6 +23,8 @@ private:
 public:
   //! Default constructor
   TPZSolutionMatrix();
+  //! Constructor defining matrix type
+  TPZSolutionMatrix(bool is_complex);
   /*! Constructor of empty TPZSolutionMatrix
       \param nrows - number of rows of the solution matrix
       \param ncols - number of cols of the solution matrix
