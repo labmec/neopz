@@ -538,7 +538,8 @@ int main(int argc, char *argv[])
 	{
 		int eq = * zeropivot.begin();
 		PoroelasticAnalysis.Rhs().Zero();
-		PoroelasticAnalysis.Rhs()(eq,0) = -10000.0;
+		TPZFMatrix<STATE> &anRhs = PoroelasticAnalysis.Rhs();
+		anRhs(eq,0) = -10000.0;
 		PoroelasticAnalysis.Solve();
 		TPZFMatrix<STATE> TempSolution = PoroelasticAnalysis.Solution();
 		std::string output;

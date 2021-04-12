@@ -664,7 +664,8 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 		
 	//Saida de Dados: solucao e  grafico no VTK 
 	ofstream file("Solution.out");
-	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
+	TPZBaseMatrix &anSol = an.Solution();
+	anSol.Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 
 void PosProcess(TPZAnalysis &an, std::string plotfile){

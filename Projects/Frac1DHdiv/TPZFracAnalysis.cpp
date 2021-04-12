@@ -454,7 +454,8 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
   if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
   
   an->Assemble();
-  an->Rhs() += fLastStepRhs;
+  TPZFMatrix<STATE> &anRhs = an->Rhs();
+  anRhs += fLastStepRhs;
   TPZAutoPointer< TPZMatrix<STATE> > matK;
   
   while(error > tol && iter < numiter) {
@@ -465,7 +466,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
       std::stringstream sout;
       matK=an->Solver().Matrix();
       matK->Print("matK = ", sout,EMathematicaInput);
-      an->Rhs().Print("Rhs = ",sout,EMathematicaInput);
+      anRhs.Print("Rhs = ",sout,EMathematicaInput);
       LOGPZ_DEBUG(logger,sout.str())
     }
 #endif
@@ -488,7 +489,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
     an->LoadSolution(SoliterK); // Aqui o an->Solution() eh o U
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
     an->Assemble();
-    an->Rhs() += fLastStepRhs;
+    anRhs += fLastStepRhs;
     
 #ifdef PZ_LOG
     if(logger.isDebugEnabled())
@@ -521,7 +522,7 @@ void TPZFracAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int n
         an->LoadSolution(SoliterK);
         TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fcmeshMixed);
         an->Assemble();
-        an->Rhs() += fLastStepRhs;
+        anRhs += fLastStepRhs;
         NormResLambda = Norm(an->Rhs());
         scale *= scale;
         out << " Line Search iter: " << itls << " : normas |Delta(Un)| e |Delta(rhs)| : " << Norm(scale*DeltaU) << " / " << NormResLambda << std::endl;
