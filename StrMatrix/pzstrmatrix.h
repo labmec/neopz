@@ -15,6 +15,7 @@ class TPZStructMatrixOR;
 
 //forward declarations
 class TPZElementMatrix;
+class TPZBaseMatrix;
 /**
  * @brief Refines geometrical mesh (all the elements) num times
  * @ingroup geometry
@@ -57,9 +58,9 @@ protected:
         /** @brief Gui interface object */
         TPZAutoPointer<TPZGuiInterface> fGuiInterface;
         /** @brief Global matrix */
-        TPZMatrix<STATE> *fGlobMatrix;
+        TPZBaseMatrix *fGlobMatrix;
         /** @brief Global rhs vector */
-        TPZFMatrix<STATE> *fGlobRhs;
+        TPZBaseMatrix *fGlobRhs;
         /** @brief List of computed element matrices (autopointers?) */
         std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > fSubmitted;
         /** @brief Elements which are being processed */

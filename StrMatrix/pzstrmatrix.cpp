@@ -716,17 +716,21 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
                 // Release the mutex
                 data->fMutexAccessElement.unlock();
 #ifndef DRY_RUN
+                auto globMatrix =
+                    dynamic_cast<TPZMatrix<STATE> *>(data->fGlobMatrix);
+                auto globRhs =
+                    dynamic_cast<TPZFMatrix<STATE> *>(data->fGlobRhs);
                 // Assemble the matrix
                 if (!ek->HasDependency()) {
-                    if (data->fGlobMatrix) {
-                        data->fGlobMatrix->AddKel(ek->fMat, ek->fSourceIndex, ek->fDestinationIndex);
+                    if (globMatrix) {
+                        globMatrix->AddKel(ek->fMat, ek->fSourceIndex, ek->fDestinationIndex);
                     }
-                    data->fGlobRhs->AddFel(ef->fMat, ek->fSourceIndex, ek->fDestinationIndex);
+                    globRhs->AddFel(ef->fMat, ek->fSourceIndex, ek->fDestinationIndex);
                 } else {
-                    if (data->fGlobMatrix) {
-                        data->fGlobMatrix->AddKel(ek->fConstrMat, ek->fSourceIndex, ek->fDestinationIndex);
+                    if (globMatrix) {
+                        globMatrix->AddKel(ek->fConstrMat, ek->fSourceIndex, ek->fDestinationIndex);
                     }
-                    data->fGlobRhs->AddFel(ef->fConstrMat, ek->fSourceIndex, ek->fDestinationIndex);
+                    globRhs->AddFel(ef->fConstrMat, ek->fSourceIndex, ek->fDestinationIndex);
                 }
 #endif
                 // acquire the mutex
