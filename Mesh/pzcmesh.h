@@ -278,9 +278,8 @@ public:
 	 */
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
-	void SetElementSolution(int64_t i, TPZVec<STATE> &sol);
-
-    //void SetElementSolution(int64_t i, TPZVec<CSTATE> &sol);
+    template<class TVar>
+	void SetElementSolution(int64_t i, TPZVec<TVar> &sol);
 	
 	/** @} */
 	
@@ -704,7 +703,8 @@ int ClassId() const override;
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context) override;
 
-    static void ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
+    template <class TVar>
+    static void ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<TVar> &glob, TPZVec<TVar> &sol);
 };
 
 inline int64_t TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
@@ -755,4 +755,15 @@ inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
     fGMesh = gmesh;
 }
 
+//templates instantiation
+
+extern template
+void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
+extern template
+void TPZCompMesh::ConnectSolution<STATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
+
+// extern template
+// void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
+// extern template
+// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<CSTATE> &glob, TPZVec<CSTATE> &sol);
 #endif

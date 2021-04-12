@@ -1600,10 +1600,10 @@ REAL TPZCompMesh::CompareMesh(int var, char *matname){
 }
 
 
-
-void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<STATE> &sol){
+template<class TVar>
+void TPZCompMesh::SetElementSolution(int64_t i, TPZVec<TVar> &sol){
     try{
-        SetElementSolutionInternal<STATE>(fElementSolution,i,sol);
+        SetElementSolutionInternal<TVar>(fElementSolution,i,sol);
     } catch(...){
         PZError << "Incompatible matrix type in ";
         PZError << __PRETTY_FUNCTION__ << '\n';
@@ -2913,7 +2913,8 @@ void TPZCompMesh::UpdatePreviousState(TVar mult)
 template class TPZRestoreClass<TPZCompMesh>;
 
 /// extract the values corresponding to the connect from the vector
-void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol)
+template<class TVar>
+void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<TVar> &glob, TPZVec<TVar> &sol)
 {
     int64_t seqnum = cmesh->ConnectVec()[cindex].SequenceNumber();
     int blsize = cmesh->Block().Size(seqnum);
@@ -2924,3 +2925,13 @@ void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix
     }
 }
 
+
+template
+void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
+template
+void TPZCompMesh::ConnectSolution<STATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
+
+// template
+// void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
+// template
+// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<CSTATE> &glob, TPZVec<CSTATE> &sol);
