@@ -324,8 +324,8 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
 struct TLaplaceExample1 : public TPZAnalyticSolution
 {
     
-    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos, EArcTan, EArcTanSingular,ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble,ESinCosCircle, EHarmonic, EHarmonic2,
-    ESquareRootUpper, ESquareRootLower, ESquareRoot};
+    enum EExactSol {ENone, EConst, EX, ESinSin, ECosCos,  EArcTan, EArcTanSingular,ESinDist, E10SinSin,E2SinSin, ESinSinDirNonHom,ESinMark,ESteklovNonConst,EGalvisNonConst,EBoundaryLayer,EBubble, EBubble2D,ESinCosCircle, EHarmonic, EHarmonic2,
+    ESquareRootUpper, ESquareRootLower, ESquareRoot, ELaplace2D};
     
     int fDimension = 2;
     
@@ -336,7 +336,9 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     TPZFNMatrix<9,REAL> fTensorPerm;
 
     TPZFNMatrix<9,REAL> fInvPerm;
-    
+
+    int fmaxIter = 15;
+
     static double gC;
 
     TLaplaceExample1() : fCenter(3,0.), TPZAnalyticSolution()
@@ -363,7 +365,6 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     TLaplaceExample1 &operator=(const TLaplaceExample1 &copy);
     
     virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
-
 
     template<class TVar>
     void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;

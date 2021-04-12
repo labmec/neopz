@@ -397,6 +397,35 @@ void TPZElementGroup::EvaluateError(std::function<void(const TPZVec<REAL> &loc,T
     }
 }
 
+/**
+ * @brief Performs an error computation on the element
+ * @param errors [out] the L2 norm of the error of the solution
+ * @param flux [in] value of the interpolated flux values
+ */
+#include "pzbndcond.h"
+void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
+{
+    int nerr = errors.size();
+    errors.Fill(0.);
+    int meshdim = Mesh()->Dimension();
+    int nel = fElGroup.size();
+    for (int el=0; el<nel; el++) {
+        TPZManVector<REAL,10> errloc(nerr,0.);
+        TPZGeoEl *elref = fElGroup[el]->Reference();
+        fElGroup[el]->EvaluateError(errloc, store_error);
+        if (errloc.size() != nerr) {
+            nerr = errloc.size();
+            errors.Resize(nerr, 0.);
+        }
+        for (int i=0; i<errloc.size(); i++) {
+            errors[i] += errloc[i]*errloc[i];
+        }
+    }
+    for (int i=0; i<errors.size(); i++) {
+        errors[i] = sqrt(errors[i]);
+    }
+}
+
 int TPZElementGroup::ClassId() const{
     return Hash("TPZElementGroup") ^ TPZCompEl::ClassId() << 1;
 }

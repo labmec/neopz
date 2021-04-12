@@ -296,7 +296,9 @@ void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val
 //        DebugStop();
     }
 
-    
+    virtual void EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) override {
+    }
+
 };
 
 #endif

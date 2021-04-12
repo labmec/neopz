@@ -1399,7 +1399,10 @@ void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZFunction<STATE> &func,
 
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZVec<REAL> &errors, bool store_errors) {
-  TPZMaterial *material = this->Material();
+    errors.Fill(0.);
+    TPZMaterial *material = this->Material();
+    TPZNullMaterial *nullmat = dynamic_cast<TPZNullMaterial *>(material);
+    if(nullmat) return;
   //TPZMaterial * matptr = material.operator->();
   if (!material) {
     PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
