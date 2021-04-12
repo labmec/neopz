@@ -14,7 +14,7 @@ using namespace std;
 
 // Construction/Destruction
 
-TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh)                                                , fReferenceSolution()//TODOCOMPLEX:set matrix type (complex/real)
+TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh)                                                , fReferenceSolution(false)//TODOCOMPLEX:set matrix type (complex/real)
 {
 	fMesh = mesh;
 	fFront = 0;
