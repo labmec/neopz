@@ -33,9 +33,9 @@ public:
   TPZSolutionMatrix(int nrows, int ncols, bool is_complex = false);
 
   //! Constructor taking a real matrix
-  TPZSolutionMatrix(TPZFMatrix<STATE> &sol);
+  TPZSolutionMatrix(const TPZFMatrix<STATE> &sol);
   // //! Constructor taking a complex matrix
-  // TPZSolutionMatrix(TPZFMatrix<CSTATE> &sol);
+  // TPZSolutionMatrix(const TPZFMatrix<CSTATE> &sol);
   //! Copy constructor
   TPZSolutionMatrix(const TPZSolutionMatrix &);
   //! Move constructor (deleted)
