@@ -475,7 +475,8 @@ void TPZAnalysis::Print( const std::string &name, std::ostream &out) {
             }
         }
     }
-	this->Solution().Print("fSolution",out);
+    TPZBaseMatrix &sol = this->Solution();
+	sol.Print("fSolution",out);
     if (fCompMesh) {
         fCompMesh->ConnectSolution(out);
     }
@@ -901,9 +902,10 @@ void TPZAnalysis::ShowShapeInternal(
 
   int neq = equationindices.size();
   TPZFMatrix<TVar> solkeep(fSolution);
-  fSolution.Zero();
+  TPZFMatrix<TVar> &mysol = fSolution;
+  mysol.Zero();
   for (int ieq = 0; ieq < neq; ieq++) {
-    Solution()(equationindices[ieq], 0) = 1.;
+    mysol(equationindices[ieq], 0) = 1.;
     LoadSolution();
     Mesh()->TransferMultiphysicsSolution();
     PostProcess(porder + 1);

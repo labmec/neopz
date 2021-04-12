@@ -50,8 +50,9 @@ void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
 void TPZBlackOilAnalysis::AssembleResidual(){
 	this->SetCurrentState();
 	int sz = this->Mesh()->NEquations();
-	this->Rhs().Redim(sz,1);
-	this->Rhs() += fLastState;
+	TPZFMatrix<STATE> &rhs = this->Rhs();
+	rhs.Redim(sz,1);
+	rhs += fLastState;
 }//void
 
 void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
@@ -83,11 +84,13 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 		this->SetCurrentState();
 		REAL error = this->fNewtonTol * 2. + 1.;
 		int iter = 0;
+		TPZFMatrix<STATE> &myrhs = this->Rhs();
+		TPZFMatrix<STATE> &mysol = this->Solution();
 		while(error > this->fNewtonTol && iter < this->fNewtonMaxIter){
 			
 			fSolution.Redim(0,0);
-			this->Assemble();
-			this->Rhs() += fLastState;
+			this->Assemble();			
+			myrhs += fLastState;
 			
 			this->Solve();
 			
@@ -100,7 +103,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 			}
 			else{
 				
-				this->Solution() += prevsol;
+				mysol += prevsol;
 			}
 			
 			prevsol -= fSolution;

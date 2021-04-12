@@ -786,8 +786,10 @@ void TPZBuildMultiphysicsMesh::ShowShape(TPZVec<TPZCompMesh *> &cmeshVec, TPZCom
     int neq = equationindices.size();
     TPZFMatrix<STATE> solkeep(analysis.Solution());
     analysis.Solution().Zero();
+    //TODOCOMPLEX
+    TPZFMatrix<STATE> &anSol = analysis.Solution();
     for (int ieq = 0; ieq < neq; ieq++) {
-        analysis.Solution()(equationindices[ieq],0) = 1.;
+        anSol(equationindices[ieq],0) = 1.;
         analysis.LoadSolution();
         TransferFromMultiPhysics(cmeshVec, MFMesh);
         analysis.PostProcess(porder);

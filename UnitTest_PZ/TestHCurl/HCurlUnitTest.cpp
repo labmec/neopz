@@ -851,7 +851,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
             const std::string plotfile = "shapeFuncs"+executionInfo+".vtk";//where to print the vtk files
             TPZStack<std::string> scalnames, vecnames;
             vecnames.Push("E");//print the state variable
-            auto sol = an.Solution();
+            TPZFMatrix<STATE>& sol = an.Solution();
             sol.Zero();
             for(int i = 0; i < sol.Rows(); i++){
                 sol(i - 1 < 0 ? 0 : i - 1 , 0) = 0;

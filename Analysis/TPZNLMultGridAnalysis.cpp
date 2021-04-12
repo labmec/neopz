@@ -319,7 +319,9 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 		<< " due the great norm of the solution, norm solution = " << normsol << endl;
 	}
 	an.LoadSolution();
-	rhs = an.Rhs() - rhsim1;//ltimo residuo - res�uo anterior
+	//TODOCOMPLEX
+	TPZFMatrix<STATE> &myrhs = an.Rhs();
+	rhs = myrhs - rhsim1;//ltimo residuo - res�uo anterior
 }
 
 
@@ -748,7 +750,8 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 			fSolvers[1]->SetMatrix(0);
 			//argumento 1 espera? adicionar o res�uo anterior ao atual calculado
 			fSolvers[1]->SetMatrix(coarsean.StructMatrix()->CreateAssemble(coarsean.Rhs(),NULL));
-			TPZFMatrix<STATE> coarres = coarsean.Rhs() + projfineres;
+			TPZFMatrix<STATE> &coarseanrhs = coarsean.Rhs();
+			TPZFMatrix<STATE> coarres = coarseanrhs + projfineres;
 			coarsean.Rhs() = coarres;//res�uo
 			coarsean.Solve();
 		}

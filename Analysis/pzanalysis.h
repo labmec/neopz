@@ -181,10 +181,10 @@ protected:
 	virtual void Solve();
 	
 	/** @brief Returns the load vector */
-	TPZFMatrix<STATE> &Rhs() { return fRhs;}
+	TPZSolutionMatrix &Rhs() { return fRhs;}
 
 	/** @brief Returns the solution matrix */
-	TPZFMatrix<STATE> &Solution() { return fSolution;}
+	TPZSolutionMatrix &Solution() { return fSolution;}
 	
 	/** @brief Returns the pointer to the computational mesh */
 	TPZCompMesh *Mesh()const { return fCompMesh;}

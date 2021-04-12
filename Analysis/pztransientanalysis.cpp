@@ -426,7 +426,8 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SaveCurrentSolutionVec(){
 		
 		ofstream file("currentsol.txt");
 		stringstream mess; mess << "sol( " << TPZTransientAnalysis::gTime << " ) = ";
-		this->Solution().Print(mess.str().c_str(), file);
+		TPZBaseMatrix &mysol = this->Solution();
+		mysol.Print(mess.str().c_str(), file);
 		
 	}
 }
