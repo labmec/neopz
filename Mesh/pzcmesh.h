@@ -105,6 +105,8 @@ protected:
     void PermuteInternal(TPZFMatrix<TVar> &sol, TPZVec<int64_t> &permute);
     template<class TVar>
     void SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i, TPZVec<TVar> &sol);
+    template<class TVar>
+    void ConnectSolutionInternal(std::ostream &out, const TPZFMatrix<TVar>&sol) const;
 public:
 	
 	/**
@@ -224,16 +226,16 @@ public:
 	TPZBlock &Block() { return fBlock;}
 	
 	/** @brief Access the solution vector */
-	TPZFMatrix<STATE> &Solution();
+	TPZSolutionMatrix &Solution() { return fSolution;}
     
     /** @brief Access the solution vector */
-    const TPZFMatrix<STATE> &Solution() const;
+    const TPZSolutionMatrix &Solution() const {return fSolution;}
     
     /** @brief Access the  previous solution vector */
-    TPZFMatrix<STATE> &SolutionN();
+    TPZSolutionMatrix &SolutionN() {return fSolN;}
 	
 	/** @brief Access method for the element solution vectors */
-	TPZFMatrix<STATE> &ElementSolution();
+	TPZSolutionMatrix &ElementSolution() { return fElementSolution;}
 	
 	/** @} */
 	

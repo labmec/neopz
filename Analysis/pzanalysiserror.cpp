@@ -477,6 +477,8 @@ void TPZAnalysisError::MathematicaPlot() {
 		connects[iel] = gelptr[iel]->Reference()->ConnectIndex(locnodid[iel]);
 	}
 	TPZVec<STATE> sol(nnodes);
+	//TODOCOMPLEX
+	const TPZFMatrix<STATE> &compMeshSol = fCompMesh->Solution();
 	for(i=0; i<nnodes; i++) {
         TPZConnect *df = &fCompMesh->ConnectVec()[connects[i]];
         if(!df) {
@@ -486,7 +488,7 @@ void TPZAnalysisError::MathematicaPlot() {
         }
         int64_t seqnum = df->SequenceNumber();
         int64_t pos = fCompMesh->Block().Position(seqnum);
-        sol[i] = fCompMesh->Solution()(pos,0);
+        sol[i] = compMeshSol.Get(pos,0);
 	}
 	mesh << "\nSolucao nodal\n\n";
 	for(i=0;i<nnodes;i++) {
@@ -542,6 +544,8 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, bool store_error
 	fElErrors.Resize(numel);
 	fElIndexes.Resize(numel);
 	Mesh()->ElementSolution().Redim(numel,1);
+	//TODOCOMPLEX
+	TPZFMatrix<STATE> &meshElSol = Mesh()->ElementSolution();
 	// Sum of the errors over all computational elements
 	int64_t el;
 	for(el=0;el< numel;el++) {
@@ -554,10 +558,10 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, bool store_error
 				errorSum[ii] += elerror[ii]*elerror[ii];
 			
 			fElErrors[elcounter] = elerror[0];
-			(Mesh()->ElementSolution())(el,0) = elerror[0];
+			meshElSol(el,0) = elerror[0];
 			fElIndexes[elcounter++] = el;
 		} else {
-			(Mesh()->ElementSolution())(el,0) = 0.;
+			meshElSol(el,0) = 0.;
 		}
 	}
 	fElErrors.Resize(elcounter);

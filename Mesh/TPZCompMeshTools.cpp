@@ -646,8 +646,10 @@ static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, 
     cel->EvaluateError(func, errors, store_error);
     int64_t index = cel->Index();
     TPZCompMesh *mesh = cel->Mesh();
+    //TODOCOMPLEX
+    TPZFMatrix<STATE> &elementSol = mesh->ElementSolution();
     for (int i=0; i<3; i++) {
-        mesh->ElementSolution()(index,i) = errors[i];
+        elementSol(index,i) = errors[i];
         square_errors[i] += errors[i]*errors[i];
     }
 }
@@ -860,7 +862,7 @@ void TPZCompMeshTools::PrintSolutionByGeoElement(TPZCompMesh* cmesh, std::ostrea
             TPZManVector<STATE> connectsol;
             int64_t cindex = cel->ConnectIndex(ic);
             TPZConnect &c = cmesh->ConnectVec()[cindex];
-            cmesh->ConnectSolution(cindex, cmesh, cmesh->Solution(), connectsol);
+            cmesh->ConnectSolution<STATE>(cindex, cmesh, cmesh->Solution(), connectsol);
             //for (int i=0; i<connectsol.size(); i++) {
             //    if (fabs(connectsol[i]) < tol) {
             //        connectsol[i] = 0.;

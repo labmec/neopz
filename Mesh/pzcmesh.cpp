@@ -1411,12 +1411,13 @@ void TPZCompMesh::PermuteInternal(TPZFMatrix<TVar> &sol,TPZVec<int64_t> &permute
 	}
 }
 
-void TPZCompMesh::ConnectSolution(std::ostream & out) {
-	
+
+template<class TVar>
+void TPZCompMesh::ConnectSolutionInternal(std::ostream &out, const TPZFMatrix<TVar>&sol) const{
+    
 	out << "\n\t\tCONNECT INDEX SOLUTION:\n\n";
-	int64_t i;
-	int64_t ncon = NConnects();
-	for(i=0; i<ncon; i++) {
+	const int64_t ncon = NConnects();
+	for(int i=0; i<ncon; i++) {
 		out << i << ") ";
 		TPZConnect &df = ConnectVec()[i];
 		int64_t seqnum = df.SequenceNumber();
@@ -1427,10 +1428,14 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 		} else {
 			int64_t pos = Block().Position(seqnum);
 			for(int64_t j=0;j<Block().Size(seqnum);j++)
-				out << Solution()(pos+j,0) << "  ";
+				out << sol.Get(pos+j,0) << "  ";
 			out << std::endl;
 		}
 	}
+}
+void TPZCompMesh::ConnectSolution(std::ostream & out) {
+	//TODOCOMPLEX
+    ConnectSolutionInternal<STATE>(out,fSolution);
 }
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	
@@ -2114,25 +2119,6 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fNmeshes);
 }
 
-TPZFMatrix<STATE> &TPZCompMesh::Solution()
-{
-    return fSolution;
-}
-
-const TPZFMatrix<STATE> &TPZCompMesh::Solution() const
-{
-    return fSolution;
-}
-
-TPZFMatrix<STATE> &TPZCompMesh::SolutionN()
-{
-    return fSolN;
-}
-
-TPZFMatrix<STATE> &TPZCompMesh::ElementSolution()
-{
-    return fElementSolution;
-}
 
 void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps){
 	const int64_t nelements = this->NElements();

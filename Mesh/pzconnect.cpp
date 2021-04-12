@@ -69,6 +69,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	int nstate  = fCompose.fNState;
 	int nshape  = fNShape;
 	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << (int) LagrangeMultiplier();
+    const TPZFMatrix<STATE> &meshSol = mesh.Solution();
 	if(fSequenceNumber > -1)
 	{
         int64_t pos = mesh.Block().Position(fSequenceNumber);
@@ -78,7 +79,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 		int64_t ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
-			out << mesh.Solution().at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+			out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
 		}
 	}
 	
@@ -101,6 +102,8 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 {
 	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fNShape ;
 	out << " coordinate " << cp;
+    //TODOCOMPLEX
+    const TPZFMatrix<STATE> &meshSol = mesh.Solution();
 	if(fSequenceNumber > -1)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
@@ -108,7 +111,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 		int64_t ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
-			out << mesh.Solution().at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+			out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
 		}
 	}
 	

@@ -330,6 +330,9 @@ void TPZPostProcAnalysis::TransferSolution()
         DebugStop();
     }
     TPZCompMesh *solmesh = fpMainMesh;
+    //TODOCOMPLEX
+    TPZFMatrix<STATE> &comprefElSol = compref->ElementSolution();
+    const TPZFMatrix<STATE> &solmeshElSol = solmesh->ElementSolution();
     int64_t numelsol = solmesh->ElementSolution().Cols();
     int64_t nelem = compref->NElements();
     compref->ElementSolution().Redim(nelem, numelsol);
@@ -342,7 +345,7 @@ void TPZPostProcAnalysis::TransferSolution()
             }
             int64_t index = cel->Index();
             for (int64_t isol=0; isol<numelsol; isol++) {
-                compref->ElementSolution()(el,isol) = solmesh->ElementSolution()(index,isol);
+                comprefElSol(el,isol) = solmeshElSol.Get(index,isol);
             }
         }
     }

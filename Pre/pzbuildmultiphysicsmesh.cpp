@@ -353,7 +353,8 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
         TPZSubCompMesh *msub = dynamic_cast<TPZSubCompMesh*>(MFMesh);
         if(msub){
             TPZCompMesh * fathermesh = msub->FatherMesh();
-            
+            //TODOCOMPLEX
+            TPZFMatrix<STATE> &fathermeshSol = fathermesh->Solution();
             TPZCompEl *compel = dynamic_cast<TPZCompEl*>(msub);
             int nconnect = compel->NConnects();
             
@@ -379,7 +380,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVe
                 for(int idf=0 ; idf<nblock; idf++){
                     int posfather = blockfather.Position(seqnumfather);
                     STATE valsub = solsub(blocksub.Index(seqnumsub, idf));
-                    fathermesh->Solution()(posfather + idf) = valsub;
+                    fathermeshSol(posfather + idf) = valsub;
                 }
             }
             
@@ -408,6 +409,8 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
     for(int64_t connect = 0; connect < nconnect; connect++)
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
+        //TODOCOMPLEX
+        TPZFMatrix<STATE> &atomic_mesh_sol = atomic_mesh->Solution();
         if(!atomic_mesh) continue;
         TPZBlock &block = atomic_mesh->Block();
         int64_t atomicindexconnect = indexes[connect].second;
@@ -421,7 +424,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
         for (int idf=0; idf<blsize; idf++) {
             STATE val = solMF(blockMF.Index(seqnumMF, idf));
             int64_t pos = block.Position(seqnum);
-            atomic_mesh->Solution()(pos+idf) = val;          
+            atomic_mesh_sol(pos+idf) = val;          
         }
     }
     

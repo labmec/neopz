@@ -1096,7 +1096,8 @@ void TPZSBFemElementGroup::LoadSolution()
     
     TPZFNMatrix<100, std::complex<double> > uh_local(ncoef, fMesh->Solution().Cols(),0.);
     fCoef.Resize(ncoef,fMesh->Solution().Cols());
-    
+    //TODOCOMPLEX
+    TPZFMatrix<STATE> &meshSol = fMesh->Solution();
     int count = 0;
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = Connect(ic);
@@ -1108,7 +1109,7 @@ void TPZSBFemElementGroup::LoadSolution()
         for (int seq=0; seq < blsize; seq++) {
             for (int c=0; c<uh_local.Cols(); c++)
             {
-                uh_local(count+seq,c) = fMesh->Solution()(pos+seq,c);
+                uh_local(count+seq,c) = meshSol(pos+seq,c);
             }
         }
         count += blsize;

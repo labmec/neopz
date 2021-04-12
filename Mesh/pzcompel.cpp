@@ -435,9 +435,10 @@ void TPZCompEl::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<
 
 void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
     if(var >= 100) {
-        int ind = Index();
-        if(fMesh->ElementSolution().Cols() > var-100) {
-            sol[0] = fMesh->ElementSolution()(ind,var-100);
+        const int ind = Index();
+        TPZFMatrix<STATE> &elementSol = fMesh->ElementSolution();
+        if(elementSol.Cols() > var-100) {
+            sol[0] = elementSol(ind,var-100);
         } else {
             DebugStop();
             sol[0] = 0;
