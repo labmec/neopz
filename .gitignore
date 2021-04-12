@@ -10,3 +10,4 @@ NeoPZ_CMake
 *.icloud
 compile_commands.json
 .cquery_cached_index
+.ccls-cache

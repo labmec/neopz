@@ -714,17 +714,17 @@ void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis * an,
 void TPZPlaneFractureKernel::ApplyInitialCondition(STATE val)
 {
     this->fmeshVec[0]->Solution().Zero();
-    
+    TPZFMatrix<STATE> &fmesh0sol = fmeshVec[0]->Solution();
     ///Newman=0
-    this->fmeshVec[0]->Solution()(0,0) = 1.;
+    fmesh0sol(0,0) = 1.;
     
     ///Newman=1 on entire fracture
-    this->fmeshVec[0]->Solution()(1,0) = val;
+    fmesh0sol(1,0) = val;
     
     ///Newman=0 on stripes
-    for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
+    for(int r = 2; r < fmesh0sol.Rows(); r++)
     {
-        this->fmeshVec[0]->Solution()(r,0) = 0.;
+        fmesh0sol(r,0) = 0.;
     }
     
     this->PutConstantPressureOnFluidSolution(val);
@@ -733,9 +733,10 @@ void TPZPlaneFractureKernel::ApplyInitialCondition(STATE val)
 
 void TPZPlaneFractureKernel::PutConstantPressureOnFluidSolution(STATE val)
 {
-    for(int r = 0; r < this->fmeshVec[1]->Solution().Rows(); r++)
+    TPZFMatrix<STATE> &fmesh1sol = fmeshVec[1]->Solution();
+    for(int r = 0; r < fmesh1sol.Rows(); r++)
     {
-        this->fmeshVec[1]->Solution()(r,0) = val;
+        fmesh1sol(r,0) = val;
     }
     TPZBuildMultiphysicsMesh::TransferFromMeshes(this->fmeshVec, this->fmphysics);
 }
@@ -1010,18 +1011,19 @@ void TPZPlaneFractureKernel::PostProcessSolutions(int num)
     std::stringstream nm;
     nm << "Solutions_Step" << num << ".txt";
     std::ofstream solutFile(nm.str().c_str());
-    
+    TPZFMatrix<STATE> &fmesh0sol = fmeshVec[0]->Solution();
+    TPZFMatrix<STATE> &fmesh1sol = fmeshVec[1]->Solution();
     solutFile.precision(10);
     solutFile << "\nMeshvec[0]:\n";
-    solutFile << "(Entire fracture : " << this->fmeshVec[0]->Solution()(1,0) << ")\n";
-    for(int r = 2; r < this->fmeshVec[0]->Solution().Rows(); r++)
+    solutFile << "(Entire fracture : " << fmesh0sol(1,0) << ")\n";
+    for(int r = 2; r < fmesh0sol.Rows(); r++)
     {
-        solutFile << "Stripe" << (r-2) << " : " << this->fmeshVec[0]->Solution()(1,0) + this->fmeshVec[0]->Solution()(r,0) << ")\n";
+        solutFile << "Stripe" << (r-2) << " : " << fmesh0sol(1,0) + fmesh0sol(r,0) << ")\n";
     }
     solutFile << "\nMeshvec[1]:\n";
-    for(int r = 0; r < this->fmeshVec[1]->Solution().Rows(); r++)
+    for(int r = 0; r < fmesh1sol.Rows(); r++)
     {
-        solutFile << this->fmeshVec[1]->Solution()(r,0) << "\n";
+        solutFile << fmesh1sol(r,0) << "\n";
     }
 }
 //------------------------------------------------------------------------------------------------------------

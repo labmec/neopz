@@ -176,7 +176,8 @@ void TPZFracAnalysis::Run()
         DebugStop(); // Only works for p = 0 in pressure space
       }
       int pos = Block.Position(sq);
-      fmeshvec[1]->Solution()(pos,0) = fData->SigmaConf();
+      TPZFMatrix<STATE> &fmeshvec1sol = fmeshvec[1]->Solution();
+      fmeshvec1sol(pos,0) = fData->SigmaConf();
       
       // Transferindo para a multifisica
       TPZBuildMultiphysicsMesh::AddElements(fmeshvec, fcmeshMixed);
@@ -374,9 +375,10 @@ TPZCompMesh * TPZFracAnalysis::CreateCMeshPressureL2()
   //    TPZConnect &newnod = cmesh->ConnectVec()[i];
   //    newnod.SetLagrangeMultiplier(1);
   //  }
-  
-  for (int i = 0; i < cmesh->Solution().Rows(); i++) {
-    cmesh->Solution()(i,0) = fData->SigmaConf();
+
+  TPZFMatrix<STATE> &cmeshSol = cmesh->Solution();
+  for (int i = 0; i < cmeshSol.Rows(); i++) {
+    cmeshSol(i,0) = fData->SigmaConf();
   }
   
 #ifdef PZDEBUG
@@ -929,7 +931,8 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
 #endif
     int posleft = block.Position(seqleft);
     int pos = block.Position(seq);
-    fmeshvec[1]->Solution()(pos,0) = fmeshvec[1]->Solution()(posleft,0);
+    TPZFMatrix<STATE> &fmeshvec1sol = fmeshvec[1]->Solution();
+    fmeshvec1sol(pos,0) = fmeshvec1sol(posleft,0);
     
     if (nfracel < 5) {
       TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
@@ -966,7 +969,7 @@ void TPZFracAnalysis::SetPressureOnLastElement(TPZAnalysis *an)
 #endif
     int possecondleft = block.Position(seqsecondleft);
     
-    fmeshvec[1]->Solution()(posleft,0) = fmeshvec[1]->Solution()(possecondleft,0);
+    fmeshvec1sol(posleft,0) = fmeshvec1sol(possecondleft,0);
     
     TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
     an->LoadSolution(fcmeshMixed->Solution());
@@ -1027,8 +1030,9 @@ void TPZFracAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
   TPZConnect &c1Q = celQ->Connect(0), &c2Q = celQ->Connect(1);
   int seq1Q = c1Q.SequenceNumber(), seq2Q = c2Q.SequenceNumber();
   int pos1Q = blockQ.Position(seq1Q), pos2Q = blockQ.Position(seq2Q);
-  fmeshvec[0]->Solution()(pos1Q,0) = fData->Q();
-  fmeshvec[0]->Solution()(pos2Q,0) = qout;
+  TPZFMatrix<STATE> &fmeshvec0sol = fmeshvec[0]->Solution();
+  fmeshvec0sol(pos1Q,0) = fData->Q();
+  fmeshvec0sol(pos2Q,0) = qout;
   
   
   // Setando a pressao
@@ -1044,8 +1048,8 @@ void TPZFracAnalysis::ComputeFirstSolForOneELement(TPZAnalysis * an)
   TPZConnect &cP = celP->Connect(0);
   int seqP = cP.SequenceNumber();
   int posP = blockP.Position(seqP);
-  
-  fmeshvec[1]->Solution()(posP,0) = pini;
+  TPZFMatrix<STATE> &fmeshvec1sol = fmeshvec[1]->Solution();
+  fmeshvec1sol(posP,0) = pini;
   
   TPZBuildMultiphysicsMesh::TransferFromMeshes(fmeshvec, fcmeshMixed);
   an->LoadSolution(fcmeshMixed->Solution());

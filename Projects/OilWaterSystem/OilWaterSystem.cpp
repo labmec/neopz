@@ -1558,7 +1558,8 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
     int NumberOfConnects = cel->NConnects();
     TPZFMatrix<STATE> elSolution(NumberOfEquations,1,0.0);
     int64_t DestinationIndex = 0L;
-    
+
+    const TPZFMatrix<STATE> &mphysicsSol = mphysics->Solution();
     for(int iconnect = 0; iconnect < NumberOfConnects; iconnect++)
     {
         TPZConnect Connect = cel->Connect(iconnect);
@@ -1569,7 +1570,7 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
         for(int iblock = 0; iblock   < SizeOfBlockAtseq; iblock++)
         {
             
-            elSolution(DestinationIndex++,0) = mphysics->Solution()[BlockGlobalPosition+iblock];  
+            elSolution(DestinationIndex++,0) = mphysicsSol[BlockGlobalPosition+iblock];  
             
         }
     }
