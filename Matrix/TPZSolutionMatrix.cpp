@@ -1,11 +1,6 @@
 #include "TPZSolutionMatrix.h"
 #include "TPZStream.h"
 
-TPZSolutionMatrix::TPZSolutionMatrix()
-    : fSolType(EUndefined) {
-    fBaseMatrix = nullptr;
-}
-
 TPZSolutionMatrix::TPZSolutionMatrix(bool is_complex) {
   fSolType = is_complex ? EComplex : EReal;
   if(fSolType == EReal)

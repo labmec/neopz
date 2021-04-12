@@ -143,13 +143,14 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     }
     
     //Solve linear system and transfer the solution to computational mesh
+    //TODOCOMPLEX
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
     step.SetMatrix(stiffmatrix);
     TPZFMatrix<STATE> result;
     step.Solve(rhs, result);
 //    cmesh->Solution().Zero();
-    //TODOCOMPLEX
+    
     cmesh->LoadSolution(result);
     
 //        stiffmatrix->Print("MatKRG = ");

@@ -87,7 +87,7 @@ void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix)
 }
 TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
-fRhs(false), fSolution(false),//TODOCOMPLEX
+fRhs(), fSolution(),//TODOCOMPLEX:set matrix type (complex/real)
 fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
 , fGuiInterface(NULL), fTable(), fExact(NULL) {
 	fGraphMesh[0] = 0;
@@ -99,7 +99,7 @@ fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(n
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
-fRhs(false), fSolution(false),//TODOCOMPLEX
+fRhs(), fSolution(),//TODOCOMPLEX:set matrix type (complex/real)
 fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
@@ -111,7 +111,7 @@ fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
-fRhs(false), fSolution(false),//TODOCOMPLEX
+fRhs(), fSolution(),//TODOCOMPLEX:set matrix type (complex/real)
 fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
 {
 	fGraphMesh[0] = 0;
@@ -454,7 +454,6 @@ void TPZAnalysis::Solve() {
 
 void TPZAnalysis::LoadSolution() {	
 	if(fCompMesh) {
-        //TODOCOMPLEX
 		fCompMesh->LoadSolution(fSolution);
 	}
 }
@@ -489,7 +488,6 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	//TPZVec<REAL> sigx((int) neq);
 	TPZManVector<REAL,10> values(10,0.);
 	TPZManVector<REAL,10> values2(10,0.);
-    //TODOCOMPLEX
 	fCompMesh->LoadSolution(fSolution);
 	TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
 	TPZManVector<REAL,10> errors(10);
@@ -681,7 +679,6 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
 
 void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){ //totto
 
-  //TODOCOMPLEX
   fCompMesh->LoadSolution(fSolution);
   const int numthreads = this->fNthreadsError;
   std::vector<std::thread> allthreads;
@@ -787,7 +784,6 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
     int64_t i, nel = elvec.NElements();
     int64_t nelgeom = gmesh->NElements();
     TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
-    //TODOCOMPLEX
     fCompMesh->LoadSolution(fSolution);
     //	SetExact(&Exact);
     TPZManVector<REAL,10> errors(10);
@@ -1122,7 +1118,7 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 void TPZAnalysis::AnimateRun(int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
 							 TPZVec<std::string> &vecnames, const std::string &plotfile) {
 	Assemble();
-	
+	//TODOCOMPLEX
 	int64_t numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) return;
 	
@@ -1144,7 +1140,7 @@ void TPZAnalysis::AnimateRun(int64_t num_iter, int steps, TPZVec<std::string> &s
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
 		fSolver->Solve(fRhs, fSolution);
-		//TODOCOMPLEX
+		
 		fCompMesh->LoadSolution(fSolution);
 		gg.DrawSolution(i-1,0);
 	}

@@ -460,7 +460,6 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         if (m_active_approx_spaces[i_as] == 0) {
             continue;
         }
-        //TODOCOMPLEX
         m_mesh_vector[i_as]->LoadSolution((m_mesh_vector[i_as]->Solution()));
     }
 }
