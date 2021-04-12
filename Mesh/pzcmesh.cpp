@@ -82,8 +82,9 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) :
     else {
         SetName( "Computational mesh");
     }
-	fBlock.SetMatrix(fSolution.GetMatrixPtr());
-	fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
+    TPZBaseMatrix &sol = fSolution;
+	fBlock.SetMatrix(&sol);
+	fSolutionBlock.SetMatrix(&sol);
     
     fNmeshes = 0;
 }
@@ -118,8 +119,9 @@ TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) :
     else {
         SetName( "Computational mesh");
     }
-    fBlock.SetMatrix(fSolution.GetMatrixPtr());
-    fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
+    TPZBaseMatrix &sol = fSolution;
+    fBlock.SetMatrix(&sol);
+    fSolutionBlock.SetMatrix(&sol);
     
     fNmeshes = 0;
 }
@@ -1727,8 +1729,9 @@ fSolN(copy.fSolN)
 
 	fDefaultOrder = copy.fDefaultOrder;
 	fReference->ResetReference();
-	fBlock.SetMatrix(fSolution.GetMatrixPtr());
-    fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
+    TPZBaseMatrix &sol = fSolution;
+	fBlock.SetMatrix(&sol);
+    fSolutionBlock.SetMatrix(&sol);
 	copy.CopyMaterials(*this);
 	int64_t nel = copy.fElementVec.NElements();
 	fElementVec.Resize(nel);
@@ -1777,10 +1780,11 @@ TPZCompMesh &TPZCompMesh::operator=(const TPZCompMesh &copy)
     fReference->ResetReference();
     fConnectVec = copy.fConnectVec;
     copy.CopyMaterials(*this);
-    fSolutionBlock = copy.fSolutionBlock;    
-    fSolutionBlock.SetMatrix(fSolution.GetMatrixPtr());
+    fSolutionBlock = copy.fSolutionBlock;
+    TPZBaseMatrix &sol = fSolution;
+    fSolutionBlock.SetMatrix(&sol);
     fBlock = copy.fBlock;
-    fBlock.SetMatrix(fSolution.GetMatrixPtr());
+    fBlock.SetMatrix(&sol);
     fElementSolution = copy.fElementSolution;
     fSolution = copy.fSolution;
     fSolN = copy.fSolN;

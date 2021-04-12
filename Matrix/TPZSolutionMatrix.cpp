@@ -96,6 +96,10 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
     return *this;
 }
 
+TPZSolutionMatrix::operator TPZBaseMatrix &(){
+    return *fBaseMatrix;
+}
+
 TPZSolutionMatrix::operator TPZFMatrix<STATE> &(){
     if(fSolType != EReal){
         PZError<<__PRETTY_FUNCTION__;

@@ -51,13 +51,15 @@ public:
   TPZSolutionMatrix &operator=(const TPZFMatrix<TVar> &mat);
 
   //@{
-  //! Conversion function to TPZFMatrix<STATE>. Throws error if incompatible
+  //! Conversion function to TPZFMatrix<STATE>&. Throws error if incompatible
   operator TPZFMatrix<STATE>& ();
   operator const TPZFMatrix<STATE>& () const;
   //@}
+  //! Conversion function to TPZBaseMatrix&
+  operator TPZBaseMatrix& ();
   
   // //@{
-  // //! Conversion function to TPZFMatrix<CSTATE>. Throws error if incompatible
+  // //! Conversion function to TPZFMatrix<CSTATE>&. Throws error if incompatible
   // operator TPZFMatrix<CSTATE>& ();
   // operator const TPZFMatrix<CSTATE>& () const;
   // //@}
@@ -78,8 +80,6 @@ public:
   int Zero() {
     return fBaseMatrix->Zero();
   }
-  //! Get pointer to TPZBaseMatrix associated with the FEM solution
-  inline TPZBaseMatrix *GetMatrixPtr() { return fBaseMatrix; }
   //! ClassId method
   int ClassId() const override{
     return Hash("TPZSolutionMatrix");
