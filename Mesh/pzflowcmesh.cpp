@@ -249,16 +249,8 @@ void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
 
 void TPZFlowCompMesh::ExpandSolution2()
 {
-  // TODOCOMPLEX
-  if (auto tmp = dynamic_cast<TPZFMatrix<STATE> *>(fSolution.GetMatrixPtr());
-      tmp) {
-    ExpandSolution2Internal(*tmp);
-  } else {
-    PZError << "Incompatible matrix type in ";
-    PZError << __PRETTY_FUNCTION__ << '\n';
-    PZError << std::endl;
-    DebugStop();
-  }
+	//TODOCOMPLEX
+	ExpandSolution2Internal<STATE>(fSolution);
 }
 
 template<class TVar>
