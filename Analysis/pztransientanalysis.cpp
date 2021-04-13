@@ -273,8 +273,13 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::PostProcess(TPZVec<REAL> &loc, std::o
     out << "\n***************************************\n" << std::endl;
 }//method
 
+
 template<class TRANSIENTCLASS>
-void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
+template<class TVar>
+void TPZTransientAnalysis<TRANSIENTCLASS>::AssembleInternal()
+{
+	auto &mySolver = MatrixSolver<TVar>();
+	auto solverMat = mySolver.Matrix();
 	if(!fCompMesh || !fStructMatrix || !fSolver){
 		cout << "TPZTransientAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
 		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << fSolver << " at file " 
@@ -286,7 +291,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
 	fRhs.Redim(sz,1);
 	
 	bool exist = false;
-	if(fSolver->Matrix()) if (fSolver->Matrix()->Rows()==sz) exist = true;
+	if(solverMat) if (solverMat->Rows()==sz) exist = true;
 	TPZAutoPointer<TPZGuiInterface> inter = new TPZGuiInterface;
 	if (exist){
 		if (fIsLinearProblem){
@@ -294,8 +299,8 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
 			fStructMatrix->Assemble(fRhs,inter);
 		}
 		else{
-			fSolver->Matrix()->Zero();
-			fStructMatrix->Assemble((TPZMatrix<STATE>&)fSolver->Matrix(),fRhs,inter);
+			solverMat->Zero();
+			fStructMatrix->Assemble((TPZMatrix<TVar>&)solverMat,fRhs,inter);
 		}
 	}
 	else{
@@ -304,10 +309,15 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
 			<< " methodTPZTransientAnalysis::ComputeLinearTangentMatrix()"
 			<< " when (this->fIsLinearProblem == true)\n";
 		}
-		TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
-		fSolver->SetMatrix(mat);
+		TPZMatrix<TVar> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
+		mySolver.SetMatrix(mat);
 	}
-	fSolver->UpdateFrom(fSolver->Matrix());
+	mySolver.UpdateFrom(solverMat);
+}
+template<class TRANSIENTCLASS>
+void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
+	//TODOCOMPLEX
+	AssembleInternal<STATE>();
 }
 
 template<class TRANSIENTCLASS>
@@ -316,8 +326,9 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeLinearTangentMatrix(){
 	this->SetCurrentState();
 	const int sz = this->Mesh()->NEquations();
 	fRhs.Redim(sz,1);
+	//TODOCOMPLEX
 	TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
-	fSolver->SetMatrix(mat);
+	MatrixSolver<STATE>().SetMatrix(mat);
 }//method
 
 template<class TRANSIENTCLASS>
@@ -325,12 +336,14 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeMassMatrix(){
 	this->SetMassMatrix();
 	const int sz = this->Mesh()->NEquations();
 	fRhs.Redim(sz,1);
+	//TODOCOMPLEX
 	TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
-	fSolver->SetMatrix(mat);
+	MatrixSolver<STATE>().SetMatrix(mat);
 }//method
 
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
+	//TODOCOMPLEX
 	if(!fCompMesh || !fStructMatrix || !fSolver){
 		cout << "TPZTransientAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
 		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << fSolver << " at file " 
@@ -341,7 +354,8 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
 	this->SetFluxOnly();  
 	int sz = fCompMesh->NEquations();
 	fRhs.Redim(sz,1);
-	if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz){
+	auto solverMat = MatrixSolver<STATE>().Matrix();
+	if(solverMat && solverMat->Rows()==sz){
 		fStructMatrix->Assemble(fRhs,NULL);
 		//    TPZStructMatrix::Assemble(fRhs, *Mesh());
 	}//if

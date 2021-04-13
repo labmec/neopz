@@ -815,7 +815,7 @@ void Teste()
 	cmesh->ExpandSolution();
 	
 	//Olhando residuo
-	TPZAutoPointer<TPZMatrix<STATE> > mat = an2.Solver().Matrix();
+	TPZAutoPointer<TPZMatrix<STATE> > mat = an2.MatrixSolver<STATE>().Matrix();
 	
 	TPZFMatrix<STATE> carga = an2.Rhs();
 	const TPZFMatrix<STATE> sol = cmesh->Solution();

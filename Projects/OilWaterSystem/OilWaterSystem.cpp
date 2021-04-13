@@ -1028,7 +1028,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
         
     TPZAutoPointer< TPZMatrix<STATE> > matK;
     TPZFMatrix<STATE> fvec;
-    matK=NonLinearAn->Solver().Matrix();
+    matK=NonLinearAn->MatrixSolver<STATE>().Matrix();
     fvec = NonLinearAn->Rhs();
     
 #ifdef PZ_LOG
@@ -1436,7 +1436,7 @@ void ComputeResidual(TPZFMatrix<STATE> &RUattn, STATE &alpha, TPZFMatrix<STATE> 
     TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
     
     TPZFMatrix<STATE> ResidualAtU = RUattn + RhsAtnPlusOne;     
-    NonLinearAn->Solver().Matrix()->Multiply(STATE(1.0)*alpha*DeltaU,TangentRes);
+    NonLinearAn->MatrixSolver<STATE>().Matrix()->Multiply(STATE(1.0)*alpha*DeltaU,TangentRes);
 
     {
         const TPZFMatrix<STATE> &nonLinAnSol = NonLinearAn->Solution();

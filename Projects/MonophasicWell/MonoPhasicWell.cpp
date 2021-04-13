@@ -165,7 +165,7 @@ void PrintLS(TPZAnalysis *an)
 {
     TPZAutoPointer< TPZMatrix<STATE> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
-    KGlobal =   an->Solver().Matrix();
+    KGlobal =   an->MatrixSolver<STATE>().Matrix();
     FGlobal =   an->Rhs();
     
 #ifdef PZDEBUG

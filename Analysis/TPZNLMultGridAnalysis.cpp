@@ -432,21 +432,21 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
 	out.close();
 }
 
-void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &an,
-											 const std::string &decompose,TPZFMatrix<STATE> &res){
-	
-	TPZAutoPointer<TPZMatrix<STATE> > stiff = an.Solver().Matrix();
+template<class TVar>
+void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<TVar> &sol,TPZAnalysis &an,
+											 const std::string &decompose,TPZFMatrix<TVar> &res){
+	TPZAutoPointer<TPZMatrix<TVar> > stiff = an.MatrixSolver<TVar>().Matrix();
 	ofstream out("CalcResidual_STIFF.out");
 	stiff->Print("\n\n\t\t\t* * * MATRIZ DE RIGIDEZ * * *\n\n",out);
 	int dim = stiff->Dim(),i,j;
 	res.Redim(dim,1);
 	//c�culo de stiff * solution
-	TPZFMatrix<STATE> tsup(dim,1),diag(dim,1),tinf(dim,1);
+	TPZFMatrix<TVar> tsup(dim,1),diag(dim,1),tinf(dim,1);
 	
 	if( !strcmp(decompose.c_str() , "LDLt") ) {
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
-			STATE sum = 0.;
+			TVar sum = 0.;
 			for(j=i+1;j<dim;j++){
 				sum += stiff->GetVal(i,j) * sol(j,0);
 			}
@@ -456,7 +456,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &
 		for(i=0;i<dim;i++) diag(i,0) = stiff->GetVal(i,i) * tsup(i,0);
 		//tri�gulo inferior
 		for(i=0;i<dim;i++) {
-			STATE sum = 0.;
+			TVar sum = 0.;
 			for(j=0;j<i;j++) {
 				sum += stiff->GetVal(i,j) * diag(j,0);
 			}
@@ -482,21 +482,22 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &
 	}
 }
 
+template<class TVar>
+void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<TVar> &sol,TPZFMatrix<TVar> &anres,
+											 TPZFMatrix<TVar> &res,TPZAnalysis &an,const std::string &decompose){
 
-void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZFMatrix<STATE> &anres,
-											 TPZFMatrix<STATE> &res,TPZAnalysis &an,const std::string &decompose){
 	
-	TPZAutoPointer<TPZMatrix<STATE> > stiff = an.Solver().Matrix();
+	TPZAutoPointer<TPZMatrix<TVar> > stiff = an.MatrixSolver<TVar>().Matrix();
 	ofstream out("CalcResidual_STIFF.out");
 	stiff->Print("\n\n\t\t\t* * * MATRIZ DE RIGIDEZ * * *\n\n",out);
 	int dim = stiff->Dim(),i,j;
 	//c�culo de stiff * solution
-	TPZFMatrix<STATE> tsup(dim,1),diag(dim,1),tinf(dim,1);
+	TPZFMatrix<TVar> tsup(dim,1),diag(dim,1),tinf(dim,1);
 	
 	if( !strcmp(decompose.c_str() , "LDLt") ){
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
-			STATE sum = 0.;
+			TVar sum = 0.;
 			for(j=i+1;j<dim;j++){
 				sum += stiff->GetVal(i,j);
 			}
@@ -506,14 +507,14 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZFMatrix<ST
 		for(i=0;i<dim;i++) diag(i,0) = stiff->GetVal(i,i) * tsup(i,0);
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
-			STATE sum = 0.;
+			TVar sum = 0.;
 			for(j=0;j<i;j++){
 				sum += stiff->GetVal(i,j) * diag(i,0);
 			}
 			tinf(i,0) = sum + diag(i,0);
 		}
 		//diferenca (f - stiff * x)
-		//TPZFMatrix<STATE> rhs = an.Rhs();
+		//TPZFMatrix<TVar> rhs = an.Rhs();
 		for(i=0;i<dim;i++) res(i,0) = anres.GetVal(i,0) - tinf(i,0);
 		sol.Print("\n* * * sol * * *\n",cout);
 		anres.Print("\n* * * anres * * *\n",cout);
@@ -773,3 +774,14 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	CoutTime(fInit,"TPZNonLinMultGridAnalysis::SmoothingSolution general time of iterative process");
 }
 
+template void
+TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
+	TPZMatrix<STATE> &sol, TPZAnalysis &an,
+	const std::string &decompose,
+	TPZFMatrix<STATE> &res);
+
+template void
+TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
+    TPZMatrix<STATE> &sol, TPZFMatrix<STATE> &anres,
+	TPZFMatrix<STATE> &res, TPZAnalysis &an,
+	const std::string &decompose);

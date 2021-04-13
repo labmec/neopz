@@ -1263,7 +1263,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
-			TPZAbstractFrontMatrix<STATE> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *> (fAnalysis->Solver().Matrix().operator->());
+			TPZAbstractFrontMatrix<STATE> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *> (fAnalysis->MatrixSolver<STATE>().Matrix().operator->());
 			if(frontmat)
 			{
 				sman->SetFront(frontmat->GetFront());

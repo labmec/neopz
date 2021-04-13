@@ -220,7 +220,9 @@ protected:
 	
 	/** @brief Indication if a frontal matrix is being used as a preconditioner */
 	int fHasFrontalPreconditioner;
-	
+private:
+	template<class TVar>
+	void AssembleInternal();
 };
 
 #endif

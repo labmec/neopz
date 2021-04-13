@@ -28,20 +28,23 @@ TPZSubMeshFrontalAnalysis::~TPZSubMeshFrontalAnalysis()
 void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
 	
 	//fReducableStiff.Print("Reducable stiff before assembled");
+    //TODOCOMPLEX
 	fReferenceSolution = fSolution;
 	Assemble();
+    auto solverMat = MatrixSolver<STATE>().Matrix();
 	//    fSolver->Solve(fRhs, fRhs);
-    if(fSolver->Matrix()->IsDecomposed() == ELU)
+    if(solverMat->IsDecomposed() == ELU)
     {
         TPZFMatrix<STATE> &rhs = fRhs;
-        fSolver->Matrix()->Subst_Forward(&rhs);
-    } else if(fSolver->Matrix()->IsDecomposed() == ECholesky)
+        solverMat->Subst_Forward(&rhs);
+    } else if(solverMat->IsDecomposed() == ECholesky)
     {
         TPZFMatrix<STATE> &rhs = fRhs;
-        fSolver->Matrix()->Subst_Forward(&rhs);
-    } else if(fSolver->Matrix()->IsDecomposed() == ELDLt)
+        solverMat->Subst_Forward(&rhs);
+    } else if(solverMat->IsDecomposed() == ELDLt)
     {
-        std::cout << "Dont know what to do...\n";
+        PZError << __PRETTY_FUNCTION__;
+        PZError << ": dont know what to do...\n";
         DebugStop();
     }    
 }
@@ -71,18 +74,19 @@ void TPZSubMeshFrontalAnalysis::LoadSolutionInternal(
     int numinter = fMesh->NumInternalEquations();
 	int numeq = fMesh->TPZCompMesh::NEquations();
 	TPZFMatrix<TVar> soltemp(numeq,1,0.);
+    auto solverMat = MatrixSolver<STATE>().Matrix();
 	int i;
 	for(i=0;i<numinter;i++) soltemp(i,0) = myRhs.GetVal(i,0);
 	for(; i<numeq; i++) {
 		soltemp(i,0) = sol.GetVal(i,0)-myRefSol.GetVal(i,0);
 	}
-    if(fSolver->Matrix()->IsDecomposed() == ELU)
+    if(solverMat->IsDecomposed() == ELU)
     {
-        fSolver->Matrix()->Subst_Backward(&soltemp);
-    } else if(fSolver->Matrix()->IsDecomposed() == ECholesky)
+        solverMat->Subst_Backward(&soltemp);
+    } else if(solverMat->IsDecomposed() == ECholesky)
     {
-        fSolver->Matrix()->Subst_Backward(&soltemp);
-    } else if(fSolver->Matrix()->IsDecomposed() == ELDLt)
+        solverMat->Subst_Backward(&soltemp);
+    } else if(solverMat->IsDecomposed() == ELDLt)
     {
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" logic error. Aborting...\n";

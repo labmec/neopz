@@ -706,7 +706,7 @@ void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis * an,
     
     an->Assemble();
     
-    matK = an->Solver().Matrix();
+    matK = an->MatrixSolver<STATE>().Matrix();
     matRes = an->Rhs();
 }
 //------------------------------------------------------------------------------------------------------------

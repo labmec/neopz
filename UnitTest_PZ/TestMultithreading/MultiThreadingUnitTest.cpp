@@ -136,7 +136,7 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
     an.Assemble();
-    return an.Solver().Matrix();
+    return an.MatrixSolver<STATE>().Matrix();
   };
 
   auto start = std::chrono::system_clock::now();

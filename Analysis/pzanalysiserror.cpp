@@ -81,7 +81,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		TPZSkylineStructMatrix skystr(fCompMesh);
 		SetStructuralMatrix(skystr);
 		TPZStepSolver<STATE> sol;
-		sol.ShareMatrix(Solver());
+		sol.ShareMatrix(MatrixSolver<STATE>());
 		
 		sol.SetDirect(ECholesky);//ECholesky
 		SetSolver(sol);

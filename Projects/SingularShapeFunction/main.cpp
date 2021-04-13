@@ -371,7 +371,7 @@ int main1(){
   an.Assemble();
 
 {ofstream fileKsdvcxcxv("k.nb");
- an.Solver().Matrix()->Print("m=",fileKsdvcxcxv,EMathematicaInput);
+ an.MatrixSolver<STATE>().Matrix()->Print("m=",fileKsdvcxcxv,EMathematicaInput);
  fileKsdvcxcxv << "\nRe[Eigenvalues[m]]\n";
  }
  

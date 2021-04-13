@@ -51,8 +51,8 @@ protected:
 	TPZSolutionMatrix fRhs;
 	/** @brief Solution vector */
 	TPZSolutionMatrix fSolution;
-	/** @brief Type of solver to be applied */
-	TPZMatrixSolver<STATE> *fSolver;
+	/** @brief Type of solver to be applied*/
+	TPZSolver *fSolver;
 	/** @brief Scalar variables names - to post process */
 	TPZVec<std::string> fScalarNames[3];
 	/** @brief Vectorial variables names - to post process */
@@ -95,15 +95,7 @@ protected:
 	};
 	
         TTablePostProcess fTable;
-
-    template<class TVar>
-    void SolveInternal();
-    template<class TVar>
-    void ShowShapeInternal(const TPZStack<std::string> &scalnames,
-      const TPZStack<std::string> &vecnames,
-      const std::string &plotfile,
-      TPZVec<int64_t> &equationindices);
-	public :
+  public:
 	
     /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
     std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
@@ -137,10 +129,6 @@ protected:
 	
 	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
-        
-        void Write(TPZStream &buf, int withclassid) const override;
-
-        void Read(TPZStream &buf, void *context) override;
 	
 	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
@@ -199,7 +187,8 @@ protected:
 	
 	/** @brief Define the type of preconditioner used */
 	/** This method will create the stiffness matrix but without assembling */
-	TPZMatrixSolver<STATE> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
+    template<class TVar>
+	TPZMatrixSolver<TVar> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
 	
     /** @brief ste the step for post processing */
     void SetStep(int step)
@@ -221,13 +210,7 @@ protected:
 	void SetTime(REAL time);
 	/** @brief Gets time used in dx files */
 	REAL GetTime();
-	
-private:
-	
-	/** @brief Build a sequence solver based on the block graph and its colors */
-	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq, int numcolors, TPZVec<int> &colors);
 
-public:
 	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape(const std::string &plotfile, TPZVec<int64_t> &equationindices);
     /** @brief Graphic of the solution as V3DGrap visualization */
@@ -315,25 +298,30 @@ public:
     
     /// Print the residual vector for those elements with entry above a given tolerance
     void PrintVectorByElement(std::ostream &out, TPZFMatrix<STATE> &vec, REAL tol = 1.e-10);
-    
-	/** @brief Get the solver matrix */
-	TPZMatrixSolver<STATE> & Solver();
+
+    inline TPZSolver * Solver() {return fSolver;}
+	/** @brief Get the matrix solver */
+    template<class TVar>
+	TPZMatrixSolver<TVar> & MatrixSolver();
 	/** @brief Run and print the solution step by step */
 	void AnimateRun(int64_t num_iter, int steps,
 					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
 	/** @brief Set solver matrix */
-	void SetSolver(TPZMatrixSolver<STATE> &solver);
+	void SetSolver(const TPZSolver &solver);
 	/** @brief Set structural matrix as auto pointer for analysis */
 	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
 	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
   
-    public:
-int ClassId() const override;
-
-  struct ThreadData{
+    int ClassId() const override;
     
-    TPZAdmChunkVector<TPZCompEl *> fElvec;
+    void Write(TPZStream &buf, int withclassid) const override;
+
+    void Read(TPZStream &buf, void *context) override;
+    
+    struct ThreadData {
+
+      TPZAdmChunkVector<TPZCompEl *> fElvec;
     
       ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
     
@@ -361,7 +349,26 @@ int ClassId() const override;
   };
   
   friend struct ThreadData;
-	
+
+private:
+  /** @brief Build a sequence solver based on the block graph and its colors */
+  template <class TVar>
+  TPZMatrixSolver<TVar> *
+  BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
+                      int64_t neq, int numcolors, TPZVec<int> &colors);
+
+  template <class TVar> void AssembleInternal();
+  template <class TVar> void SolveInternal();
+  template <class TVar>
+  void ShowShapeInternal(const TPZStack<std::string> &scalnames,
+                         const TPZStack<std::string> &vecnames,
+                         const std::string &plotfile,
+                         TPZVec<int64_t> &equationindices);
+  template <class TVar>
+  void AnimateRunInternal(int64_t num_iter, int steps,
+                          TPZVec<std::string> &scalnames,
+                          TPZVec<std::string> &vecnames,
+                          const std::string &plotfile);
 };
 
 
@@ -372,12 +379,6 @@ TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE>
 	fExact=f;
 }
 
-inline TPZMatrixSolver<STATE> &
-
-TPZAnalysis::Solver(){
-	return (*fSolver);
-}
-
 inline void TPZAnalysis::SetTime(REAL time){
 	this->fTime = time;
 }
@@ -385,5 +386,11 @@ inline void TPZAnalysis::SetTime(REAL time){
 inline REAL TPZAnalysis::GetTime(){
 	return this->fTime;
 }
+
+extern template
+TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
+    EPrecond preconditioner,bool overlap);
+extern template
+TPZMatrixSolver<STATE> &TPZAnalysis::MatrixSolver<STATE>();
 
 #endif

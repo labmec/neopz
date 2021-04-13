@@ -310,14 +310,17 @@ void TPZAnalysis::AssembleResidual(){
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 }//void
 
-void TPZAnalysis::Assemble()
+template<class TVar>
+void TPZAnalysis::AssembleInternal()
 {
-	if(!fCompMesh || !fStructMatrix || !fSolver)
+    auto mySolver =
+        dynamic_cast<TPZMatrixSolver<TVar> *>(fSolver);
+    if(!fCompMesh || !fStructMatrix || !mySolver)
 	{
 		std::stringstream sout;
 		sout << "TPZAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh
 		<< " fStructMatrix " << (void *) fStructMatrix.operator->()
-		<< " fSolver " << (void *) fSolver;
+		<< " mySolver " << (void *) mySolver;
 #ifndef WINDOWS
 		sout << " at file " << __FILE__ << " line " << __LINE__ ;
 #else
@@ -333,17 +336,17 @@ void TPZAnalysis::Assemble()
     int numloadcases = ComputeNumberofLoadCases();
 	int64_t sz = fCompMesh->NEquations();
 	fRhs.Redim(sz,numloadcases);
-	if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
+	if(mySolver->Matrix() && mySolver->Matrix()->Rows()==sz)
 	{
-		fSolver->Matrix()->Zero();
-		fStructMatrix->Assemble(*(fSolver->Matrix().operator ->()),fRhs,fGuiInterface);
+		mySolver->Matrix()->Zero();
+		fStructMatrix->Assemble(*(mySolver->Matrix().operator ->()),fRhs,fGuiInterface);
 	}
 	else
 	{
         
-		TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
-		fSolver->SetMatrix(mat);
-		//aqui TPZFMatrix<STATE> nao eh nula
+		TPZMatrix<TVar> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
+		mySolver->SetMatrix(mat);
+		//aqui TPZFMatrix<TVar> nao eh nula
 	}
 #ifdef PZ_LOG
     if(logger.isDebugEnabled())
@@ -355,7 +358,12 @@ void TPZAnalysis::Assemble()
     }
 #endif
     
-	fSolver->UpdateFrom(fSolver->Matrix());
+	mySolver->UpdateFrom(mySolver->Matrix());
+}
+void TPZAnalysis::Assemble()
+{
+	//TODOCOMPLEX
+    TPZAnalysis::AssembleInternal<STATE>();
 }
 
 
@@ -367,6 +375,8 @@ void TPZAnalysis::SolveInternal(){
         DebugStop();
     }
 	int64_t nReducedEq = fStructMatrix->NReducedEquations();
+    auto mySolver =
+        dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
     if (nReducedEq == numeq) 
     {
         TPZFMatrix<TVar> residual(fRhs);
@@ -377,7 +387,7 @@ void TPZAnalysis::SolveInternal(){
         if (logger.isDebugEnabled())
         {
             TPZFMatrix<TVar> res2(fRhs);
-            fSolver->Matrix()->Residual(fSolution,fRhs,res2);
+            mySolver->Matrix()->Residual(fSolution,fRhs,res2);
             std::stringstream sout;
             sout << "Residual norm " << Norm(res2) << std::endl;
     //		res2.Print("Residual",sout);
@@ -387,18 +397,18 @@ void TPZAnalysis::SolveInternal(){
     
 //        {
 //            std::ofstream out("Matrix.nb");
-//            fSolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
+//            mySolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
 //
 //        }
-        fSolver->Solve(residual, delu);
+        mySolver->Solve(residual, delu);
         fSolution = delu;
 #ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
-            if(!fSolver->Matrix()->IsDecomposed())
+            if(!mySolver->Matrix()->IsDecomposed())
             {
                 TPZFMatrix<TVar> res2(fRhs);
-                fSolver->Matrix()->Residual(delu,fRhs,res2);
+                mySolver->Matrix()->Residual(delu,fRhs,res2);
                 std::stringstream sout;
                 sout << "Residual norm " << Norm(res2) << std::endl;
                 //            res2.Print("Residual",sout);
@@ -413,13 +423,13 @@ void TPZAnalysis::SolveInternal(){
         TPZFMatrix<TVar> residual(nReducedEq,1,0.);
     	TPZFMatrix<TVar> delu(nReducedEq,1,0.);
         fStructMatrix->EquationFilter().Gather<TVar>(fRhs,residual);
-	    fSolver->Solve(residual, delu);
+	    mySolver->Solve(residual, delu);
         fSolution.Redim(numeq,1);
         fStructMatrix->EquationFilter().Scatter<TVar>(delu,fSolution);
     }
 #ifdef PZ_LOG
     std::stringstream sout;
-    TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *> (fSolver);
+    TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *> (mySolver);
     if(!step) DebugStop();
     int64_t nsing = step->Singular().size();
 	if(nsing && logger.isWarnEnabled()) {
@@ -1115,35 +1125,41 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	fStep++;
 }
 
-void TPZAnalysis::AnimateRun(int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
-							 TPZVec<std::string> &vecnames, const std::string &plotfile) {
-	Assemble();
-	//TODOCOMPLEX
+
+template<class TVar>
+void TPZAnalysis::AnimateRunInternal(
+    int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
+    TPZVec<std::string> &vecnames, const std::string &plotfile)
+{
+    Assemble();
 	int64_t numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) return;
 	
-	TPZFMatrix<STATE> residual(fRhs);
+	TPZFMatrix<TVar> residual(fRhs);
 	int dim = HighestDimension();
     std::set<int> matids;
     IdentifyPostProcessingMatIds(dim, matids);
 	TPZDXGraphMesh gg(fCompMesh,dim,matids,scalnames,vecnames) ;
 	gg.SetFileName(plotfile);
 	gg.SetResolution(0);
-	gg.DrawMesh(num_iter);
-	
-	int64_t i;
-	for(i=1; i<=num_iter;i+=steps){
-		
-		
-		TPZStepSolver<STATE> sol;
-		sol.ShareMatrix(Solver());
+    auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
+	for(auto i=1; i<=num_iter;i+=steps){
+		TPZStepSolver<TVar> sol;
+		sol.ShareMatrix(*mySolver);
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
-		fSolver->Solve(fRhs, fSolution);
-		
+		mySolver->Solve(fRhs, fSolution);
 		fCompMesh->LoadSolution(fSolution);
 		gg.DrawSolution(i-1,0);
 	}
+}
+    
+void TPZAnalysis::AnimateRun(
+    int64_t num_iter, int steps, TPZVec<std::string> &scalnames,
+    TPZVec<std::string> &vecnames, const std::string &plotfile)
+{
+	//TODOCOMPLEX
+    AnimateRunInternal<STATE>(num_iter,steps,scalnames,vecnames,plotfile);
 }
 
 int TPZAnalysis::HighestDimension(){
@@ -1249,14 +1265,17 @@ void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 	}
 	out_file << endl;
 }
-void TPZAnalysis::SetSolver(TPZMatrixSolver<STATE> &solver){
+void TPZAnalysis::SetSolver(const TPZSolver &solver){
 	if(fSolver) delete fSolver;
+    //TODOCOMPLEX
     fSolver = (TPZMatrixSolver<STATE> *) solver.Clone();
 }
 
-TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
+template<class TVar>
+TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
 {
-	if(!fSolver || !fSolver->Matrix())
+    auto mySolver = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
+	if(!mySolver || !mySolver->Matrix())
 	{
 #ifndef BORLAND
 		cout << __FUNCTION__ << " called with uninitialized stiffness matrix\n";
@@ -1324,18 +1343,18 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 #endif
 		if(overlap && !(preconditioner == EBlockJacobi))
 		{
-			TPZSparseBlockDiagonal<STATE> *sp = new TPZSparseBlockDiagonal<STATE>(expblockgraph,expblockgraphindex,neq);
-			TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(sp);
+			TPZSparseBlockDiagonal<TVar> *sp = new TPZSparseBlockDiagonal<TVar>(expblockgraph,expblockgraphindex,neq);
+			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
 			step->SetDirect(ELU);
-			step->SetReferenceMatrix(fSolver->Matrix());
+			step->SetReferenceMatrix(mySolver->Matrix());
 			return step;
 		}
 		else if (overlap)
 		{
 			TPZBlockDiagonalStructMatrix blstr(fCompMesh);
-			TPZBlockDiagonal<STATE> *sp = new TPZBlockDiagonal<STATE>();
+			TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
 			blstr.AssembleBlockDiagonal(*sp);
-			TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(sp);
+			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);
 			step->SetDirect(ELU);
 			return step;
 		}
@@ -1343,28 +1362,31 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 		{
 			TPZVec<int> blockcolor;
 			int numcolors = nodeset.ColorGraph(expblockgraph,expblockgraphindex,neq,blockcolor);
-			return BuildSequenceSolver(expblockgraph,expblockgraphindex,neq,numcolors,blockcolor);
+			return BuildSequenceSolver<TVar>(expblockgraph,expblockgraphindex,neq,numcolors,blockcolor);
 		}
 	}
 	return 0;
 }
 
 /** @brief Build a sequence solver based on the block graph and its colors */
-TPZMatrixSolver<STATE> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq, int numcolors, TPZVec<int> &colors)
+template<class TVar>
+TPZMatrixSolver<TVar> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq, int numcolors, TPZVec<int> &colors)
 {
-	TPZVec<TPZMatrix<STATE> *> blmat(numcolors);
-	TPZVec<TPZStepSolver<STATE> *> steps(numcolors);
+	TPZVec<TPZMatrix<TVar> *> blmat(numcolors);
+	TPZVec<TPZStepSolver<TVar> *> steps(numcolors);
 	int c;
+    auto mySolver =
+        dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
 	for(c=0; c<numcolors; c++)
 	{
-		blmat[c] = new TPZSparseBlockDiagonal<STATE>(graph,graphindex, neq, c, colors);
-		steps[c] = new TPZStepSolver<STATE>(blmat[c]);
+		blmat[c] = new TPZSparseBlockDiagonal<TVar>(graph,graphindex, neq, c, colors);
+		steps[c] = new TPZStepSolver<TVar>(blmat[c]);
 		steps[c]->SetDirect(ELU);
-		steps[c]->SetReferenceMatrix(fSolver->Matrix());
+		steps[c]->SetReferenceMatrix(mySolver->Matrix());
 	}
 	if(numcolors == 1) return steps[0];
-	TPZSequenceSolver<STATE> *result = new TPZSequenceSolver<STATE>;
-	result->ShareMatrix(*fSolver);
+	TPZSequenceSolver<TVar> *result = new TPZSequenceSolver<TVar>;
+	result->ShareMatrix(*mySolver);
 	for(c=numcolors-1; c>=0; c--)
 	{
 		result->AppendSolver(*steps[c]);
@@ -1379,6 +1401,17 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildSequenceSolver(TPZVec<int64_t> &graph,
 		delete steps[c];
 	}
 	return result;
+}
+
+template<class TVar>
+TPZMatrixSolver<TVar> &TPZAnalysis::MatrixSolver(){
+    const auto tmp = dynamic_cast<TPZMatrixSolver<TVar>*>(fSolver);
+    if(fSolver && !tmp){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" incompatible Solver type! Aborting\n";
+        DebugStop();
+    }
+    return *tmp;
 }
 
 /// Integrate the postprocessed variable name over the elements included in the set matids
@@ -1573,3 +1606,9 @@ TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool 
 TPZAnalysis::ThreadData::~ThreadData()
 {
 }
+
+template
+TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
+    EPrecond preconditioner,bool overlap);
+template
+TPZMatrixSolver<STATE> &TPZAnalysis::MatrixSolver<STATE>();

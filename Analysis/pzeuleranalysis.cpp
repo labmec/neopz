@@ -156,8 +156,11 @@ REAL TPZEulerAnalysis::EvaluateFluxEpsilon()
 	return Norm(Flux);
 }
 
-void TPZEulerAnalysis::Assemble()
+
+template<class TVar>
+void TPZEulerAnalysis::AssembleInternal()
 {
+	auto &mySolver = MatrixSolver<TVar>();
 	if(!fCompMesh)
 	{
 		PZError << "TPZEulerAnalysis::Assemble Error: No Computational Mesh\n";
@@ -182,12 +185,12 @@ void TPZEulerAnalysis::Assemble()
 	// contributing referring to the last state
 	fRhs = fRhsLast;
 	//TODOCOMPLEX
-	TPZAutoPointer<TPZMatrix<STATE> >  pTangentMatrix = fSolver->Matrix();
+	TPZAutoPointer<TPZMatrix<TVar> >  pTangentMatrix = mySolver.Matrix();
 	
-	if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym<STATE> > *>(fStructMatrix.operator->()))
+	if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym<TVar> > *>(fStructMatrix.operator->()))
 	{
 		pTangentMatrix = fStructMatrix->CreateAssemble(fRhs,NULL);
-		fSolver->SetMatrix(pTangentMatrix);
+		mySolver.SetMatrix(pTangentMatrix);
 	}
 	else
 	{
@@ -213,6 +216,9 @@ void TPZEulerAnalysis::Assemble()
 		fpBlockDiag->BuildFromMatrix(pTangentMatrix);
 	}
 }
+void TPZEulerAnalysis::Assemble()
+{
+}
 
 void TPZEulerAnalysis::AssembleRhs()
 {
@@ -236,7 +242,7 @@ int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix<STATE> * residual, TPZFMatrix
 	//TODOCOMPLEX
 	TPZFMatrix<STATE> rhs(fRhs);
 	
-	fSolver->Solve(rhs, delSol);
+	MatrixSolver<STATE>().Solve(rhs, delSol);
 	
 	if(residual)
 	{   // verifying the inversion of the linear system
