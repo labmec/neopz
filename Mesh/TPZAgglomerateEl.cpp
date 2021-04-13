@@ -512,7 +512,8 @@ void TPZAgglomerateElement::Print(TPZStack<int64_t> &listindex){
  }
  */
 
-void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
+template<class TVar>
+void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<TVar> &projectsol){
 	
 	//projeta a solu�o dos elementos contidos na aglomera�o
 	//no elemento por eles aglomerado
@@ -520,8 +521,8 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
 	int dimension = Dimension();
 	int aggmatsize = NShapeF();
 	int nvar = Material()->NStateVariables();
-	TPZFMatrix<STATE> aggmat(aggmatsize,aggmatsize,0.);
-	TPZFMatrix<STATE> loadvec(aggmatsize,nvar,0.);
+	TPZFMatrix<TVar> aggmat(aggmatsize,aggmatsize,0.);
+	TPZFMatrix<TVar> loadvec(aggmatsize,nvar,0.);
 	//verificar que o grau do grande �<= que o grau de cada um dos pequenos ???
 	int64_t size = NIndexes(),i;
 	int mindegree = 1000,coarsedeg = Degree(),maxdegree = 0;
@@ -552,7 +553,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
 	TPZFMatrix<REAL> jacobian(dimension,dimension),jacinv(dimension,dimension);
 	TPZFMatrix<REAL> axes(3,3,0.);
 	TPZManVector<REAL,3> x(3,0.);
-	TPZVec<STATE> uh(nvar);
+	TPZVec<TVar> uh(nvar);
 	REAL weight;
 	int64_t in,jn,kn,ip,ind;
 	TPZCompElDisc *finedisc;
@@ -579,7 +580,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
 				}
 				//a soma das regras dos pequenos cobre a geometria do grande
 				for(kn=0; kn<nvar; kn++) {
-					loadvec(in,kn) += (STATE)weight*(STATE)aggphix(in,0)*uh[kn];
+					loadvec(in,kn) += (TVar)weight*(TVar)aggphix(in,0)*uh[kn];
 				}
 			}
 		}//fim for ip
@@ -951,3 +952,5 @@ void TPZAgglomerateElement::Read(TPZStream &buf, void *context)
 	buf.Read(&fNFaces,1);
 }
 
+template
+void TPZAgglomerateElement::ProjectSolution<STATE>(TPZFMatrix<STATE> &projectsol);

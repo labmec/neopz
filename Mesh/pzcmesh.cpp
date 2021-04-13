@@ -2020,7 +2020,9 @@ void TPZCompMesh::ComputeFillIn(int64_t resolution, TPZFMatrix<REAL> &fillin){
 		}
 	}
 }
-void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
+
+template<class TVar>
+void TPZCompMesh::ProjectSolution(TPZFMatrix<TVar> &projectsol) {
 	
 	//  * * A MALHA ATUAL DEVE SER AGLOMERADA * * *
 	
@@ -2059,7 +2061,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 			continue;
 		}
 		aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
-		aggel->ProjectSolution(projectsol);
+		aggel->ProjectSolution<TVar>(projectsol);
 	}
 #endif
 }
@@ -2891,9 +2893,13 @@ void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix
 template
 void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
 template
-void TPZCompMesh::ConnectSolution<STATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
+void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
+template
+void TPZCompMesh::ProjectSolution<STATE>(TPZFMatrix<STATE> &);
 
 // template
 // void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
 // template
-// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<CSTATE> &glob, TPZVec<CSTATE> &sol);
+// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t , TPZCompMesh *, TPZFMatrix<CSTATE> &, TPZVec<CSTATE> &);
+// template
+// void TPZCompMesh::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &);

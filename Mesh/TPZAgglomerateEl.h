@@ -216,8 +216,9 @@ public:
 	//  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
 	
 	void Print(TPZStack<int64_t> &listindex);
-	
-	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
+
+	template<class TVar>
+	void ProjectSolution(TPZFMatrix<TVar> &projectsol);
 	
 	
 	static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int64_t> &accumlist,int64_t numaggl);
@@ -235,5 +236,8 @@ int ClassId() const override;
 	void Read(TPZStream &buf, void *context) override;
 
 };
+
+extern template
+void TPZAgglomerateElement::ProjectSolution<STATE>(TPZFMatrix<STATE> &projectsol);
 
 #endif

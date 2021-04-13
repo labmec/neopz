@@ -452,7 +452,8 @@ public:
 	
 	/** @brief To discontinuous elements */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer<STATE> &transfer);
-	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
+    template<class TVar>
+	void ProjectSolution(TPZFMatrix<TVar> &projectsol);
     
     //set nummber of meshs
     void SetNMeshes(int64_t nmeshes){
@@ -762,10 +763,14 @@ inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
 extern template
 void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
 extern template
-void TPZCompMesh::ConnectSolution<STATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
+void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
+extern template
+void TPZCompMesh::ProjectSolution<STATE>(TPZFMatrix<STATE> &);
 
 // extern template
 // void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
 // extern template
-// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<CSTATE> &glob, TPZVec<CSTATE> &sol);
+// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t , TPZCompMesh *, TPZFMatrix<CSTATE> &, TPZVec<CSTATE> &);
+// extern template
+// void TPZCompMesh::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &);
 #endif
