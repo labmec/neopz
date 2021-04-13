@@ -384,7 +384,8 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
         }
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
-    TPZBlock<STATE> &blockMF = Block();
+    TPZBlock &blockMF = Block();
+    TPZFMatrix<STATE> &solMF = Solution();
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         
         if (m_active_approx_spaces[i_as] == 0) {
@@ -392,7 +393,8 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
         }
         
         int64_t ncon = m_mesh_vector[i_as]->NConnects();
-        TPZBlock<STATE> &block = m_mesh_vector[i_as]->Block();
+        TPZBlock &block = m_mesh_vector[i_as]->Block();
+        TPZFMatrix<STATE> &sol = m_mesh_vector[i_as]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = m_mesh_vector[i_as]->ConnectVec()[ic];
@@ -403,7 +405,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
             int64_t seqnumMF = conMF.SequenceNumber();
             if(seqnumMF < 0) continue;
             for (int idf=0; idf<blsize; idf++) {
-                blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
+                solMF(blockMF.Index(seqnumMF, idf)) = sol(block.Index(seqnum, idf));
             }
         }
     }
@@ -419,7 +421,8 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         }
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
-    TPZBlock<STATE> &blockMF = Block();
+    TPZBlock &blockMF = Block();
+    TPZFMatrix<STATE> &solMF = Solution();
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         
         if (m_active_approx_spaces[i_as] == 0) {
@@ -427,7 +430,8 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         }
         
         int64_t ncon = m_mesh_vector[i_as]->NConnects();
-        TPZBlock<STATE> &block = m_mesh_vector[i_as]->Block();
+        TPZBlock &block = m_mesh_vector[i_as]->Block();
+        TPZFMatrix<STATE> &sol = m_mesh_vector[i_as]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = m_mesh_vector[i_as]->ConnectVec()[ic];
@@ -442,7 +446,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
             int64_t seqnumMF = conMF.SequenceNumber();
             int idf;
             for (idf=0; idf<blsize; idf++) {
-                block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
+                sol(block.Index(seqnum, idf)) = solMF(blockMF.Index(seqnumMF, idf));
             }
         }
     }
@@ -456,7 +460,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         if (m_active_approx_spaces[i_as] == 0) {
             continue;
         }
-        m_mesh_vector[i_as]->LoadSolution(m_mesh_vector[i_as]->Solution());
+        m_mesh_vector[i_as]->LoadSolution((m_mesh_vector[i_as]->Solution()));
     }
 }
 

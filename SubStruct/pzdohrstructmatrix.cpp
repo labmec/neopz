@@ -1011,8 +1011,8 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
     // This permutation vector is with respect to the blocks of the mesh
     TPZVec<int64_t> scatterpermuteblock;
     sub->ComputePermutationInternalFirst(scatterpermuteblock);
-    TPZBlock<STATE> destblock = sub->Block();
-    TPZBlock<STATE> &origblock = sub->Block();
+    TPZBlock destblock = sub->Block();
+    TPZBlock &origblock = sub->Block();
     int64_t nblocks = origblock.NBlocks();
     if(scatterpermuteblock.NElements() != origblock.NBlocks())
     {

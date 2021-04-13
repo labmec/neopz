@@ -16,7 +16,7 @@
 #include "tpbrthermaldisc.h"
 #include "tpbrsolutionlist.h"
 #include <math.h>
-
+#include <fstream>
 
 TPBrCellMarx::TPBrCellMarx() : fInitialState(NUMVARS,0.)
 {

@@ -6,12 +6,9 @@
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
 
-#include "pzanalysis.h"
 #include "pznonlinanalysis.h"
-#include "pzcompel.h"
 #include "pzfmatrix.h"
-#include "pzvec.h"
-#include <iostream>
+#include <iosfwd>
 #include <list>
 
 class TPZCompMesh;
@@ -165,7 +162,10 @@ protected:
 	
 	/** @brief Computes the only the flux contribution for the explicit scheme */
 	void ComputeFluxOnly();
-	
+
+private:
+	template<class TVar>
+	void AssembleInternal();
 };
 
 template<class TRANSIENTCLASS>

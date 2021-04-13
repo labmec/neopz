@@ -8,12 +8,9 @@
 
 #include "pzreal.h"
 #include "pzerror.h"
-#include <iostream>
-#include <iomanip>
-#include <cstdlib>
-
-#include <stdlib.h>
-#include <string.h>
+#include <ostream>
+#include <cstring>//memcpy
+#include <iomanip>//std::setw
 
 /// Overloading the operator <<
 inline std::ostream &operator<<(std::ostream &out, const std::pair<int,int> &element)

@@ -178,7 +178,8 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
 			fSolution = nextSol;
 		}
 		else{
-			fSolution += prevsol;
+			TPZFMatrix<STATE> sol = fSolution;
+			sol += prevsol;
 		}
 		
 		prevsol -= fSolution;

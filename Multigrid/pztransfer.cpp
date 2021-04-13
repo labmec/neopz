@@ -17,7 +17,7 @@ fColumnBlockNumber(0),fColumnBlockLastUsed(0),fDoubleValues(0),fDoubleValLastUse
 
 // the sparse matrix blocks are defined by row, col
 template<class TVar>
-TPZTransfer<TVar>::TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks) :
+TPZTransfer<TVar>::TPZTransfer(TPZBlock &row, TPZBlock &col,int nvar, int nrowblocks, int ncolblocks) :
                                                         TPZRegisterClassId(&TPZTransfer::ClassId),
                                                         TPZMatrix<TVar>(), fNTVarVar(nvar), fRowBlock(), fColBlock(),
                                                         fColPosition(), fNumberofColumnBlocks(),
@@ -80,9 +80,9 @@ void TPZTransfer<TVar>::Print(const char *name,ostream &out,const MatrixOutputFo
 	}
 }
 
-//void TPZTransfer<TVar>::SetBlocks(TPZBlock<TVar> &row,TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks){
+//void TPZTransfer<TVar>::SetBlocks(TPZBlock &row,TPZBlock &col,int nvar, int nrowblocks, int ncolblocks){
 template<class TVar>
-void TPZTransfer<TVar>::SetBlocks(TPZBlock<TVar> &row,TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks){
+void TPZTransfer<TVar>::SetBlocks(TPZBlock &row,TPZBlock &col,int nvar, int nrowblocks, int ncolblocks){
 	// this operation will reset the matrix to zero
 	// with no rows defined
 	fRowBlock = row;

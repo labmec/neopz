@@ -93,7 +93,7 @@ const TVar&
 TPZFBMatrix<TVar>::Get(const int64_t row,const int64_t col ) const
 {
 	if ( (row >= Dim()) || (col >= Dim()) )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
+		this->Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
 	
 	return( GetVal( row, col ) );
 }
@@ -129,7 +129,7 @@ TPZFBMatrix<TVar>
 TPZFBMatrix<TVar>::operator+(const TPZFBMatrix<TVar> & A ) const
 {
 	if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
+		this->Error(__PRETTY_FUNCTION__, "Operator+ <matrixs with different dimensions>" );
 	
     TPZFBMatrix<TVar> res(*this);
     int64_t sz = fElem.size();
@@ -150,7 +150,7 @@ TPZFBMatrix<TVar>
 TPZFBMatrix<TVar>::operator-(const TPZFBMatrix<TVar> & A ) const
 {
     if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
+        this->Error(__PRETTY_FUNCTION__, "Operator- <matrixs with different dimensions>" );
     
     TPZFBMatrix<TVar> res(*this);
     int64_t sz = fElem.size();
@@ -177,7 +177,7 @@ TPZFBMatrix<TVar> &
 TPZFBMatrix<TVar>::operator+=(const TPZFBMatrix<TVar> & A )
 {
     if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+= <matrixs with different dimensions>" );
+        this->Error(__PRETTY_FUNCTION__, "Operator+= <matrixs with different dimensions>" );
     
     int64_t sz = fElem.size();
     for (int64_t i=0; i<sz; i++) {
@@ -197,7 +197,7 @@ TPZFBMatrix<TVar> &
 TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> & A )
 {
     if ( A.Dim() != Dim() || A.fBandLower != fBandLower || A.fBandUpper != fBandUpper )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator-= <matrixs with different dimensions>" );
+        this->Error(__PRETTY_FUNCTION__, "Operator-= <matrixs with different dimensions>" );
     
     int64_t sz = fElem.size();
     for (int64_t i=0; i<sz; i++) {
@@ -223,9 +223,9 @@ void TPZFBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZFBMatrix::MultAdd <matrixs with incompatible dimensions>" );
+		this->Error(__PRETTY_FUNCTION__, "TPZFBMatrix::MultAdd <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::MultAdd incompatible dimensions\n");
+		this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::MultAdd incompatible dimensions\n");
 	}
 	this->PrepareZ(y,z,beta,opt);
 	int64_t rows = this->Rows();
@@ -396,7 +396,7 @@ int
 TPZFBMatrix<TVar>::Resize(const int64_t newRows,const int64_t newCols)
 {
 	if ( newRows != newCols )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 	
 	
     Redim(newRows,newRows);
@@ -412,7 +412,7 @@ int
 TPZFBMatrix<TVar>::Redim(const int64_t newRows,const int64_t newCols )
 {
 	if ( newRows != newCols )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
+		this->Error(__PRETTY_FUNCTION__, "Resize <Band matrix must be NxN>" );
 	
 	//  if ( !fBand ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Bandwith = NULL" );
 	
@@ -458,7 +458,7 @@ int
 TPZFBMatrix<TVar>::SetBand( int64_t newBand )
 {
 	if ( newBand >= Dim() )
-		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
+		this->Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 	
 	uint64_t newSize = Dim()*(3 * newBand + 1);
     fBandLower = newBand;
@@ -506,7 +506,7 @@ int TPZFBMatrix<TVar>::Decompose_LU()
     if (  this->fDecomposed && this->fDecomposed == ELU) {
         return ELU;
     } else if(this->fDecomposed) {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+        this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
     }
     return TPZMatrix<TVar>::Decompose_LU();
 }
@@ -519,7 +519,7 @@ TPZFBMatrix<float>::Decompose_LU()
 	if (  this->fDecomposed && this->fDecomposed == ELU) {
 		return ELU;
 	} else if(this->fDecomposed) {
-		TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+		this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
 	}
     int rows = Rows();
     int bandlower = fBandLower;
@@ -553,7 +553,7 @@ TPZFBMatrix<double>::Decompose_LU()
     if (  this->fDecomposed && this->fDecomposed == ELU) {
         return ELU;
     } else if(this->fDecomposed) {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
+        this->Error(__PRETTY_FUNCTION__,"TPZFBMatrix::Decompose_LU is already decomposed with other scheme");
     }
     int rows = Rows();
     int bandlower = fBandLower;

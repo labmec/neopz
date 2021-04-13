@@ -4,7 +4,8 @@
  */
 
 #include "tpzverysparsematrix.h"
-
+#include "pzfmatrix.h"
+#include "TPZStream.h"
 using namespace std;
 
 template<class TVar>
@@ -201,7 +202,6 @@ void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid) const
 	buf.Write(&this->fDecomposed, 1);
 	buf.Write(&this->fDefPositive, 1);
 	buf.Write(&this->fRow, 1);
-	buf.Write(&this->gZero, 1);
 	WriteMap(buf, withclassid, this->fExtraSparseData);
 	
 }
@@ -229,7 +229,6 @@ void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 	buf.Read(&this->fDecomposed, 1);
 	buf.Read(&this->fDefPositive, 1);
 	buf.Read(&this->fRow, 1);
-	buf.Read(&this->gZero, 1);
 	ReadMap(buf, context, this->fExtraSparseData);
 	
 }

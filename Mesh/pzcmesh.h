@@ -8,7 +8,7 @@
 
 
 #include <stddef.h>               // for NULL
-#include <iostream>               // for operator<<, string, cout, ostream
+#include <ostream>               // for operator<<, string, cout, ostream
 #include <map>                    // for map
 #include <set>                    // for set
 #include "pzadmchunk.h"           // for TPZAdmChunkVector
@@ -17,11 +17,9 @@
 #include "pzconnect.h"            // for TPZConnect
 #include "pzcreateapproxspace.h"  // for TPZCreateApproximationSpace
 #include "pzgmesh.h"              // for TPZGeoMesh
-#include "pzmatrix.h"             // for TPZFMatrix, TPZMatrix
+#include "TPZSolutionMatrix.h"
 #include "pzreal.h"               // for STATE, REAL
-#include "TPZSavable.h"          // for TPZSavable
 #include "pzstack.h"              // for TPZStack
-#include "pzvec.h"                // for TPZVec
 #include "tpzautopointer.h"       // for TPZAutoPointer
 #include "pzcheckgeom.h"		  // for TPZCheckGeom
 #include <functional>
@@ -31,7 +29,7 @@ class TPZGeoEl;
 class TPZMaterial;
 class TPZStream;
 template <class TVar> class TPZTransfer;
-
+template <class TVar> class TPZVec;
 
 /**
  * @brief Implements computational mesh. \ref CompMesh "Computational Mesh"
@@ -64,23 +62,23 @@ protected:
 	/** @brief Map of pointers to materials */
 	std::map<int, TPZMaterial * >	fMaterialVec;
 	/** @brief Block structure of the solution vector ???? */
-	//TPZBlock<REAL>		fSolutionBlock;
-	TPZBlock<STATE>		fSolutionBlock;
-	
-	/** @brief Solution vector */
+	//TPZBlock		fSolutionBlock;
+	TPZBlock		fSolutionBlock;
+
+    /** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
-	TPZFMatrix<STATE>	fSolution;
+	TPZSolutionMatrix fSolution;
     
     /** @brief Solution at previous state
      */
-    TPZFMatrix<STATE>  fSolN;
+    TPZSolutionMatrix  fSolN;
 	
 	/** @brief Block structure to right construction of the stiffness matrix and load vector */
-	//TPZBlock<REAL>		fBlock;
-	TPZBlock<STATE>		fBlock;
+	//TPZBlock		fBlock;
+	TPZBlock		fBlock;
 	
 	/** @brief Solution vectors organized by element */
-	TPZFMatrix<STATE> fElementSolution;
+	TPZSolutionMatrix fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
@@ -97,6 +95,18 @@ protected:
     //quantity of meshes associated with a mesh multiphysics
 	int64_t fNmeshes;
 
+    /*The following methods are meant to encapsulate 
+     the fact that the solution may or may not be complex.
+     Avoid using them in child classes, unless there is no 
+     other option*/
+    template<class TVar>
+	void ExpandSolutionInternal(TPZFMatrix<TVar> &sol);
+    template<class TVar>
+    void PermuteInternal(TPZFMatrix<TVar> &sol, TPZVec<int64_t> &permute);
+    template<class TVar>
+    void SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i, TPZVec<TVar> &sol);
+    template<class TVar>
+    void ConnectSolutionInternal(std::ostream &out, const TPZFMatrix<TVar>&sol) const;
 public:
 	
 	/**
@@ -209,20 +219,23 @@ public:
 	TPZGeoMesh *Reference() const { return fReference; }
 	
 	/** @brief Access the block structure of the solution vector */
-	//const TPZBlock<REAL> &Block() const { return fBlock;}
-	const TPZBlock<STATE> &Block() const { return fBlock;}
+	//const TPZBlock &Block() const { return fBlock;}
+	const TPZBlock &Block() const { return fBlock;}
 	
 	/** @brief Access the block structure of the solution vector */
-	TPZBlock<STATE> &Block() { return fBlock;}
+	TPZBlock &Block() { return fBlock;}
 	
 	/** @brief Access the solution vector */
-	TPZFMatrix<STATE> &Solution(){ return fSolution;}
+	TPZSolutionMatrix &Solution() { return fSolution;}
+    
+    /** @brief Access the solution vector */
+    const TPZSolutionMatrix &Solution() const {return fSolution;}
     
     /** @brief Access the  previous solution vector */
-    TPZFMatrix<STATE> &SolutionN(){ return fSolN;}
+    TPZSolutionMatrix &SolutionN() {return fSolN;}
 	
 	/** @brief Access method for the element solution vectors */
-	TPZFMatrix<STATE> &ElementSolution() { return fElementSolution;}
+	TPZSolutionMatrix &ElementSolution() { return fElementSolution;}
 	
 	/** @} */
 	
@@ -267,7 +280,8 @@ public:
 	 */
 	
 	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
-	void SetElementSolution(int64_t i, TPZVec<STATE> &sol);
+    template<class TVar>
+	void SetElementSolution(int64_t i, TPZVec<TVar> &sol);
 	
 	/** @} */
 	
@@ -438,7 +452,8 @@ public:
 	
 	/** @brief To discontinuous elements */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer<STATE> &transfer);
-	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
+    template<class TVar>
+	void ProjectSolution(TPZFMatrix<TVar> &projectsol);
     
     //set nummber of meshs
     void SetNMeshes(int64_t nmeshes){
@@ -571,11 +586,11 @@ public:
 	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
 	 */
-	void LoadSolution(const TPZFMatrix<STATE> &sol);
-    
+	void LoadSolution(const TPZSolutionMatrix &sol);
     /** update the solution at the previous state with fSolution and
         set fSolution to the previous state */
-    void UpdatePreviousState(STATE mult = 1.0);
+    template<class TVar>
+    void UpdatePreviousState(TVar mult = 1.0);
     
     /**
      * @brief Transfer multiphysics mesh solution
@@ -691,7 +706,8 @@ int ClassId() const override;
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context) override;
 
-    static void ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<STATE> &glob, TPZVec<STATE> &sol);
+    template <class TVar>
+    static void ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix<TVar> &glob, TPZVec<TVar> &sol);
 };
 
 inline int64_t TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
@@ -742,4 +758,19 @@ inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
     fGMesh = gmesh;
 }
 
+//templates instantiation
+
+extern template
+void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
+extern template
+void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
+extern template
+void TPZCompMesh::ProjectSolution<STATE>(TPZFMatrix<STATE> &);
+
+// extern template
+// void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
+// extern template
+// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t , TPZCompMesh *, TPZFMatrix<CSTATE> &, TPZVec<CSTATE> &);
+// extern template
+// void TPZCompMesh::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &);
 #endif

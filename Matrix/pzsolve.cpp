@@ -9,15 +9,15 @@ static TPZLogger logger("pz.matrix.tpzmatred");
 #endif
 
 #include "pzsolve.h"
+
+#include "Hash/TPZHash.h"
 #include "TPZPersistenceManager.h"
 
 #include <stdlib.h>
 using namespace std;
 
-/** Destructor */
-template <class TVar>
-TPZSolver<TVar>::~TPZSolver()
-{
+int TPZSolver::ClassId() const{
+    return Hash("TPZSolver");
 }
 
 template <class TVar>
@@ -70,7 +70,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
         LOGPZ_DEBUG(logger, sout.str());
     }
 #endif
-    TPZSolver<TVar>::Write(buf, withclassid);
+    TPZSolver::Write(buf, withclassid);
     if (fContainer) {
 #ifdef PZ_LOG
         {
@@ -105,19 +105,15 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid) const {
 template <class TVar>
 void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZSolver<TVar>::Read(buf,context);
+	TPZSolver::Read(buf,context);
 	fContainer = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 	fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(TPZPersistenceManager::GetAutoPointer(&buf));
 }
 
-template class TPZSolver<float>;
-template class TPZSolver<std::complex<float> >;
-
-template class TPZSolver<double>;
-template class TPZSolver<std::complex<double> >;
-
-template class TPZSolver<long double>;
-template class TPZSolver<std::complex<long double> >;
+template<class TVar>
+int TPZMatrixSolver<TVar>::ClassId() const{
+    return Hash("TPZMatrixSolver") ^ TPZSolver::ClassId() << 1;
+}
 
 
 template class TPZMatrixSolver<float>;
@@ -128,3 +124,7 @@ template class TPZMatrixSolver<std::complex<double> >;
 
 template class TPZMatrixSolver<long double>;
 template class TPZMatrixSolver<std::complex<long double> >;
+
+template class TPZMatrixSolver<Fad<float> >;
+template class TPZMatrixSolver<Fad<double> >;
+template class TPZMatrixSolver<Fad<long double> >;

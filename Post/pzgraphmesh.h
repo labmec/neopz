@@ -18,7 +18,6 @@
 
 #include <iostream>
 class TPZCompMesh;
-template<class TVar>
 class TPZBlock;
 
 /**

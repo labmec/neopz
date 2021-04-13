@@ -10,11 +10,10 @@
 #include <set>        // for std::set
 #include <map>        // for std::map
 #include <utility>    // for pair
-#include "pzerror.h"  // for DebugStop
-#include "pzvec.h"    // for TPZVec
 #include <list>       // for std::list
-class TPZSavable;  // lines 20-20
-class TPZStream;  // lines 21-21
+#include "pzerror.h"  // for DebugStop
+class TPZSavable;
+class TPZStream;
 class TPZRestoreClassBase;
 class TPZChunkTranslator;
 /**

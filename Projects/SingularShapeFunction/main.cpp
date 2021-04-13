@@ -94,7 +94,8 @@ int main() {
     int64_t blocknumber = np.SequenceNumber();
     int64_t firsteq = cmesh->Block().Position(blocknumber);
     int ndf = cmesh->Block().Size(blocknumber);
-    cmesh->Solution()(firsteq+ndf-1,0) = 1.0;
+    TPZFMatrix<STATE> &cmeshSol = cmesh->Solution();
+    cmeshSol(firsteq+ndf-1,0) = 1.0;
     
     TPZAnalysis an(cmesh);
     an.Solution() = cmesh->Solution();
@@ -370,7 +371,7 @@ int main1(){
   an.Assemble();
 
 {ofstream fileKsdvcxcxv("k.nb");
- an.Solver().Matrix()->Print("m=",fileKsdvcxcxv,EMathematicaInput);
+ an.MatrixSolver<STATE>().Matrix()->Print("m=",fileKsdvcxcxv,EMathematicaInput);
  fileKsdvcxcxv << "\nRe[Eigenvalues[m]]\n";
  }
  

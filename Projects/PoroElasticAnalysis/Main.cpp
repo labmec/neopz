@@ -532,13 +532,14 @@ int main(int argc, char *argv[])
 	TPZStepSolver<STATE> step;		// Create Solver object
 	step.SetDirect(ELDLt);			//	Symmetric case
 	PoroelasticAnalysis.SetSolver(step); //	Set solver	
-	TPZStepSolver<STATE> & temp = dynamic_cast<TPZStepSolver<STATE> &> (PoroelasticAnalysis.Solver());
+	TPZStepSolver<STATE> & temp = dynamic_cast<TPZStepSolver<STATE> &> (PoroelasticAnalysis.MatrixSolver<STATE>());
 	std::list <int64_t> & zeropivot = temp.Singular(); 
 	if (zeropivot.size()) 
 	{
 		int eq = * zeropivot.begin();
 		PoroelasticAnalysis.Rhs().Zero();
-		PoroelasticAnalysis.Rhs()(eq,0) = -10000.0;
+		TPZFMatrix<STATE> &anRhs = PoroelasticAnalysis.Rhs();
+		anRhs(eq,0) = -10000.0;
 		PoroelasticAnalysis.Solve();
 		TPZFMatrix<STATE> TempSolution = PoroelasticAnalysis.Solution();
 		std::string output;

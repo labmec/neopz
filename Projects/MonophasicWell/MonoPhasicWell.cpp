@@ -165,7 +165,7 @@ void PrintLS(TPZAnalysis *an)
 {
     TPZAutoPointer< TPZMatrix<STATE> > KGlobal;
     TPZFMatrix<STATE> FGlobal;
-    KGlobal =   an->Solver().Matrix();
+    KGlobal =   an->MatrixSolver<STATE>().Matrix();
     FGlobal =   an->Rhs();
     
 #ifdef PZDEBUG
@@ -493,11 +493,12 @@ void NewtonIterations(TPZAnalysis *an, TPZManVector<TPZCompMesh *> meshvector, T
     int iterations  =   0;
     int centinel    =   0;
     int fixed       =   0;
-    
+
+    TPZFMatrix<STATE> &anRhs = an->Rhs();
     while (error >= tolrx && iterations <= miterations) {
 
         an->Rhs() = Residual;
-        an->Rhs() *= -1.0;
+        anRhs *= -1.0;
 
         an->Solve();
         

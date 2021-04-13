@@ -11,6 +11,7 @@
 #include "pzseqsolver.h"
 #include "checkconv.h"
 #include "pzelmat.h"
+#include "pzcmesh.h"
 
 using namespace std;
 
@@ -49,8 +50,9 @@ void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
 void TPZBlackOilAnalysis::AssembleResidual(){
 	this->SetCurrentState();
 	int sz = this->Mesh()->NEquations();
-	this->Rhs().Redim(sz,1);
-	this->fRhs += fLastState;
+	TPZFMatrix<STATE> &rhs = this->Rhs();
+	rhs.Redim(sz,1);
+	rhs += fLastState;
 }//void
 
 void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
@@ -82,11 +84,13 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 		this->SetCurrentState();
 		REAL error = this->fNewtonTol * 2. + 1.;
 		int iter = 0;
+		TPZFMatrix<STATE> &myrhs = this->Rhs();
+		TPZFMatrix<STATE> &mysol = this->Solution();
 		while(error > this->fNewtonTol && iter < this->fNewtonMaxIter){
 			
 			fSolution.Redim(0,0);
-			this->Assemble();
-			this->fRhs += fLastState;
+			this->Assemble();			
+			myrhs += fLastState;
 			
 			this->Solve();
 			
@@ -98,7 +102,8 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 				fSolution = nextSol;
 			}
 			else{
-				fSolution += prevsol;
+				
+				mysol += prevsol;
 			}
 			
 			prevsol -= fSolution;
@@ -233,6 +238,8 @@ void TPZBlackOilAnalysis::PostProcess(TPZVec<REAL> &loc, std::ostream &out){
 }//method
 
 void TPZBlackOilAnalysis::Assemble(){
+	auto &solver = MatrixSolver<STATE>();
+	auto solverMat = solver.Matrix();
 	if(!fCompMesh || !fStructMatrix || !fSolver){
 		cout << "TPZBlackOilAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
 		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << fSolver << " at file " 
@@ -245,11 +252,11 @@ void TPZBlackOilAnalysis::Assemble(){
 	
 	//
 	bool exist = false;
-	if(fSolver->Matrix()) if (fSolver->Matrix()->Rows()==sz) exist = true;
+	if(solverMat) if (solverMat->Rows()==sz) exist = true;
 	if (exist){
-		fSolver->Matrix()->Zero();
+		solverMat->Zero();
 	}
-	fSolver->UpdateFrom(fSolver->Matrix());
+	solver.UpdateFrom(solverMat);
 }
 
 void TPZBlackOilAnalysis::SetConvergence(int niter, REAL eps, bool ForceAllSteps){
@@ -273,12 +280,13 @@ REAL & TPZBlackOilAnalysis::TimeStep(){
 }
 
 void TPZBlackOilAnalysis::Solve(){
-	
-	const int n = this->Solver().Matrix()->Rows();
+
+	auto solverMat = MatrixSolver<STATE>().Matrix();
+	const int n = solverMat->Rows();
 	double minP = 0, maxP = 0, minS = 0, maxS = 0, p, S;
 	for(int i = 0; i < n/2; i++){
-		p = this->Solver().Matrix()->operator()(2*i,2*i);
-		S = this->Solver().Matrix()->operator()(2*i+1,2*i+1);
+		p = solverMat->operator()(2*i,2*i);
+		S = solverMat->operator()(2*i+1,2*i+1);
 		if(p > maxP) maxP = p;
 		if(p < minP) minP = p;
 		if(S > maxS) maxS = S;
@@ -289,16 +297,16 @@ void TPZBlackOilAnalysis::Solve(){
 	double ScaleS = fabs(minS+maxS)/2.;
 	for(int j = 0; j < n/2; j++){
 		for(int i = 0; i < n; i++){
-			this->Solver().Matrix()->operator()(i,2*j) *= 1./ScaleP;
-			this->Solver().Matrix()->operator()(i,2*j+1) *= 1./ScaleS;
+			solverMat->operator()(i,2*j) *= 1./ScaleP;
+			solverMat->operator()(i,2*j+1) *= 1./ScaleS;
 		}//i
 	}//j
 	
 	{//DEBUG
 		double minP = 0, maxP = 0, minS = 0, maxS = 0, p, S;
 		for(int i = 0; i < n/2; i++){
-			p = this->Solver().Matrix()->operator()(2*i,2*i);
-			S = this->Solver().Matrix()->operator()(2*i+1,2*i+1);
+			p = solverMat->operator()(2*i,2*i);
+			S = solverMat->operator()(2*i+1,2*i+1);
 			if(p > maxP) maxP = p;
 			if(p < minP) minP = p;
 			if(S > maxS) maxS = S;
@@ -307,10 +315,11 @@ void TPZBlackOilAnalysis::Solve(){
 	}
 	
 	TPZNonLinearAnalysis::Solve();
-	
+
+	TPZFMatrix<STATE> &mysol = fSolution;
 	for(int i = 0; i < n/2; i++){
-		fSolution(2*i,0) *= 1./ScaleP;
-		fSolution(2*i+1,0) *= 1./ScaleS;
+		mysol(2*i,0) *= 1./ScaleP;
+		mysol(2*i+1,0) *= 1./ScaleS;
 	}//i
 	
 }//method

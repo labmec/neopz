@@ -242,13 +242,14 @@ int main22() {
 //  delete precond;
   std::ofstream out("output.txt");
   an.Assemble();
-  an.Rhs().Print("Right hand side",out);
+  TPZBaseMatrix& anRhs = an.Rhs();
+  anRhs.Print("Right hand side",out);
 
   //Processamento
   cout << "Number of equations " << malhacomp->NEquations() << endl;
   an.Run();
-
-  an.Solution().Print("Solution obtained",out);
+  TPZBaseMatrix& anSol = an.Solution();
+  anSol.Print("Solution obtained",out);
 
   // Posprocessamento
   TPZVec<std::string> scalnames(1);

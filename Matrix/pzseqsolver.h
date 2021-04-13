@@ -49,7 +49,7 @@ public:
 	
 	void AppendSolver(TPZMatrixSolver<TVar>& solve);
 	
-	virtual TPZSolver<TVar> * Clone() const override;
+	virtual TPZSolver * Clone() const override;
 	
 	/** @brief Saveable specific methods */
 	

@@ -723,7 +723,8 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	
 	
 	ofstream file("Solution.out");
-	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
+	TPZBaseMatrix &anSol = an.Solution();
+	anSol.Print("solution", file);    //Solution visualization on Paraview (VTK)
 	
 #ifdef VTK
 	TPZManVector<std::string,10> scalnames(3), vecnames(0);

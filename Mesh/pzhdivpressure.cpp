@@ -357,7 +357,7 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
     const int ncon = this->NConnects();
     
     
-    TPZBlock<STATE> &block =this->Mesh()->Block();
+    TPZBlock &block =this->Mesh()->Block();
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     int64_t numbersol = MeshSol.Cols();
     

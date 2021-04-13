@@ -11,6 +11,7 @@ set(headers
     pzbndmat.h
     pzfmatrix.h
     pzmatrix.h
+    pzbasematrix.h
     pzsespmat.h
     pzskylmat.h
     pzspblockdiagpivot.h
@@ -35,6 +36,7 @@ set(headers
     pzsolve.h
     pzstepsolver.h
     pzysmp.h
+    TPZSolutionMatrix.h
     )
 
 set(sources
@@ -42,6 +44,7 @@ set(sources
     pzblockdiag.cpp
     pzfmatrix.cpp
     pzmatrix.cpp
+    pzbasematrix.cpp
     pzsespmat.cpp
     pzskylmat.cpp
     pzspblockdiagpivot.cpp
@@ -64,6 +67,7 @@ set(sources
     pzsolve.cpp
     pzstepsolver.cpp
     pzysmp.cpp
+    TPZSolutionMatrix.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Matrix)

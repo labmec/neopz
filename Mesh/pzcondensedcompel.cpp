@@ -727,8 +727,9 @@ void TPZCondensedCompEl::LoadSolution()
 //    }
     dim0 = fNumInternalEqs;
     dim1 = fNumTotalEqs-dim0;
-    //TPZBlock<REAL> &bl = Mesh()->Block();
-	TPZBlock<STATE> &bl = Mesh()->Block();
+    //TPZBlock &bl = Mesh()->Block();
+	TPZBlock &bl = Mesh()->Block();
+    TPZFMatrix<STATE> &sol = Mesh()->Solution();
     int64_t count = 0;
     //TPZFMatrix<REAL> u1(dim1,1,0.);
 	TPZFMatrix<STATE> u1(dim1,1,0.);
@@ -739,7 +740,7 @@ void TPZCondensedCompEl::LoadSolution()
         int64_t seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
-            u1(count++,0) = bl(seqnum,0,ibl,0);
+            u1(count++,0) = sol.at(bl.at(seqnum,0,ibl,0));
         }
     }
 #ifdef PZ_LOG
@@ -761,7 +762,7 @@ void TPZCondensedCompEl::LoadSolution()
         int64_t seqnum = c.SequenceNumber();
         int blsize = bl.Size(seqnum);
         for (int ibl=0; ibl<blsize; ibl++) {
-            bl(seqnum,0,ibl,0) = elsol(count++,0);
+            sol.at(bl.at(seqnum,0,ibl,0)) = elsol(count++,0);
         }
     }
 #ifdef PZ_LOG

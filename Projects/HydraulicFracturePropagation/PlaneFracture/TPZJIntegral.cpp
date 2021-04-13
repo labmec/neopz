@@ -239,7 +239,8 @@ REAL LinearPath3D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
         bool useConstantP = true;
         if(useConstantP)
         {
-            REAL totalPress = this->fcmeshElastic->Solution()(1,0);//pressao constante = solucao elastica
+            const TPZFMatrix<STATE> &cmeshElasticSol = this->fcmeshElastic->Solution();
+            REAL totalPress = cmeshElasticSol.Get(1,0);//pressao constante = solucao elastica
             Sigma_n[1] = totalPress - prestress;
         }
         else//calcula utilizando pressao de fluidos

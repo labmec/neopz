@@ -1982,8 +1982,8 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
 {
     int dim = cmesh->Reference()->Dimension();
     
-    TPZBlock<STATE> blockMP = MPMesh->Block();
-    TPZBlock<STATE> blockF = cmesh->Block();
+    TPZBlock blockMP = MPMesh->Block();
+    TPZBlock blockF = cmesh->Block();
     
     
     blockF.SetMatrix(matF.operator->());
@@ -2062,7 +2062,8 @@ void TransferMatrixFromMeshes(TPZCompMesh *cmesh, TPZCompMesh *MPMesh, TPZAutoPo
 void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat, int nodeAtOriginId, bool matInicial, std::ofstream &subMat)
 {
     int dim = cmesh->Reference()->Dimension();
-    TPZBlock<STATE> blockMat = cmesh->Block();
+    TPZBlock blockMat = cmesh->Block();
+    TPZFMatrix<STATE> meshSol = cmesh->Solution();
     blockMat.SetMatrix(mat.operator->());
     
     long nel = cmesh->NElements();
@@ -2123,7 +2124,8 @@ void GlobalSubMatrix(TPZCompMesh *cmesh, TPZAutoPointer< TPZMatrix<STATE> > mat,
                 
                 for (int r = 0; r < iblsize; r++) {
                     for (int c = 0; c < jblsize; c++) {
-                        substiff.PutVal(icount+r, jcount+c, blockMat.GetVal(seqnumi, seqnumj,r,c));
+                        const auto val = meshSol.at(blockMat.at(seqnumi,seqnumj,r,c));
+                        substiff.PutVal(icount+r, jcount+c, val);
                     }
                 }
                 jcount += conj.NDof();

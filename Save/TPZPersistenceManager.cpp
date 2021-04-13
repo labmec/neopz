@@ -242,9 +242,11 @@ void TPZPersistenceManager::PopulateClassIdMap()
             if(logger.isDebugEnabled())
             {
                 std::stringstream sout;
-                sout << "Class : " << savable->ClassId() << " -> " << typeid(*restoreClass->Restore()).name() << std::endl;
+                const auto rstclass = restoreClass->Restore();
+                sout << "Class : " << savable->ClassId() << " -> " << typeid(*rstclass).name() << std::endl;
                 if (restoreClass->GetTranslator()){
-                    sout << "Translator : " << typeid(*restoreClass->GetTranslator()).name() << std::endl;
+                    const auto rsttransl = restoreClass->GetTranslator();
+                    sout << "Translator : " << typeid(*rsttransl).name() << std::endl;
                 }
                 LOGPZ_DEBUG(logger, sout.str())
             }

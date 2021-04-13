@@ -40,7 +40,7 @@ public:
 	}
 	
 	/** @brief Clones the current object returning a pointer of type TPZSolver */
-	TPZSolver<TVar> *Clone() const
+	TPZSolver *Clone() const
 	{
 		return new TPZCopySolve(*this);
 	}

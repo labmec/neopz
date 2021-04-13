@@ -2,6 +2,7 @@
 #include "TPZFracData.h"
 
 #include <iostream>
+#include <fstream>
 #include <cmath>
 
 

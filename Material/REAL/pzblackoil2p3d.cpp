@@ -11,6 +11,8 @@ using namespace std;
 
 #include "fad.h"
 
+#include <fstream>
+
 TPZBlackOil2P3D::EState TPZBlackOil2P3D::gState = ELastState;
 
 /** Linear interpolation */

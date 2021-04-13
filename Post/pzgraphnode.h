@@ -14,7 +14,6 @@
 
 class TPZGraphMesh;
 class TPZGraphEl;
-template<class TVar>
 class TPZBlock;
 
 /**
@@ -47,7 +46,7 @@ public:
 	/** @brief Draw solution on the current connect for solutionid variable */
 	void DrawSolution(int solutionid, TPZDrawStyle st = EDXStyle);
 	void DrawSolution(TPZVec<int> &solutionid, TPZDrawStyle st= EDXStyle);
-	void DrawSolution(TPZBlock<REAL> &sol, TPZDrawStyle st = EDXStyle);
+	void DrawSolution(TPZBlock &sol, TPZDrawStyle st = EDXStyle);
 	
 	int64_t FirstPoint();
 	

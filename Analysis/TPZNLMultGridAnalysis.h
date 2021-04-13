@@ -90,21 +90,34 @@ public:
 	void OneGridAlgorithm(std::ostream &out,int nummat);
 	
 	void TwoGridAlgorithm(std::ostream &out,int nummat);
-	
-	void CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &an,const std::string  &decompose,TPZFMatrix<STATE> &res);
-	
-	void CalcResidual(TPZMatrix<STATE> &sol,TPZFMatrix<STATE> &anres,TPZFMatrix<STATE> &res,TPZAnalysis &an,const std::string &decompose);
-	
-protected:
-	
-	void (*fFunction)(TPZMaterial *mat,TPZCompMesh *cmesh);
-	
+
+	template<class TVar>
+	void CalcResidual(TPZMatrix<TVar> &sol,TPZAnalysis &an,const std::string  &decompose,TPZFMatrix<TVar> &res);
+
+	template<class TVar>
+	void CalcResidual(TPZMatrix<TVar> &sol,TPZFMatrix<TVar> &anres,TPZFMatrix<TVar> &res,TPZAnalysis &an,const std::string &decompose);
+		
 public:
 	
 	void SetAnalysisFunction(void (*fp)(TPZMaterial *mat,TPZCompMesh *cmesh)){
 		fFunction = fp;
 	}
+protected:
+	
+	void (*fFunction)(TPZMaterial *mat,TPZCompMesh *cmesh);
 	
 };
+
+extern template void
+TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
+	TPZMatrix<STATE> &sol, TPZAnalysis &an,
+	const std::string &decompose,
+	TPZFMatrix<STATE> &res);
+
+extern template void
+TPZNonLinMultGridAnalysis::CalcResidual<STATE>(
+    TPZMatrix<STATE> &sol, TPZFMatrix<STATE> &anres,
+	TPZFMatrix<STATE> &res, TPZAnalysis &an,
+	const std::string &decompose);
 
 #endif

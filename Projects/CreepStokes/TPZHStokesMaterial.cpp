@@ -2,6 +2,8 @@
 #include "TPZHStokesMaterial.h"
 
 #include "pzaxestools.h"
+
+#include <fstream>
 using namespace std;
 
 

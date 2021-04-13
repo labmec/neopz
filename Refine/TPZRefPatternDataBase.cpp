@@ -15,6 +15,7 @@
 #include "TPZRefPatternDataBase.h"
 #include "pzgeoelside.h"
 #include "pzlog.h"
+#include <fstream>
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.refpattern.TPZRefPatternDataBase");

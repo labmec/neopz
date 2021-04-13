@@ -96,7 +96,7 @@ public:
     virtual void MultAddTBB(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const;
     
 	/** @brief Specify the solution process for the coarse matrix */
-	void SetSolver(TPZSolver<TVar> &solver);
+	void SetSolver(TPZMatrixSolver<TVar> &solver);
 	
 	/** @brief Compute the contribution of the coarse matrix */
 	void ComputeV1(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &v1) const;

@@ -1048,7 +1048,7 @@ void TPZSubCompMesh::Assemble()
 /// Initialize the datastructure of ef
 void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
 {
-    TPZBlock<STATE> &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     TPZMaterial * mat = MaterialVec().begin()->second;
     int nstate = mat->NStateVariables();
     int numloadcases = mat->NumLoadCases();
@@ -1093,7 +1093,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	
 	
-	TPZBlock<STATE> &block = Mesh()->Block();
+	TPZBlock &block = Mesh()->Block();
 	//	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 	
@@ -1263,7 +1263,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
-			TPZAbstractFrontMatrix<STATE> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *> (fAnalysis->Solver().Matrix().operator->());
+			TPZAbstractFrontMatrix<STATE> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *> (fAnalysis->MatrixSolver<STATE>().Matrix().operator->());
 			if(frontmat)
 			{
 				sman->SetFront(frontmat->GetFront());
@@ -1839,14 +1839,15 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	Permute(permute);
 }
 
-void TPZSubCompMesh::LoadSolution() {
+template<class TVar>
+void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 	
 	int64_t i=0;
 	int64_t seqnumext;
 	int64_t seqnumint;
 	//	int numinteq = NumInternalEquations();
 	int size;
-	TPZFMatrix<STATE> &sol = Mesh()->Solution();
+	TPZFMatrix<TVar> &currentsol = mysol;
 	
 	for (i=0;i<fConnectVec.NElements(); i++) {
 		if (fExternalLocIndex[i] != -1) {
@@ -1859,14 +1860,18 @@ void TPZSubCompMesh::LoadSolution() {
 			int64_t posint = fBlock.Position(seqnumint);
 			int l;
 			for(l=0;l<size;l++) {
-				fSolution(posint+l,0) = sol(posext+l,0);
+				mysol(posint+l,0) = currentsol(posext+l,0);
 			}
 		}
 	}
 //    fSolution.Print(std::cout);
     
-	if(fAnalysis) fAnalysis->LoadSolution(fSolution);
+	if(fAnalysis) fAnalysis->LoadSolution(mysol);
 	TPZCompMesh::LoadSolution(fSolution);
+}
+
+void TPZSubCompMesh::LoadSolution(){
+    LoadSolutionInternal<STATE>(fSolution);
 }
 
 /**
@@ -1884,7 +1889,7 @@ void TPZSubCompMesh::TransferMultiphysicsElementSolution()
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
-        fSolution.Print("SubMeshSol",sout);
+        fSolution.GetMatrixPtr()->Print("SubMeshSol",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif

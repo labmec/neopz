@@ -7,63 +7,30 @@
 #define TPREH
 
 #include "pzfmatrix.h"
+#include "tpzautopointer.h"
+
 
 template<class TVar>
 class TPZMatrixSolver;
-
 /**
  * @ingroup solver
  * @brief Defines a abstract class of solvers  which will be used by matrix classes. \ref solver "Solver"
  */
-template<class TVar>
 class TPZSolver: public TPZSavable
 {
-
 public:
-    
-    public:
-int ClassId() const override;
-
-	/**
-	 * @brief Solves the system of linear equations
-	 * @param F contains Force vector
-	 * @param result contains the solution
-	 * @param residual contains the residual for that linear system
-	 */
-	virtual void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-					   TPZFMatrix<TVar>  *residual = 0) = 0;
-    
-    /** @brief Decompose the system of equations if a direct solver is used */
-    virtual void Decompose()
-    {
-    }
+    //! Defines the ClassId of TPZSolver class
+    int ClassId() const override;
 	
-	/** @brief Clones the current object returning a pointer of type TPZSolver */
+	//! Clones the current object returning a pointer of type TPZSolver
 	virtual TPZSolver *Clone() const = 0;
-	/** @brief Destructor */
-	virtual ~TPZSolver();
+
+	//! Destructor
+	virtual ~TPZSolver() = default;
 	
-	/** @brief This method will reset the matrix associated with the solver */
-	/** This is useful when the matrix needs to be recomputed in a non linear problem */
-	virtual void ResetMatrix()
-	{
-	}
-	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
-	{
-		std::cout << __PRETTY_FUNCTION__ << " called\n";
-	}
-
+	/*! Resets the matrix associated with the solver. This is useful when the matrix needs to be recomputed in a non linear problem*/
+	virtual void ResetMatrix() = 0;
 };
-
-
-template<class TVar>
-int TPZSolver<TVar>::ClassId() const{
-    return Hash("TPZSolver") ^ ClassIdOrHash<TVar>() << 1;
-}
-
-/** @ingroup solver */
-#define TPZMATRIXSOLVER_ID 28291005;
 
 
 /**
@@ -71,7 +38,7 @@ int TPZSolver<TVar>::ClassId() const{
  * @brief  Defines a class of matrix solvers. \ref solver "Solver"
  */
 template<class TVar>
-class TPZMatrixSolver: public TPZSolver<TVar>
+class TPZMatrixSolver: public TPZSolver
 {
 	
 public:
@@ -107,8 +74,21 @@ public:
 	
 	/** @brief Destructor */
 	virtual ~TPZMatrixSolver();
-	
-	/**
+
+    /**
+     * @brief Solves the system of linear equations
+     * @param F contains Force vector
+     * @param result contains the solution
+     * @param residual contains the residual for that linear system
+     */
+    virtual void Solve(const TPZFMatrix<TVar> &F,
+                       TPZFMatrix<TVar> &result,
+                       TPZFMatrix<TVar> *residual = 0) = 0;
+    
+    /** @brief Decompose the system of equations if a direct solver is used*/
+    virtual void Decompose() {}
+
+        /**
 	 * @brief Sets a matrix to the current object
 	 * @param Refmat Sets reference matrix to RefMat
 	 */
@@ -116,9 +96,8 @@ public:
     {
         fContainer = Refmat;
     }
-	
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix) override
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
 	{
 		if (fReferenceMatrix == matrix && matrix)
 		{
@@ -154,31 +133,34 @@ public:
     {
         return ENoSolver;
     }
+    /** @brief Saveable specific methods */
+    int ClassId() const override;
+
+    void Write(TPZStream &buf, int withclassid) const override;
+    void Read(TPZStream &buf, void *context) override;
 
 protected:
-	
+    /** @brief Reference matrix used to update the current matrix */
+    TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix;
+
+    /** @brief Manipulation matrix */
+    TPZFMatrix<TVar> fScratch;
+
 private:
-	/** @brief Container classes */
-	TPZAutoPointer<TPZMatrix<TVar> > fContainer;
-protected:
-	/** @brief Reference matrix used to update the current matrix */
-	TPZAutoPointer<TPZMatrix<TVar> > fReferenceMatrix;
-
-protected:
-	/** @brief Manipulation matrix */
-	TPZFMatrix<TVar>  fScratch;
-public:
-	/** @brief Saveable specific methods */
-	public:
-int ClassId() const override;
-
-	void Write(TPZStream &buf, int withclassid) const override;
-	void Read(TPZStream &buf, void *context) override;
+    /** @brief Container classes */
+    TPZAutoPointer<TPZMatrix<TVar>> fContainer;	
 };
 
-template<class TVar>
-int TPZMatrixSolver<TVar>::ClassId() const{
-    return Hash("TPZMatrixSolver") ^ TPZSolver<TVar>::ClassId() << 1;
-}
+extern template class TPZMatrixSolver<float>;
+extern template class TPZMatrixSolver<std::complex<float> >;
 
+extern template class TPZMatrixSolver<double>;
+extern template class TPZMatrixSolver<std::complex<double> >;
+
+extern template class TPZMatrixSolver<long double>;
+extern template class TPZMatrixSolver<std::complex<long double> >;
+
+extern template class TPZMatrixSolver<Fad<float> >;
+extern template class TPZMatrixSolver<Fad<double> >;
+extern template class TPZMatrixSolver<Fad<long double> >;
 #endif  // TPREH

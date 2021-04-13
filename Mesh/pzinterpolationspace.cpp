@@ -565,14 +565,15 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	
 	loclocmat.SolveDirect(projectmat,ELU);
 	// identify the non-zero blocks for each row
-	TPZBlock<STATE> &fineblock = Mesh()->Block();
+	TPZBlock &fineblock = Mesh()->Block();
+    TPZFMatrix<STATE> &finesol = Mesh()->Solution();
 	int iv=0,in;
 	for(in=0; in<locnod; in++) {
 		df = &Connect(in);
 		int64_t dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
-			fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+			finesol.at(fineblock.at(dfseq,0,ljn,0)) = projectmat(iv/nvar,iv%nvar);
 			iv++;
 		}
 	}
@@ -1310,7 +1311,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	int nvar = coarsel.Material()->NStateVariables();
 	
 	// number of blocks is cornod
-	TPZBlock<REAL> corblock(0,cornod);
+	TPZBlock corblock(0,cornod);
 	int in;
 	
 	cormatsize = 0;
@@ -1353,7 +1354,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	}
 	intrule->SetOrder(order);
 	
-	TPZBlock<REAL> locblock(0,locnod);
+	TPZBlock locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
         TPZConnect &c = Connect(in);

@@ -41,7 +41,7 @@ public:
 	/** @brief Draw mesh as dx file */
 	virtual void DrawMesh(int numcases);
 	/** @brief Draw solution as dx file */
-	virtual void DrawSolution(TPZBlock<REAL> &Sol);
+	virtual void DrawSolution(TPZBlock &Sol);
 	/** @brief Draw solution as dx file for variable name indicated */
 	virtual void DrawSolution(char * var = 0);
 	/** @brief Draw solution as dx file for step and time given */

@@ -71,12 +71,13 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             //TPZFMatrix<REAL> ekbl(blsize,blsize);
             TPZFMatrix<STATE> ekbl(blsize,blsize);
             int r,c;
-            //TPZBlock<REAL> &mbl = ek.fConstrBlock;
-            TPZBlock<STATE> &mbl = ek.fConstrBlock;
+            //TPZBlock &mbl = ek.fConstrBlock;
+            TPZBlock &mbl = ek.fConstrBlock;
+            TPZFMatrix<STATE> &msol = ek.fConstrMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
-                    ekbl(r,c) = (mbl)(b,b,r,c);
+                    ekbl(r,c) = msol.at(mbl.at(b,b,r,c));
                 }
             }
             blockdiag.AddBlock(b,ekbl);
@@ -98,13 +99,14 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             TPZConnect &con = Mesh()->ConnectVec()[conind];
             if(con.HasDependency() || con.IsCondensed()) continue;
             int r, c;
-            //TPZBlock<REAL> &mbl = ek.fBlock;
-            TPZBlock<STATE> &mbl = ek.fBlock;
+            //TPZBlock &mbl = ek.fBlock;
+            TPZBlock &mbl = ek.fBlock;
+            TPZFMatrix<STATE> &sol = ek.fMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
                     //ekbl(r,c) = (mbl)(b,b,r,c);
-                    ekbl(r,c) = (mbl)(b,b,r,c);
+                    ekbl(r,c) = sol.at(mbl.at(b,b,r,c));
                 }
             }
             blockdiag.AddBlock(b,ekbl);
@@ -212,8 +214,8 @@ void TPZCompEl::LoadSolution() {
     //		return;
     //	}
     //int numstate = mat->NStateVariables();
-    //TPZBlock<REAL> &block = Mesh()->Block();
-    TPZBlock<STATE> &block = Mesh()->Block();
+    //TPZBlock &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     //TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
     TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int maxdep = 0;
@@ -251,30 +253,6 @@ void TPZCompEl::LoadSolution() {
             }
         }
         current_order--;
-    }
-    std::list<TPZOneShapeRestraint> mylist = this->GetShapeRestraints();
-    for (std::list<TPZOneShapeRestraint>::iterator it = mylist.begin(); it != mylist.end(); it++)
-    {
-        int64_t connectdest = it->fFaces[0].first;
-        int64_t seqnumdest = Mesh()->ConnectVec()[connectdest].SequenceNumber();
-        int destidf = it->fFaces[0].second;
-        REAL mult = -1./it->fOrient[0];
-#ifdef PZDEBUG
-        STATE prevval = Mesh()->Block()(seqnumdest,0,destidf,0);
-#endif
-        Mesh()->Block()(seqnumdest,0,destidf,0) = 0.;
-        for (int i=1; i<4; i++) {
-            int64_t connectindex = it->fFaces[i].first;
-            int64_t seqnum = Mesh()->ConnectVec()[connectindex].SequenceNumber();
-            int idf = it->fFaces[i].second;
-            STATE val = Mesh()->Block()(seqnum,0,idf,0);
-            REAL multorig = it->fOrient[i];
-            Mesh()->Block()(seqnumdest,0,destidf,0) += mult*multorig*val;
-        }
-#ifdef PZDEBUG
-        STATE finalval = Mesh()->Block()(seqnumdest,0,destidf,0);
-        finalval -= prevval;
-#endif
     }
 }
 
@@ -457,9 +435,10 @@ void TPZCompEl::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<
 
 void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
     if(var >= 100) {
-        int ind = Index();
-        if(fMesh->ElementSolution().Cols() > var-100) {
-            sol[0] = fMesh->ElementSolution()(ind,var-100);
+        const int ind = Index();
+        TPZFMatrix<STATE> &elementSol = fMesh->ElementSolution();
+        if(elementSol.Cols() > var-100) {
+            sol[0] = elementSol(ind,var-100);
         } else {
             DebugStop();
             sol[0] = 0;

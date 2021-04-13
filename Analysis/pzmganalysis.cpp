@@ -60,6 +60,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	TPZFMatrix<STATE> sol(mesh->NEquations(),1);
 	tr->TransferSolution(fSolution,sol);
 	fSolution = sol;
+	//TODOCOMPLEX
 	mesh->LoadSolution(fSolution);
 	TPZBlockDiagonalStructMatrix bdstr(mesh);
 	TPZBlockDiagonal<STATE> *bd = (TPZBlockDiagonal<STATE> *) bdstr.Create();
@@ -165,10 +166,10 @@ REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedEl
 	TPZAutoPointer<TPZIntPoints> intrule = fine->GetIntegrationRule().Clone();
 	int dimension = fine->Dimension();
 	int numdof = fine->Material()->NStateVariables();
-	TPZBlock<STATE> &locblock = fine->Mesh()->Block();
+	TPZBlock &locblock = fine->Mesh()->Block();
 	TPZFMatrix<STATE> &locsolmesh = fine->Mesh()->Solution();
 	
-	TPZBlock<STATE> &corblock = coarse->Mesh()->Block();
+	TPZBlock &corblock = coarse->Mesh()->Block();
 	TPZFMatrix<STATE> &corsolmesh = coarse->Mesh()->Solution();
 	
 	TPZVec<STATE> locsol(numdof);
@@ -353,17 +354,20 @@ REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedEl
 	return error;
 }
 
-void TPZMGAnalysis::Solve() {
-	if(fMeshes.NElements() == 1) {
+
+template<class TVar>
+void TPZMGAnalysis::SolveInternal()
+{
+  if(fMeshes.NElements() == 1) {
 		TPZAnalysis::Solve();
 		if(fSolvers.NElements() == 0) {
-			fSolvers.Push((TPZMatrixSolver<STATE> *) fSolver->Clone());
+			fSolvers.Push((TPZMatrixSolver<TVar> *) fSolver->Clone());
 		}
 		if(fPrecondition.NElements() == 0) {
 			fPrecondition.Push(0);
 		}
 		if(fSolutions.NElements() == 0) {
-			fSolutions.Push(new TPZFMatrix<STATE>(fSolution));
+			fSolutions.Push(new TPZSolutionMatrix(fSolution));
 		} else {
 			int nsol = fSolutions.NElements();
 			*(fSolutions[nsol-1]) = fSolution;
@@ -374,9 +378,9 @@ void TPZMGAnalysis::Solve() {
 	if(fRhs.Rows() != numeq ) return;
 	int nsolvers = fSolvers.NElements();
 	
-	TPZFMatrix<STATE> residual(fRhs);
-	TPZFMatrix<STATE> delu(numeq,1,0.);
-	TPZMatrixSolver<STATE> *solve = dynamic_cast<TPZMatrixSolver<STATE> *> (fSolvers[nsolvers-1]);
+	TPZFMatrix<TVar> residual(fRhs);
+	TPZFMatrix<TVar> delu(numeq,1,0.);
+	TPZMatrixSolver<TVar> *solve = dynamic_cast<TPZMatrixSolver<TVar> *> (fSolvers[nsolvers-1]);
 	if(fSolution.Rows() != numeq) {
 		fSolution.Redim(numeq,1);
 	} else {
@@ -388,7 +392,7 @@ void TPZMGAnalysis::Solve() {
 	if(normrhs*1.e-6 >= normres) {
 		cout << "TPZMGAnalysis::Solve no need for iterations normrhs = " << normrhs << " normres = " << normres << endl;
 		if(fSolutions.NElements() < fMeshes.NElements()) {
-			fSolutions.Push(new TPZFMatrix<STATE>(fSolution));
+			fSolutions.Push(new TPZSolutionMatrix(fSolution));
 		} else {
 			int nsol = fSolutions.NElements();
 			*(fSolutions[nsol-1]) = fSolution;
@@ -396,19 +400,23 @@ void TPZMGAnalysis::Solve() {
 		return ;
 	}
 	
-	TPZStepSolver<STATE> *stepsolve = dynamic_cast<TPZStepSolver<STATE> *> (solve);
+	TPZStepSolver<TVar> *stepsolve = dynamic_cast<TPZStepSolver<TVar> *> (solve);
 	if(stepsolve) stepsolve->SetTolerance(1.e-6*normrhs/normres);
 	cout << "TPZMGAnalysis::Run res : " << Norm(residual) << " neq " << numeq << endl;
 	solve->Solve(residual, delu);
-	fSolution += delu;
-	
+	TPZFMatrix<TVar> &mysol = fSolution;
+	mysol += delu;
+
 	fCompMesh->LoadSolution(fSolution);
 	if(fSolutions.NElements() < fMeshes.NElements()) {
-		fSolutions.Push(new TPZFMatrix<STATE>(fSolution));
+		fSolutions.Push(new TPZSolutionMatrix(fSolution));
 	} else {
 		int nsol = fSolutions.NElements();
 		*(fSolutions[nsol-1]) = fSolution;
 	}
+}
+void TPZMGAnalysis::Solve() {
+	return SolveInternal<STATE>();
 }
 
 TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh, bool withP) {
