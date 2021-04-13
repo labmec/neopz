@@ -30,10 +30,6 @@ public:
 	
 	/*! Resets the matrix associated with the solver. This is useful when the matrix needs to be recomputed in a non linear problem*/
 	virtual void ResetMatrix() = 0;
-    
-	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> matrix) = 0;
-
 };
 
 
@@ -100,12 +96,6 @@ public:
     {
         fContainer = Refmat;
     }
-
-    void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> matrix) override
-    {
-        auto tmp = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(matrix);
-        return UpdateFrom(tmp);
-    }
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
 	{
@@ -143,26 +133,22 @@ public:
     {
         return ENoSolver;
     }
+    /** @brief Saveable specific methods */
+    int ClassId() const override;
+
+    void Write(TPZStream &buf, int withclassid) const override;
+    void Read(TPZStream &buf, void *context) override;
 
 protected:
-	
+    /** @brief Reference matrix used to update the current matrix */
+    TPZAutoPointer<TPZMatrix<TVar>> fReferenceMatrix;
+
+    /** @brief Manipulation matrix */
+    TPZFMatrix<TVar> fScratch;
+
 private:
-	/** @brief Container classes */
-	TPZAutoPointer<TPZMatrix<TVar> > fContainer;
-protected:
-	/** @brief Reference matrix used to update the current matrix */
-	TPZAutoPointer<TPZMatrix<TVar> > fReferenceMatrix;
-
-protected:
-	/** @brief Manipulation matrix */
-	TPZFMatrix<TVar>  fScratch;
-public:
-	/** @brief Saveable specific methods */
-	public:
-int ClassId() const override;
-
-	void Write(TPZStream &buf, int withclassid) const override;
-	void Read(TPZStream &buf, void *context) override;
+    /** @brief Container classes */
+    TPZAutoPointer<TPZMatrix<TVar>> fContainer;	
 };
 
 extern template class TPZMatrixSolver<float>;
