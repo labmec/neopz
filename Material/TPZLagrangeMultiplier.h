@@ -111,19 +111,15 @@ class TPZLagrangeMultiplier : public TPZMaterial
     {
         data.SetAllRequirements(false);
 //        data.fNeedsNormal = true;
-        int nref_left = datavec_left.size();
-        for(int iref = 0; iref<nref_left; iref++){
-            datavec_left[iref].SetAllRequirements(false);
-//            datavec_left[iref].fNeedsSol    = true;
-//            datavec_left[iref].fNeedsNormal = true;
+        for(auto iter = datavec_left.begin(); iter != datavec_left.end(); ++iter)
+        {
+            datavec_left[iter->first].SetAllRequirements(false);
         }
-        int nref_right = datavec_right.size();
-        for(int iref = 0; iref<nref_right; iref++){
-            datavec_right[iref].SetAllRequirements(false);
-//            datavec_right[iref].fNeedsSol    = true;
-//            datavec_right[iref].fNeedsNormal = true;
+
+        for(auto iter = datavec_right.begin(); iter != datavec_right.end(); ++iter)
+        {
+            datavec_right[iter->first].SetAllRequirements(false);
         }
-        
     }
 	
     /**
