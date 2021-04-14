@@ -110,16 +110,12 @@ class TPZLagrangeMultiplier : public TPZMaterial
     virtual void FillDataRequirementsInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec_left, std::map<int, TPZMaterialData> &datavec_right) override
     {
         data.SetAllRequirements(false);
-//        data.fNeedsNormal = true;
-        for(auto iter = datavec_left.begin(); iter != datavec_left.end(); ++iter)
-        {
-            datavec_left[iter->first].SetAllRequirements(false);
-        }
 
-        for(auto iter = datavec_right.begin(); iter != datavec_right.end(); ++iter)
-        {
-            datavec_right[iter->first].SetAllRequirements(false);
-        }
+        if(datavec_left.size() != 1) DebugStop();
+        datavec_left.begin()->second.SetAllRequirements(false);
+
+        if(datavec_right.size() != 1) DebugStop();
+        datavec_right.begin()->second.SetAllRequirements(false);
     }
 	
     /**
