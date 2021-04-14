@@ -96,7 +96,13 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
 }
 
 TPZSolutionMatrix::operator TPZBaseMatrix &(){
-    return *fBaseMatrix;
+  if(!fBaseMatrix){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" trying to access undefined matrix\n";
+    PZError<<"Aborting...";
+    DebugStop();
+  }
+  return *fBaseMatrix;
 }
 
 TPZSolutionMatrix::operator TPZFMatrix<STATE> &(){

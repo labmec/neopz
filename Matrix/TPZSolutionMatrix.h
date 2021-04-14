@@ -10,6 +10,10 @@
 #include "pzfmatrix.h"//TPZFMatrix<T>,TPZBaseMatrix
 #include "Hash/TPZHash.h"//Hash
 
+
+//definition for debugging access to fBaseMatrix
+//#define PZ_SOLMAT_DEBUG
+
 class TPZSolutionMatrix : public TPZSavable{
 private:
 
@@ -65,23 +69,45 @@ public:
   // //@}
   
   //! Number of Rows of the solution
-  inline int64_t Rows() const { return fBaseMatrix->Rows(); }
+  inline int64_t Rows() const {
+#ifdef PZ_SOLMAT_DEBUG
+    if(!fBaseMatrix) DebugStop();
+#endif
+    return fBaseMatrix->Rows();
+  }
   //! Number of cols of the solution
-  inline int64_t Cols() const { return fBaseMatrix->Cols(); }
+  inline int64_t Cols() const {
+#ifdef PZ_SOLMAT_DEBUG
+    if(!fBaseMatrix) DebugStop();
+#endif
+    return fBaseMatrix->Cols();
+  }
   //! Redim the solution \ref matrix "Matrix"
   inline int Redim(const int64_t r, const int64_t c) {
+#ifdef PZ_SOLMAT_DEBUG
+    if(!fBaseMatrix) DebugStop();
+#endif
     return fBaseMatrix->Redim(r, c);
   }
   //! Resize the solution \ref matrix "Matrix"
   inline int Resize(const int64_t r, const int64_t c) {
+#ifdef PZ_SOLMAT_DEBUG
+    if(!fBaseMatrix) DebugStop();
+#endif
     return fBaseMatrix->Resize(r, c);
   }
   //! Prints the matrix in an std::ostream
   void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted){
+#ifdef PZ_SOLMAT_DEBUG
+    if(!fBaseMatrix) DebugStop();
+#endif
     return fBaseMatrix->Print(name,out,EFormatted);
   }
   //! Zeroes the matrix
   int Zero() {
+#ifdef PZ_SOLMAT_DEBUG
+    if(!fBaseMatrix) DebugStop();
+#endif
     return fBaseMatrix->Zero();
   }
   //! ClassId method
