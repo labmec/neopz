@@ -112,7 +112,7 @@ void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 
 template<class TVar>
 int TPZMatrixSolver<TVar>::ClassId() const{
-    return Hash("TPZMatrixSolver") ^ TPZSolver::ClassId() << 1;
+    return Hash("TPZMatrixSolver") ^ ClassIdOrHash<TVar>() ^ TPZSolver::ClassId() << 2;
 }
 
 
