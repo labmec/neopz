@@ -2890,7 +2890,8 @@ void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix
     }
 }
 
-
+template
+void TPZCompMesh::UpdatePreviousState<STATE>(STATE);
 template
 void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
 template

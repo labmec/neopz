@@ -761,6 +761,8 @@ inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
 //templates instantiation
 
 extern template
+void TPZCompMesh::UpdatePreviousState<STATE>(STATE);
+extern template
 void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
 extern template
 void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
