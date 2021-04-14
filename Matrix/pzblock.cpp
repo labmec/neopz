@@ -37,14 +37,15 @@ TPZBlock::TPZBlock( TPZBaseMatrix *const pMatrix,const int nBlocks,const int dim
 	fpMatrix = pMatrix;
 	
 
-	const int mat_size = pMatrix->Rows();
+	const int mat_size = [&]() -> int {
+        if(pMatrix) {return pMatrix->Rows();}
+        else {return 1;}
+    }();
+    
 	const int dim2 = [&]() ->int {
-        if(pMatrix) {
-            // The row dimension of the matrix determines the size of the block object
-            if ( (dim*nBlocks!=mat_size) )
-                return mat_size/maxBlocks;
-        }
-        return dim;
+        // The row dimension of the matrix determines the size of the block object
+        if(pMatrix && dim*nBlocks!=mat_size){return mat_size/maxBlocks;}
+        else{return dim;}
     }();
 
 	int pos = 0;
@@ -191,7 +192,7 @@ int64_t TPZBlock::Index(const int64_t bRow, const int r) const
     auto MaxBlocks = fBlock.NElements();
     int64_t row(r);
     if(bRow <0 || bRow >= MaxBlocks || row < 0 || row >= fBlock[bRow].dim) {
-        cout << __PRETTY_FUNCTION__ <<" indexes out of range\n";
+        PZError << __PRETTY_FUNCTION__ <<" indexes out of range\n";
         DebugStop();
     }
     row += fBlock[bRow].pos;
