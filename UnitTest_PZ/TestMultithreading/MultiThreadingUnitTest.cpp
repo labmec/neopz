@@ -15,7 +15,7 @@
 #include "pzbdstrmatrix.h"
 #include "pzbstrmatrix.h"
 #include "TPZSpStructMatrix.h"
-
+#include "TPZExactFunction.h"
 #include "TPZMatLaplacian.h"
 #include "TPZGeoMeshTools.h"
 #include "pzbndcond.h"
@@ -176,6 +176,17 @@ void threadTest::ComparePostProcError(const int nThreads) {
   auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
   auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
 
+  auto solLambda = [&](const TPZVec<STATE> &x,
+                       TPZVec<STATE> &r, TPZFMatrix<STATE> &d){
+    return threadTest::ExactSolution(x, r, d);
+  };
+  TPZAutoPointer<TPZFunction<STATE>> solPtr(
+      new TPZExactFunction<STATE>(solLambda,pOrder));
+  // TPZAutoPointer<TPZFunction<STATE>> solPtr(
+      // new TPZExactFunction<STATE>(threadTest::ExactSolution,pOrder));
+  for(auto imat : cMesh->MaterialVec()){
+    imat.second->SetExactSol(solPtr);
+  }
   constexpr bool optimizeBandwidth{false};
 
   auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads) {
@@ -193,7 +204,7 @@ void threadTest::ComparePostProcError(const int nThreads) {
     an.Assemble();
     an.Solve();
 
-    an.SetExact(threadTest::ExactSolution);
+    
     an.SetThreadsForError(nThreads);
 
     TPZManVector <REAL> errorVec(3, 0.);

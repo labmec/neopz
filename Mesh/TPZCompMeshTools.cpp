@@ -17,7 +17,8 @@
 #include "pzcondensedcompel.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMeshSolution.h"
-
+#include "TPZMaterial.h"
+#include "TPZExactFunction.h"
 #include <algorithm>
 
 #include "pzsloan.h"
@@ -631,19 +632,19 @@ void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNo
 
 }
 
-static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
+static void ComputeError(TPZCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
 
-static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZCondensedCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZCompEl *ref = cel->ReferenceCompEl();
-    ComputeError(ref, func, mesh2, square_errors);
+    ComputeError(ref, mesh2, square_errors);
 }
 
-static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZMultiphysicsElement *cel,TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZManVector<STATE,3> errors(3,0.);
     bool store_error = false;
-    cel->EvaluateError(func, errors, store_error);
+    cel->EvaluateError(errors, store_error);
     int64_t index = cel->Index();
     TPZCompMesh *mesh = cel->Mesh();
     //TODOCOMPLEX
@@ -654,23 +655,23 @@ static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, 
     }
 }
 
-static void ComputeError(TPZElementGroup *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZElementGroup *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     const TPZVec<TPZCompEl *> &celstack = cel->GetElGroup();
     int64_t nel = celstack.size();
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *subcel = celstack[el];
-        ComputeError(subcel, func, mesh2, square_errors);
+        ComputeError(subcel, mesh2, square_errors);
     }
 }
 
-static void ComputeError(TPZInterpolationSpace *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZInterpolationSpace *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     DebugStop();
 }
 
 
-static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
     // acumulate the errors of the submeshes
@@ -681,23 +682,23 @@ static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *
     TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
     if(elgr)
     {
-        ComputeError(elgr, func, mesh2, square_errors);
+        ComputeError(elgr, mesh2, square_errors);
         return;
     }
     TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
     if (cond) {
-        ComputeError(cond, func, mesh2, square_errors);
+        ComputeError(cond, mesh2, square_errors);
         return;
     }
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
     if (intel) {
-        ComputeError(intel, func, mesh2, square_errors);
+        ComputeError(intel, mesh2, square_errors);
         return;
     }
     TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
     if(mphys)
     {
-        ComputeError(mphys, func, mesh2, square_errors);
+        ComputeError(mphys, mesh2, square_errors);
         return;
     }
     
@@ -714,9 +715,12 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
     }
     mesh1->ElementSolution().Redim(mesh1->NElements(), 3);
     
-    int materialid = 1;
-    TPZMeshSolution func(mesh2,materialid);
-    
+    int materialid = 1;    
+
+    TPZAutoPointer<TPZFunction<STATE>> solptr(new TPZMeshSolution(mesh2,materialid));
+    for(auto imat : mesh1->MaterialVec()){
+        imat.second->SetExactSol(solptr);
+    }
 //    mesh2->Reference()->ResetReference();
 //    mesh2->LoadReferences();
     if (nel >= 1000) {
@@ -728,7 +732,7 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
         if (!cel) {
             continue;
         }
-        ComputeError(cel, func, mesh2, square_errors);
+        ComputeError(cel, mesh2, square_errors);
 
         if (nel >= 1000 && (el+1)%1000 == 0) {
             std::cout << "*";

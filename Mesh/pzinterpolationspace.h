@@ -275,8 +275,15 @@ virtual int ClassId() const override;
 	 * @param errors (output) the L2 norm or true error of the error of the solution
 	 * @param flux (input) value of the interpolated flux values
 	 */
-    virtual void EvaluateError(  std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
+    void EvaluateError(  std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
                                TPZVec<REAL> &errors, bool store_error ) override;
+    /**
+	 * @brief Performs an error estimate on the element.
+     * This estimate is based on the exact solution in its material.
+	 * @param errors (output) the L2 norm or true error of the error of the solution
+	 * @param flux (input) value of the interpolated flux values
+	 */
+    void EvaluateError(TPZVec<REAL> &errors, bool store_error ) override;
 	
 	/** @brief Integrate a variable over the element. */
 	virtual TPZVec<STATE> IntegrateSolution(int variable) const override;
