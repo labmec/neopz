@@ -76,6 +76,10 @@ public:
   inline int Resize(const int64_t r, const int64_t c) {
     return fBaseMatrix->Resize(r, c);
   }
+  //! Prints the matrix in an std::ostream
+  void Print(const char *name, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted){
+    return fBaseMatrix->Print(name,out,EFormatted);
+  }
   //! Zeroes the matrix
   int Zero() {
     return fBaseMatrix->Zero();

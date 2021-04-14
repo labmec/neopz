@@ -1889,7 +1889,7 @@ void TPZSubCompMesh::TransferMultiphysicsElementSolution()
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;
-        fSolution.GetMatrixPtr()->Print("SubMeshSol",sout);
+        fSolution.Print("SubMeshSol",sout);
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif

@@ -655,7 +655,7 @@ void TPZDarcyAnalysis::IterativeProcess(TPZAnalysis *an, std::ostream &out, int 
     if(logger.isDebugEnabled())
     {
       std::stringstream sout;
-      matK=an->Solver().Matrix();
+      matK=an->MatrixSolver<STATE>().Matrix();
       matK->Print("matK = ", sout,EMathematicaInput);
       an->Rhs().Print("Rhs = ", sout, EMathematicaInput);
       LOGPZ_DEBUG(logger,sout.str())
