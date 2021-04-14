@@ -1779,14 +1779,15 @@ TPZCompMesh &TPZCompMesh::operator=(const TPZCompMesh &copy)
     fReference = copy.fReference;
     fReference->ResetReference();
     fConnectVec = copy.fConnectVec;
-    copy.CopyMaterials(*this);
-    fSolutionBlock = copy.fSolutionBlock;
+    copy.CopyMaterials(*this);    
+    fElementSolution = copy.fElementSolution;
+    fSolution = copy.fSolution;
     TPZBaseMatrix &sol = fSolution;
+    
+    fSolutionBlock = copy.fSolutionBlock;
     fSolutionBlock.SetMatrix(&sol);
     fBlock = copy.fBlock;
     fBlock.SetMatrix(&sol);
-    fElementSolution = copy.fElementSolution;
-    fSolution = copy.fSolution;
     fSolN = copy.fSolN;
     fDefaultOrder = copy.fDefaultOrder;
     int64_t nel = copy.fElementVec.NElements();
