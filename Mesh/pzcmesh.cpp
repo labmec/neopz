@@ -1465,18 +1465,30 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
             errorSum[ii] += true_error[ii] * true_error[ii];
 
 #ifdef PZ_LOG
-        if (logger.isDebugEnabled()) {
-            std::stringstream sout;
-            sout << "------Debugging Errors------\n";
-            sout << "el_id =  " << el << "\n";
-            if(cel->Material()) sout << "mat_ID = " << cel->Material()->Id() << "\n";
-            sout << "error[0]^2:   " << true_error[0] * true_error[0] << "\n";
-            sout << "error[1]^2:   " << true_error[1] * true_error[1] << std::endl;
-            sout << "errorSum[0]:  "<< errorSum[0] << std::endl;
-            sout << "errorSum[1]:  "<< errorSum[1] << std::endl;
-            sout << "----------------------------\n";
-            LOGPZ_DEBUG(logger, sout.str().c_str());
-        }
+		if (logger.isDebugEnabled()) {
+			std::stringstream sout;
+			sout << "true_errors: ";
+			for (int ierr = 0; ierr < nerrors; ierr++) {
+				sout << true_error[ierr] << " ";
+			}
+			sout << "\n";
+			sout << "acc_errors^2: ";
+			for (int ierr = 0; ierr < nerrors; ierr++) {
+				sout << errorSum[ierr] << " ";
+			}
+			sout << "\n";
+			sout << "GelID: ";
+			if (cel->Reference()) {
+				sout << cel->Reference()->Index();
+				TPZGeoElSide side(cel->Reference());
+				TPZManVector<REAL> coord(3);
+				side.CenterX(coord);
+				sout << " CenterCoord: " << coord;
+				sout << " MatID: " << cel->Material()->Id();
+			}
+			sout << "\n";
+			LOGPZ_DEBUG(logger, sout.str())
+		}
 #endif
 	}
 	
