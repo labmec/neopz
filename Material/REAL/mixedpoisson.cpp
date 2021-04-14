@@ -937,13 +937,12 @@ TPZGradSolVec &dsol=data[1].dsol;
 
 TPZVec<STATE> divsigma(1);
 
-if(this->fExactSol){
-   
-   this->fExactSol->Execute(data[0].x,u_exact,du_exact);
+if(this->fExactSol) {
+    this->fExactSol->Execute(data[0].x, u_exact, du_exact);
+}
+if(this->fForcingFunction){
    this->fForcingFunction->Execute(data[0].x,divsigma);
 }
-
-
 
 REAL residual = 0.;
 residual = (divsigma[0] - divsigmafem)*(divsigma[0] - divsigmafem);
@@ -1031,8 +1030,10 @@ datavec[1]= Pressure
 
     TPZVec<STATE> u_exact(1,0);
     TPZFMatrix<STATE> du_exact(3,1,0);
-    if(this->fExactSol){
-        this->fExactSol->Execute(data[0].x,u_exact,du_exact);
+    if(this->fExactSol) {
+        this->fExactSol->Execute(data[0].x, u_exact, du_exact);
+    }
+    if(this->fForcingFunction){
         this->fForcingFunction->Execute(data[0].x,divsigma);
     }
 
