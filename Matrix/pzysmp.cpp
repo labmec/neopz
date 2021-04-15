@@ -31,7 +31,7 @@ void TPZFYsmpMatrix<TVar>::MultiplyDummy(TPZFYsmpMatrix<TVar> & B, TPZFYsmpMatri
     int64_t i,j,k;
     if (B.Rows()!=this->Rows()) return;
     int64_t rows = this->Rows();
-    REAL aux=0.;
+    TVar aux=0.;
     for(i=0;i<rows;i++){
         for(j=0;j<rows;j++){
             for(k=0;k<rows;k++){
@@ -164,7 +164,7 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & de
             jpos=destinationindex[j];
             value=elmat.GetVal(i,j);
             //cout << "j= " << j << endl;
-            if(value != 0.){
+            if(!IsZero(value)){
                 //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
                 int flag = 0;
 				k++;
@@ -207,7 +207,7 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 			jpos=destinationindex[j];
 			value=elmat.GetVal(sourceindex[i],sourceindex[j]);
             //cout << "j= " << j << endl;
-			if(value != 0.){
+			if(IsZero(value)){
                 //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
 				int flag = 0;
 				k++;
@@ -328,10 +328,6 @@ TPZRegisterClassId(&TPZFYsmpMatrix::ClassId),TPZMatrix<TVar>(rows,cols) {
 	fSymmetric = 0;
 	//    fMaxIterations = 4;
 	//    fSORRelaxation = 1.;
-	fDiag = 0;
-	fA = 0;
-	fIA = 0;
-	fJA = 0;
 #ifdef USING_MKL
     fPardisoControl.SetMatrix(this);
 #endif
@@ -399,7 +395,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 	// Determine how to initialize z
 	for(ic=0; ic<xcols; ic++) {
 		TVar *zp = &(z(0,ic));
-		if(beta != 0) {
+		if(!IsZero(beta)){
 			const TVar *yp = &(y.g(0,0));
 			TVar *zlast = zp+r;
 
@@ -515,10 +511,10 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	// Determine how to initialize z
 	for(ic=0; ic<xcols; ic++) {
 		TVar *zp = &(z(0,ic));
-		if(beta != 0) {
+		if(!IsZero(beta)){
 			const TVar *yp = &(y.g(0,0));
 			TVar *zlast = zp+r;
-			if(beta != 1.) {
+			if(!IsZero(beta-(TVar)1.)){
 				while(zp < zlast) {
 					*zp = beta * (*yp);
 					zp ++;
@@ -632,18 +628,18 @@ void TPZFYsmpMatrix<TVar>::SolveSOR( int64_t &numiterations, const TPZFMatrix<TV
 		irInc = -1;
 	}
 	if(!FromCurrent) x.Zero();
-	TVar eqres = 2.*tol;
+	typename real_type<TVar>::type eqres = 2.*tol;
 	int64_t iteration;
 	for(iteration=0; iteration<numiterations && eqres >= tol; iteration++) {
-		eqres = 0.;
+		TVar local_eqres = 0.;
 		int64_t ir=irStart;
 		while(ir != irLast) {
 			TVar xnewval=rhs.g(ir,0);
 			for(int64_t ic=fIA[ir]; ic<fIA[ir+1]; ic++) {
 				xnewval -= fA[ic] * x(fJA[ic],0);
 			}
-			eqres += xnewval*xnewval;
-			x(ir,0) += overrelax*(xnewval/fDiag[ir]);
+			local_eqres += xnewval*xnewval;
+			x(ir,0) += (TVar)overrelax*(xnewval/fDiag[ir]);
 			ir += irInc;
 		}
 		eqres = sqrt(eqres);
@@ -706,7 +702,15 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(int64_t & numiterations, const TPZFMatrix
 	{
 		this->Residual(result,F,scratch);
 		TVar res = Norm(scratch);
-		for(int64_t it=1; it<numiterations && res > tol; it++) {
+		bool cond = [res,tol](){
+			if constexpr (is_complex<TVar>::value){
+				return abs(res)>tol;
+			}else{
+				return res>tol;
+			}
+		}();
+	
+		for(int64_t it=1; it<numiterations && cond; it++) {
 			for(int64_t ic=0; ic<c; ic++) {
 				for(int64_t i=0; i<r; i++) {
 					result(i,ic) += (scratch)(i,ic)/(fDiag)[i];
@@ -714,6 +718,11 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(int64_t & numiterations, const TPZFMatrix
 			}
 			this->Residual(result,F,scratch);
 			res = Norm(scratch);
+			if constexpr (is_complex<TVar>::value) {
+				cond = abs(res) > tol;
+			} else {
+				cond = res > tol;
+			}
 		}
 	}
 	if(residual) *residual = scratch;
@@ -858,13 +867,14 @@ void TPZFYsmpMatrix<TVar>::RowLUUpdate(int64_t sourcerow, int64_t destrow)
 		cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " destrow not found\n";
 		return;
 	}
-	if(fA[sourcedist] < 1.e-15)
+
+	if(IsZero(fA[sourcedist]))
 	{
 		cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " small pivot " << fA[sourcedist] << "\n";
 		return;
 	}
 	TVar mult = fA[destdist]/fA[sourcedist];
-	if(mult == 0.) return;
+	if(IsZero(mult)) return;
 	destdist++;
 	sourcedist++;
 	while(destdist < fIA[destrow+1] && sourcedist < fIA[sourcerow+1])
@@ -1038,3 +1048,6 @@ int TPZFYsmpMatrix<TVar>::ClassId() const{
 template class TPZFYsmpMatrix<long double>;
 template class TPZFYsmpMatrix<double>;
 template class TPZFYsmpMatrix<float>;
+template class TPZFYsmpMatrix<std::complex<long double>>;
+template class TPZFYsmpMatrix<std::complex<double>>;
+template class TPZFYsmpMatrix<std::complex<float>>;

@@ -2016,7 +2016,7 @@ int TPZSBMatrix<TVar>::ClassId() const{
 // Inicializando os templates
 template class TPZSBMatrix<float>;
 template class TPZSBMatrix<double>;
-template class TPZSBMatrix< complex<float> >;
-template class TPZSBMatrix< complex<double> >;
 template class TPZSBMatrix<long double>;
-
+template class TPZSBMatrix<std::complex<float>>;
+template class TPZSBMatrix<std::complex<double>>;
+template class TPZSBMatrix<std::complex<long double>>;
