@@ -80,7 +80,7 @@ public:
     */
     virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
                       TPZFMatrix<REAL> &axes,
-                      TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) override;
+                      TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
     /**
     * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
     * Method not implemented

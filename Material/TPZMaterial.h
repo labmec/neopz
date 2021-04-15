@@ -554,60 +554,34 @@ public:
 	/** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
     virtual int IntegrationRuleOrder(TPZVec<int> &elPMaxOrder) const;
 
-  void Errors(TPZMaterialData &data,TPZVec<REAL> &errors)
+    /*! Public interface for calculating error in the material.
+      Inherited materials should then override \ref Errors(TPZVec<REAL> &, TPZVec<STATE> &, TPZFMatrix<STATE> &, TPZFMatrix<REAL> &, TPZVec<REAL> &) as a protected method.*/
+    inline void Errors(TPZMaterialData &data,TPZVec<REAL> &errors)
     {
-        TPZManVector<STATE,3> flux;
         Errors(data.x, data.sol[0], data.dsol[0], data.axes, errors );
     }
 
-  virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
+    //! Calculates errors based on its solution (multiphysics version).
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-    }
-  virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
-    
-            PZError << __PRETTY_FUNCTION__ << std::endl;
-            PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
         DebugStop();
-        
     }
-	[[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZMaterialData,TPZVec<REAL>) instead")]]
-    void Errors(TPZMaterialData &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
-    {
-        TPZManVector<STATE,3> flux;
-        Errors(data.x, data.sol[0], data.dsol[0], data.axes,  u_exact, du_exact, errors );
-    }
-  [[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZVec<TPZMaterialData>,TPZVec<REAL>) instead")]]
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
+    //! Calculates errors based on its solution (multiphysics/BC version).
+    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
+    
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-    }
-  [[deprecated("Use OR IMPLEMENT TPZMaterial::ErrorsBC(TPZVec<TPZMaterialData>,TPZVec<REAL>,TPZBndCond &) instead")]]
-    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
-    
-            PZError << __PRETTY_FUNCTION__ << std::endl;
-            PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
         DebugStop();
-        
     }
 protected:
-  /**
-	 * @brief Computes the error between the exact and the approximated
-   solutions
-	 */
-virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
-                      TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
-                      TPZVec<REAL> &val) {
-    PZError << __PRETTY_FUNCTION__ << std::endl;
-    PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-  }
-  [[deprecated("Use OR IMPLEMENT TPZMaterial::Errors(TPZVec<REAL> &, TPZVec<STATE> &, TPZFMatrix<STATE> &, TPZMatrix<REAL> &, TPZVec<REAL>&) instead")]]
-  virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
-                      TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
-                      TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
-                      TPZVec<REAL> &val) {
-    PZError << __PRETTY_FUNCTION__ << std::endl;
-    PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
+    //! Calculates the error based on its exact solution.
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
+                        TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
+                        TPZVec<REAL> &val) {
+        PZError << __PRETTY_FUNCTION__;
+        PZError << ": Method not implemented! Error comparison not available.\n";
+        PZError<<"Please, implement it.\n";
   }
 public:
 

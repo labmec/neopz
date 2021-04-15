@@ -112,7 +112,7 @@ private:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 				TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
-				TPZVec<REAL> &values) override;
+				TPZVec<REAL> &values);
 	
 	/** @brief Kernel of the functional */
 	void Psi(TPZVec<REAL> &x, TPZVec<STATE> &pisci);

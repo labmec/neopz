@@ -84,7 +84,7 @@ public:
 	
 	virtual void Errors( TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
 						TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
-						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values ) override;
+						 TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values );
 	
 	public:
 virtual int ClassId() const override;

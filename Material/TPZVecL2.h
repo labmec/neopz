@@ -193,7 +193,7 @@ public:
     /** @} */
     void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
                 TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
-                TPZFMatrix<STATE> &curlU_exact, TPZVec<REAL> &val) override;
+                TPZFMatrix<STATE> &curlU_exact, TPZVec<REAL> &val);
 
         /** @brief To create another material of the same type*/
         virtual TPZMaterial *NewMaterial() override;

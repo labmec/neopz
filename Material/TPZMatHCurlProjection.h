@@ -93,14 +93,16 @@ public:
      */
     int NSolutionVariables(int var) override;
 
+    void GetExactSolDimensions(uint64_t &u_len,
+                               uint64_t &du_row,
+                               uint64_t &du_col) override;
     /** @brief Returns the solution associated with the var index based on the
      * finite element approximation */
     void Solution(TPZMaterialData &data, int var,
                   TPZVec<STATE> &Solout) override;
 
     void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
-                TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
-                TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &curlU_exact,
+                TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,                
                 TPZVec<REAL> &val) override;
 
     int NEvalErrors() override { return 3; } // l2 and hcurl
