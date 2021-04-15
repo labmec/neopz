@@ -1011,26 +1011,26 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	// Adjust the order of the integration rule
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
-	int maxIntOrder = intrule->GetMaxOrder();
-    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-    //end
-    intrule->GetOrder(prevorder);
-    const int order_limit = 8;
-    if(maxIntOrder > order_limit)
-    {
-        if (prevorder[0] > order_limit) {
-            maxIntOrder = prevorder[0];
+    TPZManVector<int,3> prevOrder(dim);
+	const int maxIntOrder = [&](){
+        int max_int_order = intrule->GetMaxOrder();
+        intrule->GetOrder(prevOrder);
+        constexpr int order_limit = 8;
+        if(max_int_order > order_limit){
+            if (prevOrder[0] > order_limit) {
+                max_int_order = prevOrder[0];
+            }
+            else{
+                max_int_order = order_limit;
+            }
         }
-        else
-        {
-            maxIntOrder = order_limit;
-        }
-    }
-	
+        return max_int_order;
+    }();
+	TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
 
-  uint64_t u_len{0}, du_row{0}, du_col{0};
-  material->GetExactSolDimensions(u_len, du_row, du_col);
+    uint64_t u_len{0}, du_row{0}, du_col{0};
+    material->GetExactSolDimensions(u_len, du_row, du_col);
 	TPZManVector<STATE,10> u_exact(u_len);
 	TPZFNMatrix<9,STATE> du_exact(du_row,du_col);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
@@ -1097,7 +1097,7 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
             elvals(index,ier) = errors[ier];
         }
     }
-	intrule->SetOrder(prevorder);
+	intrule->SetOrder(prevOrder);
 	
 }//method
 
@@ -1134,22 +1134,24 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 	// Adjust the order of the integration rule
 	
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
-	int maxIntOrder = intrule->GetMaxOrder();
-    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-    //end
-    intrule->GetOrder(prevorder);
-    const int order_limit = 8;
-    if(maxIntOrder > order_limit)
-    {
-        if (prevorder[0] > order_limit) {
-            maxIntOrder = prevorder[0];
+    TPZManVector<int,3> prevOrder(dim);
+	const int maxIntOrder = [&](){
+        int max_int_order = intrule->GetMaxOrder();
+        
+        intrule->GetOrder(prevOrder);
+        const int order_limit =
+            material->GetExactSol()->PolynomialOrder();        
+        if(max_int_order > order_limit){
+            if (prevOrder[0] > order_limit) {
+                max_int_order = prevOrder[0];
+            }
+            else{
+                max_int_order = order_limit;
+            }
         }
-        else
-        {
-            maxIntOrder = order_limit;
-        }
-    }
-	
+        return max_int_order;
+    }();
+	TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
@@ -1199,7 +1201,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
             elvals(index,ier) = errors[ier];
         }
     }
-	intrule->SetOrder(prevorder);
+	intrule->SetOrder(prevOrder);
 	
 }//method
 

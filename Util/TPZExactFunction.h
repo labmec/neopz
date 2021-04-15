@@ -43,33 +43,44 @@ for(auto imat : cmesh->MaterialVec()){
 template<class TVar>
 class TPZExactFunction : public virtual TPZFunction<TVar> {
 private:
-    //!Non-managed pointer to actual function
+    //! Non-managed pointer to actual function
     std::function<void(const TPZVec<REAL> &loc, TPZVec<STATE> &result,
                      TPZFMatrix<STATE> &deriv)> fExact;
-    int fPolyOrder = -1;
+    //! Minimal polynomial order for the integration rule
+    int fPolyOrder = 1;
 public:
 	
 	//! Default constructor.
 	TPZExactFunction() = default;
-    //! Constructor setting exact function.
+    /*! Constructor setting exact solution and polynomial order.
+      To use whatever integration rule order the computation was
+      actually using, set a small value of p (<2).
+      \param f - exact solution
+      \param p - minimal polynomial order to be used in integ. rule.
+    */
     TPZExactFunction(
         std::function<void(const TPZVec<REAL> &loc,
                            TPZVec<STATE> &result,
                            TPZFMatrix<STATE> &deriv)>
-        f, int polyOrder) {fExact = f; fPolyOrder = polyOrder;}
-    //! Set exact function.
+        f, int p = 1) {fExact = f; fPolyOrder = p;}
+    
+    /*! Set exact solution and polynomial order.
+      To use whatever integration rule order the computation was
+      actually using, set a small value of p (<2).
+      \param f - exact solution
+      \param p - minimal polynomial order to be used in integ. rule.
+    */
     void SetExact(
         std::function<void(const TPZVec<REAL> &loc,
                            TPZVec<STATE> &result,
                            TPZFMatrix<STATE> &deriv)>
-        f, int polyOrder) {fExact = f; fPolyOrder = polyOrder;}
+        f, int p) {fExact = f; fPolyOrder = p;}
 
-        /**
-	 * @brief Performs function computation
-	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
-	 * @param f function values
-	 * @param df function derivatives
-	 */
+    /*! Performs function computation
+      \param x point coordinate
+      \param f function values
+      \param df function derivatives
+    */
 	void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df) override
     {
         if(fExact){fExact(x,f,df);}
@@ -81,7 +92,7 @@ public:
         }
     }
 
-    //! Polynomial order to be used in the integration rule
+    //! Minimal polynomial order to be used in the integration rule
     int PolynomialOrder() const override{
         return fPolyOrder;
     }
