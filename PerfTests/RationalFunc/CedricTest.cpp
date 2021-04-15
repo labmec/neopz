@@ -182,6 +182,7 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
     
     
     int64_t nelem = cmesh->NElements();
+    TPZFMatrix<STATE> &sol = cmesh->Solution();
     for (int64_t el=0; el<nelem; el++) {
         TPZCompEl *cel = cmesh->ElementVec()[el];
         TPZMaterial *mat = cel->Material();
@@ -194,7 +195,7 @@ void TCedricTest::InterpolationError(int nsubdivisions,int geocase, int Material
         for (int ic=0; ic<ncorner; ic++) {
             TPZConnect &c = cmesh->ConnectVec()[ic];
             int64_t seqnum = c.SequenceNumber();
-            STATE val = cmesh->Block()(seqnum,0,0,0);
+            STATE val = sol(cmesh->Block().Index(seqnum,0));
             if (fabs(val) > 1.e-6) {
                 TPZManVector<REAL,3> x(3);
                 gel->NodePtr(ic)->GetCoordinates(x);
@@ -223,6 +224,7 @@ void TCedricTest::LoadInterpolation(TPZCompMesh *cmesh)
     TPZManVector<REAL,3> value(1);
     TPZFNMatrix<3,REAL> deriv(3,1);
     int64_t nel = gmesh->NElements();
+    TPZFMatrix<STATE> &sol = cmesh->Solution();
     for (int64_t el=0; el<nel; el++) {
         TPZGeoEl *gel = gmesh->ElementVec()[el];
         TPZCompEl *cel = gel->Reference();
@@ -233,7 +235,7 @@ void TCedricTest::LoadInterpolation(TPZCompMesh *cmesh)
             Exact(x, value, deriv);
             TPZConnect &c = cel->Connect(ic);
             int64_t seqnum = c.SequenceNumber();
-            cmesh->Block()(seqnum,0,0,0) = value[0];
+            sol(cmesh->Block().Index(seqnum,0)) = value[0];
         }
     }
 }
