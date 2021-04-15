@@ -176,14 +176,8 @@ void threadTest::ComparePostProcError(const int nThreads) {
   auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
   auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
 
-  auto solLambda = [&](const TPZVec<STATE> &x,
-                       TPZVec<STATE> &r, TPZFMatrix<STATE> &d){
-    return threadTest::ExactSolution(x, r, d);
-  };
   TPZAutoPointer<TPZFunction<STATE>> solPtr(
-      new TPZExactFunction<STATE>(solLambda,pOrder));
-  // TPZAutoPointer<TPZFunction<STATE>> solPtr(
-      // new TPZExactFunction<STATE>(threadTest::ExactSolution,pOrder));
+      new TPZExactFunction<STATE>(threadTest::ExactSolution,pOrder));
   for(auto imat : cMesh->MaterialVec()){
     imat.second->SetExactSol(solPtr);
   }

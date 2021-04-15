@@ -20,15 +20,9 @@ class TPZFunction : public virtual TPZSavable {
 public:
 	
 	/** @brief Class constructor */
-	TPZFunction(){
-            
-        }
-	
+	TPZFunction()=default;
 	/** @brief Class destructor */
-	~TPZFunction(){
-            
-        }
-    
+	virtual ~TPZFunction() = default;
 	/**
 	 * @brief Performs function computation
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
