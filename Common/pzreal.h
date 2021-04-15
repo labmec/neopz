@@ -40,43 +40,26 @@ typename std::underlying_type<Enumeration>::type as_integer(const Enumeration va
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
 }
 
-
-/*structs used for help identifying fundamental types in template parameters.
- For instance,
- 
- template <class T,
- typename std::enable_if<(is_arithmetic_pz::value), int>::type* = nullptr>
- void Write(const TPZVec<T> &vec){
- //stuff here
- }
- 
- This template would only match with T as char, int, long, float, double, 
- * std::complex<float> etc... (Not composite types).*/
-
-/**
- * Matches floating points (float, const double...)
- */
 template<class T>
-struct is_complex_or_floating_point : std::is_floating_point<T> { };
-
-
-/**
- * Extends the behavior of the struct above to match complex numbers 
- * (std::complex<int>, std::complex<float>...)
- */
+struct real_type{typedef T type;};
 template<class T>
-struct is_complex_or_floating_point<std::complex<T>> : std::integral_constant<bool,
-        std::is_integral<T>::value ||
-        std::is_floating_point<T>::value> { };
+struct real_type<std::complex<T>>{typedef T type;};
 
-/**
- * Matches integrals, floating points and complex numbers 
- * (char, int, float, double, std::complex<int>, std::complex<float>...)
- */
 template<class T>
-struct is_arithmetic_pz : std::integral_constant<bool,
-        std::is_integral<T>::value ||
-        is_complex_or_floating_point<T>::value> { };
+struct is_complex{ static constexpr bool value = false;};
+
+template<class T>
+struct is_complex<std::complex<T>> : 
+    std::integral_constant<bool,
+    std::is_integral<T>::value ||
+    std::is_floating_point<T>::value>{};
+
+template<class T>
+struct is_arithmetic_pz :
+    std::integral_constant<bool,
+    std::is_integral<T>::value ||
+    std::is_floating_point<T>::value ||
+    is_complex<T>::value>{};
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX
