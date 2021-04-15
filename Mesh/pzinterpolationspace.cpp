@@ -1166,8 +1166,8 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         //in the case of the hdiv functions
         TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
         if(shapetype==data.EVecandShape){
-            this->ComputeSolution(intpoint, data);
             this->ComputeRequiredData(data, intpoint);
+            this->ComputeSolution(intpoint, data);
         }
         else
         {
