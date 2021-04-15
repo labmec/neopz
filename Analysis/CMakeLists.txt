@@ -16,7 +16,6 @@ set(headers
     pzsmanal.h
     pztransientanalysis.h
     doxanalysis.h
-    pzanalysiserror.h
     pzeuleranalysis.h
     pznonlinanalysis.h
     pzsmfrontalanal.h
@@ -24,7 +23,6 @@ set(headers
 
 set(sources
     TPZNLMultGridAnalysis.cpp
-    pzanalysiserror.cpp
     pzeuleranalysis.cpp
     pznonlinanalysis.cpp
     pzsmfrontalanal.cpp

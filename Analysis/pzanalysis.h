@@ -97,9 +97,6 @@ protected:
         TTablePostProcess fTable;
   public:
 	
-    /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
-    std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
-	
 	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth = true, std::ostream &out = std::cout);
     	
@@ -273,11 +270,11 @@ protected:
 		this->LoadSolution();
 	}
 
-    /// Integrate the postprocessed variable name over the elements included in the set matids
+    //! Integrate the postprocessed variable name over the elements included in the set matids
     TPZVec<STATE> Integrate(const std::string &varname, const std::set<int> &matids);
     
-	/** @brief Sets the pointer of the exact solution function */
-    void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
+	//! Sets an exact solution in all the materials of the associated mesh
+    void SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f, int pOrder = 1);
 	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
     
@@ -323,13 +320,11 @@ protected:
 
       TPZAdmChunkVector<TPZCompEl *> fElvec;
     
-      ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f);
+      ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error);
     
     ~ThreadData();
     
     static void *ThreadWork(void *threaddata);
-    
-      std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> fExact;
     
     int64_t fNextElement;
     
@@ -357,6 +352,12 @@ private:
   BuildSequenceSolver(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex,
                       int64_t neq, int numcolors, TPZVec<int> &colors);
 
+  template <class TVar>
+  void
+  SetExactInternal(std::function<void(
+               const TPZVec<REAL> &loc, TPZVec<TVar> &result,
+               TPZFMatrix<TVar> &deriv)>
+               f,int pOrder = 1);
   template <class TVar> void AssembleInternal();
   template <class TVar> void SolveInternal();
   template <class TVar>
@@ -372,12 +373,7 @@ private:
 };
 
 
-inline void
 
-TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f)
-{
-	fExact=f;
-}
 
 inline void TPZAnalysis::SetTime(REAL time){
 	this->fTime = time;

@@ -287,15 +287,8 @@ public:
 
     }	
 
-    public:
+    
 virtual int ClassId() const override;
-//TOBEREMOVED [[deprecated("Use or implement TPZMultiphysicsInterfaceEl::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
-void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                                  TPZVec<REAL> &/*errors*/, bool store_error) override {
-//        LOGPZ_WARN(logger, "EvaluateError is called.");
-//        DebugStop();
-    }
-
     
 };
 

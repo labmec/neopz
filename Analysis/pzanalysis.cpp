@@ -89,7 +89,7 @@ TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
 fRhs(false), fSolution(false),//TODOCOMPLEX:set matrix type (complex/real)
 fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
-, fGuiInterface(NULL), fTable(), fExact(NULL) {
+, fGuiInterface(NULL), fTable() {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
@@ -100,7 +100,7 @@ TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ost
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
 fRhs(false), fSolution(false),//TODOCOMPLEX:set matrix type (complex/real)
-fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
+fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -112,7 +112,7 @@ TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBand
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
 fRhs(false), fSolution(false),//TODOCOMPLEX:set matrix type (complex/real)
-fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable(), fExact(NULL)
+fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -521,7 +521,10 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
       if (el->Material() && el->Material()->HasExactSol()) {
         el->EvaluateError(errors, 0);
       } else {
-        el->EvaluateError(fExact, errors, 0);
+          PZError<<__PRETTY_FUNCTION__;
+          PZError<<" the material has no associated exact solution\n";
+          PZError<<"Aborting...";
+          DebugStop();
       }
       if(matId0==el->Material()->Id()){
 				for(int ier = 0; ier < errors.NElements(); ier++) 	values[ier] += errors[ier] * errors[ier];
@@ -670,7 +673,10 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     if (cel->Material() && cel->Material()->HasExactSol()) {
       cel->EvaluateError(errors, data->fStoreError);
     } else {
-      cel->EvaluateError(data->fExact, errors, data->fStoreError);
+      PZError<<__PRETTY_FUNCTION__;
+      PZError<<" the material has no associated exact solution\n";
+      PZError<<"Aborting...";
+      DebugStop();
     }
     
     const int nerrors = errors.NElements();
@@ -705,7 +711,7 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
 #endif
   
   
-  ThreadData threaddata(elvec,store_error, this->fExact);
+  ThreadData threaddata(elvec,store_error);
   threaddata.fvalues.Resize(numthreads);
   for(int iv = 0 ; iv < numthreads ; iv++){
       threaddata.fvalues[iv].Resize(10);
@@ -795,7 +801,7 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
     int64_t nelgeom = gmesh->NElements();
     TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
     fCompMesh->LoadSolution(fSolution);
-    //	SetExact(&Exact);
+    
     TPZManVector<REAL,10> errors(10);
     errors.Fill(0.0);
     for(i=0;i<nel;i++) {
@@ -811,7 +817,12 @@ void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, 
                 if((mat != nullptr && mat->HasExactSol()) || submesh)
                   {el->EvaluateError(errors,store_error);}
                 else
-                  {el->EvaluateError(fExact, errors, store_error);}
+                  {
+                  PZError<<__PRETTY_FUNCTION__;
+                  PZError<<" the material has no associated exact solution\n";
+                  PZError<<"Aborting...";
+                  DebugStop();
+                  }
                 int nerrors = errors.NElements();
                 values.Resize(nerrors, 0.);
                 elvalues.Resize(nelgeom, nerrors);
@@ -896,7 +907,23 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 	return;
 }
 
+void TPZAnalysis::SetExact(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)>f,int p){
+    //TODOCOMPLEX
+    TPZAnalysis::SetExactInternal<STATE>(f,p);
+}
 
+template<class TVar>
+void TPZAnalysis::SetExactInternal(std::function<void (const TPZVec<REAL> &loc, TPZVec<TVar> &result, TPZFMatrix<TVar> &deriv)>f,int p){
+    if(!fCompMesh){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" there is no associated computational mesh.\n";
+        PZError<<"Aborting...\n";
+        DebugStop();
+    }
+    for(auto imat : fCompMesh->MaterialVec()){
+        imat.second->SetExactSol(f,p);
+    }
+}
 template<class TVar>
 void TPZAnalysis::ShowShapeInternal(
     const TPZStack<std::string> &scalnames,
@@ -1568,7 +1595,6 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     buf.Write(fTensorNames[0]);
     buf.Write(fTensorNames[1]);
     buf.Write(fTensorNames[2]);
-    //@TODOFran: How to persist fExact?
 }
 
 void TPZAnalysis::Read(TPZStream &buf, void *context){
@@ -1596,10 +1622,9 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     buf.Read(fTensorNames[0]);
     buf.Read(fTensorNames[1]);
     buf.Read(fTensorNames[2]);
-    //@TODOFran: How to persist fExact?
 }
 
-TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error, std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)> f) : fNextElement(0), fvalues(0), fStoreError(store_error), fExact(f), ftid(0), fElvec(elvec){
+TPZAnalysis::ThreadData::ThreadData(TPZAdmChunkVector<TPZCompEl *> &elvec, bool store_error) : fNextElement(0), fvalues(0), fStoreError(store_error), ftid(0), fElvec(elvec){
 }
 
 

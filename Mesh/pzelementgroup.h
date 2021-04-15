@@ -262,15 +262,8 @@ public:
 	 * @param ef element load vector
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
-	
-    /**
-	 * @brief Performs an error estimate on the elemen
-	 * @param fp function pointer which computes the exact solution
-	 * @param errors [out] the L2 norm of the error of the solution
-	 * @param flux [in] value of the interpolated flux values
-	 */
-    virtual void EvaluateError(std::function<void (const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-							   TPZVec<REAL> &errors, bool store_error) override;
+
+    void EvaluateError(TPZVec<REAL>&errors, bool store_error) override;
 
     /** @brief Verifies if the material associated with the element is contained in the set */
     virtual bool HasMaterial(const std::set<int> &materialids) const override;

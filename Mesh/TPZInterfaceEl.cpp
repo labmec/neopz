@@ -776,13 +776,6 @@ void TPZInterfaceElement::EvaluateError(TPZVec<REAL> &errors, bool store_error)
 	errors.Fill(0.0);
 }
 
-void TPZInterfaceElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                           TPZVec<REAL> &errors, bool store_error)
-{
-	errors.Fill(0.0);
-}
-
-
 /**
  * returns the unique identifier for reading/writing objects to streams
  */

@@ -268,15 +268,6 @@ virtual int ClassId() const override;
 	
 	/** @brief Remove interface which is neighbour from side side */
 	void RemoveInterface(int side);
-	
-	/**
-	 * @brief Performs an error estimate on the elemen
-	 * @param fp function pointer which computes the exact solution
-	 * @param errors (output) the L2 norm or true error of the error of the solution
-	 * @param flux (input) value of the interpolated flux values
-	 */
-    void EvaluateError(  std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                               TPZVec<REAL> &errors, bool store_error ) override;
     /**
 	 * @brief Performs an error estimate on the element.
      * This estimate is based on the exact solution in its material.

@@ -493,6 +493,8 @@ public:
 	{
 		fExactSol = fp;
 	}
+
+    void SetExactSol(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)>f,int p);
 	
     /** @brief Returns a procedure as exact solution for the problem */
     TPZAutoPointer<TPZFunction<STATE> > &GetExactSol() {

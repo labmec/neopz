@@ -491,20 +491,6 @@ void TPZMultiphysicsElement::EvaluateError(TPZVec<REAL> &errors, bool store_erro
 
 }//method
 
-void TPZMultiphysicsElement::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                                                     TPZVec<REAL> &errors, bool store_errors){
-    
-    DebugStop(); // Should never enter here
-    
-
-}//method
-
-void TPZMultiphysicsElement::EvaluateError(TPZFunction<STATE> &func,
-                           TPZVec<STATE> &errors, bool store_errors)
-{
-    DebugStop();
-}
-
 void TPZMultiphysicsElement::GetConnectMeshPairs(TPZVec<std::pair<int64_t,int>> &connectpairs)
 {
     int nconnect = NConnects();
