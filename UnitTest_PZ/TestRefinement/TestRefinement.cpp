@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <iostream>
-#define Zero -1.e-12;
 
 // #ifdef PZ_USING_BOOST
 
@@ -125,7 +124,8 @@ namespace refinementtests{
 
             TPZVec<REAL> qsi(gel->Dimension(),0.); TPZFMatrix<double> jac; TPZFMatrix<double> axes; REAL detjac = notcomputed; TPZFMatrix<double> jacinv;
             gel->Jacobian(qsi,jac,axes,detjac,jacinv);
-            bool cond = detjac > Zero;
+            REAL zero = ZeroTolerance();
+            bool cond = detjac > 0;
             BOOST_CHECK_MESSAGE(cond,
                                 "\n"+testName+" failed"+
                                 "\nUniform Refinement: "+gel->EldestAncestor()->TypeName()+"\n"+
