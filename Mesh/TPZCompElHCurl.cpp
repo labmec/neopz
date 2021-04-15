@@ -925,102 +925,116 @@ IMPLEMENTHCURL(pzshape::TPZShapePrism)
 
 #include <TPZCompElHCurlFull.h>
 
-TPZCompEl * CreateHCurlBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    DebugStop();
-	return nullptr;//return new TPZCompElHCurlBound2<TPZShapePoint>(mesh,gel,index);
-}
 
-TPZCompEl * CreateHCurlBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlAuxClass::GetHCurlFamily()){
-        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-            return new TPZCompElHCurlFull< pzshape::TPZShapeLinear>(mesh,gel,index);
-            break;
-        default:
-            DebugStop();
-    }
-}
-
-TPZCompEl * CreateHCurlBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlAuxClass::GetHCurlFamily()){
-        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-            return new TPZCompElHCurlFull< pzshape::TPZShapeTriang>(mesh,gel,index);
-            break;
-        default:
-            DebugStop();
-    }
-}
-
-TPZCompEl * CreateHCurlBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlAuxClass::GetHCurlFamily()){
-        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-            return new TPZCompElHCurlFull< pzshape::TPZShapeQuad>(mesh,gel,index);
-            break;
-        default:
-            DebugStop();
-    }
-}
-
-TPZCompEl * CreateHCurlLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlAuxClass::GetHCurlFamily()){
-        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-            return new TPZCompElHCurlFull< pzshape::TPZShapeLinear>(mesh,gel,index);
-            break;
-        default:
-            DebugStop();
-    }
-}
-
-TPZCompEl * CreateHCurlTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlAuxClass::GetHCurlFamily()){
-        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-            return new TPZCompElHCurlFull< pzshape::TPZShapeTriang >(mesh,gel,index);
-            break;
-        default:
-            DebugStop();
-    }
-}
-
-TPZCompEl * CreateHCurlQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	switch(TPZHCurlAuxClass::GetHCurlFamily()){
-	    case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-	        return new TPZCompElHCurlFull< pzshape::TPZShapeQuad>(mesh,gel,index);
-	        break;
-	    default:
-	        DebugStop();
-	}
-}
-
-TPZCompEl * CreateHCurlTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    switch(TPZHCurlAuxClass::GetHCurlFamily()){
-        case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-            return new TPZCompElHCurlFull< pzshape::TPZShapeTetra >(mesh,gel,index);
-            break;
-        default:
-            DebugStop();
-    }
-}
-
-TPZCompEl * CreateHCurlCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	switch(TPZHCurlAuxClass::GetHCurlFamily()){
-	    case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-	        return new TPZCompElHCurlFull< pzshape::TPZShapeCube >(mesh,gel,index);
-	        break;
-	    default:
-	        DebugStop();
-	}
-}
-
-TPZCompEl * CreateHCurlPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	switch(TPZHCurlAuxClass::GetHCurlFamily()){
-	    case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
-	        return new TPZCompElHCurlFull< pzshape::TPZShapePrism>(mesh,gel,index);
-	        break;
-	    default:
-	        DebugStop();
-	}
-}
-
-TPZCompEl * CreateHCurlPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-	DebugStop();
+#define HCURL_EL_NOT_AVAILABLE \
+    PZError<<__PRETTY_FUNCTION__;\
+    PZError<<"Element not available.\n";\
+    PZError<<"Aborting...\n";\
+    DebugStop();\
     return nullptr;
+
+TPZCompEl *CreateHCurlBoundPointEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                                   int64_t &index){HCURL_EL_NOT_AVAILABLE}
+
+TPZCompEl *CreateHCurlBoundLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                                    int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeLinear>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
 }
+
+TPZCompEl *CreateHCurlBoundTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                                      int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeTriang>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlBoundQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                                  int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeQuad>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlLinearEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                               int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeLinear>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlTriangleEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                                 int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeTriang>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlQuadEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeQuad>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlTetraEl(TPZGeoEl *gel, TPZCompMesh &mesh,int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeTetra>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlCubeEl(TPZGeoEl *gel, TPZCompMesh &mesh, int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapeCube>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlPrismEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                              int64_t &index) {
+  switch (TPZHCurlAuxClass::GetHCurlFamily()) {
+  case TPZHCurlAuxClass::EHCurlFamily::EFullOrder:
+    return new TPZCompElHCurlFull<pzshape::TPZShapePrism>(mesh, gel, index);
+    break;
+  default:
+    HCURL_EL_NOT_AVAILABLE
+  }
+}
+
+TPZCompEl *CreateHCurlPyramEl(TPZGeoEl *gel, TPZCompMesh &mesh,
+                              int64_t &index) {
+  HCURL_EL_NOT_AVAILABLE
+}
+
+#undef HCURL_EL_NOT_AVAILABLE
