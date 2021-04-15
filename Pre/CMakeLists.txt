@@ -8,7 +8,9 @@ target_include_directories(pz PUBLIC
 
 set(headers
     MMeshType.h
-    TPZExtendGridDimension.h
+    TPZTensor.h
+    TPZTensorTranslator.h
+    TPZExtendGridDimension.h    
     TPZGenSpecialGrid.h
     TPZMHMeshControl.h
     TPZReadGIDGrid.h
@@ -35,6 +37,8 @@ set(headers
     )
 
 set(sources
+    TPZTensor.cpp
+    TPZTensorTranslator.cpp
     MMeshType.cpp
     TPZExtendGridDimension.cpp
     TPZGenSpecialGrid.cpp

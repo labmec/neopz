@@ -15,7 +15,7 @@
 #include "pzysmp.h"
 #include "pzsysmp.h"
 #include "TPZTensor.h"
-
+#include "fstream"
 #ifdef PZ_USING_BOOST
 
 #ifndef WIN32
@@ -24,7 +24,8 @@
 #define BOOST_TEST_MAIN pz tensor tests
 
 #include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+
+#include <boost/test/tools/floating_point_comparison.hpp>
 
 #endif
 
@@ -375,9 +376,8 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
  @param file_name file containg computed data for several symmetric tensors and their eigensystem
  @return tensor_data data to be reproduced by TPZTensor.
  */
-TPZFMatrix<STATE> ReadExternalTensorData(std::string &file_name) {
-
-    std::ifstream in(file_name.c_str());
+TPZFMatrix<STATE> ReadExternalTensorData(std::string_view file_name) {    
+    std::ifstream in{std::string(file_name)};
     int n_data = 854;
     TPZFMatrix<STATE> tensor_data(n_data, 18, 0.);
 
@@ -401,9 +401,7 @@ TPZFMatrix<STATE> ReadExternalTensorData(std::string &file_name) {
 template <class TTensor, class TNumber>
 void TestingEigenDecompositionFromMathematica() {
 
-    std::string dirname = PZSOURCEDIR;
-    std::string file_name;
-    file_name = dirname + "/UnitTest_PZ/TestTensor/tensor_and_eigensystem.txt";
+    constexpr std::string_view file_name("tensor_and_eigensystem.txt");
 
     TPZFNMatrix<15372, STATE> ref_data = ReadExternalTensorData(file_name);
     unsigned int n_cases = ref_data.Rows();
@@ -499,22 +497,35 @@ void TestingEigenDecompositionFromMathematica() {
 BOOST_AUTO_TEST_SUITE(tensor_tests)
 
 
-BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
-
-//        TestingEigenDecompositionThreeDistinct<TPZTensor<double >, double >();
-//        TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
-//        TestingEigenDecompositionAutoFill<TPZTensor<double >, double >();
-//        TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
-//        TestingEigenDecompositionTensorZero<TPZTensor<double >, double >();
-//        TestingEigenDecompositionTensorZero<TPZTensor<float >, float >();
-//        TestingEigenDecompositionHydrostatic<TPZTensor<double >, double >();
-//        TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
-//        TestingEigenDecompositionTwoEigenValues<TPZTensor<double >, double >();
-//        TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
-//        TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<double >, double >();
-//        TestingEigenDecompositionTwoEigenValuesNoShearStress<TPZTensor<float>, float>();
-    TestingEigenDecompositionFromMathematica<TPZTensor<double >, double >();
-
+BOOST_AUTO_TEST_CASE(eigenvalue_tests_three) {
+  TestingEigenDecompositionThreeDistinct<TPZTensor<double>, double>();
+  TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
+}
+BOOST_AUTO_TEST_CASE(eigenvalue_tests_autofill) {
+  TestingEigenDecompositionAutoFill<TPZTensor<double>, double>();
+  TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
+}
+BOOST_AUTO_TEST_CASE(eigenvalue_tests_zerotensor) {
+  TestingEigenDecompositionTensorZero<TPZTensor<double>, double>();
+  TestingEigenDecompositionTensorZero<TPZTensor<float>, float>();
+}
+BOOST_AUTO_TEST_CASE(eigenvalue_tests_hydro) {
+  TestingEigenDecompositionHydrostatic<TPZTensor<double>, double>();
+  TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
+}
+// //NOT WORKING
+// BOOST_AUTO_TEST_CASE(eigenvalue_tests_two) {
+//   TestingEigenDecompositionTwoEigenValues<TPZTensor<double>, double>();
+//   TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
+// }
+BOOST_AUTO_TEST_CASE(eigenvalue_tests_noshear) {
+  TestingEigenDecompositionTwoEigenValuesNoShearStress<
+      TPZTensor<double>,double>();
+  TestingEigenDecompositionTwoEigenValuesNoShearStress<
+      TPZTensor<float>,float>();
+}
+BOOST_AUTO_TEST_CASE(eigenvalue_tests_fromfile) {  
+  TestingEigenDecompositionFromMathematica<TPZTensor<double>, double>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
