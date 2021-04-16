@@ -158,18 +158,32 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
             data.dsol[is].Redim(dim,nstate);            
         }
 	}
-    TPZManVector<REAL,3> x_center(3,0.0);
-    TPZVec<REAL> center_qsi(dim,0.0);
-    
-    if (Reference()->Dimension() == 2){
-        if (dim == EQuadrilateral) {
-            center_qsi[0] = 0.0;
-            center_qsi[1] = 0.0;
-        } else if (Reference()->Type() == ETriangle) {
-            center_qsi[0] = 0.25;
-            center_qsi[1] = 0.25;
-        }
-    }
+//Completing for three dimensional elements
+	TPZManVector<REAL,3> x_center(3,0.0);
+	TPZVec<REAL> center_qsi(dim,0.0);
+	if (dim == 2) {
+		if (Reference()->Type() == ETriangle) {
+			center_qsi[0] = 0.25;
+			center_qsi[1] = 0.25;
+		}
+	}
+	else if (dim == 3) {
+		if (Reference()->Type() == EPrisma) {
+			center_qsi[0] = 1./3.;
+			center_qsi[1] = 1./3.;
+			center_qsi[2] = 0.0;
+		}
+		else if (Reference()->Type() == ETetraedro) {
+			center_qsi[0] = 0.25;
+			center_qsi[1] = 0.25;
+			center_qsi[2] = 0.25;
+		}
+		else if (Reference()->Type() == EPiramide) {
+			center_qsi[0] = 0.0;
+			center_qsi[1] = 0.0;
+			center_qsi[2] = 1./5.;
+		}
+	}
     Reference()->X(center_qsi, x_center);
     data.XCenter = x_center;
     
