@@ -112,19 +112,6 @@ public:
 	{
         TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
-	
-	
-    /** 
-	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed \n
-	 * based on the derivative of the solution
-     */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
-                        TPZFMatrix<REAL> &axes,
-                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
-                        TPZVec<REAL> &val) override {
-        PZError << __PRETTY_FUNCTION__ << std::endl;
-        PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-    }
     public:
 virtual int ClassId() const override;
 

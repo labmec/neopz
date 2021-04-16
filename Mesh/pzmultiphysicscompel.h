@@ -65,18 +65,6 @@ public:
 	 **/
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const override;
 
-    /**
-	 * @brief Performs an error estimate on the elemen
-	 * @param fp function pointer which computes the exact solution
-	 * @param errors (output) each norm or true error of the error of the solution at each physics
-	 * @param flux (input) value of the interpolated flux values
-	 */
-    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                               TPZVec<REAL> &errors, bool store_error ) override;
-    
-    virtual void EvaluateError(TPZFunction<STATE> &func,
-                               TPZVec<STATE> &errors, bool store_error) override;
-
   virtual void
   EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
 

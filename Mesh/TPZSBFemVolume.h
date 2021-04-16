@@ -326,9 +326,6 @@ public:
                                  TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
 
     void EvaluateError(TPZVec<REAL> &errors,bool store_error) override;
-//TOBEREMOVED [[deprecated("Use or implement TPZSBFemVolume::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
-    void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                       TPZVec<REAL> &errors,bool store_error) override;
     
     /**
      * @brief Computes the shape function set at the point x.

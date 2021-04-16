@@ -109,11 +109,12 @@ private:
 	 * @brief Compute the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
+protected:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 				TPZFMatrix<REAL> &axes,
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
-				TPZVec<REAL> &values) override;
-	
+				TPZVec<REAL> &values) override; 
+public:
 	/** @brief Kernel of the functional */
 	void Psi(TPZVec<REAL> &x, TPZVec<STATE> &pisci);
 	

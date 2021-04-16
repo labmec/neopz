@@ -2272,7 +2272,8 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
 }
 
 void TPZSubCompMesh::EvaluateError(TPZVec<REAL> &errors, bool store_errors){
-  fAnalysis->PostProcessError(errors,store_errors);
+    errors.Fill(0.);
+    fAnalysis->PostProcessError(errors,store_errors);
     int NErrors = errors.size();
     if(store_errors)
     {
@@ -2289,27 +2290,6 @@ void TPZSubCompMesh::EvaluateError(TPZVec<REAL> &errors, bool store_errors){
 
 }
 
-
-void TPZSubCompMesh::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                                          TPZVec<REAL> &errors, bool store_errors){
-    
-  fAnalysis->SetExact(fp);
-  fAnalysis->PostProcessError(errors,store_errors);
-    int NErrors = errors.size();
-    if(store_errors)
-    {
-        int64_t index = Index();
-        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
-        if (elvals.Cols() < NErrors) {
-            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
-            DebugStop();
-        }
-        for (int ier=0; ier <NErrors; ier++) {
-            elvals(index,ier) = errors[ier];
-        }
-    }
-
-}
 
 /**
  * Compute the residual norm of the internal equation

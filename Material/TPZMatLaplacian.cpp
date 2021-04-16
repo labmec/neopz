@@ -569,50 +569,6 @@ void TPZMatLaplacian::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 }//method
 
 void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
-							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes, 
-							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
-	
-    values.Resize(3);
-    values.Fill(0.0);
-
-    TPZFNMatrix<9,STATE> perm(2*fDim,fDim);
-    TPZManVector<STATE,3> val(fDim);
-    if (fPermeabilityFunction) {
-        fPermeabilityFunction->Execute(x, val, perm);
-    }
-    else
-    {
-        for (int i=0; i<fDim; i++) {
-            for (int j=0; j<fDim; j++)
-            {
-                perm(i,j) = this->fTensorK(i,j);
-                perm(fDim+i,j) = this->fInvK(i,j);
-            }
-        }
-    }
-    TPZFNMatrix<3,STATE> dudx(3,1,0.);
-    TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
-    
-	///L2 norm
-	values[1] = TPZExtractVal::val((u[0] - u_exact[0])*(u[0] - u_exact[0]));
-	
-	///semi norma de H1
-	values[2] = 0.;
-	for(int i = 0; i < du_exact.Rows(); i++){
-		values[2] += TPZExtractVal::val( (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0)));
-	}
-    // Energy Norm
-    values[0] = 0.;
-    for (int i=0; i<fDim; i++) {
-        for (int j=0; j<fDim; j++) {
-                values[0] += TPZExtractVal::val((dudx(i,0) - du_exact(i,0))*perm(i,j)*(dudx(j,0) - du_exact(j,0)));
-        }
-    }
-	///H1 norm
-
-}
-
-void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 							 TPZFMatrix<STATE> &dudxaxes, TPZFMatrix<REAL> &axes,TPZVec<REAL> &values) {
 	 
     TPZManVector<STATE,1> u_exact(1,0.);

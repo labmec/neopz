@@ -182,8 +182,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int
             REAL normDeltaSol = Norm(x);
             x = fSolution;
         } else {
-            
-            fSolution += x; // At this line fSolution is x+1
+            TPZFMatrix<STATE> &tmpsol = fSolution;
+            tmpsol += x; // At this line fSolution is x+1
             LoadSolution();
             
             if (i%niter_update_jac) {
@@ -276,8 +276,8 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
             REAL normDeltaSol = Norm(x);
             x = fSolution;
         } else {
-            
-            fSolution += x; // At this line fSolution is x+1
+            TPZFMatrix<STATE> &tmpsol = fSolution;
+            tmpsol += x; // At this line fSolution is x+1
             LoadSolution();
             AssembleResidual();
             
@@ -386,7 +386,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
             LoadSolution();
 		}
 		else{
-			fSolution += prevsol;
+            TPZFMatrix<STATE> &tmpsol = fSolution;
+			tmpsol += prevsol;
             LoadSolution();
             AssembleResidual();
             RhsNormResult = Norm(fRhs);
@@ -466,7 +467,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 			fSolution = nextSol;
 		}
 		else{
-			fSolution += prevsol;
+            TPZFMatrix<STATE> &tmpsol = fSolution;
+			tmpsol += prevsol;
             LoadSolution();
             AssembleResidual();
             RhsNormResult = Norm(fRhs);
@@ -650,7 +652,7 @@ void TPZElastoPlasticAnalysis::UpdatePrecond()
 {
    if(fPrecond)
    {
-		TPZMatrix<REAL> * pMatrix = TPZAnalysis::fSolver->Matrix().operator->();
+       TPZMatrix<REAL> * pMatrix = TPZAnalysis::MatrixSolver<STATE>().Matrix().operator->();
 		TPZMatrix<REAL> * pPrecondMat = fPrecond->Matrix().operator->();
 		pPrecondMat->Zero();
 		TPZBlockDiagonal<REAL> *pBlock = dynamic_cast<TPZBlockDiagonal<REAL> *>(pPrecondMat);

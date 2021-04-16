@@ -129,10 +129,19 @@ void TPZMatHCurlProjection::Solution(TPZMaterialData &data, int var,
     }
 }
 
+void TPZMatHCurlProjection::GetExactSolDimensions(
+    uint64_t &u_len, uint64_t &du_row,uint64_t &du_col){
+    u_len = fDim;
+    du_row = fCurlDim;
+    du_col = 1;
+}
+
 void TPZMatHCurlProjection::Errors(TPZVec<REAL> &x, TPZVec<STATE> &u,
                 TPZFMatrix<STATE> &curlU, TPZFMatrix<REAL> &axes,
-                TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &curlU_exact,
                 TPZVec<REAL> &values) {
+    TPZManVector<STATE,3> u_exact(fDim);
+    TPZFNMatrix<3,STATE> curlU_exact(fCurlDim);
+    fExactSol->Execute(x, u_exact, curlU_exact);
     values.Fill(0.0);
 
     // values[0] : E error using HCurl norm (values[1]+values[2])

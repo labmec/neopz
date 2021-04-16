@@ -175,20 +175,13 @@ void threadTest::ComparePostProcError(const int nThreads) {
   int matIdBC;
   auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
   auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
-
-  TPZAutoPointer<TPZFunction<STATE>> solPtr(
-      new TPZExactFunction<STATE>(threadTest::ExactSolution,pOrder));
-  for(auto imat : cMesh->MaterialVec()){
-    imat.second->SetExactSol(solPtr);
-  }
   constexpr bool optimizeBandwidth{false};
-
   auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads) {
     TPZAnalysis an(cMesh, optimizeBandwidth);
     TSTMAT matskl(cMesh);
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
-
+    an.SetExact(threadTest::ExactSolution);
     TPZStepSolver <STATE> *direct = new TPZStepSolver<STATE>;
     direct->SetDirect(ELDLt);
     an.SetSolver(*direct);

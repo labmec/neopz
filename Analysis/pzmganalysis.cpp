@@ -30,7 +30,6 @@ using namespace std;
 
 TPZMGAnalysis::TPZMGAnalysis(TPZCompMesh *cmesh) : TPZAnalysis(cmesh) {
 	fMeshes.Push(cmesh);
-	fExact = 0;
 }
 
 TPZMGAnalysis::~TPZMGAnalysis() {

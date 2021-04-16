@@ -11,7 +11,7 @@
 #include "pzreal.h"
 #include "pzadmchunk.h"
 #include "tpzintpoints.h"
-
+#include "TPZExactFunction.h"
 #include "pzlog.h"
 #include "TPZPersistenceManager.h"
 
@@ -77,6 +77,13 @@ TPZMaterial &TPZMaterial::operator=(const TPZMaterial &material)
     return *this;
 }
 
+
+void TPZMaterial::SetExactSol(std::function<void (const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv)>f,int p)
+{
+    TPZAutoPointer<TPZFunction<STATE>> fp(
+        new TPZExactFunction<STATE>(f,p));
+    fExactSol = fp;
+}
 void TPZMaterial::GetExactSolDimensions(uint64_t &u_len,
                                              uint64_t &du_row,
                                              uint64_t &du_col)

@@ -191,13 +191,14 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc) override;
 	
     /** @} */
-    void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
-                TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
-                TPZFMatrix<STATE> &curlU_exact, TPZVec<REAL> &val) override;
+
 
         /** @brief To create another material of the same type*/
         virtual TPZMaterial *NewMaterial() override;
-
+protected:
+    void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
+                TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
+                TPZFMatrix<STATE> &curlU_exact, TPZVec<REAL> &val) override;
     /** @{
      * @name Save and Load methods
      */

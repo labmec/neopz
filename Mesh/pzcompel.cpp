@@ -427,11 +427,6 @@ void TPZCompEl::EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) {
     LOGPZ_WARN(logger, "EvaluateError is called.");
     DebugStop();
 }
-void TPZCompEl::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                              TPZVec<REAL> &/*errors*/, bool store_error) {
-    LOGPZ_WARN(logger, "EvaluateError OLD is called.");
-    DebugStop();
-}
 
 void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
     if(var >= 100) {

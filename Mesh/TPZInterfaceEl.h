@@ -348,10 +348,7 @@ public:
      * @param flux [in] value of the interpolated flux values
      */
 virtual void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
-  //TOBEREMOVED [[deprecated("Use or implement TPZInterfaceEl::EvaluateError(TPZVec<REAL>&,bool) instead!")]]
-    virtual void EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> func,
-                               TPZVec<REAL> &errors, bool store_error) override;
-	
+  	
 	/** @brief Integrate a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<STATE> & value) override;
 	

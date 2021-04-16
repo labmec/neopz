@@ -128,9 +128,11 @@ class TPZElasticityAxiMaterial : public TPZMaterial {
 	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed based \n
      * on the derivative of the solution
 	 */
+protected:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;//Cedric
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 	
 	/** @brief Returns the elasticity modulus E */
 	REAL E() {return fE;}

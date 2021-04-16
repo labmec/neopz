@@ -368,8 +368,7 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
  * @param flux [in] value of the interpolated flux values
  */
 #include "pzbndcond.h"
-void TPZElementGroup::EvaluateError(std::function<void(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv)> fp,
-                           TPZVec<REAL> &errors, bool store_error)
+void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
 {
     int nerr = errors.size();
     errors.Fill(0.);
@@ -382,7 +381,7 @@ void TPZElementGroup::EvaluateError(std::function<void(const TPZVec<REAL> &loc,T
         if(!mat || mat->Dimension() == meshdim || bc )
         {
             TPZGeoEl *elref = fElGroup[el]->Reference();
-            fElGroup[el]->EvaluateError(fp, errloc, store_error);
+            fElGroup[el]->EvaluateError(errloc, store_error);
             if (errloc.size() != nerr) {
                 nerr = errloc.size();
                 errors.Resize(nerr, 0.);
