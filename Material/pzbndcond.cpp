@@ -113,11 +113,6 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
     this->fMaterial->ContributeBC(data, weight, ek, ef, *this);
 }
 
-//--error for bc part
-void TPZBndCond::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors){
-    this->fMaterial->ErrorsBC(data, u_exact, du_exact,errors,*this);
-}
-
 void TPZBndCond::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
     this->fMaterial->ErrorsBC(data, errors, *this);
 }

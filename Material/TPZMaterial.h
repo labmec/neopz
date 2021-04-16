@@ -575,7 +575,19 @@ public:
     }
     //! Calculates errors based on its solution (multiphysics/BC version).
     virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
-    
+      if (fExactSol) {
+        PZError << __PRETTY_FUNCTION__;
+        PZError << "\nPlease implement:\n";
+        PZError << "\tErrors(TPZVec<REAL> &x, TPZVec<STATE> &sol,\n";
+        PZError
+            << "\t       TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,\n";
+        PZError << "\t       TPZVec<REAL> &val)\n";
+        PZError << "in your material\n";
+        TPZVec<STATE> u(3, 0);
+        TPZFMatrix<STATE> gradu(3, 3, 0);
+        fExactSol->Execute(data[0].x, u, gradu);
+        return ErrorsBC(data, u, gradu, errors, (TPZBndCond&)*this);
+      }
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
         DebugStop();
