@@ -1100,6 +1100,114 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	
 }//method
 
+void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error){
+    errors.Fill(0.);
+    TPZMaterial * material = Material();
+    //TPZMaterial * matptr = material.operator->();
+    if (!material) {
+        PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
+        Print(PZError);
+        return;
+    }
+    if (dynamic_cast<TPZBndCond *>(material)) {
+        LOGPZ_INFO(logger, "Exiting EvaluateError - null error - boundary condition material.");
+        return;
+    }
+    int NErrors = material->NEvalErrors();
+    errors.Resize(NErrors);
+    errors.Fill(0.);
+    int problemdimension = Mesh()->Dimension();
+    if(Reference()->Dimension() < problemdimension) return;
+
+    // Adjust the order of the integration rule
+    int dim = Dimension();
+    TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
+    int maxIntOrder = intrule->GetMaxOrder();
+    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
+    //end
+    intrule->GetOrder(prevorder);
+    const int order_limit = 8;
+    if(maxIntOrder > order_limit)
+    {
+        if (prevorder[0] > order_limit) {
+            maxIntOrder = prevorder[0];
+        }
+        else
+        {
+            maxIntOrder = order_limit;
+        }
+    }
+
+    intrule->SetOrder(maxorder);
+
+    uint64_t u_len{0}, du_row{0}, du_col{0};
+    material->GetExactSolDimensions(u_len, du_row, du_col);
+    TPZManVector<STATE,10> u_exact(u_len);
+    TPZFNMatrix<9,STATE> du_exact(du_row,du_col);
+    TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
+    REAL weight;
+
+    TPZMaterialData data;
+    this->InitMaterialData(data);
+    int nintpoints = intrule->NPoints();
+
+    for(int nint = 0; nint < nintpoints; nint++) {
+
+        values.Fill(0.0);
+        intrule->Point(nint,intpoint,weight);
+
+        //in the case of the hdiv functions
+        TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+        if(shapetype==data.EVecandShape){
+            this->ComputeRequiredData(data, intpoint);
+        }
+        else
+        {
+            this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
+        }
+        weight *= fabs(data.detjac);
+        // this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+        //this->ComputeSolution(intpoint, data);
+        //contribuicoes dos erros
+        TPZGeoEl * ref = this->Reference();
+        ref->X(intpoint, data.x);
+
+        if (data.fVecShapeIndex.NElements()) {
+            this->ComputeSolution(intpoint, data);
+
+            material->Errors(data, values);
+
+        } else {
+            this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes,
+                                  data.sol, data.dsol);
+            material->Errors(data, values);
+        }
+
+        for (int ier = 0; ier < NErrors; ier++)
+            errors[ier] += weight * values[ier];
+
+    }//fim for : integration rule
+
+    //Norma sobre o elemento
+    for(int ier = 0; ier < NErrors; ier++){
+        errors[ier] = sqrt(errors[ier]);
+    }//for ier
+    if(store_error)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            std::cout << "The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+    intrule->SetOrder(prevorder);
+
+}//method
+
 
 TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 	TPZMaterial * material = Material();

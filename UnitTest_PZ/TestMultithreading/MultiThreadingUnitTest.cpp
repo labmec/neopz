@@ -100,6 +100,10 @@ TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const 
 
   laplacianMat->SetForcingFunction(ForcingFunction, 10);
 
+  TPZAutoPointer<TPZFunction<STATE> > solexata = new TPZDummyFunction<STATE>(ExactSolution,10);
+  TPZAutoPointer<TPZFunction<STATE>> sol(solexata);
+  laplacianMat->SetExactSol(solexata);
+
   TPZFNMatrix<1, REAL> val1(1, 1, 0.), val2(1, 1, 0.);
   int bctype = 0;
   val2.Zero();

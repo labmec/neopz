@@ -248,6 +248,8 @@ protected:
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 
+    virtual void Errors(TPZMaterialData &data,TPZVec<REAL> &errors) override;
+
 
 	virtual int NEvalErrors()  override {return 3;}
 
