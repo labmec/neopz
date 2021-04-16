@@ -94,10 +94,10 @@ public:
 
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
-	
+protected:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 	
 	void ComputeSolRight(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
 	void ComputeSolLeft(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);

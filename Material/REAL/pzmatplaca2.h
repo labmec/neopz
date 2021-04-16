@@ -70,9 +70,11 @@ protected:
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
-	
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
-						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+
+protected:
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 	
 	/** @brief Returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name) override;

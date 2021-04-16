@@ -82,9 +82,10 @@ public:
 	
 	virtual TPZMaterial * NewMaterial() override;
 	
-	virtual void Errors( TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
+protected:
+	void Errors( TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
 						TPZFMatrix<REAL> &axes, TPZVec<STATE> &u_exact,
-						 TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values );
+						 TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values ) override;
 	
 	public:
 virtual int ClassId() const override;

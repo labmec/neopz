@@ -65,9 +65,11 @@ public:
 
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout) override;
 
+protected:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 
 	virtual int NEvalErrors() override {return 3;}
 

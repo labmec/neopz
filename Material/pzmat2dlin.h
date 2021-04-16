@@ -80,9 +80,10 @@ class TPZMat2dLin : public TPZMaterial {
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
-	
+protected:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 	
 	virtual int VariableIndex(const std::string &name) override;
 	

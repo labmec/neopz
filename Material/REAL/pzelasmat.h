@@ -206,9 +206,11 @@ public:
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+protected:
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
-                        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+                        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 	
 	/** @brief Returns the elasticity modulus E */
 	REAL E() {return fE_def;}

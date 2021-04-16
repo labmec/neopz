@@ -162,9 +162,11 @@ public:
 	}
 	
 	/** @brief Evaluate error between approximate (FEM) and exact solutions */
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
+protected:
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
 						TPZFMatrix<REAL> &axes,
-						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 	/** @brief Returns the number of norm errors: 3 (Semi H1, L2 and H1) */
 	virtual int NEvalErrors() override {return 3;}
 	

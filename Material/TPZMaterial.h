@@ -579,9 +579,30 @@ protected:
     virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol,
                         TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,
                         TPZVec<REAL> &val) {
+        if(fExactSol){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nPlease implement:\n";
+            PZError<<"\tErrors(TPZVec<REAL> &x, TPZVec<STATE> &sol,\n";
+            PZError<<"\t       TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,\n";
+            PZError<<"\t       TPZVec<REAL> &val)\n";
+            PZError<<"in your material\n";
+            TPZVec<STATE> u(3,0);
+            TPZFMatrix<STATE> gradu(3,3,0);
+            fExactSol->Execute(x,u,gradu);
+            return Errors(x,sol,dsol,axes,u,gradu,val);
+        }
         PZError << __PRETTY_FUNCTION__;
-        PZError << ": Method not implemented! Error comparison not available.\n";
+        PZError << ": Material doesn't have exact solution and Errors method\n";
         PZError<<"Please, implement it.\n";
+        DebugStop();
+  }
+    //obsolete signature
+  virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
+                      TPZFMatrix<REAL> &axes, TPZVec<REAL> &u_exact,
+                      TPZFMatrix<REAL> &du_exact, TPZVec<REAL> &values){
+        PZError << "Error comparison not available.\n";
+        PZError << "Please, implement it.\n";
+        DebugStop();
   }
 public:
 

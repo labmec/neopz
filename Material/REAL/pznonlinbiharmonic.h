@@ -97,10 +97,11 @@ public:
 	{
 		TPZMaterial::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
-	
+protected:
 	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes,
-				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
+public:
 
 	/**
 	 * @name Contribute interface methods
