@@ -43,7 +43,7 @@ public:
 	
 	void SetMultiply();
 	
-	virtual TPZSolver<TVar> *Clone() const override
+	virtual TPZSolver *Clone() const override
 	{
 		return new TPZStepSolver<TVar>(*this);
 	}
@@ -92,7 +92,7 @@ public:
     virtual void Decompose() override;
     
     /** @brief Define the preconditioner as a solver object */
-	void SetPreconditioner(TPZSolver<TVar> &solve);
+	void SetPreconditioner(TPZMatrixSolver<TVar> &solve);
     
     /** @brief Number of iterations of last solve */
     int NumIterations()
@@ -101,7 +101,7 @@ public:
     }
     
     /** @brief access method to the preconditioner */
-    TPZSolver<TVar> *PreConditioner()
+    TPZMatrixSolver<TVar> *PreConditioner()
     {
         return fPrecond;
     }
@@ -128,7 +128,7 @@ private:
 	REAL fOverRelax;
 	
 	/** @brief Solver using preconditioner matrix */
-	TPZSolver<TVar> *fPrecond;
+	TPZMatrixSolver<TVar> *fPrecond;
 	int64_t fFromCurrent;
 	
 	std::list<int64_t> fSingular;

@@ -76,7 +76,7 @@ public:
     template<class TT>friend std::ostream & operator<< (std::ostream& out,const TPZSBMatrix<TT>  &A);
     
     /** Fill the matrix with random values (non singular matrix) */
-    void AutoFill(int64_t nrow, int64_t ncol, int symmetric);
+    void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
     
     
     /// Operadores com matrizes SKY LINE.

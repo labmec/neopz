@@ -7,7 +7,6 @@
 #ifndef TPZGuiInterfaceH
 #define TPZGuiInterfaceH
 
-#include <iostream>
 #include "pzerror.h"
 #include "TPZSavable.h"
 /**

@@ -17,7 +17,8 @@
 #include "pzcondensedcompel.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMeshSolution.h"
-
+#include "TPZMaterial.h"
+#include "TPZExactFunction.h"
 #include <algorithm>
 
 #include "pzsloan.h"
@@ -241,6 +242,7 @@ void TPZCompMeshTools::ExpandHDivPyramidRestraints(TPZCompMesh *cmesh)
 void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &Forcing)
 {
     int64_t nel = cpressure->NElements();
+    TPZFMatrix<STATE> &sol = cpressure->Solution();
     for (int64_t iel=0; iel<nel; iel++) {
         TPZCompEl *cel = cpressure->Element(iel);
         if (!cel) {
@@ -261,7 +263,8 @@ void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &
             TPZConnect &c = cel->Connect(0);
             int64_t seqnum = c.SequenceNumber();
             for (int i=0; i<4; i++) {
-                cpressure->Block()(seqnum,0,i,0) = topval;
+                std::pair<int64_t,int64_t> ind = cpressure->Block().at(seqnum,0,i,0);
+                sol.at(ind) = topval;
             }
             for (int i=0; i<4; i++) {
                 TPZConnect &c = cel->Connect(i+1);
@@ -270,7 +273,7 @@ void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &
                 Forcing.Execute(topco, valvec);
                 STATE nodeval = valvec[0];
                 seqnum = c.SequenceNumber();
-                cpressure->Block()(seqnum,0,0,0) = nodeval-topval;
+                sol.at(cpressure->Block().at(seqnum,0,0,0)) = nodeval-topval;
             }
         }
         else
@@ -285,7 +288,7 @@ void TPZCompMeshTools::LoadSolution(TPZCompMesh *cpressure, TPZFunction<STATE> &
                 Forcing.Execute(topco, valvec);
                 STATE nodeval = valvec[0];
                 int64_t seqnum = c.SequenceNumber();
-                cpressure->Block()(seqnum,0,0,0) = nodeval;
+                sol.at(cpressure->Block().at(seqnum,0,0,0)) = nodeval;
             }
         }
     }
@@ -629,44 +632,46 @@ void TPZCompMeshTools::CondenseElements(TPZCompMesh *cmesh, char LagrangeLevelNo
 
 }
 
-static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
+static void ComputeError(TPZCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors);
 
-static void ComputeError(TPZCondensedCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZCondensedCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZCompEl *ref = cel->ReferenceCompEl();
-    ComputeError(ref, func, mesh2, square_errors);
+    ComputeError(ref, mesh2, square_errors);
 }
 
-static void ComputeError(TPZMultiphysicsElement *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZMultiphysicsElement *cel,TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZManVector<STATE,3> errors(3,0.);
     bool store_error = false;
-    cel->EvaluateError(func, errors, store_error);
+    cel->EvaluateError(errors, store_error);
     int64_t index = cel->Index();
     TPZCompMesh *mesh = cel->Mesh();
+    //TODOCOMPLEX
+    TPZFMatrix<STATE> &elementSol = mesh->ElementSolution();
     for (int i=0; i<3; i++) {
-        mesh->ElementSolution()(index,i) = errors[i];
+        elementSol(index,i) = errors[i];
         square_errors[i] += errors[i]*errors[i];
     }
 }
 
-static void ComputeError(TPZElementGroup *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZElementGroup *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     const TPZVec<TPZCompEl *> &celstack = cel->GetElGroup();
     int64_t nel = celstack.size();
     for (int64_t el=0; el<nel; el++) {
         TPZCompEl *subcel = celstack[el];
-        ComputeError(subcel, func, mesh2, square_errors);
+        ComputeError(subcel, mesh2, square_errors);
     }
 }
 
-static void ComputeError(TPZInterpolationSpace *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZInterpolationSpace *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     DebugStop();
 }
 
 
-static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+static void ComputeError(TPZCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
 {
     TPZSubCompMesh *sub = dynamic_cast<TPZSubCompMesh *>(cel);
     // acumulate the errors of the submeshes
@@ -677,23 +682,23 @@ static void ComputeError(TPZCompEl *cel, TPZFunction<STATE> &func, TPZCompMesh *
     TPZElementGroup *elgr = dynamic_cast<TPZElementGroup *>(cel);
     if(elgr)
     {
-        ComputeError(elgr, func, mesh2, square_errors);
+        ComputeError(elgr, mesh2, square_errors);
         return;
     }
     TPZCondensedCompEl *cond = dynamic_cast<TPZCondensedCompEl *>(cel);
     if (cond) {
-        ComputeError(cond, func, mesh2, square_errors);
+        ComputeError(cond, mesh2, square_errors);
         return;
     }
     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
     if (intel) {
-        ComputeError(intel, func, mesh2, square_errors);
+        ComputeError(intel, mesh2, square_errors);
         return;
     }
     TPZMultiphysicsElement *mphys = dynamic_cast<TPZMultiphysicsElement *>(cel);
     if(mphys)
     {
-        ComputeError(mphys, func, mesh2, square_errors);
+        ComputeError(mphys, mesh2, square_errors);
         return;
     }
     
@@ -710,9 +715,12 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
     }
     mesh1->ElementSolution().Redim(mesh1->NElements(), 3);
     
-    int materialid = 1;
-    TPZMeshSolution func(mesh2,materialid);
-    
+    int materialid = 1;    
+
+    TPZAutoPointer<TPZFunction<STATE>> solptr(new TPZMeshSolution(mesh2,materialid));
+    for(auto imat : mesh1->MaterialVec()){
+        imat.second->SetExactSol(solptr);
+    }
 //    mesh2->Reference()->ResetReference();
 //    mesh2->LoadReferences();
     if (nel >= 1000) {
@@ -724,7 +732,7 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
         if (!cel) {
             continue;
         }
-        ComputeError(cel, func, mesh2, square_errors);
+        ComputeError(cel, mesh2, square_errors);
 
         if (nel >= 1000 && (el+1)%1000 == 0) {
             std::cout << "*";
@@ -858,7 +866,7 @@ void TPZCompMeshTools::PrintSolutionByGeoElement(TPZCompMesh* cmesh, std::ostrea
             TPZManVector<STATE> connectsol;
             int64_t cindex = cel->ConnectIndex(ic);
             TPZConnect &c = cmesh->ConnectVec()[cindex];
-            cmesh->ConnectSolution(cindex, cmesh, cmesh->Solution(), connectsol);
+            cmesh->ConnectSolution<STATE>(cindex, cmesh, cmesh->Solution(), connectsol);
             //for (int i=0; i<connectsol.size(); i++) {
             //    if (fabs(connectsol[i]) < tol) {
             //        connectsol[i] = 0.;
@@ -923,6 +931,7 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
             continue;
         }
         TPZCompMesh *celmesh = cel->Mesh();
+        TPZFMatrix<STATE> &sol = celmesh->Solution();
         // Only prints information of desired matIDs
         if (!matIDs.empty()) {
             if (matIDs.find(gel->MaterialId()) == matIDs.end()) {
@@ -972,10 +981,10 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
                             out << " Solution = ";
                             int64_t ieq;
                             for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
-                                if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                                if (IsZero(sol.at(celmesh->Block().at(con.SequenceNumber(), 0, ieq, 0)))) {
                                     out << 0.0 << ' ';
                                 } else {
-                                    out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                                    out << sol.at(celmesh->Block().at(con.SequenceNumber(), 0, ieq, 0)) << ' ';
                                 }
                             }
                         }
@@ -1009,10 +1018,10 @@ void TPZCompMeshTools::PrintConnectInfoByGeoElement(TPZCompMesh *cmesh, std::ost
                         out << " Solution = ";
                         int64_t ieq;
                         for (ieq = 0; ieq < celmesh->Block().Size(con.SequenceNumber()); ieq++) {
-                            if (IsZero(celmesh->Block()(con.SequenceNumber(), 0, ieq, 0))) {
+                            if (IsZero(sol.at(celmesh->Block().at(con.SequenceNumber(), 0, ieq, 0)))) {
                                 out << 0.0 << ' ';
                             } else {
-                                out << celmesh->Block()(con.SequenceNumber(), 0, ieq, 0) << ' ';
+                                out << sol.at(celmesh->Block().at(con.SequenceNumber(), 0, ieq, 0)) << ' ';
                             }
                         }
                     }

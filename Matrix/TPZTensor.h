@@ -19,9 +19,6 @@
 #include "TPZAssert.h"
 #ifndef WIN32
 #include <fenv.h>//NAN DETECTOR
-#ifndef MACOSX
-#pragma STDC FENV_ACCESS ON
-#endif
 #endif
 
 #define _XX_ 0

@@ -78,7 +78,8 @@ int main(){
 	an.SetStructuralMatrix(skylstruct);
 	an.SetSolver(step);
 	an.Run();
-	an.Solution().Print("Solucao");
+	TPZBaseMatrix &anSol = an.Solution();
+	anSol.Print("Solucao");
 	
 //	TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
 //	TPZMaterial * mat = cmeshauto->FindMaterial(1);

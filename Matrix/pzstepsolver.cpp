@@ -30,7 +30,7 @@ TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(cop
     fTol = copy.fTol;
     fOverRelax = copy.fOverRelax;
     fPrecond = 0;
-    if(copy.fPrecond) fPrecond = copy.fPrecond->Clone();
+    if(copy.fPrecond) fPrecond = dynamic_cast<TPZMatrixSolver<TVar>*>(copy.fPrecond->Clone());
     fFromCurrent = copy.fFromCurrent;
     fNumVectors = copy.fNumVectors;//Cedric: 24/04/2003 - 12:39
 }
@@ -195,7 +195,7 @@ void TPZStepSolver<TVar>::SetCG(const int64_t numiterations, const TPZMatrixSolv
 	fTol = tol;
 	//	fPrecond = &pre;
 	if(fPrecond) delete fPrecond;
-	fPrecond = pre.Clone();
+	fPrecond = dynamic_cast<TPZMatrixSolver<TVar>*>(pre.Clone());
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
@@ -208,7 +208,7 @@ void TPZStepSolver<TVar>::SetGMRES(const int64_t numiterations, const int numvec
 	fTol = tol;
 	//	fPrecond = &pre;
 	if(fPrecond) delete fPrecond;
-	fPrecond = pre.Clone();
+	fPrecond = dynamic_cast<TPZMatrixSolver<TVar>*>(pre.Clone());
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
@@ -220,7 +220,7 @@ void TPZStepSolver<TVar>::SetBiCGStab(const int64_t numiterations, const TPZMatr
 	fTol = tol;
 	//	fPrecond = &pre;
 	if(fPrecond) delete fPrecond;
-	fPrecond = pre.Clone();
+	fPrecond = dynamic_cast<TPZMatrixSolver<TVar>*>(pre.Clone());
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
@@ -262,13 +262,13 @@ void TPZStepSolver<TVar>::SetMultiply() {
  \fn TPZStepSolver::SetPreconditioner(TPZSolver &solve);
  */
 template <class TVar>
-void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
+void TPZStepSolver<TVar>::SetPreconditioner(TPZMatrixSolver<TVar> &solve)
 {
     if (fSolver == this->EDirect) {
         DebugStop();
     }
 	if(fPrecond) delete fPrecond;
-	fPrecond = solve.Clone();
+	fPrecond = dynamic_cast<TPZMatrixSolver<TVar>*>(solve.Clone());
 }
 
 template <class TVar>
@@ -296,7 +296,7 @@ template <class TVar>
 void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZMatrixSolver<TVar>::Read(buf, context);
-	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
+	fPrecond = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZPersistenceManager::GetInstance(&buf));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);

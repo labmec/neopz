@@ -1028,7 +1028,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
         
     TPZAutoPointer< TPZMatrix<STATE> > matK;
     TPZFMatrix<STATE> fvec;
-    matK=NonLinearAn->Solver().Matrix();
+    matK=NonLinearAn->MatrixSolver<STATE>().Matrix();
     fvec = NonLinearAn->Rhs();
     
 #ifdef PZ_LOG
@@ -1436,9 +1436,11 @@ void ComputeResidual(TPZFMatrix<STATE> &RUattn, STATE &alpha, TPZFMatrix<STATE> 
     TPZFMatrix<STATE> RhsAtnPlusOne = NonLinearAn->Rhs();
     
     TPZFMatrix<STATE> ResidualAtU = RUattn + RhsAtnPlusOne;     
-    NonLinearAn->Solver().Matrix()->Multiply(STATE(1.0)*alpha*DeltaU,TangentRes);
-    
-    NonLinearAn->LoadSolution(NonLinearAn->Solution()+alpha*DeltaU);            
+    NonLinearAn->MatrixSolver<STATE>().Matrix()->Multiply(STATE(1.0)*alpha*DeltaU,TangentRes);
+
+    {
+        const TPZFMatrix<STATE> &nonLinAnSol = NonLinearAn->Solution();
+        NonLinearAn->LoadSolution(nonLinAnSol+alpha*DeltaU);       }     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);          
     
     material1->SetCurrentState();
@@ -1553,12 +1555,13 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
 {
     if(!cel) {return;}
     
-    TPZBlock<STATE> &Block = mphysics->Block(); 
+    TPZBlock &Block = mphysics->Block(); 
     int NumberOfEquations = cel->NEquations();  
     int NumberOfConnects = cel->NConnects();
     TPZFMatrix<STATE> elSolution(NumberOfEquations,1,0.0);
     int64_t DestinationIndex = 0L;
-    
+
+    const TPZFMatrix<STATE> &mphysicsSol = mphysics->Solution();
     for(int iconnect = 0; iconnect < NumberOfConnects; iconnect++)
     {
         TPZConnect Connect = cel->Connect(iconnect);
@@ -1569,7 +1572,7 @@ void GetElSolution(TPZCompEl * cel, TPZCompMesh * mphysics)
         for(int iblock = 0; iblock   < SizeOfBlockAtseq; iblock++)
         {
             
-            elSolution(DestinationIndex++,0) = mphysics->Solution()[BlockGlobalPosition+iblock];  
+            elSolution(DestinationIndex++,0) = mphysicsSol[BlockGlobalPosition+iblock];  
             
         }
     }

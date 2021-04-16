@@ -579,14 +579,15 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	
 	loclocmat.SolveDirect(projectmat,ELU);
 	// identify the non-zero blocks for each row
-	TPZBlock<STATE> &fineblock = Mesh()->Block();
+	TPZBlock &fineblock = Mesh()->Block();
+    TPZFMatrix<STATE> &finesol = Mesh()->Solution();
 	int iv=0,in;
 	for(in=0; in<locnod; in++) {
 		df = &Connect(in);
 		int64_t dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
-			fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+			finesol.at(fineblock.at(dfseq,0,ljn,0)) = projectmat(iv/nvar,iv%nvar);
 			iv++;
 		}
 	}
@@ -1024,26 +1025,26 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
 	// Adjust the order of the integration rule
 	int dim = Dimension();
 	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
-	int maxIntOrder = intrule->GetMaxOrder();
-    TPZManVector<int,3> prevorder(dim), maxorder(dim, maxIntOrder);
-    //end
-    intrule->GetOrder(prevorder);
-    const int order_limit = 8;
-    if(maxIntOrder > order_limit)
-    {
-        if (prevorder[0] > order_limit) {
-            maxIntOrder = prevorder[0];
+    TPZManVector<int,3> prevOrder(dim);
+	const int maxIntOrder = [&](){
+        int max_int_order = intrule->GetMaxOrder();
+        intrule->GetOrder(prevOrder);
+        constexpr int order_limit = 8;
+        if(max_int_order > order_limit){
+            if (prevOrder[0] > order_limit) {
+                max_int_order = prevOrder[0];
+            }
+            else{
+                max_int_order = order_limit;
+            }
         }
-        else
-        {
-            maxIntOrder = order_limit;
-        }
-    }
-	
+        return max_int_order;
+    }();
+	TPZManVector<int,3> maxorder(dim, maxIntOrder);
 	intrule->SetOrder(maxorder);
 
-  uint64_t u_len{0}, du_row{0}, du_col{0};
-  material->GetExactSolDimensions(u_len, du_row, du_col);
+    uint64_t u_len{0}, du_row{0}, du_col{0};
+    material->GetExactSolDimensions(u_len, du_row, du_col);
 	TPZManVector<STATE,10> u_exact(u_len);
 	TPZFNMatrix<9,STATE> du_exact(du_row,du_col);
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
@@ -1110,7 +1111,111 @@ void TPZInterpolationSpace::EvaluateError(std::function<void(const TPZVec<REAL> 
             elvals(index,ier) = errors[ier];
         }
     }
-	intrule->SetOrder(prevorder);
+	intrule->SetOrder(prevOrder);
+	
+}//method
+
+
+void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error){
+	TPZMaterial * material = Material();
+	//TPZMaterial * matptr = material.operator->();
+	if (!material) {
+		PZError << __PRETTY_FUNCTION__;
+        PZError << " Element wihtout material.\n";
+        PZError << "Aborting...\n";
+        DebugStop();
+		return;
+	}
+	if (dynamic_cast<TPZBndCond *>(material)) {
+		LOGPZ_INFO(logger, "Exiting EvaluateError - null error - boundary condition material.");
+		return;
+	}
+    if (!material->HasExactSol()) {
+		PZError << __PRETTY_FUNCTION__;
+        PZError << " Material has no associated solution.\n";
+        PZError << "Aborting...\n";
+        DebugStop();
+		return;
+	}
+	const auto NErrors = material->NEvalErrors();
+	errors.Resize(NErrors);
+	errors.Fill(0.);
+    const TPZGeoEl *ref = this->Reference();
+	const auto problemdimension = Mesh()->Dimension();
+    const auto dim = ref->Dimension();
+	if(dim < problemdimension) return;
+	
+	// Adjust the order of the integration rule
+	
+	TPZAutoPointer<TPZIntPoints> intrule = this->GetIntegrationRule().Clone();
+    TPZManVector<int,3> prevOrder(dim);
+	const int maxIntOrder = [&](){
+        int max_int_order = intrule->GetMaxOrder();
+        
+        intrule->GetOrder(prevOrder);
+        const int order_limit =
+            material->GetExactSol()->PolynomialOrder();        
+        if(max_int_order > order_limit){
+            if (prevOrder[0] > order_limit) {
+                max_int_order = prevOrder[0];
+            }
+            else{
+                max_int_order = order_limit;
+            }
+        }
+        return max_int_order;
+    }();
+	TPZManVector<int,3> maxorder(dim, maxIntOrder);
+	intrule->SetOrder(maxorder);
+	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
+	REAL weight;
+	
+	TPZMaterialData data;
+	this->InitMaterialData(data);
+	const int nintpoints = intrule->NPoints();
+	
+	for(int nint = 0; nint < nintpoints; nint++) {
+		
+        values.Fill(0.0);
+		intrule->Point(nint,intpoint,weight);
+        
+        //in the case of the hdiv functions
+        TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+        if(shapetype==data.EVecandShape){
+            this->ComputeRequiredData(data, intpoint);
+            this->ComputeSolution(intpoint, data);
+        }
+        else
+        {
+            this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
+            this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes,
+                              data.sol, data.dsol);
+        }
+		weight *= fabs(data.detjac);        
+        ref->X(intpoint, data.x);
+        material->Errors(data, values);
+        for (int ier = 0; ier < NErrors; ier++) {
+            errors[ier] += weight * values[ier];
+        }
+    }
+    //Norma sobre o elemento
+	for(int ier = 0; ier < NErrors; ier++){
+		errors[ier] = sqrt(errors[ier]);
+	}//for ier
+	if(store_error)
+    {
+        int64_t index = Index();
+        TPZFMatrix<STATE> &elvals = Mesh()->ElementSolution();
+        if (elvals.Cols() < NErrors) {
+            PZError<<__PRETTY_FUNCTION__;
+            PZError << " The element solution of the mesh should be resized before EvaluateError\n";
+            DebugStop();
+        }
+        for (int ier=0; ier <NErrors; ier++) {
+            elvals(index,ier) = errors[ier];
+        }
+    }
+	intrule->SetOrder(prevOrder);
 	
 }//method
 
@@ -1432,7 +1537,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	int nvar = coarsel.Material()->NStateVariables();
 	
 	// number of blocks is cornod
-	TPZBlock<REAL> corblock(0,cornod);
+	TPZBlock corblock(0,cornod);
 	int in;
 	
 	cormatsize = 0;
@@ -1475,7 +1580,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	}
 	intrule->SetOrder(order);
 	
-	TPZBlock<REAL> locblock(0,locnod);
+	TPZBlock locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
         TPZConnect &c = Connect(in);

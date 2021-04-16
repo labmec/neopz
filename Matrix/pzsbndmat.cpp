@@ -310,13 +310,13 @@ std::complex<double>
 template<class TVar>
 TVar &TPZSBMatrix<TVar>::operator()(int64_t row, int64_t col)
 {
-    // inicializando row e col para trabalhar com a triangular superior
+    // row and col are set to work with upper triang mat
     if ( row > col )
         this->Swap( &row, &col );
     
     int64_t index;
     if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
+        return this->gZero;        // element out of band
     
     return( fDiag[ Index(row,col) ] );
 
@@ -392,7 +392,7 @@ TPZSBMatrix<TVar>
 TPZSBMatrix<TVar>::operator+(const TPZSBMatrix<TVar> &A ) const
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
+       this->Error(__PRETTY_FUNCTION__,"operator+( TPZSBMatrix ) <incompatible dimensions>" );
     
     // Define os ponteiros e tamanhos para os elementos da maior e da
     //  menor banda.
@@ -410,7 +410,7 @@ TPZSBMatrix<TVar>::operator-(const TPZSBMatrix<TVar> &A ) const
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
     {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-( TPZSBMatrix ) <incompatible dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "operator-( TPZSBMatrix ) <incompatible dimensions>" );
     }
     
     TPZSBMatrix<TVar> res(*this);
@@ -428,7 +428,7 @@ TPZSBMatrix<TVar>::operator+=(const TPZSBMatrix<TVar> &A )
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
     {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator+=( TPZSBMatrix ) <incompatible dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "operator+=( TPZSBMatrix ) <incompatible dimensions>" );
     }
     int64_t siz= fDiag.size();
     for (int64_t i=0; i<siz; i++) {
@@ -446,7 +446,7 @@ TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 {
     if ( this->Dim() != A.Dim() || fBand != A.fBand)
     {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-=( TPZSBMatrix ) <incompatible dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "operator-=( TPZSBMatrix ) <incompatible dimensions>" );
     }
     int64_t siz= fDiag.size();
     for (int64_t i=0; i<siz; i++) {
@@ -462,9 +462,9 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
     // Computes z = beta * y + alpha * opt(this)*x
     //          z and x cannot overlap in memory
     if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
     if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
+       this->Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
     }
     this->PrepareZ(y,z,beta,opt);
     int64_t rows = this->Rows();
@@ -661,10 +661,10 @@ TPZSBMatrix<std::complex< float > >::Decompose_Cholesky()
     
     cpbtrf_(uplo, &n, &kd , (varfloatcomplex*) fDiag.begin(), &lda, &info);
     if( info > 0){
-        TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+       this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
     }
     else if ( info < 0){
-        TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
     }
     
     this->fDecomposed  = ECholesky;
@@ -691,10 +691,10 @@ TPZSBMatrix<std::complex< double > >::Decompose_Cholesky()
     int info = -666;
     zpbtrf_(uplo, &n, &kd, (vardoublecomplex *) fDiag.begin(), &lda, &info);
     if( info > 0){
-        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
+       this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <The matrix is not positive definite>");
     }
     else if ( info < 0){
-        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"Decompose_Cholesky <Invalid argument. Check info value for more information>");
     }
     
     this->fDecomposed  = ECholesky;
@@ -773,7 +773,7 @@ int
 TPZSBMatrix<TVar>::Decompose_LDLt()
 {
     
-    if (  this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
+    if (  this->fDecomposed ) this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed>" );
     
     int64_t j,k,l, begin,end;
     TVar sum;
@@ -809,7 +809,7 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
             }
         }
         
-        if ( IsZero(GetVal(j,j)) ) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
+        if ( IsZero(GetVal(j,j)) )this->Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
         end  = MIN( int64_t(j + fBand )+1, this->Dim() );
         //cout<<"end="<<end<<"\n";
         for( l=j+1; l<end;l++)
@@ -837,7 +837,7 @@ TPZSBMatrix<float>::Subst_Forward( TPZFMatrix<float>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -858,7 +858,7 @@ TPZSBMatrix<double>::Subst_Forward( TPZFMatrix<double>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -879,7 +879,7 @@ TPZSBMatrix<std::complex<float> >::Subst_Forward( TPZFMatrix<std::complex<float>
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -899,7 +899,7 @@ TPZSBMatrix<std::complex<double> >::Subst_Forward( TPZFMatrix<std::complex<doubl
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -919,7 +919,7 @@ TPZSBMatrix<float>::Subst_Backward( TPZFMatrix<float>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -940,7 +940,7 @@ TPZSBMatrix<double>::Subst_Backward( TPZFMatrix<double>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -960,7 +960,7 @@ TPZSBMatrix<std::complex<float> >::Subst_Backward( TPZFMatrix<std::complex<float
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -981,7 +981,7 @@ TPZSBMatrix<std::complex<double> >::Subst_Backward( TPZFMatrix<std::complex<doub
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1001,7 +1001,7 @@ TPZSBMatrix<float>::Subst_LForward( TPZFMatrix<float>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1021,7 +1021,7 @@ TPZSBMatrix<double>::Subst_LForward( TPZFMatrix<double>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1041,7 +1041,7 @@ TPZSBMatrix<std::complex<float> >::Subst_LForward( TPZFMatrix<std::complex<float
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1061,7 +1061,7 @@ TPZSBMatrix<std::complex<double> >::Subst_LForward( TPZFMatrix<std::complex<doub
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1081,7 +1081,7 @@ TPZSBMatrix<float>::Subst_LBackward( TPZFMatrix<float>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1102,7 +1102,7 @@ TPZSBMatrix<double>::Subst_LBackward( TPZFMatrix<double>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1122,7 +1122,7 @@ TPZSBMatrix<std::complex<float> >::Subst_LBackward( TPZFMatrix<std::complex<floa
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<std::complex<float> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1143,7 +1143,7 @@ TPZSBMatrix<std::complex<double> >::Subst_LBackward( TPZFMatrix<std::complex<dou
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<std::complex<double> >::Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Backward-> uncompatible matrices") ;
     }
     int n = Rows();
     int kd = fBand;
@@ -1165,7 +1165,7 @@ TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 {
     if ( (B->Rows() != this->Dim()) || ! this->fDecomposed)
     {
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     }
     return TPZMatrix<TVar>::Subst_Forward(B);
 }
@@ -1179,7 +1179,7 @@ template<class TVar>
 int TPZSBMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
     
     int64_t size = fBand + 1;
     int64_t i,j,k;
@@ -1217,7 +1217,7 @@ int TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 {
     
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Diag-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Diag-> uncompatible matrices") ;
     
     
     int64_t size = fBand + 1;
@@ -1232,7 +1232,7 @@ template<class TVar>
 int TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
     
     return TPZMatrix<TVar>::Subst_Backward(B);
     return ( 1 ) ;
@@ -1243,7 +1243,7 @@ template<class TVar>
 int TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 {
     if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
-        TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
+       this->Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
     
     int64_t k,j,jmax,stepcol=fBand+2;
     
@@ -1300,7 +1300,7 @@ template< class TVar>
 int
 TPZSBMatrix<TVar>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalues, TPZFMatrix < complex<double> > &eigenVectors)
 {
-    TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveEigenProblem <LAPACK does not support this specific data type>" );
+   this->Error(__PRETTY_FUNCTION__, "SolveEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 
@@ -1308,7 +1308,7 @@ template< class TVar>
 int
 TPZSBMatrix<TVar>::SolveEigenProblem(TPZVec < complex<double> > &w)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveEigenProblem <LAPACK does not support this specific data type>" );
+   this->Error(__PRETTY_FUNCTION__, "SolveEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 
@@ -1332,10 +1332,10 @@ TPZSBMatrix<double>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalues)
     
     dsbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), z.begin(), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
 #endif
     eigenvalues.Resize( this->Dim() );
@@ -1366,10 +1366,10 @@ TPZSBMatrix<complex <double> >::SolveEigenProblem(TPZVec <complex<double> > &eig
     
     zhbev_(&jobz, &uplo, &n, &kd, (vardoublecomplex *)fDiag.begin(), &ldab,  w.begin(), (vardoublecomplex *)z.begin(), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
     
 #endif
@@ -1402,10 +1402,10 @@ TPZSBMatrix<double>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenval
     
     dsbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     for(int i = 0 ; i < this->Dim() ; i++){
@@ -1444,10 +1444,10 @@ TPZSBMatrix<complex <double> >::SolveEigenProblem(TPZVec <complex<double> > &eig
     
     zhbev_(&jobz, &uplo, &n, &kd, (vardoublecomplex *)fDiag.begin(), &ldab, w.begin(), (vardoublecomplex *)&z(0,0), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim());
     for(int i = 0; i < this->Dim(); i++){
@@ -1485,10 +1485,10 @@ TPZSBMatrix<float>::SolveEigenProblem(TPZVec < complex<double> > &eigenvalues)
     
     ssbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), z.begin(), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
 #endif
     eigenvalues.Resize( this->Dim() );
@@ -1519,10 +1519,10 @@ TPZSBMatrix<complex <float> >::SolveEigenProblem(TPZVec <complex<double> > &eige
     
     chbev_(&jobz, &uplo, &n, &kd, (varfloatcomplex *)fDiag.begin(), &ldab,  w.begin(), (varfloatcomplex *)z.begin(), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
     
 #endif
@@ -1555,10 +1555,10 @@ TPZSBMatrix<float>::SolveEigenProblem(TPZVec < std::complex<double> > &eigenvalu
     
     ssbev_(&jobz, &uplo, &n, &kd, fDiag.begin(), &ldab, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     for(int i = 0 ; i < this->Dim() ; i++){
@@ -1597,10 +1597,10 @@ TPZSBMatrix<complex <float> >::SolveEigenProblem(TPZVec <complex<double> > &eige
     
     chbev_(&jobz, &uplo, &n, &kd, (varfloatcomplex *)fDiag.begin(), &ldab, w.begin(), (varfloatcomplex *)&z(0,0), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim());
     for(int i = 0; i < this->Dim(); i++){
@@ -1622,14 +1622,14 @@ template< class TVar>
 int
 TPZSBMatrix<TVar>::SolveGeneralisedEigenProblem(TPZSBMatrix<TVar> &B , TPZVec < complex<double> > &w, TPZFMatrix < complex<double> > &eigenVectors)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+   this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 template< class TVar>
 int
 TPZSBMatrix<TVar>::SolveGeneralisedEigenProblem(TPZSBMatrix<TVar> &B , TPZVec < complex<double> > &w)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+   this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 template<>
@@ -1638,7 +1638,7 @@ TPZSBMatrix<float>::SolveGeneralisedEigenProblem(TPZSBMatrix<float> &B , TPZVec 
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1658,10 +1658,10 @@ TPZSBMatrix<float>::SolveGeneralisedEigenProblem(TPZSBMatrix<float> &B , TPZVec 
     
     ssbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     eigenVectors.Resize( this->Dim() , this->Dim() );
@@ -1684,7 +1684,7 @@ TPZSBMatrix<float>::SolveGeneralisedEigenProblem(TPZSBMatrix<float> &B , TPZVec 
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1704,10 +1704,10 @@ TPZSBMatrix<float>::SolveGeneralisedEigenProblem(TPZSBMatrix<float> &B , TPZVec 
     
     ssbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     for (int i = 0; i < this->Dim() ; i++) {
@@ -1725,7 +1725,7 @@ TPZSBMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<f
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1746,10 +1746,10 @@ TPZSBMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<f
     
     chbgv_(&jobz, &uplo, &n, &ka, &kb, (varfloatcomplex *)fDiag.begin(), &ldab,  (varfloatcomplex *)B.fDiag.begin(), &ldbb, w.begin(), (varfloatcomplex *)&z(0,0), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     eigenVectors.Resize( this->Dim() , this->Dim() );
@@ -1772,7 +1772,7 @@ TPZSBMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<f
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1793,10 +1793,10 @@ TPZSBMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<f
     
     chbgv_(&jobz, &uplo, &n, &ka, &kb, (varfloatcomplex *)fDiag.begin(), &ldab,  (varfloatcomplex *)B.fDiag.begin(), &ldbb, w.begin(), (varfloatcomplex *)&z(0,0), &ldz, (varfloatcomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<float> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     for (int i = 0; i < this->Dim() ; i++) {
@@ -1815,7 +1815,7 @@ TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVe
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1835,10 +1835,10 @@ TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVe
     
     dsbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     eigenVectors.Resize( this->Dim() , this->Dim() );
@@ -1861,7 +1861,7 @@ TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVe
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1881,10 +1881,10 @@ TPZSBMatrix<double>::SolveGeneralisedEigenProblem(TPZSBMatrix<double> &B , TPZVe
     
     dsbgv_(&jobz, &uplo, &n, &ka, &kb, fDiag.begin(), &ldab, B.fDiag.begin(), &ldbb, w.begin(), &z(0,0), &ldz, work.begin(), &info);
     if( info > 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"SolveGeneralisedEigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     for (int i = 0; i < this->Dim() ; i++) {
@@ -1901,7 +1901,7 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1922,10 +1922,10 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
     
     zhbgv_(&jobz, &uplo, &n, &ka, &kb, (vardoublecomplex *)fDiag.begin(), &ldab,  (vardoublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (vardoublecomplex *)&z(0,0), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     eigenVectors.Resize( this->Dim() , this->Dim() );
@@ -1948,7 +1948,7 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+       this->Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
 #ifdef USING_LAPACK
@@ -1969,10 +1969,10 @@ TPZSBMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZSBMatrix<complex<
     
     zhbgv_(&jobz, &uplo, &n, &ka, &kb, (vardoublecomplex *)fDiag.begin(), &ldab,  (vardoublecomplex *)B.fDiag.begin(), &ldbb, w.begin(), (vardoublecomplex *)&z(0,0), &ldz, (vardoublecomplex *)work.begin(),rwork.begin(), &info);
     if( info > 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <The algorithm failed to converge>");
     }
     else if( info < 0){
-        TPZMatrix<complex<double> >::Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
+       this->Error(__PRETTY_FUNCTION__,"Solve_EigenProblem <Invalid argument. Check info value for more information>");
     }
     eigenvalues.Resize( this->Dim() );
     for (int i = 0; i < this->Dim() ; i++) {
@@ -2016,7 +2016,7 @@ int TPZSBMatrix<TVar>::ClassId() const{
 // Inicializando os templates
 template class TPZSBMatrix<float>;
 template class TPZSBMatrix<double>;
-template class TPZSBMatrix< complex<float> >;
-template class TPZSBMatrix< complex<double> >;
 template class TPZSBMatrix<long double>;
-
+template class TPZSBMatrix<std::complex<float>>;
+template class TPZSBMatrix<std::complex<double>>;
+template class TPZSBMatrix<std::complex<long double>>;

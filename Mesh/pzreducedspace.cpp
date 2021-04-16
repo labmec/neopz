@@ -374,7 +374,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
         dsol[is].Zero();
     }
     
-    TPZBlock<STATE> &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     TPZConnect *df = &this->Connect(0);
     int64_t dfseq = df->SequenceNumber();
     int dfvar = block.Size(dfseq);

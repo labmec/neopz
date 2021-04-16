@@ -422,5 +422,6 @@ int TPZSYsmpMatrix<TVar>::ClassId() const{
 template class TPZSYsmpMatrix<double>;
 template class TPZSYsmpMatrix<float>;
 template class TPZSYsmpMatrix<long double>;
-template class TPZSYsmpMatrix<std::complex<double>>;
 template class TPZSYsmpMatrix<std::complex<float>>;
+template class TPZSYsmpMatrix<std::complex<double>>;
+template class TPZSYsmpMatrix<std::complex<long double>>;

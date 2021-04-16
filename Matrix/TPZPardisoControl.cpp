@@ -520,3 +520,4 @@ template class TPZPardisoControl<long double>;
 template class TPZPardisoControl<float>;
 template class TPZPardisoControl<std::complex<float>>;
 template class TPZPardisoControl<std::complex<double>>;
+template class TPZPardisoControl<std::complex<long double>>;

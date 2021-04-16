@@ -52,11 +52,11 @@ void TPZSubMeshAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwi
 }
 
 
-
-void TPZSubMeshAnalysis::Assemble(){
-	
-
+template<class TVar>
+void TPZSubMeshAnalysis::AssembleInternal()
+{
     TPZCompMesh *mesh = Mesh();
+    auto &mySolver = MatrixSolver<TVar>();
     TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *>(mesh);
     if (!submesh) {
         DebugStop();
@@ -69,23 +69,23 @@ void TPZSubMeshAnalysis::Assemble(){
 	fRhs.Redim(numeq,1);
     if(!fReducableStiff) 
     {
-        fReducableStiff = new TPZMatRed<STATE, TPZFMatrix<STATE> > ();
+        fReducableStiff = new TPZMatRed<TVar, TPZFMatrix<TVar> > ();
     }
 	fReducableStiff->Redim(numeq,numinternal);
-	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
-    if(!fSolver->Matrix())
+	TPZMatRed<TVar, TPZFMatrix<TVar> > *matred = dynamic_cast<TPZMatRed<TVar, TPZFMatrix<TVar> > *> (fReducableStiff.operator->());
+    if(!mySolver.Matrix())
     {
         if (fStructMatrix->HasRange()) {
             DebugStop();
         }
         fStructMatrix->SetEquationRange(0, numinternal);
-        fSolver->SetMatrix(fStructMatrix->Create());	
+        mySolver.SetMatrix(fStructMatrix->Create());	
         fStructMatrix->EquationFilter().Reset();
     }
     matred->SetMaxNumberRigidBodyModes(fMesh->NumberRigidBodyModes());
 	//	fReducableStiff.SetK00(fSolver->Matrix());
 	// this will initialize fK00 too
-	matred->SetSolver(dynamic_cast<TPZMatrixSolver<STATE> *>(fSolver->Clone()));
+	matred->SetSolver(dynamic_cast<TPZMatrixSolver<STATE> *>(mySolver.Clone()));
 	//	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
 //	time_t before = time (NULL);
 	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
@@ -94,6 +94,10 @@ void TPZSubMeshAnalysis::Assemble(){
 //	time_t after = time(NULL);
 //	double diff = difftime(after, before);
 //	std::cout << __PRETTY_FUNCTION__ << " tempo " << diff << std::endl;
+}
+void TPZSubMeshAnalysis::Assemble(){
+	//TODOCOMPLEX
+    return AssembleInternal<STATE>();
 }
 
 void TPZSubMeshAnalysis::Run(std::ostream &out){

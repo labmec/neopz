@@ -22,6 +22,7 @@ set(public_headers
   pzextractval.h
   tpzautopointer.h  
   pzfunction.h
+  TPZExactFunction.h
   )
 set(headers
     TPZAssert.h
@@ -56,6 +57,7 @@ set(headers
     pzpix.h
     pzstack.h
     pzvec_extras.h
+    TPZExactFunction.h
     )
 
 set(sources

@@ -477,9 +477,12 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
 #endif
             int pos = this->Mesh()->Block().Position(seq);
             int posloc = cel->Mesh()->Block().Position(seqloc);
+            //TODOCOMPLEX
+            TPZFMatrix<STATE> &celSol = cel->Mesh()->Solution();
+            TPZFMatrix<STATE> &meshSol = this->Mesh()->Solution();
             for (int ibl = 0; ibl < blsz; ibl++) {
                 for (int iload = 0; iload < nload; iload++) {
-                    cel->Mesh()->Solution()(posloc+ibl,iload) = this->Mesh()->Solution()(pos+ibl,iload);
+                    celSol(posloc+ibl,iload) = meshSol(pos+ibl,iload);
                 }
 
             }

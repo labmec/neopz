@@ -5,8 +5,10 @@ cmake-build-debug
 cmake-build-release
 .idea
 build
+build-*
 NeoPZ_CMake
 .vscode
 *.icloud
 compile_commands.json
 .cquery_cached_index
+.ccls-cache

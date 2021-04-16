@@ -998,10 +998,11 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		TPZConnect &con = Mesh()->ConnectVec()[ConnectIndexL[i]];
 		int64_t seqnum = con.SequenceNumber();
 		int blsize = Mesh()->Block().Size(seqnum);
-		int64_t pos = Mesh()->Block().Position(seqnum);
+		int64_t pos = Mesh()->Block().Position(seqnum);        
+        TPZFMatrix<STATE> &meshSol = Mesh()->Solution();
 		for (int ip=0; ip<blsize; ip++) 
 		{
-			solutionvec.Push(Mesh()->Solution()(pos+ip)*(STATE)1.e15);
+			solutionvec.Push(meshSol(pos+ip)*(STATE)1.e15);
 		}
 #endif
 		ic++;
@@ -1025,9 +1026,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		int64_t seqnum = con.SequenceNumber();
 		int blsize = Mesh()->Block().Size(seqnum);
 		int64_t pos = Mesh()->Block().Position(seqnum);
+        TPZFMatrix<STATE> &meshSol = Mesh()->Solution();
 		for (int ip=0; ip<blsize; ip++) 
 		{
-			solutionvec.Push(Mesh()->Solution()(pos+ip)*(STATE)1.e15);
+			solutionvec.Push(meshSol(pos+ip)*(STATE)1.e15);
 		}
 #endif
 		ic++;

@@ -150,7 +150,7 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     //Imprimir Matriz de rigidez Global:
     {
         std::ofstream filestiff("stiffness.txt");
-        an.Solver().Matrix()->Print("K1 = ",filestiff,EMathematicaInput);
+        an.MatrixSolver<STATE>().Matrix()->Print("K1 = ",filestiff,EMathematicaInput);
         
         std::ofstream filerhs("rhs.txt");
         an.Rhs().Print("R = ",filerhs,EMathematicaInput);

@@ -15,7 +15,7 @@
 #include "pzbdstrmatrix.h"
 #include "pzbstrmatrix.h"
 #include "TPZSpStructMatrix.h"
-
+#include "TPZExactFunction.h"
 #include "TPZMatLaplacian.h"
 #include "TPZGeoMeshTools.h"
 #include "pzbndcond.h"
@@ -140,7 +140,7 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
     matskl.SetNumThreads(nThreads);
     an.SetStructuralMatrix(matskl);
     an.Assemble();
-    return an.Solver().Matrix();
+    return an.MatrixSolver<STATE>().Matrix();
   };
 
   auto start = std::chrono::system_clock::now();
@@ -180,6 +180,11 @@ void threadTest::ComparePostProcError(const int nThreads) {
   auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
   auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
 
+  TPZAutoPointer<TPZFunction<STATE>> solPtr(
+      new TPZExactFunction<STATE>(threadTest::ExactSolution,pOrder));
+  for(auto imat : cMesh->MaterialVec()){
+    imat.second->SetExactSol(solPtr);
+  }
   constexpr bool optimizeBandwidth{false};
 
   auto GetErrorVec = [cMesh, optimizeBandwidth](const int nThreads) {
@@ -197,12 +202,11 @@ void threadTest::ComparePostProcError(const int nThreads) {
     an.Assemble();
     an.Solve();
 
-    an.SetExact(threadTest::ExactSolution);
+    
     an.SetThreadsForError(nThreads);
 
     TPZManVector <REAL> errorVec(3, 0.);
     int64_t nelem = cMesh->NElements();
-    cMesh->LoadSolution(cMesh->Solution());
     cMesh->ExpandSolution();
     cMesh->ElementSolution().Redim(nelem, 10);
 

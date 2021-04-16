@@ -41,42 +41,41 @@ typename std::underlying_type<Enumeration>::type as_integer(const Enumeration va
 }
 
 
-/*structs used for help identifying fundamental types in template parameters.
- For instance,
- 
- template <class T,
- typename std::enable_if<(is_arithmetic_pz::value), int>::type* = nullptr>
- void Write(const TPZVec<T> &vec){
- //stuff here
- }
- 
- This template would only match with T as char, int, long, float, double, 
- * std::complex<float> etc... (Not composite types).*/
+//! Enables typename real_type<T>::type for the real type associated with T
+template <typename, typename = void>
+struct real_type;
 
-/**
- * Matches floating points (float, const double...)
- */
+//! Enabling it for arithmetic types
+template <typename T>
+struct real_type<T, std::enable_if_t<std::is_arithmetic_v<T>||std::is_integral_v<T>>>
+ { using type = T; };
+
+//! Enabling it for complex types
+template <typename T>
+struct real_type<std::complex<T>, void>
+ { using type = T; };
+
+//@{
+  //! Convenience macros for real_type<T>::type
+#define RTVar typename real_type<TVar>::type
+#define RType(T) typename real_type<T>::type
+//@}
+
 template<class T>
-struct is_complex_or_floating_point : std::is_floating_point<T> { };
+struct is_complex{ static constexpr bool value = false;};
 
-
-/**
- * Extends the behavior of the struct above to match complex numbers 
- * (std::complex<int>, std::complex<float>...)
- */
 template<class T>
-struct is_complex_or_floating_point<std::complex<T>> : std::integral_constant<bool,
-        std::is_integral<T>::value ||
-        std::is_floating_point<T>::value> { };
+struct is_complex<std::complex<T>> : 
+    std::integral_constant<bool,
+    std::is_integral<T>::value ||
+    std::is_floating_point<T>::value>{};
 
-/**
- * Matches integrals, floating points and complex numbers 
- * (char, int, float, double, std::complex<int>, std::complex<float>...)
- */
 template<class T>
-struct is_arithmetic_pz : std::integral_constant<bool,
-        std::is_integral<T>::value ||
-        is_complex_or_floating_point<T>::value> { };
+struct is_arithmetic_pz :
+    std::integral_constant<bool,
+    std::is_integral<T>::value ||
+    std::is_floating_point<T>::value ||
+    is_complex<T>::value>{};
 
 /** @brief Gets maxime value between a and b */
 #ifndef MAX

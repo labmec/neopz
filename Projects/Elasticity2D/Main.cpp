@@ -334,7 +334,8 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
     if(Uatk0.Rows() != numeq) Uatk0.Redim(numeq,1);
     
     an->Assemble();
-    an->Rhs() *= -1.0; //- [R(U0)];
+    TPZFMatrix<STATE>& anRhs = an->Rhs();
+    anRhs *= -1.0; //- [R(U0)];
     
     TPZAutoPointer< TPZMatrix<STATE> > matK; // getting X(Uatn)
     
@@ -345,7 +346,7 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         if(logger.isDebugEnabled())
         {
             std::stringstream sout;
-            matK=an->Solver().Matrix();
+            matK=an->MatrixSolver<STATE>().Matrix();
             matK->Print("matK = ", sout,EMathematicaInput);
             an->Rhs().Print("Rhs = ", sout, EMathematicaInput);
             LOGPZ_DEBUG(logger,sout.str())
@@ -372,7 +373,8 @@ void IterativeProcess(TPZAnalysis *an, std::ostream &out, int numiter)
         
         an->LoadSolution(Uatk); // Loading Uatk
         an->Assemble();
-        an->Rhs() *= -1.0; //- [R(U0)];
+        TPZFMatrix<STATE> &anRhs = an->Rhs();
+        anRhs *= -1.0; //- [R(U0)];
         
 #ifdef PZ_LOG
         if(logger.isDebugEnabled())

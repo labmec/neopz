@@ -1,8 +1,3 @@
 # @file neopz/UnitTest_PZ/TestMatrix/CMakeLists.txt  -- CMake file for unit test of tensor
-
-if(BUILD_PLASTICITY_MATERIALS)
-	if ((STATE_TYPE STREQUAL "double") AND (REAL_TYPE STREQUAL "double"))
-		add_unit_test(TestTensor TestTensor.cpp)
-	endif()
-endif()
-
+add_unit_test(TestTensor TestTensor.cpp)
+configure_file(tensor_and_eigensystem.txt tensor_and_eigensystem.txt COPYONLY)

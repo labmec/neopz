@@ -32,9 +32,9 @@
   template <                                                                   \
       class A, class B,                                                        \
       typename std::enable_if<((std::is_integral<B>::value ||                  \
-                                is_complex_or_floating_point<B>::value) &&     \
+                                is_arithmetic_pz<B>::value) &&     \
                                (std::is_integral<A>::value ||                  \
-                                is_complex_or_floating_point<A>::value)),      \
+                                is_arithmetic_pz<A>::value)),      \
                               int>::type * = nullptr>                          \
   inline bool operator OP(const Fad<A> &a, const B &b) {                       \
     return (a.val() OP b);                                                     \
@@ -43,9 +43,9 @@
   template <                                                                   \
       class A, class B,                                                        \
       typename std::enable_if<((std::is_integral<B>::value ||                  \
-                                is_complex_or_floating_point<B>::value) &&     \
+                                is_arithmetic_pz<B>::value) &&     \
                                (std::is_integral<A>::value ||                  \
-                                is_complex_or_floating_point<A>::value)),      \
+                                is_arithmetic_pz<A>::value)),      \
                               int>::type * = nullptr>                          \
   inline bool operator OP(const A &a, const Fad<B> &b) {                       \
     return (a OP b.val());                                                     \

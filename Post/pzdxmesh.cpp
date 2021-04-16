@@ -381,7 +381,7 @@ void TPZDXGraphMesh::DrawSolution(char * var)
 	
 }
 
-void TPZDXGraphMesh::DrawSolution(TPZBlock<REAL> &/*bl*/)
+void TPZDXGraphMesh::DrawSolution(TPZBlock &/*bl*/)
 {
 	/*
 	 Pix i = fCompMesh->MaterialVec().first();

@@ -486,7 +486,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
     int nvar = coarsel.Material()->NStateVariables();
 
     // number of blocks is cornod
-    TPZBlock<REAL> corblock(0, cornod);
+    TPZBlock corblock(0, cornod);
     int in;
     // corblock and corblocksize have the same function
     for (in = 0; in < NConnects(); in++) {
@@ -540,7 +540,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
     }
     intrule->SetOrder(order);
 
-    TPZBlock<REAL> locblock(0, locnod);
+    TPZBlock locblock(0, locnod);
 
     for (in = 0; in < locnod; in++) {
         TPZConnect &c = Connect(in);
@@ -939,7 +939,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
     // Philippe 12/3/99
     //  int numsidenodes_large = NSideConnects(neighbourside);
     int numsidenodes_large = large->NSideConnects(neighbourside);
-    TPZBlock<REAL> MBlocksmall(0, numsidenodes_small), MBlocklarge(0, numsidenodes_large);
+    TPZBlock MBlocksmall(0, numsidenodes_small), MBlocklarge(0, numsidenodes_large);
     for (in = 0; in < numsidenodes_small; in++) {
         int locid = SideConnectLocId(in, side);
         TPZConnect &c = Connect(locid);
@@ -1709,7 +1709,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
     int ncon = NConnects();
     int dim = Dimension();
     int nshape = NShapeF();
-    TPZBlock<STATE> &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     TPZFMatrix<STATE> &solution = Mesh()->Solution();
     int numloadcases = solution.Cols();
 
@@ -1896,7 +1896,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL>
 
     }
 
-    TPZBlock<STATE> &block = Mesh()->Block();
+    TPZBlock &block = Mesh()->Block();
     int64_t iv = 0, d;
     for (int in = 0; in < ncon; in++) {
         TPZConnect *df = &this->Connect(in);

@@ -826,17 +826,21 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
 #endif
             
 #ifndef DRY_RUN
-            if(data->fGlobMatrix){
+            auto globMatrix =
+                    dynamic_cast<TPZMatrix<STATE> *>(data->fGlobMatrix);
+                auto globRhs =
+                    dynamic_cast<TPZFMatrix<STATE> *>(data->fGlobRhs);
+            if(globMatrix){
                 // Assemble the matrix
                 if(!ek.HasDependency())
                 {
-                    data->fGlobMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    data->fGlobRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    globMatrix->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    globRhs->AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
                 }
                 else
                 {
-                    data->fGlobMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-                    data->fGlobRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    globMatrix->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+                    globRhs->AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
                 }
                 
             }
@@ -1129,15 +1133,17 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
 #endif
                 
 #ifndef DRY_RUN
-                if(data->fGlobRhs){
+                auto globRhs =
+                    dynamic_cast<TPZFMatrix<STATE> *>(data->fGlobRhs);
+                if(globRhs){
                     // Assemble the matrix
                     if(!ef.HasDependency())
                     {
-                        data->fGlobRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
+                        globRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
                     }
                     else
                     {
-                        data->fGlobRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+                        globRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
                     }
                     
                 }

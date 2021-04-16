@@ -541,7 +541,7 @@ void TPZElementMatrix::PermuteGather(TPZVec<int64_t> &permute)
                 int64_t jblsize = fBlock.Size(jbl);
                 for (int64_t idf=0; idf<iblsize; ++idf) {
                     for (int64_t jdf=0; jdf<jblsize; ++jdf) {
-                        fBlock(ibl,jbl,idf,jdf) = cp.fBlock(permute[ibl],permute[jbl],idf,jdf);
+                        fMat.at(fBlock.at(ibl,jbl,idf,jdf)) = cp.fMat.at(cp.fBlock.at(permute[ibl],permute[jbl],idf,jdf));
                     }
                 }
             }
@@ -555,7 +555,7 @@ void TPZElementMatrix::PermuteGather(TPZVec<int64_t> &permute)
             int64_t jblsize = fMat.Cols();
             for (int64_t idf=0; idf<iblsize; ++idf) {
                 for (int64_t jdf=0; jdf<jblsize; ++jdf) {
-                    fBlock(ibl,0,idf,jdf) = cp.fBlock(permute[ibl],0,idf,jdf);
+                    fMat.at(fBlock.at(ibl,0,idf,jdf)) = cp.fMat.at(cp.fBlock.at(permute[ibl],0,idf,jdf));
                 }
             }
         }

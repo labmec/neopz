@@ -614,6 +614,10 @@ void TPZMatLaplacian::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 
 void TPZMatLaplacian::Errors(TPZMaterialData &data,TPZVec<REAL> &values) {
 
+    TPZManVector<STATE,1> u_exact(1,0.);
+    TPZFNMatrix<3,STATE> du_exact(3,1,0.);
+    if(!fExactSol) DebugStop();
+    fExactSol->Execute(data.x, u_exact, du_exact);
     values.Resize(3);
     values.Fill(0.0);
 
@@ -633,34 +637,28 @@ void TPZMatLaplacian::Errors(TPZMaterialData &data,TPZVec<REAL> &values) {
         }
     }
     TPZFNMatrix<3,STATE> dudx(3,1,0.);
-    TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dudx, data.axes);
-
     STATE u = data.sol[0][0];
-    TPZVec<STATE> u_exact(1,0);
-    TPZFMatrix<STATE> du_exact(3,1,0);
-    if(this->fExactSol) {
-        this->fExactSol->Execute(data.x, u_exact, du_exact);
-    }
 
-    ///L2 norm
-    values[1] = TPZExtractVal::val((u - u_exact[0])*(u - u_exact[0]));
-
-    ///semi norma de H1
-    values[2] = 0.;
-    for(int i = 0; i < du_exact.Rows(); i++){
-        values[2] += TPZExtractVal::val( (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0)));
-    }
+    TPZAxesTools<STATE>::Axes2XYZ(dudxaxes, dudx, axes);
+    
+	///L2 norm
+	values[1] = TPZExtractVal::val((u[0] - u_exact[0])*(u[0] - u_exact[0]));
+	
+	///semi norma de H1
+	values[2] = 0.;
+	for(int i = 0; i < du_exact.Rows(); i++){
+		values[2] += TPZExtractVal::val( (dudx(i,0) - du_exact(i,0))*(dudx(i,0) - du_exact(i,0)));
+	}
     // Energy Norm
     values[0] = 0.;
     for (int i=0; i<fDim; i++) {
         for (int j=0; j<fDim; j++) {
-            values[0] += TPZExtractVal::val((dudx(i,0) - du_exact(i,0))*perm(i,j)*(dudx(j,0) - du_exact(j,0)));
+                values[0] += TPZExtractVal::val((dudx(i,0) - du_exact(i,0))*perm(i,j)*(dudx(j,0) - du_exact(j,0)));
         }
     }
-    ///H1 norm
+	///H1 norm
 
 }
-
 void TPZMatLaplacian::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump){
     int numbersol = leftu.size();
     for (int is=0; is<numbersol ; is++) {

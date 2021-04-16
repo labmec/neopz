@@ -243,8 +243,11 @@ protected:
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override {
         DebugStop();
     }
-
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+    
+    void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
+				TPZVec<REAL> &values) override;
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, 
 				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) override;
 

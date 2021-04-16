@@ -280,7 +280,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             int icindex = ekloc.fConnect[ic];
             int ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                ef.fBlock(ibldest,0,idf,0) += efloc.fBlock(ic,0,idf,0);
+                ef.fMat.at(ef.fBlock.at(ibldest,0,idf,0)) += efloc.fMat.at(efloc.fBlock.at(ic,0,idf,0));
             }
             for (int jc = 0; jc<nelcon; jc++) {
                 int jblsize = ekloc.fBlock.Size(jc);
@@ -288,7 +288,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
                 int jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
-                        ek.fBlock(ibldest,jbldest,idf,jdf) += ekloc.fBlock(ic,jc,idf,jdf);
+                        ek.fMat.at(ek.fBlock.at(ibldest,jbldest,idf,jdf)) += ekloc.fMat.at(ekloc.fBlock.at(ic,jc,idf,jdf));
                     }
                 }
             }
@@ -355,7 +355,7 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
             int icindex = efloc.fConnect[ic];
             int ibldest = locindex[icindex];
             for (int idf = 0; idf<iblsize; idf++) {
-                ef.fBlock(ibldest,0,idf,0) += efloc.fBlock(ic,0,idf,0);
+                ef.fMat.at(ef.fBlock.at(ibldest,0,idf,0)) += efloc.fMat.at(efloc.fBlock.at(ic,0,idf,0));
             }
         }        
     }

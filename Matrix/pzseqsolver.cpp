@@ -22,7 +22,7 @@ TPZMatrixSolver<TVar>(copy) {
 }
 
 template <class TVar>
-TPZSolver<TVar> * TPZSequenceSolver<TVar>::Clone() const {
+TPZSolver * TPZSequenceSolver<TVar>::Clone() const {
     return new TPZSequenceSolver(*this);
 }
 

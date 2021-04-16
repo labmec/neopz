@@ -546,7 +546,7 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
-		if ( (*pk -= sum) < 1.e-10 )
+		if (IsZero(*pk -= sum))
 			return( 0 );
 		*pk = sqrt( *pk );
 		
@@ -872,3 +872,6 @@ int TPZSFMatrix<TVar>::ClassId() const{
 template class TPZSFMatrix<float>;
 template class TPZSFMatrix<double>;
 template class TPZSFMatrix<long double>;
+template class TPZSFMatrix<std::complex<float>>;
+template class TPZSFMatrix<std::complex<double>>;
+template class TPZSFMatrix<std::complex<long double>>;

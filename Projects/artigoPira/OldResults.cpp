@@ -334,8 +334,8 @@ int mainOld(int argc, char *argv[])
             anFlux.Assemble();
             
             // Transferir EkL2 para EkMultiPhisica
-            TPZAutoPointer< TPZMatrix<STATE> > matF =  anFlux.Solver().Matrix();
-            TPZAutoPointer< TPZMatrix<STATE> > matMP =  anMP.Solver().Matrix();
+            TPZAutoPointer< TPZMatrix<STATE> > matF =  anFlux.MatrixSolver<STATE>().Matrix();
+            TPZAutoPointer< TPZMatrix<STATE> > matMP =  anMP.MatrixSolver<STATE>().Matrix();
             
             // std::ofstream saidamatriz("../saidamatriz.nb");
             //            matF->Print("MatFlux = ", saidamatriz,EMathematicaInput);

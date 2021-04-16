@@ -159,10 +159,10 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0, TPZElementMatri
                 int jbldest = locindex[jcindex];
                 for (int idf = 0; idf<iblsize; idf++) {
                     for (int jdf=0; jdf<jblsize; jdf++) {
-                        E0.fBlock(ibldest,jbldest,idf,jdf) += E0Loc.fBlock(ic,jc,idf,jdf);
-                        E1.fBlock(ibldest,jbldest,idf,jdf) += E1Loc.fBlock(ic,jc,idf,jdf);
-                        E2.fBlock(ibldest,jbldest,idf,jdf) += E2Loc.fBlock(ic,jc,idf,jdf);
-                        M0.fBlock(ibldest,jbldest,idf,jdf) += M0Loc.fBlock(ic,jc,idf,jdf);
+                        E0.at(ibldest,jbldest,idf,jdf) += E0Loc.at(ic,jc,idf,jdf);
+                        E1.at(ibldest,jbldest,idf,jdf) += E1Loc.at(ic,jc,idf,jdf);
+                        E2.at(ibldest,jbldest,idf,jdf) += E2Loc.at(ic,jc,idf,jdf);
+                        M0.at(ibldest,jbldest,idf,jdf) += M0Loc.at(ic,jc,idf,jdf);
                     }
                 }
             }
@@ -1096,7 +1096,8 @@ void TPZSBFemElementGroup::LoadSolution()
     
     TPZFNMatrix<100, std::complex<double> > uh_local(ncoef, fMesh->Solution().Cols(),0.);
     fCoef.Resize(ncoef,fMesh->Solution().Cols());
-    
+    //TODOCOMPLEX
+    TPZFMatrix<STATE> &meshSol = fMesh->Solution();
     int count = 0;
     for (int ic=0; ic<nc; ic++) {
         TPZConnect &c = Connect(ic);
@@ -1108,7 +1109,7 @@ void TPZSBFemElementGroup::LoadSolution()
         for (int seq=0; seq < blsize; seq++) {
             for (int c=0; c<uh_local.Cols(); c++)
             {
-                uh_local(count+seq,c) = fMesh->Solution()(pos+seq,c);
+                uh_local(count+seq,c) = meshSol(pos+seq,c);
             }
         }
         count += blsize;

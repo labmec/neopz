@@ -316,29 +316,20 @@ TPZFMatrix<TVar> TPZFMatrix<TVar>::operator-(const TPZFMatrix<TVar> &A ) const {
     return( res );
 }
 
-template<>
-void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &TransfToOrthog)
-{
-    std::cout << "Nothing to do\n";
-    DebugStop();
-}
-
-template <>
-void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
-{
-    DebugStop();
-}
-
-template <>
-void TPZFMatrix<Fad<double> >::GramSchmidt(TPZFMatrix<Fad<double> > &Orthog, TPZFMatrix<Fad<double> > &TransfToOrthog)
-{
-    DebugStop();
-}
-
-
 template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
+    if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
+                  std::is_same<TVar, Fad<float>>::value ||
+                  std::is_same<TVar, Fad<double>>::value ||
+                  std::is_same<TVar, Fad<long double>>::value||
+                  std::is_same<TVar,int>::value||
+                  std::is_same<TVar,TPZFlopCounter>::value) {
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" not implemented for this type\n";
+        PZError<<"Aborting...";
+        DebugStop();
+    }
 #ifdef PZ_LOG2
     if (logger.isDebugEnabled())
     {
@@ -495,12 +486,6 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 #endif
 }
 
-template <>
-void TPZFMatrix<TPZFlopCounter>::GramSchmidt(TPZFMatrix<TPZFlopCounter> &Orthog, TPZFMatrix<TPZFlopCounter> &TransfToOrthog)
-{
-    std::cout << __PRETTY_FUNCTION__ << " please implement me\n";
-    DebugStop();
-}
 
 template <class TVar>
 void TPZFMatrix<TVar>::DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse)
@@ -2147,28 +2132,19 @@ int TPZFMatrix<TVar>::Clear() {
     return( 1 );
 }
 
-template <>
-void TPZFMatrix<TFad<6,REAL> >::Read( TPZStream &buf, void *context ){
-    DebugStop();
-}
-
-template <>
-void TPZFMatrix<TFad<6,REAL> >::Write( TPZStream &buf, int withclassid ) const {
-    DebugStop();
-}
-
-template <>
-void TPZFMatrix<Fad<REAL> >::Read( TPZStream &buf, void *context ){
-    DebugStop();
-}
-
-template <>
-void TPZFMatrix<Fad<REAL> >::Write( TPZStream &buf, int withclassid ) const {
-    DebugStop();
-}
 
 template <class TVar>
 void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
+    if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
+                  std::is_same<TVar, Fad<float>>::value ||
+                  std::is_same<TVar, Fad<double>>::value ||
+                  std::is_same<TVar, Fad<long double>>::value||
+                  std::is_same<TVar, TPZFlopCounter>::value) {
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" not implemented for this type\n";
+        PZError<<"Aborting...";
+        DebugStop();
+    }
     TPZMatrix<TVar>::Read(buf,context);
     int64_t row = this->fRow;
     int64_t col = this->fCol;
@@ -2189,6 +2165,16 @@ void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){ //ok
 
 template <class TVar>
 void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const { //ok
+    if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
+                  std::is_same<TVar, Fad<float>>::value ||
+                  std::is_same<TVar, Fad<double>>::value ||
+                  std::is_same<TVar, Fad<long double>>::value||
+                  std::is_same<TVar, TPZFlopCounter>::value) {
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" not implemented for this type\n";
+        PZError<<"Aborting...";
+        DebugStop();
+    }
     TPZMatrix<TVar>::Write(buf,withclassid);
     buf.Write(fElem,this->fRow*this->fCol);
 }
@@ -2702,14 +2688,14 @@ template< class TVar>
 int
 TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w, TPZFMatrix < complex<double> > &eigenVectors)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+    Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 template< class TVar>
 int
 TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix<TVar> &B , TPZVec < complex<double> > &w)
 {
-    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
+    Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <LAPACK does not support this specific data type>" );
     return( 0 );
 }
 
@@ -2719,7 +2705,7 @@ TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <c
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -2779,7 +2765,7 @@ TPZFMatrix<float>::SolveGeneralisedEigenProblem(TPZFMatrix<float> &B , TPZVec <c
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";
@@ -2822,7 +2808,7 @@ TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec 
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -2882,7 +2868,7 @@ TPZFMatrix<double>::SolveGeneralisedEigenProblem(TPZFMatrix<double> &B , TPZVec 
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";
@@ -2926,7 +2912,7 @@ TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<flo
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -2976,7 +2962,7 @@ TPZFMatrix<complex<float> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<flo
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<float>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";
@@ -3019,7 +3005,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "Vectors";
@@ -3069,7 +3055,7 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
 {
     if (  this->fRow != B.Rows() && this->fCol != B.Cols() )
     {
-        TPZMatrix<double>::Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
+        Error(__PRETTY_FUNCTION__, "SolveGeneralisedEigenProblem <Uncompatible Dimensions>" );
     }
     
     char jobvl[] = "None", jobvr[] = "None";

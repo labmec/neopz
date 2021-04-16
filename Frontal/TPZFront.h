@@ -13,7 +13,7 @@
 #include "pzstack.h"
 #include "pzvec.h"
 #include "TPZSemaphore.h"
-
+#include "Hash/TPZHash.h"
 template<class TVar>
 class TPZEqnArray;
 
@@ -30,7 +30,7 @@ class TPZFront : public TPZSavable {
 	
 public:
 	
-    /** @brief Static main used for testing */	
+    ///** @brief Static main used for testing */	
 	//static void main();
 	
 	int64_t NElements();

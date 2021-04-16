@@ -132,9 +132,9 @@ protected:
         /** @brief Gui interface object */
         TPZAutoPointer<TPZGuiInterface> fGuiInterface;
         /** @brief Global matrix */
-        TPZMatrix<STATE> *fGlobMatrix;
+        TPZBaseMatrix *fGlobMatrix;
         /** @brief Global rhs vector */
-        TPZFMatrix<STATE> *fGlobRhs;
+        TPZBaseMatrix *fGlobRhs;
         
         std::atomic<int64_t> *fCurrentIndex;
         /** @brief sequence number of the thread */

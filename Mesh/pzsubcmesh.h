@@ -69,7 +69,10 @@ private:
 	 */
 	/** It is necessary that the number of elements connected to the connect be equal one */
 	void TransferDependencies(int64_t local);
-	
+
+
+    template<class TVar>
+    void LoadSolutionInternal(TPZFMatrix<TVar>& mysol);
 public:
 	/**
 	 * @brief Constructor.

@@ -46,7 +46,7 @@ public:
 		return this->fTransfer;
 	}
 	
-	TPZSolver<TVar> * Clone() const override;
+	TPZSolver * Clone() const override;
 	
 	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0) override;
 	

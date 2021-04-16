@@ -19,7 +19,6 @@
 #include "pzstack.h"
 #include <set>
 
-template<class TVar>
 class TPZBlock;
 
 /**
@@ -51,7 +50,7 @@ public:
 	void BuildNodeSet(int64_t node, std::set<int64_t> &nodeset);
 	
 	/** @brief Expand the graph acording to the block structure */
-	static void ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock<STATE> &block,
+	static void ExpandGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, TPZBlock &block,
 							TPZVec<int64_t> &expgraph, TPZVec<int64_t> &expgraphindex);
 	/** @brief Color the graph into mutually independent blocks */
 	static int ColorGraph(TPZVec<int64_t> &graph, TPZVec<int64_t> &graphindex, int64_t neq,

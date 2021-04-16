@@ -164,7 +164,7 @@ void TPZMVGraphMesh::DrawConnectivity(MElementType type) {
  	}
 }
 
-void TPZMVGraphMesh::DrawSolution(TPZBlock<REAL> &/*Sol*/) {
+void TPZMVGraphMesh::DrawSolution(TPZBlock &/*Sol*/) {
     cout << "TPZMVGraphMesh::DrawSolution not Implemented\n";
 }
 

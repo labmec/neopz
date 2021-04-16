@@ -58,7 +58,7 @@ TPZMatrixSolver<TVar>(copy), fTransfer(copy.fTransfer) {
 }
 
 template <class TVar>
-TPZSolver<TVar> * TPZMGSolver<TVar>::Clone() const {
+TPZSolver * TPZMGSolver<TVar>::Clone() const {
     return new TPZMGSolver<TVar>(*this);
 }
 

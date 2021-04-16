@@ -50,8 +50,6 @@ set(headers
     TPZSandlerDimaggioTranslator.h
     TPZSandlerExtended.h
     TPZSandlerExtendedTranslator.h
-    TPZTensor.h
-    TPZTensorTranslator.h
     TPZThermoForceA.h
     TPZVonMises.h
     TPZWillamWarnke.h
@@ -120,8 +118,6 @@ set(sources
     TPZSandlerDimaggioTranslator.cpp
     TPZSandlerExtended.cpp
     TPZSandlerExtendedTranslator.cpp
-    TPZTensor.cpp
-    TPZTensorTranslator.cpp
     TPZThermoForceA.cpp
     TPZVonMises.cpp
     TPZWillamWarnke.cpp

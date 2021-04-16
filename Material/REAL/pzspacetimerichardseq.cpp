@@ -8,6 +8,7 @@
 #include "pzreal.h"
 #include "pzaxestools.h"
 
+#include <fstream>
 #include <cmath>
 using namespace std;
 
