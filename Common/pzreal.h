@@ -40,10 +40,26 @@ typename std::underlying_type<Enumeration>::type as_integer(const Enumeration va
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
 }
 
-template<class T>
-struct real_type{typedef T type;};
-template<class T>
-struct real_type<std::complex<T>>{typedef T type;};
+
+//! Enables typename real_type<T>::type for the real type associated with T
+template <typename, typename = void>
+struct real_type;
+
+//! Enabling it for arithmetic types
+template <typename T>
+struct real_type<T, std::enable_if_t<std::is_arithmetic_v<T>||std::is_integral_v<T>>>
+ { using type = T; };
+
+//! Enabling it for complex types
+template <typename T>
+struct real_type<std::complex<T>, void>
+ { using type = T; };
+
+//@{
+  //! Convenience macros for real_type<T>::type
+#define RTVar typename real_type<TVar>::type
+#define RType(T) typename real_type<T>::type
+//@}
 
 template<class T>
 struct is_complex{ static constexpr bool value = false;};

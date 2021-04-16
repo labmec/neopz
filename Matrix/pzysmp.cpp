@@ -628,7 +628,7 @@ void TPZFYsmpMatrix<TVar>::SolveSOR( int64_t &numiterations, const TPZFMatrix<TV
 		irInc = -1;
 	}
 	if(!FromCurrent) x.Zero();
-	typename real_type<TVar>::type eqres = 2.*tol;
+	RTVar eqres = 2.*tol;
 	int64_t iteration;
 	for(iteration=0; iteration<numiterations && eqres >= tol; iteration++) {
 		TVar local_eqres = 0.;
