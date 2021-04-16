@@ -2272,7 +2272,8 @@ int64_t TPZSubCompMesh::InternalIndex(int64_t IndexinFather)
 }
 
 void TPZSubCompMesh::EvaluateError(TPZVec<REAL> &errors, bool store_errors){
-  fAnalysis->PostProcessError(errors,store_errors);
+    errors.Fill(0.);
+    fAnalysis->PostProcessError(errors,store_errors);
     int NErrors = errors.size();
     if(store_errors)
     {

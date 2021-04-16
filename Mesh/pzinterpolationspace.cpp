@@ -990,6 +990,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 }
 
 void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error){
+    errors.Fill(0.);
 	TPZMaterial * material = Material();
 	//TPZMaterial * matptr = material.operator->();
 	if (!material) {

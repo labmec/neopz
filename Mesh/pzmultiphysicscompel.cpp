@@ -1089,6 +1089,7 @@ const TPZIntPoints & TPZMultiphysicsCompEl<TGeometry>::GetIntegrationRule() cons
 
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZVec<REAL> &errors, bool store_errors) {
+  errors.Fill(0.);
   TPZMaterial *material = this->Material();
   //TPZMaterial * matptr = material.operator->();
   if (!material) {
