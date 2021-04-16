@@ -205,24 +205,21 @@ void TPZMatrix<TVar>::Identity() {
     }
 }
 
-/*************/
-/*** Input ***/
-template<>
-void TPZMatrix<TFad<6,REAL> >::Input(std::istream& in )
-{
-    DebugStop();
-}
-template<>
-void TPZMatrix<Fad<REAL> >::Input(std::istream& in )
-{
-    DebugStop();
-}
 
 template<class TVar>
 void TPZMatrix<TVar>::Input(std::istream& in )
 {
-	
-	int64_t newRow, newCol;
+  if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
+                std::is_same<TVar, Fad<float>>::value ||
+                std::is_same<TVar, Fad<double>>::value ||
+                std::is_same<TVar, Fad<long double>>::value ||
+                std::is_same<TVar, TPZFlopCounter>::value) {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << " not implemented for this type\n";
+    PZError << "Aborting...";
+    DebugStop();
+  }
+    int64_t newRow, newCol;
 	in >> newRow;
 	in >> newCol;
 	Redim( newRow, newCol );
@@ -247,22 +244,23 @@ std::istream & operator>>(std::istream& in,TPZMatrix<TVar> &A)
 
 /*************/
 /*** Print ***/
-template<>
-void TPZMatrix<TFad<6,REAL> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const 
-{
-    out << name << std::endl;
-    for (int64_t i=0; i<fRow; i++) {
-        for (int64_t j=0; j<fCol; j++) {
-            out << "i = " << i << " j = " << j << " val " << Get(i, j) << std::endl;
-        }
-    }
-}
-
 
 template<class TVar>
 void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
-	
-	if(form == EFormatted) {
+  if constexpr (std::is_same<TVar, TFad<6, REAL>>::value ||
+                std::is_same<TVar, Fad<float>>::value ||
+                std::is_same<TVar, Fad<double>>::value ||
+                std::is_same<TVar, Fad<long double>>::value) {
+    out << name << std::endl;
+    for (int64_t i = 0; i < fRow; i++) {
+      for (int64_t j = 0; j < fCol; j++) {
+        out << "i = " << i << " j = " << j << " val " << Get(i, j) << std::endl;
+      }
+    }
+    return;
+   
+  }
+    if(form == EFormatted) {
 		out << "Writing matrix '";
 		if(name) out << name;
 		out << "' (" << Rows() << " x " << Cols() << "):\n";
@@ -1602,7 +1600,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int64_t &numiterations, REAL & tol,
 		if ((REAL)(fabs(res)) < tol) break;
 		
 		/** Compute angle of rotation */
-		theta = 0.5 * atan((TVar)2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
+		theta = (TVar)0.5 * atan((TVar)2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
 		cost = cos(theta);
 		sint = sin(theta);
 		
@@ -1872,7 +1870,14 @@ int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int64_t> &singul
     return result;
 }
 
-#include <complex>
+/** @brief Overload << operator to output entries of the matrix ***/
+template<class TVar>
+std::ostream &operator<<(std::ostream& out,const TPZMatrix<TVar> &A) {
+    A.Print("operator << ",out);
+    return  out;
+}
+
+
 template class TPZMatrix< std::complex<float> >;
 template class TPZMatrix< std::complex<double> >;
 template class TPZMatrix< std::complex<long double> >;
@@ -1889,12 +1894,7 @@ template class TPZMatrix<Fad<float> >;
 template class TPZMatrix<Fad<double> >;
 template class TPZMatrix<Fad<long double> >;
 
-/** @brief Overload << operator to output entries of the matrix ***/
-template<class TVar>
-std::ostream &operator<<(std::ostream& out,const TPZMatrix<TVar> &A) {
-    A.Print("operator << ",out);
-    return  out;
-}
+
 
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<int> &A);
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<float> &A);
