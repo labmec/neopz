@@ -480,23 +480,13 @@ void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 }
 
 void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
-    int64_t nrow = mat.Rows();
-    int64_t ncol = mat.Cols();
-    int64_t solrow = fSolution.Rows();
-    fSolution.Resize(solrow, ncol);
-    int64_t i,j;
-    const TPZFMatrix<STATE> &matst = mat;
-    TPZFMatrix<STATE> &solst = fSolution;
-    STATE val;
-    for(j=0;j<ncol;j++)
-    {
-        for(i=0;i<nrow;i++)
-        {
-            val = (matst.GetVal(i,j));
-            solst(i,j) =  val;
-        }
-    }
-
+    /*
+      The TPZAnalysis class will store the solution associated with the independent
+      equations, i.e., the solution returned from the solver.
+      Meanwhile, the TPZCompMesh class stores the *full* solution, therfore it needs
+      extra room for the dependent dofs
+    */
+    fSolution.ExpandAndSetSol(mat, fSolution.Rows());
     
     const auto nelem = NElements();
 	for(auto i=0; i<nelem; i++) {
