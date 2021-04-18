@@ -73,14 +73,7 @@ using namespace pzshape;
 static TPZLogger logger("pz.mesh.testhdiv");
 #endif
 
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz meshHDiv tests
-
-#include <boost/test/unit_test.hpp>
+#include<catch2/catch.hpp>
 
 static int tetraedra_2[6][4]=
 {
@@ -173,9 +166,7 @@ static void VerifySideShapeContinuity(MElementType eltype);
 static void VerifyDRhamCompatibility(MElementType eltype);
 
 // Tests for the 'voidflux' class.
-BOOST_AUTO_TEST_SUITE(mesh_tests)
-
-BOOST_AUTO_TEST_CASE(vector_direction)
+TEST_CASE("vector_direction","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing vector_direction check\n";
     VectorDirections<pzshape::TPZShapePiram>();
@@ -187,7 +178,7 @@ BOOST_AUTO_TEST_CASE(vector_direction)
     std::cout << "Leaving vector_direction check\n";
 }
 
-BOOST_AUTO_TEST_CASE(sideshape_continuity)
+TEST_CASE("sideshape_continuity","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing sideshape_continuity check\n";
     VerifySideShapeContinuity(EPiramide);
@@ -200,7 +191,7 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
 }
     
     
-BOOST_AUTO_TEST_CASE(shape_order)
+TEST_CASE("shape_order","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing shape_order check\n";
     CheckShapeOrder<pzshape::TPZShapePiram>(6);
@@ -214,7 +205,7 @@ BOOST_AUTO_TEST_CASE(shape_order)
     
 
 /// Check that the Div of the vector functions can be represented
-BOOST_AUTO_TEST_CASE(drham_check)
+TEST_CASE("drham_check","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing DRham consistency check\n";
     VerifyDRhamCompatibility(EPiramide);
@@ -226,7 +217,7 @@ BOOST_AUTO_TEST_CASE(drham_check)
     std::cout << "Leaving  DRham consistency check\n";
 }
 
-BOOST_AUTO_TEST_CASE(drham_permute_check)
+TEST_CASE("drham_permute_check","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing  DRham consistency under permutation check\n";
     CheckDRhamFacePermutations(EPiramide);
@@ -239,7 +230,7 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
 }
 
 /// Check that the Div of the vector functions can be represented
-BOOST_AUTO_TEST_CASE(bilinearsolution_check)
+TEST_CASE("bilinearsolution_check","[hdiv_mesh_tests]")
 {
     std::cout << "Initializing solution check\n";
     RunBilinear(EPiramide);
@@ -250,8 +241,6 @@ BOOST_AUTO_TEST_CASE(bilinearsolution_check)
     RunBilinear(ECube);
     std::cout << "Leaving solution check\n";
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 static TPZAutoPointer<TPZCompMesh> GenerateMesh( TPZVec<TPZCompMesh *>  &meshvec, MElementType eltype, int nelem, int fluxorder, int ndiv)
 {
@@ -631,7 +620,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         interB->SideShapeFunction(sideB, pointB, phiB, dphiB);
         int nshapeA = phiA.Rows();
         int nshapeB = phiB.Rows();
-        BOOST_CHECK_EQUAL(nshapeA, nshapeB);
+        REQUIRE(nshapeA==nshapeB);
         int ish;
         for (ish=0; ish<nshapeA; ish++) {
             REAL Aval = phiA(ish,0);
@@ -646,7 +635,7 @@ int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         {
             std::cout << "\nNumber of different shape functions " << nwrong << std::endl;
         }
-//        BOOST_CHECK(nwrong == 0);
+//        REQUIRE(nwrong == 0);
     }
     return nwrong;
 }
@@ -743,14 +732,14 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         gelsideA.Element()->X(pointElA, xA);
         gelsideB.Element()->X(pointElB, xB);
         for (int i=0; i<3; i++) {
-            BOOST_CHECK_CLOSE(xA[i], xB[i], 1.e-6);
+            REQUIRE(xA[i]-xB[i]=Approx(0.0).margin(1.e-6));
         }
         int nshapeA = 0, nshapeB = 0;
         interA->ComputeRequiredData(dataA, pointElA);
         interB->ComputeRequiredData(dataB, pointElB);
         nshapeA = dataA.phi.Rows();
         nshapeB = dataB.phi.Rows();
-        BOOST_CHECK_EQUAL(nSideshapeA, nSideshapeB);
+        REQUIRE(nSideshapeA==nSideshapeB);
 
         TPZManVector<REAL> shapesA(nSideshapeA), shapesB(nSideshapeB);
         int nwrongkeep(nwrong);
@@ -812,7 +801,7 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
         //        {
         //            std::cout << "\nNumber of different shape functions " << nwrong << std::endl;
         //        }
-        //        BOOST_CHECK(nwrong == 0);
+        //        REQUIRE(nwrong == 0);
     }
     delete intrule;
     return nwrong;
@@ -868,7 +857,7 @@ static void CheckDRham(TPZCompEl *cel)
     {
         std::cout << "Number of points with wrong pressure projection " << nwrong << std::endl;
     }
-    BOOST_CHECK(nwrong == 0);
+    REQUIRE(nwrong == 0);
     //return nwrong;
 
 }
@@ -1211,7 +1200,7 @@ void CheckShapeOrder(int order)
             estimatedshapeorders.Print("ShapeOrders estimated by fitting");
         }
     }
-    BOOST_CHECK(numpermwrong == 0);
+    REQUIRE(numpermwrong == 0);
 
 }
 
@@ -1289,7 +1278,7 @@ void VectorDirections()
         normdir = sqrt(normdir);
         REAL diff = fabs(inner)/norm/normdir;
         diff -= 1.;
-        BOOST_CHECK(fabs(diff) < 1.e-6);
+        REQUIRE(fabs(diff) < 1.e-6);
     }
 }
 
@@ -1595,7 +1584,7 @@ void RunBilinear(MElementType eltype)
                 std::cout << "xi = " << xi <<std::endl;
                 std::cout << "xco = " << xco <<std::endl;
             }
-            BOOST_CHECK(fabs(sol[0]-exactsol[0]) < 1.e-6);
+            REQUIRE(fabs(sol[0]-exactsol[0]) < 1.e-6);
         }
     }
 }
@@ -1665,7 +1654,7 @@ void VerifySideShapeContinuity(MElementType eltype)
             {
                 std::cout << "Node ids " << nodesperm << " created incompatible shape functions\n";
             }
-            BOOST_CHECK(nwrong == 0);
+            REQUIRE(nwrong == 0);
             // now compare the shape function value between neighbrouring elements
             // create a side integration rule
             // compute the transformation between the element and his neighbour
@@ -2488,6 +2477,3 @@ void RotateGeomesh(TPZGeoMesh *gmesh, REAL CounterClockwiseAngle, int &Axis)
         
         return gmesh;
     }
-
-
-#endif

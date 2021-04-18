@@ -33,7 +33,8 @@ The usage of NeoPZ can be improved by linking against the following libraries:
 - [TBB](https://github.com/oneapi-src/oneTBB), also used for experimental techniques such as BDDC
 - [blaze](https://bitbucket.org/blaze-lib/blaze), needed for projects using [SBFEM](https://www.cies.unsw.edu.au/scaled-boundary-finite-element-method-2a)
 - [LAPACK](http://www.netlib.org/lapack/), for eigenvalues computations in full or banded matrices. If enabled, it is also internally used replacing in-house linear algebra algorithms with BLAS functions.
-- [Boost](https://www.boost.org/), for building unit tests and experimental techniques.
+- [Boost](https://www.boost.org/), for experimental techniques.
+- [Catch2](https://www.github.com/catchorg/Catch2), for Unit Testing.
 
 ## Configuration and Install
 The NeoPZ library uses CMake for configuring and installing the library. As a simple example, on UNIX systems, this could be done as:

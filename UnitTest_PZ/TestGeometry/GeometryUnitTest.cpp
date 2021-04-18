@@ -47,19 +47,7 @@ static TPZLogger logger("pz.mesh.testgeom");
 
 #include "fad.h"
 
-// Using Unit Test of the Boost Library
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz geometry_tests tests
-
-#include "boost/test/unit_test.hpp"
-#include "boost/test/tools/output_test_stream.hpp"
-
-#endif
-
+#include <catch2/catch.hpp>
 //#define NOISY //outputs x and grad comparisons
 //#define NOISYVTK //prints all elements in .vtk format
 
@@ -152,12 +140,8 @@ void PlotRefinedMesh(TPZGeoMesh &gmesh,const std::string &filename)
 /** @} */
 
 
-#ifdef PZ_USING_BOOST
 
-
-BOOST_AUTO_TEST_SUITE(geometry_tests)
-
-BOOST_AUTO_TEST_CASE(gradx_tests) {
+TEST_CASE("gradx_tests","[geometry_tests]") {
     TPZGeoMesh gmesh;
     FillGeometricMesh(gmesh);
     
@@ -225,8 +209,8 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
                     {
                         std::cout << "gel type name " << gel->TypeName() << std::endl;
                     }
-                    BOOST_CHECK(gradx_from_x_fad_check);
-                    BOOST_CHECK(gradx_vs_gradx_fad_check);
+                    REQUIRE(gradx_from_x_fad_check);
+                    REQUIRE(gradx_vs_gradx_fad_check);
                     
                 }
             }
@@ -241,13 +225,3 @@ BOOST_AUTO_TEST_CASE(gradx_tests) {
     return;
 
 }
-
-
-
-
-
-BOOST_AUTO_TEST_SUITE_END()
-
-
-#endif
-

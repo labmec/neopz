@@ -7,19 +7,7 @@
 #include "pzelast3d.h"
 #include "iostream"
 #include "fstream"
-
-
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz material tests
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-#endif
+#include <catch2/catch.hpp>
 
 /**
  * @brief Create the stiffness matrix of a cube from -1 and 1 in cartesian coordinates, with elastic material
@@ -69,38 +57,30 @@ TPZFMatrix<STATE> readStressStrain(std::string &FileName)
 	return RightStiff;
 }
 
-#ifdef PZ_USING_BOOST
-
-BOOST_AUTO_TEST_SUITE(material_tests)
-
-BOOST_AUTO_TEST_CASE(test_tonto) 
+TEST_CASE("test_tonto","[material_tests]") 
 {
 	int a = 3;
-	BOOST_CHECK_EQUAL(a,3);
+	REQUIRE(a==3);
 }
 
 
 
-BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
+TEST_CASE("test_matriz_rigidez_cubo","[material_tests]")
 {
 	std::string name = "CubeStiffMatrix.txt";
 	TPZFMatrix<STATE> RightStiff(readStressStrain(name)), stiff(computeStressStrain());
 	REAL tol = 1.e-8;
 	bool sym = stiff.VerifySymmetry(tol);
 	std::cout << sym << std::endl;
-	BOOST_CHECK_EQUAL(sym,1);		// Verify the symmetry of the stiffness matrix
+	REQUIRE(sym==1);		// Verify the symmetry of the stiffness matrix
 	REAL dif;
 	for (int i = 0 ; i < 9 ; i++) 
 	{
 		for (int j = 0 ; j < 9 ; j++) 
 		{
 			dif = fabs(stiff(i,j) - RightStiff(i,j));
-			BOOST_CHECK_SMALL(dif, (REAL)0.01L);
+			REQUIRE(dif == Approx(0.0).margin(0.01));
 		}
 	}
 
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-#endif

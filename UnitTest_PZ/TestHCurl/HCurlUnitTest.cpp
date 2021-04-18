@@ -33,29 +33,16 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "pzgeoprism.h"
 #include "TPZGeoCube.h"
 #include "TPZVTKGeoMesh.h"
-// Using Unit Test of the Boost Library
-#ifdef PZ_USING_BOOST
 
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz hcurl_tests tests
 
-#include "boost/test/unit_test.hpp"
-#include "boost/test/tools/output_test_stream.hpp"
+#include <catch2/catch.hpp>
 
+#define REQUIRE_MESSAGE(cond, msg) do { INFO(msg); REQUIRE(cond); } while((void)0, 0)
 
 //#define VERBOSE_HCURL //outputs useful debug info
 //#define HCURL_OUTPUT_TXT//export mesh in .txt file (for debugging)
 //#define HCURL_OUTPUT_VTK//export mesh in .vtk file (for debugging)
 
-
-struct SuiteInitializer{
-    SuiteInitializer(){
-        boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_all_errors );
-    }
-};
-BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
     namespace hcurltest{
         constexpr REAL tol = 1e-10;
         /**
@@ -85,7 +72,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
     }
 
 
-    BOOST_AUTO_TEST_CASE(hcurl_topology_tests) {
+    TEST_CASE("hcurl_topology_tests","[hcurl_tests]") {
         constexpr int dim2D{2},dim3D{3};
         hcurltest::TestVectorTracesUniformMesh(MMeshType::ETriangular,dim2D);
         hcurltest::TestVectorTracesUniformMesh(MMeshType::EQuadrilateral,dim2D);
@@ -94,7 +81,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         hcurltest::TestVectorTracesUniformMesh(MMeshType::EPrismatic,dim3D);
     }
 
-    BOOST_AUTO_TEST_CASE(hcurl_mesh_tests) {
+    TEST_CASE("hcurl_mesh_tests","[hcurl_tests]") {
 //        hcurltest::PrintShapeFunctions<pzgeom::TPZGeoTetrahedra>(4);
         constexpr int dim2D{2},dim3D{3};
         for(auto k = 1; k <= 5; k++) hcurltest::TestFunctionTracesUniformMesh(MMeshType::ETriangular, k,dim2D);
@@ -392,13 +379,13 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                         neighData.jacobian.Print(traceMsg);
                                         traceMsg<<"neigh axes: ";
                                         neighData.axes.Print(traceMsg);
+                                        std::cerr<< "\n"<<testName<<" failed\n";
+                                        std::cerr<<"topology: "<<MMeshType_Name(type)<<"\n";
+                                        std::cerr<<"side: "<<std::to_string(iSide)<<"\n";
+                                        std::cerr<<"diff traces: "<<std::to_string(diffTrace)<<'\n';
+                                        std::cerr<< traceMsg.str() << std::endl;
                                     }
-                                    BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                    "\ntopology: "+MMeshType_Name(type)+"\n"+
-                                                                    "side: "+std::to_string(iSide)+"\n"+
-                                                                    "diff traces: "+std::to_string(diffTrace)+"\n"+
-                                                                    traceMsg.str()
-                                    );
+                                    REQUIRE(checkTraces);
                                 }
                             }
                         }
@@ -533,9 +520,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                     const int nShape = con.NShape();
                     {
                         const bool check = con.NDof( *cmesh) == nShape * nState;
-                        BOOST_CHECK_MESSAGE(check,"\n"+testName+" failed"+
-                                                  "\ntopology: "+MMeshType_Name(type)+"\n"
-                        );
+                        REQUIRE(check);
                     }
 
                     if(con.NElConnected() < 2) continue;
@@ -642,9 +627,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                 const auto elConIndex = cel->SideConnectIndex(cel->NSideConnects(subSide) - 1, subSide);
                                 const auto neighConIndex = neighCel->SideConnectIndex(neighCel->NSideConnects(neighSubSide) - 1, neighSubSide);
                                 const bool check = elConIndex == neighConIndex;
-                                BOOST_CHECK_MESSAGE(check, "\n" + testName + " failed" +
-                                                           "\ntopology: " + MMeshType_Name(type) + "\n"
-                                );
+                                REQUIRE(check);
                             }
                             const int firstNeighShape = [&](){
                                 int firstNeighShapeTemp = 0;
@@ -677,13 +660,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                     const int neighH1phiIndex = neighData.fVecShapeIndex[neighPhiIndex].second;
                                     const bool checkPhis = std::abs(elData.phi(elH1phiIndex,0) - neighData.phi(neighH1phiIndex,0)) < tol;
 
-                                    BOOST_CHECK_MESSAGE(checkPhis,"\n"+testName+" failed: phis are different!"+
-                                                                  "\ntopology: "+MMeshType_Name(type)+"\n"+
-                                                                  "side: "+std::to_string(iSide)+"\n"+
-                                                                  "p order: "+std::to_string(pOrder)+"\n"+
-                                                                  "elem phi index: "+std::to_string(elPhiIndex)+"\n"+
-                                                                  "neig phi index: "+std::to_string(neighPhiIndex)+"\n"
-                                    );
+                                    REQUIRE(checkPhis);
                                     anyWrongCheck = !checkPhis || anyWrongCheck;
                                     if(anyWrongCheck) {
                                         break;
@@ -708,13 +685,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                             for (auto x = 0; x < neighTrace.size(); x++) traceMsg << neighTrace[x]<<"\t";
                                             traceMsg <<"\n";
                                         }
-                                        BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                        "\ntopology: "+MMeshType_Name(type)+"\n"+
-                                                                        "side: "+std::to_string(iSide)+"\n"+
-                                                                        "p order: "+std::to_string(pOrder)+"\n"+
-                                                                        "diff traces: "+std::to_string(diffTrace)+"\n"+
-                                                                        traceMsg.str()
-                                        );
+                                        REQUIRE(checkTraces);
                                     }
                                     anyWrongCheck = !checkTraces || anyWrongCheck;
                                     if(anyWrongCheck) {
@@ -759,13 +730,7 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
                                                 for (auto x = 0; x < elTrace.size(); x++) traceMsg << sideTrace[x]<<"\t";
                                                 traceMsg <<"\n";
                                             }
-                                            BOOST_CHECK_MESSAGE(checkTraces,"\n"+testName+" failed"+
-                                                                            "\ntopology: "+MMeshType_Name(type)+"\n"+
-                                                                            "side: "+std::to_string(iSide)+"\n"+
-                                                                            "p order: "+std::to_string(pOrder)+"\n"+
-                                                                            "diff traces: "+std::to_string(diffTrace)+"\n"+
-                                                                            traceMsg.str()
-                                            );
+                                            REQUIRE(checkTraces);
                                         }
                                         anyWrongCheck = !checkTraces || anyWrongCheck;
                                     }
@@ -1016,9 +981,6 @@ BOOST_FIXTURE_TEST_SUITE(hcurl_tests,SuiteInitializer)
         }//namespace
     }//namespace
 
-
-BOOST_AUTO_TEST_SUITE_END()
-
 #ifdef VERBOSE_HCURL
 #undef VERBOSE_HCURL
 #endif
@@ -1028,5 +990,3 @@ BOOST_AUTO_TEST_SUITE_END()
 #ifdef HCURL_OUTPUT_VTK
 #undef HCURL_OUTPUT_VTK
 #endif
-#endif
-

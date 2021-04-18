@@ -13,19 +13,12 @@
 #include "TPZSSpStructMatrix.h" //symmetric sparse matrix storage
 #include "pzskylstrmatrix.h" //symmetric skyline matrix storage
 #include "pzstepsolver.h" //for TPZStepSolver
-
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN pz error tests
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/tools/floating_point_comparison.hpp>
+#include <catch2/catch.hpp>
 
 void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error);
 
 
-BOOST_AUTO_TEST_SUITE(error_tests)
-
-BOOST_AUTO_TEST_CASE(error_poisson)
+TEST_CASE("error_poisson","[error_tests]")
 {
   TPZManVector<REAL,3> lastError(3,10000);
   for(int p = 1; p < 5; p++){
@@ -35,18 +28,14 @@ BOOST_AUTO_TEST_CASE(error_poisson)
     for(auto i = 0; i < 3; i++){
       if(error[i]>lastError[i]) checkConv = false;
     }
-    BOOST_CHECK(checkConv);
+    REQUIRE(checkConv);
     lastError=error;
   }
-  bool checkError = true;
   //the solution is contained in the p=4 approx space
   for(auto ier : lastError){
-      if(ier > 1e-11) checkError = false;
+    REQUIRE(ier == Approx(0.0).margin(1e-11));
   }
-  BOOST_CHECK(checkError);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
 {

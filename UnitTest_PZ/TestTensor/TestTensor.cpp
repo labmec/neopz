@@ -16,20 +16,7 @@
 #include "pzsysmp.h"
 #include "TPZTensor.h"
 #include "fstream"
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz tensor tests
-
-#include <boost/test/unit_test.hpp>
-
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-#endif
-
-#ifdef PZ_USING_BOOST
+#include <catch2/catch.hpp>
 
 /// Testing Eigenvalues of a tensor
 
@@ -88,7 +75,7 @@ void TestingEigenDecompositionThreeDistinct() {
         }
     }
 
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 /**
@@ -148,7 +135,7 @@ void TestingEigenDecompositionAutoFill() {
     if (!check) {
         ma.Print("Matrix = ", std::cout, EMathematicaInput);
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 /**
@@ -200,7 +187,7 @@ void TestingEigenDecompositionTensorZero() {
         }
     }
 
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 /**
@@ -252,7 +239,7 @@ void TestingEigenDecompositionHydrostatic() {
         }
     }
 
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 /**
@@ -310,7 +297,7 @@ void TestingEigenDecompositionTwoEigenValues() {
         }
     }
 
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 /**
@@ -367,7 +354,7 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
         }
     }
 
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 /**
@@ -457,7 +444,7 @@ void TestingEigenDecompositionFromMathematica() {
         // Comparing computed eigenvalues
         for (unsigned int j = 0; j < 3; j++) {
             bool eigenvalues_check = IsZero(decomposedTensor.fEigenvalues[j] - read_eigenvalues[j]);
-            BOOST_CHECK(eigenvalues_check);
+            REQUIRE(eigenvalues_check);
         }
 
         sigma.ComputeEigenvectors(decomposedTensor);
@@ -468,18 +455,18 @@ void TestingEigenDecompositionFromMathematica() {
                 // orthogonal to the other two and if it has unit norm.
                 STATE norm = Norm(decomposedTensor.fEigenvectors[j]);
                 bool norm_check = IsZero(norm-1);
-                BOOST_CHECK(norm_check);
+                REQUIRE(norm_check);
                 for (unsigned int k = 1; k < 3; ++k) {
                     STATE dot_value = Dot(decomposedTensor.fEigenvectors[j], decomposedTensor.fEigenvectors[(j+k)%3]);
                     bool orthogonal_check = IsZero(dot_value);
-                    BOOST_CHECK(orthogonal_check);
+                    REQUIRE(orthogonal_check);
                 }
             } else {
                 for (unsigned int k = 0; k < 3; k++) {
                     bool eigenvectors_check = IsZero(decomposedTensor.fEigenvectors[j][k] - read_eigenvectors[j][k]);
                     if (!eigenvectors_check)
                         eigenvectors_check = IsZero(decomposedTensor.fEigenvectors[j][k] + read_eigenvectors[j][k]);
-                    BOOST_CHECK(eigenvectors_check);
+                    REQUIRE(eigenvectors_check);
                 }
             }
         }
@@ -489,45 +476,40 @@ void TestingEigenDecompositionFromMathematica() {
         // Comparing full tensor reconstruction
         for (unsigned int j = 0; j < 6; j++) {
             bool recompose_check = IsZero(sigma_reconstructed.fData[j] - ref_data(i, j));
-            BOOST_CHECK(recompose_check);
+            REQUIRE(recompose_check);
         }
     }
 }
 
-BOOST_AUTO_TEST_SUITE(tensor_tests)
 
 
-BOOST_AUTO_TEST_CASE(eigenvalue_tests_three) {
+TEST_CASE("eigenvalue_tests_three","[tensor_tests]") {
   TestingEigenDecompositionThreeDistinct<TPZTensor<double>, double>();
   TestingEigenDecompositionThreeDistinct<TPZTensor<float>, float>();
 }
-BOOST_AUTO_TEST_CASE(eigenvalue_tests_autofill) {
+TEST_CASE("eigenvalue_tests_autofill","[tensor_tests]") {
   TestingEigenDecompositionAutoFill<TPZTensor<double>, double>();
   TestingEigenDecompositionAutoFill<TPZTensor<float>, float>();
 }
-BOOST_AUTO_TEST_CASE(eigenvalue_tests_zerotensor) {
+TEST_CASE("eigenvalue_tests_zerotensor","[tensor_tests]") {
   TestingEigenDecompositionTensorZero<TPZTensor<double>, double>();
   TestingEigenDecompositionTensorZero<TPZTensor<float>, float>();
 }
-BOOST_AUTO_TEST_CASE(eigenvalue_tests_hydro) {
+TEST_CASE("eigenvalue_tests_hydro","[tensor_tests]") {
   TestingEigenDecompositionHydrostatic<TPZTensor<double>, double>();
   TestingEigenDecompositionHydrostatic<TPZTensor<float>, float>();
 }
 // //NOT WORKING
-// BOOST_AUTO_TEST_CASE(eigenvalue_tests_two) {
+// TEST_CASE("eigenvalue_tests_two","[tensor_tests]") {
 //   TestingEigenDecompositionTwoEigenValues<TPZTensor<double>, double>();
 //   TestingEigenDecompositionTwoEigenValues<TPZTensor<float>, float>();
 // }
-BOOST_AUTO_TEST_CASE(eigenvalue_tests_noshear) {
+TEST_CASE("eigenvalue_tests_noshear","[tensor_tests]") {
   TestingEigenDecompositionTwoEigenValuesNoShearStress<
       TPZTensor<double>,double>();
   TestingEigenDecompositionTwoEigenValuesNoShearStress<
       TPZTensor<float>,float>();
 }
-BOOST_AUTO_TEST_CASE(eigenvalue_tests_fromfile) {  
+TEST_CASE("eigenvalue_tests_fromfile","[tensor_tests]") {  
   TestingEigenDecompositionFromMathematica<TPZTensor<double>, double>();
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-#endif

@@ -16,14 +16,7 @@
 #include "tpzprism.h"
 #include "tpzpyramid.h"
 
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz topology tests
-
-#include <boost/test/unit_test.hpp>
+#include <catch2/catch.hpp>
 
 using namespace pztopology;
 namespace topologytests{
@@ -33,10 +26,7 @@ namespace topologytests{
     void TestingSideNodeProjections();
 }
 
-// Tests for the 'voidflux' class.
-BOOST_AUTO_TEST_SUITE(topology_tests)
-
-BOOST_AUTO_TEST_CASE(projection_tests_1)
+TEST_CASE("projection_tests_1","[topology_tests]")
 {
     topologytests::TestingSideProjections<TPZLine>();
     topologytests::TestingSideProjections<TPZTriangle>();
@@ -47,7 +37,7 @@ BOOST_AUTO_TEST_CASE(projection_tests_1)
     topologytests::TestingSideProjections<TPZPyramid>();
 }
 
-    BOOST_AUTO_TEST_CASE(projection_tests_2)
+    TEST_CASE("projection_tests_2","[topology_tests]")
     {
         topologytests::TestingSideNodeProjections<TPZTriangle>();
         topologytests::TestingSideNodeProjections<TPZQuadrilateral>();
@@ -57,7 +47,6 @@ BOOST_AUTO_TEST_CASE(projection_tests_1)
         topologytests::TestingSideNodeProjections<TPZPyramid>();
     }
 
-BOOST_AUTO_TEST_SUITE_END()
 
 namespace topologytests{
     template <class top>
@@ -83,11 +72,13 @@ namespace topologytests{
                     }else{
                         cond = std::abs(mat(i,j) ) < tol;
                     }
-                    BOOST_CHECK_MESSAGE(cond,
-                                        "\n"+testName+" failed"+
-                                        "\ntopology: "+MElementType_Name(type)+"\n"+
-                                        "side: "+ std::to_string(iSide)
-                    );
+                    if(!cond){
+                      std::cerr
+                          << "\n" + testName + " failed" +
+                                 "\ntopology: " + MElementType_Name(type) +
+                                 "\n" + "side: " + std::to_string(iSide);
+                    }
+                    REQUIRE(cond);
                 }
             }
         }
@@ -131,12 +122,13 @@ namespace topologytests{
                 REAL diff = 0;
                 for(auto x = 0; x < sideDim; x++) diff += (node[x] - cornerNodes(nodeId,x)) * (node[x] - cornerNodes(nodeId,x));
                 bool cond = std::sqrt(diff) < tol;
-                BOOST_CHECK_MESSAGE(cond,"\n"+testName+" failed"+
-                                         "\ntopology: "+MElementType_Name(type)+"\n"+
-                                         "side: "+ std::to_string(iSide)
-                                         );
+                if(!cond){
+                  std::cerr << "\n" + testName + " failed" +
+                                   "\ntopology: " + MElementType_Name(type) +
+                                   "\n" + "side: " + std::to_string(iSide);
+                }
+                REQUIRE(cond);
             }
         }
     }//TestingSideNodeProjections
 }//namespace
-#endif

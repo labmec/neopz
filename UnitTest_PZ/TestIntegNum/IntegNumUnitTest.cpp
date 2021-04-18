@@ -15,16 +15,8 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "pzquad.h"
-
-
-// Using Unit Test of the Boost Library
-#ifdef PZ_USING_BOOST
-
-
-#include "boost/test/unit_test.hpp"
-#include "boost/test/tools/output_test_stream.hpp"
-
-#endif
+#include "TPZCurve.h"
+#include <catch2/catch.hpp>
 
 static unsigned int NDigitsPrec = 13;
 static int NTypes = 2;
@@ -51,48 +43,7 @@ static REAL power(int s, REAL x)
  \f$
 */
 
-static REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
-	REAL functionvalue = (REAL)(0.0L);
-	REAL xi = point[0];
-	REAL eta = point[1];
-	REAL zeta = point[2];
-    REAL epsilon = 0.1;
-    int p1 = 0;
-    int p2 = 0;
-    int p3 = 0;
-    
-    switch (dim) {
-        case 1:
-        {   p1 = p; }
-            break;
-        case 2:
-        {   p1 = p; p2 = p; }
-            break;
-        case 3:
-        {   p1 = p; p2 = p; p3 = p; }
-            break;
-        default:
-        {   std::cout << "Inconsistency: wrong dimension " << dim << std::endl;
-            DebugStop();
-        }
-            break;
-    }
-    
-    for(int k = 0; k <= p3; k++)
-    {
-        for(int j = 0; j <= p2; j++)
-        {
-            for(int i = 0; i <= p1; i++)
-            {
-                if (i+j+k <= p) {
-                    functionvalue += (i+1)*power(i,xi+epsilon) * (j+1)*power(j,eta+epsilon) * (k+1)*power(k,zeta+epsilon);
-                }
-            }
-        }
-    }
-	return functionvalue;
-}
-
+static REAL Function(TPZManVector<REAL,3> &point, int p, int dim);
 /* @} */
 
 /** 
@@ -145,139 +96,16 @@ static REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL L
 /** @} */
 
 
-#ifdef PZ_USING_BOOST
-
 /**
  * @brief Tests the numerical integration rules implemented in Neopz
  * @param order Order of the numeric integration
  * @note NumInteg Respresents the Numeric Integration Rule.
  */
-
-
 template <class NumInteg>
-void TestingNumericIntegrationRule(int p,int type, boost::test_tools::output_test_stream &out) {
-	// Variables to computing numerical integration
-	TPZManVector<REAL,3> point(3,0.L);
-	REAL weight = 0.L;
-	REAL NeopzIntegral = 0.L;
-	TPZManVector<int,20> order(3,p);
-
-	// Variables to put numerical value as wish format
-	char text[64];
-	char format[32];
-	memset(text,0,strlen(text));
-	memset(format,0,strlen(format));
-	
-	// Creating the integration rule
-	NumInteg IntegrationRule(p);
-	IntegrationRule.SetType(type);
-	IntegrationRule.SetOrder(order);
-    int dimension = IntegrationRule.Dimension();
-
-	int npoints = IntegrationRule.NPoints();
-    
-	// Integrates Fucntion on parametric element space
-	for (int it=0;it<npoints;it++) {
-		IntegrationRule.Point(it,point,weight);
-		NeopzIntegral += weight * Function(point,p,dimension);
-	}
-
-	// Formating the integral value obtained
-    if(NeopzIntegral < 10.) { sprintf(format,"%%.%dLf",NDigitsPrec);}
-    else if(NeopzIntegral < 100.) { sprintf(format,"%%.%dLf",NDigitsPrec-1); }
-    else if(NeopzIntegral < 1000.) { sprintf(format,"%%.%dLf",NDigitsPrec-2); }
-    else if(NeopzIntegral < 10000.) { sprintf(format,"%%.%dLf",NDigitsPrec-3); }
-    else { sprintf(format,"%%.%dLf",NDigitsPrec-4); }
-	sprintf(text,format,NeopzIntegral);
-	
-	// Stores the obtained integral value into the boost::output to compare with match_pattern() i.e. the integral values from mathematica notebook NumInteBeingChecked.nb
-    out << text << "\n";
-	BOOST_CHECK_MESSAGE( out.match_pattern() , "\nIntegration: Dimension = " << dimension << "\t Order = " << p << "\t Number of Points = " << npoints << "\t Value = " << text << "\n");
-    
-}
-template <class NumInteg>
-void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
-  // Check if file exists
-  if (!input.is_open()) {
-    std::cout << "Error: Input file not found!\n";
-    DebugStop();
-  }
-
-	// Variables to computing numerical integration
-	TPZManVector<REAL,3> point(3);
-	REAL weight = 0.L;
-	REAL NeopzIntegral = 0.L;
-	TPZManVector<int,20> order(3,p);
-		
-	// Creating the integration rule
-	NumInteg IntegrationRule(p);
-	IntegrationRule.SetOrder(order,type);
-	
-	unsigned int npoints = IntegrationRule.NPoints();
-    int dimension = IntegrationRule.Dimension();
-	std::string namerule;
-	IntegrationRule.Name(namerule);
-    
-	
-	// Integrates Fucntion on parametric element space
-    std::cout << " Cubature rule: " << namerule << "  Type " << type << " \tOrder " << p << " \tNumber of Points " << npoints << std::endl;
-	for (unsigned int it = 0;it<npoints;it++) {
-		IntegrationRule.Point(it,point,weight);
-		NeopzIntegral += weight * Function(point,p,dimension);
-	}
-
-	// Variables to import data from files generate by notebook NumInteBeingChecked.nb
-	long double MathematicaIntegral;
-	long double tol = 6.L;
-	input >> MathematicaIntegral;
-	// Making tol compatible with the wished significant digits
-#ifdef REALfloat
-    NDigitsPrec = 6;
-#endif
-    for(unsigned int it=0; it < NDigitsPrec; it++){ tol *= 0.1L; }
-	
-    if(MathematicaIntegral > 10.0) { tol *= 10.L; }
-    if(MathematicaIntegral > 100.0) { tol *= 10.L; }
-    if(MathematicaIntegral > 1000.0) { tol *= 10.L; }
-    REAL result = std::abs(NeopzIntegral-MathematicaIntegral);
-	// If the boolean expresion returns false, then the message will be displayed.
-	BOOST_CHECK_MESSAGE(result < tol , "\nIntegration: Dim = " << dimension << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << NeopzIntegral << " difference = " << result << "\n" );
-}
+void TestingNumericIntegrationRule(int p,int type,std::ifstream &input);
 
 template<class NumInteg>
-void ComparePointsWithNewRule(int p) {
-	// Variables to computing numerical integration
-	TPZVec<REAL> point(3,0.L);
-	REAL weight = 0.L;
-	TPZVec<int> order(3,p);
-	long double tol = 1.0e-18;
-	
-	// Integration rule
-	NumInteg intrule(p);
-	intrule.SetOrder(order);
-	intrule.Print();
-	
-	TPZVec<REAL> point2(3,0.L);
-	REAL weight2 = 0.L;
-	NumInteg intrule2(p);
-	intrule2.SetParametersJacobi(0.0L, 0.0L);
-	intrule2.SetOrder(order,1);
-	intrule2.Print();
-	
-	unsigned int npoints = intrule.NPoints();
-	unsigned int npoints2 = intrule2.NPoints();
-	BOOST_CHECK(npoints == npoints2);
-	if(npoints != npoints2) return;
-	unsigned int it;
-	
-	// Comparating the points and weights of the two rules
-	for (it=0;it<npoints;it++) {
-		intrule.Point(it,point,weight);
-		intrule2.Point(it,point2,weight2);
-		BOOST_CHECK(fabsl(point[0]-point2[0]) < tol);
-		BOOST_CHECK(fabsl(weight-weight2) < tol);
-	}
-}
+void ComparePointsWithNewRule(int p);
 
 template<class T>
 void TestingCubatureRuleAllOrders(int type,std::ifstream &olddata) {
@@ -286,13 +114,15 @@ void TestingCubatureRuleAllOrders(int type,std::ifstream &olddata) {
 	for(int order=0;order <= maxord ;order++) {
 		TestingNumericIntegrationRule<T>(order,type,olddata);   // OK
 	}
-}	
+}
 
+void ComputeError(REAL alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl, REAL &error);
 
-BOOST_AUTO_TEST_SUITE(numinteg_tests)
+void TaylorCheck(TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl);
 
+void IntegrateCurve(TPZCurve &curve);
 
-BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
+TEST_CASE("numinteg1D_tests","[numinteg_tests]") {
 
 	// File with integration values calculated previously
 	std::string filename = "Line.txt";
@@ -306,7 +136,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	}
 }
 
-//BOOST_AUTO_TEST_CASE(numinteg2DQ_tests) {
+//TEST_CASE("numinteg2DQ_tests","[numinteg_tests]") {
 //	
 //	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 //	filename += "Quadrilateral.txt";
@@ -320,7 +150,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 //	}
 //}
 
-BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
+TEST_CASE("numinteg2DT_tests","[numinteg_tests]") {
 	
 	std::string filename = "Triangle.txt";
 	std::ifstream MathematicaData(filename.c_str());
@@ -332,7 +162,7 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 
 }
 
-//BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
+//TEST_CASE("numinteg3DC_tests","[numinteg_tests]") {
 //
 //	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 //	filename += "Cube.txt";
@@ -345,7 +175,7 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 //	}
 //}
 // 
-//BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
+//TEST_CASE("numinteg3DT_tests","[numinteg_tests]") {
 //	
 //	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 //	filename += "Tetrahedral.txt";
@@ -354,7 +184,7 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 //    MathematicaData.close();
 //}
 //
-//BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
+//TEST_CASE("numinteg3DPy_tests","[numinteg_tests]") {
 //	
 //	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 //	filename += "Pyramid.txt";
@@ -363,7 +193,7 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 //    MathematicaData.close();
 //}
 //
-//BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
+//TEST_CASE("numinteg3DPr_tests","[numinteg_tests]") {
 //	
 //	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 //	filename += "Prism.txt";
@@ -371,8 +201,6 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 //	TestingCubatureRuleAllOrders<TPZIntPrism3D>(0,MathematicaData);
 //    MathematicaData.close();
 //}
-
-BOOST_AUTO_TEST_SUITE_END()
 
 
 
@@ -420,21 +248,22 @@ BOOST_AUTO_TEST_SUITE_END()
 ////        std::cout << "Difference: " << result << ".\n";
 ////	else {
 ////        std::cout << std::endl;
-////		BOOST_CHECK_MESSAGE(result < tol,"Failed Test of Integral with higher order than polinomial: " << result << ".\n");
+////        std::cout<<"Failed Test of Integral with higher order than polinomial: " << result << ".\n";
+////		REQUIRE(result < tol);
 ////	}
 //    if(order >= NN)
 //    {
 //        std::cout << "Difference: " << result << ".\n";
 //        std::cout << std::endl;
 //        // If the boolean expresion returns false, then the message will be displayed.
-//        BOOST_CHECK_MESSAGE(result < tol,"Failed Test of Integral with higher order than polinomial: " << result << ".\n");
+//        std::cout<<"Failed Test of Integral with higher order than polinomial: " << result << ".\n";
+//        REQUIRE(result < tol);
 //    }
 // 
 //}
 //
-//BOOST_AUTO_TEST_SUITE(numint_test2)
 //
-////BOOST_AUTO_TEST_CASE(LowerOrderTest) {
+////TEST_CASE("LowerOrderTest","[numint_test2]") {
 ////	int NDigits = NDigitsPrec;
 ////	TPZInt1d rule(1);
 ////	int maxord = rule.GetMaxOrder();
@@ -451,7 +280,7 @@ BOOST_AUTO_TEST_SUITE_END()
 ////	NDigitsPrec = NDigits;
 ////}
 ////
-////BOOST_AUTO_TEST_CASE(HigherOrderTest) {
+////TEST_CASE("HigherOrderTest","[numint_test2]") {
 ////	int NDigits = NDigitsPrec;
 ////	TPZInt1d rule;
 ////	int maxord = rule.GetMaxOrder();
@@ -468,7 +297,281 @@ BOOST_AUTO_TEST_SUITE_END()
 ////	NDigitsPrec = NDigits;
 ////}
 //
-//BOOST_AUTO_TEST_SUITE_END()
 
+
+
+TEST_CASE("geom_integration_tests","[geomtests]") {
+
+    int href = 5;
+//  Check taylor convergence for all curve elements
+    TPZCurve * Curve = new TPZCurve;
+    Curve->SetRadius(1.0);
+
+    Curve->MakeRhombus();
+    Curve->RefineMe(href);
+    Curve->PrintMe();
+    IntegrateCurve(*Curve);
+
+    Curve->MakeCircleWave();
+    Curve->RefineMe(href);
+    Curve->PrintMe();
+    IntegrateCurve(*Curve);
+    
+    Curve->MakeCircleFromArc();
+    Curve->RefineMe(href);
+    IntegrateCurve(*Curve);
+
+}
+
+
+static REAL Function(TPZManVector<REAL,3> &point, int p, int dim) {
+	REAL functionvalue = (REAL)(0.0L);
+	REAL xi = point[0];
+	REAL eta = point[1];
+	REAL zeta = point[2];
+    REAL epsilon = 0.1;
+    int p1 = 0;
+    int p2 = 0;
+    int p3 = 0;
+    
+    switch (dim) {
+        case 1:
+        {   p1 = p; }
+            break;
+        case 2:
+        {   p1 = p; p2 = p; }
+            break;
+        case 3:
+        {   p1 = p; p2 = p; p3 = p; }
+            break;
+        default:
+        {   std::cout << "Inconsistency: wrong dimension " << dim << std::endl;
+            DebugStop();
+        }
+            break;
+    }
+    
+    for(int k = 0; k <= p3; k++)
+    {
+        for(int j = 0; j <= p2; j++)
+        {
+            for(int i = 0; i <= p1; i++)
+            {
+                if (i+j+k <= p) {
+                    functionvalue += (i+1)*power(i,xi+epsilon) * (j+1)*power(j,eta+epsilon) * (k+1)*power(k,zeta+epsilon);
+                }
+            }
+        }
+    }
+	return functionvalue;
+}
+
+
+template <class NumInteg>
+void TestingNumericIntegrationRule(int p,int type,std::ifstream &input) {
+  // Check if file exists
+  if (!input.is_open()) {
+    std::cout << "Error: Input file not found!\n";
+    DebugStop();
+  }
+
+	// Variables to computing numerical integration
+	TPZManVector<REAL,3> point(3);
+	REAL weight = 0.L;
+	REAL NeopzIntegral = 0.L;
+	TPZManVector<int,20> order(3,p);
+		
+	// Creating the integration rule
+	NumInteg IntegrationRule(p);
+	IntegrationRule.SetOrder(order,type);
+	
+	unsigned int npoints = IntegrationRule.NPoints();
+    int dimension = IntegrationRule.Dimension();
+	std::string namerule;
+	IntegrationRule.Name(namerule);
+    
+	
+	// Integrates Fucntion on parametric element space
+    std::cout << " Cubature rule: " << namerule << "  Type " << type << " \tOrder " << p << " \tNumber of Points " << npoints << std::endl;
+	for (unsigned int it = 0;it<npoints;it++) {
+		IntegrationRule.Point(it,point,weight);
+		NeopzIntegral += weight * Function(point,p,dimension);
+	}
+
+	// Variables to import data from files generate by notebook NumInteBeingChecked.nb
+	long double MathematicaIntegral;
+	long double tol = 6.L;
+	input >> MathematicaIntegral;
+	// Making tol compatible with the wished significant digits
+#ifdef REALfloat
+    NDigitsPrec = 6;
 #endif
+    for(unsigned int it=0; it < NDigitsPrec; it++){ tol *= 0.1L; }
+	
+    if(MathematicaIntegral > 10.0) { tol *= 10.L; }
+    if(MathematicaIntegral > 100.0) { tol *= 10.L; }
+    if(MathematicaIntegral > 1000.0) { tol *= 10.L; }
+    REAL result = std::abs(NeopzIntegral-MathematicaIntegral);
+	// If the boolean expresion returns false, then the message will be displayed.
+    if(!(result<tol)){
+      std::cerr << "\nIntegration: Dim = " << dimension << "\t Order = " << p
+                << "\t NPoints = " << npoints << "\t Value = " << NeopzIntegral
+                << " difference = " << result << "\n";
+    }
+	REQUIRE(result < tol);
+}
 
+template<class NumInteg>
+void ComparePointsWithNewRule(int p) {
+	// Variables to computing numerical integration
+	TPZVec<REAL> point(3,0.L);
+	REAL weight = 0.L;
+	TPZVec<int> order(3,p);
+	long double tol = 1.0e-18;
+	
+	// Integration rule
+	NumInteg intrule(p);
+	intrule.SetOrder(order);
+	intrule.Print();
+	
+	TPZVec<REAL> point2(3,0.L);
+	REAL weight2 = 0.L;
+	NumInteg intrule2(p);
+	intrule2.SetParametersJacobi(0.0L, 0.0L);
+	intrule2.SetOrder(order,1);
+	intrule2.Print();
+	
+	unsigned int npoints = intrule.NPoints();
+	unsigned int npoints2 = intrule2.NPoints();
+	REQUIRE(npoints == npoints2);
+	if(npoints != npoints2) return;
+	unsigned int it;
+	
+	// Comparating the points and weights of the two rules
+	for (it=0;it<npoints;it++) {
+		intrule.Point(it,point,weight);
+		intrule2.Point(it,point2,weight2);
+		REQUIRE(fabsl(point[0]-point2[0]) < tol);
+		REQUIRE(fabsl(weight-weight2) < tol);
+	}
+}
+
+void ComputeError(REAL alpha, TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl, REAL &error){
+
+  int dimension = GeometricEl->Dimension();
+  TPZFMatrix<REAL> GradofX;
+  TPZFMatrix<REAL> GradofXAlpha;
+  TPZFMatrix<REAL> Error;
+  TPZFMatrix<REAL> X(3,1,0.0);
+  TPZFMatrix<REAL> XAlpha(3,1,0.0);
+  TPZFMatrix<REAL> Alpha(dimension,1,alpha);
+
+  TPZFMatrix<REAL> jac;
+  TPZFMatrix<REAL> axes;
+  TPZFMatrix<REAL> axesT;
+  REAL detjac;
+  TPZFMatrix<REAL> jacinv;
+
+  GeometricEl->Jacobian(coordinate,jac,axes,detjac,jacinv);
+  axes.Transpose(&axesT);
+  axesT.Multiply(jac,GradofX);
+
+  TPZManVector<REAL,3> coordinateAlpha(coordinate);
+  TPZManVector<REAL,3> result(3,0.0);
+  TPZManVector<REAL,3> resultAlpha(3,0.0);
+
+  coordinateAlpha[0] += alpha;
+  coordinateAlpha[1] += alpha;
+  coordinateAlpha[2] += alpha;
+
+  GeometricEl->X(coordinate,result);
+  GeometricEl->X(coordinateAlpha,resultAlpha);
+
+  X(0,0) = result[0];
+  X(1,0) = result[1];
+  X(2,0) = result[2];
+
+  XAlpha(0,0) = resultAlpha[0];
+  XAlpha(1,0) = resultAlpha[1];
+  XAlpha(2,0) = resultAlpha[2];
+
+  GradofX.Multiply(Alpha,GradofXAlpha);
+  Error = XAlpha - (X + GradofXAlpha);
+  error = Norm(Error);
+
+}
+
+void TaylorCheck(TPZManVector<REAL,3> &coordinate,TPZGeoEl * GeometricEl)
+{
+  
+  REAL alpha1 = 0.01;
+  REAL alpha2 = 0.1;
+  REAL error1 = 0.0;
+  REAL error2 = 0.0;
+  REAL epsilon = 1.0e-4;
+  
+  ComputeError(alpha1,coordinate,GeometricEl,error1);
+  ComputeError(alpha2,coordinate,GeometricEl,error2);
+
+  REAL m = 0.0;
+  if(GeometricEl->IsLinearMapping()){
+    m = 2.0;
+  }
+  else{
+      m = (log(error1)-log(error2))/(log(alpha1)-log(alpha2));
+  }
+
+  if((2.0 - epsilon) > m && m > (2.0 + epsilon) ){
+      std::cout << "Error: Wrong in expected approximation Rate m = " << m << std::endl;
+  }
+
+  
+}
+
+void IntegrateCurve(TPZCurve &curve)
+{
+  int IntegrationOrder = 0;
+  int type = 0;  
+  TPZVec<int> order(3,IntegrationOrder);
+  
+  TPZManVector<REAL,3> point(3,0.L);
+  TPZFMatrix<REAL> jac;
+  TPZFMatrix<REAL> axes;
+  REAL detjac;
+  TPZFMatrix<REAL> jacinv;
+
+  TPZGeoMesh * gmesh = curve.GetGeometry();
+  int64_t NumberofElements	 = gmesh->NElements();
+  STATE Length = 0.0;
+  
+  for(int iel = 0; iel < NumberofElements; iel++)
+  {
+    TPZGeoEl * gel = gmesh->Element(iel);
+    if(!gel) { continue; }
+    if(gel->HasSubElement()) {continue;}
+    int geldim = gel->Dimension();
+
+    if(geldim != 1){
+      std::cout << "Only one-dimensional elements are integrated." << std::endl;
+      DebugStop();      
+    }
+    
+    // Creating the integration rule
+    TPZInt1d IntegrationRule(IntegrationOrder);
+    IntegrationRule.SetType(type,IntegrationOrder);
+    int npoints = IntegrationRule.NPoints();
+    REAL weight = 0.0;
+
+    // Integrates Fucntion on parametric element space
+    for (int it=0;it<npoints;it++) {
+      IntegrationRule.Point(it,point,weight);
+      gel->Jacobian(point,jac,axes,detjac,jacinv);
+      TaylorCheck(point,gel);
+      Length += weight * detjac ;
+    }
+    
+  }
+
+  std::cout << "Curve length = " << Length << std:: endl;
+  
+}

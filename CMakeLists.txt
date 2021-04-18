@@ -95,16 +95,17 @@ IF(APPLE)
    target_link_libraries(pz PRIVATE ${ACCELERATE_LIB})
 ENDIF(APPLE)
 
-#enabling Boost library
-option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
-
-#To enable unit test using boost UnitTest framework
-option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
+#To enable unit test using Catch2 UnitTest framework
+option(BUILD_UNITTESTING "Whether the Catch2 UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
-	include(cmake/add_unit_test.cmake)
-	set(USING_BOOST ON CACHE BOOL "Whether the Boost package will be linked with the library" FORCE)
+  include(cmake/add_unit_test.cmake)
+  include(cmake/EnableCatch2.cmake)
+  enable_catch2()
 endif()
 
+
+#enabling Boost library
+option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
 if(USING_BOOST)
 	include(cmake/EnableBoost.cmake)
     enable_boost(pz)

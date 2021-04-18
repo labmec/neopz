@@ -15,17 +15,8 @@
 #include "pzysmp.h"
 #include "pzsysmp.h"
 
-#ifdef PZ_USING_BOOST
 
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz matrix tests
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-#endif
+#include <catch2/catch.hpp>
 
 
 namespace testmatrix{
@@ -175,8 +166,8 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
         for (int dim = 3; dim < 100; dim += 7) {
           TPZFMatrix<TVar> ma;
           ma.AutoFill(dim, dim, 0);
-          BOOST_CHECK_EQUAL(
-              TestingGeneratingDiagonalDominantMatrix<TPZFMatrix<TVar>>(ma), 1);
+          REQUIRE(
+              TestingGeneratingDiagonalDominantMatrix<TPZFMatrix<TVar>>(ma)== 1);
         }
 
         // Unit Test for block diagonal matrix
@@ -185,16 +176,16 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
           blocks[i] = 15 + (i % 4);
         TPZBlockDiagonal<TVar> mabd(blocks);
         mabd.AutoFill(50, 50, 0);
-        BOOST_CHECK_EQUAL(
+        REQUIRE(
             TestingGeneratingDiagonalDominantMatrix<TPZBlockDiagonal<TVar>>(
-                mabd),
+                mabd)==
             1);
 
         // Unit Test No Symmetric Banded matrix
         TPZFBMatrix<TVar> mafb(17, 5);
         mafb.AutoFill(17, 17, 0);
-        BOOST_CHECK_EQUAL(
-            TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix<TVar>>(mafb),
+        REQUIRE(
+            TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix<TVar>>(mafb)==
             1);
     }
     
@@ -242,43 +233,42 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
 #endif
 };
 
-BOOST_AUTO_TEST_SUITE(matrix_tests)
 
-BOOST_AUTO_TEST_CASE(inverse_tests_real) {
+TEST_CASE("inverse_tests_real","[matrix_tests]") {
     // testmatrix::Inverse<float>();//FAILING
     testmatrix::Inverse<double>();
     testmatrix::Inverse<long double>();
 }
-BOOST_AUTO_TEST_CASE(inverse_tests_complex) {
+TEST_CASE("inverse_tests_complex","[matrix_tests]") {
     // testmatrix::Inverse<std::complex<float>>();
     // testmatrix::Inverse<std::complex<double>>();
     // testmatrix::Inverse<std::complex<long double>>();
     //FAILING
 }
 
-BOOST_AUTO_TEST_CASE(multiplytranspose_tests_real) {
+TEST_CASE("multiplytranspose_tests_real","[matrix_tests]") {
     testmatrix::MultiplyTranspose<float>();
     testmatrix::MultiplyTranspose<double>();
     testmatrix::MultiplyTranspose<long double>();
 }
-BOOST_AUTO_TEST_CASE(multiplytranspose_tests_complex){
+TEST_CASE("multiplytranspose_tests_complex","[matrix_tests]"){
     testmatrix::MultiplyTranspose<std::complex<float>>();
     testmatrix::MultiplyTranspose<std::complex<double>>();
     testmatrix::MultiplyTranspose<std::complex<long double>>();
 }
 
-BOOST_AUTO_TEST_CASE(multiply_tests_real) {
+TEST_CASE("multiply_tests_real","[matrix_tests]") {
     // testmatrix::Multiply<float>();//FAILING
     testmatrix::Multiply<double>();
     testmatrix::Multiply<long double>();
 }
-BOOST_AUTO_TEST_CASE(multiply_tests_complex){
+TEST_CASE("multiply_tests_complex","[matrix_tests]"){
     testmatrix::Multiply<std::complex<float>>();
     testmatrix::Multiply<std::complex<double>>();
     testmatrix::Multiply<std::complex<long double>>();
 }
 
-BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
+TEST_CASE("diagonaldominant_tests","[matrix_tests]") {
     testmatrix::DiagonalDominant<float>();
     testmatrix::DiagonalDominant<double>();
     testmatrix::DiagonalDominant<long double>();
@@ -288,7 +278,7 @@ BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
 }
 
 
-BOOST_AUTO_TEST_CASE(multiplyoperator_tests) {
+TEST_CASE("multiplyoperator_tests","[matrix_tests]") {
     testmatrix::MultiplyOperatorWithAutoFill<float>();
     testmatrix::MultiplyOperatorWithAutoFill<double>();
     testmatrix::MultiplyOperatorWithAutoFill<long double >();
@@ -297,7 +287,7 @@ BOOST_AUTO_TEST_CASE(multiplyoperator_tests) {
     testmatrix::MultiplyOperatorWithAutoFill<std::complex<long double >>();
 }
 
-BOOST_AUTO_TEST_CASE(transpose_tests) {
+TEST_CASE("transpose_tests","[matrix_tests]") {
     testmatrix::TransposeWithAutoFill<float>();
     testmatrix::TransposeWithAutoFill<double>();
     testmatrix::TransposeWithAutoFill<long double>();
@@ -305,7 +295,7 @@ BOOST_AUTO_TEST_CASE(transpose_tests) {
     testmatrix::TransposeWithAutoFill<std::complex<double>>();
     testmatrix::TransposeWithAutoFill<std::complex<long double>>();
 }
-BOOST_AUTO_TEST_CASE(multadd_tests) {
+TEST_CASE("multadd_tests","[matrix_tests]") {
     testmatrix::TestMultAdd<float>();
     testmatrix::TestMultAdd<double>();
     testmatrix::TestMultAdd<long double>();
@@ -316,7 +306,7 @@ BOOST_AUTO_TEST_CASE(multadd_tests) {
 
 #ifdef PZ_USING_LAPACK
 
-BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
+TEST_CASE("eigenvalue_tests","[matrix_tests]") {
     
     testmatrix::EigenDecompositionAutoFill<float>();
     testmatrix::EigenDecompositionAutoFill<double>();
@@ -328,7 +318,7 @@ BOOST_AUTO_TEST_CASE(eigenvalue_tests) {
     // testmatrix::EigenDecompositionAutoFill<std::complex<long double>>();
 }
 
-BOOST_AUTO_TEST_CASE(generalized_eigenvalue_tests) {
+TEST_CASE("generalized_eigenvalue_tests","[matrix_tests]") {
     testmatrix::GeneralisedEigenvaluesAutoFill<float>();
     testmatrix::GeneralisedEigenvaluesAutoFill<double>();
     //THERE IS NO LAPACK INTERFACE FOR LONG DOUBLE IN OUR CODE
@@ -340,9 +330,7 @@ BOOST_AUTO_TEST_CASE(generalized_eigenvalue_tests) {
 }
 #endif
 
-BOOST_AUTO_TEST_SUITE_END()
-
-//BOOST_AUTO_TEST_CASE(nonsingular_test)
+//TEST_CASE("nonsingular_test","[matrix_tests]")
 //{
 //	TestingDiagonalDominant<TPZFBMatrix>();
 //}
@@ -370,7 +358,6 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 }
 
 
-#ifdef PZ_USING_BOOST
 
 template <class matx, class TVar>
 void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
@@ -385,7 +372,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
       std::cout << std::flush;
   }
   //    ma.Print("skyl =",std::cout,EMathematicaInput);
-  BOOST_CHECK_EQUAL(firsttest, 1);
+  REQUIRE(firsttest== 1);
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
   matx cpma(ma);
   TPZFMatrix<TVar> inv(dim, dim), invkeep;
@@ -422,7 +409,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
         cpma.Print("Matrix = ", std::cout, EMathematicaInput);
         invkeep.Print("Inv = ", std::cout, EMathematicaInput);
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 template <class matx, class TVar>
@@ -446,7 +433,7 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
             }
         }
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 template <class matx, class TVar>
@@ -470,7 +457,7 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
             }
         }
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 
 }
 
@@ -506,7 +493,7 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
         square2 -= square;
         square2.Print("Diff");
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 
 }
 
@@ -527,7 +514,7 @@ void TestingTransposeWithAutoFill(int rows, int cols, int symmetric) {
     /// Checking whether the res matrix is identical to m1 matrix
     for (i = 0; i < rows; i++)
         for (j = 0; j < cols; j++)
-            BOOST_CHECK(IsZero(ma.GetVal(i, j) - matransptransp.GetVal(i, j)));
+            REQUIRE(IsZero(ma.GetVal(i, j) - matransptransp.GetVal(i, j)));
 }
 
 template <class matx, class TVar>
@@ -559,7 +546,7 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
             }
         }
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 #ifdef PZ_USING_LAPACK
@@ -571,8 +558,8 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
     ma.AutoFill(dim, dim, symmetric);
     mb.AutoFill(dim, dim, symmetric);
 
-    BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma), 1);
-    BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(mb), 1);
+    REQUIRE(TestingGeneratingDiagonalDominantMatrix<matx>(ma)== 1);
+    REQUIRE(TestingGeneratingDiagonalDominantMatrix<matx>(mb)== 1);
 
     // Making ma and mb copies because ma and mb are modified by the eigenvalues method
     bool check = true;
@@ -620,7 +607,7 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
         
         cpmaOriginal.Print("Matrix = ", std::cout, EMathematicaInput);
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
 
 template <class matx, class TVar>
@@ -678,10 +665,8 @@ matx ma;
         PZError<<" has failed\n";
         cpmaOriginal.Print("Matrix = ", std::cout, EMathematicaInput);
     }
-    BOOST_CHECK(check);
+    REQUIRE(check);
 }
-
-
 #endif
+
 };
-#endif

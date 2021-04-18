@@ -8,17 +8,7 @@
 #include "fad.h"
 #include <math.h>
 
-// Using Unit Test of the Boost Library
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz fad_tests tests
-
-#include "boost/test/tools/output_test_stream.hpp"
-#include "boost/test/unit_test.hpp"
-
+#include <catch2/catch.hpp>
 //#define NOISY //outputs operations' results
 
 const long double tol = 1e-7;
@@ -38,7 +28,7 @@ template <typename T, typename U> void FadVsFadTest() {
 #ifdef NOISY
     std::cout<< "op result (expected 13): "<< result.val() <<std::endl;
 #endif
-    BOOST_CHECK(checkResult);
+    REQUIRE(checkResult);
     return;
 }
 
@@ -58,7 +48,7 @@ template <typename T, typename U> void FadVsArithmeticTest() {
 #ifdef NOISY
     std::cout<< "op result (expected 13): "<< result.val() <<std::endl;
 #endif
-    BOOST_CHECK(checkResult);
+    REQUIRE(checkResult);
     return;
 }
 template <typename T, typename U> void FadVsTempTest() {
@@ -75,155 +65,144 @@ template <typename T, typename U> void FadVsTempTest() {
 #ifdef NOISY
     std::cout<< "op result (expected 13): "<<result.val() <<std::endl;
 #endif
-    BOOST_CHECK(checkResult);
+    REQUIRE(checkResult);
     return;
 }
 
-BOOST_AUTO_TEST_SUITE(fad_fad_tests)
 
-BOOST_AUTO_TEST_CASE(fad_float_fad_float_tests) {
+TEST_CASE("fad_float_fad_float_tests","[arithmetic_tests]") {
 
     FadVsFadTest<float, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_fad_double_tests) {
+TEST_CASE("fad_float_fad_double_tests","[arithmetic_tests]") {
     
     FadVsFadTest<float, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_fad_long_double_tests) {
+TEST_CASE("fad_float_fad_long_double_tests","[arithmetic_tests]") {
     
     FadVsFadTest<float, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_fad_float_tests) {
+TEST_CASE("fad_double_fad_float_tests","[arithmetic_tests]") {
 
     FadVsFadTest<double, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_fad_double_tests) {
+TEST_CASE("fad_double_fad_double_tests","[arithmetic_tests]") {
     
     FadVsFadTest<double, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_fad_long_double_tests) {
+TEST_CASE("fad_double_fad_long_double_tests","[arithmetic_tests]") {
 
     FadVsFadTest<double, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_fad_float_tests) {
+TEST_CASE("fad_long_double_fad_float_tests","[arithmetic_tests]") {
     
     FadVsFadTest<long double, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_fad_double_tests) {
+TEST_CASE("fad_long_double_fad_double_tests","[arithmetic_tests]") {
     
     FadVsFadTest<long double, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_fad_long_double_tests) {
+TEST_CASE("fad_long_double_fad_long_double_tests","[arithmetic_tests]") {
     
     FadVsFadTest<long double, long double>();
 }
 
-BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE(fad_arithmetic_tests)
-
-BOOST_AUTO_TEST_CASE(fad_float_float_tests) {
+TEST_CASE("fad_float_float_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<float, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_double_tests) {
+TEST_CASE("fad_float_double_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<float, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_long_double_tests) {
+TEST_CASE("fad_float_long_double_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<float, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_float_tests) {
+TEST_CASE("fad_double_float_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<double, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_double_tests) {
+TEST_CASE("fad_double_double_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<double, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_long_double_tests) {
+TEST_CASE("fad_double_long_double_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<double, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_float_tests) {
+TEST_CASE("fad_long_double_float_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<long double, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_double_tests) {
+TEST_CASE("fad_long_double_double_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<long double, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_long_double_tests) {
+TEST_CASE("fad_long_double_long_double_tests","[fad_arithmetic_tests]") {
 
     FadVsArithmeticTest<long double, long double>();
 }
 
-BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE(fad_temp_tests)
-
-BOOST_AUTO_TEST_CASE(fad_float_float_tests) { 
+TEST_CASE("tmp_fad_float_float_tests","[fad_temp_tests]") { 
     
     FadVsTempTest<float, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_double_tests) { 
+TEST_CASE("tmp_fad_float_double_tests","[fad_temp_tests]") { 
     
     FadVsTempTest<float, double>(); 
 }
 
-BOOST_AUTO_TEST_CASE(fad_float_long_double_tests) {
+TEST_CASE("tmp_fad_float_long_double_tests","[fad_temp_tests]") {
 
     FadVsTempTest<float, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_float_tests) { 
+TEST_CASE("tmp_fad_double_float_tests","[fad_temp_tests]") { 
     
     FadVsTempTest<double, float>(); 
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_double_tests) {
+TEST_CASE("tmp_fad_double_double_tests","[fad_temp_tests]") {
 
     FadVsTempTest<double, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_double_long_double_tests) {
+TEST_CASE("tmp_fad_double_long_double_tests","[fad_temp_tests]") {
 
     FadVsTempTest<double, long double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_float_tests) {
+TEST_CASE("tmp_fad_long_double_float_tests","[fad_temp_tests]") {
     
     FadVsTempTest<long double, float>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_double_tests) {
+TEST_CASE("tmp_fad_long_double_double_tests","[fad_temp_tests]") {
     
     FadVsTempTest<long double, double>();
 }
 
-BOOST_AUTO_TEST_CASE(fad_long_double_long_double_tests) {
+TEST_CASE("tmp_fad_long_double_long_double_tests","[fad_temp_tests]") {
     
     FadVsTempTest<long double, long double>();
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-#endif

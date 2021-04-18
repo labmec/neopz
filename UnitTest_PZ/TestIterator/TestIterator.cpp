@@ -4,20 +4,7 @@
  */
 
 #include "pzadmchunk.h"
-
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz iterator tests
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/tools/floating_point_comparison.hpp>
-
-#endif
-
-#ifdef PZ_USING_BOOST
+#include "catch2/catch.hpp"
 
 #define EXP 2
 #define N_CHUNKS 15
@@ -39,14 +26,14 @@ void TestingFill() {
         elem = ++value;
     }
     for (unsigned int i = 0; i < N_ELEM; ++i) {
-        BOOST_CHECK_EQUAL(vector[i], i+1);
+        REQUIRE(vector[i]== i+1);
     }
 }
 
 void ReadForeach(TPZChunkVector<double, EXP> &vector) {
     unsigned int i = 1;
     for (auto &elem : vector) {
-        BOOST_CHECK_EQUAL(elem, i++);
+        REQUIRE(elem== i++);
     }
 }
 
@@ -64,7 +51,7 @@ void TestingFillReadForeach() {
 void ConstReadForeach(const TPZChunkVector<double, EXP> &vector) {
     unsigned int i = 1;
     for (auto &elem : vector) {
-        BOOST_CHECK_EQUAL(elem, i++);
+        REQUIRE(elem== i++);
     }
 }
 
@@ -79,17 +66,12 @@ void TestingFillConstReadForeach() {
     ConstReadForeach(vector);
 }
 
-BOOST_AUTO_TEST_SUITE(iterator_tests)
-
-
-BOOST_AUTO_TEST_CASE(iterator_tests) {
-
+TEST_CASE("iterator_tests_fill","[iterator_tests]") {
     TestingFill();
-    TestingFillReadForeach();
-    TestingFillConstReadForeach();
-
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-#endif
+TEST_CASE("iterator_tests_fill_read","[iterator_tests]") {
+    TestingFillReadForeach();
+}
+TEST_CASE("iterator_tests_const_read","[iterator_tests]") {
+    TestingFillConstReadForeach();
+}
