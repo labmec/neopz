@@ -15,6 +15,7 @@
 #include "tpzautopointer.h"
 #include "TPZSavable.h"
 #include "pzfunction.h"
+#include <functional>
 
 #include <iostream>
 #include <string>
@@ -22,6 +23,7 @@
 class TPZBndCond;
 class TPZIntPoints;
 class TPZCompEl;
+
 /**
  * @ingroup material
  * @brief This abstract class defines the behaviour which each derived class needs to implement
