@@ -82,13 +82,29 @@ public:
 		fvisc = visc;
 	}
     
-    void GetMaxPermeability(REAL &perm)
-    {
-        if(fPermeabilityFunction) DebugStop();//Not implemented for permeability given by a function
-        TPZFNMatrix<9,STATE> TensorK(3,3);
-        this->GetPermeability(TensorK);
-        perm = 0;
-        for(int i=0; i<3; i++) perm = perm < TensorK(i,i) ? TensorK(i,i) : perm;
+    void GetMaxPermeability(REAL &perm, const TPZVec<REAL>& x) {
+        TPZFNMatrix<9, STATE> PermTensor;
+        TPZFNMatrix<9, STATE> InvPermTensor;
+        if (fPermeabilityFunction) {
+            PermTensor.Redim(fDim, fDim);
+            InvPermTensor.Redim(fDim, fDim);
+            TPZFNMatrix<18, STATE> resultMat(2 * fDim, fDim, 0.);
+            TPZManVector<STATE> res;
+            fPermeabilityFunction->Execute(x, res, resultMat);
+
+            for (int id = 0; id < fDim; id++) {
+                for (int jd = 0; jd < fDim; jd++) {
+                    PermTensor(id, jd) = resultMat(id, jd);
+                    InvPermTensor(id, jd) = resultMat(id + fDim, jd);
+                }
+            }
+        } else {
+            GetPermeabilities(x, PermTensor, InvPermTensor);
+        }
+
+        for (int id = 0; id < fDim; id++) {
+            if (PermTensor(id, id) > perm) perm = PermTensor(id, id);
+        }
     }
 	
 	void SetInternalFlux(REAL flux) {

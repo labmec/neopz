@@ -175,7 +175,7 @@ public:
 
     void GetInvPermeability(TPZFNMatrix<9,STATE> &invK);
 
-    void GetPermeabilities(TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor);
+    void GetPermeabilities(const TPZVec<REAL> &x, TPZFNMatrix<9,STATE> &PermTensor, TPZFNMatrix<9,STATE> &InvPermTensor);
     
     void SetDimension(int dim)
     {
@@ -307,9 +307,9 @@ public:
 	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump) override;
 	
 	virtual int IsInterfaceConservative() override { return 1;}
-	
-        public:
-virtual int ClassId() const override;
+
+public:
+    virtual int ClassId() const override;
 
 	
 	virtual void Write(TPZStream &buf, int withclassid) const override;
