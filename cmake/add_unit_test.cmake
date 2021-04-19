@@ -27,5 +27,6 @@ function(add_unit_test testName)
                 ${file}
                 ${CMAKE_CFG_INTDIR}/${fileName})
         endforeach()
+        add_custom_command(TARGET ${testName} POST_BUILD      COMMAND ${CMAKE_COMMAND} -E copy_if_different      "${PROJECT_BINARY_DIR}/$<CONFIG>/pz.dll"      $<TARGET_FILE_DIR:${testName}>/pz.dll)
     endif()
 endfunction()
