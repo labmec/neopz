@@ -2052,7 +2052,12 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
     const TVar *fpLast = fpA+size;
     while(fpA < fpLast)
     {
-        result += (*fpA++ * *fpB++);
+        if constexpr (is_complex<TVar>::value){
+            result += (*fpA++ * std::conj(*fpB++));
+        }
+        else{
+            result += (*fpA++ * *fpB++);
+        }
     }
     return result;
     // #endif
