@@ -433,10 +433,10 @@ void TPZAnalysis::SolveInternal(){
     {
         TPZFMatrix<TVar> residual(nReducedEq,1,0.);
     	TPZFMatrix<TVar> delu(nReducedEq,1,0.);
-        fStructMatrix->EquationFilter().Gather<TVar>(fRhs,residual);
+        fStructMatrix->EquationFilter().Gather(fRhs,residual);
 	    mySolver->Solve(residual, delu);
         fSolution.Redim(numeq,1);
-        fStructMatrix->EquationFilter().Scatter<TVar>(delu,fSolution);
+        fStructMatrix->EquationFilter().Scatter(delu,fSolution);
     }
 #ifdef PZ_LOG
     std::stringstream sout;
