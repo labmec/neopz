@@ -95,6 +95,49 @@ TPZSolutionMatrix::operator=(const TPZFMatrix<TVar> &mat)
     return *this;
 }
 
+template <class TVar>
+TPZSolutionMatrix &TPZSolutionMatrix::operator+=(const TPZFMatrix<TVar> &mat){
+  if (fSolType == EUndefined){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" called in undefined solution matrix.\n";
+    PZError<<"Aborting...\n";
+    DebugStop();
+  }
+  if constexpr (std::is_same<TVar,STATE>::value
+                  // ||std::is_same<TVar,CSTATE>::value
+                  ){
+        if constexpr(std::is_same<TVar,STATE>::value){
+            if(fSolType == EReal){
+                fRealMatrix += mat;
+                return *this;
+            }
+            // else if(fSolType == EComplex){
+            //   fComplexMatrix += mat;              
+            //   return *this;
+            // }
+        }
+    }
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" called with incompatible type\n";
+    DebugStop();
+    return *this;
+}
+
+TPZSolutionMatrix &TPZSolutionMatrix::operator+=(const TPZSolutionMatrix &sol){
+  if(fSolType == EReal && sol.fSolType == EReal){
+    fRealMatrix += sol.fRealMatrix;
+    return *this;
+  }
+  // else if(fSolType == EComplex && sol.fSolType == EComplex){
+  //   fComplexMatrix += sol.fComplexMatrix;
+  //   return *this;
+  // }
+  PZError << __PRETTY_FUNCTION__;
+  PZError << " called with incompatible type\n";
+  DebugStop();
+  return *this;
+}
+
 TPZSolutionMatrix::operator TPZBaseMatrix &(){
   if(!fBaseMatrix){
     PZError<<__PRETTY_FUNCTION__;
@@ -203,3 +246,5 @@ void TPZSolutionMatrix::Write(TPZStream &buf, int withclassid) const {
 
 template
 TPZSolutionMatrix &TPZSolutionMatrix::operator=<STATE>(const TPZFMatrix<STATE> &mat);
+template
+TPZSolutionMatrix &TPZSolutionMatrix::operator+=<STATE>(const TPZFMatrix<STATE> &mat);
