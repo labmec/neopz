@@ -1,122 +1,137 @@
+/**
+    \file TPZStructMatrixBase.h
+    Class defining common behaviour for the TPZStructMatrix hierarchy
+*/
+
 #ifndef TPZSTRUCTMATRIXBASE_H
 #define TPZSTRUCTMATRIXBASE_H
 
 #include "TPZEquationFilter.h"
 #include "tpzautopointer.h"
 
+#include <set>
+
+//forward declarations
 class TPZCompMesh;
-
-template <class T> class TPZMatrix;
-
-template <class T> class TPZFMatrix;
-
 class TPZGuiInterface;
+template <class T> class TPZMatrix;
+template <class T> class TPZFMatrix;
 
 class TPZStructMatrixBase : public TPZSavable {
 public:
-    virtual void SetMesh(TPZCompMesh *);
-
-    virtual void SetMesh(TPZAutoPointer<TPZCompMesh>);
-
-    virtual TPZStructMatrixBase *Clone() = 0;
-
-    virtual TPZMatrix<STATE> * Create() = 0;
-
-    virtual void Assemble(TPZMatrix<STATE> &stiffness, TPZFMatrix<STATE> &rhs,
-                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
-
-    virtual void Assemble(TPZFMatrix<STATE> &rhs,
-                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
-
-    virtual TPZMatrix<STATE> *
-    CreateAssemble(TPZFMatrix<STATE> &rhs,
-                   TPZAutoPointer<TPZGuiInterface> guiInterface);
-
-    /** @brief Filter out the equations which are out of the range */
-    virtual void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
-    
-    /** @brief Set the set of material ids which will be considered when assembling the system */
-    virtual void SetMaterialIds(const std::set<int> &materialids);
-
-    inline virtual void SetNumThreads(int n) {
-        this->fNumThreads = n;
-    }
-
-    inline virtual int GetNumThreads() const {
-        return this->fNumThreads;
-    }
-
-    inline virtual void SetEquationRange(int64_t mineq, int64_t maxeq) {
-        fEquationFilter.Reset();
-        fEquationFilter.SetMinMaxEq(mineq, maxeq);
-    }
-
-    /** @brief Verify if a range has been specified */
-    inline virtual bool HasRange() const {
-        return fEquationFilter.IsActive();
-    }
-
-    /** @brief access method for the equation filter */
-    inline virtual TPZEquationFilter &EquationFilter() {
-        return fEquationFilter;
-    }
-
-    /** @brief number of equations after applying the filter */
-    inline virtual int64_t NReducedEquations() const {
-        return fEquationFilter.NActiveEquations();
-    }
-
-    /** @brief Access method for the mesh pointer */
-    inline virtual TPZCompMesh *Mesh() const {
-        return fMesh;
-    }
-    
-    /** @brief Establish whether the element should be computed */
-    virtual bool ShouldCompute(int matid) const
-    {
-        const unsigned int size = fMaterialIds.size();
-        return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
-    }
-    /** @brief Returns the material ids */
-    virtual const std::set<int> &MaterialIds()
-    {
-        return fMaterialIds;
-    }
-    
-    /// compute a color for each element
-    // @return the number of colors for parallel assembly
-    // the color =-1 when the element should not be computed
-    int ComputeElementColors(TPZVec<int> &elementcolors);
-    
-    public:
-    int ClassId() const override;
-    void Read(TPZStream& buf, void* context) override;
-    void Write(TPZStream& buf, int withclassid) const override;
     /*Setting the destructor as default would work. however,
       it would request the deletion of the TPZAutoPointer<TPZCompMesh>
       and, since at this point TPZCompMesh is an incomplete type,
       it would lead to a -Wdelete-incomplete warning.
      */
     virtual ~TPZStructMatrixBase();
+
+    /**
+     *  Functions to be overriden in child classes
+     */
+    //@{
+    //! Clone method
+    virtual TPZStructMatrixBase *Clone() = 0;
+    //!Creates a matrix for assembling
+    virtual TPZMatrix<STATE> * Create() = 0;
+    //! Assemble the global system of equations into a matrix that has already been created.
+    virtual void Assemble(TPZMatrix<STATE> &stiffness, TPZFMatrix<STATE> &rhs,
+                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
+    //! Assemble the global right hand side vector.
+    virtual void Assemble(TPZFMatrix<STATE> &rhs,
+                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
+
+    virtual TPZMatrix<STATE> *
+    CreateAssemble(TPZFMatrix<STATE> &rhs,
+                   TPZAutoPointer<TPZGuiInterface> guiInterface);
+    //@}
+
+    //! Sets the computational mesh via raw pointer.
+    void SetMesh(TPZCompMesh *);
+    //! Sets the computational mesh via TPZAutoPointer.
+    void SetMesh(TPZAutoPointer<TPZCompMesh>);
+    
+    //! Filter out the equations which are out of the range
+    void FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const;
+    
+    //! Set the set of material ids which will be considered when assembling the system
+    void SetMaterialIds(const std::set<int> &materialids);
+    //! Set number of threads to be used in the assembly.
+    inline void SetNumThreads(int n) {
+        this->fNumThreads = n;
+    }
+    //! Get number of threads to be used in the assembly.
+    inline int GetNumThreads() const {
+        return this->fNumThreads;
+    }
+    //! Set range of equations to be solved.
+    inline void SetEquationRange(int64_t mineq, int64_t maxeq) {
+        fEquationFilter.Reset();
+        fEquationFilter.SetMinMaxEq(mineq, maxeq);
+    }
+
+    //! Verify if a range of equations has been specified.
+    inline bool HasRange() const {
+        return fEquationFilter.IsActive();
+    }
+
+    //! Access method for the equation filter.
+    inline TPZEquationFilter &EquationFilter() {
+        return fEquationFilter;
+    }
+
+    //! Number of equations after applying the filter.
+    inline int64_t NReducedEquations() const {
+        return fEquationFilter.NActiveEquations();
+    }
+
+    //! Access method for the mesh pointer.
+    inline TPZCompMesh *Mesh() const {
+        return fMesh;
+    }
+    
+    //! Establish whether a given material id should be computed.
+    inline bool ShouldCompute(int matid) const
+    {
+        const unsigned int size = fMaterialIds.size();
+        return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
+    }
+    //! Returns the material ids to be computed.
+    inline const std::set<int> &MaterialIds()
+    {
+        return fMaterialIds;
+    }
+    
+    /*! Computes a color for each element.
+      \return Number of colors for parallel assembly and the color -1 when the element should not be computed */
+    int ComputeElementColors(TPZVec<int> &elementcolors);
+
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
+    
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
   protected:
     TPZStructMatrixBase();
     TPZStructMatrixBase(const TPZStructMatrixBase &);
+    TPZStructMatrixBase(TPZStructMatrixBase &&) = delete;
+    TPZStructMatrixBase& operator=(const TPZStructMatrixBase &) = default;
+    TPZStructMatrixBase& operator=(TPZStructMatrixBase &&) = delete;
     TPZStructMatrixBase(TPZCompMesh *);
     TPZStructMatrixBase(TPZAutoPointer<TPZCompMesh>);
 
-  protected:
-    /** @brief Pointer to the computational mesh from which the matrix will be
-     * generated */
+    //! Non-managed pointer to the computational mesh from which the matrix will be generated.
     TPZCompMesh *fMesh;
-    /** @brief Autopointer control of the computational mesh */
+    //! Autopointer of the computational mesh
     TPZAutoPointer<TPZCompMesh> fCompMesh;
-    /** @brief Object which will determine which equations will be assembled */
+    //! Object which will determine which equations will be assembled.
     TPZEquationFilter fEquationFilter;
-    /** @brief Set of material ids to be considered. It is a private attribute.
-     */
-    /** Use ShouldCompute method to know if element must be assembled or not */
+    //! Set of material ids to be considered in the Assemble process.
     std::set<int> fMaterialIds;
-    /** @brief Number of threads in Assemble process */
+    //! Number of threads in Assemble process.
     int fNumThreads;
 };
 

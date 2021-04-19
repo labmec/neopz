@@ -49,30 +49,25 @@ public:
     TPZStructMatrixOT(const TPZStructMatrixOT &copy);
     virtual ~TPZStructMatrixOT() = default;
         
-    virtual TPZMatrix<STATE> * Create() override;
+    TPZMatrix<STATE> * Create() override;
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+    TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) {
         SetNumThreads(numthreads_assemble);
         return CreateAssemble(rhs, guiInterface);
     }
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
     
-    virtual TPZStructMatrixOT * Clone() override;
+    TPZStructMatrixOT * Clone() override final;
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                          unsigned numthreads_assemble, unsigned numthreads_decompose) {
-        std::cout << "Nothing to do." << std::endl;
-    }
+    void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
     
     /** @brief Assemble the global right hand side */
-    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    
-    public:
-int ClassId() const override;
+    void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
+
+    int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
     void Write(TPZStream &buf, int withclassid) const override;
     
@@ -97,18 +92,6 @@ public:
     
     /** @brief Create blocks of elements to parallel processing */
     static void ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor, TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors);    
-    
-    /** @brief Establish whether the element should be computed */
-    bool ShouldCompute(int matid) const override
-    {
-        const size_t size = fMaterialIds.size();
-        return size == 0 || fMaterialIds.find(matid) != fMaterialIds.end();
-    }
-    /** @brief Returns the material ids */
-    const std::set<int> &MaterialIds() override
-    {
-        return fMaterialIds;
-    }
     
 protected:
     

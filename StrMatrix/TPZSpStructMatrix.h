@@ -20,7 +20,8 @@ public:
     virtual TPZMatrix<STATE> * Create() override;
 	
     using TPZStructMatrix::CreateAssemble;
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    
+	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     virtual TPZStructMatrix * Clone() override;
     
