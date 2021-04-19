@@ -2,7 +2,6 @@
 
 add_unit_test(TestIntegNum
         IntegNumUnitTest.cpp
-        GeometryUnitTest.cpp
         TPZCurve.cpp
         TPZCurve.h
         )

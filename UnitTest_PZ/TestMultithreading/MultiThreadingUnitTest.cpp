@@ -20,25 +20,7 @@
 #include "TPZGeoMeshTools.h"
 #include "pzbndcond.h"
 
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz #define BOOST_TEST_MAIN pz multithreading_tests tests
-
-
-#ifdef PZ_LOG
-static TPZLogger logger("pz.mesh.testmultithread");
-#endif
-
-#include "boost/test/unit_test.hpp"
-
-struct SuiteInitializer
-  {
-    SuiteInitializer()
-    {
-      boost::unit_test::unit_test_log.set_threshold_level( boost::unit_test::log_warnings );
-    }
-};
+#include <catch2/catch.hpp>
 
 
 namespace threadTest {
@@ -59,10 +41,8 @@ namespace threadTest {
   static void ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &sol, TPZFMatrix <STATE> &solDx);
 }
 
-BOOST_FIXTURE_TEST_SUITE(multithread_tests,SuiteInitializer)
 
-
-BOOST_AUTO_TEST_CASE(multithread_assemble_test)
+TEST_CASE("multithread_assemble_test","[multithread_tests]")
 {
   threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix>(4);
   threadTest::CompareStiffnessMatrices<TPZBlockDiagonalStructMatrix>(4);
@@ -70,12 +50,10 @@ BOOST_AUTO_TEST_CASE(multithread_assemble_test)
   threadTest::CompareStiffnessMatrices<TPZSpStructMatrix>(4);
 }
 
-BOOST_AUTO_TEST_CASE(multithread_postprocerror_test)
+TEST_CASE("multithread_postprocerror_test","[multithread_tests]")
 {
   threadTest::ComparePostProcError<TPZSkylineStructMatrix>(4);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
 
 
 TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int& matIdVol, int& matIdBC)
@@ -162,7 +140,7 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   std::cout.precision(17);
   std::cout << std::fixed << "\tNorm diff: " << normDiff << std::endl;
   const bool checkMatNorm = IsZero(normDiff);
-  BOOST_CHECK_MESSAGE(checkMatNorm,"failed");
+  REQUIRE(checkMatNorm);
   delete gMesh;
 }
 
@@ -226,7 +204,7 @@ void threadTest::ComparePostProcError(const int nThreads) {
       pass = false;
     }
   }
-  BOOST_CHECK_MESSAGE(pass, "failed");
+  REQUIRE(pass);
 
   delete gMesh;
 }

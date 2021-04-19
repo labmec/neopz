@@ -10,15 +10,8 @@ function(add_unit_test testName)
 
     add_test(${testName} ${testName})
     add_executable(${testName} ${ARGN})
-
-    IF (WIN32)
-        # TODOWIN32 (Gustavo 06/03/2021): this part needs testing with Visual Studio.
-        # More specifically we need to check if the relative paths of the generated file tabs are
-        # correct (specified here by UnitTests/${testName}).
-        source_group(UnitTests/${testName} FILES ${ARGN})
-    endif()
-    
-    target_link_libraries(${testName} PRIVATE pz Boost::unit_test_framework)
+    target_compile_definitions(${testName} PRIVATE CATCH_CONFIG_MAIN)
+    target_link_libraries(${testName} PRIVATE pz Catch2::Catch2)
     if(PZ_LOG)
       target_link_libraries(${testName} PRIVATE ${Log4cxx_LIBRARY})
     endif()

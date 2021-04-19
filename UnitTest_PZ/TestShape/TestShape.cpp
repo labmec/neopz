@@ -18,40 +18,22 @@
 static TPZLogger logger("pz.mesh.testshape");
 #endif
 
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz shape tests
-
-#include <boost/test/unit_test.hpp>
-
-
-struct SuiteInitializer {
-    SuiteInitializer() {
-    }
-};
-
+#include <catch2/catch.hpp>
 template<class TGeo>
 void AddSampleElement(TPZGeoMesh& gmesh);
 
 template<class TGeo>
 void CheckDivergenceOnInternalConnect();
 
-BOOST_FIXTURE_TEST_SUITE(shape_test, SuiteInitializer)
-
-    BOOST_AUTO_TEST_CASE(internal_connect_divergence_test) {
-        CheckDivergenceOnInternalConnect<pzgeom::TPZGeoTriangle>();
-        CheckDivergenceOnInternalConnect<pzgeom::TPZGeoQuad>();
-        CheckDivergenceOnInternalConnect<pzgeom::TPZGeoTetrahedra>();
-        CheckDivergenceOnInternalConnect<pzgeom::TPZGeoPrism>();
-        CheckDivergenceOnInternalConnect<pzgeom::TPZGeoCube>();
-        // Pyramid test fails since its space is not complete
-        //CheckDivergenceOnInternalConnect<pzgeom::TPZGeoPyramid>();
-    }
-
-BOOST_AUTO_TEST_SUITE_END()
+TEST_CASE("internal_connect_divergence_test", "[shape_test]") {
+  CheckDivergenceOnInternalConnect<pzgeom::TPZGeoTriangle>();
+  CheckDivergenceOnInternalConnect<pzgeom::TPZGeoQuad>();
+  CheckDivergenceOnInternalConnect<pzgeom::TPZGeoTetrahedra>();
+  CheckDivergenceOnInternalConnect<pzgeom::TPZGeoPrism>();
+  CheckDivergenceOnInternalConnect<pzgeom::TPZGeoCube>();
+  // Pyramid test fails since its space is not complete
+  // CheckDivergenceOnInternalConnect<pzgeom::TPZGeoPyramid>();
+}
 
 template<class TGeo>
 void AddSampleElement(TPZGeoMesh& gmesh) {
@@ -127,11 +109,13 @@ void CheckDivergenceOnInternalConnect() {
 
     // Test if obtained results are equal (numerically) to zero
     for (int64_t i = 0; i < integrationResult.Rows(); i++) {
-        BOOST_CHECK_MESSAGE(IsZero(integrationResult(i, 0)), "Divergence test failed for shape function " +
-                                                             std::to_string(i + firstInternalPhi) + " on " +
-                                                             TGeo::TypeName() + " element");
+        const bool cond = IsZero(integrationResult(i, 0));
+        if(!cond){
+          std::cerr << "Divergence test failed for shape function " +
+                           std::to_string(i + firstInternalPhi) + " on " +
+                           TGeo::TypeName() + " element\n";
+        }
+        REQUIRE(IsZero(integrationResult(i, 0)));
     }
     std::cout << "Divergence test passed!\n\n";
 }
-
-#endif

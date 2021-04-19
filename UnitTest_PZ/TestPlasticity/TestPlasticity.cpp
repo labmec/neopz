@@ -7,7 +7,7 @@
 #include "pzelast3d.h"
 #include "iostream"
 #include "fstream"
-
+#include <chrono>
 #include "TPZElasticResponse.h" // linear elastic (LE)
 #include "TPZElasticCriterion.h"
 #include "TPZPorousElasticResponse.h" // Porous elasticity (PE)
@@ -17,20 +17,7 @@
 
 #include "TPZMatElastoPlastic2D_impl.h"
 #include "TPZPlasticStepPV.h" // Plastic Integrator
-
-
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz material tests
-
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
-#include "boost/date_time/posix_time/posix_time.hpp"
-#endif
-
+#include <catch2/catch.hpp>
 /**
  Read DiMaggio Sandler data
  Original source: An algorithm and a modular subroutine for the CAP model (April 1979)
@@ -205,7 +192,7 @@ void LECompareStressStrainResponse() {
     delta_sigma = sigma-sigma_ref;
     REAL norm = delta_sigma.Norm();
     bool check = IsZero(norm);
-    BOOST_CHECK(check);
+    REQUIRE(check);
     return;
 }
 
@@ -253,13 +240,13 @@ void PECompareStressStrainResponse() {
         PER.ComputeStress(eps_e, sigma);
         REAL sigma_norm =(sigma-sigma_ref).Norm();
         bool sigma_check = IsZero(sigma_norm);
-        BOOST_CHECK(sigma_check);
+        REQUIRE(sigma_check);
         
         epsilon_target.Zero();
         PER.ComputeStrain(sigma,epsilon_target);
         REAL esp_norm = (epsilon_target-eps_e).Norm();
         bool esp_check = IsZero(esp_norm);
-        BOOST_CHECK(esp_check);
+        REQUIRE(esp_check);
         
         // Check for convergence
         int n_data = 10;
@@ -298,7 +285,7 @@ void PECompareStressStrainResponse() {
             REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
             REAL diff = n - 1.99;
             bool rate_check = fabs(diff) < 0.01;
-            BOOST_CHECK(rate_check);
+            REQUIRE(rate_check);
         }
     }
     
@@ -327,13 +314,13 @@ void PECompareStressStrainResponse() {
         PER.ComputeStress(eps_e, sigma);
         REAL sigma_norm =(sigma-sigma_ref).Norm();
         bool sigma_check = IsZero(sigma_norm);
-        BOOST_CHECK(sigma_check);
+        REQUIRE(sigma_check);
 
         epsilon_target.Zero();
         PER.ComputeStrain(sigma,epsilon_target);
         REAL esp_norm = (epsilon_target-eps_e).Norm();
         bool esp_check = IsZero(esp_norm);
-        BOOST_CHECK(esp_check);
+        REQUIRE(esp_check);
 
         // Check for convergence
         int n_data = 10;
@@ -372,7 +359,7 @@ void PECompareStressStrainResponse() {
             REAL n = (error[i+1] - error[i])/(alpha[i+1] - alpha[i]);
             REAL diff = n - 1.99;
             bool rate_check = fabs(diff) < 0.01;
-            BOOST_CHECK(rate_check);
+            REQUIRE(rate_check);
         }
 
     }
@@ -402,7 +389,7 @@ void PECompareStressStrainResponse() {
         LE_equivalent.ComputeStress(eps_e, sigma_linear);
         REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
         bool sigma_check = IsZero(sigma_norm);
-        BOOST_CHECK(sigma_check);
+        REQUIRE(sigma_check);
         
     }
     
@@ -431,7 +418,7 @@ void PECompareStressStrainResponse() {
         LE_equivalent.ComputeStress(eps_e, sigma_linear);
         REAL sigma_norm = (sigma_linear-sigma_ref).Norm();
         bool sigma_check = IsZero(sigma_norm);
-        BOOST_CHECK(sigma_check);
+        REQUIRE(sigma_check);
         
     }
     
@@ -531,7 +518,7 @@ void LEDSCompareStressStrainAlphaMType() {
     for (int i = 0; i < comparison.Rows(); i++) {
         for (int j = 0; j < comparison.Cols(); j++) {
             bool check = comparison(i,j);
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
     }
     return;
@@ -620,7 +607,7 @@ void LEDSCompareStressStrainErickTest() {
 //    for (int i = 0; i < n_data; i++) {
 //        for (int j = 0; j < 3; j++) {
 //            bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
-//            BOOST_CHECK(check);
+//            REQUIRE(check);
 //        }
 //    }
     return;
@@ -701,7 +688,7 @@ void LEDSCompareStressStrainResponse() {
     for (int i = 0; i < n_data; i++) {
         for (int j = 0; j < 3; j++) {
             bool check = IsZero(LEDS_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
     }
     
@@ -815,7 +802,7 @@ void LEDSCompareStressStrainTangent() {
             rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
             rates(j,0) = rate;
             bool check = fabs(rate-2.0) < 1.0e-1;
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
 #ifdef VerboseMode
         std::cout << "Cap Vertex tangent " << std::endl;
@@ -893,7 +880,7 @@ void LEDSCompareStressStrainTangent() {
             rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
             rates(j,0) = rate;
             bool check = fabs(rate-2.0) < 1.0e-1;
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
 #ifdef VerboseMode
         std::cout << "Cap tangent " << std::endl;
@@ -989,7 +976,7 @@ void LEDSCompareStressStrainTangent() {
             rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
             rates(j,0) = rate;
             bool check = fabs(rate-2.0) < 1.0e-1;
-//            BOOST_CHECK(check);.
+//            REQUIRE(check);.
         }
 #ifdef VerboseMode
         std::cout << "Cap CoVertex tangent " << std::endl;
@@ -1072,7 +1059,7 @@ void LEDSCompareStressStrainTangent() {
             rate = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
             rates(j,0) = rate;
             bool check = fabs(rate-2.0) < 1.0e-1;
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
 #ifdef VerboseMode
         std::cout << "Failure tangent " << std::endl;
@@ -1232,11 +1219,10 @@ void LEMCCompareStressStrainResponse() {
     for (int i = 0; i < n_data_to_compare; i++) {
         for (int j = 0; j < 3; j++) {
             bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
     }
-    
-//    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
+    // const auto t1 = std::chrono::high_resolution_clock::now();
 //    std::cout << "Computing plastic steps ... " << std::endl;
 //    int n = 5;
 //    int n_points = pow(10, n);
@@ -1246,9 +1232,9 @@ void LEMCCompareStressStrainResponse() {
 //        epsilon_t.CopyFrom(source);
 //        LEMC.ApplyStrainComputeSigma(epsilon_t, sigma);
 //    }
-//    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-//    REAL absolute_time = boost::numeric_cast<double>((t2-t1).total_milliseconds());
-//    std::cout << "Absolute Time (seconds) = " << absolute_time/1000.0 << std::endl;
+    // const auto t2 = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double, milli> elapsed_time = t2-t1;
+    // std::cout << "Absolute Time (ms) = " << elapsed_time.count() << std::endl;
     
     return;
 }
@@ -1309,7 +1295,7 @@ void LEMCCompareStressStrainResponse_PlasticLab_Test() {
     for (int i = 0; i < n_data_to_compare; i++) {
         for (int j = 0; j < 3; j++) {
             bool check = IsZero(LEMC_epsilon_stress(i,j) - epsilon_path_proj_sigma(i,3+j));
-            BOOST_CHECK(check);
+            REQUIRE(check);
         }
     }
     
@@ -1413,10 +1399,10 @@ void LEMCCompareStressStrainTangent() {
                 for (int j = 0; j < 5; j++) {
                     rates(j,0) = (log(errors(j,1)) - log(errors(j+1,1)))/(log(errors(j,0)) - log(errors(j+1,0)));
                     check = fabs(rates(j,0)-2.0) < 1.0e-1;
-                    BOOST_CHECK(check);
+                    REQUIRE(check);
                 }
             }else{
-                BOOST_CHECK(check);
+                REQUIRE(check);
             }
             
             
@@ -1427,11 +1413,9 @@ void LEMCCompareStressStrainTangent() {
     return;
 }
 
-#ifdef PZ_USING_BOOST
 
-BOOST_AUTO_TEST_SUITE(plasticity_tests)
 
-BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
+TEST_CASE("test_sandler_dimaggio", "[plasticity_tests]") {
     
     // Elastic response
     LECompareStressStrainResponse();
@@ -1450,9 +1434,3 @@ BOOST_AUTO_TEST_CASE(test_sandler_dimaggio) {
     LEMCCompareStressStrainTangent(); //  Test Tangent
     
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-
-
-#endif

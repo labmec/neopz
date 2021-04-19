@@ -9,6 +9,7 @@
 #include <vector>
 #include <stdio.h>                         // for NULL
 #include <string.h>                        // for strcpy, strlen
+#include <chrono>
 #ifdef MACOSX
 #include <__functional_base>               // for less
 #include <__tree>                          // for __tree_const_iterator, ope...
@@ -611,10 +612,6 @@ void TPZAnalysis::PostProcessError(TPZVec<REAL> &ervec, bool store_error, std::o
   }
 }
 
-#ifdef USING_BOOST
-#include "boost/date_time/posix_time/posix_time.hpp"
-#endif
-
 void TPZAnalysis::CreateListOfCompElsToComputeError(TPZAdmChunkVector<TPZCompEl *> &elvecToComputeError){
   
   int64_t neq = fCompMesh->NEquations();
@@ -700,15 +697,12 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   std::vector<std::thread> allthreads;
 
   TPZAdmChunkVector<TPZCompEl *> elvec;
-  
-#ifdef USING_BOOST
-  boost::posix_time::ptime tsim1 = boost::posix_time::microsec_clock::local_time();
-#endif
+  std::chrono::high_resolution_clock::now();
+  auto tsim1 = std::chrono::high_resolution_clock::now();
   CreateListOfCompElsToComputeError(elvec);
-#ifdef USING_BOOST
-  boost::posix_time::ptime tsim2 = boost::posix_time::microsec_clock::local_time();
-  std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << tsim2 - tsim1 << " s" << std::endl;
-#endif
+  auto tsim2 = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double, milli> elapsed_time = tsim2 - tsim1;
+  std::cout << "Total wall time of CreateListOfCompElsToComputeError = " << elapsed_time.count()<<"ms"<<std::endl;
   
   
   ThreadData threaddata(elvec,store_error);
@@ -717,10 +711,9 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
       threaddata.fvalues[iv].Resize(10);
       threaddata.fvalues[iv].Fill(0.0);
   }
-  
-#ifdef USING_BOOST
-  boost::posix_time::ptime tthread1 = boost::posix_time::microsec_clock::local_time();
-#endif
+
+
+  auto tthread1 = std::chrono::high_resolution_clock::now();
   
   for(int itr=0; itr<numthreads; itr++)
   {
@@ -731,11 +724,10 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
   {
     allthreads[itr].join();
   }
-  
-#ifdef USING_BOOST
-  boost::posix_time::ptime tthread2 = boost::posix_time::microsec_clock::local_time();
-  std::cout << "Total wall time of ThreadWork = " << tthread2 - tthread1 << " s" << std::endl;    
-#endif
+
+  auto tthread2 = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double, milli> elapsed_time_thread = tthread2 - tthread1;
+  std::cout << "Total wall time of ThreadWork = " << elapsed_time_thread.count()<<"ms"<<std::endl;
   
   
   // Sanity check. There should be number of ids equal to number of threads
@@ -917,9 +909,6 @@ void TPZAnalysis::LoadShape(double ,double , int64_t ,TPZConnect* start){
 	
 }
 
-#ifdef USING_BOOST
-#include "boost/date_time/posix_time/posix_time.hpp"
-#endif
 
 void TPZAnalysis::Run(std::ostream &out)
 {
@@ -930,9 +919,8 @@ void TPZAnalysis::Run(std::ostream &out)
         std::cout << "Entering Assemble Equations\n";
         std::cout.flush();
     }
-#ifdef USING_BOOST
-    boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
-#endif
+
+    const auto t1 = std::chrono::high_resolution_clock::now();
 	Assemble();
 
     if(neq > 20000)
@@ -940,16 +928,12 @@ void TPZAnalysis::Run(std::ostream &out)
         std::cout << "Entering Solve\n";
         std::cout.flush();
     }
-
-#ifdef USING_BOOST
-    boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
-#endif
+    const auto t2 = std::chrono::high_resolution_clock::now();
     Solve();
-	
-#ifdef USING_BOOST
-    boost::posix_time::ptime t3 = boost::posix_time::microsec_clock::local_time();
-    std::cout << "Time for assembly " << t2-t1 << " Time for solving " << t3-t2 << std::endl;
-#endif
+    const auto t3 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, milli> time_assemble = t2-t1;
+    std::chrono::duration<double, milli> time_solve = t3-t2;
+    std::cout << "Time for assembly " << time_assemble.count() << "ms Time for solving " << time_solve.count() << "ms"<<std::endl;
 }
 
 /** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */

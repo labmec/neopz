@@ -19,16 +19,7 @@
 
 #include <stdio.h>
 #include <iostream>
-
-// #ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-    #define BOOST_TEST_DYN_LINK
-#endif
-
-#define BOOST_TEST_MAIN pz refinement tests
-
-#include <boost/test/unit_test.hpp>
+#include<catch2/catch.hpp>
 
 using namespace pztopology;
 // Forward declaring
@@ -37,9 +28,8 @@ namespace refinementtests{
     void TestingUniformRefinements(bool RefFromDatabase = 1);
 }
 
-BOOST_AUTO_TEST_SUITE(refinement_tests)
 
-    BOOST_AUTO_TEST_CASE(refinement_tests_1)
+    TEST_CASE("refinement_tests_1","[refinement_tests]")
     {
         // Test hardcoded refinements
         refinementtests::TestingUniformRefinements<TPZLine>(0);
@@ -59,8 +49,6 @@ BOOST_AUTO_TEST_SUITE(refinement_tests)
         refinementtests::TestingUniformRefinements<TPZPyramid>(1);
     }
 
-
-BOOST_AUTO_TEST_SUITE_END()
 
 namespace refinementtests{
 
@@ -125,13 +113,14 @@ namespace refinementtests{
             TPZVec<REAL> qsi(gel->Dimension(),0.); TPZFMatrix<double> jac; TPZFMatrix<double> axes; REAL detjac = notcomputed; TPZFMatrix<double> jacinv;
             gel->Jacobian(qsi,jac,axes,detjac,jacinv);
             REAL zero = ZeroTolerance();
-            bool cond = detjac > 0;
-            BOOST_CHECK_MESSAGE(cond,
-                                "\n"+testName+" failed"+
-                                "\nUniform Refinement: "+gel->EldestAncestor()->TypeName()+"\n"+
-                                "Subelement: "+ std::to_string(gel->WhichSubel())+" has negative detjacobian.\n"
-                                );
+            bool cond = detjac > zero;
+            if(!cond){
+                std::cerr << "\n"<<testName<<" failed\n";
+                std::cerr << "Uniform Refinement: "<<gel->EldestAncestor()->TypeName();
+                std::cerr<<"\nSubelement: "<<std::to_string(gel->WhichSubel());
+                std::cerr<<" has negative detjacobian.\n";
+            }
+            REQUIRE(cond);
         }
     }
 }//namespace
-// #endif

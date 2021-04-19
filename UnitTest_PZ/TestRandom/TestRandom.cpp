@@ -10,16 +10,7 @@
 #include "TPZUniformRandom.h"
 #include "TPZNormalRandom.h"
 #include "TPZConstrainedNormalRandom.h"
-
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz random tests
-
-#include <boost/test/unit_test.hpp>
-
+#include <catch2/catch.hpp>
 
 void PrintDistribution(REAL& begin, unsigned int& steps, TPZVec<int>& slots, REAL& increment){
     REAL max = 0;
@@ -50,14 +41,14 @@ void TestUniform(REAL begin, REAL end){
     TPZUniformRandom<REAL> r(begin, end);
     for (unsigned int i = 0; i < numbers; ++i) {
         REAL value = r.next();
-        BOOST_ASSERT(value > begin);
-        BOOST_ASSERT(value < end);
+        REQUIRE(value > begin);
+        REQUIRE(value < end);
         slots[std::floor((value-begin)/increment)]++;
     }
 
 //    for (unsigned int i = 0; i < steps; ++i) {
-//      BOOST_ASSERT(slots[i] > .8*numbers/steps);
-//  	BOOST_ASSERT(slots[i] < 1.2*numbers/steps);
+//      REQUIRE(slots[i] > .8*numbers/steps);
+//  	REQUIRE(slots[i] < 1.2*numbers/steps);
 //    }
 }
 
@@ -87,37 +78,31 @@ void TestConstrainedNormal(REAL begin, REAL end, REAL mean, REAL stdev){
     TPZConstrainedNormalRandom<REAL> r(begin, end, mean, stdev);
     for (unsigned int i = 0; i < numbers; ++i) {
         REAL value = r.next();
-        BOOST_ASSERT(value > begin);
-        BOOST_ASSERT(value < end);
+        REQUIRE(value > begin);
+        REQUIRE(value < end);
         slots[std::floor((value-begin)/increment)]++;
     }
     //PrintDistribution(begin, steps, slots, increment);
 }
 
 
-BOOST_AUTO_TEST_SUITE(random_generator_tests)
-
-BOOST_AUTO_TEST_CASE(uniform_random_generator_tests)
+TEST_CASE("uniform_random_generator_tests","[random_generator_tests]")
 {
     TestUniform(0,1);
     TestUniform(1,2);
 	TestUniform(-10,2);
 }
 
-BOOST_AUTO_TEST_CASE(normal_random_generator_tests)
+TEST_CASE("normal_random_generator_tests","[random_generator_tests]")
 {
     TestNormal(0,1);
 	TestNormal(1,2);
 	TestNormal(10,3);
 }
 
-BOOST_AUTO_TEST_CASE(constrained_normal_random_generator_tests)
+TEST_CASE("constrained_normal_random_generator_tests","[random_generator_tests]")
 {
     TestConstrainedNormal(-1,1,0.2,0.1);
 	TestConstrainedNormal(-1,1,1,2);
     TestConstrainedNormal(0,10,12,3);
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-
-#endif

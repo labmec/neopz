@@ -34,22 +34,14 @@
 static TPZLogger logger("pz.mesh.testmesh");
 #endif
 
-#ifdef PZ_USING_BOOST
-
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz mesh tests
-
-#include <boost/test/unit_test.hpp>
+#include <catch2/catch.hpp>
 
 static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type);
 
 
 // Tests for the 'voidflux' class.
-BOOST_AUTO_TEST_SUITE(meshcondensetests)
 
-BOOST_AUTO_TEST_CASE(verifystiff)
+TEST_CASE("verifystiff","[mesh_condense_tests]")
 {
     std::cout << "Verifying creating and undoing condensed elements\n";
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
@@ -66,7 +58,7 @@ BOOST_AUTO_TEST_CASE(verifystiff)
     cmesh->Print(out);
 }
 
-BOOST_AUTO_TEST_CASE(globalcompute)
+TEST_CASE("globalcompute","[mesh_condense_tests]")
 {
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     cmesh->ComputeNodElCon();
@@ -87,8 +79,6 @@ BOOST_AUTO_TEST_CASE(globalcompute)
 //{
 //    force[0] = x[0];
 //}
-
-BOOST_AUTO_TEST_SUITE_END()
 
 static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
 {
@@ -125,6 +115,3 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
 }
 
 // @TODO include tests with condensed elements and different type of solvers, substructed meshes etc. Verify the time gain of condensed elements
-
-
-#endif

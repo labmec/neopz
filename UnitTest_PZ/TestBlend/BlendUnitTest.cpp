@@ -44,29 +44,13 @@ static TPZLogger logger("pz.mesh.testgeom");
 
 #include "fad.h"
 
-// Using Unit Test of the Boost Library
-#ifdef PZ_USING_BOOST
 
-#ifndef WIN32
-#define BOOST_TEST_DYN_LINK
-#endif
-#define BOOST_TEST_MAIN pz blend_tests tests
-
-#include "boost/test/unit_test.hpp"
-#include "boost/test/tools/output_test_stream.hpp"
-
-#endif
+#include<catch2/catch.hpp>
 
 //#define BLEND_VERBOSE //outputs x and grad comparisons
 //#define BLEND_OUTPUT_TXT//prints all elements in .txt format
 //#define BLEND_OUTPUT_VTK//prints all elements in .vtk format
 
-std::string dirname = PZSOURCEDIR;
-
-#ifdef PZ_USING_BOOST
-
-
-BOOST_AUTO_TEST_SUITE(blend_tests)
     namespace blendtest{
         const int pOrder = 10;
         const REAL tol = 1e-8;
@@ -85,7 +69,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
         void CompareSameDimensionNonLinNeighbour(int nDiv);
     }
 
-    BOOST_AUTO_TEST_CASE(geoblend_tests) {
+    TEST_CASE("geoblend_tests","[blend_tests]") {
         gRefDBase.InitializeUniformRefPattern(EOned);
         gRefDBase.InitializeUniformRefPattern(ETriangle);
         gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
@@ -111,7 +95,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
     }
 
 
-    BOOST_AUTO_TEST_CASE(compare_blend_quad) {
+    TEST_CASE("compare_blend_quad","[blend_tests]") {
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoQuad>();
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTriangle>();
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoTetrahedra>();
@@ -120,7 +104,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
         blendtest::CompareQuadraticAndBlendEls<pzgeom::TPZGeoPyramid>();
     }
 
-    BOOST_AUTO_TEST_CASE(quadrilateral_blend_semicircle) {
+    TEST_CASE("quadrilateral_blend_semicircle","[blend_tests]") {
         //defining the analytical solution against which the mapping will be compared. the quadrilateral will be mapped
         //to a quarter of a ring. the inner and outer radii are, respectively, 0.5 and 1.0.
         const REAL innerRadius = 0.5;
@@ -224,13 +208,13 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                 xAnalytic = analyticX(qsi);
                 hasAnErrorOccurred =
                         blendtest::CheckVectors(xBlend, "xBlend", xAnalytic, "xAnalytic", blendtest::tol);
-                BOOST_CHECK(!hasAnErrorOccurred);
+                REQUIRE(!hasAnErrorOccurred);
                 if(hasAnErrorOccurred) nErrorsX++;
                 quad->GradX(qsi, gradxBlend);
                 gradxAnalytic = analyticGradX(qsi);
                 hasAnErrorOccurred =
                         blendtest::CheckMatrices(gradxBlend, "gradxBlend", gradxAnalytic, "gradxAnalytic", blendtest::tol);
-                BOOST_CHECK(!hasAnErrorOccurred);
+                REQUIRE(!hasAnErrorOccurred);
                 if(hasAnErrorOccurred) nErrorsGradX ++;
                 //TODO: (IMPORTANT) deactivate the log after testing
             }
@@ -571,7 +555,7 @@ BOOST_AUTO_TEST_SUITE(blend_tests)
                         TPZManVector<REAL,3> xQuad(3);
                         quadraticEl->X(xi, xQuad);
                         hasAnErrorOccurred = blendtest::CheckVectors(xBlend,"xBlend",xQuad,"xQuad",blendtest::tol);
-                        BOOST_CHECK(!hasAnErrorOccurred);
+                        REQUIRE(!hasAnErrorOccurred);
                         if(hasAnErrorOccurred){
 #ifdef BLEND_VERBOSE
                             if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
@@ -812,7 +796,7 @@ p
                     TPZManVector<REAL,3> xNonLin(3);
                     nonLinearEl->X(xi, xNonLin);
                     hasAnErrorOccurred = blendtest::CheckVectors(xBlend, "xBlend", xNonLin, "xNonLin", blendtest::tol);
-                    BOOST_CHECK(!hasAnErrorOccurred);
+                    REQUIRE(!hasAnErrorOccurred);
                     if(hasAnErrorOccurred){
 #ifdef BLEND_VERBOSE
                         if(iSide < TGeo::NSides - 1) errorsSide[iSide - TGeo::NNodes]+=1;
@@ -1071,7 +1055,7 @@ p
                                 }
                             }
                             hasAnErrorOccurred = blendtest::CheckMatrices(gradXreal,"gradXreal",gradXfad,"gradXfad",blendtest::tol);
-                            BOOST_CHECK(!hasAnErrorOccurred);
+                            REQUIRE(!hasAnErrorOccurred);
                             if(hasAnErrorOccurred){
                                 errors++;
                             }
@@ -1335,7 +1319,7 @@ p
                             }
                             hasAnErrorOccurred = blendtest::CheckMatrices(gradXreal, "gradXreal", gradXfad, "gradXfad",
                                                                           blendtest::tol);
-                            BOOST_CHECK(!hasAnErrorOccurred);
+                            REQUIRE(!hasAnErrorOccurred);
                             if (hasAnErrorOccurred) {
                                 errors++;
                             }
@@ -1406,10 +1390,3 @@ p
 
 
     }
-
-
-BOOST_AUTO_TEST_SUITE_END()
-
-
-#endif
-
