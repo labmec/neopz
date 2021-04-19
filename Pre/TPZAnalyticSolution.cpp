@@ -1483,11 +1483,9 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
            // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
         }
             break;
-
         case EBubble2D:{
 
             disp[0] = xloc[0]*xloc[1]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1]);
-            // std::cout<<"pto "<<xloc <<" f(x) "<<disp<<std::endl;
         }
             break;
         case ESinCosCircle:{
@@ -1540,6 +1538,18 @@ void TLaplaceExample1::uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const
             }
             disp[0] = pow(2.,1/4.)*sqrt(r)*cos(theta/2);
             //disp[0] = pow(2.,-1/4.)*sqrt(x[0] + sqrt(x[0]*x[0] + x[1]*x[1]));
+        }
+            break;
+
+        case ELaplace2D:
+        {
+            TVar Ck;
+            disp[0] = 1.;
+            for(int k = 1 ; k < fmaxIter+1; k++){
+                TVar kpi = k*M_PI;
+                TVar ck = -2/tanh(kpi)*(0.1013211836423378 -0.1013211836423378*cos(kpi)-0.1591549430918954 *k* sin(kpi))/(kpi*k*k);
+                disp[0]+=ck/cosh(kpi)*cos(kpi*x[0])*cosh(kpi*(x[1]-1));
+            }
         }
             break;
 
@@ -1805,7 +1815,6 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             
         }
             break;
-
         case EBubble2D:{
 
             disp[0] = xloc[0]*xloc[1]*(TVar(1.)-xloc[0])*(TVar(1.)-xloc[1]);
@@ -1864,6 +1873,17 @@ void TLaplaceExample1::uxy(const TPZVec<FADFADSTATE > &x, TPZVec<FADFADSTATE > &
             }
             disp[0] = pow(2.,1/4.)*FADsqrt(r)*FADcos(theta/2);
             //disp[0] = pow(2.,-1/4.)*FADsqrt(x[0] + FADsqrt(x[0]*x[0] + x[1]*x[1]));
+        }
+            break;
+        case ELaplace2D:
+        {
+            TVar Ck;
+            disp[0] = 1.;
+            for(int k = 1 ; k < fmaxIter+1; k++){
+                TVar kpi = k*M_PI;
+                TVar ck = -2/(kpi)*(0.1013211836423378 -0.1013211836423378*FADcos(kpi)-0.1591549430918954 *k* FADsin(kpi))/(kpi*k*k);
+                disp[0]+=ck*(FADcosh(kpi)/FADsinh(kpi))*FADcos(kpi*x[0])*FADcosh(kpi*(x[1]-1));
+            }
         }
             break;
             

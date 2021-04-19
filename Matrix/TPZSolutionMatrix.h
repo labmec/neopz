@@ -62,6 +62,13 @@ public:
   //! Conversion function to TPZBaseMatrix&
   operator TPZBaseMatrix& ();
   
+  /*! Sets a solution with nrows where the first sol.Rows() are the solution from sol.
+    Since the TPZAnalysis only stores the solution associated with the independent
+    equations, in TPZCompMesh we still need extra rows for the solution associated
+    with the dependent equations. This method provided a way for doing this operation
+    with only one memory allocation.*/
+  void ExpandAndSetSol(const TPZSolutionMatrix & sol, const int64_t nrows);
+  
   // //@{
   // //! Conversion function to TPZFMatrix<CSTATE>&. Throws error if incompatible
   // operator TPZFMatrix<CSTATE>& ();

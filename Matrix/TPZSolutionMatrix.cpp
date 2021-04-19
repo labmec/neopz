@@ -132,6 +132,50 @@ TPZSolutionMatrix::operator const TPZFMatrix<STATE> &()const{
 //     return fComplexMatrix;
 // }
 
+
+void TPZSolutionMatrix::ExpandAndSetSol(const TPZSolutionMatrix & sol, const int64_t nrows){
+  const auto origRows = this->Rows();
+  const auto solRows = sol.Rows();
+  const auto solCols = sol.Cols();
+#ifdef PZ_DEBUG
+  if(origRows < solRows){
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" called with original solution smaller than it should be.\n";
+    PZError<<"   original #rows: "<<origRows<<'\n';
+    PZError<<"   new      #rows: "<<solRows<<'\n';
+    PZerror<<"Aborting...\n";
+    DebugStop();
+  }
+#endif
+  this->Resize(origRows,solCols);
+  if(fSolType == EReal){
+    const TPZFMatrix<STATE> &solst = sol;
+    for(auto j=0;j<solCols;j++)
+    {
+        for(auto i=0;i<solRows;i++)
+        {
+          //let us skip boundary checking
+          fRealMatrix.PutVal(i,j,solst.GetVal(i, j));
+        }
+    }
+  }
+  // else if(fSolType == EComplex){
+  //   const TPZFMatrix<CSTATE> &solst = sol;
+  //   for(auto j=0;j<solCols;j++)
+  //   {
+  //       for(auto i=0;i<solRows;i++)
+  //       {
+  //         fComplexMatrix.PutVal(i,j,solst.GetVal(i, j));
+  //       }
+  //   }
+  // }
+  else{
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<": solution does not have a defined type! Aborting...\n";
+    DebugStop();
+  }
+}
+
 void TPZSolutionMatrix::Read(TPZStream &buf, void *context) {
   bool isComplex;
   buf.Read(isComplex);

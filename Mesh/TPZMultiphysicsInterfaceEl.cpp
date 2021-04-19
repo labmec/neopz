@@ -348,30 +348,33 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         DebugStop();
     }
 #endif
-    struct materialdata_block
-    {
-        TPZVec<TPZMaterialData> datavecleft,datavecright;
-        TPZMaterialData datavec;
-    };
-    std::unique_ptr<materialdata_block> datablock = std::make_unique<materialdata_block>();
-    TPZVec<TPZMaterialData> &datavecleft = datablock->datavecleft;
-    TPZVec<TPZMaterialData> &datavecright = datablock->datavecright;
-    TPZMaterialData &data = datablock->datavec;
+    std::map<int,TPZMaterialData> datavecleft;
+    std::map<int,TPZMaterialData> datavecright;
+    TPZMaterialData data;
     InitMaterialData(data, datavecleft, datavecright);
     
     TPZManVector<TPZTransform<REAL>,6> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
 
-    int nmesh =datavecleft.size();
-    for(int id = 0; id<nmesh; id++){
-        datavecleft[id].p = 0;
+    for(auto &it : datavecleft){
+        it.second.p = 0;
+        int id = it.first;
         TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel->Element(id));
         if (msp)
         {
             datavecleft[id].p =msp->MaxOrder();
         }
     }
+//    for(auto &it : datavecright){
+//        it.second.p = 0;
+//        int id = it.first;
+//        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(rightel->Element(id));
+//        if (msp)
+//        {
+//            datavecright[id].p = msp->MaxOrder();
+//        }
+//    }
 
     TPZManVector<int> intleftorder;
     leftel->PolynomialOrder(intleftorder);
@@ -407,11 +410,11 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, fLeftElIndices);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, fRightElIndices);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         
-        data.x = datavecleft[0].x;
+        data.x = datavecleft.begin()->second.x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }	
 	
@@ -439,7 +442,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
     }
 #endif
     
-    TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
+    std::map<int,TPZMaterialData> datavecleft,datavecright;
     TPZMaterialData data;
     InitMaterialData(data, datavecleft, datavecright);
     
@@ -490,9 +493,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
-        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft, fLeftElIndices);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
         trright.Apply(Point, rightPoint);
-        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright, fRightElIndices);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         
         data.x = datavecleft[0].x;
         material->ContributeInterface(data, datavecleft, datavecright, weight, ef.fMat);
@@ -725,14 +728,12 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 //}
 
 /** @brief Initialize the material data structures */
-void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right){
+void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, std::map<int,TPZMaterialData> &data_left, std::map<int,TPZMaterialData> &data_right){
 
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
   //  TPZMultiphysicsCompMesh * mp_cmesh = dynamic_cast<TPZMultiphysicsCompMesh * >(Mesh());
     int n_meshes = leftel->NMeshes();
-    data_left.resize(n_meshes);
-    data_right.resize(n_meshes);
     
     TPZVec<int64_t> *leftindices(0), *rightindices(0);
     if (fLeftElIndices.size()) {
@@ -897,7 +898,7 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (LeftSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(RightSide.Element());
 		
-    TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
+    std::map<int,TPZMaterialData> datavecleft,datavecright;
     TPZMaterialData data;
     InitMaterialData(data, datavecleft, datavecright);
 	
@@ -917,8 +918,8 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	lefttr.Apply(qsi, myqsi);
 	lefttr.Apply(qsi, myqsi);
 	
-	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft,fLeftElIndices);
-	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright,fRightElIndices);
+	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft);
+	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright);
 		
 	material->Solution(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
 }

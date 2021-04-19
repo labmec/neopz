@@ -113,6 +113,9 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
     this->fMaterial->ContributeBC(data, weight, ek, ef, *this);
 }
 
+void TPZBndCond::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors){
+    this->fMaterial->ErrorsBC(data, errors, *this);
+}
 //void TPZBndCond::ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors,TPZBndCond &bc){
 //    DebugStop();
 //}
@@ -154,7 +157,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dat
     }
 }//void
 
-void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void TPZBndCond::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     
     TPZMaterial *mat = dynamic_cast<TPZMaterial *>(fMaterial);
     if(!mat) DebugStop();
@@ -229,18 +232,20 @@ void TPZBndCond::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
 	}
 }
 
-void TPZBndCond::FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) {
+void TPZBndCond::FillDataRequirementsInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec_left, std::map<int, TPZMaterialData> &datavec_right) {
     data.fNeedsNormal = true;
     int nref_left = datavec_left.size();
-    for(int iref = 0; iref<nref_left; iref++){
-        datavec_left[iref].SetAllRequirements(false);
-        datavec_left[iref].fNeedsSol = true;
-        datavec_left[iref].fNeedsNormal = true;
+    for(auto &it : datavec_left)
+    {
+        it.second.SetAllRequirements(false);
+        it.second.fNeedsSol = true;
+        it.second.fNeedsNormal = true;
     }
     int nref_right = datavec_right.size();
-    for(int iref = 0; iref<nref_right; iref++){
-        datavec_right[iref].SetAllRequirements(false);
-        datavec_right[iref].fNeedsSol = true;
-        datavec_right[iref].fNeedsNormal = true;
+    for(auto &it : datavec_right)
+    {
+        it.second.SetAllRequirements(false);
+        it.second.fNeedsSol = true;
+        it.second.fNeedsNormal = true;
     }
 }

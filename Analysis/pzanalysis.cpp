@@ -790,110 +790,27 @@ void TPZAnalysis::PostProcessErrorParallel(TPZVec<REAL> &ervec, bool store_error
 
 void TPZAnalysis::PostProcessErrorSerial(TPZVec<REAL> &ervec, bool store_error, std::ostream &out ){
 
-    int64_t neq = fCompMesh->NEquations();
-    TPZVec<REAL> ux(neq);
-    TPZVec<REAL> sigx(neq);
-    TPZManVector<REAL,10> values(10,0.);
-    TPZAdmChunkVector<TPZCompEl *> &elvec = fCompMesh->ElementVec();
-    TPZGeoMesh *gmesh = fCompMesh->Reference();
-    int dim = fCompMesh->Dimension();
-    int64_t i, nel = elvec.NElements();
-    int64_t nelgeom = gmesh->NElements();
-    TPZFMatrix<REAL> elvalues(nelgeom,10,0.);
-    fCompMesh->LoadSolution(fSolution);
-    
-    TPZManVector<REAL,10> errors(10);
-    errors.Fill(0.0);
-    for(i=0;i<nel;i++) {
-        TPZCompEl *el = (TPZCompEl *) elvec[i];
-        if(el) {
-            TPZMaterial *mat = el->Material();
-            TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-            if(bc) continue;
-            TPZSubCompMesh * submesh = dynamic_cast<TPZSubCompMesh*>(el);
-            if(submesh || (mat != nullptr && mat->Dimension() == dim))
-            {
-                errors.Fill(0.0);
-                if((mat != nullptr && mat->HasExactSol()) || submesh)
-                  {el->EvaluateError(errors,store_error);}
-                else
-                  {
-                  PZError<<__PRETTY_FUNCTION__;
-                  PZError<<" the material has no associated exact solution\n";
-                  PZError<<"Aborting...";
-                  DebugStop();
-                  }
-                int nerrors = errors.NElements();
-                values.Resize(nerrors, 0.);
-                elvalues.Resize(nelgeom, nerrors);
+    fCompMesh->EvaluateError(store_error, ervec);
 
-#ifdef PZ_LOG
-                if (loggerError.isDebugEnabled()) {
-                    std::stringstream sout;
-                    sout << "Values: ";
-                    for (int ierr = 0; ierr < nerrors; ierr++) {
-                        sout << errors[ierr] << " ";
-                    }
-                    sout << "\n";
-                    sout << "GelID: ";
-                    if (el->Reference()) {
-                        sout << el->Reference()->Index();
-                        TPZGeoElSide side(el->Reference());
-                        TPZManVector<REAL> coord(3);
-                        side.CenterX(coord);
-                        sout << " CenterCoord: " << coord;
-                        sout << " MatID: " << el->Material()->Id();
-                    }
-                    sout << "\n";
-                    LOGPZ_DEBUG(loggerError, sout.str())
-                }
-#endif
-                for(int ier = 0; ier < nerrors; ier++)
-                {
-                    if(el->Reference()){
-                       elvalues(el->Reference()->Index(),ier) = errors[ier];
-                    }
-                    
-                    values[ier] += errors[ier] * errors[ier];
-                    
-                }
-            }
-        }
-    }
-    
-    
-    int nerrors = errors.NElements();
-	ervec.Resize(nerrors);
-	ervec.Fill(-10.0);
-    
+
+    const int nerrors = ervec.NElements();
+
     if (nerrors < 3) {
         PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
         out<<endl<<"############"<<endl;
         for(int ier = 0; ier < nerrors; ier++)
-            out << endl << "error " << ier << "  = " << sqrt(values[ier]);
+            out << endl << "error " << ier << "  = " << ervec[ier];
     }
-    else{
+    else {
 #ifdef PZDEBUG
         out << "############" << endl;
-        out <<"Norma H1 or L2 -> p = "  << sqrt(values[0]) << endl;
-        out <<"Norma L2 or L2 -> u = "    << sqrt(values[1]) << endl;
-        out << "Semi-norma H1 or L2 -> div = "    << sqrt(values[2])  <<endl;
-        for(int ier = 3; ier < nerrors; ier++)
-            out << "other norms = " << sqrt(values[ier]) << endl;
+        out << "Norma H1 or L2 -> p = " << ervec[0] << std::endl;
+        out << "Norma L2 or L2 -> u = " << ervec[1] << std::endl;
+        out << "Semi-norma H1 or L2 -> div = " << ervec[2] << std::endl;
+        for (int ier = 3; ier < ervec.size(); ier++)
+            out << "other norms = " << ervec[ier] << std::endl;
 #endif
     }
-//#ifdef PZ_LOG
-//    if(loggerError.isDebugEnabled())
-//    {
-//        std::stringstream sout;
-//        elvalues.Print("Errors = ",sout,EMathematicaInput);
-//        LOGPZ_DEBUG(loggerError,sout.str())
-//    }
-//#endif
-	// Returns the calculated errors.
-	for(i=0;i<nerrors;i++)
-		ervec[i] = sqrt(values[i]);
-    return;
 }
 
 void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out

@@ -709,6 +709,63 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
     
 }
 
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(std::map<int, TPZMaterialData > &dataVec, TPZVec<int64_t> *indices)
+{
+    int64_t nref = this->fElementVec.size();
+    
+//#ifdef PZDEBUG
+//    if (nref != dataVec.size()) {
+//        PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
+//        DebugStop();
+//    }
+//#endif
+    if(indices){
+        int64_t nindices = indices->size();
+        TPZVec<int> nshape(nindices);
+        for (int64_t iref = 0; iref <nindices; iref++) {
+            int64_t indiciref = indices->operator[](iref);
+            if(fElementVec[indiciref])
+            {
+                dataVec[indiciref].gelElId = fElementVec[indiciref].Element()->Reference()->Id();
+            }
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[indiciref].Element());
+            if (!msp) {
+                continue;
+            }
+            // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+            msp->InitMaterialData(dataVec[indiciref]);
+        }
+    }else{
+        TPZVec<int> nshape(nref);
+        for (int64_t iref = 0; iref < nref; iref++)
+        {
+            if(fElementVec[iref])
+            {
+                dataVec[iref].gelElId = fElementVec[iref].Element()->Reference()->Id();
+            }
+            TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+            if (!msp) {
+                continue;
+            }
+            // precisa comentar essa parte se for calcular os vetores no pontos de integracao.
+            msp->InitMaterialData(dataVec[iref]);
+        }
+    }
+    
+    int n_active_approx_spaces = fActiveApproxSpace.size();
+    if (n_active_approx_spaces == 0) { /// it preserves the integrity for old version of multiphycis codes.
+        fActiveApproxSpace.Resize(nref, 1);
+    }
+    
+    for (auto &it : dataVec) {
+        it.second.fActiveApproxSpace = fActiveApproxSpace[it.first];
+    }
+    
+    this->Material()->FillDataRequirements(dataVec);
+    
+}
+
 /**
  * @brief Initialize a material data vector and its attributes based on element dimension, number
  * of state variables and material definitions
@@ -1013,6 +1070,26 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpoin
 }//ComputeRequiredData
 
 template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialData> &datavec)
+{
+    int64_t ElemVecSize = fElementVec.size();
+    for (auto &it : datavec)
+    {
+        int iref = it.first;
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        if (!msp) {
+            continue;
+        }
+        
+        TPZManVector<REAL,3> intpoint(msp->Reference()->Dimension(),0.);
+        
+        trvec[iref].Apply(intpointtemp, intpoint);
+        
+        msp->ComputeRequiredData(it.second, intpoint);
+    }
+}//ComputeRequiredData
+
+template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::SetIntegrationRule(int int_order) {
     
 #ifdef PZDEBUG
@@ -1091,6 +1168,8 @@ template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::EvaluateError(TPZVec<REAL> &errors, bool store_errors) {
   errors.Fill(0.);
   TPZMaterial *material = this->Material();
+    TPZNullMaterial *nullmat = dynamic_cast<TPZNullMaterial *>(material);
+    if(nullmat) return;
   //TPZMaterial * matptr = material.operator->();
   if (!material) {
     PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";

@@ -209,7 +209,7 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const override;
 	
     /** @brief Initialize the material data structures */
-    void InitMaterialData(TPZMaterialData &center_data, TPZVec<TPZMaterialData> &data_left, TPZVec<TPZMaterialData> &data_right);
+    void InitMaterialData(TPZMaterialData &center_data, std::map<int,TPZMaterialData> &data_left, std::map<int,TPZMaterialData> &data_right);
     
     /** @brief initialize the material data for the geometric data */
     void InitMaterialData(TPZMaterialData &data);
@@ -289,7 +289,10 @@ public:
 
     
 virtual int ClassId() const override;
-    
+
+    virtual void EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) override {
+    }
+
 };
 
 #endif

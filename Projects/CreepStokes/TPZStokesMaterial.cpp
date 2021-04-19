@@ -965,7 +965,7 @@ void TPZStokesMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weig
 
 ////////////////////////////////////////////////////////////////////
 
-void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
+void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavecleft, std::map<int, TPZMaterialData> &datavecright, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
     
     
     // Verificar que
@@ -1439,7 +1439,7 @@ void TPZStokesMaterial::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMat
 
 
 
-void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+void TPZStokesMaterial::ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
     
     STATE rhsnorm = Norm(ef);
     if(isnan(rhsnorm))

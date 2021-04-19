@@ -99,10 +99,10 @@ public:
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout) override;
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout) override;
+    virtual void Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout) override;
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * ritgh) override;
+    virtual void Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * ritgh) override;
     
 protected:
     

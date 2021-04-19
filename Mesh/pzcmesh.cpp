@@ -480,7 +480,14 @@ void TPZCompMesh::ExpandSolutionInternal(TPZFMatrix<TVar> &sol) {
 }
 
 void TPZCompMesh::LoadSolution(const TPZSolutionMatrix &mat){
-    fSolution = mat;
+    /*
+      The TPZAnalysis class will store the solution associated with the independent
+      equations, i.e., the solution returned from the solver.
+      Meanwhile, the TPZCompMesh class stores the *full* solution, therfore it needs
+      extra room for the dependent dofs
+    */
+    fSolution.ExpandAndSetSol(mat, fSolution.Rows());
+    
     const auto nelem = NElements();
 	for(auto i=0; i<nelem; i++) {
 		TPZCompEl *cel = fElementVec[i];
@@ -1449,24 +1456,53 @@ void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	
 
 	TPZCompEl *cel;
+	int gridDim = Dimension();
 	
 	//soma de erros sobre os elementos
 	for(int64_t el=0;el< fElementVec.NElements();el++) {
-		cel = fElementVec[el];
-		if(!cel  || cel->Material()->Id() < 0) continue;
-		cel->EvaluateError(true_error,store_error);
-		
-		int64_t nerrors = true_error.NElements();
-		errorSum.Resize(nerrors,0.);
-		for(int64_t ii = 0; ii < nerrors; ii++)
-			errorSum[ii] += true_error[ii]*true_error[ii];
+        cel = fElementVec[el];
+
+        if (!cel) continue;
+
+        cel->EvaluateError(true_error, store_error);
+
+        int64_t nerrors = true_error.NElements();
+        errorSum.Resize(nerrors, 0.);
+        for (int64_t ii = 0; ii < nerrors; ii++)
+            errorSum[ii] += true_error[ii] * true_error[ii];
+
+#ifdef PZ_LOG
+		if (logger.isDebugEnabled()) {
+			std::stringstream sout;
+			sout << "true_errors: ";
+			for (int ierr = 0; ierr < nerrors; ierr++) {
+				sout << true_error[ierr] << " ";
+			}
+			sout << "\n";
+			sout << "acc_errors^2: ";
+			for (int ierr = 0; ierr < nerrors; ierr++) {
+				sout << errorSum[ierr] << " ";
+			}
+			sout << "\n";
+			sout << "GelID: ";
+			if (cel->Reference()) {
+				sout << cel->Reference()->Index();
+				TPZGeoElSide side(cel->Reference());
+				TPZManVector<REAL> coord(3);
+				side.CenterX(coord);
+				sout << " CenterCoord: " << coord;
+				sout << " MatID: " << cel->Material()->Id();
+			}
+			sout << "\n";
+			LOGPZ_DEBUG(logger, sout.str())
+		}
+#endif
 	}
 	
 	int64_t nerrors = errorSum.NElements();
 	for(int64_t ii = 0; ii < nerrors; ii++)
 		errorSum[ii] = sqrt(errorSum[ii]);
 }
-
 
 void TPZCompMesh::AdjustBoundaryElements() {
 	int changed = 1;

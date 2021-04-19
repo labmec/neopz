@@ -129,7 +129,10 @@ public:
 	virtual void Integrate(int variable, TPZVec<STATE> & value) override;
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec) override;
+
+    /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialData> &datavec) override;
 
     virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point) override
     {
@@ -302,6 +305,11 @@ public:
 	 */
 	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) override;
 	
+    /**
+     * @brief Initialize a material data vector and its attributes based on element dimension, number
+     * of state variables and material definitions
+     */
+    void InitMaterialData(std::map<int, TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) override;
     /**
      * @brief Initialize a material data vector and its attributes based on element dimension, number
      * of state variables and material definitions

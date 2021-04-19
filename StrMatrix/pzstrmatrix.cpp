@@ -379,7 +379,7 @@ void TPZStructMatrixOR::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<
 
     for (iel = 0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
-        if (!el) continue;
+        if (!el || el->IsInterface()) continue;
 
         int matid = 0;
         TPZGeoEl *gel = el->Reference();

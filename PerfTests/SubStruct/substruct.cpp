@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     constexpr int dim{3};
     constexpr int initPOrder{2};
     constexpr int nSubMeshes{3};
-    const unsigned int nThreads{std::thread::hardware_concurrency()};
+    unsigned int nThreads{std::thread::hardware_concurrency()};
     constexpr bool useTBB{false};
     constexpr int numIt{500};//CG solver
     /*CODE*/

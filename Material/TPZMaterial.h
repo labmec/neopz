@@ -15,6 +15,7 @@
 #include "tpzautopointer.h"
 #include "TPZSavable.h"
 #include "pzfunction.h"
+#include <functional>
 
 #include <iostream>
 #include <string>
@@ -22,6 +23,7 @@
 class TPZBndCond;
 class TPZIntPoints;
 class TPZCompEl;
+
 /**
  * @ingroup material
  * @brief This abstract class defines the behaviour which each derived class needs to implement
@@ -116,6 +118,13 @@ public:
      */
 	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
+    /**
+     * @brief Fill material data parameter with necessary requirements for the
+     * Contribute method. Here, in base class, all requirements are considered as necessary.
+     * Each derived class may optimize performance by selecting only the necessary data.
+     */
+    virtual void FillDataRequirements(std::map<int, TPZMaterialData > &datavec);
+    
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
     {
@@ -133,16 +142,14 @@ public:
     }
     
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
-    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right)
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec_left, std::map<int, TPZMaterialData> &datavec_right)
     {
         data.SetAllRequirements(false);
-        int nref_left = datavec_left.size();
-        for(int iref = 0; iref<nref_left; iref++){
-            datavec_left[iref].SetAllRequirements(false);
+        for(auto &it : datavec_left){
+            it.second.SetAllRequirements(false);
         }
-        int nref_right = datavec_right.size();
-        for(int iref = 0; iref<nref_right; iref++){
-            datavec_right[iref].SetAllRequirements(false);
+        for(auto &it : datavec_right){
+            it.second.SetAllRequirements(false);
         }
 
     }
@@ -218,10 +225,10 @@ public:
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout);
+    virtual void Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * right);
+    virtual void Solution(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleftvec, std::map<int, TPZMaterialData> &datarightvec, int var, TPZVec<STATE> &Solout, TPZCompEl * left, TPZCompEl * right);
 
     /** @deprecated Deprecated interface for Solution method which must use
      * material data. */
@@ -356,8 +363,9 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
-                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    
+//    virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,
+//                                     REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
     
     /**
      * @brief Computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation
@@ -369,7 +377,7 @@ public:
      * @param ef [out] is the load vector
      * @since June 5, 2012
      */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 
     
     /**
@@ -393,7 +401,7 @@ public:
      * @param ef [out] is the load vector
      * @since June 5, 2012
      */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef);
     
     
     
@@ -430,7 +438,7 @@ public:
      * @param bc [in] is the boundary condition object
      * @since February 21, 2013
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     
     /**
      * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point to multiphysics simulation
@@ -442,7 +450,7 @@ public:
      * @param bc [in] is the boundary condition object
      * @since February 21, 2013
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 
     /** @} */
 	
@@ -569,7 +577,19 @@ public:
     }
     //! Calculates errors based on its solution (multiphysics/BC version).
     virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,  TPZVec<REAL> &errors,TPZBndCond &bc){
-    
+      if (fExactSol) {
+        PZError << __PRETTY_FUNCTION__;
+        PZError << "\nPlease implement:\n";
+        PZError << "\tErrors(TPZVec<REAL> &x, TPZVec<STATE> &sol,\n";
+        PZError
+            << "\t       TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes,\n";
+        PZError << "\t       TPZVec<REAL> &val)\n";
+        PZError << "in your material\n";
+        TPZVec<STATE> u(3, 0);
+        TPZFMatrix<STATE> gradu(3, 3, 0);
+        fExactSol->Execute(data[0].x, u, gradu);
+        return ErrorsBC(data, u, gradu, errors, (TPZBndCond&)*this);
+      }
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
         DebugStop();
@@ -600,12 +620,22 @@ protected:
   virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
                       TPZFMatrix<REAL> &axes, TPZVec<REAL> &u_exact,
                       TPZFMatrix<REAL> &du_exact, TPZVec<REAL> &values){
+        PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Error comparison not available.\n";
         PZError << "Please, implement it.\n";
         DebugStop();
   }
 public:
-
+    //obsolete signature
+    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data,
+                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
+                          TPZVec<REAL> &errors,TPZBndCond &bc){
+    
+        PZError << __PRETTY_FUNCTION__ << std::endl;
+        PZError << "Error comparison not available.\n";
+        PZError << "Please, implement it.\n";
+        DebugStop();
+    }
     
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     virtual int NEvalErrors() {return 3;}

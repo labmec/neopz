@@ -259,7 +259,7 @@ protected:
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @since March 5, 2013
 	 */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
+    virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
@@ -284,8 +284,9 @@ protected:
 				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val) override{
 		val.Fill(0.);
 	}
-public:
-    
+
+    //error for bc
+    void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors)override;
 //    // error for boundary robin part
 //    virtual void ErrorsBC(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors, TPZBndCond &bc) override;
 	
@@ -317,7 +318,7 @@ virtual int ClassId() const override;
     
     virtual void FillDataRequirements(TPZVec<TPZMaterialData> &datavec)  override;
     
-    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) override;
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec_left, std::map<int, TPZMaterialData> &datavec_right) override;
 	
 };
 

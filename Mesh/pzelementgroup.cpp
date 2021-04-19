@@ -362,8 +362,7 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
 }
 
 /**
- * @brief Performs an error estimate on the elemen
- * @param fp function pointer which computes the exact solution
+ * @brief Performs an error computation on the element
  * @param errors [out] the L2 norm of the error of the solution
  * @param flux [in] value of the interpolated flux values
  */
@@ -376,19 +375,14 @@ void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
     int nel = fElGroup.size();
     for (int el=0; el<nel; el++) {
         TPZManVector<REAL,10> errloc(nerr,0.);
-        TPZMaterial *mat = fElGroup[el]->Material();
-        TPZBndCond *bc = dynamic_cast<TPZBndCond *>(mat);
-        if(!mat || mat->Dimension() == meshdim || bc )
-        {
-            TPZGeoEl *elref = fElGroup[el]->Reference();
-            fElGroup[el]->EvaluateError(errloc, store_error);
-            if (errloc.size() != nerr) {
-                nerr = errloc.size();
-                errors.Resize(nerr, 0.);
-            }
-            for (int i=0; i<errloc.size(); i++) {
-                errors[i] += errloc[i]*errloc[i];
-            }
+        TPZGeoEl *elref = fElGroup[el]->Reference();
+        fElGroup[el]->EvaluateError(errloc, store_error);
+        if (errloc.size() != nerr) {
+            nerr = errloc.size();
+            errors.Resize(nerr, 0.);
+        }
+        for (int i=0; i<errloc.size(); i++) {
+            errors[i] += errloc[i]*errloc[i];
         }
     }
     for (int i=0; i<errors.size(); i++) {

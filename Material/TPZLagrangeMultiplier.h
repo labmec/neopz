@@ -107,23 +107,15 @@ class TPZLagrangeMultiplier : public TPZMaterial
     }
     
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of interface elements */
-    virtual void FillDataRequirementsInterface(TPZMaterialData &data, TPZVec<TPZMaterialData > &datavec_left, TPZVec<TPZMaterialData > &datavec_right) override
+    virtual void FillDataRequirementsInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &datavec_left, std::map<int, TPZMaterialData> &datavec_right) override
     {
         data.SetAllRequirements(false);
-//        data.fNeedsNormal = true;
-        int nref_left = datavec_left.size();
-        for(int iref = 0; iref<nref_left; iref++){
-            datavec_left[iref].SetAllRequirements(false);
-//            datavec_left[iref].fNeedsSol    = true;
-//            datavec_left[iref].fNeedsNormal = true;
-        }
-        int nref_right = datavec_right.size();
-        for(int iref = 0; iref<nref_right; iref++){
-            datavec_right[iref].SetAllRequirements(false);
-//            datavec_right[iref].fNeedsSol    = true;
-//            datavec_right[iref].fNeedsNormal = true;
-        }
-        
+
+        if(datavec_left.size() != 1) DebugStop();
+        datavec_left.begin()->second.SetAllRequirements(false);
+
+        if(datavec_right.size() != 1) DebugStop();
+        datavec_right.begin()->second.SetAllRequirements(false);
     }
 	
     /**
@@ -183,7 +175,7 @@ class TPZLagrangeMultiplier : public TPZMaterial
 	 * @param ef [out] is the load vector
 	 * @since June 5, 2012
 	 */
-    virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
+    virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     
 	
 	/**
@@ -207,9 +199,10 @@ class TPZLagrangeMultiplier : public TPZMaterial
 	 * @param ef [out] is the load vector
 	 * @since June 5, 2012
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef) override
+	virtual void ContributeInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, std::map<int, TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ef) override
     {
-        ContributeInterface(data, dataleft[0], dataright[0], weight, ef);
+        DebugStop();
+        ContributeInterface(data, dataleft.begin()->second, dataright.begin()->second, weight, ef);
     }
 	
     
@@ -238,7 +231,7 @@ class TPZLagrangeMultiplier : public TPZMaterial
 	 * @param bc [in] is the boundary condition object
 	 * @since February 21, 2013
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
+	virtual void ContributeBCInterface(TPZMaterialData &data, std::map<int, TPZMaterialData> &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override
     {
         DebugStop();
     }
