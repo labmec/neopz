@@ -8,6 +8,9 @@
 
 #include "pzvec.h"
 
+//for gIntRuleList
+#include "pz_shared_exports.h"
+
 class TPZGaussRule;
 class TPZGaussLegendreRule;
 class TPZGaussLobattoRule;
@@ -39,7 +42,7 @@ class TPZIntRuleList {
      * @ingroup integral
      * @brief Static variable with list of all integration rules
      */
-    static TPZIntRuleList gIntRuleList;
+    PZ_EXPORT static TPZIntRuleList gIntRuleList;
     
 	/** 
 	 * @brief Method which initializes all integration rule vectors 

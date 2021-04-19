@@ -706,7 +706,12 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(int64_t & numiterations, const TPZFMatrix
 			if constexpr (is_complex<TVar>::value){
 				return abs(res)>tol;
 			}else{
+#ifdef WIN32//MSVC BUG https://developercommunity.visualstudio.com/t/discarded-if-constexpr-branch-incorrectly-causes-t/295561
+
+                return abs(res)>tol;
+#else
 				return res>tol;
+#endif
 			}
 		}();
 	
