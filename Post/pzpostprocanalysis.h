@@ -7,8 +7,6 @@
 #include "TPZGeoElement.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
-#include "pzstrmatrix.h"
-
 
 #include <iostream>
 #include <string>

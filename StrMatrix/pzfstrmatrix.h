@@ -8,7 +8,8 @@
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
+#include "pzstrmatrixor.h"
 
 class TPZCompMesh;
 
@@ -16,20 +17,29 @@ class TPZCompMesh;
  * @brief Implements Full Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZFStructMatrix : public TPZStructMatrix {
+class TPZFStructMatrix : public TPZStructMatrix,
+                         public TPZStructMatrixOR
+{
 public:    
 	
     TPZFStructMatrix(TPZCompMesh *);
 	
     TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> );
     
-    virtual TPZMatrix<STATE> * Create();
+    TPZMatrix<STATE>* Create() override;
 	
-    virtual TPZStructMatrix * Clone();
+    TPZStructMatrix * Clone() override;
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
 
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 private :
 	
-    TPZFStructMatrix();
+    TPZFStructMatrix() = default;
     
     friend TPZPersistenceManager;
 };

@@ -7,22 +7,7 @@
 #define TPZPARFRONTSTRUCTMATRIX_H
 
 #include "TPZFrontStructMatrix.h"
-#include "TPZFileEqnStorage.h"
-#include "pzstrmatrix.h"
-#include "pzcmesh.h" 
-
-#include "TPZFrontMatrix.h"
-#include "TPZFrontNonSym.h"
-#include "TPZFrontSym.h"
-#include "tpzautopointer.h"
-
-#include "pzelmat.h"
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-
-#include <signal.h>
-#include <time.h>
+#include "pzstack.h"
 
 //#define STACKSTORAGE
 

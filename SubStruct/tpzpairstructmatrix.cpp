@@ -7,7 +7,6 @@
 #include "TPZTimer.h"
 #include "pzelmat.h"
 #include "pzcompel.h"
-#include "pzstrmatrix.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
 #include "TPZMaterial.h"
@@ -37,7 +36,7 @@ TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permute
 #ifdef PERF_DEBUG
 	std::cout << "fNumThreads e "<< fNumThreads << " gNumThreads esta setando para " << gNumThreads << endl; 
 #endif
-    fStrMatrix.SetNumThreads(gNumThreads);
+    fStrMatrix->SetNumThreads(gNumThreads);
 
 }
 
@@ -456,7 +455,7 @@ void TPZPairStructMatrix::TBBAssemble(TPZMatrix<STATE> *first,
 void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
 	int iel;
-	TPZCompMesh &mesh = *fStrMatrix.Mesh();
+	TPZCompMesh &mesh = *fStrMatrix->Mesh();
 	int nelem = mesh.NElements();
 	TPZElementMatrix ek(&mesh, TPZElementMatrix::EK),ef(&mesh, TPZElementMatrix::EF);
     
@@ -476,7 +475,7 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 		
 		if(!el->HasDependency()) {
 			ek.ComputeDestinationIndices();
-            fStrMatrix.FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+            fStrMatrix->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 			
 			first->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -497,7 +496,7 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 			ef.ApplyConstraints();
 			ek.ComputeDestinationIndices();
             //FIXME: (Edson) - O operador é  && ou ||
-            fStrMatrix.FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+            fStrMatrix->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 			first->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			PermuteScatter(ek.fDestinationIndex);
@@ -553,7 +552,7 @@ void TPZPairStructMatrix::Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *se
     /// "Fixme!!!"   "Fixme!!!"   "Fixme!!!"   "Fixme!!!"
   /// @note Find a better way to select among TBB, std::thread or serial execution! in this TPZPairStructMatrix::Assemble
 
-    int numthreads = fStrMatrix.GetNumThreads();
+    int numthreads = fStrMatrix->GetNumThreads();
   if (numthreads < 0)
     TBBAssemble(first, second, rhs);
   else if(numthreads > 0)
@@ -564,9 +563,9 @@ void TPZPairStructMatrix::Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *se
 
 void TPZPairStructMatrix::MultiThread_Assemble(TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
-	ThreadData threaddata(&fStrMatrix,*first,*second,rhs);
+    ThreadData threaddata(fStrMatrix.operator->(),*first,*second,rhs);
 	threaddata.fPermuteScatter = fPermuteScatter;
-	const int numthreads = fStrMatrix.GetNumThreads();
+	const int numthreads = fStrMatrix->GetNumThreads();
 	std::vector<thread> allthreads(numthreads+1);
 	int itr;
 	for(itr=0; itr<numthreads; itr++)
@@ -880,7 +879,7 @@ void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPoin
 // Set the set of material ids which will be considered when assembling the system
 void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 {
-	fStrMatrix.SetMaterialIds(materialids);
+	fStrMatrix->SetMaterialIds(materialids);
 #ifdef PZ_LOG
 	{
 		std::set<int>::const_iterator it;

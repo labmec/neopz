@@ -43,7 +43,7 @@
 #include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
 #include "pzstack.h"                       // for TPZStack
 #include "pzstepsolver.h"                  // for TPZStepSolver
-#include "pzstrmatrix.h"                   // for TPZStructMatrix, TPZStruct...
+#include "TPZStructMatrix.h"               // for TPZStructMatrix
 #include "pzv3dmesh.h"                     // for TPZV3DGraphMesh
 #include "pzvec.h"                         // for TPZVec, operator<<
 #include "pzvtkmesh.h"                     // for TPZVTKGraphMesh

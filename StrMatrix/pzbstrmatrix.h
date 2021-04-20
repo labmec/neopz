@@ -5,38 +5,39 @@
 
 #ifndef TPZBANDSTRUCTMATRIX_H
 #define TPZBANDSTRUCTMATRIX_H
-
-#include "pzmatrix.h"
-#include "pzstrmatrix.h"
-#include "pzfmatrix.h"
-#include "pzcmesh.h"
-
+#include "TPZStructMatrix.h"
+#include "pzstrmatrixor.h"
 /**
  * @brief Implements Banded Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZBandStructMatrix : public TPZStructMatrix {
+class TPZBandStructMatrix : public TPZStructMatrix, public TPZStructMatrixOR{
 public:    
 	
     TPZBandStructMatrix(TPZCompMesh *);
-    
-    ~TPZBandStructMatrix();
+    TPZBandStructMatrix(TPZAutoPointer<TPZCompMesh>);
 	
     TPZBandStructMatrix(const TPZBandStructMatrix &copy) : TPZStructMatrix(copy)
     {
     }
 	
-    virtual TPZMatrix<STATE> * Create();
-	
+    TPZMatrix<STATE> * Create() override;
+	TPZStructMatrix * Clone() override;
+    
     using TPZStructMatrix::CreateAssemble;
     virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
-    virtual TPZStructMatrix * Clone();
-	
-public:
-	
+
+
+	//@{
+    //!Read and Write methods
+    int ClassId() const override;
+
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 private :
-    TPZBandStructMatrix();
+    TPZBandStructMatrix() = default;
     
     friend TPZPersistenceManager;
 };

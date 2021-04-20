@@ -4,24 +4,23 @@
  */
 
 #include "tpzsparseblockdiagonalstructmatrix.h"
+#include "pzcmesh.h"
 
-TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix() :
-TPZStructMatrix()
-{
-}
 
 TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh) :
 TPZStructMatrix(mesh)
 {
 }
 
-TPZSparseBlockDiagonalStructMatrix::~TPZSparseBlockDiagonalStructMatrix()
+TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>mesh) :
+TPZStructMatrix(mesh)
 {
 }
 
 TPZStructMatrix* TPZSparseBlockDiagonalStructMatrix::Clone()
 {
-    return TPZStructMatrix::Clone();
+    DebugStop();
+	return nullptr;
 }
 
 TPZMatrix<STATE> * TPZSparseBlockDiagonalStructMatrix::Create()
@@ -40,7 +39,8 @@ TPZMatrix<STATE> * TPZSparseBlockDiagonalStructMatrix::Create()
 	// this preconditioner type should be created by the analysis class
 	// it is too complicated to require the user to coordinate this within
 	// the current class structure....
-	return 0;
+	DebugStop();
+	return nullptr;
 }
 
 /*!
@@ -49,4 +49,19 @@ TPZMatrix<STATE> * TPZSparseBlockDiagonalStructMatrix::Create()
 int TPZSparseBlockDiagonalStructMatrix::NumColors()
 {
     return 0;
+}
+
+int TPZSparseBlockDiagonalStructMatrix::ClassId() const{
+	return Hash("TPZSparseBlockDiagonalStructMatrix") ^
+		TPZStructMatrix::ClassId() << 1;
+}
+
+void TPZSparseBlockDiagonalStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
+
+void TPZSparseBlockDiagonalStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
 }

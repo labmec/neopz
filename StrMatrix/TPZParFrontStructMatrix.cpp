@@ -3,15 +3,11 @@
  * @brief Contains the implementation of the TPZParFrontStructMatrix methods. 
  */
 
-#include "TPZFrontMatrix.h"
 #include "TPZParFrontStructMatrix.h"
-#include "TPZFrontStructMatrix.h"
+#include "TPZFrontMatrix.h"
 
 #include "TPZFrontSym.h"
 #include "TPZFrontNonSym.h"
-
-#include "pzstrmatrix.h"
-#include "pzfstrmatrix.h"
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -738,12 +734,6 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 	return mat;
 	
 }
-
-
-template<class TVar>
-class TPZFrontSym;
-template<class TVar>
-class TPZFrontNonSym;
 
 template class TPZParFrontStructMatrix<TPZFrontSym<STATE> >;
 template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE> >;

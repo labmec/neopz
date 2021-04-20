@@ -65,5 +65,24 @@ TPZMatrix<STATE> *TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Create()
 	return matred;
 }
 
+template< class TStructMatrix, class TSparseMatrix>
+int TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::ClassId() const{
+    return Hash("TPZMatRedStructMatrix") ^ TPZStructMatrix::ClassId() << 1 ^
+        TSparseMatrix().ClassId() << 2;
+}
+
+template< class TStructMatrix, class TSparseMatrix>
+void TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    buf.Read(&fInternalEqs);
+}
+
+template< class TStructMatrix, class TSparseMatrix>
+void TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    buf.Write(fInternalEqs);
+}
+
+
 template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> >;
 template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZFMatrix<STATE> >;

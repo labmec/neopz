@@ -1,11 +1,10 @@
-#include "TPZStructMatrixBase.h"
+#include "TPZStructMatrix.h"
 
 #include "pzcmesh.h"
 #include "pzcheckmesh.h"
 #include "pzerror.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
-#include "TPZThreadPool.h"
 #include "pzshtmat.h"
 #include "pzlog.h"
 #ifdef PZ_LOG
@@ -18,31 +17,27 @@ static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 #endif
 
 //this is not in header file to avoid including cmesh.h there
-TPZStructMatrixBase::~TPZStructMatrixBase(){}
+TPZStructMatrix::TPZStructMatrix() : fMesh(nullptr), fEquationFilter(0){}
+//this is not in header file to avoid including cmesh.h there
+TPZStructMatrix::~TPZStructMatrix(){}
 
-TPZStructMatrixBase::TPZStructMatrixBase() : fMesh(NULL), fEquationFilter(0) {
-    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
-}
-
-TPZStructMatrixBase::TPZStructMatrixBase(TPZCompMesh *mesh)
-    : fEquationFilter(0) {
+TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh)
+    : TPZStrMatParInterface(), fEquationFilter(0){
     SetMesh(mesh);
-    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
-TPZStructMatrixBase::TPZStructMatrixBase(TPZAutoPointer<TPZCompMesh> mesh)
-    : fEquationFilter(0) {
+TPZStructMatrix::TPZStructMatrix(TPZAutoPointer<TPZCompMesh> mesh)
+    : TPZStrMatParInterface(), fEquationFilter(0) {
     SetMesh(mesh);
-    this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
-TPZStructMatrixBase::TPZStructMatrixBase(const TPZStructMatrixBase &copy)
-    : fMesh(copy.fMesh), fCompMesh(copy.fCompMesh),
-      fEquationFilter(copy.fEquationFilter), fMaterialIds(copy.fMaterialIds),
-      fNumThreads(copy.fNumThreads) {
+TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy)
+    : TPZStrMatParInterface(copy),fMesh(copy.fMesh),
+      fCompMesh(copy.fCompMesh),
+      fMaterialIds(copy.fMaterialIds), fEquationFilter(copy.fEquationFilter) {
 }
 
-void TPZStructMatrixBase::SetMesh(TPZCompMesh *mesh) {
+void TPZStructMatrix::SetMesh(TPZCompMesh *mesh) {
     fMesh = mesh;
     fEquationFilter.SetNumEq(mesh ? mesh->NEquations() : 0);
 #ifdef PZDEBUG
@@ -55,38 +50,12 @@ void TPZStructMatrixBase::SetMesh(TPZCompMesh *mesh) {
 #endif
 }
 
-void TPZStructMatrixBase::SetMesh(TPZAutoPointer<TPZCompMesh> mesh) {
+void TPZStructMatrix::SetMesh(TPZAutoPointer<TPZCompMesh> mesh) {
     fCompMesh = mesh;
     SetMesh(mesh.operator->());
 }
 
-TPZBaseMatrix *TPZStructMatrixBase::CreateAssemble(
-    TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
-    TPZBaseMatrix *stiff = Create();
-    
-    int64_t cols = MAX(1, rhs.Cols());
-    rhs.Redim(fEquationFilter.NEqExpand(), cols);
-    Assemble(*stiff, rhs, guiInterface);
-
-#ifdef PZ_LOG2
-    if (loggerel.isDebugEnabled()) {
-        std::stringstream sout;
-        stiff->Print("Stiffness matrix", sout);
-        rhs.Print("Right hand side", sout);
-        LOGPZ_DEBUG(loggerel, sout.str())
-    }
-#endif
-    return stiff;
-}
-
-void TPZStructMatrixBase::FilterEquations(TPZVec<int64_t> &origindex, TPZVec<int64_t> &destindex) const
-{
-    //destindex = origindex;
-    fEquationFilter.Filter(origindex, destindex);
-    
-}
-
-void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
+void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 {
     fMaterialIds = materialids;
 #ifdef PZ_LOG
@@ -122,7 +91,7 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
             LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
             DebugStop();
         }
-        TPZStructMatrixBase *str = analysis->StructMatrix().operator->();
+        TPZStructMatrix *str = analysis->StructMatrix().operator->();
         if(!str)
         {
             LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
@@ -132,30 +101,7 @@ void TPZStructMatrixBase::SetMaterialIds(const std::set<int> &materialids)
     }
 }
 
-int TPZStructMatrixBase::ClassId() const{
-    return Hash("TPZStructMatrixBase");
-}
-
-void TPZStructMatrixBase::Read(TPZStream& buf, void* context) {
-    fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
-    fCompMesh = TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fEquationFilter.Read(buf,context);
-    buf.Read(fMaterialIds);
-    buf.Read(&fNumThreads);
-}
-
-void TPZStructMatrixBase::Write(TPZStream& buf, int withclassid) const {
-    TPZPersistenceManager::WritePointer(fMesh, &buf);
-    TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
-    fEquationFilter.Write(buf,withclassid);
-    buf.Write(fMaterialIds);
-    buf.Write(&fNumThreads);
-}
-
-/// compute a color for each element
-// @return the number of colors for parallel assembly
-// the color =-1 when the element should not be computed
-int TPZStructMatrixBase::ComputeElementColors(TPZVec<int> &elementcolors)
+int TPZStructMatrix::ComputeElementColors(TPZVec<int> &elementcolors)
 {
     TPZStack<int64_t> elgraph;
     TPZVec<int64_t> elgraphindex;
@@ -213,4 +159,27 @@ int TPZStructMatrixBase::ComputeElementColors(TPZVec<int> &elementcolors)
     }
     return highest_color;
 }
+
+int TPZStructMatrix::ClassId() const{
+    return Hash("TPZStructMatrix") ^
+        TPZStrMatParInterface::ClassId() << 1;
+}
+
+void TPZStructMatrix::Read(TPZStream& buf, void* context) {
+    //DO NOT READ FROM THE TPZMATPARINTERFACE
+    fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
+    fCompMesh = TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&buf));
+    buf.Read(fMaterialIds);
+    fEquationFilter.Read(buf,context);
+}
+
+void TPZStructMatrix::Write(TPZStream& buf, int withclassid) const {
+    //DO NOT WRITE THE TPZMATPARINTERFACE
+    TPZPersistenceManager::WritePointer(fMesh, &buf);
+    TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
+    buf.Write(fMaterialIds);
+    fEquationFilter.Write(buf,withclassid);
+}
+
+
 

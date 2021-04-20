@@ -4,38 +4,24 @@
  */
 
 #include "pzstrmatrixot.h"
-
-#include "pzvec.h"
-#include "pzfmatrix.h"
-#include "pzmanvector.h"
-#include "pzadmchunk.h"
-#include "pzcmesh.h"
-#include "pzgmesh.h"
-#include "pzelmat.h"
-#include "pzcompel.h"
-#include "pzintel.h"
 #include "pzsubcmesh.h"
-#include "pzanalysis.h"
-#include "pzsfulmat.h"
+#include "pzelmat.h"
+#include "TPZStructMatrix.h"
 
-#include "pzgnode.h"
 #include "TPZTimer.h"
-
-
 #include "pzcheckconsistency.h"
 #include "TPZMaterial.h"
+#include "run_stats_table.h"
 
 using namespace std;
 
-#include "pzlog.h"
 
-#include "run_stats_table.h"
 #include <thread>
 
 #ifdef PZ_LOG
+#include "pzlog.h"
 static TPZLogger logger("pz.strmatrix.TPZStructMatrixOT");
 static TPZLogger loggerel("pz.strmatrix.element");
-static TPZLogger loggerel2("pz.strmatrix.elementinterface");
 static TPZLogger loggerelmat("pz.strmatrix.elementmat");
 static TPZLogger loggerCheck("pz.strmatrix.checkconsistency");
 #endif
@@ -47,57 +33,61 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 RunStatsTable stat_ass_graph_ot("-ass_graph_ot", "Run statistics table for the graph creation and coloring TPZStructMatrixOT.");
 
 
-TPZStructMatrixOT::TPZStructMatrixOT(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
-    stat_ass_graph_ot.start();
-    TPZManVector<int64_t> ElementOrder;
-    
-    
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
-    TPZVec<int64_t> elcolors;
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
-    stat_ass_graph_ot.stop();
-    
+TPZStructMatrixOT::TPZStructMatrixOT(): TPZStrMatParInterface(){}
 
+TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) :
+    TPZStrMatParInterface(copy),
+    fElBlocked(copy.fElBlocked),
+    fElSequenceColor(copy.fElSequenceColor),
+    fElementsComputed(copy.fElementsComputed),
+    fElementCompleted(copy.fElementCompleted)
+    //fSomeoneisSleeping //no need
+    //fCurrentIndex //no need
+{
 }
-
-TPZStructMatrixOT::TPZStructMatrixOT(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrixBase(cmesh) {
-    stat_ass_graph_ot.start();
-    TPZManVector<int64_t> ElementOrder;
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
-    TPZVec<int64_t> elcolors;
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
-    stat_ass_graph_ot.stop();
-    
-    
+//! Move constructor
+TPZStructMatrixOT::TPZStructMatrixOT(TPZStructMatrixOT &&copy) :
+    TPZStrMatParInterface(copy),
+    fElBlocked(copy.fElBlocked),
+    fElSequenceColor(copy.fElSequenceColor),
+    fElementsComputed(copy.fElementsComputed),
+    fElementCompleted(copy.fElementCompleted)
+    //fSomeoneisSleeping //no need
+    //fCurrentIndex //no need
+{
 }
-
-TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) : TPZStructMatrixBase(copy) {
-    fElSequenceColor = copy.fElSequenceColor;
+//! Copy assignment operator
+TPZStructMatrixOT& TPZStructMatrixOT::operator=(const TPZStructMatrixOT &copy){
+    TPZStrMatParInterface::operator=(copy);
     fElBlocked = copy.fElBlocked;
-    fEquationFilter = copy.fEquationFilter;
+    fElSequenceColor = copy.fElSequenceColor;
     fElementsComputed = copy.fElementsComputed;
     fElementCompleted = copy.fElementCompleted;
-    fSomeoneIsSleeping = copy.fSomeoneIsSleeping;
-    
+    //fSomeoneisSleeping //no need
+    //fCurrentIndex //no need
+    return *this;
+}
+TPZStructMatrixOT& TPZStructMatrixOT::operator=(TPZStructMatrixOT &&copy){
+    TPZStrMatParInterface::operator=(copy);
+    fElBlocked = copy.fElBlocked;
+    fElSequenceColor = copy.fElSequenceColor;
+    fElementsComputed = copy.fElementsComputed;
+    fElementCompleted = copy.fElementCompleted;
+    //fSomeoneisSleeping //no need
+    //fCurrentIndex //no need
+    return *this;
 }
 
-TPZBaseMatrix *TPZStructMatrixOT::Create() {
-    cout << "TPZStructMatrixOT::Create should never be called\n";
-    return 0;
-}
-
-TPZStructMatrixOT *TPZStructMatrixOT::Clone() {
-    cout << "TPZStructMatrixOT::Clone should never be called\n";
-    return 0;
-}
 
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
 void TPZStructMatrixOT::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    const auto &equationFilter =
+        (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
-    if (fEquationFilter.IsActive()) {
-        int64_t neqcondense = fEquationFilter.NActiveEquations();
+    if (equationFilter.IsActive()) {
+        int64_t neqcondense = equationFilter.NActiveEquations();
 #ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
@@ -112,7 +102,7 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,
             this->Serial_Assemble(stiffness,rhsloc,guiInterface);
         }
         
-        fEquationFilter.Scatter(rhsloc, rhs);
+        equationFilter.Scatter(rhsloc, rhs);
     }
     else
     {
@@ -127,6 +117,8 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,
 }
 
 void TPZStructMatrixOT::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    const auto &equationFilter =
+        (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" Incompatible Types. Aborting...\n";
@@ -134,11 +126,11 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiI
     }
     auto rhs = dynamic_cast<TPZFMatrix<STATE> &>(rhs_base);
     ass_rhs.start();
-    if(fEquationFilter.IsActive())
+    if(equationFilter.IsActive())
     {
         //TODONORM
-        int64_t neqcondense = fEquationFilter.NActiveEquations();
-        int64_t neqexpand = fEquationFilter.NEqExpand();
+        int64_t neqcondense = equationFilter.NActiveEquations();
+        int64_t neqexpand = equationFilter.NEqExpand();
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
@@ -162,7 +154,7 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiI
         {
             this->Serial_Assemble(rhsloc,guiInterface);
         }
-        fEquationFilter.Scatter(rhsloc,rhs);
+        equationFilter.Scatter(rhsloc,rhs);
     }
     else
     {
@@ -188,7 +180,35 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiI
     ass_rhs.stop();
 }
 
-
+TPZBaseMatrix * TPZStructMatrixOT::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+    auto *myself = dynamic_cast<TPZStructMatrix*>(this);
+    stat_ass_graph_ot.start();
+    TPZManVector<int64_t> ElementOrder;
+    TPZStructMatrixOT::OrderElement(myself->Mesh(), ElementOrder);
+    TPZVec<int64_t> elcolors;
+    TPZStructMatrixOT::ElementColoring(myself->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    stat_ass_graph_ot.stop();
+    
+    TPZBaseMatrix *stiff = myself->Create();
+    
+    //int64_t neq = stiff->Rows();
+    int64_t cols = MAX(1, rhs.Cols());
+    rhs.Redim(myself->EquationFilter().NEqExpand(),cols);
+    Assemble(*stiff,rhs,guiInterface);
+    
+#ifdef PZ_LOG2
+    if(loggerel.isDebugEnabled())
+    {
+        std::stringstream sout;
+        stiff->Print("Stiffness matrix",sout);
+        rhs.Print("Right hand side", sout);
+        LOGPZ_DEBUG(loggerel,sout.str())
+    }
+#endif
+    return stiff;
+    
+}
 
 void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface ){
     if(!dynamic_cast<TPZMatrix<STATE>*>(&stiff_base)||
@@ -197,15 +217,19 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
         PZError<<": incompatible types. Aborting...\n";
         DebugStop();
     }
-
+    auto *myself = dynamic_cast<TPZStructMatrix*>(this);
+    auto *cmesh = myself->Mesh();
+    const auto &equationFilter = myself->EquationFilter();
+    auto &materialIds = myself->MaterialIds();
+    
     auto &stiffness = dynamic_cast<TPZMatrix<STATE>&>(stiff_base);
     auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
-    if(!fMesh){
+    if(!cmesh){
         LOGPZ_ERROR(logger,"Serial_Assemble called without mesh")
         DebugStop();
     }
 #ifdef PZ_LOG
-    if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+    if(dynamic_cast<TPZSubCompMesh * >(cmesh))
     {
         std::stringstream sout;
         sout << "AllEig = {};";
@@ -214,27 +238,27 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
     }
 #endif
 #ifdef PZDEBUG
-    if (rhs.Rows() != fEquationFilter.NActiveEquations()) {
+    if (rhs.Rows() != equationFilter.NActiveEquations()) {
         DebugStop();
     }
 #endif
     
     int64_t iel;
-    int64_t nelem = fMesh->NElements();
-    TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
+    int64_t nelem = cmesh->NElements();
+    TPZElementMatrix ek(cmesh, TPZElementMatrix::EK),ef(cmesh, TPZElementMatrix::EF);
 #ifdef PZ_LOG
     bool globalresult = true;
     bool writereadresult = true;
 #endif
     TPZTimer calcstiff("Computing the stiffness matrices");
     TPZTimer assemble("Assembling the stiffness matrices");
-    TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
+    TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     
     int64_t count = 0;
     for(iel=0; iel < nelem; iel++) {
         TPZCompEl *el = elementvec[iel];
         if(!el) continue;
-        int matidsize = fMaterialIds.size();
+        int matidsize = materialIds.size();
         if(matidsize){
             TPZMaterial * mat = el->Material();
             TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
@@ -243,12 +267,12 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
                 if (!submesh) {
                     continue;
                 }
-                else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
+                else if(submesh->NeedsComputing(materialIds) == false) continue;
             }
             else
             {
                 int matid = mat->Id();
-                if (this->ShouldCompute(matid) == false) continue;
+                if (myself->ShouldCompute(matid) == false) continue;
             }
         }
         
@@ -271,7 +295,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
         }
         
 #ifdef PZ_LOG
-        if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+        if(dynamic_cast<TPZSubCompMesh * >(cmesh))
         {
             std::stringstream objname;
             objname << "Element" << iel;
@@ -314,7 +338,7 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
         
         if(!el->HasDependency()) {
             ek.ComputeDestinationIndices();
-            fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
+            equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             //			TPZSFMatrix<STATE> test(stiffness);
             //			TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
@@ -353,11 +377,11 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
             ek.ApplyConstraints();
             ef.ApplyConstraints();
             ek.ComputeDestinationIndices();
-            fEquationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
+            equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
             stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef PZ_LOG
-            if(loggerel.isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
+            if(loggerel.isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(cmesh))
             {
                 std::stringstream sout;
                 TPZGeoEl *gel = el->Reference();
@@ -399,19 +423,22 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
     }
 
     auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto *myself = dynamic_cast<TPZStructMatrix*>(this);
+    const auto &equationFilter = myself->EquationFilter();
+    auto *cmesh = myself->Mesh();
     int64_t iel;
-//    int64_t nelem = fMesh->NElements();
+//    int64_t nelem = cmesh->NElements();
     
     TPZTimer calcresidual("Computing the residual vector");
     TPZTimer assemble("Assembling the residual vector");
     
-    TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
+    TPZAdmChunkVector<TPZCompEl *> &elementvec = cmesh->ElementVec();
     
     stat_ass_graph_ot.start();
     TPZManVector<int64_t> ElementOrder;
-    TPZStructMatrixOT::OrderElement(this->Mesh(), ElementOrder);
+    TPZStructMatrixOT::OrderElement(cmesh, ElementOrder);
     TPZVec<int64_t> elcolors;
-    TPZStructMatrixOT::ElementColoring(this->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    TPZStructMatrixOT::ElementColoring(cmesh, ElementOrder, fElSequenceColor, fElBlocked, elcolors);
     stat_ass_graph_ot.stop();
 
     int64_t elseqsize = fElSequenceColor.size();
@@ -423,9 +450,9 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
         TPZMaterial * mat = el->Material();
         if (!mat) continue;
         int matid = mat->Id();
-        if (this->ShouldCompute(matid) == false) continue;
+        if (myself->ShouldCompute(matid) == false) continue;
         
-        TPZElementMatrix ef(fMesh, TPZElementMatrix::EF);
+        TPZElementMatrix ef(cmesh, TPZElementMatrix::EF);
         
         calcresidual.start();
         
@@ -437,13 +464,13 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
         
         if(!el->HasDependency()) {
             ef.ComputeDestinationIndices();
-            fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
+            equationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
             rhs.AddFel(ef.fMat, ef.fSourceIndex, ef.fDestinationIndex);
         } else {
             // the element has dependent nodes
             ef.ApplyConstraints();
             ef.ComputeDestinationIndices();
-            fEquationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
+            equationFilter.Filter(ef.fSourceIndex, ef.fDestinationIndex);
             rhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
         }
         
@@ -464,27 +491,6 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
     //std::cout << std::endl;
 }
 
-TPZBaseMatrix * TPZStructMatrixOT::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
-{
-    TPZBaseMatrix *stiff = Create();
-    
-    //int64_t neq = stiff->Rows();
-    int64_t cols = MAX(1, rhs.Cols());
-    rhs.Redim(fEquationFilter.NEqExpand(),cols);
-    Assemble(*stiff,rhs,guiInterface);
-    
-#ifdef PZ_LOG2
-    if(loggerel.isDebugEnabled())
-    {
-        std::stringstream sout;
-        stiff->Print("Stiffness matrix",sout);
-        rhs.Print("Right hand side", sout);
-        LOGPZ_DEBUG(loggerel,sout.str())
-    }
-#endif
-    return stiff;
-    
-}
 
 
 void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -498,6 +504,8 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMa
 
     auto &mat = dynamic_cast<TPZMatrix<STATE>&>(mat_base);
     auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+
+    auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
     std::cout << "Assemble numthreads = " << numthreads << std::endl;
     std::vector<std::thread> allthreads(numthreads);
@@ -511,7 +519,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMa
     this->fCurrentIndex = 0;
     
     fElementCompleted = -1;
-    fElementsComputed.Resize(fMesh->NElements());
+    fElementsComputed.Resize(myself->Mesh()->NElements());
     fElementsComputed.Fill(0);
     fSomeoneIsSleeping = 0;
     TPZManVector<ThreadData*> allthreaddata(numthreads);
@@ -527,7 +535,9 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMa
 
     for(itr=0; itr<numthreads; itr++)
     {
-        allthreaddata[itr] = new ThreadData(this, itr, mat, rhs, fMaterialIds, guiInterface);
+        allthreaddata[itr] =
+            new ThreadData(myself, itr, mat, rhs, myself->MaterialIds(),
+                           guiInterface, &fCurrentIndex);
         ThreadData &threaddata = *allthreaddata[itr];
         
         threaddata.fElBlocked=&fElBlocked;
@@ -563,6 +573,7 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMa
 
 void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
+    auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
     std::vector<std::thread> allthreads(numthreads);
     int itr;
@@ -575,14 +586,16 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<
 
     this->fCurrentIndex = 0;
     fElementCompleted = -1;
-    fElementsComputed.Resize(fMesh->NElements());
+    fElementsComputed.Resize(myself->Mesh()->NElements());
     fElementsComputed.Fill(0);
     fSomeoneIsSleeping = 0;
     TPZManVector<ThreadData*> allthreaddata(numthreads);
 
     for(itr=0; itr<numthreads; itr++)
     {
-        allthreaddata[itr] = new ThreadData(this, itr, rhs, fMaterialIds, guiInterface);
+        allthreaddata[itr] =
+            new ThreadData(myself, itr, rhs,myself->MaterialIds(),
+                           guiInterface,&fCurrentIndex);
         ThreadData &threaddata = *allthreaddata[itr];
         threaddata.fElBlocked=&fElBlocked;
         threaddata.fElSequenceColor=&fElSequenceColor;
@@ -618,13 +631,15 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<
 
 
 
-TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZBaseMatrix &mat,
-                                          TPZBaseMatrix &rhs,
-                                          std::set<int> &MaterialIds,
-                                          TPZAutoPointer<TPZGuiInterface> guiInterface)
-: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
+TPZStructMatrixOT::ThreadData::ThreadData(
+    TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &mat,
+    TPZBaseMatrix &rhs,const std::set<int> &MaterialIds,
+    TPZAutoPointer<TPZGuiInterface> guiInterface,
+    std::atomic<int64_t> *currentIndex)
+: fStruct(strmat), fGuiInterface(guiInterface), fGlobMatrix(&mat),
+  fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
-    fCurrentIndex = &strmat->fCurrentIndex;
+    fCurrentIndex = currentIndex;
     
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
@@ -651,13 +666,15 @@ TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
      */
 }
 
-TPZStructMatrixOT::ThreadData::ThreadData(TPZStructMatrixOT *strmat, int seqnum,
-                                          TPZBaseMatrix &rhs,
-                                          std::set<int> &MaterialIds,
-                                          TPZAutoPointer<TPZGuiInterface> guiInterface)
-: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0), fGlobRhs(&rhs), fThreadSeqNum(seqnum)
+TPZStructMatrixOT::ThreadData::ThreadData(
+    TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &rhs,
+    const std::set<int> &MaterialIds,
+    TPZAutoPointer<TPZGuiInterface> guiInterface,
+    std::atomic<int64_t> *currentIndex)
+: fStruct(strmat),fGuiInterface(guiInterface), fGlobMatrix(0),
+  fGlobRhs(&rhs), fThreadSeqNum(seqnum)
 {
-    this->fCurrentIndex = &strmat->fCurrentIndex;
+    this->fCurrentIndex = currentIndex;
     /*	sem_t *sem_open( ... );
      int sem_close(sem_t *sem);
      int sem_unlink(const char *name);
@@ -1281,6 +1298,10 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
     return 0;
 }
 
+bool TPZStructMatrixOT::ThreadData::ShouldCompute(int matid) const{
+    return fStruct->ShouldCompute(matid);
+}
+
 //static bool CanAssemble(TPZStack<int64_t> &connectlist, TPZVec<int> &elContribute)
 //{
 //    for (int i = 0 ; i < connectlist.NElements() ; i++)
@@ -1524,12 +1545,12 @@ void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &Elemen
 }
 
 int TPZStructMatrixOT::ClassId() const{
-    return Hash("TPZStructMatrixOT") ^ TPZStructMatrixBase::ClassId() << 1;
+    return Hash("TPZStructMatrixOT") ^ TPZStrMatParInterface::ClassId() << 1;
 }
 
 
 void TPZStructMatrixOT::Read(TPZStream& buf, void* context) {
-    TPZStructMatrixBase::Read(buf, context);
+    TPZStrMatParInterface::Read(buf, context);
     
     buf.Read(fElBlocked);
     buf.Read(fElSequenceColor);
@@ -1541,7 +1562,7 @@ void TPZStructMatrixOT::Read(TPZStream& buf, void* context) {
 }
 
 void TPZStructMatrixOT::Write(TPZStream& buf, int withclassid) const {
-    TPZStructMatrixBase::Write(buf, withclassid);
+    TPZStrMatParInterface::Write(buf, withclassid);
     
     buf.Write(fElBlocked);
     buf.Write(fElSequenceColor);

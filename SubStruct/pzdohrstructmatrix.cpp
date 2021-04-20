@@ -112,7 +112,7 @@ TPZDohrStructMatrix::~TPZDohrStructMatrix()
 
 
 // this will create a DohrMatrix
-TPZBaseMatrix * TPZDohrStructMatrix::Create()
+TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 {
 #ifndef USING_METIS
     NOMETIS
@@ -286,15 +286,6 @@ TPZBaseMatrix * TPZDohrStructMatrix::Create()
 	return dohr;
 }
 
-
-// this will create a DohrMatrix and compute its matrices
-TPZBaseMatrix * TPZDohrStructMatrix::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                                                       unsigned numthreads_assemble, unsigned numthreads_decompose)
-{
-    TPZBaseMatrix *dohrgeneric = Create();
-    Assemble(*dohrgeneric, rhs, guiInterface, numthreads_assemble, numthreads_decompose);
-    return dohrgeneric;
-}
 
 template<class TVar>
 class parallel_assemble_task_t
@@ -2010,6 +2001,11 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 #endif
     
     return count;
+}
+
+
+int TPZDohrStructMatrix::ClassId() const{
+    return Hash("TPZDohrStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
 }
 
 void TPZDohrStructMatrix::Write( TPZStream &str, int withclassid ) const

@@ -6,10 +6,12 @@
 #ifndef PZDOHRSTRUCTMATRIX 
 #define PZDOHRSTRUCTMATRIX
 
-#include "pzstrmatrix.h"
-#include "tpzdohrassembly.h"
-#include "pzsubcmesh.h"
+#include "TPZStructMatrix.h"
+#include "pzstrmatrixor.h"
 
+class TPZSubCompMesh;
+template<class TVar>
+class TPZDohrAssembly;
 template<class TVar>
 struct ThreadDohrmanAssembly;
 
@@ -19,13 +21,13 @@ struct ThreadDohrmanAssembly;
  * @author Philippe Devloo
  * @since 28/06/2010
  */
-class TPZDohrStructMatrix : public TPZStructMatrix
+class TPZDohrStructMatrix : public TPZStructMatrix, public TPZStructMatrixOR
 {
 		
 public:
 	
 	/** @brief We assume that the mesh consists of subcompmeshes */
-        TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh);
+	TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh);
 	
 	/** @brief Copy constructors */
 	TPZDohrStructMatrix(const TPZDohrStructMatrix &copy);
@@ -36,7 +38,16 @@ public:
 	void SubStructure(int nsub);
 	
 	/** @brief This will create a DohrMatrix */
-	virtual TPZBaseMatrix * Create() override;
+	TPZMatrix<STATE> * Create() override;
+
+	//@{
+    //!Read and Write methods
+    int ClassId() const override;
+
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 	
 	/**
 	 * @brief This will return the pointer to the preconditioner AND abandon the pointer
@@ -48,18 +59,7 @@ public:
 		//fDohrPrecond = 0; Essa linha me ferra pois nao posso pegar as subestruturas depois
 		return result;
 	}
-	
-	/** @brief This will create a DohrMatrix and compute its matrices */
-	virtual TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                                              unsigned numthreads_assemble, unsigned numthreads_decompose) override;
-	
-    /**
-	 * @brief Assemble the global system of equations into the matrix which has already been created
-	 */
-    virtual void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                          unsigned numthreads_assemble, unsigned numthreads_decompose) override;
 
-    void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	/**
 	 * @brief Assemble the global right hand side
@@ -97,13 +97,14 @@ public:
 	 * @return returns the number of subdomains
 	 */
 	int ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension);
-    
-    void Write(TPZStream &str, int withclassid) const override;
-    
-    void Read(TPZStream &str, void *context) override;
 	
 	
 protected:
+
+	void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+                          unsigned numthreads_assemble, unsigned numthreads_decompose);
+
+    void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	TPZAutoPointer<TPZDohrAssembly<STATE> > fDohrAssembly;
 	

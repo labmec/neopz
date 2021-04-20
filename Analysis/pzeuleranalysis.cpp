@@ -10,9 +10,10 @@
 #include "TPZCompElDisc.h"
 #include "pzfstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
+#include "TPZFrontNonSym.h"
 #include "TPBSpStructMatrix.h"
 #include "pzbdstrmatrix.h"
-
+#include "pzelmat.h"
 #include "tpzoutofrange.h"
 #include <time.h>
 #include "pzlog.h"

@@ -44,6 +44,7 @@ namespace threadTest {
 
 TEST_CASE("multithread_assemble_test","[multithread_tests]")
 {
+  TPZLogger::InitializePZLOG();
   threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix>(4);
   threadTest::CompareStiffnessMatrices<TPZBlockDiagonalStructMatrix>(4);
   threadTest::CompareStiffnessMatrices<TPZBandStructMatrix>(4);
@@ -52,6 +53,7 @@ TEST_CASE("multithread_assemble_test","[multithread_tests]")
 
 TEST_CASE("multithread_postprocerror_test","[multithread_tests]")
 {
+  TPZLogger::InitializePZLOG();
   threadTest::ComparePostProcError<TPZSkylineStructMatrix>(4);
 }
 

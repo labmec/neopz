@@ -28,7 +28,6 @@
 #include "pzskylstrmatrix.h"     // for TPZSkylineStructMatrix
 #include "pzsolve.h"             // for TPZMatrixSolver, TPZSolver, TPZMatri...
 #include "pzstepsolver.h"        // for TPZStepSolver
-#include "pzstrmatrix.h"         // for TPZStructMatrixOR
 #include "pztransfer.h"          // for TPZTransfer
 #include "pzvec.h"               // for TPZVec
 #include "tpzagglomeratemesh.h"  // for TPZAgglomerateMesh

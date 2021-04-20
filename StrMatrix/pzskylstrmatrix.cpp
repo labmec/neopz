@@ -6,20 +6,9 @@
 #include "pzskylstrmatrix.h"
 #include "pzskylmat.h"
 #include "pzcmesh.h"
-#include "pzsubcmesh.h"
-#include "pzvec.h"
 
 TPZStructMatrix * TPZSkylineStructMatrix::Clone(){
     return new TPZSkylineStructMatrix(*this);
-}
-
-TPZSkylineStructMatrix::TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp)
-:TPZStructMatrix(cp) {
-	//nothing here
-}
-
-TPZSkylineStructMatrix::TPZSkylineStructMatrix() : TPZStructMatrix()
-{
 }
 
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
@@ -44,12 +33,16 @@ TPZMatrix<STATE> * TPZSkylineStructMatrix::ReallyCreate(int64_t neq, const TPZVe
     return new TPZSkylMatrix<STATE>(neq,skyline);
 }
 
-
-
-
-TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){
+int TPZSkylineStructMatrix::ClassId() const{
+    return Hash("TPZSkylineStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
 }
 
+void TPZSkylineStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
 
-
-
+void TPZSkylineStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
+}

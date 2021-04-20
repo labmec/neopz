@@ -4,25 +4,11 @@
  */
 
 #include "TPZSSpStructMatrix.h"
-#include "pzstrmatrix.h"
-
-#include "pzgeoelbc.h"
-#include "pzgmesh.h"
 #include "pzcmesh.h"
-
-#include "pzanalysis.h"
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-
-#include "pzdxmesh.h"
-#include <fstream>
-
-#include "pzelmat.h"
-
 #include "pzsysmp.h"
-#include "pzbndcond.h"
+#include "TPZRenumbering.h"
+#include "TPZGuiInterface.h"
 #include "TPZTimer.h"
-
 #include "pzlog.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.StrMatrix");
@@ -257,100 +243,25 @@ TPZMatrix<STATE> * TPZSymetricSpStructMatrix::SetupMatrixData(TPZStack<int64_t> 
     mat->SetData(Eq,EqCol,EqValue);
     return mat;
 }
-
-TPZSymetricSpStructMatrix::TPZSymetricSpStructMatrix() : TPZStructMatrix(){
-    
-}
-
-TPZSymetricSpStructMatrix::TPZSymetricSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
+TPZSymetricSpStructMatrix::TPZSymetricSpStructMatrix(TPZCompMesh *mesh) :
+    TPZStructMatrix(mesh)
 {}
 
-#ifndef STATE_COMPLEX
-#include "pzmat2dlin.h"
+TPZSymetricSpStructMatrix::TPZSymetricSpStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) :
+    TPZStructMatrix(mesh)
+{}
 
-int TPZSymetricSpStructMatrix::main() {
-	
-	int refine=5;
-	int order=5;
-	
-	TPZGeoMesh gmesh;
-	TPZCompMesh cmesh(&gmesh);
-	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},
-		{0.,1.,0.}};
-	
-	int i,j;
-	TPZVec<REAL> coord(3,0.);
-	for(i=0; i<4; i++) {
-		// initializar as coordenadas do no em um vetor
-		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
-		
-		// identificar um espa� no vetor onde podemos armazenar
-		// este vetor
-		gmesh.NodeVec ().AllocateNewElement ();
-		
-		// initializar os dados do n�       gmesh.NodeVec ()[nodeindex].Initialize (i,coord,gmesh);
-	}
-	int el;
-	TPZGeoEl *gel;
-	for(el=0; el<1; el++) {
-		
-		// initializar os indices dos nos
-		TPZVec<int64_t> indices(4);
-		for(i=0; i<4; i++) indices[i] = i;
-		// O proprio construtor vai inserir o elemento na malha
-		//       gel = new TPZGeoElQ2d(el,indices,1,gmesh);
-		int64_t index;
-		gel = gmesh.CreateGeoElement(EQuadrilateral,indices,1,index);
-	}
-	gmesh.BuildConnectivity ();
-	
-	TPZVec<TPZGeoEl *> subel;
-	
-	cout << "Refinement ";
-	cin >> refine;
-	cout << endl;
-	DebugStop();
-//	UniformRefine(refine,gmesh);
-	
-	TPZGeoElBC gelbc(gel,4,-4);
-	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
-	meumat->SetMaterial (xk,xc,xf);
-	TPZMaterial * meumatptr(meumat);
-	cmesh.InsertMaterialObject(meumatptr);
-	
-	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	TPZMaterial * bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-	
-	cout << "Interpolation order ";
-	cin >> order;
-	cout << endl;
-	
-	//TPZCompEl::gOrder = order;
-	cmesh.SetDefaultOrder(order);
-	
-	cmesh.AutoBuild();
-	//	cmesh.AdjustBoundaryElements();
-	cmesh.InitializeBlock();
-	
-	ofstream output("outputPar.dat");
-	TPZAnalysis an(&cmesh,true,output);
-	
-	//TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	TPZSymetricSpStructMatrix mat(&cmesh);
-	
-	an.SetStructuralMatrix(mat);
-	
-	TPZStepSolver<STATE> sol;
-	sol.SetJacobi(100,1.e-5,0);
-	
-	
-	an.SetSolver(sol);
-	an.Run(output);
-	output.flush();
-	cout.flush();
-	return 0;
-	
+int TPZSymetricSpStructMatrix::ClassId() const{
+    return Hash("TPZSymetricSpStructMatrix") ^
+        TPZStructMatrix::ClassId() << 1;
 }
-#endif
+
+void TPZSymetricSpStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
+
+void TPZSymetricSpStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
+}

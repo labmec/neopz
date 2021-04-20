@@ -6,16 +6,8 @@
 #ifndef TPZFRONTSTRUCTMATRIX_H
 #define TPZFRONTSTRUCTMATRIX_H
 
-#include "pzstrmatrix.h"
-#include "pzcmesh.h" 
-
-#include "TPZFrontNonSym.h"
-#include "TPZFrontSym.h"
-
-#include "pzelmat.h"
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
+#include "TPZStructMatrix.h"
+#include "pzstrmatrixor.h"
 
 /**
  * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"
@@ -27,7 +19,8 @@
  * It facilitates considerably the use of TPZAnalysis
  */
 template<class front> 
-class TPZFrontStructMatrix : public TPZStructMatrix {
+class TPZFrontStructMatrix : public TPZStructMatrix,
+    public TPZStructMatrixOR {
 	
 protected:
 	/** @brief This vector contains an ordered list */
@@ -52,33 +45,13 @@ protected:
 
 public:
 
-    /**
-     * @brief Class constructor
-     * < href="http://www.fec.unicamp.br/~longhin">link text</a>
-     * < href="http://www.fec.unicamp.br/~phil">link text</a>
-     */ 
 	TPZFrontStructMatrix(TPZCompMesh *);
-	
-	TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet), fDecomposeType(copy.fDecomposeType)
-	{
-	}
-	
-    /// Set the decomposition type
-    virtual void SetDecomposeType(DecomposeType dectype)
-    {
-        fDecomposeType = dectype;
-    }
-    
-
-	static int main();
-	
-    /** @brief Class destructor */ 
-	virtual ~TPZFrontStructMatrix();
+    TPZFrontStructMatrix(TPZAutoPointer<TPZCompMesh>);
     
     
 	
 	/** @brief Returns a pointer to TPZBaseMatrix */
-	TPZBaseMatrix * Create() override;
+	TPZMatrix<STATE> * Create() override;
 	
 	/** @brief Clones a TPZFrontStructMatrix */
 	TPZStructMatrix * Clone() override;
@@ -114,8 +87,6 @@ public:
 	 */
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
 						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
-	
-    using TPZStructMatrix::CreateAssemble;
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix
@@ -128,7 +99,14 @@ public:
 	TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     void SetQuiet(int quiet);
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
     
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 private:
     TPZFrontStructMatrix();
 	

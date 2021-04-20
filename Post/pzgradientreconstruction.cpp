@@ -91,7 +91,7 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     rhs.Redim(neq,numloadcases);
     
     TPZSkylineStructMatrix stmatrix(cmesh);
-    TPZMatrix<STATE> *stiffmatrix = stmatrix.Create();
+    auto *stiffmatrix = stmatrix.Create();
     
     int matid;
     for(int i=0; i<nelem; i++)

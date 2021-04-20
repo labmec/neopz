@@ -6,8 +6,6 @@
 #include "pztransientanalysis.h"
 #include "pztransientmat.h"
 #include "TPZSpStructMatrix.h"
-#include "pzfstrmatrix.h"
-#include "pzstrmatrix.h"
 #include "pzseqsolver.h"
 #include "checkconv.h"
 #include "pzcmesh.h"

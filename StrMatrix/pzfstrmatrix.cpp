@@ -24,10 +24,6 @@ TPZMatrix<STATE> * TPZFStructMatrix::Create(){
 	return new TPZFMatrix<STATE>(neq,neq,0.);
 }
 
-TPZFStructMatrix::TPZFStructMatrix() : TPZStructMatrix()
-{
-}
-
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 }
@@ -38,4 +34,20 @@ TPZFStructMatrix::TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStruct
 
 TPZStructMatrix * TPZFStructMatrix::Clone(){
     return new TPZFStructMatrix(*this);
+}
+
+
+int TPZFStructMatrix::ClassId() const{
+    return Hash("TPZFStructMatrix") ^
+        TPZStructMatrix::ClassId() << 1;
+}
+
+void TPZFStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
+
+void TPZFStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
 }

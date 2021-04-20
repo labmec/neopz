@@ -6,26 +6,24 @@
 #ifndef TPZBLOCKDIAGONALSTRUCTMATRIX_H
 #define TPZBLOCKDIAGONALSTRUCTMATRIX_H
 
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-#include "pzstrmatrix.h"
-
-#include "pzcmesh.h"
-#include "pzvec.h"
-#include "pzblockdiag.h"
+#include "TPZStructMatrix.h"
+#include "pzstrmatrixor.h"
+template<class TVar>
+class TPZBlockDiagonal;
 
 /**
  * @brief Implements Block Diagonal Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
+class TPZBlockDiagonalStructMatrix :
+    public TPZStructMatrix,
+    public TPZStructMatrixOR{
 public:
-    
-    int ClassId() const override;
 
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
     
     TPZBlockDiagonalStructMatrix(TPZCompMesh *);
+    TPZBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>);
     
     ~TPZBlockDiagonalStructMatrix();
     
@@ -36,11 +34,22 @@ public:
     }
     
     /** @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed */
-    virtual TPZBaseMatrix * Create() override;
+    TPZMatrix<STATE> * Create() override;
+    
+    TPZStructMatrix * Clone() override;
     
     TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    virtual TPZStructMatrix * Clone() override;
+    
+
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
+    
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
     
 public:
     

@@ -6,10 +6,34 @@ target_include_directories(pz PUBLIC
                            )
 #@TODO: check if these public headers are exaggerated
 set(public_headers
-    TPZStructMatrixBase.h
+    TPZStrMatParInterface.h
+    TPZStructMatrix.h
     #parallel scheme
+    pzstrmatrixor.h
     pzstrmatrixot.h
-    pzstrmatrix.h
+    pzstrmatrixflowtbb.h
+    #matrix storage format
+    pzbstrmatrix.h
+    TPZSpStructMatrix.h
+    pzbdstrmatrix.h
+    pzsbstrmatrix.h
+    pzskylstrmatrix.h
+    TPZSSpStructMatrix.h
+    TPZSkylineNSymStructMatrix.h
+    TPBSpStructMatrix.h
+    TPZParFrontStructMatrix.h
+    TPZFrontStructMatrix.h
+    pzfstrmatrix.h
+    # tpzsparseblockdiagonalstructmatrix.h ## too many bugs
+    #other
+    TPZEquationFilter.h
+   )
+set(headers
+    TPZStrMatParInterface.h
+    TPZStructMatrix.h
+    #parallel scheme
+    pzstrmatrixor.h
+    pzstrmatrixot.h
     pzstrmatrixflowtbb.h
     #matrix storage format
     pzbstrmatrix.h
@@ -26,47 +50,31 @@ set(public_headers
     tpzsparseblockdiagonalstructmatrix.h
     #other
     TPZEquationFilter.h
-    )
-set(headers
-    TPBSpStructMatrix.h
-    TPZParFrontStructMatrix.h
-    TPZSpStructMatrix.h
-    pzbdstrmatrix.h
-    pzsbstrmatrix.h
-    TPZEquationFilter.h
-    TPZSSpStructMatrix.h
-    TPZStructMatrixBase.h
-    pzbstrmatrix.h
-    pzskylstrmatrix.h
-    pzstrmatrixot.h
-    TPZFrontStructMatrix.h
-    TPZSkylineNSymStructMatrix.h
-    doxstrmatrix.h
-    pzfstrmatrix.h
-    pzstrmatrix.h
-    tpzsparseblockdiagonalstructmatrix.h
-    pzstrmatrixflowtbb.h
     TPZStructMatrixTBBFlowUtils.h
    )
 
 set(sources
-    TPBSpStructMatrix.cpp
-    TPZParFrontStructMatrix.cpp
-    TPZSpStructMatrix.cpp
-    pzbstrmatrix.cpp
-    pzskylstrmatrix.cpp
+    TPZStrMatParInterface.cpp
+    TPZStructMatrix.cpp
+    #parallel schemes
+    pzstrmatrixor.cpp
     pzstrmatrixot.cpp
-    TPZEquationFilter.cpp
-    TPZSSpStructMatrix.cpp
-    TPZStructMatrixBase.cpp
-    pzfstrmatrix.cpp
-    pzstrmatrix.cpp
-    tpzsparseblockdiagonalstructmatrix.cpp
-    TPZFrontStructMatrix.cpp
-    TPZSkylineNSymStructMatrix.cpp
+    pzstrmatrixflowtbb.cpp
+    #matrix storage format
+    pzbstrmatrix.cpp
+    TPZSpStructMatrix.cpp
     pzbdstrmatrix.cpp
     pzsbstrmatrix.cpp
-    pzstrmatrixflowtbb.cpp
+    pzskylstrmatrix.cpp
+    TPZSSpStructMatrix.cpp
+    TPZSkylineNSymStructMatrix.cpp
+    TPBSpStructMatrix.cpp
+    TPZParFrontStructMatrix.cpp
+    TPZFrontStructMatrix.cpp
+    pzfstrmatrix.cpp
+    tpzsparseblockdiagonalstructmatrix.cpp
+    #other
+    TPZEquationFilter.cpp
     TPZStructMatrixTBBFlowUtils.cpp
    )
 

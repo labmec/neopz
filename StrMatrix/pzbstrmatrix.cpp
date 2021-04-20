@@ -8,8 +8,6 @@
 #include "pzcmesh.h"
 #include "TPZGuiInterface.h"
 
-TPZBandStructMatrix::~TPZBandStructMatrix(){}
-
 TPZStructMatrix * TPZBandStructMatrix::Clone(){
     return new TPZBandStructMatrix(*this);
 }
@@ -35,6 +33,21 @@ TPZBandStructMatrix::TPZBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(me
 {
 }
 
-TPZBandStructMatrix::TPZBandStructMatrix() : TPZStructMatrix()
+TPZBandStructMatrix::TPZBandStructMatrix(TPZAutoPointer<TPZCompMesh>mesh) : TPZStructMatrix(mesh)
 {
+}
+
+int TPZBandStructMatrix::ClassId() const{
+    return Hash("TPZBandStructMatrix") ^
+        TPZStructMatrix::ClassId() << 1;
+}
+
+void TPZBandStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
+
+void TPZBandStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
 }

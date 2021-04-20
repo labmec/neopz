@@ -13,7 +13,7 @@ TPZStructMatrix * TPZSBandStructMatrix::Clone(){
     return new TPZSBandStructMatrix(*this);
 }
 
-TPZMatrix<STATE> * TPZSBandStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<STATE> * TPZSBandStructMatrix::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	TPZMatrix<STATE> *mat = Create();
 	rhs.Redim(mat->Rows(),1);
 	Assemble(*mat,rhs,guiInterface);
@@ -34,6 +34,20 @@ TPZSBandStructMatrix::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(
 {
 }
 
-TPZSBandStructMatrix::TPZSBandStructMatrix() : TPZStructMatrix()
+TPZSBandStructMatrix::TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
 {
+}
+
+int TPZSBandStructMatrix::ClassId() const{
+    return Hash("TPZSBandStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
+}
+
+void TPZSBandStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
+
+void TPZSBandStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
 }

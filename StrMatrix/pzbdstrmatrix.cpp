@@ -5,15 +5,7 @@
 
 #include "pzbdstrmatrix.h"
 #include "pzblockdiag.h"
-#include "pzvec.h"
-#include "pzadmchunk.h"
-#include "pzconnect.h"
-#include "pzcmesh.h"
-#include "pzskylmat.h"
 #include "pzsubcmesh.h"
-#include "pzgmesh.h"
-#include "pzsolve.h"
-#include "pzstepsolver.h"
 
 using namespace std;
 
@@ -115,12 +107,17 @@ TPZBaseMatrix * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZBaseMatrix &rhs,
     AssembleBlockDiagonal(*block);
     return block;
 }
-TPZBaseMatrix * TPZBlockDiagonalStructMatrix::Create(){
+TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
     TPZVec<int> blocksize;
     BlockSizes(blocksize);
     return new TPZBlockDiagonal<STATE>(blocksize);
 }
 TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : 
+TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
+{
+}
+
+TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>mesh) : 
 TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
 {
 }
@@ -132,4 +129,13 @@ TPZStructMatrix(),fBlockStructure(EVertexBased),fOverlap(0)
 
 int TPZBlockDiagonalStructMatrix::ClassId() const{
     return Hash("TPZBlockDiagonalStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
+}
+void TPZBlockDiagonalStructMatrix::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPZStructMatrixOR::Read(buf,context);
+}
+
+void TPZBlockDiagonalStructMatrix::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPZStructMatrixOR::Write(buf,withclassid);
 }
