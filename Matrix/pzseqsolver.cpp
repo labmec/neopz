@@ -85,7 +85,7 @@ void TPZSequenceSolver<TVar>::ResetMatrix()
  Updates the values of the preconditioner based on the values of the matrix
  */
 template <class TVar>
-void TPZSequenceSolver<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
+void TPZSequenceSolver<TVar>::UpdateFrom(TPZAutoPointer<TPZBaseMatrix> matrix)
 {
     int nums = fSolvers.NElements();
     int s;

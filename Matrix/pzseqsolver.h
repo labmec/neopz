@@ -45,7 +45,7 @@ public:
 	virtual void ResetMatrix() override;
 	
 	/** @brief Updates the values of the preconditioner based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat) override;
+	virtual void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> mat) override;
 	
 	void AppendSolver(TPZMatrixSolver<TVar>& solve);
 	
