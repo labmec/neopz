@@ -77,11 +77,11 @@ public:
     
     
 	
-	/** @brief Returns a pointer to TPZMatrix<STATE> */
-	TPZMatrix<STATE> * Create();
+	/** @brief Returns a pointer to TPZBaseMatrix */
+	TPZBaseMatrix * Create() override;
 	
 	/** @brief Clones a TPZFrontStructMatrix */
-	TPZStructMatrix * Clone();
+	TPZStructMatrix * Clone() override;
 	
 	/**
 	 * @brief Assemble a stiffness matrix according to rhs
@@ -98,8 +98,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void Assemble(TPZMatrix<STATE> & stiffness
-				  , TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void Assemble(TPZBaseMatrix & stiffness
+				  , TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
 	/**
 	 * @brief Computes element matrices.
@@ -125,7 +125,7 @@ public:
 	 * This is a mandatory function, it is neded by all StructMatrix. \n
 	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
 	 */
-	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     void SetQuiet(int quiet);
     

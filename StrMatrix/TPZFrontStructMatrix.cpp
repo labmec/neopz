@@ -82,7 +82,7 @@ TPZFrontStructMatrix<front>::~TPZFrontStructMatrix(){}
 
 
 template<class front>
-TPZMatrix<STATE> * TPZFrontStructMatrix<front>::Create(){
+TPZBaseMatrix *TPZFrontStructMatrix<front>::Create(){
 	
     /* TPZVec <int> numelconnected(fMesh->NEquations(),0);
 	 // TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
@@ -234,7 +234,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 }
 
 template<class front>
-TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZBaseMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
     int64_t neq = fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
@@ -347,8 +347,15 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZF
 
 
 template<class front>
-void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-	
+void TPZFrontStructMatrix<front>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
+    if(!dynamic_cast<TPZMatrix<STATE>*>(&stiff_base) ||
+       dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" incompatible types. Aborting...\n";
+        DebugStop();
+    }
+	auto& stiffness = dynamic_cast<TPZMatrix<STATE>&>(stiff_base);
+    auto& rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
 	int64_t iel;
 	int64_t numel = 0, nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);

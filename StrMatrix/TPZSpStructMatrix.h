@@ -17,11 +17,11 @@ public:
 	
     TPZSpStructMatrix(TPZCompMesh *);
 	
-    virtual TPZMatrix<STATE> * Create() override;
+    virtual TPZBaseMatrix * Create() override;
 	
     using TPZStructMatrix::CreateAssemble;
     
-	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+	TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     virtual TPZStructMatrix * Clone() override;
     

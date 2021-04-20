@@ -14,8 +14,7 @@
 //forward declarations
 class TPZCompMesh;
 class TPZGuiInterface;
-template <class T> class TPZMatrix;
-template <class T> class TPZFMatrix;
+class TPZBaseMatrix;
 
 class TPZStructMatrixBase : public TPZSavable {
 public:
@@ -33,16 +32,16 @@ public:
     //! Clone method
     virtual TPZStructMatrixBase *Clone() = 0;
     //!Creates a matrix for assembling
-    virtual TPZMatrix<STATE> * Create() = 0;
+    virtual TPZBaseMatrix * Create() = 0;
     //! Assemble the global system of equations into a matrix that has already been created.
-    virtual void Assemble(TPZMatrix<STATE> &stiffness, TPZFMatrix<STATE> &rhs,
+    virtual void Assemble(TPZBaseMatrix &stiffness, TPZBaseMatrix &rhs,
                           TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
     //! Assemble the global right hand side vector.
-    virtual void Assemble(TPZFMatrix<STATE> &rhs,
+    virtual void Assemble(TPZBaseMatrix &rhs,
                           TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
 
-    virtual TPZMatrix<STATE> *
-    CreateAssemble(TPZFMatrix<STATE> &rhs,
+    virtual TPZBaseMatrix *
+    CreateAssemble(TPZBaseMatrix &rhs,
                    TPZAutoPointer<TPZGuiInterface> guiInterface);
     //@}
 

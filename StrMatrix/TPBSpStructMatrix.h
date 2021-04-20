@@ -7,10 +7,6 @@
 #define TPBSPSTRUCTMATRIX_H
 
 #include "TPZSpStructMatrix.h"
-#include "pzelmat.h"
-#include "pzcmesh.h"
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
 
 /** 
  * @ingroup structural
@@ -22,9 +18,9 @@ public:
 int ClassId() const override;
 
 
-    virtual TPZMatrix<STATE> * Create() override;
+    virtual TPZBaseMatrix * Create() override;
 	
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    virtual TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     virtual TPZStructMatrix * Clone() override;
 	

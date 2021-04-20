@@ -60,9 +60,9 @@ void TPZStructMatrixBase::SetMesh(TPZAutoPointer<TPZCompMesh> mesh) {
     SetMesh(mesh.operator->());
 }
 
-TPZMatrix<STATE> *TPZStructMatrixBase::CreateAssemble(
-    TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
-    TPZMatrix<STATE> *stiff = Create();
+TPZBaseMatrix *TPZStructMatrixBase::CreateAssemble(
+    TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    TPZBaseMatrix *stiff = Create();
     
     int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(), cols);

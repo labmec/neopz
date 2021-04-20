@@ -112,7 +112,7 @@ TPZDohrStructMatrix::~TPZDohrStructMatrix()
 
 
 // this will create a DohrMatrix
-TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
+TPZBaseMatrix * TPZDohrStructMatrix::Create()
 {
 #ifndef USING_METIS
     NOMETIS
@@ -288,10 +288,10 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 
 
 // this will create a DohrMatrix and compute its matrices
-TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+TPZBaseMatrix * TPZDohrStructMatrix::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                                        unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
-    TPZMatrix<STATE> *dohrgeneric = Create();
+    TPZBaseMatrix *dohrgeneric = Create();
     Assemble(*dohrgeneric, rhs, guiInterface, numthreads_assemble, numthreads_decompose);
     return dohrgeneric;
 }
@@ -378,10 +378,16 @@ public:
     
 };
 
-void TPZDohrStructMatrix::AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs,
+void TPZDohrStructMatrix::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
                                       TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    TPZMatrix<STATE> *dohrgeneric = &mat;
+    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" incompatible type. Aborting...\n";
+        DebugStop();
+    }
+    auto& rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    TPZBaseMatrix *dohrgeneric = &mat;
     TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr =
     dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
     
@@ -452,16 +458,22 @@ RunStatsTable dohr_ass   ("-tpz_dohr_ass", "Raw data table statistics for TPZDoh
 RunStatsTable dohr_dec   ("-tpz_dohr_dec", "Raw data table statistics for TPZDohrStructMatrix::Assemble decompose (second)");
 
 
-void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs,
+void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
                                    TPZAutoPointer<TPZGuiInterface> guiInterface,
                                    unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
+  if (!dynamic_cast<TPZFMatrix<STATE> *>(&rhs_base)) {
+    PZError << __PRETTY_FUNCTION__;
+    PZError << " incompatible type. Aborting...\n";
+    DebugStop();
+  }
+  auto &rhs = dynamic_cast<TPZFMatrix<STATE> &>(rhs_base);
 #ifdef PERF_ANALYSIS
     ClockTimer timer;
     TimingAnalysis ta;
 #endif
     
-    TPZMatrix<STATE> *dohrgeneric = &mat;
+    TPZBaseMatrix *dohrgeneric = &mat;
     TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
     const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
     
@@ -614,8 +626,14 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 /**
  * @brief Assemble the global right hand side
  */
-void TPZDohrStructMatrix::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
+    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" incompatible type. Aborting...\n";
+        DebugStop();
+    }
+    auto& rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
     int rows = fMesh->NEquations();
     rhs.Redim(rows,1);
     TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = dynamic_cast<TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *>(fDohrPrecond.operator->());

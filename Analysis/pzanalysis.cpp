@@ -355,7 +355,7 @@ void TPZAnalysis::AssembleInternal()
 	else
 	{
         
-		TPZMatrix<TVar> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
+		auto *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
 		mySolver->SetMatrix(mat);
 		//aqui TPZFMatrix<TVar> nao eh nula
 	}

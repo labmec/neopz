@@ -36,35 +36,35 @@ public:
 	void SubStructure(int nsub);
 	
 	/** @brief This will create a DohrMatrix */
-	virtual TPZMatrix<STATE> * Create() override;
+	virtual TPZBaseMatrix * Create() override;
 	
 	/**
 	 * @brief This will return the pointer to the preconditioner AND abandon the pointer
 	 * @warning This method can only be called once
 	 */
-	TPZAutoPointer<TPZMatrix<STATE> > Preconditioner()
+	TPZAutoPointer<TPZBaseMatrix > Preconditioner()
 	{
-		TPZAutoPointer<TPZMatrix<STATE> > result = fDohrPrecond;
+		TPZAutoPointer<TPZBaseMatrix > result = fDohrPrecond;
 		//fDohrPrecond = 0; Essa linha me ferra pois nao posso pegar as subestruturas depois
 		return result;
 	}
 	
 	/** @brief This will create a DohrMatrix and compute its matrices */
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+	virtual TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) override;
 	
     /**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+    virtual void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose) override;
 
-    void AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+	virtual void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
 	/** @brief Creates a copy of itself */
 	virtual TPZStructMatrix * Clone() override
@@ -107,7 +107,7 @@ protected:
 	
 	TPZAutoPointer<TPZDohrAssembly<STATE> > fDohrAssembly;
 	
-	TPZAutoPointer<TPZMatrix<STATE> > fDohrPrecond;
+	TPZAutoPointer<TPZBaseMatrix > fDohrPrecond;
 	
 	/* @brief Get the global equation numbers of a substructure (and their inverse) */
 	void IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv);

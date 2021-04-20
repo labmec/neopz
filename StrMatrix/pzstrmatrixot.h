@@ -49,23 +49,23 @@ public:
     TPZStructMatrixOT(const TPZStructMatrixOT &copy);
     virtual ~TPZStructMatrixOT() = default;
         
-    TPZMatrix<STATE> * Create() override;
+    TPZBaseMatrix * Create() override;
     
-    TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+    TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose) {
         SetNumThreads(numthreads_assemble);
         return CreateAssemble(rhs, guiInterface);
     }
     
-    TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
+    TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
     
     TPZStructMatrixOT * Clone() override final;
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
+    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
     
     /** @brief Assemble the global right hand side */
-    void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
+    void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override final;
 
     int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
@@ -74,16 +74,16 @@ public:
 protected:
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global right hand side */
-    virtual void Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global right hand side */
-    virtual void MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
 public:
     
@@ -99,9 +99,9 @@ protected:
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixOT *strmat,int seqnum, TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOT *strmat,int seqnum, TPZBaseMatrix &mat, TPZBaseMatrix &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOT *strmat, int seqnum, TPZBaseMatrix &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief The function which will compute the assembly */

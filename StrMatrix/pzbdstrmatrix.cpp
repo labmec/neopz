@@ -107,7 +107,7 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
 TPZStructMatrix * TPZBlockDiagonalStructMatrix::Clone(){
     return new TPZBlockDiagonalStructMatrix(*this);
 }
-TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZBaseMatrix * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     int64_t neq = fMesh->NEquations();
     TPZBlockDiagonal<STATE> *block = new TPZBlockDiagonal<STATE>();
     rhs.Redim(neq,1);
@@ -115,7 +115,7 @@ TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<STATE
     AssembleBlockDiagonal(*block);
     return block;
 }
-TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
+TPZBaseMatrix * TPZBlockDiagonalStructMatrix::Create(){
     TPZVec<int> blocksize;
     BlockSizes(blocksize);
     return new TPZBlockDiagonal<STATE>(blocksize);

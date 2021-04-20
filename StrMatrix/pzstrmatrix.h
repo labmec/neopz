@@ -50,26 +50,26 @@ public:
      */
     //@{
     
-    virtual TPZMatrix<STATE> * Create() override;
+    virtual TPZBaseMatrix * Create() override;
     
     virtual TPZStructMatrixOR * Clone() override;
 
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    virtual void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 
     
-    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    virtual void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 
     //@}
     
     using TPZStructMatrixBase::CreateAssemble;
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+    virtual TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                                               unsigned numthreads_assemble, unsigned numthreads_decompose);
     
-    //virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    //virtual TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+    virtual void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose) {
         std::cout << "Nothing to do." << std::endl;
     }
@@ -84,16 +84,16 @@ protected:
     struct ThreadData;
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global right hand side */
-    virtual void Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void Serial_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global right hand side */
-    virtual void MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     
     friend struct ThreadData;
@@ -101,9 +101,9 @@ protected:
     struct ThreadData
     {
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixOR *strmat,TPZMatrix<STATE> &mat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOR *strmat,TPZBaseMatrix &mat, TPZBaseMatrix &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Initialize the mutex semaphores and others */
-        ThreadData(TPZStructMatrixOR *strmat, TPZFMatrix<STATE> &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+        ThreadData(TPZStructMatrixOR *strmat, TPZBaseMatrix &rhs, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
         /** @brief Destructor: Destroy the mutex semaphores and others */
         ~ThreadData();
         /** @brief Look for an element index which needs to be computed and put it on the stack */

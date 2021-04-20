@@ -268,7 +268,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 	{
 		TPZFrontStructMatrix <TPZFrontNonSym<STATE> > StrMatrix(Mesh());
 		StrMatrix.SetQuiet(1);
-		TPZMatrix<STATE> *front = StrMatrix.CreateAssemble(fRhs,NULL);
+		auto *front = StrMatrix.CreateAssemble(fRhs,NULL);
 		TPZStepSolver<STATE> FrontSolver;
 		FrontSolver.SetDirect(ELU);
 		FrontSolver.SetMatrix(front);
@@ -615,7 +615,7 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 {
 	TPZFrontStructMatrix <TPZFrontNonSym<STATE> > strfront(Mesh());
 	strfront.SetQuiet(1);
-	TPZMatrix<STATE> *front = strfront.CreateAssemble(fRhs,NULL);
+	auto *front = strfront.CreateAssemble(fRhs,NULL);
 	
 	TPZStepSolver<STATE> FrontSolver;
 	FrontSolver.SetDirect(ELU);
@@ -626,7 +626,7 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 	//TPZFStructMatrix StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
-	TPZMatrix<STATE> * mat = StrMatrix.Create();
+	auto * mat = StrMatrix.Create();
 	TPZStepSolver<STATE> Solver;
 	Solver.SetGMRES(numiter,
 					numvectors,
@@ -666,7 +666,7 @@ void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
 	//TPZFStructMatrix StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
-	TPZMatrix<STATE> * mat = StrMatrix.Create();
+	auto * mat = StrMatrix.Create();
 	TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
 	TPZStepSolver<STATE> Pre;
 	TPZBlockDiagonal<STATE> * block = new TPZBlockDiagonal<STATE>();//blockDiag.Create();

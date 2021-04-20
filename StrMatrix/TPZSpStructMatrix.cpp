@@ -33,7 +33,7 @@ using namespace std;
 TPZStructMatrix * TPZSpStructMatrix::Clone(){
     return new TPZSpStructMatrix(*this);
 }
-TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
+TPZBaseMatrix * TPZSpStructMatrix::CreateAssemble(TPZBaseMatrix &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 
 #ifdef PZ_LOG
@@ -48,7 +48,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
 		return new TPZFYsmpMatrix<STATE>(0,0);
     }
-    TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
+    TPZBaseMatrix *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
     TPZFYsmpMatrix<STATE> *mat = dynamic_cast<TPZFYsmpMatrix<STATE> *> (stiff);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
@@ -71,7 +71,7 @@ TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
 #endif
     return stiff;
 }
-TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
+TPZBaseMatrix * TPZSpStructMatrix::Create(){
     int64_t neq = fEquationFilter.NActiveEquations();
 	/*    if(fMesh->FatherMesh()) {
 	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;

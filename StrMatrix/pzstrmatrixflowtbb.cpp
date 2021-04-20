@@ -79,7 +79,7 @@ TPZStructMatrixTBBFlow::~TPZStructMatrixTBBFlow()
     }
 }
 
-TPZMatrix<STATE> *TPZStructMatrixTBBFlow::Create() {
+TPZBaseMatrix *TPZStructMatrixTBBFlow::Create() {
     std::cout << "TPZStructMatrixTBBFlow::Create should never be called\n";
     return 0;
 }
@@ -92,7 +92,7 @@ TPZStructMatrixTBBFlow *TPZStructMatrixTBBFlow::Clone() {
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
-void TPZStructMatrixTBBFlow::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixTBBFlow::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     ass_stiff.start();
     if (fEquationFilter.IsActive()) {
         int64_t neqcondense = fEquationFilter.NActiveEquations();
@@ -113,12 +113,19 @@ void TPZStructMatrixTBBFlow::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
     ass_stiff.stop();
 }
 
-void TPZStructMatrixTBBFlow::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrixTBBFlow::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" Incompatible types. Aborting...\n";
+        DebugStop();
+    }
+    auto &rhs = dynamic_cast<TPZFMatrix<STATE> &>(rhs_base);
     ass_rhs.start();
     if(fEquationFilter.IsActive())
     {
         int64_t neqcondense = fEquationFilter.NActiveEquations();
         int64_t neqexpand = fEquationFilter.NEqExpand();
+        //TODONORM
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
@@ -134,9 +141,9 @@ void TPZStructMatrixTBBFlow::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZ
     ass_rhs.stop();
 }
 
-TPZMatrix<STATE> * TPZStructMatrixTBBFlow::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZBaseMatrix * TPZStructMatrixTBBFlow::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    TPZMatrix<STATE> *stiff = Create();
+    TPZBaseMatrix *stiff = Create();
     
     int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(fEquationFilter.NEqExpand(),cols);
@@ -156,7 +163,7 @@ TPZMatrix<STATE> * TPZStructMatrixTBBFlow::CreateAssemble(TPZFMatrix<STATE> &rhs
     
 }
 
-void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs, &mat);
@@ -167,7 +174,7 @@ void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMa
 }
 
 
-void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs);

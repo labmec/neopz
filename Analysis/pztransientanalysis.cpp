@@ -309,7 +309,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::AssembleInternal()
 			<< " methodTPZTransientAnalysis::ComputeLinearTangentMatrix()"
 			<< " when (this->fIsLinearProblem == true)\n";
 		}
-		TPZMatrix<TVar> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
+		auto *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
 		mySolver.SetMatrix(mat);
 	}
 	mySolver.UpdateFrom(solverMat);
@@ -327,7 +327,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeLinearTangentMatrix(){
 	const int sz = this->Mesh()->NEquations();
 	fRhs.Redim(sz,1);
 	//TODOCOMPLEX
-	TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
+	auto *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
 	MatrixSolver<STATE>().SetMatrix(mat);
 }//method
 
@@ -337,7 +337,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeMassMatrix(){
 	const int sz = this->Mesh()->NEquations();
 	fRhs.Redim(sz,1);
 	//TODOCOMPLEX
-	TPZMatrix<STATE> *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
+	auto *mat = fStructMatrix->CreateAssemble(fRhs,NULL);
 	MatrixSolver<STATE>().SetMatrix(mat);
 }//method
 
