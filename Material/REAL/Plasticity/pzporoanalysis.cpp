@@ -3,7 +3,7 @@
 
 #include "pzlog.h"
 #include "TPZMatTemporal.h"
-#include "pzsolve.h" 
+#include "pzsolve.h"
 #include "pzcmesh.h"
 #ifdef PZ_LOG
 static TPZLogger PoroAnalysisLogger("analysis.poro");

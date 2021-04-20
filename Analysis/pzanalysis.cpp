@@ -253,7 +253,17 @@ void TPZAnalysis::OptimizeBandwidth() {
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-	fRenumber->Resequence(perm,iperm);
+    bool shouldstop = false;
+    try {
+        fRenumber->Resequence(perm,iperm);
+    } catch(...)
+    {
+        fRenumber->PlotElementGroups("ElementGroups.vtk", fCompMesh);
+        fCompMesh->Print();
+        shouldstop = true;
+    }
+    if(shouldstop) DebugStop();
+    
 	fCompMesh->Permute(perm);
     if (nel > 100000) {
         std::cout << "Applying Saddle Permute\n";

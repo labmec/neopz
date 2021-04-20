@@ -259,7 +259,7 @@ public:
      * @param ef[out] is the load vector
      * @param bc[in] is the boundary condition material
      */
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
+    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors) override;
     
 };
 

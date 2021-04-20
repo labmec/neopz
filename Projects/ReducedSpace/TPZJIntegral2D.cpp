@@ -186,7 +186,8 @@ REAL LinearPath2D::ComputeElasticData(REAL t, TPZVec<REAL> & xt, TPZFMatrix<STAT
 
 REAL LinearPath2D::ComputePressure(REAL t, TPZVec<REAL> & xt)
 {
-    REAL press = this->fcmeshElastic->Solution()(1,0);
+    TPZFMatrix<STATE> &sol = this->fcmeshElastic->Solution();
+    REAL press = sol(1,0);
     
     return press;
 }

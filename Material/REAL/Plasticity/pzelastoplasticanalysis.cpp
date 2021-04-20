@@ -182,8 +182,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out, REAL tol, int
             REAL normDeltaSol = Norm(x);
             x = fSolution;
         } else {
-            TPZFMatrix<STATE> &tmpsol = fSolution;
-            tmpsol += x; // At this line fSolution is x+1
+            fSolution += x; // At this line fSolution is x+1
             LoadSolution();
             
             if (i%niter_update_jac) {
@@ -276,8 +275,7 @@ void TPZElastoPlasticAnalysis::IterativeProcessPrecomputedMatrix(std::ostream &o
             REAL normDeltaSol = Norm(x);
             x = fSolution;
         } else {
-            TPZFMatrix<STATE> &tmpsol = fSolution;
-            tmpsol += x; // At this line fSolution is x+1
+            (TPZFMatrix<STATE> &)fSolution += x; // At this line fSolution is x+1
             LoadSolution();
             AssembleResidual();
             
@@ -386,8 +384,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
             LoadSolution();
 		}
 		else{
-            TPZFMatrix<STATE> &tmpsol = fSolution;
-			tmpsol += prevsol;
+			(TPZFMatrix<STATE> &)fSolution += prevsol;
             LoadSolution();
             AssembleResidual();
             RhsNormResult = Norm(fRhs);
@@ -467,8 +464,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 			fSolution = nextSol;
 		}
 		else{
-            TPZFMatrix<STATE> &tmpsol = fSolution;
-			tmpsol += prevsol;
+			(TPZFMatrix<STATE> &)fSolution += prevsol;
             LoadSolution();
             AssembleResidual();
             RhsNormResult = Norm(fRhs);

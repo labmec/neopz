@@ -19,6 +19,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "TPZThreadPool.h"
+#include "TPZVTKGeoMesh.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.renumbering");
@@ -351,12 +352,14 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex,
 													 TPZVec<int64_t> &eltoelgraph, TPZVec<int> &eltoelweight, TPZVec<int64_t> &eltoelgraphindex)
 {
+    Print(elgraph,elgraphindex,"elgraph");
 	TPZVec<int64_t> nodegraph;
 	TPZVec<int64_t> nodegraphindex;
 #ifdef PZ_LOG
 	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "before NodeToElGraph")
 #endif
 	NodeToElGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
+    Print(nodegraph,nodegraphindex,"nodetoelgraph");
 #ifdef PZ_LOG
 	if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger, "after NodeToElGraph")
 #endif
@@ -406,6 +409,7 @@ void TPZRenumbering::ConvertToElementoToElementGraph(TPZVec<int64_t> &elgraph, T
 	}
 	eltoelgraph.Resize(eltoelgraphindex[nelements]);
 	eltoelweight.Resize(eltoelgraph.NElements());
+    Print(eltoelgraph,eltoelgraphindex,"eltoel");
 }
 
 void TPZRenumbering::SetElementGraph(TPZVec<int64_t> &elgraph, TPZVec<int64_t> &elgraphindex){
@@ -570,5 +574,61 @@ void TPZRenumbering::CornerEqs(unsigned int mincorners, int64_t nelconsider, std
 		sub++;
 	}
 }
+
+/**
+        Group the elements in sets and print the result graphically
+ */
+void TPZRenumbering::PlotElementGroups(const std::string &filename, TPZCompMesh *cmesh)
+{
+    TPZVec<int64_t> eltoelgraph, eltoelgraphindex;
+    TPZVec<int> eltoelweight;
+    ConvertToElementoToElementGraph(fElementGraph, fElementGraphIndex, eltoelgraph, eltoelweight, eltoelgraphindex);
+    Print(eltoelgraph,eltoelgraphindex,"EltoEl");
+    
+    TPZVec<int> elgroup(cmesh->NElements(),-1);
+    TPZVec<REAL> elgroupR(cmesh->NElements(),-1.);
+    TPZVec<int> elacounted(cmesh->NElements(),0);
+    int count = 0;
+    for (int64_t el = 0; el< eltoelgraphindex.size()-1; el++) {
+        std::set<int64_t> elcheck;
+        if(elgroup[el] == -1)
+        {
+            int64_t first = eltoelgraphindex[el];
+            int64_t last = eltoelgraphindex[el+1];
+            if(first == last) continue;
+            elgroup[el] = count;
+            elgroupR[el] = count;
+            elcheck.insert(&eltoelgraph[first],&eltoelgraph[last]);
+            while (elcheck.size()) {
+                for(auto it : elcheck) if(elgroup[it] == -1) elgroup[it] = count;
+                std::set<int64_t> other;
+                for(auto it : elcheck)
+                {
+                    int64_t first = eltoelgraphindex[it];
+                    int64_t last = eltoelgraphindex[it+1];
+                    for(int64_t ind = first; ind < last; ind++)
+                    {
+                        int64_t elconnect = eltoelgraph[ind];
+                        int prevelgroup = elgroup[elconnect];
+                        if(prevelgroup != -1 && prevelgroup != count)
+                        {
+                            std::cout << " prev el group " << prevelgroup << " count " << count << std::endl;
+                        }
+                        if(elgroup[elconnect] == -1) other.insert(elconnect);
+                        elgroupR[elconnect] = count;
+                        elgroup[elconnect] = count;
+                    }
+                }
+                elcheck = other;
+            }
+            count++;
+        }
+    }
+    /** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
+//    static void PrintCMeshVTK(TPZCompMesh *cmesh, std::ofstream &file, TPZVec<REAL> &elData, std::string dataName);
+    std::ofstream file(filename);
+    TPZVTKGeoMesh::PrintCMeshVTK(cmesh, file, elgroupR,"elgroup");
+}
+
 
 template class TPZRestoreClass<TPZRenumbering>;

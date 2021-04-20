@@ -1053,7 +1053,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     an.Solve();
     TPZAutoPointer< TPZMatrix<STATE> > matKPressureFlux;
 	TPZFMatrix<STATE> fvecPressureFlux;
-    matKPressureFlux = an.Solver().Matrix();
+    matKPressureFlux = an.MatrixSolver<STATE>().Matrix();
     fvecPressureFlux = an.Rhs();
     
 //#ifdef PZ_LOG
@@ -1105,7 +1105,7 @@ void ResolverComReconstGradiente(REAL deltaX,REAL maxTime,TPZManVector<TPZCompMe
     TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvecK;
     FilterSaturationEquation(material, meshvec, mphysics, an, true);
-    matK = an.Solver().Matrix();
+    matK = an.MatrixSolver<STATE>().Matrix();
     fvecK = an.Rhs();
     
 //    #ifdef PZ_LOG
@@ -1209,7 +1209,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     an.Solve();
     TPZAutoPointer< TPZMatrix<STATE> > matKPressureFlux;
 	TPZFMatrix<STATE> fvecPressureFlux;
-    matKPressureFlux = an.Solver().Matrix();
+    matKPressureFlux = an.MatrixSolver<STATE>().Matrix();
     fvecPressureFlux = an.Rhs();
     
     //#ifdef PZ_LOG
@@ -1255,7 +1255,7 @@ void ResolverSemReconstGradiente(REAL deltaX,REAL maxTime,TPZVec<TPZCompMesh *> 
     TPZAutoPointer< TPZMatrix<STATE> > matK;
 	TPZFMatrix<STATE> fvecK;
     FilterSaturationEquation(material, meshvec, mphysics, an, true);
-    matK = an.Solver().Matrix();
+    matK = an.MatrixSolver<STATE>().Matrix();
     fvecK = an.Rhs();
     
     //    #ifdef PZ_LOG
@@ -1664,7 +1664,7 @@ void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAna
     an.Assemble();
 	
 	fvec = an.Rhs();
-    matK1 = an.Solver().Matrix();
+    matK1 = an.MatrixSolver<STATE>().Matrix();
 
 }
 
