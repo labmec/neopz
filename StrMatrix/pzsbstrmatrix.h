@@ -13,8 +13,8 @@
  * @ingroup structural
  */
 class TPZSBandStructMatrix : public TPZStructMatrix,
-public TPZStructMatrixOR{
-public:    
+                             public TPZStructMatrixOR<STATE>
+{
 	
     TPZSBandStructMatrix(TPZCompMesh *);
 	

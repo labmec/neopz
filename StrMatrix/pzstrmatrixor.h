@@ -22,6 +22,7 @@ class TPZStructMatrix;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar>
 class TPZStructMatrixOR : public virtual TPZStrMatParInterface {    
 public:
     //! Default constructor.
@@ -114,4 +115,6 @@ protected:
     };
 };
 
+
+extern template class TPZStructMatrixOR<STATE>;
 #endif

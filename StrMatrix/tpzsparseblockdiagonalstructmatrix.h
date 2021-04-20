@@ -14,7 +14,8 @@
  * @ingroup structural
  * @author Philippe R. B. Devloo
  */
-class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix, public TPZStructMatrixOR
+class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix,
+                                           public TPZStructMatrixOR<STATE>
 {
 public:
 	/** @brief Constructor for computational mesh */

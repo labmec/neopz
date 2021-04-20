@@ -14,7 +14,7 @@
  * @ingroup structural
  */
 class TPZSymetricSpStructMatrix : public TPZStructMatrix,
-                                  public TPZStructMatrixOR {
+                                  public TPZStructMatrixOR<STATE> {
     
 public:    
 	

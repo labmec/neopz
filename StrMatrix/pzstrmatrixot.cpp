@@ -33,9 +33,11 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 RunStatsTable stat_ass_graph_ot("-ass_graph_ot", "Run statistics table for the graph creation and coloring TPZStructMatrixOT.");
 
 
-TPZStructMatrixOT::TPZStructMatrixOT(): TPZStrMatParInterface(){}
+template<class TVar>
+TPZStructMatrixOT<TVar>::TPZStructMatrixOT(): TPZStrMatParInterface(){}
 
-TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) :
+template<class TVar>
+TPZStructMatrixOT<TVar>::TPZStructMatrixOT(const TPZStructMatrixOT &copy) :
     TPZStrMatParInterface(copy),
     fElBlocked(copy.fElBlocked),
     fElSequenceColor(copy.fElSequenceColor),
@@ -46,7 +48,8 @@ TPZStructMatrixOT::TPZStructMatrixOT(const TPZStructMatrixOT &copy) :
 {
 }
 //! Move constructor
-TPZStructMatrixOT::TPZStructMatrixOT(TPZStructMatrixOT &&copy) :
+template<class TVar>
+TPZStructMatrixOT<TVar>::TPZStructMatrixOT(TPZStructMatrixOT &&copy) :
     TPZStrMatParInterface(copy),
     fElBlocked(copy.fElBlocked),
     fElSequenceColor(copy.fElSequenceColor),
@@ -57,7 +60,8 @@ TPZStructMatrixOT::TPZStructMatrixOT(TPZStructMatrixOT &&copy) :
 {
 }
 //! Copy assignment operator
-TPZStructMatrixOT& TPZStructMatrixOT::operator=(const TPZStructMatrixOT &copy){
+template<class TVar>
+TPZStructMatrixOT<TVar>& TPZStructMatrixOT<TVar>::operator=(const TPZStructMatrixOT &copy){
     TPZStrMatParInterface::operator=(copy);
     fElBlocked = copy.fElBlocked;
     fElSequenceColor = copy.fElSequenceColor;
@@ -67,7 +71,8 @@ TPZStructMatrixOT& TPZStructMatrixOT::operator=(const TPZStructMatrixOT &copy){
     //fCurrentIndex //no need
     return *this;
 }
-TPZStructMatrixOT& TPZStructMatrixOT::operator=(TPZStructMatrixOT &&copy){
+template<class TVar>
+TPZStructMatrixOT<TVar>& TPZStructMatrixOT<TVar>::operator=(TPZStructMatrixOT &&copy){
     TPZStrMatParInterface::operator=(copy);
     fElBlocked = copy.fElBlocked;
     fElSequenceColor = copy.fElSequenceColor;
@@ -82,7 +87,9 @@ TPZStructMatrixOT& TPZStructMatrixOT::operator=(TPZStructMatrixOT &&copy){
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
-void TPZStructMatrixOT::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+
+template<class TVar>
+void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -116,7 +123,8 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,
     ass_stiff.stop();
 }
 
-void TPZStructMatrixOT::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TVar>
+void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
@@ -180,14 +188,15 @@ void TPZStructMatrixOT::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiI
     ass_rhs.stop();
 }
 
-TPZBaseMatrix * TPZStructMatrixOT::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+TPZBaseMatrix * TPZStructMatrixOT<TVar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     stat_ass_graph_ot.start();
     TPZManVector<int64_t> ElementOrder;
-    TPZStructMatrixOT::OrderElement(myself->Mesh(), ElementOrder);
+    TPZStructMatrixOT<TVar>::OrderElement(myself->Mesh(), ElementOrder);
     TPZVec<int64_t> elcolors;
-    TPZStructMatrixOT::ElementColoring(myself->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    TPZStructMatrixOT<TVar>::ElementColoring(myself->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
     stat_ass_graph_ot.stop();
     
     TPZBaseMatrix *stiff = myself->Create();
@@ -210,7 +219,8 @@ TPZBaseMatrix * TPZStructMatrixOT::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPoi
     
 }
 
-void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface ){
+template<class TVar>
+void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface ){
     if(!dynamic_cast<TPZMatrix<STATE>*>(&stiff_base)||
        !dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
@@ -414,8 +424,8 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
 #endif
     
 }
-
-void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TVar>
+void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
     if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
@@ -436,9 +446,9 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
     
     stat_ass_graph_ot.start();
     TPZManVector<int64_t> ElementOrder;
-    TPZStructMatrixOT::OrderElement(cmesh, ElementOrder);
+    TPZStructMatrixOT<TVar>::OrderElement(cmesh, ElementOrder);
     TPZVec<int64_t> elcolors;
-    TPZStructMatrixOT::ElementColoring(cmesh, ElementOrder, fElSequenceColor, fElBlocked, elcolors);
+    TPZStructMatrixOT<TVar>::ElementColoring(cmesh, ElementOrder, fElSequenceColor, fElBlocked, elcolors);
     stat_ass_graph_ot.stop();
 
     int64_t elseqsize = fElSequenceColor.size();
@@ -492,8 +502,8 @@ void TPZStructMatrixOT::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
 }
 
 
-
-void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     if(!dynamic_cast<TPZMatrix<STATE>*>(&mat_base)||
        !dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
@@ -570,8 +580,8 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMa
 #endif
 }
 
-
-void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
@@ -631,7 +641,8 @@ void TPZStructMatrixOT::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<
 
 
 
-TPZStructMatrixOT::ThreadData::ThreadData(
+template<class TVar>
+TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &mat,
     TPZBaseMatrix &rhs,const std::set<int> &MaterialIds,
     TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -666,7 +677,8 @@ TPZStructMatrixOT::ThreadData::ThreadData(
      */
 }
 
-TPZStructMatrixOT::ThreadData::ThreadData(
+template<class TVar>
+TPZStructMatrixOT<TVar>::ThreadData::ThreadData(
     TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &rhs,
     const std::set<int> &MaterialIds,
     TPZAutoPointer<TPZGuiInterface> guiInterface,
@@ -702,7 +714,8 @@ TPZStructMatrixOT::ThreadData::ThreadData(
 
 //#define DRY_RUN
 
-void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
+template<class TVar>
+void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
 //    TPZStructMatrixOT *strmat = data->fStruct;
@@ -995,7 +1008,8 @@ void *TPZStructMatrixOT::ThreadData::ThreadWork(void *datavoid)
     return 0;
 }
 
-void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
+template<class TVar>
+void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWorkResidual(void *datavoid)
 {
     ThreadData *data = (ThreadData *) datavoid;
     //    TPZStructMatrixOT *strmat = data->fStruct;
@@ -1298,7 +1312,8 @@ void *TPZStructMatrixOT::ThreadData::ThreadWorkResidual(void *datavoid)
     return 0;
 }
 
-bool TPZStructMatrixOT::ThreadData::ShouldCompute(int matid) const{
+template<class TVar>
+bool TPZStructMatrixOT<TVar>::ThreadData::ShouldCompute(int matid) const{
     return fStruct->ShouldCompute(matid);
 }
 
@@ -1366,8 +1381,9 @@ static int64_t MinPassIndex(TPZStack<int64_t> &connectlist, TPZVec<int64_t> &elC
  * elSequenceColor (output) the colored element sequence
  * elBlocked the element index which needs to have been computed before assembling the element
  * elColors (output) number of elements in each color
- */ 
-void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor,
+ */
+template<class TVar>
+void TPZStructMatrixOT<TVar>::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elSequence, TPZVec<int64_t> &elSequenceColor,
         TPZVec<int64_t> &elBlocked, TPZVec<int64_t> &NumelColors) {
 
     const int64_t nnodes = cmesh->NConnects();
@@ -1446,7 +1462,8 @@ void TPZStructMatrixOT::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t> &elS
 #endif
 }
 
-void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder) {
+template<class TVar>
+void TPZStructMatrixOT<TVar>::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &ElementOrder) {
     int64_t numelconnected = 0;
     int64_t nconnect = cmesh->NConnects();
     //firstelconnect contains the first element index in the elconnect vector
@@ -1543,13 +1560,15 @@ void TPZStructMatrixOT::OrderElement(TPZCompMesh *cmesh, TPZVec<int64_t> &Elemen
 
     ElementOrder.Resize(seq);
 }
-
-int TPZStructMatrixOT::ClassId() const{
-    return Hash("TPZStructMatrixOT") ^ TPZStrMatParInterface::ClassId() << 1;
+template<class TVar>
+int TPZStructMatrixOT<TVar>::ClassId() const{
+    return Hash("TPZStructMatrixOT") ^
+        TPZStrMatParInterface::ClassId() << 1 ^
+        ClassIdOrHash<TVar>() << 2;
 }
 
-
-void TPZStructMatrixOT::Read(TPZStream& buf, void* context) {
+template<class TVar>
+void TPZStructMatrixOT<TVar>::Read(TPZStream& buf, void* context) {
     TPZStrMatParInterface::Read(buf, context);
     
     buf.Read(fElBlocked);
@@ -1561,7 +1580,8 @@ void TPZStructMatrixOT::Read(TPZStream& buf, void* context) {
     fCurrentIndex = fCurrentIndexLong;
 }
 
-void TPZStructMatrixOT::Write(TPZStream& buf, int withclassid) const {
+template<class TVar>
+void TPZStructMatrixOT<TVar>::Write(TPZStream& buf, int withclassid) const {
     TPZStrMatParInterface::Write(buf, withclassid);
     
     buf.Write(fElBlocked);
@@ -1573,4 +1593,5 @@ void TPZStructMatrixOT::Write(TPZStream& buf, int withclassid) const {
     buf.Write(&fCurrentIndexLong);
 }
 
-template class TPZRestoreClass<TPZStructMatrixOT>;
+template class TPZStructMatrixOT<STATE>;
+template class TPZRestoreClass<TPZStructMatrixOT<STATE>>;

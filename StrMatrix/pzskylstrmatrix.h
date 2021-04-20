@@ -15,7 +15,7 @@ class TPZCompMesh;
  * @ingroup structural
  */
 class TPZSkylineStructMatrix : public TPZStructMatrix,
-                               public TPZStructMatrixOR {
+                               public TPZStructMatrixOR<STATE> {
 protected:
     
     /** @brief the equations which should actually be assembled */

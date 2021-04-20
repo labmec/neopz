@@ -21,6 +21,7 @@ class TPZFlowGraph;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar>
 class TPZStructMatrixTBBFlow : public virtual TPZStrMatParInterface
 {
     
@@ -28,7 +29,7 @@ public:
     //! Default constructor.
     TPZStructMatrixTBBFlow();
     //! Copy constructor
-    TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlow &copy) = default;
+    TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlow &copy);
     //! Move constructor
     TPZStructMatrixTBBFlow(TPZStructMatrixTBBFlow &&copy) = default;
     //! Destructor
@@ -71,4 +72,5 @@ protected:
     TPZAutoPointer<TPZFlowGraph> fFlowGraph;
 };
 
+extern template class TPZStructMatrixTBBFlow<STATE>;
 #endif

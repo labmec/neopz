@@ -17,7 +17,7 @@ class TPZBlockDiagonal;
  */
 class TPZBlockDiagonalStructMatrix :
     public TPZStructMatrix,
-    public TPZStructMatrixOR{
+    public TPZStructMatrixOR<STATE>{
 public:
 
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};

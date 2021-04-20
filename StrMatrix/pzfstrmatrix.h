@@ -18,7 +18,7 @@ class TPZCompMesh;
  * @ingroup structural
  */
 class TPZFStructMatrix : public TPZStructMatrix,
-                         public TPZStructMatrixOR
+                         public TPZStructMatrixOR<STATE>
 {
 public:    
 	

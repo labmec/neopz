@@ -17,7 +17,7 @@ class TPZSubCompMesh;
  */
 template<class TStructMatrix, class TSparseMatrix>
 class TPZMatRedStructMatrix : public TPZStructMatrix,
-	public TPZStructMatrixOR
+                              public TPZStructMatrixOR<STATE>
 {
 public:
 	/** @brief Constructor */

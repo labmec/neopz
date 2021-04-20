@@ -21,7 +21,8 @@ struct ThreadDohrmanAssembly;
  * @author Philippe Devloo
  * @since 28/06/2010
  */
-class TPZDohrStructMatrix : public TPZStructMatrix, public TPZStructMatrixOR
+class TPZDohrStructMatrix : public TPZStructMatrix,
+							public TPZStructMatrixOR<STATE>
 {
 		
 public:

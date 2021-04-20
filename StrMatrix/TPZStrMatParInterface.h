@@ -20,7 +20,15 @@ class TPZVec;
 
 /*!
   Describes the interface that should be implemented in a parallel
-  scheme for \ref TPZStructMatrix
+  scheme for \ref TPZStructMatrix so anyone can implement a custom
+  parallel interface. Write it such as:
+  
+  template<class TVar>
+  class TPZStrMyParInterface: public virtual TPZStrMatParInterface{
+  ...
+  }
+
+  where TVar stands for STATE and CSTATE.
 */
 class TPZStrMatParInterface : public virtual TPZSavable {
 public:

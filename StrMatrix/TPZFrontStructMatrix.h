@@ -20,7 +20,8 @@
  */
 template<class front> 
 class TPZFrontStructMatrix : public TPZStructMatrix,
-    public TPZStructMatrixOR {
+                             public TPZStructMatrixOR<STATE>
+{
 	
 protected:
 	/** @brief This vector contains an ordered list */

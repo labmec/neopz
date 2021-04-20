@@ -30,14 +30,17 @@ static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
 
-TPZStructMatrixOR::TPZStructMatrixOR() : TPZStrMatParInterface(){
+template<class TVar>
+TPZStructMatrixOR<TVar>::TPZStructMatrixOR() : TPZStrMatParInterface(){
     this->SetNumThreads(TPZThreadPool::globalInstance().threadCount());
 }
 
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
-void TPZStructMatrixOR::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+template<class TVar>
+void 
+TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -48,7 +51,7 @@ void TPZStructMatrixOR::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,
             DebugStop();
         }
 #endif
-        TPZFMatrix<STATE> rhsloc(neqcondense, rhs.Cols(), 0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense, rhs.Cols(), 0.);
         if (this->fNumThreads) {
             this->MultiThread_Assemble(stiffness, rhsloc, guiInterface);
         } else {
@@ -66,20 +69,22 @@ void TPZStructMatrixOR::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,
     ass_stiff.stop();
 }
 
-void TPZStructMatrixOR::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+template<class TVar>
+void
+TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_rhs.start();
     if (equationFilter.IsActive()) {
         //TODOCOMPLEX
-        auto rhsState = dynamic_cast<const TPZFMatrix<STATE> *>(&rhs);
+        auto rhsState = dynamic_cast<const TPZFMatrix<TVar> *>(&rhs);
             
         int64_t neqcondense = equationFilter.NActiveEquations();
         int64_t neqexpand = equationFilter.NEqExpand();
         if (rhs.Rows() != neqexpand || Norm(*rhsState) != 0.) {
             DebugStop();
         }
-        TPZFMatrix<STATE> rhsloc(neqcondense, 1, 0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense, 1, 0.);
         if (this->fNumThreads) {
             this->MultiThread_Assemble(rhsloc, guiInterface);
         } else {
@@ -96,10 +101,12 @@ void TPZStructMatrixOR::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInter
     ass_rhs.stop();
 }
 
-void TPZStructMatrixOR::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+template<class TVar>
+void 
+TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     if(
-        !dynamic_cast<TPZMatrix<STATE>*>(&stiff_base)||
-        !dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)
+        !dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
+        !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)
        ){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" Incompatible type. Aborting...\n";
@@ -108,8 +115,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     auto *cmesh = myself->Mesh();
     auto &materialIds = myself->MaterialIds();
-    TPZMatrix<STATE> &stiffness = dynamic_cast<TPZMatrix<STATE>&>(stiff_base);
-    TPZFMatrix<STATE> &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    TPZMatrix<TVar> &stiffness = dynamic_cast<TPZMatrix<TVar>&>(stiff_base);
+    TPZFMatrix<TVar> &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
     
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
@@ -221,8 +228,8 @@ void TPZStructMatrixOR::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
         if (!ek.HasDependency()) {
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-            //			TPZSFMatrix<STATE> test(stiffness);
-            //			TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
+            //			TPZSFMatrix<TVar> test(stiffness);
+            //			TPZFMatrix<TVar> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat, ek.fSourceIndex, ek.fDestinationIndex);
 #ifdef PZDEBUG
@@ -354,13 +361,15 @@ void TPZStructMatrixOR::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatri
 
 }
 
-void TPZStructMatrixOR::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface) {
-    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+template<class TVar>
+void 
+TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
         DebugStop();
     }
-    auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const auto &equationFilter = myself->EquationFilter();
     auto *cmesh = myself->Mesh();
@@ -461,7 +470,9 @@ void TPZStructMatrixOR::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer
     //std::cout << std::endl;
 }
 
-void TPZStructMatrixOR::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+template<class TVar>
+void
+TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     if(!myself){
         PZError<<__PRETTY_FUNCTION__;
@@ -498,7 +509,9 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix 
 #endif
 }
 
-void TPZStructMatrixOR::MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+template<class TVar>
+void
+TPZStructMatrixOR<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     ThreadData threaddata(myself, rhs, myself->MaterialIds(), guiInterface);
     const int numthreads = this->fNumThreads;
@@ -521,22 +534,29 @@ void TPZStructMatrixOR::MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer
     }
 }
 
-int TPZStructMatrixOR::ClassId() const{
-    return Hash("TPZStructMatrixOR") ^ TPZStrMatParInterface::ClassId() << 1;
+template<class TVar>
+int TPZStructMatrixOR<TVar>::ClassId() const{
+    return Hash("TPZStructMatrixOR") ^
+        TPZStrMatParInterface::ClassId() << 1 ^
+        ClassIdOrHash<TVar>() << 2;
 }
 
-void TPZStructMatrixOR::Read(TPZStream& buf, void* context) {
+template<class TVar>
+void TPZStructMatrixOR<TVar>::Read(TPZStream& buf, void* context) {
     TPZStrMatParInterface::Read(buf,context);
 }
 
-void TPZStructMatrixOR::Write(TPZStream& buf, int withclassid) const {
+template<class TVar>
+void TPZStructMatrixOR<TVar>::Write(TPZStream& buf, int withclassid) const {
     TPZStrMatParInterface::Write(buf,withclassid);
 }
 
-TPZStructMatrixOR::ThreadData::~ThreadData() {
+template<class TVar>
+TPZStructMatrixOR<TVar>::ThreadData::~ThreadData() {
 }
 
-TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrix *strmat,
+template<class TVar>
+TPZStructMatrixOR<TVar>::ThreadData::ThreadData(TPZStructMatrix *strmat,
         TPZBaseMatrix &mat, TPZBaseMatrix &rhs,
         const std::set<int> &MaterialIds,
         TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -545,7 +565,8 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrix *strmat,
 
 }
 
-TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrix *strmat,
+template<class TVar>
+TPZStructMatrixOR<TVar>::ThreadData::ThreadData(TPZStructMatrix *strmat,
         TPZBaseMatrix &rhs,
         const std::set<int> &MaterialIds,
         TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -554,8 +575,9 @@ TPZStructMatrixOR::ThreadData::ThreadData(TPZStructMatrix *strmat,
 }
 
 //#define DRY_RUN
-
-void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
+template<class TVar>
+void *
+TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
 #endif
@@ -668,8 +690,9 @@ void *TPZStructMatrixOR::ThreadData::ThreadWork(void *datavoid) {
 }
 
 // The function which will compute the assembly
-
-void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
+template<class TVar>
+void *
+TPZStructMatrixOR<TVar>::ThreadData::ThreadAssembly(void *threaddata) {
     ThreadData *data = (ThreadData *) threaddata;
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
@@ -722,9 +745,9 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
                 data->fMutexAccessElement.unlock();
 #ifndef DRY_RUN
                 auto globMatrix =
-                    dynamic_cast<TPZMatrix<STATE> *>(data->fGlobMatrix);
+                    dynamic_cast<TPZMatrix<TVar> *>(data->fGlobMatrix);
                 auto globRhs =
-                    dynamic_cast<TPZFMatrix<STATE> *>(data->fGlobRhs);
+                    dynamic_cast<TPZFMatrix<TVar> *>(data->fGlobRhs);
                 // Assemble the matrix
                 if (!ek->HasDependency()) {
                     if (globMatrix) {
@@ -784,7 +807,9 @@ void *TPZStructMatrixOR::ThreadData::ThreadAssembly(void *threaddata) {
     return 0;
 }
 
-int64_t TPZStructMatrixOR::ThreadData::NextElement() {
+template<class TVar>
+int64_t 
+TPZStructMatrixOR<TVar>::ThreadData::NextElement() {
     fMutexAccessElement.lock();
     int64_t iel;
     int64_t nextel = fNextElement;
@@ -816,15 +841,20 @@ int64_t TPZStructMatrixOR::ThreadData::NextElement() {
 
 // put the computed element matrices in the map
 
-void TPZStructMatrixOR::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef) {
+template<class TVar>
+void 
+TPZStructMatrixOR<TVar>::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef) {
     std::scoped_lock lock(fMutexAccessElement);
     std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek, ef);
     fSubmitted[iel] = el;
     fAssembly.Post();
 }
 
-bool TPZStructMatrixOR::ThreadData::ShouldCompute(int matid) const{
+template<class TVar>
+bool 
+TPZStructMatrixOR<TVar>::ThreadData::ShouldCompute(int matid) const{
     return fStruct->ShouldCompute(matid);
 }
 
-template class TPZRestoreClass<TPZStructMatrixOR>;
+template class TPZStructMatrixOR<STATE>;
+template class TPZRestoreClass<TPZStructMatrixOR<STATE>>;

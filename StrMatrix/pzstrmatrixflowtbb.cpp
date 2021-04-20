@@ -25,10 +25,26 @@ static TPZLogger loggerel("pz.strmatrix.element");
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
-TPZStructMatrixTBBFlow::TPZStructMatrixTBBFlow() : TPZStrMatParInterface(), fFlowGraph(nullptr){
+template<class TVar>
+TPZStructMatrixTBBFlow<TVar>::TPZStructMatrixTBBFlow() : TPZStrMatParInterface(), fFlowGraph(nullptr){
 }
 
-TPZStructMatrixTBBFlow::~TPZStructMatrixTBBFlow(){}
+template<class TVar>
+TPZStructMatrixTBBFlow<TVar>::TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlow &copy){
+#ifndef USING_TBB
+    NO_TBB
+#else
+        if (copy.fCompMesh) {
+        fCompMesh = copy.fCompMesh;
+    }
+    fMaterialIds = copy.fMaterialIds;
+    fNumThreads = copy.fNumThreads;    
+    fFlowGraph = new TPZFlowGraph(*copy.fFlowGraph);
+#endif
+}
+
+template<class TVar>
+TPZStructMatrixTBBFlow<TVar>::~TPZStructMatrixTBBFlow(){}
 
 #include "run_stats_table.h"
 
@@ -38,7 +54,8 @@ static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table 
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
-void TPZStructMatrixTBBFlow::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
@@ -61,7 +78,8 @@ void TPZStructMatrixTBBFlow::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix &
     ass_stiff.stop();
 }
 
-void TPZStructMatrixTBBFlow::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
@@ -91,7 +109,8 @@ void TPZStructMatrixTBBFlow::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TP
     ass_rhs.stop();
 }
 
-TPZBaseMatrix * TPZStructMatrixTBBFlow::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+TPZBaseMatrix * TPZStructMatrixTBBFlow<TVar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifndef USING_TBB
     NO_TBB
@@ -122,7 +141,8 @@ TPZBaseMatrix * TPZStructMatrixTBBFlow::CreateAssemble(TPZBaseMatrix &rhs, TPZAu
     
 }
 
-void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs, &mat);
@@ -132,8 +152,8 @@ void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMa
 #endif
 }
 
-
-void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs);
@@ -143,17 +163,21 @@ void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPoi
 #endif
 }
 
-int TPZStructMatrixTBBFlow::ClassId() const{
+template<class TVar>
+int TPZStructMatrixTBBFlow<TVar>::ClassId() const{
     return Hash("TPZStructMatrixTBBFlow") ^ TPZStrMatParInterface::ClassId() << 1;
 }
 
-
-void TPZStructMatrixTBBFlow::Read(TPZStream& buf, void* context) {
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Read(TPZStream& buf, void* context) {
     TPZStrMatParInterface::Read(buf,context);
 }
 
-void TPZStructMatrixTBBFlow::Write(TPZStream& buf, int withclassid) const {
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Write(TPZStream& buf, int withclassid) const {
     TPZStrMatParInterface::Write(buf,withclassid);
 }
 
-template class TPZRestoreClass<TPZStructMatrixTBBFlow>;
+
+template class TPZStructMatrixTBBFlow<STATE>;
+template class TPZRestoreClass<TPZStructMatrixTBBFlow<STATE>>;

@@ -11,7 +11,8 @@
  * @brief Implements Banded Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZBandStructMatrix : public TPZStructMatrix, public TPZStructMatrixOR{
+class TPZBandStructMatrix : public TPZStructMatrix,
+                            public TPZStructMatrixOR<STATE>{
 public:    
 	
     TPZBandStructMatrix(TPZCompMesh *);

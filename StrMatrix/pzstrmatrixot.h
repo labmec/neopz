@@ -22,6 +22,7 @@ class TPZStructMatrix;
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar>
 class TPZStructMatrixOT : public virtual TPZStrMatParInterface{
 public:
     //! Default constructor
@@ -137,4 +138,6 @@ protected:
     std::atomic<int64_t> fCurrentIndex;
 };
 
+
+extern template class TPZStructMatrixOT<STATE>;
 #endif
