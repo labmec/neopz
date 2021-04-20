@@ -383,7 +383,8 @@ if(NOT BUILD_COMPLEX_PROJECTS)
     endif()
 endif()
 
-
+get_target_property(pz_sources pz SOURCES)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${pz_sources})
 #To build the documentation using doxygen
 option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)
 #To build the documentation using doxygen+breathe+sphynx
