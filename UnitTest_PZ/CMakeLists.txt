@@ -1,6 +1,11 @@
 # @file neopz/UnitTest_PZ/CMakeList.txt  -- First Cmake file for Unit Testing modules
 
 enable_testing()
+#in this file (and ONLY in this file) we will define CATCH_CONFIG_MAIN
+add_library(test_library STATIC test_main.cpp)
+target_compile_definitions(test_library PRIVATE CATCH_CONFIG_MAIN)
+target_link_libraries(test_library PUBLIC Catch2::Catch2)
+
 add_subdirectory(TestVecTypes)
 add_subdirectory(TestFad)
 add_subdirectory(TestHCurl)

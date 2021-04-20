@@ -34,7 +34,7 @@
 #include "fpo_exceptions.h"
 
 template <int Num, class T> class TFad;
-
+template <class T> class Fad;
 template <typename Enumeration>
 typename std::underlying_type<Enumeration>::type as_integer(const Enumeration value) {
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
@@ -54,6 +54,16 @@ struct real_type<T, std::enable_if_t<std::is_arithmetic_v<T>||std::is_integral_v
 template <typename T>
 struct real_type<std::complex<T>, void>
  { using type = T; };
+
+
+//! Enabling it for Fad<T>
+template <typename T>
+struct real_type<Fad<T>, void>
+{ using type = typename real_type<T>::type; };
+//! Enabling it for TFad<6,T>
+template <typename T>
+struct real_type<TFad<6,T>, void>
+{ using type = typename real_type<T>::type; };
 
 //@{
   //! Convenience macros for real_type<T>::type
