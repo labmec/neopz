@@ -6,6 +6,7 @@ add_library(test_library STATIC test_main.cpp)
 target_compile_definitions(test_library PRIVATE CATCH_CONFIG_MAIN)
 target_link_libraries(test_library PUBLIC Catch2::Catch2)
 
+add_subdirectory(TestAutoPointer)
 add_subdirectory(TestVecTypes)
 add_subdirectory(TestFad)
 add_subdirectory(TestHCurl)
