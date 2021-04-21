@@ -7,23 +7,24 @@
 #define TPZSPSTRUCTMATRIX_H
 
 #include "TPZStructMatrix.h"
-#include "pzstrmatrixor.h"
 
+#include "pzstrmatrixor.h"
 /**
  * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZSpStructMatrix : public TPZStructMatrix,
-                          public TPZStructMatrixOR<STATE> {
+                                  public TPar{
 public:
     TPZSpStructMatrix(TPZCompMesh* m) : TPZStructMatrix(m){}
     TPZSpStructMatrix(TPZAutoPointer<TPZCompMesh> m) :
         TPZStructMatrix(m){}
     
-    TPZBaseMatrix * Create() override;
+    TPZMatrix<TVar> *Create() override;
 	TPZStructMatrix * Clone() override;
     
-	TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+	TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 
     //@{
     //!Read and Write methods
@@ -33,9 +34,6 @@ public:
 
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
-	
-    /** Used only for testing */
-	static int main();
 private :
     TPZSpStructMatrix() = default;
     

@@ -9,45 +9,62 @@
 #include "pzcmesh.h"
 #include "TPZGuiInterface.h"
 
-TPZStructMatrix * TPZSBandStructMatrix::Clone(){
+template<class TVar, class TPar>
+TPZStructMatrix * TPZSBandStructMatrix<TVar,TPar>::Clone(){
     return new TPZSBandStructMatrix(*this);
 }
 
-TPZMatrix<STATE> * TPZSBandStructMatrix::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	TPZMatrix<STATE> *mat = Create();
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSBandStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPZMatrix<TVar> *mat = Create();
 	rhs.Redim(mat->Rows(),1);
 	Assemble(*mat,rhs,guiInterface);
     return mat;
 }
 
-TPZMatrix<STATE> * TPZSBandStructMatrix::Create(){
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSBandStructMatrix<TVar,TPar>::Create(){
     if (fEquationFilter.IsActive()) {
         DebugStop();
     }
 	int64_t neq = fEquationFilter.NActiveEquations();
 	
 	int64_t band = fMesh->BandWidth();
-	return new TPZSBMatrix<STATE>(neq,band);
+	return new TPZSBMatrix<TVar>(neq,band);
 }
 
-TPZSBandStructMatrix::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
+template<class TVar, class TPar>
+TPZSBandStructMatrix<TVar,TPar>::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 }
 
-TPZSBandStructMatrix::TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
+template<class TVar, class TPar>
+TPZSBandStructMatrix<TVar,TPar>::TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
 {
 }
 
-int TPZSBandStructMatrix::ClassId() const{
-    return Hash("TPZSBandStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
+template<class TVar, class TPar>
+int TPZSBandStructMatrix<TVar,TPar>::ClassId() const{
+    return Hash("TPZSBandStructMatrix") ^
+        TPZStructMatrix::ClassId() << 1 ^
+        TPar::ClassId() << 2;
 }
 
-void TPZSBandStructMatrix::Read(TPZStream& buf, void* context){
+template<class TVar, class TPar>
+void TPZSBandStructMatrix<TVar,TPar>::Read(TPZStream& buf, void* context){
     TPZStructMatrix::Read(buf,context);
-    TPZStructMatrixOR::Read(buf,context);
+    TPar::Read(buf,context);
 }
 
-void TPZSBandStructMatrix::Write(TPZStream& buf, int withclassid) const{
+template<class TVar, class TPar>
+void TPZSBandStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
     TPZStructMatrix::Write(buf,withclassid);
-    TPZStructMatrixOR::Write(buf,withclassid);
+    TPar::Write(buf,withclassid);
 }
+
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZSBandStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZSBandStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZSBandStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

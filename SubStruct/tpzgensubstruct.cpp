@@ -971,7 +971,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	submesh->PermuteInternalFirst(permuteconnectscatter);
 	
 	// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
-	TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> > redstruct(submesh);
+	TPZMatRedStructMatrix<TPZSkylineStructMatrix<STATE>,TPZVerySparseMatrix<STATE> > redstruct(submesh);
 	TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > *matredptr = dynamic_cast<TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > *>(redstruct.Create());
 	TPZAutoPointer<TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > > matred = matredptr;
 	

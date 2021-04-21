@@ -11,8 +11,10 @@
  * @brief Implements Banded Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar = STATE,
+         class TPar = TPZStructMatrixOR<TVar>>
 class TPZBandStructMatrix : public TPZStructMatrix,
-                            public TPZStructMatrixOR<STATE>{
+                            public TPar{
 public:    
 	
     TPZBandStructMatrix(TPZCompMesh *);
@@ -22,11 +24,11 @@ public:
     {
     }
 	
-    TPZMatrix<STATE> * Create() override;
+    TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
     
     using TPZStructMatrix::CreateAssemble;
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<TVar> * CreateAssemble(TPZFMatrix<TVar> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 
 	//@{

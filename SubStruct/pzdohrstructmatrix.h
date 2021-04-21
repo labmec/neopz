@@ -21,8 +21,10 @@ struct ThreadDohrmanAssembly;
  * @author Philippe Devloo
  * @since 28/06/2010
  */
+
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZDohrStructMatrix : public TPZStructMatrix,
-							public TPZStructMatrixOR<STATE>
+							public TPar
 {
 		
 public:
@@ -39,7 +41,7 @@ public:
 	void SubStructure(int nsub);
 	
 	/** @brief This will create a DohrMatrix */
-	TPZMatrix<STATE> * Create() override;
+	TPZMatrix<TVar> * Create() override;
 
 	//@{
     //!Read and Write methods
@@ -80,7 +82,7 @@ public:
     }
     
     // FOR DEBUG PURPOSES
-    TPZAutoPointer<TPZDohrAssembly<STATE> > Assembly() {
+    TPZAutoPointer<TPZDohrAssembly<TVar> > Assembly() {
         return fDohrAssembly;
     }
 	
@@ -107,7 +109,7 @@ protected:
 
     void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
-	TPZAutoPointer<TPZDohrAssembly<STATE> > fDohrAssembly;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fDohrAssembly;
 	
 	TPZAutoPointer<TPZBaseMatrix > fDohrPrecond;
 	
@@ -145,7 +147,7 @@ private:
 	/** @brief Mutexes (to choose which submesh is next) */
 	std::mutex fAccessElement;
 	
-	friend struct ThreadDohrmanAssembly<STATE>;
+	friend struct ThreadDohrmanAssembly<TVar>;
         
         friend TPZPersistenceManager;
 	

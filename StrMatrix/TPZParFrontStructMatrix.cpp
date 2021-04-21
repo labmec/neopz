@@ -8,28 +8,13 @@
 
 #include "TPZFrontSym.h"
 #include "TPZFrontNonSym.h"
-
-#include "pzgmesh.h"
-#include "pzcmesh.h"
-#include "pzsubcmesh.h"
-#include "pzbndcond.h"
-
-#include "pzanalysis.h"
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-
 #include "TPZParFrontMatrix.h"
-
+#include "pzsubcmesh.h"
+#include "TPZMaterial.h"
+#include "pzelmat.h"
 #include "pzelementgroup.h"
 #include "pzcondensedcompel.h"
-
-#include "pzdxmesh.h"
-#include <fstream>
-
-#include "pzelmat.h"
-
 #include "TPZFileEqnStorage.h"
-#include "pzlog.h"
 
 
 #include <thread>             // std::thread
@@ -38,7 +23,7 @@
 
 
 #ifdef PZ_LOG
-
+#include "pzlog.h"
 static TPZLogger logger("pz.strmatrix.frontstructmatrix");
 
 #endif
@@ -51,37 +36,32 @@ std::condition_variable condassemble;
 /// Semaphore
 std::condition_variable stackfull;
 
-template<class front>
-TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh)
+template<class TFront, class TVar, class TPar>
+TPZParFrontStructMatrix<TFront,TVar,TPar>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<TFront,TVar,TPar>(mesh)
 {
 	fMaxStackSize = 500;
 	TPZStructMatrix::SetNumThreads(3);
 }
 
-template<class front>
-TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy): TPZFrontStructMatrix<front>(copy), fMaxStackSize(copy.fMaxStackSize)
-{
-}
-
-template<class front>
-TPZParFrontStructMatrix<front>::~TPZParFrontStructMatrix()
+template<class TFront, class TVar, class TPar>
+TPZParFrontStructMatrix<TFront,TVar,TPar>::~TPZParFrontStructMatrix()
 {
 
 }
 
-template<class front>
-TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(){
-	TPZParFrontStructMatrix<front> * mat = new TPZParFrontStructMatrix<front>(*this);
+template<class TFront, class TVar, class TPar>
+TPZStructMatrix * TPZParFrontStructMatrix<TFront,TVar,TPar>::Clone(){
+	TPZParFrontStructMatrix<TFront,TVar,TPar> * mat = new TPZParFrontStructMatrix<TFront,TVar,TPar>(*this);
 	return mat;
 	;
 	
 }
 
-template<class front>
-void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
+template<class TFront, class TVar, class TPar>
+void *TPZParFrontStructMatrix<TFront,TVar,TPar>::ElementAssemble(void *t){
     
     
-	TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
+	TPZParFrontStructMatrix<TFront,TVar,TPar> *parfront = (TPZParFrontStructMatrix<TFront,TVar,TPar> *) t;
 	
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
 	
@@ -224,10 +204,10 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 
 clarg::argInt num_threads("-ntdec", "Number of threads to decompose in TPZParFrontStructMatrix.", 6);
 
-template<class front>
-void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
+template<class TFront, class TVar, class TPar>
+void *TPZParFrontStructMatrix<TFront,TVar,TPar>::GlobalAssemble(void *t){
     
-	TPZParFrontStructMatrix<front> *parfront = (TPZParFrontStructMatrix<front> *) t;
+	TPZParFrontStructMatrix<TFront,TVar,TPar> *parfront = (TPZParFrontStructMatrix<TFront,TVar,TPar> *) t;
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = parfront->fMesh->ElementVec();
 	while(parfront->fCurrentAssembled < parfront->fNElements) {
 		
@@ -342,9 +322,9 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		if(parfront->fCurrentAssembled == parfront->fNElements)
 		{
 #ifdef STACKSTORAGE
-            TPZParFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast< TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
+            TPZParFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront> *mat = dynamic_cast< TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, front>* > (parfront->fStiffness);
 #else
-            TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (parfront->fStiffness);
+            TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront>* > (parfront->fStiffness);
             
 #endif
 			mat->FinishWriting();
@@ -363,9 +343,9 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		
 		if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
 #ifdef STACKSTORAGE
-			TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
+			TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, front> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, front>* > (parfront->fStiffness);
 #else
-            TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (parfront->fStiffness);
+            TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront>* > (parfront->fStiffness);
             
 #endif
 			mat->FinishWriting();
@@ -388,15 +368,15 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 	return 0;
 }
 
-template<class front>
-void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TFront, class TVar, class TPar>
+void TPZParFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZMatrix<TVar> & matref, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	this->fGuiInterface = guiInterface;
 	
 #ifdef STACKSTORAGE
-	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *>(&matref);
+	TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, TFront> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, TFront> *>(&matref);
 #else
-    TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>* > (&matref);
+    TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront> *mat = dynamic_cast<TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront>* > (&matref);
     
 #endif
 	if(!mat)
@@ -421,14 +401,14 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	int i;
 	
 	TPZVec <int> numelconnected(this->fMesh->NEquations(),0);
-	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+	//TPZFrontMatrix<TPZStackEqnStorage, TFront> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TFront>(fMesh->NEquations());
 	
-	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
-	
-	
+	//TPZFrontMatrix<TPZFileEqnStorage, TFront> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TFront>(fMesh->NEquations());
 	
 	
-	//TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(this->fMesh->NEquations());
+	
+	
+	//TPZParFrontMatrix<TPZStackEqnStorage, TFront> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, TFront>(this->fMesh->NEquations());
 	fNElements = this->fMesh->NElements();
 	
 	this->OrderElement();
@@ -527,202 +507,20 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
     
 }
 
-
-#ifndef STATE_COMPLEX
-#include "pzmat2dlin.h"
-
-template<class front>
-int TPZParFrontStructMatrix<front>::main() {
-	
-	int refine=1;
-	int order=1;
-	
-	TPZGeoMesh gmesh;
-	TPZCompMesh cmesh(&gmesh);
-	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},
-		{0.,1.,0.}};
-	
-	int i,j;
-	TPZVec<REAL> coord(3,0.);
-	for(i=0; i<4; i++) {
-		// initializar as coordenadas do no em um vetor
-		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
-		
-		// identificar um espa� no vetor onde podemos armazenar
-		// este vetor
-		
-		// initializar os dados do n�		gmesh.NodeVec ()[i].Initialize (i,coord,gmesh);
-	}
-	int el;
-	//TPZGeoEl *gel;
-	for(el=0; el<1; el++) {
-		
-		// initializar os indices dos n�
-		TPZVec<int64_t> indices(4);
-		for(i=0; i<4; i++) indices[i] = i;
-		// O proprio construtor vai inserir o elemento na malha
-		int64_t index;
-		/*gel = */gmesh.CreateGeoElement(EQuadrilateral,indices,1,index);
-	}
-	gmesh.BuildConnectivity ();
-	
-	TPZVec<TPZGeoEl *> subel;
-	//gel->Divide(subel);
-	
-	
-	
-	std::cout << "Refinement ";
-	std::cin >> refine;
-	std::cout << std::endl;
-	DebugStop();
-	//UniformRefine(refine,gmesh);
-	
-	
-	TPZMat2dLin *mat2d = new TPZMat2dLin(1);
-	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
-	mat2d->SetMaterial (xk,xc,xf);
-	auto * meumat = (TPZMaterial*) mat2d;
-	cmesh.InsertMaterialObject(meumat);
-	
-	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	auto * bnd = (TPZMaterial*) meumat->CreateBC (meumat,-4,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-	
-	
-	
-	std::cout << "Interpolation order ";
-	std::cin >> order;
-	std::cout << std::endl;
-	
-	//	TPZCompEl::gOrder = order;
-	cmesh.SetDefaultOrder(order);
-	
-	cmesh.AutoBuild();
-	//	cmesh.AdjustBoundaryElements();
-	cmesh.InitializeBlock();
-	
-	std::ofstream output("outputPar.dat");
-	//	ofstream output2("outputNon.dat");
-	cmesh.Print(output);
-	TPZAnalysis an(&cmesh,true,output);
-	//	TPZAnalysis an2(&cmesh,output);
-	
-	TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	int64_t ic;
-	//cout << "Nmero de Equa�es -> " << cmesh.NEquations() << endl;
-	//cout.flush();
-	
-	std::ofstream out("cmeshBlock_out.txt");
-	//	cmesh.Print(out);
-	//	cmesh.Block().Print("Block",out);
-	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
-		TPZConnect &cn = cmesh.ConnectVec()[ic];
-		if(cn.HasDependency() || cn.IsCondensed()) continue;
-		int64_t seqn = cn.SequenceNumber();
-		if(seqn < 0) continue;
-		int64_t firsteq = cmesh.Block().Position(seqn);
-		int64_t lasteq = firsteq+cmesh.Block().Size(seqn);
-		int64_t ind;
-		int temp = cmesh.ConnectVec()[ic].NElConnected();
-		for(ind=firsteq;ind<lasteq;ind++) {
-			numelconnected[ind] = temp;//cmesh.ConnectVec()[ic].NElConnected();
-		}
-	}
-	//	//cout << "nequations " << numelconnected.NElements();
-	//	for(ic=0;ic<numelconnected.NElements(); ic++) //cout << numelconnected[ic] <<' ';
-	//	//cout << endl;
-	//	//cout.flush();
-	
-	//	TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
-	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
-	//TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
-	
-	TPZParFrontStructMatrix<TPZFrontSym<STATE> > mat(&cmesh);
-	
-	//   TPZFStructMatrix mat2(&cmesh);
-	//  mat->SetNumElConnected(numelconnected);
-	//mat = CreateAssemble();
-	int threads;
-	std::cout << "Number of Threads  ";
-	std::cin >> threads;
-	std::cout << std::endl;
-	
-	mat.SetNumThreads(threads);
-	//mat.SetNumberOfThreads(1);
-	
-	an.SetStructuralMatrix(mat);
-	//	an2.SetStructuralMatrix(mat2);
-	
- 	TPZStepSolver<STATE> sol;
-	//	sol.SetDirect(ELU);
-	sol.SetDirect(ECholesky);
-	//	TPZStepSolver sol2;
-	//	sol2.SetDirect(ECholesky);
-	//	sol.SetDirect(ELU);
-	
-	
-	an.SetSolver(sol);
-	//     an2.SetSolver(sol2);
-	//	mat->SetNumElConnected(numelconnected);
-	//	mat->SetFileName("longhin.bin");
-	//	an.Solver().SetDirect(ELU);
-	//	mat->FinishWriting();
-	//  mat->SetFileName('r',"longhin.bin");
-	//	//cout << "******************************************************************************************************AQUI 1" << endl;
-	an.Run(output);
-	an.Print("solution of frontal solver", output);
-	//	//cout << "******************************************************************************************************AQUI 2" << endl;
-	//	an2.Run(output2);
-	//	an2.Print("solution of frontal solver", output2);
-	/*
-	 TPZVec<char *> scalnames(1);
-	 scalnames[0] = "state";
-	 
-	 TPZVec<char *> vecnames(0);
-	 
-	 TPZDXGraphMesh graph(&cmesh,2,meumat,vecnames,scalnames);
-	 ofstream *dxout = new ofstream("poisson.dx");
-	 graph.SetOutFile(*dxout);
-	 graph.SetResolution(0);
-	 
-	 //an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
-	 //an.Print("FEM SOLUTION ",output);
-	 //an.PostProcess(1);
-	 int istep = 0,numstep=1;
-	 
-	 graph.DrawMesh(numstep+1);
-	 graph.DrawSolution(0,0);
-	 
-	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix<STATE> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
-	 an2.SetMatrix(full);
-	 an2.Solver().SetDirect(ELU);
-	 an2.Run(output);
-	 an2.Print("solution of full matrix", output);
-	 
-	 //	full->Print("full decomposed matrix");
-	 */
-	output.flush();
-	std::cout.flush();
-	return 0;
-	
-}
-#endif
-
-template<class front>
-TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TFront, class TVar, class TPar>
+TPZMatrix<TVar> * TPZParFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	
-	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
+	//TPZFrontMatrix<TPZStackEqnStorage, TFront> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TFront>(fMesh->NEquations());
 	
-	//TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(fMesh->NEquations());
+	//TPZFrontMatrix<TPZFileEqnStorage, TFront> *mat = new TPZFrontMatrix<TPZFileEqnStorage, TFront>(fMesh->NEquations());
 	int64_t neq = this->fEquationFilter.NActiveEquations();
 	
 	//
 #ifdef STACKSTORAGE
-	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>(neq);
+	TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, TFront> *mat = new TPZParFrontMatrix<TVar, TPZStackEqnStorage<TVar>, TFront>(neq);
 #else
-    TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZFileEqnStorage<STATE>, front>(neq);
+    TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront> *mat = new TPZParFrontMatrix<TVar, TPZFileEqnStorage<TVar>, TFront>(neq);
 #endif
     if (this->fDecomposeType != ENoDecompose)
     {
@@ -735,6 +533,20 @@ TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STA
 	
 }
 
-template class TPZParFrontStructMatrix<TPZFrontSym<STATE> >;
-template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE> >;
+template<class TFront, class TVar, class TPar>
+int TPZParFrontStructMatrix<TFront,TVar,TPar>::ClassId() const{
+    return Hash("TPZParFrontStructMatrix") ^
+        TPZFrontStructMatrix<TFront,TVar,TPar>::ClassId()<<1;
+}
+
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixOR<STATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixOR<STATE>>;
+template class TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixOT<STATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixOT<STATE>>;
+template class TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
+
 

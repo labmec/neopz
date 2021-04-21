@@ -70,18 +70,22 @@ static int64_t NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 /** @brief return a pointer to the isub submesh */
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
-static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
+template<class TVar>
+static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, TPZAutoPointer<TPZDohrAssembly<TVar> > dohrassembly,
                              mutex* TestThread);
+template<class TVar>
+static void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, int numa_node);
+template<class TVar>
 
-static void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
-static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node);
+static void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, int numa_node);
 
 #define NOMETIS \
     PZError<<"TPZDohrStructMatrix requires Metis library\n";\
     PZError<<"Please reconfigure NeoPZ library with:\n";\
     PZError<<"USING_METIS=ON"<<std::endl;\
     DebugStop();
-TPZDohrStructMatrix::TPZDohrStructMatrix() :
+template<class TVar, class TPar>
+ TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix() :
 TPZStructMatrix(), fDohrAssembly(0), fDohrPrecond(0), fAccessElement()
 {
 #ifndef USING_METIS
@@ -89,7 +93,8 @@ TPZStructMatrix(), fDohrAssembly(0), fDohrPrecond(0), fAccessElement()
 #endif
 }
 
-TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) :
+template<class TVar, class TPar>
+ TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) :
 TPZStructMatrix(cmesh), fDohrAssembly(0),
 fDohrPrecond(0), fAccessElement()
 {
@@ -98,7 +103,8 @@ fDohrPrecond(0), fAccessElement()
 #endif
 }
 
-TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
+template<class TVar, class TPar>
+ TPZDohrStructMatrix<TVar,TPar>::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) :
 TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fAccessElement()
 {
 #ifndef USING_METIS
@@ -106,20 +112,22 @@ TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDoh
 #endif
 }
 
-TPZDohrStructMatrix::~TPZDohrStructMatrix()
+template<class TVar, class TPar>
+ TPZDohrStructMatrix<TVar,TPar>::~TPZDohrStructMatrix()
 {
 }
 
 
 // this will create a DohrMatrix
-TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZDohrStructMatrix<TVar,TPar>::Create()
 {
 #ifndef USING_METIS
     NOMETIS
 #endif    
 	TPZfTime timeforcopute; // init of timer for compute
 	fMesh->ComputeNodElCon();
-	TPZAutoPointer<TPZDohrAssembly<STATE> > assembly = new TPZDohrAssembly<STATE>;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > assembly = new TPZDohrAssembly<TVar>;
 	fDohrAssembly = assembly;
 	
 	fMesh->InitializeBlock();
@@ -196,7 +204,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
 #endif
     
-	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(assembly);
+	TPZDohrMatrix<TVar,TPZDohrSubstructCondense<TVar> > *dohr = new TPZDohrMatrix<TVar,TPZDohrSubstructCondense<TVar> >(assembly);
 
 	int64_t neq = fMesh->NEquations();
 	dohr->Resize(neq,neq);
@@ -212,7 +220,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		{
 			continue;
 		}
-		TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct = new TPZDohrSubstructCondense<STATE>();
+		TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct = new TPZDohrSubstructCondense<TVar>();
 		submesh->ComputeNodElCon();
 		int64_t neq = ((TPZCompMesh *)submesh)->NEquations();
 		//    int neq = substruct->fStiffness->Rows();
@@ -238,12 +246,12 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
         
 		
 		// initialize the permutations from the mesh enumeration to the external enumeration
-		typedef TPZDohrSubstructCondense<STATE>::ENumbering ENumbering;
+		typedef typename TPZDohrSubstructCondense<TVar>::ENumbering ENumbering;
 		typedef std::pair<ENumbering,ENumbering> Numberingpair;
 		ENumbering tsub,text,tint;
-		tsub = TPZDohrSubstructCondense<STATE>::Submesh;
-		text = TPZDohrSubstructCondense<STATE>::ExternalFirst;
-		tint = TPZDohrSubstructCondense<STATE>::InternalFirst;
+		tsub = TPZDohrSubstructCondense<TVar>::Submesh;
+		text = TPZDohrSubstructCondense<TVar>::ExternalFirst;
+		tint = TPZDohrSubstructCondense<TVar>::InternalFirst;
 		
 		TPZVec<int> &toexternal = substruct->fPermutationsScatter[Numberingpair(tsub,text)];
 		TPZVec<int> &fromexternal = substruct->fPermutationsScatter[Numberingpair(text,tsub)];
@@ -369,24 +377,25 @@ public:
     
 };
 
-void TPZDohrStructMatrix::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
                                       TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+    if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" incompatible type. Aborting...\n";
         DebugStop();
     }
-    auto& rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto& rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
     TPZBaseMatrix *dohrgeneric = &mat;
-    TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr =
-    dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
+    TPZDohrMatrix<TVar,TPZDohrSubstructCondense<TVar> > *dohr =
+    dynamic_cast<TPZDohrMatrix<TVar,TPZDohrSubstructCondense<TVar> > *> (dohrgeneric);
     
-    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
+    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<TVar> > > &sublist = dohr->SubStructures();
     unsigned isub;
     unsigned nsub = NSubMesh(fMesh);
-    std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
-    parallel_assemble_task_t<STATE> parallel_tasks(fDohrAssembly, fMesh);
+    auto it = sublist.begin();
+    parallel_assemble_task_t<TVar> parallel_tasks(fDohrAssembly, fMesh);
     
     /* Initialize work items. */
     std::cout << "Assembling " << nsub << " submeshes" << std::endl;
@@ -406,14 +415,14 @@ void TPZDohrStructMatrix::AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_b
     
     /* Post processing. */
     for (isub=0, it=sublist.begin(); it != sublist.end(); it++, isub++) {
-        TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
+        TPZFMatrix<TVar> rhsloc((*it)->fNumExternalEquations,1,0.);
         (*it)->ContributeRhs(rhsloc);
         fDohrAssembly->Assemble(isub,rhsloc,rhs);
     }
     
     dohr->Initialize();
     
-    TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
+    TPZDohrPrecond<TVar,TPZDohrSubstructCondense<TVar> > *precond = new TPZDohrPrecond<TVar,TPZDohrSubstructCondense<TVar> > (*dohr,fDohrAssembly);
     
     precond->Initialize();
     
@@ -449,34 +458,35 @@ RunStatsTable dohr_ass   ("-tpz_dohr_ass", "Raw data table statistics for TPZDoh
 RunStatsTable dohr_dec   ("-tpz_dohr_dec", "Raw data table statistics for TPZDohrStructMatrix::Assemble decompose (second)");
 
 
-void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base,
                                    TPZAutoPointer<TPZGuiInterface> guiInterface,
                                    unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
-  if (!dynamic_cast<TPZFMatrix<STATE> *>(&rhs_base)) {
+  if (!dynamic_cast<TPZFMatrix<TVar> *>(&rhs_base)) {
     PZError << __PRETTY_FUNCTION__;
     PZError << " incompatible type. Aborting...\n";
     DebugStop();
   }
-  auto &rhs = dynamic_cast<TPZFMatrix<STATE> &>(rhs_base);
+  auto &rhs = dynamic_cast<TPZFMatrix<TVar> &>(rhs_base);
 #ifdef PERF_ANALYSIS
     ClockTimer timer;
     TimingAnalysis ta;
 #endif
     
     TPZBaseMatrix *dohrgeneric = &mat;
-    TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
-    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
+    TPZDohrMatrix<TVar,TPZDohrSubstructCondense<TVar> > *dohr = dynamic_cast<TPZDohrMatrix<TVar,TPZDohrSubstructCondense<TVar> > *> (dohrgeneric);
+    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<TVar> > > &sublist = dohr->SubStructures();
     
     int nsub = NSubMesh(fCompMesh); // mod fMesh
-    std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
+    auto it = sublist.begin();
     
     /* Create a list of items to assemble. */
-    ThreadDohrmanAssemblyList<STATE> worklist;
+    ThreadDohrmanAssemblyList<TVar> worklist;
     for (int isub=0; isub<nsub ; isub++) {
         TPZSubCompMesh *submesh = SubMesh(fCompMesh, isub); // mod fMesh
         if(!submesh) continue;
-        ThreadDohrmanAssembly<STATE> *work = new ThreadDohrmanAssembly<STATE>(fCompMesh,isub,*it,fDohrAssembly); //mod fMesh
+        ThreadDohrmanAssembly<TVar> *work = new ThreadDohrmanAssembly<TVar>(fCompMesh,isub,*it,fDohrAssembly); //mod fMesh
         worklist.Append(work);
         it++;
     }
@@ -488,11 +498,11 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
     }
     
     // First pass : assembling the matrices
-    ThreadDohrmanAssemblyList<STATE> worklistAssemble(worklist);
-    std::list<TPZAutoPointer<ThreadDohrmanAssembly<STATE> > >::iterator itwork =
+    ThreadDohrmanAssemblyList<TVar> worklistAssemble(worklist);
+    auto itwork =
     worklistAssemble.fList.begin();
     while (itwork != worklistAssemble.fList.end()) {
-        (*itwork)->fTask = ThreadDohrmanAssembly<STATE>::EComputeMatrix;
+        (*itwork)->fTask = ThreadDohrmanAssembly<TVar>::EComputeMatrix;
         itwork++;
     }
     
@@ -506,22 +516,22 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
     dohr_ass.start();
     if (numthreads_assemble == 0) {
         /* Put the main thread to work on all items. */
-        ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> targ;
+        ThreadDohrmanAssemblyList_ThreadArgs_t<TVar> targ;
         targ.thread_idx=0;
         targ.list = &worklistAssemble;
-        ThreadDohrmanAssemblyList<STATE>::ThreadWork(&targ);
+        ThreadDohrmanAssemblyList<TVar>::ThreadWork(&targ);
     }
     else {
         /* Threads arguments. */
-        std::vector<ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> > args(numthreads_assemble);
+        std::vector<ThreadDohrmanAssemblyList_ThreadArgs_t<TVar> > args(numthreads_assemble);
         
         /* Assemble multi-threaded */
         for(unsigned itr=0; itr<numthreads_assemble; itr++)
         {
-            ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>* targ = &(args[itr]);
+            ThreadDohrmanAssemblyList_ThreadArgs_t<TVar>* targ = &(args[itr]);
             targ->thread_idx=itr;
             targ->list = &worklistAssemble;
-            targ->thread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork, targ);
+            targ->thread = thread(ThreadDohrmanAssemblyList<TVar>::ThreadWork, targ);
         }
         /* Sync. */
         for(unsigned itr=0; itr<numthreads_assemble; itr++)
@@ -547,7 +557,7 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
             std::stringstream sout;
             sout << "Substructure number " << isub <<std::endl;
             isub++;
-           // TPZDohrSubstructCondense<STATE> *ptr = (*it).operator->();
+           // TPZDohrSubstructCondense<TVar> *ptr = (*it).operator->();
             (*it)->fMatRed->Print("Matred",sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
@@ -557,14 +567,14 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
     // Second  pass : decomposing
     // Philippe: this may be easier to adapt the code for NUMA.
     // Edson: TODO: Measure time again.
-    ThreadDohrmanAssemblyList<STATE> worklistDecompose;
+    ThreadDohrmanAssemblyList<TVar> worklistDecompose;
     itwork = worklist.fList.begin();
     while (itwork != worklist.fList.end()) {
-        TPZAutoPointer<ThreadDohrmanAssembly<STATE> > pt1 = new ThreadDohrmanAssembly<STATE> (*itwork);
-        pt1->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeBig;
+        TPZAutoPointer<ThreadDohrmanAssembly<TVar> > pt1 = new ThreadDohrmanAssembly<TVar> (*itwork);
+        pt1->fTask = ThreadDohrmanAssembly<TVar>::EDecomposeBig;
         worklistDecompose.Append(pt1);
-        TPZAutoPointer<ThreadDohrmanAssembly<STATE> > pt2 = new ThreadDohrmanAssembly<STATE>(*itwork);
-        pt2->fTask = ThreadDohrmanAssembly<STATE>::EDecomposeInternal;
+        TPZAutoPointer<ThreadDohrmanAssembly<TVar> > pt2 = new ThreadDohrmanAssembly<TVar>(*itwork);
+        pt2->fTask = ThreadDohrmanAssembly<TVar>::EDecomposeInternal;
         worklistDecompose.Append(pt2);
         itwork++;
     }
@@ -572,21 +582,21 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
     dohr_dec.start();
     if (numthreads_decompose == 0) {
         /* Compute it sequentialy */
-        ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> targ;
+        ThreadDohrmanAssemblyList_ThreadArgs_t<TVar> targ;
         targ.thread_idx = 0;
         targ.list = &worklistDecompose;
-        ThreadDohrmanAssemblyList<STATE>::ThreadWork(&targ);
+        ThreadDohrmanAssemblyList<TVar>::ThreadWork(&targ);
     }
     else {
         /* Threads arguments. */
-        std::vector<ThreadDohrmanAssemblyList_ThreadArgs_t<STATE> >
+        std::vector<ThreadDohrmanAssemblyList_ThreadArgs_t<TVar> >
         args(numthreads_decompose);
         for(unsigned itr=0; itr<numthreads_decompose; itr++)
         {
-            ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>& targ = args[itr];
+            ThreadDohrmanAssemblyList_ThreadArgs_t<TVar>& targ = args[itr];
             targ.thread_idx=itr;
             targ.list = &worklistDecompose;
-            targ.thread = thread(ThreadDohrmanAssemblyList<STATE>::ThreadWork,
+            targ.thread = thread(ThreadDohrmanAssemblyList<TVar>::ThreadWork,
                                  &targ);
         }
         for(unsigned itr=0; itr<numthreads_decompose; itr++)
@@ -599,7 +609,7 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
     // Post processing (TODO: check whethe it is time consuming
     int isub;
     for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
-        TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
+        TPZFMatrix<TVar> rhsloc((*it)->fNumExternalEquations,1,0.);
         (*it)->ContributeRhs(rhsloc);
         fDohrAssembly->Assemble(isub,rhsloc,rhs);
     }
@@ -607,7 +617,7 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
     dohr->SetNumThreads(this->fNumThreads);
 
     dohr->Initialize();
-    TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
+    TPZDohrPrecond<TVar,TPZDohrSubstructCondense<TVar> > *precond = new TPZDohrPrecond<TVar,TPZDohrSubstructCondense<TVar> > (*dohr,fDohrAssembly);
     precond->Initialize();
     fDohrPrecond = precond;
     
@@ -617,21 +627,22 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs_base
 /**
  * @brief Assemble the global right hand side
  */
-void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+    if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" incompatible type. Aborting...\n";
         DebugStop();
     }
-    auto& rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto& rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
     int rows = fMesh->NEquations();
     rhs.Redim(rows,1);
-    TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = dynamic_cast<TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *>(fDohrPrecond.operator->());
-    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = precond->Global();
+    TPZDohrPrecond<TVar,TPZDohrSubstructCondense<TVar> > *precond = dynamic_cast<TPZDohrPrecond<TVar,TPZDohrSubstructCondense<TVar> > *>(fDohrPrecond.operator->());
+    const std::list<TPZAutoPointer<TPZDohrSubstructCondense<TVar> > > &sublist = precond->Global();
     
     int nsub = NSubMesh(fMesh);
-    std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
+    auto it = sublist.begin();
     
     
     int isub;
@@ -651,7 +662,7 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZG
         
         // const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist
         // *it represents the substructure
-        TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
+        TPZFMatrix<TVar> rhsloc((*it)->fNumExternalEquations,1,0.);
         (*it)->ContributeRhs(rhsloc);
         fDohrAssembly->Assemble(isub,rhsloc,rhs);
     }
@@ -661,7 +672,8 @@ void TPZDohrStructMatrix::Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZG
 
 
 // identify cornernodes
-void TPZDohrStructMatrix::IdentifyCornerNodes()
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::IdentifyCornerNodes()
 {
     fCornerEqs.clear();
     TPZStack<int64_t> elementgraph,elementgraphindex;
@@ -940,7 +952,8 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 }
 
 // get the global equation numbers of a substructure (and their inverse)
-void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv)
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv)
 {
     int64_t ncon = sub->ConnectVec().NElements();
     // ncon is the number of connects of the subcompmesh
@@ -1014,7 +1027,8 @@ TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 
 // computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
 // the mesh is modified during this method but is returned to its original state at the end of execution
-void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
                                                              TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute)
 {
     // This permutation vector is with respect to the blocks of the mesh
@@ -1082,7 +1096,8 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
 }
 
 // Identify the corner equations associated with a substructure
-void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
                                                TPZVec<int> &coarseindex)
 {
 #ifdef PZ_LOG
@@ -1127,7 +1142,8 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
 
 
 // partition the mesh in submeshes
-void TPZDohrStructMatrix::SubStructure(int nsub )
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::SubStructure(int nsub )
 {
     
     int64_t nel = fMesh->NElements();
@@ -1253,7 +1269,8 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 }
 
 // This is a lengthy process which should run on the remote processor assembling all
-void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
+template<class TVar>
+void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, TPZAutoPointer<TPZDohrAssembly<TVar> > dohrassembly,
                       mutex* TestThread)
 {
     //	static std::set<int> subindexes;
@@ -1265,9 +1282,9 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
     
     
     {
-        typedef TPZDohrSubstructCondense<STATE>::ENumbering ENumbering;
+        typedef typename TPZDohrSubstructCondense<TVar>::ENumbering ENumbering;
         typedef std::pair<ENumbering,ENumbering> pairnumbering;
-        pairnumbering fromsub(TPZDohrSubstructCondense<STATE>::Submesh,TPZDohrSubstructCondense<STATE>::InternalFirst);
+        pairnumbering fromsub(TPZDohrSubstructCondense<TVar>::Submesh,TPZDohrSubstructCondense<TVar>::InternalFirst);
         TPZVec<int> &permutescatter = substruct->fPermutationsScatter[fromsub];
         // create a skyline matrix based on the current numbering of the mesh
         // put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
@@ -1275,10 +1292,10 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         skylstr.EquationFilter().Reset();
         
         
-        TPZAutoPointer<TPZMatrix<STATE> > Stiffness = skylstr.Create();
+        TPZAutoPointer<TPZMatrix<TVar> > Stiffness = skylstr.Create();
         
         
-        TPZMatRed<STATE, TPZFMatrix<STATE> > *matredbig = new TPZMatRed<STATE,TPZFMatrix<STATE> >(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
+        TPZMatRed<TVar, TPZFMatrix<TVar> > *matredbig = new TPZMatRed<TVar,TPZFMatrix<TVar> >(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
         
         
         matredbig->SetK00(Stiffness);
@@ -1333,8 +1350,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         
         
         // create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
-        TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> > redstruct(submesh);
-        TPZMatRed<STATE, TPZVerySparseMatrix<STATE> > *matredptr = dynamic_cast<TPZMatRed<STATE, TPZVerySparseMatrix<STATE> > *>(redstruct.Create());
+        TPZMatRedStructMatrix<TPZSkylineStructMatrix<TVar>,TPZVerySparseMatrix<TVar> > redstruct(submesh);
+        TPZMatRed<TVar, TPZVerySparseMatrix<TVar> > *matredptr = dynamic_cast<TPZMatRed<TVar, TPZVerySparseMatrix<TVar> > *>(redstruct.Create());
         //TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = matredptr;
         
         // create a structural matrix which will assemble both stiffnesses simultaneously
@@ -1347,7 +1364,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
             invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
         }
-        TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matredptr->K00();
+        TPZAutoPointer<TPZMatrix<TVar> > InternalStiffness = matredptr->K00();
         
 #ifdef PZDEBUG
         std::stringstream filename;
@@ -1401,7 +1418,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
             matredbig->operator()(coarse,neq+ic) = 1.;
         }
         //substruct->fStiffness = Stiffness;
-        TPZStepSolver<STATE> *InvertedStiffness = new TPZStepSolver<STATE>(Stiffness);
+        TPZStepSolver<TVar> *InvertedStiffness = new TPZStepSolver<TVar>(Stiffness);
         InvertedStiffness->SetMatrix(Stiffness);
         
         //EBORIN: Uncomment the following line to replace Cholesky by LDLt decomposition
@@ -1415,7 +1432,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
         matredbig->SetSolver(InvertedStiffness);
         
         
-        TPZStepSolver<STATE> *InvertedInternalStiffness = new TPZStepSolver<STATE>(InternalStiffness);
+        TPZStepSolver<TVar> *InvertedInternalStiffness = new TPZStepSolver<TVar>(InternalStiffness);
         InvertedInternalStiffness->SetMatrix(InternalStiffness);
 #ifdef DUMP_LDLT_MATRICES
         InvertedInternalStiffness->SetDirect(ELDLt);
@@ -1424,7 +1441,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 #endif
         matredptr->SetSolver(InvertedInternalStiffness);
         matredptr->SetReduced();
-        TPZMatRed<STATE,TPZFMatrix<STATE> > *matredfull = new TPZMatRed<STATE,TPZFMatrix<STATE> >(*matredptr);
+        TPZMatRed<TVar,TPZFMatrix<TVar> > *matredfull = new TPZMatRed<TVar,TPZFMatrix<TVar> >(*matredptr);
         substruct->fMatRed = matredfull;
         
         
@@ -1437,7 +1454,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 std::mutex dump_matrix_mutex;
 unsigned matrix_unique_id = 0;
 
-void dump_matrix(TPZAutoPointer<TPZMatrix<STATE> > Stiffness)
+void dump_matrix(TPZAutoPointer<TPZMatrix<TVar> > Stiffness)
 {
     std::scoped_lock<std::mutex> lock(dump_matrix_mutex);
     std::cout << "Dump stiffness matrix at DecomposeBig..." << std::endl;
@@ -1486,10 +1503,11 @@ clarg::argInt  naat("-naDALorat", "NUMA aware Dohrman Assembly List thread work 
 clarg::argBool nats("-naDALtws", "NUMA aware (node round-robin) Dohrman Assembly List thread work scheduling.", false);
 #endif
 
-void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node)
+template<class TVar>
+void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, int numa_node)
 {
-    TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matredbig = substruct->fMatRedComplete;
-    TPZAutoPointer<TPZMatrix<STATE> > Stiffness = matredbig->K00();
+    TPZAutoPointer<TPZMatRed<TVar,TPZFMatrix<TVar> > > matredbig = substruct->fMatRedComplete;
+    TPZAutoPointer<TPZMatrix<TVar> > Stiffness = matredbig->K00();
 
     if (Stiffness->MemoryFootprint() > naat.get_value()) {
       Stiffness.ReallocForNuma(numa_node);
@@ -1504,10 +1522,11 @@ void DecomposeBig(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, in
     substruct->Initialize();
 }
 
-void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, int numa_node)
+template<class TVar>
+void DecomposeInternal(TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct, int numa_node)
 {
-    TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matred = substruct->fMatRed;
-    TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matred->K00();
+    TPZAutoPointer<TPZMatRed<TVar,TPZFMatrix<TVar> > > matred = substruct->fMatRed;
+    TPZAutoPointer<TPZMatrix<TVar> > InternalStiffness = matred->K00();
     
     if (InternalStiffness->MemoryFootprint() > naat.get_value()) {
       InternalStiffness.ReallocForNuma(numa_node);
@@ -1592,8 +1611,8 @@ TPZAutoPointer<ThreadDohrmanAssembly<TVar> > ThreadDohrmanAssemblyList<TVar>::Ne
 template<class TVar>
 void *ThreadDohrmanAssemblyList<TVar>::ThreadWork(void *voidptr)
 {
-    ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>* args =
-    (ThreadDohrmanAssemblyList_ThreadArgs_t<STATE>*) (voidptr);
+    ThreadDohrmanAssemblyList_ThreadArgs_t<TVar>* args =
+    (ThreadDohrmanAssemblyList_ThreadArgs_t<TVar>*) (voidptr);
     
     /* bind thread and newlly allocated memory to node if -naDALtws is set. */
     int node_id = -2 /* Do not realloc */;
@@ -1626,7 +1645,8 @@ void *ThreadDohrmanAssemblyList<TVar>::ThreadWork(void *voidptr)
 }
 
 // Identify the external connects
-void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::IdentifyExternalConnectIndexes()
 {
     // for each computational element
     std::set<int64_t> connectindexes;
@@ -1698,7 +1718,8 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 
 // Verifies if the subdomains are connected by sides of connectdimension and separate them if not
 // returns the new number of subdomains
-int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension)
+template<class TVar, class TPar>
+int  TPZDohrStructMatrix<TVar,TPar>::SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension)
 {
     std::map<int,int> domain_index_count;
     int64_t iel;
@@ -1806,7 +1827,8 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 
 // Eliminate subdomains who are embedded in other subdomains
 // returns the number of subdomains
-int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension)
+template<class TVar, class TPar>
+int  TPZDohrStructMatrix<TVar,TPar>::ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension)
 {
     int meshdim = fMesh->Dimension();
     int64_t nel = fMesh->NElements();
@@ -2004,11 +2026,13 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 }
 
 
-int TPZDohrStructMatrix::ClassId() const{
+template<class TVar, class TPar>
+int  TPZDohrStructMatrix<TVar,TPar>::ClassId() const{
     return Hash("TPZDohrStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
 }
 
-void TPZDohrStructMatrix::Write( TPZStream &str, int withclassid ) const
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::Write( TPZStream &str, int withclassid ) const
 {
     TPZPersistenceManager::WritePointer(fMesh, &str);
     int hasdohrassembly = 0;
@@ -2023,20 +2047,22 @@ void TPZDohrStructMatrix::Write( TPZStream &str, int withclassid ) const
     str.Write(fCornerEqs);
 }
 
-void TPZDohrStructMatrix::Read(TPZStream &str, void *context )
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::Read(TPZStream &str, void *context )
 {
     SetMesh(TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&str)));
     int hasdohrassembly;
     str.Read(&hasdohrassembly);
     if (hasdohrassembly) {
-        fDohrAssembly = TPZAutoPointerDynamicCast<TPZDohrAssembly<STATE>>(TPZPersistenceManager::GetAutoPointer(&str));
+        fDohrAssembly = TPZAutoPointerDynamicCast<TPZDohrAssembly<TVar>>(TPZPersistenceManager::GetAutoPointer(&str));
     }
     str.Read( fExternalConnectIndexes);
     str.Read( fCornerEqs);
 }
 
 /** @brief Set the domain index of the lower dimension elements equal to the domain index of their neighbour */
-void TPZDohrStructMatrix::CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec<int> &domainindex)
+template<class TVar, class TPar>
+void  TPZDohrStructMatrix<TVar,TPar>::CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec<int> &domainindex)
 {
     int64_t nel = cmesh->NElements();
     TPZAdmChunkVector<TPZCompEl *> &elvec = cmesh->ElementVec();
@@ -2069,5 +2095,13 @@ void TPZDohrStructMatrix::CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec
         }
     }
 }
+
+
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZDohrStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZDohrStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZDohrStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
 
 #undef NOMETIS

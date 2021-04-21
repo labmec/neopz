@@ -8,32 +8,24 @@
 
 #include "TPZSpStructMatrix.h"
 
+#include "pzstrmatrixor.h"
 /** 
  * @ingroup structural
  * @brief Assembles only the pair equations. \ref structural "Structural Matrix"
  */
-class TPBSpStructMatrix : public TPZSpStructMatrix {
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPBSpStructMatrix : public TPZSpStructMatrix<TVar,TPar> {
 public:    
-    public:
-int ClassId() const override;
-
-
-    virtual TPZBaseMatrix * Create() override;
-	
-    virtual TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-	
-    virtual TPZStructMatrix * Clone() override;
-	
-    /** Used only for testing */
-    static int main();
-	
     TPBSpStructMatrix(TPZCompMesh *);
+    TPBSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
     
-    TPBSpStructMatrix(const TPBSpStructMatrix &copy) : TPZRegisterClassId(&TPBSpStructMatrix::ClassId),
-    TPZSpStructMatrix(copy)
-    {
-    }
+    int ClassId() const override;
+
+    TPZMatrix<TVar> * Create() override;
 	
+    TPZStructMatrix * Clone() override;
+
+    TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 };
 
 #endif //TPBSPSTRUCTMATRIX_H

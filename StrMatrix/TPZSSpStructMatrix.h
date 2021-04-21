@@ -7,26 +7,28 @@
 #define TPZSymetricSpStructMatrix_H
 
 #include "TPZStructMatrix.h"
-#include "pzstrmatrixor.h"
 #include "pzstack.h"
+
+#include "pzstrmatrixor.h"
 /**
- * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements Sparse Symmetric Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZSymetricSpStructMatrix : public TPZStructMatrix,
-                                  public TPZStructMatrixOR<STATE> {
+                                  public TPar {
     
 public:    
 	
     TPZSymetricSpStructMatrix(TPZCompMesh *);
     TPZSymetricSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
 	
-    TPZMatrix<STATE> * Create() override;
+    TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
     
-    virtual TPZMatrix<STATE> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
+    virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
     
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<TVar> * CreateAssemble(TPZFMatrix<TVar> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     //@{
     //!Read and Write methods
     int ClassId() const override;

@@ -3,31 +3,41 @@
 #include "pzskylnsymmat.h"
 #include "pzcmesh.h"
 
-TPZSkylineNSymStructMatrix::TPZSkylineNSymStructMatrix(TPZCompMesh *cmesh)
-                           : TPZSkylineStructMatrix(cmesh)
+template<class TVar, class TPar>
+TPZSkylineNSymStructMatrix<TVar,TPar>::TPZSkylineNSymStructMatrix(TPZCompMesh *cmesh)
+  : TPZSkylineStructMatrix<TVar,TPar>(cmesh)
 {
   ///nothing here
 }
 
-TPZSkylineNSymStructMatrix::TPZSkylineNSymStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh)
-                            : TPZSkylineStructMatrix(cmesh)
+template<class TVar, class TPar>
+TPZSkylineNSymStructMatrix<TVar,TPar>::TPZSkylineNSymStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh)
+  : TPZSkylineStructMatrix<TVar,TPar>(cmesh)
 {
   ///nothing here
 }
 
-
-TPZSkylineNSymStructMatrix::TPZSkylineNSymStructMatrix(const TPZSkylineStructMatrix &cp):TPZSkylineStructMatrix(cp)
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSkylineNSymStructMatrix<TVar,TPar>::ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline)
 {
-  ///nothing here
+  return new TPZSkylNSymMatrix<TVar>(neq,skyline);
 }
 
-TPZSkylineNSymStructMatrix::~TPZSkylineNSymStructMatrix()
+template<class TVar, class TPar>
+TPZStructMatrix * TPZSkylineNSymStructMatrix<TVar,TPar>::Clone()
 {
-  ///nothing here
+  return new TPZSkylineNSymStructMatrix<TVar,TPar>(*this);
 }
 
-TPZMatrix<STATE> * TPZSkylineNSymStructMatrix::ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline)
-{
-  return new TPZSkylNSymMatrix<STATE>(neq,skyline);
+template<class TVar, class TPar>
+int TPZSkylineNSymStructMatrix<TVar,TPar>::ClassId() const{
+  return Hash("TPZSkylineNSymStructMatrix") ^
+    TPZSkylineStructMatrix<TVar,TPar>::ClassId() << 1;
 }
 
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

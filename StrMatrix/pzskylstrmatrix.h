@@ -8,14 +8,16 @@
 
 #include "TPZStructMatrix.h"
 #include "pzstrmatrixor.h"
+
 class TPZCompMesh;
 
 /**
  * @brief Implements SkyLine Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZSkylineStructMatrix : public TPZStructMatrix,
-                               public TPZStructMatrixOR<STATE> {
+                                  public TPar{
 protected:
     
     /** @brief the equations which should actually be assembled */
@@ -25,14 +27,14 @@ protected:
     TPZVec<int64_t> fEquationDestination;
     
     /** Returns the skyline matrix object */
-    virtual TPZMatrix<STATE> * ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline);
+    virtual TPZMatrix<TVar> * ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline);
     
 public:    
 	TPZSkylineStructMatrix(TPZCompMesh *);
     
     TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh);
 	
-    TPZMatrix<STATE> * Create() override;
+    TPZMatrix<TVar> * Create() override;
 	
     TPZStructMatrix * Clone() override;
     //@{

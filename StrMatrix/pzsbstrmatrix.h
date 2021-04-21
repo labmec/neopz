@@ -8,21 +8,26 @@
 
 #include "TPZStructMatrix.h"
 #include "pzstrmatrixor.h"
+
+
+template<class T>
+class TPZStructMatrixOR;
 /**
  * @brief Implements Symmetric Banded Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZSBandStructMatrix : public TPZStructMatrix,
-                             public TPZStructMatrixOR<STATE>
+                                  public TPar
 {
 	
     TPZSBandStructMatrix(TPZCompMesh *);
 	
 	TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh>);
     
-    TPZMatrix<STATE> * CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    TPZMatrix<TVar> * CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    TPZMatrix<STATE> * Create() override;
+    TPZMatrix<TVar> * Create() override;
 	
     TPZStructMatrix * Clone() override;
     //@{

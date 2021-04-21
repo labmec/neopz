@@ -7,42 +7,59 @@
 #include "pzskylmat.h"
 #include "pzcmesh.h"
 
-TPZStructMatrix * TPZSkylineStructMatrix::Clone(){
+template<class TVar, class TPar>
+TPZStructMatrix * TPZSkylineStructMatrix<TVar,TPar>::Clone(){
     return new TPZSkylineStructMatrix(*this);
 }
 
-TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
+template<class TVar, class TPar>
+TPZSkylineStructMatrix<TVar,TPar>::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {
 }
 
-TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh)
+template<class TVar, class TPar>
+TPZSkylineStructMatrix<TVar,TPar>::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh)
 {
 }
 
-TPZMatrix<STATE> * TPZSkylineStructMatrix::Create(){
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSkylineStructMatrix<TVar,TPar>::Create(){
     TPZVec<int64_t> skyline;
     fMesh->Skyline(skyline);
     fEquationFilter.FilterSkyline(skyline);
     int64_t neq = fEquationFilter.NActiveEquations();
 //    std::cout << skyline << std::endl;
-    return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<STATE>(neq,skyline);
+    return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<TVar>(neq,skyline);
 }
 
 
-TPZMatrix<STATE> * TPZSkylineStructMatrix::ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline){
-    return new TPZSkylMatrix<STATE>(neq,skyline);
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSkylineStructMatrix<TVar,TPar>::ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline){
+    return new TPZSkylMatrix<TVar>(neq,skyline);
 }
 
-int TPZSkylineStructMatrix::ClassId() const{
-    return Hash("TPZSkylineStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
+template<class TVar, class TPar>
+int TPZSkylineStructMatrix<TVar,TPar>::ClassId() const{
+    return Hash("TPZSkylineStructMatrix") ^
+        TPZStructMatrix::ClassId() << 1 ^
+        TPar::ClassId() << 2;
 }
 
-void TPZSkylineStructMatrix::Read(TPZStream& buf, void* context){
+template<class TVar, class TPar>
+void TPZSkylineStructMatrix<TVar,TPar>::Read(TPZStream& buf, void* context){
     TPZStructMatrix::Read(buf,context);
-    TPZStructMatrixOR::Read(buf,context);
+    TPar::Read(buf,context);
 }
 
-void TPZSkylineStructMatrix::Write(TPZStream& buf, int withclassid) const{
+template<class TVar, class TPar>
+void TPZSkylineStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
     TPZStructMatrix::Write(buf,withclassid);
-    TPZStructMatrixOR::Write(buf,withclassid);
+    TPar::Write(buf,withclassid);
 }
+
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZSkylineStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

@@ -6,19 +6,16 @@
 #ifndef TPZFSTRUCTMATRIX_H
 #define TPZFSTRUCTMATRIX_H
 
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
 #include "TPZStructMatrix.h"
 #include "pzstrmatrixor.h"
-
-class TPZCompMesh;
 
 /**
  * @brief Implements Full Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZFStructMatrix : public TPZStructMatrix,
-                         public TPZStructMatrixOR<STATE>
+                                  public TPar
 {
 public:    
 	
@@ -26,7 +23,7 @@ public:
 	
     TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> );
     
-    TPZMatrix<STATE>* Create() override;
+    TPZMatrix<TVar>* Create() override;
 	
     TPZStructMatrix * Clone() override;
     //@{

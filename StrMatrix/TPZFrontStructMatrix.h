@@ -8,7 +8,6 @@
 
 #include "TPZStructMatrix.h"
 #include "pzstrmatrixor.h"
-
 /**
  * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"
  * @ingroup structural frontal
@@ -18,9 +17,11 @@
  * Prevents users from all the necessary information to work with all matrices classes \n
  * It facilitates considerably the use of TPZAnalysis
  */
-template<class front> 
+template<class TFront,
+         class TVar = STATE,
+         class TPar = TPZStructMatrixOR<TVar>> 
 class TPZFrontStructMatrix : public TPZStructMatrix,
-                             public TPZStructMatrixOR<STATE>
+                             public TPar
 {
 	
 protected:
@@ -52,7 +53,7 @@ public:
     
 	
 	/** @brief Returns a pointer to TPZBaseMatrix */
-	TPZMatrix<STATE> * Create() override;
+	TPZMatrix<TVar> * Create() override;
 	
 	/** @brief Clones a TPZFrontStructMatrix */
 	TPZStructMatrix * Clone() override;
@@ -63,8 +64,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void AssembleNew(TPZMatrix<STATE> & stiffness
-					 , TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void AssembleNew(TPZMatrix<TVar> & stiffness
+					 , TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble a stiffness matrix.
@@ -87,7 +88,7 @@ public:
 	 * Each computed element matrices would then be added to Stiffness matrix
 	 */
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
-						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
+						 , TPZElementMatrix & ef, TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs); 
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix
@@ -97,7 +98,7 @@ public:
 	 * This is a mandatory function, it is neded by all StructMatrix. \n
 	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
 	 */
-	TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+	TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     void SetQuiet(int quiet);
     //@{

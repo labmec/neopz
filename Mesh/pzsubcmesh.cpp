@@ -155,7 +155,7 @@ int TPZSubCompMesh::main() {
 	//	mesh.Print(output);
 	output.flush();
 	//	TPZFMatrix<REAL> *rhs = new TPZFMatrix(skyline);
-	TPZSkylineStructMatrix strskyl(&mesh);
+	TPZSkylineStructMatrix<STATE> strskyl(&mesh);
 	an.SetStructuralMatrix(strskyl);
 	an.Solution().Zero();
 	TPZStepSolver<STATE> sol;

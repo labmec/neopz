@@ -8,6 +8,7 @@
 
 #include "TPZStructMatrix.h"
 #include "pzstrmatrixor.h"
+
 template<class TVar>
 class TPZBlockDiagonal;
 
@@ -15,9 +16,9 @@ class TPZBlockDiagonal;
  * @brief Implements Block Diagonal Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZBlockDiagonalStructMatrix :
-    public TPZStructMatrix,
-    public TPZStructMatrixOR<STATE>{
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPZBlockDiagonalStructMatrix : public TPZStructMatrix,
+                                     public TPar{
 public:
 
     enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
@@ -34,11 +35,11 @@ public:
     }
     
     /** @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed */
-    TPZMatrix<STATE> * Create() override;
+    TPZMatrix<TVar> * Create() override;
     
     TPZStructMatrix * Clone() override;
     
-    TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
     
 
@@ -53,7 +54,7 @@ public:
     
 public:
     
-    void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
+    void AssembleBlockDiagonal(TPZBlockDiagonal<TVar> & block);
 private:
     TPZBlockDiagonalStructMatrix();
     

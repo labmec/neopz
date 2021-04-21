@@ -20,8 +20,8 @@ static TPZLogger loggerel("pz.strmatrix.element");
 
 using namespace std;
 
-template <class front>
-void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected){
+template <class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::GetNumElConnected(TPZVec <int> &numelconnected){
 	int64_t ic;
 	
 	fMesh->ComputeNodElCon();
@@ -49,21 +49,21 @@ void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected
 	}
 }
 
-template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix() : TPZStructMatrix(), f_quiet(0), fDecomposeType(ENoDecompose) {    
+template<class TFront, class TVar, class TPar>
+TPZFrontStructMatrix<TFront,TVar,TPar>::TPZFrontStructMatrix() : TPZStructMatrix(), f_quiet(0), fDecomposeType(ENoDecompose) {    
 }
 
-template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
+template<class TFront, class TVar, class TPar>
+TPZFrontStructMatrix<TFront,TVar,TPar>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
 }
-template<class front>
-TPZFrontStructMatrix<front>::TPZFrontStructMatrix(TPZAutoPointer<TPZCompMesh>mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
+template<class TFront, class TVar, class TPar>
+TPZFrontStructMatrix<TFront,TVar,TPar>::TPZFrontStructMatrix(TPZAutoPointer<TPZCompMesh>mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
 }
 
 
 
-template<class front>
-TPZMatrix<STATE> *TPZFrontStructMatrix<front>::Create(){
+template<class TFront, class TVar, class TPar>
+TPZMatrix<TVar> *TPZFrontStructMatrix<TFront,TVar,TPar>::Create(){
 	
     /* TPZVec <int> numelconnected(fMesh->NEquations(),0);
 	 // TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
@@ -75,14 +75,14 @@ TPZMatrix<STATE> *TPZFrontStructMatrix<front>::Create(){
 	return nullptr;
 }
 
-template<class front>
-TPZStructMatrix * TPZFrontStructMatrix<front>::Clone(){
+template<class TFront, class TVar, class TPar>
+TPZStructMatrix * TPZFrontStructMatrix<TFront,TVar,TPar>::Clone(){
 	
-	TPZFrontStructMatrix<front>* result =  new TPZFrontStructMatrix<front>(*this);
+	auto* result =  new TPZFrontStructMatrix<TFront,TVar,TPar>(*this);
 	return result;
 }
-template<class front>
-void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorder)
 {
 	int64_t numelconnected = 0;
 	int64_t nconnect = fMesh->ConnectVec().NElements();
@@ -214,14 +214,13 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 	
 }
 
-template<class front>
-TPZBaseMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-	
+template<class TFront, class TVar, class TPar>
+TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
     int64_t neq = fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
-	TPZFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front> *mat = new TPZFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front>(neq);//(fMesh->NEquations());
+	TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront> *mat = new TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront>(neq);//(fMesh->NEquations());
 	
-//	TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front> *mat = new TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front>(neq);
+//	TPZFrontMatrix<TVar,TPZFileEqnStorage<TVar>, TFront> *mat = new TPZFrontMatrix<TVar,TPZFileEqnStorage<TVar>, TFront>(neq);
     mat->GetFront().SetDecomposeType(fDecomposeType);
 	// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
 	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);	
@@ -256,8 +255,8 @@ TPZBaseMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZBaseMatrix &rhs, 
 	return mat;
 }
 
-template<class front>
-void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int64_t iel;
 	int64_t numel = 0, nelem = fMesh->NElements();
@@ -327,16 +326,16 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZF
 }
 
 
-template<class front>
-void TPZFrontStructMatrix<front>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
-    if(!dynamic_cast<TPZMatrix<STATE>*>(&stiff_base) ||
-       dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
+    if(!dynamic_cast<TPZMatrix<TVar>*>(&stiff_base) ||
+       dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" incompatible types. Aborting...\n";
         DebugStop();
     }
-	auto& stiffness = dynamic_cast<TPZMatrix<STATE>&>(stiff_base);
-    auto& rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+	auto& stiffness = dynamic_cast<TPZMatrix<TVar>&>(stiff_base);
+    auto& rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
 	int64_t iel;
 	int64_t numel = 0, nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);
@@ -410,8 +409,8 @@ void TPZFrontStructMatrix<front>::Assemble(TPZBaseMatrix & stiff_base, TPZBaseMa
 }
 
 //Verificar declaracao dos parametros !!!!!
-template<class front>
-void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs){
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs){
 	
 	
 	if(!el->HasDependency()) {
@@ -456,8 +455,8 @@ void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatr
 /*!
  \fn TPZFrontStructMatrix::SetQuiet(int quiet)
  */
-template<class front>
-void TPZFrontStructMatrix<front>::SetQuiet(int quiet)
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::SetQuiet(int quiet)
 {
 	this->f_quiet = quiet;
 }
@@ -465,8 +464,8 @@ void TPZFrontStructMatrix<front>::SetQuiet(int quiet)
 /**
  * Resequence the connects according to the element order
  **/
-template<class front>
-void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::AdjustSequenceNumbering()
 {
 	int64_t nconnect = this->fMesh->ConnectVec().NElements();
 	TPZManVector<int64_t> permute(nconnect);
@@ -519,29 +518,31 @@ void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 	fMesh->Permute(permute);
 }
 
-template<class TVar>
-int TPZFrontStructMatrix<TVar>::ClassId() const{
-    return Hash("TPZFrontStructMatrix") ^ (TPZStructMatrix::ClassId() << 1 ) ^ TVar().ClassId() << 2;
+template<class TFront, class TVar, class TPar>
+int TPZFrontStructMatrix<TFront,TVar,TPar>::ClassId() const{
+    return Hash("TPZFrontStructMatrix") ^
+        (TPZStructMatrix::ClassId()<< 1 ) ^
+        TFront().ClassId() << 2 ^
+        TPar::ClassId() << 3;
 }
 
-template<class TVar>
-void TPZFrontStructMatrix<TVar>::Read(TPZStream& buf, void* context){
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::Read(TPZStream& buf, void* context){
     TPZStructMatrix::Read(buf,context);
-    TPZStructMatrixOR::Read(buf,context);
+    TPar::Read(buf,context);
 }
-template<class TVar>
-void TPZFrontStructMatrix<TVar>::Write(TPZStream& buf, int withclassid) const{
+template<class TFront, class TVar, class TPar>
+void TPZFrontStructMatrix<TFront,TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
     TPZStructMatrix::Write(buf,withclassid);
-    TPZStructMatrixOR::Write(buf,withclassid);
+    TPar::Write(buf,withclassid);
 }
 
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
 
-
-template<class TVar>
-class TPZFrontSym;
-template<class TVar>
-class TPZFrontNonSym;
-
-template class TPZFrontStructMatrix<TPZFrontSym<STATE> >;
-template class TPZFrontStructMatrix<TPZFrontNonSym<STATE> >;
-
+template class TPZFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixOR<STATE>>;
+template class TPZFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixOR<STATE>>;
+template class TPZFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixOT<STATE>>;
+template class TPZFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixOT<STATE>>;
+template class TPZFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;

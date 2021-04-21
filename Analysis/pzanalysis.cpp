@@ -166,7 +166,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
     if(!this->fStructMatrix && mesh)
     {
         //seta default do StructMatrix como Full Matrix
-        TPZSkylineNSymStructMatrix  defaultMatrix(mesh);
+        TPZSkylineNSymStructMatrix<STATE>  defaultMatrix(mesh);
         this->SetStructuralMatrix(defaultMatrix);
     }
   

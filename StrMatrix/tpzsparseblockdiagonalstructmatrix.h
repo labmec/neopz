@@ -14,8 +14,9 @@
  * @ingroup structural
  * @author Philippe R. B. Devloo
  */
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix,
-                                           public TPZStructMatrixOR<STATE>
+                                  public TPar
 {
 public:
 	/** @brief Constructor for computational mesh */
@@ -23,7 +24,7 @@ public:
 
     TPZSparseBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>mesh);
 	
-	TPZMatrix<STATE> * Create() override;
+	TPZMatrix<TVar> * Create() override;
 	
     TPZStructMatrix* Clone() override;
     

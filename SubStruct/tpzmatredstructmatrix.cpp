@@ -84,5 +84,5 @@ void TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Write(TPZStream& buf, i
 }
 
 
-template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> >;
-template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZFMatrix<STATE> >;
+template class TPZMatRedStructMatrix<TPZSkylineStructMatrix<STATE>,TPZVerySparseMatrix<STATE> >;
+template class TPZMatRedStructMatrix<TPZSkylineStructMatrix<STATE>,TPZFMatrix<STATE> >;
