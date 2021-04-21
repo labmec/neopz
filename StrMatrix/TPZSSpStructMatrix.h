@@ -1,10 +1,10 @@
 /**
  * @file
- * @brief Contains the TPZSymetricSpStructMatrix class which implements sparse structural matrices.
+ * @brief Contains the TPZSSpStructMatrix class which implements sparse structural matrices.
  */
 
-#ifndef TPZSymetricSpStructMatrix_H
-#define TPZSymetricSpStructMatrix_H
+#ifndef TPZSSpStructMatrix_H
+#define TPZSSpStructMatrix_H
 
 #include "TPZStructMatrix.h"
 #include "pzstack.h"
@@ -15,13 +15,13 @@
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPZSymetricSpStructMatrix : public TPZStructMatrix,
+class TPZSSpStructMatrix : public TPZStructMatrix,
                                   public TPar {
     
 public:    
 	
-    TPZSymetricSpStructMatrix(TPZCompMesh *);
-    TPZSymetricSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
+    TPZSSpStructMatrix(TPZCompMesh *);
+    TPZSSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
 	
     TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
@@ -42,4 +42,4 @@ private :
     friend TPZPersistenceManager;
 };
 
-#endif //TPZSymetricSpStructMatrix_H
+#endif //TPZSSpStructMatrix_H

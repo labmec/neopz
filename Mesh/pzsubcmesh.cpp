@@ -1338,11 +1338,11 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
     TPZAutoPointer<TPZStructMatrix> str = NULL;
     
     if(numThreads > 0){
-        str = new TPZSymetricSpStructMatrix(this);
+        str = new TPZSSpStructMatrix(this);
         str->SetNumThreads(numThreads);
     }
     else{
-        str = new TPZSymetricSpStructMatrix(this);
+        str = new TPZSSpStructMatrix(this);
     }
     
     SaddlePermute();

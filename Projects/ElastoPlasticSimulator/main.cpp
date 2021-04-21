@@ -281,7 +281,7 @@ TPZAnalysis * Analysis(TPZCompMesh * cmesh, int n_threads){
     
     TPZAnalysis * analysis = new TPZAnalysis(cmesh,true);
 //    TPZSkylineStructMatrix matrix(cmesh);
-//    TPZSymetricSpStructMatrix matrix(cmesh);
+//    TPZSSpStructMatrix matrix(cmesh);
     TPZSpStructMatrix matrix(cmesh);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELU);

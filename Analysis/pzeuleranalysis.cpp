@@ -11,7 +11,7 @@
 #include "pzfstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
 #include "TPZFrontNonSym.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "pzbdstrmatrix.h"
 #include "pzelmat.h"
 #include "tpzoutofrange.h"

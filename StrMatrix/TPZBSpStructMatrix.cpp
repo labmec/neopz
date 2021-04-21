@@ -1,9 +1,9 @@
 /**
  * @file
- * @brief Contains the implementation of the TPBSpStructMatrix methods. 
+ * @brief Contains the implementation of the TPZBSpStructMatrix methods. 
  */
 
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
@@ -15,12 +15,12 @@
 using namespace std;
 
 template<class TVar, class TPar>
-TPZStructMatrix * TPBSpStructMatrix<TVar,TPar>::Clone(){
-    return new TPBSpStructMatrix(*this);
+TPZStructMatrix * TPZBSpStructMatrix<TVar,TPar>::Clone(){
+    return new TPZBSpStructMatrix(*this);
 }
 
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPBSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<TVar> * TPZBSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
@@ -35,7 +35,7 @@ TPZMatrix<TVar> * TPBSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rh
 }
 
 template<class TVar,class TPar>
-TPZMatrix<TVar> * TPBSpStructMatrix<TVar,TPar>::Create(){
+TPZMatrix<TVar> * TPZBSpStructMatrix<TVar,TPar>::Create(){
     //checked
     
     int64_t neq = this->fEquationFilter.NActiveEquations();
@@ -165,9 +165,9 @@ TPZMatrix<TVar> * TPBSpStructMatrix<TVar,TPar>::Create(){
 }
 
 template<class TVar, class TPar>
-int TPBSpStructMatrix<TVar,TPar>::ClassId() const{
-    return Hash("TPBSpStructMatrix") ^
-        TPBSpStructMatrix<TVar,TPar>::ClassId() << 1 ^
+int TPZBSpStructMatrix<TVar,TPar>::ClassId() const{
+    return Hash("TPZBSpStructMatrix") ^
+        TPZBSpStructMatrix<TVar,TPar>::ClassId() << 1 ^
         TPar::ClassId() << 2;
 }
 
@@ -175,6 +175,6 @@ int TPBSpStructMatrix<TVar,TPar>::ClassId() const{
 #include "pzstrmatrixflowtbb.h"
 
 
-template class TPBSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
-template class TPBSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
-template class TPBSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZBSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZBSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZBSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

@@ -29,7 +29,7 @@
 #include "pzfstrmatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 

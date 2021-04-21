@@ -131,7 +131,7 @@ void DarcyPTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
     
     TPZSkylineStructMatrix matskl(cmesh_m); //caso simetrico ***
-//    TPZSymetricSpStructMatrix matskl(cmesh_m); //caso simetrico ***
+//    TPZSSpStructMatrix matskl(cmesh_m); //caso simetrico ***
     
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);

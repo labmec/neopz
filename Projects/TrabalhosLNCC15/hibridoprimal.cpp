@@ -242,7 +242,7 @@ int mainHybrid()
             nNzeros = matsky.GetNelemts();
             
             //MKL Pardiso
-            TPZSymetricSpStructMatrix strmat(cmesh);
+            TPZSSpStructMatrix strmat(cmesh);
             int nthreads = 12;
             strmat.SetNumThreads(nthreads);
             analysis.SetStructuralMatrix(strmat);
@@ -396,7 +396,7 @@ int mainH1()
             nNzeros = matsky.GetNelemts();
             
             //MKL Partdiso
-            TPZSymetricSpStructMatrix strmat(cmesh);
+            TPZSSpStructMatrix strmat(cmesh);
             int nthreads = 12;
             strmat.SetNumThreads(nthreads);
             analysis.SetStructuralMatrix(strmat);
@@ -546,7 +546,7 @@ int mainMixed()
             nNzeros = matsky.GetNelemts();
             
             //MKL Partdiso
-            TPZSymetricSpStructMatrix strmat(mphysics);
+            TPZSSpStructMatrix strmat(mphysics);
             int nthreads = 12;
             strmat.SetNumThreads(nthreads);
             analysis.SetStructuralMatrix(strmat);
@@ -2846,7 +2846,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //                
 //                //TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(mphysics);
 //                //strmat.SetDecomposeType(ELDLt);
-//                TPZSymetricSpStructMatrix strmat(mphysics);
+//                TPZSSpStructMatrix strmat(mphysics);
 //                strmat.SetNumThreads(16);
 //                analysis.SetStructuralMatrix(strmat);
 //                
@@ -3098,7 +3098,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 ////                loc_analysis.SetStructuralMatrix(skylstr);
 ////                analysis.SetStructuralMatrix(skylstr);
 ////                
-////                TPZSymetricSpStructMatrix strmat_p(mphysics);
+////                TPZSSpStructMatrix strmat_p(mphysics);
 ////                strmat_p.SetNumThreads(16);
 ////                analysis.SetStructuralMatrix(strmat_p);
 ////

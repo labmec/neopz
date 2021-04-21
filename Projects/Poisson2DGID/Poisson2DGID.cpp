@@ -157,7 +157,7 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	
 #endif
 
-	TPZSymetricSpStructMatrix strskyl(cmesh);
+	TPZSSpStructMatrix strskyl(cmesh);
 	MyAnalysis.SetStructuralMatrix(strskyl);
     strskyl.SetNumThreads(0);
 	TPZStepSolver<STATE> direct;

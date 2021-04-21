@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZSymetricSpStructMatrix methods. 
+ * @brief Contains the implementation of the TPZSSpStructMatrix methods. 
  */
 
 #include "TPZSSpStructMatrix.h"
@@ -17,23 +17,23 @@ static TPZLogger logger("pz.StrMatrix");
 using namespace std;
 
 template<class TVar, class TPar>
-TPZStructMatrix * TPZSymetricSpStructMatrix<TVar,TPar>::Clone(){
-    return new TPZSymetricSpStructMatrix(*this);
+TPZStructMatrix * TPZSSpStructMatrix<TVar,TPar>::Clone(){
+    return new TPZSSpStructMatrix(*this);
 }
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,
+TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,
                                               TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
     {
-        LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble starting");
+        LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble starting");
     }
 #endif
 	
     int64_t neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
-		cout << "TPZSymetricSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
+		cout << "TPZSSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
 		return new TPZSYsmpMatrix<TVar>(0,0);
     }
 //    std::cout << "Creating\n";
@@ -45,7 +45,7 @@ TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatri
 //    std::cout << "Assembling\n";
     before.start();
 #ifdef PZ_LOG
-    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble calling Assemble()");
+    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble calling Assemble()");
 #endif
 	Assemble(*stiff,rhs,guiInterface);
     mat->ComputeDiagonal();
@@ -57,12 +57,12 @@ TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatri
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
 #ifdef PZ_LOG
-    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSymetricSpStructMatrix::CreateAssemble exiting");
+    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble exiting");
 #endif
     return stiff;
 }
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::Create(){
+TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::Create(){
 
     /**
      *Longhin implementation
@@ -76,7 +76,7 @@ TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::Create(){
 }
 
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
+TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
     
     int64_t neq = fEquationFilter.NActiveEquations();
     TPZSYsmpMatrix<TVar> * mat = new TPZSYsmpMatrix<TVar>(neq,neq);
@@ -248,30 +248,30 @@ TPZMatrix<TVar> * TPZSymetricSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack
     return mat;
 }
 template<class TVar, class TPar>
-TPZSymetricSpStructMatrix<TVar,TPar>::TPZSymetricSpStructMatrix(TPZCompMesh *mesh) :
+TPZSSpStructMatrix<TVar,TPar>::TPZSSpStructMatrix(TPZCompMesh *mesh) :
     TPZStructMatrix(mesh)
 {}
 
 template<class TVar, class TPar>
-TPZSymetricSpStructMatrix<TVar,TPar>::TPZSymetricSpStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) :
+TPZSSpStructMatrix<TVar,TPar>::TPZSSpStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) :
     TPZStructMatrix(mesh)
 {}
 
 template<class TVar, class TPar>
-int TPZSymetricSpStructMatrix<TVar,TPar>::ClassId() const{
-    return Hash("TPZSymetricSpStructMatrix") ^
+int TPZSSpStructMatrix<TVar,TPar>::ClassId() const{
+    return Hash("TPZSSpStructMatrix") ^
         TPZStructMatrix::ClassId() << 1 ^
         TPar::ClassId() << 2;
 }
 
 template<class TVar, class TPar>
-void TPZSymetricSpStructMatrix<TVar,TPar>::Read(TPZStream& buf, void* context){
+void TPZSSpStructMatrix<TVar,TPar>::Read(TPZStream& buf, void* context){
     TPZStructMatrix::Read(buf,context);
     TPar::Read(buf,context);
 }
 
 template<class TVar, class TPar>
-void TPZSymetricSpStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
+void TPZSSpStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
     TPZStructMatrix::Write(buf,withclassid);
     TPar::Write(buf,withclassid);
 }
@@ -279,6 +279,6 @@ void TPZSymetricSpStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid
 #include "pzstrmatrixot.h"
 #include "pzstrmatrixflowtbb.h"
 
-template class TPZSymetricSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
-template class TPZSymetricSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
-template class TPZSymetricSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZSSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZSSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZSSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

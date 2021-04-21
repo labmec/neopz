@@ -26,8 +26,7 @@ public:
 	
     TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
-    
-    using TPZStructMatrix::CreateAssemble;
+
     virtual TPZMatrix<TVar> * CreateAssemble(TPZFMatrix<TVar> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 

@@ -20,11 +20,11 @@ set(public_headers
     pzskylstrmatrix.h
     TPZSSpStructMatrix.h
     TPZSkylineNSymStructMatrix.h
-    TPBSpStructMatrix.h
+    TPZBSpStructMatrix.h
     TPZParFrontStructMatrix.h
     TPZFrontStructMatrix.h
     pzfstrmatrix.h
-    # tpzsparseblockdiagonalstructmatrix.h ## too many bugs
+    # tpzsparseblockdiagonalstructmatrix.h # needsreview
     #other
     TPZEquationFilter.h
    )
@@ -43,7 +43,7 @@ set(headers
     pzskylstrmatrix.h
     TPZSSpStructMatrix.h
     TPZSkylineNSymStructMatrix.h
-    TPBSpStructMatrix.h
+    TPZBSpStructMatrix.h
     TPZParFrontStructMatrix.h
     TPZFrontStructMatrix.h
     pzfstrmatrix.h
@@ -68,7 +68,7 @@ set(sources
     pzskylstrmatrix.cpp
     TPZSSpStructMatrix.cpp
     TPZSkylineNSymStructMatrix.cpp
-    TPBSpStructMatrix.cpp
+    TPZBSpStructMatrix.cpp
     TPZParFrontStructMatrix.cpp
     TPZFrontStructMatrix.cpp
     pzfstrmatrix.cpp

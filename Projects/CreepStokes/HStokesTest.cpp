@@ -103,7 +103,7 @@ void HStokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
     
 #ifdef USING_MKL
-    TPZSymetricSpStructMatrix matskl(cmesh_m); //OK para Hdiv
+    TPZSSpStructMatrix matskl(cmesh_m); //OK para Hdiv
 #else
     TPZSkylineNSymStructMatrix matskl(cmesh_m);
 #endif

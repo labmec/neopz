@@ -14,10 +14,10 @@
  * @brief Assembles only the pair equations. \ref structural "Structural Matrix"
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPBSpStructMatrix : public TPZSpStructMatrix<TVar,TPar> {
+class TPZBSpStructMatrix : public TPZSpStructMatrix<TVar,TPar> {
 public:    
-    TPBSpStructMatrix(TPZCompMesh *);
-    TPBSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
+    TPZBSpStructMatrix(TPZCompMesh *);
+    TPZBSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
     
     int ClassId() const override;
 
