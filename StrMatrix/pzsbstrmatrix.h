@@ -6,7 +6,7 @@
 #ifndef TPZSBANDSTRUCTMATRIX_H
 #define TPZSBANDSTRUCTMATRIX_H
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 
 
@@ -17,13 +17,10 @@ class TPZStructMatrixOR;
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPZSBandStructMatrix : public TPZStructMatrix,
-                                  public TPar
+class TPZSBandStructMatrix : public TPZStructMatrixT<TVar>,
+                             public TPar
 {
-	
-    TPZSBandStructMatrix(TPZCompMesh *);
-	
-	TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh>);
+	using TPZStructMatrixT<TVar>::TPZStructMatrixT;
     
     TPZMatrix<TVar> * Create() override;
 	

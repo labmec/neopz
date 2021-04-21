@@ -8,6 +8,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZStrMatParInterface.h
     TPZStructMatrix.h
+    TPZStructMatrixT.h
     #parallel scheme
     pzstrmatrixor.h
     pzstrmatrixot.h
@@ -31,6 +32,7 @@ set(public_headers
 set(headers
     TPZStrMatParInterface.h
     TPZStructMatrix.h
+    TPZStructMatrixT.h
     #parallel scheme
     pzstrmatrixor.h
     pzstrmatrixot.h
@@ -56,6 +58,7 @@ set(headers
 set(sources
     TPZStrMatParInterface.cpp
     TPZStructMatrix.cpp
+    TPZStructMatrixT.cpp
     #parallel schemes
     pzstrmatrixor.cpp
     pzstrmatrixot.cpp

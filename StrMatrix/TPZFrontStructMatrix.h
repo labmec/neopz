@@ -6,7 +6,7 @@
 #ifndef TPZFRONTSTRUCTMATRIX_H
 #define TPZFRONTSTRUCTMATRIX_H
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 /**
  * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"
@@ -20,7 +20,7 @@
 template<class TFront,
          class TVar = STATE,
          class TPar = TPZStructMatrixOR<TVar>> 
-class TPZFrontStructMatrix : public TPZStructMatrix,
+class TPZFrontStructMatrix : public TPZStructMatrixT<TVar>,
                              public TPar
 {
 	
@@ -28,7 +28,7 @@ protected:
 	/** @brief This vector contains an ordered list */
 	/** The elements must be asssembled in that order so the frontal works on its best performance */
 	TPZVec<int> fElementOrder;
-    int f_quiet;
+    int f_quiet{0};
 	
 	/**
 	 * @brief Returns a vector containing all elements connected to a degree of freedom.
@@ -43,15 +43,10 @@ protected:
 	void AdjustSequenceNumbering();
 	
     /** @brief Used Decomposition method */
-    DecomposeType fDecomposeType;
+    DecomposeType fDecomposeType{ENoDecompose};
 
 public:
-
-	TPZFrontStructMatrix(TPZCompMesh *);
-    TPZFrontStructMatrix(TPZAutoPointer<TPZCompMesh>);
-    
-    
-	
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
 	/** @brief Returns a pointer to TPZBaseMatrix */
 	TPZMatrix<TVar> * Create() override;
 	
@@ -110,7 +105,6 @@ public:
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
 private:
-    TPZFrontStructMatrix();
 	
     friend TPZPersistenceManager;
 	

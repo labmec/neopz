@@ -6,7 +6,7 @@
 #ifndef TPZSPARSEBLOCKDIAGONALSTRUCTMATRIX_H
 #define TPZSPARSEBLOCKDIAGONALSTRUCTMATRIX_H
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 
 /**
@@ -15,14 +15,11 @@
  * @author Philippe R. B. Devloo
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix,
+class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrixT<TVar>,
                                   public TPar
 {
 public:
-	/** @brief Constructor for computational mesh */
-    TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh);
-
-    TPZSparseBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>mesh);
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
 	
 	TPZMatrix<TVar> * Create() override;
 	
@@ -38,9 +35,6 @@ public:
 
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
-    
-private:
-    TPZSparseBlockDiagonalStructMatrix() = default;
 
     friend TPZPersistenceManager;
 };

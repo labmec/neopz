@@ -915,7 +915,7 @@ int64_t TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
 void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct<STATE> > substruct, TPZDohrAssembly<STATE> &dohrassembly)
 {
 	// this should happen in the remote processor
-    TPZSkylineStructMatrix skylstr(submesh);
+    TPZSkylineStructMatrix<STATE> skylstr(submesh);
 	TPZAutoPointer<TPZGuiInterface> toto = new TPZGuiInterface;
 
 	skylstr.EquationFilter().Reset();
@@ -955,7 +955,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	
 	// create a skyline matrix based on the current numbering of the mesh
 	// put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
-	TPZSkylineStructMatrix skylstr(submesh);
+	TPZSkylineStructMatrix<STATE> skylstr(submesh);
 	skylstr.EquationFilter().Reset();
 	
 	TPZAutoPointer<TPZMatrix<STATE> > Stiffness = skylstr.Create();

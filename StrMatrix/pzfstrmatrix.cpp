@@ -18,19 +18,9 @@ static TPZLogger loggerel("pz.strmatrix.element");
 using namespace std;
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZFStructMatrix<TVar,TPar>::Create(){
-	int64_t neq = fEquationFilter.NActiveEquations();
+	int64_t neq = this->fEquationFilter.NActiveEquations();
     
 	return new TPZFMatrix<TVar>(neq,neq,0.);
-}
-
-template<class TVar, class TPar>
-TPZFStructMatrix<TVar, TPar>::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{
-}
-
-template<class TVar, class TPar>
-TPZFStructMatrix<TVar,TPar>::TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
-{
 }
 
 template<class TVar, class TPar>
@@ -42,7 +32,7 @@ TPZStructMatrix * TPZFStructMatrix<TVar,TPar>::Clone(){
 template<class TVar, class TPar>
 int TPZFStructMatrix<TVar,TPar>::ClassId() const{
     return Hash("TPZFStructMatrix") ^
-        TPZStructMatrix::ClassId() << 1 ^
+        TPZStructMatrixT<TVar>::ClassId() << 1 ^
         TPar::ClassId() << 2;
 }
 

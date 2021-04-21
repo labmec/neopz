@@ -6,19 +6,6 @@
 #include "tpzsparseblockdiagonalstructmatrix.h"
 #include "pzcmesh.h"
 
-
-template<class TVar, class TPar>
-TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh) :
-TPZStructMatrix(mesh)
-{
-}
-
-template<class TVar, class TPar>
-TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::TPZSparseBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>mesh) :
-TPZStructMatrix(mesh)
-{
-}
-
 template<class TVar, class TPar>
 TPZStructMatrix* TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::Clone()
 {

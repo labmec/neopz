@@ -6,7 +6,7 @@
 #ifndef TPZMATREDSTRUCTMATRIX
 #define TPZMATREDSTRUCTMATRIX
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 class TPZSubCompMesh;
 
@@ -15,9 +15,12 @@ class TPZSubCompMesh;
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub Structure"
  */
-template<class TStructMatrix, class TSparseMatrix>
-class TPZMatRedStructMatrix : public TPZStructMatrix,
-                              public TPZStructMatrixOR<STATE>
+template<
+    class TStructMatrix, class TSparseMatrix,
+    class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>
+    >
+class TPZMatRedStructMatrix : public TPZStructMatrixT<TVar>,
+                              public TPar
 {
 public:
 	/** @brief Constructor */

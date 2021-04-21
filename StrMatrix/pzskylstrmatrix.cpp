@@ -12,22 +12,13 @@ TPZStructMatrix * TPZSkylineStructMatrix<TVar,TPar>::Clone(){
     return new TPZSkylineStructMatrix(*this);
 }
 
-template<class TVar, class TPar>
-TPZSkylineStructMatrix<TVar,TPar>::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{
-}
-
-template<class TVar, class TPar>
-TPZSkylineStructMatrix<TVar,TPar>::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh)
-{
-}
 
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSkylineStructMatrix<TVar,TPar>::Create(){
     TPZVec<int64_t> skyline;
-    fMesh->Skyline(skyline);
-    fEquationFilter.FilterSkyline(skyline);
-    int64_t neq = fEquationFilter.NActiveEquations();
+    this->fMesh->Skyline(skyline);
+    this->fEquationFilter.FilterSkyline(skyline);
+    int64_t neq = this->fEquationFilter.NActiveEquations();
 //    std::cout << skyline << std::endl;
     return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<TVar>(neq,skyline);
 }
@@ -41,7 +32,7 @@ TPZMatrix<TVar> * TPZSkylineStructMatrix<TVar,TPar>::ReallyCreate(int64_t neq, c
 template<class TVar, class TPar>
 int TPZSkylineStructMatrix<TVar,TPar>::ClassId() const{
     return Hash("TPZSkylineStructMatrix") ^
-        TPZStructMatrix::ClassId() << 1 ^
+        TPZStructMatrixT<TVar>::ClassId() << 1 ^
         TPar::ClassId() << 2;
 }
 

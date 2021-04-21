@@ -6,7 +6,7 @@
 #ifndef PZDOHRSTRUCTMATRIX 
 #define PZDOHRSTRUCTMATRIX
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 
 class TPZSubCompMesh;
@@ -23,7 +23,7 @@ struct ThreadDohrmanAssembly;
  */
 
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPZDohrStructMatrix : public TPZStructMatrix,
+class TPZDohrStructMatrix : public TPZStructMatrixT<TVar>,
 							public TPar
 {
 		

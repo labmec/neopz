@@ -17,18 +17,46 @@ class TPZGuiInterface;
 class TPZBaseMatrix;
 
 /*!
-  Describes the interface that should be implemented for a given structural matrix.
+  Describes the type-agnostic interface that should be implemented 
+  for a given structural matrix. NOTE: The class \ref TPZStructMatrixT
+  is the one that structural matrices should inherit from.
 
-  It is expected that the child classes will be created as:
-  template <typename TVar=STATE, typename TPar=TPZStructMatrixOR>
-  class TPZStrDerived{};
-
-  Meaning that it will have one template parameter corresponding to its
-  type and one template parameter corresponding to its Parallel Strategy,
-  a class derived from \ref TPZStrMatParInterface.
 */
 class TPZStructMatrix : public virtual TPZStrMatParInterface{
 public:
+    //! Default constructor
+    TPZStructMatrix() = default;
+
+    /*
+      @orlandini:
+      Setting the destructor as default would work.
+      However, it would request the deletion of the
+      
+      TPZAutoPointer<TPZCompMesh>
+      
+      and, since at this point TPZCompMesh is an incomplete type,
+      it would lead to a -Wdelete-incomplete warning.
+      The same applies for the constructor taking the
+      
+      TPZAutoPointer<TPZCompMesh>
+
+     */
+    
+    //! Destructor
+    ~TPZStructMatrix();
+    //! Copy constructor
+    TPZStructMatrix(const TPZStructMatrix &);
+    //! Move constructor (deleted)
+    TPZStructMatrix(TPZStructMatrix &&) = delete;
+    //! Copy assignment operator
+    TPZStructMatrix& operator=(const TPZStructMatrix &) = default;
+    //! Move assignment operator
+    TPZStructMatrix& operator=(TPZStructMatrix &&) = delete;
+    //! Constructor taking the non-managed mesh as a raw pointer
+    TPZStructMatrix(TPZCompMesh *);
+    //! Constructor taking the mesh as a TPZAutoPointer
+    TPZStructMatrix(TPZAutoPointer<TPZCompMesh>);
+    
     /**
      *  Methods to be overriden in child classes
      */
@@ -44,13 +72,6 @@ public:
     */
 
     //@}
-    /*Setting the destructor as default would work. however,
-      it would request the deletion of the TPZAutoPointer<TPZCompMesh>
-      and, since at this point TPZCompMesh is an incomplete type,
-      it would lead to a -Wdelete-incomplete warning.
-     */
-    //! Destructor
-    ~TPZStructMatrix();
     //! Sets the computational mesh via raw pointer.
     void SetMesh(TPZCompMesh *);
     //! Sets the computational mesh via TPZAutoPointer.
@@ -119,15 +140,6 @@ public:
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
   protected:
-    /* See comment on destructor on why this is not default
-     */
-    TPZStructMatrix();
-    TPZStructMatrix(const TPZStructMatrix &);
-    TPZStructMatrix(TPZStructMatrix &&) = delete;
-    TPZStructMatrix& operator=(const TPZStructMatrix &) = default;
-    TPZStructMatrix& operator=(TPZStructMatrix &&) = delete;
-    TPZStructMatrix(TPZCompMesh *);
-    TPZStructMatrix(TPZAutoPointer<TPZCompMesh>);
 
     //! Non-managed pointer to the computational mesh from which the matrix will be generated.
     TPZCompMesh *fMesh{nullptr};

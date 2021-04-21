@@ -551,7 +551,7 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	finemesh->Reference()->ResetReference();
 	finemesh->LoadReferences();
 	TPZAnalysis finean(finemesh);
-	TPZSkylineStructMatrix finestiff(finemesh);
+	TPZSkylineStructMatrix<STATE> finestiff(finemesh);
 	finean.SetStructuralMatrix(finestiff);
 	TPZStepSolver<STATE> finesolver;
 	finesolver.SetDirect(ELDLt);
@@ -609,7 +609,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	
 	//analysis na malha aglomerada
 	TPZAnalysis coarsean(fMeshes[1]);
-	TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
+	TPZSkylineStructMatrix<STATE> coarsestiff(fMeshes[1]);
 	coarsean.SetStructuralMatrix(coarsestiff);
 	TPZStepSolver<STATE> coarsesolver;
 	coarsesolver.SetDirect(ELDLt);
@@ -622,7 +622,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	//analysis na malha fina
 	AppendMesh(finemesh);
 	TPZAnalysis finean(fMeshes[2]);
-	TPZSkylineStructMatrix finestiff(fMeshes[2]);
+	TPZSkylineStructMatrix<STATE> finestiff(fMeshes[2]);
 	finean.SetStructuralMatrix(finestiff);
 	TPZStepSolver<STATE> finesolver;
 	finesolver.SetDirect(ELDLt);

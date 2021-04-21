@@ -16,29 +16,19 @@ TPZStructMatrix * TPZSBandStructMatrix<TVar,TPar>::Clone(){
 
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSBandStructMatrix<TVar,TPar>::Create(){
-    if (fEquationFilter.IsActive()) {
+    if (this->fEquationFilter.IsActive()) {
         DebugStop();
     }
-	int64_t neq = fEquationFilter.NActiveEquations();
+	int64_t neq = this->fEquationFilter.NActiveEquations();
 	
-	int64_t band = fMesh->BandWidth();
+	int64_t band = this->fMesh->BandWidth();
 	return new TPZSBMatrix<TVar>(neq,band);
-}
-
-template<class TVar, class TPar>
-TPZSBandStructMatrix<TVar,TPar>::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{
-}
-
-template<class TVar, class TPar>
-TPZSBandStructMatrix<TVar,TPar>::TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
-{
 }
 
 template<class TVar, class TPar>
 int TPZSBandStructMatrix<TVar,TPar>::ClassId() const{
     return Hash("TPZSBandStructMatrix") ^
-        TPZStructMatrix::ClassId() << 1 ^
+        TPZStructMatrixT<TVar>::ClassId() << 1 ^
         TPar::ClassId() << 2;
 }
 

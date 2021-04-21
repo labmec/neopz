@@ -17,8 +17,6 @@ static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 #endif
 
 //this is not in header file to avoid including cmesh.h there
-TPZStructMatrix::TPZStructMatrix() : fMesh(nullptr), fEquationFilter(0){}
-//this is not in header file to avoid including cmesh.h there
 TPZStructMatrix::~TPZStructMatrix(){}
 
 TPZStructMatrix::TPZStructMatrix(TPZCompMesh *mesh)

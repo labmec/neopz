@@ -10,19 +10,14 @@
 using namespace std;
 
 template<class TVar, class TPar>
-TPZBlockDiagonalStructMatrix<TVar,TPar>::~TPZBlockDiagonalStructMatrix(){
-    
-}
-
-template<class TVar, class TPar>
 void TPZBlockDiagonalStructMatrix<TVar,TPar>::AssembleBlockDiagonal(TPZBlockDiagonal<TVar> & block){
     
     TPZVec<int> blocksizes;
     BlockSizes(blocksizes);
     block.Initialize(blocksizes);
     int nblock = blocksizes.NElements();
-    TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
-    TPZAdmChunkVector<TPZConnect> &connectvec = fMesh->ConnectVec();
+    TPZAdmChunkVector<TPZCompEl *> &elementvec = this->fMesh->ElementVec();
+    TPZAdmChunkVector<TPZConnect> &connectvec = this->fMesh->ConnectVec();
     TPZStack<int64_t> connectlist;
     TPZBlockDiagonal<TVar> elblock;
     int64_t numel = elementvec.NElements();
@@ -38,10 +33,10 @@ void TPZBlockDiagonalStructMatrix<TVar,TPar>::AssembleBlockDiagonal(TPZBlockDiag
         for(c=0; c<ncon; c++) {
             TPZConnect &con = connectvec[connectlist[c]];
             seqnum = con.SequenceNumber();
-            int64_t eqnum = fMesh->Block().Position(seqnum);
+            int64_t eqnum = this->fMesh->Block().Position(seqnum);
             if(seqnum <0 || seqnum >= nblock) continue;
             int bsize = blocksizes[seqnum];
-            int64_t numactive = fEquationFilter.NumActive(eqnum, eqnum+bsize);
+            int64_t numactive = this->fEquationFilter.NumActive(eqnum, eqnum+bsize);
             if (!numactive) {
                 continue;
             }
@@ -49,7 +44,7 @@ void TPZBlockDiagonalStructMatrix<TVar,TPar>::AssembleBlockDiagonal(TPZBlockDiag
                 // Please implement me
                 DebugStop();
             }
-            if(con.NDof(*fMesh) != bsize ) {
+            if(con.NDof(*this->fMesh) != bsize ) {
                 cout << "TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal wrong data structure\n";
                 continue;
             }
@@ -63,12 +58,12 @@ void TPZBlockDiagonalStructMatrix<TVar,TPar>::AssembleBlockDiagonal(TPZBlockDiag
 template<class TVar, class TPar>
 void TPZBlockDiagonalStructMatrix<TVar,TPar>::BlockSizes(TPZVec < int > & blocksizes){
     
-    if(fMesh->FatherMesh() != 0) {
-        TPZSubCompMesh *mesh = (TPZSubCompMesh *) fMesh;
+    if(this->fMesh->FatherMesh() != 0) {
+        TPZSubCompMesh *mesh = (TPZSubCompMesh *) this->fMesh;
         mesh->PermuteExternalConnects();
     }
     int nblocks = 0;
-    TPZAdmChunkVector<TPZConnect> &connectvec = fMesh->ConnectVec();
+    TPZAdmChunkVector<TPZConnect> &connectvec = this->fMesh->ConnectVec();
     int64_t nc = connectvec.NElements();
     int64_t c;
     for(c=0; c<nc; c++) {
@@ -82,9 +77,9 @@ void TPZBlockDiagonalStructMatrix<TVar,TPar>::BlockSizes(TPZVec < int > & blocks
         TPZConnect &con = connectvec[c];
         if(con.HasDependency() || con.IsCondensed() || con.SequenceNumber() < 0) continue;
         bl = con.SequenceNumber();
-        blsize = con.NDof(*fMesh);
-        int64_t blpos = fMesh->Block().Position(bl);
-        int64_t numactiv = fEquationFilter.NumActive(blpos, blpos+blsize);
+        blsize = con.NDof(*this->fMesh);
+        int64_t blpos = this->fMesh->Block().Position(bl);
+        int64_t numactiv = this->fEquationFilter.NumActive(blpos, blpos+blsize);
         if (numactiv && numactiv != blsize) {
             DebugStop();
         }
@@ -106,10 +101,10 @@ TPZStructMatrix * TPZBlockDiagonalStructMatrix<TVar,TPar>::Clone(){
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBlockDiagonalStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     TPar::InitCreateAssemble();
-    int64_t neq = fMesh->NEquations();
+    int64_t neq = this->fMesh->NEquations();
     TPZBlockDiagonal<TVar> *block = new TPZBlockDiagonal<TVar>();
     rhs.Redim(neq,1);
-    Assemble(rhs,guiInterface);
+    this->Assemble(rhs,guiInterface);
     AssembleBlockDiagonal(*block);
     return block;
 }
@@ -118,23 +113,6 @@ TPZMatrix<TVar> * TPZBlockDiagonalStructMatrix<TVar,TPar>::Create(){
     TPZVec<int> blocksize;
     BlockSizes(blocksize);
     return new TPZBlockDiagonal<TVar>(blocksize);
-}
-template<class TVar, class TPar>
-TPZBlockDiagonalStructMatrix<TVar,TPar>::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : 
-TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
-{
-}
-
-template<class TVar, class TPar>
-TPZBlockDiagonalStructMatrix<TVar,TPar>::TPZBlockDiagonalStructMatrix(TPZAutoPointer<TPZCompMesh>mesh) : 
-TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
-{
-}
-
-template<class TVar, class TPar>
-TPZBlockDiagonalStructMatrix<TVar,TPar>::TPZBlockDiagonalStructMatrix() : TPZRegisterClassId(&TPZBlockDiagonalStructMatrix::ClassId), 
-TPZStructMatrix(),fBlockStructure(EVertexBased),fOverlap(0)
-{
 }
 
 template<class TVar, class TPar>

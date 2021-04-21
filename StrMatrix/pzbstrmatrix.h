@@ -5,7 +5,7 @@
 
 #ifndef TPZBANDSTRUCTMATRIX_H
 #define TPZBANDSTRUCTMATRIX_H
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 /**
  * @brief Implements Banded Structural Matrices. \ref structural "Structural Matrix"
@@ -13,16 +13,10 @@
  */
 template<class TVar = STATE,
          class TPar = TPZStructMatrixOR<TVar>>
-class TPZBandStructMatrix : public TPZStructMatrix,
+class TPZBandStructMatrix : public TPZStructMatrixT<TVar>,
                             public TPar{
 public:    
-	
-    TPZBandStructMatrix(TPZCompMesh *);
-    TPZBandStructMatrix(TPZAutoPointer<TPZCompMesh>);
-	
-    TPZBandStructMatrix(const TPZBandStructMatrix &copy) : TPZStructMatrix(copy)
-    {
-    }
+	using TPZStructMatrixT<TVar>::TPZStructMatrixT;
 	
     TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
@@ -38,9 +32,6 @@ public:
 
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
-private :
-    TPZBandStructMatrix() = default;
-    
     friend TPZPersistenceManager;
 };
 

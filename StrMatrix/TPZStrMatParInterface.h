@@ -46,7 +46,7 @@ public:
     virtual void Assemble(TPZBaseMatrix &rhs,
                           TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;    
 
-    //! NEED DOCU
+    //! Creates solver matrix and assembles it alongside global rhs.
     virtual TPZBaseMatrix *
     CreateAssemble(TPZBaseMatrix &rhs,
                    TPZAutoPointer<TPZGuiInterface> guiInterface);

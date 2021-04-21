@@ -6,7 +6,7 @@
 #ifndef TPZSKYLINESTRUCTMATRIX_H
 #define TPZSKYLINESTRUCTMATRIX_H
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 
 class TPZCompMesh;
@@ -16,8 +16,8 @@ class TPZCompMesh;
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPZSkylineStructMatrix : public TPZStructMatrix,
-                                  public TPar{
+class TPZSkylineStructMatrix : public TPZStructMatrixT<TVar>,
+                               public TPar{
 protected:
     
     /** @brief the equations which should actually be assembled */
@@ -30,10 +30,8 @@ protected:
     virtual TPZMatrix<TVar> * ReallyCreate(int64_t neq, const TPZVec<int64_t> &skyline);
     
 public:    
-	TPZSkylineStructMatrix(TPZCompMesh *);
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
     
-    TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh);
-	
     TPZMatrix<TVar> * Create() override;
 	
     TPZStructMatrix * Clone() override;

@@ -19,33 +19,24 @@ TPZMatrix<TVar> * TPZBandStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatrix<TVar
 	TPZMatrix<TVar> *stiff = Create();
 	int64_t neq = stiff->Rows();
 	rhs.Redim(neq,1);
-	Assemble(*stiff,rhs,guiInterface);
+	this->Assemble(*stiff,rhs,guiInterface);
 	return stiff;
 }
 
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBandStructMatrix<TVar,TPar>::Create(){
-    if (fEquationFilter.IsActive()) {
+    if (this->fEquationFilter.IsActive()) {
         DebugStop();
     }
-    int64_t neq = fEquationFilter.NActiveEquations();
-    int64_t band = fMesh->BandWidth();
+    int64_t neq = this->fEquationFilter.NActiveEquations();
+    int64_t band = this->fMesh->BandWidth();
     return new TPZFBMatrix<TVar>(neq,band);
-}
-template<class TVar, class TPar>
-TPZBandStructMatrix<TVar,TPar>::TPZBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{
-}
-
-template<class TVar, class TPar>
-TPZBandStructMatrix<TVar,TPar>::TPZBandStructMatrix(TPZAutoPointer<TPZCompMesh>mesh) : TPZStructMatrix(mesh)
-{
 }
 
 template<class TVar, class TPar>
 int TPZBandStructMatrix<TVar,TPar>::ClassId() const{
     return Hash("TPZBandStructMatrix") ^
-        TPZStructMatrix::ClassId() << 1 ^
+        TPZStructMatrixT<TVar>::ClassId() << 1 ^
         TPar::ClassId() << 2;
 }
 

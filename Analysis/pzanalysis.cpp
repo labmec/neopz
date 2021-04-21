@@ -1289,7 +1289,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 		}
 		else if (overlap)
 		{
-			TPZBlockDiagonalStructMatrix blstr(fCompMesh);
+			TPZBlockDiagonalStructMatrix<TVar> blstr(fCompMesh);
 			TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
 			blstr.AssembleBlockDiagonal(*sp);
 			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);

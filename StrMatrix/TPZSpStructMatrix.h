@@ -6,7 +6,7 @@
 #ifndef TPZSPSTRUCTMATRIX_H
 #define TPZSPSTRUCTMATRIX_H
 
-#include "TPZStructMatrix.h"
+#include "TPZStructMatrixT.h"
 
 #include "pzstrmatrixor.h"
 /**
@@ -14,12 +14,10 @@
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
-class TPZSpStructMatrix : public TPZStructMatrix,
+class TPZSpStructMatrix : public TPZStructMatrixT<TVar>,
                                   public TPar{
 public:
-    TPZSpStructMatrix(TPZCompMesh* m) : TPZStructMatrix(m){}
-    TPZSpStructMatrix(TPZAutoPointer<TPZCompMesh> m) :
-        TPZStructMatrix(m){}
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
     
     TPZMatrix<TVar> *Create() override;
 	TPZStructMatrix * Clone() override;
@@ -34,9 +32,7 @@ public:
 
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
-private :
-    TPZSpStructMatrix() = default;
-    
+
     friend TPZPersistenceManager;
 };
 

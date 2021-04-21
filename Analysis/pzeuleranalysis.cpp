@@ -623,7 +623,7 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 	FrontSolver.SetMatrix(front);
 	
 	
-	TPZSpStructMatrix StrMatrix(Mesh());
+	TPZSpStructMatrix<STATE> StrMatrix(Mesh());
 	//TPZFStructMatrix StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
@@ -663,12 +663,12 @@ void TPZEulerAnalysis::SetFrontalSolver()
  */
 void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
 {
-	TPZSpStructMatrix StrMatrix(Mesh());
+	TPZSpStructMatrix<STATE> StrMatrix(Mesh());
 	//TPZFStructMatrix StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
 	auto * mat = StrMatrix.Create();
-	TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
+	TPZBlockDiagonalStructMatrix<STATE> strBlockDiag(Mesh());
 	TPZStepSolver<STATE> Pre;
 	TPZBlockDiagonal<STATE> * block = new TPZBlockDiagonal<STATE>();//blockDiag.Create();
 	strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure

@@ -24,16 +24,16 @@ template <class TFront, class TVar, class TPar>
 void TPZFrontStructMatrix<TFront,TVar,TPar>::GetNumElConnected(TPZVec <int> &numelconnected){
 	int64_t ic;
 	
-	fMesh->ComputeNodElCon();
+	this->fMesh->ComputeNodElCon();
 	
-	for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) {
-		TPZConnect &cn = fMesh->ConnectVec()[ic];
+	for(ic=0; ic<this->fMesh->ConnectVec().NElements(); ic++) {
+		TPZConnect &cn = this->fMesh->ConnectVec()[ic];
 		if(cn.HasDependency() || cn.IsCondensed()) continue;
 		int64_t seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
-		int64_t firsteq = fMesh->Block().Position(seqn);
-		int64_t lasteq = firsteq+fMesh->Block().Size(seqn);
-        int64_t numactive = fEquationFilter.NumActive(firsteq, lasteq);
+		int64_t firsteq = this->fMesh->Block().Position(seqn);
+		int64_t lasteq = firsteq+this->fMesh->Block().Size(seqn);
+        int64_t numactive = this->fEquationFilter.NumActive(firsteq, lasteq);
 		if(!numactive) continue;
         if (numactive != lasteq-firsteq) {
             DebugStop();
@@ -43,21 +43,10 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::GetNumElConnected(TPZVec <int> &num
             firstind[i] = i;
             destindex[i] = firsteq+i;
         }
-        fEquationFilter.Filter(firstind, destindex);
+        this->fEquationFilter.Filter(firstind, destindex);
 		for(int64_t ind=0;ind<destindex.size();ind++) 
-			numelconnected[destindex[ind] ] = fMesh->ConnectVec()[ic].NElConnected();
+			numelconnected[destindex[ind] ] = this->fMesh->ConnectVec()[ic].NElConnected();
 	}
-}
-
-template<class TFront, class TVar, class TPar>
-TPZFrontStructMatrix<TFront,TVar,TPar>::TPZFrontStructMatrix() : TPZStructMatrix(), f_quiet(0), fDecomposeType(ENoDecompose) {    
-}
-
-template<class TFront, class TVar, class TPar>
-TPZFrontStructMatrix<TFront,TVar,TPar>::TPZFrontStructMatrix(TPZCompMesh *mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
-}
-template<class TFront, class TVar, class TPar>
-TPZFrontStructMatrix<TFront,TVar,TPar>::TPZFrontStructMatrix(TPZAutoPointer<TPZCompMesh>mesh): TPZStructMatrix(mesh), f_quiet(0), fDecomposeType(ENoDecompose){ 
 }
 
 
@@ -85,14 +74,14 @@ template<class TFront, class TVar, class TPar>
 void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorder)
 {
 	int64_t numelconnected = 0;
-	int64_t nconnect = fMesh->ConnectVec().NElements();
+	int64_t nconnect = this->fMesh->ConnectVec().NElements();
 	int64_t ic;
 	//firstelconnect contains the first element index in the elconnect vector
 	TPZVec<int64_t> firstelconnect(nconnect+1);
 	firstelconnect[0] = 0;
 	for(ic=0; ic<nconnect; ic++) {
-		numelconnected += fMesh->ConnectVec()[ic].NElConnected();
-		firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
+		numelconnected += this->fMesh->ConnectVec()[ic].NElConnected();
+		firstelconnect[ic+1] = firstelconnect[ic]+this->fMesh->ConnectVec()[ic].NElConnected();
 	}
 #ifdef PZDEBUG
     TPZVec<int64_t> firstel_copy(firstelconnect);
@@ -112,8 +101,8 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorde
   	TPZVec<int64_t> elconnect(numelconnected,-1);
   	int64_t el;
   	TPZCompEl *cel;
-  	for(el=0; el<fMesh->ElementVec().NElements(); el++) {
-  		cel = fMesh->ElementVec()[el];
+  	for(el=0; el<this->fMesh->ElementVec().NElements(); el++) {
+  		cel = this->fMesh->ElementVec()[el];
   		if(!cel) continue;
   		TPZStack<int64_t> connectlist;
   		cel->BuildConnectList(connectlist);
@@ -144,40 +133,40 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorde
 #endif
   	firstelconnect[0] = 0;
   	for(ic=0; ic<nconnect; ic++) {
-  		firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
+  		firstelconnect[ic+1] = firstelconnect[ic]+this->fMesh->ConnectVec()[ic].NElConnected();
   	}
 	//cout << "elconnect\n";
 	//  int no;
-	for(int64_t no=0; no< fMesh->ConnectVec().NElements(); no++) {
+	for(int64_t no=0; no< this->fMesh->ConnectVec().NElements(); no++) {
 #ifdef PZ_LOG
         if (logger.isDebugEnabled())
 		{
 			std::stringstream sout;
-			sout<< "Node index " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
+			sout<< "Node index " << no << ' ' << " seq num " << this->fMesh->ConnectVec()[no].SequenceNumber() << ' ';
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		//cout << "no numero " << no << ' ' << " seq num " << fMesh->ConnectVec()[no].SequenceNumber() << ' ';
+		//cout << "no numero " << no << ' ' << " seq num " << this->fMesh->ConnectVec()[no].SequenceNumber() << ' ';
 		//       for(ic=firstelconnect[no]; ic<firstelconnect[no+1];ic++) cout << elconnect[ic] << ' ';
 		//cout << endl;
 	}
 	
 	
-  	fElementOrder.Resize(fMesh->ElementVec().NElements(),-1);
+  	fElementOrder.Resize(this->fMesh->ElementVec().NElements(),-1);
   	fElementOrder.Fill(-1);
-  	TPZVec<int> nodeorder(fMesh->ConnectVec().NElements(),-1);
+  	TPZVec<int> nodeorder(this->fMesh->ConnectVec().NElements(),-1);
   	firstelconnect[0] = 0;
   	for(ic=0; ic<nconnect; ic++) {
-  		int64_t seqnum = fMesh->ConnectVec()[ic].SequenceNumber();
+  		int64_t seqnum = this->fMesh->ConnectVec()[ic].SequenceNumber();
   		if(seqnum >= 0) nodeorder[seqnum] = ic;
   	}
 	//  cout << "nodeorder ";
-	/*for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
+	/*for(ic=0; ic<this->fMesh->ConnectVec().NElements(); ic++) cout << nodeorder[ic] << ' ';
 	 cout << endl;
 	 cout.flush();*/
   	int64_t seq;
   	int64_t elsequence = 0;
-  	TPZVec<int64_t> elorderinv(fMesh->ElementVec().NElements(),-1);
+  	TPZVec<int64_t> elorderinv(this->fMesh->ElementVec().NElements(),-1);
   	for(seq=0; seq<nconnect; seq++) {
   		ic = nodeorder[seq];
   		if(ic == -1) continue;
@@ -193,10 +182,10 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorde
   		}
   	}
 	//  cout << "elorderinv ";
-	//  for(seq=0;seq<fMesh->ElementVec().NElements();seq++) cout << elorderinv[seq] << ' ';
+	//  for(seq=0;seq<this->fMesh->ElementVec().NElements();seq++) cout << elorderinv[seq] << ' ';
 	//  cout << endl;
   	elsequence = 0;
-  	for(seq=0;seq<fMesh->ElementVec().NElements();seq++) {
+  	for(seq=0;seq<this->fMesh->ElementVec().NElements();seq++) {
   		if(elorderinv[seq] == -1) continue;
   		fElementOrder[elorderinv[seq]] = seq;
   	}
@@ -210,21 +199,21 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorde
 	}
 #endif
 	//  cout << "elorder" << endl;
-	//  for(ic=0; ic<fMesh->ElementVec().NElements(); ic++) cout << elorder[ic] << endl;
+	//  for(ic=0; ic<this->fMesh->ElementVec().NElements(); ic++) cout << elorder[ic] << endl;
 	
 }
 
 template<class TFront, class TVar, class TPar>
 TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	TPar::InitCreateAssemble();
-    int64_t neq = fEquationFilter.NActiveEquations();
+    int64_t neq = this->fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
-	TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront> *mat = new TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront>(neq);//(fMesh->NEquations());
+	TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront> *mat = new TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront>(neq);//(this->fMesh->NEquations());
 	
 //	TPZFrontMatrix<TVar,TPZFileEqnStorage<TVar>, TFront> *mat = new TPZFrontMatrix<TVar,TPZFileEqnStorage<TVar>, TFront>(neq);
     mat->GetFront().SetDecomposeType(fDecomposeType);
 	// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
-	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);	
+	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (this->fMesh);	
 	if (subcmesh) {
 		int nrigid = subcmesh->NumberRigidBodyModes();
 		if (nrigid > 0) {
@@ -260,16 +249,16 @@ template<class TFront, class TVar, class TPar>
 void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int64_t iel;
-	int64_t numel = 0, nelem = fMesh->NElements();
-	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);
+	int64_t numel = 0, nelem = this->fMesh->NElements();
+	TPZElementMatrix ek(this->fMesh,TPZElementMatrix::EK),ef(this->fMesh,TPZElementMatrix::EF);
 	TPZManVector<int64_t> destinationindex(0);
 	TPZManVector<int64_t> sourceindex(0);
 	
-	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
+	TPZAdmChunkVector<TPZCompEl *> &elementvec = this->fMesh->ElementVec();
 	
 	
 	/**Rearange elements order*/
-	TPZVec<int> elorder(fMesh->NEquations(),0);
+	TPZVec<int> elorder(this->fMesh->NEquations(),0);
 	
 	OrderElement();
 	
@@ -288,7 +277,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiff
 		//Builds elements stiffness matrix
 		el->CalcStiff(ek,ef);
 		ek.ComputeDestinationIndices();
-		FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+		this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 		//ek.fMat->Print(out);
 		//ef.fMat->Print();
 		if(!f_quiet)
@@ -305,7 +294,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiff
 			rhs.AddFel(ef.fMat,ek.fSourceIndex, ek.fDestinationIndex);
 		}
 		else {
-			//ek.Print(*fMesh,cout);
+			//ek.Print(*this->fMesh,cout);
 			ek.ApplyConstraints();
 			ef.ApplyConstraints();
 			stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -338,14 +327,14 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base
 	auto& stiffness = dynamic_cast<TPZMatrix<TVar>&>(stiff_base);
     auto& rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
 	int64_t iel;
-	int64_t numel = 0, nelem = fMesh->NElements();
-	TPZElementMatrix ek(fMesh,TPZElementMatrix::EK),ef(fMesh,TPZElementMatrix::EF);
+	int64_t numel = 0, nelem = this->fMesh->NElements();
+	TPZElementMatrix ek(this->fMesh,TPZElementMatrix::EK),ef(this->fMesh,TPZElementMatrix::EF);
 	
-	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
+	TPZAdmChunkVector<TPZCompEl *> &elementvec = this->fMesh->ElementVec();
 	
 	
 	/**Rearange elements order*/
-	TPZVec<int> elorder(fMesh->NEquations(),0);
+	TPZVec<int> elorder(this->fMesh->NEquations(),0);
 	
 	OrderElement();
 	
@@ -437,7 +426,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleElement(TPZCompEl * el, TPZ
         ek.ApplyConstraints();
         ef.ApplyConstraints();
         ek.ComputeDestinationIndices();
-        FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+        this->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef PZ_LOG
         if (logger.isDebugEnabled())
         {
@@ -470,7 +459,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AdjustSequenceNumbering()
 {
 	int64_t nconnect = this->fMesh->ConnectVec().NElements();
 	TPZManVector<int64_t> permute(nconnect);
-	fMesh->ComputeNodElCon();
+	this->fMesh->ComputeNodElCon();
 	int64_t i;
 	for(i=0; i<nconnect; i++)
 	{
@@ -484,14 +473,14 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AdjustSequenceNumbering()
 	{
 		el = fElementOrder[i];
         if(el<0) continue;
-		cel = fMesh->ElementVec()[el];
+		cel = this->fMesh->ElementVec()[el];
 		if(!cel) continue;
 		std::set<int64_t> indepconnects, depconnects;
 		cel->BuildConnectList(indepconnects,depconnects);
 		std::set<int64_t>::iterator it;
 		for(it=indepconnects.begin(); it != indepconnects.end(); it++)
 		{
-			TPZConnect &nod = fMesh->ConnectVec()[*it];
+			TPZConnect &nod = this->fMesh->ConnectVec()[*it];
 			int nelcon = nod.NElConnected()-1;
 			int64_t seqnum = nod.SequenceNumber();
 			if(nelcon == 0) permute[seqnum]= connectcount++;
@@ -500,7 +489,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AdjustSequenceNumbering()
 	}
 	for(i=0; i<nconnect; i++)
 	{
-		TPZConnect &nod = fMesh->ConnectVec()[i];
+		TPZConnect &nod = this->fMesh->ConnectVec()[i];
 		if(nod.SequenceNumber() < 0 || nod.NElConnected() <= 0) continue;
 		if(permute[nod.SequenceNumber()] < connectcount)
 		{
@@ -516,13 +505,13 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AdjustSequenceNumbering()
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	fMesh->Permute(permute);
+	this->fMesh->Permute(permute);
 }
 
 template<class TFront, class TVar, class TPar>
 int TPZFrontStructMatrix<TFront,TVar,TPar>::ClassId() const{
     return Hash("TPZFrontStructMatrix") ^
-        (TPZStructMatrix::ClassId()<< 1 ) ^
+        (TPZStructMatrixT<TVar>::ClassId()<< 1 ) ^
         TFront().ClassId() << 2 ^
         TPar::ClassId() << 3;
 }
