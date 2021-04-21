@@ -21,6 +21,7 @@ TPZStructMatrix * TPZBSpStructMatrix<TVar,TPar>::Clone(){
 
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    TPar::InitCreateAssemble();
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";

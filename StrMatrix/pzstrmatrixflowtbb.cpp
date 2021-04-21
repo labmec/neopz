@@ -110,7 +110,7 @@ void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPoin
 }
 
 template<class TVar>
-TPZBaseMatrix * TPZStructMatrixTBBFlow<TVar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixTBBFlow<TVar>::InitCreateAssemble()
 {
 #ifndef USING_TBB
     NO_TBB
@@ -118,27 +118,6 @@ TPZBaseMatrix * TPZStructMatrixTBBFlow<TVar>::CreateAssemble(TPZBaseMatrix &rhs,
     this->SetNumThreads(0);
     this->fFlowGraph = new TPZFlowGraph(this);
 #endif
-    auto *myself =
-        dynamic_cast<TPZStructMatrix*>(this);
-    const auto &equationFilter = myself->EquationFilter();
-    TPZBaseMatrix *stiff = myself->Create();
-    
-    int64_t cols = MAX(1, rhs.Cols());
-    rhs.Redim(equationFilter.NEqExpand(),cols);
-    
-    Assemble(*stiff,rhs,guiInterface);
-    
-#ifdef PZ_LOG2
-    if(loggerel.isDebugEnabled())
-    {
-        std::stringstream sout;
-        stiff->Print("Stiffness matrix",sout);
-        rhs.Print("Right hand side", sout);
-        LOGPZ_DEBUG(loggerel,sout.str())
-    }
-#endif
-    return stiff;
-    
 }
 
 template<class TVar>

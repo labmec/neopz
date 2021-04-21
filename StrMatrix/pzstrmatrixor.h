@@ -47,8 +47,6 @@ public:
 
     
     void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-
-    using TPZStrMatParInterface::CreateAssemble;
     //@}
 
     

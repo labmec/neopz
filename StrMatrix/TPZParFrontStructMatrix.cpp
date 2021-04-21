@@ -510,6 +510,7 @@ void TPZParFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZMatrix<TVar> & matre
 template<class TFront, class TVar, class TPar>
 TPZMatrix<TVar> * TPZParFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
+    TPar::InitCreateAssemble();
 	
 	//TPZFrontMatrix<TPZStackEqnStorage, TFront> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TFront>(fMesh->NEquations());
 	

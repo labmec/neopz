@@ -44,13 +44,16 @@ public:
                           TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
     //! Assemble the global right hand side vector.
     virtual void Assemble(TPZBaseMatrix &rhs,
-                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;
+                          TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;    
+
     //! NEED DOCU
     virtual TPZBaseMatrix *
     CreateAssemble(TPZBaseMatrix &rhs,
                    TPZAutoPointer<TPZGuiInterface> guiInterface);
-    //@}
+    //!Operations to be performed at the beginning of CreateAssemble
+    virtual void InitCreateAssemble(){}
 
+    //@}
     //! Set number of threads to be used in the assembly.
     inline void SetNumThreads(int n) {
         this->fNumThreads = n;

@@ -5,6 +5,7 @@
 
 TPZBaseMatrix *TPZStrMatParInterface::CreateAssemble(
     TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
+    this->InitCreateAssemble();
 
     TPZStructMatrix *myself = dynamic_cast<TPZStructMatrix*>(this);
     TPZBaseMatrix *stiff = myself->Create();

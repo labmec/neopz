@@ -48,7 +48,7 @@ public:
     
     void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void InitCreateAssemble() override;
     //@}
     
     //@{

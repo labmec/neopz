@@ -189,7 +189,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
 }
 
 template<class TVar>
-TPZBaseMatrix * TPZStructMatrixOT<TVar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrixOT<TVar>::InitCreateAssemble()
 {
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     stat_ass_graph_ot.start();
@@ -198,25 +198,6 @@ TPZBaseMatrix * TPZStructMatrixOT<TVar>::CreateAssemble(TPZBaseMatrix &rhs, TPZA
     TPZVec<int64_t> elcolors;
     TPZStructMatrixOT<TVar>::ElementColoring(myself->Mesh(), ElementOrder, fElSequenceColor, fElBlocked, elcolors);
     stat_ass_graph_ot.stop();
-    
-    TPZBaseMatrix *stiff = myself->Create();
-    
-    //int64_t neq = stiff->Rows();
-    int64_t cols = MAX(1, rhs.Cols());
-    rhs.Redim(myself->EquationFilter().NEqExpand(),cols);
-    Assemble(*stiff,rhs,guiInterface);
-    
-#ifdef PZ_LOG2
-    if(loggerel.isDebugEnabled())
-    {
-        std::stringstream sout;
-        stiff->Print("Stiffness matrix",sout);
-        rhs.Print("Right hand side", sout);
-        LOGPZ_DEBUG(loggerel,sout.str())
-    }
-#endif
-    return stiff;
-    
 }
 
 template<class TVar>
@@ -518,7 +499,7 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
     std::cout << "Assemble numthreads = " << numthreads << std::endl;
-    std::vector<std::thread> allthreads(numthreads);
+    std::vector<std::thread> allthreads;
     int itr;
     if(guiInterface){
         if(guiInterface->AmIKilled()){
@@ -532,7 +513,6 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
     fElementsComputed.Resize(myself->Mesh()->NElements());
     fElementsComputed.Fill(0);
     fSomeoneIsSleeping = 0;
-    TPZManVector<ThreadData*> allthreaddata(numthreads);
 #ifdef PZDEBUG
     {
         for (int64_t i=1; i<fElBlocked.size(); i++) {
@@ -542,30 +522,21 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
         }
     }
 #endif
-
+    ThreadData threaddata(myself, itr, mat, rhs, myself->MaterialIds(),
+                           guiInterface, &fCurrentIndex);
+    threaddata.fElBlocked=&fElBlocked;
+    threaddata.fElSequenceColor=&fElSequenceColor;
+    threaddata.fElementCompleted = &fElementCompleted;
+    threaddata.fComputedElements = &fElementsComputed;
+    threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
     for(itr=0; itr<numthreads; itr++)
     {
-        allthreaddata[itr] =
-            new ThreadData(myself, itr, mat, rhs, myself->MaterialIds(),
-                           guiInterface, &fCurrentIndex);
-        ThreadData &threaddata = *allthreaddata[itr];
-        
-        threaddata.fElBlocked=&fElBlocked;
-        threaddata.fElSequenceColor=&fElSequenceColor;
-        threaddata.fElementCompleted = &fElementCompleted;
-        threaddata.fComputedElements = &fElementsComputed;
-        threaddata.fSomeoneIsSleeping = &fSomeoneIsSleeping;
-        allthreads.emplace_back(ThreadData::ThreadWork, &threaddata);
+        allthreads.push_back(std::thread(ThreadData::ThreadWork, &threaddata));
     }
     
     for(itr=0; itr<numthreads; itr++)
     {
         allthreads[itr].join();
-    }
-
-    for(itr=0; itr<numthreads; itr++)
-    {
-        delete allthreaddata[itr];
     }
 
 #ifdef PZ_LOG
@@ -1008,308 +979,9 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
     return 0;
 }
 
+
 template<class TVar>
-void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWorkResidual(void *datavoid)
-{
-    ThreadData *data = (ThreadData *) datavoid;
-    //    TPZStructMatrixOT *strmat = data->fStruct;
-    TPZVec<int64_t> &ComputedElements = *(data->fComputedElements);
-    TPZVec<int64_t> &ElBlocked = *(data->fElBlocked);
-    
-    int &SomeoneIsSleeping = *(data->fSomeoneIsSleeping);
-    
-    TPZCompMesh *cmesh = data->fStruct->Mesh();
-    TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-    TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
-    int64_t numelements = data->fElSequenceColor->size();
-    int64_t index = data->fCurrentIndex->fetch_add(1);
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled()) {
-        std::stringstream sout;
-        sout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
-        sout << "index = " << index << std::endl;
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-#ifdef HUGEDEBUG
-    data->fMutexAccessElement.lock();
-    std::cout << "ThreadData starting with " << data->fThreadSeqNum << " total elements " << numelements << std::endl;
-    std::cout << "index = " << index << std::endl;
-    std::cout.flush();
-    data->fMutexAccessElement.unlock();
-#endif
-    
-        while (index < numelements)
-        {
-            
-            int64_t iel = data->fElSequenceColor->operator[](index);
-#ifdef PZ_LOG
-            if (logger.isDebugEnabled()) {
-                std::stringstream sout;
-                sout << "Computing element " << index;
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
-#ifdef PZ_LOG
-            std::stringstream sout;
-            sout << "Element " << index << " elapsed time ";
-            TPZTimer timeforel(sout.str());
-            timeforel.start();
-#endif
-            
-            if (iel >= 0){
-                TPZCompEl *el = cmesh->ElementVec()[iel];
-#ifndef DRY_RUN
-                el->CalcResidual(ef);
-#else
-                TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(el);
-                intel->InitializeElementMatrix(ef);
-#endif
-                if(guiInterface) if(guiInterface->AmIKilled()){
-                    break;
-                }
-                
-#ifndef DRY_RUN
-                if(!el->HasDependency()) {
-                    
-                    ef.ComputeDestinationIndices();
-                    data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-                    
-#ifdef PZ_LOG
-                    if(loggerel.isDebugEnabled())
-                    {
-                        std::stringstream sout;
-                        ef.fMat.Print("Element right hand side", sout);
-                        LOGPZ_DEBUG(loggerel,sout.str())
-                    }
-#endif
-                } else {
-                    // the element has dependent nodes
-                    ef.ApplyConstraints();
-                    ef.ComputeDestinationIndices();
-                    data->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
-                }
-#endif
-                
-#ifdef PZ_LOG
-                timeforel.stop();
-                if (logger.isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    sout << timeforel.processName() <<  timeforel;
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-                
-                int64_t localcompleted = *(data->fElementCompleted);
-                bool localupdated = false;
-                while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                    localcompleted++;
-                    localupdated = true;
-                }
-                int64_t needscomputed = ElBlocked[index];
-#ifdef PZ_LOG
-                if (logger.isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    if (localupdated) {
-                        sout << "Localcompleted updated without thread lock\n";
-                    }
-                    
-                    sout << "Element " << index << " is computed and can assemble if required " << needscomputed << " is smaller than localcompleted " << localcompleted;
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-                
-#ifdef HUGEDEBUG
-                data->fMutexAccessElement.lock();
-                std::cout << "threadEK " << data->fThreadSeqNum << " index " << index << " localcompleted " << localcompleted << " needscomputed " << needscomputed << std::endl;
-                data->fMutexAccessElement.unlock();
-#endif
-                
-                bool hadtowait = false;
-#ifdef PZ_LOG
-                if (logger.isInfoEnabled() && needscomputed > localcompleted)
-                {
-                    std::stringstream sout;
-                    sout << "Element " << index << " cannot be assembled - going to sleep";
-                    LOGPZ_INFO(logger, sout.str())
-                }
-#endif
-                while (needscomputed > localcompleted) {
-                    // block the thread till the element needed has been assembled
-                    std::unique_lock<std::mutex> lock(data->fMutexAccessElement);
-                    SomeoneIsSleeping = 1;
-                    hadtowait = true;
-#ifdef HUGEDEBUG
-                    std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " going to sleep waiting for " << needscomputed << std::endl;
-                    std::cout.flush();
-#endif
-#ifdef PZ_LOG
-                    if (logger.isDebugEnabled())
-                    {
-                        std::stringstream sout;
-                        sout << "Element " << index << " cannot be assembled - going to sleep";
-                        LOGPZ_DEBUG(logger, sout.str())
-                    }
-#endif
-                    data->fConditionVar.wait(lock);
-                    
-                    localcompleted = *data->fElementCompleted;
-                    localupdated = false;
-                    while (ComputedElements[localcompleted+1] == 1) {
-                        localcompleted++;
-                        localupdated = true;
-                    }
-#ifdef PZ_LOG
-                    if (logger.isDebugEnabled())
-                    {
-                        std::stringstream sout;
-                        sout << "thread wakeup for element index " << index << std::endl;
-                        if (localupdated) {
-                            sout << "Localcompleted updated without thread lock\n";
-                        }
-                        
-                        sout << "Element " << index << " is computed and can assemble if required " << needscomputed << " is smaller than localcompleted " << localcompleted;
-                        LOGPZ_DEBUG(logger, sout.str())
-                    }
-#endif
-                }
-                
-
-#ifdef PZ_LOG
-                if (logger.isInfoEnabled() && hadtowait)
-                {
-                    std::stringstream sout;
-                    sout << "thread wakeup for element index " << index << std::endl;
-                    LOGPZ_INFO(logger, sout.str())
-                }
-#endif
-
-
-#ifdef HUGEDEBUG
-                if (hadtowait) {
-                  std::scoped_lock lock (data->fMutexAccessElement);
-                    std::cout << "threadEK " <<data->fThreadSeqNum << " Index " << index << " continuing\n";
-                }
-#endif
-                
-#ifndef DRY_RUN
-                auto globRhs =
-                    dynamic_cast<TPZFMatrix<STATE> *>(data->fGlobRhs);
-                if(globRhs){
-                    // Assemble the matrix
-                    if(!ef.HasDependency())
-                    {
-                        globRhs->AddFel(ef.fMat,ef.fSourceIndex,ef.fDestinationIndex);
-                    }
-                    else
-                    {
-                        globRhs->AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
-                    }
-                    
-                }
-#endif
-                
-                localupdated = false;
-                while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                    localcompleted++;
-                    localupdated = true;
-                }
-                if (localcompleted == index-1) {
-                    localcompleted++;
-                }
-                while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-                    localcompleted++;
-                    localupdated = true;
-                }
-                bool elementcompletedupdate = false;
-                if (*data->fElementCompleted < localcompleted) {
-                    //                std::cout << "Updating element completed " << localcompleted << std::endl;
-                    *data->fElementCompleted = localcompleted;
-                    elementcompletedupdate = true;
-                }
-#ifdef PZ_LOG
-                if (logger.isDebugEnabled())
-                {
-                    std::stringstream sout;
-                    sout << "Element " << index << " has been assembled ";
-                    if (localupdated) {
-                        sout << "\nLocalcompleted updated without thread lock\n";
-                    }
-                    if (elementcompletedupdate) {
-                        sout << "\nfElementCompleted updated to localcompleted\n";
-                    }
-                    sout << "local completed " << localcompleted;
-                    LOGPZ_DEBUG(logger, sout.str())
-                }
-#endif
-                ComputedElements[index] = 1;
-                if (SomeoneIsSleeping) {
-                  std::unique_lock<std::mutex> lock(data->fMutexAccessElement);
-#ifdef HUGEDEBUG
-                    std::cout << "threadEK " <<data->fThreadSeqNum <<  " Computed index " << index << " Waking up ElementsCompleted " << *data->fElementCompleted << std::endl;
-                    std::cout.flush();
-#endif
-                    
-#ifdef PZ_LOG
-                    if (logger.isDebugEnabled())
-                    {
-                        LOGPZ_DEBUG(logger, "condition broadcast")
-                    }
-#endif
-                    SomeoneIsSleeping = 0;
-                    data->fConditionVar.notify_all();
-                }
-                
-            }
-            else
-            {
-                std::cout << "the element in ElColorSequence is negative???\n";
-                DebugStop();
-            }
-            index = data->fCurrentIndex->fetch_add(1);
-            
-        }
-    // just make sure threads that were accidentally blocked get woken up
-    std::unique_lock<std::mutex> lock(data->fMutexAccessElement);
-    bool localupdated = false;
-    int64_t localcompleted = *(data->fElementCompleted);
-    while (localcompleted < numelements-1 && ComputedElements[localcompleted+1] == 1) {
-        localcompleted++;
-        localupdated = true;
-    }
-    if (localcompleted == index-1) {
-        localcompleted++;
-    }
-    bool elementcompletedupdate = false;
-    if (*data->fElementCompleted < localcompleted) {
-        //                std::cout << "Updating element completed " << localcompleted << std::endl;
-        *data->fElementCompleted = localcompleted;
-        elementcompletedupdate = true;
-    }
-    
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger, "Finishing up")
-        if (localupdated) {
-            LOGPZ_DEBUG(logger, "updated localcompleted")
-        }
-        if (elementcompletedupdate) {
-            LOGPZ_DEBUG(logger, "updated fElementCompleted")
-        }
-        if (localupdated || elementcompletedupdate) {
-            std::stringstream sout;
-            sout << "localcompleted " << localcompleted;
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-        LOGPZ_DEBUG(logger, "finishing and condition broadcast")
-    }
-#endif
-    data->fConditionVar.notify_all();
-    SomeoneIsSleeping = 0;
-    return 0;
+TPZStructMatrixOT<TVar>::ThreadData::~ThreadData() {
 }
 
 template<class TVar>

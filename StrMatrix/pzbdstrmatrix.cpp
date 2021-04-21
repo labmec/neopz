@@ -105,6 +105,7 @@ TPZStructMatrix * TPZBlockDiagonalStructMatrix<TVar,TPar>::Clone(){
 }
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBlockDiagonalStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    TPar::InitCreateAssemble();
     int64_t neq = fMesh->NEquations();
     TPZBlockDiagonal<TVar> *block = new TPZBlockDiagonal<TVar>();
     rhs.Redim(neq,1);

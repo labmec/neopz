@@ -25,8 +25,6 @@ class TPZSBandStructMatrix : public TPZStructMatrix,
 	
 	TPZSBandStructMatrix(TPZAutoPointer<TPZCompMesh>);
     
-    TPZMatrix<TVar> * CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    
     TPZMatrix<TVar> * Create() override;
 	
     TPZStructMatrix * Clone() override;

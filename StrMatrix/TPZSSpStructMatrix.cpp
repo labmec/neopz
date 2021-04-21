@@ -30,7 +30,7 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatrix<TVar>
         LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble starting");
     }
 #endif
-	
+	TPar::InitCreateAssemble();
     int64_t neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";

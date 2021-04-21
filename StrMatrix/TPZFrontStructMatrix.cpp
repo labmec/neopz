@@ -216,6 +216,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::OrderElement()//TPZVec<int> &elorde
 
 template<class TFront, class TVar, class TPar>
 TPZMatrix<TVar> * TPZFrontStructMatrix<TFront,TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPar::InitCreateAssemble();
     int64_t neq = fEquationFilter.NActiveEquations();
 	TPZManVector <int> numelconnected(neq,0);
 	TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront> *mat = new TPZFrontMatrix<TVar,TPZStackEqnStorage<TVar>, TFront>(neq);//(fMesh->NEquations());

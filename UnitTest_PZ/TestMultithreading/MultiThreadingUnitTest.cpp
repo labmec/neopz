@@ -46,9 +46,6 @@ TEST_CASE("multithread_assemble_test","[multithread_tests]")
 {
   TPZLogger::InitializePZLOG();
   threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix<STATE>>(4);
-  threadTest::CompareStiffnessMatrices<TPZBlockDiagonalStructMatrix<STATE>>(4);
-  threadTest::CompareStiffnessMatrices<TPZBandStructMatrix<STATE>>(4);
-  threadTest::CompareStiffnessMatrices<TPZSpStructMatrix<STATE>>(4);
 }
 
 TEST_CASE("multithread_postprocerror_test","[multithread_tests]")
@@ -143,6 +140,7 @@ void threadTest::CompareStiffnessMatrices(const int nThreads)
   std::cout << std::fixed << "\tNorm diff: " << normDiff << std::endl;
   const bool checkMatNorm = IsZero(normDiff);
   REQUIRE(checkMatNorm);
+  delete cMesh;
   delete gMesh;
 }
 
@@ -208,6 +206,7 @@ void threadTest::ComparePostProcError(const int nThreads) {
   }
   REQUIRE(pass);
 
+  delete cMesh;
   delete gMesh;
 }
 

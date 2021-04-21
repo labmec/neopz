@@ -48,7 +48,7 @@ public:
     
     void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 
-    TPZBaseMatrix * CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+    void InitCreateAssemble() override;
     //@}
 
     
@@ -87,6 +87,7 @@ protected:
         ThreadData(TPZStructMatrix *strmat,int seqnum, TPZBaseMatrix &mat, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, std::atomic<int64_t> *fCurrentIndex);
         /** @brief Initialize the mutex semaphores and others */
         ThreadData(TPZStructMatrix *strmat, int seqnum, TPZBaseMatrix &rhs, const std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface, std::atomic<int64_t> *fCurrentIndex);
+        ~ThreadData();
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief The function which will compute the assembly */
@@ -118,8 +119,6 @@ protected:
         
         /// All elements below or equal this index have been computed
         int64_t *fElementCompleted;
-        
-        static void *ThreadWorkResidual(void *datavoid);
     };
 protected:
     
