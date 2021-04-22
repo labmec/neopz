@@ -14,6 +14,8 @@ set(public_headers
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
     #matrix storage format
+    pzfstrmatrix.h
+    pzsfstrmatrix.h
     pzbstrmatrix.h
     TPZSpStructMatrix.h
     pzbdstrmatrix.h
@@ -24,7 +26,6 @@ set(public_headers
     TPZBSpStructMatrix.h
     TPZParFrontStructMatrix.h
     TPZFrontStructMatrix.h
-    pzfstrmatrix.h
     # tpzsparseblockdiagonalstructmatrix.h # needsreview
     #other
     TPZEquationFilter.h
@@ -38,6 +39,8 @@ set(headers
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
     #matrix storage format
+    pzfstrmatrix.h
+    pzsfstrmatrix.h
     pzbstrmatrix.h
     TPZSpStructMatrix.h
     pzbdstrmatrix.h
@@ -48,7 +51,6 @@ set(headers
     TPZBSpStructMatrix.h
     TPZParFrontStructMatrix.h
     TPZFrontStructMatrix.h
-    pzfstrmatrix.h
     tpzsparseblockdiagonalstructmatrix.h
     #other
     TPZEquationFilter.h
@@ -64,6 +66,8 @@ set(sources
     pzstrmatrixot.cpp
     pzstrmatrixflowtbb.cpp
     #matrix storage format
+    pzfstrmatrix.cpp
+    pzsfstrmatrix.cpp
     pzbstrmatrix.cpp
     TPZSpStructMatrix.cpp
     pzbdstrmatrix.cpp
@@ -74,7 +78,6 @@ set(sources
     TPZBSpStructMatrix.cpp
     TPZParFrontStructMatrix.cpp
     TPZFrontStructMatrix.cpp
-    pzfstrmatrix.cpp
     tpzsparseblockdiagonalstructmatrix.cpp
     #other
     TPZEquationFilter.cpp
