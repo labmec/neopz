@@ -498,7 +498,7 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
 
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
-    std::cout << "Assemble numthreads = " << numthreads << std::endl;
+    // std::cout << "Assemble numthreads = " << numthreads << std::endl;
     std::vector<std::thread> allthreads;
     int itr;
     if(guiInterface){
@@ -513,15 +513,15 @@ void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZ
     fElementsComputed.Resize(myself->Mesh()->NElements());
     fElementsComputed.Fill(0);
     fSomeoneIsSleeping = 0;
-#ifdef PZDEBUG
-    {
-        for (int64_t i=1; i<fElBlocked.size(); i++) {
-            if (fElBlocked[i] < fElBlocked[i-1]) {
-                std::cout << "i = " << i << " fElBlocked[i-1] " << fElBlocked[i-1] << " fElBlocked[i] " << fElBlocked[i] << std::endl;
-            }
-        }
-    }
-#endif
+// #ifdef PZDEBUG
+//     {
+//         for (int64_t i=1; i<fElBlocked.size(); i++) {
+//             if (fElBlocked[i] < fElBlocked[i-1]) {
+//                 std::cout << "i = " << i << " fElBlocked[i-1] " << fElBlocked[i-1] << " fElBlocked[i] " << fElBlocked[i] << std::endl;
+//             }
+//         }
+//     }
+// #endif
     ThreadData threaddata(myself, itr, mat, rhs, myself->MaterialIds(),
                            guiInterface, &fCurrentIndex);
     threaddata.fElBlocked=&fElBlocked;
@@ -1121,17 +1121,17 @@ void TPZStructMatrixOT<TVar>::ElementColoring(TPZCompMesh *cmesh, TPZVec<int64_t
     NumelColors[currentPassIndex] = NumelColors[currentPassIndex - 1] + 1;
     NumelColors.Resize(currentPassIndex + 1);
 
-#ifdef PZDEBUG
-    std::ofstream toto("../ColorMeshDebug.txt");
-    toto << "elSequence\n" << elSequence << std::endl;
-    toto << "elSequenceColor\n" << elSequenceColor << std::endl;
-    toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
-    toto << "elBlocked\n" << elBlocked << std::endl;
-    toto << "elContribute\n" << elContribute << std::endl;
-    toto << "passIndex\n" << passIndex << std::endl;
-    toto << "NumelColors\n" << NumelColors << std::endl;
-    toto.close();
-#endif
+// #ifdef PZDEBUG
+//     std::ofstream toto("../ColorMeshDebug.txt");
+//     toto << "elSequence\n" << elSequence << std::endl;
+//     toto << "elSequenceColor\n" << elSequenceColor << std::endl;
+//     toto << "elSequenceColorInv\n" << elSequenceColorInv << std::endl;
+//     toto << "elBlocked\n" << elBlocked << std::endl;
+//     toto << "elContribute\n" << elContribute << std::endl;
+//     toto << "passIndex\n" << passIndex << std::endl;
+//     toto << "NumelColors\n" << NumelColors << std::endl;
+//     toto.close();
+// #endif
 }
 
 template<class TVar>

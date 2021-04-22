@@ -53,8 +53,8 @@ TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rh
     this->Assemble(*stiff,rhs,guiInterface);
     mat->ComputeDiagonal();
     before.stop();
-    std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
-//    mat->ComputeDiagonal();
+    // std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
+    
     //    mat->ComputeDiagonal();
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
 #ifdef PZ_LOG
