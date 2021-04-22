@@ -17,9 +17,9 @@ using namespace std;
 
 
 #include <thread>
+#include "pzlog.h"
 
 #ifdef PZ_LOG
-#include "pzlog.h"
 static TPZLogger logger("pz.strmatrix.TPZStructMatrixOT");
 static TPZLogger loggerel("pz.strmatrix.element");
 static TPZLogger loggerelmat("pz.strmatrix.elementmat");
