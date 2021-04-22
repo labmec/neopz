@@ -218,15 +218,6 @@ public:
     
     virtual int NEvalErrors() override {return 6;}
     
-    /**
-     * It computes errors contribution in differents spaces.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ef[out] is the load vector
-     * @param bc[in] is the boundary condition material
-     */
-    virtual void Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) override;
-    
     
     
 };

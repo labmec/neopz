@@ -59,8 +59,18 @@ public:
   operator TPZFMatrix<STATE>& ();
   operator const TPZFMatrix<STATE>& () const;
   //@}
+  
   //! Conversion function to TPZBaseMatrix&
   operator TPZBaseMatrix& ();
+
+
+  //@{
+  //!Arithmetic operators. Throws error if incompatible.
+  template<class TVar>
+  TPZSolutionMatrix &operator+=(const TPZFMatrix<TVar> &mat);
+
+  TPZSolutionMatrix &operator+=(const TPZSolutionMatrix &sol);
+  //@}
   
   /*! Sets a solution with nrows where the first sol.Rows() are the solution from sol.
     Since the TPZAnalysis only stores the solution associated with the independent
@@ -130,6 +140,6 @@ public:
 
 extern template
 TPZSolutionMatrix &TPZSolutionMatrix::operator=<STATE>(const TPZFMatrix<STATE> &mat);
-// extern template
-// TPZSolutionMatrix &TPZSolutionMatrix::operator=<CSTATE>(const TPZFMatrix<CSTATE> &mat);
+extern template
+TPZSolutionMatrix &TPZSolutionMatrix::operator+=<STATE>(const TPZFMatrix<STATE> &mat);
 #endif

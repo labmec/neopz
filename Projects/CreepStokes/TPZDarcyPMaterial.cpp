@@ -1134,9 +1134,12 @@ void TPZDarcyPMaterial::FillVecShapeIndex(TPZMaterialData &data)
 
 
 
-void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors)
+void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors)
 {
 
+    TPZVec<STATE> u_exact(1);
+    TPZFMatrix<STATE> du_exact(3,1);
+    fExactSol->Execute(data[0].x, u_exact, du_exact);
     errors.Resize(NEvalErrors());
     errors.Fill(0.0);
     TPZManVector<STATE> Velocity, Pressure;

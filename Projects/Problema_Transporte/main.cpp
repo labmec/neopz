@@ -852,7 +852,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
     //StiffMatrixLoadVec(mymaterial, cmesh, an, matK, fvec);
     TPZManVector<int64_t> nonactive(0);
     FilterEquation(mymaterial, cmesh, an, true,nonactive);
-    matK = an.Solver().Matrix();
+    matK = an.MatrixSolver<STATE>().Matrix();
     fvec = an.Rhs();
     
 #ifdef PZ_LOG
@@ -1014,7 +1014,7 @@ void SolveSistTransient(REAL deltaT, TPZMatConvectionProblem * &mymaterial, TPZC
 	TPZFMatrix<STATE> fvec;
     TPZManVector<int64_t> nonactive(0);
     FilterEquation(mymaterial, cmesh, an, true,nonactive);
-    matK = an.Solver().Matrix();
+    matK = an.MatrixSolver<STATE>().Matrix();
     fvec = an.Rhs();
     
 //#ifdef PZ_LOG
@@ -1130,7 +1130,7 @@ void StiffMatrixLoadVec(TPZMatConvectionProblem *mymaterial, TPZCompMesh*cmesh, 
 	an.Run();
 	
 	//matK1 = an.StructMatrix();
-    matK1 = an.Solver().Matrix();
+    matK1 = an.MatrixSolver<STATE>().Matrix();
 	fvec = an.Rhs();
 }
 

@@ -210,10 +210,10 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
     
     an->SetCompMesh(cmesh_elast, true);
     this->SolveInitialElasticity(*an, cmesh_elast);
-    
+    TPZFMatrix<STATE> &sol = cmesh_elast->Solution();
     for(int r = 0; r < cmesh_elast->Solution().Rows(); r++)
     {
-        solutions(r,0) = cmesh_elast->Solution()(r,0);
+        solutions(r,0) = sol(r,0);
     }
     
     {
@@ -226,7 +226,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
 
         for(int r = 0; r < cmesh_elast->Solution().Rows(); r++)
         {
-            solutions(r,1) = cmesh_elast->Solution()(r,0) - solutions(r,0);
+            solutions(r,1) = sol(r,0) - solutions(r,0);
         }
     }
     cmesh_elast->LoadSolution(solutions);
@@ -810,7 +810,7 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
     
     an->Assemble();
 	
-    matK1 = an->Solver().Matrix();
+    matK1 = an->MatrixSolver<STATE>().Matrix();
 
 	fvec = an->Rhs();
 }

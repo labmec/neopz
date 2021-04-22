@@ -79,16 +79,16 @@ int main() {
 	delete direct;
 	direct = 0;
    // an.Run();
-
+    TPZFMatrix<STATE> &sol = cmesh->Solution();
     int nrows = cmesh->Solution().Rows();
     int cols = cmesh->Solution().Cols();
     if(counter==1) {
         for(int i=0;i<nrows;i++) {
             for(int j=0;j<cols;j++) {
-                cmesh->Solution().PutVal(i,j,0.);
+                sol.PutVal(i,j,0.);
             }
         }
-        cmesh->Solution().PutVal(5,0,.25);
+        sol.PutVal(5,0,.25);
     }
 	// Post processing
     TPZStack<std::string> scalarnames, vecnames;
@@ -105,17 +105,17 @@ int main() {
         for(int k=0;k<nrows;k++) {
             for(int i=0;i<nrows;i++) {
                 for(int j=0;j<cols;j++) {
-                    cmesh->Solution().PutVal(i,j,0.);
+                    sol.PutVal(i,j,0.);
                 }
             }
 			if(k==33)
-				cmesh->Solution().PutVal(33,0,1.);
+				sol.PutVal(33,0,1.);
 			else if(k==17) {
-				cmesh->Solution().PutVal(17,0,1.);
-				cmesh->Solution().PutVal(37,0,0.5);
+				sol.PutVal(17,0,1.);
+				sol.PutVal(37,0,0.5);
 			}
 			else
-	            cmesh->Solution().PutVal(k,0,.25);
+	            sol.PutVal(k,0,.25);
             sprintf(namef,"Solution2D_%d_%d.vtk",counter,k);
             an.DefineGraphMesh(2,scalarnames,vecnames,namef);
             an.PostProcess(resolution,2);
@@ -124,22 +124,22 @@ int main() {
     if(counter==3) {
         for(int i=0;i<nrows;i++) {
             for(int j=0;j<cols;j++) {
-                cmesh->Solution().PutVal(i,j,0.);
+                sol.PutVal(i,j,0.);
             }
         }
         for(int k=0;k<nrows;k++) {
 			if(k==2)
-                cmesh->Solution().PutVal(2,0,0.1875-0.125);
+                sol.PutVal(2,0,0.1875-0.125);
             else if(k==33)
-				cmesh->Solution().PutVal(33,0,0.1875);
+				sol.PutVal(33,0,0.1875);
 			else if(k==17) {
-				cmesh->Solution().PutVal(17,0,0.25);
-				cmesh->Solution().PutVal(37,0,0.125);
+				sol.PutVal(17,0,0.25);
+				sol.PutVal(37,0,0.125);
 			}
 			else if(k==32)
-	            cmesh->Solution().PutVal(k,0,0.109375-0.09375);
+	            sol.PutVal(k,0,0.109375-0.09375);
 			else if(k==21)
-	            cmesh->Solution().PutVal(k,0,0.234375-(0.09375+0.125));
+	            sol.PutVal(k,0,0.234375-(0.09375+0.125));
 		}
         sprintf(namef,"Solution2D_%d.vtk",counter);
         an.DefineGraphMesh(2,scalarnames,vecnames,namef);

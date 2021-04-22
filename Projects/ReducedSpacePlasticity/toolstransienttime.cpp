@@ -359,17 +359,18 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
   fmeshvec[1] = this->CMeshPressure();
   //fgmesh->ResetReference();
 
+    TPZFMatrix<STATE> &sol = fmeshvec[0]->Solution();
 	
 	bool SeeSol = false;
 	if (SeeSol) {
-    REAL oldval0 = fmeshvec[0]->Solution()(0,0);
-    REAL oldval1 = fmeshvec[0]->Solution()(1,0);
-    REAL oldval2 = fmeshvec[0]->Solution()(2,0);
-    fmeshvec[0]->Solution()(0,0) = 12.9274;
-    fmeshvec[0]->Solution()(1,0) = 3.46963;
-    fmeshvec[0]->Solution()(2,0) = 3.64654;
-		//fmeshvec[0]->Solution()(2,0) = 10.;
-    fmeshvec[0]->Solution().Print("Solu");
+    REAL oldval0 = sol(0,0);
+    REAL oldval1 = sol(1,0);
+    REAL oldval2 = sol(2,0);
+    sol(0,0) = 12.9274;
+    sol(1,0) = 3.46963;
+    sol(2,0) = 3.64654;
+		//sol(2,0) = 10.;
+    sol.Print("Solu");
 		TPZMaterial * mat = fmeshvec[0]->FindMaterial(globReservMatId1);
 		TPZManVector<std::string> scalnames(2),vecnames(1),tennames(0);
 		scalnames[0]= "SigmaX";
@@ -393,10 +394,10 @@ void ToolsTransient::InitializeUncoupledMeshesAttributes()
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
     
-    fmeshvec[0]->Solution()(0,0) = oldval0;
-    fmeshvec[0]->Solution()(1,0) = oldval1;
-    fmeshvec[0]->Solution()(2,0) = oldval2;
-		//fmeshvec[0]->Solution()(2,0) = 0.;
+    sol(0,0) = oldval0;
+    sol(1,0) = oldval1;
+    sol(2,0) = oldval2;
+		//sol(2,0) = 0.;
 	}
   
 }
@@ -522,7 +523,7 @@ TPZCompMesh * ToolsTransient::ElastCMeshReferenceProcessed()
     }
     for(int r = 0; r < rowshat; r++)
     {
-      solutions(r,oldsz+ihat) = cmesh_hat->Solution()(r,0);// - solutions(r,0);
+      solutions(r,oldsz+ihat) = ((TPZFMatrix<STATE> &)cmesh_hat->Solution())(r,0);// - solutions(r,0);
     }
     
     dirid-=2;
@@ -1821,7 +1822,7 @@ void ToolsTransient::StiffMatrixLoadVec(TPZAnalysis *an, TPZAutoPointer< TPZMatr
   
   an->Assemble();
 	
-  matK1 = an->Solver().Matrix();
+  matK1 = an->MatrixSolver<STATE>().Matrix();
   
 	fvec = an->Rhs();
   
@@ -2128,8 +2129,9 @@ bool ToolsTransient::SolveSistTransient(TPZAnalysis *an, bool initialElasticKick
     }
     
     REAL res = 0.;
+        TPZFMatrix<STATE> &sol = fmeshvec[0]->Solution();
     
-    flastElastSol = fmeshvec[0]->Solution();
+    flastElastSol = sol;
     
     flastElastSol.Print("elassolll");
     
@@ -2577,9 +2579,9 @@ void ToolsTransient::CheckConv(bool OptimizeBandwidth)
   an->LoadSolution(xIni);
   TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(fmeshvec, fmphysics);
 	{
-		fmphysics->Solution().Print(std::cout);
-		fmeshvec[0]->Solution().Print(std::cout);
-		fmeshvec[1]->Solution().Print(std::cout);
+		fmphysics->Solution().Print("mphysics",std::cout);
+		fmeshvec[0]->Solution().Print("meshvec[0]",std::cout);
+		fmeshvec[1]->Solution().Print("meshvec[1]",std::cout);
 	}
   
   TPZFMatrix<REAL> actX = xIni;

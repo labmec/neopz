@@ -18,7 +18,6 @@
 #include "pzcompel.h"
 #include "pzpoisson3d.h"
 #include "pzbndcond.h"
-#include "pzanalysiserror.h"
 #include "pzanalysis.h"
 #include "pzcmesh.h"
 #include "pzstepsolver.h"

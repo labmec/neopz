@@ -102,6 +102,10 @@ public:
 	/** @brief Prints graph */
 	void Print(TPZVec<int64_t> &grapho, TPZVec<int64_t> &graphoindex, const char *name = 0, std::ostream &out = std::cout);
 	
+    /**
+            Group the elements in sets and print the result graphically
+     */
+    void PlotElementGroups(const std::string &filename, TPZCompMesh *cmesh);
 	/**
 	 * @brief Analyzes the graph, finds the corner nodes \n
 	 * Number of elements which should be considered for determining corner nodes
