@@ -1847,7 +1847,7 @@ void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 	int64_t seqnumint;
 	//	int numinteq = NumInternalEquations();
 	int size;
-	TPZFMatrix<TVar> &currentsol = mysol;
+	TPZFMatrix<TVar> &extsol = *Mesh()->Block().Matrix<TVar>();
 	
 	for (i=0;i<fConnectVec.NElements(); i++) {
 		if (fExternalLocIndex[i] != -1) {
@@ -1860,7 +1860,7 @@ void TPZSubCompMesh::LoadSolutionInternal(TPZFMatrix<TVar> &mysol) {
 			int64_t posint = fBlock.Position(seqnumint);
 			int l;
 			for(l=0;l<size;l++) {
-				mysol(posint+l,0) = currentsol(posext+l,0);
+				mysol(posint+l,0) = extsol(posext+l,0);
 			}
 		}
 	}

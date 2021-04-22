@@ -410,8 +410,8 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
     {
         TPZCompMesh *atomic_mesh = indexes[connect].first;
         //TODOCOMPLEX
-        TPZFMatrix<STATE> &atomic_mesh_sol = atomic_mesh->Solution();
         if(!atomic_mesh) continue;
+        TPZFMatrix<STATE> &atomic_mesh_sol = atomic_mesh->Solution();
         TPZBlock &block = atomic_mesh->Block();
         int64_t atomicindexconnect = indexes[connect].second;
         TPZConnect &con = atomic_mesh->ConnectVec()[atomicindexconnect];
