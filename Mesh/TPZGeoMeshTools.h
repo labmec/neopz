@@ -29,6 +29,18 @@ namespace TPZGeoMeshTools{
      */
     TPZGeoMesh * CreateGeoMeshOnGrid(int dim, const TPZVec<REAL>& minX, const TPZVec<REAL>& maxX,
             const TPZVec<int> &matids, const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls);
+
+
+    /*! Create one-dimensional geometric mesh.
+      \param minX x-coordinate of the leftmost point
+      \param maxX x-coordinate of the rightmost point
+      \param nEls number of elements to create
+      \param matids vector containing the identifier for the materials in the mesh (volume and boundary elements)
+      \param createBoundEls whether to create boundary elements
+     */
+    TPZGeoMesh *
+    CreateGeoMesh1D(const REAL minX, const REAL maxX, const int nEls,
+                    const TPZVec<int> &matids, bool createBoundEls);
 }
 
 #endif

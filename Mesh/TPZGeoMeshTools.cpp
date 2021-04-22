@@ -39,6 +39,62 @@ void TPZGeoMeshTools::DividePyramidsIntoTetra(TPZGeoMesh *gmesh) {
 }
 
 TPZGeoMesh *
+TPZGeoMeshTools::CreateGeoMesh1D(const REAL minX, const REAL maxX, const int nEls,
+                const TPZVec<int> &matids, bool createBoundEls){
+#ifdef PZDEBUG
+    if(minX > maxX){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"Invalid values of minX and maxX\n";
+        PZError<<"minX: "<<minX<<" maxX: "<<maxX;
+        DebugStop();
+    }
+    if(nEls < 1){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"Invalid value of nEls\n";
+        PZError<<"nEls: "<<nEls;
+        DebugStop();
+    }
+#endif
+    if((createBoundEls && matids.size()!=3)||
+       (!createBoundEls && matids.size()!=1)){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"Wrong size of matids vec!\n";
+        DebugStop();
+    }
+    
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
+    const int matId{matids[0]};
+    const auto nnodes = nEls + 1;
+    const auto elSize = (maxX-minX)/nEls;
+    gmesh->NodeVec().Resize(nnodes);
+    for (auto i = 0 ; i < nnodes; i++)
+      {
+        const REAL pos = minX + i*elSize;
+        TPZManVector <REAL,3> coord= {pos,0.,0.};
+        coord[0] = pos;
+        gmesh->NodeVec()[i].SetCoord(coord);
+        gmesh->NodeVec()[i].SetNodeId(i);
+      }
+    TPZManVector <int64_t,2> nodeVec(2);
+    int64_t id;
+    for (auto iel = 0; iel < nEls; iel++)
+      {
+        nodeVec={iel,iel+1};
+        gmesh->CreateGeoElement(EOned, nodeVec, matId, id);
+        gmesh->ElementVec()[id];
+      }
+    if(createBoundEls){
+        const int bc0{matids[1]},bc1{matids[2]};
+        TPZManVector<int64_t,1> nodeVec = {0};
+        gmesh->CreateGeoElement(EPoint, nodeVec, bc0, id);
+        nodeVec = {nEls};
+        gmesh->CreateGeoElement(EPoint, nodeVec, bc1, id);
+    }
+    gmesh->BuildConnectivity();
+    return gmesh;
+}
+
+TPZGeoMesh *
 TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TPZVec<REAL> &maxX, const TPZVec<int> &matids,
                                      const TPZVec<int> nDivs, MMeshType meshType, bool createBoundEls) {
 #ifdef PZDEBUG
@@ -147,8 +203,11 @@ TPZGeoMeshTools::CreateGeoMeshOnGrid(int dim, const TPZVec<REAL> &minX, const TP
                 gmesh->BuildConnectivity();
                 return gmesh;
             }
-            default:
+            default:{
+                PZError<<__PRETTY_FUNCTION__;
+                PZError<<"Invalid dimension, returning nullptr\n";
                 return (TPZGeoMesh*)nullptr;
+            }
         }
     }();
 
