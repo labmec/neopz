@@ -35,8 +35,8 @@ TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rh
 	TPar::InitCreateAssemble();
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
-		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZFYsmpMatrix<TVar>(0,0);
+		PZError << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
+		DebugStop();
     }
     TPZMatrix<TVar> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
     TPZFYsmpMatrix<TVar> *mat = dynamic_cast<TPZFYsmpMatrix<TVar> *> (stiff);
@@ -51,6 +51,7 @@ TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rh
     }
 #endif
     this->Assemble(*stiff,rhs,guiInterface);
+    mat->ComputeDiagonal();
     before.stop();
     std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
 //    mat->ComputeDiagonal();
@@ -64,11 +65,6 @@ TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rh
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::Create(){
     int64_t neq = this->fEquationFilter.NActiveEquations();
-	/*    if(fMesh->FatherMesh()) {
-	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
-	 neq = smesh->NumInternalEquations();
-	 }*/
-    TPZFYsmpMatrix<TVar> * mat = new TPZFYsmpMatrix<TVar>(neq,neq);
 	
     /**
      *Longhin implementation
@@ -77,6 +73,16 @@ TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::Create(){
     TPZVec<int64_t> elgraphindex;
     //    int nnodes = 0;
     this->fMesh->ComputeElGraph(elgraph,elgraphindex);
+    TPZMatrix<TVar> * mat = SetupMatrixData(elgraph,elgraphindex);
+    return mat;
+}
+
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex){
+    
+    int64_t neq = this->fEquationFilter.NActiveEquations();
+    TPZFYsmpMatrix<TVar> * mat = new TPZFYsmpMatrix<TVar>(neq,neq);
+    
     /**Creates a element graph*/
     TPZRenumbering metis;
     metis.SetElementsNodes(elgraphindex.NElements() -1 ,

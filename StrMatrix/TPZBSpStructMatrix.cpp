@@ -19,26 +19,13 @@ TPZStructMatrix * TPZBSpStructMatrix<TVar,TPar>::Clone(){
     return new TPZBSpStructMatrix(*this);
 }
 
-template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZBSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-    TPar::InitCreateAssemble();
-    int64_t neq = this->fMesh->NEquations();
-    if(this->fMesh->FatherMesh()) {
-		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZFYsmpMatrix<TVar>(0,0);
-    }
-    auto *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-    rhs.Redim(neq,1);
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-    this->Assemble(*stiff,rhs, guiInterface);
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-    return stiff;
-}
-
 template<class TVar,class TPar>
 TPZMatrix<TVar> * TPZBSpStructMatrix<TVar,TPar>::Create(){
     //checked
-    
+    if(this->fMesh->FatherMesh()) {
+		PZError << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
+        DebugStop();
+    }
     int64_t neq = this->fEquationFilter.NActiveEquations();
     TPZFYsmpMatrix<TVar> * mat = new TPZFYsmpMatrix<TVar>(neq,neq);
 	

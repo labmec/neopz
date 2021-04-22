@@ -171,13 +171,12 @@ public:
 	
 	//@}
 	
-    public:
-int ClassId() const override;
+    int ClassId() const override;
 
-private:
+
 	
 	void ComputeDiagonal();
-	
+private:	
 	/*
 	 * @brief Perform row update of the sparse matrix
 	 */

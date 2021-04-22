@@ -16,16 +16,13 @@
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZBSpStructMatrix : public TPZSpStructMatrix<TVar,TPar> {
 public:    
-    TPZBSpStructMatrix(TPZCompMesh *);
-    TPZBSpStructMatrix(TPZAutoPointer<TPZCompMesh>);
+    using TPZSpStructMatrix<TVar,TPar>::TPZSpStructMatrix;
     
     int ClassId() const override;
 
     TPZMatrix<TVar> * Create() override;
 	
     TPZStructMatrix * Clone() override;
-
-    TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 };
 
 #endif //TPBSPSTRUCTMATRIX_H

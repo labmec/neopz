@@ -164,8 +164,8 @@ public :
 
     /** @} */
     
-    public:
-int ClassId() const override;
+
+    int ClassId() const override;
 
     void ComputeDiagonal();
 

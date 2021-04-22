@@ -7,8 +7,8 @@
 #define TPZSPSTRUCTMATRIX_H
 
 #include "TPZStructMatrixT.h"
-
 #include "pzstrmatrixor.h"
+#include "pzstack.h"
 /**
  * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
@@ -32,7 +32,8 @@ public:
 
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
-
+protected:
+    virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
     friend TPZPersistenceManager;
 };
 

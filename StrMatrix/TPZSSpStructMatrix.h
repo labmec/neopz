@@ -23,8 +23,6 @@ public:
     TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
     
-    virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
-    
 	virtual TPZMatrix<TVar> * CreateAssemble(TPZFMatrix<TVar> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     //@{
     //!Read and Write methods
@@ -34,6 +32,8 @@ public:
 
     void Write(TPZStream& buf, int withclassid) const override;
     //@}
+protected:
+    virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
 private :
     
     friend TPZPersistenceManager;

@@ -102,9 +102,11 @@ template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBlockDiagonalStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     TPar::InitCreateAssemble();
     int64_t neq = this->fMesh->NEquations();
-    TPZBlockDiagonal<TVar> *block = new TPZBlockDiagonal<TVar>();
+    TPZMatrix<TVar> *mat = Create();
     rhs.Redim(neq,1);
-    this->Assemble(rhs,guiInterface);
+    this->Assemble(*mat,rhs,guiInterface);
+    auto *block =
+        dynamic_cast<TPZBlockDiagonal<TVar>*>(mat);
     AssembleBlockDiagonal(*block);
     return block;
 }

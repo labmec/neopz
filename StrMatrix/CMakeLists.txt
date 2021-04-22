@@ -14,18 +14,24 @@ set(public_headers
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
     #matrix storage format
+    #full
     pzfstrmatrix.h
     pzsfstrmatrix.h
+    #band
     pzbstrmatrix.h
-    TPZSpStructMatrix.h
-    pzbdstrmatrix.h
     pzsbstrmatrix.h
-    pzskylstrmatrix.h
-    TPZSSpStructMatrix.h
+    #skyline
     TPZSkylineNSymStructMatrix.h
-    TPZBSpStructMatrix.h
-    TPZParFrontStructMatrix.h
+    pzskylstrmatrix.h
+    #sparse
+    TPZSpStructMatrix.h
+    TPZSSpStructMatrix.h
+    #front
     TPZFrontStructMatrix.h
+    TPZParFrontStructMatrix.h
+    #block
+    pzbdstrmatrix.h
+    TPZBSpStructMatrix.h
     # tpzsparseblockdiagonalstructmatrix.h # needsreview
     #other
     TPZEquationFilter.h
@@ -39,18 +45,24 @@ set(headers
     pzstrmatrixot.h
     pzstrmatrixflowtbb.h
     #matrix storage format
+    #full
     pzfstrmatrix.h
     pzsfstrmatrix.h
+    #band
     pzbstrmatrix.h
-    TPZSpStructMatrix.h
-    pzbdstrmatrix.h
     pzsbstrmatrix.h
-    pzskylstrmatrix.h
-    TPZSSpStructMatrix.h
+    #skyline
     TPZSkylineNSymStructMatrix.h
-    TPZBSpStructMatrix.h
-    TPZParFrontStructMatrix.h
+    pzskylstrmatrix.h
+    #sparse
+    TPZSpStructMatrix.h
+    TPZSSpStructMatrix.h
+    #front
     TPZFrontStructMatrix.h
+    TPZParFrontStructMatrix.h
+    #block
+    pzbdstrmatrix.h
+    TPZBSpStructMatrix.h
     tpzsparseblockdiagonalstructmatrix.h
     #other
     TPZEquationFilter.h
@@ -66,18 +78,24 @@ set(sources
     pzstrmatrixot.cpp
     pzstrmatrixflowtbb.cpp
     #matrix storage format
+    #full
     pzfstrmatrix.cpp
     pzsfstrmatrix.cpp
+    #band
     pzbstrmatrix.cpp
-    TPZSpStructMatrix.cpp
-    pzbdstrmatrix.cpp
     pzsbstrmatrix.cpp
-    pzskylstrmatrix.cpp
-    TPZSSpStructMatrix.cpp
+    #skyline
     TPZSkylineNSymStructMatrix.cpp
-    TPZBSpStructMatrix.cpp
-    TPZParFrontStructMatrix.cpp
+    pzskylstrmatrix.cpp
+    #sparse
+    TPZSpStructMatrix.cpp
+    TPZSSpStructMatrix.cpp
+    #front
     TPZFrontStructMatrix.cpp
+    TPZParFrontStructMatrix.cpp
+    #block
+    pzbdstrmatrix.cpp
+    TPZBSpStructMatrix.cpp
     tpzsparseblockdiagonalstructmatrix.cpp
     #other
     TPZEquationFilter.cpp
