@@ -101,14 +101,14 @@ public:
 	 */
 	int ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension);
 	
-	
-protected:
+   
 
 	void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose);
 
     void AssembleTBB(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
+
+protected:
 	TPZAutoPointer<TPZDohrAssembly<TVar> > fDohrAssembly;
 	
 	TPZAutoPointer<TPZBaseMatrix > fDohrPrecond;

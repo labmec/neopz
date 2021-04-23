@@ -47,6 +47,14 @@ protected:
 
 public:
     using TPZStructMatrixT<TVar>::TPZStructMatrixT;
+
+    /// Set the decomposition type
+    virtual void SetDecomposeType(DecomposeType dectype)
+    {
+        fDecomposeType = dectype;
+    }
+    
+    
 	/** @brief Returns a pointer to TPZBaseMatrix */
 	TPZMatrix<TVar> * Create() override;
 	
