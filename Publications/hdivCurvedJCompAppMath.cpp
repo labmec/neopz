@@ -7,6 +7,7 @@
 //
 
 #include "hdivCurvedJCompAppMath.h"
+#include "TPZFrontSym.h"
 
 const int  norder = 6;
 

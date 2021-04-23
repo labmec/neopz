@@ -82,7 +82,6 @@ int main() {
     TPZFMatrix<STATE> &sol = cmesh->Solution();
     int nrows = cmesh->Solution().Rows();
     int cols = cmesh->Solution().Cols();
-    TPZFMatrix<STATE> &sol = cmesh->Solution();
     if(counter==1) {
         for(int i=0;i<nrows;i++) {
             for(int j=0;j<cols;j++) {

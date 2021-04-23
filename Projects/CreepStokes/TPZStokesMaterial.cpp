@@ -2206,8 +2206,6 @@ void TPZStokesMaterial::FillVecShapeIndex(TPZMaterialData &data)
 
 void TPZStokesMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors)
 {
-
-    
     TPZVec<STATE> u_exact(1);
     TPZFMatrix<STATE> du_exact(3,1);
     fExactSol->Execute(data[0].x, u_exact, du_exact);

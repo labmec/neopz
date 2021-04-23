@@ -7,7 +7,7 @@
 //
 
 #include "hdiv3dpaper201504.h"
-
+#include "TPZFrontSym.h"
 
 Hdiv3dPaper201504::Hdiv3dPaper201504()
 {
@@ -1755,7 +1755,7 @@ void Hdiv3dPaper201504::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
         }
         else
         {
-            TPZBandStructMatrix full(fCmesh);
+            TPZBandStructMatrix<STATE> full(fCmesh);
             an.SetStructuralMatrix(full);
             TPZStepSolver<STATE> step;
             step.SetDirect(ELU);

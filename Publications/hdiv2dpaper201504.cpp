@@ -1197,7 +1197,7 @@ void Hdiv2dPaper201504::ChangeExternalOrderConnects(TPZCompMesh *mesh){
     mesh->CleanUpUnconnectedNodes();
 }
 
-
+#include "TPZFrontSym.h"
 
 void Hdiv2dPaper201504::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {

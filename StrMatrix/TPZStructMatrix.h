@@ -8,12 +8,11 @@
 
 #include "TPZStrMatParInterface.h"
 #include "tpzautopointer.h"
-
+#include "TPZGuiInterface.h"//avoiding warnings in external projects
 #include <set>
 
 //forward declarations
 class TPZCompMesh;
-class TPZGuiInterface;
 class TPZBaseMatrix;
 
 /*!

@@ -18,7 +18,6 @@
 #include "pzcompel.h"
 #include "pzpoisson3d.h"
 #include "pzbndcond.h"
-#include "pzanalysis.h"
 #include "pzcmesh.h"
 #include "pzstepsolver.h"
 #include "TPZParFrontStructMatrix.h"
