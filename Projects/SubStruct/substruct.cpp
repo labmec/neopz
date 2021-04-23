@@ -378,12 +378,12 @@ int main3(int argc, char *argv[])
 
         TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
-        TPZAutoPointer<TPZDohrStructMatrix> dohrstruct = new TPZDohrStructMatrix(cmesh.operator ->());
+        TPZAutoPointer<TPZDohrStructMatrix<STATE>> dohrstruct = new TPZDohrStructMatrix(cmesh.operator ->());
         {
             TPZPersistenceManager::OpenRead("CheckPoint1.txt");
             gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
             cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
-            dohrstruct = dynamic_cast<TPZDohrStructMatrix *>(TPZPersistenceManager::ReadFromFile());
+            dohrstruct = dynamic_cast<TPZDohrStructMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             TPZPersistenceManager::CloseRead();
         }
         {
@@ -417,7 +417,7 @@ int main3(int argc, char *argv[])
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
             TPZMatrix<STATE> *mat = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             delete mat;
-            TPZDohrStructMatrix *locdohrstruct = dynamic_cast<TPZDohrStructMatrix*>(TPZPersistenceManager::ReadFromFile());
+            TPZDohrStructMatrix<STATE> *locdohrstruct = dynamic_cast<TPZDohrStructMatrix<STATE>*>(TPZPersistenceManager::ReadFromFile());
             locdohrstruct->SetMesh(loccmeshauto);
             delete gmesh;
         }
@@ -573,7 +573,7 @@ int main4(int argc, char *argv[])
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix *dohrstruct;
+        TPZDohrStructMatrix<STATE> *dohrstruct;
         
         dim = cmesh->Dimension();
         
@@ -587,7 +587,7 @@ int main4(int argc, char *argv[])
             gmesh = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::ReadFromFile());
             cmesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::ReadFromFile());
             matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
-            dohrstruct = dynamic_cast<TPZDohrStructMatrix *>(TPZPersistenceManager::ReadFromFile());
+            dohrstruct = dynamic_cast<TPZDohrStructMatrix<STATE> *>(TPZPersistenceManager::ReadFromFile());
             dohrstruct->SetMesh(cmesh);
             dohrstruct->SetNumThreads(numthreads);
 

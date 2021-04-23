@@ -152,7 +152,7 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh){
     TPZAnalysis * analysis = new TPZAnalysis(cmesh, true);
     if (UsePardisoQ) {
         
-        TPZSSpStructMatrix matrix(cmesh);
+        TPZSSpStructMatrix<STATE> matrix(cmesh);
         matrix.SetNumThreads(n_threads);
         analysis->SetStructuralMatrix(matrix);
         TPZStepSolver<STATE> step;

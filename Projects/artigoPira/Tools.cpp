@@ -1151,7 +1151,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numThreads)
 {
     if(numThreads==0){
         
-        TPZSkylineStructMatrix strmat(fCmesh); //caso simetrico
+        TPZSkylineStructMatrix<STATE> strmat(fCmesh); //caso simetrico
         an.SetStructuralMatrix(strmat);
         
     }else

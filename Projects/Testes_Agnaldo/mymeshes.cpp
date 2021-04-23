@@ -1051,7 +1051,7 @@ TPZCompMesh *DadosMalhas::MalhaCompBarryMercerPressureSolution(TPZGeoMesh * gmes
 
 void DadosMalhas::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
-	TPZBandStructMatrix full(fCmesh);
+	TPZBandStructMatrix<STATE> full(fCmesh);
 	//TPZSkylineStructMatrix<STATE> full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
@@ -1066,7 +1066,7 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * 
     mymaterial->SetLastState();
     //TPZSkylineStructMatrix<STATE> matsp(mphysics);
     //TPZSkylineNSymStructMatrix matsp(mphysics);
-	TPZSpStructMatrix matsp(mphysics);
+	TPZSpStructMatrix<STATE> matsp(mphysics);
     matsp.SetNumThreads(nthreads);
     
 	std::set< int > materialid;
@@ -1096,7 +1096,7 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics
     mat22->SetLastState();
     
     //TPZSkylineStructMatrix<STATE> matsp(mphysics);
-	TPZSpStructMatrix matsp(mphysics);
+	TPZSpStructMatrix<STATE> matsp(mphysics);
     matsp.SetNumThreads(nthreads);
 	std::set< int > materialid;
 	materialid.insert(fmatId);

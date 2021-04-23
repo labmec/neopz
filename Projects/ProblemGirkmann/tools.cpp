@@ -689,7 +689,7 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	
 	TPZStepSolver<STATE> step;
 	if(sim==1){
-		TPZBandStructMatrix full(fCmesh);
+		TPZBandStructMatrix<STATE> full(fCmesh);
 		an.SetStructuralMatrix(full);
 		step.SetDirect(ELU);
 	} //caso nao simetrico

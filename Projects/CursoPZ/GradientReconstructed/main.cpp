@@ -538,7 +538,7 @@ void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 #include "pzbstrmatrix.h"
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {			
-	TPZBandStructMatrix full(Cmesh); //caso nao-simetrico
+	TPZBandStructMatrix<STATE> full(Cmesh); //caso nao-simetrico
 	//TPZSkylineStructMatrix full(Cmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;

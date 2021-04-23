@@ -1774,7 +1774,7 @@ TPZAutoPointer <TPZMatrix<STATE> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec
 {
 	
 	
-	TPZSpStructMatrix matsp(mphysics);
+	TPZSpStructMatrix<STATE> matsp(mphysics);
 //	TPZSkylineStructMatrix matsp(mphysics);
 	std::set< int > materialid;
 	

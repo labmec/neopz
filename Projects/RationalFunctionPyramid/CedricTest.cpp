@@ -327,7 +327,7 @@ void TCedricTest::Run(int nsubdivisions,int geocase,int POrder,int MaterialId,st
     TPZManVector<REAL> errvec;
     
 //    TPZSkylineStructMatrix skylstr(cmesh);
-    TPZParFrontStructMatrix<TPZFrontSym<STATE> > skylstr(cmesh);
+    TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE > skylstr(cmesh);
     skylstr.SetNumThreads(8);
     analysis.SetStructuralMatrix(skylstr);
     TPZStepSolver<STATE> step;

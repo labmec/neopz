@@ -607,7 +607,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix
         an.SetSolver(direct);
     }
     else{
-        TPZBandStructMatrix bdmat(fCmesh);
+        TPZBandStructMatrix<STATE> bdmat(fCmesh);
         an.SetStructuralMatrix(bdmat);
         TPZStepSolver<STATE> direct;
         direct.SetDirect(ELU);

@@ -786,7 +786,7 @@ void TPZPlaneFractureKernel::MassMatrix(TPZFMatrix<STATE> & massMat)
     
     this->fPlaneFractureMesh->SetPastState();
     
-    TPZSpStructMatrix structMat(this->fmphysics);
+    TPZSpStructMatrix<STATE> structMat(this->fmphysics);
     TPZAutoPointer<TPZGuiInterface> guiInterface;
     structMat.CreateAssemble(massMat,guiInterface);
 }

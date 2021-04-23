@@ -242,7 +242,7 @@ int mainHybrid()
             nNzeros = matsky.GetNelemts();
             
             //MKL Pardiso
-            TPZSSpStructMatrix strmat(cmesh);
+            TPZSSpStructMatrix<STATE> strmat(cmesh);
             int nthreads = 12;
             strmat.SetNumThreads(nthreads);
             analysis.SetStructuralMatrix(strmat);
@@ -396,7 +396,7 @@ int mainH1()
             nNzeros = matsky.GetNelemts();
             
             //MKL Partdiso
-            TPZSSpStructMatrix strmat(cmesh);
+            TPZSSpStructMatrix<STATE> strmat(cmesh);
             int nthreads = 12;
             strmat.SetNumThreads(nthreads);
             analysis.SetStructuralMatrix(strmat);
@@ -546,7 +546,7 @@ int mainMixed()
             nNzeros = matsky.GetNelemts();
             
             //MKL Partdiso
-            TPZSSpStructMatrix strmat(mphysics);
+            TPZSSpStructMatrix<STATE> strmat(mphysics);
             int nthreads = 12;
             strmat.SetNumThreads(nthreads);
             analysis.SetStructuralMatrix(strmat);
