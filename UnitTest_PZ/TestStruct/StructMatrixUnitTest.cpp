@@ -78,9 +78,9 @@ TEMPLATE_TEST_CASE("Assemble known matrix",
     }
   }
   SECTION("Testing Sparse matrices"){
-    // SECTION("Non-Symmetric"){
-    //   structTest::CheckStiffnessMatrices<TPZSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
-    // }
+    SECTION("Non-Symmetric"){
+      structTest::CheckStiffnessMatrices<TPZSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
+    }
     SECTION("Symmetric"){
       structTest::CheckStiffnessMatrices<TPZSSpStructMatrix<STATE, TestType>>(cMesh, nThreads);
     }

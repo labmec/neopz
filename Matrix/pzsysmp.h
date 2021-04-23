@@ -78,7 +78,10 @@ public :
 	
 	/** @brief Sets data to the class */
 	virtual void SetData(const TPZVec<int64_t> &IA,const TPZVec<int64_t> &JA, const TPZVec<TVar> &A );
+
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex) override;
 	
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex) override;
     /// Access function for the coefficients
     TPZVec<TVar> &A()
     {

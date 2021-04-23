@@ -207,7 +207,7 @@ void TPZFYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & so
 			jpos=destinationindex[j];
 			value=elmat.GetVal(sourceindex[i],sourceindex[j]);
             //cout << "j= " << j << endl;
-			if(IsZero(value)){
+			if(!IsZero(value)){
                 //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
 				int flag = 0;
 				k++;
