@@ -134,7 +134,7 @@ namespace structTest{
                               const int nThreads)
   {
 
-    auto mat = [cMesh,nThreads](){
+    TPZAutoPointer<TPZMatrix<STATE>> mat = [cMesh,nThreads](){
       constexpr bool optimizeBandwidth{false};
       TPZAnalysis an(cMesh, optimizeBandwidth);
       TSTMAT matskl(cMesh);
@@ -143,9 +143,9 @@ namespace structTest{
       an.Assemble();
       return an.MatrixSolver<STATE>().Matrix();
     }();
-
     const int nEq = cMesh->NElements() + 1;
-    // mat->Print(std::cout);
+    
+    mat->Print(std::cout);
     REQUIRE(mat->GetVal(0,0) == 2.0_a);
     REQUIRE(mat->GetVal(nEq-1,nEq-1) == 2.0_a);
     REQUIRE(mat->GetVal(0,1) == 1.0_a);

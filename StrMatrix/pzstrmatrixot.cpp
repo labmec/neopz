@@ -389,7 +389,6 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
         
         assemble.stop();
     }//fim for iel
-    if(count > 20) std::cout << std::endl;
     
 #ifdef PZ_LOG
     if(loggerCheck.isDebugEnabled())
