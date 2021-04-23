@@ -20,50 +20,20 @@ template<class TVar, class TPar>
 TPZStructMatrix * TPZSSpStructMatrix<TVar,TPar>::Clone(){
     return new TPZSSpStructMatrix(*this);
 }
+
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,
-                                              TPZAutoPointer<TPZGuiInterface> guiInterface){
-	
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble starting");
-    }
-#endif
-	TPar::InitCreateAssemble();
+void TPZSSpStructMatrix<TVar,TPar>::EndCreateAssemble(TPZBaseMatrix *mat){
+    auto spMat = dynamic_cast<TPZSYsmpMatrix<TVar> *>(mat);
+    spMat->ComputeDiagonal();
+}
+
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::Create(){
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
 		cout << "TPZSSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZSYsmpMatrix<TVar>(0,0);
+        DebugStop();
     }
-//    std::cout << "Creating\n";
-    TPZMatrix<TVar> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-    TPZSYsmpMatrix<TVar> *mat = dynamic_cast<TPZSYsmpMatrix<TVar> *> (stiff);
-    rhs.Redim(neq,1);
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-    TPZTimer before("Assembly of a sparse matrix");
-//    std::cout << "Assembling\n";
-    before.start();
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble calling Assemble()");
-#endif
-	this->Assemble(*stiff,rhs,guiInterface);
-    mat->ComputeDiagonal();
-    
-//    std::cout << "Rhs norm " << Norm(rhs) << std::endl;
-    
-    before.stop();
-    //std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
-    //    mat->ComputeDiagonal();
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSSpStructMatrix::CreateAssemble exiting");
-#endif
-    return stiff;
-}
-template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::Create(){
-
     /**
      *Longhin implementation
      */
@@ -71,6 +41,7 @@ TPZMatrix<TVar> * TPZSSpStructMatrix<TVar,TPar>::Create(){
     TPZVec<int64_t> elgraphindex;
     //    int nnodes = 0;
     this->fMesh->ComputeElGraph(elgraph,elgraphindex);
+    
     TPZMatrix<TVar> * mat = SetupMatrixData(elgraph, elgraphindex);
     return mat;
 }

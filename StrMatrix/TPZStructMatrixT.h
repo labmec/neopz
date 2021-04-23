@@ -54,13 +54,10 @@ public:
     /* 
      * The following are optional methods
      * that can be implemented if needed:
-     * //! Creates solver matrix and assembles it alongside rhs
-     * TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &,
-     *                 TPZAutoPointer<TPZGuiInterface>);
-     *
      * //! Operations to be performed at the beginning of CreateAssemble
      * void InitCreateAssemble() override;
-     *
+     * //! Operations to be performed at the end of CreateAssemble
+     * void EndCreateAssemble(TPZBaseMatrix&) override;
      */
     
     //@}

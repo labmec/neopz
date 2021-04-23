@@ -13,7 +13,7 @@ TPZBaseMatrix *TPZStrMatParInterface::CreateAssemble(
     const int64_t cols = MAX(1, rhs.Cols());
     rhs.Redim(myself->EquationFilter().NEqExpand(), cols);
     Assemble(*stiff, rhs, guiInterface);
-
+    this->EndCreateAssemble(stiff);
 #ifdef PZ_LOG2
     if (loggerel.isDebugEnabled()) {
         std::stringstream sout;

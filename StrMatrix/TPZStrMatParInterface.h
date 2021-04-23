@@ -46,14 +46,18 @@ public:
     virtual void Assemble(TPZBaseMatrix &rhs,
                           TPZAutoPointer<TPZGuiInterface> guiInterface) = 0;    
 
-    //! Creates solver matrix and assembles it alongside global rhs.
+    //! Operations to be performed at the beginning of CreateAssemble
+    virtual void InitCreateAssemble(){}
+    //! Operations to be performed at the end of CreateAssemble
+    virtual void EndCreateAssemble(TPZBaseMatrix *stiff){}
+
+    /*! Creates solver matrix and assembles it alongside global rhs.
+     Avoid overriding it unless there are no other options*/
     virtual TPZBaseMatrix *
     CreateAssemble(TPZBaseMatrix &rhs,
                    TPZAutoPointer<TPZGuiInterface> guiInterface);
-    //!Operations to be performed at the beginning of CreateAssemble
-    virtual void InitCreateAssemble(){}
-
     //@}
+
     //! Set number of threads to be used in the assembly.
     inline void SetNumThreads(int n) {
         this->fNumThreads = n;

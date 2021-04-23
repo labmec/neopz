@@ -28,8 +28,8 @@ public:
     TPZMatrix<TVar> * Create() override;
     
     TPZStructMatrix * Clone() override;
-    
-    TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
+
+    void EndCreateAssemble(TPZBaseMatrix*) override;
     
     
 

@@ -21,9 +21,6 @@ public:
     TPZMatrix<TVar> * Create() override;
 	TPZStructMatrix * Clone() override;
 
-    virtual TPZMatrix<TVar> * CreateAssemble(TPZFMatrix<TVar> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-
-
 	//@{
     //!Read and Write methods
     int ClassId() const override;

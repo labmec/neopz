@@ -14,16 +14,6 @@ TPZStructMatrix * TPZBandStructMatrix<TVar,TPar>::Clone(){
 }
 
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZBandStructMatrix<TVar,TPar>::CreateAssemble(TPZFMatrix<TVar> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-    TPar::InitCreateAssemble();
-	TPZMatrix<TVar> *stiff = Create();
-	int64_t neq = stiff->Rows();
-	rhs.Redim(neq,1);
-	this->Assemble(*stiff,rhs,guiInterface);
-	return stiff;
-}
-
-template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBandStructMatrix<TVar,TPar>::Create(){
     if (this->fEquationFilter.IsActive()) {
         DebugStop();

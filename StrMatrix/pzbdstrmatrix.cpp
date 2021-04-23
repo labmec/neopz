@@ -98,18 +98,14 @@ template<class TVar, class TPar>
 TPZStructMatrix * TPZBlockDiagonalStructMatrix<TVar,TPar>::Clone(){
     return new TPZBlockDiagonalStructMatrix(*this);
 }
+
 template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZBlockDiagonalStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-    TPar::InitCreateAssemble();
-    int64_t neq = this->fMesh->NEquations();
-    TPZMatrix<TVar> *mat = Create();
-    rhs.Redim(neq,1);
-    this->Assemble(*mat,rhs,guiInterface);
+void TPZBlockDiagonalStructMatrix<TVar,TPar>::EndCreateAssemble(TPZBaseMatrix *mat){
     auto *block =
         dynamic_cast<TPZBlockDiagonal<TVar>*>(mat);
     AssembleBlockDiagonal(*block);
-    return block;
 }
+
 template<class TVar, class TPar>
 TPZMatrix<TVar> * TPZBlockDiagonalStructMatrix<TVar,TPar>::Create(){
     TPZVec<int> blocksize;

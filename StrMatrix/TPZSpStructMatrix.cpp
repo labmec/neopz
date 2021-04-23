@@ -22,49 +22,20 @@ template<class TVar, class TPar>
 TPZStructMatrix * TPZSpStructMatrix<TVar,TPar>::Clone(){
     return new TPZSpStructMatrix(*this);
 }
-template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::CreateAssemble(TPZBaseMatrix &rhs,
-                                              TPZAutoPointer<TPZGuiInterface> guiInterface){
 
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble starting")
-    }
-#endif
-	TPar::InitCreateAssemble();
+template<class TVar, class TPar>
+void TPZSpStructMatrix<TVar,TPar>::EndCreateAssemble(TPZBaseMatrix * mat){
+    auto spMat = dynamic_cast<TPZFYsmpMatrix<TVar> *>(mat);
+    spMat->ComputeDiagonal();
+}
+
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::Create(){
     int64_t neq = this->fMesh->NEquations();
     if(this->fMesh->FatherMesh()) {
 		PZError << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
 		DebugStop();
     }
-    TPZMatrix<TVar> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-    TPZFYsmpMatrix<TVar> *mat = dynamic_cast<TPZFYsmpMatrix<TVar> *> (stiff);
-    rhs.Redim(neq,1);
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-    TPZTimer before("Assembly of a sparse matrix");
-    before.start();
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble calling Assemble()");
-    }
-#endif
-    this->Assemble(*stiff,rhs,guiInterface);
-    mat->ComputeDiagonal();
-    before.stop();
-    // std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
-    
-    //    mat->ComputeDiagonal();
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble exiting");
-#endif
-    return stiff;
-}
-template<class TVar, class TPar>
-TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::Create(){
-    int64_t neq = this->fEquationFilter.NActiveEquations();
 	
     /**
      *Longhin implementation
