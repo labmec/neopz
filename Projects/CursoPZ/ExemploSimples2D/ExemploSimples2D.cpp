@@ -15,8 +15,9 @@
 #include "pzbndcond.h"
 #include "TPZMatExSimples2D.h"
 #include "TPZParFrontStructMatrix.h"
+#include "pzsubcmesh.h"
 #include "pzstepsolver.h"
-
+#include "TPZFrontSym.h"
 //------------------PROBLEMA MODELO------------------------
 
 /**

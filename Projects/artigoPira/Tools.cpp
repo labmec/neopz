@@ -47,6 +47,7 @@
 #include "tpzgeoelmapped.h"
 
 #include "TPZParFrontStructMatrix.h"
+#include "TPZFrontSym.h"
 #include "TPZIntQuadQuarterPoint.h"
 #include "tpzintpoints.h"
 #include "pzquad.h"

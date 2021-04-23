@@ -17,7 +17,7 @@
 #include "pzl2projection.h"
 #include "pzelasmat.h"
 #include "TPZSkylineNSymStructMatrix.h"
-
+#include "pzelmat.h"
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzmultiphysicselement.h"

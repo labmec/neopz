@@ -26,7 +26,7 @@
 
 #include "pzelementgroup.h"
 #include "pzcondensedcompel.h"
-
+#include "TPZFrontSym.h"
 #include <stdio.h>
 
 #include "pzlog.h"
