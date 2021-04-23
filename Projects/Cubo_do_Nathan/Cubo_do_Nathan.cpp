@@ -298,7 +298,7 @@ int main()
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
 	
-	TPZSkylineStructMatrix skylstruct(cmesh);
+	TPZSkylineStructMatrix<STATE> skylstruct(cmesh);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
@@ -365,7 +365,7 @@ int main()
 	varName[1] = "PrincipalStrain";
 	varName[2] = "ViscoStressX";
 	postan.SetPostProcessVariables(matids, varName);
-	TPZFStructMatrix bobo(postan.Mesh());
+	TPZFStructMatrix<STATE> bobo(postan.Mesh());
 	postan.SetStructuralMatrix(bobo);
  	postan.TransferSolution();
 	std::string postplot("discont.vtk");
@@ -742,7 +742,7 @@ void Teste()
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
 	
-	TPZSkylineStructMatrix skylstruct(cmesh);
+	TPZSkylineStructMatrix<STATE> skylstruct(cmesh);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
@@ -759,7 +759,7 @@ void Teste()
 	cmesh2->SetAllCreateFunctionsContinuousWithMem();//dimension);
 	cmesh2->AutoBuild();
 	
-	TPZSkylineStructMatrix skylstruct2(cmesh2);
+	TPZSkylineStructMatrix<STATE> skylstruct2(cmesh2);
 	TPZStepSolver<STATE> step2;
 	step2.SetDirect(ECholesky);
 	TPZAnalysis an2(cmesh2);

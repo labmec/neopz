@@ -144,7 +144,7 @@ void CoupledTest::Run(int Space, int pOrder, int nx, int ny, double hx, double h
     
     bool optimizeBandwidth = false; //Impede a renumeração das equacoes do problema (para obter o mesmo resultado do Oden)
     TPZAnalysis an(cmesh_m, optimizeBandwidth); //Cria objeto de análise que gerenciará a analise do problema
-    TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico ***
+    TPZFStructMatrix<STATE> matskl(cmesh_m); //caso nao simetrico ***
     //TPZSkylineNSymStructMatrix matskl(cmesh_m); //caso nao simetrico ***
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);

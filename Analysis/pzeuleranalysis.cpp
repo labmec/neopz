@@ -624,7 +624,7 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 	
 	
 	TPZSpStructMatrix<STATE> StrMatrix(Mesh());
-	//TPZFStructMatrix StrMatrix(cmesh);
+	//TPZFStructMatrix<STATE> StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
 	auto * mat = StrMatrix.Create();
@@ -664,7 +664,7 @@ void TPZEulerAnalysis::SetFrontalSolver()
 void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
 {
 	TPZSpStructMatrix<STATE> StrMatrix(Mesh());
-	//TPZFStructMatrix StrMatrix(cmesh);
+	//TPZFStructMatrix<STATE> StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
 	auto * mat = StrMatrix.Create();

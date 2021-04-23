@@ -60,7 +60,7 @@ int main() {
 	// Solving linear equations
 	// Initial steps
 	TPZAnalysis an (cmesh);
-	TPZSkylineStructMatrix strskyl(cmesh);
+	TPZSkylineStructMatrix<STATE> strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
 	// Solver (is your choose) 
 	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;

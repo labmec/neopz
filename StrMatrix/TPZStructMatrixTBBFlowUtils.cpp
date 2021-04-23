@@ -1,7 +1,9 @@
 #include "TPZStructMatrixTBBFlowUtils.h"
 #include "pzstrmatrixflowtbb.h"
+#include "TPZStructMatrix.h"
 #include "pzcmesh.h"
 #include "TPZTimer.h"
+#include "pzelmat.h"
 #include "pzlog.h"
 
 #ifdef USING_TBB
@@ -73,11 +75,12 @@ static void RemoveEl(int el,TPZCompMesh *cmesh,TPZVec<int> &elContribute,int elS
     }
 }
 
-void TPZFlowGraph::ElementColoring()
+template<class TVar>
+void TPZFlowGraph<TVar>::ElementColoring()
 {
     
-    const int nnodes = cmesh->NConnects();
-    const int nel = cmesh->ElementVec().NElements();
+    const int nnodes = fMesh->NConnects();
+    const int nel = fMesh->ElementVec().NElements();
     
     TPZManVector<int> elContribute(nnodes,-1), passIndex(nel,-1);
     felSequenceColor.Resize(nel);
@@ -95,7 +98,7 @@ void TPZFlowGraph::ElementColoring()
         
         if(felSequenceColorInv[elindex] == -1)
         {
-            TPZCompEl *cel = cmesh->ElementVec()[elindex];
+            TPZCompEl *cel = fMesh->ElementVec()[elindex];
             
             
             if(!cel) continue;
@@ -118,7 +121,7 @@ void TPZFlowGraph::ElementColoring()
                     const int el = WhoBlockedMe(connectlist,elContribute, felSequenceColorInv);
                     if (fnextBlocked[el] == -1) fnextBlocked[el] = nelProcessed;
                     int locindex = felSequenceColor[el];
-                    RemoveEl(locindex,cmesh,elContribute,locindex);
+                    RemoveEl(locindex,fMesh,elContribute,locindex);
                     //          std::cout << "elcontribute " << elContribute << std::endl;
                 }
                 passIndex[elindex] = currentPassIndex;
@@ -155,15 +158,28 @@ void TPZFlowGraph::ElementColoring()
 #endif
 }
 
-TPZFlowGraph::TPZFlowGraph(TPZStructMatrixTBBFlow *strmat)
-: cmesh(strmat->Mesh()), fStartNode(fGraph), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0)
+template<class TVar>
+TPZFlowGraph<TVar>::TPZFlowGraph(TPZStructMatrixTBBFlow<TVar> *strmat)
+: fStartNode(fGraph), fStruct(strmat), fGlobMatrix(0), fGlobRhs(0)
 {
+//    if(
+//        !dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
+//        !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)
+//       ){
+//        PZError<<__PRETTY_FUNCTION__;
+//        PZError<<" Incompatible type. Aborting...\n";
+//        DebugStop();
+//    }
+    auto *myself = dynamic_cast<TPZStructMatrix*>(strmat);
+    fMesh = myself->Mesh();
+
     this->OrderElements();
     this->ElementColoring();
     this->CreateGraph();
 }
 
-TPZFlowGraph::~TPZFlowGraph()
+template<class TVar>
+TPZFlowGraph<TVar>::~TPZFlowGraph()
 {
     for (int k = 0; k < fNodes.size(); ++k) {
         delete fNodes[k];
@@ -171,19 +187,30 @@ TPZFlowGraph::~TPZFlowGraph()
     
 }
 
-void TPZFlowGraph::ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix)
+template<class TVar>
+void TPZFlowGraph<TVar>::ExecuteGraph(TPZBaseMatrix *rhs, TPZBaseMatrix *matrix)
 {
     
-    this->fGlobMatrix = matrix;
-    this->fGlobRhs = rhs;
+    this->fGlobMatrix = dynamic_cast<TPZMatrix<TVar>*>(matrix);
+    this->fGlobRhs = dynamic_cast<TPZFMatrix<TVar>*>(rhs);
+    if(!fGlobMatrix || !fGlobRhs)
+    {
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" Incompatible type. Aborting...\n";
+        DebugStop();
+    }
     this->fStartNode.try_put(tbb::flow::continue_msg());
     this->fGraph.wait_for_all();
     
 }
 
-TPZFlowGraph::TPZFlowGraph(TPZFlowGraph const &copy)
-: cmesh(copy.fStruct->Mesh()), fStartNode(fGraph), fStruct(copy.fStruct), fGlobMatrix(0), fGlobRhs(0)
+template<class TVar>
+TPZFlowGraph<TVar>::TPZFlowGraph(const TPZFlowGraph<TVar> &copy)
+: fStartNode(fGraph), fStruct(copy.fStruct), fGlobMatrix(0), fGlobRhs(0)
 {
+    auto *myself = dynamic_cast<TPZStructMatrix*>(fStruct);
+    fMesh = myself->Mesh();
+
     this->fnextBlocked = copy.fnextBlocked;
     this->felSequenceColor = copy.felSequenceColor;
     this->felSequenceColorInv = copy.felSequenceColorInv;
@@ -191,9 +218,11 @@ TPZFlowGraph::TPZFlowGraph(TPZFlowGraph const &copy)
     this->CreateGraph();
 }
 
-void TPZFlowNode::operator()(tbb::flow::continue_msg) const
+template<class TVar>
+void TPZFlowNode<TVar>::operator()(tbb::flow::continue_msg) const
 {
-    TPZCompMesh *cmesh = myGraph->fStruct->Mesh();
+    auto *mystruct = dynamic_cast<TPZStructMatrix*>(myGraph->fStruct);
+    TPZCompMesh *cmesh = mystruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = myGraph->fGuiInterface;
     TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
     TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
@@ -228,10 +257,10 @@ void TPZFlowNode::operator()(tbb::flow::continue_msg) const
             
             if (myGraph->fGlobMatrix) {
                 ek.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+                mystruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
             } else {
                 ef.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                mystruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
             }
             
         } else {
@@ -240,11 +269,11 @@ void TPZFlowNode::operator()(tbb::flow::continue_msg) const
                 ek.ApplyConstraints();
                 ef.ApplyConstraints();
                 ek.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
+                mystruct->FilterEquations(ek.fSourceIndex,ek.fDestinationIndex);
             } else {
                 ef.ApplyConstraints();
                 ef.ComputeDestinationIndices();
-                myGraph->fStruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
+                mystruct->FilterEquations(ef.fSourceIndex,ef.fDestinationIndex);
             }
             
         }
@@ -281,10 +310,11 @@ void TPZFlowNode::operator()(tbb::flow::continue_msg) const
     
 }
 
-void TPZFlowGraph::CreateGraph()
+template<class TVar>
+void TPZFlowGraph<TVar>::CreateGraph()
 {
-    int64_t nelem = cmesh->NElements();
-    int64_t nconnects = cmesh->NConnects();
+    int64_t nelem = fMesh->NElements();
+    int64_t nconnects = fMesh->NConnects();
     int64_t numberOfElements=felSequenceColor.NElements();
     
     // each graphnode represents an element that can be computed and assembled
@@ -296,7 +326,7 @@ void TPZFlowGraph::CreateGraph()
     
     for (int64_t graphindex = 0; graphindex<numberOfElements; graphindex++) {
         int64_t el = felSequenceColor[graphindex];
-        TPZCompEl *cel = cmesh->Element(el);
+        TPZCompEl *cel = fMesh->Element(el);
         if (!cel) {
             continue;
         }
@@ -342,17 +372,18 @@ void TPZFlowGraph::CreateGraph()
     
 }
 
-void TPZFlowGraph::OrderElements()
+template<class TVar>
+void TPZFlowGraph<TVar>::OrderElements()
 {
     int numelconnected = 0;
-    int nconnect = cmesh->ConnectVec().NElements();
+    int nconnect = fMesh->ConnectVec().NElements();
     int ic;
     //firstelconnect contains the first element index in the elconnect vector
     TPZVec<int> firstelconnect(nconnect+1);
     firstelconnect[0] = 0;
     for(ic=0; ic<nconnect; ic++) {
-        numelconnected += cmesh->ConnectVec()[ic].NElConnected();
-        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
+        numelconnected += fMesh->ConnectVec()[ic].NElConnected();
+        firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
     }
     //cout << "numelconnected " << numelconnected << endl;
     //cout << "firstelconnect ";
@@ -360,8 +391,8 @@ void TPZFlowGraph::OrderElements()
     TPZVec<int> elconnect(numelconnected,-1);
     int el;
     TPZCompEl *cel;
-    for(el=0; el<cmesh->ElementVec().NElements(); el++) {
-        cel = cmesh->ElementVec()[el];
+    for(el=0; el<fMesh->ElementVec().NElements(); el++) {
+        cel = fMesh->ElementVec()[el];
         if(!cel) continue;
         TPZStack<int64_t> connectlist;
         cel->BuildConnectList(connectlist);
@@ -376,7 +407,7 @@ void TPZFlowGraph::OrderElements()
     //  for(ic=0; ic<numelconnected; ic++) cout << elconnect[ic] << endl;
     firstelconnect[0] = 0;
     for(ic=0; ic<nconnect; ic++) {
-        firstelconnect[ic+1] = firstelconnect[ic]+cmesh->ConnectVec()[ic].NElConnected();
+        firstelconnect[ic+1] = firstelconnect[ic]+fMesh->ConnectVec()[ic].NElConnected();
     }
     //cout << "elconnect\n";
     //  int no;
@@ -386,12 +417,12 @@ void TPZFlowGraph::OrderElements()
     //cout << endl;
     //  }
     
-    fElementOrder.Resize(cmesh->ElementVec().NElements(),-1);
+    fElementOrder.Resize(fMesh->ElementVec().NElements(),-1);
     fElementOrder.Fill(-1);
-    TPZVec<int> nodeorder(cmesh->ConnectVec().NElements(),-1);
+    TPZVec<int> nodeorder(fMesh->ConnectVec().NElements(),-1);
     firstelconnect[0] = 0;
     for(ic=0; ic<nconnect; ic++) {
-        int seqnum = cmesh->ConnectVec()[ic].SequenceNumber();
+        int seqnum = fMesh->ConnectVec()[ic].SequenceNumber();
         if(seqnum >= 0) nodeorder[seqnum] = ic;
     }
     //  cout << "nodeorder ";
@@ -400,7 +431,7 @@ void TPZFlowGraph::OrderElements()
      cout.flush();*/
     int seq;
     int elsequence = 0;
-    TPZVec<int> elorderinv(cmesh->ElementVec().NElements(),-1);
+    TPZVec<int> elorderinv(fMesh->ElementVec().NElements(),-1);
     for(seq=0; seq<nconnect; seq++) {
         ic = nodeorder[seq];
         if(ic == -1) continue;
@@ -419,15 +450,18 @@ void TPZFlowGraph::OrderElements()
     //  for(seq=0;seq<fMesh->ElementVec().NElements();seq++) cout << elorderinv[seq] << ' ';
     //  cout << endl;
     elsequence = 0;
-    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
+    for(seq=0;seq<fMesh->ElementVec().NElements();seq++) {
         if(elorderinv[seq] == -1) continue;
         fElementOrder[elorderinv[seq]] = seq;
     }
     
-    for(seq=0;seq<cmesh->ElementVec().NElements();seq++) {
+    for(seq=0;seq<fMesh->ElementVec().NElements();seq++) {
         if(fElementOrder[seq]==-1) break;
     }
     
     fElementOrder.Resize(seq);
 }
+        
+        template class TPZFlowGraph<STATE>;
+        template class TPZFlowNode<STATE>;
 #endif

@@ -273,7 +273,7 @@ void TPZPlaneFractureKernel::ProcessLinearElasticCMesh(TPZCompMesh * cmesh)
     TPZAnalysis * an = new TPZAnalysis(cmesh, true);
     
 #ifdef Skyline
-    TPZSkylineStructMatrix skyl(cmesh); //caso simetrico
+    TPZSkylineStructMatrix<STATE> skyl(cmesh); //caso simetrico
 #else
     TPZParFrontStructMatrix< TPZFrontSym<STATE> > skyl(cmesh);
     skyl.SetNumThreads(4);//<<<<< NAO ESTA FUNCIONANDO!!!
@@ -695,7 +695,7 @@ void TPZPlaneFractureKernel::AssembleStiffMatrixLoadVec(TPZAnalysis * an,
 {
     this->fPlaneFractureMesh->SetActualState();
     
-    TPZFStructMatrix structMat(this->fmphysics);
+    TPZFStructMatrix<STATE> structMat(this->fmphysics);
     an->SetStructuralMatrix(structMat);
     
     this->ApplyEquationFilter(an,whoBlock);

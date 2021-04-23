@@ -683,7 +683,7 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 #define VTK
 void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 {
-	//TPZFStructMatrix full(fCmesh);
+	//TPZFStructMatrix<STATE> full(fCmesh);
 	//TPZFrontStructMatrix<TPZFrontNonSym> full(fCmesh);
 	//full.SetNumberOfThreads(3);
 	
@@ -694,7 +694,7 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 		step.SetDirect(ELU);
 	} //caso nao simetrico
 	else{
-		TPZSkylineStructMatrix full(fCmesh);
+		TPZSkylineStructMatrix<STATE> full(fCmesh);
 		an.SetStructuralMatrix(full);
 		step.SetDirect(ELDLt);
 	}//caso simetrico
@@ -1073,7 +1073,7 @@ void tools::PrintInterface(TPZCompMesh  *malha)
 ///-------------------------TesteInterface()-----------------------------------------
 void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<STATE> &solution)
 {
-	TPZSkylineStructMatrix full(cmesh);
+	TPZSkylineStructMatrix<STATE> full(cmesh);
 	std::set<int> materialIds;
 	//materialIds.insert(mat1Id);
 	materialIds.insert(mat3Id);

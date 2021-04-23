@@ -1052,7 +1052,7 @@ TPZCompMesh *DadosMalhas::MalhaCompBarryMercerPressureSolution(TPZGeoMesh * gmes
 void DadosMalhas::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
 	TPZBandStructMatrix full(fCmesh);
-	//TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+	//TPZSkylineStructMatrix<STATE> full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
     //	step.SetDirect(ELDLt); //caso simetrico
@@ -1064,7 +1064,7 @@ void DadosMalhas::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZPoroElasticMF2d * mymaterial, TPZCompMesh* mphysics, int nthreads){
     
     mymaterial->SetLastState();
-    //TPZSkylineStructMatrix matsp(mphysics);
+    //TPZSkylineStructMatrix<STATE> matsp(mphysics);
     //TPZSkylineNSymStructMatrix matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
     matsp.SetNumThreads(nthreads);
@@ -1095,7 +1095,7 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics
     mat12->SetLastState();
     mat22->SetLastState();
     
-    //TPZSkylineStructMatrix matsp(mphysics);
+    //TPZSkylineStructMatrix<STATE> matsp(mphysics);
 	TPZSpStructMatrix matsp(mphysics);
     matsp.SetNumThreads(nthreads);
 	std::set< int > materialid;
@@ -1115,8 +1115,8 @@ TPZAutoPointer <TPZMatrix<STATE> > DadosMalhas::MassMatrix(TPZCompMesh* mphysics
 void DadosMalhas::StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<STATE> &matK1, TPZFMatrix<STATE> &fvec, int nthreads) {
     
     mymaterial->SetCurrentState();
-    //TPZFStructMatrix matsk(mphysics);
-    TPZSkylineStructMatrix matsk(mphysics);
+    //TPZFStructMatrix<STATE> matsk(mphysics);
+    TPZSkylineStructMatrix<STATE> matsk(mphysics);
     matsk.SetNumThreads(nthreads);
 	an.SetStructuralMatrix(matsk);
 	TPZStepSolver<STATE> step;
@@ -1148,8 +1148,8 @@ void DadosMalhas::StiffMatrixLoadVec(TPZCompMesh* mphysics, TPZAnalysis &an, TPZ
 	mat12->SetCurrentState();
     mat22->SetCurrentState();
 
-    //TPZFStructMatrix matsk(mphysics);
-    TPZSkylineStructMatrix matsk(mphysics);
+    //TPZFStructMatrix<STATE> matsk(mphysics);
+    TPZSkylineStructMatrix<STATE> matsk(mphysics);
 	an.SetStructuralMatrix(matsk);
     matsk.SetNumThreads(nthreads);
 	TPZStepSolver<STATE> step;

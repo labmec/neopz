@@ -238,7 +238,7 @@
 //    if (IsDirecSolver) {
 //        
 //        if (fSimulationData->GetIsBroyden()) {
-//            TPZFStructMatrix fullMatrix(fcmeshdarcy);
+//            TPZFStructMatrix<STATE> fullMatrix(fcmeshdarcy);
 //            TPZStepSolver<STATE> step;
 //            fullMatrix.SetNumThreads(numofThreads);
 //            step.SetDirect(ELU);
@@ -259,7 +259,7 @@
 //    else
 //    {
 //        if (fSimulationData->GetIsBroyden()) {
-//            TPZFStructMatrix fullMatrix(fcmeshdarcy);
+//            TPZFStructMatrix<STATE> fullMatrix(fcmeshdarcy);
 //            fullMatrix.SetNumThreads(numofThreads);
 //            
 //            TPZAutoPointer<TPZMatrix<STATE> > fullMatrixa = fullMatrix.Create();
@@ -1490,7 +1490,7 @@
 //{
 //    int neq = fcmeshdarcy->NEquations();
 //    TPZFMatrix<STATE> * PreInverse =  new TPZFMatrix<STATE> (neq,neq,0.0);
-//    TPZFStructMatrix skyl(fcmeshdarcy);
+//    TPZFStructMatrix<STATE> skyl(fcmeshdarcy);
 //    std::set<int> matids; // to be computed
 //    matids.insert(1);
 //    matids.insert(2);

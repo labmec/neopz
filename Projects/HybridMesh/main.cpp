@@ -25,7 +25,7 @@
 
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzfstrmatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     int neq = cmesh->NEquations();
     TPZFMatrix<STATE> stiff(neq,neq,0.),rhs(neq,1,0.);
-    TPZFStructMatrix fstr(cmesh);
+    TPZFStructMatrix<STATE> fstr(cmesh);
     fstr.Assemble(stiff, rhs, 0);
     
     ofstream arg4("stiffness.txt");
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     TPZAnalysis an(cmesh);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);
-    TPZFStructMatrix fullstr(cmesh);
+    TPZFStructMatrix<STATE> fullstr(cmesh);
     an.SetStructuralMatrix(fullstr);
     an.SetSolver(step);
     an.Run();

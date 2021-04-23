@@ -155,7 +155,7 @@ int main()
             
             TPZSkylineNSymStructMatrix str(cmesh);
             str.SetNumThreads(8);
-            //TPZFStructMatrix str(cmesh);
+            //TPZFStructMatrix<STATE> str(cmesh);
             
             TPZAutoPointer<TPZMatrix<STATE> > mat = str.Create();
             str.EquationFilter().Reset();

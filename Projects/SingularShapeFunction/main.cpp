@@ -344,7 +344,7 @@ int main1(){
   TPZAnalysis an(cmesh);
 //   TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
 //   TPZFrontStructMatrix<TPZFrontSym> matrix(cmesh);
-//   TPZFStructMatrix matrix(cmesh);
+//   TPZFStructMatrix<STATE> matrix(cmesh);
   TPZBandStructMatrix matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver<STATE> step;

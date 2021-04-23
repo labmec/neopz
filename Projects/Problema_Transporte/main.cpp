@@ -31,7 +31,7 @@
 
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
 #include "TPZBSpStructMatrix.h"
@@ -793,7 +793,7 @@ void CreatInterface(TPZCompMesh *cmesh){
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix)
 {
     if(symmetric_matrix ==true){
-        TPZSkylineStructMatrix skmat(fCmesh);
+        TPZSkylineStructMatrix<STATE> skmat(fCmesh);
         an.SetStructuralMatrix(skmat);
         TPZStepSolver<STATE> direct;
         direct.SetDirect(ELDLt);
@@ -1189,7 +1189,7 @@ void FilterEquation(TPZMatConvectionProblem *mymaterial, TPZCompMesh *cmesh, TPZ
     if(currentstate==true)
     {
         mymaterial->SetCurrentState();
-        TPZSkylineStructMatrix matsk(cmesh);
+        TPZSkylineStructMatrix<STATE> matsk(cmesh);
         matsk.SetNumThreads(4);
         matsk.EquationFilter().SetActiveEquations(active);
         an.SetStructuralMatrix(matsk);

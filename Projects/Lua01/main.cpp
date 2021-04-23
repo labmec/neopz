@@ -71,7 +71,7 @@ int main(){
 	cmesh->Print(cmeshout);
 
 	
-	TPZSkylineStructMatrix skylstruct(cmesh);
+	TPZSkylineStructMatrix<> skylstruct(cmesh);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);

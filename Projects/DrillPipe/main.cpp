@@ -161,7 +161,7 @@ TPZAnalysis * CreateAnalysis(TPZCompMesh * cmesh){
     }
     else{
         
-        TPZSkylineStructMatrix matrix(cmesh);
+        TPZSkylineStructMatrix<STATE> matrix(cmesh);
         matrix.SetNumThreads(n_threads);
         TPZStepSolver<STATE> step;
         step.SetDirect(ECholesky);

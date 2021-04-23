@@ -49,7 +49,7 @@ int main()
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateCMesh(gmesh);
     
     TPZAnalysis an(cmesh);
-    TPZSkylineStructMatrix skylstr(cmesh);
+    TPZSkylineStructMatrix<STATE> skylstr(cmesh);
     an.SetStructuralMatrix(skylstr);
     TPZStepSolver<STATE> step;
     step.SetDirect(ECholesky);

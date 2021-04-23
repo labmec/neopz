@@ -27,7 +27,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 #include "pzreducedspace.h"
 #include "pzfstrmatrix.h"
@@ -88,7 +88,7 @@ int main3(int argc, char *argv[])
     
     TPZCompMeshReferred *cmeshreferred = CMeshReferred(gmesh, cmesh, p);
     cmeshreferred->ComputeNodElCon();
-    TPZFStructMatrix fstr(cmeshreferred);
+    TPZFStructMatrix<STATE> fstr(cmeshreferred);
     TPZFMatrix<STATE> rhs(1);
     TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
     
@@ -355,7 +355,7 @@ void Forcingf(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {			
 	//TPZBandStructMatrix full(fCmesh);
-	TPZSkylineStructMatrix full(Cmesh); //caso simetrico
+	TPZSkylineStructMatrix<STATE> full(Cmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico

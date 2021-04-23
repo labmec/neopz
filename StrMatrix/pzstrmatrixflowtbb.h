@@ -15,6 +15,7 @@
 class TPZElementMatrix;
 class TPZBaseMatrix;
 class TPZStructMatrix;
+template<class T>
 class TPZFlowGraph;
 
 /**
@@ -69,7 +70,7 @@ protected:
     /** @brief Assemble the global system of equations into the matrix which has already been created */
     virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
-    TPZAutoPointer<TPZFlowGraph> fFlowGraph;
+    TPZAutoPointer<TPZFlowGraph<TVar> > fFlowGraph;
 };
 
 extern template class TPZStructMatrixTBBFlow<STATE>;

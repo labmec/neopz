@@ -71,7 +71,7 @@ void TSWXMaxSigmaTheta::ComputeMaxSigmaTheta(double t, double b, double DistrRig
 
 	//Processing
 	TPZAnalysis an(fCmesh);
-	TPZSkylineStructMatrix full(fCmesh);
+	TPZSkylineStructMatrix<STATE> full(fCmesh);
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);

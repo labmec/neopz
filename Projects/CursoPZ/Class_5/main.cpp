@@ -92,7 +92,7 @@ int main() {
     
     int64_t neq = cmesh->NEquations();
     TPZFMatrix<STATE> rhs(neq,1);
-    TPZFStructMatrix full(cmesh);
+    TPZFStructMatrix<STATE> full(cmesh);
     TPZMatrix<STATE> *stiff = full.CreateAssemble(rhs, 0);
 
     

@@ -9,18 +9,20 @@ It is only included if USING_TBB=ON, and it is not installed.*/
 
 #include "pzmanvector.h"
 #include "tpzautopointer.h"
+class TPZBaseMatrix;
 template<class T>
 class TPZFMatrix;
 template <class T>
 class TPZMatrix;
 class TPZCompMesh;
 class TPZGuiInterface;
+template<class T>
 class TPZStructMatrixTBBFlow;
 
-
+template<class TVar = STATE>
 class TPZFlowGraph {
 public:
-  TPZFlowGraph(TPZStructMatrixTBBFlow *strmat);
+  TPZFlowGraph(TPZStructMatrixTBBFlow<TVar> *strmat);
   ~TPZFlowGraph();
   TPZFlowGraph(TPZFlowGraph const &copy);
 
@@ -28,7 +30,7 @@ public:
   TPZVec<int> fnextBlocked, felSequenceColor, felSequenceColorInv;
   TPZManVector<int> fElementOrder;
 
-  TPZCompMesh *cmesh;
+  TPZCompMesh *fMesh;
 
   tbb::flow::graph fGraph;
   tbb::flow::broadcast_node<tbb::flow::continue_msg> fStartNode;
@@ -37,10 +39,10 @@ public:
   void OrderElements();
   void ElementColoring();
   void CreateGraph();
-  void ExecuteGraph(TPZFMatrix<STATE> *rhs, TPZMatrix<STATE> *matrix = 0);
+  void ExecuteGraph(TPZBaseMatrix *rhs, TPZBaseMatrix *matrix = 0);
 
   /// current structmatrix object
-  TPZStructMatrixTBBFlow *fStruct;
+  TPZStructMatrixTBBFlow<TVar> *fStruct;
   /// gui interface object
   TPZAutoPointer<TPZGuiInterface> fGuiInterface;
   /// global matrix
@@ -49,20 +51,22 @@ public:
   TPZFMatrix<STATE> *fGlobRhs;
 };
 
+template<class TVar = STATE>
 class TPZFlowNode {
 public:
-  TPZFlowNode(TPZFlowGraph *graph, int el) : myGraph(graph), iel(el){};
+  TPZFlowNode(TPZFlowGraph<TVar> *graph, int el) : myGraph(graph), iel(el){};
 
   ~TPZFlowNode(){};
 
   void operator()(tbb::flow::continue_msg) const;
 
-  TPZFlowGraph *myGraph;
+  TPZFlowGraph<TVar> *myGraph;
 
   /// element to be processed by this node
   int iel;
 };
 
+template<class TVar>
 struct TPZGraphThreadData {
   // copy constructor
   TPZGraphThreadData(TPZCompMesh *cmesh, TPZVec<int> &fnextBlocked,
@@ -80,7 +84,7 @@ struct TPZGraphThreadData {
   TPZVec<int> felSequenceColor;
 
   /// current structmatrix object
-  TPZStructMatrixTBBFlow *fStruct;
+  TPZStructMatrixTBBFlow<TVar> *fStruct;
   /// gui interface object
   TPZAutoPointer<TPZGuiInterface> fGuiInterface;
   /// global matrix
@@ -89,13 +93,15 @@ struct TPZGraphThreadData {
   TPZFMatrix<STATE> *fGlobRhs;
 };
 
+template<class TVar>
 struct TPZGraphThreadNode {
-  TPZGraphThreadData *data;
+  TPZGraphThreadData<TVar> *data;
   int iel;
-  TPZGraphThreadNode(TPZGraphThreadData *data, int el) : data(data), iel(el) {}
+  TPZGraphThreadNode(TPZGraphThreadData<TVar> *data, int el) : data(data), iel(el) {}
   void operator()(tbb::flow::continue_msg) const;
 };
 #else
+template<class TVar>
 class TPZFlowGraph{};
 #endif
 #endif

@@ -22,7 +22,7 @@
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 #include "pzanalysis.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzfstrmatrix.h"
 #include "pzbndmat.h"
@@ -350,14 +350,14 @@ TPZCompMesh *ComputationalMesh(TPZGeoMesh * gmesh, int pOrder)
 void SolveSystem(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix)
 {
     if(symmetric_matrix){
-        TPZSkylineStructMatrix skmat(fCmesh);
+        TPZSkylineStructMatrix<STATE> skmat(fCmesh);
         an.SetStructuralMatrix(skmat);
         TPZStepSolver<STATE> direct;
         direct.SetDirect(ELDLt);
         an.SetSolver(direct);
     }
     else{
-        TPZSkylineNSymStructMatrix sknmat(fCmesh);
+        TPZSkylineNSymStructMatrix<STATE> sknmat(fCmesh);
         an.SetStructuralMatrix(sknmat);
         TPZStepSolver<STATE> direct;
         direct.SetDirect(ELU);

@@ -1224,7 +1224,7 @@ void Hdiv2dPaper201504::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             else
             {
                 //TPZBandStructMatrix full(fCmesh);
-                TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+                TPZSkylineStructMatrix<STATE> skylstr(fCmesh); //caso simetrico
                 //    TPZSkylineNSymStructMatrix full(fCmesh);
                 an.SetStructuralMatrix(skylstr);
             }
@@ -1237,7 +1237,7 @@ void Hdiv2dPaper201504::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
         }
         else
         {
-            TPZBandStructMatrix full(fCmesh);
+            TPZBandStructMatrix<STATE> full(fCmesh);
             an.SetStructuralMatrix(full);
             TPZStepSolver<STATE> step;
             step.SetDirect(ELU);
@@ -1248,7 +1248,7 @@ void Hdiv2dPaper201504::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     }
     else
     {
-        TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+        TPZSkylineStructMatrix<STATE> skylstr(fCmesh); //caso simetrico
         skylstr.SetNumThreads(10);
         an.SetStructuralMatrix(skylstr);
         

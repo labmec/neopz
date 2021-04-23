@@ -154,7 +154,7 @@ int main() {
     TPZAnalysis an(secondmesh,true,outcm1);
     secondmesh->Print(outcm1);
     outcm1.flush();
-    TPZSkylineStructMatrix stiff (secondmesh);
+    TPZSkylineStructMatrix<STATE> stiff (secondmesh);
     an.SetStructuralMatrix(stiff);
     
     //   TPZMatrixSolver jacobi(stiff);

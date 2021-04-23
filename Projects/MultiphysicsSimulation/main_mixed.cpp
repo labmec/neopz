@@ -24,7 +24,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 
 #include "TPZGenGrid2D.h"
@@ -975,7 +975,7 @@ void ForcingBC1(const TPZVec<REAL> &pt, TPZVec<STATE> &disp){
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {			
 	//TPZBandStructMatrix full(fCmesh);
-	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+	TPZSkylineStructMatrix<STATE> full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico

@@ -71,7 +71,7 @@ int main() {
     }
 
     TPZAnalysis an(cmesh);
-    TPZSkylineStructMatrix strskyl(cmesh);
+    TPZSkylineStructMatrix<STATE> strskyl(cmesh);
     an.SetStructuralMatrix(strskyl);
 	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
 	direct->SetDirect(ECholesky);
@@ -82,6 +82,7 @@ int main() {
     TPZFMatrix<STATE> &sol = cmesh->Solution();
     int nrows = cmesh->Solution().Rows();
     int cols = cmesh->Solution().Cols();
+    TPZFMatrix<STATE> &sol = cmesh->Solution();
     if(counter==1) {
         for(int i=0;i<nrows;i++) {
             for(int j=0;j<cols;j++) {
@@ -167,7 +168,7 @@ int main1D() {
 	// Solving linear equations
 	// Initial steps
 	TPZAnalysis an (cmesh);
-	TPZSkylineStructMatrix strskyl(cmesh);
+	TPZSkylineStructMatrix<STATE> strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
 	// Solver (is your choose)
 	TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;
@@ -177,7 +178,7 @@ int main1D() {
 	direct = 0;
 /*
 	// Caso no simetrico
-//	TPZFStructMatrix full(cmesh);
+//	TPZFStructMatrix<STATE> full(cmesh);
 	TPZBandStructMatrix full(cmesh);
 	an.SetStructuralMatrix(full);
 	an.Solution().Zero();

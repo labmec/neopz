@@ -93,7 +93,7 @@ int main()
     cmesh.SetDefaultOrder(2);
     cmesh.AutoBuild();
     TPZAnalysis an(&cmesh);
-    TPZSkylineStructMatrix strskyl(&cmesh);
+    TPZSkylineStructMatrix<STATE> strskyl(&cmesh);
     strskyl.SetNumThreads(2);
     an.SetStructuralMatrix(strskyl);
     TPZStepSolver<STATE> solve;
@@ -220,7 +220,7 @@ int main22() {
 
   //Escolha do padr� de armazenamento. O par�etro de entrada �a malha computacional
   //TPZSkylineStructMatrix strmat(malhacomp);
-  TPZSkylineStructMatrix strmat (malhacomp);       //skyline em paralelo (multthread)
+  TPZSkylineStructMatrix<STATE> strmat (malhacomp);       //skyline em paralelo (multthread)
   //TPZParFrontStructMatrix<TPZFrontSym> strmat(malhacomp);
 
   //Define-se o padr� de armazenamento para a an�ise

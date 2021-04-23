@@ -25,7 +25,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 
 #include "TPZGenGrid2D.h"
@@ -1400,7 +1400,7 @@ TPZCompMesh *MalhaCompMultifisica(TPZVec<TPZCompMesh *> meshvec,TPZGeoMesh * gme
 #define VTK
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numthreads)
 {
-    //TPZSkylineStructMatrix strmat(fCmesh);
+    //TPZSkylineStructMatrix<STATE> strmat(fCmesh);
     
     TPZParFrontStructMatrix<TPZFrontSym<STATE> > strmat(fCmesh);
     strmat.SetDecomposeType(ELDLt);
@@ -2602,7 +2602,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //            TPZAnalysis analysis(cmesh);
 //            if(dim_problema==2){
 //
-////                TPZSkylineStructMatrix skylstr(cmesh); //caso simetrico
+////                TPZSkylineStructMatrix<STATE> skylstr(cmesh); //caso simetrico
 ////                //TPZSkylineNSymStructMatrix skylstr(cmesh); //caso nao simetrico
 ////                //skylstr.SetNumThreads(8);
 ////                analysis.SetStructuralMatrix(skylstr);
@@ -2822,7 +2822,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //            
 //            if(dim_problema==2){
 //                
-//                //                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+//                //                TPZSkylineStructMatrix<STATE> skylstr(mphysics); //caso simetrico
 //                //                skylstr.SetNumThreads(6);
 //                //                analysis.SetStructuralMatrix(skylstr);
 //                
@@ -2850,7 +2850,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //                strmat.SetNumThreads(16);
 //                analysis.SetStructuralMatrix(strmat);
 //                
-//                //                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+//                //                TPZSkylineStructMatrix<STATE> skylstr(mphysics); //caso simetrico
 //                //                analysis.SetStructuralMatrix(skylstr);
 //            }
 //            
@@ -3063,7 +3063,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 ////            
 ////            if(dim_problema==2){
 ////                
-////                //                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+////                //                TPZSkylineStructMatrix<STATE> skylstr(mphysics); //caso simetrico
 ////                //                skylstr.SetNumThreads(6);
 ////                //                analysis.SetStructuralMatrix(skylstr);
 ////                
@@ -3093,7 +3093,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 //////                strmat.SetNumThreads(16);
 //////                analysis.SetStructuralMatrix(strmat);
 ////                
-////                TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+////                TPZSkylineStructMatrix<STATE> skylstr(mphysics); //caso simetrico
 ////                skylstr.SetNumThreads(8);
 ////                loc_analysis.SetStructuralMatrix(skylstr);
 ////                analysis.SetStructuralMatrix(skylstr);
@@ -3138,7 +3138,7 @@ bool MyDoubleComparer(REAL a, REAL b)
 ////#ifdef USING_BOOST
 ////            boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
 ////#endif
-//////            TPZSkylineStructMatrix skylstr(mphysics); //caso simetrico
+//////            TPZSkylineStructMatrix<STATE> skylstr(mphysics); //caso simetrico
 //////            skylstr.SetNumThreads(8);
 //////            analysis.SetStructuralMatrix(skylstr);
 //////

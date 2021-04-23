@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){/*{{{*/
     cmesh->Print(file);
     
     
-    TPZSkylineStructMatrix skylstruct(cmesh);
+    TPZSkylineStructMatrix<STATE> skylstruct(cmesh);
     TPZStepSolver<STATE> step;
     step.SetDirect(ECholesky);
     TPZAnalysis an(cmesh);

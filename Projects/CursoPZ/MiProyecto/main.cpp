@@ -133,7 +133,7 @@ int main() {
         
         // Introduzing exact solution
         TPZAnalysis an (cmesh);
-        TPZSkylineStructMatrix strskyl(cmesh);
+        TPZSkylineStructMatrix<STATE> strskyl(cmesh);
         an.SetStructuralMatrix(strskyl);
         
         TPZStepSolver<STATE> *direct = new TPZStepSolver<STATE>;

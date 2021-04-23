@@ -178,7 +178,7 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
     var_names[0] = "Pressure";
     post_an.SetPostProcessVariables(post_pro, var_names);
     
-    TPZFStructMatrix structmatrix(post_an.Mesh());
+    TPZFStructMatrix<STATE> structmatrix(post_an.Mesh());
     structmatrix.SetNumThreads(0);
     post_an.SetStructuralMatrix(structmatrix);
     post_an.TransferSolution();

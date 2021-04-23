@@ -25,7 +25,7 @@
 
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
 #include "TPZBSpStructMatrix.h"
@@ -653,7 +653,7 @@ TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {			
 	//TPZBandStructMatrix full(fCmesh);
-	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+	TPZSkylineStructMatrix<STATE> full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico

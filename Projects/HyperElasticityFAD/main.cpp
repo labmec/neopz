@@ -173,7 +173,7 @@ TPZCompEl::SetgOrder(2);
 		cmesh->Solution()(is,0) = (random()%100)/41.;
 	}
       TPZAnalysis an (cmesh);
-      TPZSkylineStructMatrix strskyl(cmesh);
+      TPZSkylineStructMatrix<STATE> strskyl(cmesh);
       TPZFMatrix<REAL> rhs(24,1,0.);
       TPZMatrix<REAL> *stiff1 = CreateAssemble(rhs,1, *cmesh);
       TPZMatrix<REAL> *stiff2 = CreateAssemble(rhs,0, *cmesh);

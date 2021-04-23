@@ -143,7 +143,7 @@ int main1(int argc, char *argv[])
 		int numthread_decompose = 4;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
         //
-        TPZFStructMatrix fullstruct(cmeshauto);
+        TPZFStructMatrix<STATE> fullstruct(cmeshauto);
         fullstruct.SetNumThreads(numthread_assemble);
         int64_t sz = cmeshauto->NEquations();
         TPZFMatrix<STATE> rhs_t(sz, 1);

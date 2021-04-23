@@ -34,10 +34,10 @@ TPZStructMatrixTBBFlow<TVar>::TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlo
 #ifndef USING_TBB
     NO_TBB
 #else
-        if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
+//    if (copy.fCompMesh) {
+//        fCompMesh = copy.fCompMesh;
+//    }
+//    fMaterialIds = copy.fMaterialIds;
     fNumThreads = copy.fNumThreads;    
     fFlowGraph = new TPZFlowGraph(*copy.fFlowGraph);
 #endif

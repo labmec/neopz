@@ -27,7 +27,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
