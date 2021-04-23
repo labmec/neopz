@@ -26,7 +26,7 @@
 #include "pzinterpolationspace.h"
 #include "pzlog.h"
 #include "pzcompelwithmem.h"
-
+#include "TPZTimer.h"
 #include "pzbndcond.h"
 
 #include <set>
@@ -787,7 +787,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CleanupMaterialData(TPZVec<TPZMaterialDat
         msp->CleanupMaterialData(dataVec[iref]);
     }
 }
-
+double contributeTime;
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
@@ -872,8 +872,12 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         }
         
         this->ComputeRequiredData(intpointtemp,trvec,datavec);
-        
+        TPZTimer timer;
+        timer.start();
         material->Contribute(datavec,weight,ek.fMat,ef.fMat);
+        timer.stop();
+        contributeTime+=timer.seconds();
+        
     }//loop over integration points
     
     CleanupMaterialData(datavec);
