@@ -45,6 +45,7 @@ static TPZLogger loggerGlobStiff("pz.strmatrix.globalstiffness");
 static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
 
+
 TPZStructMatrixOR::TPZStructMatrixOR(TPZCompMesh *mesh) : TPZStructMatrixBase(mesh) {
     
 }
@@ -124,7 +125,7 @@ void TPZStructMatrixOR::Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiI
     }
     ass_rhs.stop();
 }
-
+double calcstiffTime;
 void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) {
 #ifdef PZDEBUG
     TExceptionManager activateExceptions;
@@ -182,10 +183,15 @@ void TPZStructMatrixOR::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix
         if (!(count % 20000)) {
             std::cout << "\n";
         }
+        
         calcstiff.start();
         ek.Reset();
         ef.Reset();
+        TPZTimer timer;
+        timer.start();
         el->CalcStiff(ek, ef);
+        timer.stop();
+        calcstiffTime += timer.seconds();
         if (guiInterface) if (guiInterface->AmIKilled()) {
                 return;
             }
