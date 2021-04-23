@@ -34,12 +34,11 @@ TPZStructMatrixTBBFlow<TVar>::TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlo
 #ifndef USING_TBB
     NO_TBB
 #else
-//    if (copy.fCompMesh) {
-//        fCompMesh = copy.fCompMesh;
-//    }
-//    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;    
-    fFlowGraph = new TPZFlowGraph(*copy.fFlowGraph);
+    fNumThreads = copy.fNumThreads;
+    /*do not copy fFlowGraph!
+      It will be created at CreateAssemble.
+      And, at this moment, we have no way to tell that
+      the this pointer is a TPZStructMatrix, so we cannot get its mesh*/
 #endif
 }
 

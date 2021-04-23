@@ -15,7 +15,9 @@
 //parallel layer classes
 #include "pzstrmatrixor.h"
 #include "pzstrmatrixot.h"
-
+#ifdef PZ_USING_BOOST
+#include "pzstrmatrixflowtbb.h"
+#endif
 //struct matrices
 #include "pzfstrmatrix.h"
 #include "pzsfstrmatrix.h"
@@ -44,12 +46,19 @@ namespace structTest{
   template <class TSTMAT>
   void CompareSerialParallelStiffMat(TPZAutoPointer<TPZCompMesh> cMesh,
                                      const int nThreads);
+  template <class TSTMAT1, class TSTMAT2>
+  void CompareParallelLayerStiffMat(TPZAutoPointer<TPZCompMesh> cMesh,
+                                     const int nThreads);
   
 }
 
 TEMPLATE_TEST_CASE("Assemble known matrix",
                    "[struct_tests][struct][multithread]",
-                   TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>)
+                   TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
+#ifdef PZ_USING_BOOST
+                   ,TPZStructMatrixTBBFlow<STATE>
+#endif
+                   )
 {
   auto cMesh = structTest::CreateCMesh1D();
   constexpr int nThreads{4};
@@ -128,6 +137,23 @@ TEMPLATE_TEST_CASE("Compare parallel and serial matrices","[struct_tests][struct
   }
 }
 
+TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
+{
+  auto cMesh = structTest::CreateCMesh2D();
+  constexpr int nThreads{4};
+  SECTION("Compare OR/OT"){
+    structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>>(cMesh, nThreads);
+  }
+#ifdef PZ_USING_BOOST
+  SECTION("Compare OR/TBBFlow"){
+    structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixTBBFlow<STATE>>(cMesh, nThreads);
+  }
+  SECTION("Compare OT/TBBFlow"){
+    structTest::CompareParallelLayerStiffMat<TPZStructMatrixOT<STATE>,TPZStructMatrixTBBFlow<STATE>>(cMesh, nThreads);
+  }
+#endif
+}
+
 namespace structTest{
   template <class TSTMAT>
   void CheckStiffnessMatrices(TPZAutoPointer<TPZCompMesh> cMesh,
@@ -183,6 +209,41 @@ namespace structTest{
     REQUIRE(normDiff == Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
   }
+
+
+  template <class TSTMAT1, class TSTMAT2>
+  void CompareParallelLayerStiffMat(TPZAutoPointer<TPZCompMesh> cMesh,
+                                     const int nThreads)
+  {
+    
+    auto GetMatrix = [cMesh](const int nThreads, bool first){
+      constexpr bool optimizeBandwidth{false};
+      TPZAnalysis an(cMesh, optimizeBandwidth);
+      TPZAutoPointer<TPZStructMatrix>strmat;
+      if(first){
+        strmat = new TPZSkylineStructMatrix<STATE, TSTMAT1>(cMesh);
+      }
+      else{
+        strmat = new TPZSkylineStructMatrix<STATE,TSTMAT2>(cMesh);
+      }
+      strmat->SetNumThreads(nThreads);
+      an.SetStructuralMatrix(strmat);
+      an.Assemble();
+      return an.MatrixSolver<STATE>().Matrix();
+    };
+    auto mat1 = GetMatrix(nThreads,true);
+    auto mat2 = GetMatrix(nThreads,false);
+    
+    const int nr = mat2->Rows();
+    const int nc = mat2->Cols();
+  
+    TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
+    mat1->Substract(mat2, matDiff);
+    const auto normDiff = Norm(matDiff);
+    REQUIRE(normDiff == Approx(0.0).margin(
+                10*std::numeric_limits<STATE>::epsilon()));
+  }
+  
 
   /****************************************
    *         AUXILIARY CLASSES            *
