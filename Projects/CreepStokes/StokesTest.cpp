@@ -130,7 +130,7 @@ void StokesTest::Run(int Space, int pOrder, int nx, int ny, double hx, double hy
     
     //pzskylstrmatrix matskl(cmesh_m, numthreads);
     TPZSkylineNSymStructMatrix matskl(cmesh_m); //OK para Hdiv
-    //TPZFStructMatrix matskl(cmesh_m); //caso nao simetrico *** //OK para discont.
+    //TPZFStructMatrix<STATE> matskl(cmesh_m); //caso nao simetrico *** //OK para discont.
     matskl.SetNumThreads(numthreads);
     an.SetStructuralMatrix(matskl);
     TPZStepSolver<STATE> step;

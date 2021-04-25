@@ -6,33 +6,34 @@
 #ifndef TPZSPSTRUCTMATRIX_H
 #define TPZSPSTRUCTMATRIX_H
 
-#include "pzstrmatrix.h"
-
+#include "TPZStructMatrixT.h"
+#include "pzstrmatrixor.h"
+#include "pzstack.h"
 /**
  * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZSpStructMatrix : public TPZStructMatrix {
-public:    
-	
-    TPZSpStructMatrix(TPZCompMesh *);
-	
-    virtual TPZMatrix<STATE> * Create() override;
-	
-    using TPZStructMatrix::CreateAssemble;
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-	
-    virtual TPZStructMatrix * Clone() override;
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPZSpStructMatrix : public TPZStructMatrixT<TVar>,
+                                  public TPar{
+public:
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
     
-    public:
-int ClassId() const override;
+    TPZMatrix<TVar> *Create() override;
+	TPZStructMatrix * Clone() override;
 
-	
-    /** Used only for testing */
-	static int main();
-private :
-    TPZSpStructMatrix();
-    
+    void EndCreateAssemble(TPZBaseMatrix *) override;
+
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
+
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
+protected:
+    virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
     friend TPZPersistenceManager;
 };
 

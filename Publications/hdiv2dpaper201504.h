@@ -41,7 +41,7 @@
 #include "pzfmatrix.h"
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSkylineNSymStructMatrix.h"

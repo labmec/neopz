@@ -7,6 +7,7 @@
 //
 
 #include "hdivCurvedJCompAppMath.h"
+#include "TPZFrontSym.h"
 
 const int  norder = 6;
 
@@ -2971,7 +2972,7 @@ void hdivCurvedJCompAppMath::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
             else
             {
                 //TPZBandStructMatrix full(fCmesh);
-                TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+                TPZSkylineStructMatrix<STATE> skylstr(fCmesh); //caso simetrico
                 //    TPZSkylineNSymStructMatrix full(fCmesh);
                 an.SetStructuralMatrix(skylstr);
             }
@@ -2984,7 +2985,7 @@ void hdivCurvedJCompAppMath::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
         }
         else
         {
-            TPZBandStructMatrix full(fCmesh);
+            TPZBandStructMatrix<STATE> full(fCmesh);
             an.SetStructuralMatrix(full);
             TPZStepSolver<STATE> step;
             step.SetDirect(ELU);
@@ -2995,7 +2996,7 @@ void hdivCurvedJCompAppMath::SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
     }
     else
     {
-        TPZSkylineStructMatrix skylstr(fCmesh); //caso simetrico
+        TPZSkylineStructMatrix<STATE> skylstr(fCmesh); //caso simetrico
         skylstr.SetNumThreads(10);
         an.SetStructuralMatrix(skylstr);
         

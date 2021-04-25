@@ -29,7 +29,7 @@
 #include "pzfstrmatrix.h"
 #include "pzskylstrmatrix.h"
 #include "pzskylstrmatrix.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSkylineNSymStructMatrix.h"
@@ -1010,7 +1010,7 @@ void CreateInterfaceElement(TPZCompMesh* cmesh)
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {
 	//TPZBandStructMatrix full(fCmesh);
-	TPZSkylineStructMatrix full(Cmesh); //caso simetrico
+	TPZSkylineStructMatrix<STATE> full(Cmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt); //caso simetrico
@@ -1389,9 +1389,9 @@ void FilterPressureFluxEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *>
     
     mymaterial->SetCurrentState();
     mymaterial->SetPressureEqFilter();
-    TPZSkylineStructMatrix matsk(mphysics);
+    TPZSkylineStructMatrix<STATE> matsk(mphysics);
     //matsk.SetNumThreads(4);
-    //TPZFStructMatrix matsk(mphysics);
+    //TPZFStructMatrix<STATE> matsk(mphysics);
     //TPZBandStructMatrix matsk(mphysics);
     matsk.EquationFilter().SetActiveEquations(active);
 	an.SetStructuralMatrix(matsk);
@@ -1432,7 +1432,7 @@ void FilterSaturationEquation(TPZTracerFlow *mymaterial, TPZVec<TPZCompMesh *> m
     {
         mymaterial->SetCurrentState();
         mymaterial->SetFalsePressureEqFilter();
-        TPZSkylineStructMatrix matsk(mphysics);
+        TPZSkylineStructMatrix<STATE> matsk(mphysics);
         //matsk.SetNumThreads(6);
 //        TPZParFrontStructMatrix<TPZFrontSym<STATE> > matsk(mphysics);
 //        matsk.SetNumThreads(6);
@@ -1652,8 +1652,8 @@ void StiffMatrixLoadVec(TPZTracerFlow *mymaterial, TPZCompMesh* mphysics, TPZAna
     
     mymaterial->SetCurrentState();
     
-    //TPZFStructMatrix matsk(mphysics);
-    TPZSkylineStructMatrix matsk(mphysics);
+    //TPZFStructMatrix<STATE> matsk(mphysics);
+    TPZSkylineStructMatrix<STATE> matsk(mphysics);
 	an.SetStructuralMatrix(matsk);
     //matsk.SetNumThreads(30);
 	TPZStepSolver<STATE> step;

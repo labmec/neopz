@@ -25,10 +25,10 @@
 
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 
@@ -276,10 +276,10 @@ void Solve ( TPZAnalysis &an ){
 	TPZCompMesh *malha = an.Mesh();
     
     //TPZBandStructMatrix mat(malha);
-	//TPZSkylineStructMatrix mat(malha);// requer decomposição simétrica, não pode ser LU!
+	//TPZSkylineStructMatrix<STATE> mat(malha);// requer decomposição simétrica, não pode ser LU!
 	//TPZBlockDiagonalStructMatrix mat(malha);//ok!
 	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
-	TPZFStructMatrix mat( malha );// ok! matriz estrutural cheia
+	TPZFStructMatrix<STATE> mat( malha );// ok! matriz estrutural cheia
 	//TPZSpStructMatrix mat( malha );//matriz estrutural esparsa (???? NÃO FUNCIONOU !!!!!!!!!!)
 	TPZStepSolver<STATE> solv;
 	solv.SetDirect (  ELU );//ECholesky);// ELU , ELDLt ,

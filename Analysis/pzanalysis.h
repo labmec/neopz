@@ -15,7 +15,7 @@
 #include "TPZSolutionMatrix.h"// for TPZSolutionMatrix
 #include "pzreal.h"           // for STATE, REAL
 #include "TPZRenumbering.h"    // for TPZRenumbering
-#include "pzstrmatrix.h"      // for TPZStructMatrix
+#include "TPZStructMatrix.h"      // for TPZStructMatrix
 #include "pzvec.h"            // for TPZVec
 #include "tpzautopointer.h"   // for TPZAutoPointer
 #include "pzadmchunk.h"       // for TPZAdmChunkVector

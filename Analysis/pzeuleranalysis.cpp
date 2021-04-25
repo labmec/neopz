@@ -10,9 +10,10 @@
 #include "TPZCompElDisc.h"
 #include "pzfstrmatrix.h"
 #include "TPZParFrontStructMatrix.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZFrontNonSym.h"
+#include "TPZBSpStructMatrix.h"
 #include "pzbdstrmatrix.h"
-
+#include "pzelmat.h"
 #include "tpzoutofrange.h"
 #include <time.h>
 #include "pzlog.h"
@@ -268,7 +269,7 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 	{
 		TPZFrontStructMatrix <TPZFrontNonSym<STATE> > StrMatrix(Mesh());
 		StrMatrix.SetQuiet(1);
-		TPZMatrix<STATE> *front = StrMatrix.CreateAssemble(fRhs,NULL);
+		auto *front = StrMatrix.CreateAssemble(fRhs,NULL);
 		TPZStepSolver<STATE> FrontSolver;
 		FrontSolver.SetDirect(ELU);
 		FrontSolver.SetMatrix(front);
@@ -615,18 +616,18 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 {
 	TPZFrontStructMatrix <TPZFrontNonSym<STATE> > strfront(Mesh());
 	strfront.SetQuiet(1);
-	TPZMatrix<STATE> *front = strfront.CreateAssemble(fRhs,NULL);
+	auto *front = strfront.CreateAssemble(fRhs,NULL);
 	
 	TPZStepSolver<STATE> FrontSolver;
 	FrontSolver.SetDirect(ELU);
 	FrontSolver.SetMatrix(front);
 	
 	
-	TPZSpStructMatrix StrMatrix(Mesh());
-	//TPZFStructMatrix StrMatrix(cmesh);
+	TPZSpStructMatrix<STATE> StrMatrix(Mesh());
+	//TPZFStructMatrix<STATE> StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
-	TPZMatrix<STATE> * mat = StrMatrix.Create();
+	auto * mat = StrMatrix.Create();
 	TPZStepSolver<STATE> Solver;
 	Solver.SetGMRES(numiter,
 					numvectors,
@@ -662,12 +663,12 @@ void TPZEulerAnalysis::SetFrontalSolver()
  */
 void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
 {
-	TPZSpStructMatrix StrMatrix(Mesh());
-	//TPZFStructMatrix StrMatrix(cmesh);
+	TPZSpStructMatrix<STATE> StrMatrix(Mesh());
+	//TPZFStructMatrix<STATE> StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
-	TPZMatrix<STATE> * mat = StrMatrix.Create();
-	TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
+	auto * mat = StrMatrix.Create();
+	TPZBlockDiagonalStructMatrix<STATE> strBlockDiag(Mesh());
 	TPZStepSolver<STATE> Pre;
 	TPZBlockDiagonal<STATE> * block = new TPZBlockDiagonal<STATE>();//blockDiag.Create();
 	strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure

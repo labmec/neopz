@@ -344,8 +344,8 @@ int main1(){
   TPZAnalysis an(cmesh);
 //   TPZFrontStructMatrix<TPZFrontNonSym> matrix(cmesh);
 //   TPZFrontStructMatrix<TPZFrontSym> matrix(cmesh);
-//   TPZFStructMatrix matrix(cmesh);
-  TPZBandStructMatrix matrix(cmesh);
+//   TPZFStructMatrix<STATE> matrix(cmesh);
+  TPZBandStructMatrix<STATE> matrix(cmesh);
   an.SetStructuralMatrix(matrix);
   TPZStepSolver<STATE> step;
   
@@ -356,7 +356,7 @@ int main1(){
 //       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
 	TPZAutoPointer<TPZGuiInterface> gui;
 	TPZFMatrix<STATE> fakeRhs(cmesh->NEquations(),1);
-	TPZBandStructMatrix PrecondMatrix(cmesh); 
+	TPZBandStructMatrix<STATE> PrecondMatrix(cmesh); 
 	TPZStepSolver<STATE> precond(PrecondMatrix.CreateAssemble(fakeRhs,gui));
 	precond.SetDirect(ELU);
       

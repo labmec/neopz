@@ -1137,8 +1137,9 @@ void TPZDarcyPMaterial::FillVecShapeIndex(TPZMaterialData &data)
 void TPZDarcyPMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors)
 {
 
-    TPZVec<STATE> u_exact(1);
-    TPZFMatrix<STATE> du_exact(3,1);
+    if(!fExactSol) DebugStop();
+    TPZManVector<STATE> u_exact(1);
+    TPZFNMatrix<5,STATE> du_exact(3,1);
     fExactSol->Execute(data[0].x, u_exact, du_exact);
     errors.Resize(NEvalErrors());
     errors.Fill(0.0);

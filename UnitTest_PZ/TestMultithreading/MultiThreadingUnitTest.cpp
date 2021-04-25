@@ -30,10 +30,6 @@ namespace threadTest {
   //aux function for creating 2d cmesh with laplacian mat
   TPZCompMesh* CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol, const int matIdBC);
 
-  //test the stiffness matrices in serial and parallel computations
-  template <class TSTMAT>
-  void CompareStiffnessMatrices(const int nThreads);
-
   template <class TSTMAT>
   void ComparePostProcError(const int nThreads);
 
@@ -41,18 +37,10 @@ namespace threadTest {
   static void ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &sol, TPZFMatrix <STATE> &solDx);
 }
 
-
-TEST_CASE("multithread_assemble_test","[multithread_tests]")
+TEST_CASE("Parallel post process error test","[multithread_tests][multithread][struct][analysis]")
 {
-  threadTest::CompareStiffnessMatrices<TPZSkylineStructMatrix>(4);
-  threadTest::CompareStiffnessMatrices<TPZBlockDiagonalStructMatrix>(4);
-  threadTest::CompareStiffnessMatrices<TPZBandStructMatrix>(4);
-  threadTest::CompareStiffnessMatrices<TPZSpStructMatrix>(4);
-}
-
-TEST_CASE("multithread_postprocerror_test","[multithread_tests]")
-{
-  threadTest::ComparePostProcError<TPZSkylineStructMatrix>(4);
+  TPZLogger::InitializePZLOG();
+  threadTest::ComparePostProcError<TPZSkylineStructMatrix<STATE>>(4);
 }
 
 
@@ -94,54 +82,6 @@ TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const 
   cmesh->CleanUpUnconnectedNodes();
 
   return cmesh;
-}
-
-template <class TSTMAT>
-void threadTest::CompareStiffnessMatrices(const int nThreads)
-{
-  constexpr int nDiv{4};
-  constexpr int pOrder{3};
-  int matIdVol;
-  int matIdBC;
-  auto *gMesh = CreateGMesh(nDiv, matIdVol, matIdBC);
-  auto *cMesh = CreateCMesh(gMesh, pOrder, matIdVol, matIdBC);
-    
-  constexpr bool optimizeBandwidth{false};
-  //lambda for obtaining the FE matrix
-  auto GetMatrix = [cMesh, optimizeBandwidth](const int nThreads){
-    TPZAnalysis an(cMesh, optimizeBandwidth);
-    TSTMAT matskl(cMesh);
-    matskl.SetNumThreads(nThreads);
-    an.SetStructuralMatrix(matskl);
-    an.Assemble();
-    return an.MatrixSolver<STATE>().Matrix();
-  };
-
-  auto start = std::chrono::system_clock::now();
-  auto matSerial = GetMatrix(0);
-  std::cout<<typeid(TSTMAT).name()<<std::endl;
-  auto end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsedSerial = end - start;
-  std::cout << "\tSerial time: " << elapsedSerial.count() << "s\n";
-
-  start = std::chrono::system_clock::now();
-  auto matParallel = GetMatrix(nThreads);
-  end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsedParallel = end - start;
-  std::cout << "\tParallel time: " << elapsedParallel.count() << "s\n";
-  std::cout << "\tSpeedup: " << elapsedSerial / elapsedParallel << "x\n";
-
-  const int nr = matParallel->Rows();
-  const int nc = matParallel->Cols();
-  
-  TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
-  matSerial->Substract(matParallel, matDiff);
-  const auto normDiff = Norm(matDiff);
-  std::cout.precision(17);
-  std::cout << std::fixed << "\tNorm diff: " << normDiff << std::endl;
-  const bool checkMatNorm = IsZero(normDiff);
-  REQUIRE(checkMatNorm);
-  delete gMesh;
 }
 
 template <class TSTMAT>
@@ -206,6 +146,7 @@ void threadTest::ComparePostProcError(const int nThreads) {
   }
   REQUIRE(pass);
 
+  delete cMesh;
   delete gMesh;
 }
 

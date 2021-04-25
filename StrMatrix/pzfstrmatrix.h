@@ -6,30 +6,30 @@
 #ifndef TPZFSTRUCTMATRIX_H
 #define TPZFSTRUCTMATRIX_H
 
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-#include "pzstrmatrix.h"
-
-class TPZCompMesh;
+#include "TPZStructMatrixT.h"
+#include "pzstrmatrixor.h"
 
 /**
  * @brief Implements Full Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZFStructMatrix : public TPZStructMatrix {
-public:    
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPZFStructMatrix : public TPZStructMatrixT<TVar>,
+                                  public TPar
+{
+public:    	
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
+    TPZMatrix<TVar>* Create() override;
 	
-    TPZFStructMatrix(TPZCompMesh *);
-	
-    TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> );
-    
-    virtual TPZMatrix<STATE> * Create();
-	
-    virtual TPZStructMatrix * Clone();
+    TPZStructMatrix * Clone() override;
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
 
-private :
-	
-    TPZFStructMatrix();
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
     
     friend TPZPersistenceManager;
 };

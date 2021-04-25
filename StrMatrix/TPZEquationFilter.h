@@ -177,55 +177,12 @@ public:
 	/**
 	 * Expands the vector small to a original system, fill zeros into the no active equations.
 	 */
-	template<class TVar>
-    void Scatter(const TPZFMatrix<TVar> &vsmall, TPZFMatrix<TVar> &vexpand) const
-    {
-        int64_t neqcondense = this->NActiveEquations();
-        if(vsmall.Rows() != neqcondense || vexpand.Rows() != fNumEq)
-        {
-            DebugStop();
-        }
-        if(! IsActive())
-        {
-            vexpand = vsmall;
-            return;
-        }
-        vexpand.Zero();
-
-#ifdef PZDEBUG
-        {
-            for(int64_t i=0; i<neqcondense; i++)
-            {
-                if(fActiveEqs[i] >= fNumEq)
-                {
-                    DebugStop();
-                }
-            }
-        }
-#endif
-        for(int64_t i=0; i<neqcondense; i++) vexpand(fActiveEqs[i],0) = vsmall.GetVal(i,0);
-    }
+    void Scatter(const TPZBaseMatrix &vsmall, TPZBaseMatrix &vexpand) const;
 
     /**
      * @brief Reduce the vector to the number of active equations.
      */
-    template<class T>
-    void Gather(const TPZFMatrix<T> &large, TPZFMatrix<T> &gathered) const
-    {
-        int64_t neqcondense = this->NActiveEquations();
-        if(gathered.Rows() != neqcondense || large.Rows() != fNumEq)
-        {
-            DebugStop();
-        }
-        if(! IsActive())
-        {
-            gathered = large;
-            return;
-        }
-        gathered.Zero();
-        for(int64_t i=0; i<neqcondense; i++) gathered(i,0) = large.GetVal(fActiveEqs[i],0);
-    }
-
+    void Gather(const TPZBaseMatrix &large, TPZBaseMatrix &gathered) const;
     /**
      * @brief Returns the number of active equations between [minindex,maxindex]
      */
@@ -288,7 +245,14 @@ private:
 
     /// Posicao das equacoes originais no sistema reduzido
     TPZVec<int64_t> fDestIndices;
-    
+
+    template <class TVar>
+    void ScatterInternal(const TPZFMatrix<TVar> &vsmall,
+                         TPZFMatrix<TVar> &vexpand) const;
+
+    template <class TVar>
+    void GatherInternal(const TPZFMatrix<TVar> &large,
+                        TPZFMatrix<TVar> &gathered) const;
 };
 
 #endif

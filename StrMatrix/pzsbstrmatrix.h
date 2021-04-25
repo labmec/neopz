@@ -6,28 +6,34 @@
 #ifndef TPZSBANDSTRUCTMATRIX_H
 #define TPZSBANDSTRUCTMATRIX_H
 
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-#include "pzstrmatrix.h"
-#include "pzcmesh.h"
+#include "TPZStructMatrixT.h"
+#include "pzstrmatrixor.h"
 
+
+template<class T>
+class TPZStructMatrixOR;
 /**
  * @brief Implements Symmetric Banded Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZSBandStructMatrix : public TPZStructMatrix {
-public:    
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPZSBandStructMatrix : public TPZStructMatrixT<TVar>,
+                             public TPar
+{
+	using TPZStructMatrixT<TVar>::TPZStructMatrixT;
+    
+    TPZMatrix<TVar> * Create() override;
 	
-    TPZSBandStructMatrix(TPZCompMesh *);
-	
-    virtual TPZMatrix<STATE> * Create();
-	
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
-    virtual TPZStructMatrix * Clone();
+    TPZStructMatrix * Clone() override;
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
 
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 private :
-    TPZSBandStructMatrix();
 	
     friend TPZPersistenceManager;
 };

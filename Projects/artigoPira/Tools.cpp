@@ -28,7 +28,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 
 #include "TPZGenGrid2D.h"
@@ -47,6 +47,7 @@
 #include "tpzgeoelmapped.h"
 
 #include "TPZParFrontStructMatrix.h"
+#include "TPZFrontSym.h"
 #include "TPZIntQuadQuarterPoint.h"
 #include "tpzintpoints.h"
 #include "pzquad.h"
@@ -1150,7 +1151,7 @@ void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, int numThreads)
 {
     if(numThreads==0){
         
-        TPZSkylineStructMatrix strmat(fCmesh); //caso simetrico
+        TPZSkylineStructMatrix<STATE> strmat(fCmesh); //caso simetrico
         an.SetStructuralMatrix(strmat);
         
     }else

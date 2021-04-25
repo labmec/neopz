@@ -6,28 +6,35 @@
 #ifndef TPZSPARSEBLOCKDIAGONALSTRUCTMATRIX_H
 #define TPZSPARSEBLOCKDIAGONALSTRUCTMATRIX_H
 
-#include "pzstrmatrix.h"
+#include "TPZStructMatrixT.h"
+#include "pzstrmatrixor.h"
 
 /**
  * @brief It will build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it. \ref structural "Structural Matrix"
  * @ingroup structural
  * @author Philippe R. B. Devloo
  */
-class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrixT<TVar>,
+                                  public TPar
 {
 public:
-	/** @brief Constructor for computational mesh */
-    TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh);
-	/** @brief Destructor */
-    ~TPZSparseBlockDiagonalStructMatrix();
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
 	
-	virtual TPZMatrix<STATE> * Create();
+	TPZMatrix<TVar> * Create() override;
 	
-    virtual TPZStructMatrix* Clone();
-    int NumColors();
+    TPZStructMatrix* Clone() override;
     
-private:
-    TPZSparseBlockDiagonalStructMatrix();
+    int NumColors();
+
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
+
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 
     friend TPZPersistenceManager;
 };

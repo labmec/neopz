@@ -14,7 +14,6 @@
 #include "pzvec.h"
 #include "pzmanvector.h"
 #include "checkconv.h"
-#include "pzstrmatrix.h"
 
 #include "pzlog.h"
 

@@ -17,7 +17,7 @@
 #include "pzl2projection.h"
 #include "pzelasmat.h"
 #include "TPZSkylineNSymStructMatrix.h"
-
+#include "pzelmat.h"
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzmultiphysicselement.h"
@@ -1229,7 +1229,7 @@ void SolveSystemTransient(REAL deltaT,REAL maxTime, TPZAnalysis *NonLinearAn, TP
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {
     
-    TPZSkylineStructMatrix full(Cmesh);
+    TPZSkylineStructMatrix<STATE> full(Cmesh);
     an.SetStructuralMatrix(full);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);

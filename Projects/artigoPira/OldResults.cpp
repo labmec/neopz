@@ -25,7 +25,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 
 #include "TPZGenGrid2D.h"
@@ -311,7 +311,7 @@ int mainOld(int argc, char *argv[])
         else
         {//Transferir solucao de uma malha para outra
             
-            TPZSkylineStructMatrix strMP(mphysics); //caso simetrico
+            TPZSkylineStructMatrix<STATE> strMP(mphysics); //caso simetrico
             //TPZParFrontStructMatrix<TPZFrontSym<STATE> > strMP(mphysics);
             //strMP.SetDecomposeType(ELDLt);
             strMP.SetNumThreads(6);
@@ -324,7 +324,7 @@ int mainOld(int argc, char *argv[])
             
             //Matriz projecao L2
             TPZAnalysis anFlux(cmeshL2);
-            TPZSkylineStructMatrix strFlux(cmeshL2);
+            TPZSkylineStructMatrix<STATE> strFlux(cmeshL2);
             //TPZParFrontStructMatrix<TPZFrontSym<STATE> > strFlux(cmeshL2);
             //strFlux.SetDecomposeType(ELDLt);
             strFlux.SetNumThreads(6);

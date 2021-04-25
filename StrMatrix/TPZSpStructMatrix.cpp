@@ -4,23 +4,11 @@
  */
 
 #include "TPZSpStructMatrix.h"
-#include "pzstrmatrix.h"
-
-#include "pzgeoelbc.h"
-#include "pzgmesh.h"
 #include "pzcmesh.h"
-
-#include "pzanalysis.h"
-#include "pzsolve.h"
-#include "pzstepsolver.h"
-
-#include "pzdxmesh.h"
-#include <fstream>
-
-#include "pzelmat.h"
-
 #include "pzysmp.h"
-#include "pzbndcond.h"
+#include "TPZRenumbering.h"
+#include "TPZGuiInterface.h"
+
 #include "TPZTimer.h"
 
 #include "pzlog.h"
@@ -30,54 +18,24 @@ static TPZLogger logger("pz.StrMatrix");
 
 using namespace std;
 
-TPZStructMatrix * TPZSpStructMatrix::Clone(){
+template<class TVar, class TPar>
+TPZStructMatrix * TPZSpStructMatrix<TVar,TPar>::Clone(){
     return new TPZSpStructMatrix(*this);
 }
-TPZMatrix<STATE> * TPZSpStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,
-                                              TPZAutoPointer<TPZGuiInterface> guiInterface){
 
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble starting")
-    }
-#endif
-	
-    int64_t neq = fMesh->NEquations();
-    if(fMesh->FatherMesh()) {
-		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZFYsmpMatrix<STATE>(0,0);
-    }
-    TPZMatrix<STATE> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
-    TPZFYsmpMatrix<STATE> *mat = dynamic_cast<TPZFYsmpMatrix<STATE> *> (stiff);
-    rhs.Redim(neq,1);
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-    TPZTimer before("Assembly of a sparse matrix");
-    before.start();
-#ifdef PZ_LOG
-    if (logger.isDebugEnabled())
-    {
-        LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble calling Assemble()");
-    }
-#endif
-    Assemble(*stiff,rhs,guiInterface);
-    before.stop();
-    std::cout << __PRETTY_FUNCTION__ << " " << before << std::endl;
-//    mat->ComputeDiagonal();
-    //    mat->ComputeDiagonal();
-    //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
-#ifdef PZ_LOG
-    if(logger.isDebugEnabled()) LOGPZ_DEBUG(logger,"TPZSpStructMatrix::CreateAssemble exiting");
-#endif
-    return stiff;
+template<class TVar, class TPar>
+void TPZSpStructMatrix<TVar,TPar>::EndCreateAssemble(TPZBaseMatrix * mat){
+    auto spMat = dynamic_cast<TPZFYsmpMatrix<TVar> *>(mat);
+    spMat->ComputeDiagonal();
 }
-TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
-    int64_t neq = fEquationFilter.NActiveEquations();
-	/*    if(fMesh->FatherMesh()) {
-	 TPZSubCompMesh *smesh = (TPZSubCompMesh *) fMesh;
-	 neq = smesh->NumInternalEquations();
-	 }*/
-    TPZFYsmpMatrix<STATE> * mat = new TPZFYsmpMatrix<STATE>(neq,neq);
+
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSpStructMatrix<TVar,TPar>::Create(){
+    int64_t neq = this->fMesh->NEquations();
+    if(this->fMesh->FatherMesh()) {
+		PZError << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
+		DebugStop();
+    }
 	
     /**
      *Longhin implementation
@@ -85,11 +43,24 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     TPZStack<int64_t> elgraph;
     TPZVec<int64_t> elgraphindex;
     //    int nnodes = 0;
-    fMesh->ComputeElGraph(elgraph,elgraphindex);
+    this->fMesh->ComputeElGraph(elgraph,elgraphindex);
+    TPZMatrix<TVar> * mat = SetupMatrixData(elgraph,elgraphindex);
+    return mat;
+}
+
+template<class TVar, class TPar>
+TPZMatrix<TVar> *
+TPZSpStructMatrix<TVar,TPar>::SetupMatrixData(TPZStack<int64_t> & elgraph,
+                                              TPZVec<int64_t> &elgraphindex){
+    
+    const int64_t neq = this->fEquationFilter.NActiveEquations();
+    TPZFYsmpMatrix<TVar> * mat = new TPZFYsmpMatrix<TVar>(neq,neq);
+    
     /**Creates a element graph*/
-    TPZRenumbering metis;
-    metis.SetElementsNodes(elgraphindex.NElements() -1 ,fMesh->NIndependentConnects());
-    metis.SetElementGraph(elgraph,elgraphindex);
+    TPZRenumbering graph;
+    graph.SetElementsNodes(elgraphindex.NElements() -1 ,
+                           this->fMesh->NIndependentConnects());
+    graph.SetElementGraph(elgraph,elgraphindex);
 	
     TPZManVector<int64_t> nodegraph;
     TPZManVector<int64_t> nodegraphindex;
@@ -97,40 +68,29 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
      *converts an element graph structure into a node graph structure
      *those vectors have size ZERO !!!
      */
-    metis.ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
-    
-#ifdef PZ_LOG2
-    if(logger.isDebugEnabled()){
-        std::stringstream sout;
-        sout << "Node graph \n";
-        metis.TPZRenumbering::Print(nodegraph, nodegraphindex);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
+    graph.ConvertGraph(elgraph,elgraphindex,nodegraph,nodegraphindex);
     /**vector sizes*/
-    int64_t nblock = nodegraphindex.NElements()-1;
+    const int64_t nblock = nodegraphindex.NElements()-1;
     // number of values in the sparse matrix
     int64_t totalvar = 0;
     // number of equations
     int64_t totaleq = 0;
     for(int64_t i=0;i<nblock;i++){
-		int64_t iblsize = fMesh->Block().Size(i);
-		int64_t iblpos = fMesh->Block().Position(i);
-        int64_t numactive = fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+		const int64_t iblsize = this->fMesh->Block().Size(i);
+		const int64_t iblpos = this->fMesh->Block().Position(i);
+        const int64_t numactive = this->fEquationFilter.NumActive(iblpos, iblpos+iblsize);
         if (!numactive) {
             continue;
         }
 		totaleq += iblsize;
-		int64_t icfirst = nodegraphindex[i];
-		int64_t iclast = nodegraphindex[i+1];
-		int64_t j;
-		//longhin
+		const int64_t icfirst = nodegraphindex[i];
+		const int64_t iclast = nodegraphindex[i+1];
 		totalvar+=iblsize*iblsize;
-		for(j=icfirst;j<iclast;j++) {
-			int64_t col = nodegraph[j];
-			int64_t colsize = fMesh->Block().Size(col);
-			int64_t colpos = fMesh->Block().Position(col);
-            int64_t numactive = fEquationFilter.NumActive(colpos, colpos+colsize);
+		for(auto j=icfirst;j<iclast;j++) {
+			const int64_t col = nodegraph[j];
+			const int64_t colsize = this->fMesh->Block().Size(col);
+			const int64_t colpos = this->fMesh->Block().Position(col);
+            const int64_t numactive = this->fEquationFilter.NumActive(colpos, colpos+colsize);
             if (!numactive) {
                 continue;
             }
@@ -149,98 +109,63 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     // pos is the position where we will put the column value
     int64_t pos = 0;
 	
-    nblock=fMesh->NIndependentConnects();
-	
     TPZManVector<int64_t,400> Eq(totaleq+1);
     TPZVec<int64_t> EqCol(totalvar);
-    TPZVec<STATE> EqValue(totalvar);
-    for(int64_t i=0;i<nblock;i++){
-		int64_t iblsize = fMesh->Block().Size(i);
-		int64_t iblpos = fMesh->Block().Position(i);
+    TPZVec<TVar> EqValue(totalvar);
+    //lambda for avoid repeating code
+    auto AddColEqs =
+        [this,&EqCol,&EqValue,&pos](const int colsize, const int colpos)
+        {
+            TPZManVector<int64_t> destindices(colsize);
+            for (int64_t i=0; i<colsize; i++) {
+                destindices[i] = colpos+i;
+            }
+            this->fEquationFilter.Filter(destindices);
+            for(auto jbleq=0; jbleq<destindices.size(); jbleq++) {
+                EqCol[pos] = destindices[jbleq];
+                EqValue[pos] = 0.;
+                pos++;
+            }
+        };
+
+    for(auto i=0;i<nblock;i++){
+		const int64_t iblsize = this->fMesh->Block().Size(i);
+		const int64_t iblpos = this->fMesh->Block().Position(i);
+        const int64_t numactive =
+            this->fEquationFilter.NumActive(iblpos, iblpos+iblsize);
+        if (!numactive) {
+            continue;
+        }
         TPZManVector<int64_t> rowdestindices(iblsize);
         for (int64_t ij=0; ij<iblsize; ij++) {
             rowdestindices[ij] = iblpos+ij;
         }
-        fEquationFilter.Filter(rowdestindices);
-
-		int64_t ibleq;
+        this->fEquationFilter.Filter(rowdestindices);
         // working equation by equation
         // rowdestindices contains the equation number of each element in the block number "i"
-		for(ibleq=0; ibleq<rowdestindices.size(); ibleq++) {
-            int rowind = rowdestindices[ibleq];
-//            if (rowind != pos) {
-//                DebugStop();
-//            }
+		for(auto ibleq=0; ibleq<rowdestindices.size(); ibleq++) {
+            if (rowdestindices[ibleq] != ieq) {
+                DebugStop();
+            }
 			Eq[ieq] = pos;
-			int64_t colsize,colpos,jbleq;
-			int64_t diagonalinsert = 0;
-			int64_t icfirst = nodegraphindex[i];
-			int64_t iclast = nodegraphindex[i+1];
-			int64_t j;
-			for(j=icfirst;j<iclast;j++)
+            //we need to add the diagonal block
+    //since nodegraph does not contain the pointer to itself
+            AddColEqs(this->fMesh->Block().Size(i),
+                      this->fMesh->Block().Position(i));
+			const int64_t icfirst = nodegraphindex[i];
+			const int64_t iclast = nodegraphindex[i+1];
+			for(auto j=icfirst;j<iclast;j++)
             {
                 // col is the block linked to block "i"
-				int64_t col = nodegraph[j];
-                
-                // force the diagonal block to be inserted
-                // the nodegraph does not contain the pointer to itself
-				if(!diagonalinsert && col > i)
-				{
-					diagonalinsert = 1;
-					int64_t colsize = fMesh->Block().Size(i);
-					int64_t colpos = fMesh->Block().Position(i);
-                    TPZManVector<int64_t> destindices(colsize);
-                    for (int64_t i=0; i<colsize; i++) {
-                        destindices[i] = colpos+i;
-                    }
-                    fEquationFilter.Filter(destindices);
-					int64_t jbleq;
-					for(jbleq=0; jbleq<destindices.size(); jbleq++) {
-						//             if(colpos+jbleq == ieq) continue;
-						EqCol[pos] = destindices[jbleq];
-						EqValue[pos] = 0.;
-						//            colpos++;
-                        // pos is the position within EqCol or EqVal where we will assemble
-						pos++;
-					}
-				}
-				colsize = fMesh->Block().Size(col);
-				colpos = fMesh->Block().Position(col);
-                // optimization statement : if all equations in the range are inactive -> continue
-                if (fEquationFilter.NumActive(colpos, colpos+colsize) == 0) {
+				const int64_t col = nodegraph[j];
+				const auto colsize = this->fMesh->Block().Size(col);
+				const auto colpos = this->fMesh->Block().Position(col);
+                const int64_t numactive =
+                    this->fEquationFilter.NumActive(colpos, colpos+colsize);
+                if (!numactive) {
                     continue;
                 }
-                TPZManVector<int64_t> destindices(colsize);
-                for (int64_t i=0; i<colsize; i++) {
-                    destindices[i] = colpos+i;
-                }
-                fEquationFilter.Filter(destindices);
-				for(jbleq=0; jbleq<destindices.size(); jbleq++) {
-					EqCol[pos] = destindices[jbleq];
-					EqValue[pos] = 0.;
-					colpos++;
-					pos++;
-				}
-			}
-            // all elements are below (last block certainly)
-			if(!diagonalinsert)
-			{
-				diagonalinsert = 1;
-				int64_t colsize = fMesh->Block().Size(i);
-				int64_t colpos = fMesh->Block().Position(i);
-                TPZManVector<int64_t> destindices(colsize);
-                for (int64_t i=0; i<colsize; i++) {
-                    destindices[i] = colpos+i;
-                }
-                fEquationFilter.Filter(destindices);
-				int64_t jbleq;
-				for(jbleq=0; jbleq<destindices.size(); jbleq++) {
-					//             if(colpos+jbleq == ieq) continue;
-					EqCol[pos] = destindices[jbleq];
-					EqValue[pos] = 0.;
-					//            colpos++;
-					pos++;
-				}
+                AddColEqs(colsize,colpos);
 			}
 			ieq++;
 		}
@@ -248,108 +173,37 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
     Eq[ieq] = pos;
     if(pos != totalvar)
     {
+        PZError<<__PRETTY_FUNCTION__<<'\n';
+        PZError<<"nvars: "<<totalvar<<'\n';
+        PZError<<"l pos: "<<pos<<'\n';
         DebugStop();
     }
     mat->SetData(Eq,EqCol,EqValue);
     return mat;
 }
 
-TPZSpStructMatrix::TPZSpStructMatrix() : TPZStructMatrix(){
+template<class TVar, class TPar>
+int TPZSpStructMatrix<TVar,TPar>::ClassId() const{
+    return Hash("TPZSpStructMatrix") ^
+        TPZStructMatrixT<TVar>::ClassId() << 1 ^
+        TPar::ClassId() << 2;
 }
 
-TPZSpStructMatrix::TPZSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{}
-
-int TPZSpStructMatrix::ClassId() const{
-    return Hash("TPZSpStructMatrix") ^ TPZStructMatrix::ClassId() << 1;
+template<class TVar, class TPar>
+void TPZSpStructMatrix<TVar,TPar>::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPar::Read(buf,context);
 }
 
-#ifndef STATE_COMPLEX
-#include "pzmat2dlin.h"
-
-int TPZSpStructMatrix::main() {
-	
-	int refine=5;
-	int order=5;
-	
-	TPZGeoMesh gmesh;
-	TPZCompMesh cmesh(&gmesh);
-	double coordstore[4][3] = {{0.,0.,0.},{1.,0.,0.},{1.,1.,0.},
-		{0.,1.,0.}};
-	
-	int i,j;
-	TPZVec<REAL> coord(3,0.);
-	for(i=0; i<4; i++) {
-		// initializar as coordenadas do no em um vetor
-		for (j=0; j<3; j++) coord[j] = coordstore[i][j];
-		
-		// identificar um espa� no vetor onde podemos armazenar
-		// este vetor
-		gmesh.NodeVec ().AllocateNewElement ();
-		
-		// initializar os dados do n�       gmesh.NodeVec ()[nodeindex].Initialize (i,coord,gmesh);
-	}
-	int el;
-	TPZGeoEl *gel;
-	for(el=0; el<1; el++) {
-		
-		// initializar os indices dos nos
-		TPZVec<int64_t> indices(4);
-		for(i=0; i<4; i++) indices[i] = i;
-		// O proprio construtor vai inserir o elemento na malha
-		//       gel = new TPZGeoElQ2d(el,indices,1,gmesh);
-		int64_t index;
-		gel = gmesh.CreateGeoElement(EQuadrilateral,indices,1,index);
-	}
-	gmesh.BuildConnectivity ();
-	
-	TPZVec<TPZGeoEl *> subel;
-	
-	cout << "Refinement ";
-	cin >> refine;
-	cout << endl;
-	DebugStop();
-//	UniformRefine(refine,gmesh);
-	
-	TPZGeoElBC gelbc(gel,4,-4);
-	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
-	meumat->SetMaterial (xk,xc,xf);
-	TPZMaterial * meumatptr(meumat);
-	cmesh.InsertMaterialObject(meumatptr);
-	
-	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	TPZMaterial * bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
-	cmesh.InsertMaterialObject(bnd);
-	
-	cout << "Interpolation order ";
-	cin >> order;
-	cout << endl;
-	
-	//TPZCompEl::gOrder = order;
-	cmesh.SetDefaultOrder(order);
-	
-	cmesh.AutoBuild();
-	//	cmesh.AdjustBoundaryElements();
-	cmesh.InitializeBlock();
-	
-	ofstream output("outputPar.dat");
-	TPZAnalysis an(&cmesh,true,output);
-	
-	TPZVec<int> numelconnected(cmesh.NEquations(),0);
-	TPZSpStructMatrix mat(&cmesh);
-	
-	an.SetStructuralMatrix(mat);
-	
-	TPZStepSolver<STATE> sol;
-	sol.SetJacobi(100,1.e-5,0);
-	
-	
-	an.SetSolver(sol);
-	an.Run(output);
-	output.flush();
-	cout.flush();
-	return 0;
-	
+template<class TVar, class TPar>
+void TPZSpStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPar::Write(buf,withclassid);
 }
-#endif
+
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZSpStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZSpStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZSpStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

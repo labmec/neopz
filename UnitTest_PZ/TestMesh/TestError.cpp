@@ -14,12 +14,13 @@
 #include "pzskylstrmatrix.h" //symmetric skyline matrix storage
 #include "pzstepsolver.h" //for TPZStepSolver
 #include <catch2/catch.hpp>
-
+#include "pzlog.h"
 void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error);
 
 
 TEST_CASE("error_poisson","[error_tests]")
 {
+  TPZLogger::InitializePZLOG();
   TPZManVector<REAL,3> lastError(3,10000);
   for(int p = 1; p < 5; p++){
     TPZManVector<REAL,3> error(3,0.);
@@ -138,7 +139,7 @@ void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
   constexpr int nThreads{4};
   //defines storage scheme to be used for the FEM matrices
   //in this case, a symmetric skyline matrix is used
-  TPZSkylineStructMatrix matskl(cmesh);
+  TPZSkylineStructMatrix<STATE> matskl(cmesh);
   matskl.SetNumThreads(nThreads);
   an.SetStructuralMatrix(matskl);
   	

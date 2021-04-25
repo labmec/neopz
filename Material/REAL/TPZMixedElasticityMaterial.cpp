@@ -1335,9 +1335,18 @@ int TPZMixedElasticityMaterial::NEvalErrors() {
     return 8;
 }
 
-void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<STATE> &u_exact, TPZFMatrix<STATE> &du_exact, TPZVec<REAL> &errors) {
+void TPZMixedElasticityMaterial::Errors(TPZVec<TPZMaterialData> &data, TPZVec<REAL> &errors) {
     //values[0] = 0.;
     //TPZManVector<REAL, 4> SigmaV(4, 0.), sigma_exactV(4, 0.), eps_exactV(4, 0.), EPSZV(4, 0.);
+    TPZVec<STATE> u_exact;
+    TPZFMatrix<STATE> du_exact;
+    if(fExactSol)
+    {
+        fExactSol->Execute(data[0].x, u_exact, du_exact);
+    }
+    else DebugStop();
+    
+    
 	TPZManVector<STATE, 4> SigmaV(4, 0.), sigma_exactV(4, 0.), eps_exactV(4, 0.), EPSZV(4, 0.);
 	TPZFNMatrix<9, STATE> sigma(2, 2, 0.), eps(2, 2, 0.), grad(2, 2, 0.);
     TPZFNMatrix<4, STATE> eps_exact(2, 2, 0.);

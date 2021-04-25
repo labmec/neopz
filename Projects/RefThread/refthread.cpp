@@ -457,7 +457,7 @@ bool checkneighbours (TPZGeoMesh* mesh, int iel)
 	}
 }
 
-void *divide(void *arg)
+void divide(void *arg)
 {
     divide_data *idata = (divide_data*) arg;
     TPZGeoMesh *imesh = idata->mesh;

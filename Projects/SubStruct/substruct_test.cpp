@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <cstdlib>
-
+#include "pzsubcmesh.h"
 #include "tpzdohrsubstruct.h"
 #include "tpzdohrmatrix.h"
 #include "tpzdohrprecond.h"

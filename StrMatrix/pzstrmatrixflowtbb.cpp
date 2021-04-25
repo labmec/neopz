@@ -4,25 +4,15 @@
  */
 
 #include "pzstrmatrixflowtbb.h"
-
+#include "TPZStructMatrix.h"
 #include "TPZStructMatrixTBBFlowUtils.h"
-#include "TPZMaterial.h"
-#include "pzlog.h"
+#include "TPZGuiInterface.h"
 
 #ifdef PZ_LOG
+#include "pzlog.h"
 static TPZLogger loggerel("pz.strmatrix.element");
 #endif
 
-
-
-#ifdef CHECKCONSISTENCY
-static TPZCheckConsistency stiffconsist("ElementStiff");
-#endif
-
-
-#include "run_stats_table.h"
-
-static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBBFlow.");
 #ifndef USING_TBB
 #define NO_TBB \
     PZError<<"The class TPZStructMatrixTBBFlow depends on the TBB library.\n";\
@@ -30,72 +20,46 @@ static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table 
     PZError<<"USING_TBB=ON"<<std::endl;\
     DebugStop();
 #endif
-TPZStructMatrixTBBFlow::TPZStructMatrixTBBFlow() : TPZStructMatrixBase(){
-#ifndef USING_TBB
-    NO_TBB
+
+#ifdef CHECKCONSISTENCY
+static TPZCheckConsistency stiffconsist("ElementStiff");
 #endif
-}
-TPZStructMatrixTBBFlow::TPZStructMatrixTBBFlow(TPZCompMesh *mesh) : fMesh(mesh), fEquationFilter(mesh->NEquations()) {
-#ifndef USING_TBB
-    NO_TBB
-#else
-    fMesh = mesh;
-    this->SetNumThreads(0);
-    this->fFlowGraph = new TPZFlowGraph(this);
-#endif
+
+template<class TVar>
+TPZStructMatrixTBBFlow<TVar>::TPZStructMatrixTBBFlow() : TPZStrMatParInterface(), fFlowGraph(nullptr){
 }
 
-TPZStructMatrixTBBFlow::TPZStructMatrixTBBFlow(TPZAutoPointer<TPZCompMesh> cmesh) : fCompMesh(cmesh), fEquationFilter(cmesh->NEquations()) {
+template<class TVar>
+TPZStructMatrixTBBFlow<TVar>::TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlow &copy){
 #ifndef USING_TBB
     NO_TBB
 #else
-    fMesh = cmesh.operator->();
-    this->SetNumThreads(0);
-    this->fFlowGraph = new TPZFlowGraph(this);
+    fNumThreads = copy.fNumThreads;
+    /*do not copy fFlowGraph!
+      It will be created at CreateAssemble.
+      And, at this moment, we have no way to tell that
+      the this pointer is a TPZStructMatrix, so we cannot get its mesh*/
 #endif
 }
 
-TPZStructMatrixTBBFlow::TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlow &copy) : fMesh(copy.fMesh), fEquationFilter(copy.fEquationFilter)
-{
+template<class TVar>
+TPZStructMatrixTBBFlow<TVar>::~TPZStructMatrixTBBFlow(){}
 
-#ifndef USING_TBB
-    NO_TBB
-#else
-        if (copy.fCompMesh) {
-        fCompMesh = copy.fCompMesh;
-    }
-    fMaterialIds = copy.fMaterialIds;
-    fNumThreads = copy.fNumThreads;    
-    fFlowGraph = new TPZFlowGraph(*copy.fFlowGraph);
-#endif
-}
+#include "run_stats_table.h"
 
+static RunStatsTable stat_ass_graph_tbb("-ass_graph_tbb", "Run statistics table for the graph creation, coloring and tbb::flow::graph TPZStructMatrixTBBFlow.");
 
-
-TPZStructMatrixTBBFlow::~TPZStructMatrixTBBFlow()
-{
-    if (fFlowGraph) {
-        delete fFlowGraph;
-    }
-}
-
-TPZMatrix<STATE> *TPZStructMatrixTBBFlow::Create() {
-    std::cout << "TPZStructMatrixTBBFlow::Create should never be called\n";
-    return 0;
-}
-
-TPZStructMatrixTBBFlow *TPZStructMatrixTBBFlow::Clone() {
-    std::cout << "TPZStructMatrixTBBFlow::Clone should never be called\n";
-    return 0;
-}
 
 static RunStatsTable ass_stiff("-ass_stiff", "Assemble Stiffness");
 static RunStatsTable ass_rhs("-ass_rhs", "Assemble Stiffness");
 
-void TPZStructMatrixTBBFlow::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    const auto &equationFilter =
+        (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_stiff.start();
-    if (fEquationFilter.IsActive()) {
-        int64_t neqcondense = fEquationFilter.NActiveEquations();
+    if (equationFilter.IsActive()) {
+        int64_t neqcondense = equationFilter.NActiveEquations();
 #ifdef PZDEBUG
         if (stiffness.Rows() != neqcondense) {
             DebugStop();
@@ -103,7 +67,7 @@ void TPZStructMatrixTBBFlow::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 #endif
         TPZFMatrix<STATE> rhsloc(neqcondense,rhs.Cols(),0.);
         this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
-        fEquationFilter.Scatter(rhsloc, rhs);
+        equationFilter.Scatter(rhsloc, rhs);
     }
     else
     {
@@ -113,19 +77,29 @@ void TPZStructMatrixTBBFlow::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
     ass_stiff.stop();
 }
 
-void TPZStructMatrixTBBFlow::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
+    const auto &equationFilter =
+        (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
+    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" Incompatible types. Aborting...\n";
+        DebugStop();
+    }
+    auto &rhs = dynamic_cast<TPZFMatrix<STATE> &>(rhs_base);
     ass_rhs.start();
-    if(fEquationFilter.IsActive())
+    if(equationFilter.IsActive())
     {
-        int64_t neqcondense = fEquationFilter.NActiveEquations();
-        int64_t neqexpand = fEquationFilter.NEqExpand();
+        int64_t neqcondense = equationFilter.NActiveEquations();
+        int64_t neqexpand = equationFilter.NEqExpand();
+        //TODONORM
         if(rhs.Rows() != neqexpand || Norm(rhs) != 0.)
         {
             DebugStop();
         }
         TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
         this->MultiThread_Assemble(rhsloc,guiInterface);
-        fEquationFilter.Scatter(rhsloc,rhs);
+        equationFilter.Scatter(rhsloc,rhs);
     }
     else
     {
@@ -134,29 +108,19 @@ void TPZStructMatrixTBBFlow::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZ
     ass_rhs.stop();
 }
 
-TPZMatrix<STATE> * TPZStructMatrixTBBFlow::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::InitCreateAssemble()
 {
-    TPZMatrix<STATE> *stiff = Create();
-    
-    int64_t cols = MAX(1, rhs.Cols());
-    rhs.Redim(fEquationFilter.NEqExpand(),cols);
-    
-    Assemble(*stiff,rhs,guiInterface);
-    
-#ifdef PZ_LOG2
-    if(loggerel.isDebugEnabled())
-    {
-        std::stringstream sout;
-        stiff->Print("Stiffness matrix",sout);
-        rhs.Print("Right hand side", sout);
-        LOGPZ_DEBUG(loggerel,sout.str())
-    }
+#ifndef USING_TBB
+    NO_TBB
+#else
+    this->SetNumThreads(0);
+    this->fFlowGraph = new TPZFlowGraph(this);
 #endif
-    return stiff;
-    
 }
 
-void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs, &mat);
@@ -166,8 +130,8 @@ void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMa
 #endif
 }
 
-
-void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::MultiThread_Assemble(TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 #ifdef USING_TBB
     this->fFlowGraph->ExecuteGraph(&rhs);
@@ -177,33 +141,21 @@ void TPZStructMatrixTBBFlow::MultiThread_Assemble(TPZFMatrix<STATE> & rhs,TPZAut
 #endif
 }
 
-int TPZStructMatrixTBBFlow::ClassId() const{
-    return Hash("TPZStructMatrixTBBFlow") ^ TPZStructMatrixBase::ClassId() << 1;
+template<class TVar>
+int TPZStructMatrixTBBFlow<TVar>::ClassId() const{
+    return Hash("TPZStructMatrixTBBFlow") ^ TPZStrMatParInterface::ClassId() << 1;
+}
+
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Read(TPZStream& buf, void* context) {
+    TPZStrMatParInterface::Read(buf,context);
+}
+
+template<class TVar>
+void TPZStructMatrixTBBFlow<TVar>::Write(TPZStream& buf, int withclassid) const {
+    TPZStrMatParInterface::Write(buf,withclassid);
 }
 
 
-void TPZStructMatrixTBBFlow::Read(TPZStream& buf, void* context) {
-    TPZStructMatrixBase::Read(buf,context);
-    fMesh = dynamic_cast<TPZCompMesh *>(TPZPersistenceManager::GetInstance(&buf));
-    fCompMesh = TPZAutoPointerDynamicCast<TPZCompMesh>(TPZPersistenceManager::GetAutoPointer(&buf));
-    fEquationFilter.Read(buf, context);
-    buf.Read(fMaterialIds);
-    buf.Read(&fNumThreads);
-    PZError<<__PRETTY_FUNCTION__<<" not implemented. Aborting..."<<std::endl;
-    DebugStop();
-	//fFlowGraph = new TPZFlowGraph(this);
-}
-
-void TPZStructMatrixTBBFlow::Write(TPZStream& buf, int withclassid) const {
-    TPZStructMatrixBase::Write(buf,withclassid);
-    TPZPersistenceManager::WritePointer(fMesh, &buf);
-    TPZPersistenceManager::WritePointer(fCompMesh.operator ->(), &buf);
-    fEquationFilter.Write(buf, withclassid);
-    PZError<<__PRETTY_FUNCTION__<<" not implemented. Aborting..."<<std::endl;
-    DebugStop();
-//    TPZPersistenceManager::WritePointer(fFlowGraph, &buf);
-    buf.Write(fMaterialIds);
-    buf.Write(&fNumThreads);
-}
-
-template class TPZRestoreClass<TPZStructMatrixTBBFlow>;
+template class TPZStructMatrixTBBFlow<STATE>;
+template class TPZRestoreClass<TPZStructMatrixTBBFlow<STATE>>;

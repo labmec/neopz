@@ -4,27 +4,17 @@
  */
 
 #include "tpzsparseblockdiagonalstructmatrix.h"
+#include "pzcmesh.h"
 
-TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix() :
-TPZStructMatrix()
+template<class TVar, class TPar>
+TPZStructMatrix* TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::Clone()
 {
+    DebugStop();
+	return nullptr;
 }
 
-TPZSparseBlockDiagonalStructMatrix::TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh) :
-TPZStructMatrix(mesh)
-{
-}
-
-TPZSparseBlockDiagonalStructMatrix::~TPZSparseBlockDiagonalStructMatrix()
-{
-}
-
-TPZStructMatrix* TPZSparseBlockDiagonalStructMatrix::Clone()
-{
-    return TPZStructMatrix::Clone();
-}
-
-TPZMatrix<STATE> * TPZSparseBlockDiagonalStructMatrix::Create()
+template<class TVar, class TPar>
+TPZMatrix<TVar> * TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::Create()
 {
 	//extract the structure of the matrix from the mesh
 	//create an object of type SparseBlockDiagonal
@@ -40,13 +30,42 @@ TPZMatrix<STATE> * TPZSparseBlockDiagonalStructMatrix::Create()
 	// this preconditioner type should be created by the analysis class
 	// it is too complicated to require the user to coordinate this within
 	// the current class structure....
-	return 0;
+	DebugStop();
+	return nullptr;
 }
 
 /*!
- \fn TPZSparseBlockDiagonalStructMatrix::NumColors()
+template<class TVar, class TPar>
+ \fn TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::NumColors()
  */
-int TPZSparseBlockDiagonalStructMatrix::NumColors()
+template<class TVar, class TPar>
+int TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::NumColors()
 {
     return 0;
 }
+
+template<class TVar, class TPar>
+int TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::ClassId() const{
+	return Hash("TPZSparseBlockDiagonalStructMatrix") ^
+		TPZStructMatrix::ClassId() << 1 ^
+        TPar::ClassId() << 2;
+}
+
+template<class TVar, class TPar>
+void TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::Read(TPZStream& buf, void* context){
+    TPZStructMatrix::Read(buf,context);
+    TPar::Read(buf,context);
+}
+
+template<class TVar, class TPar>
+void TPZSparseBlockDiagonalStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
+    TPZStructMatrix::Write(buf,withclassid);
+    TPar::Write(buf,withclassid);
+}
+
+#include "pzstrmatrixot.h"
+#include "pzstrmatrixflowtbb.h"
+
+template class TPZSparseBlockDiagonalStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
+template class TPZSparseBlockDiagonalStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
+template class TPZSparseBlockDiagonalStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;

@@ -31,10 +31,10 @@
 
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 
@@ -600,14 +600,14 @@ void CreatInterface(TPZCompMesh *cmesh){
 void ResolverSistema(TPZAnalysis &an, TPZCompMesh *fCmesh, bool symmetric_matrix)
 {
     if(symmetric_matrix ==true){
-        TPZSkylineStructMatrix skmat(fCmesh);
+        TPZSkylineStructMatrix<STATE> skmat(fCmesh);
         an.SetStructuralMatrix(skmat);
         TPZStepSolver<STATE> direct;
         direct.SetDirect(ELDLt);
         an.SetSolver(direct);
     }
     else{
-        TPZBandStructMatrix bdmat(fCmesh);
+        TPZBandStructMatrix<STATE> bdmat(fCmesh);
         an.SetStructuralMatrix(bdmat);
         TPZStepSolver<STATE> direct;
         direct.SetDirect(ELU);

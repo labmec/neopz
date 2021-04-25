@@ -29,7 +29,7 @@
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "pzstepsolver.h"
 #include "TPZSpStructMatrix.h"
 #include "pzfstrmatrix.h"

@@ -697,7 +697,7 @@ void SolveLU ( TPZAnalysis &an ){
 		// tanto com LU quanto Choleski. Isso resulta em não simetrias.
 		TPZCompMesh *malha = an.Mesh();
 	//	TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
-		TPZFStructMatrix mat( malha );
+		TPZFStructMatrix<STATE> mat( malha );
 		//	TPZSpStructMatrix mat( malha );
 		TPZStepSolver<STATE> solv;
 		

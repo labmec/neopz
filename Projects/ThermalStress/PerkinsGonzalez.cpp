@@ -70,7 +70,7 @@ int main()
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    TPZSkylineStructMatrix skylstruct(cmesh);
+    TPZSkylineStructMatrix<STATE> skylstruct(cmesh);
     TPZStepSolver<STATE> step;
     step.SetDirect(ECholesky);
     TPZAnalysis an(cmesh);

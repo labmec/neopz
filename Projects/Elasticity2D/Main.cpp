@@ -31,10 +31,10 @@
 
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
-#include "pzstrmatrix.h"
+#include "TPZStructMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
-#include "TPBSpStructMatrix.h"
+#include "TPZBSpStructMatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "pzbstrmatrix.h"
 #include "pzl2projection.h"
@@ -226,7 +226,7 @@ TPZCompMesh * ComputationalElasticityMesh(TPZGeoMesh * gmesh,int pOrder)
 #define VTK
 void SolveSist(TPZAnalysis *an, TPZCompMesh *fCmesh)
 {			
-	TPZSkylineStructMatrix skymat(fCmesh);
+	TPZSkylineStructMatrix<STATE> skymat(fCmesh);
 	an->SetStructuralMatrix(skymat);
 	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt);

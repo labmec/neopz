@@ -13,10 +13,11 @@
 #include "TPZGuiInterface.h"
 #include "pzelmat.h"
 #include "TPZSemaphore.h"
-#include "pzstrmatrix.h"
-
+#include "TPZStructMatrix.h"
 //class TPZStructMatrix;
 
+
+//TODO: NEEDS REVIEW
 /**
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub Structure"
@@ -24,7 +25,8 @@
 class TPZPairStructMatrix
 {
 	TPZVec<int> fPermuteScatter;
-    TPZStructMatrix fStrMatrix;
+	
+    TPZAutoPointer<TPZStructMatrix>fStrMatrix;
 	
 	void PermuteScatter(TPZVec<int> &index);
 	void PermuteScatter(TPZVec<int64_t> &index);
@@ -42,7 +44,7 @@ public:
 	
 	void SetNumThreads(int numthreads)
 	{
-		fStrMatrix.SetNumThreads(numthreads);
+		fStrMatrix->SetNumThreads(numthreads);
 	}
 	
 	/** @brief Set the set of material ids which will be considered when assembling the system */

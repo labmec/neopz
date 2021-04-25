@@ -262,6 +262,95 @@ void TPZSYsmpMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric)
     SetData(IA, JA, A);
 }
 
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & destinationindex){
+    int64_t i,j,k = 0;
+    TVar value=0.;
+    int64_t ipos,jpos;
+    for(i=0;i<elmat.Rows();i++){
+        for(j=0;j<elmat.Rows();j++){
+            ipos=destinationindex[i];
+            jpos=destinationindex[j];
+            if(jpos<ipos) continue;
+            value=elmat.GetVal(i,j);
+            //cout << "j= " << j << endl;
+            if(!IsZero(value)){
+                //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
+                int flag = 0;
+				k++;
+				if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
+				{ // OK -> elements in sequence
+					fA[k]+=value;
+					flag = 1;
+				}else
+				{
+					for(k=fIA[ipos];k<fIA[ipos+1];k++){
+						if(fJA[k]==jpos || fJA[k]==-1){
+							//cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
+							//cout << "k " << k << "   "<< jpos << "   " << value << endl;
+							flag=1;
+							if(fJA[k]==-1){
+								fJA[k]=jpos;
+								fA[k]=value;
+								// cout << jpos << "   " << value << endl;
+								break;
+							}else{
+								fA[k]+=value;
+								break;
+							}
+						}
+					}
+				}
+                if(!flag) std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << std::endl;         }
+        }
+    }
+}
+
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec<int64_t> & sourceindex, TPZVec<int64_t> & destinationindex){
+	int64_t i,j,k = 0;
+	TVar value=0.;
+	int64_t ipos,jpos;
+	for(i=0;i<sourceindex.NElements();i++){
+		for(j=0;j<sourceindex.NElements();j++){
+			ipos=destinationindex[i];
+			jpos=destinationindex[j];
+            if(jpos<ipos) continue;
+			value=elmat.GetVal(sourceindex[i],sourceindex[j]);
+            //cout << "j= " << j << endl;
+			if(!IsZero(value)){
+                //cout << "fIA[ipos] " << fIA[ipos] << "     fIA[ipos+1] " << fIA[ipos+1] << endl;
+				int flag = 0;
+				k++;
+				if(k >= fIA[ipos] && k < fIA[ipos+1] && fJA[k]==jpos)
+				{ // OK -> elements in sequence
+					fA[k]+=value;
+					flag = 1;
+				}else
+				{
+					for(k=fIA[ipos];k<fIA[ipos+1];k++){
+						if(fJA[k]==jpos || fJA[k]==-1){
+							//cout << "fJA[k] " << fJA[k] << " jpos "<< jpos << "   " << value << endl;
+							//cout << "k " << k << "   "<< jpos << "   " << value << endl;
+							flag=1;
+							if(fJA[k]==-1){
+								fJA[k]=jpos;
+								fA[k]=value;
+								// cout << jpos << "   " << value << endl;
+								break;
+							}else{
+								fA[k]+=value;
+								break;
+							}
+						}
+					}
+				}
+				if(!flag) std::cout << "TPZSYsmpMatrix::AddKel: Non existing position on sparse matrix: line =" << ipos << " column =" << jpos << std::endl;         }
+		}
+	}
+}
+
+
 #ifdef USING_MKL
 
 template<class TVar>

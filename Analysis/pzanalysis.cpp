@@ -43,7 +43,7 @@
 #include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
 #include "pzstack.h"                       // for TPZStack
 #include "pzstepsolver.h"                  // for TPZStepSolver
-#include "pzstrmatrix.h"                   // for TPZStructMatrix, TPZStruct...
+#include "TPZStructMatrix.h"               // for TPZStructMatrix
 #include "pzv3dmesh.h"                     // for TPZV3DGraphMesh
 #include "pzvec.h"                         // for TPZVec, operator<<
 #include "pzvtkmesh.h"                     // for TPZVTKGraphMesh
@@ -166,7 +166,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
     if(!this->fStructMatrix && mesh)
     {
         //seta default do StructMatrix como Full Matrix
-        TPZSkylineNSymStructMatrix  defaultMatrix(mesh);
+        TPZSkylineNSymStructMatrix<STATE>  defaultMatrix(mesh);
         this->SetStructuralMatrix(defaultMatrix);
     }
   
@@ -355,7 +355,7 @@ void TPZAnalysis::AssembleInternal()
 	else
 	{
         
-		TPZMatrix<TVar> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
+		auto *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
 		mySolver->SetMatrix(mat);
 		//aqui TPZFMatrix<TVar> nao eh nula
 	}
@@ -433,10 +433,10 @@ void TPZAnalysis::SolveInternal(){
     {
         TPZFMatrix<TVar> residual(nReducedEq,1,0.);
     	TPZFMatrix<TVar> delu(nReducedEq,1,0.);
-        fStructMatrix->EquationFilter().Gather<TVar>(fRhs,residual);
+        fStructMatrix->EquationFilter().Gather(fRhs,residual);
 	    mySolver->Solve(residual, delu);
         fSolution.Redim(numeq,1);
-        fStructMatrix->EquationFilter().Scatter<TVar>(delu,fSolution);
+        fStructMatrix->EquationFilter().Scatter(delu,fSolution);
     }
 #ifdef PZ_LOG
     std::stringstream sout;
@@ -1289,7 +1289,7 @@ TPZMatrixSolver<TVar> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner,
 		}
 		else if (overlap)
 		{
-			TPZBlockDiagonalStructMatrix blstr(fCompMesh);
+			TPZBlockDiagonalStructMatrix<TVar> blstr(fCompMesh);
 			TPZBlockDiagonal<TVar> *sp = new TPZBlockDiagonal<TVar>();
 			blstr.AssembleBlockDiagonal(*sp);
 			TPZStepSolver<TVar> *step = new TPZStepSolver<TVar>(sp);

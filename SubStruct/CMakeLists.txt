@@ -10,7 +10,7 @@ set(public_headers
     tpzdohrmatrix.h
     tpzdohrsubstruct.h
     tpzgensubstruct.h
-    tpzpairstructmatrix.h
+    # tpzpairstructmatrix.h #needsreview
     tpzdohrassembly.h
     tpzdohrprecond.h
     tpzdohrsubstructCondense.h

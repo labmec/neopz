@@ -1,49 +1,41 @@
 /**
  * @file
- * @brief Contains the TPZSymetricSpStructMatrix class which implements sparse structural matrices.
+ * @brief Contains the TPZSSpStructMatrix class which implements sparse structural matrices.
  */
 
-#ifndef TPZSymetricSpStructMatrix_H
-#define TPZSymetricSpStructMatrix_H
+#ifndef TPZSSpStructMatrix_H
+#define TPZSSpStructMatrix_H
 
-#include "pzstrmatrix.h"
-#include "pzysmp.h"
+#include "TPZStructMatrixT.h"
+#include "pzstack.h"
 
-#include "pzcmesh.h"
-#include "pzsubcmesh.h"
-#include "pzelmat.h"
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-
+#include "pzstrmatrixor.h"
 /**
- * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements Sparse Symmetric Structural Matrices. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZSymetricSpStructMatrix : public TPZStructMatrix {
+template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
+class TPZSSpStructMatrix : public TPZStructMatrixT<TVar>,
+                                  public TPar {
     
-public:    
-	
-    TPZSymetricSpStructMatrix(TPZCompMesh *);
-	
-    virtual TPZMatrix<STATE> * Create();
-	
-    virtual TPZMatrix<STATE> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
-    
-    using TPZStructMatrix::CreateAssemble;
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
-    virtual TPZStructMatrix * Clone();
-    
-	
-    /** Used only for testing */
-	static int main();
-	
+public:
+	using TPZStructMatrixT<TVar>::TPZStructMatrixT;
+    TPZMatrix<TVar> * Create() override;
+	TPZStructMatrix * Clone() override;
+    void EndCreateAssemble(TPZBaseMatrix *mat) override;
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
+
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
+protected:
+    virtual TPZMatrix<TVar> * SetupMatrixData(TPZStack<int64_t> & elgraph, TPZVec<int64_t> &elgraphindex);
 private :
-    
-    TPZSymetricSpStructMatrix();
     
     friend TPZPersistenceManager;
 };
 
-#endif //TPZSymetricSpStructMatrix_H
+#endif //TPZSSpStructMatrix_H

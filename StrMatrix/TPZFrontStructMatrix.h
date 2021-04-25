@@ -6,17 +6,8 @@
 #ifndef TPZFRONTSTRUCTMATRIX_H
 #define TPZFRONTSTRUCTMATRIX_H
 
-#include "pzstrmatrix.h"
-#include "pzcmesh.h" 
-
-#include "TPZFrontNonSym.h"
-#include "TPZFrontSym.h"
-
-#include "pzelmat.h"
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-
+#include "TPZStructMatrixT.h"
+#include "pzstrmatrixor.h"
 /**
  * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"
  * @ingroup structural frontal
@@ -26,14 +17,18 @@
  * Prevents users from all the necessary information to work with all matrices classes \n
  * It facilitates considerably the use of TPZAnalysis
  */
-template<class front> 
-class TPZFrontStructMatrix : public TPZStructMatrix {
+template<class TFront,
+         class TVar = STATE,
+         class TPar = TPZStructMatrixOR<TVar>> 
+class TPZFrontStructMatrix : public TPZStructMatrixT<TVar>,
+                             public TPar
+{
 	
 protected:
 	/** @brief This vector contains an ordered list */
 	/** The elements must be asssembled in that order so the frontal works on its best performance */
 	TPZVec<int> fElementOrder;
-    int f_quiet;
+    int f_quiet{0};
 	
 	/**
 	 * @brief Returns a vector containing all elements connected to a degree of freedom.
@@ -48,40 +43,23 @@ protected:
 	void AdjustSequenceNumbering();
 	
     /** @brief Used Decomposition method */
-    DecomposeType fDecomposeType;
+    DecomposeType fDecomposeType{ENoDecompose};
 
 public:
+    using TPZStructMatrixT<TVar>::TPZStructMatrixT;
 
-    /**
-     * @brief Class constructor
-     * < href="http://www.fec.unicamp.br/~longhin">link text</a>
-     * < href="http://www.fec.unicamp.br/~phil">link text</a>
-     */ 
-	TPZFrontStructMatrix(TPZCompMesh *);
-	
-	TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet), fDecomposeType(copy.fDecomposeType)
-	{
-	}
-	
     /// Set the decomposition type
     virtual void SetDecomposeType(DecomposeType dectype)
     {
         fDecomposeType = dectype;
     }
     
-
-	static int main();
-	
-    /** @brief Class destructor */ 
-	virtual ~TPZFrontStructMatrix();
     
-    
-	
-	/** @brief Returns a pointer to TPZMatrix<STATE> */
-	TPZMatrix<STATE> * Create();
+	/** @brief Returns a pointer to TPZBaseMatrix */
+	TPZMatrix<TVar> * Create() override;
 	
 	/** @brief Clones a TPZFrontStructMatrix */
-	TPZStructMatrix * Clone();
+	TPZStructMatrix * Clone() override;
 	
 	/**
 	 * @brief Assemble a stiffness matrix according to rhs
@@ -89,8 +67,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void AssembleNew(TPZMatrix<STATE> & stiffness
-					 , TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void AssembleNew(TPZMatrix<TVar> & stiffness
+					 , TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble a stiffness matrix.
@@ -98,8 +76,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void Assemble(TPZMatrix<STATE> & stiffness
-				  , TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void Assemble(TPZBaseMatrix & stiffness
+				  , TPZBaseMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
 	/**
 	 * @brief Computes element matrices.
@@ -113,9 +91,7 @@ public:
 	 * Each computed element matrices would then be added to Stiffness matrix
 	 */
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
-						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
-	
-    using TPZStructMatrix::CreateAssemble;
+						 , TPZElementMatrix & ef, TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs); 
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix
@@ -125,12 +101,18 @@ public:
 	 * This is a mandatory function, it is neded by all StructMatrix. \n
 	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
 	 */
-	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	TPZMatrix<TVar> *CreateAssemble(TPZBaseMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
 	
     void SetQuiet(int quiet);
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
     
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
 private:
-    TPZFrontStructMatrix();
 	
     friend TPZPersistenceManager;
 	

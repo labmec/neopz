@@ -126,6 +126,17 @@ public:
 	{
 
 	}
+
+    /** @brief This method will create an object which will administer the area pointed to by obj */
+    template<class T2>
+	TPZAutoPointer(T2 *obj)
+	{
+        if constexpr (!std::is_base_of_v<T, T2>){
+            throw std::logic_error(
+                    "Incompatible types when creating TPZAutoPointer");
+        }
+        fRef = new TPZReference((T*)obj);
+	}
     
 	/** @brief Share the pointer of the copy */
 	TPZAutoPointer(const TPZAutoPointer<T> &copy) :
@@ -175,7 +186,47 @@ public:
         fRef = new TPZReference(rval);
         return *this;
     }
-    
+
+    /** @brief Share the pointer of the rval of derived type T2 */
+    template<class T2>
+	TPZAutoPointer(const TPZAutoPointer<T2> &other)
+	{
+        if constexpr (!std::is_base_of_v<T, T2>){
+            throw std::logic_error(
+                    "Incompatible types when creating TPZAutoPointer");
+        }
+        fRef = (TPZReference*) other.fRef;
+        fRef->Increment();
+	}
+    //! Assignment operator from TPZAutoPointer of derived type T2
+    template<class T2>
+    TPZAutoPointer &operator=(const TPZAutoPointer<T2> &other)
+    {
+        if constexpr (!std::is_base_of_v<T, T2>){
+            throw std::logic_error(
+                    "Incompatible types when creating TPZAutoPointer");
+        }
+        if (fRef && fRef->Decrease()){
+            Release();
+        }
+        fRef = (TPZReference *) other.fRef;
+        fRef->Increment();
+        return *this;
+    }
+    //! Assignment operator from  derived type T2
+    template<class T2>
+    TPZAutoPointer &operator=(T2 *other)
+    {
+        if constexpr (!std::is_base_of_v<T, T2>){
+            throw std::logic_error(
+                    "Incompatible types when creating TPZAutoPointer");
+        }
+        if (fRef && fRef->Decrease()){
+            Release();
+        }
+        fRef = new TPZReference(other);
+        return *this;
+    }
 	/** @brief User-defined conversion from TPZAutoPointer<T> to &T */
 	operator T&()
 	{
@@ -225,7 +276,8 @@ public:
 	}
     template<typename R, typename T2>
     friend TPZAutoPointer<R> TPZAutoPointerDynamicCast(TPZAutoPointer<T2> in);
-
+    template<class T2>
+    friend class TPZAutoPointer;
 private:
     /** @brief Method for deleting the reference*/
     inline void Release(){

@@ -92,8 +92,9 @@ int main() {
     
     int64_t neq = cmesh->NEquations();
     TPZFMatrix<STATE> rhs(neq,1);
-    TPZFStructMatrix full(cmesh);
-    TPZMatrix<STATE> *stiff = full.CreateAssemble(rhs, 0);
+    TPZFStructMatrix<STATE> full(cmesh);
+    TPZMatrix<STATE> *stiff =
+        dynamic_cast<TPZMatrix<STATE>*>(full.CreateAssemble(rhs, 0));
 
     
     {

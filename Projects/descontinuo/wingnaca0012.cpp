@@ -203,7 +203,7 @@ int main() {
 		TPZIterativeAnalysis an(cmesh,outgm);
 		if(1){//Analysis
 			cout << "\nmain::Resolve o sistema\n";
-			TPZSkylineStructMatrix stiff(cmesh);
+			TPZSkylineStructMatrix<STATE> stiff(cmesh);
 			an.SetStructuralMatrix(stiff);
 			an.Solution().Zero();
 			TPZStepSolver<STATE> solver;

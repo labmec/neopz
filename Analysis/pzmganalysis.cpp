@@ -50,7 +50,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	
 	fCompMesh = mesh;
 	OptimizeBandwidth();
-	TPZSkylineStructMatrix skstr(mesh);
+	TPZSkylineStructMatrix<STATE> skstr(mesh);
 	SetStructuralMatrix(skstr);
 	int nmeshes = fSolvers.NElements();
 	TPZTransfer<STATE> *tr = new TPZTransfer<STATE>;
@@ -61,7 +61,7 @@ void TPZMGAnalysis::AppendMesh(TPZCompMesh * mesh){
 	fSolution = sol;
 	//TODOCOMPLEX
 	mesh->LoadSolution(fSolution);
-	TPZBlockDiagonalStructMatrix bdstr(mesh);
+	TPZBlockDiagonalStructMatrix<STATE> bdstr(mesh);
 	TPZBlockDiagonal<STATE> *bd = (TPZBlockDiagonal<STATE> *) bdstr.Create();
 	bdstr.AssembleBlockDiagonal(*bd);
 	TPZAutoPointer<TPZMatrix<STATE> > bdauto(bd);

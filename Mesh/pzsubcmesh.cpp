@@ -155,7 +155,7 @@ int TPZSubCompMesh::main() {
 	//	mesh.Print(output);
 	output.flush();
 	//	TPZFMatrix<REAL> *rhs = new TPZFMatrix(skyline);
-	TPZSkylineStructMatrix strskyl(&mesh);
+	TPZSkylineStructMatrix<STATE> strskyl(&mesh);
 	an.SetStructuralMatrix(strskyl);
 	an.Solution().Zero();
 	TPZStepSolver<STATE> sol;
@@ -1246,7 +1246,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		(ek.fConnect)[i] = ConnectIndex(i);
 	}
 	if (! fAnalysis){
-		TPZFStructMatrix local(this);
+		TPZFStructMatrix<STATE> local(this);
 		TPZAutoPointer<TPZMatrix<STATE> > stiff = local.CreateAssemble(ef.fMat,NULL);
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
@@ -1336,13 +1336,9 @@ void TPZSubCompMesh::SetAnalysisSparse(int numThreads)
 {
     fAnalysis = new TPZSubMeshAnalysis(this);
     TPZAutoPointer<TPZStructMatrix> str = NULL;
-    
+    str = new TPZSSpStructMatrix<STATE>(this);
     if(numThreads > 0){
-        str = new TPZSymetricSpStructMatrix(this);
         str->SetNumThreads(numThreads);
-    }
-    else{
-        str = new TPZSymetricSpStructMatrix(this);
     }
     
     SaddlePermute();
@@ -1375,11 +1371,11 @@ void TPZSubCompMesh::SetAnalysisNonSymSparse(int numThreads)
     TPZAutoPointer<TPZStructMatrix> str = NULL;
 
     if(numThreads > 0){
-        str = new TPZSpStructMatrix(this);
+        str = new TPZSpStructMatrix<STATE>(this);
         str->SetNumThreads(numThreads);
     }
     else{
-        str = new TPZSpStructMatrix(this);
+        str = new TPZSpStructMatrix<STATE>(this);
     }
 
     SaddlePermute();
@@ -1412,12 +1408,9 @@ void TPZSubCompMesh::SetAnalysisFStruct(int numThreads)
     fAnalysis = new TPZSubMeshAnalysis(this);
     TPZAutoPointer<TPZStructMatrix> str = NULL;
 
+    str = new TPZFStructMatrix<STATE>(this);
     if(numThreads > 0){
-        str = new TPZFStructMatrix(this);
         str->SetNumThreads(numThreads);
-    }
-    else{
-        str = new TPZFStructMatrix(this);
     }
 
     SaddlePermute();
@@ -1448,13 +1441,9 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	fAnalysis = new TPZSubMeshAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
-	
+	str = new TPZSkylineStructMatrix<STATE>(this);
 	if(numThreads > 0){
-		str = new TPZSkylineStructMatrix(this);
         str->SetNumThreads(numThreads);
-	}
-	else{
-		str = new TPZSkylineStructMatrix(this);
 	}
     
     SaddlePermute();
@@ -1517,12 +1506,9 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
     fAnalysis->SetCompMesh(this, true);
     TPZAutoPointer<TPZStructMatrix> str = NULL;
     
+    str = new TPZSkylineStructMatrix<STATE>(this);
     if(numThreads > 0){
-        str = new TPZSkylineStructMatrix(this);
         str->SetNumThreads(numThreads);
-    }
-    else{
-        str = new TPZSkylineStructMatrix(this);
     }
     
     SaddlePermute();

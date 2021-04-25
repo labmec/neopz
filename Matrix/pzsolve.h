@@ -92,13 +92,15 @@ public:
 	 * @brief Sets a matrix to the current object
 	 * @param Refmat Sets reference matrix to RefMat
 	 */
-	virtual void SetMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat)
+	virtual void SetMatrix(TPZAutoPointer<TPZBaseMatrix> Refmat)
     {
-        fContainer = Refmat;
+        fContainer = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(Refmat);
     }
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
+	virtual void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> mat_base)
 	{
+        auto matrix =
+            TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(mat_base);
 		if (fReferenceMatrix == matrix && matrix)
 		{
 			if(this->fContainer) this->fContainer->UpdateFrom(matrix);
@@ -108,9 +110,9 @@ public:
 	void ResetMatrix() override;
 	
 	/** @brief This method gives a preconditioner to share a matrix with the referring solver object */
-	virtual void SetReferenceMatrix(TPZAutoPointer<TPZMatrix<TVar> > matrix)
+	virtual void SetReferenceMatrix(TPZAutoPointer<TPZBaseMatrix> matrix)
 	{
-		fReferenceMatrix = matrix;
+		fReferenceMatrix = TPZAutoPointerDynamicCast<TPZMatrix<TVar>>(matrix);
 	}
 	
 	/** @brief Returns a pointer to TPZMatrix<>*/

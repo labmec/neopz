@@ -915,11 +915,12 @@ int64_t TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
 void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct<STATE> > substruct, TPZDohrAssembly<STATE> &dohrassembly)
 {
 	// this should happen in the remote processor
-    TPZSkylineStructMatrix skylstr(submesh);
+    TPZSkylineStructMatrix<STATE> skylstr(submesh);
 	TPZAutoPointer<TPZGuiInterface> toto = new TPZGuiInterface;
 
 	skylstr.EquationFilter().Reset();
-    substruct->fStiffness = TPZAutoPointer<TPZMatrix<STATE> > (skylstr.CreateAssemble(substruct->fLocalLoad,toto));
+    substruct->fStiffness = TPZAutoPointer<TPZMatrix<STATE> > (
+		dynamic_cast<TPZMatrix<STATE>*>(skylstr.CreateAssemble(substruct->fLocalLoad,toto)));
 	
 	// This should happen in the remote processor
     substruct->fInvertedStiffness.SetMatrix(substruct->fStiffness->Clone());
@@ -934,7 +935,8 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	// THIS SHOULD HAPPEN IN THE REMOTE PROCESSOR
     skylstr.SetEquationRange(0,ninternal);
     TPZFMatrix<STATE> rhs;
-    substruct->fInvertedInternalStiffness.SetMatrix(skylstr.CreateAssemble(rhs,toto));
+    substruct->fInvertedInternalStiffness.SetMatrix(
+		dynamic_cast<TPZMatrix<STATE>*>(skylstr.CreateAssemble(rhs,toto)));
     substruct->fInvertedInternalStiffness.SetDirect(ECholesky);
 	
     // put back the original sequence numbers of the connects (otherwise we can't apply a load solution
@@ -953,7 +955,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	
 	// create a skyline matrix based on the current numbering of the mesh
 	// put the stiffness matrix in a TPZMatRed object to facilitate the computation of phi and zi
-	TPZSkylineStructMatrix skylstr(submesh);
+	TPZSkylineStructMatrix<STATE> skylstr(submesh);
 	skylstr.EquationFilter().Reset();
 	
 	TPZAutoPointer<TPZMatrix<STATE> > Stiffness = skylstr.Create();
@@ -969,7 +971,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	submesh->PermuteInternalFirst(permuteconnectscatter);
 	
 	// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
-	TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> > redstruct(submesh);
+	TPZMatRedStructMatrix<TPZSkylineStructMatrix<STATE>,TPZVerySparseMatrix<STATE> > redstruct(submesh);
 	TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > *matredptr = dynamic_cast<TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > *>(redstruct.Create());
 	TPZAutoPointer<TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > > matred = matredptr;
 	

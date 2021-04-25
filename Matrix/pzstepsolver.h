@@ -78,7 +78,7 @@ public:
 	virtual void ResetMatrix() override;
 
 	/** @brief Updates the values of the current matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix) override
+	virtual void UpdateFrom(TPZAutoPointer<TPZBaseMatrix> matrix) override
 	{
 		if (fPrecond)
 			fPrecond->UpdateFrom(matrix);

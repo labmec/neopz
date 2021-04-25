@@ -92,7 +92,7 @@ public:
 	 * A non unique id is flagged at the startup of the program
 	 */
 	public:
-virtual int ClassId() const = 0;
+    virtual int ClassId() const = 0;
 
         
 	virtual std::list<std::map<std::string, uint64_t>> VersionHistory() const;

@@ -7,23 +7,7 @@
 #define TPZPARFRONTSTRUCTMATRIX_H
 
 #include "TPZFrontStructMatrix.h"
-#include "TPZFileEqnStorage.h"
-#include "pzstrmatrix.h"
-#include "pzcmesh.h" 
-
-#include "TPZFrontMatrix.h"
-#include "TPZFrontNonSym.h"
-#include "TPZFrontSym.h"
-#include "tpzautopointer.h"
-
-#include "pzelmat.h"
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-
-#include <signal.h>
-#include <time.h>
-
+#include "pzstack.h"
 //#define STACKSTORAGE
 
 /**
@@ -34,8 +18,12 @@
  * TPZParFrontStructMatrix is derived from TPZFrontStructMatrix.
  * It uses TPZParFrontMatrix as its FrontalMatrix
  */
-template<class front>
-class TPZParFrontStructMatrix : public TPZFrontStructMatrix<front> {
+
+template<class TFront,
+         class TVar = STATE,
+         class TPar = TPZStructMatrixOR<TVar>>
+class TPZParFrontStructMatrix :
+	public TPZFrontStructMatrix<TFront,TVar,TPar> {
 	
 private:
 	
@@ -45,14 +33,14 @@ public:
 		
 	/** @brief It clones a TPZStructMatrix */
 	/** Virtual function must return same type */
-	TPZStructMatrix *Clone();
+	TPZStructMatrix *Clone() override;
 	
 	/** @brief Constructor passing as parameter a TPZCompMesh */
 	TPZParFrontStructMatrix(
 							TPZCompMesh *mesh //! Mesh to refer to
 							);
 	
-	TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy);
+	int ClassId() const override;
 	
 	/**
 	* @brief Destructor
@@ -64,13 +52,10 @@ public:
 	 * @param rhs Load matrix
 	 * @param guiInterface pointer to user interface
 	 */
-	virtual TPZMatrix<STATE> * CreateAssemble( TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<TVar> * CreateAssemble( TPZFMatrix<TVar> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	
-	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
-	/** Used only for testing */
-	static int main();
+	virtual void Assemble(TPZMatrix<TVar> & mat, TPZFMatrix<TVar> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/** @brief It computes element matrices in an independent thread. */
 	/** 
@@ -96,9 +81,9 @@ private:
 	/** Whenever this value is reached a execution of element computing is suspended */
 	int fMaxStackSize;
 	/** @brief Local pointer to stiffness matrix*/
-	TPZMatrix<STATE> * fStiffness;
+	TPZMatrix<TVar> * fStiffness;
 	/** @brief Local pointer to load matrix*/
-	TPZFMatrix<STATE> * fRhs;
+	TPZFMatrix<TVar> * fRhs;
 	
 	/** @brief Stack containing elements to be assembled on Stiffness matrix. */
 	/** 

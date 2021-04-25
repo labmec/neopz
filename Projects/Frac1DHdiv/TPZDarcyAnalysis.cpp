@@ -773,7 +773,7 @@ void TPZDarcyAnalysis::AssembleLastStep(TPZAnalysis *an)
 void TPZDarcyAnalysis::SolveSyst(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {
     
-    TPZSkylineStructMatrix skymat(Cmesh);
+    TPZSkylineStructMatrix<STATE> skymat(Cmesh);
     an.SetStructuralMatrix(skymat);
     TPZStepSolver<STATE> step;
     step.SetDirect(ELDLt);

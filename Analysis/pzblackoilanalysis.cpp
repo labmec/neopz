@@ -6,8 +6,6 @@
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
 #include "TPZSpStructMatrix.h"
-#include "pzfstrmatrix.h"
-#include "pzstrmatrix.h"
 #include "pzseqsolver.h"
 #include "checkconv.h"
 #include "pzelmat.h"

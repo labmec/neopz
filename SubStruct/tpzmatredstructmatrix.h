@@ -6,19 +6,21 @@
 #ifndef TPZMATREDSTRUCTMATRIX
 #define TPZMATREDSTRUCTMATRIX
 
-#include "pzmatrix.h"
-#include "pzstrmatrix.h"
-#include "pzfmatrix.h"
-#include "pzcmesh.h"
-#include "pzsubcmesh.h"
+#include "TPZStructMatrixT.h"
+#include "pzstrmatrixor.h"
+class TPZSubCompMesh;
 
 
 /**
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub Structure"
  */
-template<class TStructMatrix, class TSparseMatrix>
-class TPZMatRedStructMatrix : public TPZStructMatrix
+template<
+    class TStructMatrix, class TSparseMatrix,
+    class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>
+    >
+class TPZMatRedStructMatrix : public TPZStructMatrixT<TVar>,
+                              public TPar
 {
 public:
 	/** @brief Constructor */
@@ -28,18 +30,26 @@ public:
 	/** @brief Copy constructor */
 	TPZMatRedStructMatrix(const TPZMatRedStructMatrix &copy);
 	
-	virtual TPZStructMatrix *Clone();
+	TPZStructMatrix *Clone() override;
 	
-	virtual TPZMatrix<STATE> *Create();
+	TPZMatrix<STATE> *Create() override;
+
+	//@{
+    //!Read and Write methods
+    int ClassId() const override;
+
+    void Read(TPZStream& buf, void* context) override;
+
+    void Write(TPZStream& buf, int withclassid) const override;
+    //@}
         
 protected :
-        void SetMesh(TPZCompMesh *cmesh);
+	void SetMesh(TPZCompMesh *cmesh);
         
 private:
 	TPZMatRedStructMatrix();
-        
-        
-        friend TPZPersistenceManager;
+    
+	friend TPZPersistenceManager;
 	
 	int fInternalEqs;
 	

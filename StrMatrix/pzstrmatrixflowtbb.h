@@ -6,104 +6,72 @@
 #ifndef TPZStructMatrixTBBFlow_H
 #define TPZStructMatrixTBBFlow_H
 
-#include <set>
-#include <map>
-#include <semaphore.h>
-#include "pzvec.h"
-#include "tpzautopointer.h"
-#include "pzcmesh.h"
-#include "pzelmat.h"
+
+#include "TPZStrMatParInterface.h"
 #include "TPZSemaphore.h"
-#include "TPZEquationFilter.h"
-#include "TPZGuiInterface.h"
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
+#include <mutex>
 
-class TPZStructMatrixTBBFlow;
-#include "TPZStructMatrixBase.h"
-
+//forward declarations
+class TPZElementMatrix;
+class TPZBaseMatrix;
+class TPZStructMatrix;
+template<class T>
 class TPZFlowGraph;
 
 /**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */
-class TPZStructMatrixTBBFlow : public TPZStructMatrixBase
+template<class TVar>
+class TPZStructMatrixTBBFlow : public virtual TPZStrMatParInterface
 {
     
 public:
-    
+    //! Default constructor.
     TPZStructMatrixTBBFlow();
-    
-    TPZStructMatrixTBBFlow(TPZCompMesh *);
-    
-    TPZStructMatrixTBBFlow(TPZAutoPointer<TPZCompMesh> cmesh);
-    
+    //! Copy constructor
     TPZStructMatrixTBBFlow(const TPZStructMatrixTBBFlow &copy);
+    //! Move constructor
+    TPZStructMatrixTBBFlow(TPZStructMatrixTBBFlow &&copy) = default;
+    //! Destructor
+    ~TPZStructMatrixTBBFlow();
+    //! Copy assignment operator
+    TPZStructMatrixTBBFlow& operator=(const TPZStructMatrixTBBFlow &) = default;
+    //! Move assignment operator
+    TPZStructMatrixTBBFlow& operator=(TPZStructMatrixTBBFlow &&) = default;
+
+        /**
+     * Functions overriden from TPZStrMatParInterface
+     */
+    //@{
+
+    void Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    virtual ~TPZStructMatrixTBBFlow();
+    void Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
     
-    virtual TPZMatrix<STATE> * Create() override;
+    void InitCreateAssemble() override;
+    //@}
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                                              unsigned numthreads_assemble, unsigned numthreads_decompose) {
-        SetNumThreads(numthreads_assemble);
-        return CreateAssemble(rhs, guiInterface);
-    }
+    //@{
+    //!Read and Write methods
+    int ClassId() const override;
     
-    virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    
-    virtual TPZStructMatrixTBBFlow * Clone() override;
-    
-    /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
-                          unsigned numthreads_assemble, unsigned numthreads_decompose) {
-        std::cout << "Nothing to do." << std::endl;
-    }
-    
-    /** @brief Assemble the global right hand side */
-    virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface) override;
-    
-    public:
-int ClassId() const override;
     void Read(TPZStream &buf, void *context) override;
+    
     void Write(TPZStream &buf, int withclassid) const override;
-
+    //@}
 
 protected:
-    
-    //    /** @brief Assemble the global system of equations into the matrix which has already been created */
-    //    virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-    //
-    //    /** @brief Assemble the global right hand side */
-    //    virtual void Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+
     
     /** @brief Assemble the global right hand side */
-    virtual void MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual void MultiThread_Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /** @brief Assemble the global system of equations into the matrix which has already been created */
-    virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-    
-protected:
-    
-    /** @brief Pointer to the computational mesh from which the matrix will be generated */
-    TPZCompMesh * fMesh;
-    /** @brief Autopointer control of the computational mesh */
-    TPZAutoPointer<TPZCompMesh> fCompMesh;
-    /** @brief Object which will determine which equations will be assembled */
-    TPZEquationFilter fEquationFilter;
+    virtual void MultiThread_Assemble(TPZBaseMatrix & mat, TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
-    TPZFlowGraph *fFlowGraph;
-    
-protected:
-    
-    /** @brief Set of material ids to be considered. It is a private attribute. */
-    /** Use ShouldCompute method to know if element must be assembled or not    */
-    std::set<int> fMaterialIds;
-    
-    /** @brief Number of threads in Assemble process */
-    int fNumThreads;
+    TPZAutoPointer<TPZFlowGraph<TVar> > fFlowGraph;
 };
 
+extern template class TPZStructMatrixTBBFlow<STATE>;
 #endif
