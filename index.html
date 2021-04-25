@@ -392,7 +392,8 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4NK8TPZGeoEl18MidSideNodeIndicesEiR6TPZVecI7int64_tE">
 <span id="_CPPv3NK8TPZGeoEl18MidSideNodeIndicesEiR6TPZVecI7int64_tE"></span><span id="_CPPv2NK8TPZGeoEl18MidSideNodeIndicesEiR6TPZVecI7int64_tE"></span><span id="TPZGeoEl::MidSideNodeIndices__i.TPZVec:int64_t:RC"></span><span class="target" id="classTPZGeoEl_1a4d37a4d96026c328e8bcf4239f3729f8"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">MidSideNodeIndices</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">int64_t</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">indices</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK8TPZGeoEl18MidSideNodeIndicesEiR6TPZVecI7int64_tE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns the midside node indices along a side of the element. </p>
-<p>THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns <p>whereas the former is not </p>
+<p><p>THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns</p>
+<p>whereas the former is not</p>
 </p>
 </dd></dl>
 
@@ -418,14 +419,16 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl15SideIsUndefinedEi">
 <span id="_CPPv3N8TPZGeoEl15SideIsUndefinedEi"></span><span id="_CPPv2N8TPZGeoEl15SideIsUndefinedEi"></span><span id="TPZGeoEl::SideIsUndefined__i"></span><span class="target" id="classTPZGeoEl_1ae123e9b4ee33ca01e21adcde00e4c20d"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">SideIsUndefined</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em><span class="sig-paren">)</span> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl15SideIsUndefinedEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Returns 1 if the side has not been defined by buildconnectivity. </p>
-<p>After construction the side is undefined. The buildconnectivity method loops over all elements <p>and tries to identify neighbours along their uninitialized sides </p>
+<p><p>After construction the side is undefined. The buildconnectivity method loops over all elements</p>
+<p>and tries to identify neighbours along their uninitialized sides</p>
 </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK8TPZGeoEl12NSubElementsEv">
 <span id="_CPPv3NK8TPZGeoEl12NSubElementsEv"></span><span id="_CPPv2NK8TPZGeoEl12NSubElementsEv"></span><span id="TPZGeoEl::NSubElementsC"></span><span class="target" id="classTPZGeoEl_1a16de5db228553e2c6a261fa04a3397a9"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">NSubElements</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4NK8TPZGeoEl12NSubElementsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Returns the number of subelements of the element independent of the fact <p>whether the element has already been refined or not. </p>
+<dd><p><p>Returns the number of subelements of the element independent of the fact</p>
+<p>whether the element has already been refined or not.</p>
 </p>
 </dd></dl>
 
@@ -486,7 +489,8 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl14CreateBCCompElEiiR11TPZCompMesh">
 <span id="_CPPv3N8TPZGeoEl14CreateBCCompElEiiR11TPZCompMesh"></span><span id="_CPPv2N8TPZGeoEl14CreateBCCompElEiiR11TPZCompMesh"></span><span id="TPZGeoEl::CreateBCCompEl__i.i.TPZCompMeshR"></span><span class="target" id="classTPZGeoEl_1ad61a2a84a271f9794fad0a1e35242345"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">TPZCompEl</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">CreateBCCompEl</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <span class="pre">int</span> <em><span class="pre">bc</span></em>, <span class="pre">TPZCompMesh</span> <span class="pre">&amp;</span><em><span class="pre">cmesh</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl14CreateBCCompElEiiR11TPZCompMesh" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Method which creates a computational boundary condition element based on the current geometric element, <p>a side and a boundary condition number. </p>
+<dd><p><p>Method which creates a computational boundary condition element based on the current geometric element,</p>
+<p>a side and a boundary condition number.</p>
 </p>
 </dd></dl>
 
@@ -794,7 +798,8 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4N8TPZGeoEl15BuildTransform2EiP8TPZGeoElR12TPZTransformI4REALE">
 <span id="_CPPv3N8TPZGeoEl15BuildTransform2EiP8TPZGeoElR12TPZTransformI4REALE"></span><span id="_CPPv2N8TPZGeoEl15BuildTransform2EiP8TPZGeoElR12TPZTransformI4REALE"></span><span id="TPZGeoEl::BuildTransform2__i.TPZGeoElP.TPZTransform:REAL:R"></span><span class="target" id="classTPZGeoEl_1a798cb6b958aad38b6db2a5af8f58cf7d"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">TPZTransform</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">BuildTransform2</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <a class="reference internal" href="#_CPPv48TPZGeoEl" title="TPZGeoEl"><span class="pre">TPZGeoEl</span></a> <span class="pre">*</span><em><span class="pre">father</span></em>, <span class="pre">TPZTransform</span><span class="pre">&lt;</span><span class="pre">REAL</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">t</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl15BuildTransform2EiP8TPZGeoElR12TPZTransformI4REALE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Returns the transformation which maps the parameter side of the element/side <p>into the parameter space of the father element/side. </p>
+<dd><p><p>Returns the transformation which maps the parameter side of the element/side</p>
+<p>into the parameter space of the father element/side.</p>
 </p>
 </dd></dl>
 
@@ -821,7 +826,8 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideE">
 <span id="_CPPv3NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideE"></span><span id="_CPPv2NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideE"></span><span id="TPZGeoEl::GetSubElements2__i.TPZStack:TPZGeoElSide:RC"></span><span class="target" id="classTPZGeoEl_1a06453810202e6016f0cf1ba13c7e22da"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">GetSubElements2</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <span class="pre">TPZStack</span><span class="pre">&lt;</span><span class="pre">TPZGeoElSide</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">subel</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This method will return a partition of the side of the current element <p>as the union of sub elements/side which are put in the stack. </p>
+<dd><p><p>This method will return a partition of the side of the current element</p>
+<p>as the union of sub elements/side which are put in the stack.</p>
 </p>
 </dd></dl>
 
@@ -840,7 +846,8 @@ possible those technologies should be able to interact with each other.</p>
 <dl class="cpp function">
 <dt id="_CPPv4NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideEi">
 <span id="_CPPv3NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideEi"></span><span id="_CPPv2NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideEi"></span><span id="TPZGeoEl::GetSubElements2__i.TPZStack:TPZGeoElSide:R.iC"></span><span class="target" id="classTPZGeoEl_1aac38c61e3a9c6976c4c8a25dc21ad5c5"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">GetSubElements2</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <span class="pre">TPZStack</span><span class="pre">&lt;</span><span class="pre">TPZGeoElSide</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">subel</span></em>, <span class="pre">int</span> <em><span class="pre">dimension</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em><a class="headerlink" href="#_CPPv4NK8TPZGeoEl15GetSubElements2EiR8TPZStackI12TPZGeoElSideEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This method will return a partition of the side of the current element <p>as the union of sub elements/side which are put in the stack. </p>
+<dd><p><p>This method will return a partition of the side of the current element</p>
+<p>as the union of sub elements/side which are put in the stack.</p>
 </p>
 <p>Only element/sides of the given dimension are put on the stack </p>
 </dd></dl>
@@ -948,14 +955,15 @@ possible those technologies should be able to interact with each other.</p>
 <dt id="_CPPv4N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE">
 <span id="_CPPv3N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE"></span><span id="_CPPv2N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE"></span><span id="TPZGeoEl::ComputePermutationNormals__i.TPZVec:i:R"></span><span class="target" id="classTPZGeoEl_1a6585c9d3c5b4d90bf423f39217d5daa2"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ComputePermutationNormals</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">side</span></em>, <span class="pre">TPZVec</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">indexfrom</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N8TPZGeoEl25ComputePermutationNormalsEiR6TPZVecIiE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the set of normals along a side for defining HDiv approximation spaces. </p>
-<p><p>Compute the permutation needed to order the normal vectors in a consistent way </p>
-<span class="math notranslate nohighlight">\( normal(indexfrom[i]) = normal(i) \)</span> This permutation needs to be applied to the shape functions </p>
+<p>
+Compute the permutation needed to order the normal vectors in a consistent way <span class="math notranslate nohighlight">\( normal(indexfrom[i]) = normal(i) \)</span> This permutation needs to be applied to the shape functions </p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>side</strong> – </p></li>
 <li><p><strong>normals</strong> – normal associated with each side </p></li>
-<li><p><strong>vectorsides</strong> – side associated with each normal vector the normal vectors are initially ordered <p> according to the return of LowerDimensionSides and then permuted according to the node id’s</p>
+<li><p><strong>vectorsides</strong> – <p>side associated with each normal vector the normal vectors are initially ordered</p>
+<p>according to the return of LowerDimensionSides and then permuted according to the node id’s</p>
 </p></li>
 </ul>
 </dd>
@@ -1272,7 +1280,8 @@ possible those technologies should be able to interact with each other.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>DestMesh</strong> – destination patch mesh </p></li>
 <li><p><strong>gl2lcNdIdx</strong> – map between node indexes in original and patch mesh </p></li>
-<li><p><strong>gl2lcElIdx</strong> – map between element indexes in original and patch mesh This method differs from the above by the patch mesh does not include all elements and nodes. <p>Therefore, a map between node indexes in both meshes are required </p>
+<li><p><strong>gl2lcElIdx</strong> – <p>map between element indexes in original and patch mesh This method differs from the above by the patch mesh does not include all elements and nodes.</p>
+<p>Therefore, a map between node indexes in both meshes are required</p>
 </p></li>
 </ul>
 </dd>
