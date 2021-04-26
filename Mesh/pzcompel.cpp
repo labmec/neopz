@@ -9,7 +9,7 @@
 #include "TPZMaterial.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzconnect.h"
 #include "pzblockdiag.h"
 
@@ -49,7 +49,9 @@ static TPZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
 
 void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
-    TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK),ef(this->Mesh(), TPZElementMatrix::EF);
+    //TODOCOMPLEX
+    TPZElementMatrixT<STATE> ek(this->Mesh(), TPZElementMatrix::EK),
+        ef(this->Mesh(), TPZElementMatrix::EF);
     int b;
     CalcStiff(ek,ef);
     if(HasDependency()) {
@@ -618,7 +620,8 @@ void TPZCompEl::LoadElementReference()
 }
 
 void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
-    TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK);
+    //TODOCOMPLEX
+    TPZElementMatrixT<STATE> ek(this->Mesh(), TPZElementMatrix::EK);
     CalcStiff(ek,ef);
 }
 
@@ -1160,8 +1163,8 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
-    ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon);
+    ek.Block().SetNBlocks(ncon);
+    ef.Block().SetNBlocks(ncon);
 
     int i;
     int numeq=0;
@@ -1178,12 +1181,12 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &
 #endif
         int nstate = c.NState();
         
-        ek.fBlock.Set(i,nshape*nstate);
-        ef.fBlock.Set(i,nshape*nstate);
+        ek.Block().Set(i,nshape*nstate);
+        ef.Block().Set(i,nshape*nstate);
         numeq += nshape*nstate;
     }
-    ek.fMat.Redim(numeq,numeq);
-    ef.fMat.Redim(numeq,numloadcases);
+    ek.Matrix().Redim(numeq,numeq);
+    ef.Matrix().Redim(numeq,numloadcases);
     ek.fConnect.Resize(ncon);
     ef.fConnect.Resize(ncon);
     for(i=0; i<ncon; i++){
@@ -1199,7 +1202,7 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
     const int numloadcases = mat->NumLoadCases();
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
-    ef.fBlock.SetNBlocks(ncon);
+    ef.Block().SetNBlocks(ncon);
     ef.fOneRestraints = GetShapeRestraints();
     int numeq = 0;
     for(int i=0; i<ncon; i++){
@@ -1212,9 +1215,9 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
             DebugStop();
         }
 #endif
-        ef.fBlock.Set(i,nshapec*numdof);
+        ef.Block().Set(i,nshapec*numdof);
     }
-    ef.fMat.Redim(numeq,numloadcases);
+    ef.Matrix().Redim(numeq,numloadcases);
     ef.fConnect.Resize(ncon);
     for(int i=0; i<ncon; i++){
         (ef.fConnect)[i] = ConnectIndex(i);

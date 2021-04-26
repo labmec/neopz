@@ -10,7 +10,7 @@
 #define TPZSBFemElementGroup_hpp
 
 #include <stdio.h>
-
+#include "TPZElementMatrixT.h"
 #include "pzelementgroup.h"
 #include "TPZSBFemVolume.h"
 #include "pzcmesh.h"
@@ -184,7 +184,7 @@ public:
      */
     virtual void CalcResidual(TPZElementMatrix &ef)
     {
-        TPZElementMatrix ek(Mesh(),TPZElementMatrix::EK);
+        TPZElementMatrixT<STATE> ek(Mesh(),TPZElementMatrix::EK);
         CalcStiff(ek,ef);
     }
     

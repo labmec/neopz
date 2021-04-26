@@ -227,16 +227,18 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 	const int nshape = this->NShapeF();
 	const int numeq = nshape*numdof;
     const int numloadcases = mat->NumLoadCases();
-	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,numloadcases);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fBlock.SetNBlocks(ncon);
+	ek.Matrix().Redim(numeq,numeq);
+	ef.Matrix().Redim(numeq,numloadcases);
+    auto &ekBlock = ek.Block();
+    auto &efBlock = ef.Block();
+	ekBlock.SetNBlocks(ncon);
+	efBlock.SetNBlocks(ncon);
 
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = Connect(i).NShape();
-		ek.fBlock.Set(i,nshape*numdof);
-		ef.fBlock.Set(i,nshape*numdof);
+		ekBlock.Set(i,nshape*numdof);
+		efBlock.Set(i,nshape*numdof);
 	}
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
@@ -261,13 +263,13 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
 	const int nshape = this->NShapeF();
 	const int numeq = nshape*numdof;
     const int numloadcases = mat->NumLoadCases();
-	ef.fMat.Redim(numeq,numloadcases);
-	ef.fBlock.SetNBlocks(ncon);
+	ef.Matrix().Redim(numeq,numloadcases);
+	ef.Block().SetNBlocks(ncon);
 
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = Connect(i).NShape();
-		ef.fBlock.Set(i,nshape*numdof);
+		ef.Block().Set(i,nshape*numdof);
 	}
 	ef.fConnect.Resize(ncon);
 	for(i=0; i<ncon; i++){

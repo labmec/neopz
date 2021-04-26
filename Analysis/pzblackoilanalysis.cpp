@@ -8,7 +8,7 @@
 #include "TPZSpStructMatrix.h"
 #include "pzseqsolver.h"
 #include "checkconv.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzcmesh.h"
 
 using namespace std;
@@ -356,8 +356,7 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
 	TPZVec<REAL> qsi(3);
     TPZVec<STATE> sol(1);
 	
-	TPZElementMatrix ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
-	
+	TPZElementMatrixT<STATE> ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
 	const int nel = cmesh->NElements();
 	VazaoAguaSC = 0.;
 	VazaoOleoSC = 0.;

@@ -8,6 +8,7 @@
 #include "pzstepsolver.h"
 #include "pzelementgroup.h"
 #include "pzcmesh.h"
+#include "TPZElementMatrixT.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzcondensedcompel");
@@ -292,7 +293,8 @@ void TPZCondensedCompEl::Assemble()
     fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
 
     fCondensed.Zero();
-    TPZElementMatrix ek,ef;
+    //TODOCOMPLEX
+    TPZElementMatrixT<STATE> ek,ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
     ek.PermuteGather(fIndexes);
@@ -315,8 +317,12 @@ void TPZCondensedCompEl::Assemble()
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &efglob)
+void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglobb,TPZElementMatrix &efglobb)
 {
+    auto &ekglob =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekglobb);
+	auto &efglob =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efglobb);
     if(fKeepMatrix == false)
     {
         fKeepMatrix = true;
@@ -325,7 +331,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         fKeepMatrix = false;
     }
     InitializeElementMatrix(ekglob, efglob);
-    TPZElementMatrix ek, ef;
+    //TODOCOMPLEX
+    TPZElementMatrixT<STATE> ek, ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
 #ifdef PZ_LOG
@@ -589,8 +596,11 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
  * @brief Computes the element right hand side
  * @param ef element load vector(s)
  */
-void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
+void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &efb)
 {
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     // we need the stiffness matrix computed to compute the residual
     if (fKeepMatrix == false) {
         DebugStop();

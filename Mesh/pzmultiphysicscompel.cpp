@@ -20,7 +20,7 @@
 #include "pzgeopyramid.h"
 #include "TPZMaterial.h"
 #include "TPZNullMaterial.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzconnect.h"
 #include "pzmaterialdata.h"
 #include "pzinterpolationspace.h"
@@ -572,10 +572,10 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     }
     
     const int numstate = nstate;
-    ek.fMat.Redim(numeq,numeq);
-    ef.fMat.Redim(numeq,numloadcases);
-    ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon);
+    ek.Matrix().Redim(numeq,numeq);
+    ef.Matrix().Redim(numeq,numloadcases);
+    ek.Block().SetNBlocks(ncon);
+    ef.Block().SetNBlocks(ncon);
     
     int i;
     for(i=0; i<ncon; i++){
@@ -586,8 +586,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
             DebugStop();
         }
 #endif
-        ek.fBlock.Set(i,ndof);
-        ef.fBlock.Set(i,ndof);
+        ek.Block().Set(i,ndof);
+        ef.Block().Set(i,ndof);
     }
     ek.fConnect.Resize(ncon);
     ef.fConnect.Resize(ncon);
@@ -631,8 +631,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
     }
     
     const int numstate = nstate;
-    ef.fMat.Redim(numeq,numloadcases);
-    ef.fBlock.SetNBlocks(ncon);
+    ef.Matrix().Redim(numeq,numloadcases);
+    ef.Block().SetNBlocks(ncon);
     
     int i;
     for(i=0; i<ncon; i++){
@@ -643,7 +643,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
             DebugStop();
         }
 #endif
-        ef.fBlock.Set(i,ndof);
+        ef.Block().Set(i,ndof);
     }
     ef.fConnect.Resize(ncon);
     for(i=0; i<ncon; i++){
@@ -789,8 +789,14 @@ void TPZMultiphysicsCompEl<TGeometry>::CleanupMaterialData(TPZVec<TPZMaterialDat
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
+void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb)
 {
+
+    //TODOCOMPLEX
+    auto &ek =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -880,8 +886,11 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 }//CalcStiff
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &ef)
+void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &efb)
 {
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";

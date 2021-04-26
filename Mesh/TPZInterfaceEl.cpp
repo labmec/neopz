@@ -3,7 +3,7 @@
  * @brief Contains the implementation of the TPZInterfaceElement methods.
  */
 
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "TPZInterfaceEl.h"
 #include "TPZCompElDisc.h"
 #include "pzgeoelside.h"
@@ -290,7 +290,10 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int64_t &in
 	return  new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right);
 }
 
-void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
+void TPZInterfaceElement::CalcResidual(TPZElementMatrix &efb){
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
 	TPZMaterial *mat = Material();
 	
 #ifdef PZDEBUG
@@ -877,8 +880,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
     const int numloadcases = mat->NumLoadCases();
-	ef.fMat.Redim(neq,numloadcases);
-	ef.fBlock.SetNBlocks(ncon);
+	ef.Matrix().Redim(neq,numloadcases);
+	ef.Block().SetNBlocks(ncon);
 	ef.fConnect.Resize(ncon);
 	
 	int64_t ic = 0;
@@ -893,7 +896,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
             DebugStop();
         }
 #endif
-		ef.fBlock.Set(ic,con_neq);
+		ef.Block().Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexL[i];
 		ic++;
 	}
@@ -908,11 +911,11 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
         }
 #endif
         
-		ef.fBlock.Set(ic,con_neq);
+		ef.Block().Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexR[i];
 		ic++;
 	}
-	ef.fBlock.Resequence();
+	ef.Block().Resequence();
 	
 }
 
@@ -960,10 +963,10 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
     const int numloadcases = mat->NumLoadCases();
-	ek.fMat.Redim(neq,neq);
-	ef.fMat.Redim(neq,numloadcases);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fBlock.SetNBlocks(ncon);
+	ek.Matrix().Redim(neq,neq);
+	ef.Matrix().Redim(neq,numloadcases);
+	ek.Block().SetNBlocks(ncon);
+	ef.Block().SetNBlocks(ncon);
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
 	
@@ -983,8 +986,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
             DebugStop();
         }
 #endif
-		ek.fBlock.Set(ic,con_neq );
-		ef.fBlock.Set(ic,con_neq);
+		ek.Block().Set(ic,con_neq );
+		ef.Block().Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexL[i];
 		(ek.fConnect)[ic] = ConnectIndexL[i];
 #ifdef PZDEBUG
@@ -1010,8 +1013,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
             DebugStop();
         }
 #endif
-		ek.fBlock.Set(ic,con_neq );
-		ef.fBlock.Set(ic,con_neq);
+		ek.Block().Set(ic,con_neq );
+		ef.Block().Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexR[i];
 		(ek.fConnect)[ic] = ConnectIndexR[i];
 #ifdef PZDEBUG
@@ -1038,12 +1041,17 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 #endif
 #endif
-	ek.fBlock.Resequence();
-	ef.fBlock.Resequence();
+	ek.Block().Resequence();
+	ef.Block().Resequence();
 }
 
-void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	
+void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
+    //TODOCOMPLEX
+    //TODOCOMPLEX
+	auto &ek =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{

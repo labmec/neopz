@@ -5,7 +5,7 @@
 #include "pzstrmatrixor.h"
 #include "TPZStructMatrix.h"
 #include "pzsubcmesh.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "TPZTimer.h"
 #include "run_stats_table.h"
 #include "fpo_exceptions.h"
@@ -143,7 +143,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatr
 
     int64_t iel;
     int64_t nelem = cmesh->NElements();
-    TPZElementMatrix ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
+    TPZElementMatrixT<TVar> ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
 #ifdef PZ_LOG
     bool globalresult = true;
     bool writereadresult = true;
@@ -408,7 +408,7 @@ TPZStructMatrixOR<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointe
             }
         }
                 
-        TPZElementMatrix ef(cmesh, TPZElementMatrix::EF);
+        TPZElementMatrixT<TVar> ef(cmesh, TPZElementMatrix::EF);
 
         calcresidual.start();
 
@@ -590,10 +590,11 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
     int64_t nel = cmesh->NElements();
     while (iel < nel) {
 
-        TPZAutoPointer<TPZElementMatrix> ek;
-        TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh, TPZElementMatrix::EF);
+        TPZAutoPointer<TPZElementMatrixT<TVar>> ek;
+        TPZAutoPointer<TPZElementMatrixT<TVar>> ef =
+            new TPZElementMatrixT<TVar>(cmesh, TPZElementMatrix::EF);
         if (data->fGlobMatrix) {
-            ek = new TPZElementMatrix(cmesh, TPZElementMatrix::EK);
+            ek = new TPZElementMatrixT<TVar>(cmesh, TPZElementMatrix::EK);
         } else {
             ek = ef;
         }
@@ -704,12 +705,10 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadAssembly(void *threaddata) {
         if (guiInterface) if (guiInterface->AmIKilled()) {
             break;//mutex will still be unlocked at the end of the function
             }
-        std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > >::iterator itavail;
-        std::set<int>::iterator itprocess;
         bool keeplooking = false;
         if (data->fSubmitted.size() && data->fProcessed.size()) {
-            itavail = data->fSubmitted.begin();
-            itprocess = data->fProcessed.begin();
+            auto itavail = data->fSubmitted.begin();
+            auto itprocess = data->fProcessed.begin();
             if (itavail->first == *itprocess) {
                 // make sure we come back to look for one more element
                 keeplooking = true;
@@ -718,8 +717,8 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadAssembly(void *threaddata) {
                 int iel = *itprocess;
 #endif
                 data->fProcessed.erase(itprocess);
-                TPZAutoPointer<TPZElementMatrix> ek = itavail->second.first;
-                TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;
+                TPZAutoPointer<TPZElementMatrixT<TVar>> ek = itavail->second.first;
+                TPZAutoPointer<TPZElementMatrixT<TVar>> ef = itavail->second.second;
                 data->fSubmitted.erase(itavail);
 #ifdef PZ_LOG
                 if (logger.isDebugEnabled()) {
@@ -843,9 +842,9 @@ TPZStructMatrixOR<TVar>::ThreadData::NextElement() {
 
 template<class TVar>
 void 
-TPZStructMatrixOR<TVar>::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef) {
+TPZStructMatrixOR<TVar>::ThreadData::ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrixT<TVar>> &ek, TPZAutoPointer<TPZElementMatrixT<TVar>> &ef) {
     std::scoped_lock lock(fMutexAccessElement);
-    std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek, ef);
+    std::pair< TPZAutoPointer<TPZElementMatrixT<TVar>>, TPZAutoPointer<TPZElementMatrixT<TVar>> > el(ek, ef);
     fSubmitted[iel] = el;
     fAssembly.Post();
 }

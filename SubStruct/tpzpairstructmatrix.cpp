@@ -5,7 +5,7 @@
 
 #include "tpzpairstructmatrix.h"
 #include "TPZTimer.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzcompel.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
@@ -357,8 +357,8 @@ public:
   /** Execute work items serially. */
   void run_serial()
   {
-    TPZElementMatrix ek(fStrMatrix->Mesh(), TPZElementMatrix::EK);
-    TPZElementMatrix ef(fStrMatrix->Mesh(), TPZElementMatrix::EF);
+    TPZElementMatrixT<STATE> ek(fStrMatrix->Mesh(), TPZElementMatrix::EK);
+    TPZElementMatrixT<STATE> ef(fStrMatrix->Mesh(), TPZElementMatrix::EF);
 
     std::vector<TPZCompEl*>::iterator it = work_items.begin();
     for(; it != work_items.end(); it++)
@@ -457,7 +457,7 @@ void TPZPairStructMatrix::SerialAssemble(TPZMatrix<STATE> *first, TPZMatrix<STAT
 	int iel;
 	TPZCompMesh &mesh = *fStrMatrix->Mesh();
 	int nelem = mesh.NElements();
-	TPZElementMatrix ek(&mesh, TPZElementMatrix::EK),ef(&mesh, TPZElementMatrix::EF);
+	TPZElementMatrixT<STATE> ek(&mesh, TPZElementMatrix::EK),ef(&mesh, TPZElementMatrix::EF);
     
 		TPZTimer calcstiff("Computing the stiffness matrices");
 	TPZTimer assemble("Assembling the stiffness matrices");
@@ -606,8 +606,8 @@ void *TPZPairStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	while(iel < nel)
 	{
 		
-		TPZAutoPointer<TPZElementMatrix> ek = new TPZElementMatrix(cmesh,TPZElementMatrix::EK);
-		TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
+		TPZAutoPointer<TPZElementMatrix> ek = new TPZElementMatrixT<STATE>(cmesh,TPZElementMatrix::EK);
+		TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrixT<STATE>(cmesh,TPZElementMatrix::EF);
 		
 		TPZCompEl *el = cmesh->ElementVec()[iel];
 		TPZElementMatrix *ekp = ek.operator->();
@@ -681,12 +681,11 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 	int numprocessed = data->fProcessed1.size();
 	while(nextel < nel || numprocessed)
 	{
-		std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > >::iterator itavail;
 		std::set<int>::iterator itprocess;
 		bool keeplooking = false;
 		if(data->fSubmitted1.size() && data->fProcessed1.size())
 		{
-			itavail = data->fSubmitted1.begin();
+			auto itavail = data->fSubmitted1.begin();
 			itprocess = data->fProcessed1.begin();
 			if(itavail->first == *itprocess)
 			{
@@ -694,8 +693,8 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 				keeplooking = true;
 				// Get a hold of the data
 				data->fProcessed1.erase(itprocess);
-				TPZAutoPointer<TPZElementMatrix> ek = itavail->second.first;
-				TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;
+				TPZAutoPointer<TPZElementMatrixT<STATE>> ek = itavail->second.first;
+				TPZAutoPointer<TPZElementMatrixT<STATE>> ef = itavail->second.second;
 				data->fSubmitted1.erase(itavail);
 #ifdef PZ_LOG
 				int iel = *itprocess;
@@ -754,12 +753,11 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 	int numprocessed = data->fProcessed2.size();
 	while(nextel < nel || numprocessed)
 	{
-		std::map<int, TPZAutoPointer<TPZElementMatrix> >::iterator itavail;
 		std::set<int>::iterator itprocess;
 		bool keeplooking = false;
 		if(data->fSubmitted2.size() && data->fProcessed2.size())
 		{
-			itavail = data->fSubmitted2.begin();
+			auto itavail = data->fSubmitted2.begin();
 			itprocess = data->fProcessed2.begin();
 			if(itavail->first == *itprocess)
 			{
@@ -767,7 +765,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 				keeplooking = true;
 				// Get a hold of the data
 				data->fProcessed2.erase(itprocess);
-				TPZAutoPointer<TPZElementMatrix> ek = itavail->second;
+				TPZAutoPointer<TPZElementMatrixT<STATE>> ek = itavail->second;
 				data->fSubmitted2.erase(itavail);
 #ifdef PZ_LOG
 				int iel = *itprocess;

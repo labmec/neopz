@@ -5,7 +5,7 @@
 
 #include "pzstrmatrixot.h"
 #include "pzsubcmesh.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "TPZStructMatrix.h"
 
 #include "TPZTimer.h"
@@ -236,7 +236,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
     
     int64_t iel;
     int64_t nelem = cmesh->NElements();
-    TPZElementMatrix ek(cmesh, TPZElementMatrix::EK),ef(cmesh, TPZElementMatrix::EF);
+    TPZElementMatrixT<TVar> ek(cmesh, TPZElementMatrix::EK),ef(cmesh, TPZElementMatrix::EF);
 #ifdef PZ_LOG
     bool globalresult = true;
     bool writereadresult = true;
@@ -442,7 +442,7 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoP
         int matid = mat->Id();
         if (myself->ShouldCompute(matid) == false) continue;
         
-        TPZElementMatrix ef(cmesh, TPZElementMatrix::EF);
+        TPZElementMatrixT<TVar> ef(cmesh, TPZElementMatrix::EF);
         
         calcresidual.start();
         
@@ -696,8 +696,8 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
     
     TPZCompMesh *cmesh = data->fStruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
-    TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
-    TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
+    TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+    TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
     int64_t numelements = data->fElSequenceColor->size();
     int64_t index = data->fCurrentIndex->fetch_add(1);
 #ifdef PZ_LOG

@@ -3,7 +3,7 @@
 #include "TPZStructMatrix.h"
 #include "pzcmesh.h"
 #include "TPZTimer.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzlog.h"
 
 #ifdef USING_TBB
@@ -224,8 +224,8 @@ void TPZFlowNode<TVar>::operator()(tbb::flow::continue_msg) const
     auto *mystruct = dynamic_cast<TPZStructMatrix*>(myGraph->fStruct);
     TPZCompMesh *cmesh = mystruct->Mesh();
     TPZAutoPointer<TPZGuiInterface> guiInterface = myGraph->fGuiInterface;
-    TPZElementMatrix ek(cmesh,TPZElementMatrix::EK);
-    TPZElementMatrix ef(cmesh,TPZElementMatrix::EF);
+    TPZElementMatrixT<TVar> ek(cmesh,TPZElementMatrix::EK);
+    TPZElementMatrixT<TVar> ef(cmesh,TPZElementMatrix::EF);
 #ifdef PZ_LOG
     if (logger.isDebugEnabled()) {
         std::stringstream sout;

@@ -4,6 +4,7 @@
  */
 
 #include "pzelementgroup.h"
+#include "TPZElementMatrixT.h"
 #include "pzlog.h"
 #include "pzstepsolver.h"
 #include "pzcmesh.h"
@@ -166,8 +167,8 @@ TPZCompEl *TPZElementGroup::ClonePatchEl(TPZCompMesh &mesh,
 
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) const {
     InitializeElementMatrix(ek);
-    int64_t rows = ek.fMat.Rows();
-    ek.fMat.Redim(rows, rows);
+    int64_t rows = ek.Matrix().Rows();
+    ek.Matrix().Redim(rows, rows);
     ek.fType = TPZElementMatrix::EK;
     InitializeElementMatrix(ef);
     std::map<int64_t,TPZOneShapeRestraint>::const_iterator it;
@@ -180,17 +181,17 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
 	const int ncon = this->NConnects();
 	int numeq = 0;
-	ef.fBlock.SetNBlocks(ncon);
+	ef.Block().SetNBlocks(ncon);
     for (int ic=0; ic<ncon; ic++) {
         TPZConnect &c = Connect(ic);
         int blsize = c.NShape()*c.NState();
         numeq += blsize;
-        ef.fBlock.Set(ic, blsize);
+        ef.Block().Set(ic, blsize);
     }
     const int numloadcases = 1;
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
-	ef.fMat.Redim(numeq,numloadcases);
+	ef.Matrix().Redim(numeq,numloadcases);
 	ef.fConnect.Resize(ncon);
 	for(int i=0; i<ncon; i++){
 		(ef.fConnect)[i] = ConnectIndex(i);
@@ -207,8 +208,13 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
+void TPZElementGroup::CalcStiff(TPZElementMatrix &ekb,TPZElementMatrix &efb)
 {
+    //TODOCOMPLEX
+    auto &ek =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     std::map<int64_t,int64_t> locindex;
     int64_t ncon = fConnectIndexes.size();
     for (int64_t ic=0; ic<ncon ; ic++) {
@@ -224,7 +230,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 #endif
     InitializeElementMatrix(ek, ef);
     int64_t nel = fElGroup.size();
-    TPZElementMatrix ekloc,efloc;
+    TPZElementMatrixT<STATE> ekloc,efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         
@@ -310,7 +316,6 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
 bool TPZElementGroup::HasMaterial(const std::set<int> &materialids) const {
     
     int64_t nel = fElGroup.size();
-    TPZElementMatrix efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
 #ifdef PZDEBUG
@@ -331,8 +336,11 @@ bool TPZElementGroup::HasMaterial(const std::set<int> &materialids) const {
  * @brief Computes the element right hand side
  * @param ef element load vector(s)
  */
-void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
+void TPZElementGroup::CalcResidual(TPZElementMatrix &efb)
 {
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     std::map<int64_t,int64_t> locindex;
     int64_t ncon = fConnectIndexes.size();
     for (int64_t ic=0; ic<ncon ; ic++) {
@@ -340,7 +348,7 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
     }
     InitializeElementMatrix(ef);
     int64_t nel = fElGroup.size();
-    TPZElementMatrix efloc;
+    TPZElementMatrixT<STATE> efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
 #ifdef PZDEBUG
@@ -349,7 +357,8 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &ef)
         }
 #endif
         cel->CalcResidual(efloc);
-        int nelcon = efloc.NConnects();
+        const int nelcon = efloc.NConnects();
+
         for (int ic=0; ic<nelcon; ic++) {
             int iblsize = efloc.fBlock.Size(ic);
             int icindex = efloc.fConnect[ic];

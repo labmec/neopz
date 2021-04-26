@@ -13,7 +13,7 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzquad.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzmat1dlin.h"
 #include "time.h"
 #include "pzmanvector.h"
@@ -1695,7 +1695,10 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 }
 
 /**Compute the contribution to stiffness matrix and load vector on the element*/
-void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
+void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &efb) {
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     int i;
     TPZMaterial * material = Material();
     if (!material) {

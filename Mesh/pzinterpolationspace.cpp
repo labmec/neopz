@@ -6,7 +6,7 @@
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
 #include "pzbndcond.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzquad.h"
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
@@ -320,8 +320,12 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 	}
 }
 
-void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-    
+void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
+    //TODOCOMPLEX
+    auto &ek =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -391,7 +395,9 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
     
 }//CalcStiff
 
-void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
+void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &efb){
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
 	
 	TPZMaterial * material = Material();
 	if(!material){
@@ -1629,8 +1635,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
-    ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon);
+    ek.Block().SetNBlocks(ncon);
+    ef.Block().SetNBlocks(ncon);
 
     int i;
     int numeq=0;
@@ -1653,12 +1659,12 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
             DebugStop();
         }
 #endif
-        ek.fBlock.Set(i,nshape*nstate);
-        ef.fBlock.Set(i,nshape*nstate);
+        ek.Block().Set(i,nshape*nstate);
+        ef.Block().Set(i,nshape*nstate);
         numeq += nshape*nstate;
     }
-    ek.fMat.Redim(numeq,numeq);
-    ef.fMat.Redim(numeq,numloadcases);
+    ek.Matrix().Redim(numeq,numeq);
+    ef.Matrix().Redim(numeq,numloadcases);
     ek.fConnect.Resize(ncon);
     ef.fConnect.Resize(ncon);
     for(i=0; i<ncon; i++){
@@ -1676,8 +1682,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
     const int numloadcases = mat->NumLoadCases();
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
-    ef.fMat.Redim(numeq,numloadcases);
-    ef.fBlock.SetNBlocks(ncon);
+    ef.Matrix().Redim(numeq,numloadcases);
+    ef.Block().SetNBlocks(ncon);
     ef.fOneRestraints = GetShapeRestraints();
     int i;
     for(i=0; i<ncon; i++){
@@ -1688,7 +1694,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
             DebugStop();
         }
 #endif
-        ef.fBlock.Set(i,nshapec*numdof);
+        ef.Block().Set(i,nshapec*numdof);
     }
     ef.fConnect.Resize(ncon);
     for(i=0; i<ncon; i++){

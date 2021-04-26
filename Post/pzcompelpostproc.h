@@ -13,7 +13,7 @@ class TPZMaterialData;
 #include "tpzautopointer.h"
 #include "TPZMaterial.h"
 #include "pzmaterialdata.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzstack.h"
 #include "pzcmesh.h"
 #include "pzquad.h"
@@ -248,8 +248,11 @@ inline void TPZCompElPostProc<TCOMPEL>::Read(TPZStream &buf, void *context)
 
 
 template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
+inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &efb)
 {
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     ef.Reset();
     
     this->InitializeElementMatrix(ef);

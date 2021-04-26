@@ -7,7 +7,7 @@
 //
 #ifndef STATE_COMPLEX //AQUIFRAN
 #include "pzgradientreconstruction.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzgradient.h"
 #include "tpzintpoints.h"
 #include "pzmultiphysicselement.h"
@@ -99,8 +99,8 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
         TPZCompEl *cel = cmesh->ElementVec()[i];
         if(!cel || cel->Dimension()!=dim) continue;
         
-        TPZElementMatrix ek(cel->Mesh(), TPZElementMatrix::EK);
-        TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
+        TPZElementMatrixT<STATE> ek(cel->Mesh(), TPZElementMatrix::EK);
+        TPZElementMatrixT<STATE> ef(cel->Mesh(), TPZElementMatrix::EF);
         
         fGradData->SetCel(cel, useweight, paramK);
 #ifdef PZ_LOG
@@ -170,8 +170,12 @@ void TPZGradientReconstruction::ChangeMaterialIdIntoCompElement(TPZCompEl *cel, 
 }
 
 
-void TPZGradientReconstruction::AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ek, TPZElementMatrix &ef,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs){
-    
+void TPZGradientReconstruction::AssembleGlobalMatrix(TPZCompEl *el, TPZElementMatrix &ekb, TPZElementMatrix &efb,TPZMatrix<STATE> & stiffmatrix, TPZFMatrix<STATE> &rhs){
+    //TODOCOMPLEX
+    auto &ek =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     if(!el->HasDependency()) {
         ek.ComputeDestinationIndices();
         

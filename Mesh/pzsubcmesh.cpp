@@ -9,7 +9,7 @@
 #include "TPZInterfaceEl.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzcmesh.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pznonlinanalysis.h"
 #include "pzskylmat.h"
 #include "pzsolve.h"
@@ -1056,11 +1056,11 @@ void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
     ef.fType = TPZElementMatrix::EF;
     
     int nelemnodes = NConnects();
-    ef.fBlock.SetNBlocks(nelemnodes);
+    ef.Block().SetNBlocks(nelemnodes);
     for (int i = 0; i < nelemnodes ; i++)    {
         //int nodeindex = ConnectIndex(i);
         int64_t seqnum = Connect(i).SequenceNumber();
-        ef.fBlock.Set(i,block.Size(seqnum));
+        ef.Block().Set(i,block.Size(seqnum));
     }
     ef.fConnect.Resize(nelemnodes);
     
@@ -1071,13 +1071,16 @@ void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
 
 
 
-void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	if(fAnalysis)
+void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
+    //TODOCOMPLEX
+    auto &ek =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+	if(!fAnalysis)
 	{
-	}
-	else
-	{
-        std::cout << "The SubCompMesh needs a configured analysis\n";
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"\nThe SubCompMesh needs a configured analysis\n";
 		DebugStop();//this->SetAnalysis();
 	}
 	std::set<int> matids = fAnalysis->StructMatrix()->MaterialIds();
@@ -1306,13 +1309,17 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
  * @brief Computes the element right hand side
  * @param ef element load vector(s)
  */
-void TPZSubCompMesh::CalcResidual(TPZElementMatrix &ef)
+void TPZSubCompMesh::CalcResidual(TPZElementMatrix &efb)
 {
+    //TODOCOMPLEX
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZFMatrix<STATE> rhs;
     fAnalysis->AssembleResidual();
     TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
 
     if (!castedAnal) {
+        PZError<<__PRETTY_FUNCTION__;
         DebugStop();
     }
     InitializeEF(ef);
