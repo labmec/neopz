@@ -580,7 +580,10 @@ public:
 	 * @param connectlist stack list to calculates the diagonal block
 	 * @param block object to receive the diagonal block
 	 */
-	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block);
+	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block){
+        CalcBlockDiagonalInternal(connectlist,block);
+    }
+    
 	
     /// Will return the maximum distance between the nodes of the reference element
 	REAL MaximumRadiusOfEl();
@@ -595,7 +598,8 @@ public:
 	void Read(TPZStream &buf, void *context) override;
 	 
 private:
-    
+    template<class TVar>
+    void CalcBlockDiagonalInternal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
 	/** @brief Default interpolation order */
     static int gOrder;
     

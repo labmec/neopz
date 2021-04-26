@@ -76,7 +76,6 @@ TPZStructMatrixOR<TVar>::Assemble(TPZBaseMatrix & rhs, TPZAutoPointer<TPZGuiInte
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
     ass_rhs.start();
     if (equationFilter.IsActive()) {
-        //TODOCOMPLEX
         auto rhsState = dynamic_cast<const TPZFMatrix<TVar> *>(&rhs);
             
         int64_t neqcondense = equationFilter.NActiveEquations();

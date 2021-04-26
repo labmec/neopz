@@ -53,7 +53,7 @@ void TPZElementMatrixT<TVar>::Print(std::ostream &out){
 		bool hasdepend = HasDependency();
 		int64_t size = fSourceIndex.NElements();
 		//TPZFMatrix<REAL> constrmatrix(size,size,0.);
-		TPZFNMatrix<400,STATE> constrmatrix(size,size,0.);
+		TPZFNMatrix<400,TVar> constrmatrix(size,size,0.);
 		int64_t in,jn;
 		for(in=0; in<size; in++)
 		{
@@ -82,7 +82,7 @@ void TPZElementMatrixT<TVar>::Print(std::ostream &out){
 		bool hasdepend = HasDependency();
 		int64_t size = fSourceIndex.NElements();
 		//TPZFMatrix<REAL> constrmatrix(size,size,0.);
-		TPZFMatrix<STATE> constrmatrix(size,fMat.Cols(),0.);
+		TPZFMatrix<TVar> constrmatrix(size,fMat.Cols(),0.);
 		int64_t in,jn;
 		for(in=0; in<size; in++)
 		{

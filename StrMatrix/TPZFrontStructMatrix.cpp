@@ -403,9 +403,9 @@ template<class TFront, class TVar, class TPar>
 void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ekb, TPZElementMatrix & efb, TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs){
 	//TODOCOMPLEX
     auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
+		dynamic_cast<TPZElementMatrixT<TVar>&>(ekb);
 	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+		dynamic_cast<TPZElementMatrixT<TVar>&>(efb);
 	
 	if(!el->HasDependency()) {
 		//ek.fMat->Print("stiff has no constraint",test);

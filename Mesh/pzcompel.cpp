@@ -48,9 +48,9 @@ static TPZLogger logger("pz.mesh.tpzcompel");
 static TPZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
 
-void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
-    //TODOCOMPLEX
-    TPZElementMatrixT<STATE> ek(this->Mesh(), TPZElementMatrix::EK),
+template<class TVar>
+void TPZCompEl::CalcBlockDiagonalInternal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & blockdiag) {
+    TPZElementMatrixT<TVar> ek(this->Mesh(), TPZElementMatrix::EK),
         ef(this->Mesh(), TPZElementMatrix::EF);
     int b;
     CalcStiff(ek,ef);
@@ -71,11 +71,11 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             TPZConnect &con = Mesh()->ConnectVec()[conind];
             if(con.HasDependency() || con.IsCondensed()) continue;
             //TPZFMatrix<REAL> ekbl(blsize,blsize);
-            TPZFMatrix<STATE> ekbl(blsize,blsize);
+            TPZFMatrix<TVar> ekbl(blsize,blsize);
             int r,c;
             //TPZBlock &mbl = ek.fConstrBlock;
             TPZBlock &mbl = ek.fConstrBlock;
-            TPZFMatrix<STATE> &msol = ek.fConstrMat;
+            TPZFMatrix<TVar> &msol = ek.fConstrMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
@@ -96,14 +96,14 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
         for(b=0; b<numblock; b++) {
             int blsize = blocksize[b];
             //TPZFMatrix<REAL> ekbl(blsize,blsize);
-            TPZFMatrix<STATE> ekbl(blsize,blsize);
+            TPZFMatrix<TVar> ekbl(blsize,blsize);
             int64_t conind = ek.fConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
             if(con.HasDependency() || con.IsCondensed()) continue;
             int r, c;
             //TPZBlock &mbl = ek.fBlock;
             TPZBlock &mbl = ek.fBlock;
-            TPZFMatrix<STATE> &sol = ek.fMat;
+            TPZFMatrix<TVar> &sol = ek.fMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {

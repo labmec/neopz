@@ -441,8 +441,14 @@ public:
 	/** @brief Returns total mass contained into the element */
 	REAL MeanSolution(int var);
 	/** @brief Computes the integral over the finite element */
-	void CalcIntegral(TPZElementMatrix &ef);
+	template<class TVar>
+	void CalcIntegral(TPZElementMatrixT<TVar> &ef);
 	
 };
 
+
+
+extern template
+void TPZInterpolatedElement::
+CalcIntegral<STATE>(TPZElementMatrixT<STATE>&ef);
 #endif

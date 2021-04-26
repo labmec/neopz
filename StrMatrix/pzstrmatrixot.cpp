@@ -100,8 +100,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & stiffness, TPZBaseMatrix 
             DebugStop();
         }
 #endif
-        //TODOCOMPLEX
-        TPZFMatrix<STATE> rhsloc(neqcondense,rhs.Cols(),0.);
+        TPZFMatrix<TVar> rhsloc(neqcondense,rhs.Cols(),0.);
         if(this->fNumThreads){
             this->MultiThread_Assemble(stiffness,rhsloc,guiInterface);
         }
@@ -127,12 +126,12 @@ template<class TVar>
 void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<TPZGuiInterface> guiInterface){
     const auto &equationFilter =
         (dynamic_cast<TPZStructMatrix*>(this))->EquationFilter();
-    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+    if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<" Incompatible Types. Aborting...\n";
         DebugStop();
     }
-    auto rhs = dynamic_cast<TPZFMatrix<STATE> &>(rhs_base);
+    auto rhs = dynamic_cast<TPZFMatrix<TVar> &>(rhs_base);
     ass_rhs.start();
     if(equationFilter.IsActive())
     {
@@ -143,12 +142,11 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
         {
             DebugStop();
         }
-        TPZFMatrix<STATE> rhsloc(neqcondense,1,0.);
-        //TODOCOMPLEX
+        TPZFMatrix<TVar> rhsloc(neqcondense,1,0.);
         if(this->fNumThreads)
         {
 #ifdef HUGEDEBUG
-            TPZFMatrix<STATE> rhsserial(rhsloc);
+            TPZFMatrix<TVar> rhsserial(rhsloc);
             this->Serial_Assemble(rhsserial, guiInterface);
 #endif
             this->MultiThread_Assemble(rhsloc,guiInterface);
@@ -168,7 +166,7 @@ void TPZStructMatrixOT<TVar>::Assemble(TPZBaseMatrix & rhs_base,TPZAutoPointer<T
     {
         if(this->fNumThreads){
 #ifdef HUGEDEBUG
-            TPZFMatrix<STATE> rhsserial(rhs);
+            TPZFMatrix<TVar> rhsserial(rhs);
             this->Serial_Assemble(rhsserial, guiInterface);
 #endif
             this->MultiThread_Assemble(rhs,guiInterface);
@@ -202,8 +200,8 @@ void TPZStructMatrixOT<TVar>::InitCreateAssemble()
 
 template<class TVar>
 void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface ){
-    if(!dynamic_cast<TPZMatrix<STATE>*>(&stiff_base)||
-       !dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+    if(!dynamic_cast<TPZMatrix<TVar>*>(&stiff_base)||
+       !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
         DebugStop();
@@ -213,8 +211,8 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
     const auto &equationFilter = myself->EquationFilter();
     auto &materialIds = myself->MaterialIds();
     
-    auto &stiffness = dynamic_cast<TPZMatrix<STATE>&>(stiff_base);
-    auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto &stiffness = dynamic_cast<TPZMatrix<TVar>&>(stiff_base);
+    auto &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
     if(!cmesh){
         LOGPZ_ERROR(logger,"Serial_Assemble called without mesh")
         DebugStop();
@@ -330,8 +328,8 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
         if(!el->HasDependency()) {
             ek.ComputeDestinationIndices();
             equationFilter.Filter(ek.fSourceIndex, ek.fDestinationIndex);
-            //			TPZSFMatrix<STATE> test(stiffness);
-            //			TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
+            //			TPZSFMatrix<TVar> test(stiffness);
+            //			TPZFMatrix<TVar> test2(stiffness.Rows(),stiffness.Cols(),0.);
             //			stiffness.Print("before assembly",std::cout,EMathematicaInput);
             stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
             rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -406,13 +404,13 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & stiff_base, TPZBas
 }
 template<class TVar>
 void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface){
-    if(!dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+    if(!dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
         DebugStop();
     }
 
-    auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const auto &equationFilter = myself->EquationFilter();
     auto *cmesh = myself->Mesh();
@@ -485,15 +483,15 @@ void TPZStructMatrixOT<TVar>::Serial_Assemble(TPZBaseMatrix & rhs_base, TPZAutoP
 template<class TVar>
 void TPZStructMatrixOT<TVar>::MultiThread_Assemble(TPZBaseMatrix & mat_base, TPZBaseMatrix & rhs_base, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-    if(!dynamic_cast<TPZMatrix<STATE>*>(&mat_base)||
-       !dynamic_cast<TPZFMatrix<STATE>*>(&rhs_base)){
+    if(!dynamic_cast<TPZMatrix<TVar>*>(&mat_base)||
+       !dynamic_cast<TPZFMatrix<TVar>*>(&rhs_base)){
         PZError<<__PRETTY_FUNCTION__;
         PZError<<": incompatible types. Aborting...\n";
         DebugStop();
     }
 
-    auto &mat = dynamic_cast<TPZMatrix<STATE>&>(mat_base);
-    auto &rhs = dynamic_cast<TPZFMatrix<STATE>&>(rhs_base);
+    auto &mat = dynamic_cast<TPZMatrix<TVar>&>(mat_base);
+    auto &rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
 
     auto *myself = dynamic_cast<TPZStructMatrix*>(this);
     const int numthreads = this->fNumThreads;
@@ -858,9 +856,9 @@ void *TPZStructMatrixOT<TVar>::ThreadData::ThreadWork(void *datavoid)
             
 #ifndef DRY_RUN
             auto globMatrix =
-                    dynamic_cast<TPZMatrix<STATE> *>(data->fGlobMatrix);
+                    dynamic_cast<TPZMatrix<TVar> *>(data->fGlobMatrix);
                 auto globRhs =
-                    dynamic_cast<TPZFMatrix<STATE> *>(data->fGlobRhs);
+                    dynamic_cast<TPZFMatrix<TVar> *>(data->fGlobRhs);
             if(globMatrix){
                 // Assemble the matrix
                 if(!ek.HasDependency())
