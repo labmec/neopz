@@ -38,14 +38,10 @@ class TPZMD5Stream : public TPZStream
 	
 public:
   /** @brief Default constructor */
-  TPZMD5Stream() 
-  {
-    last_status = ResetMD5();
-  }
+  TPZMD5Stream();
 
   /** @brief Default destructor */
-  virtual ~TPZMD5Stream() 
-    {}
+  virtual ~TPZMD5Stream();
   
   /**
    * @brief Check Stream MD5 signature against MD5 signature store on file. 

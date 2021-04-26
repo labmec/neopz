@@ -7,7 +7,17 @@
 
 #ifdef USING_OPENSSL
 #include <openssl/md5.h>
+#else
+class MD5state_st{};
 #endif
+
+TPZMD5Stream::TPZMD5Stream() 
+  {
+    last_status = ResetMD5();
+  }
+TPZMD5Stream::~TPZMD5Stream() 
+  {
+  }
 
 int TPZMD5Stream::CheckMD5(FILE *fh) {
 #ifdef USING_OPENSSL
