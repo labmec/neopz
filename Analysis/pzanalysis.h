@@ -45,6 +45,8 @@ protected:
 	TPZGeoMesh *fGeoMesh;
 	/** @brief Computational mesh */
 	TPZCompMesh *fCompMesh;
+    /** @brief Type of the solution (real/complex)*/
+    ESolType fSolType;
 	/** @brief Graphical mesh */
 	TPZGraphMesh *fGraphMesh[3];
 	/** @brief Load vector */
@@ -388,5 +390,9 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
     EPrecond preconditioner,bool overlap);
 extern template
 TPZMatrixSolver<STATE> &TPZAnalysis::MatrixSolver<STATE>();
-
+extern template
+TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
+    EPrecond preconditioner,bool overlap);
+extern template
+TPZMatrixSolver<CSTATE> &TPZAnalysis::MatrixSolver<CSTATE>();
 #endif

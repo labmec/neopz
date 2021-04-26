@@ -47,6 +47,8 @@ class TPZCompMesh : public virtual TPZSavable {
 protected:
 	/** @brief Geometric grid to which this grid refers */
 	TPZGeoMesh	*fReference;
+    /** @brief Type of the solution (real/complex)*/
+    ESolType fSolType;
     
     /** @brief Autopointer to the geometric mesh used in case the user has passed an autopointer */
     TPZAutoPointer<TPZGeoMesh> fGMesh;
@@ -107,15 +109,19 @@ protected:
     void SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i, TPZVec<TVar> &sol);
     template<class TVar>
     void ConnectSolutionInternal(std::ostream &out, const TPZFMatrix<TVar>&sol) const;
+
+    friend TPZPersistenceManager;
+    friend TPZRestoreClass<TPZCompMesh>;
+    /* @brief Default constructor*/
+	TPZCompMesh();
 public:
-	
 	/**
 	 * @brief Constructor from geometrical mesh
 	 * @param gr pointer to geometrical reference mesh
 	 */
-	TPZCompMesh(TPZGeoMesh* gr=0);
+	TPZCompMesh(TPZGeoMesh* gr, bool isComplex=false);
     /** @brief Constructor based on an autopointer to a geometric mesh */
-    TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh);
+    TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh, bool isComplex = false);
 	/** @brief Copy constructor */
 	TPZCompMesh(const TPZCompMesh &copy);
     /** @brief copy the content of the mesh */
@@ -123,7 +129,9 @@ public:
 	
 	/** @brief Simple Destructor */
 	virtual ~TPZCompMesh();
-	
+
+    /** @brief Get type of solution (real/complex).*/
+    ESolType GetSolType() const { return fSolType;}
 	/**
 	 * @brief This method will initiate the comparison between the current computational
 	 * mesh and the mesh which is referenced by the geometric mesh

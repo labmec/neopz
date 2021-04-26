@@ -265,6 +265,8 @@ public:
      * @since April 16, 2007
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) = 0;
+
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef);
     
     /**
      * @brief It computes a contribution to the residual vector at one integration point.
@@ -277,6 +279,12 @@ public:
       TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
       this->Contribute(data, weight, fakeek, ef);
     }
+
+        virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<CSTATE> &ef){
+      TPZFMatrix<CSTATE> fakeek(ef.Rows(), ef.Rows(), 0.);
+      this->Contribute(data, weight, fakeek, ef);
+    }
+    
     
 
     /**

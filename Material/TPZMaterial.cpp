@@ -330,6 +330,17 @@ TPZMaterial * TPZMaterial::NewMaterial() {
 	return 0;
 }
 
+void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<CSTATE> &ek, TPZFMatrix<CSTATE> &ef){
+    TPZFMatrix<REAL>  &phi = data.phi;
+    const auto phr = phi.Rows();
+    for( auto in = 0; in < phr; in++ ) {
+        ef(in) = phi(in,0);
+        for( auto jn = 0; jn < phr; jn++ ) {
+            ek(in,jn) = phi(in,0) * phi(jn,0);
+        }
+    }
+}
+
 void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	int nref=datavec.size();
     int ndif = 0;
