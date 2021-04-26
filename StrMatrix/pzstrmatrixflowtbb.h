@@ -75,4 +75,5 @@ protected:
 };
 
 extern template class TPZStructMatrixTBBFlow<STATE>;
+extern template class TPZStructMatrixTBBFlow<CSTATE>;
 #endif

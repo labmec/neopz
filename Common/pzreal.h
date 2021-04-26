@@ -189,21 +189,17 @@ typedef TPZFlopCounter REAL;
 typedef float STATE;
 #endif // STATEfloat
 #ifdef STATEdouble
-typedef double STATE; //This is the default configuration
+//This is the default configuration
+typedef double STATE;
 #endif // STATEdouble
 #ifdef STATElongdouble
 typedef long double STATE;
 #endif // STATElongdouble
-#ifdef STATEcomplexf
-typedef std::complex<float> STATE;
-#endif // STATEcomplexf
-#ifdef STATEcomplexd
-typedef std::complex<double> STATE;
-#endif //STATEcomplexd
-#ifdef STATEcomplexld
-typedef std::complex<long double> STATE;
-#endif //STATEcomplexld
+typedef std::complex<STATE> CSTATE;
+// set(STATE_COMPLEX "STATE_COMPLEX")
+// set (BUILD_COMPLEX_PROJECTS ON)
 
+enum ESolType{ EReal=1,EComplex=2,EUndefined=3};
 #ifdef VC
 #include <io.h>
 #ifndef NOMINMAX

@@ -18,10 +18,9 @@ class TPZSolutionMatrix : public TPZSavable{
 private:
 
   //! Enum for solution type
-  enum ESolType{ EReal=1,EComplex=2,EUndefined=3};
   ESolType fSolType;//!< Type of solution
   TPZFMatrix<STATE> fRealMatrix;//!< Static storage for real matrix
-  // TPZFMatrix<CSTATE> fComplexMatrix; //!< Static storage for complex matrix
+  TPZFMatrix<CSTATE> fComplexMatrix; //!< Static storage for complex matrix
   TPZBaseMatrix *fBaseMatrix;//!< Pointer for actual solution
 
 public:
@@ -38,8 +37,8 @@ public:
 
   //! Constructor taking a real matrix
   TPZSolutionMatrix(const TPZFMatrix<STATE> &sol);
-  // //! Constructor taking a complex matrix
-  // TPZSolutionMatrix(const TPZFMatrix<CSTATE> &sol);
+  //! Constructor taking a complex matrix
+  TPZSolutionMatrix(const TPZFMatrix<CSTATE> &sol);
   //! Copy constructor
   TPZSolutionMatrix(const TPZSolutionMatrix &);
   //! Move constructor (deleted)
@@ -58,6 +57,12 @@ public:
   //! Conversion function to TPZFMatrix<STATE>&. Throws error if incompatible
   operator TPZFMatrix<STATE>& ();
   operator const TPZFMatrix<STATE>& () const;
+  //@}
+
+  //@{
+  //! Conversion function to TPZFMatrix<CSTATE>&. Throws error if incompatible
+  operator TPZFMatrix<CSTATE>& ();
+  operator const TPZFMatrix<CSTATE>& () const;
   //@}
   
   //! Conversion function to TPZBaseMatrix&
@@ -78,12 +83,6 @@ public:
     with the dependent equations. This method provided a way for doing this operation
     with only one memory allocation.*/
   void ExpandAndSetSol(const TPZSolutionMatrix & sol, const int64_t nrows);
-  
-  // //@{
-  // //! Conversion function to TPZFMatrix<CSTATE>&. Throws error if incompatible
-  // operator TPZFMatrix<CSTATE>& ();
-  // operator const TPZFMatrix<CSTATE>& () const;
-  // //@}
   
   //! Number of Rows of the solution
   inline int64_t Rows() const {
@@ -135,11 +134,28 @@ public:
   void Read(TPZStream &buf, void *context) override;
   //! Write method (only the current matrix is written)
   void Write(TPZStream &buf, int withclassid) const override;
+  friend STATE Norm(const TPZSolutionMatrix &A);
 };
 
+inline STATE Norm(const TPZSolutionMatrix &A) {
+  if (A.fSolType == EReal)
+    return Norm(A.fRealMatrix);
+  else if (A.fSolType == EComplex){
+    return Norm(A.fComplexMatrix);
+  }
+  
+  PZError<<__PRETTY_FUNCTION__;
+  PZError<<"Type is not set. Aborting...\n";
+  DebugStop();
+  return -1;
+}
 
 extern template
 TPZSolutionMatrix &TPZSolutionMatrix::operator=<STATE>(const TPZFMatrix<STATE> &mat);
 extern template
 TPZSolutionMatrix &TPZSolutionMatrix::operator+=<STATE>(const TPZFMatrix<STATE> &mat);
+extern template
+TPZSolutionMatrix &TPZSolutionMatrix::operator=<CSTATE>(const TPZFMatrix<CSTATE> &mat);
+extern template
+TPZSolutionMatrix &TPZSolutionMatrix::operator+=<CSTATE>(const TPZFMatrix<CSTATE> &mat);
 #endif

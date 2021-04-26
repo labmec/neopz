@@ -327,6 +327,7 @@ public:
 	 * @param ef element load vector
 	 */
 	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
+    virtual void CalcStiff(TPZElementMatrixT<CSTATE> &ek,TPZElementMatrixT<CSTATE> &ef);
     
 	
 	/** @brief Verifies if the material associated with the element is contained in the set */
@@ -337,6 +338,7 @@ public:
 	 * @param ef element load vector(s)
 	 */
 	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef);
+    virtual void CalcResidual(TPZElementMatrixT<CSTATE> &ef);
 	
 	/**
 	 * @brief Implements of the orthogonal Chebyshev functions
@@ -584,6 +586,9 @@ public:
         CalcBlockDiagonalInternal(connectlist,block);
     }
     
+    virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<CSTATE> & block){
+        CalcBlockDiagonalInternal(connectlist,block);
+    }
 	
     /// Will return the maximum distance between the nodes of the reference element
 	REAL MaximumRadiusOfEl();
@@ -811,6 +816,11 @@ inline void TPZCompEl::Assemble(){
 }
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrixT<STATE> &,TPZElementMatrixT<STATE> &){
+	PZError << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+    DebugStop();
+}
+
+inline void TPZCompEl::CalcStiff(TPZElementMatrixT<CSTATE> &,TPZElementMatrixT<CSTATE> &){
 	PZError << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
     DebugStop();
 }

@@ -852,3 +852,5 @@ TPZStructMatrixOR<TVar>::ThreadData::ShouldCompute(int matid) const{
 
 template class TPZStructMatrixOR<STATE>;
 template class TPZRestoreClass<TPZStructMatrixOR<STATE>>;
+template class TPZStructMatrixOR<CSTATE>;
+template class TPZRestoreClass<TPZStructMatrixOR<CSTATE>>;

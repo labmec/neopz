@@ -119,4 +119,5 @@ protected:
 
 
 extern template class TPZStructMatrixOR<STATE>;
+extern template class TPZStructMatrixOR<CSTATE>;
 #endif

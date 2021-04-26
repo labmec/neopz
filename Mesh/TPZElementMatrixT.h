@@ -89,4 +89,5 @@ struct TPZElementMatrixT : public TPZElementMatrix {
 };
 
 extern template class TPZElementMatrixT<STATE>;
+extern template class TPZElementMatrixT<CSTATE>;
 #endif

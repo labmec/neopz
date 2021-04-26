@@ -55,10 +55,7 @@ if (NOT STATE_TYPE)
         PROPERTY STRINGS
         "double"
         "float"
-        "long double"
-        "complex<float>"
-        "complex<double>"
-        "complex<long double>")
+        "long double")
 endif ()
 
 if (STATE_TYPE STREQUAL "double")
@@ -67,21 +64,9 @@ elseif (STATE_TYPE STREQUAL "float")
     set(STATE_TYPE_DEF "STATEfloat")
 elseif (STATE_TYPE STREQUAL "long double")
     set(STATE_TYPE_DEF "STATElongdouble")
-elseif (STATE_TYPE STREQUAL "complex<float>")
-    set(STATE_TYPE_DEF "STATEcomplexf")
-    set(STATE_COMPLEX "STATE_COMPLEX")
-    set (BUILD_COMPLEX_PROJECTS ON)
-elseif (STATE_TYPE STREQUAL "complex<double>")
-    set(STATE_TYPE_DEF "STATEcomplexd")
-    set(STATE_COMPLEX "STATE_COMPLEX")
-    set (BUILD_COMPLEX_PROJECTS ON)
-elseif (STATE_TYPE STREQUAL "complex<long double>")
-    set(STATE_TYPE_DEF "STATEcomplexld")
-    set(STATE_COMPLEX "STATE_COMPLEX")
-    set (BUILD_COMPLEX_PROJECTS ON)
 else()
     message(FATAL_ERROR "Please specify a valid type for STATE from the options: "
-            "'double', 'float', 'long double', 'complex<float>', 'complex<double>', 'complex<long double>'")
+            "'double', 'float', 'long double'")
 endif()
 
 message(STATUS "NeoPZ configuration:"

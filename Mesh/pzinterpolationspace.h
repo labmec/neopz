@@ -202,6 +202,10 @@ virtual int ClassId() const override;
                            TPZElementMatrixT<STATE> &ef) override{
         CalcStiffInternal<STATE>(ek,ef);
     }
+    virtual void CalcStiff(TPZElementMatrixT<CSTATE> &ek,
+                           TPZElementMatrixT<CSTATE> &ef) override{
+        CalcStiffInternal<CSTATE>(ek,ef);
+    }
 	
 	/**
 	 * @brief Only computes the element residual
@@ -209,6 +213,9 @@ virtual int ClassId() const override;
 	 */
 	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
         CalcResidualInternal<STATE>(ef);
+    }
+    virtual void CalcResidual(TPZElementMatrixT<CSTATE> &ef) override{
+        CalcResidualInternal<CSTATE>(ef);
     }
 	
 	/** @brief Initialize element matrix in which is computed CalcStiff */

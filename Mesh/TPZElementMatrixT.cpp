@@ -474,3 +474,4 @@ void TPZElementMatrixT<TVar>::PermuteGather(TPZVec<int64_t> &permute)
 }
 
 template class TPZElementMatrixT<STATE>;
+template class TPZElementMatrixT<CSTATE>;

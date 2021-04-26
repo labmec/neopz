@@ -1264,3 +1264,5 @@ void TPZStructMatrixOT<TVar>::Write(TPZStream& buf, int withclassid) const {
 
 template class TPZStructMatrixOT<STATE>;
 template class TPZRestoreClass<TPZStructMatrixOT<STATE>>;
+template class TPZStructMatrixOT<CSTATE>;
+template class TPZRestoreClass<TPZStructMatrixOT<CSTATE>>;

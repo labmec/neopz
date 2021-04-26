@@ -462,6 +462,8 @@ void TPZFlowGraph<TVar>::OrderElements()
     fElementOrder.Resize(seq);
 }
         
-        template class TPZFlowGraph<STATE>;
-        template class TPZFlowNode<STATE>;
+template class TPZFlowGraph<STATE>;
+template class TPZFlowNode<STATE>;
+template class TPZFlowGraph<CSTATE>;
+template class TPZFlowNode<CSTATE>;
 #endif

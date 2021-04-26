@@ -620,8 +620,13 @@ void TPZCompEl::LoadElementReference()
 }
 
 void TPZCompEl::CalcResidual(TPZElementMatrixT<STATE> &ef){
-    //TODOCOMPLEX
     TPZElementMatrixT<STATE> ek(this->Mesh(), TPZElementMatrix::EK);
+    CalcStiff(ek,ef);
+}
+
+void TPZCompEl::CalcResidual(TPZElementMatrixT<CSTATE> &ef){
+    //TODOCOMPLEX
+    TPZElementMatrixT<CSTATE> ek(this->Mesh(), TPZElementMatrix::EK);
     CalcStiff(ek,ef);
 }
 
