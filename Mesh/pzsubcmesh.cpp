@@ -1070,13 +1070,8 @@ void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
 }
 
 
-
-void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
-    //TODOCOMPLEX
-    auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+template<class TVar>
+void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
 	if(!fAnalysis)
 	{
         PZError<<__PRETTY_FUNCTION__;
@@ -1249,8 +1244,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
 		(ek.fConnect)[i] = ConnectIndex(i);
 	}
 	if (! fAnalysis){
-		TPZFStructMatrix<STATE> local(this);
-		TPZAutoPointer<TPZMatrix<STATE> > stiff = local.CreateAssemble(ef.fMat,NULL);
+		TPZFStructMatrix<TVar> local(this);
+		TPZAutoPointer<TPZMatrix<TVar> > stiff = local.CreateAssemble(ef.fMat,NULL);
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
@@ -1266,7 +1261,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
-			TPZAbstractFrontMatrix<STATE> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *> (fAnalysis->MatrixSolver<STATE>().Matrix().operator->());
+			TPZAbstractFrontMatrix<TVar> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<TVar> *> (fAnalysis->MatrixSolver<TVar>().Matrix().operator->());
 			if(frontmat)
 			{
 				sman->SetFront(frontmat->GetFront());
@@ -1309,12 +1304,10 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
  * @brief Computes the element right hand side
  * @param ef element load vector(s)
  */
-void TPZSubCompMesh::CalcResidual(TPZElementMatrix &efb)
+template<class TVar>
+void TPZSubCompMesh::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
-    TPZFMatrix<STATE> rhs;
+    TPZFMatrix<TVar> rhs;
     fAnalysis->AssembleResidual();
     TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
 
@@ -1328,7 +1321,7 @@ void TPZSubCompMesh::CalcResidual(TPZElementMatrix &efb)
 //    ef.PermuteGather(fIndexes);
 //    fCondensed.SetF(ef.fMat);
 //    //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-//    TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
+//    TPZFNMatrix<100,TVar> f1(fCondensed.Dim1(),ef.fMat.Cols());
 //    fCondensed.F1Red(f1);
 //    int64_t dim1 = f1.Rows();
 //    int64_t dim = ef.fMat.Rows();

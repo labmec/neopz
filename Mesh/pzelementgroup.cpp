@@ -208,13 +208,9 @@ void TPZElementGroup::InitializeElementMatrix(TPZElementMatrix &ef) const {
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZElementGroup::CalcStiff(TPZElementMatrix &ekb,TPZElementMatrix &efb)
+template<class TVar>
+void TPZElementGroup::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-    auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     std::map<int64_t,int64_t> locindex;
     int64_t ncon = fConnectIndexes.size();
     for (int64_t ic=0; ic<ncon ; ic++) {
@@ -230,7 +226,7 @@ void TPZElementGroup::CalcStiff(TPZElementMatrix &ekb,TPZElementMatrix &efb)
 #endif
     InitializeElementMatrix(ek, ef);
     int64_t nel = fElGroup.size();
-    TPZElementMatrixT<STATE> ekloc,efloc;
+    TPZElementMatrixT<TVar> ekloc,efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
         
@@ -336,11 +332,9 @@ bool TPZElementGroup::HasMaterial(const std::set<int> &materialids) const {
  * @brief Computes the element right hand side
  * @param ef element load vector(s)
  */
-void TPZElementGroup::CalcResidual(TPZElementMatrix &efb)
+template<class TVar>
+void TPZElementGroup::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     std::map<int64_t,int64_t> locindex;
     int64_t ncon = fConnectIndexes.size();
     for (int64_t ic=0; ic<ncon ; ic++) {
@@ -348,7 +342,7 @@ void TPZElementGroup::CalcResidual(TPZElementMatrix &efb)
     }
     InitializeElementMatrix(ef);
     int64_t nel = fElGroup.size();
-    TPZElementMatrixT<STATE> efloc;
+    TPZElementMatrixT<TVar> efloc;
     for (int64_t el = 0; el<nel; el++) {
         TPZCompEl *cel = fElGroup[el];
 #ifdef PZDEBUG

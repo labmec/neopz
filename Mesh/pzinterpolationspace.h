@@ -198,13 +198,18 @@ virtual int ClassId() const override;
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,
+                           TPZElementMatrixT<STATE> &ef) override{
+        CalcStiffInternal<STATE>(ek,ef);
+    }
 	
 	/**
 	 * @brief Only computes the element residual
 	 * @param ef element residual
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef) override;
+	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+        CalcResidualInternal<STATE>(ef);
+    }
 	
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	virtual void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
@@ -339,6 +344,10 @@ public:
 	void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform<> &t, TPZTransfer<STATE> &transfer);
 	
 protected:
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
 	
 	/**
 	 * @brief Auxiliary method to expand a vector of shapefunctions and their derivatives to acount for constraints

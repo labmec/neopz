@@ -172,15 +172,11 @@ REAL TPZAgglomerateElement::VolumeOfEl(){
 
 void TPZAgglomerateElement::CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el){
 	
-	PZError << "TPZAgglomerateElement::CalcResidual DEVE SER IMPLEMENTADO";
+	PZError << "TPZAgglomerateElement::CalcResidual must be implemented\n";
 }
 
-void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
-	//TODOCOMPLEX
-	auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+template<class TVar>
+void TPZAgglomerateElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){	
 	if(Reference()) return TPZCompElDisc::CalcStiff(ek,ef);
 	
 	if(!Material()){

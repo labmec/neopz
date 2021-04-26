@@ -261,7 +261,9 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
+        CalcStiffInternal<STATE>(ek,ef);
+    }
     /**
      * @brief Performs an error computation for the element
      * @param errors [out] the L2 norm of the error of the solution
@@ -276,7 +278,9 @@ public:
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef) override;
+	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+        CalcResidualInternal<STATE>(ef);
+    }
 
     int ComputeIntegrationOrder() const override {
         std::cout << "This method should not be called. " << __PRETTY_FUNCTION__ << std::endl;
@@ -288,7 +292,10 @@ public:
 virtual int ClassId() const override;
 
 protected:
-    
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
     /// Initialize the datastructure of ek and ef based on the connect information
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) const;
 

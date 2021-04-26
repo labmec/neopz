@@ -52,13 +52,9 @@ TPZCompEl *TPZCompElLagrange::ClonePatchEl(TPZCompMesh &mesh,
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ekb,TPZElementMatrix &efb)
+template<class TVar>
+void TPZCompElLagrange::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-	auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     InitializeElementMatrix(ek, ef);
 #ifdef PZDEBUG
     if (ef.fMat.Cols() != 1) {
@@ -78,10 +74,10 @@ void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ekb,TPZElementMatrix &efb)
         ek.fMat(count+blsize0+fDef[l].fIdf[1],count+fDef[l].fIdf[0]) = -1.;
         ek.fMat(count+blsize0+fDef[l].fIdf[1],count+blsize0+fDef[l].fIdf[1]) = 1.;
         const TPZBlock &bl = Mesh()->Block();
-        TPZFMatrix<STATE> &sol = Mesh()->Solution();
+        TPZFMatrix<TVar> &sol = Mesh()->Solution();
         int64_t pos0 = bl.Index(c0.SequenceNumber(), fDef[l].fIdf[0]);
         int64_t pos1 = bl.Index(c1.SequenceNumber(), fDef[l].fIdf[1]);
-        STATE diff = sol(pos0,0)-sol(pos1,0);
+        TVar diff = sol(pos0,0)-sol(pos1,0);
         ef.fMat(count+fDef[l].fIdf[0],0) = -diff;
         ef.fMat(count+blsize0+fDef[l].fIdf[1],0) = diff;
         count += blsize0+blsize1;

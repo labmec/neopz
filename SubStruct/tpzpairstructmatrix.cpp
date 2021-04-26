@@ -606,15 +606,13 @@ void *TPZPairStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	while(iel < nel)
 	{
 		
-		TPZAutoPointer<TPZElementMatrix> ek = new TPZElementMatrixT<STATE>(cmesh,TPZElementMatrix::EK);
-		TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrixT<STATE>(cmesh,TPZElementMatrix::EF);
+      TPZAutoPointer<TPZElementMatrixT<STATE>> ek =
+        new TPZElementMatrixT<STATE>(cmesh,TPZElementMatrix::EK);
+      TPZAutoPointer<TPZElementMatrixT<STATE>> ef =
+        new TPZElementMatrixT<STATE>(cmesh,TPZElementMatrix::EF);
 		
 		TPZCompEl *el = cmesh->ElementVec()[iel];
-		TPZElementMatrix *ekp = ek.operator->();
-		TPZElementMatrix *efp = ef.operator->();
-		TPZElementMatrix &ekr = *ekp;
-		TPZElementMatrix &efr = *efp;
-		el->CalcStiff(ekr,efr);
+		el->CalcStiff(ek,ef);
 		
 		
 		if(!el->HasDependency()) {
@@ -864,10 +862,10 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 }
 
 // put the computed element matrices in the map
-void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef)
+void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrixT<STATE>> &ek, TPZAutoPointer<TPZElementMatrixT<STATE>> &ef)
 {
     unique_lock<std::mutex> lock(fAccessElement);
-	std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek,ef);
+	std::pair< TPZAutoPointer<TPZElementMatrixT<STATE>>, TPZAutoPointer<TPZElementMatrixT<STATE>> > el(ek,ef);
 	fSubmitted1[iel] = el;
 	fSubmitted2[iel] = ek;
 	fAssembly1.Post();

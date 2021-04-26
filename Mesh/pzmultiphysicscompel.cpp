@@ -789,14 +789,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CleanupMaterialData(TPZVec<TPZMaterialDat
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb)
+template<class TVar>
+void TPZMultiphysicsCompEl<TGeometry>::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef)
 {
-
-    //TODOCOMPLEX
-    auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -886,11 +881,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ekb, TPZEleme
 }//CalcStiff
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::CalcResidual(TPZElementMatrix &efb)
+template<class TVar>
+void TPZMultiphysicsCompEl<TGeometry>::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";

@@ -63,7 +63,9 @@ private:
 	
 	/** @brief Material id of the agglomerated element */
 	int fMaterialId;
-	
+
+	template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
 public:
 	
 	/** @brief Constructor: If the element is possible to grouped returns a new index, else returns -1. */
@@ -138,14 +140,17 @@ public:
 	/** @brief Computes the residual of the solution to father element from clustered subelements. */
 	void CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el);
 	
-	void CalcResidual(TPZElementMatrix &ef) override
+	void CalcResidual(TPZElementMatrixT<STATE> &ef) override
 	{
 		std::cout << __PRETTY_FUNCTION__ << " is not implemented\n";
 		exit(-1);
 	}
 	
 	/** @brief Assembles the differential equation to model over the element defined by clustered subelements. */
-	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
+	void CalcStiff(TPZElementMatrixT<STATE> &ek,
+				   TPZElementMatrixT<STATE> &ef) override{
+		CalcStiffInternal(ek,ef);
+	}
 	
 	/** @brief Returns the number of clustered subelements. */
 	int64_t NIndexes() const { return fIndexes.NElements(); }

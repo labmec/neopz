@@ -24,6 +24,8 @@
 
 
 struct TPZElementMatrix;
+template<class TVar>
+struct TPZElementMatrixT;
 class TPZCompMesh;
 class TPZBndCond;
 class TPZInterpolatedElement;
@@ -324,7 +326,7 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
     
 	
 	/** @brief Verifies if the material associated with the element is contained in the set */
@@ -334,7 +336,7 @@ public:
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef);
+	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef);
 	
 	/**
 	 * @brief Implements of the orthogonal Chebyshev functions
@@ -804,8 +806,9 @@ inline void TPZCompEl::Assemble(){
     std::cout << "TPZCompEl::Assemble is called." << std::endl;
 }
 
-inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
-	std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+inline void TPZCompEl::CalcStiff(TPZElementMatrixT<STATE> &,TPZElementMatrixT<STATE> &){
+	PZError << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+    DebugStop();
 }
 
 inline bool TPZCompElSide::operator != (const TPZCompElSide &other)

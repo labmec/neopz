@@ -612,12 +612,8 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
 #endif
 }
 
-void TPZSBFemElementGroup::CalcStiff(TPZElementMatrix &ekb,TPZElementMatrix &efb)
+void TPZSBFemElementGroup::CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef)
 {
-    auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
 
 #ifdef USING_BLAZE
     CalcStiffBlaze(ek,ef);

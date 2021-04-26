@@ -21,6 +21,10 @@
 class TPZMultiphysicsInterfaceElement : public TPZCompEl {
 
 protected:
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ef);
 
 	/** @brief Element vector the left of the normal a interface */
 	TPZCompElSide 	fLeftElSide;
@@ -153,12 +157,18 @@ public:
     /**
      * Compute the stiffness matrix and load vector of the interface element
      */
-    void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
+    void CalcStiff(TPZElementMatrixT<STATE> &ek,
+                   TPZElementMatrixT<STATE> &ef) override
+    {
+        CalcStiffInternal(ek,ef);
+    }
     
     /**
      * Compute the load vector of the interface element
      */
-    void CalcStiff(TPZElementMatrix &ef);
+    void CalcStiff(TPZElementMatrixT<STATE> &ef){
+        CalcStiffInternal(ef);
+    }
 
     /**
      * Return max integration rule of this interface element

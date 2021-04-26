@@ -320,12 +320,8 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 	}
 }
 
-void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
-    //TODOCOMPLEX
-    auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+template<class TVar>
+void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
     TPZMaterial * material = Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -395,9 +391,8 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &e
     
 }//CalcStiff
 
-void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &efb){
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+template<class TVar>
+void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 	
 	TPZMaterial * material = Material();
 	if(!material){

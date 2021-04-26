@@ -600,16 +600,12 @@ TPZStructMatrixOR<TVar>::ThreadData::ThreadWork(void *datavoid) {
         }
 
         TPZCompEl *el = cmesh->ElementVec()[iel];
-        TPZElementMatrix *ekp = ek.operator->();
-        TPZElementMatrix *efp = ef.operator->();
-        TPZElementMatrix &ekr = *ekp;
-        TPZElementMatrix &efr = *efp;
 
 #ifndef DRY_RUN
         if (data->fGlobMatrix) {
-            el->CalcStiff(ekr, efr);
+            el->CalcStiff(ek, ef);
         } else {
-            el->CalcResidual(efr);
+            el->CalcResidual(ef);
         }
 #else
         {

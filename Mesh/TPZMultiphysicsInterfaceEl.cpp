@@ -324,13 +324,10 @@ int64_t TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 
 
 #include "pzmultiphysicscompel.h"
-void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb)
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,
+                                                        TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-    auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
    TPZMaterial *material = this->Material();
 	
 	if(!material){
@@ -425,11 +422,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ekb, TPZElemen
 	
 }//CalcStiff
 
-void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &efb)
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ef)
 {
-    //TODOCOMPLEX
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
     TPZMaterial  * material = this->Material();
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";

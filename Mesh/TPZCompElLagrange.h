@@ -202,7 +202,9 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
+	void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
+        CalcStiffInternal(ek,ef);
+    }
 	
 	/**
 	 * @brief Computes the element right hand side
@@ -214,6 +216,9 @@ public:
     public:
 int ClassId() const override;
 
+protected:
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
 
 };
 

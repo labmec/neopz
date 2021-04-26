@@ -33,6 +33,10 @@ protected:
     bool fKeepMatrix = true;
     void Resequence();
 
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
 public:
     
     TPZCondensedCompEl(TPZCompEl *ref, bool keepmatrix = true);
@@ -227,14 +231,18 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
+	void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
+        return CalcStiffInternal(ek,ef);
+    }
 	
 	
 	/**
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef) override;
+	void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+        return CalcResidualInternal(ef);
+    }
     
     /** @brief Verifies if the material associated with the element is contained in the set */
     virtual bool HasMaterial(const std::set<int> &materialids) const override;

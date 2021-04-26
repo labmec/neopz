@@ -94,7 +94,7 @@ public:
 		/** @brief Look for an element index which needs to be computed and put it on the stack */
 		int NextElement();
 		/** @brief Put the computed element matrices in the map */
-		void ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
+		void ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrixT<STATE>> &ek, TPZAutoPointer<TPZElementMatrixT<STATE>> &ef);
 		/** @brief The function which will compute the matrices */
 		static void *ThreadWork(void *threaddata);
 		/** @brief The function which will compute the assembly */

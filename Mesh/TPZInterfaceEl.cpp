@@ -290,10 +290,8 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int64_t &in
 	return  new TPZInterfaceElement(aggmesh, this->Reference(), index, left, right);
 }
 
-void TPZInterfaceElement::CalcResidual(TPZElementMatrix &efb){
-    //TODOCOMPLEX
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+template<class TVar>
+void TPZInterfaceElement::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 	TPZMaterial *mat = Material();
 	
 #ifdef PZDEBUG
@@ -1045,13 +1043,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	ef.Block().Resequence();
 }
 
-void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ekb, TPZElementMatrix &efb){
-    //TODOCOMPLEX
-    //TODOCOMPLEX
-	auto &ek =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(ekb);
-	auto &ef =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(efb);
+template<class TVar>
+void TPZInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
