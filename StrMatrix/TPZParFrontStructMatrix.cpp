@@ -552,4 +552,12 @@ template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatr
 template class TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
 template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
 
+template class TPZParFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+
+
 

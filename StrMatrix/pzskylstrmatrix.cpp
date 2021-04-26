@@ -54,3 +54,7 @@ void TPZSkylineStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) c
 template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSkylineStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSkylineStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+
+template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZSkylineStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;

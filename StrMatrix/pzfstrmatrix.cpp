@@ -54,3 +54,7 @@ void TPZFStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) const{
 template class TPZFStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZFStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZFStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+
+template class TPZFStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZFStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZFStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;

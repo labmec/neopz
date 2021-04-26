@@ -41,3 +41,6 @@ int TPZSkylineNSymStructMatrix<TVar,TPar>::ClassId() const{
 template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSkylineNSymStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZSkylineNSymStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
