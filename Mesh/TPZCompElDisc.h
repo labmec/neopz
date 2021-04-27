@@ -91,7 +91,9 @@ protected:
 	 * element and returns its index
 	 */
 	virtual int64_t CreateMidSideConnect();
-	
+
+    template<class TVar>
+    void SolutionXInternal(TPZVec<REAL> &x, TPZVec<TVar> &uh);
 public:
 	
 	/** @brief Define external shape functions which are stored in class attribute fExternalShape */
@@ -334,7 +336,13 @@ public:
 	 * Deprecated shape function method. It is kept because of TPZAgglomerateElement. \n
 	 * It does not include singular shape functions if they exist.
 	 */
-	void SolutionX(TPZVec<REAL> &x,TPZVec<STATE> &uh);
+    void SolutionX(TPZVec<REAL> &x, TPZVec<STATE> &uh){
+	SolutionXInternal(x,uh);
+    }
+
+    void SolutionX(TPZVec<REAL> &x, TPZVec<CSTATE> &uh){
+	SolutionXInternal(x,uh);
+    }
 	
     public:
 	/**
@@ -436,5 +444,14 @@ inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, in
 }
 //Exemplo do quadrilatero:
 //acessar com -> TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+
+
+#define INSTANTIATE_METHODS(TVar) \
+extern template \
+ void TPZCompElDisc::SolutionXInternal<TVar>(TPZVec<REAL> &x, TPZVec<TVar> &uh);
+
+INSTANTIATE_METHODS(STATE)
+INSTANTIATE_METHODS(CSTATE)
+#undef INSTANTIATE_METHODS
 
 #endif

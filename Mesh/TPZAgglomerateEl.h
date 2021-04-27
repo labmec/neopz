@@ -244,5 +244,7 @@ int ClassId() const override;
 
 extern template
 void TPZAgglomerateElement::ProjectSolution<STATE>(TPZFMatrix<STATE> &projectsol);
+extern template
+void TPZAgglomerateElement::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &projectsol);
 
 #endif

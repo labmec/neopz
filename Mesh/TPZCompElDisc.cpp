@@ -600,11 +600,12 @@ void TPZCompElDisc::Divide(int64_t index,TPZVec<int64_t> &subindex,int interpola
 	delete this;
 }
 
-void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<STATE> &uh){
+template<class TVar>
+void TPZCompElDisc::SolutionXInternal(TPZVec<REAL> &x, TPZVec<TVar> &uh){
 	TPZCompMesh *finemesh = Mesh();
 	TPZBlock &fineblock = finemesh->Block();
 	int nstate = Material()->NStateVariables();
-	TPZFMatrix<STATE> &FineMeshSol = finemesh->Solution();
+	TPZFMatrix<TVar> &FineMeshSol = finemesh->Solution();
 	int matsize = NShapeF(),dim = Dimension();
 	TPZFMatrix<REAL> phix(matsize,1,0.);
 	TPZFMatrix<REAL> dphix(dim,matsize,0.);
@@ -616,7 +617,7 @@ void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<STATE> &uh){
 	int iv = 0,d;
 	uh.Fill(0.);
 	for(d=0; d<dfvar; d++) {
-		uh[iv%nstate] += (STATE)phix(iv/nstate,0)*FineMeshSol(pos+d,0);
+		uh[iv%nstate] += (TVar)phix(iv/nstate,0)*FineMeshSol(pos+d,0);
 		iv++;
 	}
 }
@@ -1245,3 +1246,11 @@ int TPZCompElDisc::Degree() const {
     }
     return this->Connect(0).Order();
 }
+
+#define INSTANTIATE_METHODS(TVar) \
+template \
+ void TPZCompElDisc::SolutionXInternal<TVar>(TPZVec<REAL> &x, TPZVec<TVar> &uh);
+
+INSTANTIATE_METHODS(STATE)
+INSTANTIATE_METHODS(CSTATE)
+#undef INSTANTIATE_METHODS

@@ -1009,7 +1009,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 			" between superelements\n";
 			continue;
 		}
-		TPZTransform<> t(coarsel->Dimension());
+		TPZTransform<STATE> t(coarsel->Dimension());
 		t=finegel->BuildTransform2(finegel->NSides()-1,coarsegel,t);
 		finecel->BuildTransferMatrix(*coarsel,t,transfer);
 	}
@@ -2189,8 +2189,8 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fNmeshes);
 }
 
-
-void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps){
+template<class TVar>
+void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<TVar> &celJumps){
 	const int64_t nelements = this->NElements();
 	celJumps.Resize(nelements);
     int64_t numbersol = Solution().Cols();
@@ -2221,7 +2221,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		}
 #endif
 		
-		STATE jumpNorm = 0.;
+		TVar jumpNorm = 0.;
         for (int64_t is=0; is<numbersol; is++) {
             for(int64_t ij = 0; ij < facejump.NElements(); ij++){
                 jumpNorm += facejump[is][ij]*facejump[is][ij];
@@ -2238,8 +2238,8 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
 		if (!disc) continue;
 		if(disc->Reference()->Dimension() != dim) continue;
-		const STATE celJumpError = celJumps[i];
-		//const STATE celJumpError = celJumps[i];
+		const TVar celJumpError = celJumps[i];
+		//const TVar celJumpError = celJumps[i];
 		if (abs(celJumpError) < eps){
 			int64_t index;
 			this->Discontinuous2Continuous(i, index);
@@ -2953,18 +2953,18 @@ void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix
     }
 }
 
-template
-void TPZCompMesh::UpdatePreviousState<STATE>(STATE);
-template
-void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
-template
-void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
-template
-void TPZCompMesh::ProjectSolution<STATE>(TPZFMatrix<STATE> &);
+#define INSTANTIATE_METHODS(TVar) \
+template \
+void TPZCompMesh::UpdatePreviousState<TVar>(TVar); \
+template \
+void TPZCompMesh::SetElementSolution<TVar>(int64_t , TPZVec<TVar>&); \
+template \
+void TPZCompMesh::ConnectSolution<TVar>(int64_t , TPZCompMesh *, TPZFMatrix<TVar> &, TPZVec<TVar> &); \
+template \
+void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &); \
+template \
+void TPZCompMesh::ConvertDiscontinuous2Continuous<TVar>(REAL , int , int , TPZVec<TVar> &);
 
-// template
-// void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
-// template
-// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t , TPZCompMesh *, TPZFMatrix<CSTATE> &, TPZVec<CSTATE> &);
-// template
-// void TPZCompMesh::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &);
+INSTANTIATE_METHODS(STATE)
+INSTANTIATE_METHODS(CSTATE)
+#undef INSTANTIATE_METHODS

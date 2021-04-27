@@ -954,3 +954,5 @@ void TPZAgglomerateElement::Read(TPZStream &buf, void *context)
 
 template
 void TPZAgglomerateElement::ProjectSolution<STATE>(TPZFMatrix<STATE> &projectsol);
+template
+void TPZAgglomerateElement::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &projectsol);

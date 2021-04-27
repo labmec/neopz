@@ -464,7 +464,12 @@ public:
 	 * @param var variable name
 	 * @param sol vetor for the solution
 	 */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol){
+        SolutionInternal(qsi,var,sol);
+    }
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol){
+        SolutionInternal(qsi,var,sol);
+    }
     
     /**
      * @brief Compute the integral of a variable
@@ -603,6 +608,8 @@ public:
 	void Read(TPZStream &buf, void *context) override;
 	 
 private:
+    template<class TVar>
+    void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
     template<class TVar>
     void CalcBlockDiagonalInternal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
 	/** @brief Default interpolation order */
@@ -857,5 +864,16 @@ inline int TPZCompEl::GetgOrder( )
 {
 	return gOrder;
 }
+
+
+#define INSTANTIATE(TVar) \
+extern template \
+void TPZCompEl::SolutionInternal<TVar>(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol); \
+extern template \
+void TPZCompEl::CalcBlockDiagonalInternal<TVar>(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
+
+INSTANTIATE(STATE)
+INSTANTIATE(CSTATE)
+#undef INSTANTIATE
 
 #endif

@@ -430,10 +430,12 @@ void TPZCompEl::EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) {
     DebugStop();
 }
 
-void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
+
+template<class TVar>
+void TPZCompEl::SolutionInternal(TPZVec<REAL> &/*qsi*/,int var,TPZVec<TVar> &sol){
     if(var >= 100) {
         const int ind = Index();
-        TPZFMatrix<STATE> &elementSol = fMesh->ElementSolution();
+        TPZFMatrix<TVar> &elementSol = fMesh->ElementSolution();
         if(elementSol.Cols() > var-100) {
             sol[0] = elementSol(ind,var-100);
         } else {
@@ -1229,3 +1231,12 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
     }
 }//void
 
+#define INSTANTIATE(TVar) \
+template \
+void TPZCompEl::SolutionInternal<TVar>(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol); \
+template \
+void TPZCompEl::CalcBlockDiagonalInternal<TVar>(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
+
+INSTANTIATE(STATE)
+INSTANTIATE(CSTATE)
+#undef INSTANTIATE

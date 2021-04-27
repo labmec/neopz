@@ -77,6 +77,11 @@ private:
     
     /// delete the elements and connects
     void CleanElementsConnects();
+
+    template<class TVar>
+    void LoadSolutionFromMeshesInternal();
+    template<class TVar>
+    void LoadSolutionFromMultiPhysicsInternal();
 };
 
 #endif /* TPZMultiphysicsCompMesh_h */

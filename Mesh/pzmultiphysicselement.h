@@ -25,7 +25,9 @@ protected:
     
     /** @brief List of active approximation spaces */
     TPZManVector<int,5> fActiveApproxSpace;
-    
+
+    template<class TVar>
+    void TransferMultiphysicsElementSolutionInternal();
 public:
 	/** @brief Default constructor */
 	TPZMultiphysicsElement() : TPZCompEl()
