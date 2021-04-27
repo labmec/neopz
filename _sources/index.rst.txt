@@ -7,9 +7,12 @@ Welcome to NeoPZ's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
-
+             
+   structmatrix/structindex.rst
+   
+   
 
 About
 -----
@@ -80,12 +83,6 @@ Authors
      - Renato Gomes Damas (`Lattes <http://lattes.cnpq.br/9705909592533525>`__)
    * - Misael Luis Santana Mandujano
      - Others
-
-Class Example
--------------
-
-.. doxygenclass:: TPZGeoEl
-   :project: NeoPZ
 
 Indices and tables
 ==================
