@@ -93,6 +93,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#the-structural-matrix-template">The Structural Matrix Template</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-parallel-layer-interface">The Parallel Layer Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-structural-matrix-base-class">The Structural Matrix Base Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-structural-group">The Structural Group</a></li>
 </ul>
 </li>
 </ul>
@@ -178,11 +179,12 @@
 <li><p><a class="reference internal" href="#the-structural-matrix-template" id="id2">The Structural Matrix Template</a></p></li>
 <li><p><a class="reference internal" href="#the-parallel-layer-interface" id="id3">The Parallel Layer Interface</a></p></li>
 <li><p><a class="reference internal" href="#the-structural-matrix-base-class" id="id4">The Structural Matrix Base Class</a></p></li>
+<li><p><a class="reference internal" href="#the-structural-group" id="id5">The Structural Group</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
-<p>The <cite>TPZStructMatrix</cite> hierarchy is responsible for creating the interface between the Linear Algebra and the Finite Element. It is the set of classes responsible for creating the Finite Element matrix and coordinating its assembly. The available Structural Matrices are listed in <a class="reference internal" href="structoptions.html"><span class="doc">Available Structural Matrices</span></a>, and the Parallel Schemes in <a class="reference internal" href="parallelinterfaces.html"><span class="doc">Available Parallel Interfaces</span></a>.</p>
+<p>The TPZStructMatrix hierarchy is responsible for creating the interface between the Linear Algebra and the Finite Element. It is the set of classes responsible for creating the Finite Element matrix and coordinating its assembly. The available Structural Matrices are listed in <a class="reference internal" href="structoptions.html"><span class="doc">Available Structural Matrices</span></a>, and the Parallel Schemes in <a class="reference internal" href="parallelinterfaces.html"><span class="doc">Available Parallel Interfaces</span></a>.</p>
 <div class="section" id="the-structural-matrix-template">
 <h2><a class="toc-backref" href="#id2">The Structural Matrix Template</a><a class="headerlink" href="#the-structural-matrix-template" title="Permalink to this headline">¶</a></h2>
 <p>This is the class from which the structural matrices should derive. It defines how to implement a structural matrix for an arbitrary matrix storage format. See its subclasses in <a class="reference internal" href="structoptions.html"><span class="doc">Available Structural Matrices</span></a></p>
@@ -202,14 +204,13 @@
 <span class="p">};</span>
 </pre></div>
 </div>
- Meaning that it will have one template parameter corresponding to its type and one template parameter corresponding to its Parallel Strategy, a class derived from <a class="reference internal" href="#classTPZStrMatParInterface"><span class="std std-ref">TPZStrMatParInterface</span></a>. </p>
+ Meaning that it will have one template parameter corresponding to its type and one template parameter corresponding to its Parallel Strategy, a class derived from TPZStrMatParInterface. </p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv4N16TPZStructMatrixT5CloneEv">
 <span id="_CPPv3N16TPZStructMatrixT5CloneEv"></span><span id="_CPPv2N16TPZStructMatrixT5CloneEv"></span><span id="TPZStructMatrixT::Clone"></span><span class="target" id="classTPZStructMatrixT_1a67c05558add95968e9e3922b65c0086f"></span><em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv4N16TPZStructMatrixT15TPZStructMatrixEv" title="TPZStructMatrixT::TPZStructMatrix"><span class="pre">TPZStructMatrix</span></a> <span class="pre">*</span><code class="sig-name descname"><span class="pre">Clone</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv4N16TPZStructMatrixT5CloneEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Clone method. </p>
-<p>Methods to be implemented in child classes: </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -264,14 +265,14 @@
 <dl class="cpp class">
 <dt id="_CPPv421TPZStrMatParInterface">
 <span id="_CPPv321TPZStrMatParInterface"></span><span id="_CPPv221TPZStrMatParInterface"></span><span id="TPZStrMatParInterface"></span><span class="target" id="classTPZStrMatParInterface"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStrMatParInterface</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">TPZSavable</span><a class="headerlink" href="#_CPPv421TPZStrMatParInterface" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Describes the interface that should be implemented in a parallel scheme for <a class="reference internal" href="#classTPZStructMatrix"><span class="std std-ref">TPZStructMatrix</span></a> so anyone can implement a custom parallel interface. Write it such as: <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">TVar</span><span class="o">&gt;</span>
+<dd><p>Describes the interface that should be implemented in a parallel scheme for TPZStructMatrix so anyone can implement a custom parallel interface. Write it such as: <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">TVar</span><span class="o">&gt;</span>
 <span class="k">class</span> <span class="nc">TPZStrMyParInterface</span><span class="o">:</span> <span class="k">public</span> <span class="k">virtual</span> <span class="n">TPZStrMatParInterface</span><span class="p">{</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
  where <code class="docutils literal notranslate"><span class="pre">TVar</span></code> stands for <code class="docutils literal notranslate"><span class="pre">STATE</span></code> and <code class="docutils literal notranslate"><span class="pre">CSTATE</span></code>. </p>
-<p>Subclassed by <a class="reference internal" href="parallelinterfaces.html#classTPZStructMatrixOR"><span class="std std-ref">TPZStructMatrixOR&lt; STATE &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrix"><span class="std std-ref">TPZStructMatrix</span></a>, <a class="reference internal" href="parallelinterfaces.html#classTPZStructMatrixOR"><span class="std std-ref">TPZStructMatrixOR&lt; TVar &gt;</span></a>, <a class="reference internal" href="parallelinterfaces.html#classTPZStructMatrixOT"><span class="std std-ref">TPZStructMatrixOT&lt; TVar &gt;</span></a>, <a class="reference internal" href="parallelinterfaces.html#classTPZStructMatrixTBBFlow"><span class="std std-ref">TPZStructMatrixTBBFlow&lt; TVar &gt;</span></a></p>
+<p>Subclassed by <a class="reference internal" href="#classTPZStructMatrixOR"><span class="std std-ref">TPZStructMatrixOR&lt; STATE &gt;</span></a>, TPZStructMatrix, <a class="reference internal" href="#classTPZStructMatrixOR"><span class="std std-ref">TPZStructMatrixOR&lt; TVar &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrixOT"><span class="std std-ref">TPZStructMatrixOT&lt; TVar &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrixTBBFlow"><span class="std std-ref">TPZStructMatrixTBBFlow&lt; TVar &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
 <dl class="cpp function">
@@ -320,19 +321,19 @@
 <dl class="cpp function">
 <dt id="_CPPv4NK21TPZStrMatParInterface7ClassIdEv">
 <span id="_CPPv3NK21TPZStrMatParInterface7ClassIdEv"></span><span id="_CPPv2NK21TPZStrMatParInterface7ClassIdEv"></span><span id="TPZStrMatParInterface::ClassIdC"></span><span class="target" id="classTPZStrMatParInterface_1a6ef941fc50108ddcdbb004fbbecf05b8"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">ClassId</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK21TPZStrMatParInterface7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Read and Write methods. </p>
+<dd><p>Unique identifier for each class. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N21TPZStrMatParInterface4ReadER9TPZStreamPv">
 <span id="_CPPv3N21TPZStrMatParInterface4ReadER9TPZStreamPv"></span><span id="_CPPv2N21TPZStrMatParInterface4ReadER9TPZStreamPv"></span><span id="TPZStrMatParInterface::Read__TPZStreamR.voidP"></span><span class="target" id="classTPZStrMatParInterface_1a98a8002004f1ae27867e33f3946b12af"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">Read</span></code><span class="sig-paren">(</span><span class="pre">TPZStream</span> <span class="pre">&amp;</span><em><span class="pre">buf</span></em>, <span class="pre">void</span> <span class="pre">*</span><em><span class="pre">context</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N21TPZStrMatParInterface4ReadER9TPZStreamPv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Reads an objects from the <code class="docutils literal notranslate"><span class="pre">TPZStream</span></code> buffer. </p>
+<dd><p>Reads an objects from the TPZStream buffer. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK21TPZStrMatParInterface5WriteER9TPZStreami">
 <span id="_CPPv3NK21TPZStrMatParInterface5WriteER9TPZStreami"></span><span id="_CPPv2NK21TPZStrMatParInterface5WriteER9TPZStreami"></span><span id="TPZStrMatParInterface::Write__TPZStreamR.iC"></span><span class="target" id="classTPZStrMatParInterface_1a7256e8e691f55cbdfda9e2f44ec56e59"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">Write</span></code><span class="sig-paren">(</span><span class="pre">TPZStream</span> <span class="pre">&amp;</span><em><span class="pre">buf</span></em>, <span class="pre">int</span> <em><span class="pre">withclassid</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK21TPZStrMatParInterface5WriteER9TPZStreami" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Writes this object to the <code class="docutils literal notranslate"><span class="pre">TPZStream</span></code> buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
 </dd></dl>
 
 </div>
@@ -345,7 +346,12 @@
 <dl class="cpp class">
 <dt id="_CPPv415TPZStructMatrix">
 <span id="_CPPv315TPZStructMatrix"></span><span id="_CPPv215TPZStructMatrix"></span><span id="TPZStructMatrix"></span><span class="target" id="classTPZStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><a class="headerlink" href="#_CPPv415TPZStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Describes the type-agnostic interface that should be implemented for a given structural matrix. NOTE: The class <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT</span></a> is the one that structural matrices should inherit from. </p>
+<dd><p>Describes the type-agnostic interface that should be implemented for a given structural matrix. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The class <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT</span></a> is the one that structural matrices should inherit from. </p>
+</div>
+</p>
 <p>Subclassed by <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT&lt; STATE &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT&lt; TVar &gt;</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
@@ -490,24 +496,168 @@
 <dl class="cpp function">
 <dt id="_CPPv4NK15TPZStructMatrix7ClassIdEv">
 <span id="_CPPv3NK15TPZStructMatrix7ClassIdEv"></span><span id="_CPPv2NK15TPZStructMatrix7ClassIdEv"></span><span id="TPZStructMatrix::ClassIdC"></span><span class="target" id="classTPZStructMatrix_1a2d65056df10231ef21463a587a11d311"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">ClassId</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK15TPZStructMatrix7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Read and Write methods. </p>
+<dd><p>Unique identifier for each class. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N15TPZStructMatrix4ReadER9TPZStreamPv">
 <span id="_CPPv3N15TPZStructMatrix4ReadER9TPZStreamPv"></span><span id="_CPPv2N15TPZStructMatrix4ReadER9TPZStreamPv"></span><span id="TPZStructMatrix::Read__TPZStreamR.voidP"></span><span class="target" id="classTPZStructMatrix_1ab9b2fb5f92bdfa6de9db3cd3998a1b31"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">Read</span></code><span class="sig-paren">(</span><span class="pre">TPZStream</span> <span class="pre">&amp;</span><em><span class="pre">buf</span></em>, <span class="pre">void</span> <span class="pre">*</span><em><span class="pre">context</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4N15TPZStructMatrix4ReadER9TPZStreamPv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Reads an objects from the <code class="docutils literal notranslate"><span class="pre">TPZStream</span></code> buffer. </p>
+<dd><p>Reads an objects from the TPZStream buffer. </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4NK15TPZStructMatrix5WriteER9TPZStreami">
 <span id="_CPPv3NK15TPZStructMatrix5WriteER9TPZStreami"></span><span id="_CPPv2NK15TPZStructMatrix5WriteER9TPZStreami"></span><span id="TPZStructMatrix::Write__TPZStreamR.iC"></span><span class="target" id="classTPZStructMatrix_1aeb2cc76d82b06aab3931fe333bbc91f5"></span><em class="property"><span class="pre">virtual</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">Write</span></code><span class="sig-paren">(</span><span class="pre">TPZStream</span> <span class="pre">&amp;</span><em><span class="pre">buf</span></em>, <span class="pre">int</span> <em><span class="pre">withclassid</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">override</span></em><a class="headerlink" href="#_CPPv4NK15TPZStructMatrix5WriteER9TPZStreami" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Writes this object to the <code class="docutils literal notranslate"><span class="pre">TPZStream</span></code> buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
 </dd></dl>
 
 </div>
 </dd></dl>
 
+</div>
+<div class="section" id="the-structural-group">
+<h2><a class="toc-backref" href="#id5">The Structural Group</a><a class="headerlink" href="#the-structural-group" title="Permalink to this headline">¶</a></h2>
+<p>The following is the group of all classes related to the Structural Matrix hierarchy.</p>
+<dl class="group">
+<dt>
+<span class="target" id="group__structural"></span><em><span class="pre">group</span></em> <code class="sig-name descname"><span class="pre">structural</span></code></dt>
+<dd><p>This module contains all classes which defines Structural Matrices. Structural matrix classes make the link between the Computational meshes and the Matrix classes<p>. A structural matrix object extracts from the computational mesh the information needed to create a matrix object.</p>
+<p>It also implements the methods for assembling the matrix object.</p>
+</p>
+<dl class="cpp class">
+<dt>
+<span class="target" id="classTPZStrMatParInterface"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStrMatParInterface</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <span class="pre">TPZSavable</span><br /></dt>
+<dd><em>#include &lt;TPZStrMatParInterface.h&gt;</em><p>Describes the interface that should be implemented in a parallel scheme for TPZStructMatrix so anyone can implement a custom parallel interface. Write it such as: <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">TVar</span><span class="o">&gt;</span>
+<span class="k">class</span> <span class="nc">TPZStrMyParInterface</span><span class="o">:</span> <span class="k">public</span> <span class="k">virtual</span> <span class="n">TPZStrMatParInterface</span><span class="p">{</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+ where <code class="docutils literal notranslate"><span class="pre">TVar</span></code> stands for <code class="docutils literal notranslate"><span class="pre">STATE</span></code> and <code class="docutils literal notranslate"><span class="pre">CSTATE</span></code>. </p>
+<p>Subclassed by <a class="reference internal" href="#classTPZStructMatrixOR"><span class="std std-ref">TPZStructMatrixOR&lt; STATE &gt;</span></a>, TPZStructMatrix, <a class="reference internal" href="#classTPZStructMatrixOR"><span class="std std-ref">TPZStructMatrixOR&lt; TVar &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrixOT"><span class="std std-ref">TPZStructMatrixOT&lt; TVar &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrixTBBFlow"><span class="std std-ref">TPZStructMatrixTBBFlow&lt; TVar &gt;</span></a></p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt>
+<span class="target" id="classTPZStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><br /></dt>
+<dd><em>#include &lt;TPZStructMatrix.h&gt;</em><p>Describes the type-agnostic interface that should be implemented for a given structural matrix. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The class <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT</span></a> is the one that structural matrices should inherit from. </p>
+</div>
+</p>
+<p>Subclassed by <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT&lt; STATE &gt;</span></a>, <a class="reference internal" href="#classTPZStructMatrixT"><span class="std std-ref">TPZStructMatrixT&lt; TVar &gt;</span></a></p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I0E17TPZStructMatrixOR">
+<span id="_CPPv3I0E17TPZStructMatrixOR"></span><span id="_CPPv2I0E17TPZStructMatrixOR"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code><span class="pre">&gt;</span><br /><span class="target" id="classTPZStructMatrixOR"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrixOR</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><br /></dt>
+<dd><em>#include &lt;pzstrmatrixor.h&gt;</em><p>Parallel layer for struct matrices using the producer-consumer paradigm. This is the original and stable version of the multi threaded assemble. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I0E17TPZStructMatrixOT">
+<span id="_CPPv3I0E17TPZStructMatrixOT"></span><span id="_CPPv2I0E17TPZStructMatrixOT"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code><span class="pre">&gt;</span><br /><span class="target" id="classTPZStructMatrixOT"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrixOT</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><br /></dt>
+<dd><em>#include &lt;pzstrmatrixot.h&gt;</em><p>Parallel layer for struct matrices using graph coloring to define the order in which to process the elements (Devloo-Gilvan). Each color is processed and synchronized. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I0E22TPZStructMatrixTBBFlow">
+<span id="_CPPv3I0E22TPZStructMatrixTBBFlow"></span><span id="_CPPv2I0E22TPZStructMatrixTBBFlow"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code><span class="pre">&gt;</span><br /><span class="target" id="classTPZStructMatrixTBBFlow"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrixTBBFlow</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><br /></dt>
+<dd><em>#include &lt;pzstrmatrixflowtbb.h&gt;</em><p>Parallel layer for struct matrices using graph-coloring and creating a <code class="docutils literal notranslate"><span class="pre">tbb::flow::graph</span></code>to process in parallel each node. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E16TPZFStructMatrix">
+<span id="_CPPv3I00E16TPZFStructMatrix"></span><span id="_CPPv2I00E16TPZFStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E16TPZFStructMatrix" title="TPZFStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZFStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZFStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E16TPZFStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzfstrmatrix.h&gt;</em><p>Implements a full structural matrix using TPZFMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E17TPZSFStructMatrix">
+<span id="_CPPv3I00E17TPZSFStructMatrix"></span><span id="_CPPv2I00E17TPZSFStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E17TPZSFStructMatrix" title="TPZSFStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZSFStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZSFStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E17TPZSFStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzsfstrmatrix.h&gt;</em><p>Implements a full symmetric structural matrix using TPZSFMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E19TPZBandStructMatrix">
+<span id="_CPPv3I00E19TPZBandStructMatrix"></span><span id="_CPPv2I00E19TPZBandStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E19TPZBandStructMatrix" title="TPZBandStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZBandStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZBandStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E19TPZBandStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzbstrmatrix.h&gt;</em><p>Implements a banded structural matrix using TPZFBMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E20TPZSBandStructMatrix">
+<span id="_CPPv3I00E20TPZSBandStructMatrix"></span><span id="_CPPv2I00E20TPZSBandStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E20TPZSBandStructMatrix" title="TPZSBandStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZSBandStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZSBandStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E20TPZSBandStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzsbstrmatrix.h&gt;</em><p>Implements a symmetric banded structural matrix using TPZSBMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E22TPZSkylineStructMatrix">
+<span id="_CPPv3I00E22TPZSkylineStructMatrix"></span><span id="_CPPv2I00E22TPZSkylineStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E22TPZSkylineStructMatrix" title="TPZSkylineStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZSkylineStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZSkylineStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E22TPZSkylineStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzskylstrmatrix.h&gt;</em><p>Implements a skyline structural matrix using TPZSkylMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E17TPZSpStructMatrix">
+<span id="_CPPv3I00E17TPZSpStructMatrix"></span><span id="_CPPv2I00E17TPZSpStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E17TPZSpStructMatrix" title="TPZSpStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZSpStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZSpStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E17TPZSpStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;TPZSpStructMatrix.h&gt;</em><p>Implements a sparse structural matrix using TPZFYsmpMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E18TPZSSpStructMatrix">
+<span id="_CPPv3I00E18TPZSSpStructMatrix"></span><span id="_CPPv2I00E18TPZSSpStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E18TPZSSpStructMatrix" title="TPZSSpStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZSSpStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZSSpStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E18TPZSSpStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;TPZSSpStructMatrix.h&gt;</em><p>Implements a sparse symmetric structural matrix using TPZSYsmpMatrix as a storage format. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I000E20TPZFrontStructMatrix">
+<span id="_CPPv3I000E20TPZFrontStructMatrix"></span><span id="_CPPv2I000E20TPZFrontStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TFront</span></code><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I000E20TPZFrontStructMatrix" title="TPZFrontStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZFrontStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZFrontStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I000E20TPZFrontStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;TPZFrontStructMatrix.h&gt;</em><p>Implements a structural matrix using the frontal method. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Type parameter for <a class="reference internal" href="structoptions.html#classTPZFrontStructMatrix"><span class="std std-ref">TPZFrontStructMatrix</span></a> frontal matrix. It can assume values TPZFrontSym and TPZFrontNonSym for symmetric and non symmetric matrices. </p>
+</div>
+</p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I000E23TPZParFrontStructMatrix">
+<span id="_CPPv3I000E23TPZParFrontStructMatrix"></span><span id="_CPPv2I000E23TPZParFrontStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TFront</span></code><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I000E23TPZParFrontStructMatrix" title="TPZParFrontStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZParFrontStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZParFrontStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I000E20TPZFrontStructMatrix" title="TPZFrontStructMatrix"><span class="pre">TPZFrontStructMatrix</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I000E23TPZParFrontStructMatrix" title="TPZParFrontStructMatrix::TFront"><span class="pre">TFront</span></a><span class="pre">,</span> <span class="pre">STATE</span><span class="pre">,</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I000E23TPZParFrontStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;TPZParFrontStructMatrix.h&gt;</em><p>Is a structural matrix with parallel techniques included. <a class="reference internal" href="#group__structural"><span class="std std-ref">Structural Matrix</span></a>. </p>
+<p><a class="reference internal" href="structoptions.html#classTPZParFrontStructMatrix"><span class="std std-ref">TPZParFrontStructMatrix</span></a> is derived from <a class="reference internal" href="structoptions.html#classTPZFrontStructMatrix"><span class="std std-ref">TPZFrontStructMatrix</span></a>. It uses TPZParFrontMatrix as its FrontalMatrix </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E28TPZBlockDiagonalStructMatrix">
+<span id="_CPPv3I00E28TPZBlockDiagonalStructMatrix"></span><span id="_CPPv2I00E28TPZBlockDiagonalStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E28TPZBlockDiagonalStructMatrix" title="TPZBlockDiagonalStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZBlockDiagonalStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZBlockDiagonalStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E28TPZBlockDiagonalStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzbdstrmatrix.h&gt;</em><p>Implements a block diagonal structural matrix. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E18TPZBSpStructMatrix">
+<span id="_CPPv3I00E18TPZBSpStructMatrix"></span><span id="_CPPv2I00E18TPZBSpStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E18TPZBSpStructMatrix" title="TPZBSpStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZBSpStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZBSpStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I00E17TPZSpStructMatrix" title="TPZSpStructMatrix"><span class="pre">TPZSpStructMatrix</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">,</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E18TPZBSpStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;TPZBSpStructMatrix.h&gt;</em><p>Assembles only the pair equations. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4I00E19TPZDohrStructMatrix">
+<span id="_CPPv3I00E19TPZDohrStructMatrix"></span><span id="_CPPv2I00E19TPZDohrStructMatrix"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code> <span class="pre">=</span> <span class="pre">STATE</span><span class="pre">,</span> <span class="pre">class</span> <code class="sig-name descname"><span class="pre">TPar</span></code> <span class="pre">=</span> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><a class="reference internal" href="#_CPPv4I00E19TPZDohrStructMatrix" title="TPZDohrStructMatrix::TVar"><span class="pre">TVar</span></a><span class="pre">&gt;</span><span class="pre">&gt;</span><br /><span class="target" id="classTPZDohrStructMatrix"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZDohrStructMatrix</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="#_CPPv4I0E16TPZStructMatrixT" title="TPZStructMatrixT"><span class="pre">TPZStructMatrixT</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><span class="pre">,</span> <em class="property"><span class="pre">public</span></em> <a class="reference internal" href="parallelinterfaces.html#_CPPv4I0E17TPZStructMatrixOR" title="TPZStructMatrixOR"><span class="pre">TPZStructMatrixOR</span></a><span class="pre">&lt;</span><span class="pre">STATE</span><span class="pre">&gt;</span><a class="headerlink" href="#_CPPv4I00E19TPZDohrStructMatrix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;pzdohrstructmatrix.h&gt;</em><p>Implements structural matrix divided in sub structures. <a class="reference internal" href="#group__structural"><span class="std std-ref">Structural Matrix</span></a> Sub structure. </p>
+<p><dl class="simple">
+<dt><strong>Author</strong></dt><dd><p>Philippe Devloo </p>
+</dd>
+<dt><strong>Since</strong></dt><dd><p>28/06/2010 </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">no-link</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
 </div>
 </div>
 
