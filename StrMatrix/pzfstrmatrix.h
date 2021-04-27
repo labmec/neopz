@@ -23,7 +23,6 @@ public:
 	
     TPZStructMatrix * Clone() override;
     //@{
-    //!Read and Write methods
     int ClassId() const override;
 
     void Read(TPZStream& buf, void* context) override;

@@ -29,6 +29,7 @@ class TPZVec;
       }
 
   where  `TVar` stands for `STATE` and `CSTATE`.
+  @ingroup structural
 */
 class TPZStrMatParInterface : public virtual TPZSavable {
 public:
@@ -68,7 +69,6 @@ public:
     }
 
     //@{
-    //!Read and Write methods
     int ClassId() const override;
     
     void Read(TPZStream& buf, void* context) override;

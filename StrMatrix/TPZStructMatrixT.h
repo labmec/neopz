@@ -35,11 +35,8 @@ class TPZStructMatrixT : public TPZStructMatrix{
 public:
     //Getting constructors from parent class
     using TPZStructMatrix::TPZStructMatrix;
-    
-    /**
-     *  Methods to be implemented in child classes:
-     */
-    //@{
+
+
     //! Clone method
     TPZStructMatrix *Clone() override = 0;
     //!Creates a matrix for assembling
@@ -61,8 +58,6 @@ public:
      * //! Operations to be performed at the end of CreateAssemble
      * void EndCreateAssemble(TPZBaseMatrix&) override;
      */
-    
-    //@}
 };
 
 extern template class TPZStructMatrixT<STATE>;

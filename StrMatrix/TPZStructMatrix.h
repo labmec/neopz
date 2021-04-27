@@ -15,11 +15,13 @@
 class TPZCompMesh;
 class TPZBaseMatrix;
 
-/*!
-  Describes the type-agnostic interface that should be implemented 
-  for a given structural matrix. NOTE: The class \ref TPZStructMatrixT
-  is the one that structural matrices should inherit from.
-
+/**
+  @brief Describes the type-agnostic interface that should be implemented 
+  for a given structural matrix. 
+  
+  @note  The class \ref TPZStructMatrixT is the one that 
+  structural matrices should inherit from.
+  @ingroup structural
 */
 class TPZStructMatrix : public virtual TPZStrMatParInterface{
 public:
@@ -131,7 +133,6 @@ public:
     int ComputeElementColors(TPZVec<int> &elementcolors);
 
     //@{
-    //!Read and Write methods
     int ClassId() const override;
     
     void Read(TPZStream& buf, void* context) override;

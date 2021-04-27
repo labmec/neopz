@@ -1,6 +1,9 @@
 #it will only come here if(BUILD_DOCS)
 
-list(APPEND PZ_PUBLIC_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/pzmainpage.h")
+list(APPEND PZ_PUBLIC_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/pzmainpage.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/structmatrix/doxstrmatrix.h"
+    )
 string(REPLACE ";" " " DOXYGEN_INPUT_FILES "${PZ_PUBLIC_HEADERS}")
 include(../cmake/EnableDoxygen.cmake)
 enable_doxygen(pz)

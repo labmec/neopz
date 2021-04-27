@@ -10,7 +10,7 @@ The StructMatrix hierarchy
 
 .. contents:: Table of Contents
 
-The `TPZStructMatrix` hierarchy is responsible for creating the interface between the Linear Algebra and the Finite Element. It is the set of classes responsible for creating the Finite Element matrix and coordinating its assembly. The available Structural Matrices are listed in :doc:`structoptions`, and the Parallel Schemes in :doc:`parallelinterfaces`.
+The TPZStructMatrix hierarchy is responsible for creating the interface between the Linear Algebra and the Finite Element. It is the set of classes responsible for creating the Finite Element matrix and coordinating its assembly. The available Structural Matrices are listed in :doc:`structoptions`, and the Parallel Schemes in :doc:`parallelinterfaces`.
 
 The Structural Matrix Template
 ------------------------------
@@ -37,3 +37,14 @@ In order to provide an insight of its members and functionalities that will be t
 .. doxygenclass:: TPZStructMatrix
    :members:
 
+
+
+The Structural Group
+--------------------
+
+The following is the group of all classes related to the Structural Matrix hierarchy.
+
+.. This will trigger a warning, but it is harmless:
+   https://github.com/michaeljones/breathe/issues/594#issuecomment-735517045
+.. doxygengroup:: structural
+:no-link:

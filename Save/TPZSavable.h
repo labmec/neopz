@@ -92,20 +92,25 @@ public:
 	 * A non unique id is flagged at the startup of the program
 	 */
 	public:
-    virtual int ClassId() const = 0;
-
         
 	virtual std::list<std::map<std::string, uint64_t>> VersionHistory() const;
 	virtual std::pair<std::string, uint64_t> Version() const;
     
     static std::pair<std::string, uint64_t> NeoPZVersion();
-	
-	/** @brief Writes this object to the `TPZStream` buffer. Include the classid if `withclassid = true` */
+
+    
+    /** @name Read and Write methods
+     *  Methods used for reading and writing to file.
+     */
+    //@{
+    /** @brief Unique identifier for each class */
+    virtual int ClassId() const = 0;
+	/** @brief Writes this object to the TPZStream buffer. Include the classid if `withclassid = true` */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
-	/** @brief Reads an objects from the `TPZStream` buffer. */
+	/** @brief Reads an objects from the TPZStream buffer. */
 	virtual void Read(TPZStream &buf, void *context);
-	
+    //@}
 	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
 	/**
 	 * Compares both objects bitwise for identity. Put an entry in the log file if different

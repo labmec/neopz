@@ -25,7 +25,6 @@ public:
     void EndCreateAssemble(TPZBaseMatrix *) override;
 
     //@{
-    //!Read and Write methods
     int ClassId() const override;
 
     void Read(TPZStream& buf, void* context) override;
