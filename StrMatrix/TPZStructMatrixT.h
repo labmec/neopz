@@ -14,20 +14,20 @@
 
   It is expected that the child classes will be created as:
 
-  template <
-            typename TVar=STATE,
-            typename TPar=TPZStructMatrixOR<TVar>
-           >
-  class TPZStrDerived :
+      template <
+        typename TVar=STATE,
+        typename TPar=TPZStructMatrixOR<TVar>
+        >
+      class TPZStrDerived :
                         public TPZStructMatrixT<TVar>,
                         public TPar
-  {
-    ...
-  };
+      {
+          ...
+      };
 
   Meaning that it will have one template parameter corresponding to its
   type and one template parameter corresponding to its Parallel Strategy,
-  a class derived from \ref TPZStrMatParInterface.
+  a class derived from TPZStrMatParInterface.
 
 */
 template<class TVar>
@@ -35,8 +35,9 @@ class TPZStructMatrixT : public TPZStructMatrix{
 public:
     //Getting constructors from parent class
     using TPZStructMatrix::TPZStructMatrix;
+    
     /**
-     *  Methods to be implemented in child classes
+     *  Methods to be implemented in child classes:
      */
     //@{
     //! Clone method
@@ -45,6 +46,7 @@ public:
     TPZMatrix<TVar> * Create() override = 0;
     
 
+    //! Creates a unique identifier for the class
     int ClassId() const override{
         return Hash("TPZStructMatrixT") ^
             TPZStructMatrix::ClassId() << 1 ^

@@ -99,14 +99,11 @@ public:
 	virtual std::pair<std::string, uint64_t> Version() const;
     
     static std::pair<std::string, uint64_t> NeoPZVersion();
-        	
-	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
-	//virtual void Write(TPZStream &buf, int withclassid) const;
 	
-	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
+	/** @brief Writes this object to the `TPZStream` buffer. Include the classid if `withclassid = true` */
 	virtual void Write(TPZStream &buf, int withclassid) const;
 	
-	/** @brief read objects from the stream */
+	/** @brief Reads an objects from the `TPZStream` buffer. */
 	virtual void Read(TPZStream &buf, void *context);
 	
 	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
