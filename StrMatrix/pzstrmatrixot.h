@@ -19,7 +19,10 @@ class TPZStructMatrix;
 
 
 /**
- * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
+ * @brief Parallel layer for struct matrices
+ * using graph coloring to define the order 
+ * in which to process the elements (Devloo-Gilvan).
+ * Each color is processed and synchronized.
  * @ingroup structural
  */
 template<class TVar>

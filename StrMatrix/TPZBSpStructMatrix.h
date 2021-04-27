@@ -11,7 +11,7 @@
 #include "pzstrmatrixor.h"
 /** 
  * @ingroup structural
- * @brief Assembles only the pair equations. \ref structural "Structural Matrix"
+ * @brief Assembles only the pair equations.
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>
 class TPZBSpStructMatrix : public TPZSpStructMatrix<TVar,TPar> {

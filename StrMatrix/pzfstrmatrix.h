@@ -10,7 +10,7 @@
 #include "pzstrmatrixor.h"
 
 /**
- * @brief Implements Full Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a full structural matrix using TPZFMatrix as a storage format.
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

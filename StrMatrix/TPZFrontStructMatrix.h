@@ -9,14 +9,9 @@
 #include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 /**
- * @brief Responsible for a interface among Finite Element Package and Matrices package to frontal method. \ref structural "Structural Matrix" \ref frontal "Frontal"
+ * @brief Implements a structural matrix using the frontal method.
  * @ingroup structural frontal
- * @note Type parameter for TPZFrontStructMatrix frontal matrix. \n It can assume values TPZFrontSym and TPZFrontNonSym for symmetric and non symmetric matrices
- */
-/**
- * Prevents users from all the necessary information to work with all matrices classes \n
- * It facilitates considerably the use of TPZAnalysis
- */
+ * @note Type parameter for TPZFrontStructMatrix frontal matrix. It can assume values TPZFrontSym and TPZFrontNonSym for symmetric and non symmetric matrices.*/
 template<class TFront,
          class TVar = STATE,
          class TPar = TPZStructMatrixOR<TVar>> 

@@ -87,4 +87,3 @@ breathe_projects = {
 	"NeoPZ": "@DOXYGEN_OUTPUT_DIR@/xml"
 }
 breathe_default_project = "NeoPZ"
-breathe_default_members = ('members', 'undoc-members')

@@ -13,7 +13,7 @@ template<class TVar>
 class TPZBlockDiagonal;
 
 /**
- * @brief Implements Block Diagonal Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a block diagonal structural matrix.
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

@@ -6,7 +6,7 @@
 #include "pzskylstrmatrix.h"
 
 /**
- * Implements Non symmetrical SkyLine Structural Matrices
+ * Implements a skyline structural matrix using TPZSkylNSymMatrix as a storage format.
  * ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

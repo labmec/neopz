@@ -12,7 +12,7 @@
 class TPZCompMesh;
 
 /**
- * @brief Implements SkyLine Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a skyline structural matrix using TPZSkylMatrix as a storage format.
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

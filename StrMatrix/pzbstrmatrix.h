@@ -8,7 +8,7 @@
 #include "TPZStructMatrixT.h"
 #include "pzstrmatrixor.h"
 /**
- * @brief Implements Banded Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a banded structural matrix using TPZFBMatrix as a storage format.
  * @ingroup structural
  */
 template<class TVar = STATE,

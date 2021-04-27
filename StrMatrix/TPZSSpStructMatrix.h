@@ -11,7 +11,7 @@
 
 #include "pzstrmatrixor.h"
 /**
- * @brief Implements Sparse Symmetric Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a sparse symmetric structural matrix using TPZSYsmpMatrix as a storage format.
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

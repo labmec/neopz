@@ -10,7 +10,7 @@
 #include "pzstrmatrixor.h"
 #include "pzstack.h"
 /**
- * @brief Implements Sparse Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a sparse structural matrix using TPZFYsmpMatrix as a storage format.
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

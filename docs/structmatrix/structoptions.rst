@@ -11,59 +11,47 @@ In order to use a different Matrix storage format, one must also implement its c
 TPZFStructMatrix
 ----------------
 .. doxygenclass:: TPZFStructMatrix
-   :outline:
 
 TPZSFStructMatrix
 -----------------
 .. doxygenclass:: TPZSFStructMatrix
-   :outline:
 
 TPZBandStructMatrix
 -------------------
 .. doxygenclass:: TPZBandStructMatrix
-   :outline:
 
 TPZSBandStructMatrix
 --------------------
 .. doxygenclass:: TPZSBandStructMatrix
-   :outline:
 
 TPZSkylineNSymStructMatrix
 --------------------------
 .. doxygenclass:: TPZSkylineNSymStructMatrix
-   :outline:
 
-TPZSSkylineStructMatrix
+TPZSkylineStructMatrix
 -----------------------
-.. doxygenclass:: TPZSSkylineStructMatrix
-   :outline:
+.. doxygenclass:: TPZSkylineStructMatrix
 
 TPZSpStructMatrix
 -----------------
 .. doxygenclass:: TPZSpStructMatrix
-   :outline:
 
 TPZSSpStructMatrix
 ------------------
 .. doxygenclass:: TPZSSpStructMatrix
-   :outline:
 
 TPZFrontStructMatrix
 --------------------
 .. doxygenclass:: TPZFrontStructMatrix
-   :outline:
 
 TPZParFrontStructMatrix
 -----------------------
 .. doxygenclass:: TPZParFrontStructMatrix
-   :outline:
 
 TPZBlockDiagonalStructMatrix
 ----------------------------
 .. doxygenclass:: TPZBlockDiagonalStructMatrix
-   :outline:
 
 TPZBSpStructMatrix
 ------------------
 .. doxygenclass:: TPZBSpStructMatrix
-   :outline:

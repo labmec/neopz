@@ -13,7 +13,7 @@
 template<class T>
 class TPZStructMatrixOR;
 /**
- * @brief Implements Symmetric Banded Structural Matrices. \ref structural "Structural Matrix"
+ * @brief Implements a symmetric banded structural matrix using TPZSBMatrix as a storage format.
  * @ingroup structural
  */
 template<class TVar=STATE, class TPar=TPZStructMatrixOR<TVar>>

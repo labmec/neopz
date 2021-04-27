@@ -11,7 +11,7 @@
 //#define STACKSTORAGE
 
 /**
- * @brief Is a structural matrix with parallel techniques included. \ref structural "Structural Matrix" \ref frontal "Frontal"
+ * @brief Is a structural matrix with parallel techniques included. \ref structural "Structural Matrix"
  * @ingroup frontal structural
  */
 /** 

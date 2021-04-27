@@ -19,7 +19,9 @@ class TPZStructMatrix;
 
 
 /**
- * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
+ * @brief Parallel layer for struct matrices using 
+ * the producer-consumer paradigm.
+ * This is the original and stable version of the multi threaded assemble.
  * @ingroup structural
  */
 template<class TVar>

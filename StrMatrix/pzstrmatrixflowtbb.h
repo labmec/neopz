@@ -19,7 +19,8 @@ template<class T>
 class TPZFlowGraph;
 
 /**
- * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
+ * @brief Parallel layer for struct matrices using graph-coloring
+ * and creating a `tbb::flow::graph`to process in parallel each node
  * @ingroup structural
  */
 template<class TVar>
