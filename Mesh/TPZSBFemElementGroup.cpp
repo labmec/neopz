@@ -66,16 +66,8 @@ int TPZSBFemElementGroup::gDefaultPolynomialOrder = 0;
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0b, TPZElementMatrix &E1b, TPZElementMatrix &E2b, TPZElementMatrix &M0b)
+void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0)
 {
-    auto &E0 =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(E0b);
-	auto &E1 =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(E1b);
-    auto &E2 =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(E2b);
-	auto &M0 =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(M0b);
     std::map<int64_t,int64_t> locindex;
     int64_t ncon = fConnectIndexes.size();
     for (int64_t ic=0; ic<ncon ; ic++) {
@@ -178,7 +170,7 @@ void TPZSBFemElementGroup::ComputeMatrices(TPZElementMatrix &E0b, TPZElementMatr
     }
 }
 
-void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix &ef)
+void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef)
 {
 #ifdef USING_BLAZE
     InitializeElementMatrix(ek, ef);
@@ -189,7 +181,7 @@ void TPZSBFemElementGroup::CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix 
         ef.fMat.Zero();
         return;
     }
-    TPZElementMatrix E0, E1, E2, M0;
+    TPZElementMatrixT<STATE> E0, E1, E2, M0;
     ComputeMatrices(E0, E1, E2, M0);
 
 #ifdef PZ_LOG
@@ -1165,10 +1157,8 @@ void TPZSBFemElementGroup::LoadSolution()
 }
 
 /// Compute the mass matrix based on the value of M0 and the eigenvectors
-void TPZSBFemElementGroup::ComputeMassMatrix(TPZElementMatrix &M0b)
+void TPZSBFemElementGroup::ComputeMassMatrix(TPZElementMatrixT<STATE> &M0)
 {
-    auto &M0 =
-		dynamic_cast<TPZElementMatrixT<STATE>&>(M0b);
     //    M0.fMat.Print("Mass = ",std::cout,EMathematicaInput);
     TPZFMatrix<std::complex<double> > temp;
     REAL alpha = 1.;

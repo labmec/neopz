@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "pzcompel.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzinterpolationspace.h"
 
 class TPZSBFemVolume : public TPZInterpolationSpace
@@ -71,7 +71,7 @@ public:
     }
     
     /// Compute the E0, E1 and E2 matrices
-    void ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0);
+    void ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0);
     
     /// Data structure initialization
     void SetSkeleton(int64_t skeleton);

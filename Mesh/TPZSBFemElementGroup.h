@@ -58,7 +58,7 @@ private:
     REAL fDelt = 1.;
     
     /// Compute the mass matrix based on the value of M0 and the eigenvectors
-    void ComputeMassMatrix(TPZElementMatrix &M0);
+    void ComputeMassMatrix(TPZElementMatrixT<STATE>& M0);
 
     int fInternalPolynomialOrder = 0;
 
@@ -90,7 +90,7 @@ public:
 
     /// Compute the SBFem matrices
     /// method to assemble E0, E1, E2
-    void ComputeMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0);
+    void ComputeMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0);
     
     /**
      * @brief Computes the element stifness matrix and right hand side
@@ -99,7 +99,7 @@ public:
      */
     void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override;
 
-    void CalcStiffBlaze(TPZElementMatrix &ek,TPZElementMatrix &ef);
+    void CalcStiffBlaze(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
 
     /// set the density or specific heat of the material
     void SetDensity(REAL density)
