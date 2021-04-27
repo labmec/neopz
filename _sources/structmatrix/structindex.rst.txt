@@ -18,7 +18,7 @@ The Structural Matrix Template
 This is the class from which the structural matrices should derive. It defines how to implement a structural matrix for an arbitrary matrix storage format. See its subclasses in :doc:`structoptions`
 
 .. doxygenclass:: TPZStructMatrixT
-
+   :members:
 
 The Parallel Layer Interface
 ----------------------------
@@ -26,6 +26,7 @@ The Parallel Layer Interface
 This class defines the interface for a custom parallel strategy for the assembly of a structural matrices. Users that wish to implement a custom parallel strategy should do so in a derived class. See its available derived classes in :doc:`parallelinterfaces`.
 
 .. doxygenclass:: TPZStrMatParInterface
+   :members:
                   
 
 The Structural Matrix Base Class
@@ -34,4 +35,5 @@ The Structural Matrix Base Class
 In order to provide an insight of its members and functionalities that will be transmitted to the derived classes, here we present `TPZStructMatrix`.
 
 .. doxygenclass:: TPZStructMatrix
+   :members:
 

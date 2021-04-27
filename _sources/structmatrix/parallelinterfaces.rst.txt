@@ -11,14 +11,11 @@ The classes listed here provide a parallel layer to be used for the :doc:`Struct
 TPZStructMatrixOR
 -----------------
 .. doxygenclass:: TPZStructMatrixOR
-   :outline:
 
 TPZStructMatrixOT
 -----------------
 .. doxygenclass:: TPZStructMatrixOT
-   :outline:
 
 TPZStructMatrixTBBFlow
 ----------------------
 .. doxygenclass:: TPZStructMatrixTBBFlow
-   :outline:
