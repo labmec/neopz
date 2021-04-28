@@ -17,7 +17,7 @@
 #include "pzl2projection.h"
 #include "pzelasmat.h"
 #include "TPZSkylineNSymStructMatrix.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzmultiphysicselement.h"
@@ -1467,7 +1467,7 @@ void CheckElConvergence(TPZFMatrix<STATE> &RUattn,TPZAnalysis *NonLinearAn, TPZV
     
     int NumberofEl = mphysics->ElementVec().NElements();      
     int64_t neq = mphysics->NEquations();
-    TPZElementMatrix elk(mphysics, TPZElementMatrix::EK),elf(mphysics, TPZElementMatrix::EF);      
+    TPZElementMatrixT<STATE> elk(mphysics, TPZElementMatrix::EK),elf(mphysics, TPZElementMatrix::EF);      
     
     int nsteps = 9;
     STATE du=0.0001;

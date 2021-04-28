@@ -12,6 +12,7 @@
 #include "TPZParFrontStructMatrix.h"
 #include "TPZFrontNonSym.h"
 #include "TPZBSpStructMatrix.h"
+#include "TPZElementMatrixT.h"
 #include "pzbdstrmatrix.h"
 #include "pzelmat.h"
 #include "tpzoutofrange.h"
@@ -588,10 +589,11 @@ int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix<STATE> &sol0, TPZFMa
  */
 void TPZEulerAnalysis::CompareRhs()
 {
+	//TODOCOMPLEX
 	int iel;
 	//int numel = 0;
 	int nelem = fCompMesh->NElements();
-	TPZElementMatrix ek1(fCompMesh, TPZElementMatrix::EK) ,ef1(fCompMesh, TPZElementMatrix::EF),ef2(fCompMesh, TPZElementMatrix::EF);
+	TPZElementMatrixT<STATE> ek1(fCompMesh, TPZElementMatrix::EK) ,ef1(fCompMesh, TPZElementMatrix::EF),ef2(fCompMesh, TPZElementMatrix::EF);
 	
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = fCompMesh->ElementVec();
 	TPZFNMatrix<64,STATE> diff(8,8);

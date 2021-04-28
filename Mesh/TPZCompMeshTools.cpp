@@ -8,6 +8,7 @@
 
 #include "TPZCompMeshTools.h"
 #include "pzelchdiv.h"
+#include "TPZElementMatrixT.h"
 #include "pzshapepiram.h"
 #include "TPZOneShapeRestraint.h"
 #include "pzshapetriang.h"
@@ -878,7 +879,7 @@ void TPZCompMeshTools::PrintSolutionByGeoElement(TPZCompMesh* cmesh, std::ostrea
 }
 
 void TPZCompMeshTools::PrintStiffnessMatrixByGeoElement(TPZCompMesh *cmesh, std::ostream &out, std::set<int> matIDs) {
-
+    //TODOCOMPLEX
     int64_t nel = cmesh->NElements();
     for (int64_t el = 0; el < nel; el++) {
         TPZCompEl *cel = cmesh->Element(el);
@@ -907,7 +908,7 @@ void TPZCompMeshTools::PrintStiffnessMatrixByGeoElement(TPZCompMesh *cmesh, std:
         }
         out << '\n';
 
-        TPZElementMatrix ekbc, efbc;
+        TPZElementMatrixT<STATE> ekbc, efbc;
         cel->CalcStiff(ekbc, efbc);
 
         ekbc.fMat.Print("StiffnessMatrix", out);

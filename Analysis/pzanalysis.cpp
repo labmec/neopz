@@ -81,16 +81,48 @@ using namespace std;
 
 void TPZAnalysis::SetStructuralMatrix(TPZStructMatrix &strmatrix){
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix.Clone());
+    /*let us leave this check even in release for a while, until we
+      can be sure that our implementation of complex vars is ok*/
+// #ifdef PZDEBUG
+    auto* tmp =
+        dynamic_cast<TPZStructMatrixT<STATE> *>(&strmatrix);
+    if(tmp){//real struct matrix
+        if(fCompMesh && fCompMesh->GetSolType() == EReal){
+            return;
+        }
+    }else{//complex struct matrix
+        if(fCompMesh && fCompMesh->GetSolType() == EComplex){
+            return;
+        }
+    }
+
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" Incompatible types. Aborting\n...";
+    DebugStop();
+// #endif
 }
 
 void TPZAnalysis::SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix){
 	fStructMatrix = TPZAutoPointer<TPZStructMatrix>(strmatrix->Clone());
+// #ifdef PZDEBUG
+    auto* tmp =
+        dynamic_cast<TPZStructMatrixT<STATE> *>((strmatrix.operator->()));
+    if(tmp){//real struct matrix
+        if(fCompMesh && fCompMesh->GetSolType() == EReal){
+            return;
+        }
+    }else{//complex struct matrix
+        if(fCompMesh && fCompMesh->GetSolType() == EComplex){
+            return;
+        }
+    }
+// #endif
 }
-TPZAnalysis::TPZAnalysis() : TPZRegisterClassId(&TPZAnalysis::ClassId),
-fGeoMesh(0), fCompMesh(0),
-fRhs(false), fSolution(false),//TODOCOMPLEX:set matrix type (complex/real)
-fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER)
-, fGuiInterface(NULL), fTable() {
+TPZAnalysis::TPZAnalysis() :
+    TPZRegisterClassId(&TPZAnalysis::ClassId),
+    fGeoMesh(0), fCompMesh(0), fRhs(), fSolution(),
+    fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0),
+    fRenumber(new RENUMBER), fGuiInterface(NULL), fTable(),fSolType(EUndefined) {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
 	fGraphMesh[2] = 0;
@@ -100,8 +132,11 @@ fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(n
 TPZAnalysis::TPZAnalysis(TPZCompMesh *mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
-fRhs(false), fSolution(false),//TODOCOMPLEX:set matrix type (complex/real)
-fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
+fSolType(mesh->GetSolType()),
+fRhs(fSolType == EComplex ? true : false),
+fSolution(fSolType == EComplex ? true : false),
+fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0),
+fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
 	fGraphMesh[1] = 0;
@@ -112,7 +147,9 @@ fSolver(0), fStep(0), fTime(0.), fNthreadsError(0), fStructMatrix(0), fRenumber(
 TPZAnalysis::TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh, bool mustOptimizeBandwidth, std::ostream &out) :
 TPZRegisterClassId(&TPZAnalysis::ClassId),
 fGeoMesh(0), fCompMesh(0),
-fRhs(false), fSolution(false),//TODOCOMPLEX:set matrix type (complex/real)
+fSolType(mesh->GetSolType()),
+fRhs(fSolType == EComplex ? true : false),
+fSolution(fSolType == EComplex ? true : false),
 fSolver(0), fStep(0), fTime(0.), fNthreadsError(0),fStructMatrix(0), fRenumber(new RENUMBER), fGuiInterface(NULL),  fTable()
 {
 	fGraphMesh[0] = 0;
@@ -126,6 +163,7 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
     if(mesh)
     {
         fCompMesh = mesh;
+        fSolType = fCompMesh->GetSolType();
         fGeoMesh = mesh->Reference();
         fGraphMesh[0] = 0;
         fGraphMesh[1] = 0;
@@ -158,16 +196,27 @@ void TPZAnalysis::SetCompMesh(TPZCompMesh * mesh, bool mustOptimizeBandwidth) {
     fTime = 0.;
     if(!this->fSolver){
         //seta default do stepsolver como LU
-        TPZStepSolver<STATE> defaultSolver;
-        defaultSolver.SetDirect(ELU);
-        this->SetSolver(defaultSolver);
+        if(fSolType == EReal){
+            TPZStepSolver<STATE> defaultSolver;
+            defaultSolver.SetDirect(ELU);
+            this->SetSolver(defaultSolver);
+        }
+        else{
+            TPZStepSolver<CSTATE> defaultSolver;
+            defaultSolver.SetDirect(ELU);
+            this->SetSolver(defaultSolver);
+        }
       
     }
     if(!this->fStructMatrix && mesh)
     {
-        //seta default do StructMatrix como Full Matrix
-        TPZSkylineNSymStructMatrix<STATE>  defaultMatrix(mesh);
-        this->SetStructuralMatrix(defaultMatrix);
+        if(fSolType ==  EReal){
+            TPZSkylineNSymStructMatrix<STATE>  defaultMatrix(mesh);
+            this->SetStructuralMatrix(defaultMatrix);
+        }else{
+            TPZSkylineNSymStructMatrix<CSTATE>  defaultMatrix(mesh);
+            this->SetStructuralMatrix(defaultMatrix);
+        }
     }
   
 
@@ -373,8 +422,10 @@ void TPZAnalysis::AssembleInternal()
 }
 void TPZAnalysis::Assemble()
 {
-	//TODOCOMPLEX
-    TPZAnalysis::AssembleInternal<STATE>();
+	if(fSolType == EReal)
+        TPZAnalysis::AssembleInternal<STATE>();
+    else
+        TPZAnalysis::AssembleInternal<CSTATE>();
 }
 
 
@@ -470,7 +521,10 @@ void TPZAnalysis::SolveInternal(){
 }
 
 void TPZAnalysis::Solve() {
-    SolveInternal<STATE>();
+    if(fSolType == EReal)
+        TPZAnalysis::SolveInternal<STATE>();
+    else
+        TPZAnalysis::SolveInternal<CSTATE>();
 }
 
 void TPZAnalysis::LoadSolution() {	
@@ -1205,8 +1259,24 @@ void TPZAnalysis::PostProcessTable(std::ostream &out_file) {
 }
 void TPZAnalysis::SetSolver(const TPZSolver &solver){
 	if(fSolver) delete fSolver;
-    //TODOCOMPLEX
-    fSolver = (TPZMatrixSolver<STATE> *) solver.Clone();
+    auto *tmp =
+        dynamic_cast<const TPZMatrixSolver<STATE>*>(&solver);
+    if(tmp && fSolType == EReal){
+        fSolver = (TPZMatrixSolver<STATE> *) solver.Clone();
+        return;
+    }
+    else{
+        auto *tmp =
+            dynamic_cast<const TPZMatrixSolver<CSTATE>*>(&solver);
+        if(tmp && fSolType == EComplex){
+            fSolver = (TPZMatrixSolver<CSTATE> *) solver.Clone();
+            return;
+        }
+    }
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" Incompatible types!\n";
+    PZError<<" Aborting...\n";
+    DebugStop();
 }
 
 template<class TVar>
@@ -1487,6 +1557,7 @@ void TPZAnalysis::Write(TPZStream &buf, int withclassid) const{
     TPZPersistenceManager::WritePointer(fGraphMesh[0], &buf);
     TPZPersistenceManager::WritePointer(fGraphMesh[1], &buf);
     TPZPersistenceManager::WritePointer(fGraphMesh[2], &buf);
+    buf.Write((int)fSolType);
     fRhs.Write(buf,withclassid);
     fSolution.Write(buf,withclassid);
     TPZPersistenceManager::WritePointer(fSolver, &buf);
@@ -1514,6 +1585,11 @@ void TPZAnalysis::Read(TPZStream &buf, void *context){
     fGraphMesh[0] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
     fGraphMesh[1] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
     fGraphMesh[2] = dynamic_cast<TPZGraphMesh*>(TPZPersistenceManager::GetInstance(&buf));
+    fSolType = [&buf](){
+        int tmp;
+        buf.Read(&tmp);
+        return (ESolType) tmp;
+    }();
     fRhs.Read(buf,context);
     fSolution.Read(buf,context);
     fSolver = dynamic_cast<TPZMatrixSolver<STATE>*>(TPZPersistenceManager::GetInstance(&buf));
@@ -1548,3 +1624,8 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner<STATE>(
     EPrecond preconditioner,bool overlap);
 template
 TPZMatrixSolver<STATE> &TPZAnalysis::MatrixSolver<STATE>();
+template
+TPZMatrixSolver<CSTATE> *TPZAnalysis::BuildPreconditioner<CSTATE>(
+    EPrecond preconditioner,bool overlap);
+template
+TPZMatrixSolver<CSTATE> &TPZAnalysis::MatrixSolver<CSTATE>();

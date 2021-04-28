@@ -14,7 +14,7 @@
 #include "pzmanvector.h"
 #include "pzadmchunk.h"
 #include "pzquad.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
@@ -172,11 +172,11 @@ REAL TPZAgglomerateElement::VolumeOfEl(){
 
 void TPZAgglomerateElement::CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el){
 	
-	PZError << "TPZAgglomerateElement::CalcResidual DEVE SER IMPLEMENTADO";
+	PZError << "TPZAgglomerateElement::CalcResidual must be implemented\n";
 }
 
-void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	
+template<class TVar>
+void TPZAgglomerateElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){	
 	if(Reference()) return TPZCompElDisc::CalcStiff(ek,ef);
 	
 	if(!Material()){
@@ -954,3 +954,5 @@ void TPZAgglomerateElement::Read(TPZStream &buf, void *context)
 
 template
 void TPZAgglomerateElement::ProjectSolution<STATE>(TPZFMatrix<STATE> &projectsol);
+template
+void TPZAgglomerateElement::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &projectsol);

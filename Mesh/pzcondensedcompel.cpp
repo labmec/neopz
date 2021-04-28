@@ -8,6 +8,7 @@
 #include "pzstepsolver.h"
 #include "pzelementgroup.h"
 #include "pzcmesh.h"
+#include "TPZElementMatrixT.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.tpzcondensedcompel");
@@ -292,7 +293,8 @@ void TPZCondensedCompEl::Assemble()
     fCondensed.Redim(fNumTotalEqs, fNumInternalEqs);
 
     fCondensed.Zero();
-    TPZElementMatrix ek,ef;
+    //TODOCOMPLEX
+    TPZElementMatrixT<STATE> ek,ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
     ek.PermuteGather(fIndexes);
@@ -315,7 +317,8 @@ void TPZCondensedCompEl::Assemble()
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &efglob)
+template<class TVar>
+void TPZCondensedCompEl::CalcStiffInternal(TPZElementMatrixT<TVar> &ekglob,TPZElementMatrixT<TVar> &efglob)
 {
     if(fKeepMatrix == false)
     {
@@ -325,7 +328,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         fKeepMatrix = false;
     }
     InitializeElementMatrix(ekglob, efglob);
-    TPZElementMatrix ek, ef;
+    //TODOCOMPLEX
+    TPZElementMatrixT<TVar> ek, ef;
     
     fReferenceCompEl->CalcStiff(ek,ef);
 #ifdef PZ_LOG
@@ -369,7 +373,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     // Initialization TPZMatRed structure
     fCondensed.Zero();
     {
-        TPZFMatrix<STATE> * K00_temp = dynamic_cast<TPZFMatrix<STATE> * >(fCondensed.K00().operator->());
+        TPZFMatrix<TVar> * K00_temp = dynamic_cast<TPZFMatrix<TVar> * >(fCondensed.K00().operator->());
         K00_temp->InitializePivot();
     }
     int64_t dim0 = fCondensed.Dim0();
@@ -377,7 +381,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     int64_t rows = ek.fMat.Rows();
     int64_t cols = ek.fMat.Cols()+ef.fMat.Cols();
     
-    TPZFMatrix<STATE> KF(rows,cols); //  Local object
+    TPZFMatrix<TVar> KF(rows,cols); //  Local object
     for(int64_t i=0; i<rows;i++)
         for (int64_t j=0; j<cols; j++)
         {
@@ -411,7 +415,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
                 KF(i,j)/=KF(i,i);
         }
         
-#ifdef STATEdouble
+#ifdef TVardouble
         cblas_dger (CblasColMajor, rows-i-1, cols-i-1,
                     -KF(i,i), &KF(i+1,i), 1,
                     &KF(i,i+1), rows, &KF(i+1,i+1), rows);
@@ -429,7 +433,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
         }
     }
     
-    TPZAutoPointer<TPZMatrix<STATE> > K00 = fCondensed.K00();
+    TPZAutoPointer<TPZMatrix<TVar> > K00 = fCondensed.K00();
     for (int64_t i=0; i<dim0; i++)
         for (int64_t j=0; j<dim0; j++)
             K00->operator()(i, j) = KF(i,j);
@@ -500,7 +504,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
 #endif
 
     int64_t dim1 = fCondensed.Dim1();
-    TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
+    TPZFNMatrix<200,TVar> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
     
 	fCondensed.K11Reduced(K11, F1);
@@ -549,7 +553,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
     
 #ifdef USING_DGER
 #ifdef USING_LAPACK
-    TPZFMatrix<STATE> * K00_temp = dynamic_cast<TPZFMatrix<STATE> * >(fCondensed.K00().operator->());
+    TPZFMatrix<TVar> * K00_temp = dynamic_cast<TPZFMatrix<TVar> * >(fCondensed.K00().operator->());
     K00_temp->InitializePivot();
 #endif
 #endif
@@ -589,7 +593,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ekglob,TPZElementMatrix &ef
  * @brief Computes the element right hand side
  * @param ef element load vector(s)
  */
-void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
+template<class TVar>
+void TPZCondensedCompEl::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
 {
     // we need the stiffness matrix computed to compute the residual
     if (fKeepMatrix == false) {
@@ -601,7 +606,7 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     ef.PermuteGather(fIndexes);
     fCondensed.SetF(ef.fMat);
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-    TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
+    TPZFNMatrix<100,TVar> f1(fCondensed.Dim1(),ef.fMat.Cols());
 	fCondensed.F1Red(f1);
     int64_t dim1 = f1.Rows();
     int64_t dim = ef.fMat.Rows();

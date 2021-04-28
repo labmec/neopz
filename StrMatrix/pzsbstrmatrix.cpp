@@ -50,3 +50,7 @@ void TPZSBandStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclassid) con
 template class TPZSBandStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZSBandStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZSBandStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+
+template class TPZSBandStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZSBandStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZSBandStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;

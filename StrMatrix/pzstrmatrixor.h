@@ -14,6 +14,8 @@
 
 //forward declarations
 class TPZElementMatrix;
+template<class T>
+class TPZElementMatrixT;
 class TPZBaseMatrix;
 class TPZStructMatrix;
 
@@ -86,7 +88,7 @@ protected:
         /** @brief Look for an element index which needs to be computed and put it on the stack */
         int64_t NextElement();
         /** @brief Put the computed element matrices in the map */
-        void ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
+        void ComputedElementMatrix(int64_t iel, TPZAutoPointer<TPZElementMatrixT<TVar>> &ek, TPZAutoPointer<TPZElementMatrixT<TVar>> &ef);
         /** @brief The function which will compute the matrices */
         static void *ThreadWork(void *threaddata);
         /** @brief The function which will compute the assembly */
@@ -102,7 +104,7 @@ protected:
         /** @brief Global rhs vector */
         TPZBaseMatrix *fGlobRhs;
         /** @brief List of computed element matrices (autopointers?) */
-        std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > fSubmitted;
+        std::map<int, std::pair< TPZAutoPointer<TPZElementMatrixT<TVar>>, TPZAutoPointer<TPZElementMatrixT<TVar>> > > fSubmitted;
         /** @brief Elements which are being processed */
         std::set<int> fProcessed;
         /** @brief  Current element */
@@ -117,4 +119,5 @@ protected:
 
 
 extern template class TPZStructMatrixOR<STATE>;
+extern template class TPZStructMatrixOR<CSTATE>;
 #endif

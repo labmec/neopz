@@ -137,3 +137,6 @@ void TPZBlockDiagonalStructMatrix<TVar,TPar>::Write(TPZStream& buf, int withclas
 template class TPZBlockDiagonalStructMatrix<STATE,TPZStructMatrixOR<STATE>>;
 template class TPZBlockDiagonalStructMatrix<STATE,TPZStructMatrixOT<STATE>>;
 template class TPZBlockDiagonalStructMatrix<STATE,TPZStructMatrixTBBFlow<STATE>>;
+template class TPZBlockDiagonalStructMatrix<CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZBlockDiagonalStructMatrix<CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZBlockDiagonalStructMatrix<CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;

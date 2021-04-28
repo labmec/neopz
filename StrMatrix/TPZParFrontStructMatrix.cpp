@@ -11,7 +11,7 @@
 #include "TPZParFrontMatrix.h"
 #include "pzsubcmesh.h"
 #include "TPZMaterial.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzelementgroup.h"
 #include "pzcondensedcompel.h"
 #include "TPZFileEqnStorage.h"
@@ -131,8 +131,10 @@ void *TPZParFrontStructMatrix<TFront,TVar,TPar>::ElementAssemble(void *t){
 		//		int dim = el->NumNodes();
 		
 		//Builds elements stiffness matrix
-		TPZElementMatrix *ek = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EK);
-		TPZElementMatrix *ef = new TPZElementMatrix(parfront->fMesh,TPZElementMatrix::EF);
+		auto *ek =
+            new TPZElementMatrixT<TVar>(parfront->fMesh,TPZElementMatrix::EK);
+		auto *ef =
+            new TPZElementMatrixT<TVar>(parfront->fMesh,TPZElementMatrix::EF);
 		
 		el->CalcStiff(*ek, *ef);
 		//Locks a mutex and adds element contribution to frontmatrix
@@ -549,5 +551,13 @@ template class TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixO
 template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixOT<STATE>>;
 template class TPZParFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
 template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
+
+template class TPZParFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+
 
 

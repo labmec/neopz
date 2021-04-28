@@ -159,3 +159,5 @@ void TPZStructMatrixTBBFlow<TVar>::Write(TPZStream& buf, int withclassid) const 
 
 template class TPZStructMatrixTBBFlow<STATE>;
 template class TPZRestoreClass<TPZStructMatrixTBBFlow<STATE>>;
+template class TPZStructMatrixTBBFlow<CSTATE>;
+template class TPZRestoreClass<TPZStructMatrixTBBFlow<CSTATE>>;

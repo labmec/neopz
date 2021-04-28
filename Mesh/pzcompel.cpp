@@ -9,7 +9,7 @@
 #include "TPZMaterial.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzconnect.h"
 #include "pzblockdiag.h"
 
@@ -48,8 +48,10 @@ static TPZLogger logger("pz.mesh.tpzcompel");
 static TPZLogger loggerSide("pz.mesh.tpzcompelside");
 #endif
 
-void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
-    TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK),ef(this->Mesh(), TPZElementMatrix::EF);
+template<class TVar>
+void TPZCompEl::CalcBlockDiagonalInternal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & blockdiag) {
+    TPZElementMatrixT<TVar> ek(this->Mesh(), TPZElementMatrix::EK),
+        ef(this->Mesh(), TPZElementMatrix::EF);
     int b;
     CalcStiff(ek,ef);
     if(HasDependency()) {
@@ -69,11 +71,11 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
             TPZConnect &con = Mesh()->ConnectVec()[conind];
             if(con.HasDependency() || con.IsCondensed()) continue;
             //TPZFMatrix<REAL> ekbl(blsize,blsize);
-            TPZFMatrix<STATE> ekbl(blsize,blsize);
+            TPZFMatrix<TVar> ekbl(blsize,blsize);
             int r,c;
             //TPZBlock &mbl = ek.fConstrBlock;
             TPZBlock &mbl = ek.fConstrBlock;
-            TPZFMatrix<STATE> &msol = ek.fConstrMat;
+            TPZFMatrix<TVar> &msol = ek.fConstrMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
@@ -94,14 +96,14 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagon
         for(b=0; b<numblock; b++) {
             int blsize = blocksize[b];
             //TPZFMatrix<REAL> ekbl(blsize,blsize);
-            TPZFMatrix<STATE> ekbl(blsize,blsize);
+            TPZFMatrix<TVar> ekbl(blsize,blsize);
             int64_t conind = ek.fConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
             if(con.HasDependency() || con.IsCondensed()) continue;
             int r, c;
             //TPZBlock &mbl = ek.fBlock;
             TPZBlock &mbl = ek.fBlock;
-            TPZFMatrix<STATE> &sol = ek.fMat;
+            TPZFMatrix<TVar> &sol = ek.fMat;
             
             for(r=0; r<blsize; r++) {
                 for(c=0; c<blsize; c++) {
@@ -428,10 +430,12 @@ void TPZCompEl::EvaluateError(TPZVec<REAL> &/*errors*/, bool store_error) {
     DebugStop();
 }
 
-void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
+
+template<class TVar>
+void TPZCompEl::SolutionInternal(TPZVec<REAL> &/*qsi*/,int var,TPZVec<TVar> &sol){
     if(var >= 100) {
         const int ind = Index();
-        TPZFMatrix<STATE> &elementSol = fMesh->ElementSolution();
+        TPZFMatrix<TVar> &elementSol = fMesh->ElementSolution();
         if(elementSol.Cols() > var-100) {
             sol[0] = elementSol(ind,var-100);
         } else {
@@ -617,8 +621,14 @@ void TPZCompEl::LoadElementReference()
     }
 }
 
-void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
-    TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK);
+void TPZCompEl::CalcResidual(TPZElementMatrixT<STATE> &ef){
+    TPZElementMatrixT<STATE> ek(this->Mesh(), TPZElementMatrix::EK);
+    CalcStiff(ek,ef);
+}
+
+void TPZCompEl::CalcResidual(TPZElementMatrixT<CSTATE> &ef){
+    //TODOCOMPLEX
+    TPZElementMatrixT<CSTATE> ek(this->Mesh(), TPZElementMatrix::EK);
     CalcStiff(ek,ef);
 }
 
@@ -1160,8 +1170,8 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
-    ek.fBlock.SetNBlocks(ncon);
-    ef.fBlock.SetNBlocks(ncon);
+    ek.Block().SetNBlocks(ncon);
+    ef.Block().SetNBlocks(ncon);
 
     int i;
     int numeq=0;
@@ -1178,12 +1188,12 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &
 #endif
         int nstate = c.NState();
         
-        ek.fBlock.Set(i,nshape*nstate);
-        ef.fBlock.Set(i,nshape*nstate);
+        ek.Block().Set(i,nshape*nstate);
+        ef.Block().Set(i,nshape*nstate);
         numeq += nshape*nstate;
     }
-    ek.fMat.Redim(numeq,numeq);
-    ef.fMat.Redim(numeq,numloadcases);
+    ek.Matrix().Redim(numeq,numeq);
+    ef.Matrix().Redim(numeq,numloadcases);
     ek.fConnect.Resize(ncon);
     ef.fConnect.Resize(ncon);
     for(i=0; i<ncon; i++){
@@ -1199,7 +1209,7 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
     const int numloadcases = mat->NumLoadCases();
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
-    ef.fBlock.SetNBlocks(ncon);
+    ef.Block().SetNBlocks(ncon);
     ef.fOneRestraints = GetShapeRestraints();
     int numeq = 0;
     for(int i=0; i<ncon; i++){
@@ -1212,12 +1222,21 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
             DebugStop();
         }
 #endif
-        ef.fBlock.Set(i,nshapec*numdof);
+        ef.Block().Set(i,nshapec*numdof);
     }
-    ef.fMat.Redim(numeq,numloadcases);
+    ef.Matrix().Redim(numeq,numloadcases);
     ef.fConnect.Resize(ncon);
     for(int i=0; i<ncon; i++){
         (ef.fConnect)[i] = ConnectIndex(i);
     }
 }//void
 
+#define INSTANTIATE(TVar) \
+template \
+void TPZCompEl::SolutionInternal<TVar>(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol); \
+template \
+void TPZCompEl::CalcBlockDiagonalInternal<TVar>(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
+
+INSTANTIATE(STATE)
+INSTANTIATE(CSTATE)
+#undef INSTANTIATE

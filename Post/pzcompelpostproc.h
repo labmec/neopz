@@ -13,7 +13,7 @@ class TPZMaterialData;
 #include "tpzautopointer.h"
 #include "TPZMaterial.h"
 #include "pzmaterialdata.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzstack.h"
 #include "pzcmesh.h"
 #include "pzquad.h"
@@ -92,13 +92,15 @@ public:
      * The final ef vector shall be copied onto the solution vector, as it represents
      * the shape functions multipliers of the extrapolation functions.
      */
-    virtual void CalcResidual(TPZElementMatrix &ef) override;
+    virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+        CalcResidualInternal(ef);
+    }
     
     /**
      * @brief Null implementation of the CalcStiff in order to ensure it wouldn't produce
      * any valid system of equations.
      */
-    virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
+    void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override;
     
     /** @brief Compare some fields of 2 TPZMaterialData and return true if these do match. */
     bool dataequal(TPZMaterialData &d1,TPZMaterialData &d2);
@@ -146,15 +148,17 @@ public:
     virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                               REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx) override;
     
-    
-public:
-        int ClassId() const override;
+   
+    int ClassId() const override;
     
     /** @brief Save the element data to a stream */
     void Write(TPZStream &buf, int withclassid) const override;
     
     /** @brief Read the element data from a stream */
     void Read(TPZStream &buf, void *context) override;
+protected:
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
     
 };
 
@@ -248,7 +252,8 @@ inline void TPZCompElPostProc<TCOMPEL>::Read(TPZStream &buf, void *context)
 
 
 template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
+template<class TVar>
+inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
 {
     ef.Reset();
     
@@ -431,7 +436,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 }
 
 template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
+inline void TPZCompElPostProc<TCOMPEL>::CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef){
     PZError << "\nTPZCompElPostProc<TCOMPEL>::CalcStiff() Should never be called!!!\n";
     return;
 }

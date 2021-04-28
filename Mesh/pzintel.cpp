@@ -13,7 +13,7 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzquad.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzmat1dlin.h"
 #include "time.h"
 #include "pzmanvector.h"
@@ -1695,7 +1695,8 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 }
 
 /**Compute the contribution to stiffness matrix and load vector on the element*/
-void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
+template<class TVar>
+void TPZInterpolatedElement::CalcIntegral(TPZElementMatrixT<TVar> &ef) {
     int i;
     TPZMaterial * material = Material();
     if (!material) {
@@ -1710,13 +1711,13 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
     int dim = Dimension();
     int nshape = NShapeF();
     TPZBlock &block = Mesh()->Block();
-    TPZFMatrix<STATE> &solution = Mesh()->Solution();
+    TPZFMatrix<TVar> &solution = Mesh()->Solution();
     int numloadcases = solution.Cols();
 
     int numeq = nshape*numdof;
     ef.fMat.Redim(numeq, numloadcases);
     ef.fBlock.SetNBlocks(ncon);
-    TPZVec<STATE> sol(numdof, 0.);
+    TPZVec<TVar> sol(numdof, 0.);
     for (i = 0; i < ncon; i++) {
         TPZConnect &c = Connect(i);
         unsigned int nshape = c.NShape();
@@ -1755,7 +1756,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
         Shape(intpoint, phi, dphi);
 
         int64_t l, iv = 0;
-        STATE coef;
+        TVar coef;
         for (int ist = 0; ist < numloadcases; ist++) {
             for (in = 0; in < numdof; in++) sol[in] = 0.;
             for (in = 0; in < ncon; in++) {
@@ -1765,13 +1766,13 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
                 for (jn = 0; jn < dfvar; jn++) {
                     int64_t pos = block.Position(dfseq);
                     coef = solution(pos + jn, ist);
-                    sol[iv % numdof] += (STATE) phi(iv / numdof, 0) * coef;
+                    sol[iv % numdof] += (TVar) phi(iv / numdof, 0) * coef;
                     iv++;
                 }
             }
             for (in = 0; in < nshape; in++)
                 for (l = 0; l < numdof; l++)
-                    (ef.fMat)(in * numdof + l, 0) += (STATE) weight * (STATE) phi(in, 0) * sol[l];
+                    (ef.fMat)(in * numdof + l, 0) += (TVar) weight * (TVar) phi(in, 0) * sol[l];
         }
     }
 }
@@ -2008,3 +2009,8 @@ bool TPZInterpolatedElement::VerifyConstraintConsistency(int side, TPZCompElSide
 void TPZInterpolatedElement::SetCreateFunctions(TPZCompMesh* mesh) {
     mesh->SetAllCreateFunctionsContinuous();
 }
+
+
+template
+void TPZInterpolatedElement::
+CalcIntegral<STATE>(TPZElementMatrixT<STATE>&ef);

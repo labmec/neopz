@@ -24,6 +24,8 @@
 
 
 struct TPZElementMatrix;
+template<class TVar>
+struct TPZElementMatrixT;
 class TPZCompMesh;
 class TPZBndCond;
 class TPZInterpolatedElement;
@@ -324,7 +326,8 @@ public:
 	 * @param ek element stiffness matrix
 	 * @param ef element load vector
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef);
+    virtual void CalcStiff(TPZElementMatrixT<CSTATE> &ek,TPZElementMatrixT<CSTATE> &ef);
     
 	
 	/** @brief Verifies if the material associated with the element is contained in the set */
@@ -334,7 +337,8 @@ public:
 	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef);
+	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef);
+    virtual void CalcResidual(TPZElementMatrixT<CSTATE> &ef);
 	
 	/**
 	 * @brief Implements of the orthogonal Chebyshev functions
@@ -460,7 +464,12 @@ public:
 	 * @param var variable name
 	 * @param sol vetor for the solution
 	 */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol){
+        SolutionInternal(qsi,var,sol);
+    }
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol){
+        SolutionInternal(qsi,var,sol);
+    }
     
     /**
      * @brief Compute the integral of a variable
@@ -578,7 +587,13 @@ public:
 	 * @param connectlist stack list to calculates the diagonal block
 	 * @param block object to receive the diagonal block
 	 */
-	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block);
+	virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<STATE> & block){
+        CalcBlockDiagonalInternal(connectlist,block);
+    }
+    
+    virtual void CalcBlockDiagonal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<CSTATE> & block){
+        CalcBlockDiagonalInternal(connectlist,block);
+    }
 	
     /// Will return the maximum distance between the nodes of the reference element
 	REAL MaximumRadiusOfEl();
@@ -593,7 +608,10 @@ public:
 	void Read(TPZStream &buf, void *context) override;
 	 
 private:
-    
+    template<class TVar>
+    void SolutionInternal(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
+    template<class TVar>
+    void CalcBlockDiagonalInternal(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
 	/** @brief Default interpolation order */
     static int gOrder;
     
@@ -804,8 +822,14 @@ inline void TPZCompEl::Assemble(){
     std::cout << "TPZCompEl::Assemble is called." << std::endl;
 }
 
-inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
-	std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+inline void TPZCompEl::CalcStiff(TPZElementMatrixT<STATE> &,TPZElementMatrixT<STATE> &){
+	PZError << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+    DebugStop();
+}
+
+inline void TPZCompEl::CalcStiff(TPZElementMatrixT<CSTATE> &,TPZElementMatrixT<CSTATE> &){
+	PZError << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;
+    DebugStop();
 }
 
 inline bool TPZCompElSide::operator != (const TPZCompElSide &other)
@@ -840,5 +864,16 @@ inline int TPZCompEl::GetgOrder( )
 {
 	return gOrder;
 }
+
+
+#define INSTANTIATE(TVar) \
+extern template \
+void TPZCompEl::SolutionInternal<TVar>(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol); \
+extern template \
+void TPZCompEl::CalcBlockDiagonalInternal<TVar>(TPZStack<int64_t> &connectlist, TPZBlockDiagonal<TVar> & block);
+
+INSTANTIATE(STATE)
+INSTANTIATE(CSTATE)
+#undef INSTANTIATE
 
 #endif

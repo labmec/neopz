@@ -32,7 +32,10 @@ protected:
     /// Integration rule associated with the element
     typename TGeometry::IntruleType fIntRule;
     
-    
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
 	
 public:
 	/**
@@ -284,14 +287,18 @@ public:
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
+        CalcStiffInternal<STATE>(ek,ef);
+    }
 	
     /**
      * @brief Computes the element stiffness matrix and right hand side
      * @param ek element matrix
      * @param ef element right hand side
      */
-    virtual void CalcResidual(TPZElementMatrix &ef) override;
+    virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+        CalcResidualInternal<STATE>(ef);
+    }
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;

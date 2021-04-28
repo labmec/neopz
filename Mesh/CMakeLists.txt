@@ -47,6 +47,7 @@ set(headers
   tpzgeoelrefpattern.h.h
   pzcompelwithmem.h
   pzelmat.h
+  TPZElementMatrixT.h
   pzgnode.h
   pzreferredcompel.h
   TPZCompElLagrange.h
@@ -81,7 +82,8 @@ set(sources
   tpzcompmeshreferred.cpp
   TPZMultiphysicsCompMesh.cpp
   pzcompel.cpp
-  pzelmat.cpp  
+  pzelmat.cpp
+  TPZElementMatrixT.cpp
   TPZCompMeshTools.cpp
   TPZMultiphysicsInterfaceEl.cpp
   pzcompelwithmem.cpp  

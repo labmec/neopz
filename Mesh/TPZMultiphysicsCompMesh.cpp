@@ -376,6 +376,20 @@ void TPZMultiphysicsCompMesh::AddConnects(){
 
 void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
 {
+    if(fSolType == EReal){
+        return LoadSolutionFromMeshesInternal<STATE>();
+    }
+    if(fSolType == EComplex){
+        return LoadSolutionFromMeshesInternal<CSTATE>();
+    }
+    PZError<<__PRETTY_FUNCTION__<<'\n';
+    PZError<<"Invalid type! Aborting...\n";
+    DebugStop();
+}
+
+template<class TVar>
+void TPZMultiphysicsCompMesh::LoadSolutionFromMeshesInternal()
+{
     int n_approx_spaces = m_active_approx_spaces.size();
     TPZManVector<int64_t> FirstConnectIndex(n_approx_spaces+1,0);
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
@@ -385,7 +399,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
     TPZBlock &blockMF = Block();
-    TPZFMatrix<STATE> &solMF = Solution();
+    TPZFMatrix<TVar> &solMF = Solution();
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         
         if (m_active_approx_spaces[i_as] == 0) {
@@ -394,7 +408,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
         
         int64_t ncon = m_mesh_vector[i_as]->NConnects();
         TPZBlock &block = m_mesh_vector[i_as]->Block();
-        TPZFMatrix<STATE> &sol = m_mesh_vector[i_as]->Solution();
+        TPZFMatrix<TVar> &sol = m_mesh_vector[i_as]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = m_mesh_vector[i_as]->ConnectVec()[ic];
@@ -413,6 +427,20 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMeshes()
 
 void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
 {
+    if(fSolType == EReal){
+        return LoadSolutionFromMultiPhysicsInternal<STATE>();
+    }
+    if(fSolType == EComplex){
+        return LoadSolutionFromMultiPhysicsInternal<CSTATE>();
+    }
+    PZError<<__PRETTY_FUNCTION__<<'\n';
+    PZError<<"Invalid type! Aborting...\n";
+    DebugStop();
+}
+
+template<class TVar>
+void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysicsInternal()
+{
     int n_approx_spaces = m_active_approx_spaces.size();
     TPZManVector<int64_t> FirstConnectIndex(n_approx_spaces+1,0);
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
@@ -422,7 +450,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         FirstConnectIndex[i_as+1] = FirstConnectIndex[i_as]+m_mesh_vector[i_as]->NConnects();
     }
     TPZBlock &blockMF = Block();
-    TPZFMatrix<STATE> &solMF = Solution();
+    TPZFMatrix<TVar> &solMF = Solution();
     for (int i_as = 0; i_as < n_approx_spaces; i_as++) {
         
         if (m_active_approx_spaces[i_as] == 0) {
@@ -431,7 +459,7 @@ void TPZMultiphysicsCompMesh::LoadSolutionFromMultiPhysics()
         
         int64_t ncon = m_mesh_vector[i_as]->NConnects();
         TPZBlock &block = m_mesh_vector[i_as]->Block();
-        TPZFMatrix<STATE> &sol = m_mesh_vector[i_as]->Solution();
+        TPZFMatrix<TVar> &sol = m_mesh_vector[i_as]->Solution();
         int64_t ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = m_mesh_vector[i_as]->ConnectVec()[ic];

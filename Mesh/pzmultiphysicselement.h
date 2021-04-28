@@ -25,7 +25,9 @@ protected:
     
     /** @brief List of active approximation spaces */
     TPZManVector<int,5> fActiveApproxSpace;
-    
+
+    template<class TVar>
+    void TransferMultiphysicsElementSolutionInternal();
 public:
 	/** @brief Default constructor */
 	TPZMultiphysicsElement() : TPZCompEl()
@@ -98,7 +100,7 @@ public:
 	 */
     void EvaluateError(TPZVec<STATE> &errors, bool store_error) override;  
 
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override = 0 ;
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override = 0 ;
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override =0 ;
 	

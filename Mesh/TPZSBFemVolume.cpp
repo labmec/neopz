@@ -34,10 +34,10 @@ TPZSBFemVolume::TPZSBFemVolume(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index)
 }
 
 /// Compute the K matrices
-void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrix &E0, TPZElementMatrix &E1, TPZElementMatrix &E2, TPZElementMatrix &M0) {
+void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMatrixT<STATE> &E1, TPZElementMatrixT<STATE> &E2, TPZElementMatrixT<STATE> &M0) {
     // do all the computations here
 
-    TPZElementMatrix efmat(Mesh(), TPZElementMatrix::EF);
+    TPZElementMatrixT<STATE> efmat(Mesh(), TPZElementMatrix::EF);
 
     TPZGeoEl *Ref2D = Reference();
     TPZGeoMesh *gmesh = Ref2D->Mesh();

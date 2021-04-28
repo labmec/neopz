@@ -88,7 +88,6 @@ public:
 	 */
 	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &NeighborAxes);
 	
-protected:
 	
 	/**
 	 * @brief Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
@@ -110,6 +109,11 @@ protected:
 	/** @brief Computes normal for linear geometric elements. */
 	/** For linear geometry the normal vector is constant. */
 	void ComputeCenterNormal(TPZVec<REAL> &normal);
+
+	template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
 	
 public:
 	
@@ -257,13 +261,17 @@ public:
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
+		CalcStiffInternal<STATE>(ek,ef);
+	}
 	
 	/**
 	 * @brief CalcResidual only computes the element residual
 	 * @param ef element residual
 	 */
-	virtual void CalcResidual(TPZElementMatrix &ef) override;
+	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+		CalcResidualInternal<STATE>(ef);
+	}
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.

@@ -6,7 +6,7 @@
  */
 
 #include "TPZMultiphysicsInterfaceEl.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "pzinterpolationspace.h"
 #include "TPZMaterial.h"
 #include "pzmultiphysicselement.h"
@@ -324,7 +324,9 @@ int64_t TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 
 
 #include "pzmultiphysicscompel.h"
-void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,
+                                                        TPZElementMatrixT<TVar> &ef)
 {
    TPZMaterial *material = this->Material();
 	
@@ -420,7 +422,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 	
 }//CalcStiff
 
-void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ef)
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ef)
 {
     TPZMaterial  * material = this->Material();
     if(!material){
@@ -595,10 +598,10 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     int nstate = mat->NStateVariables();
     numloadcases = mat->NumLoadCases();        
 	
-	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,numloadcases);
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fBlock.SetNBlocks(ncon);
+	ek.Matrix().Redim(numeq,numeq);
+	ef.Matrix().Redim(numeq,numloadcases);
+	ek.Block().SetNBlocks(ncon);
+	ef.Block().SetNBlocks(ncon);
 	
 	int i;
 	for(i=0; i<ncon; i++)
@@ -610,8 +613,8 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
             DebugStop();
         }
 #endif
-		ek.fBlock.Set(i,ndof);
-		ef.fBlock.Set(i,ndof);
+		ek.Block().Set(i,ndof);
+		ef.Block().Set(i,ndof);
 	}
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
@@ -652,8 +655,8 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     int nstate = mat->NStateVariables();
     numloadcases = mat->NumLoadCases();
     
-    ef.fMat.Redim(numeq,numloadcases);
-    ef.fBlock.SetNBlocks(ncon);
+    ef.Matrix().Redim(numeq,numloadcases);
+    ef.Block().SetNBlocks(ncon);
     
     int i;
     for(i=0; i<ncon; i++)
@@ -665,7 +668,7 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
             DebugStop();
         }
 #endif
-        ef.fBlock.Set(i,ndof);
+        ef.Block().Set(i,ndof);
     }
     ef.fConnect.Resize(ncon);
     for(i=0; i<ncon; i++){

@@ -6,7 +6,7 @@
 //
 
 #include "Tools.h"
-
+#include "TPZElementMatrixT.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
@@ -1775,8 +1775,8 @@ void IntegrationRuleConvergence(bool intQuarterPoint){
         
         TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
         
-        TPZElementMatrix ek(cel->Mesh(), TPZElementMatrix::EK);
-        TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
+        TPZElementMatrixT<STATE> ek(cel->Mesh(), TPZElementMatrix::EK);
+        TPZElementMatrixT<STATE> ef(cel->Mesh(), TPZElementMatrix::EF);
         
         TPZFNMatrix<1000, STATE> RefMat1, RefMat2, RefMat;
         TPZFNMatrix<1000, STATE> DifMat;

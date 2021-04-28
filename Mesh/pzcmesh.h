@@ -47,6 +47,8 @@ class TPZCompMesh : public virtual TPZSavable {
 protected:
 	/** @brief Geometric grid to which this grid refers */
 	TPZGeoMesh	*fReference;
+    /** @brief Type of the solution (real/complex)*/
+    ESolType fSolType;
     
     /** @brief Autopointer to the geometric mesh used in case the user has passed an autopointer */
     TPZAutoPointer<TPZGeoMesh> fGMesh;
@@ -107,15 +109,19 @@ protected:
     void SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i, TPZVec<TVar> &sol);
     template<class TVar>
     void ConnectSolutionInternal(std::ostream &out, const TPZFMatrix<TVar>&sol) const;
+
+    friend TPZPersistenceManager;
+    friend TPZRestoreClass<TPZCompMesh>;
+    /* @brief Default constructor*/
+	TPZCompMesh();
 public:
-	
 	/**
 	 * @brief Constructor from geometrical mesh
 	 * @param gr pointer to geometrical reference mesh
 	 */
-	TPZCompMesh(TPZGeoMesh* gr=0);
+	TPZCompMesh(TPZGeoMesh* gr, bool isComplex=false);
     /** @brief Constructor based on an autopointer to a geometric mesh */
-    TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh);
+    TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh, bool isComplex = false);
 	/** @brief Copy constructor */
 	TPZCompMesh(const TPZCompMesh &copy);
     /** @brief copy the content of the mesh */
@@ -123,7 +129,9 @@ public:
 	
 	/** @brief Simple Destructor */
 	virtual ~TPZCompMesh();
-	
+
+    /** @brief Get type of solution (real/complex).*/
+    ESolType GetSolType() const { return fSolType;}
 	/**
 	 * @brief This method will initiate the comparison between the current computational
 	 * mesh and the mesh which is referenced by the geometric mesh
@@ -279,7 +287,12 @@ public:
 	 * @{
 	 */
 	
-	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
+	/**
+     * @brief Set a `i`th element solution, expanding the element-solution matrix if necessary.
+     * @tparam state variable type (`STATE`,`CSTATE`)
+     * @param i number of the element
+     * @param solution to be set
+     */
     template<class TVar>
 	void SetElementSolution(int64_t i, TPZVec<TVar> &sol);
 	
@@ -444,14 +457,19 @@ public:
 	virtual void Skyline(TPZVec<int64_t> &skyline);
 	
 	/**
-	 * @brief Builds the transfer matrix from the current grid to the coarse grid
+	 * @brief Builds the transfer matrix from the current grid to the coarse grid.
 	 * @param coarsemesh grid for where the matrix will be transfered
 	 * @param transfer transfer matrix between the current mesh and the coarse mesh
 	 */
 	void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE> &transfer);
 	
-	/** @brief To discontinuous elements */
+	/**
+	 * @brief Builds the transfer matrix from the current grid to the coarse grid for discontinuous meshes.
+	 * @param coarsemesh grid for where the matrix will be transfered
+	 * @param transfer transfer matrix between the current mesh and the coarse mesh
+	 */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer<STATE> &transfer);
+    
     template<class TVar>
 	void ProjectSolution(TPZFMatrix<TVar> &projectsol);
     
@@ -654,7 +672,8 @@ public:
 	 * @param dim Dimension of the working discontinuous elements
 	 * @param celJumps Vector to store the diference between the values from right and left elements connected on the interface
 	 */
-	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps);
+    template<class TVar>
+	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<TVar> &celJumps);
 	
 	/**
 	 * @brief This method convert a discontinuous element with index disc_index in continuous element
@@ -754,20 +773,20 @@ inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
 }
 
 //templates instantiation
+#define INSTANTIATE_METHODS(TVar) \
+extern template \
+void TPZCompMesh::UpdatePreviousState<TVar>(TVar); \
+extern template \
+void TPZCompMesh::SetElementSolution<TVar>(int64_t , TPZVec<TVar>&); \
+extern template \
+void TPZCompMesh::ConnectSolution<TVar>(int64_t , TPZCompMesh *, TPZFMatrix<TVar> &, TPZVec<TVar> &); \
+extern template \
+void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &); \
+extern template \
+void TPZCompMesh::ConvertDiscontinuous2Continuous<TVar>(REAL , int , int , TPZVec<TVar> &);
 
-extern template
-void TPZCompMesh::UpdatePreviousState<STATE>(STATE);
-extern template
-void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
-extern template
-void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
-extern template
-void TPZCompMesh::ProjectSolution<STATE>(TPZFMatrix<STATE> &);
+INSTANTIATE_METHODS(STATE)
+INSTANTIATE_METHODS(CSTATE)
+#undef INSTANTIATE_METHODS
 
-// extern template
-// void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
-// extern template
-// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t , TPZCompMesh *, TPZFMatrix<CSTATE> &, TPZVec<CSTATE> &);
-// extern template
-// void TPZCompMesh::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &);
 #endif

@@ -46,9 +46,9 @@ public:
   /// gui interface object
   TPZAutoPointer<TPZGuiInterface> fGuiInterface;
   /// global matrix
-  TPZMatrix<STATE> *fGlobMatrix;
+  TPZMatrix<TVar> *fGlobMatrix;
   /// global rhs vector
-  TPZFMatrix<STATE> *fGlobRhs;
+  TPZFMatrix<TVar> *fGlobRhs;
 };
 
 template<class TVar = STATE>

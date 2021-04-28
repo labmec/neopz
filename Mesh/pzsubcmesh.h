@@ -35,6 +35,10 @@ public TPZCompMesh,
 public TPZCompEl
 {
 protected:
+    template<class TVar>
+    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
 	/** @brief Pointer to submesh analysis object. Defines the resolution type. */
 	TPZAutoPointer<TPZAnalysis> fAnalysis;
 	
@@ -289,7 +293,9 @@ public:
     virtual void Assemble() override;
     
   	/** @brief Calculates the submesh stiffness matrix */
-	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) override;
+	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek,TPZElementMatrixT<STATE> &ef) override{
+        CalcStiffInternal<STATE>(ef,ef);
+    }
 	
     /// Initialize the datastructure of ef
     void InitializeEF(TPZElementMatrix &ef);
@@ -298,7 +304,9 @@ public:
      * @brief Computes the element right hand side
      * @param ef element load vector(s)
      */
-    virtual void CalcResidual(TPZElementMatrix &ef) override;
+    virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+        CalcResidualInternal<STATE>(ef);
+    }
     
     /**
      * Compute the residual norm of the internal equation

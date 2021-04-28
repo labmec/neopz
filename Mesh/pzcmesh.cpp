@@ -53,10 +53,43 @@ static TPZLogger aloclogger("pz.allocate");
 #endif
 using namespace std;
 
-TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) :
+TPZCompMesh::TPZCompMesh () :
     TPZRegisterClassId(&TPZCompMesh::ClassId),
     fElementVec(0),fConnectVec(0),fMaterialVec(),
-    fSolution(0,1),fElementSolution(0,1),fSolN(0,1) {
+    fSolType(EUndefined),
+    fSolution(),fElementSolution(),fSolN(){
+    
+#ifdef PZ_LOG
+    if (aloclogger.isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Allocate TPZCompMesh this = " << (void *)this;
+        LOGPZ_DEBUG(aloclogger, sout.str())
+    }
+#endif
+	fDefaultOrder = TPZCompEl::GetgOrder();
+	
+	//Initializing class members
+	fDimModel = 0;
+	fReference = nullptr;
+	//  fChecked = 0;
+	//fName[0] = '\0';
+	//fName[126] = '\0';
+    SetName( "Computational mesh");
+    TPZBaseMatrix &sol = fSolution;
+	fBlock.SetMatrix(&sol);
+	fSolutionBlock.SetMatrix(&sol);
+    
+    fNmeshes = 0;
+}
+
+
+TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr, bool isComplex) :
+    TPZRegisterClassId(&TPZCompMesh::ClassId),
+    fElementVec(0),fConnectVec(0),fMaterialVec(),
+    fSolType(isComplex ? EComplex : EReal),
+    fSolution(0,1,isComplex),
+    fElementSolution(0,1,isComplex),
+    fSolN(0,1,isComplex){
     
 #ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
@@ -90,10 +123,14 @@ TPZCompMesh::TPZCompMesh (TPZGeoMesh* gr) :
 }
 
 
-TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh) :
+TPZCompMesh::TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh,
+                         bool isComplex) :
     TPZRegisterClassId(&TPZCompMesh::ClassId),
     fGMesh(gmesh),fElementVec(0),fConnectVec(0),fMaterialVec(),
-    fSolution(0,1),fSolN(0,1),fElementSolution(0,1)
+    fSolType(isComplex ? EComplex : EReal),
+    fSolution(0,1,isComplex),
+    fElementSolution(0,1,isComplex),
+    fSolN(0,1,isComplex)
 {
 #ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
@@ -441,7 +478,10 @@ void TPZCompMesh::InitializeBlock() {
 
 void TPZCompMesh::ExpandSolution(){
     try{
-        ExpandSolutionInternal<STATE>(fSolution);
+        if(fSolType==EReal)
+            ExpandSolutionInternal<STATE>(fSolution);
+        else
+            ExpandSolutionInternal<CSTATE>(fSolution);
     }
     catch(...){
         PZError << "Incompatible matrix type in ";
@@ -969,7 +1009,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 			" between superelements\n";
 			continue;
 		}
-		TPZTransform<> t(coarsel->Dimension());
+		TPZTransform<STATE> t(coarsel->Dimension());
 		t=finegel->BuildTransform2(finegel->NSides()-1,coarsegel,t);
 		finecel->BuildTransferMatrix(*coarsel,t,transfer);
 	}
@@ -1358,7 +1398,11 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 void TPZCompMesh::Permute(TPZVec<int64_t> &permute) {
 
   try {
-    PermuteInternal<STATE>(fSolution, permute);
+      if(fSolType==EReal)
+          PermuteInternal<STATE>(fSolution, permute);
+      else if (fSolType==EComplex)
+          PermuteInternal<CSTATE>(fSolution, permute);
+    
   } catch (...) {
     PZError << "Incompatible matrix type in ";
     PZError << __PRETTY_FUNCTION__ << '\n';
@@ -1443,8 +1487,11 @@ void TPZCompMesh::ConnectSolutionInternal(std::ostream &out, const TPZFMatrix<TV
 	}
 }
 void TPZCompMesh::ConnectSolution(std::ostream & out) {
-	//TODOCOMPLEX
-    ConnectSolutionInternal<STATE>(out,fSolution);
+	if(fSolType==EReal)
+            ConnectSolutionInternal<STATE>(out,fSolution);
+        else
+            ConnectSolutionInternal<CSTATE>(out,fSolution);
+    
 }
 void TPZCompMesh::EvaluateError(bool store_error, TPZVec<REAL> &errorSum) {
 	
@@ -1725,7 +1772,8 @@ fMaterialVec(), fSolutionBlock(copy.fSolutionBlock),
 fCreate(copy.fCreate), fBlock(copy.fBlock),
 fSolution(copy.fSolution),
 fElementSolution(copy.fElementSolution),
-fSolN(copy.fSolN)
+fSolN(copy.fSolN),
+fSolType(copy.fSolType)
 {
 #ifdef PZ_LOG
     if (aloclogger.isDebugEnabled()) {
@@ -1790,6 +1838,7 @@ TPZCompMesh &TPZCompMesh::operator=(const TPZCompMesh &copy)
     copy.CopyMaterials(*this);    
     fElementSolution = copy.fElementSolution;
     fSolution = copy.fSolution;
+    fSolType = copy.fSolType;
     TPZBaseMatrix &sol = fSolution;
     
     fSolutionBlock = copy.fSolutionBlock;
@@ -2086,6 +2135,7 @@ int TPZCompMesh::ClassId() const{
 void TPZCompMesh::Write(TPZStream &buf, int withclassid) const { //ok
     TPZPersistenceManager::WritePointer(fReference,&buf);
     TPZPersistenceManager::WritePointer(fGMesh.operator->(), &buf);
+    buf.Write((int)fSolType);
     buf.Write(&fName);
     buf.WritePointers(fElementVec);
     fConnectVec.Write(buf, withclassid);
@@ -2118,6 +2168,11 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid) const { //ok
 void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     fReference = dynamic_cast<TPZGeoMesh *>(TPZPersistenceManager::GetInstance(&buf));
     fGMesh = TPZAutoPointerDynamicCast<TPZGeoMesh >(TPZPersistenceManager::GetAutoPointer(&buf));
+    fSolType = [&buf](){
+        int tmp;
+        buf.Read(&tmp);
+        return (ESolType) tmp;
+    }();
     buf.Read(&fName);
     buf.ReadPointers(fElementVec);
     fConnectVec.Read(buf, context);
@@ -2134,8 +2189,8 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fNmeshes);
 }
 
-
-void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps){
+template<class TVar>
+void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<TVar> &celJumps){
 	const int64_t nelements = this->NElements();
 	celJumps.Resize(nelements);
     int64_t numbersol = Solution().Cols();
@@ -2166,7 +2221,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		}
 #endif
 		
-		STATE jumpNorm = 0.;
+		TVar jumpNorm = 0.;
         for (int64_t is=0; is<numbersol; is++) {
             for(int64_t ij = 0; ij < facejump.NElements(); ij++){
                 jumpNorm += facejump[is][ij]*facejump[is][ij];
@@ -2183,8 +2238,8 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
 		if (!disc) continue;
 		if(disc->Reference()->Dimension() != dim) continue;
-		const STATE celJumpError = celJumps[i];
-		//const STATE celJumpError = celJumps[i];
+		const TVar celJumpError = celJumps[i];
+		//const TVar celJumpError = celJumps[i];
 		if (abs(celJumpError) < eps){
 			int64_t index;
 			this->Discontinuous2Continuous(i, index);
@@ -2898,18 +2953,18 @@ void TPZCompMesh::ConnectSolution(int64_t cindex, TPZCompMesh *cmesh, TPZFMatrix
     }
 }
 
-template
-void TPZCompMesh::UpdatePreviousState<STATE>(STATE);
-template
-void TPZCompMesh::SetElementSolution<STATE>(int64_t , TPZVec<STATE>&);
-template
-void TPZCompMesh::ConnectSolution<STATE>(int64_t , TPZCompMesh *, TPZFMatrix<STATE> &, TPZVec<STATE> &);
-template
-void TPZCompMesh::ProjectSolution<STATE>(TPZFMatrix<STATE> &);
+#define INSTANTIATE_METHODS(TVar) \
+template \
+void TPZCompMesh::UpdatePreviousState<TVar>(TVar); \
+template \
+void TPZCompMesh::SetElementSolution<TVar>(int64_t , TPZVec<TVar>&); \
+template \
+void TPZCompMesh::ConnectSolution<TVar>(int64_t , TPZCompMesh *, TPZFMatrix<TVar> &, TPZVec<TVar> &); \
+template \
+void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &); \
+template \
+void TPZCompMesh::ConvertDiscontinuous2Continuous<TVar>(REAL , int , int , TPZVec<TVar> &);
 
-// template
-// void TPZCompMesh::SetElementSolution<CSTATE>(int64_t , TPZVec<CSTATE>&);
-// template
-// void TPZCompMesh::ConnectSolution<CSTATE>(int64_t , TPZCompMesh *, TPZFMatrix<CSTATE> &, TPZVec<CSTATE> &);
-// template
-// void TPZCompMesh::ProjectSolution<CSTATE>(TPZFMatrix<CSTATE> &);
+INSTANTIATE_METHODS(STATE)
+INSTANTIATE_METHODS(CSTATE)
+#undef INSTANTIATE_METHODS

@@ -8,7 +8,7 @@
 // #include "TPZFrontSym.h"
 // #include "TPZFrontNonSym.h"
 #include "pzsubcmesh.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 #include "TPZMaterial.h"
 #include "TPZStackEqnStorage.h"
 
@@ -250,7 +250,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleNew(TPZMatrix<TVar> & stiff
 	
 	int64_t iel;
 	int64_t numel = 0, nelem = this->fMesh->NElements();
-	TPZElementMatrix ek(this->fMesh,TPZElementMatrix::EK),ef(this->fMesh,TPZElementMatrix::EF);
+	TPZElementMatrixT<TVar> ek(this->fMesh,TPZElementMatrix::EK),ef(this->fMesh,TPZElementMatrix::EF);
 	TPZManVector<int64_t> destinationindex(0);
 	TPZManVector<int64_t> sourceindex(0);
 	
@@ -328,7 +328,7 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base
     auto& rhs = dynamic_cast<TPZFMatrix<TVar>&>(rhs_base);
 	int64_t iel;
 	int64_t numel = 0, nelem = this->fMesh->NElements();
-	TPZElementMatrix ek(this->fMesh,TPZElementMatrix::EK),ef(this->fMesh,TPZElementMatrix::EF);
+	TPZElementMatrixT<TVar> ek(this->fMesh,TPZElementMatrix::EK),ef(this->fMesh,TPZElementMatrix::EF);
 	
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = this->fMesh->ElementVec();
 	
@@ -400,8 +400,12 @@ void TPZFrontStructMatrix<TFront,TVar,TPar>::Assemble(TPZBaseMatrix & stiff_base
 
 //Verificar declaracao dos parametros !!!!!
 template<class TFront, class TVar, class TPar>
-void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs){
-	
+void TPZFrontStructMatrix<TFront,TVar,TPar>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ekb, TPZElementMatrix & efb, TPZMatrix<TVar> & stiffness, TPZFMatrix<TVar> & rhs){
+	//TODOCOMPLEX
+    auto &ek =
+		dynamic_cast<TPZElementMatrixT<TVar>&>(ekb);
+	auto &ef =
+		dynamic_cast<TPZElementMatrixT<TVar>&>(efb);
 	
 	if(!el->HasDependency()) {
 		//ek.fMat->Print("stiff has no constraint",test);
@@ -536,3 +540,11 @@ template class TPZFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixOT<S
 template class TPZFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixOT<STATE>>;
 template class TPZFrontStructMatrix<TPZFrontSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
 template class TPZFrontStructMatrix<TPZFrontNonSym<STATE>,STATE,TPZStructMatrixTBBFlow<STATE>>;
+
+
+template class TPZFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixOR<CSTATE>>;
+template class TPZFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixOT<CSTATE>>;
+template class TPZFrontStructMatrix<TPZFrontSym<CSTATE>,CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;
+template class TPZFrontStructMatrix<TPZFrontNonSym<CSTATE>,CSTATE,TPZStructMatrixTBBFlow<CSTATE>>;

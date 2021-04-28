@@ -8,7 +8,7 @@
 
 #include "TPZCompElLagrange.h"
 #include "TPZMaterial.h"
-#include "pzelmat.h"
+#include "TPZElementMatrixT.h"
 
 TPZCompElLagrange::~TPZCompElLagrange()
 {
@@ -52,7 +52,8 @@ TPZCompEl *TPZCompElLagrange::ClonePatchEl(TPZCompMesh &mesh,
  * @param ek element stiffness matrix
  * @param ef element load vector
  */
-void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
+template<class TVar>
+void TPZCompElLagrange::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElementMatrixT<TVar> &ef)
 {
     InitializeElementMatrix(ek, ef);
 #ifdef PZDEBUG
@@ -73,10 +74,10 @@ void TPZCompElLagrange::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
         ek.fMat(count+blsize0+fDef[l].fIdf[1],count+fDef[l].fIdf[0]) = -1.;
         ek.fMat(count+blsize0+fDef[l].fIdf[1],count+blsize0+fDef[l].fIdf[1]) = 1.;
         const TPZBlock &bl = Mesh()->Block();
-        TPZFMatrix<STATE> &sol = Mesh()->Solution();
+        TPZFMatrix<TVar> &sol = Mesh()->Solution();
         int64_t pos0 = bl.Index(c0.SequenceNumber(), fDef[l].fIdf[0]);
         int64_t pos1 = bl.Index(c1.SequenceNumber(), fDef[l].fIdf[1]);
-        STATE diff = sol(pos0,0)-sol(pos1,0);
+        TVar diff = sol(pos0,0)-sol(pos1,0);
         ef.fMat(count+fDef[l].fIdf[0],0) = -diff;
         ef.fMat(count+blsize0+fDef[l].fIdf[1],0) = diff;
         count += blsize0+blsize1;
@@ -107,8 +108,8 @@ void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElement
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
-	ek.fBlock.SetNBlocks(ncon);
-	ef.fBlock.SetNBlocks(ncon);
+	ek.Block().SetNBlocks(ncon);
+	ef.Block().SetNBlocks(ncon);
 	int i;
     int numeq=0;
 	for(i=0; i<ncon; i++){
@@ -116,12 +117,12 @@ void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElement
         int nshape = c.NShape();
         int nstate = c.NState();
         
-		ek.fBlock.Set(i,nshape*nstate);
-		ef.fBlock.Set(i,nshape*nstate);
+		ek.Block().Set(i,nshape*nstate);
+		ef.Block().Set(i,nshape*nstate);
         numeq += nshape*nstate;
 	}
-	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,numloadcases);
+	ek.Matrix().Redim(numeq,numeq);
+	ef.Matrix().Redim(numeq,numloadcases);
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
 	for(i=0; i<ncon; i++){

@@ -447,8 +447,20 @@ void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZ
 }//ComputeRequiredData
 
 
-
 void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
+{
+    if(fMesh->GetSolType() == EReal){
+        return TransferMultiphysicsElementSolutionInternal<STATE>();
+    }
+    if(fMesh->GetSolType() == EComplex){
+        return TransferMultiphysicsElementSolutionInternal<CSTATE>();
+    }
+    PZError<<__PRETTY_FUNCTION__<<'\n';
+    PZError<<"Invalid type! Aborting...\n";
+    DebugStop();
+}
+template<class TVar>
+void TPZMultiphysicsElement::TransferMultiphysicsElementSolutionInternal()
 {
     int nmeshes = this->NMeshes();
     int icon = 0;
@@ -477,9 +489,8 @@ void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
 #endif
             int pos = this->Mesh()->Block().Position(seq);
             int posloc = cel->Mesh()->Block().Position(seqloc);
-            //TODOCOMPLEX
-            TPZFMatrix<STATE> &celSol = cel->Mesh()->Solution();
-            TPZFMatrix<STATE> &meshSol = this->Mesh()->Solution();
+            TPZFMatrix<TVar> &celSol = cel->Mesh()->Solution();
+            TPZFMatrix<TVar> &meshSol = this->Mesh()->Solution();
             for (int ibl = 0; ibl < blsz; ibl++) {
                 for (int iload = 0; iload < nload; iload++) {
                     celSol(posloc+ibl,iload) = meshSol(pos+ibl,iload);
