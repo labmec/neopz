@@ -1684,7 +1684,7 @@ void TPZCompMesh::SetElementSolutionInternal(TPZFMatrix<TVar> &mysol, int64_t i,
     if(logger.isDebugEnabled())
     {
         std::stringstream sout;
-        STATE norm=0.;
+        TVar norm=0.;
         for (int64_t ii=0; ii<sol.size(); ii++) {
             norm += sol[ii];
         }
