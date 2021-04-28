@@ -479,7 +479,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
     myqsi.resize(qsi.size());
     
     int64_t nref = fElementVec.size();
-    TPZManVector<TPZMaterialData,3> datavec;
+    TPZManVector<TPZMaterialData,4> datavec;
     datavec.resize(nref);
     
     for (int64_t iref = 0; iref<nref; iref++)
@@ -508,6 +508,13 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
     }
     
     material->Solution(datavec, var, sol);
+    for (int64_t iref = 0; iref<nref; iref++)
+    {
+        
+        TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref].Element());
+        if(!msp) continue;
+        msp->CleanupMaterialData(datavec[iref]);
+    }
 }
 
 template <class TGeometry>
