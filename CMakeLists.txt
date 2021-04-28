@@ -331,9 +331,6 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # End of pz_config.h part
 
-# Set a debug suffix automatically when PZ is built in Debug mode
-set(CMAKE_DEBUG_POSTFIX "-debug")
-set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 install(TARGETS pz
         EXPORT NeoPZTargets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
