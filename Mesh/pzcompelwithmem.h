@@ -320,6 +320,7 @@ inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<REAL> &intpointt
     
     int nelofthismphysics = this->NumberOfCompElementsInsideThisCompEl();
     for (int icel = 0; icel < nelofthismphysics; icel++) {
+        if(datavec[icel].fShapeType == TPZMaterialData::EEmpty) continue;
         datavec[icel].intGlobPtIndex = GetGlobalIntegrationPointIndex(datavec[icel]);
     }
 }
