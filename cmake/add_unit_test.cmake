@@ -10,7 +10,7 @@ function(add_unit_test testName)
 
     add_test(${testName} ${testName})
     add_executable(${testName} ${ARGN})
-    target_link_libraries(${testName} PRIVATE pz test_library)
+    target_link_libraries(${testName} PRIVATE test_library)
     if(PZ_LOG)
       target_link_libraries(${testName} PRIVATE ${Log4cxx_LIBRARY})
     endif()

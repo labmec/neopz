@@ -1,6 +1,6 @@
 # @file neopz/CMakeList.txt  -- First file to read for CMake
 
-cmake_minimum_required (VERSION 3.13.0)
+cmake_minimum_required (VERSION 3.14)
 
 #disable excessive warning messages by Microsoft VC compiler
 #set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/cmake/CompilerOptionsMSVC.cmake")
@@ -331,9 +331,6 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # End of pz_config.h part
 
-# Set a debug suffix automatically when PZ is built in Debug mode
-set(CMAKE_DEBUG_POSTFIX "-debug")
-set_target_properties(pz PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
 install(TARGETS pz
         EXPORT NeoPZTargets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
