@@ -85,7 +85,7 @@ public:
     
     /** @brief add an element to the element group
      */
-    virtual void AddElement(TPZCompEl *cel);
+    virtual void AddElement(TPZCompEl *cel) override;
     
 
     /// Compute the SBFem matrices
@@ -131,7 +131,7 @@ public:
      * @brief Prints element data
      * @param out Indicates the device where the data will be printed
      */
-    virtual void Print(std::ostream &out = std::cout) const
+    virtual void Print(std::ostream &out = std::cout) const override
     {
         out << __PRETTY_FUNCTION__ << std::endl;
         TPZElementGroup::Print(out);
@@ -194,10 +194,10 @@ public:
      * Is used to initialize the solution of connect objects with dependency. \n
      * Is also used to load the solution within SuperElements
      */
-    virtual void LoadSolution();
+    virtual void LoadSolution() override;
 
     /** @brief Loads the geometric element referece */
-    virtual void LoadElementReference()
+    virtual void LoadElementReference() override 
     {
         for (int64_t i = 0; i < fElGroup.size(); i++) {
             fElGroup[i]->LoadElementReference();

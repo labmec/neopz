@@ -48,7 +48,7 @@ public:
 	virtual void Run(std::ostream &out, const std::string & dxout, int dxRes);
 	
 	/** @brief See declaration in the base class. */
-	virtual void Run(std::ostream &out)
+	virtual void Run(std::ostream &out) override
 	{
 		std::cout <<__PRETTY_FUNCTION__ << " should never be called!!!\n";
 		TPZAnalysis::Run(out);
@@ -111,7 +111,7 @@ public:
 	
 	/** @brief Assembles the stiffness matrix */
 	/** BufferLastStateAssemble or UpdateHistory must be called first. */
-	virtual void Assemble();
+	virtual void Assemble() override;
 	
 	/** @brief Assembles the right hand side vector. */ 
 	/** BufferLastStateAssemble or UpdateHistory must be called first. */
@@ -127,7 +127,7 @@ public:
 	 */
 	int Solve(REAL & res, TPZFMatrix<STATE> * residual, TPZFMatrix<STATE> & delSol);
 	
-	virtual void Solve()
+	virtual void Solve() override
 	{
 		std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
 		TPZAnalysis::Solve();

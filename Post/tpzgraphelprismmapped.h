@@ -22,7 +22,7 @@ public:
     ~TPZGraphElPrismMapped();
 	
 	/** @brief This method maps the index of a point to parameter space as a function of the number of divisions */
-	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
+	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta) override;
 	
 };
 

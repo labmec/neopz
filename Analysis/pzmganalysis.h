@@ -43,7 +43,7 @@ public:
 	TPZCompMesh *PopMesh ();
 	
 	/** @brief Uses fSolver object to apply a solution algorithm */
-	virtual void Solve ();
+	virtual void Solve () override;
 	
 	/** @brief Loads the last two solutions and call the error between these two aproximations */
 	void ComputeError (TPZVec<REAL> &error);

@@ -36,16 +36,16 @@ public:
 	virtual ~TPZDXGraphMesh();
 	
 	/** @brief Sets the name of the output file */
-	virtual void SetFileName(const std::string &filename);
+	virtual void SetFileName(const std::string &filename) override;
 	
 	/** @brief Draw mesh as dx file */
-	virtual void DrawMesh(int numcases);
+	virtual void DrawMesh(int numcases) override;
 	/** @brief Draw solution as dx file */
 	virtual void DrawSolution(TPZBlock &Sol);
 	/** @brief Draw solution as dx file for variable name indicated */
 	virtual void DrawSolution(char * var = 0);
 	/** @brief Draw solution as dx file for step and time given */
-	virtual void DrawSolution(int step, REAL time);
+	virtual void DrawSolution(int step, REAL time) override;
 	
 	/** @brief Number of nodes */
 	int  NNodes();

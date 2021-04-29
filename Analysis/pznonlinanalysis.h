@@ -51,9 +51,9 @@ public:
 	
 	virtual void Residual(TPZFMatrix<STATE> &residual, int icase);
 	
-	virtual void LoadSolution();
+	virtual void LoadSolution() override;
 	
-	virtual void LoadSolution(const TPZFMatrix<STATE> &state);
+	virtual void LoadSolution(const TPZFMatrix<STATE> &state) override;
 	
 	/** @brief Load solution with state as solution. But fSolution is not modified */
 	void LoadState(TPZFMatrix<STATE> &state);

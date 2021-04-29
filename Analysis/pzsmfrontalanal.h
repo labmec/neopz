@@ -39,7 +39,7 @@ protected:
 							  const TPZFMatrix<TVar> &sol);
 public:
 	
-	virtual void LoadSolution(const TPZFMatrix<STATE> &sol);
+	virtual void LoadSolution(const TPZFMatrix<STATE> &sol) override;
 	
 	/** @brief Constructor: create an object analysis from one mesh */
 	TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh);
@@ -48,7 +48,7 @@ public:
 	virtual ~TPZSubMeshFrontalAnalysis();
 	
 	/** @brief Run: assemble the stiffness matrix */
-	void Run(std::ostream &out);
+	void Run(std::ostream &out) override;
 	
 	/** @brief CondensedSolution: returns the condensed stiffness matrix - ek - and the condensed solution vector - ef */
 	template<class TVar>

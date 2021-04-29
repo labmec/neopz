@@ -50,11 +50,11 @@ public:
 	}
     virtual ~TPZPrInteg();
     
-    int NPoints() const
+    int NPoints() const override
     {
 		return TFather::NPoints()*fIntP->NInt();
     }
-    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const
+    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override
     {
 		int ipf = ip/fIntP->NInt();
 		int iploc = ip%(fIntP->NInt());
@@ -62,7 +62,7 @@ public:
 		pos[Dim-1] = fIntP->Loc(iploc);
 		w *= fIntP->W(iploc);
     }
-    void SetOrder(TPZVec<int> &ord, int type = 0)
+    void SetOrder(TPZVec<int> &ord, int type = 0) override
     {
 #ifndef NODEBUG
 		if(ord.NElements() < Dim) {
@@ -74,7 +74,7 @@ public:
 		fOrdKsi = ord[Dim-1];
 		fIntP   = TPZIntRuleList::gIntRuleList.GetRule(ord[Dim-1]);
     }
-    void GetOrder(TPZVec<int> &ord) const
+    void GetOrder(TPZVec<int> &ord) const override
     {
 #ifndef NODEBUG
 		if(ord.NElements() < Dim) {
@@ -86,26 +86,26 @@ public:
 		ord[Dim-1] = fOrdKsi;
     }
     
-    int Dimension() const
+    int Dimension() const override
     {
 		return Dim;
     }
     
-    virtual TPZIntPoints *PrismExtend(int order);
+    virtual TPZIntPoints *PrismExtend(int order) override;
 	
-    int GetMaxOrder() const
+    int GetMaxOrder() const override
     {
 		int fatmax = TFather::GetMaxOrder();
 		return (fatmax > fOrdKsi) ? fatmax : fOrdKsi;
 		
     }
-	virtual TPZIntPoints *Clone() const
+	virtual TPZIntPoints *Clone() const override
 	{
 		return new TPZPrInteg<TFather>(*this);
 	}
 	
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override {
 		name = "TPZPrInteg";
 	}
 };

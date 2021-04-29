@@ -21,7 +21,7 @@
 class TPZSloan : public TPZRenumbering {
  public:
 
-	virtual void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm);
+	virtual void Resequence(TPZVec<int64_t> &perm, TPZVec<int64_t> &iperm) override;
   
  private:
 

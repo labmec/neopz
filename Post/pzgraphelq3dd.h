@@ -25,28 +25,28 @@ public:
 	
 	virtual ~TPZGraphElQ3dd(void);
 	
-	virtual int NConnects(){ return 1;}
+	virtual int NConnects() override { return 1;}
 	
-	virtual MElementType Type(){return ECube;}
+	virtual MElementType Type() override {return ECube;}
 	
-	virtual int ExportType(TPZDrawStyle st);
+	virtual int ExportType(TPZDrawStyle st) override;
 	
-	virtual int NNodes();
+	virtual int NNodes() override;
 	
-	virtual TPZGraphNode *Connect(int64_t i);
+	virtual TPZGraphNode *Connect(int64_t i) override;
 	
-	virtual int NPoints(TPZGraphNode *n);
+	virtual int NPoints(TPZGraphNode *n) override;
 	
-	virtual int NElements();
+	virtual int NElements() override;
 	
-	virtual	void SetNode(int64_t i,TPZGraphNode *n);
+	virtual	void SetNode(int64_t i,TPZGraphNode *n) override;
 	
-	virtual int64_t EqNum(TPZVec<int> &co);
+	virtual int64_t EqNum(TPZVec<int> &co) override;
 	
-	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
+	virtual void Connectivity(TPZDrawStyle st = EDXStyle) override;
     
     /** @brief the parametric dimension of the element */
-    virtual int Dimension()
+    virtual int Dimension() override
     {
         return 3;
     }
@@ -55,9 +55,9 @@ public:
 	
 protected:
 	
-	virtual void FirstIJ(int connect, TPZVec<int> &co, int &incr);
+	virtual void FirstIJ(int connect, TPZVec<int> &co, int &incr) override;
 	
-	virtual void NextIJ(int connect, TPZVec<int> &co, int incr);
+	virtual void NextIJ(int connect, TPZVec<int> &co, int incr) override;
 	
 	protected :   
 	

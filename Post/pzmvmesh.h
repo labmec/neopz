@@ -29,16 +29,16 @@ public:
 	TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph);
 	
 	/** @brief Draw graphical mesh */
-	virtual void DrawMesh(int numcases);
+	virtual void DrawMesh(int numcases) override;
 	
-	virtual void DrawNodes();
-	virtual void DrawConnectivity(MElementType type);
-	virtual void DrawSolution(int step, REAL time);
+	virtual void DrawNodes() override;
+	virtual void DrawConnectivity(MElementType type) override;
+	virtual void DrawSolution(int step, REAL time) override;
 	virtual void DrawSolution(TPZBlock &Sol);
 	virtual void DrawSolution(char *var = 0);
 	
 protected:
-	virtual void SequenceNodes();
+	virtual void SequenceNodes() override;
 	int fNumCases;
 	int fNumSteps;
 	

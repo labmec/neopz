@@ -198,13 +198,13 @@ namespace clarg
     value = def_value;
   }
   protected:
-    int parse_parameters (int argc, char* argv [])
+    int parse_parameters (int argc, char* argv []) override
     {
       if (argc <= 0) return -1;
       value = std::string(argv[0]);
       return 1;
     }
-    void write_parameters (std::ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const override
     {
       if (def)
 	os << def_value;
@@ -227,7 +227,7 @@ namespace clarg
       value = def_value;
     }
   protected:
-    int parse_parameters (int argc, char* argv [])
+    int parse_parameters (int argc, char* argv []) override
     {
       if (argc <= 0) return -1;
       try {
@@ -236,7 +236,7 @@ namespace clarg
       catch (const std::exception& ) {return -1;}
       return 1;
     }
-    void write_parameters (std::ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const override
     {
       if (def)
 	os << def_value;
@@ -258,7 +258,7 @@ namespace clarg
       value = def_value;
     }
   protected:
-    int parse_parameters (int argc, char* argv [])
+    int parse_parameters (int argc, char* argv []) override
     {
       if (argc <= 0) return -1;
       try {
@@ -267,7 +267,7 @@ namespace clarg
       catch (const std::exception& ) {return -1;}
       return 1;
     }
-    void write_parameters (std::ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const override
     {
       if (def)
 	os << def_value;
@@ -289,9 +289,9 @@ namespace clarg
       value = def_value;
     }
   protected:
-    int parse_parameters (int argc, char* argv [])
+    int parse_parameters (int argc, char* argv []) override
     { value = true; return 0; }
-    void write_parameters (std::ostream& os, bool def) const
+    void write_parameters (std::ostream& os, bool def) const override
     {}
   };
 

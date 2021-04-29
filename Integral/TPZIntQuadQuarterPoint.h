@@ -31,16 +31,16 @@ public:
         
     }
     
-    virtual int NPoints() const
+    virtual int NPoints() const override
     {
         return fNPoints;
     }
     
     /// return the weight and position of the integration point
-    virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+    virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
     
     /// set the integration order
-    virtual void SetOrder(TPZVec<int> &ord,int type = 0);
+    virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
     
     /// set the corner where the singularity resides
     void SetCorner(int corner)
@@ -53,7 +53,7 @@ public:
         fCorner = corner;
     }
 
-    virtual TPZIntPoints* Clone() const
+    virtual TPZIntPoints* Clone() const override
     {
         return new TPZIntQuadQuarterPoint(*this);
     }

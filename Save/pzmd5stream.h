@@ -105,43 +105,43 @@ public:
   int ResetMD5();
 
   /** @brief Writes size integers at pointer location p */
-  virtual void Write(const int *p, int size) {
+  virtual void Write(const int *p, int size) override {
     Writes<int>(p,size);
   }
   /** @brief Writes size longs at pointer location p */
-  virtual void Write(const int64_t *p, int size) {
+  virtual void Write(const int64_t *p, int size) override {
     Writes<int64_t>(p,size);
   }
   /** @brief Writes size ulongs at pointer location p */
-  virtual void Write(const uint64_t *p, int size) {
+  virtual void Write(const uint64_t *p, int size) override {
     Writes<uint64_t>(p,size);
   }
   /** @brief Writes size integers at pointer location p */
-  virtual void Write(const unsigned int *p, int size) {
+  virtual void Write(const unsigned int *p, int size) override {
     Writes<unsigned int>(p,size);
   }
   /** @brief Writes size floating points at pointer location p */
-  virtual void Write(const float *p, int size) {
+  virtual void Write(const float *p, int size) override {
     Writes<float>(p,size);
   }
   /** @brief Writes size floating points at pointer location p */
-  virtual void Write(const double *p, int size) {
+  virtual void Write(const double *p, int size) override {
     Writes<double>(p,size);
   }
   /** @brief Writes size floating points at pointer location p */
-  virtual void Write(const long double *p, int size) {
+  virtual void Write(const long double *p, int size) override {
     Writes<long double>(p,size);
   }
   /** @brief Writes size chars at pointer location p */
-  virtual void Write(const char *p, int size) {
+  virtual void Write(const char *p, int size) override {
     Writes<char>(p,size);
   }
   /** @brief Writes size uchars at pointer location p */
-  virtual void Write(const unsigned char *p, int size) {
+  virtual void Write(const unsigned char *p, int size) override {
     Writes<unsigned char>(p,size);
   }
   /** @brief Writes size strings at pointer location p */
-  virtual void Write(const std::string *p, int size) {
+  virtual void Write(const std::string *p, int size) override {
     int c;
     for(c=0; c<size; c++) 
       {
@@ -151,49 +151,49 @@ public:
       }
   }
   /** @brief Writes size complex-float at pointer location p */
-  virtual void Write(const std::complex <float> *p, int size) {
+  virtual void Write(const std::complex <float> *p, int size) override {
     Writes< std::complex <float> >(p,size);
   }
   /** @brief Writes size complex-double at pointer location p */
-  virtual void Write(const std::complex <double> *p, int size) {
+  virtual void Write(const std::complex <double> *p, int size) override {
     Writes< std::complex <double> >(p,size);
   }
   /** @brief Writes size complex-long double at pointer location p */
-  virtual void Write(const std::complex <long double> *p, int size) {
+  virtual void Write(const std::complex <long double> *p, int size) override {
     Writes< std::complex <long double> >(p,size);
   }
   
 
 	
-	virtual void Write(const TFad <1,REAL> *p, int howMany) {
+	virtual void Write(const TFad <1,REAL> *p, int howMany) override {
 		Writes< TFad <1,REAL> >(p,howMany);
 	}
 	
-	virtual void Write(const TFad <6,REAL> *p, int howMany) {
+	virtual void Write(const TFad <6,REAL> *p, int howMany) override {
 		Writes< TFad <6,REAL> >(p,howMany);
 	}
 	
-	virtual void Write(const TFad <8,REAL> *p, int howMany) {
+	virtual void Write(const TFad <8,REAL> *p, int howMany) override {
 		Writes< TFad <8,REAL> >(p,howMany);
 	}
 	
-	virtual void Write(const TFad <9,REAL> *p, int howMany) {
+	virtual void Write(const TFad <9,REAL> *p, int howMany) override {
 		Writes< TFad <9,REAL> >(p,howMany);
 	}
 	
-	virtual void Write(const TFad <10,REAL> *p, int howMany) {
+	virtual void Write(const TFad <10,REAL> *p, int howMany) override {
 		Writes< TFad <10,REAL> >(p,howMany);
 	}
 	
-	virtual void Write(const TFad <14,REAL> *p, int howMany) {
+	virtual void Write(const TFad <14,REAL> *p, int howMany) override {
 		Writes< TFad <14,REAL> >(p,howMany);
 	}
 	
-	virtual void Write(const Fad <float> *p, int howMany) {
+	virtual void Write(const Fad <float> *p, int howMany) override {
 		Writes< Fad <float> >(p,howMany);
 	}
 	
-	virtual void Write(const Fad <double> *p, int howMany) {
+	virtual void Write(const Fad <double> *p, int howMany) override {
 		Writes< Fad <double> >(p,howMany);
 	}
     
@@ -201,89 +201,89 @@ public:
   template<class T>
   void  Writes(const T *p, int size);
 
-  virtual void Read(TFad <1,REAL> *p, int howMany) {
+  virtual void Read(TFad <1,REAL> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(TFad <6,REAL> *p, int howMany) {
+	virtual void Read(TFad <6,REAL> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(TFad <8,REAL> *p, int howMany) {
+	virtual void Read(TFad <8,REAL> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(TFad <9,REAL> *p, int howMany) {
+	virtual void Read(TFad <9,REAL> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(TFad <10,REAL> *p, int howMany) {
+	virtual void Read(TFad <10,REAL> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(TFad <14,REAL> *p, int howMany) {
+	virtual void Read(TFad <14,REAL> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(Fad <float> *p, int howMany) {
+	virtual void Read(Fad <float> *p, int howMany) override {
 		ReadError();
 	}
 	
-	virtual void Read(Fad <double> *p, int howMany) {
+	virtual void Read(Fad <double> *p, int howMany) override {
 		ReadError();
 	}
     
   /** @brief Reads size integers from pointer location p */
-  virtual void Read(int *p, int size) {
+  virtual void Read(int *p, int size) override {
     ReadError();
   }
   /** @brief Reads size longs from pointer location p */
-  virtual void Read(int64_t *p, int size) {
+  virtual void Read(int64_t *p, int size) override {
     ReadError();
   }
   /** @brief Reads size longs from pointer location p */
-  virtual void Read(uint64_t *p, int size) {
+  virtual void Read(uint64_t *p, int size) override {
     ReadError();
   }
   /** @brief Reads size integers from pointer location p */
-  virtual void Read(unsigned int *p, int size) {
+  virtual void Read(unsigned int *p, int size) override {
     ReadError();
   }
   /** @brief Reads size floating points from pointer location p */
-  virtual void Read(float *p, int size) {
+  virtual void Read(float *p, int size) override {
     ReadError();
   }
   /** @brief Reads size floating points from pointer location p */
-  virtual void Read(double *p, int size) {
+  virtual void Read(double *p, int size) override {
     ReadError();
   }
   /** @brief Reads size floating points from pointer location p */
-  virtual void Read(long double *p, int size) {
+  virtual void Read(long double *p, int size) override {
     ReadError();
   }
   /** @brief Reads size chars from pointer location p */
-  virtual void Read(char *p, int size) {
+  virtual void Read(char *p, int size) override {
     ReadError();
   }
   /** @brief Reads size chars from pointer location p */
-  virtual void Read(unsigned char *p, int size) {
+  virtual void Read(unsigned char *p, int size) override {
     ReadError();
   }
   /** @brief Reads size strings from pointer location p */
-  virtual void Read(std::string *p, int size) 
+  virtual void Read(std::string *p, int size) override
   {
     ReadError();
   }
   /** @brief Reads size complex-float from pointer location p */
-  virtual void Read(std::complex <float> *p, int size) {
+  virtual void Read(std::complex <float> *p, int size) override {
     ReadError();
   }
   /** @brief Reads size complex-double from pointer location p */
-  virtual void Read(std::complex <double> *p, int size) {
+  virtual void Read(std::complex <double> *p, int size) override {
     ReadError();
   }
   /** @brief Reads size complex-long double from pointer location p */
-  virtual void Read(std::complex <long double> *p, int size) {
+  virtual void Read(std::complex <long double> *p, int size) override {
     ReadError();
   }
 

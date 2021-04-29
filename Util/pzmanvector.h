@@ -113,7 +113,7 @@ public:
      * It reallocates storage if necessary, and copies the existing
      * objects onto the new storage.
      */
-    virtual void Resize(const int64_t newsize, const T& object);
+    virtual void Resize(const int64_t newsize, const T& object) override;
 
     /**
      * @brief Resizes the vector object reallocating the storage if necessary.
@@ -124,7 +124,7 @@ public:
      * It copies the existing objects to the new storage. The new
      * members are not initialized.
      */
-    virtual void Resize(const int64_t newsize);
+    virtual void Resize(const int64_t newsize) override;
 
 private:
 

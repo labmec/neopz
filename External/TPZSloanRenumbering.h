@@ -198,7 +198,7 @@ private:
     public:
         
         
-        virtual void Resequence(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter);
+        virtual void Resequence(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter) override;
 
         virtual void Resequence2(TPZVec<int64_t> &permGather, TPZVec<int64_t> &permScatter);
 

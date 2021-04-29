@@ -40,19 +40,19 @@ struct TPZAnalyticSolution
             
         }
         /** @brief Simpler version of Execute method which does not compute function derivatives */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f){
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f) override {
             fAnalytic->Force(x,f);
             for(auto &it:f) it *= fAnalytic->fSignConvention;
         }
         /** @brief Simpler version of Execute method which does not compute function derivatives */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &nada){
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &nada) override {
             fAnalytic->Force(x,f);
             for(auto &it:f) it *= fAnalytic->fSignConvention;
         }
         
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder() const {
+        virtual int PolynomialOrder() const override {
             return 5;
         }
 
@@ -78,7 +78,7 @@ struct TPZAnalyticSolution
          * @param f function values
          * @param df function derivatives
          */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df)
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override
         {
             fAnalytic->Sigma(x,df);
             TPZFNMatrix<9,STATE> dsol(df);
@@ -86,7 +86,7 @@ struct TPZAnalyticSolution
         }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder() const
+        virtual int PolynomialOrder() const override
         {
             return 5;
         }
@@ -112,7 +112,7 @@ struct TPZAnalyticSolution
          * @param f function values
          * @param df function derivatives
          */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df)
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override
         {
             fAnalytic->Solution(x,f,df);
         }
@@ -122,14 +122,14 @@ struct TPZAnalyticSolution
          * @param f function values
          * @param df function derivatives
          */
-        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f)
+        virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f) override
         {
             TPZFNMatrix<9,STATE> df(3,3);
             fAnalytic->Solution(x,f,df);
         }
         /** @brief Polynomial order of this function. */
         /** In case of non-polynomial function it can be a reasonable approximation order. */
-        virtual int PolynomialOrder() const
+        virtual int PolynomialOrder() const override
         {
             return 5;
         }
@@ -190,7 +190,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
     
     static int gOscilatoryElasticity;
 
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override
     {
         TPZManVector<STATE,3> xstate(3),locforce(2);
         for(int i=0; i<3; i++) xstate[i]=x[i];
@@ -224,7 +224,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
         return result;
     }
 
-    void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
+    void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const override;
     
     void Sigma(const TPZVec<Fad<STATE> > &x, TPZFMatrix<Fad<STATE> > &sigma) const;
     
@@ -260,7 +260,7 @@ struct TElasticity2DAnalytic : public TPZAnalyticSolution
 
     static void ElasticDummy(const TPZVec<REAL> &x, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const override;
     
 };
 
@@ -274,7 +274,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     
     REAL fPoisson = 0.3;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override
     {
         TPZManVector<STATE,3> locforce(3);
         DivSigma(x, locforce);
@@ -283,7 +283,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
         force[2] = -locforce[2];
     }
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const override;
     
     TElasticity3DAnalytic() : TPZAnalyticSolution(), fProblemType(ENone)
     {
@@ -302,7 +302,7 @@ struct TElasticity3DAnalytic : public TPZAnalyticSolution
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const;
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const override;
 
     template<class TVar>
     void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
@@ -364,7 +364,7 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
 
     TLaplaceExample1 &operator=(const TLaplaceExample1 &copy);
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const override;
 
     template<class TVar>
     void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &disp) const;
@@ -384,14 +384,14 @@ struct TLaplaceExample1 : public TPZAnalyticSolution
     void DivSigma(const TPZVec<REAL> &x, TVar &divsigma) const;
     
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override
     {
         STATE locforce;
         DivSigma(x, locforce);
         force[0] = locforce;
     }
 
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &tensor) const override
     {
         TPZManVector<STATE,3> xco(3);
         for (int i=0; i<3; i++) {
@@ -422,7 +422,7 @@ public:
         
     }
     
-    void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const;
+    void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &gradu) const override;
     
     
     template<class TVar>
@@ -438,12 +438,12 @@ public:
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const override;
     
     template<class TVar>
     void DivSigma(const TPZVec<REAL> &x, TVar &divsigma) const;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override
     {
         REAL locforce = 0;
         force[0] = locforce;
@@ -484,7 +484,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
         
     }
     
-    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) const;
+    virtual void Solution(const TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol) const override;
     
     template<class TVar>
     void uxy(const TPZVec<TVar> &x, TPZVec<TVar> &flux) const;
@@ -501,7 +501,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     template<class TVar>
     void Sigma(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
     
-    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const;
+    virtual void Sigma(const TPZVec<REAL> &x, TPZFMatrix<STATE> &sigma) const override;
     
     template<class TVar>
     void SigmaLoc(const TPZVec<TVar> &x, TPZFMatrix<TVar> &sigma) const;
@@ -509,7 +509,7 @@ struct TStokesAnalytic : public TPZAnalyticSolution
     template<class TVar>
     void DivSigma(const TPZVec<REAL> &x, TPZVec<TVar> &divsigma) const;
     
-    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const;
+    virtual void Force(const TPZVec<REAL> &x, TPZVec<STATE> &force) const override;
 
     
 };

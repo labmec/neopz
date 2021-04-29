@@ -85,13 +85,13 @@ public:
      * @brief Initialize a material data and its attributes based on element dimension, number
      * of state variables and material definitions
      */
-    virtual void InitMaterialData(TPZMaterialData &data);
+    virtual void InitMaterialData(TPZMaterialData &data) override;
 
     /// Initialize the data structure indicating the group index
     void SetElementGroupIndex(int64_t index);
     
     /** @brief Method for creating a copy of the element */
-    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const
+    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override
     {
         // till I remember how this works
         DebugStop();
@@ -115,7 +115,7 @@ public:
      */
     virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
                                     std::map<int64_t,int64_t> & gl2lcConMap,
-                                    std::map<int64_t,int64_t> & gl2lcElMap) const
+                                    std::map<int64_t,int64_t> & gl2lcElMap) const override
     {
         // till I remember how this works
         DebugStop();
@@ -123,7 +123,7 @@ public:
     }
 
     /** @brief Returns the number of nodes of the element */
-    virtual int NConnects() const
+    virtual int NConnects() const override
     {
         if (fElementGroup == 0) {
             return 0;
@@ -135,7 +135,7 @@ public:
      * @brief Returns the index of the ith connectivity of the element
      * @param i connectivity index who want knows
      */
-    virtual int64_t ConnectIndex(int i) const
+    virtual int64_t ConnectIndex(int i) const override
     {
         if (fElementGroup == 0) {
             DebugStop();
@@ -143,7 +143,7 @@ public:
         return fElementGroup->ConnectIndex(i);
     }
     /** @brief Dimension of the element */
-    virtual int Dimension() const
+    virtual int Dimension() const override
     {
         TPZGeoEl *reference = Reference();
         return reference->Dimension();
@@ -165,19 +165,19 @@ public:
     }
     
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const;
+    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
     
     /**
      * @brief Set the index i to node inode
      * @param inode node to set index
      * @param index index to be set
      */
-    virtual void SetConnectIndex(int inode, int64_t index)
+    virtual void SetConnectIndex(int inode, int64_t index) override
     {
         DebugStop();
     }
     /** @brief Returns the number of dof nodes along side iside*/
-    virtual int NSideConnects(int iside) const
+    virtual int NSideConnects(int iside) const override
     {
         DebugStop();
 		return 0;
@@ -188,14 +188,14 @@ public:
      * @param icon connect number along side is
      * @param is side which is being queried
      */
-    virtual int SideConnectLocId(int icon,int is) const
+    virtual int SideConnectLocId(int icon,int is) const override
     {
         DebugStop();
 		return 0;
     }
 
     /** @brief It returns the shapes number of the element */
-    virtual int NShapeF() const
+    virtual int NShapeF() const override
     {
         int nc = NConnects();
         int nshape = 0;
@@ -207,13 +207,13 @@ public:
     }
     
     /** @brief Returns the number of shapefunctions associated with a connect*/
-    virtual int NConnectShapeF(int icon, int order) const
+    virtual int NConnectShapeF(int icon, int order) const override
     {
         TPZConnect &c = Connect(icon);
         return c.NShape();
     }
     
-    void InitializeIntegrationRule()
+    void InitializeIntegrationRule() override 
     {
         if (fIntRule) {
             DebugStop();
@@ -222,10 +222,10 @@ public:
         fIntRule = Reference()->CreateSideIntegrationRule(nsides-1, 1);
     }
     
-    virtual void SetIntegrationRule(int order);
+    virtual void SetIntegrationRule(int order) override;
     
     /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-    virtual const TPZIntPoints &GetIntegrationRule() const
+    virtual const TPZIntPoints &GetIntegrationRule() const override
     {
         if(!fIntRule) DebugStop();
 
@@ -233,7 +233,7 @@ public:
     }
     
     /** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
-    virtual TPZIntPoints &GetIntegrationRule()
+    virtual TPZIntPoints &GetIntegrationRule() override
     {
         if(!fIntRule) InitializeIntegrationRule();
         return *fIntRule;
@@ -244,10 +244,10 @@ public:
      * adjust of the aproximation space \n taking in acount the type
      * of formulation and the neighbours of the element
      */
-    virtual void PRefine ( int order );
+    virtual void PRefine ( int order ) override;
 
     /**  @brief Defines the desired order for entire element. */
-    virtual void SetPreferredOrder ( int order );
+    virtual void SetPreferredOrder ( int order ) override;
     
 
 
@@ -337,16 +337,16 @@ public:
      * This method uses the order of interpolation
      * of the element along the sides to compute the number of shapefunctions
      */
-    virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi);
+    virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphidxi) override;
     
     /** @brief Compute shape functions based on master element in the classical FEM manner. */
     virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
-                              REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx);
+                              REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &dphidx) override;
     
 
     /** @brief Compute the solution at the integration point and store in the data structure
      */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)    {
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)  override  {
         ComputeSolution(qsi, data.sol, data.dsol, data.axes);
     }
 
@@ -358,14 +358,14 @@ public:
      * @param var variable name
      * @param sol vetor for the solution
      */
-    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
     
 
     /**
      * @brief Prints element data
      * @param out Indicates the device where the data will be printed
      */
-    virtual void Print(std::ostream &out = std::cout) const
+    virtual void Print(std::ostream &out = std::cout) const override
     {
         out << "Printing " << __PRETTY_FUNCTION__ << std::endl;
         TPZCompEl::Print(out);
@@ -389,7 +389,7 @@ public:
         }
     }
     
-    void CreateGraphicalElement(TPZGraphMesh &, int);
+    void CreateGraphicalElement(TPZGraphMesh &, int) override;
 
     void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &f, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
 
