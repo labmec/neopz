@@ -533,48 +533,6 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHCurl(int dimension){
     }
 }
 
-/** @brief Create an approximation space with HDiv elements */
-void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivReferred(int dimension)
-{
-    fStyle = EHDiv;
-    switch (dimension) {
-        case 1:
-            fp[EPoint] = CreateRefHDivBoundPointEl;
-            fp[EOned] = CreateRefHDivLinearEl;
-            fp[ETriangle] = CreateRefHDivTriangleEl;
-            fp[EQuadrilateral] = CreateNoElement;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 2:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateRefHDivBoundLinearEl;
-            fp[ETriangle] = CreateRefHDivTriangleEl;
-            fp[EQuadrilateral] = CreateRefHDivQuadEl;
-            fp[ETetraedro] = CreateNoElement;
-            fp[EPiramide] = CreateNoElement;
-            fp[EPrisma] = CreateNoElement;
-            fp[ECube] = CreateNoElement;
-            break;
-        case 3:
-            fp[EPoint] = CreateNoElement;
-            fp[EOned] = CreateNoElement;
-            fp[ETriangle] = CreateRefHDivBoundTriangleEl;
-            fp[EQuadrilateral] = CreateRefHDivBoundQuadEl;
-            fp[ETetraedro] = CreateRefHDivTetraEl;
-            fp[EPiramide] = CreateRefHDivPyramEl;
-            fp[EPrisma] = CreateRefHDivPrismEl;
-            fp[ECube] = CreateRefHDivCubeEl;
-            break;
-        default:
-            DebugStop();
-            break;
-    }
-
-}
-
 #if defined(USING_MKL) && defined(USING_LAPACK) && !defined(STATE_COMPLEX)
 
 #include "TPZSBFemVolume.h"
@@ -708,58 +666,6 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(int dimensio
     
 }
 #endif
-
-
-#include "pzreferredcompel.h"
-#include "pzelctemp.h"
-void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuousReferred(){
-	
-    fStyle = EDiscontinuous;
-    fp[EPoint] = CreateReferredDisc;
-    fp[EOned] = CreateReferredDisc;
-    fp[ETriangle] = CreateReferredDisc;
-    fp[EQuadrilateral] = CreateReferredDisc;
-    fp[ETetraedro] = CreateReferredDisc;
-    fp[EPiramide] = CreateReferredDisc;
-    fp[EPrisma] = CreateReferredDisc;
-    fp[ECube] = CreateReferredDisc;
-    
-    /*
-     pzgeom::TPZGeoPoint::fp =  CreateReferredDisc;
-     pzgeom::TPZGeoLinear::fp =  CreateReferredDisc;
-     pzgeom::TPZGeoQuad::fp = CreateReferredDisc;
-     pzgeom::TPZGeoTriangle::fp =  CreateReferredDisc;
-     pzgeom::TPZGeoPrism::fp = CreateReferredDisc;
-     pzgeom::TPZGeoTetrahedra::fp = CreateReferredDisc;
-     pzgeom::TPZGeoPyramid::fp = CreateReferredDisc;
-     pzgeom::TPZGeoCube::fp = CreateReferredDisc;
-     */
-}
-
-void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousReferred(){
-	
-    fStyle = EContinuous;
-    fp[EPoint] = CreateReferredPointEl;
-    fp[EOned] = CreateReferredLinearEl;
-    fp[ETriangle] = CreateReferredTriangleEl;
-    fp[EQuadrilateral] = CreateReferredQuadEl;
-    fp[ETetraedro] = CreateReferredTetraEl;
-    fp[EPiramide] = CreateReferredPyramEl;
-    fp[EPrisma] = CreateReferredPrismEl;
-    fp[ECube] = CreateReferredCubeEl;
-    
-    /*
-     pzgeom::TPZGeoPoint::fp =  CreateReferredPointEl;
-     pzgeom::TPZGeoLinear::fp =  CreateReferredLinearEl;
-     pzgeom::TPZGeoQuad::fp = CreateReferredQuadEl;
-     pzgeom::TPZGeoTriangle::fp =  CreateReferredTriangleEl;
-     pzgeom::TPZGeoPrism::fp = CreateReferredPrismEl;
-     pzgeom::TPZGeoTetrahedra::fp = CreateReferredTetraEl;
-     pzgeom::TPZGeoPyramid::fp = CreateReferredPyramEl;
-     pzgeom::TPZGeoCube::fp = CreateReferredCubeEl;
-     */
-	
-}
 
 #include "pzmultiphysicscompel.h"
 void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){

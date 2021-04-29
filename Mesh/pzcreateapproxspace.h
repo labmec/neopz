@@ -91,16 +91,10 @@ public:
     void SetAllCreateFunctionsDiscontinuous();
     /** @brief Create continuous approximation spaces */
 	void SetAllCreateFunctionsContinuous();
-    /** @brief Create a discontinuous approximation space with referred elements */
-	void SetAllCreateFunctionsDiscontinuousReferred();
-    /** @brief Create a continuous approximation space with referred elements */
-	void SetAllCreateFunctionsContinuousReferred();
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv(int meshdim);
     /** @brief Create an approximation space with HCurl elements */
     void SetAllCreateFunctionsHCurl(int meshdim);
-    /** @brief Create an approximation space with HDiv elements */
-    void SetAllCreateFunctionsHDivReferred(int meshdim);
 	/** @brief Create an approximation space with HDiv elements and full basis for quadrilateral element */
 //    void SetAllCreateFunctionsHDivFull(int meshdim);
     

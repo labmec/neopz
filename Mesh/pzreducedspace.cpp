@@ -7,13 +7,13 @@
 //
 
 #include <iostream>
+#include "pzcmesh.h"
 #include "pzreducedspace.h"
-#include "tpzcompmeshreferred.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMaterial.h"
 #include "pzelmat.h"
 #include "pzlog.h"
-
+#include "pzerror.h"
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZInterpolationSpace");
 #endif
@@ -118,9 +118,6 @@ void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<R
  */
 void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &axes)
 {
-#ifdef STATE_COMPLEX
-    DebugStop();
-#else
     TPZInterpolationSpace *intel = ReferredIntel();
     TPZSolVec sol;
     TPZGradSolVec dsol;
@@ -138,15 +135,11 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
             }
         }
     }
-#endif
 }
 
 
 void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
 {
-#ifdef STATE_COMPLEX
-    DebugStop();
-#else
     TPZInterpolationSpace *intel = ReferredIntel();
     
     intel->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
@@ -163,7 +156,6 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
             }
         }
     }
-#endif
 }
 
 
@@ -292,43 +284,48 @@ void TPZReducedSpace::Read(TPZStream &buf, void *context)
 TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 {
     TPZCompMesh *cmesh = Mesh();
-    TPZCompMeshReferred *cmeshref = dynamic_cast<TPZCompMeshReferred *>(cmesh);
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" should be reimplemented without TPZCompMeshReferred\n";
+    PZError<<"Aborting...";
+    DebugStop();
+    return nullptr;
+//     TPZCompMeshReferred *cmeshref = dynamic_cast<TPZCompMeshReferred *>(cmesh);
     
-#ifdef PZDEBUG
-    if (!cmeshref) {
-        DebugStop();
-    }
-#endif
+// #ifdef PZDEBUG
+//     if (!cmeshref) {
+//         DebugStop();
+//     }
+// #endif
     
-    TPZCompEl *cel = cmeshref->ReferredEl(Index());
+//     TPZCompEl *cel = cmeshref->ReferredEl(Index());
     
-#ifdef PZDEBUG
-    if (!cel) {
-        DebugStop();
-    }
-#endif
+// #ifdef PZDEBUG
+//     if (!cel) {
+//         DebugStop();
+//     }
+// #endif
     
-    TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+//     TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
     
     
-    TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+//     TPZMultiphysicsElement * mf_cel = dynamic_cast<TPZMultiphysicsElement *>(cel);
 
-#ifdef PZDEBUG
-    if (!intel && !mf_cel) {
-        DebugStop();
-    }
-#endif
+// #ifdef PZDEBUG
+//     if (!intel && !mf_cel) {
+//         DebugStop();
+//     }
+// #endif
     
-    if (intel) {
-        return intel;
-    }
+//     if (intel) {
+//         return intel;
+//     }
     
-    TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
-    if(intel_mf){
-        return intel_mf;
-    }
+//     TPZInterpolationSpace * intel_mf = dynamic_cast<TPZInterpolationSpace * >(mf_cel->Element(0)); //@omar:: garbage solution
+//     if(intel_mf){
+//         return intel_mf;
+//     }
     
-    return intel;
+//     return intel;
 }
 
 /**
