@@ -363,8 +363,16 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
  @param file_name file containg computed data for several symmetric tensors and their eigensystem
  @return tensor_data data to be reproduced by TPZTensor.
  */
-TPZFMatrix<STATE> ReadExternalTensorData(std::string_view file_name) {    
+TPZFMatrix<STATE> ReadExternalTensorData(std::string_view ext_file_name) {
+
+#ifdef MACOSX
+    std::string file_name = std::string("../");
+    file_name += ext_file_name;
+#else
+    std::string_view file_name = ext_file_name;
+#endif
     std::ifstream in{std::string(file_name)};
+
     int n_data = 854;
     TPZFMatrix<STATE> tensor_data(n_data, 18, 0.);
 
@@ -378,6 +386,7 @@ TPZFMatrix<STATE> ReadExternalTensorData(std::string_view file_name) {
             break;
         }
     }
+    if(count != n_data) DebugStop();
     return tensor_data;
 }
 
