@@ -541,17 +541,7 @@ public:
     {
         fCreate.SetAllCreateFunctionsContinuous();
     }
-    
-    void SetAllCreateFunctionsDiscontinuousReferred()
-    {
-        fCreate.SetAllCreateFunctionsDiscontinuousReferred();
-    }
-    
-    void SetAllCreateFunctionsContinuousReferred()
-    {
-        fCreate.SetAllCreateFunctionsContinuousReferred();
-    }
-    
+
     void SetAllCreateFunctionsHDiv()
     {
         fCreate.SetAllCreateFunctionsHDiv(Dimension());

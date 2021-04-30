@@ -10,6 +10,8 @@
 #include "pzinterpolationspace.h"
 
 /**
+ * @brief This class uses solutions from other meshes as its approximation space.
+ * It currently needs a refactor.
  * @ingroup CompElement
  */
 class TPZReducedSpace : public TPZInterpolationSpace

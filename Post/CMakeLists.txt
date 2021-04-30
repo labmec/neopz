@@ -12,7 +12,6 @@ set(headers
     pzgraphel1d.h
     pzgraphelq2dd.h
     pzgraphnode.h
-    pzpostprocmat.h
     pzv3dmesh.h
     tpzgraphelprismmapped.h
     tpzgraphelt3d.h
@@ -25,11 +24,9 @@ set(headers
     pzvisualmatrix.h
     tpzgraphelpyramidmapped.h
     TPZProjectEllipse.h
-    pzcompelpostproc.h
     pzgraphel.h
     pzgraphelq2d.h
     pzgraphmesh.h
-    pzpostprocanalysis.h
     pztrigraphd.h
     pzvtkmesh.h
     tpzgraphelt2dmapped.h
@@ -41,7 +38,6 @@ set(sources
     pzgraphel1d.cpp
     pzgraphelq2dd.cpp
     pzgraphnode.cpp
-    pzpostprocmat.cpp
     pzv3dmesh.cpp
     tpzgraphelprismmapped.cpp
     tpzgraphelt3d.cpp
@@ -56,7 +52,6 @@ set(sources
     pzgraphel.cpp
     pzgraphelq2d.cpp
     pzgraphmesh.cpp
-    pzpostprocanalysis.cpp
     pztrigraphd.cpp
     pzvtkmesh.cpp
     tpzgraphelt2dmapped.cpp

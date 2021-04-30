@@ -695,33 +695,3 @@ template class TPZCompElHDivBound2<TPZShapeTriang>;
 template class TPZCompElHDivBound2<TPZShapePoint>;
 template class TPZCompElHDivBound2<TPZShapeLinear>;
 template class TPZCompElHDivBound2<TPZShapeQuad>;
-
-#include "pzreferredcompel.h"
-
-TPZCompEl * CreateRefHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>(mesh,gel,index);
-}
-
-TPZCompEl * CreateRefHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZReferredCompEl<TPZCompElHDivBound2< TPZShapeLinear>>(mesh,gel,index);
-}
-
-TPZCompEl * CreateRefHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZReferredCompEl<TPZCompElHDivBound2< TPZShapeQuad>>(mesh,gel,index);
-}
-
-TPZCompEl * CreateRefHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int64_t &index) {
-    return new TPZReferredCompEl<TPZCompElHDivBound2< TPZShapeTriang >>(mesh,gel,index);
-}
-
-template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>>;
-template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>>;
-template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>>;
-template class TPZRestoreClass< TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>>;
-
-
-template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeTriang>>;
-template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapePoint>>;
-template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeLinear>>;
-template class TPZReferredCompEl<TPZCompElHDivBound2<TPZShapeQuad>>;
-

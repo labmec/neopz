@@ -49,12 +49,10 @@ set(headers
   pzelmat.h
   TPZElementMatrixT.h
   pzgnode.h
-  pzreferredcompel.h
   TPZCompElLagrange.h
   TPZGeoElSideAncestors.h
   pzcondensedcompel.h
   pzsubcmesh.h
-  tpzcompmeshreferred.h
   TPZGeoElSidePartition.h
 )
 
@@ -68,7 +66,6 @@ set(sources
   pzcheckmesh.cpp
   pzelchdiv.cpp
   pzgmesh.cpp
-  pzreferredcompel.cpp
   TPZCompElHDivCollapsed.cpp
   TPZGeoMeshTools.cpp
   pzcheckrestraint.cpp
@@ -79,7 +76,6 @@ set(sources
   pzcmesh.cpp
   pzelementgroup.cpp  
   pzsubcmesh.cpp
-  tpzcompmeshreferred.cpp
   TPZMultiphysicsCompMesh.cpp
   pzcompel.cpp
   pzelmat.cpp
