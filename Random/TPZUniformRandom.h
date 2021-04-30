@@ -23,15 +23,15 @@ public:
         
     }
     
-    virtual TPZRandom<TVar> *clone(){
+    virtual TPZRandom<TVar> *clone() override {
         return new TPZUniformRandom<TVar>(*this);
     }
     
-    TVar next(){
+    TVar next() override {
         return generator();
     }
     
-    TVar pdf(TVar x);
+    TVar pdf(TVar x) override;
     
     virtual ~TPZUniformRandom(){
         

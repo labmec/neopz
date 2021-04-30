@@ -31,7 +31,7 @@
 
 #include "pzlog.h"
 
-#include "TPZfTime.h"
+#include "TPZSimpleTimer.h"
 #include "TPZTimeTemp.h"
 
 #include <sstream>
@@ -186,7 +186,7 @@ void TPZGenSubStruct::UniformRefine()
 // divide the elements in substructures
 void TPZGenSubStruct::SubStructure()
 {
-	TPZfTime timesubstructuring; // init of timer for substructuring mesh
+	TPZSimpleTimer timesubstructuring; // init of timer for substructuring mesh
 	
 	TPZGeoMesh *gmesh = fCMesh->Reference();
 	int nel = gmesh->NElements();
@@ -279,7 +279,7 @@ void TPZGenSubStruct::SubStructure()
 	nel = fCMesh->NElements();
 	
 	std::cout << "Make all Internal \n";
-	TPZfTime timeformakeallinternal; // init for timer
+	TPZSimpleTimer timeformakeallinternal; // init for timer
 	fCMesh->ComputeNodElCon();
 	for(iel=0; iel<nel; iel++)
 	{
@@ -312,13 +312,13 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 	TPZRenumbering renum(nel,nindep);
     //nodeset.Print(file,elementgraphindex,elementgraph);
 	std::cout << "Convert Graph ";
-	TPZfTime convertgraph;
+	TPZSimpleTimer convertgraph;
 	renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
     std::cout << convertgraph.ReturnTimeString();
 	//   cout << "nodegraphindex " << nodeset.Nodegraphindex() << endl;
 	//   cout << "nodegraph " << nodeset.Nodegraph() << endl;
 	std::cout << "AnalyseGraph ";
-	TPZfTime analysegraph;
+	TPZSimpleTimer analysegraph;
 	nodeset.AnalyseGraph();
 	std::cout << analysegraph.ReturnTimeString();
 #ifdef PZ_LOG

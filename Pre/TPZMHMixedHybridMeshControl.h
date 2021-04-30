@@ -53,16 +53,16 @@ public:
     }
     
     /// Insert Boundary condition objects that do not perform any actual computation
-    virtual void InsertPeriferalMaterialObjects();
+    virtual void InsertPeriferalMaterialObjects() override;
     
     /// Insert the necessary H(div) material objects to create the flux mesh
-    virtual void InsertPeriferalHdivMaterialObjects();
+    virtual void InsertPeriferalHdivMaterialObjects() override;
     
     /// Insert the necessary pressure material objects to create the pressure mesh
-    virtual void InsertPeriferalPressureMaterialObjects();
+    virtual void InsertPeriferalPressureMaterialObjects() override;
     
     /// Create all data structures for the computational mesh
-    virtual void BuildComputationalMesh(bool usersubstructure);
+    virtual void BuildComputationalMesh(bool usersubstructure) override;
     
 public:
     
@@ -79,7 +79,7 @@ public:
     std::set<int> fFractureFlowDim1MatId;
     
     /// Return true if the material id is related to a skeleton
-    virtual bool IsSkeletonMatid(int matid)
+    virtual bool IsSkeletonMatid(int matid) override
     {
         return matid == fSkeletonMatId || fSkeletonWithFlowMatId.find(matid) != fSkeletonWithFlowMatId.end();
     }
@@ -95,13 +95,13 @@ public:
     
 protected:
     // create the elements domain per domain with approximation spaces disconnected from each other
-    virtual void CreateInternalFluxElements();
+    virtual void CreateInternalFluxElements() override;
 
     // create the approximation space associated with the skeleton and restrain the connects
-    virtual void CreateSkeleton();
+    virtual void CreateSkeleton() override;
         
     /// Create the interfaces between the pressure elements of dimension dim
-    virtual void CreateMultiPhysicsInterfaceElements(int dim);
+    virtual void CreateMultiPhysicsInterfaceElements(int dim) override;
 
 
 public:
@@ -140,13 +140,13 @@ public:
     
     /// verify the consistency of the datastructure
     //  only implemented in the hybrid Hdiv version
-    virtual void CheckMeshConsistency();
+    virtual void CheckMeshConsistency() override;
     
     /// print the elements in a readable format
-    virtual void PrintFriendly(std::ostream &out);
+    virtual void PrintFriendly(std::ostream &out) override;
 
     /// Set the hybridization to true
-    virtual void SetHybridize(bool flag)
+    virtual void SetHybridize(bool flag) override
     {
         fHybridize = flag;
     }
@@ -154,7 +154,7 @@ public:
 protected:
 
     /// Create the pressure mesh which is dual to the flux mesh
-    virtual void CreatePressureMHMMesh();
+    virtual void CreatePressureMHMMesh() override;
     
 
     // create the dim-1 pressure elements between the hdiv elements
@@ -163,7 +163,7 @@ protected:
     
     /// hybridize the flux elements with the given material id - each flux element creates
     /// a pressure element
-    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid);
+    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid) override;
     
     /// Create lower dimension pressure elements (dim-2)
     /// The (dim-2) geometric elements have already been created.
@@ -183,7 +183,7 @@ protected:
     void FindConnectedElements(TPZGeoElSide &pressureindex, int domain, TPZVec<TPZCompElSide> &fluxconnected);
     
     /// group and condense the elements
-    virtual void GroupandCondenseElements();
+    virtual void GroupandCondenseElements() override;
 
     /// group element H(div) elements with surrounding interface elements
     void GroupElements(TPZCompMesh *cmesh);

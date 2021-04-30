@@ -60,10 +60,10 @@ public:
         fDeltaT = deltat;
     }
     
-    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    void FillDataRequirements(TPZVec<TPZMaterialData > &datavec) override;
     
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data) override
     {
         data.SetAllRequirements(false);
         if (type == 3) {
@@ -72,7 +72,7 @@ public:
     }
 
     /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
-    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec) override
     {
         // default is no specific data requirements
         int nref = datavec.size();
@@ -89,9 +89,9 @@ public:
     }
 
     
-    virtual void Print(std::ostream & out);
+    virtual void Print(std::ostream & out) override;
 	
-	virtual std::string Name() { return "TPZMixedPoissonParabolic"; }
+	virtual std::string Name() override { return "TPZMixedPoissonParabolic"; }
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
@@ -100,7 +100,7 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
 	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
@@ -108,9 +108,9 @@ public:
      * @param weight [in] is the weight of the integration rule
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ef) override;
     
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) override;
 
     
 };

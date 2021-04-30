@@ -32,15 +32,15 @@ public:
 	}
 	
 	/** @brief Draw the nodal coordinates and the connectivity */
-	virtual void DrawMesh(int numcases);
+	virtual void DrawMesh(int numcases) override;
 	
 	/** @brief Draw the solution associated with Sol (not implemented) */
 	virtual void DrawSolution(TPZBlock &Sol);
 	/** @brief Draw the solution associated with the variable name */
 	virtual void DrawSolution(char * var = 0);
 	/** @brief Draw the solution sequence */
-	virtual void DrawSolution(int step, REAL time);
-	virtual void SequenceNodes();
+	virtual void DrawSolution(int step, REAL time) override;
+	virtual void SequenceNodes() override;
 	
 	private :
 	TPZCompMesh *fMesh;

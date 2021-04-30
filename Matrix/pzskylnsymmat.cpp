@@ -19,7 +19,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-
+#include <random>
 //const int templatedepth = 10;
 
 /**
@@ -1553,7 +1553,6 @@ void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    
     if (nrow != ncol) {
         DebugStop();
     }
@@ -1570,13 +1569,18 @@ void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric
 	/** Fill data */
 	for(i=0;i<this->Rows();i++) {
 		for(j=skyline[i];j<=i ;j++) {
-			val = ((TVar)rand())/((TVar)RAND_MAX);
+          val = this->GetRandomVal();
+          if constexpr(is_complex<TVar>::value){
+            if(j==i) val = fabs(val);
+          }
 			if(!PutVal(i,j,val))
             {
 				this->Error("AutoFill (TPZMatrix) failed.");
             }
             if (symmetric == 0) {
-                val = ((TVar)rand())/((TVar)RAND_MAX);
+              val = this->GetRandomVal();
+            }else if constexpr(is_complex<TVar>::value){
+              val = std::conj(val);
             }
 			if(!PutVal(j,i,val))
             {

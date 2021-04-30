@@ -24,15 +24,15 @@ public:
 	/** @brief Copy constructor for graphical mesh using VTK format */
 	TPZVTKGraphMesh(TPZCompMesh *cmesh,int dim,TPZVTKGraphMesh *graph);
 	
-	virtual void DrawMesh(int numcases);
-	virtual void DrawNodes();
-	virtual void DrawConnectivity(MElementType type);
-	virtual void DrawSolution(int step, REAL time);
+	virtual void DrawMesh(int numcases) override;
+	virtual void DrawNodes() override;
+	virtual void DrawConnectivity(MElementType type) override;
+	virtual void DrawSolution(int step, REAL time) override;
 	virtual void DrawSolution(TPZBlock &Sol);
 	virtual void DrawSolution(char *var = 0);
 	
 protected:
-	virtual void SequenceNodes();
+	virtual void SequenceNodes() override;
 	int fNumCases;
 	int fNumSteps;
 	

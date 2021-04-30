@@ -18,7 +18,7 @@ protected:
     // Should be called in a thread-safe context
     virtual void startInternal();
     
-    virtual void start();
+    virtual void start() override;
 
     std::mutex mStateMutex;
 private:

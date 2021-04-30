@@ -138,16 +138,16 @@ public:
     PAPIRunStat();
     
     /* Start recording the execution statistics. */
-    void start();
+    void start() override;
     
     /* Stop recording the execution statistics. */
-    void stop();
+    void stop() override;
     
     /**
      * Print the statistics.
      * TODO: create a table, update it, and print the table.
      */
-    void print(std::ostream& os) const;
+    void print(std::ostream& os) const override;
     
     /**
      * Append metrics to the statistics table.  The idea is to keep one
@@ -156,9 +156,9 @@ public:
      * Returns: the new_row number if Ok
      *          the setCell error code (< 0) if Error.
      */
-    int setCellValues(CSVStringTable& st, unsigned row) const;
+    int setCellValues(CSVStringTable& st, unsigned row) const override;
     
-    void clearStats();
+    void clearStats() override;
     
 protected:
     
@@ -180,15 +180,15 @@ protected:
         ElapsedTimeRunStat();
         
         /* Start recording the execution statistics. */
-        void start();
+        void start() override;
         
         /* Stop recording the execution statistics. */
-        void stop();
+        void stop() override;
         
         /**
          * Print the statistics
          */
-        void print(std::ostream& os) const;
+        void print(std::ostream& os) const override;
         
         /**
          * Set the contents of the statistics table.  The idea is to keep one
@@ -197,9 +197,9 @@ protected:
          * Returns: the new_row number if Ok
          *          the setCell error code (< 0) if Error.
          */
-        int setCellValues(CSVStringTable& st, unsigned row) const;
+        int setCellValues(CSVStringTable& st, unsigned row) const override;
         
-        void clearStats();
+        void clearStats() override;
         
         double getElapsedMS() const;
         

@@ -61,7 +61,7 @@ public:
      *@param pt points where the function is calculated
      *@param f function projected into finite element space
      */
-    virtual void Execute(const TPZVec<REAL> &pt, TPZVec<STATE> &f){
+    virtual void Execute(const TPZVec<REAL> &pt, TPZVec<STATE> &f) override {
         
         int nr = fGradient.size();
         
@@ -72,12 +72,12 @@ public:
         }
     }
     
-    virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf){
+    virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<STATE> &f, TPZFMatrix<STATE> &gradf) override{
         DebugStop();
     }
     
     /** @brief Execute method receiving axes. It is used in shape functions */
-    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<STATE> &f, TPZFMatrix<STATE> &df){
+    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override{
         DebugStop();
     }
     
@@ -87,17 +87,17 @@ public:
 	 * @param f function values
 	 * @param df function derivatives
 	 */
-	virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) {
+	virtual void Execute(const TPZVec<REAL> &x, TPZVec<STATE> &f, TPZFMatrix<STATE> &df) override {
         DebugStop();
     }
     
     
 	/** @brief Returns number of functions. */
-	virtual int NFunctions()const {return 1;}
+	virtual int NFunctions()const override {return 1;}
 	
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
-	virtual int PolynomialOrder() const {return -1;}
+	virtual int PolynomialOrder() const override {return -1;}
     
     };
     

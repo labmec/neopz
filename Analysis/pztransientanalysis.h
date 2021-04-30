@@ -45,7 +45,7 @@ public:
 	~TPZTransientAnalysis();
 	
 	/** @brief Assemble flux vector and jacobian matrix */
-	virtual void Assemble();
+	virtual void Assemble() override;
 	
 	/** @brief Executes a Newton's method for the solution of the implicit in time equation */
 	virtual void RunTransient(std::ostream &out = std::cout, bool FromBegining = true, bool linesearch = true);
@@ -54,13 +54,13 @@ public:
 	virtual void RunExplicit(std::ostream &out = std::cout, bool FromBegining = true);
 	
 	/** @brief See base class for comments */  
-	virtual void PostProcess(int resolution){ TPZAnalysis::PostProcess(resolution);}
+	virtual void PostProcess(int resolution) override { TPZAnalysis::PostProcess(resolution);}
 	
 	/** @brief See base class for comments */
-	virtual void PostProcess(int resolution, int dimension);
+	virtual void PostProcess(int resolution, int dimension) override;
 	
 	/** @brief See base class for comments */
-	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
+	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout) override;
 	
 	/** @brief Defines max number of steps and steady state convergence tolerance. */
 	void SetConvergence(int niter, REAL eps, bool ForceAllSteps = true);

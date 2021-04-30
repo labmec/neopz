@@ -15,7 +15,7 @@
 #include <sstream>
 #include "pzlog.h"
 
-#include "TPZfTime.h"
+#include "TPZSimpleTimer.h"
 #include "TPZTimeTemp.h"
 
 
@@ -200,7 +200,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		this->Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
-	TPZfTime precondi; // init of timer
+	TPZSimpleTimer precondi; // init of timer
 	int64_t rows = this->Rows();
 	int64_t cols = this->Cols();
 	int64_t c;

@@ -34,7 +34,7 @@ public:
 	virtual ~TPZReadMeshHR();
 	
 	/** @brief Read and return the mesh from a given file */
-	virtual TPZCompMesh* ReadMesh();
+	virtual TPZCompMesh* ReadMesh() override;
     TPZGeoMesh * readGeoMesh();
 	
 protected:

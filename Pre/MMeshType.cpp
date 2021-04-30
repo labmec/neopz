@@ -28,7 +28,8 @@ std::string MMeshType_Name(const MMeshType meshType){
         case MMeshType::ENoType:
             return "No Type";
     }
-
+    DebugStop();
+    return "No Type";
 }
 
 int MMeshType_Dimension(const MMeshType meshType){
@@ -45,5 +46,7 @@ int MMeshType_Dimension(const MMeshType meshType){
         case MMeshType::ENoType:
             return -1;
     }
+    DebugStop();
+    return -1;
 
 }

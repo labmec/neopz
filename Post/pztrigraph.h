@@ -21,26 +21,26 @@ class TPZGraphElT : public TPZGraphEl {
 	/** @brief Constructor for graphical element to computational triangular element */
 	TPZGraphElT(TPZCompEl *c, TPZGraphMesh *g);
 	
-	virtual int NConnects();
+	virtual int NConnects() override;
 	
-	virtual MElementType Type() {return ETriangle;}
+	virtual MElementType Type() override {return ETriangle;}
 	
-	virtual int ExportType(TPZDrawStyle st);
+	virtual int ExportType(TPZDrawStyle st) override;
 	
-	virtual int NNodes();
+	virtual int NNodes() override;
 	
-	virtual int NElements();
+	virtual int NElements() override;
 	
-	virtual int NPoints(TPZGraphNode *n);
+	virtual int NPoints(TPZGraphNode *n) override;
 	
-	virtual TPZGraphNode *Connect(int64_t i) {return fConnects[i];}
+	virtual TPZGraphNode *Connect(int64_t i) override {return fConnects[i];}
 	
-	virtual void Connectivity(TPZDrawStyle st = EDXStyle);
+	virtual void Connectivity(TPZDrawStyle st = EDXStyle) override;
 	
-	virtual int64_t EqNum(TPZVec<int> &co);
+	virtual int64_t EqNum(TPZVec<int> &co) override;
     
     /** @brief the parametric dimension of the element */
-    virtual int Dimension()
+    virtual int Dimension() override
     {
         return 2;
     }
@@ -48,13 +48,13 @@ class TPZGraphElT : public TPZGraphEl {
 	
 	protected :
 	
-	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
+	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta) override;
 	
-	virtual void FirstIJ(int no, TPZVec<int> &co, int &incr);
+	virtual void FirstIJ(int no, TPZVec<int> &co, int &incr) override;
 	
-	virtual void NextIJ(int no, TPZVec<int> &co, int incr);
+	virtual void NextIJ(int no, TPZVec<int> &co, int incr) override;
 	
-	virtual void SetNode(int64_t i,TPZGraphNode *gno) {
+	virtual void SetNode(int64_t i,TPZGraphNode *gno) override {
 		fConnects[i] = gno;
 	}
 	

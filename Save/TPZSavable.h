@@ -158,12 +158,12 @@ public:
     }
 
     /** @brief Restores object from Map based in classid into the buf */
-    virtual TPZSavable *Restore() {
+    virtual TPZSavable *Restore() override {
         T *ptr = new T;
         return ptr;
     }
     
-    virtual TPZChunkTranslator *GetTranslator() {
+    virtual TPZChunkTranslator *GetTranslator() override {
         return nullptr;
     }
     
@@ -187,12 +187,12 @@ public:
     ~TPZRestoreClassWithTranslator();
 
     /** @brief Restores object from Map based in classid into the buf */
-    virtual TPZSavable *Restore() {
+    virtual TPZSavable *Restore() override {
         T *ptr = new T;
         return ptr;
     }
     
-    virtual TPZChunkTranslator *GetTranslator() {
+    virtual TPZChunkTranslator *GetTranslator() override {
         if (!gTranslator){
             gTranslator = new TranslatorType();
         }

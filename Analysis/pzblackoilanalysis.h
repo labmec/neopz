@@ -30,25 +30,25 @@ public:
 	~TPZBlackOilAnalysis();
 	
 	/** @brief Assemble residual vector and tangent matrix */
-	virtual void Assemble();
+	virtual void Assemble() override;
 	
 	/** @brief Assemble only the residual vector */
-	virtual void AssembleResidual();
+	virtual void AssembleResidual() override;
 	
 	/** @brief Invert the algebraic system */
-	virtual void Solve();
+	virtual void Solve() override;
 	
 //	virtual void Run(std::ostream &out = std::cout, bool linesearch = true);
     virtual void Run(std::ostream &out,bool linesearch);
-    virtual void Run(std::ostream &out = std::cout) {
+    virtual void Run(std::ostream &out = std::cout) override {
         TPZBlackOilAnalysis::Run(out,true);
     }
 	
-	virtual void PostProcess(int resolution){ TPZAnalysis::PostProcess(resolution);}
+	virtual void PostProcess(int resolution) override { TPZAnalysis::PostProcess(resolution);}
 	
-	virtual void PostProcess(int resolution, int dimension);
+	virtual void PostProcess(int resolution, int dimension) override;
 	
-	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
+	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout) override;
 	
 	/** @brief Defines max number of steps and steady state convergence tolerance. */
 	void SetConvergence(int niter, REAL eps, bool ForceAllSteps = true);

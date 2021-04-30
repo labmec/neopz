@@ -49,14 +49,14 @@ public:
     }
 	virtual ~TPZInt1d() {
 	}
-	virtual int NPoints() const;
-	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual int NPoints() const override;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
-	virtual void SetType(int type,int order) {
+	virtual void SetType(int type,int order) override {
 		fIntP->SetType(type,order);
 	}
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
-	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
+	virtual void GetOrder(TPZVec<int> &ord) const override;
 	virtual int GetRealMaxOrder() const;
 	
 	/** A ordem máxima é muito maior que 36. Seu valor está em GetRealMaxOrder.
@@ -64,30 +64,30 @@ public:
 	 * mãe que retorna o max order do tetraedro, da pirâmide ou do triângulo,
 	 * que tradicionalmente tem regras menores que linha, quadrilátero e hexaedro
 	 */ 
-	virtual int GetMaxOrder() const{
+	virtual int GetMaxOrder() const override{
 		return 36;
 	}
 	
-	virtual int Dimension() const
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZInt1d>(order);
 	}
-	virtual TPZIntPoints *Clone() const
+	virtual TPZIntPoints *Clone() const override
 	{
 		return new TPZInt1d(*this);
 	}
     
-	void Print(std::ostream &out = std::cout) const {
+	void Print(std::ostream &out = std::cout) const override{
 		if(fIntP) fIntP->Print(out);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override{
 		name = "TPZInt1D";
 	}
 };
@@ -120,28 +120,28 @@ public:
 	virtual ~TPZIntTriang() {
 	}
 
-	virtual int  NPoints() const;
-	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual int  NPoints() const override;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
-	virtual void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;
-	virtual int Dimension() const
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
+	virtual void GetOrder(TPZVec<int> &ord) const override;
+	virtual int GetMaxOrder() const override;
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZIntTriang>(order);
 	}
-	virtual TPZIntPoints *Clone() const
+	virtual TPZIntPoints *Clone() const override
 	{
 		return new TPZIntTriang(*this);
 	}
 	
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override {
 		name = "TPZIntTriang";
 	}
 };
@@ -185,15 +185,15 @@ public:
 	virtual ~TPZIntQuad() {
 	}
 	
-	virtual int NPoints() const;
-	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual int NPoints() const override;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
     /// Set the order and the type of integration rule :
     // type 0 : Gauss Legendre
     // type 1 : Gauss Lobatto
     // type 2 : Jacobi
     // type 3 : Chebyshev
-	virtual void SetType(int type,int order) {
+	virtual void SetType(int type,int order) override{
 		fIntKsi->SetType(type,order);
 		fIntEta->SetType(type,order);
 	}
@@ -203,10 +203,10 @@ public:
     // type 1 : Gauss Lobatto
     // type 2 : Jacobi
     // type 3 : Chebyshev
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
     
     /// Return the order of the integration rule
-	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual void GetOrder(TPZVec<int> &ord) const override;
 	virtual int GetRealMaxOrder() const;  
 	
 	/** A ordem máxima é muito maior que 36. Seu valor está em GetRealMaxOrder.
@@ -214,26 +214,26 @@ public:
 	 * mãe que retorna o max order do tetraedro, da pirâmide ou do triângulo,
 	 * que tradicionalmente tem regras menores que linha, quadrilátero e hexaedro
 	 */ 
-	virtual int GetMaxOrder() const{
+	virtual int GetMaxOrder() const override{
 		return 36;
 	}
 	
-	virtual int Dimension() const
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZIntQuad>(order);
 	}
-	virtual TPZIntPoints* Clone() const
+	virtual TPZIntPoints* Clone() const override
 	{
 		return new TPZIntQuad(*this);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override{
 		name = "TPZIntQuad";
 	}
 };
@@ -280,37 +280,37 @@ public:
 	virtual ~TPZIntCube3D() {
 	}
 	
-	virtual int NPoints() const;
-	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual int NPoints() const override;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
-	virtual void SetType(int type,int order) {
+	virtual void SetType(int type,int order) override {
 		fIntKsi->SetType(type,order);
 		fIntEta->SetType(type,order);
 		fIntZeta->SetType(type,order);
 	}
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
-	virtual void GetOrder(TPZVec<int> &ord) const;
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
+	virtual void GetOrder(TPZVec<int> &ord) const override;
 	virtual int GetRealMaxOrder() const;
-	virtual int GetMaxOrder() const{
+	virtual int GetMaxOrder() const override{
 		return 20;    // With this order the number of integration points are 8000
 	}
 	
-	virtual int Dimension() const
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZIntCube3D>(order);
 	}
-	virtual TPZIntPoints *Clone() const
+	virtual TPZIntPoints *Clone() const override
 	{
 		return new TPZIntCube3D(*this);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override{
 		name = "TPZIntCube3D";
 	}
 };
@@ -336,28 +336,28 @@ public:
         return *this;
     }
     
-	virtual int NPoints() const;
-	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual int NPoints() const override;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
-	virtual void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;  
-	virtual int Dimension() const
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
+	virtual void GetOrder(TPZVec<int> &ord) const override;
+	virtual int GetMaxOrder() const override;  
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZIntTetra3D>(order);
 	}
-	virtual TPZIntPoints* Clone() const
+	virtual TPZIntPoints* Clone() const override
 	{
 		return new TPZIntTetra3D(*this);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override {
 		name = "TPZIntTetra3D";
 	}
 };
@@ -384,28 +384,28 @@ public:
         return *this;
     }
     
-	virtual int NPoints() const;
-	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	virtual int NPoints() const override;
+	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 	
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
-	virtual void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;  
-	virtual int Dimension() const
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0) override;
+	virtual void GetOrder(TPZVec<int> &ord) const override;
+	virtual int GetMaxOrder() const override;  
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZIntPyram3D>(order);
 	}
-	TPZIntPoints *Clone() const
+	TPZIntPoints *Clone() const override
 	{
 		return new TPZIntPyram3D(*this);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override {
 		name = "TPZIntPyram3D";
 	}
 };
@@ -443,31 +443,31 @@ public:
 	/** @brief Destructor */
 	virtual ~TPZIntPrism3D();
 	
-	int NPoints() const;
-	void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	int NPoints() const override;
+	void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
-	virtual void SetType(int type,int order) {
+	virtual void SetType(int type,int order)  override{
 		fIntRule1D.SetType(type,order);
 	}
-	void SetOrder(TPZVec<int> &ord,int type = 0);
-	void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;  
-	virtual int Dimension() const
+	void SetOrder(TPZVec<int> &ord,int type = 0) override;
+	void GetOrder(TPZVec<int> &ord) const override;
+	virtual int GetMaxOrder() const override;  
+	virtual int Dimension() const override
 	{
 		return Dim;
 	}
 
-	virtual TPZIntPoints *PrismExtend(int order)
+	virtual TPZIntPoints *PrismExtend(int order) override
 	{
 		return new TPZPrInteg<TPZIntPrism3D>(order);
 	}
-	TPZIntPoints *Clone() const
+	TPZIntPoints *Clone() const override
 	{
 		return new TPZIntPrism3D(*this);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	void Name(std::string &name) const {
+	void Name(std::string &name) const override {
 		name = "TPZIntPrism3D";
 	}
 };
@@ -491,23 +491,23 @@ public:
     }
     virtual ~TPZInt1Point();
 	
-    int NPoints() const;
-    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+    int NPoints() const override;
+    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const override;
 
-    void SetOrder(TPZVec<int> &ord,int type = 0);
-    void GetOrder(TPZVec<int> &ord) const;
-    int GetMaxOrder() const;  
-    int Dimension() const {
+    void SetOrder(TPZVec<int> &ord,int type = 0) override;
+    void GetOrder(TPZVec<int> &ord) const override;
+    int GetMaxOrder() const override;  
+    int Dimension() const override {
 		return Dim;
     }
 
-    TPZIntPoints *PrismExtend(int order);
-	TPZIntPoints *Clone() const {
+    TPZIntPoints *PrismExtend(int order) override;
+	TPZIntPoints *Clone() const override {
 		return new TPZInt1Point(*this);
 	}
 
 	/** @brief Returns the name of the cubature rule */
-	virtual void Name(std::string &name) const {
+	virtual void Name(std::string &name) const override {
 		name = "TPZInt1Point";
 	}
 };

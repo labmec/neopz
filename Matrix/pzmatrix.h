@@ -686,7 +686,8 @@ protected:
 	inline  TPZMatrix<TVar>(const int64_t row,const int64_t col ) : TPZRegisterClassId(&TPZMatrix<TVar>::ClassId)
 	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
-	
+
+    TVar GetRandomVal() const;
 protected:
 	/**
 	 * @brief Returns error messages and aborts executioin
@@ -862,5 +863,4 @@ TPZMatrix<TVar>::Swap( int64_t *a, int64_t *b )
 	*a = *b;
 	*b = aux;
 }
-
 #endif

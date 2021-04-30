@@ -55,7 +55,7 @@ public:
     
     virtual ~TPZMHMixedMeshControl();
     /// Insert Boundary condition objects that do not perform any actual computation
-    virtual void InsertPeriferalMaterialObjects();
+    virtual void InsertPeriferalMaterialObjects() override;
     
     /// Insert the necessary H(div) material objects to create the flux mesh
     virtual void InsertPeriferalHdivMaterialObjects();
@@ -67,7 +67,7 @@ public:
     virtual void InsertPeriferalRotationMaterialObjects();
     
     /// Create all data structures for the computational mesh
-    virtual void BuildComputationalMesh(bool usersubstructure);
+    virtual void BuildComputationalMesh(bool usersubstructure) override;
     
     TPZAutoPointer<TPZCompMesh> FluxMesh()
     {
@@ -151,7 +151,7 @@ protected:
 
     /// hybridize the flux elements with the given material id - each flux element creates
     /// a pressure element
-    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid);
+    virtual void HybridizeSkeleton(int skeletonmatid, int pressurematid) override;
     
     /// switch the elements pointed to by the interface by lower dimensional elements
     void OptimizeInterfaceElements();

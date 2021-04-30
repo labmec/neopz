@@ -45,7 +45,7 @@ public:
     ~TPZMultiphysicsCompMesh();
     
     /// Automatic builder for the computational mesh structure
-    void AutoBuild();
+    void AutoBuild() override;
     
     /// Set active approximation spaces
     void BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
