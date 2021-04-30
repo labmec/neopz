@@ -98,6 +98,64 @@ void TPZInterpolationSpace::ShortPrint(std::ostream &out) const {
     out << "PreferredSideOrder " << fPreferredOrder << std::endl;
 }
 
+
+void TPZInterpolationSpace::ComputeSolution(TPZVec<REAL> &qsi,
+									TPZMaterialData &data,
+									bool hasPhi){
+	if(hasPhi){
+		this->ReallyComputeSolution(data);
+	}else{
+		this->InitMaterialData(data);
+		data.fNeedsSol=true;
+		this->ComputeRequiredData(data,qsi);
+	}
+}
+
+void TPZInterpolationSpace::ReallyComputeSolution(TPZMaterialData& data){
+    const TPZFMatrix<REAL> &phi = data.phi;
+    const TPZFMatrix<REAL> &dphix = data.dphix;
+    const TPZFMatrix<REAL> &axes = data.axes;
+    TPZSolVec &sol = data.sol;
+    TPZGradSolVec &dsol = data.dsol;
+	const int nstate = this->Material()->NStateVariables();
+	const int ncon = this->NConnects();
+	TPZBlock &block = Mesh()->Block();
+	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
+    const int64_t numbersol = MeshSol.Cols();
+	
+	const int solVecSize = ncon? nstate : 0;
+	
+    sol.resize(numbersol);
+    dsol.resize(numbersol);
+    for (int is = 0; is<numbersol; is++) {
+        sol[is].Resize(solVecSize);
+        sol[is].Fill(0.);
+        dsol[is].Redim(dphix.Rows(), solVecSize);
+        dsol[is].Zero();
+    }	
+	int64_t iv = 0;
+	for(int in=0; in<ncon; in++) {
+		TPZConnect *df = &Connect(in);
+		const int64_t dfseq = df->SequenceNumber();
+		const int dfvar = block.Size(dfseq);
+		const int64_t pos = block.Position(dfseq);
+		for(int jn=0; jn<dfvar; jn++) {
+            for (int64_t is=0; is<numbersol; is++) {
+                sol[is][iv%nstate] +=
+                    (STATE)phi.Get(iv/nstate,0)*MeshSol(pos+jn,is);
+                for(auto d=0; d<dphix.Rows(); d++){
+                    dsol[is](d,iv%nstate) +=
+                        (STATE)dphix.Get(d,iv/nstate)*MeshSol(pos+jn,is);
+                }
+            }
+			iv++;
+		}
+	}
+	
+}//method
+
+
+
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
                                          TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
                                          REAL &detjac, TPZFMatrix<REAL> &jacinv,
@@ -195,12 +253,8 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
     this->ComputeShape(qsi, data);
     
     if (data.fNeedsSol){
-        if (data.phi.Rows()){//if shape functions are available
-            this->ComputeSolution(qsi, data);
-        }
-        else{//if shape functions are not available
-            this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-        }
+        constexpr bool hasPhi{true};
+        this->ComputeSolution(qsi,data,hasPhi);
     }//fNeedsSol
 	
     data.x.Resize(3, 0.0);
@@ -445,6 +499,7 @@ void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 }//CalcResidual
 
 void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) {
+    //TODOCOMPLEX
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
 		return;
@@ -467,7 +522,8 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
     this->InitMaterialData(data);
     data.p = this->MaxOrder();
     this->ComputeShape(qsi, data);
-	this->ComputeSolution(qsi,data);
+    constexpr bool hasPhi{true};
+	this->ComputeSolution(qsi,data,hasPhi);
     
 	data.x.Resize(3);
 	this->Reference()->X(qsi, data.x);
@@ -552,12 +608,15 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	
 	for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 		intrule->Point(int_ind,int_point,weight);
+		t.Apply(int_point,coarse_int_point);
+        TPZMaterialData coarsedata;    
+        coarsedata.fNeedsSol=true;
+        constexpr bool hasPhi{false};
+        coarsel.ComputeSolution(coarse_int_point,coarsedata,hasPhi);
+        
 		REAL jac_det = 1.;
 		this->ComputeShape(int_point, x, jacobian, axes, jac_det, jacinv, locphi, locdphi, locdphidx);
 		weight *= jac_det;
-		t.Apply(int_point,coarse_int_point);
-		coarsel.ComputeSolution(coarse_int_point, u, du, coarseaxes);
-		
 		for(lin=0; lin<locmatsize; lin++) {
 			for(ljn=0; ljn<locmatsize; ljn++) {
 				loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
@@ -1070,16 +1129,8 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         
         //in the case of the hdiv functions
         TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
-        if(shapetype==data.EVecandShape){
-            this->ComputeRequiredData(data, intpoint);
-            this->ComputeSolution(intpoint, data);
-        }
-        else
-        {
-            this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphi, data.dphix);
-            this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes,
-                              data.sol, data.dsol);
-        }
+        constexpr bool hasPhi{false};
+        this->ComputeSolution(intpoint, data, hasPhi);
 		weight *= fabs(data.detjac);        
         ref->X(intpoint, data.x);
         material->Errors(data, values);
@@ -1241,7 +1292,6 @@ void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid) const
 
 
 void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STATE> &max){
-#ifndef STATE_COMPLEX
 	
 	const int dim = Dimension();
 	TPZManVector<REAL,3> intpoint(dim,0.);
@@ -1253,20 +1303,22 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 	TPZManVector<int,3> maxorder(dim,intrule->GetMaxOrder());
 	intrule->SetOrder(maxorder);
 	
-	TPZSolVec sol;
-	TPZGradSolVec dsol;
+	
 	TPZFNMatrix<9> axes(3,3,0.);
 	REAL weight;
-	
-	int intrulepoints = intrule->NPoints();
+	TPZMaterialData data;
+    constexpr bool hasPhi{false};
+	const int intrulepoints = intrule->NPoints();
 	intrule->Point(0,intpoint,weight);
-	this->ComputeSolution(intpoint, sol, dsol, axes);
-	min = sol[0];
-	max = sol[0];
-	const int nvars = sol.NElements();
+    
+	this->ComputeSolution(intpoint, data,hasPhi);
+	min = data.sol[0];
+	max = data.sol[0];
+	const int nvars = data.sol.NElements();
 	for(int int_ind = 1; int_ind < intrulepoints; int_ind++){
 		intrule->Point(int_ind,intpoint,weight);
-		this->ComputeSolution(intpoint, sol, dsol, axes);
+		this->ComputeSolution(intpoint, data,hasPhi);
+        TPZSolVec &sol = data.sol;
 		for(int iv = 0; iv < nvars; iv++){
 			if (sol[0][iv] < min[iv]) min[iv] = sol[0][iv];
 			if (sol[0][iv] > max[iv]) max[iv] = sol[0][iv];
@@ -1274,9 +1326,6 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 	}//loop over integratin points
 	
 	intrule->SetOrder(prevorder);
-#else
-	DebugStop();
-#endif
 	
 }//void
 

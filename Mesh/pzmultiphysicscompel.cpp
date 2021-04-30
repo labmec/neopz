@@ -501,7 +501,8 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
         {
             msp->ComputeShape(myqsi,datavec[iref]);
         }
-        msp->ComputeSolution(myqsi, datavec[iref]);
+        constexpr bool hasPhi{true};
+        msp->ComputeSolution(myqsi, datavec[iref],hasPhi);
         
         datavec[iref].x.Resize(3);
         msp->Reference()->X(myqsi, datavec[iref].x);
@@ -517,28 +518,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
     }
 }
 
-template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
-                                                       TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
-    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-    DebugStop();
-}//method
 
-template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
-                                                       TPZVec<REAL> &normal,
-                                                       TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                                                       TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-    DebugStop();
-}
-
-template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                                       const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
-    PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-    DebugStop();
-}
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, int64_t index){

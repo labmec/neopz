@@ -267,15 +267,11 @@ void TPZSBFemVolume::LoadCoef(TPZFMatrix<std::complex<double> > &coef) {
     fCoeficients = coef;
 }
 
-/**
- * @brief Computes solution and its derivatives in the local coordinate qsi.
- * @param qsi master element coordinate
- * @param sol finite element solution
- * @param dsol solution derivatives
- * @param axes axes associated with the derivative of the solution
- */
-void TPZSBFemVolume::ComputeSolution(TPZVec<REAL> &qsi,
-        TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes) {
+void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialData& data) {
+    TPZVec<REAL> &qsi = data.xParametric;
+    TPZSolVec &sol = data.sol;
+    TPZGradSolVec &dsol = data.dsol;
+    TPZFMatrix<REAL> &axes = data.axes;
     TPZCompMesh *cmesh = Mesh();
     sol.Resize(fCoeficients.Cols());
     dsol.Resize(fCoeficients.Cols());
@@ -571,7 +567,8 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi, int var, TPZVec<STATE> &sol) {
 
     if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
     {
-        ComputeSolution(qsi, data2d.sol, data2d.dsol, data2d.axes);
+        data2d.xParametric = qsi;
+        ReallyComputeSolution(data2d);
     }
     else
     {
@@ -655,7 +652,8 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error) {
         weight *= fabs(data.detjac);
         if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
         {
-            ComputeSolution(intpoint, data.sol, data.dsol, data.axes);
+            data.xParametric = intpoint;
+            ReallyComputeSolution(data);
         } else
         {
             ComputeSolutionWithBubbles(intpoint, data.sol, data.dsol, data.axes);

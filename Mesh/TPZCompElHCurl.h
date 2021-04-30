@@ -155,12 +155,7 @@ public:
      * @param dphi trace of the curl of the shape functions
      */
     void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override = 0;
-    /**
-    * @brief Compute solution functions based on master element in the classical FEM manner.
-    * @param[in] qsi point in master element coordinates
-    * @param[in] data stores all input data
-    */
-    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
+    //@}
 protected:
 
     /**
@@ -170,6 +165,7 @@ protected:
      */
     void CreateHCurlConnects(TPZCompMesh &mesh);
 
+    void ReallyComputeSolution(TPZMaterialData&) override;
     /**
      * @brief This computes the curl of a vector shape function implemented as \$f \phi\mathbf{v} \$f
      * @tparam TDIM Dimension of the element curl will have dim=2*TDIM-3 for TDIM=2,3.
@@ -191,7 +187,6 @@ protected:
 
     /**
      * This method computes the solution of an HCurl-conforming element and its derivatives in the local coordinate qsi
-     * @param qsi master element coordinate
      * @param vecShapeIndex associates which scalar function multiplies which vector
      * @param deformedDirections directions on the deformed element
      * @param phi scalar shape function
@@ -199,9 +194,12 @@ protected:
      * @param sol finite element solution
      * @param curlsol curl of the finite element solution
      */
-    void ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
-                         const TPZFMatrix<REAL> &deformedDirections, TPZFMatrix<REAL> &phi,
-                         TPZFMatrix<REAL> &curlphi, TPZSolVec &sol, TPZSolVec &curlsol);
+    void ComputeSolutionHCurl(const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
+                              const TPZFMatrix<REAL> &deformedDirections,
+                              const TPZFMatrix<REAL> &phi,
+                              const TPZFMatrix<REAL> &curlphi,
+                              TPZSolVec &sol,
+                              TPZSolVec &curlsol);
 
 
     /**

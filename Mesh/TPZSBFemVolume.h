@@ -314,17 +314,11 @@ public:
      * Is also used to load the solution within SuperElements
      */
     virtual void LoadCoef(TPZFMatrix<std::complex<double> > &coef);
+protected:
+    //! Compute solution based on a filled TPZMaterialData
+    void ReallyComputeSolution(TPZMaterialData&) override;
+public:
     
-    /**
-     * @brief Computes solution and its derivatives in the local coordinate qsi.
-     * @param qsi master element coordinate
-     * @param sol finite element solution
-     * @param dsol solution derivatives
-     * @param axes axes associated with the derivative of the solution
-     */
-    void ComputeSolution(TPZVec<REAL> &qsi,
-                                 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
-
     void EvaluateError(TPZVec<REAL> &errors,bool store_error) override;
     
     /**
@@ -346,9 +340,6 @@ public:
 
     /** @brief Compute the solution at the integration point and store in the data structure
      */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)  override  {
-        ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-    }
 
     /**
      * @brief Calculates the solution - sol - for the variable var

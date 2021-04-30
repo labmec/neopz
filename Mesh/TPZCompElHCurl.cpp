@@ -442,7 +442,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data, TPZVec<R
     data.curlphi.Redim(2*dim - 3 > 0 ? 2*dim - 3 : 1, this->NShapeF());
     ComputeCurl(data.fVecShapeIndex,data.dphi,this->fMasterDirections,data.jacobian,data.detjac,data.axes,data.curlphi);
     if (data.fNeedsSol) {
-        ComputeSolution(qsi, data);
+        this->ReallyComputeSolution(data);
     }
 }
 
@@ -465,11 +465,12 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
-    TPZCompElHCurl<TSHAPE>::ComputeRequiredData(data,qsi);
-    ComputeSolutionHCurl(qsi, data.fVecShapeIndex, data.fDeformedDirections, data.phi, data.curlphi,
-            data.sol, data.curlsol);
+void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data){
+    ComputeSolutionHCurl(data.fVecShapeIndex,
+                         data.fDeformedDirections, data.phi, data.curlphi,
+                         data.sol, data.curlsol);
 }
+
 
 template<class TSHAPE>
 void TPZCompElHCurl<TSHAPE>::CreateHCurlConnects(TPZCompMesh &mesh){
@@ -738,9 +739,13 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
-                          const TPZFMatrix<REAL> &deformedDirections, TPZFMatrix<REAL> &phi,
-                          TPZFMatrix<REAL> &curlPhi, TPZSolVec &sol, TPZSolVec &curlSol){
+void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(
+    const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
+    const TPZFMatrix<REAL> &deformedDirections,
+    const TPZFMatrix<REAL> &phi, const TPZFMatrix<REAL> &curlPhi,
+    TPZSolVec &sol, TPZSolVec &curlSol)
+{
+    
     TPZFMatrix<REAL> phiHCurl;
     TPZHCurlAuxClass::ComputeShape(vecShapeIndex,phi,deformedDirections,phiHCurl);
     constexpr int dim = TSHAPE::Dimension;
@@ -784,7 +789,7 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(const TPZVec<REAL> &qsi, const
                 }
                 for (int coord = 0; coord < curlDim; coord++) {
                     curlSol[iSol][coord] +=
-                            (STATE)meshSol(pos + jShape, iSol) * curlPhi(coord, ishape);
+                            (STATE)meshSol(pos + jShape, iSol) * curlPhi.Get(coord, ishape);
                 }
             }
             ishape++;

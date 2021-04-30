@@ -238,48 +238,6 @@ public:
     /** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
 	
-public:
-    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
-    
-public:
-    
-    /** 
-	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param[in] qsi point in master element coordinates 
-	 * @param[in] data stores all input data
-	 */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
-	
-    void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
-    
-    /**
-     * @brief Computes solution and its derivatives in the local coordinate qsi.
-     * @param qsi master element coordinate of the interface element
-     * @param normal unit normal vector
-     * @param leftsol finite element solution
-     * @param dleftsol solution derivatives
-     * @param leftaxes axes associated with the left solution
-     * @param rightsol finite element solution
-     * @param drightsol solution derivatives
-     * @param rightaxes axes associated with the right solution
-     */
-    /**
-     * This method will function for both volumetric and interface elements
-     */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                                 TPZVec<REAL> &normal,
-                                 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override
-    {
-        DebugStop();
-    }
-
-    
-    /** @brief Compute the solution using Hdiv structure */
-	void ComputeSolutionHDiv(TPZMaterialData &data);
-	
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	
@@ -289,8 +247,7 @@ public:
 	TPZTransform<> TransformSideToElement(int side) override;
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
-	public:
-int ClassId() const override;
+    int ClassId() const override;
 
 	/** @brief Save the element data to a stream */
 	void Write(TPZStream &buf, int withclassid) const override;
@@ -299,7 +256,9 @@ int ClassId() const override;
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
-	
+protected:
+    /** @brief Compute the solution using Hdiv structure */
+	void ReallyComputeSolution(TPZMaterialData &data) override;
 };
 
 template<class TSHAPE>

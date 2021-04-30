@@ -17,7 +17,6 @@
 #include "pzblock.h"
 #include "pzblockdiag.h"
 #include "pzcreateapproxspace.h"
-#include "pzmaterialdata.h"
 #include "TPZOneShapeRestraint.h"
 #include "pztransfer.h"
 #include <functional>
@@ -34,8 +33,6 @@ class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
 class TPZGeoNode;
-
-class TPZMaterialData;
 
 template<class T>
 class TPZVec;
@@ -480,51 +477,7 @@ public:
      * @brief Compute the integral of a variable defined by the string if the material id is included in matids
      */
     virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids);
-	
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
-		std::cout <<"Imposed for Hdiv solution ";
-		DebugStop();
-	};
-	
-	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
-	 * @param qsi master element coordinate
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 * @param axes axes associated with the derivative of the solution
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
-	
-	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
-	 * This method will function for both volumetric and interface elements
-	 * @param qsi master element coordinate of the interface element
-	 * @param normal vector
-	 * @param leftsol finite element solution
-	 * @param dleftsol solution derivatives
-	 * @param leftaxes axes associated with the left solution
-	 * @param rightsol finite element solution
-	 * @param drightsol solution derivatives
-	 * @param rightaxes axes associated with the right solution
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
-	
-	/**
-	 * @brief Computes solution and its derivatives in local coordinate qsi
-	 * @param qsi master element coordinate
-	 * @param phi matrix containing shape functions compute in qsi point
-	 * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-	 * @param axes [in] axes indicating the direction of the derivatives
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
-    
+    //@}
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const = 0;
 

@@ -60,11 +60,9 @@ public:
 	}
 	
     /** @brief Set create function in TPZCompMesh to create elements of this type */
-#ifndef STATE_COMPLEX
   virtual void SetCreateFunctions(TPZCompMesh *mesh) override {
 		mesh->SetAllCreateFunctionsHDivPressure();
 	}
-#endif
 	
 	virtual MElementType Type() override;
 	
@@ -125,27 +123,7 @@ public:
     
     ///Compute the solution for a given variable
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
-    
-private:
-	virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
-    
-public:
-    
-	/** 
-	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param[in] qsi point in master element coordinates 
-	 * @param[in] data stores all input data
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
-	
-	void ComputeSolutionPressureHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
-	
-    /** @brief Compute the solution using Hdiv structure */
-	void ComputeSolutionPressureHDiv(TPZMaterialData &data);
-	
-	
+
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
@@ -153,14 +131,17 @@ public:
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 
-int ClassId() const override;
+	int ClassId() const override;
 
 	/** @brief Save the element data to a stream */
 	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Read the element data from a stream */
 	void Read(TPZStream &buf, void *context) override;
-	
+
+protected:
+	/** @brief Compute the solution using Hdiv structure */
+	void ReallyComputeSolution(TPZMaterialData &data) override;
 };
 
 template<class TSHAPE>

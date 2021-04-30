@@ -186,8 +186,7 @@ public:
 	 * In order to change the interpolation order of an element, use the method PRefine
 	 */
 	virtual void SetPreferredOrder(int order)  override = 0;
-	
-public:
+
 	/** @brief Sets the interpolation order of side to order */
 	/** 
 	 * This method only updates the datastructure of the element and
@@ -201,8 +200,6 @@ public:
 	
 	/** @} */
 	
-public:
-	
 	
 	/**
 	 * @name Computational methods
@@ -212,65 +209,6 @@ public:
 	
 	/** @brief Compute the values of the shape function along the side*/
 	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override = 0;
-	
-	/** @} */
-	
-	/**
-	 * @name Post processing methods
-	 * @brief The TPZInterpolatedElement class provides the user with a variety of methods for post-processing*/
-	/**
-	 * Methods for error evaluation\n
-	 * Methods for computing derived post processed values (depending on the variational statement)\n
-	 * @{
-	 */
-	
-public:
-	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
-	 * @param qsi master element coordinate
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 * @param axes axes indicating the direction of the derivatives
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
-    
-    public:
-    
-    /** 
-	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param[in] qsi point in master element coordinates 
-	 * @param[in] data stores all input data
-	 */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data) override;
-	
-	/**
-	 * @brief Computes solution and its derivatives in local coordinate qsi
-	 * @param qsi master element coordinate
-	 * @param phi matrix containing shape functions compute in qsi point
-	 * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
-	 * @param axes axes indicating the direction of the derivatives
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
-	
-	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.\n
-	 * This method will function for both volumetric and interface elements
-	 * @param qsi master element coordinate of the interface element
-	 * @param normal unitary normal vector
-	 * @param leftsol finite element solution
-	 * @param dleftsol solution derivatives
-	 * @param leftaxes axes associated with the left solution
-	 * @param rightsol finite element solution
-	 * @param drightsol solution derivatives
-	 * @param rightaxes axes associated with the right solution
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
 	
 	/**
 	 * @brief Compare the L2 norm of the difference between the švarš solution of the current element with

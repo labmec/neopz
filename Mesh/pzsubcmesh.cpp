@@ -2005,24 +2005,6 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
     buf.Read(&fSingularConnect,1);
 }
 
-void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi,
-                                     TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
-	PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
-}
-
-void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-									 const TPZFMatrix<REAL> &axes,  TPZSolVec &sol, TPZGradSolVec &dsol){
-	PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
-}
-
-void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi,
-									 TPZVec<REAL> &normal,
-									 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-									 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-	PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
-}
-
-
 /**
  * Creates corresponding graphical element(s) if the dimension matches
  * graphical elements are used to generate output files
