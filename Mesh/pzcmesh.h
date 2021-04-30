@@ -661,27 +661,6 @@ public:
 
     void EvaluateError(bool store_error,
 					   TPZVec<REAL> &errorSum);
-	/** @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. */
-	/**
-	 * It may be compared the following values to eps: \n
-	 * If \f$ opt = 0 \f$ then  \f$ eps \approx \sqrt{ \int { (leftsol - rightsol)^2 } } \f$ \n
-	 * If \f$ opt = 1 \f$ then \f$ eps \approx Max{ \| leftsol - rightsol } \| \f$
-	 *
-	 * @param eps Tolerancy of the jump to cancel and to convert discontinuous element in continuous
-	 * @param opt Option by type of norm (\f$ L_2 \f$ norm or \f$ L \infty \f$ norm).
-	 * @param dim Dimension of the working discontinuous elements
-	 * @param celJumps Vector to store the diference between the values from right and left elements connected on the interface
-	 */
-    template<class TVar>
-	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<TVar> &celJumps);
-	
-	/**
-	 * @brief This method convert a discontinuous element with index disc_index in continuous element
-	 * @param disc_index Index of the discontinuous element to be converted
-	 * @param new_index Returns the index of the new continuous element created
-	 */
-	void Discontinuous2Continuous(int64_t disc_index, int64_t &new_index);
-	
 	/** @} */
 	
 	
@@ -691,10 +670,10 @@ public:
 	/** @brief Copies the materials of this mesh to the given mesh */
 	void CopyMaterials(TPZCompMesh &mesh) const ;
 
-        // @brief Delete material and erase it from material vector
-        void DeleteMaterial(const int matId);
+    // @brief Delete material and erase it from material vector
+    void DeleteMaterial(const int matId);
 
-        REAL DeltaX();
+    REAL DeltaX();
 	
 	REAL MaximumRadiusOfMesh();
 	
@@ -781,9 +760,7 @@ void TPZCompMesh::SetElementSolution<TVar>(int64_t , TPZVec<TVar>&); \
 extern template \
 void TPZCompMesh::ConnectSolution<TVar>(int64_t , TPZCompMesh *, TPZFMatrix<TVar> &, TPZVec<TVar> &); \
 extern template \
-void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &); \
-extern template \
-void TPZCompMesh::ConvertDiscontinuous2Continuous<TVar>(REAL , int , int , TPZVec<TVar> &);
+void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &);
 
 INSTANTIATE_METHODS(STATE)
 INSTANTIATE_METHODS(CSTATE)

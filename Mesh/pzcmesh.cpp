@@ -1308,52 +1308,6 @@ void TPZCompMesh::Coarsen(TPZVec<int64_t> &elements, int64_t &index, bool Create
 	
 }//method
 
-void TPZCompMesh::Discontinuous2Continuous(int64_t disc_index, int64_t &new_index) {
-	
-	TPZInterpolationSpace *cel = dynamic_cast<TPZInterpolationSpace*> (fElementVec[disc_index]);
-	if (!cel) {
-		new_index = -1;
-		return;
-	}//if
-	
-	TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cel);
-	if (!disc) {
-		new_index = -1;
-		return;
-	}//if
-	
-	TPZGeoEl * ref = cel->Reference();
-	if (!ref){
-		LOGPZ_FATAL(logger, "Computational element without reference");
-		return;
-	}
-	cel->RemoveInterfaces();
-	cel->Reference()->ResetReference();
-	//  this->fElementVec[ cel->Index() ] = NULL;
-	//  delete cel;
-	
-	fCreate.SetAllCreateFunctionsContinuous();
-	TPZCompEl * newcel = CreateCompEl(ref,new_index);
-	TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
-	intel->CreateInterfaces(false);
-	
-	if (!intel){
-		LOGPZ_FATAL(logger, "New created element is not an interpolated element as requested.");
-	}
-	
-	if(!ref->Reference()){
-		LOGPZ_FATAL(logger, "New created element is not referenced by geometric element");
-	}
-	
-	if (ref->Reference() != newcel){
-		LOGPZ_FATAL(logger, "New created element is not the same as referenced by geometric element");
-	}
-	
-	ExpandSolution();
-	intel->InterpolateSolution(*disc);
-	delete cel;
-	
-}//method
 
 void TPZCompMesh::RemakeAllInterfaceElements(){
 	
@@ -2189,69 +2143,6 @@ void TPZCompMesh::Read(TPZStream &buf, void *context) { //ok
     buf.Read(&fNmeshes);
 }
 
-template<class TVar>
-void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<TVar> &celJumps){
-	const int64_t nelements = this->NElements();
-	celJumps.Resize(nelements);
-    int64_t numbersol = Solution().Cols();
-	TPZVec<TPZCompEl*> AllCels(nelements);
-	AllCels.Fill(NULL);
-	celJumps.Fill(0.0);
-	
-	for(int64_t i = 0; i < nelements; i++){
-		TPZCompEl * cel = this->ElementVec()[i];
-		if (!cel) continue;
-		TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement *>(cel);
-		if (!face){
-			AllCels[i] = cel;
-			continue;
-		}
-		TPZSolVec facejump;
-		face->EvaluateInterfaceJump(facejump,opt);
-		const int64_t leftel  = face->LeftElement()->Index();
-		const int64_t rightel = face->RightElement()->Index();
-#ifdef PZDEBUG
-		if(this->ElementVec()[leftel]  != face->LeftElement()){
-			LOGPZ_FATAL(logger, "inconsistent data structure");
-			DebugStop();
-		}
-		if(this->ElementVec()[rightel] != face->RightElement()){
-			LOGPZ_FATAL(logger, "inconsistent data structure");
-			DebugStop();
-		}
-#endif
-		
-		TVar jumpNorm = 0.;
-        for (int64_t is=0; is<numbersol; is++) {
-            for(int64_t ij = 0; ij < facejump.NElements(); ij++){
-                jumpNorm += facejump[is][ij]*facejump[is][ij];
-            }
-        }
-		jumpNorm = sqrt(jumpNorm);
-		
-		celJumps[leftel] += jumpNorm;
-		celJumps[rightel] += jumpNorm;
-	}//for i
-	
-	for(int64_t i = 0; i < nelements; i++){
-		if (!AllCels[i]) continue;
-		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
-		if (!disc) continue;
-		if(disc->Reference()->Dimension() != dim) continue;
-		const TVar celJumpError = celJumps[i];
-		//const TVar celJumpError = celJumps[i];
-		if (abs(celJumpError) < eps){
-			int64_t index;
-			this->Discontinuous2Continuous(i, index);
-		}//if
-	}//for i
-	
-	this->CleanUpUnconnectedNodes();
-	this->AdjustBoundaryElements();
-	
-}//method
-
-
 /// Integrate the postprocessed variable name over the elements included in the set matids
 TPZVec<STATE> TPZCompMesh::Integrate(const std::string &varname, const std::set<int> &matids)
 {
@@ -2961,9 +2852,7 @@ void TPZCompMesh::SetElementSolution<TVar>(int64_t , TPZVec<TVar>&); \
 template \
 void TPZCompMesh::ConnectSolution<TVar>(int64_t , TPZCompMesh *, TPZFMatrix<TVar> &, TPZVec<TVar> &); \
 template \
-void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &); \
-template \
-void TPZCompMesh::ConvertDiscontinuous2Continuous<TVar>(REAL , int , int , TPZVec<TVar> &);
+void TPZCompMesh::ProjectSolution<TVar>(TPZFMatrix<TVar> &);
 
 INSTANTIATE_METHODS(STATE)
 INSTANTIATE_METHODS(CSTATE)

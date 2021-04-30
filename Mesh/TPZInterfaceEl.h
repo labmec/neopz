@@ -362,12 +362,6 @@ virtual void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
 	
 	void IntegrateInterface(int variable, TPZVec<REAL> & value);
 	
-	/** 
-	 * \f$ opt = 0 \f$ ->  Evaluates \f$ \sqrt{ \int { (leftsol - rightsol)^2 } } \f$ \n
-	 * \f$ opt = 1 \f$ ->  Evaluates \f$ Max { | leftsol - rightsol | } \f$
-	 */
-	void EvaluateInterfaceJump(TPZSolVec &jump, int opt);
-	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
     
