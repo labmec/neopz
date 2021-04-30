@@ -365,7 +365,7 @@ void TestingEigenDecompositionTwoEigenValuesNoShearStress() {
  */
 TPZFMatrix<STATE> ReadExternalTensorData(std::string_view ext_file_name) {
 
-#ifdef MACOSX
+#ifdef MACOSXX
     std::string file_name = std::string("../");
     file_name += ext_file_name;
 #else
