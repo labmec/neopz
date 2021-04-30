@@ -22,7 +22,10 @@ static TPZLogger logger("pz.mesh.TPZInterpolationSpace");
 TPZReducedSpace::TPZReducedSpace() : TPZRegisterClassId(&TPZReducedSpace::ClassId),
 TPZInterpolationSpace()
 {
-    
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" should be reimplemented without TPZCompMeshReferred\n";
+    PZError<<"Aborting...";
+    DebugStop();
 }
 
 /** @brief Default destructor */
@@ -42,14 +45,20 @@ TPZInterpolationSpace(mesh,copy)
 TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
 TPZInterpolationSpace(mesh,copy,gl2lcElMap)
 {
-    
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" should be reimplemented without TPZCompMeshReferred\n";
+    PZError<<"Aborting...";
+    DebugStop();
 }
 
 /** @brief Copy of the element in the new mesh whit alocated index */
 TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int64_t &index) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
 TPZInterpolationSpace(mesh,copy,index)
 {
-    
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<<" should be reimplemented without TPZCompMeshReferred\n";
+    PZError<<"Aborting...";
+    DebugStop();
 }
 
 /**
