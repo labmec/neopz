@@ -25,7 +25,6 @@ set(headers
     tpzdohrsubstruct.h
     tpzgensubstruct.h
     tpzpairstructmatrix.h
-    TPZfTime.h
     tpzdohrassembly.h
     tpzdohrprecond.h
     tpzdohrsubstructCondense.h
@@ -41,7 +40,6 @@ set(sources
     tpzdohrsubstructCondense.cpp
     tpzmatredstructmatrix.cpp
     tpzparallelenviroment.cpp
-    TPZfTime.cpp
     tpzdohrassemblelist.cpp
     tpzdohrmatrix.cpp
     tpzdohrsubstruct.cpp

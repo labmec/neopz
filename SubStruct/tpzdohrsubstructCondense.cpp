@@ -7,7 +7,7 @@
 #include "tpzverysparsematrix.h"
 #include <iostream>
 #include "pzlog.h"
-#include "TPZfTime.h"
+#include "TPZSimpleTimer.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("substruct.dohrsubstructcondense");

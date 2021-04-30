@@ -155,7 +155,7 @@ int main1(int argc, char *argv[])
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
 		std::cout << "Substructuring the mesh\n";
-		//	TPZfTime timetosub; // init of timer
+		//	TPZSimpleTimer timetosub; // init of timer
 		//REAL height = Height(gmesh);
 		//int nsubstruct = SubStructure(cmesh, height/2);
 		

@@ -57,8 +57,8 @@ else (WIN32)
     -Wno-narrowing)
 endif()
 
-if  (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")#using gcc
-  target_compile_options(pz PRIVATE -Wsuggest-override)
+if  (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") #using gcc
+  target_compile_options(pz PRIVATE -Wsuggest-override -Wno-alloc-size-larger-than)
 endif()
 
 # Mac OS X specific code

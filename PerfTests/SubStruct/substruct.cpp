@@ -43,7 +43,7 @@
 #include "pzlog.h"
 
 #include <string>
-#include "TPZfTime.h"
+#include "TPZSimpleTimer.h"
 
 
 #ifdef PZ_LOG
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     constexpr bool useTBB{false};
     constexpr int numIt{500};//CG solver
     /*CODE*/
-    TPZfTime serial;
+    TPZSimpleTimer serial;
     
 #ifdef USING_LIKWID
     likwid_manager_t likwid_manager;

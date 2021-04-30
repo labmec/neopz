@@ -8,7 +8,7 @@
 #include "tpzdohrassembly.h"
 #include "pzlog.h"
 
-#include "TPZfTime.h"
+#include "TPZSimpleTimer.h"
 #include "TPZTimeTemp.h"
 
 #include <thread>
@@ -148,7 +148,7 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
         return;
 #endif
         
-	TPZfTime mult;
+	TPZSimpleTimer mult;
 	if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
 		this->Error( "Operator* <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {

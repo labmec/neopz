@@ -30,7 +30,7 @@
 #include <map>
 #include "pzlog.h"
 
-#include "TPZfTime.h"
+#include "TPZSimpleTimer.h"
 #include "TPZTimeTemp.h"
 #include "TPZVTKGeoMesh.h"
 #include <stdlib.h>
@@ -125,7 +125,7 @@ TPZMatrix<TVar> * TPZDohrStructMatrix<TVar,TPar>::Create()
 #ifndef USING_METIS
     NOMETIS
 #endif    
-	TPZfTime timeforcopute; // init of timer for compute
+	TPZSimpleTimer timeforcopute; // init of timer for compute
 	this->fMesh->ComputeNodElCon();
 	TPZAutoPointer<TPZDohrAssembly<TVar> > assembly = new TPZDohrAssembly<TVar>;
 	fDohrAssembly = assembly;
@@ -194,7 +194,7 @@ TPZMatrix<TVar> * TPZDohrStructMatrix<TVar,TPar>::Create()
 #ifdef PZDEBUG
 	std::cout << tempo.ft1comput << std::endl;
 	std::cout << "Identifying corner nodes\n";
-	TPZfTime timefornodes; // init of timer
+	TPZSimpleTimer timefornodes; // init of timer
 #endif
 	
 	IdentifyCornerNodes();

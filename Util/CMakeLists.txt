@@ -16,6 +16,7 @@ set(public_headers
   TPZSemaphore.h
   #other
   TPZTimer.h
+  TPZSimpleTimer.h
   tpzpermutation.h
   pzaxestools.h
   pzlog.h
@@ -75,6 +76,7 @@ set(sources
     tpzpermutation.cpp
     TPZHWTools.cpp
     TPZTimer.cpp
+    TPZSimpleTimer.cpp
     pzgradient.cpp
     pzplane.cpp
     pzstring.cpp
