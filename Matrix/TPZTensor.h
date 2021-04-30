@@ -1263,8 +1263,9 @@ void TPZTensor<T>::EigenSystem(TPZDecomposed &eigensystem)const {
     TPZManVector<T, 3> &eigenvalues = eigensystem.fEigenvalues;
     TPZManVector<TPZTensor<T>, 3> &eigentensors = eigensystem.fEigentensors;
 
-    T tol = Norm()*1.e-8;
-
+    T precision;
+    ZeroTolerance(precision);
+    T tol = Norm()*precision;
     ComputeEigenvectors(eigensystem);
 
     TPZStack<int, 3> indices_to_add;
