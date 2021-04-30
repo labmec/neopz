@@ -51,6 +51,7 @@ set(headers
     TPZFunctionTranslator.h
     TPZParallelUtils.h
     TPZTimer.h
+    TPZSimpleTimer.h
     pzadmchunk.h
     pzcheckconsistency.h
     pzgradient.h

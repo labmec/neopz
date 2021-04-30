@@ -5,7 +5,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-
+#include <random>
 #include "pzfmatrix.h"
 #include "pzsbndmat.h"
 
@@ -41,27 +41,12 @@ TPZMatrix<TVar>( dim, dim )
     
     Zero();
 }
-template<class TVar>
-TVar Random(TVar){
-    return ((TVar) rand() )/((TVar)RAND_MAX);
-}
 
-template<>
-std::complex<float> Random(std::complex<float>){
-    std::complex<float> I(0,1);
-    return ((std::complex<float>) rand() + I*(float)rand() )/((std::complex<float>)RAND_MAX);
-}
-template<>
-std::complex<double> Random( std::complex<double> ){
-    std::complex<double> I(0,1);
-    return ((std::complex<double>) rand() + I*(double)rand() )/((std::complex<double>)RAND_MAX);
-}
 
 
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
 void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    
     if (nrow != ncol || symmetric == 0) {
         DebugStop();
     }
@@ -84,19 +69,16 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
             sum += fabs(GetVal(i, j));
         }
         for(j=i;j<jmax;j++) {
-            val = Random( val );
+            val = this->GetRandomVal();
+            if constexpr (is_complex<TVar>::value){
+                if(j==i) val = fabs(val);
+            }
             if(!PutVal(i,j,val))
             {
                 std::cout << "AutoFill (TPZMatrix) failed.";
                 DebugStop();
             }
             if(i!=j) sum += fabs(val);
-            else{
-	      // AQUI !!!
-	      std::complex<double> complex_val(val);
-	      val = std::real(complex_val);
-                //val = std::real( val );
-            }
         }
         if (this->Rows() == this->Cols()) {
             /** Making diagonally dominant and non zero in diagonal */

@@ -11,7 +11,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-
+#include <random>
 #include "pzfmatrix.h"
 #include "pzskylmat.h"
 
@@ -1784,7 +1784,10 @@ void TPZSkylMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
     for (int64_t i=0; i<nrow; i++) {
         TVar sum = 0.;
         for (int64_t j=skyline[i]; j<i; j++) {
-            TVar val = ((TVar)rand())/((TVar)RAND_MAX);
+            TVar val = this->GetRandomVal();
+            if constexpr (is_complex<TVar>::value){
+                if(j==i) val = fabs(val);
+            }
             PutVal(j,i,val);
             sum += fabs(val);
         }

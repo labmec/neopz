@@ -9,7 +9,7 @@
 #include <memory.h>
 #include <sstream>
 #include <set>
-
+#include <random>
 //#include "pzfmatrix.h"
 #include "pzmatrix.h"
 #include "pzsolve.h"
@@ -1794,7 +1794,6 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv, DecomposeType dec){
 /** Fill the matrix with random values (non singular matrix) */
 template <class TVar>
 void TPZMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    
     Resize(nrow,ncol);
 	int64_t i, j;
 	TVar val, sum;
@@ -1803,16 +1802,25 @@ void TPZMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
 		sum = 0.0;
         j=0;
         if (symmetric) {
-            for (j=0; j<i; j++) {
-                PutVal(i, j, GetVal(j,i));
+            for (; j<i; j++) {
+                if constexpr (is_complex<TVar>::value){
+                    //hermitian matrices
+                    PutVal(i, j, std::conj(GetVal(j,i)));
+                }else{
+                    PutVal(i, j, GetVal(j,i));
+                }
                 sum += fabs(GetVal(i, j));
             }
         }
 		for(;j<Cols();j++) {
-			val = ((TVar)rand())/((TVar)RAND_MAX);
+			val = GetRandomVal();
+            if constexpr(is_complex<TVar>::value){
+                if(j==i) val = fabs(val);
+            }
+            if(i!=j) sum += fabs(val);
 			if(!PutVal(i,j,val))
 				Error("AutoFill (TPZMatrix) failed.");
-			if(i!=j) sum += fabs(val);
+			
 		}
 		if (Rows() == Cols()) {
 		  /** Making diagonally dominant and non zero in diagonal */
@@ -1877,6 +1885,26 @@ std::ostream &operator<<(std::ostream& out,const TPZMatrix<TVar> &A) {
     return  out;
 }
 
+
+template<class TVar>
+TVar TPZMatrix<TVar>::GetRandomVal() const{
+
+    if constexpr (std::is_integral_v<TVar> ||
+                  std::is_same_v<TVar,TPZFlopCounter>){
+        return  ((TVar) rand())/((TVar)RAND_MAX);
+    }
+    else{
+        constexpr RTVar lower_bound = 0;
+        constexpr RTVar upper_bound = 1;
+        static std::uniform_real_distribution<RTVar> unif(lower_bound,upper_bound);
+        static std::default_random_engine re;
+        TVar a_random = (TVar)unif(re);
+        if constexpr (is_complex<TVar>::value){
+            a_random+= (TVar)1i * (TVar)unif(re);
+        }
+        return a_random;
+    }
+}
 
 template class TPZMatrix< std::complex<float> >;
 template class TPZMatrix< std::complex<double> >;

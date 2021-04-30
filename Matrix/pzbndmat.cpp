@@ -12,7 +12,7 @@
 
 #endif
 
-#include <stdlib.h>
+#include <random>
 
 #include "pzlog.h"
 #ifdef PZ_LOG
@@ -349,7 +349,6 @@ TPZFBMatrix<TVar>::operator*=(const TVar value )
 
 template <class TVar>
 void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
-    
     if (nrow != ncol) {
         DebugStop();
     }
@@ -373,14 +372,22 @@ void TPZFBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
         int64_t j = jmin;
         if (symmetric) {
             for (; j<i; j++) {
-                PutVal(i,j,GetVal(j,i));
-                sum += GetVal(i, j);
+                if constexpr (is_complex<TVar>::value){
+                    //hermitian matrices
+                    PutVal(i, j, std::conj(GetVal(j,i)));
+                }else{
+                    PutVal(i, j, GetVal(j,i));
+                }
+                sum += fabs(GetVal(i, j));
             }
         }
         for (; j<jmax; j++) {
-            TVar val = ((TVar) rand())/((TVar)RAND_MAX);
+            TVar val = this->GetRandomVal();
+            if constexpr (is_complex<TVar>::value){
+                if(j==i) val = fabs(val);
+            }
             PutVal(i, j, val);
-            if(i!=j) sum += val;
+            if(i!=j) sum += fabs(val);
         }
         PutVal(i, i, sum+(TVar)1.);
     }

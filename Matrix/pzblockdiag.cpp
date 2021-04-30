@@ -6,7 +6,7 @@
 #include "pzfmatrix.h"
 #include "pzblockdiag.h"
 
-
+#include <random>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -588,7 +588,6 @@ void TPZBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
 /** Fill the matrix with random values (non singular matrix) */
 template<class TVar>
 void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
-
     if (neq != jeq) {
         DebugStop();
     }
@@ -608,7 +607,7 @@ void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];
 		for(c=0; c<bsize; c++) {
-            float sum = 0.;
+            RTVar sum = 0.;
             r=0;
             if (symmetric == 1) {
                 for (r=0; r<c; r++) {
@@ -617,8 +616,8 @@ void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
                 }
             }
 			for(; r<bsize; r++) {
-                float val = ((float)rand())/RAND_MAX;
-				fStorage[pos+c+r*bsize] = (TVar)(val);
+				auto val = this->GetRandomVal();
+				fStorage[pos+c+r*bsize] = (val);
                 if(c!= r) sum += fabs(val);
 			}
             //totototo
@@ -627,7 +626,7 @@ void TPZBlockDiagonal<TVar>::AutoFill(int64_t neq, int64_t jeq, int symmetric) {
 //                std::cout << "sum " << sum << std::endl;
 //            }
             if (fabs(fStorage[pos+c+c*bsize]) < sum) {
-                fStorage[pos+c+c*bsize] = (TVar)(sum + (float)1.);
+                fStorage[pos+c+c*bsize] = (TVar)(sum + (RTVar)1.);
             }
 		}
 		eq += bsize;
