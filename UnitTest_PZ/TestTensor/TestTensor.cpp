@@ -7,7 +7,6 @@
 #include "pzfmatrix.h"
 #include "pzblockdiag.h"
 #include "pzbndmat.h"
-#include "pzespmat.h"
 #include "pzsbndmat.h"
 #include "pzsfulmat.h"
 #include "pzskylnsymmat.h"

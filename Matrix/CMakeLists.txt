@@ -12,7 +12,6 @@ set(headers
     pzfmatrix.h
     pzmatrix.h
     pzbasematrix.h
-    pzsespmat.h
     pzskylmat.h
     pzspblockdiagpivot.h
     pzsysmp.h
@@ -20,7 +19,6 @@ set(headers
     TPZCopySolve.h
     pzblock.h
     pzdiffmatrix.h
-    pzlink.h
     pzsbndmat.h
     pzsfulmat.h
     pzskylnsymmat.h
@@ -29,7 +27,6 @@ set(headers
     tpzverysparsematrix.h
     TPZPardisoControl.h
     pzblockdiag.h
-    pzespmat.h
     pzmatred.h
     pzseqsolver.h
     pzshtmat.h
@@ -47,14 +44,12 @@ set(sources
     pzfmatrix.cpp
     pzmatrix.cpp
     pzbasematrix.cpp
-    pzsespmat.cpp
     pzskylmat.cpp
     pzspblockdiagpivot.cpp
     pzsysmp.cpp
     tpzsparseblockdiagonal.cpp
     TPZPardisoControl.cpp
     pzbndmat.cpp
-    pzlink.cpp
     pzsbndmat.cpp
     pzsfulmat.cpp
     pzskylnsymmat.cpp
@@ -62,7 +57,6 @@ set(sources
     pztrnsform.cpp
     tpzverysparsematrix.cpp
     pzblock.cpp
-    pzespmat.cpp
     pzmatred.cpp
     pzseqsolver.cpp
     pzshtmat.cpp
