@@ -93,61 +93,21 @@ void TPZSBMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric) {
 }
 /**************/
 /*** PutVal ***/
-template <>
-int
-TPZSBMatrix< std::complex<float> >::PutVal(const int64_t r,const int64_t c,const std::complex<float>& value )
-{
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    if ( row > col )
-        DebugStop();//this->Swap( &row, &col );
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-    {
-#ifdef PZDEBUG
-        if (value != this->gZero) {
-            DebugStop();
-        }
-#endif
-        return( 0 );        // O elemento esta fora da banda.
-    }
-    fDiag[ Index(row,col) ] = value;
-    this->fDecomposed = 0;
-    return( 1 );
-}
 
-template <>
-int
-TPZSBMatrix< std::complex<double> >::PutVal(const int64_t r,const int64_t c,const std::complex<double>& value )
-{
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    if ( row > col )
-        this->Swap( &row, &col );
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-    {
-#ifdef PZDEBUG
-        if (value != this->gZero) {
-            DebugStop();
-        }
-#endif
-        return( 0 );        // O elemento esta fora da banda.
-    }
-    fDiag[ Index(row,col) ] = value;
-    this->fDecomposed = 0;
-    return( 1 );
-}
 template <class TVar>
 int
 TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
 {
     // inicializando row e col para trabalhar com a triangular superior
+    auto val = value;
     int64_t row(r),col(c);
-    if ( row > col )
+    if ( row > col ){
+        //hermitian matrix
+        if constexpr (is_complex<TVar>::value){
+            val = std::conj(value);
+        }
         this->Swap( &row, &col );
+    }
     
     int64_t index;
     if ( (index = col-row) > fBand )
@@ -159,7 +119,7 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
 #endif
         return( 0 );        // O elemento esta fora da banda.
     }
-    fDiag[ Index(row,col) ] = value;
+    fDiag[ Index(row,col) ] = val;
     this->fDecomposed = 0;
     return( 1 );
 }
