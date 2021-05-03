@@ -25,7 +25,6 @@ TPZInterpolationSpace()
     PZError<<__PRETTY_FUNCTION__;
     PZError<<" should be reimplemented without TPZCompMeshReferred\n";
     PZError<<"Aborting...";
-    DebugStop();
 }
 
 /** @brief Default destructor */
@@ -71,7 +70,7 @@ TPZInterpolationSpace(mesh,copy,index)
 TPZReducedSpace::TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) : TPZRegisterClassId(&TPZReducedSpace::ClassId),
 TPZInterpolationSpace(mesh,gel,index)
 {
-    
+    std::cout << "Creating reduced with dim " << gel->Dimension() << '\n';
 }
 
 /** @brief It returns the shapes number of the element */
@@ -135,12 +134,12 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
     int nstate = sol[0].size();
     int dim = axes.Rows();
     phi.Resize(nsol,nstate);
-    dphix.Resize(nsol,nstate*dim);
+    dphix.Resize(nstate*dim,nsol);
     for (int isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
             phi(isol,istate) = sol[isol][istate];
             for (int id=0; id<dim; id++) {
-                dphix(isol,id+istate*dim) = dsol[isol](id,istate);
+                dphix(id+istate*dim,isol) = dsol[isol](id,istate);
             }
         }
     }
@@ -156,12 +155,12 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
     int nstate = data.sol[0].size();
     int dim = data.axes.Rows();
     data.phi.Resize(nsol,nstate);
-    data.dphix.Resize(nsol,nstate*dim);
+    data.dphix.Resize(nstate*dim,nsol);
     for (int64_t isol =0; isol<nsol; isol++) {
         for (int istate=0; istate<nstate; istate++) {
             data.phi(isol,istate) = data.sol[isol][istate];
             for (int id=0; id<dim; id++) {
-                data.dphix(isol,id+istate*dim) = data.dsol[isol](id,istate);
+                data.dphix(id+istate*dim,isol) = data.dsol[isol](id,istate);
             }
         }
     }
@@ -185,6 +184,12 @@ void TPZReducedSpace::InitMaterialData(TPZMaterialData &data)
     data.fShapeType = TPZMaterialData::EVecShape;
     TPZMaterial *mat = Material();
     mat->FillDataRequirements(data);
+    TPZConnect &c = Connect(0);
+    int nshape = c.NShape();
+    int nstate = c.NState();
+    int dim = Reference()->Dimension();
+    data.phi.Resize(nshape, nstate);
+    data.dphix.Resize(dim*nstate,nshape);
 }
 
 /** @brief Compute and fill data with requested attributes */
@@ -193,7 +198,7 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
 {
     data.intGlobPtIndex = -1;
     ShapeX(qsi, data.phi, data.dphix, data.axes);
-    
+
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
     }
@@ -218,7 +223,6 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
 void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
     TPZMaterial *mat = this->Material();
-	const int numdof = 1;
 	const int ncon = this->NConnects();
 #ifdef PZDEBUG
     if (ncon != 1) {
@@ -226,7 +230,7 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
     }
 #endif
 	const int nshape = this->NShapeF();
-	const int numeq = nshape*numdof;
+	const int numeq = nshape;
     const int numloadcases = mat->NumLoadCases();
 	ek.Matrix().Redim(numeq,numeq);
 	ef.Matrix().Redim(numeq,numloadcases);
@@ -234,12 +238,15 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
     auto &efBlock = ef.Block();
 	ekBlock.SetNBlocks(ncon);
 	efBlock.SetNBlocks(ncon);
-
+    ek.fMesh = Mesh();
+    ef.fMesh = Mesh();
+    ek.fType = TPZElementMatrix::EK;
+    ef.fType = TPZElementMatrix::EF;
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = Connect(i).NShape();
-		ekBlock.Set(i,nshape*numdof);
-		efBlock.Set(i,nshape*numdof);
+		ekBlock.Set(i,nshape);
+		efBlock.Set(i,nshape);
 	}
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
@@ -266,7 +273,8 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
     const int numloadcases = mat->NumLoadCases();
 	ef.Matrix().Redim(numeq,numloadcases);
 	ef.Block().SetNBlocks(ncon);
-
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
 	int i;
 	for(i=0; i<ncon; i++){
         unsigned int nshape = Connect(i).NShape();
@@ -292,12 +300,7 @@ void TPZReducedSpace::Read(TPZStream &buf, void *context)
 
 TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 {
-    TPZCompMesh *cmesh = Mesh();
-    PZError<<__PRETTY_FUNCTION__;
-    PZError<<" should be reimplemented without TPZCompMeshReferred\n";
-    PZError<<"Aborting...";
-    DebugStop();
-    return nullptr;
+    return fReferred;
 //     TPZCompMeshReferred *cmeshref = dynamic_cast<TPZCompMeshReferred *>(cmesh);
     
 // #ifdef PZDEBUG
@@ -350,7 +353,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
 {
     const int dim = axes.Rows();//this->Reference()->Dimension();
-    const int nstate = this->Material()->NStateVariables() + 1;
+    const int nstate = this->Material()->NStateVariables();
     
 #ifdef PZDEBUG
     const int ncon = this->NConnects();
@@ -378,8 +381,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     for (int64_t is=0 ; is<numbersol; is++) {
         sol[is].Resize(nstate);
         sol[is].Fill(0.);
-        dsol[is].Redim(nstate, nstate*dim);
-        dsol[is].Zero();
+        dsol[is].Redim(dim, nstate);
     }
     
     TPZBlock &block = Mesh()->Block();
@@ -408,7 +410,7 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
                 sol[is][iv%nstate] += (STATE)phi(ib,iv)*MeshSol(pos+ib*nstate+iv,is);
                 
                 for(int64_t id = 0; id < dim; id++){
-                    dsol[is](iv%nstate,id) += (STATE)dphix(ib,id+iv*dim)*MeshSol(pos+ib*nstate+iv,is);
+                    dsol[is](id,iv%nstate) += (STATE)dphix(id+iv*dim,ib)*MeshSol(pos+ib*nstate+iv,is);
                 }
             }
         }

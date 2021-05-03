@@ -16,6 +16,7 @@
  */
 class TPZReducedSpace : public TPZInterpolationSpace
 {
+    TPZInterpolationSpace *fReferred;
 public:
     /** @brief Default constructor */
 	TPZReducedSpace();
@@ -29,7 +30,7 @@ public:
 	/** @brief Puts a copy of the element in the patch mesh */
 	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, std::map<int64_t,int64_t> &gl2lcElMap);
 	
-	/** @brief Copy of the element in the new mesh whit alocated index */
+	/** @brief Copy of the element in the new mesh returning the alocated index */
 	TPZReducedSpace(TPZCompMesh &mesh, const TPZReducedSpace &copy, int64_t &index);
 	
 	/**
@@ -43,6 +44,14 @@ public:
 	
     static void SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh);
 
+    void SetReferredElement(TPZCompEl *refer)
+    {
+#ifdef PZDEBUG
+        if(!refer || refer->Reference() != Reference()) DebugStop();
+#endif
+        fReferred = dynamic_cast<TPZInterpolationSpace *>(refer);
+        if(!fReferred) DebugStop();
+    }
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const override
     {
