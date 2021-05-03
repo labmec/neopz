@@ -10,6 +10,7 @@ endif()
 target_compile_definitions(test_library PRIVATE CATCH_CONFIG_MAIN)
 target_link_libraries(test_library PUBLIC pz Catch2::Catch2)
 
+add_subdirectory(TestReducedSpace)
 add_subdirectory(TestAutoPointer)
 add_subdirectory(TestVecTypes)
 add_subdirectory(TestFad)
