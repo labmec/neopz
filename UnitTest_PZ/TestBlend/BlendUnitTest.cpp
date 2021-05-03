@@ -83,11 +83,11 @@ static TPZLogger logger("pz.mesh.testgeom");
         gRefDBase.InitializeUniformRefPattern(EPrisma);
         gRefDBase.InitializeUniformRefPattern(ECube);
         {
-            const int nDiv = 3;
+            const int nDiv = 2;
             blendtest::CreateGeoMesh3D(nDiv);
         }
         {
-            const int nDiv = 3;
+            const int nDiv = 2;
             blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoLinear>(nDiv);
             blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoTriangle>(nDiv);
             blendtest::CompareSameDimensionNonLinNeighbour<pzgeom::TPZGeoQuad>(nDiv);
