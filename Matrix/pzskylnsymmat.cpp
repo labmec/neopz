@@ -1595,6 +1595,7 @@ void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric
         {
             sum += this->GetVal(i,j);
         }
+        sum = fabs(sum);
         /** Making diagonally dominant and non zero in diagonal */
         if(fabs(sum) > fabs(GetVal(i,i))) {           // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
             PutVal(i,i,sum+(TVar)1.);
