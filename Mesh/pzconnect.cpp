@@ -79,7 +79,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 		int64_t ieq;
 		for(ieq=0; ieq< mesh.Block().Size(fSequenceNumber); ieq++)
 		{
-			out << meshSol.at(mesh.Block().at(fSequenceNumber,0,ieq,0)) << ' ';
+			out << meshSol.GetVal(mesh.Block().Index(fSequenceNumber,ieq),0) << ' ';
 		}
 	}
 	
