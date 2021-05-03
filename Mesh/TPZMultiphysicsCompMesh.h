@@ -48,6 +48,7 @@ public:
     void AutoBuild() override;
     
     /// Set active approximation spaces
+    // active_approx_spaces : vector of the size of mesh_vector containing value 0 or 1
     void BuildMultiphysicsSpace(TPZVec<int> & active_approx_spaces, TPZVec<TPZCompMesh * > & mesh_vector);
     
     /// Set active approximation spaces
