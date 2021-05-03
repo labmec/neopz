@@ -25,7 +25,10 @@ namespace testmatrix{
  * @note matx is a class of the type matrix matr.
  */
 template <class matx>
-int TestingGeneratingDiagonalDominantMatrix(matx &matr);
+void CheckDiagonalDominantMatrix(matx &matr);
+
+template <class matx>
+void TestGeneratingDiagonalDominantMatrix(bool isSymmetric);
 
 template <class matx, class TVar>
 void TestGeneratingHermitianMatrix();
@@ -235,31 +238,41 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
     
     template<class TVar>
     void DiagonalDominant(){
-        // Unit Test for full matrix
-        for (int dim = 3; dim < 100; dim += 7) {
-          TPZFMatrix<TVar> ma;
-          ma.AutoFill(dim, dim, 0);
-          REQUIRE(
-              TestingGeneratingDiagonalDominantMatrix<TPZFMatrix<TVar>>(ma)== 1);
+        bool isSymmetric{false};
+        SECTION("TPZFMatrix"){            
+            TestGeneratingDiagonalDominantMatrix<TPZFMatrix<TVar>>(isSymmetric);
         }
-
-        // Unit Test for block diagonal matrix
-        TPZVec<int> blocks(13);
-        for (int i = 0; i < 13; i++)
-          blocks[i] = 15 + (i % 4);
-        TPZBlockDiagonal<TVar> mabd(blocks);
-        mabd.AutoFill(50, 50, 0);
-        REQUIRE(
-            TestingGeneratingDiagonalDominantMatrix<TPZBlockDiagonal<TVar>>(
-                mabd)==
-            1);
-
-        // Unit Test No Symmetric Banded matrix
-        TPZFBMatrix<TVar> mafb(17, 5);
-        mafb.AutoFill(17, 17, 0);
-        REQUIRE(
-            TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix<TVar>>(mafb)==
-            1);
+        SECTION("TPZFBMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZFBMatrix<TVar>>(isSymmetric);
+        }
+        SECTION("TPZSkylNSymMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZSkylNSymMatrix<TVar>>(isSymmetric);
+        }
+        SECTION("TPZFYsmpMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZFYsmpMatrix<TVar>>(isSymmetric);
+        }
+        isSymmetric = true;
+        SECTION("TPZSFMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZSFMatrix<TVar>>(isSymmetric);
+        }
+        SECTION("TPZSBMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZSBMatrix<TVar>>(isSymmetric);
+        }
+        SECTION("TPZSkylMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZSkylMatrix<TVar>>(isSymmetric);
+        }
+        SECTION("TPZSYsmpMatrix"){
+            TestGeneratingDiagonalDominantMatrix<TPZSYsmpMatrix<TVar>>(isSymmetric);
+        }
+        SECTION("TPZBlockDiagonal"){
+            // Unit Test for block diagonal matrix
+            TPZVec<int> blocks(13);
+            for (int i = 0; i < 13; i++)
+                blocks[i] = 15 + (i % 4);
+            TPZBlockDiagonal<TVar> mabd(blocks);
+            mabd.AutoFill(50, 50, 0);
+            CheckDiagonalDominantMatrix(mabd);
+        }
     }
     
     template <class TVar>
@@ -492,8 +505,9 @@ TEMPLATE_TEST_CASE("Generalised Eigenvalues (CPLX)","[matrix_tests]",
 
 namespace testmatrix{
 
+    
 template <class matx>
-int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
+void CheckDiagonalDominantMatrix(matx &matr) {
     REAL sum;
     for (int i = 0; i < matr.Rows(); i++) {
         sum = 0.0;
@@ -501,15 +515,26 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
             if (i != j)
                 sum += fabs(matr.GetVal(i, j));
         }
+        REQUIRE(fabs(matr.GetVal(i, i)) > sum);
         if (!(fabs(matr.GetVal(i, i)) > sum)) {
             std::cout << "line i " << i << " failed\n";
-            matr.Print("matrix = ", std::cout, EMathematicaInput);
-            return 0;
+            // matr.Print("matrix = ", std::cout, EMathematicaInput);
+            return;
         }
     }
-    return 1;
 }
 
+template<class matx>
+void TestGeneratingDiagonalDominantMatrix(bool symmetric){
+    for(int dim = 3; dim<100;dim+=7){
+        const auto nrows = dim;
+        const auto ncols = dim;
+        matx mat;
+        mat.AutoFill(nrows,ncols,symmetric);
+        CheckDiagonalDominantMatrix(mat);
+    }
+}
+    
 template <class matx, class TVar>
 void TestGeneratingHermitianMatrix() {
     const auto nrows = 10;
@@ -535,15 +560,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   int i, j;
 
   matx ma;
-  ma.AutoFill(dim, dim, symmetric);
-  const bool firsttest = TestingGeneratingDiagonalDominantMatrix<matx>(ma);
-  if(!firsttest){
-      std::cout << __PRETTY_FUNCTION__;
-      std::cout << " failed to generate matrix\n";
-      std::cout << std::flush;
-  }
-  //    ma.Print("skyl =",std::cout,EMathematicaInput);
-  REQUIRE(firsttest== 1);
+  ma.AutoFill(dim, dim, symmetric);  
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
   matx cpma(ma);
   TPZFMatrix<TVar> inv(dim, dim), invkeep;
@@ -732,9 +749,6 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric) {
     matx ma, mb;
     ma.AutoFill(dim, dim, symmetric);
     mb.AutoFill(dim, dim, symmetric);
-
-    REQUIRE(TestingGeneratingDiagonalDominantMatrix<matx>(ma)== 1);
-    REQUIRE(TestingGeneratingDiagonalDominantMatrix<matx>(mb)== 1);
 
     // Making ma and mb copies because ma and mb are modified by the eigenvalues method
     bool check = true;
