@@ -30,6 +30,9 @@ set(headers
     pztrigraphd.h
     pzvtkmesh.h
     tpzgraphelt2dmapped.h
+    #post proc
+    pzpostprocananlysis.h
+    pzcompelpostproc.h
     )
 
 set(sources
@@ -55,6 +58,7 @@ set(sources
     pztrigraphd.cpp
     pzvtkmesh.cpp
     tpzgraphelt2dmapped.cpp
+    pzpostprocanalysis.cpp
     )
 
 if(NOT BUILD_COMPLEX_PROJECTS)
