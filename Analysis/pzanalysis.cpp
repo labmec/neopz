@@ -462,7 +462,15 @@ void TPZAnalysis::SolveInternal(){
 //            mySolver->Matrix()->Print("Stiffness = ",out,EMathematicaInput);
 //
 //        }
-        mySolver->Solve(residual, delu);
+        REAL resnorm = Norm(residual);
+        if(IsZero(resnorm))
+        {
+            delu.Zero();
+        }
+        else
+        {
+            mySolver->Solve(residual, delu);
+        }
         fSolution = delu;
 #ifdef PZ_LOG
         if (logger.isDebugEnabled())
