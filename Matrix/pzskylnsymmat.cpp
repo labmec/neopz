@@ -1593,7 +1593,7 @@ void TPZSkylNSymMatrix<TVar>::AutoFill(int64_t nrow, int64_t ncol, int symmetric
         TVar sum = 0.;
         for (j=0; j<this->Rows(); j++) 
         {
-            sum += this->GetVal(i,j);
+          sum += fabs(this->GetVal(i,j));
         }
         sum = fabs(sum);
         /** Making diagonally dominant and non zero in diagonal */
