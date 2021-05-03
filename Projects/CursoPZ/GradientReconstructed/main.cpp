@@ -7,8 +7,6 @@
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "tpzcompmeshreferred.h"
-#include "pzreferredcompel.h"
 #include "pzcompel.h"
 #include "pzbndcond.h"
 #include "TPZInterfaceEl.h"
