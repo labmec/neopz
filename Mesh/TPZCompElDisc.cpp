@@ -1000,89 +1000,6 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	
 }
 
-
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
-    
-//    this->InitMaterialData(data);
-//    this->ComputeShape(qsi, data);
-    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-}
-
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes){
-	TPZGeoEl * ref = this->Reference();
-	const int nshape = this->NShapeF();
-	const int dim = ref->Dimension();
-    
-    TPZMaterialData data;
-    data.phi.Resize(nshape, 1);
-    data.dphix.Resize(dim, nshape);
-    data.jacobian.Resize(dim, dim);
-    data.jacinv.Resize(dim, dim);
-    data.x.Resize(3, 0.);
-    
-	//this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
-	//this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
-    
-    this->ComputeShape(qsi, data);
-//    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-	axes = data.axes;
-	this->ComputeSolution(qsi, data.phi, data.dphix, axes, sol, dsol);
-
-}//method
-
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                    const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
-	
-	const int nstate = this->Material()->NStateVariables();
-	const int ncon = this->NConnects();
-	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
-    int64_t numbersol = MeshSol.Cols();
-	
-	int solVecSize = nstate;
-	if(!ncon) solVecSize = 0;
-	
-    sol.resize(numbersol);
-    dsol.resize(numbersol);
-    for (int is = 0; is<numbersol; is++) {
-        sol[is].Resize(solVecSize);
-        sol[is].Fill(0.);
-        dsol[is].Redim(dphix.Rows(), solVecSize);
-        dsol[is].Zero();
-    }	
-	int64_t iv = 0, d;
-	for(int in=0; in<ncon; in++) {
-		TPZConnect *df = &Connect(in);
-		int64_t dfseq = df->SequenceNumber();
-		int dfvar = block.Size(dfseq);
-		int64_t pos = block.Position(dfseq);
-		for(int jn=0; jn<dfvar; jn++) {
-            for (int64_t is=0; is<numbersol; is++) {
-                sol[is][iv%nstate] += (STATE)phi(iv/nstate,0)*MeshSol(pos+jn,is);
-                for(d=0; d<dphix.Rows(); d++){
-                    dsol[is](d,iv%nstate) += (STATE)dphix(d,iv/nstate)*MeshSol(pos+jn,is);
-                }
-            }
-			iv++;
-		}
-	}
-	
-}//method
-
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
-                                    TPZVec<REAL> &normal,
-                                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-	//TPZCompElDisc has no left/right elements. Only interface elements have it.
-	leftsol.resize(0);
-	dleftsol.resize(0);
-	leftaxes.Zero();
-	rightsol.Resize(0);
-	drightsol.Resize(0);
-	rightaxes.Zero();
-	normal.Resize(0);
-}//method
-
 TPZAutoPointer<TPZIntPoints> TPZCompElDisc::CreateIntegrationRule() const{
 	TPZGeoEl * gel = this->Reference();
 	if(gel){
@@ -1165,7 +1082,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 		DebugStop();
 		return -1.;
 	}
-	
+	//TODOCOMPLEX
 	TPZMaterialData data;
 	disc->InitMaterialData(data);
 	data.p = disc->MaxOrder();
@@ -1190,7 +1107,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 		intrule->Point(int_ind,intpoint,weight);
 		//disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
         disc->ComputeShape(intpoint, data);
-		disc->ComputeSolution(intpoint,data.phi,data.dphix,data.axes,data.sol,data.dsol);    
+		disc->ReallyComputeSolution(data);
 		weight *= fabs(data.detjac);
 		SquareResidual += material->ComputeSquareResidual(data.x,data.sol[0],data.dsol[0]) * weight;
 	}//loop over integration points  

@@ -21,7 +21,6 @@
 #include "tpzarc3d.h"
 #include "pzgeopoint.h"
 
-#include "tpzcompmeshreferred.h"
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 #include "tpzgeoblend.h"

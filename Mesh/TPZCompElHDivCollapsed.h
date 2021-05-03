@@ -121,18 +121,6 @@ public:
 	/** @brief Computes the values of the shape function of the side without considering the side orientation*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) override;
 	
-    /** @brief Computes the values of the shape function of the side NSides-1 considering the side orientation*/
-//	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
-    
-    /** @brief Compute the solution for a given variable */
-//	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
-	
-public:
-//    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
-    
-public:
-    
-public:
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
     int ClassId() const override;
 

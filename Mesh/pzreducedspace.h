@@ -119,7 +119,6 @@ public:
     virtual void ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data);
     
     virtual void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
-    virtual void ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
 
 	/** 
 	 * @brief Initialize a material data and its attributes based on element dimension, number
@@ -130,18 +129,6 @@ public:
 	/** @brief Compute and fill data with requested attributes */
 	virtual void ComputeRequiredData(TPZMaterialData &data,
 									 TPZVec<REAL> &qsi) override;
-
-    /**
-     * @brief Computes solution and its derivatives in local coordinate qsi
-     * @param qsi master element coordinate
-     * @param phi matrix containing shape functions compute in qsi point
-     * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-     * @param axes axes indicating the direction of the derivatives
-     * @param sol finite element solution
-     * @param dsol solution derivatives
-     */
-    void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                         const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
@@ -205,8 +192,9 @@ public:
     public:
 int ClassId() const override;
 
+protected:
+    void ReallyComputeSolution(TPZMaterialData& data) override;
 private:
-
     TPZInterpolationSpace *ReferredIntel() const;
 };
 

@@ -127,9 +127,12 @@ void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<R
 void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &axes)
 {
     TPZInterpolationSpace *intel = ReferredIntel();
-    TPZSolVec sol;
-    TPZGradSolVec dsol;
-    intel->ComputeSolution(qsi, sol, dsol, axes);
+    TPZMaterialData inteldata;
+    inteldata.fNeedsSol=true;
+    constexpr bool hasPhi{false};
+    intel->ComputeSolution(qsi,inteldata,hasPhi);
+    TPZSolVec &sol = inteldata.sol;
+    TPZGradSolVec &dsol = inteldata.dsol;
     int nsol = sol.size();
     int nstate = sol[0].size();
     int dim = axes.Rows();
@@ -149,8 +152,15 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
 void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
 {
     TPZInterpolationSpace *intel = ReferredIntel();
-    
-    intel->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+
+    {
+        TPZMaterialData inteldata;
+        inteldata.fNeedsSol=true;
+        constexpr bool hasPhi{false};
+        intel->ComputeSolution(qsi,inteldata,hasPhi);
+        data.sol = std::move(inteldata.sol);
+        data.dsol = std::move(inteldata.dsol);
+    }
     int64_t nsol = data.sol.size();
     int nstate = data.sol[0].size();
     int dim = data.axes.Rows();
@@ -171,10 +181,6 @@ void TPZReducedSpace::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data){
     ShapeX(qsi,data);
 }
 
-void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data){
-    ComputeSolution(qsi, data.phi, data.dphix, data.axes,data.sol,data.dsol);
-}
-
 /**
  * @brief Initialize a material data and its attributes based on element dimension, number
  * of state variables and material definitions
@@ -190,6 +196,9 @@ void TPZReducedSpace::InitMaterialData(TPZMaterialData &data)
     int dim = Reference()->Dimension();
     data.phi.Resize(nshape, nstate);
     data.dphix.Resize(dim*nstate,nshape);
+    data.jacobian.Resize(dim,dim);
+    data.jacinv.Resize(dim,dim);
+    data.axes.Resize(dim, 3);
 }
 
 /** @brief Compute and fill data with requested attributes */
@@ -197,10 +206,12 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
                                  TPZVec<REAL> &qsi)
 {
     data.intGlobPtIndex = -1;
+    int dim = Reference()->Dimension();
+    Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
     ShapeX(qsi, data.phi, data.dphix, data.axes);
 
     if (data.fNeedsSol) {
-        ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+        ReallyComputeSolution(data);
     }
     if (data.fNeedsHSize){
 		data.HSize = 2.*this->InnerRadius();
@@ -212,10 +223,6 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
     data.x.Resize(3., 0.);
     Reference()->X(qsi, data.x);
     
-    int dim = Reference()->Dimension();
-    data.jacobian.Resize(dim,dim);
-    data.jacinv.Resize(dim,dim);
-    Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
 }
 
 
@@ -340,18 +347,13 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 //     return intel;
 }
 
-/**
- * @brief Computes solution and its derivatives in local coordinate qsi
- * @param qsi master element coordinate
- * @param phi matrix containing shape functions compute in qsi point
- * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
- * @param axes [in] axes indicating the direction of the derivatives
- * @param sol finite element solution
- * @param dsol solution derivatives
- */
-void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
+void TPZReducedSpace::ReallyComputeSolution(TPZMaterialData& data)
 {
+    const TPZFMatrix<REAL> &phi = data.phi;
+    const TPZFMatrix<REAL> &dphix = data.dphix;
+    const TPZFMatrix<REAL> &axes = data.axes;
+    TPZSolVec &sol = data.sol;
+    TPZGradSolVec &dsol = data.dsol;
     const int dim = axes.Rows();//this->Reference()->Dimension();
     const int nstate = this->Material()->NStateVariables();
     
@@ -407,10 +409,10 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
         for (int64_t is=0; is<numbersol; is++) {
             
             for(int64_t iv = 0; iv < nstate; iv++){
-                sol[is][iv%nstate] += (STATE)phi(ib,iv)*MeshSol(pos+ib*nstate+iv,is);
+                sol[is][iv%nstate] += (STATE)phi.GetVal(ib,iv)*MeshSol(pos+ib*nstate+iv,is);
                 
                 for(int64_t id = 0; id < dim; id++){
-                    dsol[is](id,iv%nstate) += (STATE)dphix(id+iv*dim,ib)*MeshSol(pos+ib*nstate+iv,is);
+                    dsol[is](id,iv%nstate) += (STATE)dphix.GetVal(id+iv*dim,ib)*MeshSol(pos+ib*nstate+iv,is);
                 }
             }
         }

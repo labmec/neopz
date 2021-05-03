@@ -1018,64 +1018,20 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol)
 {
+    //TODOCOMPLEX
     if (var == 99) {
         return TPZIntelGen<TSHAPE>::Solution(qsi,var,sol);
     }
     TPZMaterialData data;
-	InitMaterialData(data);
-	//this->ComputeSolutionHDiv(data);
-    this->ComputeRequiredData(data,qsi);
-    this->ComputeSolutionHDiv(qsi,data);
-	this->Material()->Solution(data,var,sol);
+    constexpr bool hasPhi{false};
+    this->ComputeSolution(qsi,data,hasPhi);
+    sol = std::move(data.sol[0]);
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data)
+void TPZCompElHDiv<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data)
 {
-//	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
-    this->ComputeShape(qsi,data);
-    this->ComputeSolutionHDiv(data);
-}
-
-template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                            const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
-    TPZMaterialData data;
-    InitMaterialData(data);
-    data.phi = phi;
-    data.dphix = dphix;
-    data.axes = axes;
-    this->ComputeSolutionHDiv(data);
-    sol = data.sol;
-    dsol = data.dsol;
-}
-
-template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
-
-    this->ComputeSolutionHDiv(data);
-
-}
-
-template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) {
-
-	TPZGeoEl * ref = this->Reference();
-	const int nshape = this->NShapeF();
-	const int dim = ref->Dimension();
-
-    TPZMaterialData data;
-    InitMaterialData(data);
-    data.fNeedsSol = true;
-    ComputeRequiredData(data,qsi);
-    sol = data.sol;
-    dsol = data.dsol;
-    axes = data.axes;
-}
-
-template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
-{
+    
     const int dim = 3; // Hdiv vectors are always in R3
     const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
@@ -1461,7 +1417,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 
     data.ComputeFunctionDivergence();
     if (data.fNeedsSol) {
-        ComputeSolution(qsi, data);
+        constexpr bool hasPhi{true};
+        ReallyComputeSolution(data);
     }
 
 

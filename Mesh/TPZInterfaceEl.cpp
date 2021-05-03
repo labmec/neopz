@@ -1388,42 +1388,21 @@ void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REA
 	const int neighdim = neighel->Dimension();
 	TPZManVector<REAL,3> NeighIntPoint(neighdim);
 	this->MapQsi(Neighbor, qsi, NeighIntPoint);
-	Neighbor.Element()->ComputeSolution(NeighIntPoint, sol, dsol, NeighborAxes);
+    TPZMaterialData neighData;
+    neighData.fNeedsSol=true;
+    auto *intel =
+        dynamic_cast<TPZInterpolationSpace *>(Neighbor.Element());
+    if(!intel){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<"Neighbour does not inherit from TPZInterpolationSpace.\n";
+        PZError<<"Aborting...\n";
+        DebugStop();
+    }
+    constexpr bool hasPhi{false};
+	intel->ComputeSolution(NeighIntPoint, neighData,hasPhi);
+    sol = neighData.sol;
+    dsol = neighData.dsol;
 }
-
-void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                          const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
-	sol.Resize(0);
-	dsol.Resize(0);
-}
-
-void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
-                                          TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
-	sol.Resize(0);
-	dsol.Resize(0);
-	axes.Zero();
-}
-
-/**
- * @brief Computes solution and its derivatives in the local coordinate qsi.
- * @param qsi master element coordinate
- * @param data contains all elements to compute the solution
- */
-void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
-                             TPZMaterialData &data)
-{
-    DebugStop();
-}
-
-
-void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
-										  TPZVec<REAL> &normal,
-										  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-										  TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-	this->Normal(qsi, normal);
-	this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, dleftsol, leftaxes);
-	this->NeighbourSolution(this->fRightElSide, qsi, rightsol, drightsol, rightaxes);
-}//method
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *elem){
 	TPZMaterial *mat = Material();
@@ -1468,9 +1447,9 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     data.intGlobPtIndex = -1;
     //elem->ComputeShape(IntPoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     elem->ComputeShape(IntPoint,data);
-    
+    constexpr bool hasPhi{true};
 	if (data.fNeedsNeighborSol){
-		elem->ComputeSolution(IntPoint, data.phi, data.dphix, data.axes, data.sol, data.dsol );
+		elem->ComputeSolution(IntPoint, data,hasPhi);
 	}
 	
 	data.p = elem->MaxOrder();

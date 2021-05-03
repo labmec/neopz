@@ -430,7 +430,7 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
 }
     
     if (data.fNeedsSol) {
-        TPZCompElHDiv<TSHAPE>::ComputeSolution(qsi, data);
+        TPZCompElHDiv<TSHAPE>::ReallyComputeSolution(data);
     }
 
 

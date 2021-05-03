@@ -25,7 +25,6 @@
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
-#include "tpzcompmeshreferred.h"
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzanalysis.h"

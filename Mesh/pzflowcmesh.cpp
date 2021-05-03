@@ -27,15 +27,14 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 	REAL maxvel = 0.0, veloc, sound, gamma;
 	STATE press;
 	TPZVec<REAL> param(3,0.);
-	TPZSolVec sol;
-    TPZGradSolVec dsol;
     TPZFNMatrix<9,REAL> axes;
 	// loop over all elements, computing the velocity for
 	// the non-interface elements.	
 	i = 0;
 	for(i=0;i<nel;i++){
 		
-		TPZCompEl *pElComp = ElementVec()[i];
+		TPZInterpolationSpace *pElComp =
+			dynamic_cast<TPZInterpolationSpace *>(ElementVec()[i]);
 		if(!pElComp)
 			continue;
 		
@@ -47,7 +46,9 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 		
 		dim = mat->Dimension();
 		elDim = pElGeo->Dimension();
-		
+
+		TPZMaterialData elCompData;
+		pElComp->InitMaterialData(elCompData);
 		if(elDim == dim /*&& pElDisc*/){ // if the dimension of the material fits the
 			// dimension of the element and if the element is discontinuous.
 			
@@ -64,10 +65,9 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 			
 			// Getting the velocity answers
 			pElComp->Solution(param,6,velocity);
-			// getting the whole vector of solutions
-			sol.Resize(nstate);
-            pElComp->ComputeSolution(param, sol, dsol, axes);
-			
+			constexpr bool hasPhi{false};
+			pElComp->ComputeSolution(param, elCompData, hasPhi);
+			TPZSolVec &sol = elCompData.sol;
 			press = law->Pressure(sol[0]);
 			
 #ifndef STATE_COMPLEX

@@ -12,6 +12,7 @@
 #include "pzgeoelbc.h"
 #include "pzfunction.h"
 
+class TPZMaterialData;
 #include <map>
 
 class TPZMultiphysicsInterfaceElement;

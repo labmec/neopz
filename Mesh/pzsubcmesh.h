@@ -347,45 +347,6 @@ public:
      */
     virtual TPZVec<STATE> IntegrateSolution(const std::string &varname, const std::set<int> &matids) override;
     
-
-	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi. SHOULD NEVER BE CALLED
-	 * @param qsi master element coordinate
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 * @param axes axes associated with the derivative of the solution
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) override;
-	
-	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
-	 * This method will function for both volumetric and interface elements
-	 * @param qsi master element coordinate of the interface element
-	 * @param normal unitary normal vector
-	 * @param leftsol finite element solution
-	 * @param dleftsol solution derivatives
-	 * @param leftaxes axes associated with the left solution
-	 * @param rightsol finite element solution
-	 * @param drightsol solution derivatives
-	 * @param rightaxes axes associated with the right solution
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
-	
-	/**
-	 * @brief Computes solution and its derivatives in local coordinate qsi
-	 * @param qsi master element coordinate
-	 * @param phi matrix containing shape functions compute in qsi point
-	 * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-	 * @param axes [in] indicating the direction of the derivatives
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
     void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;  
 	
 	/** @} */

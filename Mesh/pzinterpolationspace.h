@@ -7,8 +7,7 @@
 #define PZINTERPOLATIONSPACE_H
 
 #include "pzcompel.h"
-class TPZMaterialData;
-
+#include "pzmaterialdata.h"
 /**
  * @brief Implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement. \ref CompElement "Computational element"
  * @since April 11, 2007
@@ -149,10 +148,16 @@ virtual int ClassId() const override;
     }
 	
 	/** @} */
-	
 
-    public:
-    
+    //@{
+    /** 
+	 * @brief Compute shape functions based on master element in the classical FEM manne. 
+	 * @param[in] qsi point in master element coordinates 
+	 * @param[in/out] data stores all input data
+     * @param[in] hasPhi whether the shape functions have been calculated.
+	 */
+    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data, bool hasPhi);
+    //@}
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
@@ -300,7 +305,8 @@ protected:
 	
     /// Preferred polynomial order
 	int fPreferredOrder;
-	
+    // internal method for actually computing the solution
+    virtual void ReallyComputeSolution(TPZMaterialData &data);
 public:
 	
 	/**  @brief Defines the desired order for entire element. */
