@@ -28,6 +28,9 @@ namespace testmatrix{
 template <class matx>
 int TestingGeneratingDiagonalDominantMatrix(matx &matr);
 
+template <class matx, class TVar>
+void TestGeneratingHermitianMatrix();
+    
 /**
  * @brief Tests the Inverse method of the matrix to any matrix types. It uses the AutoFill method to create a square matrix with
  * @param dim Dimension of the square matrix to be build.
@@ -201,6 +204,36 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
       }
     }
 
+
+    template<class TVar>
+    void Hermitian(){
+        SECTION("TPZFMatrix"){
+            TestGeneratingHermitianMatrix<TPZFMatrix<TVar>,TVar>();
+        }        
+        SECTION("TPZFBMatrix"){
+            TestGeneratingHermitianMatrix<TPZFBMatrix<TVar>,TVar>();
+        }
+        SECTION("TPZSkylNSymMatrix"){
+            TestGeneratingHermitianMatrix<TPZSkylNSymMatrix<TVar>,TVar>();
+        }
+        SECTION("TPZFYsmpMatrix"){
+            TestGeneratingHermitianMatrix<TPZFYsmpMatrix<TVar>,TVar>();
+        }
+
+        // SECTION("TPZSFMatrix"){
+        //     TestGeneratingHermitianMatrix<TPZSFMatrix<TVar>,TVar>();
+        // }
+        // SECTION("TPZSBMatrix"){
+        //     TestGeneratingHermitianMatrix<TPZSBMatrix<TVar>,TVar>();
+        // }
+        // SECTION("TPZSkylMatrix"){
+        //     TestGeneratingHermitianMatrix<TPZSkylMatrix<TVar>,TVar>();
+        // }
+        // SECTION("TPZSYsmpMatrix"){
+        //     TestGeneratingHermitianMatrix<TPZSYsmpMatrix<TVar>,TVar>();
+        // }
+    }
+    
     template<class TVar>
     void DiagonalDominant(){
         // Unit Test for full matrix
@@ -353,6 +386,21 @@ TEMPLATE_TEST_CASE("Diagonal dominant (CPLX)","[matrix_tests]",
     testmatrix::DiagonalDominant<TestType>();
 }
 
+TEMPLATE_TEST_CASE("Hermitian (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::Hermitian<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Hermitian (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::Hermitian<TestType>();
+}
 
 TEMPLATE_TEST_CASE("Multiply operator (REAL)","[matrix_tests]",
                    float,
@@ -463,7 +511,25 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
     return 1;
 }
 
-
+template <class matx, class TVar>
+void TestGeneratingHermitianMatrix() {
+    const auto nrows = 10;
+    const auto ncols = 10;
+    constexpr bool symmetric{true};
+    matx mat;
+    mat.AutoFill(nrows,ncols,symmetric);
+    
+    for (auto i = 0; i < nrows; i++) {
+        auto j = i;
+        if constexpr (is_complex<TVar>::value){
+            REQUIRE(mat.GetVal(i,j).imag() == (RTVar)0);
+        }
+        j++;
+        for(; j < ncols; j++){
+            REQUIRE(mat.GetVal(i,j)-std::conj(mat.GetVal(j,i)) == (TVar)0);
+        }
+    }
+}
 
 template <class matx, class TVar>
 void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
