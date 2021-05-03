@@ -116,47 +116,88 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
 
 #endif
     
-  template<typename TVar>
-  void Inverse(){
-    for (auto dim = 9; dim < 10; dim += 5) {
+    template<typename TVar>
+    void Inverse(){
+        constexpr int dim{10};
 #ifdef PZ_USING_MKL
-      if constexpr (std::is_same<TVar,double>::value){
-        TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ECholesky);
-        TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ELDLt);
-      }
+        if constexpr (std::is_same<TVar,double>::value){
+            SECTION("TPZSYsmpMatrix"){
+                TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ECholesky);
+            }
+            SECTION("TPZSYsmpMatrix"){
+                TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ELDLt);
+            }
+        }
 #endif
-      TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
-      TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
-      TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
-      TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1,ECholesky);
-      TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
-      TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELDLt);
-      TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
-      TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 0,ELU);
-      TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
-      TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 0, ELU);
-      TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
-      TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 0,ELU);
+        SECTION("TPZSBMatrix"){
+            TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
+        }
+        SECTION("TPZSBMatrix"){
+            TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
+        }
+        SECTION("TPZFBMatrix"){
+            TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
+        }
+        SECTION("TPZFMatrix"){
+            TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1,ECholesky);
+        }
+        SECTION("TPZFMatrix"){
+            TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
+        }
+        SECTION("TPZFMatrix"){
+            TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELDLt);
+        }
+        SECTION("TPZFBMatrix"){
+            TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
+        }
+        SECTION("TPZBlockDiagonal"){
+            TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 0,ELU);
+        }
+        SECTION("TPZSkylMatrix"){
+            TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
+        }
+        SECTION("TPZFNMatrix"){
+            TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 0, ELU);
+        }
+        SECTION("TPZSFMatrix"){
+            TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
+        }
+        SECTION("TPZSkylNSymMatrix"){
+            TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 0,ELU);
+        }
     }
-  }
 
     template<class TVar>
     void MultiplyTranspose(){
       for (auto dim = 5; dim < 100; dim += 500) {
-        TestingTransposeMultiply<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
-        TestingTransposeMultiply<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
-        TestingTransposeMultiply<TPZFMatrix<TVar>, TVar>(10, dim, 0);
-        TestingTransposeMultiply<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim,
-                                                                    0);
+          SECTION("TPZFYsmpMatrix"){
+              TestingTransposeMultiply<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSYsmpMatrix"){
+              TestingTransposeMultiply<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          SECTION("TPZFMatrix"){
+              TestingTransposeMultiply<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSkylNSymMatrix"){
+              TestingTransposeMultiply<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim,
+                                                                      0);
+          }
       }
     }
 
     template<class TVar>
     void Multiply(){
       for (auto dim = 20; dim < 100; dim += 500) {
-        TestingMultiplyWithAutoFill<TPZFYsmpMatrix<TVar>, TVar>(dim, 0);
-        TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0);
-        TestingMultiplyWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+          SECTION("TPZFMatrix"){
+              TestingMultiplyWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+          }
+          SECTION("TPZSkylNSymMatrix"){
+              TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0);
+          }
+          SECTION("TPZFYsmpMatrix"){
+              TestingMultiplyWithAutoFill<TPZFYsmpMatrix<TVar>, TVar>(dim, 0);
+          }
       }
     }
 
@@ -208,125 +249,190 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
     template<class TVar>
     void TestMultAdd(){
       for (int dim = 5; dim < 6; dim += 10) {
-        TestingMultAdd<TPZFMatrix<float>, float>(dim, 1, ECholesky);
-        TestingMultAdd<TPZSkylMatrix<float>, float>(dim, 1, ECholesky);
-        TestingMultAdd<TPZSkylNSymMatrix<float>, float>(dim, 1, ECholesky);
+          SECTION("TPZFMatrix"){
+              TestingMultAdd<TPZFMatrix<TVar>, TVar>(dim, 1, ECholesky);
+          }
+          SECTION("TPZSkylMatrix"){
+              TestingMultAdd<TPZSkylMatrix<TVar>, TVar>(dim, 1, ECholesky);
+          }
+          SECTION("TPZSkylNSymMatrix"){
+              TestingMultAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, 1, ECholesky);
+          }
       }
     }
 #ifdef PZ_USING_LAPACK
     template <class TVar> void GeneralisedEigenvaluesAutoFill() {
-    for (int dim = 5; dim < 6; dim += 10) {
-      TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<TVar>, TVar>(
-          dim, 1);
-      TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(
-          dim, 1);
+        for (int dim = 5; dim < 6; dim += 10) {
+            SECTION("TPZFMatrix"){
+                TestingGeneralisedEigenValuesWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 1);
+            }
+            SECTION("TPZSBMatrix"){
+                TestingGeneralisedEigenValuesWithAutoFill<TPZSBMatrix<TVar>, TVar>(dim, 1);
+            }
+        }
     }
-  }
+    
     template<class TVar>
     void EigenDecompositionAutoFill(){
-      for (int dim = 5; dim < 6; dim += 10) {
-        TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, 1);
-        TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, 1);
-        TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
-      }
+        for (int dim = 5; dim < 6; dim += 10) {
+            SECTION("TPZSBMatrix sym"){
+                TestingEigenDecompositionAutoFill<TPZSBMatrix<TVar>, TVar>(dim, 1);
+            }
+            SECTION("TPZFMatrix sym"){
+                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, 1);
+            }
+            SECTION("TPZFMatrix nsym"){
+                TestingEigenDecompositionAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
+            }
+        }
     }
 #endif
 };
 
 
-TEST_CASE("inverse_tests_real","[matrix_tests]") {
-    // testmatrix::Inverse<float>();//FAILING
-    testmatrix::Inverse<double>();
-    testmatrix::Inverse<long double>();
-}
-TEST_CASE("inverse_tests_complex","[matrix_tests]") {
-    // testmatrix::Inverse<std::complex<float>>();
-    // testmatrix::Inverse<std::complex<double>>();
-    // testmatrix::Inverse<std::complex<long double>>();
-    //FAILING
+TEMPLATE_TEST_CASE("Inverse (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::Inverse<TestType>();
 }
 
-TEST_CASE("multiplytranspose_tests_real","[matrix_tests]") {
-    testmatrix::MultiplyTranspose<float>();
-    testmatrix::MultiplyTranspose<double>();
-    testmatrix::MultiplyTranspose<long double>();
+// TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
+//                    std::complex<float>,
+//                    std::complex<double>,
+//                    std::complex<long double>
+//           ) {
+//     testmatrix::Inverse<TestType>();
+// }
+
+TEMPLATE_TEST_CASE("Multiply transpose (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::MultiplyTranspose<TestType>();
 }
-TEST_CASE("multiplytranspose_tests_complex","[matrix_tests]"){
-    testmatrix::MultiplyTranspose<std::complex<float>>();
-    testmatrix::MultiplyTranspose<std::complex<double>>();
-    testmatrix::MultiplyTranspose<std::complex<long double>>();
+TEMPLATE_TEST_CASE("Multiply transpose (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::MultiplyTranspose<TestType>();
 }
 
-TEST_CASE("multiply_tests_real","[matrix_tests]") {
-    // testmatrix::Multiply<float>();//FAILING
-    testmatrix::Multiply<double>();
-    testmatrix::Multiply<long double>();
-}
-TEST_CASE("multiply_tests_complex","[matrix_tests]"){
-    testmatrix::Multiply<std::complex<float>>();
-    testmatrix::Multiply<std::complex<double>>();
-    testmatrix::Multiply<std::complex<long double>>();
+TEMPLATE_TEST_CASE("Multiply (REAL)","[matrix_tests]",
+                   // float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::Multiply<TestType>();
 }
 
-TEST_CASE("diagonaldominant_tests","[matrix_tests]") {
-    testmatrix::DiagonalDominant<float>();
-    testmatrix::DiagonalDominant<double>();
-    testmatrix::DiagonalDominant<long double>();
-    testmatrix::DiagonalDominant<std::complex<float>>();
-    testmatrix::DiagonalDominant<std::complex<double>>();
-    testmatrix::DiagonalDominant<std::complex<long double>>();
+TEMPLATE_TEST_CASE("Multiply (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::Multiply<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Diagonal dominant (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::DiagonalDominant<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Diagonal dominant (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::DiagonalDominant<TestType>();
 }
 
 
-TEST_CASE("multiplyoperator_tests","[matrix_tests]") {
-    testmatrix::MultiplyOperatorWithAutoFill<float>();
-    testmatrix::MultiplyOperatorWithAutoFill<double>();
-    testmatrix::MultiplyOperatorWithAutoFill<long double >();
-    testmatrix::MultiplyOperatorWithAutoFill<std::complex<float>>();
-    testmatrix::MultiplyOperatorWithAutoFill<std::complex<double>>();
-    testmatrix::MultiplyOperatorWithAutoFill<std::complex<long double >>();
+TEMPLATE_TEST_CASE("Multiply operator (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::MultiplyOperatorWithAutoFill<TestType>();
 }
 
-TEST_CASE("transpose_tests","[matrix_tests]") {
-    testmatrix::TransposeWithAutoFill<float>();
-    testmatrix::TransposeWithAutoFill<double>();
-    testmatrix::TransposeWithAutoFill<long double>();
-    testmatrix::TransposeWithAutoFill<std::complex<float>>();
-    testmatrix::TransposeWithAutoFill<std::complex<double>>();
-    testmatrix::TransposeWithAutoFill<std::complex<long double>>();
+TEMPLATE_TEST_CASE("Multiply operator (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::MultiplyOperatorWithAutoFill<TestType>();
 }
-TEST_CASE("multadd_tests","[matrix_tests]") {
-    testmatrix::TestMultAdd<float>();
-    testmatrix::TestMultAdd<double>();
-    testmatrix::TestMultAdd<long double>();
-    testmatrix::TestMultAdd<std::complex<float>>();
-    testmatrix::TestMultAdd<std::complex<double>>();
-    testmatrix::TestMultAdd<std::complex<long double>>();
+
+TEMPLATE_TEST_CASE("Transpose (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::TransposeWithAutoFill<TestType>();
 }
+
+TEMPLATE_TEST_CASE("Transpose (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::TransposeWithAutoFill<TestType>();
+}
+
+
+TEMPLATE_TEST_CASE("MultAdd (REAL)","[matrix_tests]",
+                   float,
+                   double,
+                   long double
+                   ) {
+    testmatrix::TestMultAdd<TestType>();
+}
+
+// TEMPLATE_TEST_CASE("MultAdd (CPLX)","[matrix_tests]",
+//                    std::complex<float>,
+//                    std::complex<double>,
+//                    std::complex<long double>
+//                    ) {
+//     testmatrix::TestMultAdd<TestType>();
+// }
 
 #ifdef PZ_USING_LAPACK
-
-TEST_CASE("eigenvalue_tests","[matrix_tests]") {
+/*There is no long double lapack interface in our code*/
+TEMPLATE_TEST_CASE("Eigenvalues (REAL)","[matrix_tests]",
+                   float,
+                   double
+                   ) {
     
-    testmatrix::EigenDecompositionAutoFill<float>();
-    testmatrix::EigenDecompositionAutoFill<double>();
-    //THERE IS NO LAPACK INTERFACE FOR LONG DOUBLE IN OUR CODE
-    // testmatrix::EigenDecompositionAutoFill<long double>();
-    testmatrix::EigenDecompositionAutoFill<std::complex<float>>();
-    testmatrix::EigenDecompositionAutoFill<std::complex<double>>();
-    //THERE IS NO LAPACK INTERFACE FOR LONG DOUBLE IN OUR CODE
-    // testmatrix::EigenDecompositionAutoFill<std::complex<long double>>();
+    testmatrix::EigenDecompositionAutoFill<TestType>();
 }
 
-TEST_CASE("generalized_eigenvalue_tests","[matrix_tests]") {
-    testmatrix::GeneralisedEigenvaluesAutoFill<float>();
-    testmatrix::GeneralisedEigenvaluesAutoFill<double>();
-    //THERE IS NO LAPACK INTERFACE FOR LONG DOUBLE IN OUR CODE
-    //testmatrix::GeneralisedEigenvaluesAutoFill<long double>();
-    testmatrix::GeneralisedEigenvaluesAutoFill<std::complex<float>>();
-    testmatrix::GeneralisedEigenvaluesAutoFill<std::complex<double>>();
-    //THERE IS NO LAPACK INTERFACE FOR LONG DOUBLE IN OUR CODE
-    //testmatrix::GeneralisedEigenvaluesAutoFill<std::complex<long double>>();
+TEMPLATE_TEST_CASE("Eigenvalues (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>
+                   ) {
+    
+    testmatrix::EigenDecompositionAutoFill<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Generalised Eigenvalues (REAL)","[matrix_tests]",
+                   float,
+                   double
+                   ) {
+    testmatrix::GeneralisedEigenvaluesAutoFill<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Generalised Eigenvalues (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>
+                   ) {
+    testmatrix::GeneralisedEigenvaluesAutoFill<TestType>();
 }
 #endif
 
@@ -388,7 +494,7 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
     for (j = 0; j < dim; j++) {
         RTVar diff =
             fabs(cpma.GetVal(i, j) - res.GetVal(i, j));
-      bool loccheck = IsZero(diff / 10.);
+        bool loccheck = IsZero(diff / (RTVar) 10.);
       // if (loccheck == false) {
       //     std::cout << "diff " << diff << std::endl;
       // }
@@ -406,8 +512,8 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
         case ENoDecompose: DebugStop();
         }
         std::cout << std::flush;
-        cpma.Print("Matrix = ", std::cout, EMathematicaInput);
-        invkeep.Print("Inv = ", std::cout, EMathematicaInput);
+        // cpma.Print("Matrix = ", std::cout, EMathematicaInput);
+        // invkeep.Print("Inv = ", std::cout, EMathematicaInput);
     }
     REQUIRE(check);
 }
@@ -457,6 +563,10 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
             }
         }
     }
+    if(!check){
+        std::cout<<typeid(matx).name()<<std::endl;
+    }
+        
     REQUIRE(check);
 
 }
