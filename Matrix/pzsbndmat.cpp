@@ -352,7 +352,7 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
     //          z and x cannot overlap in memory
     if ((!opt && this->Cols() != x.Rows()) || this->Rows() != x.Rows())
        this->Error(__PRETTY_FUNCTION__, "TPZSBMatrix::MultAdd <matrixs with incompatible dimensions>" );
-    if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+    if(x.Cols() != y.Cols() ||x.Rows() != y.Rows()) {
        this->Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
     }
     this->PrepareZ(y,z,beta,opt);

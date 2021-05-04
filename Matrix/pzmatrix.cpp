@@ -134,7 +134,7 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 	int64_t numeq = (opt) ? Cols() : Rows();
 	int64_t xcols = y.Cols();
 	int64_t ic;
-	if(!z.Rows()) return;
+	z.Resize(numeq, xcols);
 	for (ic = 0; ic < xcols; ic++)
 	{
 		TVar *zp = &z(0,ic), *zlast = zp+numeq;
@@ -163,7 +163,7 @@ template<class TVar>
 void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
 	if ((!opt && Cols() != x.Rows()) || Rows() != x.Rows())
 		Error( "Operator* <matrices with incompatible dimensions>" );
-	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+	if(x.Cols() != y.Cols() || x.Rows() != y.Rows()) {
 		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
 	int64_t rows = Rows();
