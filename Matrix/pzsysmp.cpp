@@ -146,30 +146,42 @@ int TPZSYsmpMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar & va
 template<class TVar>
 void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
 							 TPZFMatrix<TVar> &z,
-							 const TVar alpha,const TVar beta,const int opt) const {
-	// computes z = beta * y + alpha * opt(this)*x
-	//          z and x cannot share storage
-	int64_t  ir, ic;
-	int64_t  r = (opt) ? this->Cols() : this->Rows();
-	
+							 const TVar alpha,const TVar beta,const int opt) const {	
 	// Determine how to initialize z
-	if(IsZero(beta)) {
-        z = y*beta;
-	} else {
-        z.Zero();
-	}
+    this->PrepareZ(y,z,beta,opt);
 	
 	// Compute alpha * A * x
-    int64_t ncols = x.Cols();
-    for (int64_t col=0; col<ncols; col++)
-    {
-        for(int64_t ir=0; ir<this->Rows(); ir++) {
-            for(int64_t ic=fIA[ir]; ic<fIA[ir+1]; ic++) {
-                int64_t jc = fJA[ic];
-                z(ir,col) += alpha * fA[ic] * x.g(jc,col);
-                if(jc != ir)
-                {
-                    z(jc,col) += alpha * fA[ic] * x.g(ir,col);
+    const int64_t ncols = x.Cols();
+    const int64_t nrows = this->Rows();
+
+    
+    if constexpr (is_complex<TVar>::value){
+        auto GetMyVal = [](const int64_t ir, const int64_t ic,
+                           const bool opt, const TVar val){
+            if((ir <= ic && !opt)||(ir >= ic && opt)) return val;
+            else return std::conj(val);
+        };
+        for (int64_t col=0; col<ncols; col++){
+            for(int64_t row=0; row<nrows; row++) {
+                for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
+                    const int64_t ic = fJA[iv];
+                    const TVar val = GetMyVal(row,ic,opt,fA[iv]);
+                    z(row,col) += alpha * val * x.GetVal(ic,col);
+                    if(row != ic){
+                        z(ic,col) += alpha* std::conj(val) * x.GetVal(row,col);
+                    }
+                }
+            }
+        }
+    }else{
+        for (int64_t col=0; col<ncols; col++){
+            for(int64_t row=0; row<nrows; row++) {
+                for(int64_t iv=fIA[row]; iv<fIA[row+1]; iv++) {
+                    const int64_t ic = fJA[iv];
+                    z(row,col) += alpha*fA[iv] * x.GetVal(ic,col);
+                    if(row != ic){
+                        z(ic,col) += alpha*fA[iv] * x.GetVal(row,col);
+                    }
                 }
             }
         }
