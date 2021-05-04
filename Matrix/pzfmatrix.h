@@ -171,7 +171,7 @@ public:
     }
 
     int PutVal(const int64_t row,const int64_t col,const TVar & value ) override;
-    const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+    const TVar GetVal(const int64_t row,const int64_t col ) const override;
     
     virtual TVar &s(const int64_t row, const int64_t col) override;
     
@@ -568,7 +568,7 @@ inline TPZFMatrix<TVar>::~TPZFMatrix() {
 /**************/
 /*** GetVal ***/
 template<class TVar>
-inline const TVar &TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col ) const {
+inline const TVar TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col ) const {
     return( fElem[ col*this->fRow + row ] );
 }
 

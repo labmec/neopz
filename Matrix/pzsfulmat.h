@@ -58,7 +58,7 @@ public:
     
 
 	int PutVal(const int64_t row,const int64_t col,const TVar &value ) override;
-	const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+	const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
 	/**
 	 * @name Operators with Full simmetric matrices.
@@ -164,14 +164,18 @@ TPZSFMatrix<TVar> ::PutVal(const int64_t row,const int64_t col,const TVar &value
 /**************/
 /*** GetVal ***/
 template<class TVar>
-inline const TVar &
+inline const TVar 
 TPZSFMatrix<TVar> ::GetVal(const int64_t row,const int64_t col ) const
 {
-	int64_t locrow(row),loccol(col);
-	if ( locrow < loccol )
-		this->Swap( &locrow, &loccol );
+	if ( row < col ){
+        if constexpr (is_complex<TVar>::value){
+            return( std::conj(fElem[ ((col*(col+1)) >> 1) + row ]) );
+        }else{
+            return( fElem[ ((col*(col+1)) >> 1) + row ] );
+        }
+    }
 	
-	return( fElem[ ((locrow*(locrow+1)) >> 1) + loccol ] );
+	return( fElem[ ((row*(row+1)) >> 1) + col ] );
 }
 
 /**************************/

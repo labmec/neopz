@@ -90,18 +90,23 @@ template <class TVar> int TPZSYsmpMatrix<TVar>::Zero() {
 // ****************************************************************************
 
 template<class TVar>
-const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const {
-	// Get the matrix entry at (row,col) without bound checking
-    int64_t row(r),col(c);
-    if (r > c) {
-        int64_t temp = r;
-        row = col;
-        col = temp;
+const TVar TPZSYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const {
+    if (row > col) {
+        for(int ic=fIA[col] ; ic < fIA[col+1]; ic++ ) {
+            if ( fJA[ic] == row ) {
+                if constexpr (is_complex<TVar>::value){
+                    return std::conj(fA[ic]);
+                }else{
+                    return fA[ic];
+                }
+            }
+        }
+        return (TVar)0;
     }
 	for(int ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
 		if ( fJA[ic] == col ) return fA[ic];
 	}
-	return this->gZero;
+	return (TVar)0;
 }
 
 /** @brief Put values without bounds checking \n

@@ -72,13 +72,13 @@ public:
 
     
 	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;
-	const TVar &Get(const int64_t row,const int64_t col ) const override;
+	const TVar Get(const int64_t row,const int64_t col ) const override;
 	
 	TVar &operator()(const int64_t row, const int64_t col);
 	virtual TVar &s(const int64_t row, const int64_t col) override;
 
 	inline int    PutVal(const int64_t row,const int64_t col,const TVar& value ) override;
-	inline const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+	inline const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const TVar alpha=1,const TVar beta = 0,const int opt = 0) const override;
@@ -181,20 +181,13 @@ TPZFBMatrix<TVar>::PutVal(const int64_t row,const int64_t col,const TVar& value 
 /**************/
 /*** GetVal ***/
 template<class TVar>
-inline const TVar &
+inline const TVar 
 TPZFBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const {
-#ifdef PZDEBUG
-    if (row <0 || row > this->fRow || col < 0 || col >= this->fCol) {
-        DebugStop();
-    }
-#endif
     if ( (col-row <=fBandUpper) && (row-col <= fBandLower) )
     {
         return fElem[Index(row,col)];
     }
-    static TVar Zero;
-    Zero = TVar(0);
-	return( Zero );
+    return (TVar)0;
 }
 
 template<class TVar>

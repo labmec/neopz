@@ -92,14 +92,7 @@ public:
      * @param row Row number.
      * @param col Column number.
 	 */
-	virtual const TVar &Get(const int64_t row,const int64_t col ) const;
-	
-	/**
-	 * @brief Substitution for the () operator when const arguments are needed
-     * @param row Row number.
-     * @param col Column number.
-	 */
-	const TVar &g(const int64_t row, const int64_t col) const {return Get(row,col);}
+	virtual const TVar Get(const int64_t row,const int64_t col ) const;
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
@@ -116,7 +109,7 @@ public:
     {
         return operator()(rowcol.first,rowcol.second);
     }
-    const TVar &at(const std::pair<int64_t,int64_t> &rowcol ) const
+    const TVar at(const std::pair<int64_t,int64_t> &rowcol ) const
     {
         return Get(rowcol.first,rowcol.second);
     }
@@ -140,10 +133,9 @@ public:
         if(val != ((TVar)(0.))) DebugStop();
         return 0;
     }
-	/** @brief Get values without bounds checking \n
-	 *  This method is faster than "Get" if DEBUG is defined.
+	/** @brief Get matrix entry without bound checking.
 	 */
-    virtual const TVar &GetVal(const int64_t /*row*/, const int64_t /*col*/ ) const;
+    virtual const TVar GetVal(const int64_t /*row*/, const int64_t /*col*/ ) const;
 	
 	/** @name Algebraic
 	 *  @brief Implements algebraic operations with matrices
@@ -771,7 +763,7 @@ inline int TPZMatrix<TVar>::Put(const int64_t row,const int64_t col,const TVar &
 /*** Get ***/
 
 template<class TVar>
-inline const TVar &TPZMatrix<TVar>::Get(const int64_t row, const int64_t col ) const {
+inline const TVar TPZMatrix<TVar>::Get(const int64_t row, const int64_t col ) const {
 	// bound checking
 #ifdef PZDEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {

@@ -249,7 +249,7 @@ int TPZBlockDiagonal<TVar>::PutVal(const int64_t row,const int64_t col,const TVa
 /*** Get ***/
 
 template<class TVar>
-const TVar&
+const TVar
 TPZBlockDiagonal<TVar>::Get(const int64_t row,const int64_t col ) const
 {
 	if ( (row >= Dim()) || (col >= Dim()) )
@@ -292,7 +292,7 @@ TPZBlockDiagonal<TVar>::operator()(const int64_t row, const int64_t col) {
 /***********/
 /*** GetVal ***/
 template<class TVar>
-const TVar &TPZBlockDiagonal<TVar>::GetVal(const int64_t row,const int64_t col ) const
+const TVar TPZBlockDiagonal<TVar>::GetVal(const int64_t row,const int64_t col ) const
 {	
 	int64_t b = 0;
 	int64_t nb = fBlockSize.NElements();
@@ -310,9 +310,7 @@ const TVar &TPZBlockDiagonal<TVar>::GetVal(const int64_t row,const int64_t col )
 		cout << "TPZBlockDiagonal::GetVal wrong data structure\n";
 	}
 	if(col < eq || col >= eq+bsize) {
-		//cout << "TPZBlockDiagonal::GetVal, indices row col out of range\n";
-		static TVar zero = 0.;
-		return zero;
+		return (TVar)0;
 	}
 	return fStorage[fBlockPos[b]+row-eq+bsize*(col-eq)];
 }

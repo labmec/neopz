@@ -99,7 +99,7 @@ public:
     
     
 	int    PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
-	const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+	const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
 	
 	TVar &operator()(const int64_t row, const int64_t col);

@@ -60,7 +60,7 @@ public:
 	int PutVal(const int64_t row, const int64_t col, const TVar &val) override;
 	
 	/** @brief Get values checking bounds */
-	virtual const TVar &GetVal(const int64_t row, const int64_t col) const override;
+	virtual const TVar GetVal(const int64_t row, const int64_t col) const override;
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined

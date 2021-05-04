@@ -69,6 +69,8 @@ public :
 	
 	/** @brief Will specify the sparsity pattern of row*/
 	void AddBlockNumbers(int row, TPZVec<int> &colnumbers);
+	//it previously had no implementation, it would return zero anyway
+	const TVar GetVal(int64_t,int64_t) const override{return (TVar)0;}
 	
 	/** @brief Sets the row,col block equal to matrix mat
 	 * if row col was not specified by AddBlockNumbers, \n

@@ -115,12 +115,12 @@ void TPZVerySparseMatrix<TVar>::Transpose(TPZVerySparseMatrix<TVar> *T) const {
 }
 
 template<class TVar>
-const TVar & TPZVerySparseMatrix<TVar>::GetVal(const int64_t row, const int64_t col) const
+const TVar TPZVerySparseMatrix<TVar>::GetVal(const int64_t row, const int64_t col) const
 {
     if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
-        cout<< "ERRO! em TPZVerySparseMatrix::GetVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
-		return this->gZero;
+        cout<< "ERROR! em TPZVerySparseMatrix::GetVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
+		return (TVar)0;
     }
 	
     pair <int64_t,int64_t> position(row,col);
@@ -129,7 +129,7 @@ const TVar & TPZVerySparseMatrix<TVar>::GetVal(const int64_t row, const int64_t 
 	
     if (it == fExtraSparseData.end() )
     {
-        return this->gZero;
+        return (TVar) 0;
     }
     
     return it->second;

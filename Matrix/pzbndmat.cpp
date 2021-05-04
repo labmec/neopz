@@ -89,7 +89,7 @@ TPZFBMatrix<TVar>::Put(const int64_t row,const int64_t col,const TVar& value )
 /*** Get ***/
 
 template<class TVar>
-const TVar&
+const TVar
 TPZFBMatrix<TVar>::Get(const int64_t row,const int64_t col ) const
 {
 	if ( (row >= Dim()) || (col >= Dim()) )

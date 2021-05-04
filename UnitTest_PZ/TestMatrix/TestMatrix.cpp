@@ -222,18 +222,18 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             TestGeneratingHermitianMatrix<TPZFYsmpMatrix<TVar>,TVar>();
         }
 
-        // SECTION("TPZSFMatrix"){
-        //     TestGeneratingHermitianMatrix<TPZSFMatrix<TVar>,TVar>();
-        // }
-        // SECTION("TPZSBMatrix"){
-        //     TestGeneratingHermitianMatrix<TPZSBMatrix<TVar>,TVar>();
-        // }
-        // SECTION("TPZSkylMatrix"){
-        //     TestGeneratingHermitianMatrix<TPZSkylMatrix<TVar>,TVar>();
-        // }
-        // SECTION("TPZSYsmpMatrix"){
-        //     TestGeneratingHermitianMatrix<TPZSYsmpMatrix<TVar>,TVar>();
-        // }
+        SECTION("TPZSFMatrix"){
+            TestGeneratingHermitianMatrix<TPZSFMatrix<TVar>,TVar>();
+        }
+        SECTION("TPZSBMatrix"){
+            TestGeneratingHermitianMatrix<TPZSBMatrix<TVar>,TVar>();
+        }
+        SECTION("TPZSkylMatrix"){
+            TestGeneratingHermitianMatrix<TPZSkylMatrix<TVar>,TVar>();
+        }
+        SECTION("TPZSYsmpMatrix"){
+            TestGeneratingHermitianMatrix<TPZSYsmpMatrix<TVar>,TVar>();
+        }
     }
     
     template<class TVar>
@@ -680,6 +680,10 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
     }
     if (!check) {
         std::cout << __PRETTY_FUNCTION__ << "failed \n";
+        duplicate.Print("Full");
+        ma.Print("Other");
+        duplicate-=ma;
+        duplicate.Print("Diff");
         square2.Print("Full");
         square.Print("Matrix");
         square2 -= square;

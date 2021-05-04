@@ -81,25 +81,25 @@ TPZSparseBlockDiagonal<TVar>::~TPZSparseBlockDiagonal()
 }
 
 template<class TVar>
-const TVar& TPZSparseBlockDiagonal<TVar>::Get(const int64_t row, const int64_t col) const
+const TVar TPZSparseBlockDiagonal<TVar>::Get(const int64_t row, const int64_t col) const
 {
 	int64_t rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
-	if(rblock == -1) return this->gZero;
+	if(rblock == -1) return (TVar)0;
 	FindBlockIndex(col,cblock,cblockindex);
-	if(cblock != rblock) return this->gZero;
+	if(cblock != rblock) return (TVar)0;
 	int64_t pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	return this->fStorage[this->fBlockPos[rblock]+pos];
 }
 
 template<class TVar>
-const TVar& TPZSparseBlockDiagonal<TVar>::GetVal(const int64_t row, const int64_t col) const
+const TVar TPZSparseBlockDiagonal<TVar>::GetVal(const int64_t row, const int64_t col) const
 {
 	int64_t rblock,rblockindex,cblock,cblockindex;
 	FindBlockIndex(row,rblock,rblockindex);
-	if(rblock == -1) return this->gZero;
+	if(rblock == -1) return (TVar) 0;
 	FindBlockIndex(col,cblock,cblockindex);
-	if(cblock != rblock) return this->gZero;
+	if(cblock != rblock) return (TVar) 0;
 	int64_t pos = rblockindex + cblockindex*this->fBlockSize[rblock];
 	return this->fStorage[this->fBlockPos[rblock]+pos];
 }

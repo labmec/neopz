@@ -72,7 +72,7 @@ public:
 
     
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+	virtual const TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
 	int64_t NumTerms()
 	{

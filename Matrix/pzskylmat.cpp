@@ -283,7 +283,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 			if( diag == diaglast ) val += *diag * *p;
 			z(r,ic) += val*alpha;
 			TVar *zp = &z((r-offset+1),ic);
-			val = x.g(r,ic);
+			val = x.GetVal(r,ic);
 			diag = fElem[r] + offset-1;
 			while( diag > diaglast ) {
 				*zp += alpha * *diag-- * val;
@@ -435,32 +435,31 @@ TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
 /**************/
 /*** GetVal ***/
 template<class TVar>
-const TVar &
+const TVar
 TPZSkylMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
 {
 	// inicializando row e col para trabalhar com a triangular superior
 	int64_t row(r),col(c);
-	if ( row > col )
+	if ( row > col ){
 		this->Swap( &row, &col );
-	
-	if(row >= this->Dim() || col >= this->Dim() || row < 0 || col<0) {
-		cout << "TPZSkylMatrix::GetVal index out of range row = " << row
-		<< " col = " << col << endl;
-		return this->gZero;
-	}
-	// Indice do vetor coluna.
-	int64_t index   = col - row;
-	//TPZColuna *pCol = &fDiag[col];
-	
+        const int64_t index   = col - row;
+        if ( index < Size(col) ){
+            if constexpr (is_complex<TVar>::value){
+                return( std::conj(fElem[col][index]) );
+            }else{
+                return( fElem[col][index] );
+            }
+        }else{
+            return (TVar)0;
+        }
+    }
+	const int64_t index   = col - row;
 	if ( index < Size(col) )
 		return( fElem[col][index] );
 	else {
-		if(this->gZero != TVar(0.)) {
-			cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
-			DebugStop();
-		}
-		return(this->gZero );
-	}
+		return (TVar) 0;
+    }
+
 }
 #endif
 /******** Operacoes com matrizes SKY LINE  ********/

@@ -113,7 +113,7 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
     if ( (index = col-row) > fBand )
     {
 #ifdef PZDEBUG
-        if (value != this->gZero) {
+        if (value != (TVar) 0) {
             DebugStop();
         }
 #endif
@@ -124,78 +124,25 @@ TPZSBMatrix<TVar>::PutVal(const int64_t r,const int64_t c,const TVar& value )
     return( 1 );
 }
 
-/**************/
-/*** GetVal ***/
-template<>
-const std::complex<float>
-&TPZSBMatrix< std::complex<float> >::GetVal(const int64_t r,const int64_t c ) const
-{
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    bool mustConj = false;
-    if ( row > col ){
-        this->Swap( &row, &col );
-        mustConj = true;
-    }
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    
-    
-    if( mustConj == true){
-        static std::complex<float> cpVal;
-        cpVal = fDiag[ Index(row,col) ];
-        cpVal = std::conj( cpVal );
-        return cpVal;
-    }
-    else{
-        return( fDiag[ Index(row,col) ] );
-    }
-}
-
-template<>
-const std::complex<double>
-&TPZSBMatrix< std::complex<double> >::GetVal(const int64_t r,const int64_t c ) const
-{
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r), col(c);
-    bool mustConj = false;
-    if ( row > col ){
-        this->Swap( &row, &col );
-        mustConj = true;
-    }
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    
-    if( mustConj == true){
-        static std::complex<double> cpVal;
-        cpVal = fDiag[ Index(row,col) ];
-        cpVal = std::conj( cpVal );
-        return cpVal;
-    }
-    else{
-        return( fDiag[ Index(row,col) ] );
-    }
-}
-
 template<class TVar>
 const TVar
-&TPZSBMatrix<TVar>::GetVal(const int64_t r,const int64_t c ) const
+TPZSBMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const
 {
+    if ( row > col ){
+        if (auto index = row-col; index > fBand ){
+            return (TVar) 0;//out of band
+        }else if constexpr(is_complex<TVar>::value){
+            return( std::conj(fDiag[Index(col,row)]) );
+        }else{
+            return( fDiag[ Index(col,row) ] );
+        }
+    }
     
-    // inicializando row e col para trabalhar com a triangular superior
-    int64_t row(r),col(c);
-    if ( row > col )
-        this->Swap( &row, &col );
-    
-    int64_t index;
-    if ( (index = col-row) > fBand )
-        return( this->gZero );        // O elemento esta fora da banda.
-    
-    return( fDiag[ Index(row,col) ] );
+    if (auto index = col-row; index > fBand ){
+        return (TVar) 0;//out of band
+    }else{
+        return( fDiag[ Index(row,col) ] );
+    }
 }
 
 template<>

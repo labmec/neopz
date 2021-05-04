@@ -81,7 +81,7 @@ public:
 	 * these methods are faster than "Put" e "Get" if DEBUG is defined
 	 */
 	virtual int PutVal(const int64_t row, const int64_t col, const TVar& value) override;
-	virtual const TVar &GetVal(const int64_t row, const int64_t col) const override;
+	virtual const TVar GetVal(const int64_t row, const int64_t col) const override;
 	virtual TVar &s(const int64_t row, const int64_t col) override;
 	
 	/** @brief This method will zero all submatrices associated with this reducable matrix class */

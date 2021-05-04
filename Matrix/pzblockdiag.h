@@ -43,7 +43,7 @@ public:
 	~TPZBlockDiagonal();
 	
 	int    Put(const int64_t row,const int64_t col,const TVar& value ) override;
-	const TVar &Get(const int64_t row,const int64_t col ) const override;
+	const TVar Get(const int64_t row,const int64_t col ) const override;
 	
 	TVar &operator()(const int64_t row, const int64_t col);
 	virtual TVar &s(const int64_t row, const int64_t col) override;
@@ -51,7 +51,7 @@ public:
 	/** @brief This method don't make verification if the element exist. It is fast than Put */
 	int    PutVal(const int64_t row,const int64_t col,const TVar& value ) override;
 	/** @brief This method don't make verification if the element exist. It is fast than Get */
-	const  TVar &GetVal(const int64_t row,const int64_t col ) const override;
+	const  TVar GetVal(const int64_t row,const int64_t col ) const override;
 	
 	/** @brief Computes z = alpha * opt(this)*x + beta * y */
 	/** @note z and x cannot overlap in memory */

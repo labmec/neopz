@@ -351,7 +351,7 @@ TPZFYsmpMatrix<TVar>::~TPZFYsmpMatrix() {
 // ****************************************************************************
 
 template<class TVar>
-const TVar & TPZFYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const {
+const TVar TPZFYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) const {
 	// Get the matrix entry at (row,col) without bound checking
 	
 	// Now look through the requested row and see if there is anything
@@ -362,9 +362,11 @@ const TVar & TPZFYsmpMatrix<TVar>::GetVal(const int64_t row,const int64_t col ) 
 	 }*/
 	int64_t loccol = col;
 	for(int64_t ic=fIA[row] ; ic < fIA[row+1]; ic++ ) {
-		if ( fJA[ic] == loccol && fJA[ic] != -1 ) return fA[ic];
+		if ( fJA[ic] == loccol && fJA[ic] != -1 ){
+			return fA[ic];
+		}
 	}
-	return this->gZero;
+	return (TVar) 0;
 }
 
 // ****************************************************************************

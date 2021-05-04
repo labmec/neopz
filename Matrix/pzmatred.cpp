@@ -97,7 +97,7 @@ TPZMatRed<TVar, TSideMatrix>::PutVal(const int64_t r,const int64_t c,const TVar&
 }
 
 template<class TVar, class TSideMatrix>
-const TVar&
+const TVar
 TPZMatRed<TVar,TSideMatrix>::GetVal(const int64_t r,const int64_t c ) const {
 	int64_t row(r),col(c);
 	

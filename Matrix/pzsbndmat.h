@@ -41,7 +41,7 @@ public:
     ~TPZSBMatrix() { Clear(); }
     
     int    PutVal(const int64_t row,const int64_t col,const TVar& element ) override;
-    const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+    const TVar GetVal(const int64_t row,const int64_t col ) const override;
     
     TVar &operator()(int64_t row, int64_t col);
     

@@ -24,8 +24,8 @@ public:
 	
     ~TPZSparseBlockDiagonal();
 	
-    const TVar& Get(const int64_t row, const int64_t col) const override;
-    const TVar& GetVal(const int64_t row, const int64_t col) const override;
+    const TVar Get(const int64_t row, const int64_t col) const override;
+    const TVar GetVal(const int64_t row, const int64_t col) const override;
     int Put(const int64_t row, const int64_t col, const TVar& value) override;
     int PutVal(const int64_t row, const int64_t col, const TVar& value) override;
     TVar& operator ( )(const int64_t row, const int64_t col);

@@ -490,60 +490,34 @@ tol = res;
 /** * GetVal ** */
 
 template <class TVar>
-const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int64_t r, const int64_t c)const
+const TVar TPZSkylNSymMatrix<TVar>::GetVal(const int64_t r, const int64_t c)const
 {
   // inicializando row e col para trabalhar com a triangular superior
   int64_t row(r), col(c);
   if (col >= row)
   {
-    if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
-    {
-      cout << "TPZSkylMatrix::GetVal index out of range row = " << row <<
-          " col = " << col << endl;
-      return this->gZero;
-    }
     // Indice do vetor coluna.
     int64_t index = col - row;
     // TPZColuna *pCol = &fDiag[col];
 
-    if (index < Size(col))
+    if (index < Size(col)){
       return(fElem[col][index]);
-    else
-    {
-      if (this->gZero != TVar(0.))
-      {
-        cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
-        DebugStop();
-      }
-      return(this->gZero);
+    }else{
+      return (TVar)0;
     }
   }
-
-  if (row > col)
+  else
   {
-    if (row >= this->Dim() || col >= this->Dim() || row < 0 || col < 0)
-    {
-      cout << "TPZSkylMatrix::GetVal index out of range row = " << row <<
-          " col = " << col << endl;
-      return this->gZero;
-    }
     // Indice do vetor coluna.
     int64_t index = row - col;
     // TPZColuna *pCol = &fDiag[col];
 
-    if (index < Size(row))
+    if (index < Size(row)){
       return(fElemb[row][index]);
-    else
-    {
-      if (this->gZero != TVar(0.))
-      {
-        cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
-        DebugStop();
-      }
-      return(this->gZero);
+    }else{
+      return (TVar)0;
     }
   }
-    return this->gZero;
 }
 
 ///

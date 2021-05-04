@@ -73,7 +73,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   int PutVal(const int64_t row,const int64_t col,const TVar &element ) override;
 
-  const TVar &GetVal(const int64_t row,const int64_t col ) const override;
+  const TVar GetVal(const int64_t row,const int64_t col ) const override;
 
 
   /// Pega o valor na diagonal ou parte de cima da diagonal

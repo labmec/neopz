@@ -63,7 +63,7 @@ public :
     void AutoFill(int64_t nrow, int64_t ncol, int symmetric) override;
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const TVar &GetVal(const int64_t row, const int64_t col ) const override;
+	virtual const TVar GetVal(const int64_t row, const int64_t col ) const override;
     
     /** @brief Put values without bounds checking \n
      *  This method is faster than "Put" if DEBUG is defined.

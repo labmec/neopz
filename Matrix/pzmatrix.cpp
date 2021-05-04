@@ -50,9 +50,9 @@ TPZMatrix<TVar> &TPZMatrix<TVar>::operator=(TPZMatrix<TVar> &&rval) {
 }
 
 template<class TVar>
-const TVar &TPZMatrix<TVar>::GetVal(const int64_t /*row*/, const int64_t /*col*/ ) const
+const TVar TPZMatrix<TVar>::GetVal(const int64_t /*row*/, const int64_t /*col*/ ) const
 {
-    return gZero;
+    return (TVar)0;
 }
 
 
@@ -162,7 +162,7 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 template<class TVar>
 void TPZMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z, const TVar alpha,const TVar beta,const int opt) const {
 	if ((!opt && Cols() != x.Rows()) || Rows() != x.Rows())
-		Error( "Operator* <matrixs with incompatible dimensions>" );
+		Error( "Operator* <matrices with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
 	}
@@ -615,13 +615,6 @@ int TPZMatrix<TVar>::PutSub(const int64_t sRow,const int64_t sCol,const TPZFMatr
 }
 
 
-
-/***************/
-/*** Get Sub ***/
-//
-//  Le a sub-matriz de dimensoes (colSize, rowSize) para a matriz A.
-//  O inicio da sub-matriz e' dado por (sRow, sCol).
-//
 template<class TVar>
 int TPZMatrix<TVar>::GetSub(const int64_t sRow,const int64_t sCol,const int64_t rowSize,
 							const int64_t colSize, TPZFMatrix<TVar> & A ) const {
@@ -907,8 +900,7 @@ void TPZMatrix<TVar>::SolveGMRES(int64_t &numiterations, TPZSolver &precondition
           numiterations = locnumiter;
           tol = TPZExtractVal::val(loctol);
           TPZFMatrix<TVar> FCol(nrow, 1);
-          memcpy((void *)(&FCol(0, 0)), (void *)(&F.GetVal(0, col)),
-                 nrow * sizeof(REAL));
+          F.GetSub(0, col, F.Rows(), 1, FCol);
           TPZFMatrix<TVar> resultCol(nrow, 1, &result(0, col), nrow);
           
           GMRES(*this, resultCol, FCol, precond, H, numvectors,
