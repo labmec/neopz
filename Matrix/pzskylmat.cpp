@@ -266,18 +266,23 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," incompatible dimensions\n");
 	}
 	this->PrepareZ(y,z,beta,opt);
-	int64_t rows = this->Rows();
-	int64_t xcols = x.Cols();
-	int64_t ic, r;
-	for (ic = 0; ic < xcols; ic++) {
-		for( r = 0 ; r < rows ; r++ ) {
-			int64_t offset = Size(r);
+
+	const int64_t rows = this->Rows();
+	const int64_t xcols = x.Cols();
+	for (auto ic = 0; ic < xcols; ic++) {
+		for(auto r = 0 ; r < rows ; r++ ) {
+			const int64_t offset = Size(r);
 			TVar val = 0.;
 			const TVar *p = &x.g((r-offset+1),ic);
 			TVar *diag = fElem[r] + offset-1;
-			TVar *diaglast = fElem[r];
+			const TVar *diaglast = fElem[r];
 			while( diag > diaglast ) {
-				val += *diag-- * *p;
+                if constexpr (is_complex<TVar>::value){
+                    if(opt) val += *diag-- * *p;
+                    else val += std::conj(*diag--) * *p;
+                }else{
+                    val += *diag-- * *p;
+                }
 				p ++;
 			}
 			if( diag == diaglast ) val += *diag * *p;
@@ -286,8 +291,13 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 			val = x.GetVal(r,ic);
 			diag = fElem[r] + offset-1;
 			while( diag > diaglast ) {
-				*zp += alpha * *diag-- * val;
-				zp ++;
+                if constexpr (is_complex<TVar>::value){
+                    if(opt) *zp += alpha * std::conj(*diag--) * val;
+                    else *zp += alpha * *diag-- * val;
+                }else{
+                    *zp += alpha * *diag-- * val;
+                }
+                zp ++;
 			}
 		}
 	}
