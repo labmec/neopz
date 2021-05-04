@@ -175,18 +175,29 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
     template<class TVar>
     void MultiplyTranspose(){
       for (auto dim = 5; dim < 100; dim += 500) {
+          SECTION("TPZFMatrix"){
+              TestingTransposeMultiply<TPZFMatrix<TVar>, TVar>(10, dim, 0);
+          }
+          SECTION("TPZSFMatrix"){
+              TestingTransposeMultiply<TPZSFMatrix<TVar>, TVar>(dim, dim, 1);
+          }
+          SECTION("TPZFBMatrix"){
+              TestingTransposeMultiply<TPZFBMatrix<TVar>,TVar>(dim, dim, 0);
+          }
+          SECTION("TPZSBMatrix"){
+              TestingTransposeMultiply<TPZSBMatrix<TVar>,TVar>(dim, dim,1);
+          }
           SECTION("TPZFYsmpMatrix"){
               TestingTransposeMultiply<TPZFYsmpMatrix<TVar>, TVar>(10, dim, 0);
           }
           SECTION("TPZSYsmpMatrix"){
               TestingTransposeMultiply<TPZSYsmpMatrix<TVar>, TVar>(dim, dim, 1);
           }
-          SECTION("TPZFMatrix"){
-              TestingTransposeMultiply<TPZFMatrix<TVar>, TVar>(10, dim, 0);
-          }
           SECTION("TPZSkylNSymMatrix"){
-              TestingTransposeMultiply<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim,
-                                                                      0);
+              TestingTransposeMultiply<TPZSkylNSymMatrix<TVar>, TVar>(dim, dim, 0);
+          }
+          SECTION("TPZSkylMatrix"){
+              TestingTransposeMultiply<TPZSkylMatrix<TVar>, TVar>(dim, dim, 1);
           }
       }
     }
@@ -197,11 +208,26 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
           SECTION("TPZFMatrix"){
               TestingMultiplyWithAutoFill<TPZFMatrix<TVar>, TVar>(dim, 0);
           }
-          SECTION("TPZSkylNSymMatrix"){
-              TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0);
+          SECTION("TPZSFMatrix"){
+              TestingMultiplyWithAutoFill<TPZSFMatrix<TVar>, TVar>(dim, 1);
+          }
+          SECTION("TPZFBMatrix"){
+              TestingMultiplyWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0);
+          }
+          SECTION("TPZSBMatrix"){
+              TestingMultiplyWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim,1);
           }
           SECTION("TPZFYsmpMatrix"){
               TestingMultiplyWithAutoFill<TPZFYsmpMatrix<TVar>, TVar>(dim, 0);
+          }
+          SECTION("TPZSYsmpMatrix"){
+              TestingMultiplyWithAutoFill<TPZSYsmpMatrix<TVar>, TVar>(dim, 1);
+          }
+          SECTION("TPZSkylNSymMatrix"){
+              TestingMultiplyWithAutoFill<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0);
+          }
+          SECTION("TPZSkylMatrix"){
+              TestingMultiplyWithAutoFill<TPZSkylMatrix<TVar>, TVar>(dim, 1);
           }
       }
     }
@@ -295,13 +321,22 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
     void TestMultAdd(){
       for (int dim = 5; dim < 6; dim += 10) {
           SECTION("TPZFMatrix"){
-              TestingMultAdd<TPZFMatrix<TVar>, TVar>(dim, 1, ECholesky);
+              TestingMultAdd<TPZFMatrix<TVar>, TVar>(dim, 0, ELU);
+          }
+          SECTION("TPZSFMatrix"){
+              TestingMultAdd<TPZSFMatrix<TVar>, TVar>(dim, 1, ECholesky);
+          }
+          SECTION("TPZFBMatrix"){
+              TestingMultAdd<TPZFBMatrix<TVar>, TVar>(dim, 0, ELU);
+          }
+          SECTION("TPZSBMatrix"){
+              TestingMultAdd<TPZSBMatrix<TVar>, TVar>(dim, 1, ECholesky);
           }
           SECTION("TPZSkylMatrix"){
               TestingMultAdd<TPZSkylMatrix<TVar>, TVar>(dim, 1, ECholesky);
           }
           SECTION("TPZSkylNSymMatrix"){
-              TestingMultAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, 1, ECholesky);
+              TestingMultAdd<TPZSkylNSymMatrix<TVar>, TVar>(dim, 0, ELU);
           }
       }
     }
@@ -367,7 +402,7 @@ TEMPLATE_TEST_CASE("Multiply transpose (CPLX)","[matrix_tests]",
 }
 
 TEMPLATE_TEST_CASE("Multiply (REAL)","[matrix_tests]",
-                   // float,
+                   float,
                    double,
                    long double
                    ) {
@@ -638,17 +673,22 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     duplicate.Multiply(duplicate, square2);
     // Checking whether result matrix is the identity matrix
     bool check = true;
+    constexpr RTVar tol = [](){
+        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)100;
+        else return (RTVar)1;
+    }();
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            if (!IsZero(fabs(square(i, j) - square2(i, j)))) {
+            if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
                 check = false;
             }
         }
     }
     if(!check){
         std::cout<<typeid(matx).name()<<std::endl;
+        std::cout << __PRETTY_FUNCTION__ << "failed \n";
     }
-        
+
     REQUIRE(check);
 
 }
@@ -671,23 +711,28 @@ void TestingTransposeMultiply(int row, int col, int symmetric) {
     //    square2.Print("square2",std::cout,EMathematicaInput);
     // Checking whether result matrix is the identity matrix
     bool check = true;
+    constexpr RTVar tol = [](){
+        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)10;
+        else return (RTVar)1;
+    }();
     for (int i = 0; i < col; i++) {
         for (int j = 0; j < col; j++) {
-            if (!IsZero(fabs(square(i, j) - square2(i, j)))) {
+            if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
                 check = false;
             }
         }
     }
     if (!check) {
+        std::cout<<typeid(matx).name()<<std::endl;
         std::cout << __PRETTY_FUNCTION__ << "failed \n";
-        duplicate.Print("Full");
-        ma.Print("Other");
-        duplicate-=ma;
-        duplicate.Print("Diff");
-        square2.Print("Full");
-        square.Print("Matrix");
-        square2 -= square;
-        square2.Print("Diff");
+        // duplicate.Print("Full");
+        // ma.Print("Matrix");
+        // duplicate -=ma;
+        // duplicate.Print("Diff");
+        // square2.Print("Full");
+        // square.Print("Matrix");
+        // square2 -= square;
+        // square2.Print("Diff");
     }
     REQUIRE(check);
 
