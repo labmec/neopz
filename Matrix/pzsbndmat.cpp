@@ -356,19 +356,26 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
        this->Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
     }
     this->PrepareZ(y,z,beta,opt);
-    int64_t rows = this->Rows();
-    int64_t xcols = x.Cols();
-    int64_t ic, r;
-    for (ic = 0; ic < xcols; ic++) {
-        int64_t begin, end;
-        for ( r = 0; r < rows; r++ ) {
-            begin = MAX( r - fBand, 0 );
-            end   = MIN( r + fBand + 1, rows );
-            TVar val = 0.;
-            // Calcula um elemento da resposta.
-            for ( int64_t i = begin ; i < end; i++ ) val += GetVal( r, i ) * x.GetVal(i, ic );
+    const int64_t rows = this->Rows();
+    const int64_t xcols = x.Cols();
+    auto MyGetVal = [this](const int row, const int col, const bool opt){
+        if constexpr (is_complex<TVar>::value){
+            if(!opt) return this->GetVal(row,col);
+            else return this->GetVal(col,row);
+        }else{
+            return this->GetVal(row,col);
+        }
+    };
+    
+    for (auto ic = 0; ic < xcols; ic++) {
+        for (auto r = 0; r < rows; r++ ) {
+            const auto begin = MAX( r - fBand, 0 );
+            const auto end   = MIN( r + fBand + 1, rows );
+            TVar val = z.GetVal(r,ic);
+            for ( int64_t i = begin ; i < end; i++ ){
+                val += MyGetVal( r, i, opt ) * x.GetVal(i, ic );
+            }
             val *= alpha;
-            val += z.GetVal(r,ic);
             z.PutVal( r , ic, val );
         }
     }
