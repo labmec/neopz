@@ -82,6 +82,8 @@ int ClassId() const override;
 protected:
 	
 	TPZCompMesh * fpMainMesh;
+    
+    TPZVec<TPZCompEl *> fReferredElements;
 
 /**
  * TPZCompElPostProc<TCOMPEL> creation function setup

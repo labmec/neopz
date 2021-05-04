@@ -7,7 +7,7 @@
 #include "pzgmesh.h"
 #include "pzvec.h"
 #include "tpzautopointer.h"
-#include "tpzcompmeshreferred.h"
+
 #include "pzstring.h"
 //#include "pzelastoplasticanalysis.h"
 #include "pzcreateapproxspace.h"
@@ -124,7 +124,7 @@ void TPZPostProcAnalysis::SetCompMesh(TPZCompMesh *pRef, bool mustOptimizeBandwi
     
     TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
-    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+    TPZCompMesh * pcPostProcMesh = new TPZCompMesh(pgmesh);
     
     fCompMesh = pcPostProcMesh;
     
@@ -139,15 +139,12 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
     int nMat, matNumber;
 	TPZCompMesh * pcMainMesh = fpMainMesh;
 
-	TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
+	TPZCompMesh * pcPostProcMesh = (this->Mesh());
     
     if (!pcPostProcMesh) {
         DebugStop();
     }
 	
-    if (pcPostProcMesh->ReferredMesh() == pcMainMesh) {
-        return;
-    }
 	nMat = matIds.NElements();
 	for(int i = 0; i < nMat; i++)
 	{
@@ -168,8 +165,6 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
     
 	AutoBuildDisc();
 	
-	pcPostProcMesh->LoadReferred(pcMainMesh);
-    
     pcPostProcMesh->ExpandSolution();
 }
 
@@ -183,7 +178,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
     // build a data structure indicating which geometric elements will be post processed
     fpMainMesh->LoadReferences();
     std::map<TPZGeoEl *,TPZCompEl *> geltocreate;
-    TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
+    TPZCompMesh * pcPostProcMesh = this->Mesh();
     for (i=0; i<nelem; i++) {
         TPZGeoEl * gel = elvec[i];
         if (!gel) {
@@ -225,13 +220,10 @@ void TPZPostProcAnalysis::AutoBuildDisc()
             matnotfound.insert(matid);
             continue;
         }
-        int printing = 0;
-        if (printing) {
-            gel->Print(cout);
-        }
-			
         Mesh()->CreateCompEl(gel,index);
         TPZCompEl *cel = Mesh()->ElementVec()[index];
+        TPZCompElPostProcBase *celpost = dynamic_cast<TPZCompElPostProcBase *>(cel);
+        if(!celpost) DebugStop();
         TPZCompEl *celref = it->second;
         int nc = cel->NConnects();
         int ncref = celref->NConnects();
@@ -246,7 +238,8 @@ void TPZPostProcAnalysis::AutoBuildDisc()
                 DebugStop();
             }
         }
-        
+        celpost->fReferredElement = celrefspace;
+
         if (celrefspace) {
             porder = celrefspace->GetPreferredOrder();
         } else {
@@ -270,6 +263,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
             DebugStop();
         }
 #endif
+        // this is why the mesh will be discontinuous!!
         gel->ResetReference();
 			
 	}
@@ -303,6 +297,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 			std::cout << *it << " ";
 		}
 		std::cout << std::endl;
+        DebugStop();
 	}
 #endif
 	
@@ -320,30 +315,41 @@ void TPZPostProcAnalysis::Solve(){
 void TPZPostProcAnalysis::TransferSolution()
 {
 
-    
+    // this is where we compute the projection of the post processed variables
     TPZAnalysis::AssembleResidual();
     fSolution = Rhs();
     TPZAnalysis::LoadSolution();
     
-    TPZCompMeshReferred *compref = dynamic_cast<TPZCompMeshReferred *>(Mesh());
-    if (!compref) {
+    TPZCompMesh *compmeshPostProcess = (Mesh());
+    if (!compmeshPostProcess) {
         DebugStop();
     }
+    // fpMainMesh is the mesh with the actual finite element approximation, but probably stored at
+    // integration points
     TPZCompMesh *solmesh = fpMainMesh;
-    //TODOCOMPLEX
-    TPZFMatrix<STATE> &comprefElSol = compref->ElementSolution();
+    fpMainMesh->Reference()->ResetReference();
+    fpMainMesh->LoadReferences();
+    //In case the post processing computed element solutions
+    // copy the values from the post processing mesh to the finite element mesh
+    TPZFMatrix<STATE> &comprefElSol = compmeshPostProcess->ElementSolution();
+    // solmesh if the finite element simulation mesh
     const TPZFMatrix<STATE> &solmeshElSol = solmesh->ElementSolution();
     int64_t numelsol = solmesh->ElementSolution().Cols();
-    int64_t nelem = compref->NElements();
-    compref->ElementSolution().Redim(nelem, numelsol);
+    int64_t nelem = compmeshPostProcess->NElements();
+    compmeshPostProcess->ElementSolution().Redim(nelem, numelsol);
     if (numelsol) 
     {
         for (int64_t el=0; el<nelem; el++) {
-            TPZCompEl *cel = compref->ReferredEl(el);
+            TPZCompEl *celpost = compmeshPostProcess->Element(el);
+            TPZGeoEl *gel = celpost->Reference();
+            // we dont acount for condensed elements submeshes etc
+            if(!gel) DebugStop();
+            TPZCompEl *cel = gel->Reference();
             if (!cel) {
-                continue;
+                DebugStop();
             }
             int64_t index = cel->Index();
+            // we copy from the simulation mesh to the post processing mesh
             for (int64_t isol=0; isol<numelsol; isol++) {
                 comprefElSol(el,isol) = solmeshElSol.Get(index,isol);
             }

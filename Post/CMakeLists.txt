@@ -31,7 +31,7 @@ set(headers
     pzvtkmesh.h
     tpzgraphelt2dmapped.h
     #post proc
-    pzpostprocananlysis.h
+    pzpostprocanalysis.h
     pzcompelpostproc.h
     pzpostprocmat.h
     )

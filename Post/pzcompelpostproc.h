@@ -8,7 +8,7 @@
 
 class TPZMaterialData;
 
-#include "pzreferredcompel.h"
+//#include "pzreferredcompel.h"
 #include "pzinterpolationspace.h"
 #include "tpzautopointer.h"
 #include "TPZMaterial.h"
@@ -37,9 +37,15 @@ class TPZMaterialData;
  * of the referred compEl at the integration points to itself and interpolating it inside the element
  * @since May, 1 2009
  */
-template <class TCOMPEL >
-class TPZCompElPostProc : public TPZReferredCompEl<TCOMPEL>
+struct TPZCompElPostProcBase
 {
+    TPZInterpolationSpace *fReferredElement = 0;
+};
+
+template <class TCOMPEL >
+class TPZCompElPostProc : public TCOMPEL, public TPZCompElPostProcBase
+{
+    
 public:
     
     TPZCompElPostProc();
@@ -62,6 +68,18 @@ public:
     /** @brief Initializes the shape function type in order to allow non ill-conditioned L2 Transfer matrix */
     void InitializeShapeFunctions();
     
+    TPZCompEl *ReferredElement()
+    {
+        if(!fReferredElement) DebugStop();
+        return fReferredElement;
+    }
+
+    void SetReferredElement(TPZCompEl *cel)
+    {
+        fReferredElement = dynamic_cast<TCOMPEL *>(cel);
+        if(!fReferredElement) DebugStop();
+    }
+    
     virtual TPZCompEl *Clone(TPZCompMesh &mesh) const override;
     
     /**
@@ -80,7 +98,7 @@ public:
     virtual void Print(std::ostream & out = std::cout) const override
     {
         out << __PRETTY_FUNCTION__ << " calling print from superclass\n";
-        TPZReferredCompEl<TCOMPEL>::Print(out);
+        TCOMPEL::Print(out);
     }
     
     void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
@@ -105,39 +123,7 @@ public:
     /** @brief Compare some fields of 2 TPZMaterialData and return true if these do match. */
     bool dataequal(TPZMaterialData &d1,TPZMaterialData &d2);
     
-    /**
-     * @brief Avoids the calling of the TPZCompElReferred::ComputeSolution wich would attempt to
-     * append solution of the referred element.
-     * Computes solution and its derivatives in local coordinate qsi
-     * @param qsi master element coordinate
-     * @param phi matrix containing shape functions compute in qsi point
-     * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-     * @param axes direction of the derivatives
-     * @param sol finite element solution
-     * @param dsol solution derivatives
-     */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
-                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) override;
-    
-    /**
-     * @brief Avoids the calling of the TPZCompElReferred::ComputeSolution wich would attempt to
-     * append solution of the referred element.
-     * @note Computes solution and its derivatives in the local coordinate qsi. \n
-     * This method will function for both volumetric and interface elements
-     * @param qsi master element coordinate of the interface element
-     * @param normal unitary vector output normal at boundary
-     * @param leftsol finite element solution
-     * @param dleftsol solution derivatives
-     * @param leftaxes axes associated with the left solution
-     * @param rightsol finite element solution
-     * @param drightsol solution derivatives
-     * @param rightaxes axes associated with the right solution
-     */
-    virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                                 TPZVec<REAL> &normal,
-                                 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                                 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) override;
-    
+   
     
     /**
      * @brief Reimplemented in order to ensure the shape functions are computed with local support
@@ -163,7 +149,7 @@ protected:
 };
 
 template<class TCOMPEL>
-inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc() : TPZReferredCompEl<TCOMPEL>() {
+inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc() : TCOMPEL() {
     TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
 }
 
@@ -174,13 +160,13 @@ inline TPZCompElPostProc<TCOMPEL>::~TPZCompElPostProc() {
 
 template<class TCOMPEL>
 inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index) :
-TPZReferredCompEl<TCOMPEL>(mesh, gel, index){
+TCOMPEL(mesh, gel, index){
     TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
 }
 
 template<class TCOMPEL>
 inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh, const TPZCompElPostProc<TCOMPEL> &copy) :
-TPZReferredCompEl<TCOMPEL>(mesh, copy) {
+TCOMPEL(mesh, copy) {
     TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
 }
 
@@ -189,7 +175,7 @@ inline TPZCompElPostProc<TCOMPEL>::TPZCompElPostProc(TPZCompMesh &mesh,
                                                      const TPZCompElPostProc<TCOMPEL> &copy,
                                                      std::map<int64_t,int64_t> & gl2lcConMap,
                                                      std::map<int64_t,int64_t> & gl2lcElMap):
-TPZReferredCompEl<TCOMPEL>(mesh,copy,gl2lcConMap,gl2lcElMap)
+TCOMPEL(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
     TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions();
 }
@@ -226,7 +212,7 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeRequiredData(TPZMaterialData &dat
  */
 template <class TCOMPEL>
 int TPZCompElPostProc<TCOMPEL>::ClassId() const{
-    return Hash("TPZCompElPostProc") ^ TPZReferredCompEl<TCOMPEL>::ClassId() << 1;
+    return Hash("TPZCompElPostProc") ^ TCOMPEL::ClassId() << 1;
 }
 
 
@@ -259,13 +245,15 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
     
     this->InitializeElementMatrix(ef);
     
-    TPZCompEl * pCompElRef = TPZReferredCompEl<TCOMPEL>::ReferredElement();
+    TPZCompEl * pCompElRef = ReferredElement();
     
     TPZInterpolationSpace * pIntSpRef = dynamic_cast<TPZInterpolationSpace *>(pCompElRef);
     
     TPZMultiphysicsElement *pMultiRef = dynamic_cast<TPZMultiphysicsElement *>(pCompElRef);
     
     TPZPostProcMat * pPostProcMat = dynamic_cast<TPZPostProcMat *>(this->Material());
+    
+    if(!pPostProcMat) DebugStop();
     
     TPZMaterial * pMaterialRef = pCompElRef->Material();
     
@@ -320,9 +308,9 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
     {
         intrule.   Point(int_ind,intpoint,   weight);
         intruleRef.Point(int_ind,intpointRef,weightRef);
-        this->      ComputeShape(intpoint, data.x, data.jacobian,
-                                 data.axes, data.detjac, data.jacinv,
-                                 data.phi, data.dphi, data.dphix);
+        data   .intLocPtIndex = int_ind;
+        dataRef.intLocPtIndex = int_ind;
+        this->ComputeRequiredData(data,    intpoint);
         
         /*pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian,
          dataRef.axes, dataRef.detjac, dataRef.jacinv,
@@ -339,9 +327,6 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
         }
         weight    *= fabs(data.detjac);
         weightRef *= fabs(dataRef.detjac);
-        data   .intLocPtIndex = int_ind;
-        dataRef.intLocPtIndex = int_ind;
-        this->ComputeRequiredData(data,    intpoint);
         
 //        if(pIntSpRef)
 //        {
@@ -370,6 +355,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
             int nsolvars = pMaterialRef->NSolutionVariables(variableindex);
             Sol.Resize(nsolvars);
 
+            // diferenca entre variavel de interpolacao e variavel de elemento
             if (variableindex < 99) {
                 pMaterialRef->Solution(dataRef, variableindex, Sol);
             }
@@ -403,23 +389,28 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
         
         efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
         
-        TPZFNMatrix<9,STATE> rhsCopy(rhsTemp), result(nshape,1,0.);;
+        TPZFNMatrix<9,STATE> rhsCopy(rhsTemp);
 //        int status = ekTemp.Solve_Cholesky(&(rhsTemp));
         int status = ekTemp.Solve_LU(&(rhsTemp));
-        ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
-        REAL invRes = Norm(result);
-        if(!status ){
-            PZError << "Error at " << __PRETTY_FUNCTION__ << " Unable to solve the transference linear system\n";
-            ef.Reset();
-            return;
-        }
-        
-        if(invRes > 1.e-7)
+#ifdef PZDEBUG
         {
-            PZError << "Error at " << __PRETTY_FUNCTION__
-            << " Transference linear system solved with residual norm = "
-            << invRes << " at " << i_st << " export variable\n";
+            TPZFNMatrix<9,STATE> result(nshape,1,0.);
+            ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
+            REAL invRes = Norm(result);
+            if(!status ){
+                PZError << "Error at " << __PRETTY_FUNCTION__ << " Unable to solve the transference linear system\n";
+                ef.Reset();
+                return;
+            }
+            
+            if(invRes > 1.e-7)
+            {
+                PZError << "Error at " << __PRETTY_FUNCTION__
+                << " Transference linear system solved with residual norm = "
+                << invRes << " at " << i_st << " export variable\n";
+            }
         }
+#endif
         for(int i_sh = 0; i_sh < nshape; i_sh++)
             ef.fMat(i_sh * stackedVarSize + i_st, 0) = rhsTemp(i_sh);
     }
@@ -470,23 +461,7 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
     return 1;
 }
 
-template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
-                                                        TPZFMatrix<REAL> &phi,
-                                                        TPZFMatrix<REAL> &dphix,
-                                                        const TPZFMatrix<REAL> &axes,
-                                                        TPZSolVec &sol,
-                                                        TPZGradSolVec &dsol){
-    TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
-}//method
 
-template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
-                                                        TPZVec<REAL> &normal,
-                                                        TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
-                                                        TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-    TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
-}
 
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
