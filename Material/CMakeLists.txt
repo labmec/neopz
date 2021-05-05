@@ -89,4 +89,7 @@ target_sources(pz PRIVATE ${headers} ${sources})
 foreach(header ${public_headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
 endforeach()
+
+#materials for conservation laws
+add_subdirectory(ConsLaw)
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
