@@ -13,6 +13,9 @@ class TPZMaterialData;
 #include "pzcmesh.h"
 #include "pzquad.h"
 #include "TPZMaterial.h"
+#include "TPZMatInterfaceSingleSpace.h"
+#include "TPZMatInterfaceCombinedSpaces.h"
+#include "TPZMatWithMem.h"
 #include "pzelctemp.h"
 #include "pzmultiphysicscompel.h"
 
@@ -75,10 +78,7 @@ public:
         return new TPZCompElWithMem<TBASE> (mesh, *this, gl2lcConMap, gl2lcElMap);
     }
     
-    
-    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
-    
-    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec) override;
+    virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
     
     int64_t GetGlobalIntegrationPointIndex(TPZMaterialData &data);
     
@@ -148,6 +148,8 @@ private:
     
 };
 
+
+
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TPZRegisterClassId(&TPZCompElWithMem::ClassId),
 TBASE() {
@@ -186,54 +188,6 @@ TBASE(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
     CopyIntPtIndicesFrom(copy);
 }
-
-
-
-template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
-    
-    TPZMaterial * material = TBASE::Material();
-    if(!material){
-        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-        return;
-    }
-    
-    if (this->NumberOfCompElementsInsideThisCompEl() == 0) {
-        // This is suposed to happen if in the constructor of a multiphysics element. The CompEl vector is only initialized after the autobuild
-        return;
-    }
-    
-    const TPZIntPoints &intrule = TBASE::GetIntegrationRule();
-    
-    int intrulepoints = intrule.NPoints();
-    
-    fIntPtIndices.Resize(intrulepoints);
-    
-    if(gSinglePointMemory && intrulepoints > 0)
-    {
-        int64_t point_index = this->Material()->PushMemItem();
-#ifdef PZDEBUG
-        if(point_index < 0)
-        {
-            std::cout << __PRETTY_FUNCTION__ << " material has no memory interface\n";
-        }
-#endif
-        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-            fIntPtIndices[int_ind] = point_index;
-            // Pushing a new entry in the material memory
-        } //Loop over integratin points generating a reference vector of memory
-    }
-    else
-    {
-        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-            fIntPtIndices[int_ind] = this->Material()->PushMemItem();
-            // Pushing a new entry in the material memory
-        } //Loop over integratin points generating a reference vector of memory
-          //entries in the related pzmatwithmem for further use.
-    }
-    
-}
-
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::SetMemoryIndices(TPZVec<int64_t> &indices) {
     int n = indices.size();
@@ -247,12 +201,13 @@ template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
     
     TPZMaterial * material = TBASE::Material();
-    
-    if (material) {
+    auto * matWithMem =
+        dynamic_cast<TPZMatWithMemBase *>(material);
+    if (matWithMem) {
         int64_t n = fIntPtIndices.NElements();
         
         for (int64_t i = 0; i < n; i++) {
-            this->Material()->FreeMemItem(fIntPtIndices[i]);
+            matWithMem->FreeMemItem(fIntPtIndices[i]);
         }
     }
     fIntPtIndices.Resize(0);
@@ -306,23 +261,11 @@ void TPZCompElWithMem<TBASE>::CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE>
 
 /** Save the element data to a stream */
 template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialData &data,
+inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
                                                          TPZVec<REAL> &qsi){
     TBASE::ComputeRequiredData(data, qsi);
     data.intGlobPtIndex = GetGlobalIntegrationPointIndex(data);
     //material index for the n-th CompEl integration point
-}
-
-template <class TBASE>
-inline void TPZCompElWithMem<TBASE>::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
-{
-    TBASE::ComputeRequiredData(intpointtemp,trvec,datavec);
-    
-    int nelofthismphysics = this->NumberOfCompElementsInsideThisCompEl();
-    for (int icel = 0; icel < nelofthismphysics; icel++) {
-        if(datavec[icel].fShapeType == TPZMaterialData::EEmpty) continue;
-        datavec[icel].intGlobPtIndex = GetGlobalIntegrationPointIndex(datavec[icel]);
-    }
 }
 
 template <class TBASE>
@@ -360,6 +303,55 @@ inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 template <class TBASE>
 int TPZCompElWithMem<TBASE>::ClassId() const{
     return Hash("TPZCompElWithMem") ^ TBASE::ClassId() << 1;
+}
+
+
+
+template <class TBASE>
+inline void TPZCompElWithMem<TBASE>::ForcePrepareIntPtIndices() {
+    
+    TPZMaterial * material = TBASE::Material();
+    auto * matWithMem =
+        dynamic_cast<TPZMatWithMemBase *>(material);
+    if(!material || !matWithMem){
+        PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+        return;
+    }
+    
+    if (this->NumberOfCompElementsInsideThisCompEl() == 0) {
+        // This is suposed to happen if in the constructor of a multiphysics element. The CompEl vector is only initialized after the autobuild
+        return;
+    }
+    
+    const TPZIntPoints &intrule = TBASE::GetIntegrationRule();
+    
+    int intrulepoints = intrule.NPoints();
+    
+    fIntPtIndices.Resize(intrulepoints);
+    
+    if(gSinglePointMemory && intrulepoints > 0)
+    {
+        int64_t point_index = matWithMem->PushMemItem();
+#ifdef PZDEBUG
+        if(point_index < 0)
+        {
+            std::cout << __PRETTY_FUNCTION__ << " material has no memory interface\n";
+        }
+#endif
+        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+            fIntPtIndices[int_ind] = point_index;
+            // Pushing a new entry in the material memory
+        } //Loop over integratin points generating a reference vector of memory
+    }
+    else
+    {
+        for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+            fIntPtIndices[int_ind] = matWithMem->PushMemItem();
+            // Pushing a new entry in the material memory
+        } //Loop over integratin points generating a reference vector of memory
+          //entries in the related pzmatwithmem for further use.
+    }
+    
 }
 
 #endif
