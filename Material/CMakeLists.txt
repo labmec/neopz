@@ -101,5 +101,7 @@ endforeach()
 add_subdirectory(ConsLaw)
 #materials for black oil
 add_subdirectory(BlackOil)
+#projection materials
+add_subdirectory(Projection)
 
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
