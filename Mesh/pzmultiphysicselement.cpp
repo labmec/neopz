@@ -10,7 +10,7 @@
 #include "pzmultiphysicselement.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "TPZMaterial.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 #include "pzlog.h"
 #include "pzinterpolationspace.h"
 #include "pzcompelwithmem.h"
@@ -407,7 +407,8 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialData> &datavec   )
+template<class TVar>
+void TPZMultiphysicsElement::ComputeRequiredDataT(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialDataT<TVar>> &datavec   )
 {
     for (auto &it : datavec) {
         int elindex = it.first;
@@ -428,7 +429,8 @@ void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZ
 }
 
 
-void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
+template<class TVar>
+void TPZMultiphysicsElement::ComputeRequiredDataT(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<TVar>> &datavec)
 {
     int64_t ElemVecSize = NMeshes();
     for (int64_t iref = 0; iref < ElemVecSize; iref++)
@@ -450,17 +452,17 @@ void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZ
 void TPZMultiphysicsElement::TransferMultiphysicsElementSolution()
 {
     if(fMesh->GetSolType() == EReal){
-        return TransferMultiphysicsElementSolutionInternal<STATE>();
+        return TransferMultiphysicsElementSolutionT<STATE>();
     }
     if(fMesh->GetSolType() == EComplex){
-        return TransferMultiphysicsElementSolutionInternal<CSTATE>();
+        return TransferMultiphysicsElementSolutionT<CSTATE>();
     }
     PZError<<__PRETTY_FUNCTION__<<'\n';
     PZError<<"Invalid type! Aborting...\n";
     DebugStop();
 }
 template<class TVar>
-void TPZMultiphysicsElement::TransferMultiphysicsElementSolutionInternal()
+void TPZMultiphysicsElement::TransferMultiphysicsElementSolutionT()
 {
     int nmeshes = this->NMeshes();
     int icon = 0;

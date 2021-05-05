@@ -21,11 +21,24 @@
 class TPZMultiphysicsInterfaceElement : public TPZCompEl {
 
 protected:
+    /** @brief initialize the material data for the geometric data */
+    void InitMaterialData(TPZMaterialData &data);
+    //@{
+    //!Template methods for internal usage
     template<class TVar>
-    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    void CalcStiffT(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
     template<class TVar>
-    void CalcStiffInternal(TPZElementMatrixT<TVar> &ef);
-
+    void CalcStiffT(TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &point);
+    template<class TVar>
+    void InitMaterialDataT(TPZMaterialDataT<TVar> &center_data,
+                          std::map<int,TPZMaterialDataT<TVar>> &data_left,
+                          std::map<int,TPZMaterialDataT<TVar>> &data_right);
+    
+    template<class TVar>
+    void SolutionT(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
+    //@}
 	/** @brief Element vector the left of the normal a interface */
 	TPZCompElSide 	fLeftElSide;
 		
@@ -159,14 +172,14 @@ public:
     void CalcStiff(TPZElementMatrixT<STATE> &ek,
                    TPZElementMatrixT<STATE> &ef) override
     {
-        CalcStiffInternal(ek,ef);
+        CalcStiffT(ek,ef);
     }
     
     /**
      * Compute the load vector of the interface element
      */
     void CalcStiff(TPZElementMatrixT<STATE> &ef){
-        CalcStiffInternal(ef);
+        CalcStiffT(ef);
     }
 
     /**
@@ -180,9 +193,6 @@ public:
     const TPZIntPoints & GetIntegrationRule() const override;
     
     virtual int ComputeIntegrationOrder() const override;
-    
-    /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
 
     /** @brief Initialize the structure of the stiffness matrix */
     void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
@@ -216,19 +226,30 @@ public:
 	 * @param out Indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream &out = std::cout) const override;
-	
+	//@{
     /** @brief Initialize the material data structures */
-    void InitMaterialData(TPZMaterialData &center_data, std::map<int,TPZMaterialData> &data_left, std::map<int,TPZMaterialData> &data_right);
-    
-    /** @brief initialize the material data for the geometric data */
-    void InitMaterialData(TPZMaterialData &data);
-    
+    void InitMaterialData(TPZMaterialDataT<STATE> &center_data,
+                          std::map<int,TPZMaterialDataT<STATE>> &data_left,
+                          std::map<int,TPZMaterialDataT<STATE>> &data_right){
+        InitMaterialDataT(center_data,data_left,data_right);
+    }
+    void InitMaterialData(TPZMaterialDataT<CSTATE> &center_data,
+                          std::map<int,TPZMaterialDataT<CSTATE>> &data_left,
+                          std::map<int,TPZMaterialDataT<CSTATE>> &data_right){
+        InitMaterialDataT(center_data,data_left,data_right);
+    }
+    //@}
+
+    //@{
     /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
-    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point);
+    virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &point){
+        ComputeRequiredDataT(data,point);
+    }
+    virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &point){
+        ComputeRequiredDataT(data,point);
+    }
+    //@}
     
-    /** @brief Compute the required data from the neighbouring elements */
-    void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data);
-	
 	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf);
     
     /** @brief Access function to the right element */
@@ -263,7 +284,7 @@ public:
         left->BuildCornerConnectList(connectindexes);
         right->BuildCornerConnectList(connectindexes);
     }
-	
+	//@{
 	/**
 	 * @brief Calculates the solution - sol - for the variable var
 	 * at point qsi, where qsi is expressed in terms of the
@@ -272,7 +293,13 @@ public:
 	 * @param var variable name
 	 * @param sol vetor for the solution
 	 */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+        SolutionT(qsi,var,sol);
+    }
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+        SolutionT(qsi,var,sol);
+    }
+    //@}
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
     
