@@ -30,6 +30,8 @@ set(public_headers
     TPZMatInterfaceCombinedSpaces.h
     #other
     TPZNullMaterial.h
+    TPZLagrangeMultiplier.h
+    TPZLagrangeMultiplierCS.h
     )
 
 set(headers
@@ -57,7 +59,10 @@ set(headers
     TPZMatInterfaceCombinedSpaces.h
     #other
     TPZNullMaterial.h
-   )
+    TPZLagrangeMultiplier.h
+    TPZLagrangeMultiplierCS.h
+    )
+
 set(sources
     TPZMaterial.cpp
     TPZMaterialT.cpp
@@ -79,6 +84,8 @@ set(sources
     TPZMatInterfaceCombinedSpaces.cpp
     #other
     TPZNullMaterial.cpp
+    TPZLagrangeMultiplier.cpp
+    TPZLagrangeMultiplierCS.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)
