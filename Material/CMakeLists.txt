@@ -92,4 +92,7 @@ endforeach()
 
 #materials for conservation laws
 add_subdirectory(ConsLaw)
+#materials for black oil
+add_subdirectory(BlackOil)
+
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
