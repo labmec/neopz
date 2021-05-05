@@ -4,7 +4,7 @@
  */
 
 #include "pzblackoilanalysis.h"
-#include "pzblackoil2p3d.h"
+#include "BlackOil/TPZBlackOil2P3D.h"
 #include "TPZSpStructMatrix.h"
 #include "pzseqsolver.h"
 #include "checkconv.h"
@@ -12,8 +12,6 @@
 #include "pzcmesh.h"
 
 using namespace std;
-
-
 TPZBlackOilAnalysis::TPZBlackOilAnalysis(TPZCompMesh *mesh, double TimeStep, std::ostream &out):TPZNonLinearAnalysis(mesh,out){
 	this->fTimeStep = TimeStep;
 	this->fSimulationTime = 0.;
@@ -146,26 +144,26 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 		if (this->fSaveFrequency){
 			if (!(this->fCurrentStep % fSaveFrequency)){
 				this->PostProcess(this->fDXResolution);
-				double VazaoAguaIsc, VazaoAguaPsc, VazaoOleoIsc, VazaoOleoPsc;
-				double VazaoAguaIFundo, VazaoAguaPFundo, VazaoOleoIFundo, VazaoOleoPFundo;
-				Vazao(*this,-1,VazaoAguaIsc,VazaoOleoIsc,VazaoAguaIFundo,VazaoOleoIFundo);
-				Vazao(*this,-2,VazaoAguaPsc,VazaoOleoPsc,VazaoAguaPFundo,VazaoOleoPFundo);
-				File << this->fSimulationTime/2629743.8 << "\t" << PressaoMedia(*this,-1) << "\t" << PressaoMedia(*this,-2) << "\t"
-				<< VazaoAguaIsc << "\t" 
-				<< VazaoOleoIsc << "\t" 
-				<< VazaoAguaPsc << "\t" 
-				<< VazaoOleoPsc << "\t" << "\t"
-				<< VazaoAguaIFundo << "\t" 
-				<< VazaoOleoIFundo << "\t" 
-				<< VazaoAguaPFundo << "\t" 
-				<< VazaoOleoPFundo << "\n";
+				double WaterFlowIsc, WaterFlowPsc, OilFlowIsc, OilFlowPsc;
+				double WaterFlowIFundo, WaterFlowPFundo, OilFlowIFundo, OilFlowPFundo;
+				Flow(*this,-1,WaterFlowIsc,OilFlowIsc,WaterFlowIFundo,OilFlowIFundo);
+				Flow(*this,-2,WaterFlowPsc,OilFlowPsc,WaterFlowPFundo,OilFlowPFundo);
+				File << this->fSimulationTime/2629743.8 << "\t" << AveragePressure(*this,-1) << "\t" << AveragePressure(*this,-2) << "\t"
+				<< WaterFlowIsc << "\t" 
+				<< OilFlowIsc << "\t" 
+				<< WaterFlowPsc << "\t" 
+				<< OilFlowPsc << "\t" << "\t"
+				<< WaterFlowIFundo << "\t" 
+				<< OilFlowIFundo << "\t" 
+				<< WaterFlowPFundo << "\t" 
+				<< OilFlowPFundo << "\n";
 				File.flush();
 			}
 		}
 		
 		prevsol -= lastsol;
 		REAL steadynorm = Norm(prevsol);
-		std::cout << "*********** Steady state error at iteration " << this->fCurrentStep << ", " << this->fSimulationTime/2629743.8 << " meses " << " = " << steadynorm << "\n\n";
+		std::cout << "*********** Steady state error at iteration " << this->fCurrentStep << ", " << this->fSimulationTime/2629743.8 << " months " << " = " << steadynorm << "\n\n";
 		if (!fForceAllSteps){
 			if (steadynorm < this->fSteadyTol){
 				std::cout << "Steady state solution achieved\n\n";
@@ -323,7 +321,7 @@ void TPZBlackOilAnalysis::Solve(){
 }//method
 
 #include "TPZInterfaceEl.h"
-double TPZBlackOilAnalysis::PressaoMedia(TPZBlackOilAnalysis &an, int matid){
+double TPZBlackOilAnalysis::AveragePressure(TPZBlackOilAnalysis &an, int matid){
 	an.LoadSolution(an.Solution());
 	TPZCompMesh * cmesh = an.Mesh();
 	const int nel = cmesh->NElements();
@@ -348,8 +346,8 @@ double TPZBlackOilAnalysis::PressaoMedia(TPZBlackOilAnalysis &an, int matid){
 	return result;
 }//method
 
-#include "pzbndcond.h"
-void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & VazaoAguaSC, double  & VazaoOleoSC, double & VazaoAguaFundo, double  & VazaoOleoFundo){
+
+void TPZBlackOilAnalysis::Flow(TPZBlackOilAnalysis &an, int matid, double & WaterFlowSC, double  & OilFlowSC, double & WaterFlowBottom, double  & OilFlowBottom){
 	
 	an.LoadSolution(an.Solution());
 	TPZCompMesh * cmesh = an.Mesh();
@@ -358,10 +356,10 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
 	
 	TPZElementMatrixT<STATE> ek(cmesh, TPZElementMatrix::EK), ef(cmesh, TPZElementMatrix::EF);
 	const int nel = cmesh->NElements();
-	VazaoAguaSC = 0.;
-	VazaoOleoSC = 0.;
-	VazaoAguaFundo = 0.;
-	VazaoOleoFundo = 0.;
+	WaterFlowSC = 0.;
+	OilFlowSC = 0.;
+	WaterFlowBottom = 0.;
+	OilFlowBottom = 0.;
 	for(int iel = 0; iel < nel; iel++){
 		TPZCompEl * cel = cmesh->ElementVec()[iel];
 		if(!cel) continue;
@@ -376,15 +374,17 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
 		TPZBlackOil2P3D::BFadREAL po(sol[0],0);
 		TPZBlackOil2P3D::BFadREAL Bo;
 		
-		TPZBndCond * bc = dynamic_cast<TPZBndCond*> (face->Material());
-		TPZBlackOil2P3D * bo = dynamic_cast<TPZBlackOil2P3D *> (bc->Material());
+		auto * bc =
+			dynamic_cast<TPZBndCondT<STATE>*> (face->Material());
+		auto * bo =
+			dynamic_cast<TPZBlackOil2P3D *> (bc->Material());
 		bo->Bo(po, Bo);
 		
-		VazaoOleoSC += ef.fMat(0,0)*86400.;
-		VazaoAguaSC += ef.fMat(1,0)*86400.;
+		OilFlowSC += ef.fMat(0,0)*86400.;
+		WaterFlowSC += ef.fMat(1,0)*86400.;
 		
-		VazaoOleoFundo += ef.fMat(0,0)*Bo.val()*86400.;
-		VazaoAguaFundo += ef.fMat(1,0)*bo->Bw()*86400.;
+		OilFlowBottom += ef.fMat(0,0)*Bo.val()*86400.;
+		WaterFlowBottom += ef.fMat(1,0)*bo->Bw()*86400.;
 	}//iel
 }//method
 

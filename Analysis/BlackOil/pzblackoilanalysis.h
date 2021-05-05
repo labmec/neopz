@@ -108,9 +108,9 @@ protected:
 	void SetAllMaterialsDeltaT();
 	
 	/** @brief Computes the average pressure */
-	static double PressaoMedia(TPZBlackOilAnalysis &an, int matid);
+	static double AveragePressure(TPZBlackOilAnalysis &an, int matid);
 	/** @brief Computes the oil flow */
-	static void Vazao(TPZBlackOilAnalysis &an, int matid, double & VazaoAguaSC, double  & VazaoOleoSC, double & VazaoAguaFundo, double  & VazaoOleoFundo);
+	static void Flow(TPZBlackOilAnalysis &an, int matid, double & WaterFlowSC, double  & OilFlowSC, double & WaterFlowBottom, double  & OilFlowBottom);
 };
 
 #endif

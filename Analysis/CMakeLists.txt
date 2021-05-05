@@ -27,16 +27,10 @@ set(sources
     pznonlinanalysis.cpp
     pzsmfrontalanal.cpp
     pzanalysis.cpp
-    pzblackoilanalysis.cpp
     pzmganalysis.cpp
     pzsmanal.cpp
     pztransientanalysis.cpp
     )
-
-if (NOT BUILD_COMPLEX_PROJECTS)
-    list(APPEND headers pzblackoilanalysis.h)
-    list(APPEND sources pzblackoilanalysis.cpp)
-endif ()
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Analysis)
 
@@ -46,4 +40,7 @@ target_sources(pz PRIVATE ${headers} ${sources})
 foreach(header ${public_headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
 endforeach()
+
+#black oil
+add_subdirectory(BlackOil)
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
