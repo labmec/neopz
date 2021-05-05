@@ -28,6 +28,8 @@ set(public_headers
     TPZMatCombinedSpaces.h
     TPZMatErrorCombinedSpaces.h
     TPZMatInterfaceCombinedSpaces.h
+    #other
+    TPZNullMaterial.h
     )
 
 set(headers
@@ -53,6 +55,8 @@ set(headers
     TPZMatCombinedSpaces.h
     TPZMatErrorCombinedSpaces.h
     TPZMatInterfaceCombinedSpaces.h
+    #other
+    TPZNullMaterial.h
    )
 set(sources
     TPZMaterial.cpp
@@ -73,6 +77,8 @@ set(sources
     TPZMatCombinedSpaces.cpp
     TPZMatErrorCombinedSpaces.cpp
     TPZMatInterfaceCombinedSpaces.cpp
+    #other
+    TPZNullMaterial.cpp
    )
 
 install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)
