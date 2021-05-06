@@ -24,6 +24,7 @@ set(public_headers
     TPZMatSingleSpace.h
     TPZMatErrorSingleSpace.h
     TPZMatInterfaceSingleSpace.h
+    TPZMatTransientSingleSpace.h
     #combined spaces materials
     TPZMatCombinedSpaces.h
     TPZMatErrorCombinedSpaces.h
@@ -53,6 +54,7 @@ set(headers
     TPZMatSingleSpace.h
     TPZMatErrorSingleSpace.h
     TPZMatInterfaceSingleSpace.h
+    TPZMatTransientSingleSpace.h
     #combined spaces materials
     TPZMatCombinedSpaces.h
     TPZMatErrorCombinedSpaces.h
@@ -61,8 +63,7 @@ set(headers
     TPZNullMaterial.h
     TPZLagrangeMultiplier.h
     TPZLagrangeMultiplierCS.h
-    )
-
+   )
 set(sources
     TPZMaterial.cpp
     TPZMaterialT.cpp
@@ -78,6 +79,7 @@ set(sources
     TPZMatSingleSpace.cpp
     TPZMatErrorSingleSpace.cpp
     TPZMatInterfaceSingleSpace.cpp
+    TPZMatTransientSingleSpace.cpp
     #combined spaces materials
     TPZMatCombinedSpaces.cpp
     TPZMatErrorCombinedSpaces.cpp
