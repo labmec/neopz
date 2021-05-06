@@ -7,9 +7,8 @@
 //
 
 #include "TPZMHMixedHybridMeshControl.h"
-#include "TPZVecL2.h"
-#include "pzbndcond.h"
-#include "TPZMatLaplacian.h"
+#include "TPZBndCond.h"
+#include "TPZNullMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 
 
@@ -29,8 +28,6 @@
 #include "TPZInterfaceEl.h"
 #include "TPZMultiphysicsInterfaceEl.h"
 #include "pzmultiphysicselement.h"
-
-#include "pzmat1dlin.h"
 
 #include "TPZVTKGeoMesh.h"
 #include "pzlog.h"
@@ -1297,11 +1294,13 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalMaterialObjects()
     TPZMHMixedMeshControl::InsertPeriferalMaterialObjects();
     
     int matid = *fMaterialIds.begin();
-    TPZMaterial *mat = fCMesh->FindMaterial(matid);
+    auto *mat =
+        dynamic_cast<TPZMaterialT<STATE> *>(fCMesh->FindMaterial(matid));
     if (!mat) {
         DebugStop();
     }
-    TPZFNMatrix<1,STATE> val1(1,1,0.), val2Flux(1,1,0.);
+    TPZFNMatrix<1,STATE> val1(1,1,0.);
+    TPZManVector<STATE,1> val2Flux(1,0.);
     int typeFlux = 1;
     int typePressure = 0;
     {
@@ -1332,8 +1331,9 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalMaterialObjects()
         bcPressure = mat->CreateBC(mat, fPressureDim2MatId, typePressure, val1, val2Flux);
         //    bcN->SetForcingFunction(0,force);
         fCMesh->InsertMaterialObject(bcPressure);
-        
-        TPZMaterial *matflux = fCMesh->FindMaterial(*fFractureFlowDim1MatId.begin());
+
+        auto *matflux =
+        dynamic_cast<TPZMaterialT<STATE> *>(fCMesh->FindMaterial(*fFractureFlowDim1MatId.begin()));
         if (!matflux) {
             DebugStop();
         }
@@ -1344,8 +1344,8 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalMaterialObjects()
 
     int nstate = 1;
     int dim = fGMesh->Dimension();
-    TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
-    TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
+    auto *matleft = new TPZLagrangeMultiplier<STATE>(fLagrangeMatIdLeft,dim,nstate);
+    auto *matright = new TPZLagrangeMultiplier<STATE>(fLagrangeMatIdRight,dim,nstate);
     
     fCMesh->InsertMaterialObject(matleft);
     fCMesh->InsertMaterialObject(matright);
@@ -1360,17 +1360,18 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalHdivMaterialObjects()
     TPZGeoMesh *gmesh = fGMesh.operator->();
     int meshdim = gmesh->Dimension();
     TPZCompMesh * cmeshHDiv = fFluxMesh.operator->();
-    TPZVecL2 *matl2 = 0;
+    TPZNullMaterial<STATE> *matl2 = 0;
     for(auto iter:cmeshHDiv->MaterialVec())
     {
         TPZMaterial *mat = iter.second;
-        matl2 = dynamic_cast<TPZVecL2 *>(mat);
+        matl2 = dynamic_cast<TPZNullMaterial<STATE> *>(mat);
         if(matl2) break;
     }
     if (!matl2) {
         DebugStop();
     }
-    TPZFNMatrix<1,STATE> val1(1,1,0.),val2(1,1,0.);
+    TPZFNMatrix<1,STATE> val1(1,1,0.);
+    TPZManVector<STATE,1> val2(1,0.);
     TPZBndCond *bc;
     // totototo
     bc = matl2->CreateBC(matl2, fHDivWrapperMatId, 0, val1, val2);
@@ -1378,7 +1379,8 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalHdivMaterialObjects()
     
 
     int matid = *fFractureFlowDim1MatId.begin();
-    TPZMaterial *fracdim1 = fFluxMesh->FindMaterial(matid);
+    auto *fracdim1 =
+        dynamic_cast<TPZMaterialT<STATE> *>(fFluxMesh->FindMaterial(matid));
     if (fracdim1)
     {
         bc = fracdim1->CreateBC(fracdim1, fHomogeneousNeumannBcMatId, 1, val1, val2);
@@ -1390,30 +1392,30 @@ void TPZMHMixedHybridMeshControl::InsertPeriferalHdivMaterialObjects()
 /// Insert the necessary pressure material objects to create the pressure mesh
 void TPZMHMixedHybridMeshControl::InsertPeriferalPressureMaterialObjects()
 {
-    TPZMatLaplacian *matdim1 = new TPZMatLaplacian(fPressureDim1MatId);
+    auto *matdim1 = new TPZNullMaterial<STATE>(fPressureDim1MatId);
     matdim1->SetDimension(fGMesh->Dimension()-1);
     fPressureFineMesh->InsertMaterialObject(matdim1);
     
-    TPZMatLaplacian *matdim2 = new TPZMatLaplacian(fPressureDim2MatId);
+    auto *matdim2 = new TPZNullMaterial<STATE>(fPressureDim2MatId);
     matdim2->SetDimension(fGMesh->Dimension()-2);
     fPressureFineMesh->InsertMaterialObject(matdim2);
     
     
-    TPZMatLaplacian *matpres = new TPZMatLaplacian(fSkeletonWithFlowPressureMatId);
+    auto *matpres = new TPZNullMaterial<STATE>(fSkeletonWithFlowPressureMatId);
     matpres->SetDimension(fGMesh->Dimension()-1);
     fPressureFineMesh->InsertMaterialObject(matpres);
     
     for(auto it = fFractureFlowDim1MatId.begin(); it != fFractureFlowDim1MatId.end(); it++)
     {
         int matid = *it;
-        TPZMat1dLin *mat1d = new TPZMat1dLin(matid);
+        auto *mat1d = new TPZNullMaterial<STATE>(matid);
         fPressureFineMesh->InsertMaterialObject(mat1d);
     }
     
     for(auto it = fSkeletonWithFlowMatId.begin(); it != fSkeletonWithFlowMatId.end(); it++)
     {
         int matid = *it;
-        TPZMat1dLin *mat1d = new TPZMat1dLin(matid);
+        auto *mat1d = new TPZNullMaterial<STATE>(matid);
         fPressureFineMesh->InsertMaterialObject(mat1d);
     }
     

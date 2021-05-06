@@ -10,18 +10,17 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "TPZMaterial.h"
-#include "pzmat1dlin.h"
-#include "pzmat2dlin.h"
 #include "pzelementgroup.h"
 #include "pzcondensedcompel.h"
 #include "pzintel.h"
 #include "pzgeoelbc.h"
 #include "TPZMultiphysicsInterfaceEl.h"
+#include "TPZLagrangeMultiplier.h"
+#include "TPZLagrangeMultiplierCS.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzgeoelside.h"
 #include "pztrnsform.h"
 #include "tpzintpoints.h"
-#include "TPZLagrangeMultiplier.h"
 #include "TPZNullMaterial.h"
 
 #include "TPZMultiphysicsCompMesh.h"
@@ -617,14 +616,14 @@ void TPZHybridizeHDiv::InsertPeriferalMaterialObjects(TPZCompMesh *cmesh_Hybrid,
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.first)) {
         
         std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
-        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid.first, dim - 1, fNState);
+        auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.first, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }
     if (!cmesh_Hybrid->FindMaterial(fInterfaceMatid.second)) {
         
         std::cout<<"InterfaceMatid MatId "<<fInterfaceMatid<<std::endl;
-        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fInterfaceMatid.second, dim - 1, fNState);
+        auto *matleft = new TPZLagrangeMultiplierCS<STATE>(fInterfaceMatid.second, dim - 1, fNState);
         matleft->SetMultiplier(Lagrange_term_multiplier);
         cmesh_Hybrid->InsertMaterialObject(matleft);
     }
