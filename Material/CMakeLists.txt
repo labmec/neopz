@@ -99,10 +99,18 @@ foreach(header ${public_headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
 endforeach()
 
-
+if(BUILD_PLASTICITY_MATERIALS)
+    if ((NOT STATE_TYPE STREQUAL "double") OR (NOT  REAL_TYPE STREQUAL "double"))
+		message (FATAL_ERROR
+            "\nConflicting options for BUILD_PLASTICITY_MATERIALS\n"
+            "Set REAL_TYPE=double and STATE_TYPE=double to build them\n"
+            "Or set BUILD_PLASTICITY_MATERIALS=OFF")
+    else()
+        add_subdirectory(Plasticity)
+    endif()
+endif()
 #elasticity materials
 add_subdirectory(Elasticity)
-
 #materials for conservation laws
 add_subdirectory(ConsLaw)
 #materials for black oil
