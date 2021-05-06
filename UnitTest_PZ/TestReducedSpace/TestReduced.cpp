@@ -11,10 +11,8 @@
 #include "pztrnsform.h"
 #include "TPZGenGrid2D.h"
 #include "tpzautopointer.h"
-#include "pzpoisson3d.h"
-#include "TPZNullMaterial.h"
-#include "mixedpoisson.h"
-#include "pzbndcond.h"
+#include "Poisson/TPZMatPoisson.h"
+#include "TPZBndCond.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 #include "tpzpermutation.h"
@@ -149,7 +147,7 @@ TEST_CASE("reduced_space","[reduced_space]")
         auto cmeshreduced = GenerateReducedMesh(cmeshH1);
         int nsol = cmeshreduced->Solution().Rows();
 
-        
+        auto oldPrecision = Catch::StringMaker<REAL>::precision;
         for (int sol = 0; sol < nsol; sol++) {
             auto result = RunConfig(cmeshreduced, sol);
             TPZVec<REAL> correct(result.Rows(),0.);
@@ -159,6 +157,7 @@ TEST_CASE("reduced_space","[reduced_space]")
                 REQUIRE_THAT(result(i), Catch::Matchers::WithinAbs(correct[i],1.e-8));
             }
         }
+        Catch::StringMaker<REAL>::precision = oldPrecision;
     }
 
 }
@@ -269,7 +268,7 @@ static TPZAutoPointer<TPZGeoMesh> GenerateMesh(MElementType eltype, int nelem, i
 
 
 
-template<class TMat = TPZMatPoisson3d>
+template<class TMat = TPZMatPoisson<STATE>>
 static void InsertMaterials(TPZCompMesh *cmesh)
 {
     int dimmodel = cmesh->Dimension();
@@ -278,7 +277,8 @@ static void InsertMaterials(TPZCompMesh *cmesh)
         TPZMaterial *poisP(matpoisP);
         cmesh->InsertMaterialObject(matpoisP);
         cmesh->SetAllCreateFunctionsContinuous();
-        TPZFNMatrix<4,STATE> val1(1,1,0.),val2(1,1,0.);
+        TPZFNMatrix<4,STATE> val1(1,1,0.);
+        TPZManVector<STATE,1> val2 = {0};
         TPZBndCond *bndP = matpoisP->CreateBC(poisP, -1, 0, val1, val2);
         cmesh->InsertMaterialObject(bndP);
         bndP = matpoisP->CreateBC(poisP, -2, 1, val1, val2);
@@ -293,7 +293,7 @@ static TPZCompMesh *GenerateH1Mesh(TPZAutoPointer<TPZGeoMesh> gmesh)
 {
     int dimmodel = gmesh->Dimension();
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-    InsertMaterials<TPZMatPoisson3d>(cmesh);
+    InsertMaterials<TPZMatPoisson<STATE>>(cmesh);
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->AutoBuild();
     // reorder the equations
@@ -315,7 +315,7 @@ static TPZCompMesh *GenerateReducedMesh(TPZCompMesh *cmesh_orig)
     int dimmodel = cmesh_orig->Dimension();
     int64_t nshape = cmesh_orig->Solution().Cols();
     TPZCompMesh *cmesh = new TPZCompMesh(cmesh_orig->Reference());
-    InsertMaterials<TPZMatPoisson3d>(cmesh);
+    InsertMaterials<TPZMatPoisson<STATE>>(cmesh);
     TPZReducedSpace::SetAllCreateFunctionsReducedSpace(cmesh);
     cmesh->AllocateNewConnect(nshape, nstate, 1);
     auto nc = cmesh->NConnects();
@@ -383,15 +383,26 @@ void SetExactSolution(TLaplaceExample1 &config, TPZCompMesh *cmesh)
 {
     int matids[] = {1,-1,-2,-3};
     {
-        TPZMaterial *mat = cmesh->FindMaterial(1);
+        auto *mat =
+            dynamic_cast<TPZMaterialT<STATE> *>(cmesh->FindMaterial(1));
         if(!mat) DebugStop();
-        mat->SetForcingFunction(config.ForcingFunction());
+        
+        auto forcingFunction = [&config](const TPZVec<REAL>&x, TPZVec<STATE>&u){
+            config.ForcingFunction()->Execute(x, u);
+        };
+        const auto pOrderForcingFunction = config.ForcingFunction()->PolynomialOrder();
+        mat->SetForcingFunction(forcingFunction,pOrderForcingFunction);
     }
-    for(int i=0; i<4; i++)
+    for(int i=1; i<4; i++)
     {
-        TPZMaterial *mat = cmesh->FindMaterial(matids[i]);
+        auto *mat =
+            dynamic_cast<TPZBndCondT<STATE> *>(cmesh->FindMaterial(matids[i]));
         if(!mat) DebugStop();
-        mat->SetForcingFunction(config.Exact());
+        auto exact = [&config](const TPZVec<REAL>&x, TPZVec<STATE>&u,
+                               TPZFMatrix<STATE>&du){
+            config.Exact()->Execute(x, u, du);
+        };
+        mat->SetForcingFunctionBC(exact);
     }
 }
 

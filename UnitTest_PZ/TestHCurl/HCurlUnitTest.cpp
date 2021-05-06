@@ -25,7 +25,7 @@ static TPZLogger logger("pz.mesh.testhcurl");
 #include "TPZGenGrid2D.h"
 #include "TPZGenGrid3D.h"
 #include "pzcmesh.h"
-#include "TPZMatHCurlProjection.cpp"
+#include "Projection/TPZHCurlProjection.cpp"
 #include "pzanalysis.h"
 #include "pzintel.h"
 #include "TPZCompElHCurl.h"
@@ -115,7 +115,7 @@ namespace hcurltest{
             //skips boundary els
             if(!cel || cel->Reference()->Type() != elType) continue;
 
-            TPZMaterialData elData;
+            TPZMaterialDataT<STATE> elData;
             cel->InitMaterialData(elData);
             const int elNNodes = MElementType_NNodes(elType);
             const auto *gmesh =
@@ -193,7 +193,7 @@ namespace hcurltest{
                                                                                              neighGel->NSides() -1));
                     TPZTransform<> localTransf(sideDim);
                     gelSide.SideTransform3(neighGelSide,localTransf);
-                    TPZMaterialData neighData;
+                    TPZMaterialDataT<STATE> neighData;
                     neighCel->InitMaterialData(neighData);
 
                     TPZManVector <REAL,3> ptsN(neighGelSide.Dimension(),0),ptNeigh(neighDim);
@@ -341,7 +341,7 @@ namespace hcurltest{
             //skips boundary els
             if(!cel || cel->Reference()->Type() != elType) continue;
 
-            TPZMaterialData elData;
+            TPZMaterialDataT<STATE> elData;
             cel->InitMaterialData(elData);
             const int nState = cel->Material()->NStateVariables();
             const int elNNodes = MElementType_NNodes(elType);
@@ -421,7 +421,7 @@ namespace hcurltest{
                                                                                              neighCel->Reference()->NSides() -1));
                     TPZTransform<> localTransf(sideDim);
                     gelSide.SideTransform3(neighGelSide,localTransf);
-                    TPZMaterialData neighData;
+                    TPZMaterialDataT<STATE> neighData;
                     neighCel->InitMaterialData(neighData);
 
                     const auto neighDim = neighGelSide.Element()->Dimension();
@@ -626,7 +626,7 @@ namespace hcurltest{
         cmesh->SetDefaultOrder(pOrder);
         cmesh->SetDimModel(dim);
 
-        auto mat = new TPZMatHCurlProjection(dim,1,1);
+        auto mat = new TPZHCurlProjection(dim,1,1);
         cmesh->InsertMaterialObject(mat);
         cmesh->SetAllCreateFunctionsHCurl();
         cmesh->AutoBuild();
@@ -690,9 +690,9 @@ namespace hcurltest{
         cmesh->SetDefaultOrder(pOrder);
         cmesh->SetDimModel(dim);
 
-        auto mat = new TPZMatHCurlProjection(dim,matIds[0],1);
+        auto mat = new TPZHCurlProjection(matIds[0],dim);
         cmesh->InsertMaterialObject(mat);
-        auto bcond = mat->CreateBC(mat,matIds[1],0,TPZFNMatrix<1,STATE>(1,1,0),TPZFNMatrix<1,STATE>(1,1,0));
+        auto bcond = mat->CreateBC(mat,matIds[1],0,TPZFNMatrix<1,STATE>(1,1,0),{0});
         cmesh->InsertMaterialObject(bcond);
         cmesh->SetAllCreateFunctionsHCurl();
         cmesh->AutoBuild();

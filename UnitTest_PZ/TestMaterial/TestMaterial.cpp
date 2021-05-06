@@ -4,7 +4,7 @@
 */
 
 //#include "pzmatrix.h"
-#include "pzelast3d.h"
+#include "Elasticity/TPZElasticity3D.h"
 #include "iostream"
 #include "fstream"
 #include <catch2/catch.hpp>
@@ -21,7 +21,7 @@ TPZFMatrix<STATE> computeStressStrain()
 	REAL Ela = 1000, poisson = 0.2;
 	TPZVec<STATE> force(3,0.);
 	TPZElasticity3D elast3d(nummat, Ela, poisson, force);
-	TPZMaterialData cubodata;
+	TPZMaterialDataT<STATE> cubodata;
 	TPZVec <REAL> pt(3,0.);
 	TPZFMatrix<REAL> phi(3,1,0.);
 	TPZFMatrix<REAL> dphi(3,3,0.);
