@@ -100,6 +100,13 @@ public:
 	 * @param col Column number.
 	 */
 	TVar &operator() (const int64_t row,const int64_t col );
+
+    /**
+	 * @brief The operators check on the bounds if the DEBUG variable is defined
+     * @param row Row number.
+	 * @param col Column number.
+	 */
+	TVar operator() (const int64_t row,const int64_t col ) const;
     /**
      * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
@@ -784,6 +791,18 @@ inline TVar &TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) {
 	}
 #endif
 	return s(row,col);
+}
+
+template<class TVar>
+inline TVar TPZMatrix<TVar>::operator()(const int64_t row, const int64_t col) const{
+	// bound checking
+#ifndef NODEBUG
+	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
+		Error("TPZMatrix<TVar>::Operator()","Index out of range");
+        DebugStop();
+	}
+#endif
+	return GetVal(row,col);
 }
 
 template<class TVar>

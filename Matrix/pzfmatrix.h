@@ -212,6 +212,7 @@ public:
      * @{
      */
     TVar &operator()(const int64_t row,const int64_t col);
+    TVar operator()(const int64_t row,const int64_t col) const;
     TVar &operator()(const int64_t row);
     /** @} */
     
@@ -579,6 +580,17 @@ inline const TVar TPZFMatrix<TVar>::GetVal( const int64_t row, const int64_t col
 
 template<class TVar>
 inline TVar &TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) {
+#ifndef NODEBUG
+    if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
+        Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
+        DebugStop();
+    }
+#endif
+    return *(this->fElem+col*this->fRow+row);
+}
+
+template<class TVar>
+inline TVar TPZFMatrix<TVar>::operator()( const int64_t row, const int64_t col) const {
 #ifndef NODEBUG
     if(row >=  this->Rows() || row<0 || col >=  this->Cols() || col<0) {
         Error("TPZFMatrix<TVar>::operator() "," Index out of bounds");
