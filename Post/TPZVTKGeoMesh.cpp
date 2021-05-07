@@ -1198,11 +1198,11 @@ void TPZVTKGeoMesh::SetMaterialVTK(TPZGeoEl * gel, int mat) {
 /**
  * Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
  */
-void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor) {
+void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor, bool dimension) {
     file.clear();
     int64_t nelements = gmesh->NElements();
 
-    std::stringstream node, connectivity, type, material, index;
+    std::stringstream node, connectivity, type, material, index, eldimension;
 
     //Header
     file << "# vtk DataFile Version 3.0" << std::endl;
@@ -1219,7 +1219,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
         if (!gel) {
             continue;
         }
-        if (gel->Dimension() == 1)//Exclude Arc3D and Ellipse3D
+        if (!gel->IsLinearMapping() && gel->Dimension() == 1)//Exclude Arc3D and Ellipse3D
         {
             continue;
         }
@@ -1255,6 +1255,9 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
         } else {
             material << elType << std::endl;
         }
+        if (dimension == true) {
+            eldimension << gel->Dimension() << std::endl;
+        }
         index << gel->Index() << std::endl;
         nVALIDelements++;
     }
@@ -1271,7 +1274,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
     file << type.str();
 
     file << "CELL_DATA" << " " << nVALIDelements << std::endl;
-    file << "FIELD FieldData 2" << std::endl;
+    file << "FIELD FieldData " << 2+int(dimension) << std::endl;
     if (matColor == true) {
         file << "material 1 " << nVALIDelements << " int" << std::endl;
     } else {
@@ -1282,6 +1285,11 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
     file << "elIndex 1 " << nVALIDelements << " int" << std::endl;
     file << index.str();
 
+    if (dimension == true) {
+        file << "Dimension 1 " << nVALIDelements << " int" << std::endl;
+        file << eldimension.str();
+    }
+    
     file.close();
 }
 
