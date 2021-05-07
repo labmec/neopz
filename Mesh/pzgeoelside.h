@@ -137,12 +137,22 @@ public:
 	void Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
     
     /** @brief Area associated with the side */
-    REAL Area();
+    REAL Area() const;
 	
-	int NNeighbours();
+	/** @returns Total number of neighbours through this side*/
+	int NNeighbours() const;
+
+	/** @brief Get number of neighbours of a given dimension */
+	int NNeighbours(int dimfilter) const;
+
+	/** @brief Get number of neighbours filtered by dimension and/or material id
+	 * @param dimfilter: only return elements of this dimension. Ignore filter if set to < 0;
+	 * @param matids: only return elements of a material id contained in this set. Ignore filter if passing empty set;
+	*/
+	int NNeighbours(int dimfilter, const std::set<int>& matids) const;
 	
 	/** @brief Returns the number of neighbours, excluding the given element (thisElem) */
-	int NNeighboursButThisElem(TPZGeoEl *thisElem);
+	int NNeighboursButThisElem(TPZGeoEl *thisElem) const;
 	
 	TPZGeoElSide(){ fGeoEl = 0; fSide  = -1;}
 	

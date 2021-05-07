@@ -262,7 +262,7 @@ int TPZGeoElSide::NSides() const
 
 
 /// Area associated with the side
-REAL TPZGeoElSide::Area()
+REAL TPZGeoElSide::Area() const
 {
 	TPZManVector<REAL,3> sideparam(Dimension(),0);
 	REAL detjac;
@@ -284,7 +284,7 @@ REAL TPZGeoElSide::Area()
 }
 
 
-int TPZGeoElSide::NNeighbours()
+int TPZGeoElSide::NNeighbours() const
 {
 	int nneighbours = 0;
 	TPZGeoElSide neigh = this->Neighbour();
@@ -298,8 +298,35 @@ int TPZGeoElSide::NNeighbours()
 	return nneighbours;
 }
 
+/** @brief Get number of neighbours of a given dimension */
+int TPZGeoElSide::NNeighbours(const int dimfilter) const{
+	if(dimfilter < 0) return NNeighbours();
+	int nneighbours = 0;
 
-int TPZGeoElSide::NNeighboursButThisElem(TPZGeoEl *thisElem)
+	TPZGeoElSide neig = this->Neighbour();
+	while(neig != *this){
+		nneighbours += neig.Element()->Dimension() == dimfilter;
+		neig = neig.Neighbour();
+	}
+
+	return nneighbours;
+}
+
+int TPZGeoElSide::NNeighbours(const int dimfilter, const std::set<int>& matids) const{
+	if(matids.size() == 0) return NNeighbours(dimfilter);
+	int nneighbours = 0;
+
+	TPZGeoElSide neig = this->Neighbour();
+	auto end = matids.end();
+	while(neig != *this){
+		nneighbours += (dimfilter<0 || neig.Element()->Dimension() == dimfilter) && matids.find(neig.Element()->MaterialId()) != end;
+		neig = neig.Neighbour();
+	}
+
+	return nneighbours;
+}
+
+int TPZGeoElSide::NNeighboursButThisElem(TPZGeoEl *thisElem) const
 {
 	int nneighbours = 0;
 	TPZGeoElSide neigh = this->Neighbour();
