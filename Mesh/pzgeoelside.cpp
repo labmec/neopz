@@ -1182,7 +1182,7 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 void  TPZGeoElSide::Normal(TPZVec<REAL> &qsi_side, TPZVec<REAL> &normal) const{
     
     if (Dimension() != fGeoEl->Dimension()-1) {
-        DebugStop();
+        return;
     }
     
     normal.Resize(3,0.);

@@ -382,6 +382,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         REAL weight;
         data.intLocPtIndex = ip;
         intrule->Point(ip, Point, weight);
+        datavecleft[0].fNeedsSol=true;
+        datavecleft[0].fNeedsNormal=true;
         ComputeRequiredData(data, Point);
         weight *= fabs(data.detjac);
         trleft.Apply(Point, leftPoint);
