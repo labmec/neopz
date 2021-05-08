@@ -99,6 +99,10 @@ foreach(header ${public_headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
 endforeach()
 
+
+#elasticity materials
+add_subdirectory(Elasticity)
+
 #materials for conservation laws
 add_subdirectory(ConsLaw)
 #materials for black oil
