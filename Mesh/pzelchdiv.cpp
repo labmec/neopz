@@ -1052,18 +1052,15 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> 
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
-
     this->ComputeSolutionHDiv(data);
-
 }
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) {
-
+    
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
-
     TPZMaterialData data;
     InitMaterialData(data);
     data.fNeedsSol = true;

@@ -143,6 +143,10 @@ public:
 	void Read(TPZStream &buf, void *context) override;
     /** @brief Refinement along the element */
 //    virtual void PRefine(int order) override;
+    
+   
+    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
+    void ComputeSolutionHDivCollapsed(TPZMaterialData &data);
 	
 };
 

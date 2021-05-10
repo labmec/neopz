@@ -422,6 +422,7 @@ void TPZAnalysis::AssembleInternal()
 }
 void TPZAnalysis::Assemble()
 {
+    
 	if(fSolType == EReal)
         TPZAnalysis::AssembleInternal<STATE>();
     else
