@@ -397,6 +397,22 @@ public:
     virtual int SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w);    
     /** @} */
 
+    /*** @name Solve eigenvalues DEPENDS ON MKL.***/
+    /** @{ */
+    /**
+     * @brief Uses MKL to compute the Singular Value Decomposition (SVD) of this rectangular (m by n) matrix A = U*Sigma*VT
+     * @param U: orthogonal (m by m) matrix for the left singular vectors of A
+     * @param S: column matrix (min{m,n} by 1) to store the values that go in the diagonal (of length min{m,n}) of Sigma (in decreasing order)
+     * @param VT: (transpose of V) orthogonal (n by n) matrix for the right-singular-vectors of A
+     * @param jobU how much of U should be computed. 'A' for all, 'S' for the min(m,n) first columns, 'N' for none
+     * @param jobVT how much of VT should be computed. 'A' for all, 'S' for the min(m,n) first rows, 'N' for none
+    */
+    void SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU='A', char jobVT='A');
+
+    /** @brief Alias for TPZFMatrix::SingularValueDecomposition(); */
+    void SVD(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU='A', char jobVT='A')
+                {SingularValueDecomposition(U,S,VT,jobU,jobVT);}
+    /** @} */    
     
     /** @brief Routines to send and receive messages */
     public:
