@@ -15,7 +15,7 @@
 //parallel layer classes
 #include "pzstrmatrixor.h"
 #include "pzstrmatrixot.h"
-#ifdef PZ_USING_BOOST
+#ifdef PZ_USING_TBB
 #include "pzstrmatrixflowtbb.h"
 #endif
 //struct matrices
@@ -55,7 +55,7 @@ namespace structTest{
 TEMPLATE_TEST_CASE("Assemble known matrix",
                    "[struct_tests][struct][multithread]",
                    TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>
-#ifdef PZ_USING_BOOST
+#ifdef PZ_USING_TBB
                    ,TPZStructMatrixTBBFlow<STATE>
 #endif
                    )
@@ -144,7 +144,7 @@ TEST_CASE("Compare parallel strategies","[struct_tests][struct][multithread]")
   SECTION("Compare OR/OT"){
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixOT<STATE>>(cMesh, nThreads);
   }
-#ifdef PZ_USING_BOOST
+#ifdef PZ_USING_TBB
   SECTION("Compare OR/TBBFlow"){
     structTest::CompareParallelLayerStiffMat<TPZStructMatrixOR<STATE>,TPZStructMatrixTBBFlow<STATE>>(cMesh, nThreads);
   }
