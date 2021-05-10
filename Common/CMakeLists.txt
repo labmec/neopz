@@ -8,6 +8,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
   TPZGuiInterface.h
   TPZConsLawTypes.h
+  TPZElectromagneticConstants.h
   pzeltype.h
   pzerror.h
   pzreal.h
@@ -16,6 +17,7 @@ set(public_headers
 set(headers
     TPZGuiInterface.h
     TPZConsLawTypes.h
+    TPZElectromagneticConstants.h
     TPZLapack.h
     TPZReschedulableTask.h
     TPZTask.h
