@@ -44,9 +44,9 @@ static TPZLogger loggerCheck("pz.checkconsistency");
 #define BLAS_MULT
 #endif
 
-#ifdef USING_MKL
-    #include "mkl.h"
-#endif // USING_MKL
+// #ifdef USING_MKL
+//     #include "mkl.h"
+// #endif // USING_MKL
 
 //#define IsZero( a )  ( fabs(a) < 1.e-20)
 
@@ -3101,20 +3101,19 @@ TPZFMatrix<complex<double> >::SolveGeneralisedEigenProblem(TPZFMatrix<complex<do
     
 }
 
-#endif // USING_LAPACK
 
-#ifdef USING_MKL
 
 template<typename TVar>
-void TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){
+int TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){
     PZError<<__PRETTY_FUNCTION__
            <<"\n\tNot implemented for your type yet."
-           <<"\n\tYou're welcome to pull-request your implementation to philippedevloo@github \n";
+           <<"\n\tYou're welcome to pull-request your implementation to github.com/labmec/neopz \n";
     DebugStop();
+    return -1;
 }
 
 template<>
-void TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMatrix<double>& S, TPZFMatrix<double>& VT,char jobU, char jobVT){
+int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMatrix<double>& S, TPZFMatrix<double>& VT,char jobU, char jobVT){
     double* A_ptr = &(this->operator()(0,0));
     double* U_ptr = &U(0,0);
     double* S_ptr = &S(0,0);
@@ -3135,16 +3134,20 @@ void TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFM
         PZError<<"\nSingularValueDecomposition failed to converge\n";
         PZError<<"\tCheck matrix before running mkl::dgesvd since it overwrites the matrix\n";
         DebugStop();
+        // return info; // in case you don't want a DebugStop()
     }
     else if(info<0){
         PZError<<"\nThe "<<-info<<"th parameter passed to mkl::dgesvd is a bad parameter\n";
         DebugStop();
     }
     free((void*)work);
+
+    const int success = 1;
+    return success;
 }
 
-#endif // USING_MKL
 
+#endif // USING_LAPACK
 
 
 /** @brief Returns the norm of the matrix A */
@@ -3182,22 +3185,12 @@ int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVe
 
 template<class TVar>
 int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
+
+template<typename TVar>
+void TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){NON_LAPACK}
 #undef NON_LAPACK
 #endif
 
-#ifndef USING_MKL    
-    #define NON_MKL \
-        PZError<<__PRETTY_FUNCTION__<<" requires MKL\n";             \
-        PZError<<" Set either USING_MKL=ON or USING_MKL=ON on CMake ";   \
-        PZError<<" when configuring NeoPZ library"<<std::endl;              \
-        DebugStop();\
-        return -1;
-
-    template<typename TVar>
-    void TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){NON_MKL}
-
-    #undef NON_MKL
-#endif // USING_MKL
 #include <complex>
 
 template class TPZFMatrix<int >;

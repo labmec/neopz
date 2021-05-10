@@ -407,11 +407,11 @@ public:
      * @param jobU how much of U should be computed. 'A' for all, 'S' for the min(m,n) first columns, 'N' for none
      * @param jobVT how much of VT should be computed. 'A' for all, 'S' for the min(m,n) first rows, 'N' for none
     */
-    void SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU='A', char jobVT='A');
+    int SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU='A', char jobVT='A');
 
     /** @brief Alias for TPZFMatrix::SingularValueDecomposition(); */
-    void SVD(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU='A', char jobVT='A')
-                {SingularValueDecomposition(U,S,VT,jobU,jobVT);}
+    int SVD(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU='A', char jobVT='A')
+                {return SingularValueDecomposition(U,S,VT,jobU,jobVT);}
     /** @} */    
     
     /** @brief Routines to send and receive messages */
