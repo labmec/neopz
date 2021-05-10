@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
 
   
@@ -30,6 +32,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -178,8 +181,8 @@
 <div class="section" id="tpzstructmatrixor">
 <h2>TPZStructMatrixOR<a class="headerlink" href="#tpzstructmatrixor" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
-<dt id="_CPPv4I0E17TPZStructMatrixOR">
-<span id="_CPPv3I0E17TPZStructMatrixOR"></span><span id="_CPPv2I0E17TPZStructMatrixOR"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code><span class="pre">&gt;</span><br /><span class="target" id="classTPZStructMatrixOR"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrixOR</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="structindex.html#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><a class="headerlink" href="#_CPPv4I0E17TPZStructMatrixOR" title="Permalink to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4I0E17TPZStructMatrixOR">
+<span id="_CPPv3I0E17TPZStructMatrixOR"></span><span id="_CPPv2I0E17TPZStructMatrixOR"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZStructMatrixOR"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZStructMatrixOR</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="structindex.html#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="n"><span class="pre">TPZStrMatParInterface</span></span></a><a class="headerlink" href="#_CPPv4I0E17TPZStructMatrixOR" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Parallel layer for struct matrices using the producer-consumer paradigm. This is the original and stable version of the multi threaded assemble. </p>
 </dd></dl>
 
@@ -187,8 +190,8 @@
 <div class="section" id="tpzstructmatrixot">
 <h2>TPZStructMatrixOT<a class="headerlink" href="#tpzstructmatrixot" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
-<dt id="_CPPv4I0E17TPZStructMatrixOT">
-<span id="_CPPv3I0E17TPZStructMatrixOT"></span><span id="_CPPv2I0E17TPZStructMatrixOT"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code><span class="pre">&gt;</span><br /><span class="target" id="classTPZStructMatrixOT"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrixOT</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="structindex.html#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><a class="headerlink" href="#_CPPv4I0E17TPZStructMatrixOT" title="Permalink to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4I0E17TPZStructMatrixOT">
+<span id="_CPPv3I0E17TPZStructMatrixOT"></span><span id="_CPPv2I0E17TPZStructMatrixOT"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZStructMatrixOT"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZStructMatrixOT</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="structindex.html#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="n"><span class="pre">TPZStrMatParInterface</span></span></a><a class="headerlink" href="#_CPPv4I0E17TPZStructMatrixOT" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Parallel layer for struct matrices using graph coloring to define the order in which to process the elements (Devloo-Gilvan). Each color is processed and synchronized. </p>
 </dd></dl>
 
@@ -196,8 +199,8 @@
 <div class="section" id="tpzstructmatrixtbbflow">
 <h2>TPZStructMatrixTBBFlow<a class="headerlink" href="#tpzstructmatrixtbbflow" title="Permalink to this headline">¶</a></h2>
 <dl class="cpp class">
-<dt id="_CPPv4I0E22TPZStructMatrixTBBFlow">
-<span id="_CPPv3I0E22TPZStructMatrixTBBFlow"></span><span id="_CPPv2I0E22TPZStructMatrixTBBFlow"></span><span class="pre">template&lt;</span><span class="pre">class</span> <code class="sig-name descname"><span class="pre">TVar</span></code><span class="pre">&gt;</span><br /><span class="target" id="classTPZStructMatrixTBBFlow"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">TPZStructMatrixTBBFlow</span></code> <span class="pre">:</span> <em class="property"><span class="pre">public</span></em> <em class="property"><span class="pre">virtual</span></em> <a class="reference internal" href="structindex.html#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="pre">TPZStrMatParInterface</span></a><a class="headerlink" href="#_CPPv4I0E22TPZStructMatrixTBBFlow" title="Permalink to this definition">¶</a><br /></dt>
+<dt class="sig sig-object cpp" id="_CPPv4I0E22TPZStructMatrixTBBFlow">
+<span id="_CPPv3I0E22TPZStructMatrixTBBFlow"></span><span id="_CPPv2I0E22TPZStructMatrixTBBFlow"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZStructMatrixTBBFlow"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZStructMatrixTBBFlow</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="structindex.html#_CPPv421TPZStrMatParInterface" title="TPZStrMatParInterface"><span class="n"><span class="pre">TPZStrMatParInterface</span></span></a><a class="headerlink" href="#_CPPv4I0E22TPZStructMatrixTBBFlow" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Parallel layer for struct matrices using graph-coloring and creating a <code class="docutils literal notranslate"><span class="pre">tbb::flow::graph</span></code>to process in parallel each node. </p>
 </dd></dl>
 
