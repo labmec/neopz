@@ -3187,7 +3187,7 @@ template<class TVar>
 int TPZFMatrix<TVar>::SolveGeneralisedEigenProblem(TPZFMatrix< TVar > &B , TPZVec < std::complex<double> > &w){NON_LAPACK}        
 
 template<typename TVar>
-void TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){NON_LAPACK}
+int TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix<TVar>& S, TPZFMatrix<TVar>& VT,char jobU, char jobVT){NON_LAPACK}
 #undef NON_LAPACK
 #endif
 
