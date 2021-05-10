@@ -119,6 +119,8 @@ add_pz_target(
   target_include_directories(MyTarget PRIVATE ${OTHERDEP_INCLUDE_DIRS})
 ```
 
+*Note:* If you don't want to use the function `add_pz_target()`, the PZ library target is available under the alias `NeoPZ::pz`. It can still be linked through CMake's `target_link_libraries(my_target <PRIVATE|PUBLIC> NeoPZ::pz)`
+
 The CMake options defined when configuring NeoPZ will be available to the external targets with the `PZ` prefix (`USING_MKL` becomes `PZ_USING_MKL`). So, if a certain option is needed in an external project, the `REQUIRED` field in `add_pz_targets` can be used. *Note:* `PZ_LOG` is used both internally and externally for identifying if there is support for logging.
 
 *Note:* NeoPZ will be installed in UNIX systems in `/opt/neopz` by default. If `/opt` or `/opt/bin` is not on your `PATH`, the CMake variable `NEOPZ_DIR` can be used in your project using NeoPZ:
