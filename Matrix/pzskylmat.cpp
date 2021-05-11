@@ -1451,7 +1451,10 @@ TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
             TVar *elem_ki = fElem[k]+1;
             TVar *end_ki  = fElem[k+1];
             TVar *BPtr = &(*B)(k,j);
-            while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);
+            if constexpr(is_complex<TVar>::value)
+                while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
+            else
+                while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
             
             // Faz B[k,j] = (B[k,j] - sum) / A[k,k].
             //
