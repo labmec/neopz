@@ -1604,34 +1604,42 @@ int TPZFMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular) {
     
     for (int i=0 ; i<dim; i++) {
         
-        TVar * diagPtr = &(this->operator()(i,i));
-        for(int k=0; k<i; k++) {             //elementos da diagonal
-            (*diagPtr) -= this->operator()(i,k)*this->operator()(i,k);
+
+        TVar &diagII = this->g(i,i);
+        for(int k=0; k<i; k++) { //diagonal elements
+            TVar sum = 0;
+            if constexpr (is_complex<TVar>::value){
+                sum += this->operator()(i,k)*std::conj(this->operator()(i,k));
+            }else{
+                sum+= this->operator()(i,k)*this->operator()(i,k);
+            }
+            diagII -= sum;
         }
         
         
-        if( IsZero(*diagPtr) ){
+        if( IsZero(diagII) ){
             singular.push_back(i);
-            (*diagPtr) = 1.;
+            (diagII) = 1.;
         }
-        
-        (*diagPtr) = sqrt(*diagPtr);
-        
-        for (int j=i+1;j<dim; j++) {           //elementos fora da diagonal
+        diagII = sqrt(diagII);
+
+        for (int j=i+1;j<dim; j++) {//off-diagonal elements
             TVar sum = 0.;
-            { ///escopo
-                int k=0;
-                TVar * ikPtr = &(this->operator()(k,i));//&(this->operator()(i,k));///(k,i) = (i,k) pela simetria da matriz, mas o alinhamento acelera a execucao
-                TVar * kjPtr = &(this->operator()(k,j));
-                for(; k<i; k++, kjPtr++, ikPtr++) {
+            int k = 0;
+            TVar * ikPtr = &(this->g(k,i));///(k,i) = (i,k) given that the matrix is symmetric, but the alignment will speed up execution
+            TVar * kjPtr = &(this->g(k,j));
+            for(; k<i; k++, kjPtr++, ikPtr++) {
+                if constexpr(is_complex<TVar>::value){
+                    sum += std::conj(*ikPtr)*(*kjPtr);
+                }else{
                     sum += (*ikPtr)*(*kjPtr);
                 }
             }
-            TVar *ijPtr = &(this->operator()( i,j ));
-            (*ijPtr) -= sum;
             
-            (*ijPtr) /= (*diagPtr);
-            this->operator()(j,i) = (*ijPtr);
+            const TVar val = (this->GetVal(i,j) - sum)/(diagII);
+            this->PutVal(i,j,val);
+            if constexpr (is_complex<TVar>::value) this->PutVal(j,i,std::conj(val));
+            else this->PutVal(j,i,val);
         }
     }
     
@@ -1758,36 +1766,7 @@ int TPZFMatrix<double>::Decompose_LDLt() {
 
 template <class TVar>
 int TPZFMatrix<TVar>::Decompose_LDLt() {
-    
-    if (  this->fDecomposed && this->fDecomposed != ELDLt) {
-        Error( "Decompose_LDLt <Matrix already Decomposed with other scheme> " );
-    } else if(this->fDecomposed ) {
-        return ELDLt;
-    }
-    if ( this->Rows()!=this->Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
-    
-    int64_t j,k,l,dim=this->Rows();
-    
-    for ( j = 0; j < dim; j++ ) {
-        for ( k=0; k<j; k++) {
-            PutVal( j,j,GetVal(j,j) - GetVal(k,k)*GetVal(k,j)*GetVal(k,j) );
-        }
-        for ( k=0; k<j; k++) {
-            for( l=j+1; l<dim;l++) {
-                PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
-                PutVal(j,l,GetVal(l,j) );
-            }
-        }
-        TVar tmp = GetVal(j,j);
-        if ( IsZero(tmp) ) Error( "Decompose_LDLt <Zero on diagonal>" );
-        for( l=j+1; l<dim;l++) {
-            PutVal(l,j, GetVal(l,j)/GetVal(j,j) ) ;
-            PutVal(j,l, GetVal(l,j) );
-        }
-    }
-    this->fDecomposed  = ELDLt;
-    this->fDefPositive = 0;
-    return( 1 );
+    return TPZMatrix<TVar>::Decompose_LDLt();
 }
 
 

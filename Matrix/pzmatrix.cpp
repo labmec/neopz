@@ -1106,22 +1106,37 @@ int TPZMatrix<TVar>::Decompose_Cholesky() {
 	
 	int64_t dim=Dim();
 	for (int64_t i=0 ; i<dim; i++) {
-		for(int64_t k=0; k<i; k++) {             //elementos da diagonal
-			PutVal( i,i,GetVal(i,i)-GetVal(i,k)*GetVal(i,k) );
+		for(int64_t k=0; k<i; k++) {//diagonal elements
+            TVar sum = 0;
+            if constexpr (is_complex<TVar>::value){
+                sum += GetVal(i,k)*std::conj(GetVal(i,k));
+            }else{
+                sum += GetVal(i,k)*GetVal(i,k);
+            }
+            PutVal( i,i,GetVal(i,i)-sum );
 		}
 		TVar tmp = sqrt(GetVal(i,i));
         PutVal( i,i,tmp );
-        for (int64_t j=i+1;j<dim; j++) {           //elementos fora da diagonal
+        for (int64_t j=i+1;j<dim; j++) {//off-diagonal elements
             for(int64_t k=0; k<i; k++) {
-                PutVal( i,j,GetVal(i,j)-GetVal(i,k)*GetVal(k,j) );
+                TVar sum = 0.;
+                if constexpr (is_complex<TVar>::value){
+                    sum += GetVal(i,k)*std::conj(GetVal(j,k));
+                }else{
+                    sum += GetVal(i,k)*GetVal(j,k);
+                }
+                PutVal( i,j,GetVal(i,j)-sum);
             }
             TVar tmp2 = GetVal(i,i);
             if ( IsZero(tmp2) ) {
 				Error( "Decompose_Cholesky <Zero on diagonal>" );
             }
             PutVal(i,j,GetVal(i,j)/GetVal(i,i) );
-            PutVal(j,i,GetVal(i,j));
-			
+            if constexpr (is_complex<TVar>::value){
+                PutVal(j,i,std::conj(GetVal(i,j)));
+            }else{
+                PutVal(j,i,GetVal(i,j));
+            }
         }
     }
 	fDecomposed = ECholesky;
