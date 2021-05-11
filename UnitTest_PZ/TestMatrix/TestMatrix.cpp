@@ -124,51 +124,75 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
     template<typename TVar>
     void Inverse(){
         constexpr int dim{10};
+
+        SECTION("Cholesky"){
 #ifdef PZ_USING_MKL
-        if constexpr (std::is_same<TVar,double>::value){
-            SECTION("TPZSYsmpMatrix"){
-                TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ECholesky);
+            if constexpr (std::is_same<RTVar,double>::value){
+                SECTION("TPZSYsmpMatrix"){
+                    TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ECholesky);
+                }
             }
-            SECTION("TPZSYsmpMatrix"){
-                TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ELDLt);
-            }
-        }
 #endif
-        SECTION("TPZSBMatrix"){
-            TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
+            if constexpr(!is_complex<TVar>::value){//FAILING
+                SECTION("TPZSFMatrix"){
+                    TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ECholesky);
+                }
+            }
+            SECTION("TPZSBMatrix"){
+                TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
+            }
+            if constexpr(!is_complex<TVar>::value){//FAILING
+                SECTION("TPZSkylMatrix"){
+                    TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ECholesky);
+                }
+            }
+            
         }
-        SECTION("TPZSBMatrix"){
-            TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
+        //FAILING
+        if constexpr(!is_complex<TVar>::value){
+        SECTION("LDLt"){
+#ifdef PZ_USING_MKL
+            if constexpr (std::is_same<RTVar,double>::value){
+                SECTION("TPZSYsmpMatrix"){
+                    TestingInverseWithAutoFill<TPZSYsmpMatrix<TVar>,TVar>(dim, 1, ELDLt);
+                }
+            }
+#endif
+            SECTION("TPZFMatrix"){
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELDLt);
+            }
+            SECTION("TPZSFMatrix"){
+                TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
+            }
+            SECTION("TPZSBMatrix"){
+                TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
+            }
+            SECTION("TPZSkylMatrix"){
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
+            }
         }
-        SECTION("TPZFBMatrix"){
-            TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
         }
-        SECTION("TPZFMatrix"){
-            TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1,ECholesky);
-        }
-        SECTION("TPZFMatrix"){
-            TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
-        }
-        SECTION("TPZFMatrix"){
-            TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELDLt);
-        }
-        SECTION("TPZFBMatrix"){
-            TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
-        }
-        SECTION("TPZBlockDiagonal"){
-            TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 0,ELU);
-        }
-        SECTION("TPZSkylMatrix"){
-            TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
-        }
-        SECTION("TPZFNMatrix"){
-            TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 0, ELU);
-        }
-        SECTION("TPZSFMatrix"){
-            TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
-        }
-        SECTION("TPZSkylNSymMatrix"){
-            TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 0,ELU);
+        SECTION("LU"){
+            SECTION("TPZFBMatrix"){
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
+            }
+            SECTION("TPZFMatrix"){
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
+            }
+            SECTION("TPZFBMatrix"){
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
+            }
+            SECTION("TPZBlockDiagonal"){
+                TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 0,ELU);
+            }
+        
+            SECTION("TPZFNMatrix"){
+                TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 0, ELU);
+            }
+        
+            SECTION("TPZSkylNSymMatrix"){
+                TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 0,ELU);
+            }
         }
     }
 
@@ -378,13 +402,13 @@ TEMPLATE_TEST_CASE("Inverse (REAL)","[matrix_tests]",
     testmatrix::Inverse<TestType>();
 }
 
-// TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
-//                    std::complex<float>,
-//                    std::complex<double>,
-//                    std::complex<long double>
-//           ) {
-//     testmatrix::Inverse<TestType>();
-// }
+TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+          ) {
+    testmatrix::Inverse<TestType>();
+}
 
 TEMPLATE_TEST_CASE("Multiply transpose (REAL)","[matrix_tests]",
                    float,
