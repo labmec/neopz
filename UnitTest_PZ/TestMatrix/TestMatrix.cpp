@@ -133,8 +133,14 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
                 }
             }
 #endif
+            SECTION("TPZFMatrix"){
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ECholesky);
+            }
             SECTION("TPZSFMatrix"){
                 TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ECholesky);
+            }
+            SECTION("TPZFBMatrix"){
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
             }
             SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
@@ -144,7 +150,6 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             }
             
         }
-        //FAILING
         SECTION("LDLt"){
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
@@ -508,13 +513,13 @@ TEMPLATE_TEST_CASE("MultAdd (REAL)","[matrix_tests]",
     testmatrix::TestMultAdd<TestType>();
 }
 
-// TEMPLATE_TEST_CASE("MultAdd (CPLX)","[matrix_tests]",
-//                    std::complex<float>,
-//                    std::complex<double>,
-//                    std::complex<long double>
-//                    ) {
-//     testmatrix::TestMultAdd<TestType>();
-// }
+TEMPLATE_TEST_CASE("MultAdd (CPLX)","[matrix_tests]",
+                   std::complex<float>,
+                   std::complex<double>,
+                   std::complex<long double>
+                   ) {
+    testmatrix::TestMultAdd<TestType>();
+}
 
 #ifdef PZ_USING_LAPACK
 /*There is no long double lapack interface in our code*/
@@ -548,11 +553,6 @@ TEMPLATE_TEST_CASE("Generalised Eigenvalues (CPLX)","[matrix_tests]",
     testmatrix::GeneralisedEigenvaluesAutoFill<TestType>();
 }
 #endif
-
-//TEST_CASE("nonsingular_test","[matrix_tests]")
-//{
-//	TestingDiagonalDominant<TPZFBMatrix>();
-//}
 
 
 
@@ -795,12 +795,16 @@ void TestingMultAdd(int dim, int symmetric, DecomposeType dec) {
 
 
     ma.MultAdd(inv, y, z, 1., -1.);
+    constexpr RTVar tol = [](){
+        if constexpr (std::is_same_v<RTVar,float>) return (RTVar)100;
+        else return (RTVar)1;
+    }();
     /// Checking whether the res matrix is identical to m1 matrix
     bool check = true;
     for (i = 0; i < dim; i++) {
         for (j = 0; j < dim; j++) {
             TVar zval = z(i, j);
-            if (!IsZero(zval)) {
+            if (!IsZero(zval/tol)) {
                 check = false;
             }
         }
