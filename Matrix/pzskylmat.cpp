@@ -843,27 +843,6 @@ TPZSkylMatrix<TVar>::Redim( int64_t newDim , int64_t)
 	return( 1 );
 }
 
-template<>
-int
-TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    DebugStop();
-    return -1;
-}
-template<>
-int
-TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    DebugStop();
-    return -1;
-}
-template<>
-int
-TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int64_t> &singular)
-{
-    DebugStop();
-    return -1;
-}
 /**************************/
 /*** Decompose Cholesky ***/
 template<class TVar>
@@ -879,7 +858,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
     
 	singular.clear();
 	TVar pivot;
-	TVar Tol;
+	RTVar Tol;
 	ZeroTolerance(Tol);
 	int64_t dimension = this->Dim();
 	/*  if(Dim() > 100) {
@@ -900,14 +879,20 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+        if constexpr (is_complex<TVar>::value){
 #pragma clang loop vectorize_width(2)
-		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
+            for ( ; elem_k < end_k; elem_k++ ) sum += std::conj(*elem_k) * (*elem_k);
+        }else{
+#pragma clang loop vectorize_width(2)
+            for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
+        }
+
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		pivot = fElem[k][0] - sum;
         //		if ( pivot < ((TVar)1.e-9) ) {
-		if(pivot < Tol) {
+		if(abs(pivot) < Tol) {
 			singular.push_back(k);
             std::cout << __FUNCTION__ << " Singular equation pivot " << pivot << " k " << k << std::endl;
 			pivot = 1.;
@@ -932,9 +917,16 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 				unsigned max_l = end_i - elem_i;
 				unsigned tmp = end_k - elem_k;
 				if (tmp < max_l) max_l = tmp;
+                if constexpr (is_complex<TVar>::value){
 #pragma clang loop vectorize_width(2)
-				for(unsigned l=0; l<max_l; l++) 
-                    sum += (*elem_i++) * (*elem_k++);
+                    for(unsigned l=0; l<max_l; l++) 
+                        sum += (*elem_i++) * std::conj(*elem_k++);
+                }else{
+#pragma clang loop vectorize_width(2)
+                    for(unsigned l=0; l<max_l; l++) 
+                        sum += (*elem_i++) * (*elem_k++);
+                }
+
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
 				fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
 			} else if ( Size(i) == j ) fElem[i][j-1] /= pivot;
@@ -955,24 +947,6 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int64_t> &singular)
 	return( 1 );
 }
 
-template<>
-int TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky()
-{
-    DebugStop();
-    return -1;
-}
-template<>
-int TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky()
-{
-    DebugStop();
-    return -1;
-}
-template<>
-int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky()
-{
-    DebugStop();
-    return -1;
-}
 
 clarg::argBool clk_rea("-skl_chk_rea", "Reallocate Skyline data before Cholesky Decomposition");
 
@@ -1028,17 +1002,30 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
+        if constexpr(is_complex<TVar>::value){
 #pragma clang loop vectorize_width(2)
-		for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
+            for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * std::conj(*elem_k);
+        }else{
+#pragma clang loop vectorize_width(2)
+            for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);            
+        }
 		
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		pivot = fElem[k][0] - sum;
-        minpivot = minpivot < pivot ? minpivot : pivot;
-		if ( pivot < ((TVar)0.) || IsZero(pivot) ) {
-			cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << pivot << endl;
-			return( 0 );
-		}
+        if constexpr (is_complex<TVar>::value){
+            minpivot = abs(minpivot) < abs(pivot) ? minpivot : pivot;
+            if ( IsZero(pivot) ) {
+                cout << "TPZSkylMatrix::DecomposeCholesky matrix is not positive definite" << pivot << endl;
+                return( 0 );
+            }
+        }else{
+            minpivot = minpivot < pivot ? minpivot : pivot;
+            if ( pivot < ((RTVar)0.) || IsZero(pivot) ) {
+                cout << "TPZSkylMatrix::DecomposeCholesky matrix is not positive definite" << pivot << endl;
+                return( 0 );
+            }
+        }
 		// A matriz nao e' definida positiva.
 		
 		pivot = fElem[k][0] = sqrt( pivot );
@@ -1072,9 +1059,15 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
                     unsigned max_l = end_i - elem_i;
                     unsigned tmp = end_k - elem_k;
                     if (tmp < max_l) max_l = tmp;
+                    if constexpr (is_complex<TVar>::value){
 #pragma clang loop vectorize_width(2)
-                    for(unsigned l=0; l<max_l; l++)
-                        sum += (*elem_i++) * (*elem_k++);
+                        for(unsigned l=0; l<max_l; l++)
+                            sum +=  (*elem_i++) * std::conj(*elem_k++);
+                    }else{
+#pragma clang loop vectorize_width(2)
+                        for(unsigned l=0; l<max_l; l++)
+                            sum +=  (*elem_i++) * (*elem_k++);
+                    }
                     // Faz A(i,k) = (A(i,k) - sum) / A(k,k)
                     fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
                 } else if ( Size(i) == j ) fElem[i][j-1] /= pivot;
@@ -1373,7 +1366,10 @@ TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
             //EBORIN:
             // Is this a hot-spot?
             // Is it vectorized?
-            while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
+            if constexpr(is_complex<TVar>::value)
+                while(elem_ki < end_ki) sum += std::conj(*elem_ki++) * (*--BPtr);//(*BPtr--)
+            else
+                while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
             // Faz B[k,j] = (B[k,j] - sum) / A[k,k].
             //
             //	B->PutVal( k, j, (B->GetVal(k, j) - sum) / row_k->pElem[0] );
@@ -1833,7 +1829,6 @@ template class TPZRestoreClass<TPZSkylMatrix<std::complex<long double>>>;
 template class TPZSkylMatrix<long double>;
 template class TPZSkylMatrix<std::complex<long double> >;
 
-template class TPZSkylMatrix<TPZFlopCounter>;
 
 #if (defined DUMP_BEFORE_DECOMPOSE) || (defined DUMP_BEFORE_SUBST)
 
