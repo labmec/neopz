@@ -118,42 +118,61 @@ int DataType([[maybe_unused]]float a)
     return 1;
 }
 
+template<>
+int DataType([[maybe_unused]]std::complex<double> a)
+{
+    return 0;
+}
+
+template<>
+int DataType([[maybe_unused]]std::complex<float> a)
+{
+    return 1;
+}
+
 
 template<class TVar>
 long long TPZPardisoControl<TVar>::MatrixType()
 {
-    // should not happen
-    if (fStructure == EStructureNonSymmetric) {
+    if ((fStructure == EStructureNonSymmetric)||
+        (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite)){
         DebugStop();
     }
-    if (fSystemType == ESymmetric && fProperty == EIndefinite) {
-        if(fMatrixType != 0 && fMatrixType != -2)
-        {
-            DebugStop();
+
+    if(is_complex<TVar>::value){
+        if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+            fMatrixType = -4;
         }
-        else if(fMatrixType == -2)
-        {
-            return -2;
+        if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
+            fMatrixType = 4;
         }
-        fMatrixType = -2;
-    }
-    if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
-        if(fMatrixType != 0 && fMatrixType != 2)
-        {
-            DebugStop();
+        if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
+            fMatrixType = 3;
         }
-        else if(fMatrixType == 2)
-        {
-           return 2;
+    }else{
+        if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+            if(fMatrixType != 0 && fMatrixType != -2){
+                DebugStop();
+            }
+            else if(fMatrixType == -2){
+                return -2;
+            }
+            fMatrixType = -2;
         }
-        fMatrixType = 2;
+        if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
+            if(fMatrixType != 0 && fMatrixType != 2){
+                DebugStop();
+            }
+            else if(fMatrixType == 2){
+                return 2;
+            }
+            fMatrixType = 2;
+        }
+        if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
+            fMatrixType = 11;
+        }
     }
-    if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
-        fMatrixType = 11;
-    }
-    if (fSystemType == ENonSymmetric && fProperty == EPositiveDefinite) {
-        DebugStop();
-    }
+    
     
 //    for (long long i=0; i<64; i++) {
 //        long long val = fHandle[i];
