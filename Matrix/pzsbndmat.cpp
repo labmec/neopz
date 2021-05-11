@@ -793,7 +793,7 @@ TPZSBMatrix<std::complex<float> >::Subst_Forward( TPZFMatrix<std::complex<float>
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<float> *bptr = &(*B)(0,ic);
-        cblas_ctbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -813,7 +813,7 @@ TPZSBMatrix<std::complex<double> >::Subst_Forward( TPZFMatrix<std::complex<doubl
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<double> *bptr = &(*B)(0,ic);
-        cblas_ztbsv(CblasColMajor, CblasUpper, CblasTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasNonUnit, n, kd, &fDiag[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -955,7 +955,7 @@ TPZSBMatrix<std::complex<float> >::Subst_LForward( TPZFMatrix<std::complex<float
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<float> *bptr = &(*B)(0,ic);
-        cblas_ctbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ctbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
     }
     return 1;
 }
@@ -975,7 +975,7 @@ TPZSBMatrix<std::complex<double> >::Subst_LForward( TPZFMatrix<std::complex<doub
     for(int64_t ic=0; ic<bcols; ic++)
     {
         std::complex<double> *bptr = &(*B)(0,ic);
-        cblas_ztbsv(CblasColMajor, CblasUpper, CblasTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
+        cblas_ztbsv(CblasColMajor, CblasUpper, CblasConjTrans, CblasUnit, n, kd, &fDiag[0], lda, bptr , 1);
     }
     return 1;
 }
