@@ -42,7 +42,7 @@ set(CMAKE_INSTALL_RPATH ${basePoint} ${basePoint}/${relDir})
 ##RPATH SETTINGS - END
 set(PZ_LIB_TYPE SHARED)
 add_library(pz ${PZ_LIB_TYPE} "")
-
+target_compile_features(pz PUBLIC cxx_std_17)
 ##TODOWIN32: check whether these distinctions are really necessary
 ##TODO: are they ok when private?
 if (WIN32)
