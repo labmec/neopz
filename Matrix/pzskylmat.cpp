@@ -1296,7 +1296,11 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
             while(k < l) {
                 //		  sum += *elj-- * *ell-- * *(fElem[k++]);
                 //EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
-                sum += *elj-- * *ell-- * *diagptr++;
+                if constexpr(is_complex<TVar>::value){
+                    sum += (*elj--) * std::conj(*ell--) * (*diagptr++);
+                }else{
+                    sum += (*elj--) * (*ell--) * (*diagptr++);
+                }
                 k++;
             }
             *elj -= sum;

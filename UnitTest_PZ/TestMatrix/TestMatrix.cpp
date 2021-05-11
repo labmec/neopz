@@ -162,10 +162,8 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
-            if constexpr(!is_complex<TVar>::value){
             SECTION("TPZSkylMatrix"){
                 TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
-            }
             }
         }
         SECTION("LU"){
