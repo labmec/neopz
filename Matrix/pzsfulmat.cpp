@@ -603,27 +603,33 @@ TPZSFMatrix<TVar> ::Decompose_LDLt()
 		TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Decompose_LDLt <Matrix already Decomposed with a different scheme>" );
 	else if ( this->fDecomposed ) return 0;
 	
-	int64_t j,k,l;
 	//	TVar sum;
 	
 	
-	for ( j = 0; j < this->Dim(); j++ )
+	for ( auto j = 0; j < this->Dim(); j++ )
     {
-		//	sum=0.;
-		for ( k=0; k<j; k++)
-			//			sum=sum-GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
-			PutVal( j,j,GetVal(j,j)-GetVal(k,k)*GetVal(k,j)*GetVal(k,j) );
-		//		PutVal(j,j,GetVal(j,j)+sum);
-		for ( k=0; k<j; k++)
-		{
-			
-			for( l=j+1; l<this->Dim();l++)
-				PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
+		TVar sum=0.;
+		for ( auto k=0; k<j; k++){
+			if constexpr (is_complex<TVar>::value){
+				sum+=GetVal(k,k)*std::conj(GetVal(k,j))*GetVal(k,j);
+			}else{
+				sum+=GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
+			}
 		}
-		
+		PutVal(j,j,GetVal(j,j)-sum);
 		if ( IsZero(GetVal(j,j)) )TPZMatrix<TVar> ::Error(__PRETTY_FUNCTION__,"Decompose_LDLt <Zero on diagonal>" );
-		
-		for( l=j+1; l<this->Dim();l++) PutVal( l,j,GetVal(l,j)/GetVal(j,j) ) ;
+		for( auto l=j+1; l<this->Dim();l++)
+		{
+			sum = 0;
+			for ( auto k=0; k<j; k++){
+				if constexpr(is_complex<TVar>::value){
+					sum+=GetVal(k,k)*std::conj(GetVal(j,k))*GetVal(l,k);
+				}else{
+					sum+=GetVal(k,k)*GetVal(j,k)*GetVal(l,k);
+				}
+			}
+			PutVal(l,j, (GetVal(l,j)-sum)/GetVal(j,j) );
+		}
 		
     }
 	this->fDecomposed  = ELDLt;
