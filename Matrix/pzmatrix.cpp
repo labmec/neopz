@@ -1039,23 +1039,33 @@ int TPZMatrix<TVar>::Decompose_LDLt() {
 	}
 	if ( Rows()!=Cols() ) Error( "Decompose_LDLt <Matrix must be square>" );
 	
-	int64_t j,k,l,dim=Rows();
+	const int dim=Rows();
 	
-	for ( j = 0; j < dim; j++ ) {
-		for ( k=0; k<j; k++) {
-			PutVal( j,j,GetVal(j,j) - GetVal(k,k)*GetVal(k,j)*GetVal(k,j) );
+	for (auto j = 0; j < dim; j++ ) {
+        TVar sum = 0;
+		for (auto k=0; k<j; k++) {
+            if constexpr(is_complex<TVar>::value){
+                sum +=GetVal(k,k)*std::conj(GetVal(k,j))*GetVal(k,j);
+            }else{
+                sum +=GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
+            }   
 		}
-		for ( k=0; k<j; k++) {
-			for( l=j+1; l<dim;l++) {
-				PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
-				PutVal(j,l,GetVal(l,j) );
-			}
-		}
+        PutVal( j,j,GetVal(j,j) - sum );
 		TVar tmp = GetVal(j,j);
 		if ( IsZero(tmp) ) Error( "Decompose_LDLt <Zero on diagonal>" );
-		for( l=j+1; l<dim;l++) {
-			PutVal(l,j, GetVal(l,j)/GetVal(j,j) ) ;
-			PutVal(j,l, GetVal(l,j) );
+        for(auto l=j+1; l<dim;l++) {
+            TVar sum = 0;
+            for (auto k=0; k<j; k++) {
+                if constexpr(is_complex<TVar>::value){
+                    sum += GetVal(k,k)*std::conj(GetVal(j,k))*GetVal(l,k);
+                }else{
+                    sum += GetVal(k,k)*GetVal(j,k)*GetVal(l,k);
+                }
+			}
+            TVar val = (GetVal(l,j) - sum)/tmp;
+            PutVal(l,j,val);
+            if constexpr(is_complex<TVar>::value){val=std::conj(val);}
+            PutVal(j,l,val);
 		}
 	}
 	fDecomposed  = ELDLt;

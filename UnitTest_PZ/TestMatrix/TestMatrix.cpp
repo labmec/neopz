@@ -145,7 +145,6 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             
         }
         //FAILING
-        if constexpr(!is_complex<TVar>::value){
         SECTION("LDLt"){
 #ifdef PZ_USING_MKL
             if constexpr (std::is_same<RTVar,double>::value){
@@ -157,6 +156,7 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             SECTION("TPZFMatrix"){
                 TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
+            if constexpr(!is_complex<TVar>::value){
             SECTION("TPZSFMatrix"){
                 TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
@@ -166,7 +166,7 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             SECTION("TPZSkylMatrix"){
                 TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
             }
-        }
+            }
         }
         SECTION("LU"){
             SECTION("TPZFBMatrix"){
