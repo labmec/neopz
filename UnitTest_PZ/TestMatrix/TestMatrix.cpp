@@ -408,7 +408,7 @@ TEMPLATE_TEST_CASE("Inverse (REAL)","[matrix_tests]",
 }
 
 TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
-                   std::complex<float>,
+                   // std::complex<float>,
                    std::complex<double>,
                    std::complex<long double>
           ) {
