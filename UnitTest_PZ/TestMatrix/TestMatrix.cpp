@@ -148,6 +148,9 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             SECTION("TPZSkylMatrix"){
                 TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ECholesky);
             }
+            SECTION("TPZNSymSkylMatrix"){
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ECholesky);
+            }
             
         }
         SECTION("LDLt"){
@@ -164,17 +167,20 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             SECTION("TPZSFMatrix"){
                 TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
+            SECTION("TPZFBMatrix"){
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ECholesky);
+            }
             SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1, ELDLt);
             }
             SECTION("TPZSkylMatrix"){
                 TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
             }
+            SECTION("TPZNSymSkylMatrix"){
+                TestingInverseWithAutoFill<TPZSkylMatrix<TVar>,TVar>(dim, 1,ELDLt);
+            }
         }
         SECTION("LU"){
-            SECTION("TPZFBMatrix"){
-                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
-            }
             SECTION("TPZFMatrix"){
                 TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
             }
