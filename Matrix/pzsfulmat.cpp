@@ -541,9 +541,13 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 		TVar sum  = 0.0;
 		TVar *pk  = ptr_k;
 		TVar *pkk = ptr_k + k;
-		for ( ; pk < pkk;  pk++ )
-			sum += (*pk) * (*pk);
-		
+		for ( ; pk < pkk;  pk++ ){
+			if constexpr(is_complex<TVar>::value){
+				sum += std::conj(*pk) * (*pk);
+			}else{
+				sum += (*pk) * (*pk);
+			}
+		}
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		if (IsZero(*pk -= sum))
@@ -562,9 +566,13 @@ TPZSFMatrix<TVar> ::Decompose_Cholesky()
 			ptr_i += i;
 			pk    =  ptr_k;
 			pi    =  ptr_i;
-			for ( int64_t p = 0; p < k; p++ )
-				sum += (*pk++) * (*pi++);
-			
+			for ( int64_t p = 0; p < k; p++ ){
+				if constexpr(is_complex<TVar>::value){
+					sum += std::conj(*pk++) * (*pi++);
+				}else{
+					sum += (*pk++) * (*pi++);
+				}
+			}
 			// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
 			//
 			*pi = (*pi - sum) / *pk;
@@ -686,7 +694,11 @@ TPZSFMatrix<TVar> ::Subst_Backward( TPZFMatrix<TVar>  *B ) const
 			TVar *pk = ptr_k;
 			for ( int64_t i = this->Dim()-1; i > k; i-- )
 			{
-				sum += *pk * B->GetVal( i, j );
+				if constexpr(is_complex<TVar>::value){
+					sum += std::conj(*pk) * B->GetVal( i, j );
+				}else{
+					sum += (*pk) * B->GetVal( i, j );
+				}
 				pk -= i;
 			}
 			
@@ -756,7 +768,11 @@ TPZSFMatrix<TVar> ::Subst_LBackward( TPZFMatrix<TVar>  *B ) const
 			TVar *pk = ptr_k;
 			for ( int64_t i = this->Dim()-1; i > k; i-- )
 			{
-				sum += *pk * B->GetVal( i, j );
+				if constexpr (is_complex<TVar>::value){
+					sum += std::conj(*pk) * B->GetVal( i, j );
+				}else{
+					sum += *pk * B->GetVal( i, j );
+				}
 				pk -= i;
 			}
 			

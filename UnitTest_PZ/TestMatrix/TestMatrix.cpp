@@ -133,10 +133,8 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
                 }
             }
 #endif
-            if constexpr(!is_complex<TVar>::value){//FAILING
-                SECTION("TPZSFMatrix"){
-                    TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ECholesky);
-                }
+            SECTION("TPZSFMatrix"){
+                TestingInverseWithAutoFill<TPZSFMatrix<TVar>,TVar>(dim, 1, ECholesky);
             }
             SECTION("TPZSBMatrix"){
                 TestingInverseWithAutoFill<TPZSBMatrix<TVar>,TVar>(dim, 1,ECholesky);
