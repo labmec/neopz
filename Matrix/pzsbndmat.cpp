@@ -683,7 +683,11 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
         //cout<<"begin="<<begin<<"\n";
         for ( k=begin; k<j; k++)
         {
-            sum=sum-GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
+            if constexpr(is_complex<TVar>::value){
+                sum=sum-GetVal(k,k)*GetVal(k,j)*std::conj(GetVal(k,j));
+            }else{
+                sum=sum-GetVal(k,k)*GetVal(k,j)*GetVal(k,j);
+            }
             //cout<<"(k,j)"<<k<<" "<<j<<"\n";
         }
         
@@ -696,7 +700,12 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
             end   = MIN( int64_t(k + fBand )+1, this->Dim() );
             for( l=j+1; l<end;l++)
             {
-                PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
+                if constexpr(is_complex<TVar>::value){
+                    PutVal(l,j, GetVal(l,j)-
+                           GetVal(k,k)*GetVal(j,k)*std::conj(GetVal(l,k)));
+                }else{
+                    PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
+                }
                 /*cout<<"end="<<end<<"\n";
                  cout<<"(l,j)"<<l<<" "<<j<<"\n";
                  cout<<"(j,k)"<<j<<" "<<k<<"\n";
