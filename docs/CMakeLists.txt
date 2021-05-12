@@ -1,9 +1,15 @@
 #it will only come here if(BUILD_DOCS)
 
+set(DOXYGEN_ADD_ALL OFF CACHE BOOL "Whether to add ALL source files to doxygen")
+
 list(APPEND PZ_PUBLIC_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/pzmainpage.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/structmatrix/doxstrmatrix.h"
     )
+
+if(DOXYGEN_ADD_ALL)
+    list(APPEND PZ_PUBLIC_HEADERS ${pz_sources})#this is valid just for this scope
+endif()
 string(REPLACE ";" " " DOXYGEN_INPUT_FILES "${PZ_PUBLIC_HEADERS}")
 include(../cmake/EnableDoxygen.cmake)
 enable_doxygen(pz)
