@@ -788,6 +788,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CleanupMaterialData(TPZVec<TPZMaterialDat
     }
 }
 double contributeTime;
+int64_t contributeCounter;
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
@@ -877,7 +878,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
         material->Contribute(datavec,weight,ek.fMat,ef.fMat);
         timer.stop();
         contributeTime+=timer.seconds();
-        
+        contributeCounter++;
     }//loop over integration points
     
     CleanupMaterialData(datavec);
