@@ -1,0 +1,124 @@
+#include "TPZMatCombinedSpaces.h"
+#include "TPZBndCondT.h"
+#include "TPZMatBase.h"
+#include "TPZMaterialDataT.h"
+
+#include "Hash/TPZHash.h"
+
+
+int TPZMatCombinedSpaces::ClassId() const{
+    return Hash("TPZMatCombinedSpaces");
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesT<TVar>::FillDataRequirements(TPZVec<TPZMaterialDataT<TVar>> &datavec) const
+{
+    for(auto &data : datavec) data.SetAllRequirements(false);
+}
+template<class TVar>
+void TPZMatCombinedSpacesT<TVar>::FillDataRequirements(std::map<int, TPZMaterialDataT<TVar>> &datavec) const
+{
+    for(auto &data : datavec) data.second.SetAllRequirements(false);
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesT<TVar>::FillBoundaryConditionDataRequirements(int type, TPZVec<TPZMaterialDataT<TVar>> &datavec) const
+{
+    for(auto &data : datavec) data.SetAllRequirements(false);
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesT<TVar>::Contribute(
+    const TPZVec<TPZMaterialDataT<TVar>> &datavec,
+    REAL weight,TPZFMatrix<TVar> &ef)
+{
+    TPZFMatrix<TVar> fakeek(ef.Rows(), ef.Rows(), 0.);
+    this->Contribute(datavec, weight, fakeek, ef);
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesT<TVar>::ContributeBC(
+    const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
+    TPZFMatrix<TVar> &ef, TPZBndCondT<TVar> &bc)
+{
+    TPZFMatrix<TVar> fakeek(ef.Rows(), ef.Rows(), 0.);
+    this->ContributeBC(datavec, weight, fakeek, ef, bc);
+}
+
+
+template<class TVar>
+int TPZMatCombinedSpacesT<TVar>::IntegrationRuleOrder(const TPZVec<int>& elPMaxOrder) const
+{
+    const int maxOrder = [&elPMaxOrder=std::as_const(elPMaxOrder)](){
+        int max = 0;
+        for (auto ord : elPMaxOrder)
+            if (ord > max) max = ord;
+        return max;
+    }();
+    auto *tmp = dynamic_cast<const TPZMaterialT<TVar>*>(this);
+    auto ffporder = tmp->ForcingFunctionPOrder();
+    const int intOrder = maxOrder < ffporder ?
+        maxOrder + ffporder : 2 * maxOrder;
+    return  intOrder;
+}
+
+template<class TVar>
+int TPZMatCombinedSpacesT<TVar>::ClassId() const{
+    return Hash("TPZMatCombinedSpacesT") ^
+        ClassIdOrHash<TVar>() << 1 ^
+        TPZMatCombinedSpaces::ClassId() << 2;
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesBC<TVar>::SetMaterialImpl(TPZMaterial *mat)
+{
+    fMatCombinedSpaces = dynamic_cast<TPZMatCombinedSpacesT<TVar>*>(mat);
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesBC<TVar>::
+Contribute(const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
+           TPZFMatrix<TVar> &ek,
+           TPZFMatrix<TVar> &ef)
+{
+    auto *tmp = dynamic_cast<TPZBndCondT<TVar>*>(this);
+    fMatCombinedSpaces->ContributeBC(datavec,weight,ek,ef,*tmp);
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesBC<TVar>::Contribute(const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
+                TPZFMatrix<TVar> &ef)
+{
+    auto *tmp = dynamic_cast<TPZBndCondT<TVar>*>(this);
+    fMatCombinedSpaces->ContributeBC(datavec,weight,ef,*tmp);
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesBC<TVar>::ContributeBC(const TPZVec<TPZMaterialDataT<TVar>> &datavec, REAL weight,
+                  TPZFMatrix<TVar> &ek, TPZFMatrix<TVar> &ef,
+                  TPZBndCondT<TVar> &bc)
+{
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<< "should not be called! Aborting...\n";
+    DebugStop();
+}
+
+template<class TVar>
+void TPZMatCombinedSpacesBC<TVar>::Solution(const TPZVec<TPZMaterialDataT<TVar>> &datavec, int var,
+              TPZVec<TVar> &sol)
+{
+    PZError<<__PRETTY_FUNCTION__;
+    PZError<< "should not be called! Aborting...\n";
+    DebugStop();
+}
+
+template<class TVar>
+int TPZMatCombinedSpacesBC<TVar>::ClassId() const
+{
+    return Hash("TPZMatCombinedSpacesBC");
+}
+
+template class TPZMatCombinedSpacesT<STATE>;
+template class TPZMatCombinedSpacesT<CSTATE>;
+template class TPZMatCombinedSpacesBC<STATE>;
+template class TPZMatCombinedSpacesBC<CSTATE>;

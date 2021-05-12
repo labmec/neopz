@@ -5,77 +5,82 @@ target_include_directories(pz PUBLIC
                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Material>
                            )
 
-set(headers
-    TPZBndCondWithMem.h
-    TPZLagrangeMultiplier.h
-    TPZMatLaplacian.h
-    TPZNullMaterial.h
-    TPZReynoldsFlow.h
-    pzbndcond.h
-    pzl2projection.h
-    pzmaterialdata.h
-    tpzoutofrange.h
-    TPZBndCondWithMem_impl.h
-    TPZMatHCurlProjection.h
+set(public_headers
     TPZMaterial.h
-    TPZNullMaterialTranslator.h
-    TPZVecL2.h
-    pzconslaw.h
-    pzmat1dlin.h
-    pzpoisson3d.h
-    TPZMatHelmholtz.h
-    TPZMaterialTranslator.h
-    TPZPorousElasticity.h
-    doxmaterial.h
-    pzmat2dlin.h
-    pztransientmat.h
-    tpzbiharmonicestimator.h
+    TPZMaterialT.h
+    TPZMatBase.h
+    TPZBndCond.h
+    TPZBndCondT.h
+    TPZBndCondBase.h
+    TPZMaterialData.h
+    TPZMaterialDataT.h
+    TPZMatTypes.h
+    #generalinterfaces
+    TPZMatError.h
+    TPZMatWithMem.h
+    TPZMatLoadCases.h
+    TPZMatGeneralisedEigenVal.h
+    #single space materials
+    TPZMatSingleSpace.h
+    TPZMatErrorSingleSpace.h
+    TPZMatInterfaceSingleSpace.h
+    #combined spaces materials
+    TPZMatCombinedSpaces.h
+    TPZMatErrorCombinedSpaces.h
+    TPZMatInterfaceCombinedSpaces.h
     )
 
+set(headers
+    TPZMaterial.h
+    TPZMaterialT.h
+    TPZMatBase.h
+    TPZBndCond.h
+    TPZBndCondT.h
+    TPZBndCondBase.h
+    TPZMaterialData.h
+    TPZMaterialDataT.h
+    TPZMatTypes.h
+    #generalinterfaces
+    TPZMatError.h
+    TPZMatWithMem.h
+    TPZMatLoadCases.h
+    TPZMatGeneralisedEigenVal.h
+    #single space materials
+    TPZMatSingleSpace.h
+    TPZMatErrorSingleSpace.h
+    TPZMatInterfaceSingleSpace.h
+    #combined spaces materials
+    TPZMatCombinedSpaces.h
+    TPZMatErrorCombinedSpaces.h
+    TPZMatInterfaceCombinedSpaces.h
+   )
 set(sources
-    TPZBndCondWithMem.cpp
-    TPZMatHCurlProjection.cpp
     TPZMaterial.cpp
-    TPZNullMaterialTranslator.cpp
-    TPZVecL2.cpp
-    pzmat2dlin.cpp
-    pztransientmat.cpp
-    TPZMatHelmholtz.cpp
-    TPZMaterialTranslator.cpp
-    TPZPorousElasticity.cpp
-    pzbndcond.cpp
-    pzl2projection.cpp
-    pzmaterialdata.cpp
-    tpzoutofrange.cpp
-    TPZLagrangeMultiplier.cpp
-    TPZMatLaplacian.cpp
-    TPZNullMaterial.cpp
-    TPZReynoldsFlow.cpp
-    pzconslaw.cpp
-    pzmat1dlin.cpp
-    pzpoisson3d.cpp
-    tpzbiharmonicestimator.cpp
-    )
+    TPZMaterialT.cpp
+    TPZBndCond.cpp
+    TPZBndCondT.cpp
+    TPZMaterialData.cpp
+    TPZMaterialDataT.cpp
+    #general interfaces
+    TPZMatError.cpp
+    TPZMatLoadCases.cpp
+    TPZMatGeneralisedEigenVal.cpp
+    #single space materials
+    TPZMatSingleSpace.cpp
+    TPZMatErrorSingleSpace.cpp
+    TPZMatInterfaceSingleSpace.cpp
+    #combined spaces materials
+    TPZMatCombinedSpaces.cpp
+    TPZMatErrorCombinedSpaces.cpp
+    TPZMatInterfaceCombinedSpaces.cpp
+   )
 
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)
+install(FILES ${public_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Material)
 
 target_sources(pz PRIVATE ${headers} ${sources})
-if (BUILD_PLASTICITY_MATERIALS)
-	if ((NOT STATE_TYPE STREQUAL "double") OR (NOT REAL_TYPE STREQUAL "double"))
-		message (FATAL_ERROR
-      "\nConflicting options for BUILD_PLASTICITY_MATERIALS\n"
-      "Set REAL_TYPE=double and STATE_TYPE=double to build them\n"
-      "Or set BUILD_PLASTICITY_MATERIALS=OFF")
-  endif()
-endif()
-if(BUILD_COMPLEX_PROJECTS)
-  add_subdirectory(Complex)
-else()
-  add_subdirectory(REAL)
-endif()
 
 #for doxygen
-foreach(header ${headers})
+foreach(header ${public_headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")
 endforeach()
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)

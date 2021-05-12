@@ -1,0 +1,67 @@
+/**
+    \file TPZMatErrorCombinedSpaces.h
+    Defines the error interface for materials combining multiple approximation spaces.
+*/
+
+#ifndef TPZMATERRORCOMBINEDSPACES_H
+#define TPZMATERRORCOMBINEDSPACES_H
+#include "TPZMatError.h"
+
+template<class T>
+class TPZMaterialDataT;
+template<class T>
+class TPZVec;
+
+
+template<class TVar>
+class TPZMatErrorCombinedSpacesBC;
+
+/**
+ * @ingroup combinedspacesinterface
+ * @brief Interface for error computation of materials using combined approximation spaces.
+ * This material allows the computation of error measures of the FEM approximation based on an exact solution. 
+ * It should be used as a template parameter of TPZMatBase.
+ */
+template<class TVar>
+class TPZMatErrorCombinedSpaces : public TPZMatError<TVar>{
+ public:
+    using TInterfaceBC = TPZMatErrorCombinedSpacesBC<TVar>;
+    //! Default constructor
+    TPZMatErrorCombinedSpaces() = default;
+
+    
+    [[nodiscard]] int ClassId() const override;
+
+    //! @name Error
+    /** @{*/
+    /*!
+      \brief Calculates the error at a given point x.
+      \param[in] datavec input data
+      \param[out] errors The calculated errors.
+     */
+    virtual void Errors(const TPZVec<TPZMaterialDataT<TVar>> &data,
+                       TPZVec<REAL> &errors) = 0;
+
+    /** @brief Returns the number of error norms.
+        Default is 3: norm, L2 and seminorm. */
+    int NEvalErrors() override {return TPZMatError<TVar>::NEvalErrors();}
+    /** @}*/
+};
+
+class TPZMaterial;
+
+template<class TVar>
+class TPZMatErrorCombinedSpacesBC : public TPZMatErrorCombinedSpaces<TVar>{
+protected:
+    void SetMaterialImpl(TPZMaterial *mat) {}
+public:
+    void Errors(const TPZVec<TPZMaterialDataT<TVar>> &data,
+                TPZVec<REAL> &errors) override{}
+};
+
+extern template class TPZMatErrorCombinedSpaces<STATE>;
+extern template class TPZMatErrorCombinedSpaces<CSTATE>;
+extern template class TPZMatErrorCombinedSpacesBC<STATE>;
+extern template class TPZMatErrorCombinedSpacesBC<CSTATE>;
+
+#endif
