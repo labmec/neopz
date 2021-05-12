@@ -369,7 +369,6 @@ void TPZElementGroup::CalcResidualInternal(TPZElementMatrixT<TVar> &ef)
  * @param errors [out] the L2 norm of the error of the solution
  * @param flux [in] value of the interpolated flux values
  */
-#include "pzbndcond.h"
 void TPZElementGroup::EvaluateError(TPZVec<REAL> &errors, bool store_error)
 {
     int nerr = errors.size();

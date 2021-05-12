@@ -7,8 +7,8 @@
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
 #include "TPZMaterial.h"
+#include "TPZMatLoadCases.h"
 #include "pzcmesh.h"
-#include "pzbndcond.h"
 #include "TPZElementMatrixT.h"
 #include "pzconnect.h"
 #include "pzblockdiag.h"
@@ -1154,7 +1154,13 @@ void TPZCompEl::InitializeElementMatrix(TPZElementMatrix &ef){
     TPZMaterial *mat = this->Material();
     const int numdof = mat->NStateVariables();
     const int ncon = this->NConnects();
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     ef.Block().SetNBlocks(ncon);

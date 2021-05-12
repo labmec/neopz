@@ -272,6 +272,8 @@ public:
 	 * @param mat pointer to the material
 	 */
 	int InsertMaterialObject(TPZMaterial * mat);
+    
+    int InsertMaterialObject(TPZBndCond * mat);
 	
 	/** @brief Resequence the block object, remove unconnected connect objects and reset the dimension of the solution vector */
 	void InitializeBlock();

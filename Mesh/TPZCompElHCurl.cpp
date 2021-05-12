@@ -410,7 +410,8 @@ void TPZCompElHCurl<TSHAPE>::InitMaterialData(TPZMaterialData &data){
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi){
+template<class TVar>
+void TPZCompElHCurl<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &qsi){
 
     {
         const bool needsSol = data.fNeedsSol;
@@ -465,8 +466,14 @@ void TPZCompElHCurl<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZF
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data){
-    ComputeSolutionHCurl(data.fVecShapeIndex,
+void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialDataT<STATE> &data){
+    ComputeSolutionHCurlT(data.fVecShapeIndex,
+                         data.fDeformedDirections, data.phi, data.curlphi,
+                         data.sol, data.curlsol);
+}
+template<class TSHAPE>
+void TPZCompElHCurl<TSHAPE>::ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data){
+    ComputeSolutionHCurlT(data.fVecShapeIndex,
                          data.fDeformedDirections, data.phi, data.curlphi,
                          data.sol, data.curlsol);
 }
@@ -739,21 +746,27 @@ void TPZCompElHCurl<TSHAPE>::RestrainSide(int side, TPZInterpolatedElement *larg
 }
 
 template<class TSHAPE>
-void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(
+template<class TVar>
+void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurlT(
     const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
     const TPZFMatrix<REAL> &deformedDirections,
     const TPZFMatrix<REAL> &phi, const TPZFMatrix<REAL> &curlPhi,
-    TPZSolVec &sol, TPZSolVec &curlSol)
+    TPZSolVec<TVar> &sol, TPZSolVec<TVar> &curlSol)
 {
     
     TPZFMatrix<REAL> phiHCurl;
     TPZHCurlAuxClass::ComputeShape(vecShapeIndex,phi,deformedDirections,phiHCurl);
     constexpr int dim = TSHAPE::Dimension;
-    constexpr int curlDim = 2*dim - 3;//1 for 2D 3 for 3D
+    constexpr int curlDim = [dim](){
+        if constexpr (dim == 1) return 1;
+        else{
+            return 2*dim - 3;//1 for 2D 3 for 3D
+        }
+    }();
     const int nVar = this->Material()->NStateVariables();
     const int nConnects = this->NConnects();
 
-    TPZFMatrix<STATE> &meshSol = this->Mesh()->Solution();
+    TPZFMatrix<TVar> &meshSol = this->Mesh()->Solution();
 
     long numberSol = meshSol.Cols();
 #ifdef PZDEBUG
@@ -785,11 +798,11 @@ void TPZCompElHCurl<TSHAPE>::ComputeSolutionHCurl(
             for (long iSol = 0; iSol < numberSol; iSol++) {
                 for (int coord = 0; coord < dim; coord++) {
                     sol[iSol][coord] +=
-                            (STATE)meshSol(pos + jShape, iSol) * phiHCurl(ishape, coord);
+                            (TVar)meshSol(pos + jShape, iSol) * phiHCurl(ishape, coord);
                 }
                 for (int coord = 0; coord < curlDim; coord++) {
                     curlSol[iSol][coord] +=
-                            (STATE)meshSol(pos + jShape, iSol) * curlPhi.Get(coord, ishape);
+                            (TVar)meshSol(pos + jShape, iSol) * curlPhi.Get(coord, ishape);
                 }
             }
             ishape++;

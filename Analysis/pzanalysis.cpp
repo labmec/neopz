@@ -25,7 +25,7 @@
 #include "pzbdstrmatrix.h"                 // for TPZBlockDiagonalStructMatrix
 #include "pzblock.h"                       // for TPZBlock
 #include "pzblockdiag.h"                   // for TPZBlockDiagonal
-#include "pzbndcond.h"                     // for TPZBndCond
+#include "TPZBndCond.h"                     // for TPZBndCond
 #include "TPZChunkVector.h"                       // for TPZChunkVector
 #include "pzcmesh.h"                       // for TPZCompMesh
 #include "pzcompel.h"                      // for TPZCompEl
@@ -38,6 +38,7 @@
 #include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
 #include "pzmanvector.h"                   // for TPZManVector
 #include "TPZMaterial.h"                    // for TPZMaterial
+#include "TPZMatLoadCases.h"               // for TPZMatLoadCases
 #include "pzmvmesh.h"                      // for TPZMVGraphMesh
 #include "pzseqsolver.h"                   // for TPZSequenceSolver
 #include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
@@ -49,7 +50,7 @@
 #include "pzvtkmesh.h"                     // for TPZVTKGraphMesh
 #include "tpznodesetcompute.h"             // for TPZNodesetCompute
 #include "tpzsparseblockdiagonal.h"        // for TPZSparseBlockDiagonal
-
+#include "TPZMatError.h"
 #ifdef WIN32
 #include "pzsloan.h"                       // for TPZSloan
 #endif
@@ -336,20 +337,26 @@ int TPZAnalysis::ComputeNumberofLoadCases()
     {
         return res;
     }
-    std::map<int, TPZMaterial *>::iterator it;
-    // compute the maximum number of load cases for all material objects
-    for( it = fCompMesh->MaterialVec().begin(); it != fCompMesh->MaterialVec().end(); it++)
-    {
-        TPZMaterial *mat = it->second;
-        int matnumstate = mat->MinimumNumberofLoadCases();
-        res = res < matnumstate ? matnumstate : res;
+    bool everyMatHasLoadCase{false};
+    for(auto &it : fCompMesh->MaterialVec()){
+        if(auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
+           !matLoad) {
+            everyMatHasLoadCase = false;
+            break;
+        }
     }
-    // set the number of load cases for all material objects
-    for( it = fCompMesh->MaterialVec().begin(); it != fCompMesh->MaterialVec().end(); it++)
-    {
-        TPZMaterial *mat = it->second;
-        mat->SetNumLoadCases(res);
+    if(everyMatHasLoadCase){
+        for(auto &it : fCompMesh->MaterialVec()){
+            auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
+            const int matNCases = matLoad->MinimumNumberofLoadCases();
+            res = res < matNCases ? matNCases : res;
+        }
+        for(auto &it : fCompMesh->MaterialVec()){
+            auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
+            matLoad->SetNumLoadCases(res);
+        }
     }
+
     return res;
 }
 
@@ -591,7 +598,9 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 			errors.Fill(0.0);
       TPZGeoEl *gel = el->Reference();
       if(gel->Dimension() != fCompMesh->Dimension()) continue;
-      if (el->Material() && el->Material()->HasExactSol()) {
+      auto *matError =
+          dynamic_cast<TPZMatError<STATE>*>(el->Material());
+      if (matError || matError->HasExactSol()) {
         el->EvaluateError(errors, 0);
       } else {
           PZError<<__PRETTY_FUNCTION__;
@@ -739,7 +748,9 @@ void *TPZAnalysis::ThreadData::ThreadWork(void *datavoid)
     if ( iel >= nelem ) continue;
     
     TPZCompEl *cel = data->fElvec[iel];
-    if (cel->Material() && cel->Material()->HasExactSol()) {
+    auto *matError =
+          dynamic_cast<TPZMatError<STATE>*>(cel->Material());
+    if (matError && matError->HasExactSol()) {
       cel->EvaluateError(errors, data->fStoreError);
     } else {
       PZError<<__PRETTY_FUNCTION__;
@@ -902,7 +913,9 @@ void TPZAnalysis::SetExactInternal(std::function<void (const TPZVec<REAL> &loc, 
         DebugStop();
     }
     for(auto imat : fCompMesh->MaterialVec()){
-        imat.second->SetExactSol(f,p);
+        auto *matError =
+            dynamic_cast<TPZMatError<TVar>*>(imat.second);
+        if(matError) matError->SetExactSol(f,p);
     }
 }
 template<class TVar>
@@ -1101,8 +1114,8 @@ void TPZAnalysis::IdentifyPostProcessingMatIds(int dimension, std::set<int> & ma
     for (matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++) {
         
         TPZMaterial *mat = matit->second;
+        auto *lag = dynamic_cast<TPZLagrangeMultiplierBase *> (mat);
         TPZBndCond *bc = dynamic_cast<TPZBndCond *> (mat);
-        TPZLagrangeMultiplier *lag = dynamic_cast<TPZLagrangeMultiplier *> (mat);
         if (mat && !bc && !lag && mat->Dimension() == dimension){
             matids.insert(mat->Id());
         }

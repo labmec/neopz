@@ -65,7 +65,7 @@ private:
 	int fMaterialId;
 
 	template<class TVar>
-    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    void CalcStiffT(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
 public:
 	
 	/** @brief Constructor: If the element is possible to grouped returns a new index, else returns -1. */
@@ -149,7 +149,7 @@ public:
 	/** @brief Assembles the differential equation to model over the element defined by clustered subelements. */
 	void CalcStiff(TPZElementMatrixT<STATE> &ek,
 				   TPZElementMatrixT<STATE> &ef) override{
-		CalcStiffInternal(ek,ef);
+		CalcStiffT(ek,ef);
 	}
 	
 	/** @brief Returns the number of clustered subelements. */

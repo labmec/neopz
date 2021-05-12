@@ -380,9 +380,6 @@ virtual int ClassId() const override;
         
     /** @brief Verifies if the material associated with the element is contained in the set */
     virtual bool HasMaterial(const std::set<int> &materialids) const override;
-
-	/** @brief Static function for validation tests. */
-	static int main();
 };
 
 #endif

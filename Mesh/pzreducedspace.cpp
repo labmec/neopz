@@ -11,6 +11,8 @@
 #include "pzreducedspace.h"
 #include "pzmultiphysicselement.h"
 #include "TPZMaterial.h"
+#include "TPZMatSingleSpace.h"
+#include "TPZMatLoadCases.h"
 #include "pzelmat.h"
 #include "pzlog.h"
 #include "pzerror.h"
@@ -127,12 +129,12 @@ void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<R
 void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &axes)
 {
     TPZInterpolationSpace *intel = ReferredIntel();
-    TPZMaterialData inteldata;
+    TPZMaterialDataT<STATE> inteldata;
     inteldata.fNeedsSol=true;
     constexpr bool hasPhi{false};
     intel->ComputeSolution(qsi,inteldata,hasPhi);
-    TPZSolVec &sol = inteldata.sol;
-    TPZGradSolVec &dsol = inteldata.dsol;
+    TPZSolVec<STATE> &sol = inteldata.sol;
+    TPZGradSolVec<STATE> &dsol = inteldata.dsol;
     int nsol = sol.size();
     int nstate = sol[0].size();
     int dim = axes.Rows();
@@ -149,12 +151,12 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
 }
 
 
-void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
+void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialDataT<STATE> &data)
 {
     TPZInterpolationSpace *intel = ReferredIntel();
 
     {
-        TPZMaterialData inteldata;
+        TPZMaterialDataT<STATE> inteldata;
         inteldata.fNeedsSol=true;
         constexpr bool hasPhi{false};
         intel->ComputeSolution(qsi,inteldata,hasPhi);
@@ -178,7 +180,13 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
 
 
 void TPZReducedSpace::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data){
-    ShapeX(qsi,data);
+    auto *tmp = dynamic_cast<TPZMaterialDataT<STATE>*>(&data);
+    if(!tmp){
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<< "is not available to complex types yet.\nAborting...\n";
+        DebugStop();
+    }
+    ShapeX(qsi,*tmp);
 }
 
 /**
@@ -188,7 +196,8 @@ void TPZReducedSpace::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data){
 void TPZReducedSpace::InitMaterialData(TPZMaterialData &data)
 {
     data.fShapeType = TPZMaterialData::EVecShape;
-    TPZMaterial *mat = Material();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpace*>(this->Material());
     mat->FillDataRequirements(data);
     TPZConnect &c = Connect(0);
     int nshape = c.NShape();
@@ -202,7 +211,7 @@ void TPZReducedSpace::InitMaterialData(TPZMaterialData &data)
 }
 
 /** @brief Compute and fill data with requested attributes */
-void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
+void TPZReducedSpace::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
                                  TPZVec<REAL> &qsi)
 {
     data.intGlobPtIndex = -1;
@@ -238,7 +247,13 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMa
 #endif
 	const int nshape = this->NShapeF();
 	const int numeq = nshape;
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	ek.Matrix().Redim(numeq,numeq);
 	ef.Matrix().Redim(numeq,numloadcases);
     auto &ekBlock = ek.Block();
@@ -277,7 +292,13 @@ void TPZReducedSpace::InitializeElementMatrix(TPZElementMatrix &ef)
 #endif
 	const int nshape = this->NShapeF();
 	const int numeq = nshape*numdof;
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	ef.Matrix().Redim(numeq,numloadcases);
 	ef.Block().SetNBlocks(ncon);
     ef.fMesh = Mesh();
@@ -347,13 +368,13 @@ TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 //     return intel;
 }
 
-void TPZReducedSpace::ReallyComputeSolution(TPZMaterialData& data)
+void TPZReducedSpace::ReallyComputeSolution(TPZMaterialDataT<STATE>& data)
 {
     const TPZFMatrix<REAL> &phi = data.phi;
     const TPZFMatrix<REAL> &dphix = data.dphix;
     const TPZFMatrix<REAL> &axes = data.axes;
-    TPZSolVec &sol = data.sol;
-    TPZGradSolVec &dsol = data.dsol;
+    TPZSolVec<STATE> &sol = data.sol;
+    TPZGradSolVec<STATE> &dsol = data.dsol;
     const int dim = axes.Rows();//this->Reference()->Dimension();
     const int nstate = this->Material()->NStateVariables();
     

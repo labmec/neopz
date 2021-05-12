@@ -26,7 +26,7 @@
 #include "pzgeotriangle.h"
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"
-
+#include "TPZMaterial.h"
 #include "TPZInterfaceEl.h"
 
 #include "pzcompelwithmem.h"

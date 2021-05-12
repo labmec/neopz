@@ -20,8 +20,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
-
+#include "TPZMaterialDataT.h"
 
 /**
  * @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
@@ -57,26 +56,42 @@ protected:
     
     /** @brief Initialize the material data with the geometric data of the interface element */
     void InitMaterialData(TPZMaterialData &data);
-	
+	/** @{*/
 	/** @brief Compute and fill data with requested attributes for neighbouring element */
-	void ComputeRequiredData(TPZMaterialData &data,
+	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
 							 TPZInterpolationSpace *elem,
-							 TPZVec<REAL> &IntPoint);
-    
+							 TPZVec<REAL> &IntPoint){
+		ComputeRequiredDataT(data,elem,IntPoint);
+	}
+	void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+							 TPZInterpolationSpace *elem,
+							 TPZVec<REAL> &IntPoint){
+		ComputeRequiredDataT(data,elem,IntPoint);
+	}
+	/** @}*/
+    /** @{*/
     /** @brief Compute the required geometric data for the interface element */
-    virtual void ComputeRequiredData(TPZMaterialData &data,
-                             TPZVec<REAL> &qsi);
+    virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+									 TPZVec<REAL> &qsi){
+		ComputeRequiredDataT(data,qsi);
+	}
+
+	virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+									 TPZVec<REAL> &qsi){
+		ComputeRequiredDataT(data,qsi);
+	}
+	/** @}*/
+//     virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec){
+//         DebugStop();
+//     }
     
-    virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec){
-        DebugStop();
-    }
-    
-    
-public:
+
+// public:
 	
 	/** @brief Extract connects from element el */
 	void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int64_t> &connectindex);
-	
+
+	//@{
 	/** 
 	 * @brief Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
 	 * at which respect derivatives are computed.
@@ -86,8 +101,15 @@ public:
 	 * @param [out] dsol
 	 * @param [out] NeighborAxes
 	 */
-	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &NeighborAxes);//TODOCOMPLEX
-	
+	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec<STATE> &sol, TPZGradSolVec<STATE> &dsol, TPZFMatrix<REAL> &NeighborAxes)//TODOCOMPLEX
+	{
+		NeighbourSolutionT(Neighbor,qsi,sol,dsol,NeighborAxes);
+	}
+	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec<CSTATE> &sol, TPZGradSolVec<CSTATE> &dsol, TPZFMatrix<REAL> &NeighborAxes)//TODOCOMPLEX
+	{
+		NeighbourSolutionT(Neighbor,qsi,sol,dsol,NeighborAxes);
+	}
+	//@}
 	
 	/**
 	 * @brief Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
@@ -111,10 +133,20 @@ protected:
 	void ComputeCenterNormal(TPZVec<REAL> &normal);
 
 	template<class TVar>
-    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    void CalcStiffT(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
     template<class TVar>
-    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
-	
+    void CalcResidualT(TPZElementMatrixT<TVar> &ef);
+	template<class TVar>
+	void NeighbourSolutionT(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec<TVar> &sol, TPZGradSolVec<TVar> &dsol, TPZFMatrix<REAL> &NeighborAxes);
+	template<class TVar>
+	void IntegrateInterfaceT(int, TPZVec<TVar> &);
+	template<class TVar>
+	void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
+							  TPZInterpolationSpace *elem,
+							  TPZVec<REAL> &IntPoint);
+	template<class TVar>
+	void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
+							 TPZVec<REAL> &qsi);
 public:
 	
 	void InitializeElementMatrix(TPZElementMatrix &ef) override;
@@ -220,7 +252,7 @@ public:
 	void Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
 	
 	/** @brief Returns the number from connectivities of the element */
-	virtual int NConnects() const override;
+	int NConnects() const override;
 	
 	/** @brief Returns the number from connectivities of the element related to right neighbour */
 	int NRightConnects() const;
@@ -235,7 +267,7 @@ public:
 	void SetConnectIndex(int node, int64_t index) override;
 
     /** @brief adds the connect indexes associated with base shape functions to the set */
-    virtual void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
+    void BuildCornerConnectList(std::set<int64_t> &connectindexes) const override;
 	
 	/** @brief Returns the dimension from the element interface */
 	int Dimension() const override{
@@ -252,7 +284,7 @@ public:
 	 * Is used to initialize the solution of connect objects with dependency
 	 * Is also used to load the solution within SuperElements
 	 */
-	virtual void LoadSolution() override{
+	void LoadSolution() override{
 		//NOTHING TO BE DONE HERE
 	}
 	
@@ -261,16 +293,16 @@ public:
 	 * @param ek element matrix
 	 * @param ef element right hand side
 	 */
-	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
-		CalcStiffInternal<STATE>(ek,ef);
+	void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
+		CalcStiffT<STATE>(ek,ef);
 	}
 	
 	/**
 	 * @brief CalcResidual only computes the element residual
 	 * @param ef element residual
 	 */
-	virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
-		CalcResidualInternal<STATE>(ef);
+	void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
+		CalcResidualT<STATE>(ef);
 	}
     
 	void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
@@ -282,7 +314,7 @@ public:
 	 * @see Base class for comments
 	 * @brief Interface elements does not have graphical representation
 	 */
-	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override{
+	void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension) override{
 		//Nothing to be done here
 	}
 	
@@ -302,34 +334,57 @@ public:
 	/** @brief Make a clone of the fine mesh into clustered mesh.*/
 	void CloneInterface(TPZCompMesh *aggmesh);
 	
-	static int main(TPZCompMesh &cmesh);
-	
     /**
      * @brief Performs an error estimate on the elemen
      * @param errors [out] the L2 norm of the error of the solution
      * @param flux [in] value of the interpolated flux values
      */
-virtual void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
+	void EvaluateError(TPZVec<REAL> &errors, bool store_error) override;
   	
 	/** @brief Integrate a variable over the element. */
-	virtual void Integrate(int variable, TPZVec<STATE> & value) override;
+	void Integrate(int variable, TPZVec<STATE> & value) override;
 	
-	void IntegrateInterface(int variable, TPZVec<REAL> & value);
+	void IntegrateInterface(int variable, TPZVec<STATE> & value){
+		IntegrateInterfaceT(variable,value);
+	}
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	public:
     
     int ComputeIntegrationOrder() const override;
     
-virtual int ClassId() const override;
+	int ClassId() const override;
 
 	/** @brief Saves the element data to a stream */
-	virtual void Write(TPZStream &buf, int withclassid) const override;
+	void Write(TPZStream &buf, int withclassid) const override;
 	
 	/** @brief Reads the element data from a stream */
-	virtual void Read(TPZStream &buf, void *context) override;
+	void Read(TPZStream &buf, void *context) override;
 	
 };
 
-#endif
 
+#define INSTANTIATE_TEMPLATES(TVar) \
+	extern template \
+	void TPZInterfaceElement::CalcStiffT<TVar>(TPZElementMatrixT<TVar> &, \
+											   TPZElementMatrixT<TVar> &); \
+	extern template \
+	void TPZInterfaceElement::CalcResidualT<TVar>(TPZElementMatrixT<TVar> &); \
+	extern template \
+	void TPZInterfaceElement::NeighbourSolutionT<TVar>( \
+		TPZCompElSide & , TPZVec<REAL> & , TPZSolVec<TVar> &, \
+		TPZGradSolVec<TVar> &, TPZFMatrix<REAL> &); \
+	extern template \
+	void TPZInterfaceElement::IntegrateInterfaceT<TVar>(int, TPZVec<TVar> &); \
+	extern template \
+	void TPZInterfaceElement::ComputeRequiredDataT<TVar>(				\
+		TPZMaterialDataT<TVar> &, TPZInterpolationSpace *, TPZVec<REAL> &); \
+	extern template \
+	void TPZInterfaceElement::ComputeRequiredDataT<TVar>(	\
+		TPZMaterialDataT<TVar> &, TPZVec<REAL> &qsi);
+
+INSTANTIATE_TEMPLATES(STATE)
+INSTANTIATE_TEMPLATES(CSTATE)
+#undef INSTANTIATE_TEMPLATES
+
+#endif

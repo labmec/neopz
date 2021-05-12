@@ -8,11 +8,12 @@
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "TPZMaterial.h"
+#include "TPZMatSingleSpace.h"
 #include "pzlog.h"
 #include "pzgeoquad.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
 #include "pzhdivpressure.h"
 #include "pzshapepiram.h"
 #include "tpzline.h"
@@ -78,7 +79,8 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1), fSideOrient(TSHAPE::NFacets,1) {
     {
         fSideOrient[side-firstside] = this->Reference()->NormalOrientation(side);
     }
-    TPZMaterial *mat = this->Material();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpace *>(this->Material());
     if (mat)
     {
         int order = mat->IntegrationRuleOrder(MaxOrder());
@@ -1022,21 +1024,22 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &s
     if (var == 99) {
         return TPZIntelGen<TSHAPE>::Solution(qsi,var,sol);
     }
-    TPZMaterialData data;
+    TPZMaterialDataT<STATE> data;
     constexpr bool hasPhi{false};
     this->ComputeSolution(qsi,data,hasPhi);
     sol = std::move(data.sol[0]);
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data)
+template<class TVar>
+void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data)
 {
     
     const int dim = 3; // Hdiv vectors are always in R3
     const int nstate = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
 
-    TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
+    TPZFMatrix<TVar> &MeshSol = this->Mesh()->Solution();
 
     int64_t numbersol = MeshSol.Cols();
 
@@ -1061,7 +1064,7 @@ void TPZCompElHDiv<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data)
 
     TPZAxesTools<REAL>::Axes2XYZ(dphi, dphix, data.axes);
 
-    TPZFMatrix<STATE> GradOfPhiHdiv(dim,dim);
+    TPZFMatrix<TVar> GradOfPhiHdiv(dim,dim);
     GradOfPhiHdiv.Zero();
 
 
@@ -1128,7 +1131,7 @@ void TPZCompElHDiv<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data)
             {
                 for(int idf=0; idf<nstate; idf++)
                 {
-                    STATE meshsol = MeshSol(pos+ish*nstate+idf,is);
+                    TVar meshsol = MeshSol(pos+ish*nstate+idf,is);
                     REAL phival = data.phi(ishape,0);
                     TPZManVector<REAL,3> normal(3);
 
@@ -1365,7 +1368,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
+template<class TVar>
+void TPZCompElHDiv<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
                                                 TPZVec<REAL> &qsi){
 
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);

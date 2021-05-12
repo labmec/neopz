@@ -19,6 +19,7 @@
 #include "pzmultiphysicselement.h"
 #include "TPZMeshSolution.h"
 #include "TPZMaterial.h"
+#include "TPZMatError.h"
 #include "TPZExactFunction.h"
 #include <algorithm>
 
@@ -706,7 +707,8 @@ static void ComputeError(TPZCompEl *cel, TPZCompMesh *mesh2, TPZVec<STATE> &squa
 }
 /// compute the norm of the difference between two meshes
 /// square of the errors are computed for each element of mesh1
-void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *mesh2, TPZVec<STATE> &square_errors)
+void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *mesh2,
+                                             TPZVec<STATE> &square_errors)
 {
     int64_t nel = mesh1->NElements();
     int dim = mesh1->Dimension();
@@ -719,8 +721,22 @@ void TPZCompMeshTools::ComputeDifferenceNorm(TPZCompMesh *mesh1, TPZCompMesh *me
     int materialid = 1;    
 
     TPZAutoPointer<TPZFunction<STATE>> solptr(new TPZMeshSolution(mesh2,materialid));
+    auto solFunc = [solptr](const TPZVec<REAL> &loc, TPZVec<STATE> &result,
+                            TPZFMatrix<STATE> &deriv){
+        solptr->Execute(loc,result,deriv);
+    };
+
+    const auto solOrder = mesh2->GetDefaultOrder();
     for(auto imat : mesh1->MaterialVec()){
-        imat.second->SetExactSol(solptr);
+        auto *errorInterface =
+            dynamic_cast<TPZMatError<STATE>*>(imat.second);
+        if(!errorInterface){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nAll materials should have an error interface.\n";
+            PZError<<"Aborting...\n";
+            DebugStop();
+        }
+        errorInterface->SetExactSol(solFunc,solOrder);
     }
 //    mesh2->Reference()->ResetReference();
 //    mesh2->LoadReferences();

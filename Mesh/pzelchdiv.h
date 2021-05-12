@@ -199,10 +199,18 @@ public:
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data) override;
-    
+
+    //@{
 	/** @brief Compute and fill data with requested attributes */
-	virtual void ComputeRequiredData(TPZMaterialData &data,
-									 TPZVec<REAL> &qsi) override;
+	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+                             TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
+     void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+                              TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
+    //@}
 
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int64_t> &shapeindex);
@@ -257,8 +265,19 @@ public:
     /** @brief Refinement along the element */
     virtual void PRefine(int order) override;
 protected:
+    //@{
     /** @brief Compute the solution using Hdiv structure */
-	void ReallyComputeSolution(TPZMaterialData &data) override;
+	void ReallyComputeSolution(TPZMaterialDataT<STATE> &data) override{
+        ComputeSolutionHDivT(data);
+    }
+    void ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data) override{
+        ComputeSolutionHDivT(data);
+    }
+    //@}
+    template<class TVar>
+    void ComputeSolutionHDivT(TPZMaterialDataT<TVar> &data);
+    template<class TVar>
+    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL>&qsi);
 };
 
 template<class TSHAPE>

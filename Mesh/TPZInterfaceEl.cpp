@@ -9,12 +9,12 @@
 #include "pzgeoelside.h"
 #include "pzquad.h"
 #include "TPZMaterial.h"
-#include "pzconslaw.h"
-#include "pzbndcond.h"
+#include "TPZMatLoadCases.h"
+#include "TPZMatSingleSpace.h"
+#include "TPZMatInterfaceSingleSpace.h"
 #include "pzintel.h"
 #include "pzlog.h"
 #include "pzinterpolationspace.h"
-#include "pzmaterialdata.h"
 #include "pzvec_extras.h"
 #include "pzsubcmesh.h"
 
@@ -291,11 +291,14 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int64_t &in
 }
 
 template<class TVar>
-void TPZInterfaceElement::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
-	TPZMaterial *mat = Material();
-	
+void TPZInterfaceElement::CalcResidualT(TPZElementMatrixT<TVar> &ef){
+	TPZMaterial *material = Material();
+	auto *matInterface =
+            dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(material);
+    auto *mat =
+            dynamic_cast<TPZMatSingleSpaceT<TVar>*>(material);
 #ifdef PZDEBUG
-	if(!mat || mat->Name() == "no_name"){
+	if(!mat || !matInterface  || material->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
 		ef.Reset();
 		DebugStop();
@@ -324,7 +327,7 @@ void TPZInterfaceElement::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
     // data holds geometric data for integrating over the interface element
     // datal holds the approximation space data of the left element
     // datar holds the approximation space data of the right element
-	TPZMaterialData data,datal,datar;
+	TPZMaterialDataT<TVar> data,datal,datar;
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
 	const int dimr = right->Dimension();
@@ -342,7 +345,7 @@ void TPZInterfaceElement::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
     int intorder = mat->IntegrationRuleOrder(p);
     
 	TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, intorder);
-    if(mat->HasForcingFunction())
+    if(material->HasForcingFunction())
     {
         intorder = intrule->GetMaxOrder();
         TPZManVector<int,3> order(ref->Dimension(),intorder);
@@ -379,7 +382,7 @@ void TPZInterfaceElement::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 		this->ComputeRequiredData(datar, right, RightIntPoint);
         data.intLocPtIndex = ip;
         this->ComputeRequiredData(data,intpoint);
-		mat->ContributeInterface(data, datal, datar, weight, ef.fMat);
+		matInterface->ContributeInterface(data, datal, datar, weight, ef.fMat);
 		
 	}//loop over integration points
 	
@@ -486,45 +489,6 @@ void TPZInterfaceElement::Print(std::ostream &out) const {
 void TPZInterfaceElement::SetConnectIndex(int node, int64_t index) {
 	cout << "TPZInterfaceElement::SetConnectIndex should never be called\n";
 	DebugStop();
-}
-
-int TPZInterfaceElement::main(TPZCompMesh &cmesh){
-	// esta func� testa o correto desempenho do algoritmo que cria e
-	// deleta elementos de interface numa malha sujeita a refinamento h
-	
-	// InterfaceDimension �a dimens� do elemento de interface
-	// verifica-se para cada lado de dimens� InterfaceDimension do
-	// elemento que existe um elemento interface e que este �nico
-	
-	int64_t iel,iside,nel = cmesh.NElements();
-	
-	int InterfaceDimension;
-	
-	for(iel=0;iel<nel;iel++){
-		TPZCompEl *cel = cmesh.ElementVec()[iel];
-		if(!cel) continue;
-		TPZGeoEl *geo = cel->Reference();
-		InterfaceDimension = cel->Material()->Dimension() -1;
-		if(!geo){
-			PZError << "TPZInterfaceElement::main computational element with null reference\n";
-			DebugStop();
-		}
-		int nsides = geo->NSides();
-		for(iside=0;iside<nsides;iside++){
-			if(geo->SideDimension(iside) != InterfaceDimension) continue;
-			TPZCompElSide compside(cel,iside);
-			if(ExistInterfaces(compside)){
-				continue;
-			} else {
-				PZError << "TPZInterfaceEl::main interface error\t->\t";
-				int nint = ExistInterfaces(compside);
-				PZError << "number of existing interfaces : " << nint << endl;
-				return 0;
-			}
-		}
-	}//fim for iel
-	if(!FreeInterface(cmesh)) return 0;
-	return 1;
 }
 
 int TPZInterfaceElement::ExistInterfaces(TPZCompElSide &comp){
@@ -877,7 +841,13 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	ef.Matrix().Redim(neq,numloadcases);
 	ef.Block().SetNBlocks(ncon);
 	ef.fConnect.Resize(ncon);
@@ -960,7 +930,13 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	ek.Matrix().Redim(neq,neq);
 	ef.Matrix().Redim(neq,numloadcases);
 	ek.Block().SetNBlocks(ncon);
@@ -1044,7 +1020,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 }
 
 template<class TVar>
-void TPZInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
+void TPZInterfaceElement::CalcStiffT(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
 #ifdef PZ_LOG
     if (logger.isDebugEnabled())
 	{
@@ -1056,7 +1032,9 @@ void TPZInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElem
 #endif
 	
 	TPZMaterial *mat = Material();
-	if(!mat || mat->Name() == "no_name"){
+    auto *matInterface =
+            dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(mat);
+	if(!mat || !matInterface || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
 		ek.Reset();
 		ef.Reset();
@@ -1084,11 +1062,11 @@ void TPZInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElem
 	const int diml = left->Dimension();
 	const int dimr = right->Dimension();
 	
-	TPZMaterialData dataright;
-	TPZMaterialData dataleft;
-    TPZMaterialData data;
+	TPZMaterialDataT<TVar> dataright;
+	TPZMaterialDataT<TVar> dataleft;
+    TPZMaterialDataT<TVar> data;
     
-    mat->FillDataRequirementsInterface(data);
+    matInterface->FillDataRequirementsInterface(data);
 	
 	InitMaterialData(dataleft,left);
 	InitMaterialData(dataright,right);
@@ -1167,7 +1145,7 @@ void TPZInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElem
             data.p = dataleft.p;
         }
         
-		mat->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
+		matInterface->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
 		
 	}//loop over integration points
 	
@@ -1245,9 +1223,14 @@ void TPZInterfaceElement::Integrate(int variable, TPZVec<STATE> & value){
 	value.Fill(0.);
 }
 
-void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value){
-	TPZMaterial * material = Material();
-	if(!material){
+template<class TVar>
+void TPZInterfaceElement::IntegrateInterfaceT(int variable, TPZVec<TVar> & value){
+	TPZMaterial * mat = Material();
+    auto *material =
+            dynamic_cast<TPZMatSingleSpaceT<TVar>*>(mat);
+    auto *matInterface =
+            dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(mat);
+	if(!material || !matInterface){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
 		DebugStop();
 		return;
@@ -1273,7 +1256,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	
 	//local variables
 	REAL weight;
-	TPZMaterialData data, datal, datar;
+	TPZMaterialDataT<TVar> data, datal, datar;
 	this->InitMaterialData(datal,left);
 	this->InitMaterialData(datar,right);
 	this->InitMaterialData(data);
@@ -1281,14 +1264,14 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	datal.p = left->MaxOrder();
 	datar.p = right->MaxOrder();
 	TPZManVector<REAL, 3> intpoint(dim,0.);
-	const int varsize = material->NSolutionVariables(variable);
+	const int varsize = mat->NSolutionVariables(variable);
 	//Max interpolation order
 	const int p = (datal.p > datar.p) ? datal.p : datar.p;
 	
 	//Integration rule
     int intorder = material->IntegrationRuleOrder(p);
 	TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, intorder);
-    if(material->HasForcingFunction())
+    if(mat->HasForcingFunction())
     {
         intorder = intrule->GetMaxOrder();
         TPZManVector<int,3> order(ref->Dimension(),intorder);
@@ -1301,7 +1284,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	int ip, iv;
 	value.Resize(varsize);
 	value.Fill(0.);
-	TPZManVector<STATE> locval(varsize);
+	TPZManVector<TVar> locval(varsize);
 	for(ip=0;ip<npoints;ip++){
 		intrule->Point(ip,intpoint,weight);
 		ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
@@ -1310,7 +1293,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 //		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		this->NeighbourSolution(this->LeftElementSide(), intpoint, datal.sol, datal.dsol, datal.axes);
 		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
-		material->SolutionDisc(data, datal, datar, variable, locval);
+		matInterface->SolutionInterface(data, datal, datar, variable, locval);
 		for(iv = 0; iv < varsize; iv++) {
 #ifdef STATE_COMPLEX
 			value[iv] += locval[iv].real()*weight;
@@ -1381,14 +1364,15 @@ bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, T
 	return true;
 }//void
 
-void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi,
-                                            TPZSolVec &sol, TPZGradSolVec &dsol,
+template<class TVar>
+void TPZInterfaceElement::NeighbourSolutionT(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi,
+                                            TPZSolVec<TVar> &sol, TPZGradSolVec<TVar> &dsol,
                                             TPZFMatrix<REAL> &NeighborAxes){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();
 	const int neighdim = neighel->Dimension();
 	TPZManVector<REAL,3> NeighIntPoint(neighdim);
 	this->MapQsi(Neighbor, qsi, NeighIntPoint);
-    TPZMaterialData neighData;
+    TPZMaterialDataT<TVar> neighData;
     neighData.fNeedsSol=true;
     auto *intel =
         dynamic_cast<TPZInterpolationSpace *>(Neighbor.Element());
@@ -1406,12 +1390,22 @@ void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REA
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *elem){
 	TPZMaterial *mat = Material();
-	if (!mat){
+    auto *matInterfaceState =
+            dynamic_cast<TPZMatInterfaceSingleSpace<STATE>*>(mat);
+    auto *matInterfaceCState =
+            dynamic_cast<TPZMatInterfaceSingleSpace<CSTATE>*>(mat);
+	if (!mat || (!matInterfaceState && !matInterfaceCState)){
 		PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";
 		DebugStop();
 	}
+
     elem->InitMaterialData(data);
-	mat->FillDataRequirementsInterface(data);
+
+	if(matInterfaceState) matInterfaceState->FillDataRequirementsInterface(data);
+    
+	if(matInterfaceCState) matInterfaceCState->FillDataRequirementsInterface(data);
+
+    
     if (data.fNeedsNeighborSol) {
         data.fNeedsSol = true;
     }
@@ -1440,7 +1434,8 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data){
 	data.normal = this->fCenterNormal;
 }
 
-void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
+template<class TVar>
+void TPZInterfaceElement::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
                                               TPZInterpolationSpace *elem,
                                               TPZVec<REAL> &IntPoint){
     
@@ -1455,7 +1450,8 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 	data.p = elem->MaxOrder();
 
 }
-void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &xi)
+template<class TVar>
+void TPZInterfaceElement::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &xi)
 {
 
 	if (data.fNeedsSol){
@@ -1497,3 +1493,25 @@ void TPZInterfaceElement::BuildCornerConnectList(std::set<int64_t> &connectindex
     right->BuildCornerConnectList(connectindexes);
 }
 
+#define INSTANTIATE_TEMPLATES(TVar) \
+	template \
+	void TPZInterfaceElement::CalcStiffT<TVar>(TPZElementMatrixT<TVar> &, \
+											   TPZElementMatrixT<TVar> &); \
+	template \
+	void TPZInterfaceElement::CalcResidualT<TVar>(TPZElementMatrixT<TVar> &); \
+	template \
+	void TPZInterfaceElement::NeighbourSolutionT<TVar>( \
+		TPZCompElSide & , TPZVec<REAL> & , TPZSolVec<TVar> &, \
+		TPZGradSolVec<TVar> &, TPZFMatrix<REAL> &); \
+	template \
+	void TPZInterfaceElement::IntegrateInterfaceT<TVar>(int, TPZVec<TVar> &); \
+	template \
+	void TPZInterfaceElement::ComputeRequiredDataT<TVar>(				\
+		TPZMaterialDataT<TVar> &, TPZInterpolationSpace *, TPZVec<REAL> &); \
+	template \
+	void TPZInterfaceElement::ComputeRequiredDataT<TVar>(	\
+		TPZMaterialDataT<TVar> &, TPZVec<REAL> &qsi);
+
+INSTANTIATE_TEMPLATES(STATE)
+INSTANTIATE_TEMPLATES(CSTATE)
+#undef INSTANTIATE_TEMPLATES

@@ -10,7 +10,7 @@
 #include "pzlog.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
 
 

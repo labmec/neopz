@@ -11,12 +11,13 @@
 #include "pzgradient.h"
 #include "tpzintpoints.h"
 #include "pzmultiphysicselement.h"
-#include "TPZMaterial.h"
+#include "TPZMatBase.h"
+#include "TPZMatLoadCases.h"
 #include "pzskylstrmatrix.h"
 #include "pzintel.h"
 #include "pzgnode.h"
 #include "pzstepsolver.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 #include <cmath>
 
 #include "pzlog.h"
@@ -75,16 +76,32 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
     TPZAutoPointer<TPZFunction<STATE> > fp(pGrad);
     
     //Criar matrix de rigidez e vetor de carga
-    int numloadcases=0;
-    std::map<int, TPZMaterial * >::const_iterator mit;
-	for(mit=cmesh->MaterialVec().begin(); mit!= cmesh->MaterialVec().end(); mit++) {
-        TPZMaterial *mat = mit->second;
-        if (!mat) {
-            DebugStop();
+    const int numloadcases = [cmesh](){
+        int res = 1;
+        if(!cmesh) {
+            return res;
         }
-        numloadcases = mat->NumLoadCases();
-        break;
-    }
+        bool everyMatHasLoadCase{false};
+        for(auto &it : cmesh->MaterialVec()){
+            if(auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
+               !matLoad) {
+                everyMatHasLoadCase = false;
+                break;
+            }
+        }
+        if(everyMatHasLoadCase){
+            for(auto &it : cmesh->MaterialVec()){
+                auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
+                const int matNCases = matLoad->MinimumNumberofLoadCases();
+                res = res < matNCases ? matNCases : res;
+            }
+            for(auto &it : cmesh->MaterialVec()){
+                auto *matLoad = dynamic_cast<TPZMatLoadCasesBase*>(it.second);
+                matLoad->SetNumLoadCases(res);
+            }
+        }
+        return res;
+    }();
     
     int neq = cmesh->NEquations();
     TPZFMatrix<STATE> rhs;
@@ -123,8 +140,20 @@ void TPZGradientReconstruction::ProjectionL2GradientReconstructed(TPZCompMesh *c
         ChangeMaterialIdIntoCompElement(cel, matid, matidl2proj);
         
         //set forcing function of l2 projection material
-        TPZMaterial *mat = cel->Material();
-        mat->SetForcingFunction(fp);
+        auto *mat =
+            dynamic_cast<TPZMaterialT<STATE>*>(cel->Material());
+        if(!mat){
+            PZError<<__PRETTY_FUNCTION__;
+            PZError<<"\nCould not get material type. Aborting...\n";
+            DebugStop();
+        }
+
+        auto forcingFunction = [fp](const TPZVec<REAL>&x,
+                                    TPZVec<STATE>& u){
+            fp->Execute(x, u);
+        };
+        
+        mat->SetForcingFunction(forcingFunction,fp->PolynomialOrder());
         
         //load the matrix ek and vector ef of the element
         cel->CalcStiff(ek,ef);

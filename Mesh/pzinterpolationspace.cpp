@@ -4,8 +4,12 @@
  */
 
 #include "pzinterpolationspace.h"
-#include "pzmaterialdata.h"
-#include "pzbndcond.h"
+#include "TPZMaterial.h"
+#include "TPZMatSingleSpace.h"
+#include "TPZMatErrorSingleSpace.h"
+#include "TPZMatLoadCases.h"
+#include "TPZMaterialDataT.h"
+#include "TPZBndCond.h"
 #include "TPZElementMatrixT.h"
 #include "pzquad.h"
 #include "TPZCompElDisc.h"
@@ -72,7 +76,9 @@ void TPZInterpolationSpace::AdjustIntegrationRule()
 {
     int order = MaxOrder();
     int integrationruleorder = 0;
-    TPZMaterial * mat = this->Material();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpace*>(this->Material());
+
     if (mat) {
         integrationruleorder = mat->IntegrationRuleOrder(order);
     }else
@@ -100,7 +106,7 @@ void TPZInterpolationSpace::ShortPrint(std::ostream &out) const {
 
 
 void TPZInterpolationSpace::ComputeSolution(TPZVec<REAL> &qsi,
-									TPZMaterialData &data,
+									TPZMaterialDataT<STATE> &data,
 									bool hasPhi){
 	if(hasPhi){
 		this->ReallyComputeSolution(data);
@@ -111,16 +117,37 @@ void TPZInterpolationSpace::ComputeSolution(TPZVec<REAL> &qsi,
 	}
 }
 
-void TPZInterpolationSpace::ReallyComputeSolution(TPZMaterialData& data){
+void TPZInterpolationSpace::ReallyComputeSolution(TPZMaterialDataT<STATE> &data){
+    this->ReallyComputeSolutionT(data);
+}
+
+void TPZInterpolationSpace::ComputeSolution(TPZVec<REAL> &qsi,
+									TPZMaterialDataT<CSTATE> &data,
+									bool hasPhi){
+	if(hasPhi){
+		this->ReallyComputeSolution(data);
+	}else{
+		this->InitMaterialData(data);
+		data.fNeedsSol=true;
+		this->ComputeRequiredData(data,qsi);
+	}
+}
+
+void TPZInterpolationSpace::ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data){
+    this->ReallyComputeSolutionT(data);
+}
+
+template<class TVar>
+void TPZInterpolationSpace::ReallyComputeSolutionT(TPZMaterialDataT<TVar>& data){
     const TPZFMatrix<REAL> &phi = data.phi;
     const TPZFMatrix<REAL> &dphix = data.dphix;
     const TPZFMatrix<REAL> &axes = data.axes;
-    TPZSolVec &sol = data.sol;
-    TPZGradSolVec &dsol = data.dsol;
+    TPZSolVec<TVar> &sol = data.sol;
+    TPZGradSolVec<TVar> &dsol = data.dsol;
 	const int nstate = this->Material()->NStateVariables();
 	const int ncon = this->NConnects();
 	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
+	TPZFMatrix<TVar> &MeshSol = Mesh()->Solution();
     const int64_t numbersol = MeshSol.Cols();
 	
 	const int solVecSize = ncon? nstate : 0;
@@ -142,10 +169,10 @@ void TPZInterpolationSpace::ReallyComputeSolution(TPZMaterialData& data){
 		for(int jn=0; jn<dfvar; jn++) {
             for (int64_t is=0; is<numbersol; is++) {
                 sol[is][iv%nstate] +=
-                    (STATE)phi.Get(iv/nstate,0)*MeshSol(pos+jn,is);
+                    (TVar)phi.Get(iv/nstate,0)*MeshSol(pos+jn,is);
                 for(auto d=0; d<dphix.Rows(); d++){
                     dsol[is](d,iv%nstate) +=
-                        (STATE)dphix.Get(d,iv/nstate)*MeshSol(pos+jn,is);
+                        (TVar)dphix.Get(d,iv/nstate)*MeshSol(pos+jn,is);
                 }
             }
 			iv++;
@@ -189,11 +216,11 @@ REAL TPZInterpolationSpace::InnerRadius(){
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
   data.gelElId = this->Reference()->Id();
-    TPZMaterial *mat = Material();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpace*>(this->Material());
 #ifdef PZDEBUG
     if(!mat)
     {
-        mat= Material();
         DebugStop();
     }
 #endif
@@ -210,13 +237,11 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	data.jacinv.Redim(dim,dim);
 	data.x.Resize(3);
 	if (data.fNeedsSol){
-        int64_t nsol = data.sol.size();
-        for (int64_t is=0; is<nsol; is++) {
-            data.sol[is].Resize(nstate);
-            data.dsol[is].Redim(dim,nstate);            
-        }
+        uint64_t ulen,durow,ducol;
+        mat->GetSolDimensions(ulen,durow,ducol);
+        data.SetSolSizes(nstate, ulen, durow, ducol);
 	}
-//Completing for three dimensional elements
+    //Completing for three dimensional elements
 	TPZManVector<REAL,3> x_center(3,0.0);
 	TPZVec<REAL> center_qsi(dim,0.0);
 	if (dim == 2) {
@@ -247,14 +272,14 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
     
 }//void
 
-void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
+template<class TVar>
+void TPZInterpolationSpace::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
                                                 TPZVec<REAL> &qsi){
     data.intGlobPtIndex = -1;
     this->ComputeShape(qsi, data);
     
     if (data.fNeedsSol){
-        constexpr bool hasPhi{true};
-        this->ComputeSolution(qsi,data,hasPhi);
+        this->ReallyComputeSolution(data);
     }//fNeedsSol
 	
     data.x.Resize(3, 0.0);
@@ -376,7 +401,8 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 
 template<class TVar>
 void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){
-    TPZMaterial * material = Material();
+    auto* material =
+        dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
     if(!material){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         int matid = Reference()->MaterialId();
@@ -398,7 +424,7 @@ void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
     
     if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     
-    TPZMaterialData data;
+    TPZMaterialDataT<TVar> data;
     this->InitMaterialData(data);
     data.p = this->MaxOrder();
     
@@ -448,7 +474,8 @@ void TPZInterpolationSpace::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
 template<class TVar>
 void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 	
-	TPZMaterial * material = Material();
+	auto* material =
+        dynamic_cast<TPZMatSingleSpaceT<TVar> *>(this->Material());
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ef.Reset();
@@ -459,7 +486,7 @@ void TPZInterpolationSpace::CalcResidualInternal(TPZElementMatrixT<TVar> &ef){
 	
 	if (this->NConnects() == 0) return; //boundary discontinuous elements have this characteristic
 	
-	TPZMaterialData data;
+	TPZMaterialDataT<TVar> data;
 	this->InitMaterialData(data);
 	data.p = this->MaxOrder();
 	
@@ -512,13 +539,14 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 		return;
 	}
 	
-	TPZMaterial * material = this->Material();
+	auto* material = 
+        dynamic_cast<TPZMatSingleSpaceT<STATE> *>(this->Material());
 	if(!material) {
 		sol.Resize(0);
 		return;
 	}
-	
-    TPZMaterialData data;
+	//TODOCOMPLEX
+    TPZMaterialDataT<STATE> data;
     this->InitMaterialData(data);
     data.p = this->MaxOrder();
     this->ComputeShape(qsi, data);
@@ -528,7 +556,7 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &so
 	data.x.Resize(3);
 	this->Reference()->X(qsi, data.x);
 	
-	int solSize = material->NSolutionVariables(var);
+	int solSize = this->Material()->NSolutionVariables(var);
 	sol.Resize(solSize);
 	sol.Fill(0.);
 	material->Solution(data, var, sol);
@@ -594,10 +622,11 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	REAL zero = 0.;
 	TPZManVector<REAL,3> x(3,zero);
 	//TPZManVector<TPZManVector<REAL,10>, 10> u(1);
-	TPZSolVec u(1);
+    //TODOCOMPLEX
+	TPZSolVec<STATE> u(1);
     u[0].resize(nvar);
 	//TPZManVector<TPZFNMatrix<30>, 10> du(1);
-	TPZGradSolVec du(1);
+	TPZGradSolVec<STATE> du(1);
     du[0].Redim(dimension,nvar);
 	
 	int numintpoints = intrule->NPoints();
@@ -609,7 +638,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 		intrule->Point(int_ind,int_point,weight);
 		t.Apply(int_point,coarse_int_point);
-        TPZMaterialData coarsedata;    
+        TPZMaterialDataT<STATE> coarsedata;    
         coarsedata.fNeedsSol=true;
         constexpr bool hasPhi{false};
         coarsel.ComputeSolution(coarse_int_point,coarsedata,hasPhi);
@@ -1065,7 +1094,10 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 
 void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error){
     errors.Fill(0.);
-	TPZMaterial * material = Material();
+    //TODOCOMPLEX
+    auto *material = this->Material();
+	auto* materror =
+        dynamic_cast<TPZMatErrorSingleSpace<STATE> *>(this->Material());
 	//TPZMaterial * matptr = material.operator->();
 	if (!material) {
 		PZError << __PRETTY_FUNCTION__;
@@ -1078,14 +1110,14 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 		LOGPZ_INFO(logger, "Exiting EvaluateError - null error - boundary condition material.");
 		return;
 	}
-    if (!material->HasExactSol()) {
+    if (!materror->HasExactSol()) {
 		PZError << __PRETTY_FUNCTION__;
         PZError << " Material has no associated solution.\n";
         PZError << "Aborting...\n";
         DebugStop();
 		return;
 	}
-	const auto NErrors = material->NEvalErrors();
+	const auto NErrors = materror->NEvalErrors();
 	errors.Resize(NErrors);
 	errors.Fill(0.);
     const TPZGeoEl *ref = this->Reference();
@@ -1102,7 +1134,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         
         intrule->GetOrder(prevOrder);
         const int order_limit =
-            material->GetExactSol()->PolynomialOrder();        
+            materror->PolynomialOrderExact();        
         if(max_int_order > order_limit){
             if (prevOrder[0] > order_limit) {
                 max_int_order = prevOrder[0];
@@ -1118,7 +1150,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 	TPZManVector<REAL,10> intpoint(problemdimension), values(NErrors);
 	REAL weight;
 	
-	TPZMaterialData data;
+	TPZMaterialDataT<STATE> data;
 	this->InitMaterialData(data);
 	const int nintpoints = intrule->NPoints();
 	
@@ -1133,7 +1165,7 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
         this->ComputeSolution(intpoint, data, hasPhi);
 		weight *= fabs(data.detjac);        
         ref->X(intpoint, data.x);
-        material->Errors(data, values);
+        materror->Errors(data, values);
         for (int ier = 0; ier < NErrors; ier++) {
             errors[ier] += weight * values[ier];
         }
@@ -1161,7 +1193,9 @@ void TPZInterpolationSpace::EvaluateError(TPZVec<REAL> &errors,bool store_error)
 
 
 TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
-	TPZMaterial * material = Material();
+    //TODOCOMPLEX
+	auto * material =
+        dynamic_cast<TPZMatSingleSpaceT<STATE>*>(Material());
     TPZVec<STATE> result;
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
@@ -1174,7 +1208,7 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
 	const int dim = this->Dimension();
     int meshdim = Mesh()->Dimension();
 	REAL weight;
-	TPZMaterialData data;
+	TPZMaterialDataT<STATE> data;
     TPZInterpolationSpace *thisnonconst = (TPZInterpolationSpace *) this;
     
     TPZInterpolationSpace *effective = thisnonconst;
@@ -1196,17 +1230,17 @@ TPZVec<STATE> TPZInterpolationSpace::IntegrateSolution(int variable) const {
         TPZTransform<REAL> tr2 = neighbour.Element()->SideToSideTransform(neighbour.Side(), neighbour.Element()->NSides()-1);
         tr = tr2.Multiply(tr);
         effective = dynamic_cast<TPZInterpolationSpace *> (neighbour.Element()->Reference());
-        material = effective->Material();
+        material = dynamic_cast<TPZMatSingleSpaceT<STATE>*>(effective->Material());
     }
-    
+
     if(!effective) DebugStop();
-    TPZMaterialData data2d;
+    TPZMaterialDataT<STATE> data2d;
     thisnonconst->InitMaterialData(data2d);
 	effective->InitMaterialData(data);
     data.fNeedsSol = true;
 	
 	TPZManVector<REAL, 3> intpoint(dim,0.);
-	const int varsize = material->NSolutionVariables(variable);
+	const int varsize = effective->Material()->NSolutionVariables(variable);
     TPZManVector<STATE,3> value(varsize,0.);
 	
 	const TPZIntPoints &intrule = this->GetIntegrationRule();
@@ -1306,7 +1340,7 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 	
 	TPZFNMatrix<9> axes(3,3,0.);
 	REAL weight;
-	TPZMaterialData data;
+	TPZMaterialDataT<STATE> data;
     constexpr bool hasPhi{false};
 	const int intrulepoints = intrule->NPoints();
 	intrule->Point(0,intpoint,weight);
@@ -1318,7 +1352,7 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STAT
 	for(int int_ind = 1; int_ind < intrulepoints; int_ind++){
 		intrule->Point(int_ind,intpoint,weight);
 		this->ComputeSolution(intpoint, data,hasPhi);
-        TPZSolVec &sol = data.sol;
+        TPZSolVec<STATE> &sol = data.sol;
 		for(int iv = 0; iv < nvars; iv++){
 			if (sol[0][iv] < min[iv]) min[iv] = sol[0][iv];
 			if (sol[0][iv] > max[iv]) max[iv] = sol[0][iv];
@@ -1669,7 +1703,13 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     const int numdof = mat->NStateVariables();
     const int nshape = this->NShapeF();
     const int ncon = this->NConnects();
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
     
     ek.fMesh = Mesh();
     ek.fType = TPZElementMatrix::EK;
@@ -1723,7 +1763,13 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
     const int ncon = this->NConnects();
     const int nshape = this->NShapeF();
     const int numeq = nshape*numdof;
-    const int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     ef.Matrix().Redim(numeq,numloadcases);

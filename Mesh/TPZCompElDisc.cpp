@@ -13,7 +13,6 @@
 #include "pzerror.h"
 #include "pzconnect.h"
 #include "TPZMaterial.h"
-#include "pzbndcond.h"
 #include "pzmanvector.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
@@ -41,7 +40,8 @@
 #include "pzcompel.h"
 #include <math.h>
 #include <stdio.h>
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
+#include "TPZMatSingleSpace.h"
 #include "tpzautopointer.h"
 
 #include "pzlog.h"
@@ -1076,14 +1076,15 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	disc->InterpolateSolution(*cel);
 	
 	//integrating residual
-	TPZMaterial * material = disc->Material();
+	auto * material =
+		dynamic_cast<TPZMatSingleSpaceBase*>(disc->Material());
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		DebugStop();
 		return -1.;
 	}
 	//TODOCOMPLEX
-	TPZMaterialData data;
+	TPZMaterialDataT<STATE> data;
 	disc->InitMaterialData(data);
 	data.p = disc->MaxOrder();
 	const int dim = disc->Dimension();

@@ -10,7 +10,7 @@
 #include "pzlog.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
 #include "pzelchdiv.h"
 
 
@@ -232,11 +232,26 @@ int TPZCompElHDivCollapsed<TSHAPE>::NConnectShapeF(int connect, int connectorder
  */
 
 template<class TSHAPE>
-void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data)
+void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialData(TPZMaterialData &data){
+    auto *tmp =
+        dynamic_cast<TPZMaterialDataT<STATE>*>(&data);
+    if(tmp){
+        InitMaterialDataT(*tmp);
+    }else{
+        auto *tmp =
+        dynamic_cast<TPZMaterialDataT<CSTATE>*>(&data);
+        if(tmp){
+            InitMaterialDataT(*tmp);
+        }
+    }
+}
+template<class TSHAPE>
+template<class TVar>
+void TPZCompElHDivCollapsed<TSHAPE>::InitMaterialDataT(TPZMaterialDataT<TVar> &data)
 {
 	TPZCompElHDiv<TSHAPE>::InitMaterialData(data);
     if(data.fUserData) DebugStop();
-    auto datapair = new std::pair<TPZMaterialData,TPZMaterialData>;
+    auto datapair = new std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>>;
     data.fUserData = datapair;
     TPZMaterialData &datatop = datapair->second, &databottom = datapair->first;
     fTop.InitMaterialData(datatop);
@@ -373,7 +388,8 @@ static void ExpandAxes(TPZFMatrix<REAL> &axinput, TPZMatrix<REAL> &axout)
 }
 
 template<class TSHAPE>
-void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
+template<class TVar>
+void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
                                                 TPZVec<REAL> &qsi){
     
 //    TPZManVector<int,TSHAPE::NSides*TSHAPE::Dimension> normalsidesDG(TSHAPE::Dimension*TSHAPE::NSides);
@@ -400,8 +416,8 @@ void TPZCompElHDivCollapsed<TSHAPE>::ComputeRequiredData(TPZMaterialData &data,
         }
     }
     data.ComputeFunctionDivergence();
-    std::pair<TPZMaterialData,TPZMaterialData> *datapair = (std::pair<TPZMaterialData,TPZMaterialData> *) data.fUserData;
-    TPZMaterialData &datatop = datapair->second, &databottom = datapair->first;
+    std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *datapair = (std::pair<TPZMaterialDataT<TVar>,TPZMaterialDataT<TVar>> *) data.fUserData;
+    TPZMaterialDataT<TVar> &datatop = datapair->second, &databottom = datapair->first;
 
     int nsides = this->Reference()->NSides();
     // compute the divergence of the top and bottom elements
@@ -462,9 +478,12 @@ int64_t TPZCompElHDivCollapsed<TSHAPE>::ConnectIndex(int con) const
 template<class TSHAPE>
 void TPZCompElHDivCollapsed<TSHAPE>::CleanupMaterialData(TPZMaterialData &data)
 {
-    std::pair<TPZMaterialData,TPZMaterialData> *userdata = (std::pair<TPZMaterialData,TPZMaterialData> *) data.fUserData;
-    delete userdata;
-    data.fUserData = 0;
+    std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *userdataS = (std::pair<TPZMaterialDataT<STATE>,TPZMaterialDataT<STATE>> *) data.fUserData;
+    if(userdataS) delete userdataS;
+
+    std::pair<TPZMaterialDataT<CSTATE>,TPZMaterialDataT<CSTATE>> *userdataC = (std::pair<TPZMaterialDataT<CSTATE>,TPZMaterialDataT<CSTATE>> *) data.fUserData;
+    if(userdataC) delete userdataC;
+    data.fUserData = nullptr;
 }
 
 

@@ -44,8 +44,9 @@ class TPZMaterial;
 class TPZBndCond;
 template class TPZVec<TPZMaterial *>;
 template class TPZVec<TPZBndCond *>;
-#include "pzmaterialdata.h"
-template class TPZVec<TPZMaterialData>;
+#include "TPZMaterialDataT.h"
+template class TPZVec<TPZMaterialDataT<STATE>>;
+template class TPZVec<TPZMaterialDataT<CSTATE>>;
 
 struct TPZElementMatrix;
 template class TPZVec<TPZElementMatrix *>;

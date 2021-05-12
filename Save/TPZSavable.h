@@ -218,4 +218,5 @@ TPZRestoreClassWithTranslator<T,TranslatorType> TPZRestoreClassWithTranslator<T,
 template<class T, class TranslatorType>
 TPZChunkTranslator *TPZRestoreClassWithTranslator<T,TranslatorType>::gTranslator = NULL;
 
+///@}
 #endif //TPZSAVABLE_H

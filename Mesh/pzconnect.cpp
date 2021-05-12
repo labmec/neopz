@@ -8,7 +8,6 @@
 #include "pzvec.h"
 #include "pzstack.h"
 #include "pzcmesh.h"
-#include "pzbndcond.h"
 #include "TPZStream.h"
 #include "pzlog.h"
 

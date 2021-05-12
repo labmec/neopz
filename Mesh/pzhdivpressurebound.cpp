@@ -12,7 +12,7 @@
 #include "TPZMaterial.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
+#include "TPZMaterialData.h"
 #include "pzhdivpressure.h"
 
 #ifdef PZ_LOG

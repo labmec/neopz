@@ -17,8 +17,7 @@
 #include "pzcheckmesh.h"
 
 #include "TPZMaterial.h"
-#include "pzbndcond.h"
-#include "pzpoisson3d.h"
+#include "TPZBndCond.h"
 
 #include "pzanalysis.h"
 #include "pzstepsolver.h"

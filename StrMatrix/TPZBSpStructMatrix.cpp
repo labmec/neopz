@@ -9,7 +9,6 @@
 #include "pzelmat.h"
 #include "pzysmp.h"
 #include "TPZRenumbering.h"
-#include "pzbndcond.h"
 #include "TPZGuiInterface.h"
 
 using namespace std;

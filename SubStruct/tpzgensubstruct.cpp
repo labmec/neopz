@@ -7,7 +7,7 @@
 #include "TPZGenGrid2D.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 #include "TPZGeoElement.h"
 #include "pzgeopoint.h"
 #include "pzrefpoint.h"
@@ -50,93 +50,92 @@ TPZGenSubStruct::~TPZGenSubStruct()
 {
 }
 
-#ifndef STATE_COMPLEX
-/// Coordinates of the eight nodes
-REAL co[8][3] = {
-	{0.,0.,0.},
-	{1.,0.,0.},
-	{1.,1.,0.},
-	{0.,1.,0.},
-	{0.,0.,1.},
-	{1.,0.,1.},
-	{1.,1.,1.},
-	{0.,1.,1.}
-};
-
-#include "pzpoisson3d.h"
-// method which will generate the computational mesh
-TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
-{
-	std::cout << "Generating mesh\n";
-	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	if(fDimension == 2)
-	{
-		TPZVec<int> nx(2,1);
-		TPZVec<REAL> x0(3,0.),x1(3,1.);
-        x1[2] = 0.;
-		TPZGenGrid2D gen(nx,x0,x1,1,0.);
-		gen.Read(gmesh);
-	} else if(fDimension == 3)
-	{
-		int ic;
-		gmesh->NodeVec().Resize(8);
-		TPZVec<REAL> noco(3);
-		TPZVec<int64_t> nodeindices(8);
-		for(ic=0; ic<8; ic++)
-		{
-			nodeindices[ic] = ic;
-			int i;
-			for(i=0; i<3; i++)
-			{
-				noco[i] = co[ic][i];
-			}
-			gmesh->NodeVec()[ic].Initialize(noco,*gmesh);
-		}
-		int matid = 1;
-		int64_t index;
-		gmesh->CreateGeoElement(ECube,nodeindices,matid,index,0);
-	}
-	this->fCMesh = new TPZCompMesh(gmesh);
-	TPZVec<int64_t> nodeindices(1,0);
-	new TPZGeoElement<pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> (nodeindices,-1,*gmesh);
-	TPZVec<REAL> convdir(fDimension,1.);
-	TPZMatPoisson3d *matp;
-	int imat;
-	for(imat=0; imat<fK.NElements(); imat++)
-	{
-		matp = new TPZMatPoisson3d(imat+1,fDimension);
-		matp->SetInternalFlux(1.);
-		matp->SetParameters(fK[imat],0.,convdir);
-		{
-			TPZMaterial * mat (matp);
-			fCMesh->InsertMaterialObject(mat);
-		}
-	}
+// #ifndef STATE_COMPLEX
+// /// Coordinates of the eight nodes
+// REAL co[8][3] = {
+// 	{0.,0.,0.},
+// 	{1.,0.,0.},
+// 	{1.,1.,0.},
+// 	{0.,1.,0.},
+// 	{0.,0.,1.},
+// 	{1.,0.,1.},
+// 	{1.,1.,1.},
+// 	{0.,1.,1.}
+// };
+// #include "pzpoisson3d.h"
+// // method which will generate the computational mesh
+// TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
+// {
+// 	std::cout << "Generating mesh\n";
+// 	TPZGeoMesh *gmesh = new TPZGeoMesh;
+// 	if(fDimension == 2)
+// 	{
+// 		TPZVec<int> nx(2,1);
+// 		TPZVec<REAL> x0(3,0.),x1(3,1.);
+//         x1[2] = 0.;
+// 		TPZGenGrid2D gen(nx,x0,x1,1,0.);
+// 		gen.Read(gmesh);
+// 	} else if(fDimension == 3)
+// 	{
+// 		int ic;
+// 		gmesh->NodeVec().Resize(8);
+// 		TPZVec<REAL> noco(3);
+// 		TPZVec<int64_t> nodeindices(8);
+// 		for(ic=0; ic<8; ic++)
+// 		{
+// 			nodeindices[ic] = ic;
+// 			int i;
+// 			for(i=0; i<3; i++)
+// 			{
+// 				noco[i] = co[ic][i];
+// 			}
+// 			gmesh->NodeVec()[ic].Initialize(noco,*gmesh);
+// 		}
+// 		int matid = 1;
+// 		int64_t index;
+// 		gmesh->CreateGeoElement(ECube,nodeindices,matid,index,0);
+// 	}
+// 	this->fCMesh = new TPZCompMesh(gmesh);
+// 	TPZVec<int64_t> nodeindices(1,0);
+// 	new TPZGeoElement<pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> (nodeindices,-1,*gmesh);
+// 	TPZVec<REAL> convdir(fDimension,1.);
+// 	TPZMatPoisson3d *matp;
+// 	int imat;
+// 	for(imat=0; imat<fK.NElements(); imat++)
+// 	{
+// 		matp = new TPZMatPoisson3d(imat+1,fDimension);
+// 		matp->SetInternalFlux(1.);
+// 		matp->SetParameters(fK[imat],0.,convdir);
+// 		{
+// 			TPZMaterial * mat (matp);
+// 			fCMesh->InsertMaterialObject(mat);
+// 		}
+// 	}
 	
-	TPZMaterial * mat (fCMesh->FindMaterial(1));
-	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	TPZBndCond *bc = new TPZBndCond(mat,-1,0,val1,val2);
-	TPZMaterial * matbc(bc);
-	fCMesh->InsertMaterialObject(matbc);
-	gmesh->BuildConnectivity();
-	std::cout << "Uniform refine "; std::cout.flush();
-	UniformRefine();
-	std::cout << "AutoBuild "; std::cout.flush();
-	fCMesh->AutoBuild();
-	std::cout << "Number of equations " << fCMesh->NEquations() << std::endl;
-	//tempo.fNumEq = fCMesh->NEquations();													// alimenta timeTemp com o numero de equacoes
-#ifdef PZ_LOG
-	{
-		std::stringstream str;
-		fCMesh->Print(str);
-		LOGPZ_DEBUG(logger,str.str());
-	}
-#endif
-	//  std::cout << "Identifying corner nodes\n";
-	//  IdentifyCornerNodes();
-	return fCMesh;
-}
-#endif
+// 	TPZMaterial * mat (fCMesh->FindMaterial(1));
+// 	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
+// 	TPZBndCond *bc = new TPZBndCond(mat,-1,0,val1,val2);
+// 	TPZMaterial * matbc(bc);
+// 	fCMesh->InsertMaterialObject(matbc);
+// 	gmesh->BuildConnectivity();
+// 	std::cout << "Uniform refine "; std::cout.flush();
+// 	UniformRefine();
+// 	std::cout << "AutoBuild "; std::cout.flush();
+// 	fCMesh->AutoBuild();
+// 	std::cout << "Number of equations " << fCMesh->NEquations() << std::endl;
+// 	//tempo.fNumEq = fCMesh->NEquations();													// alimenta timeTemp com o numero de equacoes
+// #ifdef PZ_LOG
+// 	{
+// 		std::stringstream str;
+// 		fCMesh->Print(str);
+// 		LOGPZ_DEBUG(logger,str.str());
+// 	}
+// #endif
+// 	//  std::cout << "Identifying corner nodes\n";
+// 	//  IdentifyCornerNodes();
+// 	return fCMesh;
+// }
+// #endif
 // divide the geometric elements till num levels is achieved
 void TPZGenSubStruct::UniformRefine()
 {

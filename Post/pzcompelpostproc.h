@@ -12,7 +12,7 @@ class TPZMaterialData;
 #include "pzinterpolationspace.h"
 #include "tpzautopointer.h"
 #include "TPZMaterial.h"
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
 #include "TPZElementMatrixT.h"
 #include "pzstack.h"
 #include "pzcmesh.h"
@@ -101,7 +101,10 @@ public:
         TCOMPEL::Print(out);
     }
     
-    void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
+    void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override;
+    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &qsi) override{
+        DebugStop();
+    }
     
     /**
      * @brief The CalcResidual reimplementation is in charge of extracting the data from the
@@ -200,7 +203,7 @@ inline void TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions(){
 }
 
 template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::ComputeRequiredData(TPZMaterialData &data,
+inline void TPZCompElPostProc<TCOMPEL>::ComputeRequiredData(TPZMaterialDataT<STATE> &data,
                                                             TPZVec<REAL> &qsi){
     TCOMPEL::ComputeRequiredData(data, qsi);
 }
@@ -255,7 +258,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
     
     if(!pPostProcMat) DebugStop();
     
-    TPZMaterial * pMaterialRef = pCompElRef->Material();
+    auto* pMaterialRef =
+        dynamic_cast<TPZMatSingleSpaceT<STATE>*>(pCompElRef->Material());
     
     
     if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
@@ -263,7 +267,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
     int64_t numeq = ef.fMat.Rows();
     TPZFNMatrix<1,STATE> efTemp(numeq,1,0.);
     
-    TPZMaterialData data, dataRef;
+    TPZMaterialDataT<STATE> data, dataRef;
     this->InitMaterialData(data);
     if(pIntSpRef)
     {
@@ -352,7 +356,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidualInternal(TPZElementMatrixT<T
         for(int var_ind = 0; var_ind < n_var_indexes; var_ind++)
         {
             int variableindex = varIndex[var_ind];
-            int nsolvars = pMaterialRef->NSolutionVariables(variableindex);
+            int nsolvars = pCompElRef->Material()->NSolutionVariables(variableindex);
             Sol.Resize(nsolvars);
 
             // diferenca entre variavel de interpolacao e variavel de elemento

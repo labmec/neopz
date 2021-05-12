@@ -120,10 +120,15 @@ public:
 	virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) override;
-    
+    //@{
     ///Compute the solution for a given variable
-	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
-
+	void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+		SolutionT(qsi,var,sol);
+	}
+	void Solution( TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+		SolutionT(qsi,var,sol);
+	}
+	//@}
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) override;
 	
 	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
@@ -141,7 +146,16 @@ public:
 
 protected:
 	/** @brief Compute the solution using Hdiv structure */
-	void ReallyComputeSolution(TPZMaterialData &data) override;
+	void ReallyComputeSolution(TPZMaterialDataT<STATE> &data) override{
+		ComputeSolutionHDivPressureT(data);
+	}
+	void ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data) override{
+		ComputeSolutionHDivPressureT(data);
+	}
+	template<class TVar>
+	void ComputeSolutionHDivPressureT(TPZMaterialDataT<TVar>&data);
+	template<class TVar>
+	void SolutionT( TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
 };
 
 template<class TSHAPE>
