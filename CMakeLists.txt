@@ -385,7 +385,6 @@ if(NOT BUILD_COMPLEX_PROJECTS)
 endif()
 
 get_target_property(pz_sources pz SOURCES)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${pz_sources})
 #To build the documentation using doxygen
 option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)
 #To build the documentation using doxygen+breathe+sphynx
@@ -395,3 +394,5 @@ if(BUILD_DOCS)
 elseif(BUILD_SPHINX_DOCS)
     message(FATAL_ERROR "For building sphinx docu BUILD_DOCS needs to be enabled")
 endif()
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${pz_sources} ${docs_sources})  
+  

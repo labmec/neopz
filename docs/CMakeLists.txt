@@ -14,3 +14,13 @@ if(BUILD_SPHINX_DOCS)
     include(../cmake/EnableSphinx.cmake)
     enable_sphinx(pz)
 endif()
+
+set(docs_sources
+    "${CMAKE_CURRENT_SOURCE_DIR}/pzmainpage.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/index.rst"
+    "${CMAKE_CURRENT_SOURCE_DIR}/references.bib")
+add_subdirectory(material)
+add_subdirectory(structmatrix)
+    
