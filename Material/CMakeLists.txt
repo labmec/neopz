@@ -111,5 +111,7 @@ add_subdirectory(BlackOil)
 add_subdirectory(Projection)
 #poisson materials
 add_subdirectory(Poisson)
+#electromagnetic materials
+add_subdirectory(Electromagnetics)
 
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
