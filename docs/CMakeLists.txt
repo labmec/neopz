@@ -5,6 +5,7 @@ set(DOXYGEN_ADD_ALL OFF CACHE BOOL "Whether to add ALL source files to doxygen")
 list(APPEND PZ_PUBLIC_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/pzmainpage.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/structmatrix/doxstrmatrix.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/material/doxmaterial.h"
     )
 
 if(DOXYGEN_ADD_ALL)
