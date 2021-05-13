@@ -3097,6 +3097,26 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
     int m = this->Rows();
     int n = this->Cols();
     int min = std::min(m,n);
+    switch(jobU){
+        case 'A': U.Resize(m,m);    break;
+        case 'S': U.Resize(m,min);  break;
+        case 'N': U.Resize(1,1);    break;
+        default: PZError << "\nInvalid input jobU = \'" << jobU << "\' unrecognized;\n"; DebugStop();
+    }
+    switch(jobVT){
+        case 'A': VT.Resize(n,n);   break;
+        case 'S': VT.Resize(min,n); break;
+        case 'N': VT.Resize(1,1);   break;
+        default: PZError << "\nInvalid input jobVT = \'" << jobVT << "\' unrecognized;\n"; DebugStop();
+    }
+    S.Resize(min,1);
+
+    // Get matrices pointers
+    double* A_ptr = &(this->operator()(0,0));
+    double* U_ptr = &U(0,0);
+    double* S_ptr = &S(0,0);
+    double* VT_ptr = &VT(0,0);
+    // Setup auxiliar variables
     int nrows = fRow, lda = nrows, ldu = nrows, ldvt = min, info = 0;
     int ncols = fCol;
     double work_opt;
@@ -3110,15 +3130,14 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
     if(info  ==  0){/*all ok*/}
     else if(info>0){
         PZError<<"\nSingularValueDecomposition failed to converge\n";
-        PZError<<"\tCheck matrix before running mkl::dgesvd since it overwrites the matrix\n";
+        PZError<<"\tCheck matrix before running lapack::dgesvd since it overwrites the matrix\n";
         DebugStop();
         // return info; // in case you don't want a DebugStop()
     }
     else if(info<0){
-        PZError<<"\nThe "<<-info<<"th parameter passed to mkl::dgesvd is a bad parameter\n";
+        PZError<<"\nThe "<<-info<<"th parameter passed to lapack::dgesvd is a bad parameter\n";
         DebugStop();
     }
-    // free((void*)work);
 
     const int success = 1;
     return success;
