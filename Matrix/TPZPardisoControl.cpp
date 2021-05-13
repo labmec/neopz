@@ -141,12 +141,21 @@ long long TPZPardisoControl<TVar>::MatrixType()
 
     if(is_complex<TVar>::value){
         if (fSystemType == ESymmetric && fProperty == EIndefinite) {
+            if(fMatrixType != 0 && fMatrixType != -4){
+                DebugStop();
+            }
             fMatrixType = -4;
         }
         if (fSystemType == ESymmetric && fProperty == EPositiveDefinite) {
+            if(fMatrixType != 0 && fMatrixType != 4){
+                DebugStop();
+            }
             fMatrixType = 4;
         }
         if (fSystemType == ENonSymmetric && fStructure == EStructureSymmetric) {
+            if(fMatrixType != 0 && fMatrixType != 3){
+                DebugStop();
+            }
             fMatrixType = 3;
         }
     }else{
@@ -222,6 +231,7 @@ void TPZPardisoControl<TVar>::Decompose()
     nrhs = 0;
     fPermutation.resize(n);
     perm = &fPermutation[0];
+    // zero-based indexing
     fParam[34] = 1;
     // Do not use OOC
     fParam[59] = 0;
@@ -332,7 +342,10 @@ void TPZPardisoControl<TVar>::Solve(TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &sol
                 std::cout << "Pardiso:: Slow convergence - Main matrix and matrix for preconditioner differ a lot. " << std::endl;
             }
                 break;
-                
+            case 3:{
+                std::cout <<"Pardiso:: stopping criterion is not reached at max_it_cgs. " << std::endl;
+            }
+                break;
             case 4:{
                 std::cout << "Pardiso:: perturbed pivots caused iterative refinement. " << std::endl;
             }
