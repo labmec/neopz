@@ -3100,13 +3100,13 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
     int nrows = fRow, lda = nrows, ldu = nrows, ldvt = min, info = 0;
     int ncols = fCol;
     double work_opt;
-    int lwork = -1;
-    // first do a pseudo-run to allocate optimal space
-    dgesvd(&jobU,&jobVT,&nrows,&ncols,A_ptr,&lda,S_ptr,U_ptr,&ldu,VT_ptr,&ldvt,&work_opt,&lwork,&info);
+    int lwork = -1; //<-- Pass -1 to tell Lapack to compute it for you
+    // first do a pseudo-run to compute optimal work size
+    dgesvd_(&jobU,&jobVT,&nrows,&ncols,A_ptr,&lda,S_ptr,U_ptr,&ldu,VT_ptr,&ldvt,&work_opt,&lwork,&info);
     lwork = (int)work_opt;
-    double* work = (double*)malloc(lwork*sizeof(double));
+    TPZVec<double> work(lwork,0.);
     // then do actual computation of SVD
-    dgesvd(&jobU,&jobVT,&nrows,&ncols,A_ptr,&lda,S_ptr,U_ptr,&ldu,VT_ptr,&ldvt,work,&lwork,&info);
+    dgesvd_(&jobU,&jobVT,&nrows,&ncols,A_ptr,&lda,S_ptr,U_ptr,&ldu,VT_ptr,&ldvt,&work[0],&lwork,&info);
     if(info  ==  0){/*all ok*/}
     else if(info>0){
         PZError<<"\nSingularValueDecomposition failed to converge\n";
@@ -3118,7 +3118,7 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
         PZError<<"\nThe "<<-info<<"th parameter passed to mkl::dgesvd is a bad parameter\n";
         DebugStop();
     }
-    free((void*)work);
+    // free((void*)work);
 
     const int success = 1;
     return success;
