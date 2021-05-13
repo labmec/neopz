@@ -196,8 +196,16 @@ long long TPZPardisoControl<TVar>::MatrixType()
     for (int i=0; i<64; i++) {
         fParam[i] = param[i];
     }
-
+    //fParam[10]  Use nonsymmetric permutation and scaling MPS
+    fParam[10] = fSystemType == ESymmetric ? 0 : 1;
+    //fParam[12]  Maximum weighted matching algorithm is switched-off (default for symmetric).
+    fParam[12] = fSystemType == ESymmetric ? 0 : 1;
+    //fParam[27] float or double
+    fParam[27] = DataType((TVar)0);
+    //fParam[34]  zero-based indexing
     fParam[34] = 1;
+    //Use CSR
+    fParam[36] = 0;
     return fMatrixType;
 }
 
@@ -228,13 +236,8 @@ void TPZPardisoControl<TVar>::Decompose()
 
     long long *perm = 0,nrhs = 0;
     long long Error = 0;
-    nrhs = 0;
-    fPermutation.resize(n);
-    perm = &fPermutation[0];
-    // zero-based indexing
-    fParam[34] = 1;
-    // Do not use OOC
-    fParam[59] = 0;
+    nrhs = 0;    
+    
     /// analyse and factor the equations
     long long phase = 12;
     fPermutation.resize(n);
@@ -242,28 +245,45 @@ void TPZPardisoControl<TVar>::Decompose()
         fPermutation[i] = i;
     }
     perm = &fPermutation[0];
+
+    /*@orlandini: most values were taken from eigen PardisoSupport.
+      There are other values being set at:
+      TPZPardisoControl<TVar>::MatrixType()
+     */
+
     
-    /// analyse and factor the equations
-    // LU preconditioned CGS (10*L+K) where K={1:CGS,2:CG} and L=10^-L stopping threshold
-    if (fProperty == EIndefinite) {
-        fParam[4] = 1;
-        if(fSystemType == ESymmetric){ // The factorization is always computed as required by phase.
-            fParam[3 ] = 10*6+2;
-        }else{ // CGS iteration replaces the computation of LU. The preconditioner is LU that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
-            fParam[3 ] = 10*6+1;
-            fParam[10] = 1;
-            fParam[12] = 1;
-        }
+    //fParam[0] No default values
+    fParam[0] = 1;
+    //fParam[1]  use Metis for the ordering
+    fParam[1] = 2;
+    /*fParam[3]  Preconditioned CGS/CG. 
+       0 = // No iterative-direct algorithm
+       10*L+K
+       L = stoppping criterion: 10^-L
+       K = 
+          0: The factorization is always computed as required by phase
+          1: CGS iteration replaces the computation of LU. 
+             The preconditioner is LU that was computed at a previous step
+             (the first step or last step with a failure) in a sequence of
+             solutions needed for identical sparsity patterns.
+          2: CGS iteration for symmetric positive definite matrices
+             Replaces the computation of LLt. The preconditioner is LLT
+             that was computed at a previous step
+             (the first step or last step with a failure)
+             in a sequence of solutions needed for identical sparsity patterns. 
+     */
+    //fParam[4]  No user fill-in reducing permutation
+    if constexpr (!is_complex<TVar>::value){
+        fParam[3] = fSystemType == ESymmetric ? 10*6+2 : 10*6+1;
+        if(fProperty == EIndefinite) fParam[4] =1;
     }else{
-        
-        if(fSystemType == ESymmetric){ // CGS iteration for symmetric positive definite matrices replaces the computation of LLT. The preconditioner is LLT that was computed at a previous step (the first step or last step with a failure) in a sequence of solutions needed for identical sparsity patterns.
-            fParam[3 ] = 10*6+2;
-        }else{
-            fParam[3 ] = 10*6+1;
-            fParam[10] = 1;
-            fParam[12] = 1;
-        }
+        fParam[3] = 0;
+        fParam[4] = 0;
     }
+    //fParam[9]  Perturb the pivot elements with 1E-fParam[9]
+    fParam[9] = 13;  
+    //fParam[59]  Do not use OOC
+    fParam[59] = 0;
     
     pardiso_64 (fHandle,  &fMax_num_factors, &fMatrix_num, &fMatrixType, &phase, &n, a, ia, ja, perm,
                 &nrhs, &fParam[0], &fMessageLevel, b, x, &Error);
@@ -415,7 +435,6 @@ TPZPardisoControl<TVar>::~TPZPardisoControl()
     if (Error) {
         DebugStop();
     }
-    
 }
 
 template<class TVar>
