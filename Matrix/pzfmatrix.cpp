@@ -44,9 +44,6 @@ static TPZLogger loggerCheck("pz.checkconsistency");
 #define BLAS_MULT
 #endif
 
-// #ifdef USING_MKL
-//     #include "mkl.h"
-// #endif // USING_MKL
 
 //#define IsZero( a )  ( fabs(a) < 1.e-20)
 
