@@ -3093,12 +3093,11 @@ int TPZFMatrix<TVar>::SingularValueDecomposition(TPZFMatrix<TVar>& U, TPZFMatrix
 
 template<>
 int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMatrix<double>& S, TPZFMatrix<double>& VT,char jobU, char jobVT){
-    double* A_ptr = &(this->operator()(0,0));
-    double* U_ptr = &U(0,0);
-    double* S_ptr = &S(0,0);
-    double* VT_ptr = &VT(0,0);
-    
-    int nrows = fRow, lda = nrows, ldu = nrows, ldvt = this->Cols(), info = 0;
+    // Setup matrix sizes. This section of the code should happen for all specializations
+    int m = this->Rows();
+    int n = this->Cols();
+    int min = std::min(m,n);
+    int nrows = fRow, lda = nrows, ldu = nrows, ldvt = min, info = 0;
     int ncols = fCol;
     double work_opt;
     int lwork = -1;
