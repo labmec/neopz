@@ -402,7 +402,7 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
 TEMPLATE_TEST_CASE("Inverse (REAL)","[matrix_tests]",
                    float,
                    double
-                   // ,long double
+                   ,long double
                    ) {
     testmatrix::Inverse<TestType>();
 }
