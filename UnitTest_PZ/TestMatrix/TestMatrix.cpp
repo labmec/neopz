@@ -401,14 +401,14 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
 
 TEMPLATE_TEST_CASE("Inverse (REAL)","[matrix_tests]",
                    float,
-                   double,
-                   long double
+                   double
+                   // ,long double
                    ) {
     testmatrix::Inverse<TestType>();
 }
 
 TEMPLATE_TEST_CASE("Inverse (CPLX)","[matrix_tests]",
-                   // std::complex<float>,
+                   std::complex<float>,
                    std::complex<double>,
                    std::complex<long double>
           ) {
@@ -451,7 +451,8 @@ TEMPLATE_TEST_CASE("Diagonal dominant (REAL)","[matrix_tests]",
                    double,
                    long double
                    ) {
-    testmatrix::DiagonalDominant<TestType>();
+    for(int i = 0; i < 5; i++)
+        testmatrix::DiagonalDominant<TestType>();
 }
 
 TEMPLATE_TEST_CASE("Diagonal dominant (CPLX)","[matrix_tests]",
@@ -459,7 +460,8 @@ TEMPLATE_TEST_CASE("Diagonal dominant (CPLX)","[matrix_tests]",
                    std::complex<double>,
                    std::complex<long double>
                    ) {
-    testmatrix::DiagonalDominant<TestType>();
+    for(int i = 0; i < 5; i++)
+        testmatrix::DiagonalDominant<TestType>();
 }
 
 TEMPLATE_TEST_CASE("Hermitian (REAL)","[matrix_tests]",
@@ -467,7 +469,8 @@ TEMPLATE_TEST_CASE("Hermitian (REAL)","[matrix_tests]",
                    double,
                    long double
                    ) {
-    testmatrix::Hermitian<TestType>();
+    for(int i = 0; i < 5; i++)
+        testmatrix::Hermitian<TestType>();
 }
 
 TEMPLATE_TEST_CASE("Hermitian (CPLX)","[matrix_tests]",
@@ -475,7 +478,8 @@ TEMPLATE_TEST_CASE("Hermitian (CPLX)","[matrix_tests]",
                    std::complex<double>,
                    std::complex<long double>
                    ) {
-    testmatrix::Hermitian<TestType>();
+    for(int i = 0; i < 5; i++)
+        testmatrix::Hermitian<TestType>();
 }
 
 TEMPLATE_TEST_CASE("Multiply operator (REAL)","[matrix_tests]",
