@@ -571,14 +571,6 @@ inline int TPZFMatrix<TVar>::PutVal(const int64_t row, const int64_t col,const T
     return( 1 );
 }
 
-/******************/
-/*** Destructor ***/
-template<class TVar>
-inline TPZFMatrix<TVar>::~TPZFMatrix() {
-    if(fElem && fElem != fGiven) delete[]( fElem );
-    fElem = 0;
-    fSize = 0;
-}
 
 
 /**************/

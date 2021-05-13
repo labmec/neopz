@@ -3127,6 +3127,14 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
 
 #endif // USING_LAPACK
 
+/******************/
+/*** Destructor ***/
+template<class TVar>
+TPZFMatrix<TVar>::~TPZFMatrix() {
+    if(fElem && fElem != fGiven) delete[]( fElem );
+    fElem = 0;
+    fSize = 0;
+}
 
 /** @brief Returns the norm of the matrix A */
 template<>
