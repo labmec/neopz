@@ -7,6 +7,9 @@ written in C++ with support for many advanced finite element techniques.
 [![Publish Docs](https://github.com/labmec/neopz/actions/workflows/publish_docs.yml/badge.svg)](https://github.com/labmec/neopz/actions/workflows/publish_docs.yml)
 [![Compile External Projects](https://github.com/labmec/neopz/actions/workflows/compile_externalprojects.yml/badge.svg)](https://github.com/labmec/neopz/actions/workflows/compile_externalprojects.yml)
 
+The documentation is available [here](https://labmec.github.io/neopz).
+
+
 ## Features
 - Discontinuous, *H1, H(div)* and *H(curl)* conforming approximation spaces
 - Multiphysics support
@@ -46,7 +49,7 @@ make -j && sudo make install
 where some CMake options were given as an illustration. The following CMake options are available:
 
 - `REAL_TYPE`: which floating point type to use for real data types (geometry). It can be set as `float`, `double`, `long double`, `pzfpcounter` (last option is for internal usage). Default value: `double`.
-- `STATE_TYPE`: which floating point type to use for the Finite Element matrices. It can be set as `float`, `double`, `long double`. Complex matrices will be created using `std::complex<STATE>`. Default value: `double`.
+- `STATE_TYPE`: which floating point type to use for the Finite Element matrices. It can be set as `float`, `double`, `long double`. Complex matrices will be created using `std::complex<STATE>`, which is aliased to `CSTATE`. Default value: `double`.
 - `CMAKE_INSTALL_PREFIX`: where to install the NeoPZ library. Defaulted to `/opt/neopz` on UNIX systems.
 - `USING_BLAZE`: Enable blaze library support
 - `USING_BOOST`: Enable Boost libraries (`Boost::date_time`, `Boost::graph` and `Boost::unit_test_framework`) support
@@ -55,7 +58,9 @@ where some CMake options were given as an illustration. The following CMake opti
 - `USING_LOG4CXX`: Enable logging information through log4cxx support.
 - `USING_METIS`: Enable Metis library support.
 - `CMAKE_BUILD_TYPE`: `Release`, `Debug` and `RelWithDebugInfo`
-- `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials. *Note:* This option conflicts with complex `STATE_TYPE`.
+- `BUILD_UNITTESTING`: this option will include the Unit Test suite. It automatically downloads `Catch2` if needed.
+- `BUILD_PROJECTS`: this option will include the examples from [NeoPZExamples](https://github.com/labmec/NeoPZExamples) in the build tree.
+- `BUILD_PLASTICITY_MATERIALS`: to include support for classes modelling plastic materials.
 - `BUILD_DOCS`: build documentation using [Doxygen](https://www.doxygen.nl/index.html). It requires Doxygen and [Graphviz](https://graphviz.org/).
 - `BUILD_SPHINX_DOCS`: use [Breathe](https://breathe.readthedocs.io/) for generating [Sphinx](https://www.sphinx-doc.org/en/master/) from the Doxygen output.
 
@@ -74,10 +79,7 @@ source MKL_DIR/bin/compilervars.sh intel64
 The remaining `USING_XXX` CMake options are for internal usage only.
 The following options are listed for completeness:
 
-- `BUILD_BROKEN`: if you are looking for adventures.
 - `BUILD_PERF_TESTS`: for building a few performance tests. The tests are in need of a revision.
-- `BUILD_TUTORIAL`: soon to be deprecated.Legacy code.
-- `BUILD_PROJECTS`: soon to be deprecated. Legacy code.
 - `BUILD_PUBLICATIONS`: build legacy projects with code used to generate results that were published.
 
 

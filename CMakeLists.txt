@@ -190,18 +190,6 @@ if(USING_BLAZE)
     enable_blaze(pz)
 endif(USING_BLAZE)
 
-#the following include is for making it easier to create pz targets
-include(cmake/add_pz_internal_target.cmake)
-
-#To building several examples for training and experimentation PZ
-option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
-if(BUILD_TUTORIAL)
-	####add_definitions(-DBUILD_TUTORIAL)
-endif()
-
-#To building several examples for training and experimentation PZ
-option(BUILD_BROKEN "To build projects which are broken" OFF)
-
 #To building publication targets
 option(BUILD_PUBLICATIONS "To build publications targets" OFF)
 if(BUILD_PUBLICATIONS)
@@ -209,7 +197,7 @@ if(BUILD_PUBLICATIONS)
 endif()
 
 #To building all the specific projects developed with PZ environment
-option(BUILD_PROJECTS "To build specific projects." OFF)
+option(BUILD_PROJECTS "To build projects using NeoPZ." OFF)
 
 #To building all the performance projects developed with PZ environment
 option(BUILD_PERF_TESTS "To build the performance test." OFF)
@@ -367,8 +355,9 @@ install(FILES
 include(cmake/InstallPZConfigFile.cmake)
 
 #############EXTRA TARGETS#############
-if(BUILD_PROJECTS OR BUILD_TUTORIAL)
-    add_subdirectory(Projects)
+if(BUILD_PROJECTS)
+  include(cmake/EnableNeoPZExamples.cmake)
+  enable_neopzexamples()
 endif()
 
 if(BUILD_UNITTESTING)
