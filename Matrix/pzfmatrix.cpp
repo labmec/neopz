@@ -3114,8 +3114,20 @@ int TPZFMatrix<double>::SingularValueDecomposition(TPZFMatrix<double>& U, TPZFMa
     double* S_ptr = &S(0,0);
     double* VT_ptr = &VT(0,0);
     // Setup auxiliar variables
-    int nrows = fRow, lda = nrows, ldu = nrows, ldvt = min, info = 0;
-    int ncols = fCol;
+    int nrows = fRow, ncols = fCol;
+    int info = 0;
+    int lda = nrows;
+    int ldu = 1, ldvt = 1;
+    switch(jobU){
+        case 'A':
+        case 'S': ldu = nrows; break;
+        default: ldu = 1; break;
+    }
+    switch(jobVT){
+        case 'A': ldvt = ncols; break;
+        case 'S': ldvt = min; break;
+        default:  ldvt = 1; break;
+    }
     double work_opt;
     int lwork = -1; //<-- Pass -1 to tell Lapack to compute it for you
     // first do a pseudo-run to compute optimal work size
