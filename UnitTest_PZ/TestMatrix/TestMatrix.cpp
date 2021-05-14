@@ -119,6 +119,34 @@ void TestingGeneralisedEigenValuesWithAutoFill(int dim, int symmetric);
 template <class matx, class TVar>
 void TestingEigenDecompositionAutoFill(int dim, int symmetric);
 
+/** @brief Check if, for an auto generated matrix A, 
+* U and VT are orthogonal;
+* A == U*Sigma*VT **/
+template <class TMatrix, typename TVar>
+void TestSVD_Simple(int nrows, int ncols);
+
+/** @brief Checks if SVD conserves Identity Matrix
+* U and VT are orthogonal;
+* A == U*Sigma*VT **/
+template<class TMatrix, typename TVar>
+void TestSVD_Identity(int nrows, int ncols);
+
+/** @brief If the column/row space of a matrix is a hyperplane, the Eigenvector corresponding 
+ * to the least Eigenvalue obtained through the SVD should be a unit vector normal to that
+ * hyperplane. **/
+template<class TMatrix, typename TVar>
+void TestSVD_Projection(int nrows, int ncols);
+
+/** @brief Checks if implementation is setting the sizes consistently for the user.
+ * it's not mandatory, but it's convenient that the function figures out the
+ * matrices dimensions so the user doesn't have to. **/
+template<class TMatrix, typename TVar>
+void TestSVD_Resizing(int nrows, int ncols);
+
+/** @brief Runs all SVD tests**/
+template<class TMatrix, typename TVar>
+void TestSVD(int nrows, int ncols);
+
 #endif
     
     template<typename TVar>
@@ -395,6 +423,18 @@ void TestingEigenDecompositionAutoFill(int dim, int symmetric);
             }
         }
     }
+    
+    template<class TVar>
+    void SingularValueDecomposition_Real(){
+        SECTION("Square Dense Matrix"){
+            TestSVD<TPZFMatrix<TVar>, TVar>(1,1);
+            TestSVD<TPZFMatrix<TVar>, TVar>(5,5);
+        }
+        SECTION("Non-Square Dense Matrix"){
+            TestSVD<TPZFMatrix<TVar>, TVar>(6,4);
+            TestSVD<TPZFMatrix<TVar>, TVar>(3,7);
+        }
+    }
 #endif
 };
 
@@ -561,6 +601,13 @@ TEMPLATE_TEST_CASE("Generalised Eigenvalues (CPLX)","[matrix_tests]",
                    std::complex<double>
                    ) {
     testmatrix::GeneralisedEigenvaluesAutoFill<TestType>();
+}
+
+TEMPLATE_TEST_CASE("Singular Value Decomposition (REAL)","[matrix_tests]",
+                //    float,
+                   double
+                   ) {
+    testmatrix::SingularValueDecomposition_Real<TestType>();
 }
 #endif
 
@@ -937,6 +984,394 @@ matx ma;
     }
     REQUIRE(check);
 }
-#endif
+
+
+template<class TMatrix, typename TVar>
+void TestSVD_Simple(int nrows, int ncols) {
+	// ===============
+	// Simple test
+	// ===============
+
+	/* Check if, for an auto generated matrix A, 
+	* U and VT are orthogonal;
+	* A == U*Sigma*VT
+	*/
+	using namespace std;
+	bool check = true;
+
+
+	TMatrix mA(nrows,ncols);
+	TMatrix mA_copy(nrows,ncols);
+	int min = std::min(nrows,ncols);
+	int max = std::max(nrows,ncols);
+	TMatrix U; 
+	TMatrix S; 
+	TMatrix VT; 
+
+	TMatrix Sigma(nrows,ncols); 
+	TMatrix aux(nrows,ncols);
+
+	
+	mA.Resize(nrows,ncols);
+	mA.AutoFill(nrows,ncols,false);
+	mA_copy = mA;
+	mA.SingularValueDecomposition(U,S,VT,'A','A');
+	// S only gets the diagonal of Sigma
+	Sigma.Resize(nrows,ncols);
+	for(int i=0; i<nrows; i++){
+		for(int j=0; j<ncols; j++){
+			Sigma(i,j) = (i==j ? S(i,0) : 0.);
+		}
+	}
+	aux.Resize(nrows,ncols);
+	U.Multiply(Sigma,aux);
+	aux.Multiply(VT,mA);
+	aux = mA - mA_copy;
+	for(int i=0; i<nrows; i++){
+		for(int j=0; j<ncols; j++){
+			if(!IsZero(aux(i,j))) check = false;
+		}
+	}
+
+	// Test if U is orthogonal
+	TMatrix inverse(nrows,nrows);
+	TVar detU = 0.;
+	U.DeterminantInverse(detU,inverse);
+	if(!IsZero(std::abs(detU) - 1.)) 
+		{check = false;}
+	// Test if VT is orthogonal
+	inverse.Resize(nrows,nrows);
+	TVar detVT = 0.;
+	VT.DeterminantInverse(detVT,inverse);
+	if(!IsZero(std::abs(detVT) - 1.)) 
+		{check = false;}
+	
+	if (!check) {
+		PZError <<__PRETTY_FUNCTION__
+			   	<<" has failed the "
+			   	<<" SIMPLE_TEST_SVD\n";
+		mA_copy.Print("Matrix = ", std::cout, EMathematicaInput);
+		// mA.Print("Matrix = ", std::cout, EFixedColumn);
+		U.Print("U",std::cout, EFixedColumn);
+		S.Print("SIGMA",std::cout, EFixedColumn);
+		VT.Print("VT",std::cout, EFixedColumn);
+	}
+	REQUIRE(check);
+}
+
+
+
+
+
+
+
+
+
+
+template<class TMatrix, typename TVar>
+void TestSVD_Identity(int nrows, int ncols){
+	// ===================================================================================
+	// Check SVD of Identity Matrix and Non-square matrices that match the Kronecker delta
+	// ===================================================================================
+	/* let w > 0, conventionally
+	        w*A    = w*U*Sigma*VT
+	   | 1 0 0 0 |   | 1 0 0 | | w 0 0 0 | |-1 0 0 0 |
+	-w*| 0 1 0 0 | = | 0 1 0 | | 0 w 0 0 | | 0-1 0 0 |
+	   | 0 0 1 0 |   | 0 0 1 | | 0 0 w 0 | | 0 0-1 0 |
+	                                       | 0 0 0 1 |
+	*/
+	using namespace std;
+	bool check = true;
+
+
+	TMatrix mA(nrows,ncols);
+	TMatrix mA_copy(nrows,ncols);
+	int min = std::min(nrows,ncols);
+	int max = std::max(nrows,ncols);
+	TMatrix U; 
+	TMatrix S; 
+	TMatrix VT; 
+
+	TMatrix Sigma(nrows,ncols); 
+	TMatrix aux(nrows,ncols);
+
+	for(int i=0; i<nrows; i++){
+		for(int j=0; j<ncols; j++){
+			mA(i,j) = (TVar) i==j;
+			// mA_copy(i,j) = mA(i,j);
+		}
+	}
+
+	TVar SomeNumber = -__FLT_MAX__;
+	mA *= SomeNumber;
+	mA_copy = mA;
+	char jobU = 'A'; 
+	char jobVT = 'A';
+	mA.SingularValueDecomposition(U,S,VT,jobU,jobVT);
+
+	// S only gets the diagonal of Sigma
+	for(int i=0; i<nrows; i++){
+		for(int j=0; j<ncols; j++){
+			Sigma(i,j) = (i==j ? S(i,0) : 0.);
+		}
+	}
+
+	// First, test if mA == U*Sigma*VT
+	U.Multiply(Sigma,aux);
+	aux.Multiply(VT,mA);
+	aux = mA - mA_copy;
+	for(int i=0; i<nrows; i++){
+		for(int j=0; j<ncols; j++){
+			if(!IsZero(aux(i,j))) check = false;
+		}
+	}
+
+
+	// Check if absolute values of U and VT match Identity Matrix
+	for(int i=0; i<U.Rows(); i++){
+		for(int j=0; j<U.Cols(); j++){
+			if(!IsZero(std::abs(U(i,j)) - TVar(i==j))) check = false;
+		}
+	}
+	for(int i=0; i<VT.Rows(); i++){
+		for(int j=0; j<VT.Cols(); j++){
+			if(!IsZero(std::abs(VT(i,j)) - TVar(i==j))) check = false;
+		}
+	}
+	// All singular values should match absolute value of TVar SomeNumber
+	for(int j=0; j<S.Rows(); j++){
+		if(!IsZero(S(j,0) - std::abs(SomeNumber))) check = false;
+	}
+	if (!check) {
+		PZError <<__PRETTY_FUNCTION__
+			   	<<" has failed the "
+			   	<<" IDENTITY_TEST_SVD\n";
+		mA_copy.Print("Matrix = ", std::cout, EMathematicaInput);
+		// mA.Print("Matrix = ", std::cout, EFixedColumn);
+		U.Print("U",std::cout, EFixedColumn);
+		S.Print("SIGMA",std::cout, EFixedColumn);
+		VT.Print("VT",std::cout, EFixedColumn);
+	}
+	REQUIRE(check);
+}
+	
+
+
+
+
+
+
+
+
+
+
+
+
+template<class TMatrix, typename TVar>
+void TestSVD_Projection(int nrows, int ncols){
+	// ==================================================
+	// Checking Normal Vector of SVD of co-planar vectors
+	// ==================================================
+	/* If the column/row space of a matrix is a hyperplane, the Eigenvector corresponding to
+	the least Eigenvalue obtained through the SVD is going to be a unit vector normal to that
+	hyperplane.
+	* The decision if we should check for either the column or the row space is dependent on the
+	dimensions of the matrix:
+	nRows < nCols ==> Check the column space;
+	nRows > nCols ==> Check the  row  space;
+	* Since the matrix is generated randomly, I'm not completely sure this test is deterministic
+	so I gave it a second attempt in case it fails initially. (I think it's unnecessary though,
+	I just couldn't prove it, and this commit was already taking too long)
+	*/
+	using namespace std;
+	bool check = true;
+
+
+	TMatrix mA(nrows,ncols);
+	TMatrix mA_copy(nrows,ncols);
+	int min = std::min(nrows,ncols);
+	int max = std::max(nrows,ncols);
+	TMatrix U; 
+	TMatrix S; 
+	TMatrix VT; 
+
+	TMatrix Sigma(nrows,ncols); 
+	// TMatrix aux(nrows,ncols);
+
+
+	int attempts = 0;
+	while(attempts < 2){
+		attempts++;
+
+		// Auto generate a random matrix
+		mA.AutoFill(nrows,ncols,false);
+			min = std::min(nrows,ncols);
+		    max = std::max(nrows,ncols);
+		for(int i=0; i<max; i++){
+			// Project vectors onto the same hyperplane
+			if(ncols < nrows)
+				mA(i,ncols-1) = 0.;
+			else // (ncols > nrows)
+				mA(nrows-1,i) = 0.;
+		}
+		mA_copy = mA;
+		mA.SingularValueDecomposition(U,S,VT,'A','A');
+
+
+		// Eigenvectors will go on U or VT depending on the dimensions of mA
+		const TMatrix& eigenvectors = (mA.Cols() >= mA.Rows() ? U : VT);
+		// const TMatrix& eigenvectors = VT;
+
+		int dim = eigenvectors.Rows();
+		TMatrix normal(dim,1);
+		for(int i = 0; i<dim; i++){
+			normal(i,0) = eigenvectors.g(i,dim-1);
+		}
+		/* Normal vector should be a unit vector in the direction of the column/row that 
+		was set to zero (as in a projection to a hyperplane whose normal is that column/row)*/
+		check = IsZero(1. - std::abs(normal(dim-1,0))) && IsZero(std::abs(1. - Norm(normal)));
+
+        if(!check && attempts < 2) continue;
+		if (!check) {
+			PZError <<__PRETTY_FUNCTION__
+					<<" has failed the "
+					<<" PROJECTION_TEST_SVD\n";
+			mA_copy.Print("Matrix = ", std::cout, EMathematicaInput);
+			U.Print("U",std::cout, EFixedColumn);
+			S.Print("SIGMA",std::cout, EFixedColumn);
+			VT.Print("VT",std::cout, EFixedColumn);
+			eigenvectors.Print("eigen",std::cout, EFixedColumn);
+		}
+		REQUIRE(check);
+	}
+}
+
+
+
+
+
+
+
+
+template<class TMatrix, typename TVar>
+void TestSVD_Resizing(int nrows, int ncols){
+	// =======================
+	// Resizing test
+	// =======================
+	/* Checks if code is setting the sizes consistently for the user.
+	it's not mandatory, but it's convenient that the function figures out the
+	matrices dimensions so the user doesn't have to.
+	*/
+	// nrows += 1;
+	// ncols += 1;
+	using namespace std;
+	bool check = true;
+
+
+	TMatrix mA(nrows,ncols);
+	TMatrix mA_copy(nrows,ncols);
+	int min = std::min(nrows,ncols);
+	int max = std::max(nrows,ncols);
+	TMatrix U; 
+	TMatrix S; 
+	TMatrix VT; 
+	char jobU; 
+	char jobVT;
+
+	TMatrix Sigma(nrows,ncols); 
+
+	mA.AutoFill(nrows,ncols,false);
+	mA_copy = mA;
+	int m = mA.Rows();
+	int n = mA.Cols();
+	min = std::min(m,n);
+	if(check){
+		jobU = 'A'; 
+		jobVT = 'A';
+		mA.SingularValueDecomposition(U,S,VT,jobU,jobVT);
+		if(U.Rows() != m) 
+							{check = false;}
+		if(U.Rows() != U.Cols()) 
+							{check = false;}
+		if(VT.Rows() != VT.Cols()) 
+							{check = false;}
+		if(VT.Rows() != n) 
+							{check = false;}
+		if(S.Rows() != min) 
+							{check = false;}
+		if(S.Cols() != 1) 
+							{check = false;}
+	}
+	if(check){
+		jobU = 'S'; 
+		jobVT = 'S';
+		mA.SingularValueDecomposition(U,S,VT,jobU,jobVT);
+		if(U.Rows() != m) 
+							{check = false;}
+		if(U.Cols() != min) 
+							{check = false;}
+		if(VT.Cols() != n) 
+							{check = false;}
+		if(VT.Rows() != min) 
+							{check = false;}
+		if(S.Rows() != min) 
+							{check = false;}
+		if(S.Cols() != 1) 
+							{check = false;}
+	}
+	if(check){
+		jobU = 'N'; 
+		jobVT = 'N';
+		mA.SingularValueDecomposition(U,S,VT,jobU,jobVT);
+		if(U.Rows() != 1) 
+							{check = false;}
+		if(U.Cols() != 1) 
+							{check = false;}
+		if(VT.Cols() != 1) 
+							{check = false;}
+		if(VT.Rows() != 1) 
+							{check = false;}
+		if(S.Rows() != min) 
+							{check = false;}
+		if(S.Cols() != 1) 
+							{check = false;}
+	}
+	if (!check) {
+		PZError <<__PRETTY_FUNCTION__
+			   	<<" has failed the "
+			   	<<" RESIZING_TEST_SVD \n with jobU = " << jobU << " and jobVT = " << jobVT << "\n";
+		PZError << "\nYou can fix your implementation with the following snippet:\n\n\n"
+				<< "// Setup matrix sizes. This section is not mandatory, but it's good to do the work for the user\n"
+				<< "int m = this->Rows();\n"
+				<< "int n = this->Cols();\n"
+				<< "int min = std::min(m,n);\n"
+				<< "switch(jobU){\n"
+				<< "    case 'A': U.Resize(m,m);    break;\n"
+				<< "    case 'S': U.Resize(m,min);  break;\n"
+				<< "    case 'N': U.Resize(1,1);    break;\n"
+				<< "    default: PZError << \"\nInvalid input jobU = \'\" << jobU << \"\' unrecognized;\n\"; DebugStop();\n"
+				<< "}\n"
+				<< "switch(jobVT){\n"
+				<< "    case 'A': VT.Resize(n,n);   break;\n"
+				<< "    case 'S': VT.Resize(min,n); break;\n"
+				<< "    case 'N': VT.Resize(1,1);   break;\n"
+				<< "    default: PZError << \"\nInvalid input jobVT = \'\" << jobVT << \"\' unrecognized;\n\"; DebugStop();\n"
+				<< "}\n"
+				<< "S.Resize(min,1);\n\n\n";
+		mA_copy.Print("Matrix = ", std::cout, EMathematicaInput);
+	}
+	REQUIRE(check);
+
+}
+
+template<class TMatrix, typename TVar>
+void TestSVD(int nrows, int ncols){
+	TestSVD_Simple<TMatrix, TVar >(nrows,ncols);
+	TestSVD_Identity<TMatrix, TVar >(nrows,ncols);
+	TestSVD_Projection<TMatrix, TVar >(nrows,ncols);
+	TestSVD_Resizing<TMatrix, TVar >(nrows,ncols);
+}
+
+#endif // PZ_USING_LAPACK
 
 };
