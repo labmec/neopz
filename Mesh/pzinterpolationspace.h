@@ -7,7 +7,9 @@
 #define PZINTERPOLATIONSPACE_H
 
 #include "pzcompel.h"
-#include "pzmaterialdata.h"
+class TPZMaterialData;
+template<class TVar>
+class TPZMaterialDataT;
 /**
  * @brief Implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement. \ref CompElement "Computational element"
  * @since April 11, 2007
@@ -156,7 +158,8 @@ virtual int ClassId() const override;
 	 * @param[in/out] data stores all input data
      * @param[in] hasPhi whether the shape functions have been calculated.
 	 */
-    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data, bool hasPhi);
+    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialDataT<CSTATE> &data, bool hasPhi);
+    void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialDataT<STATE> &data, bool hasPhi);
     //@}
     
     /** 
@@ -165,12 +168,12 @@ virtual int ClassId() const override;
 	 * @param[in] data stores all input data
 	 */
     virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data);
-	
+
 	/** 
 	 * @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	virtual void InitMaterialData(TPZMaterialData &data);
+    virtual void InitMaterialData(TPZMaterialData &data);
 	
     /**
      * @brief Destroy internally allocated data structures
@@ -179,10 +182,17 @@ virtual int ClassId() const override;
     {
         
     }
-    
+    //@{
 	/** @brief Compute and fill data with requested attributes */
-	virtual void ComputeRequiredData(TPZMaterialData &data,
-									 TPZVec<REAL> &qsi);
+	virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+									 TPZVec<REAL> &qsi){
+        ComputeRequiredDataT(data,qsi);
+    }
+    virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+									 TPZVec<REAL> &qsi){
+        ComputeRequiredDataT(data,qsi);
+    }
+    //@}
 	
 	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
 	virtual void ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<REAL> > &trvec, TPZVec<TPZMaterialData> &datavec)
@@ -301,12 +311,6 @@ virtual int ClassId() const override;
 	/** @brief Integrate the solution over the element */
 //	virtual void IntegrateSolution(TPZVec<STATE> & value);
 	
-protected:
-	
-    /// Preferred polynomial order
-	int fPreferredOrder;
-    // internal method for actually computing the solution
-    virtual void ReallyComputeSolution(TPZMaterialData &data);
 public:
 	
 	/**  @brief Defines the desired order for entire element. */
@@ -361,7 +365,18 @@ protected:
     void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
     template<class TVar>
     void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
-	
+    template<class TVar>
+    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
+									 TPZVec<REAL> &qsi);
+    /// Preferred polynomial order
+	int fPreferredOrder;
+    //@{
+    //! Internal method for actually computing the solution
+    virtual void ReallyComputeSolution(TPZMaterialDataT<STATE> &data);
+    virtual void ReallyComputeSolution(TPZMaterialDataT<CSTATE> &data);
+    //@}
+    template<class TVar>
+    void ReallyComputeSolutionT(TPZMaterialDataT<TVar> &data);
 	/**
 	 * @brief Auxiliary method to expand a vector of shapefunctions and their derivatives to acount for constraints
 	 * @param connectlist (input) vector of all connects to which the element will contribute

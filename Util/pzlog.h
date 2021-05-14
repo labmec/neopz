@@ -22,14 +22,16 @@
  */
 
 
-/**
- * \addtogroup util
- * \{ */
+
 
 #ifndef PZLOGH
 #define PZLOGH
 
 #include <pz_config.h>
+
+/**
+ * \addtogroup util
+ * \{ */
 
 #ifdef PZ_LOG
 #include <string>
@@ -165,5 +167,6 @@ public:
 }
 
 #endif
-
+/**
+ * \} */
 #endif

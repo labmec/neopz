@@ -18,7 +18,7 @@
 #include "TPZInterfaceEl.h"                // for TPZInterfaceElement
 #include "pzadmchunk.h"                    // for TPZAdmChunkVector
 #include "pzblock.h"                       // for TPZBlock
-#include "pzbndcond.h"                     // for TPZBndCond
+#include "TPZBndCond.h"                     // for TPZBndCond
 #include "pzcompel.h"                      // for TPZCompEl, TPZCompElSide
 #include "pzcondensedcompel.h"             // for TPZCondensedCompEl
 #include "pzconnect.h"                     // for TPZConnect
@@ -35,7 +35,7 @@
 #include "pzlog.h"                         // for glogmutex, LOGPZ_DEBUG
 #include "pzmanvector.h"                   // for TPZManVector
 #include "TPZMaterial.h"                    // for TPZMaterial
-#include "pzmaterialdata.h"                // for TPZSolVec
+#include "TPZMaterialDataT.h"                // for TPZSolVec
 #include "pzmatrix.h"                      // for TPZFMatrix, TPZMatrix
 #include "pzmultiphysicselement.h"         // for TPZMultiphysicsElement
 #include "pzsubcmesh.h"                    // for TPZSubCompMesh
@@ -374,6 +374,14 @@ int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
     }
 	fMaterialVec[matid] = mat;
 	return fMaterialVec.size();
+}
+/*Due to the TPZMaterialRefactor, the type TPZBndCond
+  no longer inherits from TPZMaterial. But every possible instance
+  will be a TPZMaterial, so this dynamic_cast is not expected
+  to fail
+*/
+int TPZCompMesh::InsertMaterialObject(TPZBndCond * mat) {
+    return InsertMaterialObject(dynamic_cast<TPZMaterial*>(mat));
 }
 
 TPZMaterial * TPZCompMesh::FindMaterial(int matid){	// find the material object with id matid

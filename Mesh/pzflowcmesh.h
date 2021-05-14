@@ -3,18 +3,13 @@
  * @brief Contains declaration of TPZFlowCompMesh class which is a computational mesh with additional data for CFD problems.
  */
 
-#include "pzcompel.h"
-#include "pzgeoel.h"
-#include "pzconslaw.h"
-#include "pzerror.h"
-
 #ifndef TPZFLOWCOMPMESH_H
 #define TPZFLOWCOMPMESH_H
 
-class TPZMaterial;
-class TPZGeoMesh;
-#include <iostream>
 #include "pzcmesh.h"
+#include "TPZConsLawTypes.h"
+#include "TPZMaterial.h"
+class TPZGeoMesh;
 
 /**
  * @brief Computational mesh with additional data for CFD problems. \ref CompMesh "Computational Mesh"
@@ -62,7 +57,7 @@ public:
 	void SetResidualType(TPZResidualType type);
 	
 	/** @brief Sets the forcing funtion for all fluid materials in the mesh. */
-	void SetFlowforcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp);
+	void SetFlowForcingFunction(ForcingFunctionType<STATE> fp, const int pOrder);
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes. */
 	/** In this reimplementation, also calls CollectFluidMaterials; */
@@ -96,5 +91,4 @@ protected:
 	template<class TVar>
 	void ExpandSolution2Internal(TPZFMatrix<TVar> &sol);
 };
-
 #endif

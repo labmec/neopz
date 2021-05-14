@@ -19,6 +19,7 @@ jobs:
       run: brew install doxygen
         && brew install sphinx-doc
         && pip3 install sphinx-rtd-theme
+        && pip3 install sphinxcontrib-bibtex
         && pip3 install breathe
         && pip3 install sphinx-sitemap
     - name: Checkout repo

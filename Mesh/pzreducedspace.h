@@ -116,7 +116,7 @@ public:
 	virtual void ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &axes);
     
     //by Agnaldo
-    virtual void ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data);
+    virtual void ShapeX(TPZVec<REAL> &qsi,TPZMaterialDataT<STATE> &data);
     
     virtual void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data) override;
 
@@ -127,8 +127,14 @@ public:
 	virtual void InitMaterialData(TPZMaterialData &data) override;
 	
 	/** @brief Compute and fill data with requested attributes */
-	virtual void ComputeRequiredData(TPZMaterialData &data,
+	virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
 									 TPZVec<REAL> &qsi) override;
+    virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+									 TPZVec<REAL> &qsi) override{
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" not available for complex types yet.\n";
+        DebugStop();
+    }
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef) override;
@@ -193,7 +199,7 @@ public:
 int ClassId() const override;
 
 protected:
-    void ReallyComputeSolution(TPZMaterialData& data) override;
+    void ReallyComputeSolution(TPZMaterialDataT<STATE>& data) override;
 private:
     TPZInterpolationSpace *ReferredIntel() const;
 };

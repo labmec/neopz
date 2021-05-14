@@ -25,7 +25,11 @@ class TPZCompElHDivCollapsed : public TPZCompElHDiv<TSHAPE> {
 protected:
     /** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
-
+    template<class TVar>
+    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data,
+                              TPZVec<REAL> &qsi);
+    template<class TVar>
+    void InitMaterialDataT(TPZMaterialDataT<TVar> &data);
 public:
 	    
 	TPZCompElHDivCollapsed(TPZCompMesh &mesh, TPZGeoEl *gel, int64_t &index);
@@ -112,10 +116,18 @@ public:
      * @brief Destroy internally allocated data structures
      */
     virtual void CleanupMaterialData(TPZMaterialData &data) override;
-    
+
+    //@{
 	/** @brief Compute and fill data with requested attributes */
-	virtual void ComputeRequiredData(TPZMaterialData &data,
-									 TPZVec<REAL> &qsi) override;
+	void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+                             TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
+    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+                             TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
+    //@}
 
 	
 	/** @brief Computes the values of the shape function of the side without considering the side orientation*/

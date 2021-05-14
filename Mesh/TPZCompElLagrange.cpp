@@ -8,6 +8,7 @@
 
 #include "TPZCompElLagrange.h"
 #include "TPZMaterial.h"
+#include "TPZMatLoadCases.h"
 #include "TPZElementMatrixT.h"
 
 TPZCompElLagrange::~TPZCompElLagrange()
@@ -94,13 +95,15 @@ void TPZCompElLagrange::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,TPZElement
 //}
 
 void TPZCompElLagrange::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
-    int numloadcases = 1;
 	int numdof = 1;
     TPZMaterial *mat = this->Material();
-    if (mat)
-    {
-        numloadcases = mat->NumLoadCases();
-    }
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	const int ncon = this->NConnects();
     
     ek.fMesh = Mesh();

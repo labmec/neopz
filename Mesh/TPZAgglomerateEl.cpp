@@ -5,7 +5,8 @@
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
-
+#include "TPZMatSingleSpace.h"
+#include "TPZMatLoadCases.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
@@ -41,7 +42,7 @@ TPZRegisterClassId(&TPZAgglomerateElement::ClassId),TPZCompElDisc(aggcmesh,index
 	fMotherMesh = finemesh;
 	
 	//<!> Initialized as bignumber because I expect the radius will be lesser than that.
-	fInnerRadius = TPZMaterial::gBigNumber;
+	fInnerRadius = std::numeric_limits<REAL>::max() * 1e-2;
 	
 	//<!>It is set up as zero. It must be initialized after.
 	fNFaces = 0;
@@ -176,7 +177,7 @@ void TPZAgglomerateElement::CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el
 }
 
 template<class TVar>
-void TPZAgglomerateElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){	
+void TPZAgglomerateElement::CalcStiffT(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef){	
 	if(Reference()) return TPZCompElDisc::CalcStiff(ek,ef);
 	
 	if(!Material()){
@@ -194,7 +195,13 @@ void TPZAgglomerateElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
 	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int64_t numbersol = MeshSol.Cols();
 	int numeq = nshape * nstate;
-    int numloadcases = mat->NumLoadCases();
+	const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	
 	
 	ek.fMat.Redim(numeq,numeq);
@@ -219,7 +226,7 @@ void TPZAgglomerateElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
 	AccumulateIntegrationRule(integ,points,weights);//integra fi*fj
 	int ip,npoints = weights.NElements();
 	
-	TPZMaterialData data;
+	TPZMaterialDataT<TVar> data;
 	this->InitMaterialData(data);
 	for(ip=0;ip<npoints;ip++){
 		data.x[0] = points[3*ip];
@@ -246,7 +253,14 @@ void TPZAgglomerateElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZEl
 				iv++;
 			}
 		}
-		Material()->Contribute(data,weight,ek.fMat,ef.fMat);
+		auto *mat =
+			dynamic_cast<TPZMatSingleSpaceT<TVar>*>(Material());
+		if(!mat){
+			PZError<<__PRETTY_FUNCTION__;
+			PZError<<" could not access material. Aborting...\n";
+			DebugStop();
+		}
+		mat->Contribute(data,weight,ek.fMat,ef.fMat);
 	}
 }
 

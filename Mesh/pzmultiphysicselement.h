@@ -11,8 +11,8 @@
 #include "pzcompel.h"
 #include "pzgeoelbc.h"
 #include "pzfunction.h"
+#include "TPZMaterialDataT.h"
 
-class TPZMaterialData;
 #include <map>
 
 class TPZMultiphysicsInterfaceElement;
@@ -28,7 +28,11 @@ protected:
     TPZManVector<int,5> fActiveApproxSpace;
 
     template<class TVar>
-    void TransferMultiphysicsElementSolutionInternal();
+    void TransferMultiphysicsElementSolutionT();
+    template<class TVar>
+    void ComputeRequiredDataT(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<TVar>> &datavec);
+    template<class TVar>
+    void ComputeRequiredDataT(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialDataT<TVar>> &datavec);
 public:
 	/** @brief Default constructor */
 	TPZMultiphysicsElement() : TPZCompEl()
@@ -76,23 +80,41 @@ public:
 	
 	virtual void AffineTransform(TPZVec<TPZTransform<> > &trVec) const = 0;
 	
-	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) = 0;
+	virtual void InitMaterialData(TPZVec<TPZMaterialDataT<STATE>> &dataVec, TPZVec<int64_t> *indices = 0) = 0;
+    virtual void InitMaterialData(TPZVec<TPZMaterialDataT<CSTATE>> &dataVec, TPZVec<int64_t> *indices = 0) = 0;
     
-    virtual void InitMaterialData(std::map<int,TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) = 0;
+    virtual void InitMaterialData(std::map<int,TPZMaterialDataT<STATE>> &dataVec, TPZVec<int64_t> *indices = 0) = 0;
+    virtual void InitMaterialData(std::map<int,TPZMaterialDataT<CSTATE>> &dataVec, TPZVec<int64_t> *indices = 0) = 0;
     
 //    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec, TPZVec<int64_t> &indices);
     
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec);
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<STATE>> &datavec){
+        ComputeRequiredDataT(point,trvec,datavec);
+    }
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialDataT<CSTATE>> &datavec){
+        ComputeRequiredDataT(point,trvec,datavec);
+    }
     
     /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialData> &datavec);
-
-    /** @brief Compute and fill data with requested attributes */
-    virtual void ComputeRequiredData(TPZMaterialData &data,
-                                     TPZVec<REAL> &qsi)
-    {
-        
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialDataT<STATE>> &datavec){
+        ComputeRequiredDataT(point,trvec,datavec);
     }
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialDataT<CSTATE>> &datavec){
+        ComputeRequiredDataT(point,trvec,datavec);
+    }
+    //@{
+    
+    /** @brief TPZCompElWithMem can override this method. */
+    virtual void ComputeRequiredData(TPZMaterialDataT<STATE> &data,
+									 TPZVec<REAL> &qsi){
+
+	}
+
+	virtual void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data,
+									 TPZVec<REAL> &qsi){
+
+	}
+    //@}
 	/**
 	 * @brief Performs an error estimate on the elemen
 	 * @param fp function pointer which computes the exact solution
@@ -170,6 +192,7 @@ public:
     }
     
     virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override  = 0 ;
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override  = 0 ;
     
     /// Add a shape restraint (meant to fit the pyramid to restraint
     virtual void AddShapeRestraint(TPZOneShapeRestraint restraint) override

@@ -6,7 +6,7 @@
 #include "pzcmesh.h"
 #include "pzintel.h"
 #include "TPZNullMaterial.h"
-
+#include "TPZMaterialDataT.h"
 #include "pzgeotriangle.h"
 #include "pzgeoquad.h"
 #include "pzgeotetrahedra.h"
@@ -59,7 +59,7 @@ void CheckDivergenceOnInternalConnect() {
     cmesh->SetDefaultOrder(2);
     cmesh->SetDimModel(dim);
 
-    TPZNullMaterial* mat = new TPZNullMaterial(1);
+    auto* mat = new TPZNullMaterial<STATE>(1);
     mat->SetDimension(dim);
     cmesh->InsertMaterialObject(mat);
     cmesh->ApproxSpace().SetAllCreateFunctionsHDiv(dim);
@@ -75,7 +75,7 @@ void CheckDivergenceOnInternalConnect() {
     if (!gel) DebugStop();
 
     // Initialize material requirements
-    TPZMaterialData elData;
+    TPZMaterialDataT<STATE> elData;
     fluxEl->InitMaterialData(elData);
 
     // Get last connect, which is the one that contains internal shape functions

@@ -15,7 +15,7 @@
 #include "TPZChunkVector.h"             // for TPZChunkVector
 #include "pzcmesh.h"             // for TPZCompMesh
 #include "pzcompel.h"            // for TPZCompEl
-#include "pzconslaw.h"           // for TPZConservationLaw
+#include "ConsLaw/TPZConsLaw.h"           // for TPZConservationLaw
 #include "pzdxmesh.h"            // for TPZDXGraphMesh
 #include "pzvtkmesh.h"            // for TPZDXGraphMesh
 #include "pzeltype.h"            // for MElementType::EDiscontinuous, MEleme...
@@ -287,8 +287,9 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *
 	law->SetTimeStep(maxveloc,deltax,degree);   //JorgeC
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs){
-	
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * matbase,TPZAnalysis &an,TPZFMatrix<STATE> &rhs){
+	auto *mat =
+		dynamic_cast<TPZMaterialT<STATE>*>(matbase);
 	//pelo menos duas iteracoes para calcular o residuo
 	if(numiter <= 1) numiter = 2;
 	TPZCompMesh *anmesh = an.Mesh();
@@ -299,7 +300,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 	an.Run();
 	cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter << endl;
 	an.LoadSolution();
-	mat->SetForcingFunction(0);
+	mat->SetForcingFunction(nullptr,-1);
 	REAL normsol = Norm(Solution());
 	TPZFMatrix<STATE> rhsim1 = an.Rhs();
 	
@@ -324,8 +325,10 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 }
 
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * matbase,
 												  TPZAnalysis &an,int marcha,const std::string &dxout) {
+	auto *mat =
+		dynamic_cast<TPZMaterialT<STATE>*>(matbase);
 	if(numiter <= 0){
 		cout << "PZAnalysis::SmoothingSolution NENHUMA RESOLU�O EFETUADA\n";
 		an.Solution().Zero();
@@ -344,7 +347,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 	an.Run();
 	cout << "TPZNonLinMultGridAnalysis::SmoothingSolution iteration = " << ++iter << endl;
 	an.LoadSolution();
-	mat->SetForcingFunction(0);
+	mat->SetForcingFunction(nullptr,-1);
 	REAL normsol = Norm(Solution());
 	
 	while(iter < numiter && normsol < tol) {
@@ -363,9 +366,10 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMateri
 	an.LoadSolution();
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial * mat,
+void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial * matbase,
 												   TPZAnalysis &an,int marcha,const std::string &dxout) {
-	
+	auto *mat =
+		dynamic_cast<TPZMaterialT<STATE>*>(matbase);
 	TPZVec<std::string> scalar(1),vector(0), tensor(0);
 	scalar[0] = "pressure";
 	int dim = mat->Dimension();
@@ -397,7 +401,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMater
 	REAL time = (REAL)iter;
 	graph.DrawSolution(draw++,time);
 	fBegin = clock();
-	mat->SetForcingFunction(0);
+	mat->SetForcingFunction(nullptr,-1);
 	REAL normsol = Norm(Solution());
 	
 	while(iter < numiter && normsol < tol) {

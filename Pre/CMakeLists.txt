@@ -59,14 +59,10 @@ set(sources
     tpzhierarquicalgrid.cpp
     )
 
-if (NOT BUILD_COMPLEX_PROJECTS)
-    list(APPEND headers pzreadmeshhr.h)
-    list(APPEND sources pzreadmeshhr.cpp)
-    if (USING_MKL)
-        list(APPEND headers TPZBuildSBFem.h)
-        list(APPEND sources TPZBuildSBFem.cpp)
-    endif()
-endif ()
+if (USING_MKL)
+    list(APPEND headers TPZBuildSBFem.h)
+    list(APPEND sources TPZBuildSBFem.cpp)
+endif()
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Pre)
 

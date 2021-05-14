@@ -5,8 +5,7 @@
 
 
 #include "TPZMHMixedMeshChannelControl.h"
-#include "TPZVecL2.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 #include "TPZLagrangeMultiplier.h"
 
 

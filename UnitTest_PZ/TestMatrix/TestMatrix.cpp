@@ -17,6 +17,21 @@
 
 #include <catch2/catch.hpp>
 
+template<>
+struct Catch::StringMaker<long double> {
+    static std::string convert(long double ref);
+    static int precision;
+};
+
+int Catch::StringMaker<long double>::precision = 10;
+
+std::string Catch::StringMaker<long double>::convert(long double value) {
+    std::ostringstream out;
+    out.precision(precision);
+    out << std::fixed << value;
+    return out.str();
+}
+
 
 namespace testmatrix{
 /**
@@ -625,6 +640,8 @@ void CheckDiagonalDominantMatrix(matx &matr) {
             if (i != j)
                 sum += fabs(matr.GetVal(i, j));
         }
+        CAPTURE(fabs(matr.GetVal(i,i)));
+        CAPTURE(sum);
         REQUIRE(fabs(matr.GetVal(i, i)) > sum);
         if (!(fabs(matr.GetVal(i, i)) > sum)) {
             std::cout << "line i " << i << " failed\n";
@@ -652,14 +669,15 @@ void TestGeneratingHermitianMatrix() {
     constexpr bool symmetric{true};
     matx mat;
     mat.AutoFill(nrows,ncols,symmetric);
-    
     for (auto i = 0; i < nrows; i++) {
         auto j = i;
         if constexpr (is_complex<TVar>::value){
+            CAPTURE(i,j,mat.GetVal(i,j));
             REQUIRE(mat.GetVal(i,j).imag() == (RTVar)0);
         }
         j++;
         for(; j < ncols; j++){
+            CAPTURE(i,j,mat.GetVal(i,j));
             REQUIRE(mat.GetVal(i,j)-std::conj(mat.GetVal(j,i)) == (TVar)0);
         }
     }
@@ -668,7 +686,7 @@ void TestGeneratingHermitianMatrix() {
 template <class matx, class TVar>
 void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   int i, j;
-
+  auto oldPrecision = Catch::StringMaker<RTVar>::precision;
   matx ma;
   ma.AutoFill(dim, dim, symmetric);  
   // Making ma copy because ma is modified by Inverse method (it's decomposed)
@@ -683,31 +701,21 @@ void TestingInverseWithAutoFill(int dim, int symmetric, DecomposeType dec) {
   bool check = true;
   /// Checking whether the res matrix is identical to m1 matrix
   for (i = 0; i < dim; i++) {
-    for (j = 0; j < dim; j++) {
-        RTVar diff =
-            fabs(cpma.GetVal(i, j) - res.GetVal(i, j));
-        bool loccheck = IsZero(diff / (RTVar) 10.);
-      // if (loccheck == false) {
-      //     std::cout << "diff " << diff << std::endl;
-      // }
-      check &= loccheck;
-    }
-    }
-    if (!check) {
-        std::cout << __PRETTY_FUNCTION__;
-        std::cout << "failed with dec type: ";
-        switch (dec) {
-        case ELU: std::cout << "LU\n"; break;
-        case ELDLt: std::cout << "LDLt\n"; break;
-        case ECholesky: std::cout << "Cholesky\n"; break;
-        case ELUPivot: std::cout << "LU Pivot\n"; break;
-        case ENoDecompose: DebugStop();
-        }
-        std::cout << std::flush;
-        // cpma.Print("Matrix = ", std::cout, EMathematicaInput);
-        // invkeep.Print("Inv = ", std::cout, EMathematicaInput);
-    }
-    REQUIRE(check);
+      for (j = 0; j < dim; j++) {
+          RTVar diff =
+              fabs(cpma.GetVal(i, j) - res.GetVal(i, j));
+        
+          bool loccheck = IsZero(diff / (RTVar) 10.);
+          if (loccheck == false) {
+              CAPTURE(i, j, diff);
+              std::cout << "diff " << diff << std::endl;
+          }
+          check &= loccheck;
+      }
+  }
+    
+  REQUIRE(check);
+  Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
 template <class matx, class TVar>
@@ -721,17 +729,20 @@ void TestingMultiplyOperatorWithAutoFill(int dim, int symmetric) {
 
     square2 = duplicate*duplicate;
     square = ma*duplicate;
+    auto oldPrecision = Catch::StringMaker<RTVar>::precision;
     // Checking whether both matrices are equal
     bool check = true;
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-            TVar diff = fabs(square.GetVal(i, j) - square2.GetVal(i, j));
+            RTVar diff = fabs(square.GetVal(i, j) - square2.GetVal(i, j));
             if (!IsZero(diff)) {
+                CAPTURE(i,j,diff);
                 check = false;
             }
         }
     }
     REQUIRE(check);
+    Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
 template <class matx, class TVar>
@@ -746,6 +757,7 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     //    duplicate.Print("FullMat");
     ma.Multiply(duplicate, square);
     duplicate.Multiply(duplicate, square2);
+    auto oldPrecision = Catch::StringMaker<RTVar>::precision;
     // Checking whether result matrix is the identity matrix
     bool check = true;
     constexpr RTVar tol = [](){
@@ -755,6 +767,7 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
             if (!IsZero(fabs(square(i, j) - square2(i, j))/tol)) {
+                CAPTURE(i,j,square(i,j));
                 check = false;
             }
         }
@@ -765,7 +778,7 @@ void TestingMultiplyWithAutoFill(int dim, int symmetric) {
     }
 
     REQUIRE(check);
-
+    Catch::StringMaker<RTVar>::precision = oldPrecision;
 }
 
 

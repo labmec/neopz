@@ -9,6 +9,9 @@
 #include "TPZElementMatrixT.h"
 #include "pzinterpolationspace.h"
 #include "TPZMaterial.h"
+#include "TPZMatLoadCases.h"
+#include "TPZMatInterfaceCombinedSpaces.h"
+#include "TPZMatInterfaceSingleSpace.h"
 #include "pzmultiphysicselement.h"
 #include "tpzintpoints.h"
 
@@ -325,12 +328,13 @@ int64_t TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 
 #include "pzmultiphysicscompel.h"
 template<class TVar>
-void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ek,
+void TPZMultiphysicsInterfaceElement::CalcStiffT(TPZElementMatrixT<TVar> &ek,
                                                         TPZElementMatrixT<TVar> &ef)
 {
    TPZMaterial *material = this->Material();
-	
-	if(!material){
+   auto *matInterface =
+       dynamic_cast<TPZMatInterfaceCombinedSpaces<TVar>*>(material);
+	if(!material || !matInterface){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ek.Reset();
 		ef.Reset();
@@ -350,9 +354,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> 
         DebugStop();
     }
 #endif
-    std::map<int,TPZMaterialData> datavecleft;
-    std::map<int,TPZMaterialData> datavecright;
-    TPZMaterialData data;
+    std::map<int,TPZMaterialDataT<TVar>> datavecleft;
+    std::map<int,TPZMaterialDataT<TVar>> datavecright;
+    TPZMaterialDataT<TVar> data;
     InitMaterialData(data, datavecleft, datavecright);
     
     TPZManVector<TPZTransform<REAL>,6> leftcomptr, rightcomptr;
@@ -382,7 +386,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> 
     leftel->PolynomialOrder(intleftorder);
     TPZManVector<int> intrightorder;
     rightel->PolynomialOrder(intrightorder);
-    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
+    int integrationorder = matInterface->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int dimension = gel->Dimension();
     int thisside = gel->NSides()-1;
@@ -417,16 +421,18 @@ void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> 
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         
         data.x = datavecleft.begin()->second.x;
-        material->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
+        matInterface->ContributeInterface(data, datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }	
 	
 }//CalcStiff
 
 template<class TVar>
-void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> &ef)
+void TPZMultiphysicsInterfaceElement::CalcStiffT(TPZElementMatrixT<TVar> &ef)
 {
     TPZMaterial  * material = this->Material();
-    if(!material){
+    auto *matInterface =
+       dynamic_cast<TPZMatInterfaceCombinedSpaces<TVar>*>(material);
+    if(!material || !matInterface){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         ef.Reset();
         return;
@@ -445,8 +451,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> 
     }
 #endif
     
-    std::map<int,TPZMaterialData> datavecleft,datavecright;
-    TPZMaterialData data;
+    std::map<int,TPZMaterialDataT<TVar>> datavecleft,datavecright;
+    TPZMaterialDataT<TVar> data;
     InitMaterialData(data, datavecleft, datavecright);
     
     TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
@@ -466,7 +472,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> 
     leftel->PolynomialOrder(intleftorder);
     TPZManVector<int> intrightorder;
     rightel->PolynomialOrder(intrightorder);
-    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
+    int integrationorder = matInterface->GetIntegrationOrder(intleftorder, intrightorder);
     TPZGeoEl *gel = Reference();
     int dimension = gel->Dimension();
     int thisside = gel->NSides()-1;
@@ -501,7 +507,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiffInternal(TPZElementMatrixT<TVar> 
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         
         data.x = datavecleft[0].x;
-        material->ContributeInterface(data, datavecleft, datavecright, weight, ef.fMat);
+        matInterface->ContributeInterface(data, datavecleft, datavecright, weight, ef.fMat);
     }	
     
 }//CalcStiff
@@ -555,17 +561,23 @@ void TPZMultiphysicsInterfaceElement::CreateIntegrationRule()
     leftel->PolynomialOrder(intleftorder);
     TPZManVector<int> intrightorder;
     rightel->PolynomialOrder(intrightorder);
-    int integrationorder = material->GetIntegrationOrder(intleftorder, intrightorder);
+    const int integrationorder = [material,
+                            &intleftorder = std::as_const(intleftorder),
+                            &intrightorder = std::as_const(intrightorder)](){
+        auto *matreal =
+            dynamic_cast<TPZMatInterfaceCombinedSpaces<STATE>*>(material);
+        if(matreal) return matreal->GetIntegrationOrder(intleftorder, intrightorder);
+        auto *matcplx =
+            dynamic_cast<TPZMatInterfaceCombinedSpaces<CSTATE>*>(material);
+        if(matcplx) return matcplx->GetIntegrationOrder(intleftorder, intrightorder);
+        DebugStop();
+        return -1;
+    }();
     TPZGeoEl *gel = Reference();
     int thisside = gel->NSides()-1;
     
     fIntegrationRule = gel->CreateSideIntegrationRule(thisside, integrationorder);
 }
-
-void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &intpointtemp, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec)
-{
-    DebugStop();
-}//ComputeRequiredData
 
 void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
@@ -588,15 +600,19 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     if (! mfcel_left || !mfcel_right) {
         DebugStop();
     }
-	//nstate=1;
-    int numloadcases = 1;
     TPZMultiphysicsElement *msp  = dynamic_cast <TPZMultiphysicsElement *>(fLeftElSide.Element());
     if (!msp) {
         DebugStop();
     }
     TPZMaterial *mat = msp->Material();
     int nstate = mat->NStateVariables();
-    numloadcases = mat->NumLoadCases();        
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
 	
 	ek.Matrix().Redim(numeq,numeq);
 	ef.Matrix().Redim(numeq,numloadcases);
@@ -645,15 +661,19 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
     if (! mfcel_left || !mfcel_right) {
         DebugStop();
     }
-    //nstate=1;
-    int numloadcases = 1;
     TPZMultiphysicsElement *msp  = dynamic_cast <TPZMultiphysicsElement *>(fLeftElSide.Element());
     if (!msp) {
         DebugStop();
     }
     TPZMaterial *mat = msp->Material();
     int nstate = mat->NStateVariables();
-    numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
     
     ef.Matrix().Redim(numeq,numloadcases);
     ef.Block().SetNBlocks(ncon);
@@ -709,18 +729,6 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 	}
 	
 	out << "\tMaterial id : " << Reference()->MaterialId() << std::endl;
-	
-    TPZMaterial *mat = Material();
-    TPZMaterialData data;
-    mat->FillDataRequirements(data);
-    if (mat && data.fNeedsNormal)
-    {
-        TPZVec<REAL> center_normal;
-        ComputeCenterNormal(center_normal);
-        out << "\tNormal vector (at center point): ";
-        out << "(" << center_normal[0] << "," << center_normal[1] << "," << center_normal[2] << ")\n";
-        
-    }
 }
 
 ///** @brief Initialize the material data for the neighbouring element */
@@ -731,7 +739,12 @@ void TPZMultiphysicsInterfaceElement::Print(std::ostream &out) const {
 //}
 
 /** @brief Initialize the material data structures */
-void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_data, std::map<int,TPZMaterialData> &data_left, std::map<int,TPZMaterialData> &data_right){
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::InitMaterialDataT(
+    TPZMaterialDataT<TVar> &center_data,
+    std::map<int,TPZMaterialDataT<TVar>> &data_left,
+    std::map<int,TPZMaterialDataT<TVar>> &data_right)
+{
 
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
@@ -748,9 +761,10 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &center_d
     
     leftel->InitMaterialData(data_left,leftindices);
     rightel->InitMaterialData(data_right,rightindices);
-    
-    TPZMaterial * mat = this->Material();
-    mat->FillDataRequirementsInterface(center_data, data_left, data_right);
+        
+    auto *matInterface =
+        dynamic_cast<TPZMatInterfaceCombinedSpaces<TVar>*>(this->Material());
+    matInterface->FillDataRequirementsInterface(center_data, data_left, data_right);
     
     
 }
@@ -760,16 +774,12 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
 {
     TPZGeoEl *gel = Reference();
     int dim = gel->Dimension();
-    int nsides = gel->NSides();
-    TPZManVector<REAL> center(dim);
-    gel->CenterPoint(nsides-1 , center);
-    TPZGeoElSide gelside(gel,nsides-1);
-    TPZMaterial *mat = Material();
-    if (mat) {
-        mat->FillDataRequirements(data);
-    }
     if (data.fNeedsNormal)
     {
+        int nsides = gel->NSides();
+        TPZManVector<REAL> center(dim);
+        gel->CenterPoint(nsides-1 , center);
+        TPZGeoElSide gelside(gel,nsides-1);
         gelside.Normal(center, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
     }
     data.axes.Redim(dim,3);
@@ -779,7 +789,8 @@ void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
 }
 
 /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
-void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point)
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &point)
 {
     data.intGlobPtIndex = -1;
     TPZGeoEl *gel = Reference();
@@ -787,10 +798,14 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
     gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
     
     TPZMaterial *mat = Material();
-    if (mat) {
-        mat->FillDataRequirementsInterface(data);
+    auto *matInterface =
+       dynamic_cast<TPZMatInterfaceSingleSpace<TVar>*>(mat);
+    if (!matInterface) {
+        PZError<<__PRETTY_FUNCTION__;
+        PZError<<" requires an interface material.\nAborting...\n";
+        DebugStop();
     }
-
+    matInterface->FillDataRequirementsInterface(data);
     if (data.fNeedsNormal)
     {
         
@@ -878,7 +893,8 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 	
 }
 
-void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol)
+template<class TVar>
+void TPZMultiphysicsInterfaceElement::SolutionT(TPZVec<REAL> &qsi, int var,TPZVec<TVar> &sol)
 {
 	
 	if(var >= 100) {
@@ -887,7 +903,9 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	}
 	
 	TPZMaterial * material = this->Material();
-	if(!material){
+    auto *matInterface =
+       dynamic_cast<TPZMatInterfaceCombinedSpaces<TVar>*>(material);
+	if(!material || !matInterface){
 		sol.Resize(0);
 		return;
 	}
@@ -901,8 +919,8 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (LeftSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(RightSide.Element());
 		
-    std::map<int,TPZMaterialData> datavecleft,datavecright;
-    TPZMaterialData data;
+    std::map<int,TPZMaterialDataT<TVar>> datavecleft,datavecright;
+    TPZMaterialDataT<TVar> data;
     InitMaterialData(data, datavecleft, datavecright);
 	
     TPZManVector<TPZTransform<> > leftcomptr, rightcomptr;
@@ -924,7 +942,7 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft);
 	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright);
 		
-	material->Solution(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
+	matInterface->SolutionInterface(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
 }
 
 void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform<> &transf){

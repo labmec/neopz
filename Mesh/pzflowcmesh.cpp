@@ -4,10 +4,11 @@
  */
 
 #include "pzflowcmesh.h"
+#include "ConsLaw/TPZConsLaw.h"
+#include "TPZMaterialDataT.h"
 #include "TPZCompElDisc.h"
 #include "pzintel.h"
 
-using namespace std;
 
 TPZFlowCompMesh::TPZFlowCompMesh(TPZGeoMesh* gr) : TPZRegisterClassId(&TPZFlowCompMesh::ClassId),
 TPZCompMesh(gr) {
@@ -47,7 +48,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 		dim = mat->Dimension();
 		elDim = pElGeo->Dimension();
 
-		TPZMaterialData elCompData;
+		TPZMaterialDataT<STATE> elCompData;
 		pElComp->InitMaterialData(elCompData);
 		if(elDim == dim /*&& pElDisc*/){ // if the dimension of the material fits the
 			// dimension of the element and if the element is discontinuous.
@@ -67,7 +68,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 			pElComp->Solution(param,6,velocity);
 			constexpr bool hasPhi{false};
 			pElComp->ComputeSolution(param, elCompData, hasPhi);
-			TPZSolVec &sol = elCompData.sol;
+			TPZSolVec<STATE> &sol = elCompData.sol;
 			press = law->Pressure(sol[0]);
 			
 #ifndef STATE_COMPLEX
@@ -169,7 +170,7 @@ void TPZFlowCompMesh::ScaleCFL(REAL scale)
 	{
 		REAL newCFL = FL(matit)->CFL()*scale;
 		if(newCFL > MAXCFL) newCFL = MAXCFL;
-		cout << "CFL = " << newCFL << endl;
+		std::cout << "CFL = " << newCFL << std::endl;
 		FL(matit)->SetCFL(newCFL);
 	}
 }
@@ -184,12 +185,12 @@ void TPZFlowCompMesh::SetContributionTime(TPZContributeTime time)
 	}
 }
 
-void TPZFlowCompMesh::SetFlowforcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+void TPZFlowCompMesh::SetFlowForcingFunction(ForcingFunctionType<STATE> fp, const int pOrder)
 {
 	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)
 	{
-		FL(matit)->SetForcingFunction(fp);
+		FL(matit)->SetForcingFunction(fp,pOrder);
 	}
 }
 

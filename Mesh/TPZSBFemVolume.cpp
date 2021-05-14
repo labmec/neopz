@@ -10,12 +10,14 @@
 #include "TPZSBFemVolume.h"
 #include "TPZSBFemElementGroup.h"
 #include "pzintel.h"
-#include "TPZMaterial.h"
+#include "TPZMaterialT.h"
+#include "TPZMatSingleSpace.h"
+#include "TPZMatErrorSingleSpace.h"
 #include "pzelmat.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
 #include "tpzgraphelprismmapped.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 #include "pzvec_extras.h"
 #include "pzcmesh.h"
 #include "pzlog.h"
@@ -69,10 +71,11 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
 
     TPZGeoElSide thisside(Ref2D, faceside);
 
+    auto *mat2d = cmesh->FindMaterial(matid);
+    auto *mat2dSingle =
+        dynamic_cast<TPZMatSingleSpaceT<STATE>*>(mat2d);
 
-    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
-
-    if (!mat2d) DebugStop();
+    if (!mat2dSingle) DebugStop();
 
     int nstate = mat2d->NStateVariables();
 
@@ -85,8 +88,8 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
     // create a one-d integration rule
     TPZIntPoints &intpoints = CSkeleton->GetIntegrationRule();
 
-    TPZMaterialData data1d;
-    TPZMaterialData data2d;
+    TPZMaterialDataT<STATE> data1d;
+    TPZMaterialDataT<STATE> data2d;
     CSkeleton->InitMaterialData(data1d);
     CSkeleton->InitMaterialData(data2d);
     int nshape = data2d.phi.Rows();
@@ -159,7 +162,7 @@ void TPZSBFemVolume::ComputeKMatrices(TPZElementMatrixT<STATE> &E0, TPZElementMa
             }
         }
         // compute the contributions to K11 K12 and K22
-        mat2d->Contribute(data2d, weight, ek, ef);
+        mat2dSingle->Contribute(data2d, weight, ek, ef);
     }
     for (int i = 0; i < nstate * nshape; i++) {
         for (int j = 0; j < nstate * nshape; j++) {
@@ -267,17 +270,17 @@ void TPZSBFemVolume::LoadCoef(TPZFMatrix<std::complex<double> > &coef) {
     fCoeficients = coef;
 }
 
-void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialData& data) {
+void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialDataT<STATE>& data) {
     TPZVec<REAL> &qsi = data.xParametric;
-    TPZSolVec &sol = data.sol;
-    TPZGradSolVec &dsol = data.dsol;
+    TPZSolVec<STATE> &sol = data.sol;
+    TPZGradSolVec<STATE> &dsol = data.dsol;
     TPZFMatrix<REAL> &axes = data.axes;
     TPZCompMesh *cmesh = Mesh();
     sol.Resize(fCoeficients.Cols());
     dsol.Resize(fCoeficients.Cols());
     TPZGeoEl *Ref2D = Reference();
     int matid = Ref2D->MaterialId();
-    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
+    auto *mat2d = cmesh->FindMaterial(matid);
 
     int dim = Ref2D->Dimension();
     REAL sbfemparam = (1. - qsi[dim - 1]) / 2.;
@@ -298,7 +301,7 @@ void TPZSBFemVolume::ReallyComputeSolution(TPZMaterialData& data) {
         }
     }
     TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
-    TPZMaterialData data1d, data2d;
+    TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
     TPZManVector<REAL, 3> qsilow(qsi);
     qsilow.Resize(dim - 1);
@@ -451,7 +454,7 @@ void TPZSBFemVolume::Shape(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<
         }
     }
     TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
-    TPZMaterialData data1d, data2d;
+    TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
     TPZManVector<REAL, 3> qsilow(qsi);
     qsilow.Resize(dim - 1);
@@ -562,8 +565,9 @@ void TPZSBFemVolume::Solution(TPZVec<REAL> &qsi, int var, TPZVec<STATE> &sol) {
     int matid = Ref2D->MaterialId();
     TPZCompMesh *cmesh = Mesh();
 
-    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
-    TPZMaterialData data2d;
+    auto *mat2d =
+        dynamic_cast<TPZMatSingleSpaceT<STATE>*>(cmesh->FindMaterial(matid));
+    TPZMaterialDataT<STATE> data2d;
 
     if(TPZSBFemElementGroup::gDefaultPolynomialOrder == 0)
     {
@@ -601,7 +605,9 @@ void TPZSBFemVolume::CreateGraphicalElement(TPZGraphMesh &graphmesh, int dimensi
 #include "pzaxestools.h"
 
 void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error) {
-    int NErrors = this->Material()->NEvalErrors();
+    auto *matError =
+        dynamic_cast<TPZMatErrorSingleSpace<STATE>*>(this->Material());
+    int NErrors = matError->NEvalErrors();
     errors.Resize(NErrors);
     errors.Fill(0.);
     TPZMaterial * material = Material();
@@ -639,7 +645,7 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error) {
     values.Fill(0.0);
     REAL weight;
 
-    TPZMaterialData data;
+    TPZMaterialDataT<STATE> data;
     data.x.Resize(3);
     int nintpoints = intrule->NPoints();
 
@@ -659,7 +665,7 @@ void TPZSBFemVolume::EvaluateError(TPZVec<REAL> &errors,bool store_error) {
             ComputeSolutionWithBubbles(intpoint, data.sol, data.dsol, data.axes);
         }
         ref->X(intpoint, data.x);
-        material->Errors(data, values);
+        matError->Errors(data, values);
 
         for (int ier = 0; ier < NErrors; ier++)
           errors[ier] += values[ier] * weight;
@@ -731,10 +737,10 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data) {
 
     data.fShapeType = TPZMaterialData::EVecShape;
     data.gelElId = this->Reference()->Id();
-    TPZMaterial *mat = Material();
+    auto *mat =
+        dynamic_cast<TPZMatSingleSpaceT<STATE>*>(Material());
 #ifdef PZDEBUG
     if (!mat) {
-        mat = Material();
         DebugStop();
     }
 #endif
@@ -749,13 +755,11 @@ void TPZSBFemVolume::InitMaterialData(TPZMaterialData &data) {
     data.jacobian.Redim(dim, dim);
     data.jacinv.Redim(dim, dim);
     data.x.Resize(3);
-    if (data.fNeedsSol) {
-        int64_t nsol = data.sol.size();
-        for (int64_t is = 0; is < nsol; is++) {
-            data.sol[is].Resize(nstate);
-            data.dsol[is].Redim(dim, nstate);
-        }
-    }
+    if (data.fNeedsSol){
+        uint64_t ulen,durow,ducol;
+        mat->GetSolDimensions(ulen,durow,ducol);
+        data.SetSolSizes(nstate, ulen, durow, ducol);
+	}
 }//void
 
 void TPZSBFemVolume::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
@@ -814,7 +818,8 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
     TPZCompMesh *cmesh = Mesh();
     TPZGeoEl *Ref2D = Reference();
     int matid = Ref2D->MaterialId();
-    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
+    auto *mat2d =
+        dynamic_cast<TPZMaterialT<STATE>*>(cmesh->FindMaterial(matid));
     int dim2 = Ref2D->Dimension();
     
     TPZMaterial * material = Material();
@@ -838,13 +843,12 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
     TPZManVector<REAL, 10> intpoint(problemdimension);
     REAL weight;
     
-    TPZMaterialData data;
-    TPZMaterialData data1d;
+    TPZMaterialDataT<STATE> data;
+    TPZMaterialDataT<STATE> data1d;
     this->InitMaterialData(data);
     int npts = intrule->NPoints();
     
     TPZManVector<REAL> bodyforce(nstate, 0.);
-    TPZFMatrix<REAL> dbodyforce(nstate, dim2, 0.);
     
     TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
     CSkeleton->InitMaterialData(data1d);
@@ -885,10 +889,9 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
         CSkeleton->Shape(intpoint, data1d.phi, data1d.dphi);
         
         Ref2D->X(intpoint, data.x);
-        if (mat2d->ForcingFunction())
+        if (mat2d->HasForcingFunction())
         {
-            TPZAutoPointer<TPZFunction<STATE> > autodummy = mat2d->ForcingFunction();
-            autodummy->Execute(data.x, bodyforce, dbodyforce);
+            mat2d->ForcingFunction()(data.x,bodyforce);
         }
         
         for (int c = 0; c < numeig; c++) {
@@ -943,7 +946,7 @@ void TPZSBFemVolume::LocalBodyForces(TPZFNMatrix<100,std::complex<double>> &f, T
 }
 
 void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
-                                       TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
+                                       TPZSolVec<STATE> &sol, TPZGradSolVec<STATE> &dsol, TPZFMatrix<REAL> &axes)
 {
     
     TPZCompMesh *cmesh = Mesh();
@@ -958,8 +961,8 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
     dsol.Resize(fCoeficients.Cols());
     TPZGeoEl *Ref2D = Reference();
     int matid = Ref2D->MaterialId();
-    TPZMaterial *mat2d = cmesh->FindMaterial(matid);
-    
+    auto *mat2d =
+        dynamic_cast<TPZMaterialT<STATE>*>(cmesh->FindMaterial(matid));
     int dim = Ref2D->Dimension();
     REAL sbfemparam = (1. - qsi[dim - 1]) / 2.;
     if (sbfemparam < 0.) {
@@ -979,7 +982,7 @@ void TPZSBFemVolume::ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
         }
     }
     TPZInterpolatedElement *CSkeleton = dynamic_cast<TPZInterpolatedElement *> (cmesh->Element(fSkeleton));
-    TPZMaterialData data1d, data2d;
+    TPZMaterialDataT<STATE> data1d, data2d;
     // compute the lower dimensional shape functions
     TPZManVector<REAL, 3> qsilow(qsi);
     qsilow.Resize(dim - 1);

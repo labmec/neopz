@@ -7,8 +7,8 @@
 #include "TPZGeoMeshTools.h" //for TPZGeoMeshTools::CreateGeoMeshOnGrid
 #include "MMeshType.h" //for MMeshType
 #include "pzmanvector.h"//for TPZManVector
-#include "TPZMatLaplacian.h" //for TPZMatLaplacian
-#include "pzbndcond.h" //for TPZBndCond
+#include "Poisson/TPZMatPoisson.h" //for TPZMatPoisson
+#include "TPZBndCond.h" //for TPZBndCond
 #include "pzanalysis.h" //for TPZAnalysis
 #include "TPZSSpStructMatrix.h" //symmetric sparse matrix storage
 #include "pzskylstrmatrix.h" //symmetric skyline matrix storage
@@ -32,10 +32,14 @@ TEST_CASE("error_poisson","[error_tests]")
     REQUIRE(checkConv);
     lastError=error;
   }
+  auto oldPrecision = Catch::StringMaker<REAL>::precision;
+  Catch::StringMaker<REAL>::precision = std::numeric_limits<REAL>::max_digits10;
   //the solution is contained in the p=4 approx space
   for(auto ier : lastError){
-    REQUIRE(ier == Approx(0.0).margin(1e-11));
+    CAPTURE(ier);
+    REQUIRE(ier == Approx(0.0).margin(std::numeric_limits<REAL>::epsilon()*10));
   }
+  Catch::StringMaker<REAL>::precision = oldPrecision;
 }
 
 void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
@@ -60,7 +64,7 @@ void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
         const REAL &x = loc[0];
         const REAL &y = loc[1];
         u[0] = 2*y*y+2*x*x-4;
-        //see comment on TPZMatLaplacian
+        //see comment on TPZMatPoisson
         u[0] *= -1;
   };
   
@@ -104,9 +108,8 @@ void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
    * material ids used when creating the geometric mesh. In this way, you could
    * have different materials on different mesh regions */
 
-  TPZMatLaplacian *mat = new TPZMatLaplacian(matIdVec[0],dim);
-  //TPZMatLaplacian solves div(k grad(u)) = -f
-  mat->SetPermeability(1);
+  auto *mat = new TPZMatPoisson(matIdVec[0],dim);
+
   mat->SetForcingFunction(rhs,rhsPOrder);
   cmesh->InsertMaterialObject(mat);
 
@@ -118,7 +121,8 @@ void CheckErrorPoisson(const int pOrder, TPZVec<REAL>&error)
        * conditions. val1 goes in the matrix and val2 in the rhs.
        * for dirichlet boundary conditions, only the value of 
        * val2 is used.*/
-      TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
+      TPZFMatrix<STATE> val1(1,1,0.);
+      TPZVec<STATE> val2(1,0.);
       //dirichlet=0,neumann=1,robin=2
       constexpr int boundType{0};
       //TPZBndCond is a material type for boundary conditions

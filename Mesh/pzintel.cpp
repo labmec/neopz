@@ -9,12 +9,10 @@
 #include "TPZMaterial.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
-#include "pzbndcond.h"
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 #include "pzquad.h"
 #include "TPZElementMatrixT.h"
-#include "pzmat1dlin.h"
 #include "time.h"
 #include "pzmanvector.h"
 #include "pzblockdiag.h"
@@ -22,8 +20,6 @@
 
 #include "pzcheckmesh.h"
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
-
 #include "pzlog.h"
 
 #ifdef PZ_LOG

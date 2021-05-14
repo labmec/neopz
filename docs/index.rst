@@ -10,9 +10,17 @@ Welcome to NeoPZ's documentation!
    :maxdepth: 1
    :caption: Contents:
              
+   material/materialindex.rst
    structmatrix/structindex.rst
    
    
+Introduction
+------------
+
+This documentation is an ongoing work. The following sections have been written:
+
+- :doc:`material/materialindex` How weak formulations are implemented
+- :doc:`structmatrix/structindex` How different matrix storage formats can be used
 
 About
 -----
@@ -24,6 +32,7 @@ The NeoPZ environment (in the future quoted as simply NeoPZ) incorporates
 several advanced finite element technologies in a single coherent structure,
 allowing its user to develop sophisticated simulations in a short period of
 time.
+
 
 Motivation: Why develop a finite element library?
 -------------------------------------------------

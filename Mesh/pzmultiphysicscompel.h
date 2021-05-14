@@ -33,10 +33,19 @@ protected:
     typename TGeometry::IntruleType fIntRule;
     
     template<class TVar>
-    void CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
+    void CalcStiffT(TPZElementMatrixT<TVar> &ek, TPZElementMatrixT<TVar> &ef);
     template<class TVar>
-    void CalcResidualInternal(TPZElementMatrixT<TVar> &ef);
-	
+    void CalcResidualT(TPZElementMatrixT<TVar> &ef);
+    template<class TVar>
+    void InitMaterialDataT(TPZVec<TPZMaterialDataT<TVar>> &dataVec, TPZVec<int64_t> *indices);
+    template<class TVar>
+    void InitMaterialDataT(std::map<int, TPZMaterialDataT<TVar>> &dataVec, TPZVec<int64_t> *indices);
+    template<class TVar>
+    void SolutionT(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol);
+    template<class TVar>
+    void EvaluateErrorT(TPZVec<REAL> &errors, bool store_error);
+    template<class TVar>
+    void CleanupMaterialDataT(TPZVec<TPZMaterialDataT<TVar>>&);
 public:
 	/**
 	 * @brief Creates a multiphysic computational element within mesh. 
@@ -130,18 +139,7 @@ public:
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
 	virtual void Integrate(int variable, TPZVec<STATE> & value) override;
-	
-	/** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, TPZVec<TPZMaterialData> &datavec) override;
-
-    /** @brief Compute and fill data with requested attributes for each of the compels in fElementVec*/
-    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform<> > &trvec, std::map<int, TPZMaterialData> &datavec) override;
-
-    virtual void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &point) override
-    {
-        TPZMultiphysicsElement::ComputeRequiredData(data, point);
-    }
-
+    //@{
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.
 	 * @param qsi coordinate of the point in master element space where the solution will be evaluated
@@ -152,7 +150,13 @@ public:
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
-	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override;
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) override{
+        SolutionT(qsi,var,sol);
+    }
+    virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<CSTATE> &sol) override{
+        SolutionT(qsi,var,sol);
+    }
+    //@}
 	
     /**
      * @brief Compute the integral of a variable
@@ -249,7 +253,7 @@ public:
 	 * @param ef element right hand side
 	 */
 	virtual void CalcStiff(TPZElementMatrixT<STATE> &ek, TPZElementMatrixT<STATE> &ef) override{
-        CalcStiffInternal<STATE>(ek,ef);
+        CalcStiffT<STATE>(ek,ef);
     }
 	
     /**
@@ -258,7 +262,7 @@ public:
      * @param ef element right hand side
      */
     virtual void CalcResidual(TPZElementMatrixT<STATE> &ef) override{
-        CalcResidualInternal<STATE>(ef);
+        CalcResidualT<STATE>(ef);
     }
     
 	/** @brief Initialize element matrix in which is computed CalcStiff */
@@ -266,23 +270,38 @@ public:
 	
     /** @brief Initialize element matrix in which is computed CalcStiff */
     void InitializeElementMatrix(TPZElementMatrix &ef) override;
-    
+    //@{
 	/**
 	 * @brief Initialize a material data vector and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
-	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) override;
-	
+	void InitMaterialData(TPZVec<TPZMaterialDataT<STATE>> &dataVec, TPZVec<int64_t> *indices = 0) override{
+        InitMaterialDataT(dataVec,indices);
+    }
+    void InitMaterialData(TPZVec<TPZMaterialDataT<CSTATE>> &dataVec, TPZVec<int64_t> *indices = 0) override{
+        InitMaterialDataT(dataVec,indices);
+    }
+	//@}
+    //@{
     /**
      * @brief Initialize a material data vector and its attributes based on element dimension, number
      * of state variables and material definitions
      */
-    void InitMaterialData(std::map<int, TPZMaterialData > &dataVec, TPZVec<int64_t> *indices = 0) override;
-    /**
-     * @brief Initialize a material data vector and its attributes based on element dimension, number
-     * of state variables and material definitions
-     */
-    void CleanupMaterialData(TPZVec<TPZMaterialData > &dataVec);
+    void InitMaterialData(std::map<int, TPZMaterialDataT<STATE>> &dataVec, TPZVec<int64_t> *indices = 0) override{
+        InitMaterialDataT(dataVec,indices);
+    }
+    void InitMaterialData(std::map<int, TPZMaterialDataT<CSTATE>> &dataVec, TPZVec<int64_t> *indices = 0) override{
+        InitMaterialDataT(dataVec,indices);
+    }
+    //@}
+    //@{
+    void CleanupMaterialData(TPZVec<TPZMaterialDataT<STATE>> &dataVec){
+        CleanupMaterialDataT(dataVec);
+    }
+    void CleanupMaterialData(TPZVec<TPZMaterialDataT<CSTATE>> &dataVec){
+        CleanupMaterialDataT(dataVec);
+    }
+    //@}
     
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension) override;
 	

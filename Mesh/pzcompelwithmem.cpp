@@ -44,7 +44,9 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     }
     
     TPZMaterial * material = TBASE::Material();
-    if(!material){
+    auto * matWithMem =
+        dynamic_cast<TPZMatWithMemBase *>(material);
+    if(!material || !matWithMem){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         return;
     }
@@ -63,7 +65,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     
     if(gSinglePointMemory && intrulepoints > 0)
     {
-        int64_t point_index = material->PushMemItem();
+        int64_t point_index = matWithMem->PushMemItem();
 #ifdef PZDEBUG
         if(point_index < 0)
         {
@@ -77,12 +79,16 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
     else
     {
         for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-            fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+            fIntPtIndices[int_ind] = matWithMem->PushMemItem();
             // Pushing a new entry in the material memory
         } //Loop over integratin points generating a reference vector of memory
         //entries in the related pzmatwithmem for further use.
     }
 }
+
+
+
+
 
 #include "TPZInterfaceEl.h"
 
@@ -106,7 +112,9 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     }
     
     TPZMaterial * material = TPZInterfaceElement::Material();
-    if(!material){
+    auto * matWithMem =
+        dynamic_cast<TPZMatWithMemBase *>(material);
+    if(!material || !matWithMem){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
         return;
     }
@@ -128,7 +136,7 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     
     if(gSinglePointMemory && intrulepoints > 0)
     {
-        int64_t point_index = this->Material()->PushMemItem();
+        int64_t point_index = matWithMem->PushMemItem();
 #ifdef PZDEBUG
         if(point_index < 0)
         {
@@ -144,7 +152,7 @@ inline void TPZCompElWithMem<TPZInterfaceElement>::PrepareIntPtIndices() {
     {
         for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
         {
-            fIntPtIndices[int_ind] = this->Material()->PushMemItem();
+            fIntPtIndices[int_ind] = matWithMem->PushMemItem();
             // Pushing a new entry in the material memory
         } //Loop over integratin points generating a reference vector of memory
           //entries in the related pzmatwithmem for further use.

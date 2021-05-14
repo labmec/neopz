@@ -8,11 +8,12 @@
 #include "pzquad.h"
 #include "pzgeoel.h"
 #include "TPZMaterial.h"
+#include "TPZMatSingleSpace.h"
 #include "pzlog.h"
 #include "pzgeoquad.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
 
 #ifdef PZ_LOG
 static TPZLogger logger("pz.mesh.TPZCompElHDivPressure");
@@ -296,30 +297,33 @@ void TPZCompElHDivPressure<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &poi
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressure<TSHAPE>::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol){
+template<class TVar>
+void TPZCompElHDivPressure<TSHAPE>::SolutionT(TPZVec<REAL> &qsi,int var,TPZVec<TVar> &sol){
 		
-        TPZMaterialData data;
+        TPZMaterialDataT<TVar> data;
 		InitMaterialData(data);
         data.p=this->MaxOrder();
         
         this->ComputeShape(qsi,data);
-        constexpr bool hasPhi{true};
-        this->ComputeSolution(qsi,data,hasPhi);
+        this->ComputeSolutionHDivPressureT(data);
         
         data.x.Resize(3,0.);
         this->Reference()->X(qsi,data.x);
-		this->Material()->Solution(data,var,sol);
+        auto *mat =
+            dynamic_cast<TPZMatSingleSpaceT<TVar>*>(this->Material());
+		mat->Solution(data,var,sol);
 }
 
 template<class TSHAPE>
-void TPZCompElHDivPressure<TSHAPE>::ReallyComputeSolution(TPZMaterialData &data){
+template<class TVar>
+void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionHDivPressureT(TPZMaterialDataT<TVar> &data){
 		
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
     
     TPZBlock &block =this->Mesh()->Block();
-    TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
+    TPZFMatrix<TVar> &MeshSol = this->Mesh()->Solution();
     int64_t numbersol = MeshSol.Cols();
     
     int nsol= this->Dimension()+2;

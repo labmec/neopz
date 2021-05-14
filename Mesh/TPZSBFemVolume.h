@@ -13,6 +13,7 @@
 #include "pzcompel.h"
 #include "TPZElementMatrixT.h"
 #include "pzinterpolationspace.h"
+#include "TPZMaterialDataT.h"
 
 class TPZSBFemVolume : public TPZInterpolationSpace
 {
@@ -316,7 +317,7 @@ public:
     virtual void LoadCoef(TPZFMatrix<std::complex<double> > &coef);
 protected:
     //! Compute solution based on a filled TPZMaterialData
-    void ReallyComputeSolution(TPZMaterialData&) override;
+    void ReallyComputeSolution(TPZMaterialDataT<STATE>&) override;
 public:
     
     void EvaluateError(TPZVec<REAL> &errors,bool store_error) override;
@@ -385,7 +386,7 @@ public:
     void LocalBodyForces(TPZFNMatrix<100,std::complex<REAL>> &f, TPZFNMatrix<100,std::complex<REAL>> &fbubble, TPZManVector<std::complex<REAL>> &eigval, TPZManVector<std::complex<REAL>> &eigvalbubble, int icon);
 
     void ComputeSolutionWithBubbles(TPZVec<REAL> &qsi,
-                                    TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes);
+                                    TPZSolVec<STATE> &sol, TPZGradSolVec<STATE> &dsol, TPZFMatrix<REAL> &axes);
     
     void SetCoefNonHomogeneous(TPZFNMatrix<100,std::complex<double>> &phi, TPZManVector<std::complex<double> > &eigval, TPZFNMatrix<100,std::complex<double> > &phiinv, TPZFNMatrix<100,std::complex<double> > &rot);
 

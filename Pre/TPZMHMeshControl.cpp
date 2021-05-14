@@ -8,12 +8,11 @@
 
 #include "TPZMHMeshControl.h"
 #include "TPZRefPattern.h"
-#include "pzl2projection.h"
+#include "Projection/TPZL2Projection.h"
 #include "TPZNullMaterial.h"
 #include "TPZLagrangeMultiplier.h"
 #include "TPZCompElLagrange.h"
-#include "pzbndcond.h"
-#include "pzmat1dlin.h"
+#include "TPZBndCond.h"
 #include "TPZInterfaceEl.h"
 #include "pzmultiphysicscompel.h"
 #include "TPZMultiphysicsInterfaceEl.h"
@@ -515,9 +514,9 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
     TPZManVector<STATE,1> sol(1,0.);
     int nstate = 1;
     std::set<int>::iterator it = matids.begin();
-    TPZMaterial *meshmat = 0;
+    TPZMaterialT<STATE> *meshmat = nullptr;
     while (it != matids.end()) {
-        TPZL2Projection *material = new TPZL2Projection(*it,dim,nstate,sol);
+        TPZL2Projection<STATE> *material = new TPZL2Projection(*it,dim,nstate,sol);
         cmesh->InsertMaterialObject(material);
         if (!meshmat) {
             meshmat = material;
@@ -533,9 +532,10 @@ TPZCompMesh* TPZMHMeshControl::CriaMalhaTemporaria()
 	it = bcids.begin();
     while (it != bcids.end()) {
         ///Inserir condicao de contorno
-        TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+        TPZFMatrix<STATE> val1(2,2,0.);
+        TPZVec<STATE> val2(2,0.);
 
-        TPZMaterial * BCondD1 = meshmat->CreateBC(meshmat, *it,0, val1, val2);
+        TPZBndCond * BCondD1 = meshmat->CreateBC(meshmat, *it,0, val1, val2);
         cmesh->InsertMaterialObject(BCondD1);
 
         it++;
@@ -1184,7 +1184,7 @@ void TPZMHMeshControl::CreateLagrangeMultiplierMesh()
     std::set<int>::iterator it = matids.begin();
     TPZMaterial *meshmat = 0;
     while (it != matids.end()) {
-        TPZNullMaterial *material = new TPZNullMaterial(*it);
+        auto *material = new TPZNullMaterial(*it);
         fCMeshLagrange->InsertMaterialObject(material);
         if (!meshmat) {
             meshmat = material;
@@ -1619,30 +1619,26 @@ void TPZMHMeshControl::InsertPeriferalMaterialObjects()
         DebugStop();
     }
 
-    TPZFNMatrix<1,STATE> xk(fNState,fNState,0.),xb(fNState,fNState,0.),xc(fNState,fNState,0.),xf(fNState,1,0.);
     TPZFNMatrix<4,STATE> val1(fNState,fNState,0.), val2Flux(fNState,1,0.);
-    TPZMat1dLin *matPerif = NULL;
+    TPZMaterial *matPerif = nullptr;
 
     if (fCMesh->FindMaterial(fSkeletonMatId)) {
         DebugStop();
     }
-    matPerif = new TPZMat1dLin(fSkeletonMatId);
-    matPerif->SetMaterial(xk, xc, xb, xf);
+    matPerif = new TPZNullMaterial<STATE>(fSkeletonMatId);
     fCMesh->InsertMaterialObject(matPerif);
 
     if (1) {
         if (fCMesh->FindMaterial(fPressureSkeletonMatId)) {
             DebugStop();
         }
-        matPerif = new TPZMat1dLin(fPressureSkeletonMatId);
-        matPerif->SetMaterial(xk, xc, xb, xf);
+        matPerif = new TPZNullMaterial<STATE>(fPressureSkeletonMatId);
         fCMesh->InsertMaterialObject(matPerif);
 
         if (fCMesh->FindMaterial(fSecondSkeletonMatId)) {
             DebugStop();
         }
-        matPerif = new TPZMat1dLin(fSecondSkeletonMatId);
-        matPerif->SetMaterial(xk, xc, xb, xf);
+        matPerif = new TPZNullMaterial<STATE>(fSecondSkeletonMatId);
 
         fCMesh->InsertMaterialObject(matPerif);
 
@@ -1658,8 +1654,8 @@ void TPZMHMeshControl::InsertPeriferalMaterialObjects()
         if (fCMesh->FindMaterial(fLagrangeMatIdRight)) {
             DebugStop();
         }
-        TPZLagrangeMultiplier *matleft = new TPZLagrangeMultiplier(fLagrangeMatIdLeft,dim,nstate);
-        TPZLagrangeMultiplier *matright = new TPZLagrangeMultiplier(fLagrangeMatIdRight,dim,nstate);
+        auto *matleft = new TPZLagrangeMultiplier<STATE>(fLagrangeMatIdLeft,dim,nstate);
+        auto *matright = new TPZLagrangeMultiplier<STATE>(fLagrangeMatIdRight,dim,nstate);
         if (fSwitchLagrangeSign) {
             matleft->SetMultiplier(-1.);
             matright->SetMultiplier(1.);

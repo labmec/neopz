@@ -7,7 +7,7 @@
 #define TPZCOMPELHCURL_H
 
 #include <pzelctemp.h>
-
+#include "TPZMaterialDataT.h"
 /**
  * @brief This class contains static methods pertinent to the implementation of different families of
  * HCurl-conforming approximation spaces.
@@ -137,7 +137,13 @@ public:
     void InitMaterialData(TPZMaterialData &data) override;
 
     /** @brief Compute and fill data with requested attributes */
-	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi) override;
+	void ComputeRequiredData(TPZMaterialDataT<STATE> &data, TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
+    void ComputeRequiredData(TPZMaterialDataT<CSTATE> &data, TPZVec<REAL> &qsi) override{
+        ComputeRequiredDataT(data,qsi);
+    }
+    
 
     /**
      * @brief Computes the shape functions at the point qsi corresponding to x.
@@ -165,7 +171,8 @@ protected:
      */
     void CreateHCurlConnects(TPZCompMesh &mesh);
 
-    void ReallyComputeSolution(TPZMaterialData&) override;
+    void ReallyComputeSolution(TPZMaterialDataT<STATE>&) override;
+    void ReallyComputeSolution(TPZMaterialDataT<CSTATE>&) override;
     /**
      * @brief This computes the curl of a vector shape function implemented as \$f \phi\mathbf{v} \$f
      * @tparam TDIM Dimension of the element curl will have dim=2*TDIM-3 for TDIM=2,3.
@@ -194,12 +201,15 @@ protected:
      * @param sol finite element solution
      * @param curlsol curl of the finite element solution
      */
-    void ComputeSolutionHCurl(const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
+    template<class TVar>
+    void ComputeSolutionHCurlT(const TPZVec<std::pair<int,int64_t> > &vecShapeIndex,
                               const TPZFMatrix<REAL> &deformedDirections,
                               const TPZFMatrix<REAL> &phi,
                               const TPZFMatrix<REAL> &curlphi,
-                              TPZSolVec &sol,
-                              TPZSolVec &curlsol);
+                              TPZSolVec<TVar> &sol,
+                              TPZSolVec<TVar> &curlsol);
+    template<class TVar>
+    void ComputeRequiredDataT(TPZMaterialDataT<TVar> &data, TPZVec<REAL> &qsi);
 
 
     /**

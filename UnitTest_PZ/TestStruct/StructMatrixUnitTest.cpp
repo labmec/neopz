@@ -5,7 +5,9 @@
  */
 #include "TPZGeoMeshTools.h"
 #include "pzcmesh.h"
-#include "TPZMaterial.h"
+#include "TPZMatBase.h"
+#include "TPZMatSingleSpace.h"
+#include "TPZMaterialDataT.h"
 #include "pzanalysis.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzmatrix.h"
@@ -172,6 +174,7 @@ namespace structTest{
     const int nEq = cMesh->NElements() + 1;
     
     mat->Print(std::cout);
+    auto oldPrecision = Catch::StringMaker<STATE>::precision;
     REQUIRE(mat->GetVal(0,0) == 2.0_a);
     REQUIRE(mat->GetVal(nEq-1,nEq-1) == 2.0_a);
     REQUIRE(mat->GetVal(0,1) == 1.0_a);
@@ -181,6 +184,7 @@ namespace structTest{
       REQUIRE(mat->GetVal(i,i) == 4.0_a);
       REQUIRE(mat->GetVal(i,i+1) == 1.0_a);
     }
+    Catch::StringMaker<STATE>::precision = oldPrecision;
   }
 
   template <class TSTMAT>
@@ -206,8 +210,11 @@ namespace structTest{
     TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
     matSerial->Substract(matParallel, matDiff);
     const auto normDiff = Norm(matDiff);
+    auto oldPrecision = Catch::StringMaker<STATE>::precision;
+    CAPTURE(normDiff);
     REQUIRE(normDiff == Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
+    Catch::StringMaker<STATE>::precision = oldPrecision;
   }
 
 
@@ -240,8 +247,11 @@ namespace structTest{
     TPZFMatrix<STATE> matDiff(nr,nc, 0.0);
     mat1->Substract(mat2, matDiff);
     const auto normDiff = Norm(matDiff);
+    auto oldPrecision = Catch::StringMaker<STATE>::precision;
+    CAPTURE(normDiff);
     REQUIRE(normDiff == Approx(0.0).margin(
                 10*std::numeric_limits<STATE>::epsilon()));
+    Catch::StringMaker<STATE>::precision = oldPrecision;
   }
   
 
@@ -251,27 +261,28 @@ namespace structTest{
    ****************************************/
 
   
-  class TPZMatTest : public TPZMaterial{
+  class TPZMatTest : public TPZMatBase<STATE, TPZMatSingleSpaceT<STATE>>{
+    using TBase = TPZMatBase<STATE, TPZMatSingleSpaceT<STATE>>;
     const int fDim{0};
   public:
     TPZMatTest(const int matId, const int dim) :
-      TPZMaterial(matId), fDim(dim) {}
+      TBase(matId), fDim(dim) {}
                                                  
-    void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
+    void Contribute(const TPZMaterialDataT<STATE> &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) override;
     int Dimension() const override{return 1;}
     int NStateVariables() const override{return 1;}
-    void ContributeBC(TPZMaterialData &, REAL, TPZFMatrix<STATE>&,
-                      TPZFMatrix<STATE>&,TPZBndCond&) override{;}
+    void ContributeBC(const TPZMaterialDataT<STATE> &, REAL, TPZFMatrix<STATE>&,
+                      TPZFMatrix<STATE>&,TPZBndCondT<STATE>&) override{;}
   };
 
-  void TPZMatTest::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+  void TPZMatTest::Contribute(const TPZMaterialDataT<STATE> &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
     if(fDim==1){
       ek.PutVal(0,0,2);
       ek.PutVal(1,1,2);
       ek.PutVal(0,1,1);
       ek.PutVal(1,0,1);
     }else{
-      TPZFMatrix<REAL>  &phi = data.phi;
+      const TPZFMatrix<REAL>  &phi = data.phi;
       const auto phr = phi.Rows();
       for( auto in = 0; in < phr; in++ ) {
         for( auto jn = 0; jn < phr; jn++ ) {

@@ -7,10 +7,8 @@
 //
 
 #include "TPZMHMixedMeshControl.h"
-#include "TPZVecL2.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 #include "TPZNullMaterial.h"
-#include "TPZMatLaplacian.h"
 #include "TPZLagrangeMultiplier.h"
 
 
@@ -123,7 +121,7 @@ void TPZMHMixedMeshControl::InsertPeriferalMaterialObjects()
         return;
     }
     
-    TPZNullMaterial *nullmat = new TPZNullMaterial(fSkeletonMatId);
+    auto *nullmat = new TPZNullMaterial<STATE>(fSkeletonMatId);
     nullmat->SetDimension(mat->Dimension()-1);
     nullmat->SetNStateVariables(nstate);
     fCMesh->InsertMaterialObject(nullmat);
@@ -264,27 +262,28 @@ void TPZMHMixedMeshControl::InsertPeriferalHdivMaterialObjects()
     cmeshHDiv->ApproxSpace().SetAllCreateFunctionsHDiv(meshdim);
     cmeshHDiv->SetDefaultOrder(fpOrderInternal);
     if(fMaterialIds.size() == 0) DebugStop();
-    TPZMaterial *matl2;
+    TPZMaterialT<STATE> *matl2;
     for (auto item:fMaterialIds) {
-        TPZVecL2 *mat = new TPZVecL2(item);
+        auto *mat = new TPZNullMaterial<STATE>(item);
         matl2 = mat;
         mat->SetNStateVariables(fNState);
         mat->SetDimension(meshdim);
-        cmeshHDiv->InsertMaterialObject(matl2);
+        cmeshHDiv->InsertMaterialObject(mat);
     }
     for (auto item:fMaterialBCIds) {
-        TPZFNMatrix<1,STATE> val1(fNState,fNState,0.),val2(fNState,1,0.);
-        TPZBndCond *bc = matl2->CreateBC(matl2, item, 0, val1, val2);
+        TPZFNMatrix<1,STATE> val1(fNState,fNState,0.);
+        TPZManVector<STATE,1>val2(fNState,0.);
+        TPZBndCondT<STATE> *bc = matl2->CreateBC(matl2, item, 0, val1, val2);
         cmeshHDiv->InsertMaterialObject(bc);
     }
     {
-        TPZNullMaterial *nullmat = new TPZNullMaterial(fSkeletonMatId);
+        auto *nullmat = new TPZNullMaterial<STATE>(fSkeletonMatId);
         nullmat->SetDimension(meshdim-1);
         nullmat->SetNStateVariables(fNState);
         cmeshHDiv->InsertMaterialObject(nullmat);
         if(fSecondSkeletonMatId != 0)
         {
-            TPZNullMaterial *nullmat = new TPZNullMaterial(fSecondSkeletonMatId);
+            auto *nullmat = new TPZNullMaterial<STATE>(fSecondSkeletonMatId);
             nullmat->SetDimension(meshdim-1);
             nullmat->SetNStateVariables(fNState);
             cmeshHDiv->InsertMaterialObject(nullmat);
@@ -485,7 +484,7 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
         int matid = *it;
         if (cmeshPressure->MaterialVec().find(matid) == cmeshPressure->MaterialVec().end())
         {
-            TPZNullMaterial *matl2 = new TPZNullMaterial((matid));
+            auto *matl2 = new TPZNullMaterial<STATE>((matid));
             matl2->SetNStateVariables(fNState);
             matl2->SetDimension(fGMesh->Dimension());
             cmeshPressure->InsertMaterialObject(matl2);
@@ -500,7 +499,7 @@ void TPZMHMixedMeshControl::InsertPeriferalPressureMaterialObjects()
         if (fPressureFineMesh->FindMaterial(fPressureSkeletonMatId) != 0) {
             DebugStop();
         }
-        TPZNullMaterial *mathybrid = new TPZNullMaterial(fPressureSkeletonMatId);
+        auto *mathybrid = new TPZNullMaterial<STATE>(fPressureSkeletonMatId);
         mathybrid->SetDimension(fGMesh->Dimension()-1);
         mathybrid->SetNStateVariables(fNState);
         //fPressureFineMesh->InsertMaterialObject(mathybrid);
@@ -522,7 +521,7 @@ void TPZMHMixedMeshControl::InsertPeriferalRotationMaterialObjects()
         int matid = *it;
         if (cmeshRotation->MaterialVec().find(matid) == cmeshRotation->MaterialVec().end())
         {
-            TPZNullMaterial *matl2 = new TPZNullMaterial((matid));
+            auto *matl2 = new TPZNullMaterial<STATE>((matid));
             if(fNState == 2)
             {
                 matl2->SetNStateVariables(1);

@@ -16,6 +16,7 @@ Using `pip` (or `pip3`, depending on your Python setup) you can install the addi
 pip3 install sphinx-rtd-theme
 pip3 install breathe
 pip3 install sphinx-sitemap
+pip3 install sphinxcontrib-bibtex
 ```
 ## Generating the Sphinx documentation
 

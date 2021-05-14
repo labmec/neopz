@@ -4,7 +4,7 @@
  */
 
 //#include "pzmatrix.h"
-#include "pzelast3d.h"
+#include "Elasticity/TPZElasticity3D.h"
 #include "iostream"
 #include "fstream"
 #include <chrono>

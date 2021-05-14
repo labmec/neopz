@@ -4,7 +4,7 @@
  */
 
 #include "pztransientanalysis.h"
-#include "pztransientmat.h"
+#include "TPZMatTransientSingleSpace.h"
 #include "TPZSpStructMatrix.h"
 #include "pzseqsolver.h"
 #include "checkconv.h"
@@ -164,7 +164,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetImplicit(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetImplicit();
 		}
@@ -178,7 +178,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetExplicit(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetExplicit();
 		}
@@ -192,7 +192,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetLastState(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetLastState();
 		}
@@ -206,7 +206,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetCurrentState(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetCurrentState();
 		}
@@ -220,7 +220,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetMassMatrix(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetMassMatrix();
 		}
@@ -234,7 +234,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetFluxOnly(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetFluxOnly();
 		}
@@ -248,7 +248,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetAllMaterialsDeltaT(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
+		TPZMatTransientSingleSpace< TRANSIENTCLASS > * trans = dynamic_cast<TPZMatTransientSingleSpace< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetTimeStep(this->TimeStep());
 		}
@@ -443,16 +443,3 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SaveCurrentSolutionVec(){
 		
 	}
 }
-
-//instantiations
-#ifndef STATE_COMPLEX
-#include "pzpoisson3d.h"
-template class TPZTransientAnalysis< TPZMatPoisson3d >;
-
-#include "pznonlinearpoisson3d.h"
-template class TPZTransientAnalysis< TPZNonLinearPoisson3d >;
-
-#include "pzburger.h"
-template class TPZTransientAnalysis< TPZBurger >;
-
-#endif

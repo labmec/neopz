@@ -22,16 +22,14 @@
 #include "TPZSpStructMatrix.h"
 #include "pzsmfrontalanal.h"
 #include "pzsmanal.h"
-#include "pzbndcond.h"
+#include "TPZMaterial.h"
+#include "TPZMatLoadCases.h"
+#include "TPZBndCond.h"
 #include "pzvisualmatrix.h"
 
 #include "pzcondensedcompel.h"
 #include "pzelementgroup.h"
 
-
-#ifndef STATE_COMPLEX
-//#include "pzmathyperelastic.h"
-#endif
 
 #include <stdio.h>
 
@@ -43,142 +41,6 @@
 static TPZLogger logger("pz.mesh.subcmesh");
 static TPZLogger logger2("pz.mesh.tpzcompmesh");
 #endif
-
-/// Number of elements to test 
-const int64_t numel=1;
-
-// Construction/Destruction
-#ifndef STATE_COMPLEX
-
-/// Angle in radians to test
-static REAL angle = 0.2;
-
-
-/// Defining function force (external to material) \f$ F(x,y) = (0.5-y)seno(angle) + (x-0.5)[coseno(angle) - 1] \f$ \f$ (F = disp) \f$
-static void Forcing(const TPZVec<REAL> &x, TPZVec<STATE> &disp) {
-	disp[0] = -(x[1]-0.5)*sin(angle)+(x[0]-0.5)*cos(angle)-(x[0]-0.5);
-	disp[1] = (x[1]-0.5)*cos(angle)+(x[0]-0.5)*sin(angle)-(x[1]-0.5);
-	disp[2] = 0.;
-}
-
-int TPZSubCompMesh::main() {
-	//	int index;
-	
-	//Create the Geometric Mesh
-	TPZGeoMesh geo;
-	
-	//Define the output file name
-	std::ofstream output("output.dat");\
-	
-	//Set the basic coordinate nodes
-	double coordstore[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
-	
-	TPZVec<REAL> coord(3,0.);
-	int i,j;
-	
-	//Set the node coordinates
-	for(i=0; i<4*(numel+1); i++) {
-		for (j=0; j<2; j++) {
-			coord[j] = coordstore[i%4][j];
-			coord[2] = i/4;
-		}
-		//   	int nodeindex = geo.NodeVec().AllocateNewElement();
-		geo.NodeVec()[i].Initialize(i,coord,geo);
-	}
-	
-	// create the elements
-	TPZGeoEl *gel[numel];
-	TPZVec<int64_t> indices(8);
-	
-	// Set the connectivities
-	for(i=0; i<numel; i++) {
-		// initialize node indexes
-		for(j=0; j<8; j++) indices[j] = 4*i+j;
-		int64_t index;
-		gel[i] = geo.CreateGeoElement(ECube,indices,1, index);
-	}
-	//	TPZGeoElBC t3(gel[0],20,-1,geo);
-	//	TPZGeoElBC t4(gel[numel-1],25,-2,geo);
-	geo.BuildConnectivity();
-	
-	//Create the computacional mesh
-	TPZCompMesh mesh(&geo);
-	
-	// Insert the materials
-    TPZMaterial * meumat = 0;
-    DebugStop();
-    //new TPZMatHyperElastic(1,1.e5,0.25);
-	mesh.InsertMaterialObject(meumat);
-	
-	//int numeq;
-	TPZVec<int> skyline;
-	
-	// Insert the boundary conditions
-	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
-	TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
-	mesh.InsertMaterialObject(bnd);
-	bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
-    
-	bnd->SetForcingFunction(new TPZDummyFunction<STATE>(Forcing,5));
-	mesh.InsertMaterialObject(bnd);
-	
-	mesh.AutoBuild();
-	mesh.InitializeBlock();
-	
-	
-	//numeq = mesh.NEquations();
-	
-	// Teste 1 colocar os elementos, inclusive intermedi�rios, como sub elementos
-	TPZSubCompMesh *sub[numel];
-	
-	int64_t index = -1;
-	for (i=0;i<numel;i++){
-		sub[i] = new TPZSubCompMesh(mesh,index);
-	}
-	
-	//Teste 2 - Passar todos os sub elementos para os subelementos
-	
-	for (i=0;i<numel;i++){
-		sub[i]->TransferElement(&mesh,i);
-	}
-	
-	for (i=0;i<numel;i++){
-		sub[i]->MakeAllInternal();
-		//		sub[i]->Prints(output);
-	}
-	
-	//	mesh.ComputeNodElCon();
-	//	mesh.Print(output);
-	TPZNonLinearAnalysis an(&mesh,output);
-	
-	
-	//	mesh.Print(output);
-	output.flush();
-	//	TPZFMatrix<REAL> *rhs = new TPZFMatrix(skyline);
-	TPZSkylineStructMatrix<STATE> strskyl(&mesh);
-	an.SetStructuralMatrix(strskyl);
-	an.Solution().Zero();
-	TPZStepSolver<STATE> sol;
-	//	sol.ShareMatrix(an.Solver());
-	sol.SetDirect(ELDLt);
-	an.SetSolver(sol);
-	//	an.Solver().SetDirect(ELDLt);
-	an.IterativeProcess(output,0.00001,5);
-	
-	//mesh.Print(output);
-	sub[0]->LoadSolution();
-	sub[0]->SetName("sub[0]");
-	sub[0]->Print(output);
-	output.flush();
-	
-	return 0;
-}
-#else
-int TPZSubCompMesh::main() {
-    return 0;
-}
-#endif
-
 
 TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int64_t &index) : TPZRegisterClassId(&TPZSubCompMesh::ClassId), TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
 fSingularConnect(-1) {
@@ -1051,7 +913,13 @@ void TPZSubCompMesh::InitializeEF(TPZElementMatrix &ef)
     TPZBlock &block = Mesh()->Block();
     TPZMaterial * mat = MaterialVec().begin()->second;
     int nstate = mat->NStateVariables();
-    int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
     ef.fMesh = Mesh();
     ef.fType = TPZElementMatrix::EF;
     
@@ -1217,7 +1085,13 @@ void TPZSubCompMesh::CalcStiffInternal(TPZElementMatrixT<TVar> &ek, TPZElementMa
 	
 	TPZMaterial * mat = MaterialVec().begin()->second;
 	int nstate = mat->NStateVariables();
-    int numloadcases = mat->NumLoadCases();
+    const int numloadcases = [mat](){
+        if (auto *tmp = dynamic_cast<TPZMatLoadCasesBase*>(mat); tmp){
+            return tmp->NumLoadCases();
+        }else{
+            return 1;
+        }
+    }();
     ek.fMesh = Mesh();
     ef.fMesh = Mesh();
 

@@ -16,9 +16,9 @@
 #include "pzbstrmatrix.h"
 #include "TPZSpStructMatrix.h"
 #include "TPZExactFunction.h"
-#include "TPZMatLaplacian.h"
+#include "Poisson/TPZMatPoisson.h"
 #include "TPZGeoMeshTools.h"
-#include "pzbndcond.h"
+#include "TPZBndCond.h"
 
 #include <catch2/catch.hpp>
 
@@ -33,8 +33,24 @@ namespace threadTest {
   template <class TSTMAT>
   void ComparePostProcError(const int nThreads);
 
-  static void ForcingFunction(const TPZVec <REAL> &pt, TPZVec <STATE> &result);
-  static void ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &sol, TPZFMatrix <STATE> &solDx);
+  constexpr int solOrder{4};
+  auto ExactSolution = [](const TPZVec<REAL> &loc,
+         TPZVec<STATE>&u,
+         TPZFMatrix<STATE>&gradU){
+        const auto &x=loc[0];
+        const auto &y=loc[1];
+        u[0]=(x*x-1)*(y*y-1);
+        gradU(0,0) = 2*x*(y*y-1);
+        gradU(1,0) = 2*y*(x*x-1);
+        gradU(2,0) = 0;//optional
+  };
+  constexpr int rhsPOrder{2};
+  const auto ForcingFunction = [](const TPZVec<REAL>&loc, TPZVec<STATE> &u){
+        const REAL &x = loc[0];
+        const REAL &y = loc[1];
+        u[0] = 2*y*y+2*x*x-4;
+        u[0] *= -1;
+  };
 }
 
 TEST_CASE("Parallel post process error test","[multithread_tests][multithread][struct][analysis]")
@@ -62,16 +78,16 @@ TPZGeoMesh *threadTest::CreateGMesh(const int nDiv, int& matIdVol, int& matIdBC)
 TPZCompMesh *threadTest::CreateCMesh(TPZGeoMesh *gmesh, const int pOrder, const int matIdVol, const int matIdBC)
 {
   auto *cmesh = new TPZCompMesh(gmesh);
-  auto *laplacianMat = new TPZMatLaplacian(matIdVol, threadTest::dim);
+  auto *poissonMat = new TPZMatPoisson(matIdVol, threadTest::dim);
 
-  laplacianMat->SetForcingFunction(ForcingFunction, 10);
+  poissonMat->SetForcingFunction(ForcingFunction, rhsPOrder);
 
-  TPZFNMatrix<1, REAL> val1(1, 1, 0.), val2(1, 1, 0.);
+  TPZFNMatrix<1, REAL> val1(1, 1, 0.);
+  TPZVec<STATE> val2(1, 0.);
   int bctype = 0;
-  val2.Zero();
-  TPZBndCond *bc = laplacianMat->CreateBC(laplacianMat, matIdBC, bctype, val1, val2);
+  TPZBndCond *bc = poissonMat->CreateBC(poissonMat, matIdBC, bctype, val1, val2);
 
-  cmesh->InsertMaterialObject(laplacianMat);
+  cmesh->InsertMaterialObject(poissonMat);
   cmesh->InsertMaterialObject(bc);
 
   cmesh->SetDefaultOrder(pOrder);
@@ -148,17 +164,4 @@ void threadTest::ComparePostProcError(const int nThreads) {
 
   delete cMesh;
   delete gMesh;
-}
-
-static void threadTest::ForcingFunction(const TPZVec <REAL> &pt, TPZVec <STATE> &result) {
-  const auto x = pt[0], y = pt[1];
-  result[0] = 8 * M_PI * M_PI * std::sin(2 * M_PI * x) * std::sin(2 * M_PI * y);
-}
-
-static void threadTest::ExactSolution(const TPZVec <REAL> &pt, TPZVec <STATE> &sol, TPZFMatrix <STATE> &solDx) {
-  const auto x = pt[0], y = pt[1];
-  sol[0] = std::sin(2 * M_PI * x) * std::sin(2 * M_PI * y);
-  solDx(0, 0) = 2 * M_PI * std::cos(2 * M_PI * x) * std::sin(2 * M_PI * y);
-  solDx(1, 0) = 2 * M_PI * std::sin(2 * M_PI * x) * std::cos(2 * M_PI * y);
-  solDx(2, 0) = 0;
 }

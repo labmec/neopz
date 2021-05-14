@@ -13,7 +13,7 @@
 #include "pzflowcmesh.h"
 #include "pzadmchunk.h"
 #include "TPZMaterial.h"
-#include "pzconslaw.h"
+#include "ConsLaw/TPZConsLaw.h"
 #include "pzsolve.h"
 #include "pzdxmesh.h"
 #include "pzstepsolver.h"

@@ -374,21 +374,6 @@ int ClassId() const override;
 	 * of formulation and the neighbours of the element
 	 */
 	virtual void PRefine ( int order ) override { SetDegree( order ); }
-	
-	/** @brief Compute the integral of the square residual over the element domain. */
-	/** 
-	 * For instance, let us take the Poisson's equation: -Laplac(u) = f.
-	 * Then this method compute the integral of ( -Laplac(u) - f )^2.
-	 * For the given example it is observed that approximation orders < 2 will
-	 * not work properly since Laplac(u) is always = 0.
-	 * It works only for elements that lay in the same space dimension of the master element.
-	 */
-	static REAL EvaluateSquareResidual2D(TPZInterpolationSpace *cel);
-	
-	/** @brief Evaluates the square residual for every element in mesh. */
-	static void EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose = false);
-    
-	
 };
 
 inline TPZCompEl *TPZCompElDisc::CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int64_t &index) {

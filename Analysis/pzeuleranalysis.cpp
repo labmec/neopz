@@ -15,7 +15,6 @@
 #include "TPZElementMatrixT.h"
 #include "pzbdstrmatrix.h"
 #include "pzelmat.h"
-#include "tpzoutofrange.h"
 #include <time.h>
 #include "pzlog.h"
 #include "TPZFileStream.h"
@@ -81,7 +80,7 @@ void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<TVar> & deltaSol, REAL & epsil
         AssembleRhs();
         epsilon = Norm(fRhs);
     }
-	catch(TPZOutofRange obj)
+	catch(...)
 	{
 		outofrange = 1;
 		sol -= deltaSol;
@@ -398,7 +397,7 @@ void TPZEulerAnalysis::Run(std::ostream &out, const std::string & dxout, int dxR
 		RunNewton(epsilon_Newton, numIter_Newton);
 		
 		// resetting the forcing function for iterations greater than the 1st
-		fFlowCompMesh->SetFlowforcingFunction(NULL);
+		fFlowCompMesh->SetFlowForcingFunction(nullptr,-1);
 		
 		// buffering the contribution to the RHS
 		BufferLastStateAssemble();
@@ -547,7 +546,7 @@ int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix<STATE> &sol0, TPZFMa
 			AssembleRhs();
 			error = Norm(fRhs);
 		}
-		catch(TPZOutofRange obj)
+		catch(...)
 		{
 			error = 2*preverr+2.;
 		}

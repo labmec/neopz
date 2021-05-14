@@ -13,7 +13,6 @@
 #include "pzerror.h"
 #include "pzconnect.h"
 #include "TPZMaterial.h"
-#include "pzbndcond.h"
 #include "pzmanvector.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
@@ -41,7 +40,8 @@
 #include "pzcompel.h"
 #include <math.h>
 #include <stdio.h>
-#include "pzmaterialdata.h"
+#include "TPZMaterialDataT.h"
+#include "TPZMatSingleSpace.h"
 #include "tpzautopointer.h"
 
 #include "pzlog.h"
@@ -1050,101 +1050,6 @@ int TPZCompElDisc::MaxOrder(){
 		if(extOrder > result) result = extOrder;
 	}
 	return result;
-}
-
-REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
-	
-	if (cel->NConnects() == 0) return 0.;//boundary discontinuous elements have this characteristic
-	
-	cel->LoadElementReference();
-	
-	//creating discontinuous element
-	TPZCompMesh tempMesh(cel->Mesh()->Reference());
-	tempMesh.InsertMaterialObject( cel->Material() );
-	
-	int64_t index;
-	TPZCompElDisc * disc = new TPZCompElDisc(tempMesh, cel->Reference(), index);
-	disc->SetTensorialShapeFull();
-	disc->SetDegree(2*cel->MaxOrder());
-	TPZCompElDisc * celdisc = dynamic_cast<TPZCompElDisc*>(cel);
-	if(celdisc){
-		disc->fExternalShape = celdisc->fExternalShape;
-	}
-	tempMesh.InitializeBlock();
-	
-	//interpolating solution
-	disc->InterpolateSolution(*cel);
-	
-	//integrating residual
-	TPZMaterial * material = disc->Material();
-	if(!material){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
-		DebugStop();
-		return -1.;
-	}
-	//TODOCOMPLEX
-	TPZMaterialData data;
-	disc->InitMaterialData(data);
-	data.p = disc->MaxOrder();
-	const int dim = disc->Dimension();
-	
-	TPZAutoPointer<TPZIntPoints> intrule = cel->GetIntegrationRule().Clone();
-    int intorder = material->IntegrationRuleOrder(data.p);
-    if(material->HasForcingFunction())
-    {
-        intorder = intrule->GetMaxOrder();
-    }
-    TPZManVector<int,3> order(dim,intorder);
-    intrule->SetOrder(order);
-	//  material->SetIntegrationRule(intrule, data.p, dim);
-	
-	TPZManVector<REAL,3> intpoint(dim,0.);
-	REAL weight = 0.; 
-	
-	REAL SquareResidual = 0.;
-	int intrulepoints = intrule->NPoints();
-	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-		intrule->Point(int_ind,intpoint,weight);
-		//disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
-        disc->ComputeShape(intpoint, data);
-		disc->ReallyComputeSolution(data);
-		weight *= fabs(data.detjac);
-		SquareResidual += material->ComputeSquareResidual(data.x,data.sol[0],data.dsol[0]) * weight;
-	}//loop over integration points  
-	
-	delete disc;
-	cel->LoadElementReference();
-	cel->Mesh()->LoadReferences();
-	
-	return SquareResidual;
-	
-}
-
-void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose){
-	
-	const int64_t nel = cmesh.NElements();
-	error.Resize(nel);
-	error.Fill(-1.);
-	double elerror;
-	for(int64_t iel = 0; iel < nel; iel++){
-		if(verbose){
-			std::cout << "Evaluating square residual of element " << iel << "\n";
-			std::cout.flush();
-		}
-		TPZCompEl * cel = cmesh.ElementVec()[iel];
-		if(!cel) continue;
-		TPZInterpolationSpace * sp = dynamic_cast< TPZInterpolationSpace * > (cel);
-		if(!sp) continue;
-		if(sp->Reference()->Dimension() != 2) continue;
-		elerror = TPZCompElDisc::EvaluateSquareResidual2D(sp);
-		error[iel] = elerror;
-	}//for
-	
-	if(verbose){
-		std::cout << "Evaluation of square residual completed." << "\n";
-		std::cout.flush();
-	}
-	
 }
 
 /** @brief adds the connect indexes associated with base shape functions to the set */
