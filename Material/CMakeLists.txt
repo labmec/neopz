@@ -113,5 +113,7 @@ add_subdirectory(Projection)
 add_subdirectory(Poisson)
 #electromagnetic materials
 add_subdirectory(Electromagnetics)
+#Darcy flow materials
+add_subdirectory(DarcyFlow)
 
 set(PZ_PUBLIC_HEADERS ${PZ_PUBLIC_HEADERS} PARENT_SCOPE)
