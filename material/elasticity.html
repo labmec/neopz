@@ -1,0 +1,562 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Elasticity Group &mdash; NeoPZ  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> NeoPZ
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="materialindex.html">The Material hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/structindex.html">The StructMatrix hierarchy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NeoPZ</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Elasticity Group</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/material/elasticity.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="elasticity-group">
+<h1>Elasticity Group<a class="headerlink" href="#elasticity-group" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#tpzelasticity2d" id="id1">TPZElasticity2D</a></p></li>
+<li><p><a class="reference internal" href="#tpzelasticity3d" id="id2">TPZElasticity3D</a></p></li>
+</ul>
+</div>
+<p>This group has materials related to problems involving elasticity.</p>
+<div class="section" id="tpzelasticity2d">
+<h2><a class="toc-backref" href="#id1">TPZElasticity2D</a><a class="headerlink" href="#tpzelasticity2d" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv415TPZElasticity2D">
+<span id="_CPPv315TPZElasticity2D"></span><span id="_CPPv215TPZElasticity2D"></span><span id="TPZElasticity2D"></span><span class="target" id="classTPZElasticity2D"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity2D</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n"><span class="pre">TPZMatLoadCases</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><br /></dt>
+<dd><p>This class implements a two dimensional elastic material in plane stress or strain. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-elasticity">Elasticity</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D13SetElasticityE5STATE5STATE">
+<span id="_CPPv3N15TPZElasticity2D13SetElasticityE5STATE5STATE"></span><span id="_CPPv2N15TPZElasticity2D13SetElasticityE5STATE5STATE"></span><span id="TPZElasticity2D::SetElasticity__STATE.STATE"></span><span class="target" id="classTPZElasticity2D_1a7a3495aefd720c405151e24b72cc1e25"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetElasticity</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">E</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nu</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set elasticity parameters. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D21SetElasticityFunctionE22ElasticityFunctionType">
+<span id="_CPPv3N15TPZElasticity2D21SetElasticityFunctionE22ElasticityFunctionType"></span><span id="_CPPv2N15TPZElasticity2D21SetElasticityFunctionE22ElasticityFunctionType"></span><span id="TPZElasticity2D::SetElasticityFunction__ElasticityFunctionType"></span><span class="target" id="classTPZElasticity2D_1aa89e0389b9afa80aa4600ff99b9fb0da"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetElasticityFunction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ElasticityFunctionType</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">func</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set a variable elasticity and poisson coefficient. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D14SetPlaneStrainEv">
+<span id="_CPPv3N15TPZElasticity2D14SetPlaneStrainEv"></span><span id="_CPPv2N15TPZElasticity2D14SetPlaneStrainEv"></span><span id="TPZElasticity2D::SetPlaneStrain"></span><span class="target" id="classTPZElasticity2D_1aac7b2f4f149038c5d2b6ca0c3158ccd4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPlaneStrain</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set the material configuration to plane strain. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D14SetPlaneStressEv">
+<span id="_CPPv3N15TPZElasticity2D14SetPlaneStressEv"></span><span id="_CPPv2N15TPZElasticity2D14SetPlaneStressEv"></span><span id="TPZElasticity2D::SetPlaneStress"></span><span class="target" id="classTPZElasticity2D_1aeec2ef18e5469f21fbc035ee1b778dc9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPlaneStress</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set the material configuration to plane stress. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D12SetBodyForceE5STATE5STATE">
+<span id="_CPPv3N15TPZElasticity2D12SetBodyForceE5STATE5STATE"></span><span id="_CPPv2N15TPZElasticity2D12SetBodyForceE5STATE5STATE"></span><span id="TPZElasticity2D::SetBodyForce__STATE.STATE"></span><span class="target" id="classTPZElasticity2D_1a9aaca23f1a2586d8defd970c79d8fbe2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetBodyForce</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">fx</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">fy</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set forcing function. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D1EEv">
+<span id="_CPPv3N15TPZElasticity2D1EEv"></span><span id="_CPPv2N15TPZElasticity2D1EEv"></span><span id="TPZElasticity2D::E"></span><span class="target" id="classTPZElasticity2D_1a467bb640a8e69bdba65e8dda89a5f4f4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">E</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Returns the elasticity modulus E. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D2NuEv">
+<span id="_CPPv3N15TPZElasticity2D2NuEv"></span><span id="_CPPv2N15TPZElasticity2D2NuEv"></span><span id="TPZElasticity2D::Nu"></span><span class="target" id="classTPZElasticity2D_1ae510394ce137b65030d0668dd1aa74a4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Nu</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Returns the poison coefficient modulus E. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D12SetPreStressE5STATE5STATE5STATE5STATE">
+<span id="_CPPv3N15TPZElasticity2D12SetPreStressE5STATE5STATE5STATE5STATE"></span><span id="_CPPv2N15TPZElasticity2D12SetPreStressE5STATE5STATE5STATE5STATE"></span><span id="TPZElasticity2D::SetPreStress__STATE.STATE.STATE.STATE"></span><span class="target" id="classTPZElasticity2D_1ab1834077520d4e54ce65afcd0a3e7dcc"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPreStress</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">Sigxx</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">Sigyy</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">Sigxy</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">Sigzz</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set PresStress Tensor. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-contribute-methods">Contribute methods</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE">
+<span id="_CPPv3N15TPZElasticity2D10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE"></span><span id="_CPPv2N15TPZElasticity2D10ContributeERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEE"></span><span id="TPZElasticity2D::Contribute__TPZMaterialDataT:STATE:CR.STATE.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R"></span><span class="target" id="classTPZElasticity2D_1a3581c07aff6b9ab28cafb41f18464f4c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Calculates the element stiffness matrix. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE">
+<span id="_CPPv3N15TPZElasticity2D12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="_CPPv2N15TPZElasticity2D12ContributeBCERK16TPZMaterialDataTI5STATEE5STATER10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="TPZElasticity2D::ContributeBC__TPZMaterialDataT:STATE:CR.STATE.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R.TPZBndCondT:STATE:R"></span><span class="target" id="classTPZElasticity2D_1aeabc00d85e7c01b7733bda114f2f1f3c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Applies the element boundary conditions. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-solution">Solution</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D13VariableIndexERKNSt6stringE">
+<span id="_CPPv3NK15TPZElasticity2D13VariableIndexERKNSt6stringE"></span><span id="_CPPv2NK15TPZElasticity2D13VariableIndexERKNSt6stringE"></span><span id="TPZElasticity2D::VariableIndex__ssCRC"></span><span class="target" id="classTPZElasticity2D_1a84ee68502b2068309fcb6ba25d10054f"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VariableIndex</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the variable index associated with the name. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D18NSolutionVariablesEi">
+<span id="_CPPv3NK15TPZElasticity2D18NSolutionVariablesEi"></span><span id="_CPPv2NK15TPZElasticity2D18NSolutionVariablesEi"></span><span id="TPZElasticity2D::NSolutionVariables__iC"></span><span class="target" id="classTPZElasticity2D_1ae1954101d88acdecc04c149026ab853f"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NSolutionVariables</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the number of variables associated with the variable indexed by var. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE">
+<span id="_CPPv3N15TPZElasticity2D8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE"></span><span id="_CPPv2N15TPZElasticity2D8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE"></span><span id="TPZElasticity2D::Solution__TPZMaterialDataT:STATE:CR.i.TPZVec:STATE:R"></span><span class="target" id="classTPZElasticity2D_1a0c08ae7b9b94deadc7e3bdaa6719dbd1"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solution</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Solout</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the solution associated with the var index based on the finite element approximation. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-errors">Errors</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D11NEvalErrorsEv">
+<span id="_CPPv3N15TPZElasticity2D11NEvalErrorsEv"></span><span id="_CPPv2N15TPZElasticity2D11NEvalErrorsEv"></span><span id="TPZElasticity2D::NEvalErrors"></span><span class="target" id="classTPZElasticity2D_1a089cc4dcc0d37fb77c37911a318310f4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the number of norm errors. Default is 3: energy, L2 and H1. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-readwrite">ReadWrite</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D7ClassIdEv">
+<span id="_CPPv3NK15TPZElasticity2D7ClassIdEv"></span><span id="_CPPv2NK15TPZElasticity2D7ClassIdEv"></span><span id="TPZElasticity2D::ClassIdC"></span><span class="target" id="classTPZElasticity2D_1a45b1b7bc6588a756d7a42696511605ea"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Read and Write methods. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D4ReadER9TPZStreamPv">
+<span id="_CPPv3N15TPZElasticity2D4ReadER9TPZStreamPv"></span><span id="_CPPv2N15TPZElasticity2D4ReadER9TPZStreamPv"></span><span id="TPZElasticity2D::Read__TPZStreamR.voidP"></span><span class="target" id="classTPZElasticity2D_1a1ff474ed4fcd3dee85d9ee632b5d2a6b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Read</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">context</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Reads an objects from the TPZStream buffer. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D5WriteER9TPZStreami">
+<span id="_CPPv3NK15TPZElasticity2D5WriteER9TPZStreami"></span><span id="_CPPv2NK15TPZElasticity2D5WriteER9TPZStreami"></span><span id="TPZElasticity2D::Write__TPZStreamR.iC"></span><span class="target" id="classTPZElasticity2D_1a59a0222418b5e4ceb50ff083f567c472"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Writes this object to the TPZStream buffer. Include the classid if <code class="docutils literal notranslate"><span class="pre">withclassid</span> <span class="pre">=</span> <span class="pre">true</span></code> </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity2D15TPZElasticity2DEi5STATE5STATE5STATE5STATEi">
+<span id="_CPPv3N15TPZElasticity2D15TPZElasticity2DEi5STATE5STATE5STATE5STATEi"></span><span id="_CPPv2N15TPZElasticity2D15TPZElasticity2DEi5STATE5STATE5STATE5STATEi"></span><span id="TPZElasticity2D::TPZElasticity2D__i.STATE.STATE.STATE.STATE.i"></span><span class="target" id="classTPZElasticity2D_1ab564e10e3f53802ba29b4d4ed9c95420"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity2D</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">id</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">E</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nu</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">fx</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">fy</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">planestress</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Creates an elastic material with: </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> – material id </p></li>
+<li><p><strong>E</strong> – elasticity modulus </p></li>
+<li><p><strong>nu</strong> – poisson coefficient </p></li>
+<li><p><strong>fx</strong> – forcing function <span class="math notranslate nohighlight">\( -x = fx \)</span> </p></li>
+<li><p><strong>fy</strong> – forcing function <span class="math notranslate nohighlight">\( -y = fy \)</span> </p></li>
+<li><p><strong>plainstress</strong> – <span class="math notranslate nohighlight">\( plainstress = 1 \)</span> indicates use of plainstress </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D9DimensionEv">
+<span id="_CPPv3NK15TPZElasticity2D9DimensionEv"></span><span id="_CPPv2NK15TPZElasticity2D9DimensionEv"></span><span id="TPZElasticity2D::DimensionC"></span><span class="target" id="classTPZElasticity2D_1aa884ba1ab34814904c29baec5ce5649e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Dimension</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the model dimension. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D15NStateVariablesEv">
+<span id="_CPPv3NK15TPZElasticity2D15NStateVariablesEv"></span><span id="_CPPv2NK15TPZElasticity2D15NStateVariablesEv"></span><span id="TPZElasticity2D::NStateVariablesC"></span><span class="target" id="classTPZElasticity2D_1a3243af934e767c83b2c766927678722c"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NStateVariables</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the number of state variables associated with the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D5PrintERNSt7ostreamE">
+<span id="_CPPv3NK15TPZElasticity2D5PrintERNSt7ostreamE"></span><span id="_CPPv2NK15TPZElasticity2D5PrintERNSt7ostreamE"></span><span id="TPZElasticity2D::Print__osRC"></span><span class="target" id="classTPZElasticity2D_1a386fe5714c21ba90bd44a08203dae6d4"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Print the material data. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D4NameEv">
+<span id="_CPPv3NK15TPZElasticity2D4NameEv"></span><span id="_CPPv2NK15TPZElasticity2D4NameEv"></span><span id="TPZElasticity2D::NameC"></span><span class="target" id="classTPZElasticity2D_1a4ee7cf5e011be7297a0f6bb3668903b9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the material name. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity2D11NewMaterialEv">
+<span id="_CPPv3NK15TPZElasticity2D11NewMaterialEv"></span><span id="_CPPv2NK15TPZElasticity2D11NewMaterialEv"></span><span id="TPZElasticity2D::NewMaterialC"></span><span class="target" id="classTPZElasticity2D_1acd474785926a4d4e2a469190f6075d12"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n"><span class="pre">TPZMaterial</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewMaterial</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Creates a new material from the current object ?? </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="tpzelasticity3d">
+<h2><a class="toc-backref" href="#id2">TPZElasticity3D</a><a class="headerlink" href="#tpzelasticity3d" title="Permalink to this headline">¶</a></h2>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv415TPZElasticity3D">
+<span id="_CPPv315TPZElasticity3D"></span><span id="_CPPv215TPZElasticity3D"></span><span id="TPZElasticity3D"></span><span class="target" id="classTPZElasticity3D"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity3D</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n"><span class="pre">TPZMatBase</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n"><span class="pre">TPZMatLoadCases</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">&gt;</span></span><br /></dt>
+<dd><p>This class implements a 3D isotropic elasticity material. </p>
+<p><dl class="simple">
+<dt><strong>Since</strong></dt><dd><p>Aug 31, 2005. </p>
+</dd>
+</dl>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D15TPZElasticity3DEi5STATE5STATER6TPZVecI5STATEE5STATE5STATE5STATE">
+<span id="_CPPv3N15TPZElasticity3D15TPZElasticity3DEi5STATE5STATER6TPZVecI5STATEE5STATE5STATE5STATE"></span><span id="_CPPv2N15TPZElasticity3D15TPZElasticity3DEi5STATE5STATER6TPZVecI5STATEE5STATE5STATE5STATE"></span><span id="TPZElasticity3D::TPZElasticity3D__i.STATE.STATE.TPZVec:STATE:R.STATE.STATE.STATE"></span><span class="target" id="classTPZElasticity3D_1ac8db01ce68f9df0818a1a09c6107a539"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity3D</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nummat</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">E</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">poisson</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">force</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">preStressXX</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">preStressYY</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.</span></span>, <span class="n"><span class="pre">STATE</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">preStressZZ</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Class constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nummat</strong> – - material ID. </p></li>
+<li><p><strong>E</strong> – - Young’s modulus. </p></li>
+<li><p><strong>poisson</strong> – - poisson’s ratio </p></li>
+<li><p><strong>force</strong> – - external forces </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D15TPZElasticity3DEi">
+<span id="_CPPv3N15TPZElasticity3D15TPZElasticity3DEi"></span><span id="_CPPv2N15TPZElasticity3D15TPZElasticity3DEi"></span><span id="TPZElasticity3D::TPZElasticity3D__i"></span><span class="target" id="classTPZElasticity3D_1adf4111afbbd53e859490059e460484f4"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity3D</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">nummat</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nummat</strong> – - material ID. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D15TPZElasticity3DEv">
+<span id="_CPPv3N15TPZElasticity3D15TPZElasticity3DEv"></span><span id="_CPPv2N15TPZElasticity3D15TPZElasticity3DEv"></span><span id="TPZElasticity3D::TPZElasticity3D"></span><span class="target" id="classTPZElasticity3D_1a84bfafe6afd82cf1ba5d56d3eb1d7a36"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity3D</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D15TPZElasticity3DERK15TPZElasticity3D">
+<span id="_CPPv3N15TPZElasticity3D15TPZElasticity3DERK15TPZElasticity3D"></span><span id="_CPPv2N15TPZElasticity3D15TPZElasticity3DERK15TPZElasticity3D"></span><span id="TPZElasticity3D::TPZElasticity3D__TPZElasticity3DCR"></span><span class="target" id="classTPZElasticity3D_1a15110b80485dd2427121259363aa6d76"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZElasticity3D</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="availablemats.html#_CPPv4N15TPZElasticity3D15TPZElasticity3DERK15TPZElasticity3D" title="TPZElasticity3D::TPZElasticity3D"><span class="n"><span class="pre">TPZElasticity3D</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cp</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Copy constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3DD0Ev">
+<span id="_CPPv3N15TPZElasticity3DD0Ev"></span><span id="_CPPv2N15TPZElasticity3DD0Ev"></span><span id="TPZElasticity3D::~TPZElasticity3D"></span><span class="target" id="classTPZElasticity3D_1a874a39532600ddf4f5d3805c495c7d25"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">~TPZElasticity3D</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Default destructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D9DimensionEv">
+<span id="_CPPv3NK15TPZElasticity3D9DimensionEv"></span><span id="_CPPv2NK15TPZElasticity3D9DimensionEv"></span><span id="TPZElasticity3D::DimensionC"></span><span class="target" id="classTPZElasticity3D_1aa455c0cb124054c5427898ab19d263f1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Dimension</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns model dimension. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D15NStateVariablesEv">
+<span id="_CPPv3NK15TPZElasticity3D15NStateVariablesEv"></span><span id="_CPPv2NK15TPZElasticity3D15NStateVariablesEv"></span><span id="TPZElasticity3D::NStateVariablesC"></span><span class="target" id="classTPZElasticity3D_1a8712042a584a7d4f1572c0b090379561"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NStateVariables</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Number of state variables. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D20IntegrationRuleOrderEi">
+<span id="_CPPv3NK15TPZElasticity3D20IntegrationRuleOrderEi"></span><span id="_CPPv2NK15TPZElasticity3D20IntegrationRuleOrderEi"></span><span id="TPZElasticity3D::IntegrationRuleOrder__iC"></span><span class="target" id="classTPZElasticity3D_1a1946ff9aa5395d491de1444fe874835c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IntegrationRuleOrder</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">elPMaxOrder</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Gets the order of the integration rule necessary to integrate an element with polinomial order p. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D5PrintERNSt7ostreamE">
+<span id="_CPPv3NK15TPZElasticity3D5PrintERNSt7ostreamE"></span><span id="_CPPv2NK15TPZElasticity3D5PrintERNSt7ostreamE"></span><span id="TPZElasticity3D::Print__osRC"></span><span class="target" id="classTPZElasticity3D_1a92824399057eefa830df565be913da3a"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Print material report. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D26SetPostProcessingDirectionER6TPZVecI4REALE">
+<span id="_CPPv3N15TPZElasticity3D26SetPostProcessingDirectionER6TPZVecI4REALE"></span><span id="_CPPv2N15TPZElasticity3D26SetPostProcessingDirectionER6TPZVecI4REALE"></span><span id="TPZElasticity3D::SetPostProcessingDirection__TPZVec:REAL:R"></span><span class="target" id="classTPZElasticity3D_1aa926f6926369cb980c87fdfe59248dd6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostProcessingDirection</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Direction</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p><p>Direction to post process stress and strain.</p>
+<p>Result of post processing is (Stress.Direction) or (Strain.Direction)</p>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D4NameEv">
+<span id="_CPPv3NK15TPZElasticity3D4NameEv"></span><span id="_CPPv2NK15TPZElasticity3D4NameEv"></span><span id="TPZElasticity3D::NameC"></span><span class="target" id="classTPZElasticity3D_1ad24ac14bc0bb61a5de62768b11bf8609"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Name</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Material name. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D12ContributeBCERK16TPZMaterialDataTI5STATEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE">
+<span id="_CPPv3N15TPZElasticity3D12ContributeBCERK16TPZMaterialDataTI5STATEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="_CPPv2N15TPZElasticity3D12ContributeBCERK16TPZMaterialDataTI5STATEE4REALR10TPZFMatrixI5STATEER10TPZFMatrixI5STATEER11TPZBndCondTI5STATEE"></span><span id="TPZElasticity3D::ContributeBC__TPZMaterialDataT:STATE:CR.REAL.TPZFMatrix:STATE:R.TPZFMatrix:STATE:R.TPZBndCondT:STATE:R"></span><span class="target" id="classTPZElasticity3D_1afda16804df6dcecd02a559c0f5695647"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Implements Dirichlet and Neumann boundary conditions. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D13VariableIndexERKNSt6stringE">
+<span id="_CPPv3NK15TPZElasticity3D13VariableIndexERKNSt6stringE"></span><span id="_CPPv2NK15TPZElasticity3D13VariableIndexERKNSt6stringE"></span><span id="TPZElasticity3D::VariableIndex__ssCRC"></span><span class="target" id="classTPZElasticity3D_1a680bcdea8618de3d20d8b630e946cd27"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">VariableIndex</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">name</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns index of post-processing variable. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D18NSolutionVariablesEi">
+<span id="_CPPv3NK15TPZElasticity3D18NSolutionVariablesEi"></span><span id="_CPPv2NK15TPZElasticity3D18NSolutionVariablesEi"></span><span id="TPZElasticity3D::NSolutionVariables__iC"></span><span class="target" id="classTPZElasticity3D_1a71f2583a891fbc69ef9c63f992e54db0"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NSolutionVariables</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Number of data of variable var. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE">
+<span id="_CPPv3N15TPZElasticity3D8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE"></span><span id="_CPPv2N15TPZElasticity3D8SolutionERK16TPZMaterialDataTI5STATEEiR6TPZVecI5STATEE"></span><span id="TPZElasticity3D::Solution__TPZMaterialDataT:STATE:CR.i.TPZVec:STATE:R"></span><span class="target" id="classTPZElasticity3D_1a49dcdab42f07e8d139e75956ba4b0f22"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solution</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">STATE</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Solout</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the solution associated with the var index based on the finite element approximation. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D11NEvalErrorsEv">
+<span id="_CPPv3N15TPZElasticity3D11NEvalErrorsEv"></span><span id="_CPPv2N15TPZElasticity3D11NEvalErrorsEv"></span><span id="TPZElasticity3D::NEvalErrors"></span><span class="target" id="classTPZElasticity3D_1ab1a07ef277af4f705e90007b1f413ca5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Returns the number of norm errors: 3 (Semi H1, L2 and H1) </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D20FillDataRequirementsER15TPZMaterialData">
+<span id="_CPPv3NK15TPZElasticity3D20FillDataRequirementsER15TPZMaterialData"></span><span id="_CPPv2NK15TPZElasticity3D20FillDataRequirementsER15TPZMaterialData"></span><span id="TPZElasticity3D::FillDataRequirements__TPZMaterialDataRC"></span><span class="target" id="classTPZElasticity3D_1a8a862a26772155aad47d85dc6c178700"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillDataRequirements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="materialindex.html#_CPPv415TPZMaterialData" title="TPZMaterialData"><span class="n"><span class="pre">TPZMaterialData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Fill material data parameter with necessary requirements for the Contribute method. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D36FillBoundaryConditionDataRequirementEiR15TPZMaterialData">
+<span id="_CPPv3NK15TPZElasticity3D36FillBoundaryConditionDataRequirementEiR15TPZMaterialData"></span><span id="_CPPv2NK15TPZElasticity3D36FillBoundaryConditionDataRequirementEiR15TPZMaterialData"></span><span id="TPZElasticity3D::FillBoundaryConditionDataRequirement__i.TPZMaterialDataRC"></span><span class="target" id="classTPZElasticity3D_1afc50f782e6bc192ca02d63790d691853"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillBoundaryConditionDataRequirement</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <a class="reference internal" href="materialindex.html#_CPPv415TPZMaterialData" title="TPZMaterialData"><span class="n"><span class="pre">TPZMaterialData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D5WriteER9TPZStreami">
+<span id="_CPPv3NK15TPZElasticity3D5WriteER9TPZStreami"></span><span id="_CPPv2NK15TPZElasticity3D5WriteER9TPZStreami"></span><span id="TPZElasticity3D::Write__TPZStreamR.iC"></span><span class="target" id="classTPZElasticity3D_1aba6cbd3ca286e2f61a935c8b98a909a5"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Write</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">withclassid</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Saves the element data to a stream. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N15TPZElasticity3D4ReadER9TPZStreamPv">
+<span id="_CPPv3N15TPZElasticity3D4ReadER9TPZStreamPv"></span><span id="_CPPv2N15TPZElasticity3D4ReadER9TPZStreamPv"></span><span id="TPZElasticity3D::Read__TPZStreamR.voidP"></span><span class="target" id="classTPZElasticity3D_1a875349a7f7aa3ef0067399f9c525fa43"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Read</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZStream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">context</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Reads the element data from a stream. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D7ClassIdEv">
+<span id="_CPPv3NK15TPZElasticity3D7ClassIdEv"></span><span id="_CPPv2NK15TPZElasticity3D7ClassIdEv"></span><span id="TPZElasticity3D::ClassIdC"></span><span class="target" id="classTPZElasticity3D_1a37c40fb417c51488467860a582e92b84"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Unique identifier for each class. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK15TPZElasticity3D11NewMaterialEv">
+<span id="_CPPv3NK15TPZElasticity3D11NewMaterialEv"></span><span id="_CPPv2NK15TPZElasticity3D11NewMaterialEv"></span><span id="TPZElasticity3D::NewMaterialC"></span><span class="target" id="classTPZElasticity3D_1aa75ae4b5009a7a41f89121964c3def89"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv411TPZMaterial" title="TPZMaterial"><span class="n"><span class="pre">TPZMaterial</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">NewMaterial</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Creates a new material from the current object ?? </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Philippe Devloo et al.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,881 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>The Single Space Material Group &mdash; NeoPZ  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The Combined Spaces Material Group" href="combinedspaces.html" />
+    <link rel="prev" title="The Material hierarchy" href="materialindex.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> NeoPZ
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="materialindex.html">The Material hierarchy</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The Single Space Material Group</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-space-materials">Single Space Materials</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#single-space-boundary-conditions">Single Space Boundary Conditions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#available-interfaces">Available Interfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#interface">Interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#error">Error</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#load-cases">Load cases</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#memory">Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generalised-eigenvalue-problem">Generalised Eigenvalue Problem</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="combinedspaces.html">The Combined Spaces Material Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="availablemats.html">Available Materials in NeoPZ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="materialindex.html#the-material-group">The Material Group</a></li>
+<li class="toctree-l2"><a class="reference internal" href="materialindex.html#material-data">Material Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="materialindex.html#boundary-conditions">Boundary Conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="materialindex.html#material-interfaces">Material Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/structindex.html">The StructMatrix hierarchy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NeoPZ</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="materialindex.html">The Material hierarchy</a> &raquo;</li>
+        
+      <li>The Single Space Material Group</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/material/singlespace.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="the-single-space-material-group">
+<span id="section-single-mat"></span><h1>The Single Space Material Group<a class="headerlink" href="#the-single-space-material-group" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#single-space-materials" id="id1">Single Space Materials</a></p>
+<ul>
+<li><p><a class="reference internal" href="#single-space-boundary-conditions" id="id2">Single Space Boundary Conditions</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#available-interfaces" id="id3">Available Interfaces</a></p>
+<ul>
+<li><p><a class="reference internal" href="#interface" id="id4">Interface</a></p></li>
+<li><p><a class="reference internal" href="#error" id="id5">Error</a></p></li>
+<li><p><a class="reference internal" href="#load-cases" id="id6">Load cases</a></p></li>
+<li><p><a class="reference internal" href="#memory" id="id7">Memory</a></p></li>
+<li><p><a class="reference internal" href="#generalised-eigenvalue-problem" id="id8">Generalised Eigenvalue Problem</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="single-space-materials">
+<h2><a class="toc-backref" href="#id1">Single Space Materials</a><a class="headerlink" href="#single-space-materials" title="Permalink to this headline">¶</a></h2>
+<p>The <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n">TPZMatSingleSpaceT</span></a></span> interface is dedicated for implementing weak formulations using only one approximation space (regardless of which). Any given material using only one approximation space should then inherit from <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="materialindex.html#_CPPv4I0DpE10TPZMatBase" title="TPZMatBase"><span class="n">TPZMatBase</span></a><span class="p">&lt;</span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n">TPZMatSingleSpaceT</span></a><span class="p">&lt;</span><span class="n">TVar</span><span class="p">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">AnyInterfaces</span><span class="p">&gt;</span></span>. As an example of single space materials, check <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="availablemats.html#_CPPv415TPZElasticity3D" title="TPZElasticity3D"><span class="n">TPZElasticity3D</span></a></span> or <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="availablemats.html#_CPPv4I0E13TPZMatPoisson" title="TPZMatPoisson"><span class="n">TPZMatPoisson</span></a></span>.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv417TPZMatSingleSpace">
+<span id="_CPPv317TPZMatSingleSpace"></span><span id="_CPPv217TPZMatSingleSpace"></span><span id="TPZMatSingleSpace"></span><span class="target" id="classTPZMatSingleSpace"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatSingleSpace</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv417TPZMatSingleSpace" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This class is a fundamental part of the <a class="reference internal" href="materialindex.html#classTPZMaterial"><span class="std std-ref">TPZMaterial</span></a> group. It contains the type-agonstic interfaces that simple (non-multiphysics) materials should implement. </p>
+<p>Subclassed by <a class="reference internal" href="#classTPZMatSingleSpaceT"><span class="std std-ref">TPZMatSingleSpaceT&lt; TVar &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N17TPZMatSingleSpace17TPZMatSingleSpaceEv">
+<span id="_CPPv3N17TPZMatSingleSpace17TPZMatSingleSpaceEv"></span><span id="_CPPv2N17TPZMatSingleSpace17TPZMatSingleSpaceEv"></span><span id="TPZMatSingleSpace::TPZMatSingleSpace"></span><span class="target" id="classTPZMatSingleSpace_1a631f516f4364bd2af81729f2555dbb2a"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatSingleSpace</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N17TPZMatSingleSpace17TPZMatSingleSpaceEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMatSingleSpace20FillDataRequirementsER15TPZMaterialData">
+<span id="_CPPv3NK17TPZMatSingleSpace20FillDataRequirementsER15TPZMaterialData"></span><span id="_CPPv2NK17TPZMatSingleSpace20FillDataRequirementsER15TPZMaterialData"></span><span id="TPZMatSingleSpace::FillDataRequirements__TPZMaterialDataRC"></span><span class="target" id="classTPZMatSingleSpace_1abe7cbaf61e02c1ebd8f9bb5494e2e206"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillDataRequirements</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="materialindex.html#_CPPv415TPZMaterialData" title="TPZMaterialData"><span class="n"><span class="pre">TPZMaterialData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK17TPZMatSingleSpace20FillDataRequirementsER15TPZMaterialData" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Fill the <a class="reference internal" href="materialindex.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a> parameter. The needed parameters for the calculations of the Contribute methods should be set.By default, all requirements are considered to be false. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>The</strong> – <a class="reference internal" href="materialindex.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a> instance to be filled </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMatSingleSpace36FillBoundaryConditionDataRequirementEiR15TPZMaterialData">
+<span id="_CPPv3NK17TPZMatSingleSpace36FillBoundaryConditionDataRequirementEiR15TPZMaterialData"></span><span id="_CPPv2NK17TPZMatSingleSpace36FillBoundaryConditionDataRequirementEiR15TPZMaterialData"></span><span id="TPZMatSingleSpace::FillBoundaryConditionDataRequirement__i.TPZMaterialDataRC"></span><span class="target" id="classTPZMatSingleSpace_1a4c3c753ff00a588712f2b13bbd46ec5e"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillBoundaryConditionDataRequirement</span></span></span><span class="sig-paren">(</span><span class="pre">[[maybe_unused]]</span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="pre">[[maybe_unused]]</span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv415TPZMaterialData" title="TPZMaterialData"><span class="n"><span class="pre">TPZMaterialData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK17TPZMatSingleSpace36FillBoundaryConditionDataRequirementEiR15TPZMaterialData" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Fill the <a class="reference internal" href="materialindex.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a> parameter for boundary condition. The needed parameters for the calculations at the boundaries should be set. By default, all requirements are considered to be false. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> – Boundary condition type. </p></li>
+<li><p><strong>data</strong> – The <a class="reference internal" href="materialindex.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a> instance to be filled </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMatSingleSpace20IntegrationRuleOrderEKi">
+<span id="_CPPv3NK17TPZMatSingleSpace20IntegrationRuleOrderEKi"></span><span id="_CPPv2NK17TPZMatSingleSpace20IntegrationRuleOrderEKi"></span><span id="TPZMatSingleSpace::IntegrationRuleOrder__iCC"></span><span class="target" id="classTPZMatSingleSpace_1a0251e82d83f741a276494d9911100a53"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IntegrationRuleOrder</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">elPMaxOrder</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK17TPZMatSingleSpace20IntegrationRuleOrderEKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the order of the integration rule necessary to integrate an element with polynomial order <code class="docutils literal notranslate"><span class="pre">p</span></code> taking the forcing function order into account. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elPMaxOrder</strong> – <strong>[in]</strong> maximum element order </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>adjusted integration rule order </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMatSingleSpace16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t">
+<span id="_CPPv3NK17TPZMatSingleSpace16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t"></span><span id="_CPPv2NK17TPZMatSingleSpace16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t"></span><span id="TPZMatSingleSpace::GetSolDimensions__uint64_tR.uint64_tR.uint64_tRC"></span><span class="target" id="classTPZMatSingleSpace_1a27283036ef35e3c536feb235ae8161ac"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetSolDimensions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">u_len</span></span>, <span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">du_row</span></span>, <span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">du_col</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK17TPZMatSingleSpace16GetSolDimensionsER8uint64_tR8uint64_tR8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the dimensions of the solution for each state variable. This will be used for initializing the corresponding <a class="reference internal" href="materialindex.html#classTPZMaterialData"><span class="std std-ref">TPZMaterialData</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u_len</strong> – <strong>[out]</strong> solution dimension. </p></li>
+<li><p><strong>du_row</strong> – <strong>[out]</strong> number of rows of the derivative </p></li>
+<li><p><strong>du_col</strong> – <strong>[out]</strong> number of columns of the derivative </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK17TPZMatSingleSpace7ClassIdEv">
+<span id="_CPPv3NK17TPZMatSingleSpace7ClassIdEv"></span><span id="_CPPv2NK17TPZMatSingleSpace7ClassIdEv"></span><span id="TPZMatSingleSpace::ClassIdC"></span><span class="target" id="classTPZMatSingleSpace_1a45a958f48636b83d2d58d91ee95e7367"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK17TPZMatSingleSpace7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Unique identifier for each class. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E18TPZMatSingleSpaceT">
+<span id="_CPPv3I0E18TPZMatSingleSpaceT"></span><span id="_CPPv2I0E18TPZMatSingleSpaceT"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatSingleSpaceT"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv417TPZMatSingleSpace" title="TPZMatSingleSpace"><span class="n"><span class="pre">TPZMatSingleSpace</span></span></a><br /></dt>
+<dd><p>This class is a fundamental part of the <a class="reference internal" href="materialindex.html#classTPZMaterial"><span class="std std-ref">TPZMaterial</span></a> group. It contains the interfaces that simple (non-multiphysics) materials should implement. It is noteworthy to observe that this definition does not depend on the definition of the approximation space. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Materials should derive from <a class="reference internal" href="materialindex.html#classTPZMatBase"><span class="std std-ref">TPZMatBase</span></a> class. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">tparam TVar</dt>
+<dd class="field-odd"><p>State variable type (<code class="docutils literal notranslate"><span class="pre">CSTATE</span></code>/<code class="docutils literal notranslate"><span class="pre">STATE</span></code>) </p>
+</dd>
+</dl>
+</p>
+<p>Subclassed by <a class="reference internal" href="#classTPZMatSingleSpaceBC"><span class="std std-ref">TPZMatSingleSpaceBC&lt; TVar &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-contribute">Contribute</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE">
+<span id="_CPPv3N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE"></span><span id="_CPPv2N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE"></span><span id="TPZMatSingleSpaceT::Contribute__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceT_1a5c2b6c56e88314a504e2f7d767455c19"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the element matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE">
+<span id="_CPPv3N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE"></span><span id="_CPPv2N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE"></span><span id="TPZMatSingleSpaceT::Contribute__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceT_1acffe47cad7515db31121f82181625275"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18TPZMatSingleSpaceT10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to the residual vector at one integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the residual vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-contributebc">ContributeBC</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE">
+<span id="_CPPv3N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="_CPPv2N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="TPZMatSingleSpaceT::ContributeBC__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZFMatrix:TVar:R.TPZBndCondT:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceT_1aa9de5afcaf12f46c04d37233b2708cb6"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one BC integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the element matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+<li><p><strong>bc</strong> – <strong>[in]</strong> is the boundary condition material </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE">
+<span id="_CPPv3N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="_CPPv2N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="TPZMatSingleSpaceT::ContributeBC__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZBndCondT:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceT_1a0d1a398435005bec45a8a1d81f442320"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>It computes a contribution to the stiffness matrix and load vector at one BC integration point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> stores all input data </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> is the weight of the integration rule </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the rhs vector </p></li>
+<li><p><strong>bc</strong> – <strong>[in]</strong> is the boundary condition material </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N18TPZMatSingleSpaceT18TPZMatSingleSpaceTEv">
+<span id="_CPPv3N18TPZMatSingleSpaceT18TPZMatSingleSpaceTEv"></span><span id="_CPPv2N18TPZMatSingleSpaceT18TPZMatSingleSpaceTEv"></span><span id="TPZMatSingleSpaceT::TPZMatSingleSpaceT"></span><span class="target" id="classTPZMatSingleSpaceT_1a12dde368b0fab1a78103bd7f0e23948d"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N18TPZMatSingleSpaceT18TPZMatSingleSpaceTEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N18TPZMatSingleSpaceT8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE">
+<span id="_CPPv3N18TPZMatSingleSpaceT8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE"></span><span id="_CPPv2N18TPZMatSingleSpaceT8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE"></span><span id="TPZMatSingleSpaceT::Solution__TPZMaterialDataT:TVar:CR.i.TPZVec:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceT_1a6ae41d5b793fb9dca6d2eb058c9974ff"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solution</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sol</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N18TPZMatSingleSpaceT8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the solution associated with a given index based on the finite element approximation. This method should be implemented if any computations on the solution are to be done. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> Stores all the input data. </p></li>
+<li><p><strong>var</strong> – <strong>[in]</strong> Index of the queried solution </p></li>
+<li><p><strong>sol</strong> – <strong>[out]</strong> FEM Solution at the integration point </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK18TPZMatSingleSpaceT20IntegrationRuleOrderEKi">
+<span id="_CPPv3NK18TPZMatSingleSpaceT20IntegrationRuleOrderEKi"></span><span id="_CPPv2NK18TPZMatSingleSpaceT20IntegrationRuleOrderEKi"></span><span id="TPZMatSingleSpaceT::IntegrationRuleOrder__iCC"></span><span class="target" id="classTPZMatSingleSpaceT_1a2c381cb70b324a991a0139640637eaad"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IntegrationRuleOrder</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">elPMaxOrder</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK18TPZMatSingleSpaceT20IntegrationRuleOrderEKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Gets the order of the integration rule necessary to integrate an element with polynomial order <code class="docutils literal notranslate"><span class="pre">p</span></code> taking the forcing function order into account. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>elPMaxOrder</strong> – <strong>[in]</strong> maximum element order </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>adjusted integration rule order </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK18TPZMatSingleSpaceT7ClassIdEv">
+<span id="_CPPv3NK18TPZMatSingleSpaceT7ClassIdEv"></span><span id="_CPPv2NK18TPZMatSingleSpaceT7ClassIdEv"></span><span id="TPZMatSingleSpaceT::ClassIdC"></span><span class="target" id="classTPZMatSingleSpaceT_1aa1b555cae8473b048091bf794e169e13"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK18TPZMatSingleSpaceT7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Unique identifier for each class. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<div class="section" id="single-space-boundary-conditions">
+<h3><a class="toc-backref" href="#id2">Single Space Boundary Conditions</a><a class="headerlink" href="#single-space-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<p>As discussed in <a class="reference internal" href="materialindex.html#section-interfaces"><span class="std std-ref">Material Interfaces</span></a>, each interface shall also define a boundary condition counterpart. In this case, it is the <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC"><span class="n">TPZMatSingleSpaceBC</span></a></span>. This class mostly forwards any <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC"><span class="n">TPZMatSingleSpaceBC</span></a><span class="p">::</span><a class="reference internal" href="#_CPPv4N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE" title="TPZMatSingleSpaceBC::Contribute"><span class="n">Contribute</span></a></span> calls to the appropriate <span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n">TPZMatSingleSpaceT</span></a><span class="p">::</span><a class="reference internal" href="materialindex.html#_CPPv4N18TPZMatSingleSpaceT12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE" title="TPZMatSingleSpaceT::ContributeBC"><span class="n">ContributeBC</span></a></span>.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E19TPZMatSingleSpaceBC">
+<span id="_CPPv3I0E19TPZMatSingleSpaceBC"></span><span id="_CPPv2I0E19TPZMatSingleSpaceBC"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatSingleSpaceBC"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatSingleSpaceBC</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Boundary condition interface for <a class="reference internal" href="#classTPZMatSingleSpaceT"><span class="std std-ref">TPZMatSingleSpaceT</span></a>. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatSingleSpaceBC19TPZMatSingleSpaceBCEv">
+<span id="_CPPv3N19TPZMatSingleSpaceBC19TPZMatSingleSpaceBCEv"></span><span id="_CPPv2N19TPZMatSingleSpaceBC19TPZMatSingleSpaceBCEv"></span><span id="TPZMatSingleSpaceBC::TPZMatSingleSpaceBC"></span><span class="target" id="classTPZMatSingleSpaceBC_1ad15f4e9d37c1d0b899f0bd3486e86adb"></span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatSingleSpaceBC</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N19TPZMatSingleSpaceBC19TPZMatSingleSpaceBCEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Default constructor. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE">
+<span id="_CPPv3N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE"></span><span id="_CPPv2N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE"></span><span id="TPZMatSingleSpaceBC::Contribute__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceBC_1a0bd45bde90001ed317e9c5e9ae988f0a"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Forward the call to <a class="reference internal" href="#classTPZMatSingleSpaceT_1aa9de5afcaf12f46c04d37233b2708cb6"><span class="std std-ref">TPZMatSingleSpaceT::ContributeBC</span></a>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE">
+<span id="_CPPv3N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE"></span><span id="_CPPv2N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE"></span><span id="TPZMatSingleSpaceBC::Contribute__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceBC_1a89b9e82e27c5986ee56acffa0f2f2412"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Contribute</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N19TPZMatSingleSpaceBC10ContributeERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Forward the call to <a class="reference internal" href="#classTPZMatSingleSpaceT_1aa9de5afcaf12f46c04d37233b2708cb6"><span class="std std-ref">TPZMatSingleSpaceT::ContributeBC</span></a>. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatSingleSpaceBC12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE">
+<span id="_CPPv3N19TPZMatSingleSpaceBC12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="_CPPv2N19TPZMatSingleSpaceBC12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="TPZMatSingleSpaceBC::ContributeBC__TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZFMatrix:TVar:R.TPZBndCondT:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceBC_1ac02a684227bfcd08552376d09312b860"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBC</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N19TPZMatSingleSpaceBC12ContributeBCERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This method should never be called. Throws. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatSingleSpaceBC8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE">
+<span id="_CPPv3N19TPZMatSingleSpaceBC8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE"></span><span id="_CPPv2N19TPZMatSingleSpaceBC8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE"></span><span id="TPZMatSingleSpaceBC::Solution__TPZMaterialDataT:TVar:CR.i.TPZVec:TVar:R"></span><span class="target" id="classTPZMatSingleSpaceBC_1a0e2c0ab13e756f6034bd0e2a47bad961"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Solution</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sol</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N19TPZMatSingleSpaceBC8SolutionERK16TPZMaterialDataTI4TVarEiR6TPZVecI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This method should never be called. Throws. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK19TPZMatSingleSpaceBC7ClassIdEv">
+<span id="_CPPv3NK19TPZMatSingleSpaceBC7ClassIdEv"></span><span id="_CPPv2NK19TPZMatSingleSpaceBC7ClassIdEv"></span><span id="TPZMatSingleSpaceBC::ClassIdC"></span><span class="target" id="classTPZMatSingleSpaceBC_1a7ed67e7cbdaa1c0ced3474c4455bcb21"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ClassId</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4NK19TPZMatSingleSpaceBC7ClassIdEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Unique identifier for each class. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-protected-attributes">Protected Attributes</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatSingleSpaceBC15fMatSingleSpaceE">
+<span id="_CPPv3N19TPZMatSingleSpaceBC15fMatSingleSpaceE"></span><span id="_CPPv2N19TPZMatSingleSpaceBC15fMatSingleSpaceE"></span><span id="TPZMatSingleSpaceBC::fMatSingleSpace__TPZMatSingleSpaceT:TVar:P"></span><span class="target" id="classTPZMatSingleSpaceBC_1a052315dc3ecc083273a5c3c04c5aefb7"></span><a class="reference internal" href="materialindex.html#_CPPv4I0E18TPZMatSingleSpaceT" title="TPZMatSingleSpaceT"><span class="n"><span class="pre">TPZMatSingleSpaceT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E19TPZMatSingleSpaceBC" title="TPZMatSingleSpaceBC::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">fMatSingleSpace</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="k"><span class="pre">nullptr</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N19TPZMatSingleSpaceBC15fMatSingleSpaceE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pointer to material which created this BC. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="available-interfaces">
+<span id="section-single-interfaces"></span><h2><a class="toc-backref" href="#id3">Available Interfaces</a><a class="headerlink" href="#available-interfaces" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="interface">
+<h3><a class="toc-backref" href="#id4">Interface</a><a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h3>
+<p>Interface for discontinuous materials</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E26TPZMatInterfaceSingleSpace">
+<span id="_CPPv3I0E26TPZMatInterfaceSingleSpace"></span><span id="_CPPv2I0E26TPZMatInterfaceSingleSpace"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatInterfaceSingleSpace"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatInterfaceSingleSpace</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><a class="headerlink" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Interface for discontinuous materials using a single approximation space. This material allows contribution of the FEM matrix using the interface between elements. It should be used as a template parameter of <a class="reference internal" href="materialindex.html#classTPZMatBase"><span class="std std-ref">TPZMatBase</span></a>. </p>
+<p>Subclassed by TPZMatInterfaceSingleSpaceBC&lt; TVar &gt;</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-interface">Interface</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N26TPZMatInterfaceSingleSpace17SolutionInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarEKiR6TPZVecI4TVarE">
+<span id="_CPPv3N26TPZMatInterfaceSingleSpace17SolutionInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarEKiR6TPZVecI4TVarE"></span><span id="_CPPv2N26TPZMatInterfaceSingleSpace17SolutionInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarEKiR6TPZVecI4TVarE"></span><span id="TPZMatInterfaceSingleSpace::SolutionInterface__TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.iC.TPZVec:TVar:R"></span><span class="target" id="classTPZMatInterfaceSingleSpace_1a99282c8c5f85156337da6b06ac0f75d1"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SolutionInterface</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataleft</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataright</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">var</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">Solout</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N26TPZMatInterfaceSingleSpace17SolutionInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarEKiR6TPZVecI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the solution associated with the var index based on the finite element approximation. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE">
+<span id="_CPPv3N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE"></span><span id="_CPPv2N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE"></span><span id="TPZMatInterfaceSingleSpace::ContributeInterface__TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZMatInterfaceSingleSpace_1aab6490e91c39d2b8650691fe6bbeccc2"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeInterface</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataleft</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataright</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to stiffness matrix and load vector at one integration point. </p>
+<p><dl class="simple">
+<dt><strong>Since</strong></dt><dd><p>April 16, 2007 </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>dataleft</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>dataright</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the stiffness matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the load vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE">
+<span id="_CPPv3N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE"></span><span id="_CPPv2N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE"></span><span id="TPZMatInterfaceSingleSpace::ContributeInterface__TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R"></span><span class="target" id="classTPZMatInterfaceSingleSpace_1ade3d24fe824fdc67d1d4d3aada54fcae"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeInterface</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataleft</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataright</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N26TPZMatInterfaceSingleSpace19ContributeInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to residual vector at one integration point. </p>
+<p><dl class="simple">
+<dt><strong>Since</strong></dt><dd><p>April 16, 2007 </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>dataleft</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>dataright</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the load vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE">
+<span id="_CPPv3N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="_CPPv2N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="TPZMatInterfaceSingleSpace::ContributeBCInterface__TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZFMatrix:TVar:R.TPZBndCondT:TVar:R"></span><span class="target" id="classTPZMatInterfaceSingleSpace_1a244b83aea68586e72155ae6728b87290"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBCInterface</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataleft</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ek</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to stiffness matrix and load vector at one BC integration point. </p>
+<p><dl class="simple">
+<dt><strong>Since</strong></dt><dd><p>February 21, 2013 </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>dataleft</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>ek</strong> – <strong>[out]</strong> is the stiffness matrix </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the load vector </p></li>
+<li><p><strong>bc</strong> – <strong>[in]</strong> is the boundary condition object </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE">
+<span id="_CPPv3N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="_CPPv2N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE"></span><span id="TPZMatInterfaceSingleSpace::ContributeBCInterface__TPZMaterialDataT:TVar:CR.TPZMaterialDataT:TVar:CR.REAL.TPZFMatrix:TVar:R.TPZBndCondT:TVar:R"></span><span class="target" id="classTPZMatInterfaceSingleSpace_1a4beb1c1d817a4451f5a9eb01bb99d94d"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ContributeBCInterface</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dataleft</span></span>, <span class="n"><span class="pre">REAL</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">weight</span></span>, <span class="n"><span class="pre">TPZFMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">ef</span></span>, <a class="reference internal" href="materialindex.html#_CPPv4I0E11TPZBndCondT" title="TPZBndCondT"><span class="n"><span class="pre">TPZBndCondT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E26TPZMatInterfaceSingleSpace" title="TPZMatInterfaceSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">bc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N26TPZMatInterfaceSingleSpace21ContributeBCInterfaceERK16TPZMaterialDataTI4TVarERK16TPZMaterialDataTI4TVarE4REALR10TPZFMatrixI4TVarER11TPZBndCondTI4TVarE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>It computes a contribution to residual vector at one BC integration point. </p>
+<p><dl class="simple">
+<dt><strong>Since</strong></dt><dd><p>April 16, 2007 </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>dataleft</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>weight</strong> – <strong>[in]</strong> </p></li>
+<li><p><strong>ef</strong> – <strong>[out]</strong> is the load vector </p></li>
+<li><p><strong>bc</strong> – <strong>[in]</strong> is the boundary condition object </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK26TPZMatInterfaceSingleSpace29FillDataRequirementsInterfaceER15TPZMaterialData">
+<span id="_CPPv3NK26TPZMatInterfaceSingleSpace29FillDataRequirementsInterfaceER15TPZMaterialData"></span><span id="_CPPv2NK26TPZMatInterfaceSingleSpace29FillDataRequirementsInterfaceER15TPZMaterialData"></span><span id="TPZMatInterfaceSingleSpace::FillDataRequirementsInterface__TPZMaterialDataRC"></span><span class="target" id="classTPZMatInterfaceSingleSpace_1a20473ebe908eb9b2f080ce8d21e8fce4"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FillDataRequirementsInterface</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="materialindex.html#_CPPv415TPZMaterialData" title="TPZMaterialData"><span class="n"><span class="pre">TPZMaterialData</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><a class="headerlink" href="#_CPPv4NK26TPZMatInterfaceSingleSpace29FillDataRequirementsInterfaceER15TPZMaterialData" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This method defines which parameters need to be initialized in order to compute the contribution of interface elements. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="error">
+<h3><a class="toc-backref" href="#id5">Error</a><a class="headerlink" href="#error" title="Permalink to this headline">¶</a></h3>
+<p>Interface for computing the error of the FEM solution based on an exact solution.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E11TPZMatError">
+<span id="_CPPv3I0E11TPZMatError"></span><span id="_CPPv2I0E11TPZMatError"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatError"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatError</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><br /></dt>
+<dd><p>Defines the common error interface used in <a class="reference internal" href="#classTPZMatErrorSingleSpace"><span class="std std-ref">TPZMatErrorSingleSpace</span></a> and <a class="reference internal" href="combinedspaces.html#classTPZMatErrorCombinedSpaces"><span class="std std-ref">TPZMatErrorCombinedSpaces</span></a>. </p>
+<p>Subclassed by <a class="reference internal" href="combinedspaces.html#classTPZMatErrorCombinedSpaces"><span class="std std-ref">TPZMatErrorCombinedSpaces&lt; TVar &gt;</span></a>, <a class="reference internal" href="#classTPZMatErrorSingleSpace"><span class="std std-ref">TPZMatErrorSingleSpace&lt; TVar &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-error">Error</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi">
+<span id="_CPPv3N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi"></span><span id="_CPPv2N11TPZMatError11SetExactSolE12ExactSolTypeI4TVarEi"></span><span id="TPZMatError::SetExactSol__ExactSolType:TVar:.i"></span><span class="target" id="classTPZMatError_1a84b4bd0fdb5057db241acba14252b25e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetExactSol</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">ExactSolType</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E11TPZMatError" title="TPZMatError::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">f</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pOrder</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets a exact solution to the material. This method is used for setting functions used in the weak formulation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – Forcing function </p></li>
+<li><p><strong>pOrder</strong> – Suggested integration rule order. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11TPZMatError11HasExactSolEv">
+<span id="_CPPv3NK11TPZMatError11HasExactSolEv"></span><span id="_CPPv2NK11TPZMatError11HasExactSolEv"></span><span id="TPZMatError::HasExactSolC"></span><span class="target" id="classTPZMatError_1a6888fca34093b5a3b151161826d1f21b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">HasExactSol</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Whether a exact solution has been set. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11TPZMatError8ExactSolEv">
+<span id="_CPPv3NK11TPZMatError8ExactSolEv"></span><span id="_CPPv2NK11TPZMatError8ExactSolEv"></span><span id="TPZMatError::ExactSolC"></span><span class="target" id="classTPZMatError_1a82f3fa04e78d15fb6ddf6b5b9a0b9965"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">ExactSolType</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E11TPZMatError" title="TPZMatError::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">ExactSol</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Gets reference to the exact solution. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11TPZMatError8ExactSolEv">
+<span id="_CPPv3N11TPZMatError8ExactSolEv"></span><span id="_CPPv2N11TPZMatError8ExactSolEv"></span><span id="TPZMatError::ExactSol"></span><span class="target" id="classTPZMatError_1a283be4920d57ba6dc21d3cec1a93d129"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ExactSolType</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E11TPZMatError" title="TPZMatError::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">ExactSol</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Gets reference to the exact solution. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK11TPZMatError20PolynomialOrderExactEv">
+<span id="_CPPv3NK11TPZMatError20PolynomialOrderExactEv"></span><span id="_CPPv2NK11TPZMatError20PolynomialOrderExactEv"></span><span id="TPZMatError::PolynomialOrderExactC"></span><span class="target" id="classTPZMatError_1acbd98c635c0a1a150a4dc75d3e01fe72"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PolynomialOrderExact</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Gets polynomial order of exact solution. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N11TPZMatError11NEvalErrorsEv">
+<span id="_CPPv3N11TPZMatError11NEvalErrorsEv"></span><span id="_CPPv2N11TPZMatError11NEvalErrorsEv"></span><span id="TPZMatError::NEvalErrors"></span><span class="target" id="classTPZMatError_1aa57dea8c497fdf07853983ddd6a54048"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Returns the number of error norms. Default is 3: norm, L2 and seminorm. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E22TPZMatErrorSingleSpace">
+<span id="_CPPv3I0E22TPZMatErrorSingleSpace"></span><span id="_CPPv2I0E22TPZMatErrorSingleSpace"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatErrorSingleSpace"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatErrorSingleSpace</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E11TPZMatError" title="TPZMatError"><span class="n"><span class="pre">TPZMatError</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I0E22TPZMatErrorSingleSpace" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Interface for error computation of materials using a single approximation space. This material allows the computation of error measures of the FEM approximation based on an exact solution. </p>
+<p>Subclassed by TPZMatErrorSingleSpaceBC&lt; TVar &gt;</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-error">Error</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N22TPZMatErrorSingleSpace6ErrorsERK16TPZMaterialDataTI4TVarER6TPZVecI4REALE">
+<span id="_CPPv3N22TPZMatErrorSingleSpace6ErrorsERK16TPZMaterialDataTI4TVarER6TPZVecI4REALE"></span><span id="_CPPv2N22TPZMatErrorSingleSpace6ErrorsERK16TPZMaterialDataTI4TVarER6TPZVecI4REALE"></span><span id="TPZMatErrorSingleSpace::Errors__TPZMaterialDataT:TVar:CR.TPZVec:REAL:R"></span><span class="target" id="classTPZMatErrorSingleSpace_1aca28b12e0fb4f945b1feb1e864717682"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Errors</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="materialindex.html#_CPPv4I0E16TPZMaterialDataT" title="TPZMaterialDataT"><span class="n"><span class="pre">TPZMaterialDataT</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace::TVar"><span class="n"><span class="pre">TVar</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">data</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">REAL</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">errors</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N22TPZMatErrorSingleSpace6ErrorsERK16TPZMaterialDataTI4TVarER6TPZVecI4REALE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Public interface for calculating errors. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N22TPZMatErrorSingleSpace11NEvalErrorsEv">
+<span id="_CPPv3N22TPZMatErrorSingleSpace11NEvalErrorsEv"></span><span id="_CPPv2N22TPZMatErrorSingleSpace11NEvalErrorsEv"></span><span id="TPZMatErrorSingleSpace::NEvalErrors"></span><span class="target" id="classTPZMatErrorSingleSpace_1a91e488efb964efd4ede9291d2bd87236"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NEvalErrors</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N22TPZMatErrorSingleSpace11NEvalErrorsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the number of error norms. Default is 3: norm, L2 and seminorm. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="load-cases">
+<h3><a class="toc-backref" href="#id6">Load cases</a><a class="headerlink" href="#load-cases" title="Permalink to this headline">¶</a></h3>
+<p>Interface for solving an equation system for multiple right-hand side vectors at once</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv419TPZMatLoadCasesBase">
+<span id="_CPPv319TPZMatLoadCasesBase"></span><span id="_CPPv219TPZMatLoadCasesBase"></span><span id="TPZMatLoadCasesBase"></span><span class="target" id="classTPZMatLoadCasesBase"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatLoadCasesBase</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><br /></dt>
+<dd><p>Defines a type-agnostic interface for materials with multiple load cases. This class is only useful for dynamic casting. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The template parameter of <a class="reference internal" href="#classTPZMatLoadCases"><span class="std std-ref">TPZMatLoadCases</span></a> is relevant on TPZMatLoadCasesBC </p>
+</div>
+</p>
+<p>Subclassed by <a class="reference internal" href="#classTPZMatLoadCases"><span class="std std-ref">TPZMatLoadCases&lt; TVar &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-loadcases">LoadCases</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK19TPZMatLoadCasesBase12NumLoadCasesEv">
+<span id="_CPPv3NK19TPZMatLoadCasesBase12NumLoadCasesEv"></span><span id="_CPPv2NK19TPZMatLoadCasesBase12NumLoadCasesEv"></span><span id="TPZMatLoadCasesBase::NumLoadCasesC"></span><span class="target" id="classTPZMatLoadCasesBase_1a772184821456318e83478246a942e6a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NumLoadCases</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Returns the number of load cases (rhs columns). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK19TPZMatLoadCasesBase24MinimumNumberofLoadCasesEv">
+<span id="_CPPv3NK19TPZMatLoadCasesBase24MinimumNumberofLoadCasesEv"></span><span id="_CPPv2NK19TPZMatLoadCasesBase24MinimumNumberofLoadCasesEv"></span><span id="TPZMatLoadCasesBase::MinimumNumberofLoadCasesC"></span><span class="target" id="classTPZMatLoadCasesBase_1a6234046af1f1218721fbf7b44427f324"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MinimumNumberofLoadCases</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Returns the minimum number of load cases (rhs columns). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatLoadCasesBase15SetNumLoadCasesEi">
+<span id="_CPPv3N19TPZMatLoadCasesBase15SetNumLoadCasesEi"></span><span id="_CPPv2N19TPZMatLoadCasesBase15SetNumLoadCasesEi"></span><span id="TPZMatLoadCasesBase::SetNumLoadCases__i"></span><span class="target" id="classTPZMatLoadCasesBase_1ad51463de33ea47910ecb2c3ef0d277bb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetNumLoadCases</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">numloadcases</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the number of load cases (rhs columns). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatLoadCasesBase19SetPostProcessIndexEi">
+<span id="_CPPv3N19TPZMatLoadCasesBase19SetPostProcessIndexEi"></span><span id="_CPPv2N19TPZMatLoadCasesBase19SetPostProcessIndexEi"></span><span id="TPZMatLoadCasesBase::SetPostProcessIndex__i"></span><span class="target" id="classTPZMatLoadCasesBase_1a8a4672106e4ac51cc24a1042f3df370e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostProcessIndex</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Indicates which variable should be post processed. The method Solution in the material should then pick the corresponding solution accordingly. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E15TPZMatLoadCases">
+<span id="_CPPv3I0E15TPZMatLoadCases"></span><span id="_CPPv2I0E15TPZMatLoadCases"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatLoadCases"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatLoadCases</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv419TPZMatLoadCasesBase" title="TPZMatLoadCasesBase"><span class="n"><span class="pre">TPZMatLoadCasesBase</span></span></a><br /></dt>
+<dd><p>Subclassed by TPZMatLoadCasesBC&lt; TVar &gt;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="memory">
+<h3><a class="toc-backref" href="#id7">Memory</a><a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h3>
+<p>Interface for implementing a memory on the integration points</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E13TPZMatWithMem">
+<span id="_CPPv3I0E13TPZMatWithMem"></span><span id="_CPPv2I0E13TPZMatWithMem"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TMem</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatWithMem"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatWithMem</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZMatWithMemBase</span></span><br /></dt>
+<dd><p>Defines an interface for materials with memory in the integration points. </p>
+<p>Subclassed by TPZMatWithMemBC&lt; TMem &gt;</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-memory">Memory</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13TPZMatWithMem8PrintMemERNSt7ostreamEKi">
+<span id="_CPPv3NK13TPZMatWithMem8PrintMemERNSt7ostreamEKi"></span><span id="_CPPv2NK13TPZMatWithMem8PrintMemERNSt7ostreamEKi"></span><span id="TPZMatWithMem::PrintMem__osR.iCC"></span><span class="target" id="classTPZMatWithMem_1a48b2637d1987c992abcc390651b4b524"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrintMem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">memory</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Prints out the data associated with the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13TPZMatWithMem5PrintERNSt7ostreamE">
+<span id="_CPPv3NK13TPZMatWithMem5PrintERNSt7ostreamE"></span><span id="_CPPv2NK13TPZMatWithMem5PrintERNSt7ostreamE"></span><span id="TPZMatWithMem::Print__osRC"></span><span class="target" id="classTPZMatWithMem_1a611161b0b8c907386f0ccac2c87bac2b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Prints out the data associated with the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem11PushMemItemEi">
+<span id="_CPPv3N13TPZMatWithMem11PushMemItemEi"></span><span id="_CPPv2N13TPZMatWithMem11PushMemItemEi"></span><span id="TPZMatWithMem::PushMemItem__i"></span><span class="target" id="classTPZMatWithMem_1ac549d2b773aed43f32590c8dc715d308"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PushMemItem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sourceIndex</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Pushes a new entry in the context of materials with memory. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Returning its index at the internal storage stack </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem11FreeMemItemEi">
+<span id="_CPPv3N13TPZMatWithMem11FreeMemItemEi"></span><span id="_CPPv2N13TPZMatWithMem11FreeMemItemEi"></span><span id="TPZMatWithMem::FreeMemItem__i"></span><span class="target" id="classTPZMatWithMem_1a25fd2c7520a8fbee0fb247d169e3977d"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeMemItem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Frees an entry in the material with memory internal history storage. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem12ResetMemItemEi">
+<span id="_CPPv3N13TPZMatWithMem12ResetMemItemEi"></span><span id="_CPPv2N13TPZMatWithMem12ResetMemItemEi"></span><span id="TPZMatWithMem::ResetMemItem__i"></span><span class="target" id="classTPZMatWithMem_1a73b76a60e445e911475f5360cfa73d29"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetMemItem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Reset the memory index to its default value. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem11ResetMemoryEv">
+<span id="_CPPv3N13TPZMatWithMem11ResetMemoryEv"></span><span id="_CPPv2N13TPZMatWithMem11ResetMemoryEv"></span><span id="TPZMatWithMem::ResetMemory"></span><span class="target" id="classTPZMatWithMem_1a7e471c5c3fe4e9524ddea9b8e73afb09"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetMemory</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Reset all memory items. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem13SetDefaultMemER4TMem">
+<span id="_CPPv3N13TPZMatWithMem13SetDefaultMemER4TMem"></span><span id="_CPPv2N13TPZMatWithMem13SetDefaultMemER4TMem"></span><span id="TPZMatWithMem::SetDefaultMem__TMemR"></span><span class="target" id="classTPZMatWithMem_1a40c7209eb49eac4186c7017afe590ee4"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetDefaultMem</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E13TPZMatWithMem" title="TPZMatWithMem::TMem"><span class="n"><span class="pre">TMem</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">defaultMem</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the default memory settings for initialization. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem16GetDefaultMemoryEv">
+<span id="_CPPv3N13TPZMatWithMem16GetDefaultMemoryEv"></span><span id="_CPPv2N13TPZMatWithMem16GetDefaultMemoryEv"></span><span id="TPZMatWithMem::GetDefaultMemory"></span><span class="target" id="classTPZMatWithMem_1a0fdd33561eb61bbd2085b4ee9f807e40"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E13TPZMatWithMem" title="TPZMatWithMem::TMem"><span class="n"><span class="pre">TMem</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetDefaultMemory</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Access the default memory settings for initislization. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem12SetUpdateMemEb">
+<span id="_CPPv3N13TPZMatWithMem12SetUpdateMemEb"></span><span id="_CPPv2N13TPZMatWithMem12SetUpdateMemEb"></span><span id="TPZMatWithMem::SetUpdateMem__b"></span><span class="target" id="classTPZMatWithMem_1adab0e2cb8f00d384c0f94881ec21b721"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetUpdateMem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">update</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Sets/Unsets the internal memory data to be updated in the next assemble/contribute call. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem12GetUpdateMemEv">
+<span id="_CPPv3N13TPZMatWithMem12GetUpdateMemEv"></span><span id="_CPPv2N13TPZMatWithMem12GetUpdateMemEv"></span><span id="TPZMatWithMem::GetUpdateMem"></span><span class="target" id="classTPZMatWithMem_1ac634524061d0239ec67c7cf2e19c0500"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetUpdateMem</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Gets the internal memory data to be updated in the next assemble/contribute call. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="generalised-eigenvalue-problem">
+<h3><a class="toc-backref" href="#id8">Generalised Eigenvalue Problem</a><a class="headerlink" href="#generalised-eigenvalue-problem" title="Permalink to this headline">¶</a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv425TPZMatGeneralisedEigenVal">
+<span id="_CPPv325TPZMatGeneralisedEigenVal"></span><span id="_CPPv225TPZMatGeneralisedEigenVal"></span><span id="TPZMatGeneralisedEigenVal"></span><span class="target" id="classTPZMatGeneralisedEigenVal"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatGeneralisedEigenVal</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><br /></dt>
+<dd><p>Defines an interface for solving Generalised Eigenvalue problems. This interface simply adds a method to switch between the left (A) and the right (B) matrices. It is suggested that the materials using this interface use a function pointer for switching between the correct contribute method. See <a class="reference internal" href="electromagnetics.html#classTPZWaveguideModalAnalysis"><span class="std std-ref">TPZWaveguideModalAnalysis</span></a> for an example of usage. </p>
+<p>Subclassed by TPZMatGeneralisedEigenValBC</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-generalised">Generalised</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N25TPZMatGeneralisedEigenVal10SetMatrixAEv">
+<span id="_CPPv3N25TPZMatGeneralisedEigenVal10SetMatrixAEv"></span><span id="_CPPv2N25TPZMatGeneralisedEigenVal10SetMatrixAEv"></span><span id="TPZMatGeneralisedEigenVal::SetMatrixA"></span><span class="target" id="classTPZMatGeneralisedEigenVal_1abc42bec38fa046f4b450e454394d7000"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrixA</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the current matrix to A. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N25TPZMatGeneralisedEigenVal10SetMatrixBEv">
+<span id="_CPPv3N25TPZMatGeneralisedEigenVal10SetMatrixBEv"></span><span id="_CPPv2N25TPZMatGeneralisedEigenVal10SetMatrixBEv"></span><span id="TPZMatGeneralisedEigenVal::SetMatrixB"></span><span class="target" id="classTPZMatGeneralisedEigenVal_1a4b1edc9d7ef23d0f6e1ba550f690d6b1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrixB</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the current matrix to B. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="combinedspaces.html" class="btn btn-neutral float-right" title="The Combined Spaces Material Group" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="materialindex.html" class="btn btn-neutral float-left" title="The Material hierarchy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Philippe Devloo et al.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

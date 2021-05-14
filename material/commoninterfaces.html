@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Load cases &mdash; NeoPZ  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> NeoPZ
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="materialindex.html">The Material hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/structindex.html">The StructMatrix hierarchy</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">NeoPZ</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Load cases</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/material/commoninterfaces.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="load-cases">
+<h1>Load cases<a class="headerlink" href="#load-cases" title="Permalink to this headline">¶</a></h1>
+<p>Interface for solving an equation system for multiple right-hand side vectors at once</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv419TPZMatLoadCasesBase">
+<span id="_CPPv319TPZMatLoadCasesBase"></span><span id="_CPPv219TPZMatLoadCasesBase"></span><span id="TPZMatLoadCasesBase"></span><span class="target" id="classTPZMatLoadCasesBase"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatLoadCasesBase</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><br /></dt>
+<dd><p>Defines a type-agnostic interface for materials with multiple load cases. This class is only useful for dynamic casting. </p>
+<p><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The template parameter of <a class="reference internal" href="singlespace.html#classTPZMatLoadCases"><span class="std std-ref">TPZMatLoadCases</span></a> is relevant on TPZMatLoadCasesBC </p>
+</div>
+</p>
+<p>Subclassed by <a class="reference internal" href="singlespace.html#classTPZMatLoadCases"><span class="std std-ref">TPZMatLoadCases&lt; TVar &gt;</span></a></p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-loadcases">LoadCases</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK19TPZMatLoadCasesBase12NumLoadCasesEv">
+<span id="_CPPv3NK19TPZMatLoadCasesBase12NumLoadCasesEv"></span><span id="_CPPv2NK19TPZMatLoadCasesBase12NumLoadCasesEv"></span><span id="TPZMatLoadCasesBase::NumLoadCasesC"></span><span class="target" id="classTPZMatLoadCasesBase_1a772184821456318e83478246a942e6a1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">NumLoadCases</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Returns the number of load cases (rhs columns). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK19TPZMatLoadCasesBase24MinimumNumberofLoadCasesEv">
+<span id="_CPPv3NK19TPZMatLoadCasesBase24MinimumNumberofLoadCasesEv"></span><span id="_CPPv2NK19TPZMatLoadCasesBase24MinimumNumberofLoadCasesEv"></span><span id="TPZMatLoadCasesBase::MinimumNumberofLoadCasesC"></span><span class="target" id="classTPZMatLoadCasesBase_1a6234046af1f1218721fbf7b44427f324"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">MinimumNumberofLoadCases</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Returns the minimum number of load cases (rhs columns). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatLoadCasesBase15SetNumLoadCasesEi">
+<span id="_CPPv3N19TPZMatLoadCasesBase15SetNumLoadCasesEi"></span><span id="_CPPv2N19TPZMatLoadCasesBase15SetNumLoadCasesEi"></span><span id="TPZMatLoadCasesBase::SetNumLoadCases__i"></span><span class="target" id="classTPZMatLoadCasesBase_1ad51463de33ea47910ecb2c3ef0d277bb"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetNumLoadCases</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">numloadcases</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the number of load cases (rhs columns). </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N19TPZMatLoadCasesBase19SetPostProcessIndexEi">
+<span id="_CPPv3N19TPZMatLoadCasesBase19SetPostProcessIndexEi"></span><span id="_CPPv2N19TPZMatLoadCasesBase19SetPostProcessIndexEi"></span><span id="TPZMatLoadCasesBase::SetPostProcessIndex__i"></span><span class="target" id="classTPZMatLoadCasesBase_1a8a4672106e4ac51cc24a1042f3df370e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetPostProcessIndex</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Indicates which variable should be post processed. The method Solution in the material should then pick the corresponding solution accordingly. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E15TPZMatLoadCases">
+<span id="_CPPv3I0E15TPZMatLoadCases"></span><span id="_CPPv2I0E15TPZMatLoadCases"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TVar</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatLoadCases"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatLoadCases</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv419TPZMatLoadCasesBase" title="TPZMatLoadCasesBase"><span class="n"><span class="pre">TPZMatLoadCasesBase</span></span></a><br /></dt>
+<dd><p>Subclassed by TPZMatLoadCasesBC&lt; TVar &gt;</p>
+</dd></dl>
+
+</div>
+<div class="section" id="memory">
+<h1>Memory<a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h1>
+<p>Interface for implementing a memory on the integration points</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I0E13TPZMatWithMem">
+<span id="_CPPv3I0E13TPZMatWithMem"></span><span id="_CPPv2I0E13TPZMatWithMem"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TMem</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classTPZMatWithMem"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatWithMem</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="n"><span class="pre">TPZMatWithMemBase</span></span><br /></dt>
+<dd><p>Defines an interface for materials with memory in the integration points. </p>
+<p>Subclassed by TPZMatWithMemBC&lt; TMem &gt;</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-memory">Memory</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13TPZMatWithMem8PrintMemERNSt7ostreamEKi">
+<span id="_CPPv3NK13TPZMatWithMem8PrintMemERNSt7ostreamEKi"></span><span id="_CPPv2NK13TPZMatWithMem8PrintMemERNSt7ostreamEKi"></span><span id="TPZMatWithMem::PrintMem__osR.iCC"></span><span class="target" id="classTPZMatWithMem_1a48b2637d1987c992abcc390651b4b524"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PrintMem</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">cout</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">memory</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Prints out the data associated with the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK13TPZMatWithMem5PrintERNSt7ostreamE">
+<span id="_CPPv3NK13TPZMatWithMem5PrintERNSt7ostreamE"></span><span id="_CPPv2NK13TPZMatWithMem5PrintERNSt7ostreamE"></span><span id="TPZMatWithMem::Print__osRC"></span><span class="target" id="classTPZMatWithMem_1a611161b0b8c907386f0ccac2c87bac2b"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Print</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">ostream</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">out</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Prints out the data associated with the material. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem11PushMemItemEi">
+<span id="_CPPv3N13TPZMatWithMem11PushMemItemEi"></span><span id="_CPPv2N13TPZMatWithMem11PushMemItemEi"></span><span id="TPZMatWithMem::PushMemItem__i"></span><span class="target" id="classTPZMatWithMem_1ac549d2b773aed43f32590c8dc715d308"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PushMemItem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">sourceIndex</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Pushes a new entry in the context of materials with memory. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Returning its index at the internal storage stack </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem11FreeMemItemEi">
+<span id="_CPPv3N13TPZMatWithMem11FreeMemItemEi"></span><span id="_CPPv2N13TPZMatWithMem11FreeMemItemEi"></span><span id="TPZMatWithMem::FreeMemItem__i"></span><span class="target" id="classTPZMatWithMem_1a25fd2c7520a8fbee0fb247d169e3977d"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">FreeMemItem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Frees an entry in the material with memory internal history storage. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem12ResetMemItemEi">
+<span id="_CPPv3N13TPZMatWithMem12ResetMemItemEi"></span><span id="_CPPv2N13TPZMatWithMem12ResetMemItemEi"></span><span id="TPZMatWithMem::ResetMemItem__i"></span><span class="target" id="classTPZMatWithMem_1a73b76a60e445e911475f5360cfa73d29"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetMemItem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">index</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Reset the memory index to its default value. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem11ResetMemoryEv">
+<span id="_CPPv3N13TPZMatWithMem11ResetMemoryEv"></span><span id="_CPPv2N13TPZMatWithMem11ResetMemoryEv"></span><span id="TPZMatWithMem::ResetMemory"></span><span class="target" id="classTPZMatWithMem_1a7e471c5c3fe4e9524ddea9b8e73afb09"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ResetMemory</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Reset all memory items. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem13SetDefaultMemER4TMem">
+<span id="_CPPv3N13TPZMatWithMem13SetDefaultMemER4TMem"></span><span id="_CPPv2N13TPZMatWithMem13SetDefaultMemER4TMem"></span><span id="TPZMatWithMem::SetDefaultMem__TMemR"></span><span class="target" id="classTPZMatWithMem_1a40c7209eb49eac4186c7017afe590ee4"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetDefaultMem</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E13TPZMatWithMem" title="TPZMatWithMem::TMem"><span class="n"><span class="pre">TMem</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">defaultMem</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the default memory settings for initialization. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem16GetDefaultMemoryEv">
+<span id="_CPPv3N13TPZMatWithMem16GetDefaultMemoryEv"></span><span id="_CPPv2N13TPZMatWithMem16GetDefaultMemoryEv"></span><span id="TPZMatWithMem::GetDefaultMemory"></span><span class="target" id="classTPZMatWithMem_1a0fdd33561eb61bbd2085b4ee9f807e40"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><a class="reference internal" href="combinedspaces.html#_CPPv4I0E13TPZMatWithMem" title="TPZMatWithMem::TMem"><span class="n"><span class="pre">TMem</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">GetDefaultMemory</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Access the default memory settings for initislization. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem12SetUpdateMemEb">
+<span id="_CPPv3N13TPZMatWithMem12SetUpdateMemEb"></span><span id="_CPPv2N13TPZMatWithMem12SetUpdateMemEb"></span><span id="TPZMatWithMem::SetUpdateMem__b"></span><span class="target" id="classTPZMatWithMem_1adab0e2cb8f00d384c0f94881ec21b721"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetUpdateMem</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">update</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Sets/Unsets the internal memory data to be updated in the next assemble/contribute call. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N13TPZMatWithMem12GetUpdateMemEv">
+<span id="_CPPv3N13TPZMatWithMem12GetUpdateMemEv"></span><span id="_CPPv2N13TPZMatWithMem12GetUpdateMemEv"></span><span id="TPZMatWithMem::GetUpdateMem"></span><span class="target" id="classTPZMatWithMem_1ac634524061d0239ec67c7cf2e19c0500"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GetUpdateMem</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><br /></dt>
+<dd><p>Gets the internal memory data to be updated in the next assemble/contribute call. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="generalised-eigenvalue-problem">
+<h1>Generalised Eigenvalue Problem<a class="headerlink" href="#generalised-eigenvalue-problem" title="Permalink to this headline">¶</a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv425TPZMatGeneralisedEigenVal">
+<span id="_CPPv325TPZMatGeneralisedEigenVal"></span><span id="_CPPv225TPZMatGeneralisedEigenVal"></span><span id="TPZMatGeneralisedEigenVal"></span><span class="target" id="classTPZMatGeneralisedEigenVal"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TPZMatGeneralisedEigenVal</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="n"><span class="pre">TPZSavable</span></span><br /></dt>
+<dd><p>Defines an interface for solving Generalised Eigenvalue problems. This interface simply adds a method to switch between the left (A) and the right (B) matrices. It is suggested that the materials using this interface use a function pointer for switching between the correct contribute method. See <a class="reference internal" href="electromagnetics.html#classTPZWaveguideModalAnalysis"><span class="std std-ref">TPZWaveguideModalAnalysis</span></a> for an example of usage. </p>
+<p>Subclassed by TPZMatGeneralisedEigenValBC</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-generalised">Generalised</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N25TPZMatGeneralisedEigenVal10SetMatrixAEv">
+<span id="_CPPv3N25TPZMatGeneralisedEigenVal10SetMatrixAEv"></span><span id="_CPPv2N25TPZMatGeneralisedEigenVal10SetMatrixAEv"></span><span id="TPZMatGeneralisedEigenVal::SetMatrixA"></span><span class="target" id="classTPZMatGeneralisedEigenVal_1abc42bec38fa046f4b450e454394d7000"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrixA</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the current matrix to A. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N25TPZMatGeneralisedEigenVal10SetMatrixBEv">
+<span id="_CPPv3N25TPZMatGeneralisedEigenVal10SetMatrixBEv"></span><span id="_CPPv2N25TPZMatGeneralisedEigenVal10SetMatrixBEv"></span><span id="TPZMatGeneralisedEigenVal::SetMatrixB"></span><span class="target" id="classTPZMatGeneralisedEigenVal_1a4b1edc9d7ef23d0f6e1ba550f690d6b1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SetMatrixB</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Sets the current matrix to B. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Philippe Devloo et al.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
