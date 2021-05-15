@@ -1,19 +1,43 @@
 #include "TPZSimpleTimer.h"
 #include <iostream>
-
-TPZSimpleTimer::TPZSimpleTimer() : fBegin(std::chrono::high_resolution_clock::now())
+#include <sstream>
+void TPZSimpleTimer::Init()
 {
+    if(gLastTimerCreated){
+        fParentTimer = gLastTimerCreated;
+    }
+    gLastTimerCreated = this;
+    fBegin = std::chrono::high_resolution_clock::now();
 }
 
-TPZSimpleTimer::TPZSimpleTimer(const std::string name) : fName(name), fBegin(std::chrono::high_resolution_clock::now())
+TPZSimpleTimer::TPZSimpleTimer()
 {
+    Init();
+}
+TPZSimpleTimer::TPZSimpleTimer(const std::string name, bool alwaysPrint) :
+    fName(name), fAlwaysPrint(alwaysPrint)
+{
+    Init();
 }
 
 TPZSimpleTimer::~TPZSimpleTimer()
 {
     fEnd = std::chrono::high_resolution_clock::now();
+    if(gLastTimerCreated == this){
+        gLastTimerCreated = fParentTimer;
+    }
     std::chrono::duration<double, std::milli> duration = fEnd-fBegin;
-    std::cout<<"["<<fName<<","<<duration.count()<<"]"<<std::endl;
+    std::ostringstream info{"["+fName+":"+
+        std::to_string(duration.count()) +"ms"+
+    fNestedTimersInfo + "]"};
+    
+    if(fParentTimer){
+        fParentTimer->fNestedTimersInfo.append("\n\t"+info.str());
+        if(fAlwaysPrint) std::cout<<info.str()<<std::endl;
+    }else{
+        std::cout<<info.str()<<std::endl;
+    }
+    
 }
 
 double TPZSimpleTimer::ReturnTimeDouble()

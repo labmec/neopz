@@ -12,6 +12,7 @@ Welcome to NeoPZ's documentation!
              
    material/materialindex.rst
    structmatrix/structindex.rst
+   util/index.rst
    
    
 Introduction
