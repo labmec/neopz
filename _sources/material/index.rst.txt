@@ -7,6 +7,7 @@ The Material hierarchy
    singlespace.rst
    combinedspaces.rst
    availablemats.rst
+   commoninterfaces.rst
    
 .. contents:: Table of Contents
    :local:
@@ -202,7 +203,7 @@ Taking the :ref:`TPZMatSingleSpaceT<section-single-mat>` class as an example, th
    :members-only:
    :no-link:
       
-The function parameter :cpp:expr:`TPZBndCondT<TVar> bc` has all the information regarding the boundary condition. We will give special attention to three methods and one variable that are specially useful for computing contributions to boundaries:
+The function parameter :cpp:expr:`bc` has all the information regarding the boundary condition. We will give special attention to three methods and one variable that are specially useful for computing contributions to boundaries:
 
 .. doxygenfunction:: TPZBndCondT::HasForcingFunctionBC
    :no-link:
@@ -284,7 +285,7 @@ Further documentation on TPZBndCond hierarchy
 .. _section-interfaces:
 
 Material Interfaces
-------------------
+-------------------
 
 Additional functionality may be incorporated to a material through an interface.
 
@@ -299,7 +300,7 @@ However, a material can have an arbitrary number of interfaces. Examples of avai
 
 Interfaces are specific to the number of spaces of the material.
 For details on the interfaces available for each material group,
-see :doc:`singlespace` and :doc:`combinedspaces`.
+see :doc:`singlespace` and :doc:`combinedspaces`. The common interfaces are in :doc:`commoninterfaces`.
 
 Creating custom material interfaces
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -344,5 +345,5 @@ In this example, an interface is given in the class :cpp:expr:`TPZMyInterface`. 
 - It must derive from :cpp:expr:`TPZSavable`.
 - It must have an associated boundary condition class, even if there is nothing to be done in this class.
 - The associated boundary condition class must be publicly avaliable under the alias :cpp:expr:`TPZMyInterface::TInterfaceBC`.
-- The associated boundary condition class must have a (protected) method :cpp:expr:`void SetMaterialImpl(TPZMaterial *)`. This method can be useful if a casted pointer to the associated material is needed when forwarding calls.
+- The associated boundary condition class must have a (protected) method :cpp:func:`void SetMaterialImpl(TPZMaterial *)`. This method can be useful if a casted pointer to the associated material is needed when forwarding calls.
 - The read and write methods must be overriden.

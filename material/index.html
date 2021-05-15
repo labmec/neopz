@@ -94,6 +94,7 @@
 <li class="toctree-l2"><a class="reference internal" href="singlespace.html">The Single Space Material Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="combinedspaces.html">The Combined Spaces Material Group</a></li>
 <li class="toctree-l2"><a class="reference internal" href="availablemats.html">Available Materials in NeoPZ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="commoninterfaces.html">Common Interfaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-material-group">The Material Group</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#the-material-hierarchy-explained">The Material Hierarchy Explained</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#forcing-function">Forcing Function</a></li>
@@ -114,7 +115,8 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../structmatrix/structindex.html">The StructMatrix hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structmatrix/index.html">The StructMatrix hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../util/index.html">Utilities</a></li>
 </ul>
 
             
@@ -169,7 +171,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/material/materialindex.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/material/index.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -189,6 +191,7 @@
 <li class="toctree-l1"><a class="reference internal" href="singlespace.html">The Single Space Material Group</a></li>
 <li class="toctree-l1"><a class="reference internal" href="combinedspaces.html">The Combined Spaces Material Group</a></li>
 <li class="toctree-l1"><a class="reference internal" href="availablemats.html">Available Materials in NeoPZ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commoninterfaces.html">Common Interfaces</a></li>
 </ul>
 </div>
 <div class="contents local topic" id="table-of-contents">
@@ -847,7 +850,7 @@ scenarios where the domain is homogeneous by parts).</p>
 </dd></dl>
 
 </div>
-<p>The function parameter <span class="cpp-expr sig sig-inline cpp">TPZBndCondT&lt;TVar&gt; bc</span> has all the information regarding the boundary condition. We will give special attention to three methods and one variable that are specially useful for computing contributions to boundaries:</p>
+<p>The function parameter <span class="cpp-expr sig sig-inline cpp"><span class="n">bc</span></span> has all the information regarding the boundary condition. We will give special attention to three methods and one variable that are specially useful for computing contributions to boundaries:</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
 <span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">TPZBndCondT</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">HasForcingFunctionBC</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">final</span></span><br /></dt>
@@ -920,7 +923,7 @@ scenarios where the domain is homogeneous by parts).</p>
 <p>Homogeneous Dirichlet boundary conditions can also be implemented by making use of the method</p>
 <dl class="cpp function">
 <dt class="sig sig-object cpp">
-<span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="../structmatrix/structindex.html#_CPPv415TPZStructMatrix" title="TPZStructMatrix"><span class="n"><span class="pre">TPZStructMatrix</span></span></a><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">FilterEquations</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">origindex</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">destindex</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="../structmatrix/index.html#_CPPv415TPZStructMatrix" title="TPZStructMatrix"><span class="n"><span class="pre">TPZStructMatrix</span></span></a><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">FilterEquations</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">origindex</span></span>, <span class="n"><span class="pre">TPZVec</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">int64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">destindex</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
 <dd><p>Filter out the equations which are out of the range. </p>
 </dd></dl>
 
@@ -1144,13 +1147,13 @@ scenarios where the domain is homogeneous by parts).</p>
 <p>However, a material can have an arbitrary number of interfaces. Examples of available interfaces are:</p>
 <ul class="simple">
 <li><p><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="singlespace.html#_CPPv4I0E22TPZMatErrorSingleSpace" title="TPZMatErrorSingleSpace"><span class="n">TPZMatErrorSingleSpace</span></a></span>/<span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="combinedspaces.html#_CPPv4I0E25TPZMatErrorCombinedSpaces" title="TPZMatErrorCombinedSpaces"><span class="n">TPZMatErrorCombinedSpaces</span></a></span>: to perform error analysis</p></li>
-<li><p><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="combinedspaces.html#_CPPv4I0E13TPZMatWithMem" title="TPZMatWithMem"><span class="n">TPZMatWithMem</span></a></span>: for materials with memory in the integration point</p></li>
-<li><p><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="combinedspaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n">TPZMatLoadCases</span></a></span>: for materials with multiple load cases</p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="commoninterfaces.html#_CPPv4I0E13TPZMatWithMem" title="TPZMatWithMem"><span class="n">TPZMatWithMem</span></a></span>: for materials with memory in the integration point</p></li>
+<li><p><span class="cpp-expr sig sig-inline cpp"><a class="reference internal" href="commoninterfaces.html#_CPPv4I0E15TPZMatLoadCases" title="TPZMatLoadCases"><span class="n">TPZMatLoadCases</span></a></span>: for materials with multiple load cases</p></li>
 <li><p>etc</p></li>
 </ul>
 <p>Interfaces are specific to the number of spaces of the material.
 For details on the interfaces available for each material group,
-see <a class="reference internal" href="singlespace.html"><span class="doc">The Single Space Material Group</span></a> and <a class="reference internal" href="combinedspaces.html"><span class="doc">The Combined Spaces Material Group</span></a>.</p>
+see <a class="reference internal" href="singlespace.html"><span class="doc">The Single Space Material Group</span></a> and <a class="reference internal" href="combinedspaces.html"><span class="doc">The Combined Spaces Material Group</span></a>. The common interfaces are in <a class="reference internal" href="commoninterfaces.html"><span class="doc">Common Interfaces</span></a>.</p>
 <div class="section" id="creating-custom-material-interfaces">
 <h3><a class="toc-backref" href="#id12">Creating custom material interfaces</a><a class="headerlink" href="#creating-custom-material-interfaces" title="Permalink to this headline">¶</a></h3>
 <p>Material interfaces can be easily created to adapt a material to one’s needs.</p>
@@ -1190,7 +1193,7 @@ see <a class="reference internal" href="singlespace.html"><span class="doc">The 
 <li><p>It must derive from <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZSavable</span></span>.</p></li>
 <li><p>It must have an associated boundary condition class, even if there is nothing to be done in this class.</p></li>
 <li><p>The associated boundary condition class must be publicly avaliable under the alias <span class="cpp-expr sig sig-inline cpp"><span class="n">TPZMyInterface</span><span class="p">::</span><span class="n">TInterfaceBC</span></span>.</p></li>
-<li><p>The associated boundary condition class must have a (protected) method <span class="cpp-expr sig sig-inline cpp">void SetMaterialImpl(TPZMaterial *)</span>. This method can be useful if a casted pointer to the associated material is needed when forwarding calls.</p></li>
+<li><p>The associated boundary condition class must have a (protected) method <code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">void</span> <span class="pre">SetMaterialImpl(TPZMaterial</span> <span class="pre">*)()</span></code>. This method can be useful if a casted pointer to the associated material is needed when forwarding calls.</p></li>
 <li><p>The read and write methods must be overriden.</p></li>
 </ul>
 </div>

@@ -30,10 +30,12 @@ As discussed in :ref:`section-interfaces`, each interface shall also define a bo
    :members:
    :protected-members:
 
-.. _section-single-interfaces:
+.. _section-combined-interfaces:
 
 Available Interfaces
 --------------------
+
+.. _section-combined-interfaces-interface:
 
 Interface
 ^^^^^^^^^
@@ -44,17 +46,20 @@ Interface for discontinuous materials
    :members:
    :membergroups: Interface
 
+.. _section-combined-interfaces-error:
+
 Error
 ^^^^^
 
 Interface for computing the error of the FEM solution based on an exact solution.
-
-.. doxygenclass:: TPZMatError
-   :members:
-   :membergroups: Error
                   
 .. doxygenclass:: TPZMatErrorCombinedSpaces
    :members:
    :membergroups: Error
 
-.. include:: commoninterfaces.rst
+.. _section-combined-interfaces-common:
+
+Common
+^^^^^^
+
+See also the :doc:`commoninterfaces`.
