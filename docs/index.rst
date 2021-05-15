@@ -10,8 +10,8 @@ Welcome to NeoPZ's documentation!
    :maxdepth: 1
    :caption: Contents:
              
-   material/materialindex.rst
-   structmatrix/structindex.rst
+   material/index.rst
+   structmatrix/index.rst
    util/index.rst
    
    
@@ -20,8 +20,9 @@ Introduction
 
 This documentation is an ongoing work. The following sections have been written:
 
-- :doc:`material/materialindex` How weak formulations are implemented
-- :doc:`structmatrix/structindex` How different matrix storage formats can be used
+- :doc:`material/index` How weak formulations are implemented
+- :doc:`structmatrix/index` How different matrix storage formats can be used
+- :doc:`util/index` Utility classes available in NeoPZ
 
 About
 -----

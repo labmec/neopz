@@ -12,14 +12,14 @@ Available Materials in NeoPZ
 .. note:: If you write a material that you think it should be available in NeoPZ, please feel free to submit a pull request.
 
           
-.. include:: projections.rst
+.. include:: projections.inc
              
-.. include:: lagrangemat.rst
+.. include:: lagrangemat.inc
              
-.. include:: nullmat.rst
+.. include:: nullmat.inc
              
-.. include:: poisson.rst
+.. include:: poisson.inc
              
-.. include:: elasticity.rst
+.. include:: elasticity.inc
             
-.. include:: electromagnetics.rst
+.. include:: electromagnetics.inc
