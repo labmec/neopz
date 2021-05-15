@@ -224,7 +224,6 @@ typedef long double STATE;
 #endif // STATElongdouble
 typedef std::complex<STATE> CSTATE;
 // set(STATE_COMPLEX "STATE_COMPLEX")
-// set (BUILD_COMPLEX_PROJECTS ON)
 
 enum ESolType{ EReal=1,EComplex=2,EUndefined=3};
 #ifdef VC

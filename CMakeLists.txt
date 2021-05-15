@@ -370,12 +370,9 @@ if(BUILD_UNITTESTING)
     include(CTest)
 endif()
 
-if(NOT BUILD_COMPLEX_PROJECTS)
-    if(BUILD_PERF_TESTS)
-        add_subdirectory(PerfTests)
-    endif()
+if(BUILD_PERF_TESTS)
+  add_subdirectory(PerfTests)
 endif()
-
 get_target_property(pz_sources pz SOURCES)
 #To build the documentation using doxygen
 option(BUILD_DOCS "Whether to build the documentation using Doxygen" OFF)

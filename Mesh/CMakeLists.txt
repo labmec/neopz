@@ -54,6 +54,11 @@ set(headers
   pzcondensedcompel.h
   pzsubcmesh.h
   TPZGeoElSidePartition.h
+  pzflowcmesh.h
+  pzhdivpressure.h 
+  pzhdivpressurebound.h
+  tpzagglomeratemesh.h
+  TPZAgglomerateEl.h
 )
 
 set(sources
@@ -101,18 +106,17 @@ set(sources
   pzmultiphysicselement.cpp
   TPZCompElHCurl.cpp
   TPZGeoElSideAncestors.cpp
+  pzflowcmesh.cpp
+  pzhdivpressure.cpp
+  pzhdivpressurebound.cpp
+  TPZAgglomerateEl.cpp
 )
-if(NOT BUILD_COMPLEX_PROJETS)
-  list(APPEND headers pzflowcmesh.h pzhdivpressure.h 
-    pzhdivpressurebound.h tpzagglomeratemesh.h TPZAgglomerateEl.h)
-  list(APPEND sources pzflowcmesh.cpp pzhdivpressure.cpp
-    pzhdivpressurebound.cpp TPZAgglomerateEl.cpp)
-  
-  if(USING_MKL)
-    list(APPEND headers TPZSBFemElementGroup.h TPZSBFemVolume.h)
-    list(APPEND sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp)
-  endif()
+
+if(USING_MKL)
+  list(APPEND headers TPZSBFemElementGroup.h TPZSBFemVolume.h)
+  list(APPEND sources TPZSBFemElementGroup.cpp TPZSBFemVolume.cpp)
 endif()
+
   
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mesh)
 

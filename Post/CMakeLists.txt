@@ -30,10 +30,11 @@ set(headers
     pztrigraphd.h
     pzvtkmesh.h
     tpzgraphelt2dmapped.h
+    pzgradientreconstruction.h
     #post proc
     pzpostprocanalysis.h
     pzcompelpostproc.h
-    pzpostprocmat.h
+    pzpostprocmat.h    
     )
 
 set(sources
@@ -59,14 +60,10 @@ set(sources
     pztrigraphd.cpp
     pzvtkmesh.cpp
     tpzgraphelt2dmapped.cpp
+    pzgradientreconstruction.cpp
     pzpostprocanalysis.cpp
     pzpostprocmat.cpp
     )
-
-if(NOT BUILD_COMPLEX_PROJECTS)
-    list(APPEND headers pzgradientreconstruction.h)
-    list(APPEND sources pzgradientreconstruction.cpp)
-endif()
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Post)
 

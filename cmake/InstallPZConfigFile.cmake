@@ -6,7 +6,6 @@ endfunction()
 
 create_post_install_var(REAL_TYPE_DEF)
 create_post_install_var(STATE_TYPE_DEF)
-create_post_install_var(STATE_COMPLEX)
 
 create_post_install_var(PZ_BRANCH)
 create_post_install_var(PZ_REVISION)
