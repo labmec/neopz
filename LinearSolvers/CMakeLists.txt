@@ -15,11 +15,16 @@ set(headers
     gmres.h
     ir.h
     qmr.h
+    TPZPardisoControl.h
+    )
+
+set(sources
+    TPZPardisoControl.cpp
     )
 
 install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/LinearSolvers)
 
-target_sources(pz PRIVATE ${headers})
+target_sources(pz PRIVATE ${headers} ${sources})
 #for doxygen
 foreach(header ${headers})
     list(APPEND PZ_PUBLIC_HEADERS " ${CMAKE_CURRENT_SOURCE_DIR}/${header}")

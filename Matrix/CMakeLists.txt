@@ -25,7 +25,6 @@ set(headers
     pzstencil.h
     pztrnsform.h
     tpzverysparsematrix.h
-    TPZPardisoControl.h
     pzblockdiag.h
     pzmatred.h
     pzseqsolver.h
@@ -48,7 +47,6 @@ set(sources
     pzspblockdiagpivot.cpp
     pzsysmp.cpp
     tpzsparseblockdiagonal.cpp
-    TPZPardisoControl.cpp
     pzbndmat.cpp
     pzsbndmat.cpp
     pzsfulmat.cpp
