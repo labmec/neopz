@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <fstream>
 
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 
 #include "pzlog.h"
 

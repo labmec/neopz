@@ -21,10 +21,11 @@ class TPZSYsmpMatrix;
 template<class TVar>
 class TPZFYsmpMatrix;
 
-/// class to control the pardiso solution process
-// inspired by PardisoSolver by Armando Duarte
-// it has no use unless USING_MKL=ON is set during
-// CMake configuration of the NeoPZ library.
+/**
+   @brief This class acts as a wrapper for calls to the Pardiso solver.
+   Inspired by PardisoSolver by Armando Duarte.
+   @note It is meaningless unless the library is linked against MKL library.
+*/
 template<class TVar>
 class TPZPardisoControl
 {
@@ -35,7 +36,7 @@ public:
     
     enum MProperty {EPositiveDefinite, EIndefinite};
     
-    /// empty constructor (non symetric and LU decomposition
+    /// empty constructor (non symetric and LU decomposition)
     TPZPardisoControl();
     
 public:
@@ -43,28 +44,34 @@ public:
     TPZPardisoControl(MSystemType systemtype, MProperty prop);
     
     TPZPardisoControl(const TPZPardisoControl &copy);
+
+    TPZPardisoControl(TPZPardisoControl &&copy) = default;
     
     TPZPardisoControl &operator=(const TPZPardisoControl &copy);
+
+    TPZPardisoControl &operator=(TPZPardisoControl &&copy) = default;
     
     virtual ~TPZPardisoControl();
     
-    /// change the matrix type
-    // this method should only be called if the pardiso control is zero (non initialized)
+    /**
+       @brief Change the matrix type
+       @note  This method should only be called if the pardiso control is zero (non initialized).
+    */
     void SetMatrixType(MSystemType systemtype, MProperty prop);
     
-    /// initialize the pointer to the nonsymmetric data structure
+    /// Initialize the pointer to the nonsymmetric data structure
     void SetMatrix(TPZFYsmpMatrix<TVar> *matrix)
     {
         fNonSymmetricSystem = matrix;
     }
     
-    /// initialize the pointer to the symmetric data structure
+    /// Initialize the pointer to the symmetric data structure
     void SetMatrix(TPZSYsmpMatrix<TVar> *matrix)
     {
         fSymmetricSystem = matrix;
     }
     
-    /// decompose the matrix acording to the method determined by SetMatrixType
+    /// Decompose the matrix acording to the method determined by SetMatrixType
     void Decompose();
     
     /// Use the decomposed matrix to invert the system of equations

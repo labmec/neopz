@@ -5,7 +5,7 @@
 
 #ifndef TPZSTEPSOLVER_H
 #define TPZSTEPSOLVER_H
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 
 #include "pzfmatrix.h"
 

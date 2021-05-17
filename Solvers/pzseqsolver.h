@@ -5,15 +5,9 @@
 
 #ifndef TPZSEQUENCESOLVER_H
 #define TPZSEQUENCESOLVER_H
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "pzstack.h"
 #include "pzfmatrix.h"
-
-/** 
- * @ingroup solver
- * @brief Id for sequence solver
- */
-#define TPZSQUENCESOLVER_ID 29281006
 
 /**
  * @brief Defines sequence solvers. \ref solver "Solver"
@@ -24,9 +18,9 @@ class TPZSequenceSolver : public TPZMatrixSolver<TVar> {
 public:
 	/**
      * @brief Constructor with initialization parameter
-     * @param refmat Sets reference matrix to NILL
+     * @param refmat Sets reference matrix
 	 */
-	TPZSequenceSolver(TPZMatrix<TVar> *refmat = 0);
+	TPZSequenceSolver(TPZMatrix<TVar> *refmat = nullptr);
 	/**
      * @brief Copy constructor
      * @param copy Model object to be copied from

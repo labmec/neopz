@@ -41,7 +41,7 @@
 #include "TPZMatLoadCases.h"               // for TPZMatLoadCases
 #include "pzmvmesh.h"                      // for TPZMVGraphMesh
 #include "pzseqsolver.h"                   // for TPZSequenceSolver
-#include "pzsolve.h"                       // for TPZMatrixSolver, TPZSolver
+#include "TPZMatrixSolver.h"                       // for TPZMatrixSolver, TPZSolver
 #include "pzstack.h"                       // for TPZStack
 #include "pzstepsolver.h"                  // for TPZStepSolver
 #include "TPZStructMatrix.h"               // for TPZStructMatrix

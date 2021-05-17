@@ -1,41 +1,21 @@
 /**
  * @file
- * @brief Contains TPZSolver class which defines a abstract class of solvers  which will be used by matrix classes.
+ * @brief Contains TPZMatrixSolver class which defines an abstract class of solvers which will be used by matrix classes for solving equations systems.
  */
 
-#ifndef TPREH
-#define TPREH
+#ifndef TPZMATRIXSOLVER_H
+#define TPZMATRIXSOLVER_H
 
 #include "pzfmatrix.h"
+#include "TPZSolver.h"
 #include "tpzautopointer.h"
 
 
-template<class TVar>
-class TPZMatrixSolver;
-/**
- * @ingroup solver
- * @brief Defines a abstract class of solvers  which will be used by matrix classes. \ref solver "Solver"
- */
-class TPZSolver: public TPZSavable
-{
-public:
-    //! Defines the ClassId of TPZSolver class
-    int ClassId() const override;
-	
-	//! Clones the current object returning a pointer of type TPZSolver
-	virtual TPZSolver *Clone() const = 0;
-
-	//! Destructor
-	virtual ~TPZSolver() = default;
-	
-	/*! Resets the matrix associated with the solver. This is useful when the matrix needs to be recomputed in a non linear problem*/
-	virtual void ResetMatrix() = 0;
-};
-
 
 /**
  * @ingroup solver
- * @brief  Defines a class of matrix solvers. \ref solver "Solver"
+ * @brief  Defines the interface for matrix solvers. \ref solver "Solver"
+ * These are used for solving linear or non-linear systems of equations.
  */
 template<class TVar>
 class TPZMatrixSolver: public TPZSolver
@@ -165,4 +145,4 @@ extern template class TPZMatrixSolver<std::complex<long double> >;
 extern template class TPZMatrixSolver<Fad<float> >;
 extern template class TPZMatrixSolver<Fad<double> >;
 extern template class TPZMatrixSolver<Fad<long double> >;
-#endif  // TPREH
+#endif  // TPZMATRIXSOLVER_H
