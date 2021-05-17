@@ -38,7 +38,7 @@ public:
 
 	/**
 	 * @brief Constructor with initialization parameter
-	 * @param Refmat Sets reference matrix to 0
+	 * @param Refmat Sets reference matrix to `nullptr`
 	 */
 	
 	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  Refmat);

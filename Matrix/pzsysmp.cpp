@@ -8,7 +8,6 @@
 #include "pzsysmp.h"
 #include "pzfmatrix.h"
 #include "pzstack.h"
-
 // ****************************************************************************
 // 
 // Constructors and the destructor
@@ -18,10 +17,7 @@
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix() : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
 TPZMatrix<TVar>() {
-#ifdef USING_MKL
-    fPardisoControl.SetMatrix(this);
-#endif
-    
+
 #ifdef CONSTRUCTOR
     cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
 #endif
@@ -30,21 +26,13 @@ template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : 
     TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
     TPZMatrix<TVar>(cp), fIA(cp.fIA), fJA(cp.fJA), fA(cp.fA), fDiag(cp.fDiag)
-#ifdef USING_MKL
-    , fPardisoControl(cp.fPardisoControl)
-#endif
-    {
-#ifdef USING_MKL
-        fPardisoControl.SetMatrix(this);
-#endif
-    }
+{
+
+}
+
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int64_t rows,const int64_t cols ) : TPZRegisterClassId(&TPZSYsmpMatrix::ClassId),
 TPZMatrix<TVar>(rows,cols) {
-
-#ifdef USING_MKL
-    fPardisoControl.SetMatrix(this);
-#endif
 
 #ifdef CONSTRUCTOR
 	cerr << "TPZSYsmpMatrix(int rows,int cols)\n";
@@ -67,10 +55,6 @@ TPZSYsmpMatrix<TVar> &TPZSYsmpMatrix<TVar>::operator=(const TPZSYsmpMatrix<TVar>
     fJA = copy.fJA;
     fA = copy.fA;
     fDiag = copy.fDiag;
-#ifdef USING_MKL
-    fPardisoControl = copy.fPardisoControl;
-    fPardisoControl.SetMatrix(this);
-#endif
     return *this;
 }
 
@@ -384,7 +368,7 @@ int TPZSYsmpMatrix<TVar>::Decompose_LDLt()
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
     }
-    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EIndefinite);
+    fPardisoControl.SetRawMatrix(this);
     fPardisoControl.Decompose();
     this->SetIsDecomposed(ELDLt);
     return 1;
@@ -398,10 +382,9 @@ int TPZSYsmpMatrix<TVar>::Decompose_Cholesky()
     if (this->IsDecomposed() != ENoDecompose) {
         DebugStop();
     }
-
-    fPardisoControl.SetMatrixType(TPZPardisoControl<TVar>::ESymmetric,TPZPardisoControl<TVar>::EPositiveDefinite);
+    this->fDefPositive = true;
+    fPardisoControl.SetRawMatrix(this);
     fPardisoControl.Decompose();
-
     this->SetIsDecomposed(ECholesky);
     return 1;
 }
@@ -417,7 +400,7 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-    fPardisoControl.Solve(*b,x);
+    fPardisoControl.ReallySolve(*b,x);
     *b = x;
     return 1;
 }
@@ -439,7 +422,7 @@ template<class TVar>
 int TPZSYsmpMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>* b ) const
 {
     TPZFMatrix<TVar> x(*b);
-    fPardisoControl.Solve(*b,x);
+    fPardisoControl.ReallySolve(*b,x);
     *b = x;
     return 1;
 }

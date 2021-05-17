@@ -8,15 +8,12 @@
 #define YSMPMATH
 
 #include "pz_config.h"
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
+#include "TPZPardisoSolver.h"
 
 template<class TVar>
 class TPZVerySparseMatrix;
-
-#include "pzmatrix.h"
-#include "pzfmatrix.h"
-
-#include "TPZPardisoControl.h"
-
 /**
  * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage). \ref matrix "Matrix"
  * @ingroup matrix
@@ -27,7 +24,7 @@ class TPZVerySparseMatrix;
 template<class TVar>
 class TPZFYsmpMatrix : public TPZMatrix<TVar> {
 	
-    friend class TPZPardisoControl<TVar>;
+    friend class TPZPardisoSolver<TVar>;
     
 	public :
 	
@@ -191,7 +188,7 @@ protected:
 	
 	int   fSymmetric;
 	
-    TPZPardisoControl<TVar> fPardisoControl;
+    TPZPardisoSolver<TVar> fPardisoControl;
 protected:
 	
 	/**
