@@ -226,21 +226,37 @@ void TestSVD(int nrows, int ncols);
         SECTION("LU"){
             SECTION("TPZFMatrix"){
                 TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 0, ELU);
+                TestingInverseWithAutoFill<TPZFMatrix<TVar>,TVar>(dim, 1, ELU);
             }
             SECTION("TPZFBMatrix"){
                 TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 0, ELU);
+                TestingInverseWithAutoFill<TPZFBMatrix<TVar>,TVar>(dim, 1, ELU);
             }
             SECTION("TPZBlockDiagonal"){
                 TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 0,ELU);
+                TestingInverseWithAutoFill<TPZBlockDiagonal<TVar>,TVar>(dim, 1,ELU);
             }
         
             SECTION("TPZFNMatrix"){
                 TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 0, ELU);
+                TestingInverseWithAutoFill<TPZFNMatrix<9,TVar>,TVar>(dim, 1, ELU);
             }
         
             SECTION("TPZSkylNSymMatrix"){
                 TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 0,ELU);
+                TestingInverseWithAutoFill<TPZSkylNSymMatrix<TVar>,TVar>(dim, 1,ELU);
             }
+#ifdef PZ_USING_MKL
+            if constexpr (std::is_same<RTVar,double>::value){
+                SECTION("TPZFYsmpMatrix"){
+                    TestingInverseWithAutoFill<TPZFYsmpMatrix<TVar>,TVar>(dim, 0, ELU);
+                }
+                SECTION("TPZFYsmpMatrix"){
+                    TestingInverseWithAutoFill<TPZFYsmpMatrix<TVar>,TVar>(dim, 1, ELU);
+                }
+            }
+            
+#endif            
         }
     }
 
