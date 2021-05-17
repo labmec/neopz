@@ -16,7 +16,6 @@ set(headers
     pzspblockdiagpivot.h
     pzsysmp.h
     tpzsparseblockdiagonal.h
-    TPZCopySolve.h
     pzblock.h
     pzdiffmatrix.h
     pzsbndmat.h
@@ -27,10 +26,7 @@ set(headers
     tpzverysparsematrix.h
     pzblockdiag.h
     pzmatred.h
-    pzseqsolver.h
     pzshtmat.h
-    pzsolve.h
-    pzstepsolver.h
     pzysmp.h
     TPZSolutionMatrix.h
     TPZTensor.h
@@ -56,10 +52,7 @@ set(sources
     tpzverysparsematrix.cpp
     pzblock.cpp
     pzmatred.cpp
-    pzseqsolver.cpp
     pzshtmat.cpp
-    pzsolve.cpp
-    pzstepsolver.cpp
     pzysmp.cpp
     TPZSolutionMatrix.cpp
     TPZTensor.cpp
