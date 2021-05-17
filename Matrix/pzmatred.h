@@ -10,7 +10,7 @@
 #include "pzmatrix.h"
 #include "pzreal.h"
 #include "pzfmatrix.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 
 template<class TVar>
 class TPZVerySparseMatrix;

@@ -12,7 +12,7 @@
 #include <random>
 //#include "pzfmatrix.h"
 #include "pzmatrix.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "pzvec.h"
 #include "pzextractval.h"
 

@@ -14,7 +14,7 @@
 #include "pzadmchunk.h"
 #include "TPZMaterial.h"
 #include "ConsLaw/TPZConsLaw.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "pzdxmesh.h"
 #include "pzstepsolver.h"
 #include "pzblockdiag.h"

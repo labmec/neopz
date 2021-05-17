@@ -11,7 +11,7 @@
 #include "pzanalysis.h"
 #include "TPZSSpStructMatrix.h"
 #include "pzmatrix.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "tpzautopointer.h"
 
 //parallel layer classes

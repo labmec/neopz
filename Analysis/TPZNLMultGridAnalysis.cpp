@@ -26,7 +26,7 @@
 #include "pzgmesh.h"             // for TPZGeoMesh
 #include "TPZMaterial.h"          // for TPZMaterial
 #include "pzskylstrmatrix.h"     // for TPZSkylineStructMatrix
-#include "pzsolve.h"             // for TPZMatrixSolver, TPZSolver, TPZMatri...
+#include "TPZMatrixSolver.h"             // for TPZMatrixSolver, TPZSolver, TPZMatri...
 #include "pzstepsolver.h"        // for TPZStepSolver
 #include "pztransfer.h"          // for TPZTransfer
 #include "pzvec.h"               // for TPZVec

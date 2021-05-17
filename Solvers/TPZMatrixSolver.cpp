@@ -8,17 +8,13 @@
 static TPZLogger logger("pz.matrix.tpzmatred");
 #endif
 
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 
 #include "Hash/TPZHash.h"
 #include "TPZPersistenceManager.h"
 
 #include <stdlib.h>
 using namespace std;
-
-int TPZSolver::ClassId() const{
-    return Hash("TPZSolver");
-}
 
 template <class TVar>
 TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > Refmat) :

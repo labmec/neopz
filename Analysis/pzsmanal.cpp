@@ -6,7 +6,7 @@
 #include "pzsmanal.h"
 #include "pzsubcmesh.h"
 #include "pzfmatrix.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 
 #include "pzlog.h"
 

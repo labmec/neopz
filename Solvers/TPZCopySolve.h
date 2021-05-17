@@ -6,7 +6,7 @@
 
 #ifndef TPZCOPYSOLVE_H
 #define TPZCOPYSOLVE_H
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "pzfmatrix.h"
 
 

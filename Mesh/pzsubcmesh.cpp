@@ -12,7 +12,7 @@
 #include "TPZElementMatrixT.h"
 #include "pznonlinanalysis.h"
 #include "pzskylmat.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"
 #include "pzfstrmatrix.h"

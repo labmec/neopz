@@ -5,7 +5,8 @@ target_include_directories(pz PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Solvers>
     )
 set(public_headers
-    pzsolve.h
+    TPZSolver.h
+    TPZMatrixSolver.h
     pzstepsolver.h
     pzseqsolver.h
     )
@@ -15,7 +16,8 @@ set(headers
     )
 
 set(sources
-    pzsolve.cpp
+    TPZSolver.cpp
+    TPZMatrixSolver.cpp
     pzstepsolver.cpp
     pzseqsolver.cpp
     )

@@ -6,7 +6,7 @@
 #include "pzsmfrontalanal.h"
 #include "pzsubcmesh.h"
 #include "pzfmatrix.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 
 using namespace std;
 

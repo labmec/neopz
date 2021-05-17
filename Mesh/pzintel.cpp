@@ -9,7 +9,7 @@
 #include "TPZMaterial.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
-#include "pzsolve.h"
+#include "TPZMatrixSolver.h"
 #include "pzstepsolver.h"
 #include "pzquad.h"
 #include "TPZElementMatrixT.h"
