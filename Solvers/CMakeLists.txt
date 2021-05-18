@@ -7,6 +7,7 @@ target_include_directories(pz PUBLIC
 set(public_headers
     TPZSolver.h
     TPZMatrixSolver.h
+    TPZEigenSolver.h
     TPZPardisoSolver.h
     pzstepsolver.h
     pzseqsolver.h
@@ -19,6 +20,7 @@ set(headers
 set(sources
     TPZSolver.cpp
     TPZMatrixSolver.cpp
+    TPZEigenSolver.cpp
     TPZPardisoSolver.cpp
     pzstepsolver.cpp
     pzseqsolver.cpp
